@@ -1,3 +1,4 @@
+
 % $Id$
 
 \chapter{The module \escript}
@@ -12,7 +13,7 @@ function space at the starting point can be interpreted as a function in the fun
 \end{figure}
 
 \escript is an extension of Python to handle functions represented by their values on
-\DataSamplePoints. The \DataSamplePoints for the geometrical region on which
+\DataSamplePoints for the geometrical region on which
 the function is defined. The region as well as the method which is used 
 to interpolate value on the \DataSamplePoints is defined by     
 \Domain class objects. For instance when using 
@@ -38,7 +39,7 @@ PDE solutions on the \Domain \var{mydomain}:
 \begin{python}
 solution_space=Solution(mydomain)
 \end{python}
-The following generators for function spaces on a \Domain \var{mydomin} are available: 
+The following generators for function spaces on a \Domain \var{mydomain} are available: 
 \begin{itemize}
 \item \var{Solution(mydomain)}: solutions of a PDE.  
 \item \var{ContinuousFunction(mydomain)}: continuous functions, eg. a temperature distribution.
@@ -77,7 +78,7 @@ will typically lead to a change of its representation.
 So, when seen as a general function,
 a continuous function which is typically represented by its values
 on the node of the FEM mesh or finite difference grid 
-has to be interpolated to the element centers or the cell edges,
+must be interpolated to the element centers or the cell edges,
 respectively.
 
 \Data class objects store functions of the location in a domain. 
@@ -89,7 +90,7 @@ of the PDEs to be solved by a PDE solver library
 and to store the returned solutions.
 
 The values of the function have a rank which gives the
-number of indexes, and a \Shape defining the range of each index.
+number of indices, and a \Shape defining the range of each index.
 The rank in \escript is limited to the range $0$ through $4$ and
 it is assumed that the rank and \Shape is the same for all \DataSamplePoints.
 The \Shape of a \Data object is a tuple \var{s} of integers. The length
@@ -121,7 +122,7 @@ which generates a $2 \times 3$ matrix as a \numarray array
 filled with ones. The \Shape of the created \Data object
 it taken from the \Shape of the array. In the second
 case, the creator converts the initial value, which is a list of lists,
-and converts it into a \numarray array before creating the actuall
+and converts it into a \numarray array before creating the actual
 \Data object.      
 
 For convenience \escript provides creators for the most common types
@@ -141,8 +142,8 @@ Here the initial value is $0$ but any object that can be converted into a \numar
 is consistent with \Shape of the \Data object to be created can be used as the initial value.
 
 \Data objects can be manipulated by applying unitary operations (eg. cos, sin, log) 
-and be combined by applying binary operations (eg. +, - ,* , /). 
-It is to be emphasized that \escript itself does not handle any spatial dependencies itself as 
+and can be combined by applying binary operations (eg. +, - ,* , /). 
+It is to be emphasized that \escript itself does not handle any spatial dependencies as 
 it does not know how values are interpreted by the processing PDE solver library. 
 However \escript invokes interpolation if this is needed during data manipulations. 
 Typically, this occurs in binary operation when both arguments belong to different
@@ -252,7 +253,7 @@ processing the value for each individual sample point.
 \section{\Domain class}
 
 \begin{classdesc}{Domain}{}
-A \Domain objects is used to describe a geometrical region together with 
+A \Domain object is used to describe a geometrical region together with 
 a way of representing functions over this region.
 The \Domain class provides an abstract access to the domain of \FunctionSpace and \Data objects. 
 \Domain itself has no initialization but implementations of \Domain are 
@@ -379,7 +380,7 @@ for the solution approximation.
 \end{funcdesc}
 
 \section{\Data Class}
-
+\label{SEC ESCRIPT DATA}
 
 The following table shows binary and unitary operations that can be applied to
 \Data objects:
@@ -392,18 +393,18 @@ The following table shows binary and unitary operations that can be applied to
 \lineii{\var{arg1}/\var{arg2}} {ratio \var{arg1} by \var{arg2} \index{/}}
 \lineii{\var{arg1}**\var{arg2}} {raises \var{arg1} to the power of \var{arg2} \index{**}}
 \end{tableii}
-At least on of the arguments \var{arg1} or \var{arg2} must be a
+At least one of the arguments \var{arg1} or \var{arg2} must be a
 \Data object. One of the arguments may be an object that can be
 converted into a \Data object. If \var{arg1} or \var{arg2} are
-defined on different \FunctionSpace it is tried to embed \var{arg1}
+defined on different \FunctionSpace an attempt is made to embed \var{arg1}
 into the \FunctionSpace of \var{arg2} or to embed \var{arg2} into
 the \FunctionSpace of \var{arg1}. Boths arguments must have the same
 \Shape or one of the arguments my be of rank 0 or \Shape (1,). In the
 latter case it is assumed that the particular argument is of the same
-\Shape like the other argument but constant over all components.
+\Shape as the other argument but constant over all components.
 
 The returned \Data object has the same \Shape and is defined on
-the \DataSamplePoints like \var{arg1} or \var{arg2}.
+the \DataSamplePoints as \var{arg1} or \var{arg2}.
 
 The following table shows the update operations that can be applied to
 \Data objects:
@@ -418,12 +419,12 @@ The following table shows the update operations that can be applied to
 \Data object. \var{arg1} must have the same \Shape like
 \var{arg1} or has rank 0 or \Shape (1,).  In the latter case it is
 assumed that the values of \var{arg1} are constant for all
-components. \var{arg2} must be defined on the same \DataSamplePoints like
+components. \var{arg2} must be defined on the same \DataSamplePoints as
 \var{arg1} or it must be possible to interpolate \var{arg2} onto the
-\DataSamplePoints where \var{arg1} is hold.
+\DataSamplePoints where \var{arg1} is held.
 
 The \Data class supports getting slices as well as assigning new values to components in an existing
-\Data object \index{slicing}.
+\Data object. \index{slicing}
 The following expression for getting (expression on the right hand side of the
 equal sign) and setting slices (expression on the left hand side of the
 equal sign) are valid:
@@ -445,7 +446,7 @@ Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may not be pr
 \var{s} is assumed. The lower and upper index may be identical, in which case the column and the lower or upper
 index may be dropped. In the returned or in the object assigned to a slice the corresponding component is dropped,
 i.e. the rank is reduced by one in comparison to \var{arg}.
-The follwing examples showing the usage of slicing:  
+The following examples show slicing usage:  
 \begin{python}
 t[1,1,1,0]=9.
 s=t[:2,:,2:6,5] # s has rank 3
