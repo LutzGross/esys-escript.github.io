@@ -18,14 +18,14 @@ install: all
 	@echo ----------------------------------------------------------------------------
 	@if test -n "${INSTALL_PYTH}";\
 	then \
-	  install -p ${INSTALL_PYTH} ${L_PYTH_DIR};\
+	  install ${INSTALL_PYTH} ${L_PYTH_DIR};\
 	fi
-	@echo Installed ${INSTALL_PYTH}.
+	@echo Installed ${INSTALL_PYTH} to ${L_PYTH_DIR}.
 	@if test -n "${INSTALL_LIB}";\
 	then \
-	  install -p ${INSTALL_LIB} ${L_INSTLIB_DIR};\
+	  install ${INSTALL_LIB} ${L_INSTLIB_DIR};\
 	fi
-	@echo Installed ${INSTALL_LIB}.
+	@echo Installed ${INSTALL_LIB} to ${L_INSTLIB_DIR}.
 	@echo ----------------------------------------------------------------------------
 
 uninstall:
