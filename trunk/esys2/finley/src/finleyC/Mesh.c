@@ -25,7 +25,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,int numDim, int order) {
   
   /*  allocate the return value */
   
-  out=(Finley_Mesh*)MEMALLOC(sizeof(Finley_Mesh));
+  out=MEMALLOC(1,Finley_Mesh);
   if (Finley_checkPtr(out)) return NULL;
   out->Name=NULL;  
   out->Nodes=NULL; 
@@ -34,10 +34,15 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,int numDim, int order) {
   out->Points=NULL;      
   out->ContactElements=NULL;      
   out->reference_counter=0;
+
+  out->FullFullPattern=NULL;
+  out->FullReducedPattern=NULL;
+  out->ReducedFullPattern=NULL;
+  out->ReducedReducedPattern=NULL;
   
   /*   copy name: */
   
-  out->Name=(char*)MEMALLOC((strlen(name)+1)*sizeof(char));
+  out->Name=MEMALLOC(strlen(name)+1,char);
   if (Finley_checkPtr(out->Name)) {
       Finley_Mesh_dealloc(out);
       return NULL;
@@ -60,6 +65,13 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,int numDim, int order) {
   return out;
 }
 
+/* returns a reference to Finley_Mesh in */
+
+Finley_Mesh* Finley_Mesh_reference(Finley_Mesh* in) {
+     if (in!=NULL) ++(in->reference_counter);
+     return in;
+}
+
 /*   deallocates a mesh: */
 
 void Finley_Mesh_dealloc(Finley_Mesh* in) {
@@ -79,6 +91,10 @@ void Finley_Mesh_dealloc(Finley_Mesh* in) {
        Finley_ElementFile_dealloc(in->FaceElements);
        Finley_ElementFile_dealloc(in->ContactElements);
        Finley_ElementFile_dealloc(in->Points);
+       Finley_SystemMatrixPattern_dealloc(in->FullFullPattern);
+       Finley_SystemMatrixPattern_dealloc(in->FullReducedPattern);
+       Finley_SystemMatrixPattern_dealloc(in->ReducedFullPattern);
+       Finley_SystemMatrixPattern_dealloc(in->ReducedReducedPattern);
        MEMFREE(in);      
      }
   }
@@ -115,14 +131,9 @@ int Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh *in) {
 }
 /* 
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

@@ -26,7 +26,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(int numDim){
   
   /*  allocate the return value */
   
-  out=(Finley_NodeFile*)MEMALLOC(sizeof(Finley_NodeFile));
+  out=MEMALLOC(1,Finley_NodeFile);
   if (Finley_checkPtr(out)) return NULL;
   out->numNodes=0;
   out->numDegreesOfFreedom=0;
@@ -55,14 +55,9 @@ void Finley_NodeFile_dealloc(Finley_NodeFile* in) {
 }
 /* 
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

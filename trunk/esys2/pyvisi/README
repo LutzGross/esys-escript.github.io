@@ -1,0 +1,56 @@
+$Id$
+			 ===============
+  		  	     pyvisi
+  			 ===============
+  
+
+--------------------------------------------------------------------
+ Summary
+--------------------------------------------------------------------
+
+Pyvisi is the Python visualisation interface: a generic Python-based interface
+to many different scientific visualisation packages.
+
+See http://pyvisi.sourceforge.net
+
+
+--------------------------------------------------------------------
+ Installation
+--------------------------------------------------------------------
+
+Pyvisi is just a python module ... treat it as any other module
+
+ * Global Instalation
+
+   As root use
+
+   > python setup.py install
+
+   This will install the files, in the appropriate place for 
+   your python distribution. This will be something like
+   e.g. /usr/lib/python2.2/site-packages/
+
+ * Local instalation:
+
+   You can supply the base directory using
+
+   > python setup.py install --home=<dir>
+
+   which will install the files in 
+
+   <dir>/lib/python/
+
+   for more help and options use 
+   > python setup.py install --help
+
+   also see http://www.python.org/doc/current/inst/ for more details on 
+   using the distutils package
+
+ * By hand
+
+   copy all the files in the pyvisi directory to somewhere in your
+   python path
+
+   eg
+
+   cp -r pyvisi ~/lib/python/ 

@@ -15,12 +15,47 @@
 \newcommand{\ESyS}{\module{ESyS}\xspace}
 \newcommand{\escript}{\module{escript}\xspace}
 \newcommand{\finley}{\module{finley}\xspace}
-\newcommand{\linearPDE}{\class{linearPDE}\xspace}
+\newcommand{\linearPDEsPack}{\module{linearPDEs}\xspace}
+\newcommand{\LinearPDE}{\class{LinearPDE}\xspace}
+\newcommand{\AdvectivePDE}{\class{AdvectivePDE}\xspace}
+\newcommand{\Poisson}{\class{Poisson}\xspace}
 \newcommand{\Data}{\class{Data}\xspace}
+\newcommand{\EmptyData}{empty \class{Data} \index{empty Data}\xspace}
+\newcommand{\Domain}{\class{Domain}\xspace}
+\newcommand{\OpenDX}{{\it OpenDX}\xspace}
+\newcommand{\finleyelement}[1]{{\it #1}\index{finley!#1}}
+\newcommand{\False}{\constant{False}\xspace}
+\newcommand{\True}{\constant{True}\xspace}
+\newcommand{\PCG}{\constant{PCG}\index{linear solver!PCG}\index{PCG}}
+\newcommand{\BiCGStab}{\constant{BICGSTAB}\index{linear solver!BiCGStab}\index{BiCGStab}}
+\newcommand{\Direct}{\constant{DIRECT}\index{linear solver!Direct}\index{Direct solver}}
+\newcommand{\GMRES}{\constant{GMRES}\index{linear solver!GMRES}\index{GMRES}}
+\newcommand{\PRESTWENTY}{\constant{PRES20}\index{linear solver!PRES20}\index{PRES20}}
+
+\newcommand{\FunctionSpace}{\class{FunctionSpace}\xspace}
+\newcommand{\Operator}{\class{Operator}\xspace}
+\newcommand{\SolutionFS}{solution \class{FunctionSpace}\index{solution}\xspace}
+\newcommand{\ReducedSolutionFS}{reduced solution \class{FunctionSpace}\index{solution!reduced}\xspace}
+\newcommand{\FunctionOnBoundary}{boundary \class{FunctionSpace}\xspace}
+\newcommand{\Function}{general \class{FunctionSpace}\xspace}
+\newcommand{\FunctionOnContactZero}{contact \class{FunctionSpace} on side 0\xspace}
+\newcommand{\FunctionOnContactOne}{contact \class{FunctionSpace} on side 1\xspace}
+\newcommand{\ContinuousFunction}{continuous \class{FunctionSpace}\xspace}
+\newcommand{\RankTwo}{{rank-2 \Data object}\xspace}
+\newcommand{\RankOne}{{rank-1 \Data object}\xspace}
+\newcommand{\RankThree}{{rank-3 \Data object}\xspace}
+\newcommand{\RankFour}{{rank-4 \Data object}\xspace}
+\newcommand{\Scalar}{{scalar \Data object}\xspace}
+\newcommand{\DataSample}{{data sample} \index{data sample}\xspace}
+\newcommand{\DataSamplePoints}{{data sample points} \index{data sample!points}\xspace}
+\newcommand{\numarray}{\module{numarray}\xspace}
+\newcommand{\Shape}{shape\xspace\index{shape}}
+\newcommand{\ExampleDirectory}{example directory\xspace}
+
+
 
 % default width for figures
 \newcommand{\figwidth}{100mm}
-
 % commands useful in cross-referencing
 \newcommand {\Ref}[1] {Reference~\cite{#1}}
 \newcommand {\Sec}[1] {Section~\ref{#1}}
@@ -30,6 +65,10 @@
 \newcommand {\fig}[1] {Figure~\ref{#1}}
 \newcommand {\eqn}[1] {Equation~(\ref{#1})} 
 \newcommand {\tab}[1] {Table~\ref{#1}}
+
+% this stops one figure taking up a whole page and lets more text onto
+% the one page when a figure exists
+\renewcommand{\floatpagefraction}{0.8} %   Default = 0.5
 
 % improved version of caption handling
 \usepackage{ccaption}
@@ -61,9 +100,9 @@
 
 \definecolor{pycolor}{rgb}{0,0.4,0}
 
-\DefineVerbatimEnvironment{python}{Verbatim}
-{frame=leftline,framerule=.5mm,rulecolor=\color{pycolor},
-formatcom=\color{pycolor}\small,fontshape=rm}
+%% \DefineVerbatimEnvironment{python}{Verbatim}
+%% {frame=leftline,framerule=.5mm,rulecolor=\color{pycolor},
+%% formatcom=\color{pycolor}\small,fontshape=rm}
 
 %\DefineShortVerb[formatcom=\color{dgreen}\small,fontshape=sl]{\|}
 
@@ -80,3 +119,134 @@ formatcom=\color{pycolor}\small,fontshape=rm}
 \else
 	\DeclareGraphicsExtensions{.eps}
 \fi
+
+% defines the colour for the background of code examples
+\definecolor{LightGrey}{gray}{0.9}
+
+% add the listings package to pretty print the code output
+\usepackage{listings}
+
+\lstdefinestyle{myC++}{%
+%\lstset{%
+language=C++,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color[named]{BrickRed}\ttfamily,
+keywordstyle=\color[named]{Purple}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color[named]{Tan}\ttfamily,%
+morekeywords={,complex,}%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myMatlab}{%
+%\lstset{%
+language=Matlab,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color[named]{BrickRed}\ttfamily,
+keywordstyle=\color[named]{Purple}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color[named]{Tan}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myScilab}{%
+%\lstset{%
+language=Scilab,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color[named]{BrickRed}\ttfamily,
+keywordstyle=\color[named]{Purple}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color[named]{Tan}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myShell}{%
+%\lstset{%
+language=ksh,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color[named]{Black}\ttfamily,
+keywordstyle=\color[named]{Black}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color[named]{Black}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myPython}{%
+%\lstset{%
+language=python,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color[named]{BrickRed}\ttfamily,
+keywordstyle=\color[named]{Purple}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color[named]{Tan}\ttfamily,%
+frame=none,%
+%backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myhtml}{%
+%\lstset{%
+language=xml,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color[named]{BrickRed}\ttfamily,
+keywordstyle=\color[named]{Purple}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color[named]{Tan}\ttfamily,
+morekeywords={,simulation,prop_dim,error_check,stochastic,%
+  globals,field,dimensions,lattice,domains,samples,vector,%
+  components,fourier_space,sequence,integrate,algorithm,%
+  interval,k_operators,constant,operator_names,vectors,%
+  output,filename,group,sampling,moments,benchmark,use_double,%
+  use_wisdom,use_prefs,binary_output,cycles,filter,post_propagation,%
+  default_value,argv,arg,iterations,cross_propagation,%
+  use_mpi,paths,seed,noises,author,description,name,type,%
+}
+frame=none,%
+%framerule=2pt,%
+backgroundcolor=\color{LightGrey}%
+}
+
+% this implements producing nice code blocks
+% it also saves time, typing and
+% *should* reduce errors in the text by removing doubling up of code
+\lstnewenvironment{xmdsCode}[1][]{\lstset{style=myhtml}\lstset{#1}}{}
+
+% this implements nicely formatted shell code
+\lstnewenvironment{shellCode}[1][]{\lstset{style=myShell}\lstset{#1}}{}
+
+% this implements nicely formatted Perl code
+\lstnewenvironment{perlCode}[1][]{\lstset{style=myPerl}\lstset{#1}}{}
+
+% this implements nicely formatted Python code
+\lstnewenvironment{python}[1][]{\lstset{style=myPython}\lstset{#1}}{}
+
+% this implements nicely formatted C++ code
+\lstnewenvironment{CCode}{\lstset{style=myC++}}{}
+
+% this implements nicely formatted matlab code
+\lstnewenvironment{matlabCode}{\lstset{style=myMatlab}}{}
+
+% this implements nicely formatted scilab code
+\lstnewenvironment{scilabCode}{\lstset{style=myScilab}}{}
+

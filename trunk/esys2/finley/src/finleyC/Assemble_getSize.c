@@ -69,7 +69,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
         #pragma omp parallel private(local_X)
         {
 	   /* allocation of work arrays */
-	   local_X=(double*) THREAD_MEMALLOC(NN*numDim*sizeof(double));
+	   local_X=THREAD_MEMALLOC(NN*numDim,double);
 	   if (! Finley_checkPtr(local_X) ) {
 	     /* open the element loop */
              #pragma omp for private(e,min_diff,diff,n0,n1,d,q,i,element_size_array)
@@ -105,20 +105,9 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
 }
 /*
  * $Log$
- * Revision 1.3  2004/12/15 03:48:44  jgs
+ * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
  *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.3  2004/07/30 04:37:06  gross
- * escript and finley are linking now and RecMeshTest.py has been passed
- *
- * Revision 1.2  2004/07/21 05:00:54  gross
- * name changes in DataC
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
  *
  *
  */

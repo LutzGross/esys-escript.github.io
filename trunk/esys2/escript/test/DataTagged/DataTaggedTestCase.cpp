@@ -17,9 +17,11 @@
 #include "escript/Data/UnaryOp.h"
 #include "esysUtils/EsysException.h"
 
+/*
 #include "finley/CPPAdapter/MeshAdapter.h"
 #include "finley/CPPAdapter/MeshAdapterFactory.h"
 #include "escript/Data/AbstractContinuousDomain.h"
+*/
 
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/DataFactory.h"
@@ -35,7 +37,7 @@ using namespace escript;
 using namespace esysUtils;
 using namespace std;
 
-using namespace finley;
+//using namespace finley;
 
 void DataTaggedTestCase::setUp() {
   //

@@ -15,6 +15,7 @@
 
 /**************************************************************/
 
+#include "Finley.h"
 #include "Mesh.h"
 #include "Util.h"
 
@@ -28,10 +29,10 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
   min_id=Finley_Util_getMinInt(1,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
   len=max_id-min_id+1;
 
-  reducedNodesMask=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*in->Nodes->numNodes);
-  maskDOF=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*len);
-  maskReducedDOF=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*len);
-  index=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*MAX(in->Nodes->numNodes,len));
+  reducedNodesMask=TMPMEMALLOC(in->Nodes->numNodes,maybelong);
+  maskDOF=TMPMEMALLOC(len,maybelong);
+  maskReducedDOF=TMPMEMALLOC(len,maybelong);
+  index=TMPMEMALLOC(MAX(in->Nodes->numNodes,len),maybelong);
 
   if  (! (Finley_checkPtr(maskDOF) || Finley_checkPtr(maskReducedDOF) 
                                         || Finley_checkPtr(reducedNodesMask) || Finley_checkPtr(index) ) ) {
@@ -90,17 +91,9 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
 
 /*
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.2  2004/07/30 04:37:06  gross
-* escript and finley are linking now and RecMeshTest.py has been passed
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

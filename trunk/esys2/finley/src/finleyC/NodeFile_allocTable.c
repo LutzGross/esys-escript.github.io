@@ -26,12 +26,12 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,int numNodes) {
   
   /*  allocate memory: */
   
-  Id2=(maybelong*) MEMALLOC(numNodes*sizeof(maybelong));
-  Coordinates2=(double*) MEMALLOC(numNodes*in->numDim*sizeof(double));
-  Tag2=(maybelong*) MEMALLOC(numNodes*sizeof(maybelong));
-  degreeOfFreedom2=(maybelong*) MEMALLOC(numNodes*sizeof(maybelong));
-  reducedDegreeOfFreedom2=(maybelong*) MEMALLOC(numNodes*sizeof(maybelong));
-  toReduced2=(maybelong*) MEMALLOC(numNodes*sizeof(maybelong));
+  Id2=MEMALLOC(numNodes,maybelong);
+  Coordinates2=MEMALLOC(numNodes*in->numDim,double);
+  Tag2=MEMALLOC(numNodes,maybelong);
+  degreeOfFreedom2=MEMALLOC(numNodes,maybelong);
+  reducedDegreeOfFreedom2=MEMALLOC(numNodes,maybelong);
+  toReduced2=MEMALLOC(numNodes,maybelong);
   
   /*  if fine, deallocate the old table and replace by new: */
   
@@ -87,14 +87,9 @@ void Finley_NodeFile_deallocTable(Finley_NodeFile* in) {
 }
 /* 
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

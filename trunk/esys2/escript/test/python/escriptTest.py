@@ -1,15 +1,12 @@
+# $Id$
+
 import sys
 import unittest
 import os
 
-esys_root=os.getenv('ESYS_ROOT')
-sys.path.append(esys_root+'/finley/lib')
-sys.path.append(esys_root+'/escript/lib')
-sys.path.append(esys_root+'/escript/py_src')
+from esys.escript import *
+from esys import finley
 
-
-import escript
-import finley
 import numarray
 
 class escriptTestCase(unittest.TestCase):

@@ -19,6 +19,7 @@
 #include <float.h>
 #include <stdio.h>
 #include <limits.h>
+#include <stdlib.h>
 
 #define LenString_MAX FILENAME_MAX*2
 #define LenErrorMsg_MAX LenString_MAX
@@ -53,22 +54,22 @@ typedef int maybelong;
 
 /*    memory allocation:                                      */
 
-#define TMPMEMALLOC(_PTR_) malloc(_PTR_)
+#define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
 #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
 #ifdef __ECC
-  #define MEMALLOC(_PTR_) malloc(_PTR_)
+  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
   #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
   #ifdef _OPENMP
-      #define THREAD_MEMALLOC(_PTR_) kmp_malloc(_PTR_); 
+      #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) kmp_malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
       #define THREAD_MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { kmp_free(_PTR_); (_PTR_) = NULL; }
   #else
-     #define THREAD_MEMALLOC(_PTR_) TMPMEMALLOC(_PTR_)
+     #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
      #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
   #endif
 #else
-  #define MEMALLOC(_PTR_) malloc(_PTR_)
+  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
   #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
-  #define THREAD_MEMALLOC(_PTR_) TMPMEMALLOC(_PTR_)
+  #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
   #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
 #endif
 
@@ -76,20 +77,9 @@ typedef int maybelong;
 
 /*
  * $Log$
- * Revision 1.3  2004/12/15 03:48:45  jgs
+ * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
  *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.3  2004/07/02 04:21:13  gross
- * Finley C code has been included
- *
- * Revision 1.2  2004/07/01 23:49:17  gross
- * macro for copying of a double array added
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
  *
  *
  */

@@ -1,3 +1,4 @@
+// $Id$
 /*
  ******************************************************************************
  *                                                                            *
@@ -196,7 +197,7 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 void MeshAdapter::getTagList(int functionSpaceType, int** tagList,
 			     int* numTags) const
 {
-  **tagList=0;
+  *tagList=NULL;
   *numTags=0;
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch (functionSpaceType) {
@@ -337,42 +338,44 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
 //
 void MeshAdapter::addPDEToSystem(
                      SystemMatrixAdapter& mat, Data& rhs,
-                     const Data& A, const Data& B, const Data& C,const  Data& D,const  Data& X,const  Data& Y) const
+                     const Data& A, const Data& B, const Data& C,const  Data& D,const  Data& X,const  Data& Y,
+                     const Data& d, const Data& y, 
+                     const Data& d_contact,const Data& y_contact) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getFinley_SystemMatrix(),&(rhs.getDataC()),
                        &(A.getDataC()),&(B.getDataC()),&(C.getDataC()),&(D.getDataC()),&(X.getDataC()),&(Y.getDataC()));
    checkFinleyError();
-}
-//
-// adds Robin boundary conditions as natural boundary condition into a given stiffness matrix and right hand side:
-//
-void MeshAdapter::addRobinConditionsToSystem(
-                     SystemMatrixAdapter& mat, Data& rhs,
-                     const Data& d, const Data& y) const
-{
-   Finley_Mesh* mesh=m_finleyMesh.get();
    Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,
 				  mat.getFinley_SystemMatrix(),
 				  &(rhs.getDataC()),
                                   &(d.getDataC()),&(y.getDataC()),
                                   Finley_Assemble_handelShapeMissMatch_Mean_out);
    checkFinleyError();
-}
-//
-// adds contact conditions as natural boundary condition into a given stiffness matrix and right hand side:
-//
-void MeshAdapter::addContactToSystem(
-                     SystemMatrixAdapter& mat, Data& rhs,
-                     const Data& d_contact,const Data& y_contact) const
-{
-   Finley_Mesh* mesh=m_finleyMesh.get();
    Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,
 				  mat.getFinley_SystemMatrix(),
 				  &(rhs.getDataC()),
                                   &(d_contact.getDataC()),
 				  &(y_contact.getDataC()),
                                   Finley_Assemble_handelShapeMissMatch_Step_out);
+   checkFinleyError();
+}
+//
+// adds linear PDE of second order into the right hand side only
+//
+void MeshAdapter::addPDEToRHS( Data& rhs,
+                     const  Data& X,const  Data& Y, const Data& y, const Data& y_contact) const
+{
+   Finley_Mesh* mesh=m_finleyMesh.get();
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,0,&(rhs.getDataC()),0,0,0,0,&(X.getDataC()),&(Y.getDataC()));
+   checkFinleyError();
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,0,&(rhs.getDataC()),0,&(y.getDataC()),
+                                  Finley_Assemble_handelShapeMissMatch_Mean_out);
+// cout << "Calling :addPDEToRHS." << endl;
+   checkFinleyError();
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,0,&(rhs.getDataC()),0,&(y_contact.getDataC()),
+                                  Finley_Assemble_handelShapeMissMatch_Step_out);
+// cout << "Calling :addPDEToRHS." << endl;
    checkFinleyError();
 }
 //
@@ -750,8 +753,7 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
                       const escript::FunctionSpace& column_functionspace,
-                      const int type,
-                      const bool sym) const
+                      const int type) const
 {
     int reduceRowOrder=0;
     int reduceColOrder=0;
@@ -778,9 +780,10 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
         throw FinleyAdapterException("Error - illegal function space type for system matrix columns.");
     }
     // generate matrix:
-    Finley_SystemMatrix* fsystemMatrix=Finley_SystemMatrix_alloc(getFinley_Mesh(),type,sym?1:0,
-                                                                 row_blocksize,reduceRowOrder,
-                                                                 column_blocksize,reduceColOrder);
+    
+    Finley_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceRowOrder,reduceColOrder);
+    checkFinleyError();
+    Finley_SystemMatrix* fsystemMatrix=Finley_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
     checkFinleyError();
     return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
@@ -906,6 +909,26 @@ bool MeshAdapter::operator==(const MeshAdapter& other) const
 {
   return (m_finleyMesh==other.m_finleyMesh);
 }
+
+int MeshAdapter::getSystemMatrixTypeId(const int solver, const bool symmetry) const
+{
+   int out=Finley_SystemMatrix_getSystemMatrixTypeId(solver,symmetry?1:0);
+   checkFinleyError();
+   return out;
+}
+Data MeshAdapter::getX() const
+{
+  return continuousFunction(asAbstractContinuousDomain()).getX();
+}
+Data MeshAdapter::getNormal() const
+{
+  return functionOnBoundary(asAbstractContinuousDomain()).getNormal();
+}
+Data MeshAdapter::getSize() const
+{
+  return function(asAbstractContinuousDomain()).getSize();
+}
+
 
 bool MeshAdapter::operator!=(const MeshAdapter& other) const
 {

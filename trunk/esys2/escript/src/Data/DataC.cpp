@@ -1,3 +1,4 @@
+// $Id$
 /*
  ******************************************************************************
  *                                                                            *
@@ -60,8 +61,12 @@ int numSamplesEqual(struct escriptDataC* data, int numDataPointsPerSample,
 
 int getDataPointRank(struct escriptDataC* data)
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getDataPointRank();
+  if (data == (struct escriptDataC*)0) {
+       return 0;
+  } else {
+       escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+       return temp->getDataPointRank();
+  }
 }
 
 int* getDataPointShape(struct escriptDataC* data)

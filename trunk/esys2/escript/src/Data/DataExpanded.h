@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -12,7 +13,7 @@
  ******************************************************************************
 */
                                                                            
-#if !defined  escript_DataExpanded_20040323_H
+#if !defined escript_DataExpanded_20040323_H
 #define escript_DataExpanded_20040323_H
 
 #include "DataAbstract.h"
@@ -24,8 +25,9 @@
 
 namespace escript {
 
-  class DataConstant;
-  class DataTagged;
+class DataEmpty;
+class DataConstant;
+class DataTagged;
 
 /**
    \brief
@@ -51,13 +53,13 @@ class DataExpanded : public DataAbstract{
 
   /**
      \brief
-     Construct a DataExpanded from a DataConstant
+     Construct a DataExpanded from a DataConstant.
   */
   DataExpanded(const DataConstant& other);
 
   /**
      \brief
-     Construct a DataExpanded from a DataTagged
+     Construct a DataExpanded from a DataTagged.
   */
   DataExpanded(const DataTagged& other);
 
@@ -70,41 +72,47 @@ class DataExpanded : public DataAbstract{
      \param value - Input - Data value for a single point.
      \param what - Input - A description of what this data represents.
   */
-  DataExpanded(const boost::python::numeric::array& value, const FunctionSpace& what);
+  DataExpanded(const boost::python::numeric::array& value,
+               const FunctionSpace& what);
 
   /**
      \brief
      Alternative constructor for DataExpanded
 
      Description:
-     Alternative Constructor for DataExpanded
+     Alternative Constructor for DataExpanded.
      \param value - Input - Data value for a single point.
      \param what - Input - A description of what this data represents.
 
   */
-  DataExpanded(const DataArrayView& value, const FunctionSpace& what);
+  DataExpanded(const DataArrayView& value,
+               const FunctionSpace& what);
 
   /**
      \brief
      Alternative constructor for DataExpanded that copies a slice from
      another DataExpanded.
 
-     \param other - Input - DataExpanded object to slice from
-     \param region - Input - region to copy
+     \param other - Input - DataExpanded object to slice from.
+     \param region - Input - region to copy.
   */
-  DataExpanded(const DataExpanded& other, const DataArrayView::RegionType& region);
+  DataExpanded(const DataExpanded& other,
+               const DataArrayView::RegionType& region);
 
   /**
      \brief
      Destructor
   */
-  virtual ~DataExpanded();
+  virtual
+  ~DataExpanded();
 
   /**
      \brief
      Return a textual representation of the data
   */
-  virtual std::string toString() const;
+  virtual
+  std::string
+  toString() const;
 
   /**
      \brief
@@ -112,7 +120,8 @@ class DataExpanded : public DataAbstract{
      The original data point value is used for all values of the new
      data point.
   */
-  void reshapeDataPoint(const DataArrayView::ShapeType& shape);
+  void
+  reshapeDataPoint(const DataArrayView::ShapeType& shape);
 
   /**
      \brief
@@ -122,24 +131,31 @@ class DataExpanded : public DataAbstract{
      \param sampleNo - Input - number of samples.
      \param dataPointNo - Input - Input.
   */
-  virtual DataArrayView::ValueType::size_type getPointOffset(int sampleNo, int dataPointNo) const;
+  virtual
+  DataArrayView::ValueType::size_type
+  getPointOffset(int sampleNo,
+                 int dataPointNo) const;
 
   /**
      \brief
      Return a view into the data for the data point specified.
      NOTE: Construction of the DataArrayView is a relatively expensive 
-     operation
+     operation.
      \param sampleNo - Input
      \param dataPointNo - Input
      \return DataArrayView of the data point.
   */
-  DataArrayView getDataPoint(int sampleNo, int dataPointNo);
+  DataArrayView
+  getDataPoint(int sampleNo,
+               int dataPointNo);
 
   /**
      \brief
-     Return the number of doubles stored for the Data
+     Return the number of doubles stored for the Data.
   */
-  virtual ValueType::size_type getLength() const;
+  virtual
+  ValueType::size_type
+  getLength() const;
 
   /**
      \brief
@@ -147,7 +163,9 @@ class DataExpanded : public DataAbstract{
      The caller is reponsible for managing the object created.
      \param region - Input - Region to copy.
   */
-  virtual DataAbstract* getSlice(const DataArrayView::RegionType& region) const;
+  virtual
+  DataAbstract*
+  getSlice(const DataArrayView::RegionType& region) const;
 
   /**
      \brief
@@ -155,7 +173,10 @@ class DataExpanded : public DataAbstract{
      \param value - Input - Data to copy from
      \param region - Input - Region to copy.
   */
-  virtual void setSlice(const DataAbstract* value, const DataArrayView::RegionType& region);
+  virtual
+  void
+  setSlice(const DataAbstract* value,
+           const DataArrayView::RegionType& region);
 
  protected:
 
@@ -171,7 +192,10 @@ class DataExpanded : public DataAbstract{
      \param noSamples - Input - number of samples.
      \param noDataPointsPerSample - Input -
   */
-  void initialise(const DataArrayView::ShapeType& shape, int noSamples, int noDataPointsPerSample);
+  void
+  initialise(const DataArrayView::ShapeType& shape,
+             int noSamples,
+             int noDataPointsPerSample);
 
   /**
      \brief
@@ -179,20 +203,20 @@ class DataExpanded : public DataAbstract{
 
      Description:
      Copy the given data point to all data points.
-     \param value Input - Value for a single data point
+     \param value Input - Value for a single data point.
   */
-  void copy(const DataArrayView& value);
-  void copy(const boost::python::numeric::array& value);
+  void
+  copy(const DataArrayView& value);
+
+  void
+  copy(const boost::python::numeric::array& value);
 
   //
-  // The main data storage, a 2D array of data blocks
+  // The main data storage, a 2D array of data blocks.
   DataBlocks2D m_data;
 
 };
 
 } // end of namespace
+
 #endif
-
-
-
-
