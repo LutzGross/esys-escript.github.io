@@ -1,8 +1,10 @@
 import sys
 import unittest
-sys.path.append('/home/gross/esys2/esys/escript/lib')
+
 import numarray
-import escript
+
+from esys.escript import *
+from esys import finley
 
 class DataTestCase(unittest.TestCase):
    def powTest(self):

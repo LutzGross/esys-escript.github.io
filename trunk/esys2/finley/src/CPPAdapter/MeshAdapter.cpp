@@ -905,9 +905,15 @@ bool MeshAdapter::probeInterpolationACross(int functionSpaceType_source,const Ab
 {
     return false;
 }
+
 bool MeshAdapter::operator==(const MeshAdapter& other) const
 {
   return (m_finleyMesh==other.m_finleyMesh);
+}
+
+bool MeshAdapter::operator!=(const MeshAdapter& other) const
+{
+  return !operator==(other);
 }
 
 int MeshAdapter::getSystemMatrixTypeId(const int solver, const bool symmetry) const
@@ -930,18 +936,4 @@ Data MeshAdapter::getSize() const
 }
 
 
-bool MeshAdapter::operator!=(const MeshAdapter& other) const
-{
-  return !operator==(other);
-}
-// bool MeshAdapter::operator==(const AbstractDomain& other) const
-// {
-  // try {
-    // const MeshAdapter& ref = dynamic_cast<const MeshAdapter&>(other);
-    // return (operator==(ref));
-  // }
-  // catch (bad_cast) {
-    // return false;
-  // }
-// }
 }  // end of namespace

@@ -14,20 +14,11 @@
 
 """
 
-import sys
-import os
-                                                                                                                                                     
-esys_root=os.getenv('ESYS_ROOT')
-sys.path.append(esys_root+'/finley/lib')
-sys.path.append(esys_root+'/escript/lib')
-sys.path.append(esys_root+'/escript/py_src')
-                                                                                                                                                     
-from escript import *
-from util import *
-from linearPDEs import *
-from numarray import *
-import finley as pdelib
+from esys.escript import *
+from esys.linearPDEs import *
+import esys.finley as pdelib
 
+from numarray import *
 
 # these values are currently fixed:
 len_x0=1.
@@ -81,8 +72,8 @@ def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method):
         A[i,j,i,j] += alpha 
 
     # Build the pdelib System Matrix and RHS
-    mypde=LinearPDE(domain=mesh, \
-                     A = A, Y = - 2 * alpha * (meshDim - 1)*ones(meshDim), q = bndryMask, r = u)
+    mypde=LinearPDE(mesh)
+    mypde.setValue(A = A, Y = - 2 * alpha * (meshDim - 1)*ones(meshDim), q = bndryMask, r = u)
     mypde.setSolverMethod(solver_method)
 
     # Solve for Approximate Solution
@@ -135,8 +126,8 @@ def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method):
         u += x[j] * x[j]
 
     # Build the pdelib System Matrix and RHS
-    mypde=LinearPDE(domain=mesh, \
-                    A = identity(numDim), D = alpha, Y = alpha * u - 2 * meshDim, q = bndryMask, r = u)
+    mypde=LinearPDE(mesh)
+    mypde.setValue(A = identity(numDim), D = alpha, Y = alpha * u - 2 * meshDim, q = bndryMask, r = u)
     mypde.setSolverMethod(solver_method)
 
     # Solve for Approximate Solution
