@@ -59,8 +59,8 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
     int a1[NN],a2[NN],*perm,*perm_tmp,n;
     Finley_Mesh_findMatchingFaces_center *center;
 
-    X=TMPMEMALLOC(NN*numDim*faces->numElements,double);
-    center=TMPMEMALLOC(faces->numElements,Finley_Mesh_findMatchingFaces_center);
+    X=(double*) TMPMEMALLOC(sizeof(double)*NN*numDim*faces->numElements);
+    center=(Finley_Mesh_findMatchingFaces_center*) TMPMEMALLOC(sizeof(Finley_Mesh_findMatchingFaces_center)*faces->numElements);
     if (!(Finley_checkPtr(X) || Finley_checkPtr(center)) ) {
        /* OMP */
        for (e=0;e<faces->numElements;e++) {
@@ -171,11 +171,8 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
 
 /*
 * $Log$
-* Revision 1.2  2004/12/14 05:39:30  jgs
+* Revision 1.3  2004/12/15 03:48:45  jgs
 * *** empty log message ***
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
 * initial import of project esys2

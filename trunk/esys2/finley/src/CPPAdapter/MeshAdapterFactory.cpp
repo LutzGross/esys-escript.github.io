@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
  ******************************************************************************
  *                                                                            *
@@ -69,10 +68,10 @@ namespace finley {
     // linearInterpolation
     Finley_Mesh* fMesh;
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,order,
 					useElementsOnFace) ;
     } else if (order==2) {
-      fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,order,
 					 useElementsOnFace) ;
     } else {
       stringstream temp;
@@ -97,10 +96,10 @@ namespace finley {
 
     Finley_Mesh* fMesh;
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,order,
 					useElementsOnFace);
     } else if (order==2) {
-      fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,order,
 					useElementsOnFace);
     } else {
       stringstream temp;
@@ -122,10 +121,10 @@ namespace finley {
     int periodic[]={periodic0};
     Finley_Mesh* fMesh;
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Line2(numElements, length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Line2(numElements, length,periodic,order,
 					 useElementsOnFace);
     } else if (order==2) {
-      fMesh=Finley_RectangularMesh_Line3(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Line3(numElements,length,periodic,order,
 					 useElementsOnFace);
     } else {
       stringstream temp;

@@ -1,4 +1,3 @@
-//$Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -13,7 +12,7 @@
  ******************************************************************************
 */
                                                                            
-#if !defined escript_DataEmpty_20040726_H
+#if !defined  escript_DataEmpty_20040726_H
 #define escript_DataEmpty_20040726_H
 
 #include "DataAbstract.h"
@@ -22,127 +21,91 @@ namespace escript {
 
 /**
    \brief
-   Implements the DataAbstract interface for an empty Data object.
+   Impliments the DataAbstract interface for an empty or null Data.
 
    Description:
-   Implements the DataAbstract interface for an empty Data object.
+   Impliments the DataAbstract interface for an empty or null Data.
 */
-class DataEmpty : public DataAbstract {
+class DataEmpty:public DataAbstract {
 
  public:
 
   /**
      \brief
-     Default constructor for DataEmpty.
+     Default constructor for DataEmpty
 
      Description:
-     Default constructor for DataEmpty.
+     Default constructor for DataEmpty
 
   */
   DataEmpty();
-
   /**
      \brief
-     Destructor for DataEmpty.
+     Destructor
   */
-  virtual
-  ~DataEmpty();
-
+  virtual ~DataEmpty();
   /**
      \brief
-     Return a textual representation of the Data object.
+     Return a textual representation of the data
   */
-  virtual
-  std::string
-  toString() const;
-
+  virtual std::string toString() const;
   /**
      \brief
-     Return the offset for the given sample. This is a somewhat artificial notion
+     Return the offset for the given sample. This is somewhat artificial notion
      but returns the offset in bytes for the given point into the container
      holding the point data.
-     \param sampleNo - Input - Sample number.
-     \param dataPointNo - Input - data-point number.
+     \param sampleNo - Input, number of samples.
+     \param dataPointNo - Input.
    */
-  virtual
-  DataArrayView::ValueType::size_type
-  getPointOffset(int sampleNo,
-                 int dataPointNo) const;
-
+  virtual DataArrayView::ValueType::size_type getPointOffset(int sampleNo,int dataPointNo) const;
   /**
      \brief
      Return a view into the data for the data point specified.
      NOTE: Construction of the DataArrayView is a relatively expensive 
-     operation.
-     \param sampleNo - Input - Sample number.
-     \param dataPointNo - Input - data-point number.
+     operation
+     \param samplesNo - Input
+     \param dataPointNo - Input
   */
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
-
-  /**
+  virtual DataArrayView getDataPoint(int samplesNo, int dataPointNo);
+ /**
      \brief
      Return the sample data for the given tag key. If the data isn't tagged
      an exception will be thrown.
   */
-  virtual
-  double*
-  getSampleDataByTag(int tag);
-
+  virtual double* getSampleDataByTag(int tag);
   /**
      \brief
      Throw a standard exception. This function is called if an attempt
-     is made to use functions of DataEmpty that are not valid.
+     is made to use functions of DataEmpty that are not allowed.
   */
-  void
-  throwStandardException(const std::string& functionName) const;
-
+  void throwStandardException(const std::string& functionName) const;
   /**
      \brief
-     Return the number of doubles stored for the Data object.
+     Return the number of doubles stored for the Data
   */
-  virtual
-  ValueType::size_type
-  getLength() const;
-
+  virtual ValueType::size_type getLength() const;
   /**
      \brief
-     Factory method that returns a newly created DataEmpty sliced from the
-     current Data object according to the specified region.
+     Factory method that returns a newly created DataEmpty.
      The caller is reponsible for managing the object created.
   */
-  virtual
-  DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
-
-  /**
+  virtual DataAbstract* getSlice(const DataArrayView::RegionType& region) const;  /**
      \brief
-     Set the current Data object according to the specified slice from the
-     given input value.
+     Copy the specified region from the given value.
      \param value Input - Data to copy from
      \param region Input - Region to copy.
   */
-  virtual
-  void
-  setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region);
-
+  virtual void setSlice(const DataAbstract* value, const DataArrayView::RegionType& region);
   /**
      \brief
      Reshape the data point if the data point is currently rank 0.
      The original data point value is used for all values of the new
      data point.
   */
-  virtual
-  void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape);
-
+  virtual void reshapeDataPoint(const DataArrayView::ShapeType& shape);
  protected:
 
  private:
-
 };
 
 } // end of namespace

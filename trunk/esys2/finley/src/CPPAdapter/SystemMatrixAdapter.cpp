@@ -10,7 +10,6 @@
  * license agreement with ACcESS.                                             *
  *                                                                            *
  ******************************************************************************
- $Id$
 */
 extern "C" {
 #include "finley/finleyC/System.h"
@@ -25,27 +24,19 @@ using namespace std;
 
 namespace finley {
 
-struct null_deleter
-{
-  void operator()(void const *ptr) const
-  {
-  }
-};
-
-
 SystemMatrixAdapter::SystemMatrixAdapter()
 {
    throw FinleyAdapterException("Error - Illegal to generate default SystemMatrixAdapter.");
 }
 
-SystemMatrixAdapter::SystemMatrixAdapter(Finley_SystemMatrix* system_matrix,
+SystemMatrixAdapter::SystemMatrixAdapter(const Finley_SystemMatrix* system_matrix,
                                          const int row_blocksize,
                                          const escript::FunctionSpace& row_functionspace,
                                          const int column_blocksize,
                                          const escript::FunctionSpace& column_functionspace):
-AbstractSystemMatrix(row_blocksize,row_functionspace,column_blocksize,column_functionspace)
+AbstractSystemMatrix(row_blocksize,row_functionspace,column_blocksize,column_functionspace),
+m_system_matrix(system_matrix)
 {
-    m_system_matrix.reset(system_matrix,null_deleter());
 }
 
 SystemMatrixAdapter::~SystemMatrixAdapter()
@@ -76,17 +67,19 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out, const escript::Data&
     #define EXTRACT(__key__,__val__,__type__) if ( options.has_key(__key__)) finley_options.__val__=boost::python::extract<__type__>(options.get(__key__))
     EXTRACT("verbose",verbose,int);
     EXTRACT("reordering",reordering,int);
-    EXTRACT(ESCRIPT_TOLERANCE_KEY,tolerance,double);
-    EXTRACT(ESCRIPT_METHOD_KEY,method,int);
-    EXTRACT(ESCRIPT_SYMMETRY_KEY,symmetric,int);
+    EXTRACT("tolerance",tolerance,double);
+    EXTRACT("iterative_method",iterative_method,int);
     EXTRACT("preconditioner",preconditioner,int);
     EXTRACT("iter_max",iter_max,int);
     EXTRACT("drop_tolerance",drop_tolerance,double);
     EXTRACT("drop_storage",drop_storage,double);
-    EXTRACT("truncation",truncation,double);
-    EXTRACT("restart",restart,double);
+    EXTRACT("iterative",iterative,int);
     #undef EXTRACT
-    Finley_SystemMatrix_solve(getFinley_SystemMatrix(),&(out.getDataC()),&(in.getDataC()),&finley_options);
+    if (finley_options.iterative) {
+       Finley_SystemMatrix_iterative(getFinley_SystemMatrix(),&(out.getDataC()),&(in.getDataC()),&finley_options);
+    } else {
+       Finley_SystemMatrix_solve(getFinley_SystemMatrix(),&(out.getDataC()),&(in.getDataC()),&finley_options);
+    }
     checkFinleyError();
 }
 
@@ -98,22 +91,5 @@ void SystemMatrixAdapter::nullifyRowsAndCols(const escript::Data& row_q, const e
 
     Finley_SystemMatrix_nullifyRowsAndCols(system_matrix_ptr, &row_qC, &col_qC, mdv);
 }
-
-void SystemMatrixAdapter::saveMM(const std::string& fileName) const
-{
-    char fName[fileName.size()+1];
-    strcpy(fName,fileName.c_str());
-    Finley_SystemMatrix* system_matrix_ptr = getFinley_SystemMatrix();
-    Finley_SystemMatrix_saveMM(system_matrix_ptr,fName);
-    checkFinleyError();
-}
-
-void SystemMatrixAdapter:: setValue(const double value) const
-{
-   Finley_SystemMatrix* system_matrix_ptr = getFinley_SystemMatrix();
-   Finley_SystemMatrix_setValues(system_matrix_ptr,value);
-   checkFinleyError();
-}
-                                                                                                                                                     
 
 }  // end of namespace

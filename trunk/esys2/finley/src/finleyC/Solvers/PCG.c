@@ -114,10 +114,10 @@ int Finley_Solver_PCG(
 /*   ---------------------                                         */
 /*                                                                 */
 /*                                                                 */
-  rs=TMPMEMALLOC(n,double);
-  p=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  x2=TMPMEMALLOC(n,double);
+  rs=(double*)TMPMEMALLOC(n*sizeof(double));
+  p=(double*)TMPMEMALLOC(n*sizeof(double));
+  v=(double*)TMPMEMALLOC(n*sizeof(double));
+  x2=(double*)TMPMEMALLOC(n*sizeof(double));
 
   /*     Test the input parameters. */
 

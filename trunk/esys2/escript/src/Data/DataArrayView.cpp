@@ -54,7 +54,7 @@ DataArrayView::DataArrayView(ValueType& data,
 	   << m_maxRank;
       throw DataException(temp.str());
     }
-    if (m_data->size() < (noValues()+m_offset)) {
+    if (m_data->size()<(noValues()+m_offset)) {
       stringstream temp;
       temp << "Error- Couldn't construct DataArrayView, insufficient storage." 
 	   << " Shape requires: " << noValues()+m_offset << " values." 
@@ -119,7 +119,7 @@ DataArrayView::copy(const boost::python::numeric::array& value)
       }
     }
 }
- 
+  
 void
 DataArrayView::copy(const DataArrayView& other)
 {
@@ -180,7 +180,7 @@ DataArrayView::noValues(const ShapeType& shape)
     }
     return noValues;
 }
- 
+  
 int
 DataArrayView::noValues() const
 {
@@ -207,18 +207,17 @@ DataArrayView::createShapeErrorMessage(const string& messagePrefix,
 void
 DataArrayView::setOffset(ValueType::size_type offset)
 {
-    EsysAssert((m_data->size() >= (noValues()+offset)), "Invalid offset");
+    EsysAssert((m_data->size()>=(noValues()+offset)), "Invalid offset");
     m_offset=offset;
 }
 
 DataArrayView::ShapeType
 DataArrayView::getResultSliceShape(const RegionType& region)
 {
-    int dimSize;
     RegionType::const_iterator i;
     DataArrayView::ShapeType result;
-    for (i=region.begin();i!=region.end();i++) {
-      dimSize=((i->second) - (i->first));
+    for (i=region.begin();i!=region.end();++i) {
+      int dimSize=(i->second-i->first);
       if (dimSize!=0) {
 	result.push_back(dimSize);
       }
@@ -226,81 +225,12 @@ DataArrayView::getResultSliceShape(const RegionType& region)
     return result;
 }
 
-DataArrayView::RegionType
-DataArrayView::getSliceRegion(const boost::python::object& key) const
-{
-  int slice_rank, out_rank, i;
-  int this_rank=getRank();
-  /* allow for case where key is singular eg: [1], this implies we
-     want to generate a rank-1 dimension object, as opposed to eg: [1,2]
-     which implies we want to take a rank dimensional object with one
-     dimension of size 1 */
-  extract<tuple> key_tuple(key);
-  if (key_tuple.check()) {
-      slice_rank=extract<int> (key.attr("__len__")());
-  } else {
-      slice_rank=1;
-  }
-  /* ensure slice is correctly dimensioned */
-  if (slice_rank>=this_rank) {
-       out_rank=slice_rank;
-  } else {
-       out_rank=this_rank;
-  }
-  DataArrayView::RegionType out(out_rank);
-  /* calculate values for slice range */
-  if (key_tuple.check()) {
-    for (i=0;i<slice_rank;i++) {
-      out[i]=getSliceRange(key[i],getShape()[i]);
-    }
-  } else {
-    out[0]=getSliceRange(key,getShape()[0]);
-  }
-  for (i=slice_rank;i<this_rank;i++) {
-    out[i]=std::pair<int,int>(0,getShape()[i]);
-  }
-  return out;
-}
-
-std::pair<int,int>
-getSliceRange(const boost::python::object& key,
-              const int shape)
-{
-  /* default slice range is range of entire shape dimension */
-  int s0=0, s1=shape;;
-  extract<int> slice_int(key);
-  if (slice_int.check()) {
-    /* if the key is a single int set start=key and end=key */
-    /* in this case, we want to return a rank-1 dimension object from
-       this object, taken from a single index value for one of this
-       object's dimensions */
-    s0=slice_int();
-    s1=s0;
-  } else {
-    /* if key is a pair extract begin and end values */
-    extract<int> step(key.attr("step"));
-    if (step.check() && step()!=1) {
-       throw DataException("Error - Data does not support increments in slicing ");
-    } else {
-      extract<int> start(key.attr("start"));
-      if (start.check()) {
-        s0=start();
-      }
-      extract<int> stop(key.attr("stop"));
-      if (stop.check()) {
-        s1=stop();
-      }
-    }
-  }
-  return std::pair<int,int>(s0,s1);
-}
-
 void
 DataArrayView::copySlice(const DataArrayView& other, 
                          const RegionType& region)
 {
     //
-    // version of copySlice that uses the default offsets
+    // version of slice that uses the default offset
     copySlice(m_offset,other,other.m_offset,region);
 }
 
@@ -310,84 +240,57 @@ DataArrayView::copySlice(ValueType::size_type thisOffset,
                          ValueType::size_type otherOffset,
                          const RegionType& region)
 {
-
     //
-    // Make sure this object is not empty
-    EsysAssert(!isEmpty(),"Error - this data object is empty.");
-
+    // Assume region is okay, Other asserts will detect range errors
+    EsysAssert((other.getRank()==region.size()),"Error - Invalid slice region.");
+    EsysAssert((!isEmpty()&&checkShape(getResultSliceShape(region))),
+	       createShapeErrorMessage("Error - Couldn't copy slice due to shape mismatch.",getResultSliceShape(region)));
     //
-    // Modify region to copy from in order to
-    // deal with the case where one range in the region contains identical indexes,
-    // eg: <<1,1><0,3><0,3>>
-    // This situation implies we want to copy from an object with rank greater than that of this
-    // object. eg: we want to copy the values from a two dimensional slice out of a three
-    // dimensional object into a two dimensional object.
-    // We do this by taking a slice from the other object where one dimension of
-    // the slice region is of size 1. So in the above example, we modify the above 
-    // region like so: <<1,2><0,3><0,3>> and take this slice.
-
-    RegionType slice_region=region;
-    for (int i=0;i<slice_region.size();i++) {
-      if (slice_region[i].first==slice_region[i].second) {
-        (slice_region[i].second)++;
+    // take a local copy of the region and modify for the case
+    // of 2:2 being equivalent to 2:3. The only difference in meaning being in 
+    // determining the output shape.
+    RegionType localRegion=region;
+    for (int i=0;i<localRegion.size();++i) {
+      if (localRegion[i].first==localRegion[i].second) {
+	++(localRegion[i].second);
       }
     }
-
-    //
-    // Check the object to be sliced from is compatible with the region to be sliced,
-    // and that the region to be sliced is compatible with this object:
-    // 1: the region to be sliced should be the same rank as the other object.
-    // 2: the other object should have at least as many datapoints at the region requires.
-    // 3: the region should have the same number of datapoints as this object
-
-    DataArrayView::ShapeType slice_shape=getResultSliceShape(slice_region);
-    EsysAssert(other.getRank()==slice_region.size(),
-               "Error - slice rank incompatible with object to be sliced from.");
-    EsysAssert((noValues(slice_shape)<=other.noValues()),
-               "Error - slice shape incompatible with object to be sliced from.");
-    EsysAssert((noValues(slice_shape)==noValues()),
-               "Error - slice shape incompatible with this object.");
-
-    //
-    // copy the values in the specified slice_region of the other object into this object
-
     int numCopy=0;
-    switch (slice_region.size()) {
+    switch (localRegion.size()) {
     case 0:
-      /* this case should never be encountered, as python will never pass us an empty slice */
       (*m_data)[thisOffset]=(*other.m_data)[otherOffset];
       break;
     case 1:
-      for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
+      for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
 	(*m_data)[numCopy+thisOffset]=(*other.m_data)[i+otherOffset];
-	numCopy++;
+	++numCopy;
       }
       break;
     case 2:
-      for (int j=slice_region[1].first;j<slice_region[1].second;j++) {
-	for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
+      for (int j=localRegion[1].first;j<localRegion[1].second;++j) {
+	for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
 	  (*m_data)[numCopy+thisOffset]=(*other.m_data)[other.relIndex(i,j)+otherOffset];
-	  numCopy++;
+	  ++numCopy;
 	}
       }
       break;
     case 3:
-      for (int k=slice_region[2].first;k<slice_region[2].second;k++) {
-	for (int j=slice_region[1].first;j<slice_region[1].second;j++) {
-	  for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
+      for (int k=localRegion[2].first;k<localRegion[2].second;++k) {
+	for (int j=localRegion[1].first;j<localRegion[1].second;++j) {
+	  for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
 	    (*m_data)[numCopy+thisOffset]=(*other.m_data)[other.relIndex(i,j,k)+otherOffset];
-	    numCopy++;
+	    ++numCopy;
 	  }
 	}
       }
       break;
     case 4:
-      for (int l=slice_region[3].first;l<slice_region[3].second;l++) {
-	for (int k=slice_region[2].first;k<slice_region[2].second;k++) {
-	  for (int j=slice_region[1].first;j<slice_region[1].second;j++) {
-	    for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
-	      (*m_data)[numCopy+thisOffset]=(*other.m_data)[other.relIndex(i,j,k,l)+otherOffset];
-	      numCopy++;
+      for (int m=localRegion[2].first;m<localRegion[2].second;++m) {
+	for (int k=localRegion[2].first;k<localRegion[2].second;++k) {
+	  for (int j=localRegion[1].first;j<localRegion[1].second;++j) {
+	    for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
+	      (*m_data)[numCopy+thisOffset]=(*other.m_data)[other.relIndex(i,j,k,m)+otherOffset];
+	      ++numCopy;
 	    }
 	  }
 	}
@@ -395,11 +298,11 @@ DataArrayView::copySlice(ValueType::size_type thisOffset,
       break;
     default:
       stringstream mess;
-      mess << "Error - (copySlice) Invalid rank: " << slice_region.size() << " for region.";
+      mess << "Error - (copySlice) Invalid rank.";
       throw DataException(mess.str());
     }
 }
- 
+  
 void
 DataArrayView::copySliceFrom(const DataArrayView& other,
                              const RegionType& region)
@@ -415,89 +318,58 @@ DataArrayView::copySliceFrom(ValueType::size_type thisOffset,
                              ValueType::size_type otherOffset,
                              const RegionType& region)
 {
-
     //
-    // Make sure this object is not empty
-    EsysAssert(!isEmpty(),"Error - this data object is empty.");
-
+    // Assume region is okay, Other asserts will detect range errors
+    EsysAssert((getRank()==region.size()),"Error - Invalid slice region.");
+    EsysAssert((!isEmpty()&&other.checkShape(getResultSliceShape(region))),
+	       createShapeErrorMessage("Error - Couldn't copy slice due to shape mismatch.",
+				       getResultSliceShape(region)));
     //
-    // Modify region to copy in order to
-    // deal with the case where one range in the region contains identical idexes,
-    // eg: <<1,1><0,3><0,3>>
-    // This situation implies we want to copy from an object with rank less than that of this
-    // object. eg: we want to copy the values from a two dimensional object into a two dimensional
-    // slice of a three dimensional object.
-    // We do this by copying to a slice from this object where one dimension of
-    // the slice region is of size 1. So in the above example, we modify the above 
-    // region like so: <<1,2><0,3><0,3>> and copy into this slice.
-
-    RegionType slice_region=region;
-    for (int i=0;i<slice_region.size();i++) {
-      if (slice_region[i].first==slice_region[i].second) {
-        (slice_region[i].second)++;
+    // take a local copy of the region and modify for the case
+    // of 2:2 being equivalent to 2:3. The only difference in meaning being in 
+    // determining the output shape.
+    RegionType localRegion=region;
+    for (int i=0;i<localRegion.size();++i) {
+      if (localRegion[i].first==localRegion[i].second) {
+	++(localRegion[i].second);
       }
     }
-
-    //
-    // Check the object to be coped from is compatible with the slice region to be copied
-    // into, and that the region to be sliced into is compatible with this object:
-    // 1: the region to be sliced into should be the same rank as this object.
-    // 2: the other object should have exactly the same number of data points as the
-    //    region to be sliced into requires.
-    // 3: the region can be a higher rank than the other object, provided 2 holds.
-    // 4: this object must have at least as many data points as the region requires.
-
-    //
-    // Check region size and shape
-    DataArrayView::ShapeType slice_shape=getResultSliceShape(slice_region);
-    EsysAssert((getRank()==slice_region.size()),"Error - Invalid slice region.");
-    EsysAssert((noValues(slice_shape)==other.noValues()),
-               "Error - slice shape incompatible with object to be sliced from.");
-    EsysAssert(other.getRank()<=slice_region.size(),
-               "Error - slice rank incompatible with object to be sliced from.");
-    EsysAssert((noValues(slice_shape)<=noValues()),
-               "Error - slice shape incompatible with this object.");
-
-    //
-    // copy the values in the other object into the specified slice_region of this object
-
     int numCopy=0;
-    switch (slice_region.size()) {
+    switch (localRegion.size()) {
     case 0:
-      /* this case should never be encountered, as python will never pass us an empty slice */
       (*m_data)[thisOffset]=(*other.m_data)[otherOffset];
       break;
     case 1:
-      for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
+      for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
 	(*m_data)[i+thisOffset]=(*other.m_data)[numCopy+otherOffset];
-	numCopy++;
+	++numCopy;
       }
       break;
     case 2:
-      for (int j=slice_region[1].first;j<slice_region[1].second;j++) {
-	for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
+      for (int j=localRegion[1].first;j<localRegion[1].second;++j) {
+	for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
 	  (*m_data)[relIndex(i,j)+thisOffset]=(*other.m_data)[numCopy+otherOffset];
-	  numCopy++;
+	  ++numCopy;
 	}
       }
       break;
     case 3:
-      for (int k=slice_region[2].first;k<slice_region[2].second;k++) {
-	for (int j=slice_region[1].first;j<slice_region[1].second;j++) {
-	  for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
+      for (int k=localRegion[2].first;k<localRegion[2].second;++k) {
+	for (int j=localRegion[1].first;j<localRegion[1].second;++j) {
+	  for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
 	    (*m_data)[relIndex(i,j,k)+thisOffset]=(*other.m_data)[numCopy+otherOffset];
-	    numCopy++;
+	    ++numCopy;
 	  }
 	}
       }
       break;
     case 4:
-      for (int l=slice_region[3].first;l<slice_region[3].second;l++) {
-	for (int k=slice_region[2].first;k<slice_region[2].second;k++) {
-	  for (int j=slice_region[1].first;j<slice_region[1].second;j++) {
-	    for (int i=slice_region[0].first;i<slice_region[0].second;i++) {
-	      (*m_data)[relIndex(i,j,k,l)+thisOffset]=(*other.m_data)[numCopy+otherOffset];
-	      numCopy++;
+      for (int m=localRegion[2].first;m<localRegion[2].second;++m) {
+	for (int k=localRegion[2].first;k<localRegion[2].second;++k) {
+	  for (int j=localRegion[1].first;j<localRegion[1].second;++j) {
+	    for (int i=localRegion[0].first;i<localRegion[0].second;++i) {
+	      (*m_data)[relIndex(i,j,k,m)+thisOffset]=(*other.m_data)[numCopy+otherOffset];
+	      ++numCopy;
 	    }
 	  }
 	}
@@ -505,20 +377,20 @@ DataArrayView::copySliceFrom(ValueType::size_type thisOffset,
       break;
     default:
       stringstream mess;
-      mess << "Error - (copySliceFrom) Invalid rank: " << slice_region.size() << " for region.";
+      mess << "Error - (copySliceFrom) Invalid rank: " << localRegion.size() << " for region.";
       throw DataException(mess.str());
     }
 }
- 
+  
 DataArrayView::ShapeType
 DataArrayView::determineResultShape(const DataArrayView& left,
                                     const DataArrayView& right)
 {
     DataArrayView::ShapeType temp;
-    for (int i=0; i<(left.getRank()-1); i++) {
+    for (int i=0; i<(left.getRank()-1); ++i) {
       temp.push_back(left.getShape()[i]);
     }
-    for (int i=1; i<right.getRank(); i++) {
+    for (int i=1; i<right.getRank(); ++i) {
       temp.push_back(right.getShape()[i]);
     }
     return temp;
@@ -538,7 +410,7 @@ DataArrayView::toString(const string& suffix) const
       temp << finalSuffix << (*this)();
       break;
     case 1:
-      for (int i=0;i<getShape()[0];i++) {
+      for (int i=0;i<getShape()[0];++i) {
 	temp << "(" << i << ") " << finalSuffix << (*this)(i);
 	if (i!=(getShape()[0]-1)) {
 	  temp << endl;
@@ -546,8 +418,8 @@ DataArrayView::toString(const string& suffix) const
       }
       break;
     case 2:
-      for (int i=0;i<getShape()[0];i++) {
-	for (int j=0;j<getShape()[1];j++) {
+      for (int i=0;i<getShape()[0];++i) {
+	for (int j=0;j<getShape()[1];++j) {
 	  temp << "(" << i << "," << j << ") " << finalSuffix << (*this)(i,j);
 	  if (!(i==(getShape()[0]-1) && j==(getShape()[1]-1))) {
 	    temp << endl;
@@ -556,11 +428,19 @@ DataArrayView::toString(const string& suffix) const
       }
       break;
     case 3:
-      for (int i=0;i<getShape()[0];i++) {
-	for (int j=0;j<getShape()[1];j++) {
-	  for (int k=0;k<getShape()[2];k++) {
-	    temp << "(" << i << "," << j << "," << k << ") " << finalSuffix << (*this)(i,j,k);
-	    if (!(i==(getShape()[0]-1) && j==(getShape()[1]-1) && k==(getShape()[2]-1))) {
+      for (int i=0;i<getShape()[0];++i) {
+	for (int j=0;j<getShape()[1];++j) {
+	  for (int k=0;k<getShape()[2];++k) {
+	    temp << "(" 
+		 << i << "," 
+		 << j << "," 
+		 << k << ") " 
+		 << finalSuffix << (*this)(i,j,k);
+	    //
+	    // don't put an endl after the last value
+	    if (!(i==(getShape()[0]-1) && 
+		  j==(getShape()[1]-1) && 
+		  k==(getShape()[2]-1))) {
 	      temp << endl;
 	    }
 	  }
@@ -568,19 +448,7 @@ DataArrayView::toString(const string& suffix) const
       }
       break;
     case 4:
-      for (int i=0;i<getShape()[0];i++) {
-	for (int j=0;j<getShape()[1];j++) {
-	  for (int k=0;k<getShape()[2];k++) {
-	    for (int l=0;l<getShape()[3];l++) {
-	      temp << "(" << i << "," << j << "," << k << "," << l << ") " << finalSuffix << (*this)(i,j,k,l);
-	      if (!(i==(getShape()[0]-1) && j==(getShape()[1]-1) && k==(getShape()[2]-1) && l==(getShape()[3]-1))) {
-	        temp << endl;
-	      }
-            }
-	  }
-	}
-      }
-      break;
+      // break;
     default:
       stringstream mess;
       mess << "Error - (toString) Invalid rank: " << getRank();
@@ -594,9 +462,9 @@ DataArrayView::shapeToString(const DataArrayView::ShapeType& shape)
 {
     stringstream temp;
     temp << "(";
-    for (int i=0;i<shape.size();i++) {
+    for (int i=0;i<shape.size();++i) {
       temp << shape[i];
-      if (i < shape.size()-1) {
+      if (shape.size()-i != 1) {
 	temp << ",";
       }
     }
@@ -719,6 +587,57 @@ DataArrayView::matMult(const DataArrayView& left,
       throw DataException(temp.str());
       break;
     }
+}
+
+DataArrayView::RegionType
+DataArrayView::getSliceRegion(const boost::python::object& key) const
+{
+    int slice_len=0,i=0,rank=getRank(),out_len=0;
+    extract<tuple> key_tuple(key);
+    if (key_tuple.check()) {
+        slice_len=extract<int>(key.attr("__len__")());
+    } else {
+        slice_len=1;
+    }
+    if (slice_len>=rank) {
+         out_len=slice_len;
+    } else {
+         out_len=rank;
+    }
+    DataArrayView::RegionType out(out_len);
+    if (key_tuple.check()) {
+         for (i=0;i<slice_len;i++) out[i]=getSliceRange(getShape()[i],key[i]);
+    } else {
+         out[0]=getSliceRange(getShape()[0],key);
+    }
+    for (i=slice_len;i<rank;i++) out[i]=std::pair<int,int>(0,getShape()[i]);
+    // throw DataException("Error - number of slices is bigger then the rank.");
+    return out;
+}
+
+std::pair<int,int>
+getSliceRange(const int s,
+              const boost::python::object& key)
+{
+   int s1=s;
+   int s0=0;
+   /* if the key is an int we set start=end=key */
+   extract<int> slice_int(key);
+   if (slice_int.check()) {
+         s0=slice_int();
+         s1=s0;
+   } else {
+       extract<int> step(key.attr("step"));
+       if (step.check() && step()!=1) {
+            throw DataException("Error - Data does not support increments in slicing ");
+       } else {
+          extract<int> start(key.attr("start"));
+          if (start.check()) s0=start();
+          extract<int> stop(key.attr("stop"));
+          if (stop.check()) s1=stop();
+       }
+   }
+   return std::pair<int,int>(s0,s1);
 }
 
 bool operator==(const DataArrayView& left, const DataArrayView& right)

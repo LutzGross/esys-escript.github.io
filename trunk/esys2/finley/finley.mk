@@ -7,20 +7,13 @@
 
 # Matt Davies 04/08/03
 
-DODEBUG = YES
+DEFAULT_TARGET := libfinleyC.a libfinley.so
 
-DEFAULT_TARGET := libfinleyC.a libfinleycpp.so
-
-INSTALL_PYTH := ./py_src/finley.py
-
-INSTALL_LIB := ./lib/libfinleycpp.so
-
-L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=SGI_SCSL
-# L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
-
-PACKAGES := escript mmio esysUtils python23 boost scsl141pre
+PACKAGES := escript mmio esysUtils python23 boost
 
 L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL ./src/CPPAdapter
+
+L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
 
 include $(ESYS_ROOT)/make/Makefile.default
 

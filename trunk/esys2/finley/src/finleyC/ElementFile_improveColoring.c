@@ -32,8 +32,8 @@ void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNode
     min_id=Finley_Util_getMinInt(1,numNodes,degreeOfFreedom);
     max_id=Finley_Util_getMaxInt(1,numNodes,degreeOfFreedom);
     len=max_id-min_id+1;
-    maskDOF=TMPMEMALLOC(len,maybelong);
-    old_Color=TMPMEMALLOC(in->numElements,maybelong);
+    maskDOF=(maybelong*)TMPMEMALLOC(len*sizeof(maybelong));
+    old_Color=(maybelong*)TMPMEMALLOC(in->numElements*sizeof(maybelong));
     
     if (! (Finley_checkPtr(maskDOF) || Finley_checkPtr(old_Color) ) ) {
          #pragma omp parallel for private(e) schedule(static)
@@ -83,11 +83,8 @@ void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNode
 }
 /* 
 * $Log$
-* Revision 1.2  2004/12/14 05:39:30  jgs
+* Revision 1.3  2004/12/15 03:48:45  jgs
 * *** empty log message ***
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:13  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
 * initial import of project esys2

@@ -1,4 +1,3 @@
-//$Id$
 /*
  ******************************************************************************
  *                                                                            *
@@ -94,12 +93,6 @@ void AbstractContinuousDomain::setToIntegrals(std::vector<double>& integrals,con
   throwStandardException("AbstractContinuousDomain::setToIntegrals");
   return;
 }
-
-int AbstractContinuousDomain::getSystemMatrixTypeId(const int solver, const bool symmetry) const 
-{
-   return 0;
-}
-
 
 const AbstractContinuousDomain& AbstractContinuousDomain::asAbstractContinuousDomain(const AbstractDomain& domain)
 {
