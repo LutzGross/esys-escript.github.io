@@ -24,7 +24,9 @@
 #include <boost/shared_ptr.hpp>
 
 #include <iostream>
+
 #include <vector>
+#include "escript/Data/DataVector.h"
 
 namespace escript {
 
@@ -42,7 +44,9 @@ namespace escript {
    The view provided represents a single n-dimensional data-point
    comprised of values taken from the given data array, starting at the
    specified offset and extending for as many values as are necessary to
-   satisfy the given shape.
+   satisfy the given shape. The default offset can be changed, or different
+   offsets specified, in order to provide views of other data-points in
+   the underlying data array.
 */
 
 class DataArrayView {
@@ -52,10 +56,10 @@ class DataArrayView {
 
  public:
 
-  /**
-      Some basic types which define the data values and view shapes.
-  */
-  typedef std::vector<double>               ValueType;
+  //
+  // Some basic types which define the data values and view shapes.
+  typedef DataVector                        ValueType;
+  //typedef std::vector<double>               ValueType;
   typedef std::vector<int>                  ShapeType;
   typedef std::vector<std::pair<int, int> > RegionType;
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
@@ -208,6 +212,7 @@ class DataArrayView {
   */
   bool
   checkOffset() const;
+
   bool
   checkOffset(ValueType::size_type offset) const;
 
@@ -230,9 +235,12 @@ class DataArrayView {
      Calculate the number of values for the given shape or region.
      This is purely a utility method and has no bearing on this view.
   */
-  static int
+  static
+  int
   noValues(const ShapeType& shape);
-  static int
+
+  static
+  int
   noValues(const RegionLoopRangeType& region);
 
   /**
@@ -254,22 +262,21 @@ class DataArrayView {
      \brief
      Return the shape of this view.
   */
-  const ShapeType&
+  const
+  ShapeType&
   getShape() const;
 
   /**
      \brief
      Return true if the given shape is the same as this view's shape.
-     This is purely a utility method and has no bearing on this view.
   */
   bool
-  checkShape(const DataArrayView::ShapeType& other) const;
+  checkShape(const ShapeType& other) const;
 
   /**
      \brief
      Create a shape error message. Normally used when there is a shape
-     mismatch.
-     This is purely a utility method and has no bearing on this view.
+     mismatch between this shape and the other shape.
 
      \param messagePrefix - Input -
                        First part of the error message.
@@ -278,7 +285,7 @@ class DataArrayView {
   */
   std::string
   createShapeErrorMessage(const std::string& messagePrefix,
-                          const DataArrayView::ShapeType& other) const;
+                          const ShapeType& other) const;
 
   /**
      \brief
@@ -298,8 +305,9 @@ class DataArrayView {
 
      \param shape - Input.
   */
-  static std::string
-  shapeToString(const DataArrayView::ShapeType& shape);
+  static
+  std::string
+  shapeToString(const ShapeType& shape);
 
   /**
     \brief
@@ -478,7 +486,8 @@ class DataArrayView {
      \param region - Input -
                        Slice region.
   */
-  static DataArrayView::ShapeType
+  static
+  ShapeType
   getResultSliceShape(const RegionType& region);
 
   /**
@@ -537,7 +546,7 @@ class DataArrayView {
          getSliceRegion(:1,0:2)      => < <0,1> <0,2> <0,6> >
 
   */
-  DataArrayView::RegionType
+  RegionType
   getSliceRegion(const boost::python::object& key) const;
 
   /**
@@ -770,7 +779,8 @@ class DataArrayView {
      \param right - Input - The right hand side.
      \param result - Output - The result of the operation.
   */
-  static void
+  static
+  void
   matMult(const DataArrayView& left,
           const DataArrayView& right,
           DataArrayView& result);
@@ -781,7 +791,8 @@ class DataArrayView {
      of the given views.
      This is purely a utility method and has no bearing on this view.
   */
-  static ShapeType
+  static
+  ShapeType
   determineResultShape(const DataArrayView& left,
                        const DataArrayView& right);
 
@@ -796,7 +807,7 @@ class DataArrayView {
   //
   // The data values for the view.
   // NOTE: This points to data external to the view.
-  // This is just a pointer to a simple STL vector of doubles.
+  // This is just a pointer to an array of ValueType.
   ValueType* m_data;
 
   //

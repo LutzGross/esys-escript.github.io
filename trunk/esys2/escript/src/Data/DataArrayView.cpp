@@ -80,7 +80,7 @@ DataArrayView::isEmpty() const
 void
 DataArrayView::copy(const boost::python::numeric::array& value)
 {
-    DataArrayView::ShapeType tempShape;    
+    ShapeType tempShape;    
     for (int i=0; i<value.getrank(); i++) {
       tempShape.push_back(extract<int>(value.getshape()[i]));
     }
@@ -178,7 +178,8 @@ DataArrayView::getRank() const
     return m_shape.size();
 }
 
-const DataArrayView::ShapeType&
+const
+DataArrayView::ShapeType&
 DataArrayView::getShape() const
 {
     return m_shape;
@@ -293,7 +294,7 @@ DataArrayView::getResultSliceShape(const RegionType& region)
 {
     int dimSize;
     RegionType::const_iterator i;
-    DataArrayView::ShapeType result;
+    ShapeType result;
     for (i=region.begin();i!=region.end();i++) {
       dimSize=((i->second)-(i->first));
       if (dimSize!=0) {
@@ -308,7 +309,7 @@ DataArrayView::getSliceRegion(const boost::python::object& key) const
 {
   int slice_rank, i;
   int this_rank=getRank();
-  DataArrayView::RegionType out(this_rank);
+  RegionType out(this_rank);
   /* allow for case where key is singular eg: [1], this implies we
      want to generate a rank-1 dimension object, as opposed to eg: [1,2]
      which implies we want to take a rank dimensional object with one
@@ -850,7 +851,7 @@ DataArrayView::ShapeType
 DataArrayView::determineResultShape(const DataArrayView& left,
                                     const DataArrayView& right)
 {
-    DataArrayView::ShapeType temp;
+    ShapeType temp;
     for (int i=0; i<(left.getRank()-1); i++) {
       temp.push_back(left.getShape()[i]);
     }

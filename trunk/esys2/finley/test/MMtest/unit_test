@@ -1,0 +1,16 @@
+#!/bin/bash
+if [ ! -e Makefile ]; then ln -s ./MMtest.mk Makefile; fi
+make -f ./Makefile clean
+make -f ./Makefile
+echo ----------------------------------------------------------------------------
+./MMtest.exe inp.mm out.mm
+cmp -s inp.mm out.mm
+if [ $? != 0 ]
+then
+	echo "inp.mm and out.mm differ"
+	echo "!! Test FAILED !!"
+else
+	echo "** Test PASSED **"
+	rm -f out.mm
+fi
+make -f ./Makefile clean

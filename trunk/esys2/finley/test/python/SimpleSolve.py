@@ -60,14 +60,13 @@ print "mypde.checkSymmetry()"
 print mypde.checkSymmetry()
 
 print "\nIterative Solver (1)=>"
-u_i=mypde.getSolution(preconditioner=ILU0,iter_max=3000)
-# u_i=mypde.getSolution(iter_max=3000)
+# u_i=mypde.getSolution(preconditioner=ILU0,iter_max=3000)
+u_i=mypde.getSolution(iter_max=3000)
 
 
 print "\nDirect Solver (1)=>"
 mypde.setSolverMethod(DIRECT)
 u_d=mypde.getSolution()
-
 
 print "\n***************************************************************"
 error=u_ex-u_d

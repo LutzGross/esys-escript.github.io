@@ -230,7 +230,7 @@ void DataTaggedTestCase::testAll() {
     myData.addTaggedValues(keys,values);
     assert(myData.getDataPointByTag(1)==myView);
     cout << "\tTest addition of further tags." << endl;
-    keys.clear();
+    keys.resize(0);
     keys.push_back(3);
     for (int i=0;i<myView.getShape()[0];++i) {
       myView(i)=i+1.5;
@@ -293,7 +293,7 @@ void DataTaggedTestCase::testAll() {
     viewShape.push_back(1);
     keys.clear();
     values.clear();
-    viewData.clear();
+    viewData.resize(0);
     for (int i=0;i<viewShape[0];++i) {
       viewData.push_back(0.0);
     }

@@ -30,13 +30,16 @@ namespace escript {
 
 /**
    \brief
-   DataAbstract provides an interface for the class of containers
+   DataAbstract provides an abstract interface for the class of containers
    which hold ESyS data. 
 
    Description:
-   DataAbstract provides an interface for the class of containers
+   DataAbstract provides an abstract interface for the class of containers
    which hold ESyS data. The container may be thought of as a 2 dimensional
-   array of data points. The data points themselves are arrays of rank 0-4.
+   array of data points where one dimension corresponds to the number of samples
+   and the other to the number of data points per sample as defined by the function
+   space associated with each Data object. The data points themselves are arrays of
+   doubles of rank 0-4.
 */
 
 class DataAbstract {
@@ -52,6 +55,7 @@ class DataAbstract {
 
      Description:
      Constructor for DataAbstract.
+
      \param what - Input - A description of what this data represents.
   */
   DataAbstract(const FunctionSpace& what);
@@ -91,20 +95,20 @@ class DataAbstract {
      the shape information for each data point although it also may be used
      to manipulate the point data.
   */
-  const DataArrayView&
-  getPointDataView() const;
-
   DataArrayView&
   getPointDataView();
 
+  const DataArrayView&
+  getPointDataView() const;
+
   /**
      \brief
-     Return the offset for the given sample. This is somewhat artificial notion
-     but returns the offset for the given point into the container
-     holding the point data. Only really necessary to avoid many DataArrayView
-     objects.
+     Return the offset for the given sample. This returns the offset for the given
+     point into the container holding the point data. Only really necessary to
+     avoid creating many DataArrayView objects.
+
      \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - Input.
+     \param dataPointNo - Input - data point number.
    */
   virtual
   ValueType::size_type
@@ -113,14 +117,14 @@ class DataAbstract {
 
   /**
      \brief
-     Return the sample data for the given sample no.
+     Return the sample data for the given sample number.
   */
   double*
   getSampleData(ValueType::size_type sampleNo);
 
   /**
      \brief
-     Return the number of doubles stored for the Data.
+     Return the number of doubles stored for this Data object.
   */
   virtual
   ValueType::size_type
@@ -171,8 +175,9 @@ class DataAbstract {
 
   /**
      \brief
-     Check this and the right operands are compatible. Throws
+     Check this and the given RHS operands are compatible. Throws
      an exception if they aren't.
+
      \param right - Input - The right hand side.
   */
   void
@@ -187,7 +192,7 @@ class DataAbstract {
 
   /**
      \brief
-     Return true if a valid number.
+     Return true if a valid sample number.
   */
   bool
   validSampleNo(int sampleNo) const;
@@ -197,25 +202,28 @@ class DataAbstract {
      Return a view into the data for the data point specified.
      NOTE: Construction of the DataArrayView is a relatively expensive 
      operation.
-     \param samplesNo Input
-     \param dataPointNo Input
+
+     \param sampleNo - Input - the sample number.
+     \param dataPointNo - Input - the data point number.
   */
   virtual
   DataArrayView
-  getDataPoint(int samplesNo,
+  getDataPoint(int sampleNo,
                int dataPointNo) = 0;
 
   /**
      \brief
-     Return the function space.
+     Return the function space associated with this Data object.
   */
-  const FunctionSpace&
+  const
+  FunctionSpace&
   getFunctionSpace() const;
 
   /**
      \brief
-     Return a newly constructed DataAbstract. The caller is responsible for 
-     managing the object created.
+     Return the given slice from this object.
+
+     NB: The caller is responsible for managing the object created.
   */
   virtual
   DataAbstract*
@@ -223,7 +231,8 @@ class DataAbstract {
 
   /**
      \brief
-     Copy the specified region from the given value.
+     Copy the specified region from the given object.
+
      \param value - Input - Data to copy from
      \param region - Input - Region to copy.
   */
@@ -234,14 +243,14 @@ class DataAbstract {
 
   /**
      \brief
-     Reshape the data point if the data point is currently rank 0.
+     Reshape the data points if they are currently rank 0.
      Will throw an exception if the data points are not rank 0.
      The original data point value is used for all values of the new
      data point.
   */
   virtual
   void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape) = 0;
+  reshapeDataPoint(const ShapeType& shape) = 0;
 
   /**
      \brief
@@ -249,9 +258,11 @@ class DataAbstract {
                                                                                                                                    
      Description:
      Assign the given value to the given tag.
+
+     NB: If the data isn't tagged an exception will be thrown.
+
      \param tagKey - Input - Integer key.
      \param value - Input - Single DataArrayView value to be assigned to the tag.
-     NB: If the data isn't tagged an exception will be thrown.
   */
   virtual
   void
@@ -262,7 +273,8 @@ class DataAbstract {
 
   /**
      \brief
-     Set the pointDataView
+     Set the pointDataView DataArrayView associated with this object.
+
      \param right - Input - The point data view. DataAbstract takes ownership
      of the DataArrayView provided. It will delete it when it is destructed.
   */
@@ -271,16 +283,25 @@ class DataAbstract {
 
  private:
 
-  int m_noDataPointsPerSample;
-
+  //
+  // The number of samples in this Data object.
+  // This is derived directly from the FunctionSpace.
   int m_noSamples;
 
   //
-  // Provides a view of the data as point data
+  // The number of data points per sample in this Data object.
+  // This is derived directly from the FunctionSpace.
+  int m_noDataPointsPerSample;
+
+  //
+  // The DataArrayView of the data array associated with this object.
+  // The data array is defined only in child classes of this class, it
+  // is not defined in this abstract parent class.
   boost::scoped_ptr<DataArrayView> m_pointDataView;
 
   //
-  // function space
+  // A FunctionSpace which provides a description of the data associated
+  // with this Data object.
   FunctionSpace m_functionSpace;
 
 };
@@ -344,4 +365,5 @@ DataAbstract::getPointDataView()
 }
 
 } // end of namespace
+
 #endif

@@ -25,94 +25,98 @@
 Finley_SystemMatrix* Finley_SystemMatrix_alloc(Finley_SystemMatrixType type,Finley_SystemMatrixPattern *pattern, int row_block_size, int col_block_size) {
   double time0;
   Finley_SystemMatrix*out=NULL;
-  double *val=NULL;
-  Finley_SystemMatrixType out_type;
   Finley_ErrorCode=NO_ERROR;
-  
-  /* check the matrix type */
-  switch(type) {
-     case CSC:
-        out_type=CSC;
-        break;
-     case CSR:
-        out_type=CSR;
-        break;
-     case CSC_BLK1:
-        out_type=CSC;
-        if (row_block_size!=1 || col_block_size!=1) {
-            Finley_ErrorCode=TYPE_ERROR;
-            sprintf(Finley_ErrorMsg,"convertion of matrix pattern for block size one for logical block size > 1 is not implemented yet");
-            return NULL;
-        }
-        break;
-     case CSR_BLK1:
-        out_type=CSR;
-        if (row_block_size!=1 || col_block_size!=1) {
-            Finley_ErrorCode=TYPE_ERROR;
-            sprintf(Finley_ErrorMsg,"convertion of matrix pattern for block size one for logical block size > 1 is not implemented yet");
-            return NULL;
-        }
-        break;
-     case CSC_SYM:
-     case CSC_BLK1_SYM:
-        out_type=CSC_SYM;
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"convertion of matrix pattern for symmetric CSC is not implemented yet.");
-        return NULL;
-     default:
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"unknown matrix type identifier %d.",type);
-        return NULL;
-  }
   time0=Finley_timer();
-  /*  allocate the return value */
-
   out=MEMALLOC(1,Finley_SystemMatrix);
-  if (! Finley_checkPtr(out)) {
-
-     /* is block size 1 enforced ? */
-     if (type==CSC_BLK1 || type==CSR_BLK1 || type==CSR_BLK1_SYM || type==CSC_BLK1_SYM) {
-        out->row_block_size=1;
-        out->col_block_size=1;
-     } else {
-        out->row_block_size=row_block_size;
-        out->col_block_size=col_block_size;
+  if (! Finley_checkPtr(out)) {  
+     out->pattern=NULL;  
+     out->direct=NULL;  
+     out->iterative=NULL;
+     out->val=NULL;  
+     out->reference_counter=1;
+     /* check the matrix type */
+     switch(type) {
+        case CSC:
+          out->type=CSC;
+          if (row_block_size!=col_block_size || col_block_size>3) {
+             out->row_block_size=1;
+             out->col_block_size=1;
+             out->pattern=Finley_SystemMatrixPattern_unrollBlocks(pattern,col_block_size,row_block_size);
+          } else {
+             out->pattern=Finley_SystemMatrixPattern_reference(pattern);
+             out->row_block_size=row_block_size;
+             out->col_block_size=col_block_size;
+          }
+          break;
+        case CSR:
+           out->type=CSR;
+           if (row_block_size!=col_block_size || col_block_size>3) {
+              out->row_block_size=1;
+              out->col_block_size=1;
+              out->pattern=Finley_SystemMatrixPattern_unrollBlocks(pattern,row_block_size,col_block_size);
+           } else { 
+              out->pattern=Finley_SystemMatrixPattern_reference(pattern);
+              out->row_block_size=row_block_size;
+              out->col_block_size=col_block_size;
+          }
+          break;
+        case CSC_BLK1:
+          out->type=CSC;
+          out->row_block_size=1;
+          out->col_block_size=1;
+          if (row_block_size==1 && col_block_size==1) {
+              out->pattern=Finley_SystemMatrixPattern_reference(pattern);
+          } else {
+             out->pattern=Finley_SystemMatrixPattern_unrollBlocks(pattern,col_block_size,row_block_size);
+          }
+          break;
+        case CSR_BLK1:
+          out->type=CSR;
+          out->row_block_size=1;
+          out->col_block_size=1;
+          if (row_block_size==1 && col_block_size==1) {
+              out->pattern=Finley_SystemMatrixPattern_reference(pattern);
+          } else {
+             out->pattern=Finley_SystemMatrixPattern_unrollBlocks(pattern,row_block_size,col_block_size);
+          }
+          break;
+        case CSC_SYM:
+        case CSC_BLK1_SYM:
+          out->type=CSC_SYM;
+          Finley_ErrorCode=TYPE_ERROR;
+          sprintf(Finley_ErrorMsg,"convertion of matrix pattern for symmetric CSC is not implemented yet.");
+          return NULL;
+        default:
+          Finley_ErrorCode=TYPE_ERROR;
+          sprintf(Finley_ErrorMsg,"unknown matrix type identifier %d.",type);
+          return NULL;
      }
-     if (out_type==CSC || type==CSC_BLK1 ||  type==CSC_SYM || type==CSC_BLK1_SYM ) {
-         out->num_rows=pattern->n_index;
-         out->num_cols=pattern->n_ptr;
+     if (out->type==CSC || out->type==CSC_SYM ) {
+         out->num_rows=out->pattern->n_index;
+         out->num_cols=out->pattern->n_ptr;
      } else {
-         out->num_rows=pattern->n_ptr;
-         out->num_cols=pattern->n_index;
+         out->num_rows=out->pattern->n_ptr;
+         out->num_cols=out->pattern->n_index;
      } 
-
-     out->type=out_type;
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
      out->logical_block_size=out->logical_row_block_size*out->logical_block_size;
+     out->row_block_size=out->row_block_size;
+     out->col_block_size=out->col_block_size;
      out->block_size=out->row_block_size*out->col_block_size;
-     out->pattern=Finley_SystemMatrixPattern_reference(pattern);
      out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
-     out->reference_counter=1;
-     out->direct=NULL;  
-     out->iterative=NULL;
-
-   
      /* allocate memory for matrix entries */
-     val=MEMALLOC(out->len,double);
-     if (! Finley_checkPtr(val)) {
-        out->val=val;
+     out->val=MEMALLOC(out->len,double);
+     if (! Finley_checkPtr(out->val)) {
         Finley_SystemMatrix_setValues(out,DBLE(0));
      }
-   }
+  }
   /* all done: */
-
-  printf("timing: system matrix %.4e sec\n",Finley_timer()-time0);
   if (Finley_ErrorCode!=NO_ERROR) {
-    MEMFREE(val);
     Finley_SystemMatrix_dealloc(out);
     return NULL;
   } else {
+    printf("timing: system matrix %.4e sec\n",Finley_timer()-time0);
     #ifdef Finley_TRACE
     printf("Finley_SystemMatrix_alloc: %ld x %ld system matrix has been allocated.\n",(long)out->num_rows,(long)out->num_cols);
     #endif

@@ -144,8 +144,8 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,int verbose) {
                        }
                     } else if (n_block==2) {
                        A11=A_p->val[iPtr*4];
-                       A12=A_p->val[iPtr*4+2];
                        A21=A_p->val[iPtr*4+1];
+                       A12=A_p->val[iPtr*4+2];
                        A22=A_p->val[iPtr*4+3];
                        D = A11*A22-A12*A21;
                        if (ABS(D) > 0 ){
@@ -188,76 +188,78 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,int verbose) {
                 }
               }
            } /* end parallel region */
- 
-           /* if there are no nodes in the coarse level there is no more work to do */
-           out->n_C=n-out->n_F;
-           if (out->n_C>0) {
-                out->rows_in_C=MEMALLOC(out->n_C,maybelong);
-                out->mask_C=MEMALLOC(n,maybelong);
-                if (! (Finley_checkPtr(out->mask_C) || Finley_checkPtr(out->rows_in_C) ) ) {
-                    /* creates an index for C from mask */
-                    #pragma omp parallel for private(i) schedule(static)
-                    for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
-                    Finley_Util_cumsum(n,counter);
-                    #pragma omp parallel
-                    {
-                       #pragma omp for private(i) schedule(static)
-                       for (i = 0; i < out->n_C; ++i) out->rows_in_C[i]=-1;
-                       #pragma omp for private(i) schedule(static)
-                       for (i = 0; i < n; ++i) {
-                          if  (! mis_marker[i]) {
-                             out->rows_in_C[counter[i]]=i;
-                             out->mask_C[i]=counter[i];
-                          } else {
-                             out->mask_C[i]=-1;
+
+           if( Finley_ErrorCode == NO_ERROR) {
+              /* if there are no nodes in the coarse level there is no more work to do */
+              out->n_C=n-out->n_F;
+              if (out->n_C>0) {
+                   out->rows_in_C=MEMALLOC(out->n_C,maybelong);
+                   out->mask_C=MEMALLOC(n,maybelong);
+                   if (! (Finley_checkPtr(out->mask_C) || Finley_checkPtr(out->rows_in_C) ) ) {
+                       /* creates an index for C from mask */
+                       #pragma omp parallel for private(i) schedule(static)
+                       for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
+                       Finley_Util_cumsum(n,counter);
+                       #pragma omp parallel
+                       {
+                          #pragma omp for private(i) schedule(static)
+                          for (i = 0; i < out->n_C; ++i) out->rows_in_C[i]=-1;
+                          #pragma omp for private(i) schedule(static)
+                          for (i = 0; i < n; ++i) {
+                             if  (! mis_marker[i]) {
+                                out->rows_in_C[counter[i]]=i;
+                                out->mask_C[i]=counter[i];
+                             } else {
+                                out->mask_C[i]=-1;
+                             }
                           }
-                       }
-                   } /* end parallel region */
-                   /* get A_CF block: */
-                   out->A_CF=Finley_SystemMatrix_getSubmatrix(A_p,out->n_C,out->rows_in_C,out->mask_F);
-                   if (Finley_ErrorCode==NO_ERROR) {
-                      /* get A_FC block: */
-                      out->A_FC=Finley_SystemMatrix_getSubmatrix(A_p,out->n_F,out->rows_in_F,out->mask_C);
-                      /* get A_FF block: */
+                      } /* end parallel region */
+                      /* get A_CF block: */
+                      out->A_CF=Finley_SystemMatrix_getSubmatrix(A_p,out->n_C,out->rows_in_C,out->mask_F);
                       if (Finley_ErrorCode==NO_ERROR) {
-                         schur=Finley_SystemMatrix_getSubmatrix(A_p,out->n_C,out->rows_in_C,out->mask_C);
-                         time0=Finley_timer()-time0;
+                         /* get A_FC block: */
+                         out->A_FC=Finley_SystemMatrix_getSubmatrix(A_p,out->n_F,out->rows_in_F,out->mask_C);
+                         /* get A_FF block: */
                          if (Finley_ErrorCode==NO_ERROR) {
-                             time1=Finley_timer();
-                             /* update A_CC block to get Schur complement and then apply ILU to it */
-                             Finley_Solver_updateIncompleteSchurComplement(schur,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                             time1=Finley_timer()-time1;
-                             out->ILU_of_Schur=Finley_Solver_getILU(schur,verbose);
-                             Finley_SystemMatrix_dealloc(schur);
+                            schur=Finley_SystemMatrix_getSubmatrix(A_p,out->n_C,out->rows_in_C,out->mask_C);
+                            time0=Finley_timer()-time0;
+                            if (Finley_ErrorCode==NO_ERROR) {
+                                time1=Finley_timer();
+                                /* update A_CC block to get Schur complement and then apply ILU to it */
+                                Finley_Solver_updateIncompleteSchurComplement(schur,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
+                                time1=Finley_timer()-time1;
+                                out->ILU_of_Schur=Finley_Solver_getILU(schur,verbose);
+                                Finley_SystemMatrix_dealloc(schur);
+                            }
+                            /* allocate work arrays for ILU application */
+                            if (Finley_ErrorCode==NO_ERROR) {
+                              out->x_F=MEMALLOC(n_block*out->n_F,double);
+                              out->b_F=MEMALLOC(n_block*out->n_F,double);
+                              out->x_C=MEMALLOC(n_block*out->n_C,double);
+                              out->b_C=MEMALLOC(n_block*out->n_C,double);
+                              if (! (Finley_checkPtr(out->x_F) || Finley_checkPtr(out->b_F) || Finley_checkPtr(out->x_C) || Finley_checkPtr(out->b_C) ) ) {
+                                  #pragma omp parallel 
+                                  {
+                                    #pragma omp for private(i,k) schedule(static)
+                                    for (i = 0; i < out->n_F; ++i) {
+                                          for (k=0; k<n_block;++k) {
+                                             out->x_F[i*n_block+k]=0.;
+                                             out->b_F[i*n_block+k]=0.;
+                                          }
+                                    }
+                                    #pragma omp for private(i,k) schedule(static)
+                                    for (i = 0; i < out->n_C; ++i) {
+                                        for (k=0; k<n_block;++k) {
+                                          out->x_C[i*n_block+k]=0.;
+                                          out->b_C[i*n_block+k]=0.;
+                                        }
+                                    }
+                                  } /* end parallel region */
+                              }
+                            }
                          }
-                         /* allocate work arrays for ILU application */
-                         if (Finley_ErrorCode==NO_ERROR) {
-                           out->x_F=MEMALLOC(n_block*out->n_F,double);
-                           out->b_F=MEMALLOC(n_block*out->n_F,double);
-                           out->x_C=MEMALLOC(n_block*out->n_C,double);
-                           out->b_C=MEMALLOC(n_block*out->n_C,double);
-                           if (! (Finley_checkPtr(out->x_F) || Finley_checkPtr(out->b_F) || Finley_checkPtr(out->x_C) || Finley_checkPtr(out->b_C) ) ) {
-                               #pragma omp parallel 
-                               {
-                                 #pragma omp for private(i,k) schedule(static)
-                                 for (i = 0; i < out->n_F; ++i) {
-                                       for (k=0; k<n_block;++k) {
-                                          out->x_F[i*n_block+k]=0.;
-                                          out->b_F[i*n_block+k]=0.;
-                                       }
-                                 }
-                                 #pragma omp for private(i,k) schedule(static)
-                                 for (i = 0; i < out->n_C; ++i) {
-                                     for (k=0; k<n_block;++k) {
-                                       out->x_C[i*n_block+k]=0.;
-                                       out->b_C[i*n_block+k]=0.;
-                                     }
-                                 }
-                               } /* end parallel region */
-                           }
-                         }
-                      }
-                  }
+                     }
+                 }
               }
            }
         }
@@ -360,19 +362,3 @@ void Finley_Solver_solveILU(Finley_Solver_ILU * ilu, double * x, double * b) {
      }
      return;
 }
-/*
- * $Log$
- * Revision 1.2  2005/03/04 07:12:47  jgs
- * *** empty log message ***
- *
- * Revision 1.1.2.3  2005/03/04 05:27:08  gross
- * bug in SystemPattern fixed.
- *
- * Revision 1.1.2.2  2005/03/04 05:09:46  gross
- * a missing file from the ILU reimplementation
- *
- * Revision 1.1.2.1  2005/03/02 23:35:07  gross
- * reimplementation of the ILU in Finley. block size>1 still needs some testing
- *
- *
- */

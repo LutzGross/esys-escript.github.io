@@ -11,6 +11,7 @@
  *                                                                           *
  *****************************************************************************
 */
+
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/NullDomain.h"
 
@@ -44,8 +45,12 @@ void FunctionSpaceTestCase::testAll() {
 
   cout << endl;
 
+  cout << "\tTest default FunctionSpace constructor." << endl;
+
   // Test Default constructor
   FunctionSpace testFunctionSpace1;
+
+  cout << "\tTest FunctionSpace constructor." << endl;
 
   // Test constructor
   NullDomain nullDomain;
@@ -53,25 +58,12 @@ void FunctionSpaceTestCase::testAll() {
 
   FunctionSpace testFunctionSpace2(nullDomain, testfunctionSpaceType);
   
-  // Test getTypeCode
-  cout << "Test getTypeCode" << endl;
-  assert(testFunctionSpace1.getTypeCode()==1);
-
-  // Test getDomain
-  cout << "Test getDomain" << endl;
+  assert(testFunctionSpace1.getTypeCode()==testfunctionSpaceType);
   assert(testFunctionSpace2.getDomain()==nullDomain);
-
-  // Test getDim
-  cout << "Test getDim" << endl;
   assert(testFunctionSpace1.getDim()==1);
-
-  // Test == operator
-  cout << "Test == operator" << endl;
   assert(testFunctionSpace1==testFunctionSpace1);
   assert(!(testFunctionSpace1!=testFunctionSpace1));
 
-  // Test = operator
-  cout << "Test = operator" << endl;
   testFunctionSpace1=testFunctionSpace2;
   assert(testFunctionSpace1==testFunctionSpace2);
 
@@ -86,4 +78,3 @@ TestSuite* FunctionSpaceTestCase::suite ()
   testSuite->addTest (new TestCaller< FunctionSpaceTestCase>("testAll",&FunctionSpaceTestCase::testAll));
   return testSuite;
 }
-

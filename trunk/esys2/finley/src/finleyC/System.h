@@ -104,6 +104,7 @@ void Finley_SystemMatrixVector(escriptDataC *,Finley_SystemMatrix *, escriptData
 void Finley_ScaledSystemMatrixVector(double, Finley_SystemMatrix *, escriptDataC *,double,escriptDataC *);
 
 void Finley_SystemMatrix_saveMM(Finley_SystemMatrix *, char *);
+Finley_SystemMatrix* Finley_SystemMatrix_loadMM_toCSR(char *);
 void Finley_SystemMatrix_solve(Finley_SystemMatrix* A,escriptDataC* out,escriptDataC* in,Finley_SolverOptions* options);
 void Finley_SystemMatrix_solve_free(Finley_SystemMatrix* in);
 void Finley_SystemMatrix_nullifyRowsAndCols(Finley_SystemMatrix* A, escriptDataC* mask_row, escriptDataC* mask_col, double main_diagonal_value);
