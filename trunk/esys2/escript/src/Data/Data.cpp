@@ -539,65 +539,6 @@ Data::ln() const
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log);
 }
 
-double
-Data::Lsup() const
-{
-  //
-  // set the initial absolute maximum value to zero
-  return algorithm(DataAlgorithmAdapter<AbsMax>(0));
-}
-
-double
-Data::sup() const
-{
-  //
-  // set the initial maximum value to min possible double
-  return algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::min()));
-}
-
-double
-Data::inf() const
-{
-  //
-  // set the initial minimum value to max possible double
-  return algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
-}
-
-Data
-Data::maxval() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::minval() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::length() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::trace() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::transpose(int axis) const
-{
-  // not implemented
-  return (*this);
-}
-
 Data
 Data::sign() const
 {
@@ -632,6 +573,62 @@ Data
 Data::sqrt() const
 {
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sqrt);
+}
+
+double
+Data::Lsup() const
+{
+  //
+  // set the initial absolute maximum value to zero
+  return algorithm(DataAlgorithmAdapter<AbsMax>(0));
+}
+
+double
+Data::sup() const
+{
+  //
+  // set the initial maximum value to min possible double
+  return algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::min()));
+}
+
+double
+Data::inf() const
+{
+  //
+  // set the initial minimum value to max possible double
+  return algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+}
+
+Data
+Data::maxval() const
+{
+  return dp_algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::min()));
+}
+
+Data
+Data::minval() const
+{
+  return dp_algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+}
+
+Data
+Data::length() const
+{
+  return dp_algorithm(DataAlgorithmAdapter<Length>(0));
+}
+
+Data
+Data::trace() const
+{
+  return dp_algorithm(DataAlgorithmAdapter<Trace>(0));
+}
+
+Data
+Data::transpose(int axis) const
+{
+  // not implemented
+  throw DataException("Error - Data::transpose not implemented yet.");
+  return Data();
 }
 
 void

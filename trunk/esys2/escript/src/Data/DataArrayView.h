@@ -698,6 +698,7 @@ double
 DataArrayView::dp_algorithm(ValueType::size_type leftOffset,
                             UnaryFunction operation)
 {
+  operation.resetResult();
   for (ValueType::size_type i=0;i<(noValues(m_shape));i++) {
     operation((*m_data)[i+leftOffset]);
   }
