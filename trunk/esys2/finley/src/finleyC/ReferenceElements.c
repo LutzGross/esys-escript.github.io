@@ -375,7 +375,7 @@ Finley_RefElement* Finley_RefElement_alloc(ElementTypeId id,int numQuadNodes) {
   
   /*  allocate the Finley_RefElement to be returned: */
   
-  out=(Finley_RefElement*)MEMALLOC(sizeof(Finley_RefElement));
+  out=MEMALLOC(1,Finley_RefElement);
   if (Finley_checkPtr(out)) return NULL;
   out->Type=&(Finley_RefElement_InfoList[id]);
   out->numQuadNodes=numQuadNodes;
@@ -388,10 +388,10 @@ Finley_RefElement* Finley_RefElement_alloc(ElementTypeId id,int numQuadNodes) {
   
   int Ndim=Finley_RefElement_InfoList[id].numDim;
   int NS=Finley_RefElement_InfoList[id].numShapes;
-  out->QuadNodes=(double *)MEMALLOC(numQuadNodes*Ndim*sizeof(double));
-  out->QuadWeights=(double *)MEMALLOC(numQuadNodes*sizeof(double));
-  out->S=(double *)MEMALLOC(NS*numQuadNodes*sizeof(double));
-  out->dSdv=(double *)MEMALLOC(NS*Ndim*numQuadNodes*sizeof(double));
+  out->QuadNodes=MEMALLOC(numQuadNodes*Ndim,double);
+  out->QuadWeights=MEMALLOC(numQuadNodes,double);
+  out->S=MEMALLOC(NS*numQuadNodes,double);
+  out->dSdv=MEMALLOC(NS*Ndim*numQuadNodes,double);
   if ( Finley_checkPtr(out->QuadNodes) || Finley_checkPtr(out->QuadWeights) || Finley_checkPtr(out->S) || Finley_checkPtr(out->dSdv) ) {
          Finley_RefElement_dealloc(out);
          return NULL;
@@ -449,8 +449,14 @@ ElementTypeId Finley_RefElement_getTypeId(char* element_type) {
 }
 /* 
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2004/12/14 05:39:30  jgs
+* *** empty log message ***
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:15  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

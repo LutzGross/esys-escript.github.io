@@ -15,6 +15,7 @@
 
 /**************************************************************/
 
+#include "Finley.h"
 #include "Mesh.h"
 #include "Util.h"
 
@@ -28,10 +29,10 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
   min_id=Finley_Util_getMinInt(1,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
   len=max_id-min_id+1;
 
-  reducedNodesMask=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*in->Nodes->numNodes);
-  maskDOF=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*len);
-  maskReducedDOF=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*len);
-  index=(maybelong*)TMPMEMALLOC(sizeof(maybelong)*MAX(in->Nodes->numNodes,len));
+  reducedNodesMask=TMPMEMALLOC(in->Nodes->numNodes,maybelong);
+  maskDOF=TMPMEMALLOC(len,maybelong);
+  maskReducedDOF=TMPMEMALLOC(len,maybelong);
+  index=TMPMEMALLOC(MAX(in->Nodes->numNodes,len),maybelong);
 
   if  (! (Finley_checkPtr(maskDOF) || Finley_checkPtr(maskReducedDOF) 
                                         || Finley_checkPtr(reducedNodesMask) || Finley_checkPtr(index) ) ) {
@@ -90,8 +91,17 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
 
 /*
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2004/12/14 05:39:30  jgs
+* *** empty log message ***
+*
+* Revision 1.1.1.1.2.2  2004/11/24 01:37:14  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+*
+* Revision 1.1.1.1.2.1  2004/11/12 06:58:18  gross
+* a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.2  2004/07/30 04:37:06  gross
 * escript and finley are linking now and RecMeshTest.py has been passed

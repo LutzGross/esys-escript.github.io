@@ -61,13 +61,13 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   newNodeFile=Finley_NodeFile_alloc(numDim);
   if (Finley_ErrorCode!=NO_ERROR) goto clean;
 
-  maskNodes=(maybelong*)TMPMEMALLOC(len*sizeof(maybelong));
+  maskNodes=TMPMEMALLOC(len,maybelong);
   if (Finley_checkPtr(maskNodes)) goto clean;
 
-  maskElements=(maybelong*)TMPMEMALLOC(len*sizeof(maybelong));
+  maskElements=TMPMEMALLOC(len,maybelong);
   if (Finley_checkPtr(maskElements)) goto clean;
 
-  index=(maybelong*)TMPMEMALLOC(in->Nodes->numNodes*sizeof(maybelong));
+  index=TMPMEMALLOC(in->Nodes->numNodes,maybelong);
   if (Finley_checkPtr(maskElements)) goto clean;
 
   Finley_NodeFile_allocTable(newNodeFile,len);
@@ -137,8 +137,14 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
 
 /*
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2004/12/14 05:39:30  jgs
+* *** empty log message ***
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

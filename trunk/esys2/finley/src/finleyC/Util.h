@@ -34,6 +34,9 @@ maybelong Finley_Util_getMinInt(int dim,int N,maybelong* values);
 maybelong Finley_Util_packMask(maybelong N,maybelong* mask,maybelong* index);
 int Finley_Util_isAny(maybelong N,maybelong* array,maybelong value);
 void Finley_copyDouble(int n,double* source,double* target);
+int Finley_Util_SmallMatLU(int,double*,double*,int*);
+void Finley_Util_SmallMatForwardBackwardSolve(int,int,double*,int*,double*,double*);
+
 
 
 /* Finley_Util_orderValueAndIndex is used to sort items by a value */
@@ -53,8 +56,14 @@ int Finley_Util_ValueAndIndex_compar(const void *, const void *);
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:31  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.3  2004/08/26 12:03:52  gross
  * Some other bug in Finley_Assemble_gradient fixed.

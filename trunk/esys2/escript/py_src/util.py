@@ -7,31 +7,36 @@
 """
 
 import numarray
+import escript
 #
-#   escript constants:
+#   escript constants (have to be consistent witj utilC.h 
 #
-FALSE=0
-TRUE=1
 UNKNOWN=-1
 EPSILON=1.e-15
-Pi=3.1415926535897931
-# matrix types
-CSC=0   
-CSR=1
-LUMPED=10
+Pi=numarray.pi
 # some solver options:
 NO_REORDERING=0
 MINIMUM_FILL_IN=1
 NESTED_DISSECTION=2
+# solver methods
 DEFAULT_METHOD=0
-PCG=1
-CR=2
-CGS=3
-BICGSTAB=4
-SSOR=5
-ILU0=6
-ILUT=7
-JACOBI=8
+DIRECT=1
+CHOLEVSKY=2
+PCG=3
+CR=4
+CGS=5
+BICGSTAB=6
+SSOR=7
+ILU0=8
+ILUT=9
+JACOBI=10
+GMRES=11
+PRES20=12
+
+METHOD_KEY="method"
+SYMMETRY_KEY="symmetric"
+TOLERANCE_KEY="tolerance"
+
 # supported file formats:
 VRML=1
 PNG=2
@@ -49,20 +54,15 @@ PNM=10
 # as an argument it calls the correspong methods. Otherwise the coresponsing numarray
 # function is called.
 #
-def L2(arg):
-    """
-    @brief
-
-    @param arg
-    """
-    return arg.L2()
-
+# functions involving the underlying Domain:
+#
 def grad(arg,where=None):
     """
-    @brief
+    @brief returns the spatial gradient of the Data object arg
 
-    @param arg
-    @param where
+    @param arg: Data object representing the function which gradient to be calculated.
+    @param where: FunctionSpace in which the gradient will be. If None Function(dom) where dom is the
+                  domain of the Data object arg.
     """
     if where==None:
        return arg.grad()
@@ -71,7 +71,7 @@ def grad(arg,where=None):
 
 def integrate(arg):
     """
-    @brief
+    @brief return the integral if the function represented by Data object arg over its domain.
 
     @param arg
     """
@@ -79,23 +79,27 @@ def integrate(arg):
 
 def interpolate(arg,where):
     """
-    @brief
+    @brief interpolates the function represented by Data object arg into the FunctionSpace where.
 
     @param arg
     @param where
     """
     return arg.interpolate(where)
 
-def transpose(arg):
+# functions returning Data objects:
+
+def transpose(arg,axis=None):
     """
-    @brief
+    @brief returns the transpose of the Data object arg. 
 
     @param arg
     """
-    if hasattr(arg,"transpose"):
-       return arg.transpose()
+    if isinstance(arg,escript.Data):
+       if axis==None: axis=arg.getRank()/2
+       return arg.transpose(axis)
     else:
-       return numarray.transpose(arg,axis=None)
+       if axis==None: axis=arg.rank/2
+       return numarray.transpose(arg,axis=axis)
 
 def trace(arg):
     """
@@ -103,10 +107,10 @@ def trace(arg):
 
     @param arg
     """
-    if hasattr(arg,"trace"):
+    if isinstance(arg,escript.Data):
        return arg.trace()
     else:
-       return numarray.trace(arg,k=0)
+       return numarray.trace(arg)
 
 def exp(arg):
     """
@@ -114,7 +118,7 @@ def exp(arg):
 
     @param arg
     """
-    if hasattr(arg,"exp"):
+    if isinstance(arg,escript.Data):
        return arg.exp()
     else:
        return numarray.exp(arg)
@@ -125,7 +129,7 @@ def sqrt(arg):
 
     @param arg
     """
-    if hasattr(arg,"sqrt"):
+    if isinstance(arg,escript.Data):
        return arg.sqrt()
     else:
        return numarray.sqrt(arg)
@@ -136,10 +140,21 @@ def sin(arg):
 
     @param arg
     """
-    if hasattr(arg,"sin"):
+    if isinstance(arg,escript.Data):
        return arg.sin()
     else:
        return numarray.sin(arg)
+
+def tan(arg):
+    """
+    @brief
+
+    @param arg
+    """
+    if isinstance(arg,escript.Data):
+       return arg.tan()
+    else:
+       return numarray.tan(arg)
 
 def cos(arg):
     """
@@ -147,7 +162,7 @@ def cos(arg):
 
     @param arg
     """
-    if hasattr(arg,"cos"):
+    if isinstance(arg,escript.Data):
        return arg.cos()
     else:
        return numarray.cos(arg)
@@ -158,7 +173,10 @@ def maxval(arg):
 
     @param arg
     """
-    return arg.maxval()
+    if isinstance(arg,escript.Data):
+       return arg.maxval()
+    else:
+       return arg.max()
 
 def minval(arg):
     """
@@ -166,31 +184,10 @@ def minval(arg):
 
     @param arg
     """
-    return arg.minval()
-
-def sup(arg):
-    """
-    @brief
-
-    @param arg
-    """
-    return arg.sup()
-
-def inf(arg):
-    """
-    @brief
-
-    @param arg
-    """
-    return arg.inf()
-
-def Lsup(arg):
-    """
-    @brief
-
-    @param arg
-    """
-    return arg.Lsup()
+    if isinstance(arg,escript.Data):
+       return arg.minval()
+    else:
+       return arg.max()
 
 def length(arg):
     """
@@ -198,7 +195,10 @@ def length(arg):
 
     @param arg
     """
-    return arg.length()
+    if isinstance(arg,escript.Data):
+       return arg.length()
+    else:
+       return sqrt((arg**2).sum())
 
 def sign(arg):
     """
@@ -206,9 +206,91 @@ def sign(arg):
 
     @param arg
     """
-    return arg.sign()
+    if isinstance(arg,escript.Data):
+       return arg.sign()
+    else:
+       return numarray.greater(arg,numarray.zeros(arg.shape))-numarray.less(arg,numarray.zeros(arg.shape))
+
+# reduction operations:
+
+def sum(arg):
+    """
+    @brief
+
+    @param arg
+    """
+    return arg.sum()
+
+def sup(arg):
+    """
+    @brief
+
+    @param arg
+    """
+    if isinstance(arg,escript.Data):
+       return arg.sup()
+    else:
+       return arg.max()
+
+def inf(arg):
+    """
+    @brief
+
+    @param arg
+    """
+    if isinstance(arg,escript.Data):
+       return arg.inf()
+    else:
+       return arg.min()
+
+def L2(arg):
+    """
+    @brief returns the L2-norm of the 
+
+    @param arg
+    """
+    return arg.L2()
+
+def Lsup(arg):
+    """
+    @brief
+
+    @param arg
+    """
+    if isinstance(arg,escript.Data):
+       return arg.Lsup()
+    else:
+       return arg.max(numarray.abs(arg))
+
+def dot(arg1,arg2):
+    """
+    @brief
+
+    @param arg
+    """
+    if isinstance(arg1,escript.Data):
+       return arg1.dot(arg2)
+    elif isinstance(arg1,escript.Data):
+       return arg2.dot(arg1)
+    else:
+       return numarray.dot(arg1,arg2)
 #
 # $Log$
+# Revision 1.3  2004/12/14 05:39:26  jgs
+# *** empty log message ***
+#
+# Revision 1.2.2.4  2004/12/07 03:19:51  gross
+# options for GMRES and PRES20 added
+#
+# Revision 1.2.2.3  2004/12/06 04:55:18  gross
+# function wraper extended
+#
+# Revision 1.2.2.2  2004/11/22 05:44:07  gross
+# a few more unitary functions have been added but not implemented in Data yet
+#
+# Revision 1.2.2.1  2004/11/12 06:58:15  gross
+# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+#
 # Revision 1.2  2004/10/27 00:23:36  jgs
 # fixed minor syntax error
 #

@@ -306,7 +306,7 @@ class DataTagged : public DataAbstract {
      getSlice
 
      Description:
-     Factory method that returns a newly created DataTagged.
+     Factory method that returns a newly created DataTagged object.
      The caller is reponsible for managing the object created.
   */
   virtual
@@ -318,7 +318,7 @@ class DataTagged : public DataAbstract {
      setSlice
 
      Description:
-     Copy the specified region from the given value.
+     Copy the specified region from the given value into this object.
      \param value - Input - Data to copy from.
      \param region - Input - Region to copy.
   */

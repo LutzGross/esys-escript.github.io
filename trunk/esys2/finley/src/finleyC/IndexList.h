@@ -20,15 +20,15 @@
 
 /* structure to build system matrix */
 
-#define INDEXLIST_LENGTH 200
+#define INDEXLIST_LENGTH 85
 
 typedef struct Finley_IndexList {
-  int index[INDEXLIST_LENGTH];
-  int n;
+  maybelong index[INDEXLIST_LENGTH];
+  maybelong n;
   struct Finley_IndexList *extension;
 } Finley_IndexList;
 
-void Finley_IndexList_insertElements(Finley_IndexList*, Finley_ElementFile*,int,int,maybelong*,int,int,maybelong*,int,Finley_SystemMatrixType);
+void Finley_IndexList_insertElements(Finley_IndexList*, Finley_ElementFile*,int, maybelong*,int, maybelong*);
 void Finley_IndexList_insertIndex(Finley_IndexList*, maybelong);
 void Finley_IndexList_toArray(Finley_IndexList*, maybelong*);
 int Finley_IndexList_count(Finley_IndexList*);
@@ -38,8 +38,17 @@ void Finley_IndexList_free(Finley_IndexList*);
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:30  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:13  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:18  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1  2004/07/02 04:21:13  gross
  * Finley C code has been included

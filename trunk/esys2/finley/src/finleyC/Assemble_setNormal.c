@@ -45,7 +45,7 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
       sign=1;
   }
   /* check the dimensions of normal */
-  if (numDim==numDim_local || numDim==numDim_local-1) {
+  if (! (numDim==numDim_local || numDim-1==numDim_local)) {
        Finley_ErrorCode=TYPE_ERROR;
        sprintf(Finley_ErrorMsg,"Cannot calculate normal vector");
   } else if (! isDataPointShapeEqual(normal,1,&(numDim))) {
@@ -68,8 +68,8 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
           {
              local_X=dVdv=NULL;
              /* allocation of work arrays */
-             local_X=(double*) THREAD_MEMALLOC(NS*numDim*sizeof(double)); 
-             dVdv=(double*) THREAD_MEMALLOC(numQuad*numDim*numDim_local*sizeof(double)); 
+             local_X=THREAD_MEMALLOC(NS*numDim,double); 
+             dVdv=THREAD_MEMALLOC(numQuad*numDim*numDim_local,double); 
              if (!(Finley_checkPtr(local_X) || Finley_checkPtr(dVdv) ) ) {
                        /* open the element loop */
                        #pragma omp for private(e,q,normal_array) schedule(static)
@@ -91,8 +91,17 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
 }
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:30  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:13  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1.2.1  2004/11/15 00:12:42  gross
+ * small bug fixed
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.3  2004/07/30 04:37:06  gross
  * escript and finley are linking now and RecMeshTest.py has been passed

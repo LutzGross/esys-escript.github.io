@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -94,7 +95,7 @@ class AbstractDomain {
    Return true if domains equal. 
   */
   virtual bool operator==(const AbstractDomain& other) const;
-  bool operator!=(const AbstractDomain& other) const;
+  virtual bool operator!=(const AbstractDomain& other) const;
   /**
      \brief
      writes the doamin to an external file filename.
@@ -148,6 +149,19 @@ class AbstractDomain {
   virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
   virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
+  /**
+     \brief returns locations in the domain. The function space is chosen appropriatly.
+  */
+  virtual escript::Data getX() const;
+  /**
+     \brief return boundary normals. The function space is chosen appropriatly.
+  */
+  virtual escript::Data getNormal() const;
+  /**
+     \brief returns the local size od samples. The function space is chosen appropriatly.
+  */
+  virtual escript::Data getSize() const;
+  
   /**
      \brief
      copies the location of data points on the domain into out. The actual function space to be considered
