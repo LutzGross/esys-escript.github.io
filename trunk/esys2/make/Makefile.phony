@@ -14,6 +14,29 @@
 # #############################################################################
 all: default
 
+install: all
+	@echo ----------------------------------------------------------------------------
+	@if test -n "${INSTALL_PYTH}";\
+	then \
+	  install -p ${INSTALL_PYTH} ${L_PYTH_DIR};\
+	fi
+	@echo Installed ${INSTALL_PYTH}.
+	@if test -n "${INSTALL_LIB}";\
+	then \
+	  install -p ${INSTALL_LIB} ${L_INSTLIB_DIR};\
+	fi
+	@echo Installed ${INSTALL_LIB}.
+	@echo ----------------------------------------------------------------------------
+
+uninstall:
+	@echo ----------------------------------------------------------------------------
+	@echo Uninstalled ${INSTALL_PYTH}.
+	@rm -rf ${L_PYTH_DIR}/*.py
+	@rm -rf ${L_PYTH_DIR}/*.pyc
+	@rm -rf ${L_INSTLIB_DIR}/*.so
+	@echo Uninstalled ${INSTALL_LIB}.
+	@echo ----------------------------------------------------------------------------
+
 # Make default target and print source files that were found
 default: ${DEFAULT_TARGET}
 	@if test -n "${CPP_SRC}";\
@@ -48,8 +71,30 @@ pyc: ${PYTHON_BYTE}
 ${DEFAULT_TARGET}:
 
 # $Log$
-# Revision 1.1  2004/10/26 06:53:58  jgs
-# Initial revision
+# Revision 1.2  2004/12/14 05:39:33  jgs
+# *** empty log message ***
+#
+# Revision 1.1.1.1.2.4  2004/12/08 03:59:13  jgs
+# reimplemented make install target:
+#   - python modules now installed to $L_PYTH_DIR which defaults to $ESYS_ROOT/esys
+#   - .so libraries now installed to $L_INSTLIB_DIR which defaults to $ESYS_ROOT/lib
+# need to make symlinks from $L_PYTH_DIR to .so files in $L_INSTLIB_DIR
+# also implemented uninstall make target, which cleans out $L_PYTH_DIR
+# and $L_INSTLIB_DIR
+#
+# Revision 1.1.1.1.2.3  2004/12/07 05:03:06  jgs
+# Fixed install target to handle modules with empty install lists.
+#
+# Revision 1.1.1.1.2.2  2004/12/07 01:01:44  jgs
+# expand message printed out by install target
+#
+# Revision 1.1.1.1.2.1  2004/12/06 06:06:26  jgs
+# setup an "install" target which installs libraries specified by ${INSTALL_TARGET}
+# into the directory ${L_INST_DIR} which defaults to $(L_LIB_DIR)/esys. "esys" is
+# the python package under which the other esys libraries are python modules.
+#
+# Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+# initial import of project esys2
 #
 # Revision 1.2.2.2  2004/09/28 07:03:13  jgs
 # *** empty log message ***

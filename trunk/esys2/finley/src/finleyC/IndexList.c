@@ -22,13 +22,9 @@
    triangle of the matrix is stored. */
 
 void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
-                                       int reduce_row_order, int packed_row_block_size, maybelong* row_Label,
-                                       int reduce_col_order, int packed_col_block_size, maybelong* col_Label,
-                                       int symmetric, Finley_SystemMatrixType matType) {
-  maybelong e,kr,ir,kc,ic,NN_row,NN_col,i;
-  Finley_IndexList * tmp_list;
-  maybelong jr,jc,icol,irow,color;
-
+                                       int reduce_row_order, maybelong* row_Label,
+                                       int reduce_col_order, maybelong* col_Label) {
+  maybelong e,kr,kc,NN_row,NN_col,i,icol,irow,color;
 
   if (elements!=NULL) {
     maybelong NN=elements->ReferenceElement->Type->numNodes;
@@ -48,104 +44,20 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
        row_node=id;
        NN_row=elements->ReferenceElement->Type->numNodes;
     }
-
-    #pragma omp parallel private(color)
-    {
-       switch(matType) {
-       case CSR:
-         if (symmetric) {
-            for (color=0;color<elements->numColors;color++) {
-               #pragma omp for private(e,kr,jr,kc,jc,ir,irow,ic,icol,tmp_list) schedule(static)
-               for (e=0;e<elements->numElements;e++) {
-                  if (elements->Color[e]==color) {
-                     for (kr=0;kr<NN_row;kr++) {
-                        jr=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-                        for (ir=0;ir<packed_row_block_size;ir++) {
-                           irow=ir+packed_row_block_size*jr;
-                           tmp_list=&(index_list[irow]);
-                           for (kc=0;kc<NN_col;kc++) {
-                              jc=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-                              for (ic=0;ic<packed_col_block_size;ic++) {
-                                 icol=ic+packed_col_block_size*jc;
-                                 if (irow<=icol) Finley_IndexList_insertIndex(tmp_list,icol);
-                              }
-                           }
-                        }
-                     }
+    for (color=0;color<elements->numColors;color++) {
+        #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
+        for (e=0;e<elements->numElements;e++) {
+            if (elements->Color[e]==color) {
+                for (kr=0;kr<NN_row;kr++) {
+                  irow=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
+                  for (kc=0;kc<NN_col;kc++) {
+                       icol=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
+                       Finley_IndexList_insertIndex(&(index_list[irow]),icol);
                   }
-               }
+                }
             }
-         } else {
-            for (color=0;color<elements->numColors;color++) {
-               #pragma omp for private(e,kr,jr,kc,jc,ir,irow,ic,icol,tmp_list) schedule(static)
-               for (e=0;e<elements->numElements;e++) {
-                  if (elements->Color[e]==color) {
-                     for (kr=0;kr<NN_row;kr++) {
-                        jr=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-                        for (ir=0;ir<packed_row_block_size;ir++) {
-                           irow=ir+packed_row_block_size*jr;
-                           tmp_list=&(index_list[irow]);
-                           for (kc=0;kc<NN_col;kc++) {
-                              jc=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-                              for (ic=0;ic<packed_col_block_size;ic++) {                                  icol=ic+packed_col_block_size*jc;
-                                 Finley_IndexList_insertIndex(tmp_list,icol);
-                              }
-                           }
-                        }
-                     }
-                  }
-               }
-            }
-         } /* if else */
-         break;
-       case CSC:
-         if (symmetric) {
-            for (color=0;color<elements->numColors;color++) {
-               #pragma omp for private (e,kr,jr,kc,jc,ir,irow,ic,icol,tmp_list) schedule(static)
-               for (e=0;e<elements->numElements;e++) {
-                  if (elements->Color[e]==color) {
-                     for (kc=0;kc<NN_col;kc++) {
-                        jc=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-                        for (ic=0;ic<packed_col_block_size;ic++) {
-                           icol=ic+packed_col_block_size*jc;
-                           tmp_list=&(index_list[icol]);
-                           for (kr=0;kr<NN_row;kr++) {
-                              jr=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-                              for (ir=0;ir<packed_row_block_size;ir++) {
-                                 irow=ir+packed_row_block_size*jr;
-                                 if (irow<=icol) Finley_IndexList_insertIndex(tmp_list,irow);
-                              }
-                           }
-                        }
-                     }
-                  }
-               }
-            }
-         } else {
-           for (color=0;color<elements->numColors;color++) {
-               #pragma omp for private (e,kr,jr,kc,jc,ir,irow,ic,icol,tmp_list) schedule(static)
-               for (e=0;e<elements->numElements;e++) {
-                  if (elements->Color[e]==color) {
-                     for (kc=0;kc<NN_col;kc++) {
-                        jc=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-                        for (ic=0;ic<packed_col_block_size;ic++) {
-                           icol=ic+packed_col_block_size*jc;
-                           tmp_list=&(index_list[icol]);
-                           for (kr=0;kr<NN_row;kr++) {
-                              jr=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-                              for (ir=0;ir<packed_row_block_size;ir++) {
-                                 irow=ir+packed_row_block_size*jr;
-                                 Finley_IndexList_insertIndex(tmp_list,irow);
-                              }
-                           }
-                        }
-                     }
-                  }
-               }
-            }
-         } /* if else */
-       } /* switch matType */
-    }
+        }
+      }
   }
   return;
 }
@@ -156,13 +68,13 @@ void Finley_IndexList_insertIndex(Finley_IndexList* in, maybelong index) {
   int i;
   /* is index in in? */
   for (i=0;i<in->n;i++) {
-    if (in->index[i]==index) return;
+    if (in->index[i]==index)  return;
   }
   /* index could not be found */
   if (in->n==INDEXLIST_LENGTH) {
      /* if in->index is full check the extension */
      if (in->extension==NULL) {
-        in->extension=(Finley_IndexList*) TMPMEMALLOC(sizeof(Finley_IndexList));
+        in->extension=TMPMEMALLOC(1,Finley_IndexList);
         if (Finley_checkPtr(in->extension)) return;
         in->extension->n=0;
         in->extension->extension=NULL;
@@ -206,8 +118,17 @@ void Finley_IndexList_free(Finley_IndexList* in) {
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:30  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:13  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:18  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1.2.2  2004/10/26 06:36:39  jgs
  * committing Lutz's changes to branch jgs

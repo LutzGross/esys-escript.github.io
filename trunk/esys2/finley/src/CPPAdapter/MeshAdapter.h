@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -257,6 +258,15 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   */
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
 
+ /**
+     \brief
+     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, preconditioner
+     and symmetric matrix is used.
+     \param solver 
+     \param symmetry 
+  */
+  virtual int getSystemMatrixTypeId(const int solver, const bool symmetry) const;
+
   /**
      \brief
      returns true if data on this domain and a function space of type functionSpaceCode has to 
@@ -282,24 +292,16 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   virtual void addPDEToSystem(
                      SystemMatrixAdapter& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
-                     const escript::Data& D, const escript::Data& X, const escript::Data& Y) const;
-
+                     const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y,
+                     const escript::Data& d_contact, const escript::Data& y_contact) const;
   /**
      \brief
-     adds a Robin boundary condition onto the stiffness matrix mat and a rhs 
+     adds a PDE onto the stiffness matrix mat and a rhs 
   */
-  virtual void addRobinConditionsToSystem(
-                     SystemMatrixAdapter& mat, escript::Data& rhs,
-                     const escript::Data& d, const escript::Data& y) const;
-
-  /**
-     \brief
-     adds a contact condition onto the stiffness matrix mat and a rhs 
-  */
-  virtual void addContactToSystem(
-                     SystemMatrixAdapter& mat, escript::Data& rhs,
-                     const escript::Data& d, const escript::Data& y) const;
-
+  virtual void addPDEToRHS(escript::Data& rhs,
+                     const escript::Data& X, const escript::Data& Y,
+                     const escript::Data& y, const escript::Data& y_contact) const;
   /**
      \brief
     creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros:
@@ -309,12 +311,26 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
                       const escript::FunctionSpace& column_functionspace,
-                      const int type,
-                      const bool sym) const;
+                      const int type) const;
+
+  /**
+     \brief returns locations in the FEM nodes
+  */
+  virtual escript::Data getX() const;
+  /**
+     \brief return boundary normals at the quadrature point on the face elements
+  */
+  virtual escript::Data getNormal() const;
+  /**
+     \brief returns the element size
+  */
+  virtual escript::Data getSize() const;
+
 
   // `virtual bool operator==(const escript::AbstractDomain& other) const;
   bool operator==(const MeshAdapter& other) const;
   bool operator!=(const MeshAdapter& other) const;
+
  protected:
 
  private:

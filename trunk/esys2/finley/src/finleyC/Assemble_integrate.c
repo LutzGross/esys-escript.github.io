@@ -72,10 +72,10 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
             /* allocation of work arrays */
 
             local_X=dVdv=Vol=out_local=NULL;
-            out_local=(double*) THREAD_MEMALLOC(numComps*sizeof(double)); 
-            dVdv=(double*) THREAD_MEMALLOC(numQuad*numDim_local*numDim*sizeof(double));
-            Vol=(double*) THREAD_MEMALLOC(numQuad*sizeof(double));
-            local_X=(double*) THREAD_MEMALLOC(NS*numDim*sizeof(double)); 
+            out_local=THREAD_MEMALLOC(numComps,double); 
+            dVdv=THREAD_MEMALLOC(numQuad*numDim_local*numDim,double);
+            Vol=THREAD_MEMALLOC(numQuad,double);
+            local_X=THREAD_MEMALLOC(NS*numDim,double); 
 
             if (! (Finley_checkPtr(Vol) || Finley_checkPtr(local_X) || Finley_checkPtr(dVdv)  || Finley_checkPtr(out_local))) {
 
@@ -129,8 +129,14 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:30  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.2  2004/07/21 05:00:54  gross
  * name changes in DataC

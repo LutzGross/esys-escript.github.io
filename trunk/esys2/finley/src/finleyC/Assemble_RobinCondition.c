@@ -123,13 +123,13 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
         EM_S=EM_F=V=dVdv=dSdV=Area=NULL;
         index_row=index_col=NULL;
         /* allocate work arrays: */
-        EM_S=(double*) THREAD_MEMALLOC(p.NN_col*p.NN_row*p.numEqu*p.numComp*sizeof(double));
-        EM_F=(double*) THREAD_MEMALLOC(p.NN_row*p.numEqu*sizeof(double));
-        V=(double*) THREAD_MEMALLOC(p.NN*p.numDim*sizeof(double));
-        dVdv=(double*) THREAD_MEMALLOC(p.numDim*p.numElementDim*p.numQuad*sizeof(double));
-        Area=(double*) THREAD_MEMALLOC(p.numQuad*sizeof(double));
-        index_row=(maybelong*) THREAD_MEMALLOC(p.NN_row*sizeof(maybelong));
-        index_col=(maybelong*) THREAD_MEMALLOC(p.NN_col*sizeof(maybelong));
+        EM_S=THREAD_MEMALLOC(p.NN_col*p.NN_row*p.numEqu*p.numComp,double);
+        EM_F=THREAD_MEMALLOC(p.NN_row*p.numEqu,double);
+        V=THREAD_MEMALLOC(p.NN*p.numDim,double);
+        dVdv=THREAD_MEMALLOC(p.numDim*p.numElementDim*p.numQuad,double);
+        Area=THREAD_MEMALLOC(p.numQuad,double);
+        index_row=THREAD_MEMALLOC(p.NN_row,maybelong);
+        index_col=THREAD_MEMALLOC(p.NN_col,maybelong);
         if (! ( Finley_checkPtr(EM_S) || Finley_checkPtr(EM_F) || Finley_checkPtr(index_row) || Finley_checkPtr(index_col) || 
                 Finley_checkPtr(V) || Finley_checkPtr(dVdv) || Finley_checkPtr(Area))) {
            /*  open loop over all colors: */
@@ -223,8 +223,14 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
 }
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:29  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.3  2004/07/30 04:37:06  gross
  * escript and finley are linking now and RecMeshTest.py has been passed

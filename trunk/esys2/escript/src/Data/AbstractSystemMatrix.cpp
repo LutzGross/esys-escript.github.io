@@ -1,3 +1,4 @@
+// $Id$
 /*
  ******************************************************************************
  *                                                                            *
@@ -91,6 +92,13 @@ Data AbstractSystemMatrix::solve(const Data& in,const boost::python::dict& optio
 void AbstractSystemMatrix::setToSolution(Data& out,const Data& in,const boost::python::dict& options) const
 {
     throw SystemMatrixException("Error - setToSolution not available");
+}
+void AbstractSystemMatrix::saveMM(const std::string& fileName) const
+{
+    throw SystemMatrixException("Error - Matrix Market interface not available.");
+}
+void AbstractSystemMatrix:: setValue(const double value) const
+{
 }
 
 }  // end of namespace

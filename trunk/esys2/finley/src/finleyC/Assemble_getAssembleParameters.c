@@ -31,19 +31,19 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   parm->numDim=nodes->numDim;
   parm->numElementDim=parm->referenceElement->Type->numDim;
 
-  if (!isExpanded(F) ) {
+  if (!isEmpty(F) && !isExpanded(F) ) {
       Finley_ErrorCode=TYPE_ERROR;
       sprintf(Finley_ErrorMsg,"Right hand side is not expanded.");
       return;
   }
   /*  check the dimensions of S and F */
   if (S!=NULL && !isEmpty(F)) {
-    if ( getDataPointSize(F)!=S->total_row_block_size) {
+    if ( getDataPointSize(F)!=S->logical_row_block_size) {
       Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"matrix rows and number of components of right hand side don't match.");
+      sprintf(Finley_ErrorMsg,"matrix row block size and number of components of right hand side don't match.");
       return;
     }
-    if (! numSamplesEqual(F,1,S->num_rows*S->row_block_size)) {
+    if (! numSamplesEqual(F,1,(S->num_rows*S->row_block_size)/S->logical_row_block_size)) {
       Finley_ErrorCode=TYPE_ERROR;
       sprintf(Finley_ErrorMsg,"number of rows of matrix and length of right hand side don't match.");
       return;
@@ -51,8 +51,8 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   }
   /* get the number of equations and components */
   if (S!=NULL) {
-    parm->numEqu=S->total_row_block_size;
-    parm->numComp=S->total_col_block_size;
+    parm->numEqu=S->logical_row_block_size;
+    parm->numComp=S->logical_col_block_size;
   } else {
     parm->numEqu=1;
     parm->numComp=1;
@@ -125,8 +125,17 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:29  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.2  2004/11/12 06:58:18  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1.2.1  2004/10/28 22:59:24  gross
+ * finley's RecTest.py is running now: problem in SystemMatrixAdapater fixed
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.2  2004/07/21 05:00:54  gross
  * name changes in DataC
