@@ -13,9 +13,8 @@ CC_SHARE_FLAGS := -fpic
 CC_CONFORM_FLAGS := -ansi -ansi_alias -c99 -no-gcc
 CC_DIAG_FLAGS := -w1 -Wall
 CC_ARCH_FLAGS := -tpp2
-CC_ARCH_FLAGS := 
 CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report2
-# CC_OPT_FLAGS := -O3 -IPF_fma -ftz -parallel -par_report3 -openmp -openmp_report2
+#CC_OPT_FLAGS := -O3 -IPF_fma -ftz -parallel -par_report3 -openmp -openmp_report2
 CC_OUTPUT_FLAG := -o
 
 # CPP Compiler Settings
@@ -71,11 +70,8 @@ PYTHON_DIAG_FLAGS := -Wall
 PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'
 
 # $Log$
-# Revision 1.2  2004/12/14 05:39:33  jgs
+# Revision 1.3  2004/12/15 03:48:48  jgs
 # *** empty log message ***
-#
-# Revision 1.1.1.1.2.1  2004/11/24 01:50:22  gross
-# Finley solves 4M unknowns now
 #
 # Revision 1.1.1.1  2004/10/26 06:53:58  jgs
 # initial import of project esys2

@@ -17,21 +17,31 @@
 
 
 void Finley_SystemMatrix_copy(Finley_SystemMatrix* in,double* array) {
-  maybelong i,j,iptr;
+  maybelong i,j,iptr,len_index_list=0;
+  maybelong block_size=in->row_block_size*in->col_block_size;
+  switch(in->type) {
+    case CSR:
+        len_index_list=in->num_rows;
+        break;
+    case CSC:
+        len_index_list=in->num_cols;
+        break;
+    default:
+        Finley_ErrorCode = TYPE_ERROR;
+        sprintf(Finley_ErrorMsg, "Unknown matrix type.");
+        return;
+  }
   #pragma omp parallel for private(i,iptr,j) schedule(static)
-  for (i=0;i< in->pattern->n_ptr;++i) {
-     for (iptr=(in->pattern->ptr[i])-PTR_OFFSET;iptr<(in->pattern->ptr[i+1])-PTR_OFFSET; ++iptr) {
-         for (j=0;j<in->block_size;j++) array[iptr*(in->block_size)+j]=in->val[iptr*(in->block_size)+j];
+  for (i=0;i< len_index_list;i++) {
+     for (iptr=in->ptr[i]-PTR_OFFSET;iptr<in->ptr[i+1]-PTR_OFFSET; iptr++) {
+         for (j=0;j<block_size;j++) array[iptr*block_size+j]=in->val[iptr*block_size+j];
      }
   }
 }
 /*
  * $Log$
- * Revision 1.2  2004/12/14 05:39:31  jgs
+ * Revision 1.3  2004/12/15 03:48:46  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
- * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
  *
  * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
  * initial import of project esys2

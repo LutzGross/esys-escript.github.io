@@ -1,4 +1,3 @@
-// $Id$
 /* 
  *****************************************************************************
  *                                                                           *
@@ -37,35 +36,23 @@ void DataAlgorithmAdapterTestCase::tearDown() {
 }
 
 void DataAlgorithmAdapterTestCase::testAll() {
-
   cout << endl;
-
-  cout << "\tTesting FMax." << endl;
   DataAlgorithmAdapter<FMax> myMax(numeric_limits<double>::min());
   myMax(1);
   myMax(2);
-  myMax(14);
   myMax(3);
-  assert(myMax.getResult()==14);
-
-  cout << "\tTesting AbsMax." << endl;
-  DataAlgorithmAdapter<AbsMax> Lsup(0);
+  assert(myMax.getResult()==3);
+  DataAlgorithmAdapter<AbsMax> Lsup(numeric_limits<double>::min());
   Lsup(-2);
   Lsup(2);
   Lsup(5);
-  Lsup(-10);
-  assert(Lsup.getResult()==10);
-
-  cout << "\tTesting FMin." << endl;
+  Lsup(-1000);
+  assert(Lsup.getResult()==1000);
   DataAlgorithmAdapter<FMin> inf(numeric_limits<double>::max());
   inf(1);
-  inf(12);
   inf(2);
-  inf(99);
-  assert(inf.getResult()==1);
-
-  cout << "\tSize: " << sizeof(DataAlgorithmAdapter<FMin>) << endl;
-
+  assert(inf.getResult() == 1);
+  cout << "Size: " << sizeof(DataAlgorithmAdapter<FMin>) << endl;
 }
 
 TestSuite* DataAlgorithmAdapterTestCase::suite ()

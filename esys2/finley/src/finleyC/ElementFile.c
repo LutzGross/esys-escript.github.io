@@ -32,7 +32,7 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,int order){
   
   /*  allocate the return value */
   
-  out=MEMALLOC(1,Finley_ElementFile);
+  out=(Finley_ElementFile*)MEMALLOC(sizeof(Finley_ElementFile));
   if (Finley_checkPtr(out)) return NULL;
   out->ReferenceElement=NULL;
   out->LinearReferenceElement=NULL;
@@ -74,11 +74,8 @@ void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
 }
 /* 
 * $Log$
-* Revision 1.2  2004/12/14 05:39:30  jgs
+* Revision 1.3  2004/12/15 03:48:45  jgs
 * *** empty log message ***
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:13  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
 * initial import of project esys2

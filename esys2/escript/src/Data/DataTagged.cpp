@@ -35,8 +35,8 @@ DataTagged::DataTagged():
 DataTagged::DataTagged(const TagListType& tagKeys, 
 		       const ValueListType& values,
 		       const DataArrayView& defaultValue,
-		       const FunctionSpace& what)
-  : DataAbstract(what)
+		       const FunctionSpace& what):
+  DataAbstract(what)
 {
   //
   // The default value is always the first item in the values list
@@ -47,8 +47,8 @@ DataTagged::DataTagged(const TagListType& tagKeys,
   addTaggedValues(tagKeys,values);
 }
 
-DataTagged::DataTagged(const DataTagged& other)
-  : DataAbstract(other.getFunctionSpace()),
+DataTagged::DataTagged(const DataTagged& other):
+  DataAbstract(other.getFunctionSpace()),
   m_data(other.m_data),
   m_offsetLookup(other.m_offsetLookup)
 {
@@ -56,8 +56,8 @@ DataTagged::DataTagged(const DataTagged& other)
   setPointDataView(temp);
 }
 
-DataTagged::DataTagged(const DataConstant& other)
-  : DataAbstract(other.getFunctionSpace())
+DataTagged::DataTagged(const DataConstant& other):
+  DataAbstract(other.getFunctionSpace())
 {
   //
   // Fill the default value with the constant value item from other
@@ -68,8 +68,8 @@ DataTagged::DataTagged(const DataConstant& other)
 }
 
 DataTagged::DataTagged(const DataTagged& other, 
-		       const DataArrayView::RegionType& region)
-  : DataAbstract(other.getFunctionSpace())
+		       const DataArrayView::RegionType& region):
+  DataAbstract(other.getFunctionSpace())
 {
   //
   // get the shape of the slice to copy from other
@@ -146,7 +146,6 @@ DataTagged::setSlice(const DataAbstract* value,
     throw DataException (value->getPointDataView().createShapeErrorMessage(
                 "Error - Couldn't copy slice due to shape mismatch.",shape));
   }
-  //
   getDefaultValue().copySliceFrom(tempDataTag->getDefaultValue(),region);
   //
   // Loop through the tag values

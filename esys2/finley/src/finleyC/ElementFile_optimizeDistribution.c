@@ -27,8 +27,8 @@ void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
         maybelong NN=(*in)->ReferenceElement->Type->numNodes;
-        item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
-        index=TMPMEMALLOC((*in)->numElements,maybelong);
+        item_list=(Finley_Util_ValueAndIndex*) TMPMEMALLOC((*in)->numElements*sizeof(Finley_Util_ValueAndIndex));
+        index=(maybelong*) TMPMEMALLOC((*in)->numElements*sizeof(maybelong));
         if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {
            out=Finley_ElementFile_alloc((*in)->ReferenceElement->Type->TypeId,(*in)->order);
            if (Finley_ErrorCode==NO_ERROR) {
@@ -57,11 +57,8 @@ void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
 }
 /* 
 * $Log$
-* Revision 1.2  2004/12/14 05:39:30  jgs
+* Revision 1.3  2004/12/15 03:48:45  jgs
 * *** empty log message ***
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:13  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
 * initial import of project esys2

@@ -1,4 +1,3 @@
-//$Id$
 /* 
  *****************************************************************************
  *                                                                           *
@@ -44,77 +43,80 @@ void DataEmptyTestCase::testAll() {
 
   cout << endl;
 
-  cout << "\tTest default constructor." << endl;
+  cout << "Test default constructor:" << endl;
+
   DataEmpty testData;
 
-  cout << "\tTest toString method." << endl;
+  cout << "Test toString method:" << endl;
+
+  cout << testData.toString() << endl;
   assert(testData.toString() == "Empty Data.");
 
   try {
-    cout << "\tTest getPointOffset." << endl;
+    cout << "Test getPointOffset:" << endl;
     assert(testData.getPointOffset(0,0) == 0);
     assert(false);
   }
   catch (EsysException& e) {
-    //cout << e.toString() << endl;
+    cout << e.toString() << endl;
     assert(true);
   }
   
   try {
-    cout << "\tTest getSampleDataByTag." << endl;
+    cout << "Test getSampleDataByTag:" << endl;
     assert(testData.getSampleDataByTag(0) == 0);
     assert(false);
   }
   catch (EsysException& e) {
-    //cout << e.toString() << endl;
+    cout << e.toString() << endl;
     assert(true);
   }
   
   try {
-    cout << "\tTest getDataPoint." << endl;
+    cout << "Test getDataPoint:" << endl;
     // this function also returns a DataArrayView object - should check that
     testData.getDataPoint(0,0);
     assert(false);
   }
   catch (EsysException& e) {
-    //cout << e.toString() << endl;
+    cout << e.toString() << endl;
     assert(true);
   }
 
-  cout << "\tTest getLength." << endl;
+  cout << "Test getLength." << endl;
   assert(testData.getLength() == 0);
 
   DataArrayView::RegionType region;
 
   try {
-    cout << "\tTest getSlice." << endl;
+    cout << "Test getSlice:" << endl;
     assert(testData.getSlice(region) == 0);
     assert(false);
   }
   catch (EsysException& e) {
-    //cout << e.toString() << endl;
+    cout << e.toString() << endl;
     assert(true);
   }
 
   try {
-    cout << "\tTest setSlice." << endl;
+    cout << "Test setSlice:" << endl;
     testData.setSlice(0,region);
     assert(false);
   }
   catch (EsysException& e) {
-    //cout << e.toString() << endl;
+    cout << e.toString() << endl;
     assert(true);
   }
 
   DataArrayView::ShapeType shape;
   
   try {
-    cout << "\tTest reshapeDataPoint." << endl;
+    cout << "Test reshapeDataPoint:" << endl;
     testData.reshapeDataPoint(shape);
     assert(false);
   }
   catch (EsysException& e) {
-    //cout << e.toString() << endl;
+    cout << e.toString() << endl;
     assert(true);
   }
 
@@ -129,3 +131,4 @@ TestSuite* DataEmptyTestCase::suite ()
   testSuite->addTest (new TestCaller< DataEmptyTestCase>("testAll",&DataEmptyTestCase::testAll));
   return testSuite;
 }
+

@@ -36,13 +36,13 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    int NN=self->FaceElements->ReferenceElement->Type->numNodes;
    int numDim=self->Nodes->numDim;
    /* allocate work arrays */
-   elem1=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem0=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,int);
-   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,int);
-   new_node_label=TMPMEMALLOC(self->Nodes->numNodes,int);
-   new_node_list=TMPMEMALLOC(self->Nodes->numNodes,int);
-   new_node_mask=TMPMEMALLOC(self->Nodes->numNodes,int);
+   elem1=(int*) TMPMEMALLOC(sizeof(int)*self->FaceElements->numElements);
+   elem0=(int*) TMPMEMALLOC(sizeof(int)*self->FaceElements->numElements);
+   elem_mask=(int*) TMPMEMALLOC(sizeof(int)*self->FaceElements->numElements);
+   matching_nodes_in_elem1=(int*) TMPMEMALLOC(sizeof(int)*sizeof(int)*self->FaceElements->numElements*NN);
+   new_node_label=(int*) TMPMEMALLOC(sizeof(int)*self->Nodes->numNodes);
+   new_node_list=(int*) TMPMEMALLOC(sizeof(int)*self->Nodes->numNodes);
+   new_node_mask=(int*) TMPMEMALLOC(sizeof(int)*self->Nodes->numNodes);
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(new_node_label) || Finley_checkPtr(new_node_list) || Finley_checkPtr(new_node_mask) || Finley_checkPtr(matching_nodes_in_elem1)) ) {
       /* find the matching face elements */
       Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
@@ -120,11 +120,8 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
 
 /*
 * $Log$
-* Revision 1.2  2004/12/14 05:39:30  jgs
+* Revision 1.3  2004/12/15 03:48:45  jgs
 * *** empty log message ***
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
 * initial import of project esys2

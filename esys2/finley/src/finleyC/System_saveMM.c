@@ -17,7 +17,7 @@
 
 void Finley_SystemMatrix_saveMM(Finley_SystemMatrix * A_p, char * fileName_p) {
 
-  int iRow, iCol, iPtr,ir,ic;
+  int iRow, iCol, iPtr;
 
   /* open the file */
   FILE * fileHandle_p = fopen(fileName_p, "w");
@@ -35,36 +35,41 @@ void Finley_SystemMatrix_saveMM(Finley_SystemMatrix * A_p, char * fileName_p) {
   mm_set_real(&matrixCode);
   
   mm_write_banner(fileHandle_p, matrixCode);
-  mm_write_mtx_crd_size(fileHandle_p, A_p->num_rows*A_p->row_block_size, A_p->num_cols*A_p->col_block_size,A_p->len);
+  mm_write_mtx_crd_size(fileHandle_p, A_p->num_rows, A_p->num_cols, A_p->ptr[A_p->num_cols] - PTR_OFFSET);
 
   switch(A_p->type) {
   case CSR:
-      for (iRow = 0; iRow< A_p->pattern->n_ptr; iRow++) {
-         for (ir = 0; ir< A_p->row_block_size; ir++) {
-	    for (iPtr = A_p->pattern->ptr[iRow] - PTR_OFFSET;iPtr < A_p->pattern->ptr[iRow+1] - PTR_OFFSET; iPtr++) {
-               for (ic = 0; ic< A_p->col_block_size; ic++) {
-	          fprintf(fileHandle_p, "%12d %12d %22.15g\n",
-		          iRow*A_p->row_block_size+ir+ 1, 
-		          (A_p->pattern->index[iPtr]-INDEX_OFFSET)*A_p->col_block_size+ic+1, 
-		          A_p->val[iPtr*A_p->block_size+ir+A_p->row_block_size*ic]);
-               }
-            }
-         }
-      }
-      break;
+    #if INDEX_OFFSET==0
+      /* add 1 for 1-based indexing */
+      for (iRow = 0; iRow < A_p->num_rows; iRow++)
+	for (iPtr = A_p->ptr[iRow] - PTR_OFFSET;
+	     iPtr < A_p->ptr[iRow+1] - PTR_OFFSET; iPtr++)
+	  fprintf(fileHandle_p, "%12d %12d %22.15g\n",
+		  iRow + 1,  A_p->index[iPtr] + 1, A_p->val[iPtr]);
+    #else 
+      /* matrix market uses 1-based indexing */
+      for (iRow = 0; iRow< A_p->num_rows; iRow++)
+	for (iPtr = A_p->ptr[iRow] - PTR_OFFSET;
+	     iPtr < A_p->ptr[iRow+1] - PTR_OFFSET; iPtr++)
+	  fprintf(fileHandle_p, "%12d %12d %22.15g\n",
+		  iRow + INDEX_OFFSET, A_p->index[iPtr], A_p->val[iPtr]);
+    #endif
+    break;
   case CSC:
-      for (iCol = 0; iCol< A_p->pattern->n_ptr; iCol++) {
-         for (ic = 0; ic< A_p->col_block_size; ic++) {
-	    for (iPtr = A_p->pattern->ptr[iCol] - PTR_OFFSET;iPtr < A_p->pattern->ptr[iCol+1] - PTR_OFFSET; iPtr++) {
-               for (ir = 0; ir< A_p->row_block_size; ir++) {
-	          fprintf(fileHandle_p, "%12d %12d %22.15g\n",
-		          (A_p->pattern->index[iPtr]-INDEX_OFFSET)*A_p->row_block_size+ir+1, 
-		          iCol*A_p->col_block_size+ic+ 1, 
-		          A_p->val[iPtr*A_p->block_size+ir+A_p->row_block_size*ic]);
-               }
-            }
-         }
-      }
+    #if INDEX_OFFSET==0
+      /* add 1 for 1-based indexing */
+      for (iCol = 0; iCol < A_p->num_cols; iCol++)
+	for (iPtr = A_p->ptr[iCol] - PTR_OFFSET;
+	     iPtr < A_p->ptr[iCol+1] - PTR_OFFSET; iPtr++)
+	  fprintf(fileHandle_p, "%12d %12d %22.15g\n", A_p->index[iPtr] + 1, iCol + 1, A_p->val[iPtr]);
+    #else
+      /* matrix market uses 1-based indexing */
+      for (iCol = 0; iCol< A_p->num_cols; iCol++)
+	for (iPtr = A_p->ptr[iCol] - PTR_OFFSET;
+	     iPtr < A_p->ptr[iCol+1] - PTR_OFFSET; iPtr++)
+	  fprintf(fileHandle_p, "%12d %12d %22.15g\n", A_p->index[iPtr],
+		  iCol + INDEX_OFFSET, A_p->val[iPtr]);
+    #endif
   }
 
   /* close the file */
@@ -74,11 +79,8 @@ void Finley_SystemMatrix_saveMM(Finley_SystemMatrix * A_p, char * fileName_p) {
 }
 /*
  * $Log$
- * Revision 1.2  2004/12/14 05:39:31  jgs
+ * Revision 1.3  2004/12/15 03:48:47  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
- * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
  *
  * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
  * initial import of project esys2

@@ -47,10 +47,10 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    }
 
    /* allocate work arrays */
-   elem1=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem0=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,int);
-   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,int);
+   elem1=(int*) TMPMEMALLOC(sizeof(int)*self->FaceElements->numElements);
+   elem0=(int*) TMPMEMALLOC(sizeof(int)*self->FaceElements->numElements);
+   elem_mask=(int*) TMPMEMALLOC(sizeof(int)*self->FaceElements->numElements);
+   matching_nodes_in_elem1=(int*) TMPMEMALLOC(sizeof(int)*self->FaceElements->numElements*NN);
 
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(matching_nodes_in_elem1)))  {
       /* find the matching face elements */
@@ -125,11 +125,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
 
 /*
 * $Log$
-* Revision 1.2  2004/12/14 05:39:30  jgs
+* Revision 1.3  2004/12/15 03:48:45  jgs
 * *** empty log message ***
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
 * initial import of project esys2

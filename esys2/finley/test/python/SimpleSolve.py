@@ -4,22 +4,43 @@ import sys
 import os
 import unittest
 
-from esys.escript import *
-from esys.linearPDEs import *
-from esys import finley
+esys_root=os.getenv('ESYS_ROOT')
+sys.path.append(esys_root+'/finley/lib')
+sys.path.append(esys_root+'/escript/lib')
+sys.path.append(esys_root+'/escript/py_src')
+
+from escript import *
+from util import *
+from linearPDE import *
+import finley
 
 print "\nSimpleSolve.py"
 print "--------------"
 
+my_options = {
+          "verbose" : True,
+          "reordering" : NO_REORDERING,
+          "tolerance" : 1.E-8,
+          "final_residual" : 0.,
+          "iterative_method" : PCG,
+          "preconditioner" : JACOBI,
+          "iter_max" :  5000,
+          "iter" : 0,
+          "drop_tolerance" : 1.10,
+          "drop_storage" : 2.
+}
+
 alpha=0.01
+
+print "\nOptions: ", my_options
 
 # generate mesh
 
-# print "\nGenerate mesh: finley.Rectangle(9,12,1)=>"
-# mydomain=finley.Rectangle(1,1)
+print "\nGenerate mesh: finley.Rectangle(9,12,1)=>"
+mydomain=finley.Rectangle(9,12,1)
 
-# print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
-# mydomain=finley.Rectangle(4,4,1)
+print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
+mydomain=finley.Rectangle(4,4,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
 mydomain=finley.Rectangle(151,151,1)
@@ -47,26 +68,22 @@ x=e.getX()
 print "norm_u_ex=u_ex.Lsup():"
 norm_u_ex=u_ex.Lsup()
 
-print "mypde=LinearPDE( A=[[1.,0.8],[0.4,1.]], D=alpha, Y=alpha, domain=mydomain)"
-mypde=LinearPDE(A=[[1.,0.8],[0.4,1.]],D=alpha,Y=alpha,domain=mydomain)
-mypde.setDebugOn()
-#mypde=LinearPDE(A=[[1.,0.],[0.,1.]],D=alpha,Y=alpha,domain=mydomain)
-mypde.getOperator().saveMM("t.msh")
+print "mypde=linearPDE( A=[[1.,0.7],[0.7,1.]], D=alpha, Y=alpha, domain=mydomain)"
+mypde=linearPDE(A=[[1.,0.7],[0.7,1.]],D=alpha,Y=alpha,domain=mydomain)
+#mypde=linearPDE(A=[[1.,0.],[0.,1.]],D=alpha,Y=alpha,domain=mydomain)
 
 # generate a test solution 1
 
 print "\nGenerate a test solution (1)"
 print "----------------------------"
 
-print "\nIterative Solver (1)=>"
-
-u_i=mypde.getSolution()
-
 print "\nDirect Solver (1)=>"
 
-mypde.setSolverMethod(DIRECT)
-u_d=mypde.getSolution()
+u_d=mypde.getSolution(iterative=False,**my_options)
 
+print "\nIterative Solver (1)=>"
+
+u_i=mypde.getSolution(iterative=True,**my_options)
 
 print "\n***************************************************************"
 error=u_ex-u_d
@@ -86,9 +103,8 @@ x=n.getX()
 print "msk=x[0].whereZero()+(x[0]-1.).whereZero()"
 msk=x[0].whereZero()+(x[0]-1.).whereZero()
 
-print "mypde=LinearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)"
-mypde=LinearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)
-mypde.setDebugOn()
+print "mypde=linearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)"
+mypde=linearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)
 
 # generate a test solution 2
 
@@ -97,15 +113,11 @@ print "----------------------------"
 
 print "\nDirect Solver (2)=>"
 
-# mypde.setSymmetryOn() : is not woking yet!
-mypde.setSolverMethod(DIRECT)
-u_d=mypde.getSolution()
+u_d=mypde.getSolution(iterative=False,**my_options)
 
 print "\nIterative Solver (2)=>"
 
-#mypde.setSymmetryOn() 
-mypde.setSolverMethod(DEFAULT_METHOD)
-u_i=mypde.getSolution()
+u_i=mypde.getSolution(iterative=True,**my_options)
 
 print "\n******************************************************************"
 error=u_ex-u_d

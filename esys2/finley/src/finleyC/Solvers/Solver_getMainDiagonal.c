@@ -21,12 +21,12 @@
 void Finley_Solver_getMainDiagonal(Finley_SystemMatrix* A_p,maybelong* mainDiag) {
 #if ITERATIVE_SOLVER == NO_LIB
   int irow,iptr;
-  maybelong n=A_p->pattern->n_ptr;
+  maybelong n=A_p->num_rows;
   #pragma omp parallel for private(irow,iptr) schedule(static)
   for (irow=0;irow<n;irow++) {
        mainDiag[irow]=-1;
-       for (iptr=A_p->pattern->ptr[irow];iptr<A_p->pattern->ptr[irow+1]; iptr++) {
-            if (A_p->pattern->index[iptr]==irow) {
+       for (iptr=A_p->ptr[irow];iptr<A_p->ptr[irow+1]; iptr++) {
+            if (A_p->index[iptr]==irow) {
                mainDiag[irow]=iptr;
                break;
             }
@@ -37,11 +37,8 @@ void Finley_Solver_getMainDiagonal(Finley_SystemMatrix* A_p,maybelong* mainDiag)
 
 /*
  * $Log$
- * Revision 1.2  2004/12/14 05:39:32  jgs
+ * Revision 1.3  2004/12/15 03:48:47  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1.2.1  2004/11/12 06:58:21  gross
- * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
  *
  * Revision 1.1.1.1  2004/10/26 06:53:58  jgs
  * initial import of project esys2

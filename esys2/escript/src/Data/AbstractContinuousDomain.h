@@ -1,4 +1,3 @@
-//$Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -123,13 +122,6 @@ class AbstractContinuousDomain:public AbstractDomain {
   */
   virtual int getDiracDeltaFunctionCode() const;
 
-  /**
-     \brief
-     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, preconditioner 
-     and symmetric matrix is used.
-  */
-  virtual int getSystemMatrixTypeId(const int solver, const bool symmetry) const;
-
    /**
      \brief
      copies the integrals of the function defined by arg into integrals.
@@ -137,7 +129,6 @@ class AbstractContinuousDomain:public AbstractDomain {
      has to be implemented by the Domain Adapter.
   */
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
-
   /**
      \brief
      Return the domain as const AbstractContinuousDomain&

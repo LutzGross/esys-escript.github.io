@@ -98,7 +98,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        {
           local_data=NULL; 
           /* allocation of work arrays */
-          local_data=THREAD_MEMALLOC(NS*numComps,double); 
+          local_data=(double*) THREAD_MEMALLOC(NS*numComps*sizeof(double)); 
           if (! Finley_checkPtr(local_data)) {
 
 	    /* open the element loop */
@@ -112,7 +112,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
                            i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
                            data_array=getSampleData(data,i);
                            Finley_copyDouble(numComps,data_array,local_data+q*numComps);
-                        }
                         break;
                  case DOF:
                         for (q=0;q<NS_DOF;q++) {
@@ -138,7 +137,8 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 
           }
 	  THREAD_MEMFREE(local_data);
-     } /* end of parallel region */
+        }
+      }
   }
   #undef NODES 
   #undef DOF 
@@ -146,14 +146,8 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 }
 /*
  * $Log$
- * Revision 1.2  2004/12/14 05:39:30  jgs
+ * Revision 1.3  2004/12/15 03:48:45  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1.2.2  2004/11/24 01:37:12  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- * Revision 1.1.1.1.2.1  2004/10/27 23:39:21  gross
- * bug in finley interpolation fixed. GradTest is running now
  *
  * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
  * initial import of project esys2

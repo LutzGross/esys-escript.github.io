@@ -69,7 +69,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
         #pragma omp parallel private(local_X)
         {
 	   /* allocation of work arrays */
-	   local_X=THREAD_MEMALLOC(NN*numDim,double);
+	   local_X=(double*) THREAD_MEMALLOC(NN*numDim*sizeof(double));
 	   if (! Finley_checkPtr(local_X) ) {
 	     /* open the element loop */
              #pragma omp for private(e,min_diff,diff,n0,n1,d,q,i,element_size_array)
@@ -105,11 +105,8 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
 }
 /*
  * $Log$
- * Revision 1.2  2004/12/14 05:39:29  jgs
+ * Revision 1.3  2004/12/15 03:48:44  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
  * initial import of project esys2

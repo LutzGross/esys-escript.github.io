@@ -38,7 +38,6 @@
 #include "escript/Data/DataAlgorithm.h"
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/AbstractContinuousDomain.h"
-#include "escript/Data/UnaryFuncs.h"
 
 using namespace std;
 using namespace boost::python;
@@ -50,8 +49,7 @@ Data::Data()
   //
   // Default data is type DataEmpty
   DataAbstract* temp=new DataEmpty();
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
+  m_data=shared_ptr<DataAbstract>(temp);
 }
 
 Data::Data(double value,
@@ -77,19 +75,18 @@ Data::Data(double value,
   initialise(temp.getView(),what,expanded);
 }
 
-Data::Data(const Data& inData)
+Data::Data(const Data& inData):
+  m_data(inData.m_data)
 {
-  m_data=inData.m_data;
 }
 
 Data::Data(const Data& inData,
            const DataArrayView::RegionType& region)
 {
   //
-  // Create Data which is a slice of another Data
-  DataAbstract* tmp = inData.m_data->getSlice(region);
-  shared_ptr<DataAbstract> temp_data(tmp);
-  m_data=temp_data;
+  // Create data which is a subset(slice) of another Data
+  DataAbstract* tmp=inData.m_data->getSlice(region);
+  m_data=shared_ptr<DataAbstract>(tmp);
 }
 
 Data::Data(const Data& inData,
@@ -120,8 +117,7 @@ Data::Data(const DataTagged::TagListType& tagKeys,
            bool expanded)
 {
   DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
-  shared_ptr<DataAbstract> temp_data(temp);
-  m_data=temp_data;
+  m_data=shared_ptr<DataAbstract>(temp);
   if (expanded) {
     expand();
   }
@@ -216,8 +212,7 @@ Data::copy(const Data& other)
       //
       // Construct a DataExpanded copy
       DataAbstract* newData=new DataExpanded(*temp);
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
+      m_data=shared_ptr<DataAbstract>(newData);
       return;
     }
   }
@@ -225,10 +220,9 @@ Data::copy(const Data& other)
     DataTagged* temp=dynamic_cast<DataTagged*>(other.m_data.get());
     if (temp!=0) {
       //
-      // Construct a DataTagged copy
+      // Construct a DataTaggeded copy
       DataAbstract* newData=new DataTagged(*temp);
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
+      m_data=shared_ptr<DataAbstract>(newData);
       return;
     }
   }
@@ -238,19 +232,7 @@ Data::copy(const Data& other)
       //
       // Construct a DataConstant copy
       DataAbstract* newData=new DataConstant(*temp);
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
-      return;
-    }
-  }
-  {
-    DataEmpty* temp=dynamic_cast<DataEmpty*>(other.m_data.get());
-    if (temp!=0) {
-      //
-      // Construct a DataEmpty copy
-      DataAbstract* newData=new DataEmpty();
-      shared_ptr<DataAbstract> temp_data(newData);
-      m_data=temp_data;
+      m_data=shared_ptr<DataAbstract>(newData);
       return;
     }
   }
@@ -302,19 +284,30 @@ Data::isConstant() const
   return (temp!=0);
 }
 
+Data
+Data::getSlice(const DataArrayView::RegionType& region) const
+{
+  return Data(*this,region);
+}
+
+void
+Data::setSlice(const Data& value,
+               const DataArrayView::RegionType& region)
+{
+  m_data->setSlice(value.m_data.get(), region);
+}
+
 void
 Data::expand()
 {
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataConst);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+    m_data=shared_ptr<DataAbstract>(temp);
   } else if (isTagged()) {
     DataTagged* tempDataTag=dynamic_cast<DataTagged*>(m_data.get());
     DataAbstract* temp=new DataExpanded(*tempDataTag);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+    m_data=shared_ptr<DataAbstract>(temp);
   } else if (isExpanded()) {
     //
     // do nothing
@@ -326,13 +319,18 @@ Data::expand()
 }
 
 void
+Data::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
+{
+  m_data->reshapeDataPoint(shape);
+}
+
+void
 Data::tag()
 {
   if (isConstant()) {
     DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
     DataAbstract* temp=new DataTagged(*tempDataConst);
-    shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+    m_data=shared_ptr<DataAbstract>(temp);
   } else if (isTagged()) {
     // do nothing
   } else if (isExpanded()) {
@@ -344,22 +342,10 @@ Data::tag()
   }
 }
 
-void
-Data::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
-{
-  m_data->reshapeDataPoint(shape);
-}
-
 Data
 Data::wherePositive() const
 {
   return escript::unaryOp(*this,bind2nd(greater<double>(),0.0));
-}
-
-Data
-Data::whereNegative() const
-{
-  return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
 }
 
 Data
@@ -369,21 +355,15 @@ Data::whereNonNegative() const
 }
 
 Data
-Data::whereNonPositive() const
+Data::whereNegative() const
 {
-  return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0));
+  return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereZero() const
 {
   return escript::unaryOp(*this,bind2nd(equal_to<double>(),0.0));
-}
-
-Data
-Data::whereNonZero() const
-{
-  return escript::unaryOp(*this,bind2nd(not_equal_to<double>(),0.0));
 }
 
 Data
@@ -543,15 +523,15 @@ double
 Data::Lsup() const
 {
   //
-  // set the initial absolute maximum value to zero
-  return algorithm(DataAlgorithmAdapter<AbsMax>(0));
+  // set the initial absolute maximum value to min possible
+  return algorithm(DataAlgorithmAdapter<AbsMax>(numeric_limits<double>::min()));
 }
 
 double
 Data::sup() const
 {
   //
-  // set the initial maximum value to min possible double
+  // set the initial maximum value to min possible
   return algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::min()));
 }
 
@@ -559,139 +539,59 @@ double
 Data::inf() const
 {
   //
-  // set the initial minimum value to max possible double
+  // set the initial minimum value to max possible
   return algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
 }
 
-Data
-Data::maxval() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::minval() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::length() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::trace() const
-{
-  // not implemented - will use dp_algorithm
-  return (*this);
-}
-
-Data
-Data::transpose(int axis) const
-{
-  // not implemented
-  return (*this);
-}
-
-Data
-Data::sign() const
-{
-  return escript::unaryOp(*this,escript::fsign);
-}
-
-Data
-Data::abs() const
-{
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::fabs);
-}
-
-Data
-Data::neg() const
-{
-  return escript::unaryOp(*this,negate<double>());
-}
-
-Data
-Data::pos() const
-{
-  return (*this);
-}
-
-Data
-Data::exp() const
-{
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::exp);
-}
-
-Data
-Data::sqrt() const
-{
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sqrt);
-}
-
-Data&
-Data::operator+=(const Data& right)
+Data& Data::operator+=(const Data& right)
 {
   binaryOp(right,plus<double>());
   return (*this);
 }
 
-Data&
-Data::operator+=(const boost::python::object& right)
+Data& Data::operator+=(const boost::python::object& right)
 {
   binaryOp(right,plus<double>());
   return (*this);
 }
 
-Data&
-Data::operator-=(const Data& right)
+Data& Data::operator-=(const Data& right)
 {
   binaryOp(right,minus<double>());
   return (*this);
 }
 
-Data&
-Data::operator-=(const boost::python::object& right)
+Data& Data::operator-=(const boost::python::object& right)
 {
   binaryOp(right,minus<double>());
   return (*this);
 }
 
-Data&
-Data::operator*=(const Data& right)
+Data& Data::operator*=(const Data& right)
 {
   binaryOp(right,multiplies<double>());
   return (*this);
 }
 
-Data&
-Data::operator*=(const boost::python::object& right)
+Data& Data::operator*=(const boost::python::object& right)
 {
   binaryOp(right,multiplies<double>());
   return (*this);
 }
 
-Data&
-Data::operator/=(const Data& right)
+Data& Data::operator/=(const Data& right)
 {
   binaryOp(right,divides<double>());
   return (*this);
 }
 
-Data&
-Data::operator/=(const boost::python::object& right)
+Data& Data::operator/=(const boost::python::object& right)
 {
   binaryOp(right,divides<double>());
   return (*this);
 }
 
-Data
-Data::powO(const boost::python::object& right) const
+Data Data::powO(const boost::python::object& right) const
 {
   Data result;
   result.copy(*this);
@@ -699,8 +599,7 @@ Data::powO(const boost::python::object& right) const
   return result;
 }
 
-Data
-Data::powD(const Data& right) const
+Data Data::powD(const Data& right) const
 {
   Data result;
   result.copy(*this);
@@ -710,8 +609,7 @@ Data::powD(const Data& right) const
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator+(const Data& left, const Data& right)
+Data escript::operator+(const Data& left, const Data& right)
 {
   Data result;
   //
@@ -723,8 +621,7 @@ escript::operator+(const Data& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator-(const Data& left, const Data& right)
+Data escript::operator-(const Data& left, const Data& right)
 {
   Data result;
   //
@@ -736,8 +633,7 @@ escript::operator-(const Data& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator*(const Data& left, const Data& right)
+Data escript::operator*(const Data& left, const Data& right)
 {
   Data result;
   //
@@ -749,8 +645,7 @@ escript::operator*(const Data& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator/(const Data& left, const Data& right)
+Data escript::operator/(const Data& left, const Data& right)
 {
   Data result;
   //
@@ -762,8 +657,7 @@ escript::operator/(const Data& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator+(const Data& left, const boost::python::object& right)
+Data escript::operator+(const Data& left, const boost::python::object& right)
 {
   //
   // Convert to DataArray format if possible
@@ -778,8 +672,7 @@ escript::operator+(const Data& left, const boost::python::object& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator-(const Data& left, const boost::python::object& right)
+Data escript::operator-(const Data& left, const boost::python::object& right)
 {
   //
   // Convert to DataArray format if possible
@@ -794,8 +687,7 @@ escript::operator-(const Data& left, const boost::python::object& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator*(const Data& left, const boost::python::object& right)
+Data escript::operator*(const Data& left, const boost::python::object& right)
 {
   //
   // Convert to DataArray format if possible
@@ -810,8 +702,7 @@ escript::operator*(const Data& left, const boost::python::object& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator/(const Data& left, const boost::python::object& right)
+Data escript::operator/(const Data& left, const boost::python::object& right)
 {
   //
   // Convert to DataArray format if possible
@@ -826,8 +717,7 @@ escript::operator/(const Data& left, const boost::python::object& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator+(const boost::python::object& left, const Data& right)
+Data escript::operator+(const boost::python::object& left, const Data& right)
 {
   //
   // Construct the result using the given value and the other parameters
@@ -839,8 +729,7 @@ escript::operator+(const boost::python::object& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator-(const boost::python::object& left, const Data& right)
+Data escript::operator-(const boost::python::object& left, const Data& right)
 {
   //
   // Construct the result using the given value and the other parameters
@@ -852,8 +741,7 @@ escript::operator-(const boost::python::object& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator*(const boost::python::object& left, const Data& right)
+Data escript::operator*(const boost::python::object& left, const Data& right)
 {
   //
   // Construct the result using the given value and the other parameters
@@ -865,8 +753,7 @@ escript::operator*(const boost::python::object& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-Data
-escript::operator/(const boost::python::object& left, const Data& right)
+Data escript::operator/(const boost::python::object& left, const Data& right)
 {
   //
   // Construct the result using the given value and the other parameters
@@ -878,123 +765,96 @@ escript::operator/(const boost::python::object& left, const Data& right)
 
 //
 // NOTE: It is essential to specify the namepsace this operator belongs to
-//bool escript::operator==(const Data& left, const Data& right)
-//{
-//  /*
-//  NB: this operator does very little at this point, and isn't to
-//  be relied on. Requires further implementation.
-//  */
-//
-//  bool ret;
-//
-//  if (left.isEmpty()) {
-//    if(!right.isEmpty()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  if (left.isConstant()) {
-//    if(!right.isConstant()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-// }
-//
-//  if (left.isTagged()) {
-//   if(!right.isTagged()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  if (left.isExpanded()) {
-//    if(!right.isExpanded()) {
-//      ret = false;
-//    } else {
-//      ret = true;
-//    }
-//  }
-//
-//  return ret;
-//}
+bool escript::operator==(const Data& left, const Data& right)
+{
+  /*
+  NB: this operator does very little at this point, and isn't to
+  be relied on. Requires further implementation.
+  */
+
+  bool ret;
+
+  if (left.isEmpty()) {
+    if(!right.isEmpty()) {
+      ret = false;
+    } else {
+      ret = true;
+    }
+  }
+
+  if (left.isConstant()) {
+    if(!right.isConstant()) {
+      ret = false;
+    } else {
+      ret = true;
+    }
+  }
+
+  if (left.isTagged()) {
+    if(!right.isTagged()) {
+      ret = false;
+    } else {
+      ret = true;
+    }
+  }
+
+  if (left.isExpanded()) {
+    if(!right.isExpanded()) {
+      ret = false;
+    } else {
+      ret = true;
+    }
+  }
+
+  return ret;
+}
 
 Data
 Data::getItem(const boost::python::object& key) const 
 {
-  const DataArrayView& view=getPointDataView();
-
-  DataArrayView::RegionType slice_region=view.getSliceRegion(key);
-
-  if (slice_region.size()!=view.getRank()) {
-    throw DataException("Error - slice size does not match Data rank.");
-  }
-
-  return getSlice(slice_region);
-}
-
-Data
-Data::getSlice(const DataArrayView::RegionType& region) const
-{
-  return Data(*this,region);
+   const DataArrayView& view=getPointDataView();
+   DataArrayView::RegionType slice_region=view.getSliceRegion(key);
+   if (slice_region.size()!=view.getRank()) {
+     throw DataException("Error - slice size does not match Data rank.");
+     return Data();
+   }
+   //
+   // Create a new Data which is a slice of this one
+   return getSlice(slice_region);
 }
 
 void
-Data::setItemO(const boost::python::object& key,
-               const boost::python::object& value)
-{
-  Data tempData(value,getFunctionSpace());
-  setItemD(key,tempData);
-}
-
-void
-Data::setItemD(const boost::python::object& key,
-               const Data& value)
+Data::setItem(const boost::python::object& key,
+              const Data& value)
 {
   const DataArrayView& view=getPointDataView();
   DataArrayView::RegionType slice_region=view.getSliceRegion(key);
   if (slice_region.size()!=view.getRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
+  typeMatch(value);
   setSlice(value,slice_region);
 }
 
 void
-Data::setSlice(const Data& value,
-               const DataArrayView::RegionType& region)
+Data::typeMatch(const Data& right)
 {
-  Data tempValue(value);
-  typeMatchLeft(tempValue);
-  typeMatchRight(tempValue);
-  m_data->setSlice(tempValue.m_data.get(),region);
-}
-
-void
-Data::typeMatchLeft(Data& right) const
-{
-  if (isExpanded()){
-    right.expand();
-  } else if (isTagged()) {
-    if (right.isConstant()) {
-      right.tag();
-    }
-  }
-}
-
-void
-Data::typeMatchRight(const Data& right)
-{
+  //
+  // match the type of this to the RHS
   if (isTagged()) {
     if (right.isExpanded()) {
+      //
+      // if the right hand side is expanded so must this
       expand();
     }
   } else if (isConstant()) {
     if (right.isExpanded()) {
+      //
+      // if the right hand side is expanded so must this
       expand();
     } else if (right.isTagged()) {
+      //
+      // if the right hand side is tagged so must this
       tag();
     }
   }

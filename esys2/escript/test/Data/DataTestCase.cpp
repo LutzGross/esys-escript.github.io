@@ -220,7 +220,7 @@ void DataTestCase::testMore() {
 
   cout << "\tExercise wherePositive method" << endl;
   assert(!exData.wherePositive().isEmpty());
-  //assert(exData.wherePositive()==exData.wherePositive());
+  assert(exData.wherePositive()==exData.wherePositive());
 
   cout << "\tExercise copyWithMask method" << endl;
   exData.copyWithMask(result, exData.wherePositive());
@@ -385,58 +385,16 @@ void DataTestCase::testOperations() {
   Data base(2.0,viewShape,FunctionSpace(),false);
   Data power(3.0,viewShape,FunctionSpace(),false);
 
-  cout << "\tPerform basic exercises of unary operations" << endl;
+  cout << "\tTest powD,sin,cos,tan,log,ln operations" << endl;
 
   Data result(base.powD(power));
   assert(result.getDataPoint(0,0)(0,0) == 8);
 
   result.copy(base.sin());
-  assert(true);
-
   result.copy(base.cos());
-  assert(true);
-
   result.copy(base.tan());
-  assert(true);
-
   result.copy(base.log());
-  assert(true);
-
   result.copy(base.ln());
-  assert(true);
-
-  result.copy(base.abs());
-  assert(true);
-
-  result.copy(base.maxval());
-  assert(true);
-
-  result.copy(base.minval());
-  assert(true);
-
-  result.copy(base.length());
-  assert(true);
-
-  result.copy(base.sign());
-  assert(true);
-
-  result.copy(base.transpose(0));
-  assert(true);
-
-  result.copy(base.trace());
-  assert(true);
-
-  result.copy(base.exp());
-  assert(true);
-
-  result.copy(base.sqrt());
-  assert(true);
-
-  result.copy(base.neg());
-  assert(true);
-
-  result.copy(base.pos());
-  assert(true);
 }
 
 TestSuite* DataTestCase::suite ()
