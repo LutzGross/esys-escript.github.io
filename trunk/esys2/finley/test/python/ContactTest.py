@@ -1,7 +1,6 @@
 # $Id$
 """tests a variety of functions in connection with contact elements"""
 from escript import *
-from linearPDEs import LinearPDE
 import finley
 import math
 numElements=4
@@ -46,7 +45,7 @@ def mkCharateristicFunction(msh):
       e=Function(msh)
       d=msh.getDim()
       x=e.getX()[d-1]
-      mypde=LinearPDE(D=1,Y=(x-0.5).whatPositive())
+      mypde=linearPDE(D=1,Y=(x-0.5).whatPositive())
       return 2*mypde.getSolution(**options)-1
 
 max_error_text=""

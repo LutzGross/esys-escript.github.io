@@ -1,4 +1,3 @@
-//$Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -13,7 +12,7 @@
  ******************************************************************************
 */
                                                                            
-#if !defined escript_DataConstant_20040323_H
+#if !defined  escript_DataConstant_20040323_H
 #define escript_DataConstant_20040323_H
 
 #include "escript/Data/DataAbstract.h"
@@ -23,142 +22,116 @@
 #include <boost/python/numeric.hpp>
 
 namespace escript {
-
 /**
    \brief
-   DataConstant stores a single data point which represents the entire
+   DataConstant stores single data point which represents the entire
    function space.
 
    Description:
-   DataConstant stores a single data point which represents the entire
+   DataConstant stores single data point which represents the entire
    function space.
 */
-class DataConstant : public DataAbstract  {
+class DataConstant:public DataAbstract  {
 
  public:
 
   /**
      \brief
-     Constructor for DataConstant objects.
+     Default constructor for DataConstant
 
      Description:
-     Constructor for DataConstant objects.
+     Default constructor for DataConstant
 
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data object represents.
+     \param value Input - Data value for a single point.
+     \param noSamples Input - number of samples.
+     \param noDataPointsPerSample Input - Input.
+     \param what Input - A description of what this data represents.
+
   */
-  DataConstant(const boost::python::numeric::array& value,
-               const FunctionSpace& what);
-
+  DataConstant(const boost::python::numeric::array& value, const FunctionSpace& what);
   /**
      \brief
      Copy constructor. Performs a deep copy.
   */
   DataConstant(const DataConstant& other);
-
   /**
      \brief
-     Alternative constructor for DataConstant objects.
+     Alternative constructor for DataConstant
 
      Description:
-     Alternative Constructor for DataConstant objects.
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data object represents.
+     Alternative Constructor for DataConstant
+     \param value Input - Data value for a single point.
+     \param noSamples Input - number of samples.
+     \param noDataPointsPerSample Input - Input.
+     \param what Input - A description of what this data represents.
   */
-  DataConstant(const DataArrayView& value,
-               const FunctionSpace& what);
-
+  DataConstant(const DataArrayView& value, const FunctionSpace& what);
   /**
      \brief
-     Alternative constructor for DataConstant objects.
+     Alternative constructor for DataConstant
 
      Description:
-     Alternative Constructor for DataConstant objects.
-     \param other - Input - Data object to copy from.
-     \param region - Input - region to copy.
+     Alternative Constructor for DataConstant
+     \param other Input - Other DataConstant
+     \param region Input - region to copy
   */
-  DataConstant(const DataConstant& other,
-               const DataArrayView::RegionType& region);
-
+  DataConstant(const DataConstant& other, const DataArrayView::RegionType& region);
   /**
      \brief
      Write the data as a string.
   */
-  std::string
-  toString() const;
-
+  std::string toString() const;
   /**
      \brief
-     Return the offset for the given sample. This is a somewhat artificial notion
+     Return the offset for the given sample. This is somewhat artificial notion
      but returns the offset in bytes for the given point into the container
      holding the point data. Only really necessary to avoid many DataArrayView
      objects.
-     \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - data point number for the sample.
+     \param sampleNo - Input, sample number.
+     \param dataPointNo - Input, data point number for the sample.
    */
-  virtual
-  DataArrayView::ValueType::size_type
-  getPointOffset(int sampleNo,
-                 int dataPointNo) const;
-
+  virtual DataArrayView::ValueType::size_type getPointOffset(int sampleNo, int dataPointNo) const;
   /**
      \brief
      Return a view into the data for the data point specified.
-     \param sampleNo - Input - sample number.
-     \param dataPointNo - Input - data point number for the sample.
+     NOTE: Construction of the DataArrayView is a relatively expensive 
+     operation
+     \param sampleNo Input
+     \param dataPointNo Input
   */
-  virtual
-  DataArrayView
-  getDataPoint(int sampleNo,
-               int dataPointNo);
-
+  virtual DataArrayView getDataPoint(int sampleNo, int dataPointNo);
   /**
      \brief
-     Return the number of doubles stored for the Data object.
+     Return the number of doubles stored for the Data
   */
-  virtual
-  ValueType::size_type
-  getLength() const;
-
+  virtual ValueType::size_type getLength() const;
   /**
      \brief
-     Factory method that returns a newly created DataConstant object
-     sliced from the specified region of this object.
+     Factory method that returns a newly created DataConstant.
      The caller is reponsible for managing the object created.
-     \param region - Input - region to slice from this object.
   */
-  virtual
-  DataAbstract*
-  getSlice(const DataArrayView::RegionType& region) const;
-
-  /**
+  virtual DataAbstract* getSlice(const DataArrayView::RegionType& region) const;  /**
      \brief
      Copy the specified region from the given value.
-     \param value - Input - Data object to copy from.
-     \param region - Input - Region to copy.
+     \param value Input - Data to copy from
+     \param region Input - Region to copy.
   */
-  virtual
-  void
-  setSlice(const DataAbstract* value,
-           const DataArrayView::RegionType& region);
-
+  virtual void setSlice(const DataAbstract* value, const DataArrayView::RegionType& region);
   /**
      \brief
      Reshape the data point if the data point is currently rank 0.
      The original data point value is used for all values of the new
      data point.
   */
-  void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape);
-
+  void reshapeDataPoint(const DataArrayView::ShapeType& shape);
  protected:
 
  private:
   //
-  // the actual data
+  // data
   DataArrayView::ValueType m_data;
-
 };
 
 } // end of namespace
 #endif
+

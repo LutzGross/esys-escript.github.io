@@ -7,13 +7,10 @@ PKG_CPP_INC_DIRS += $(ESYS_ROOT)/escript/inc
 
 PKG_LD_LIB_DIRS += $(ESYS_ROOT)/escript/lib
 
-PKG_LD_LIBS += escriptcpp
+PKG_LD_LIBS += escript
 
 # $Log$
-# Revision 1.2  2004/12/14 05:39:33  jgs
-# *** empty log message ***
-#
-# Revision 1.1.1.1.2.1  2004/12/09 06:22:21  jgs
+# Revision 1.3  2004/12/15 03:48:48  jgs
 # *** empty log message ***
 #
 # Revision 1.1.1.1  2004/10/26 06:53:58  jgs

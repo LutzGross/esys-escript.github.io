@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
  ******************************************************************************
  *                                                                            *
@@ -97,22 +96,6 @@ void AbstractDomain::interpolateACross(escript::Data& target, const escript::Dat
   return;
 }
 
-escript::Data AbstractDomain::getX() const
-{
-  throwStandardException("AbstractDomain::getX");
-  return Data();
-}
-
-escript::Data AbstractDomain::getNormal() const
-{
-  throwStandardException("AbstractDomain::getNormal");
-  return Data();
-}
-escript::Data AbstractDomain::getSize() const
-{
-  throwStandardException("AbstractDomain::getSize");
-  return Data();
-}
 void AbstractDomain::setToX(escript::Data& out) const
 {
   throwStandardException("AbstractDomain::setToX");

@@ -7,13 +7,7 @@
 
 # Matt Davies 04/08/03
 
-DODEBUG = YES
-
-DEFAULT_TARGET := libescriptcpp.so pyc
-
-INSTALL_PYTH := ./py_src/__init__.py ./py_src/linearPDEs.py ./py_src/util.py ./py_src/escript.py
-
-INSTALL_LIB := ./lib/libescriptcpp.so
+DEFAULT_TARGET := libescript.so pyc
 
 PACKAGES := esysUtils python23 boostStatic
 

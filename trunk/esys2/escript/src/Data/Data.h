@@ -72,10 +72,6 @@ class Data {
   typedef double (*BinaryDFunPtr)(double,double);
 
   /**
-     Constructors.
-  */
-
-  /**
      \brief
      Default constructor.
      Creates a DataEmpty object.
@@ -92,7 +88,7 @@ class Data {
   /**
      \brief
      Constructor from another Data object. If "what" is different from the
-     function space of inData the inData are tried to be interpolated to what,
+     function space of inData the inData are tried to be interpolated to what
      otherwise a shallow copy of inData is returned.
   */
   Data(const Data& inData,
@@ -209,39 +205,97 @@ class Data {
 
   /**
      \brief
-     Perform a deep copy.
+     Perform the specified algorithm on the Data and return result.
   */
-  void
-  copy(const Data& other);
+  template <class UnaryFunction>
+  inline double
+  algorithm(UnaryFunction operation) const;
 
   /**
-     Member access methods.
+     \brief
+     Perform the given unary operation on all of the data's elements.
   */
+  template <class UnaryFunction>
+  void
+  unaryOp(UnaryFunction operation);
+
+  /**
+     \brief
+     Perform the given binary operation on all of the data's elements.
+     The underlying type of the right hand side (right) determines the final
+     type of *this after the operation. For example if the right hand side
+     is expanded *this will be expanded if necessary.
+  */
+  template <class BinaryFunction>
+  void
+  binaryOp(const Data& right,
+           BinaryFunction operation);
+
+  /**
+     \brief
+     Perform the given binary operation on all of the data's elements.
+  */
+  template <class BinaryFunction>
+  void
+  binaryOp(const boost::python::object& right,
+           BinaryFunction operation);
+
+  /**
+     \brief
+     Overloaded operator +=
+     \param right - Input - The right hand side.
+  */
+  Data& operator+=(const Data& right);
+  Data& operator+=(const boost::python::object& right);
+
+  /**
+     \brief
+     Overloaded operator -=
+     \param right - Input - The right hand side.
+  */
+  Data& operator-=(const Data& right);
+  Data& operator-=(const boost::python::object& right);
+
+ /**
+     \brief
+     Overloaded operator *=
+     \param right - Input - The right hand side.
+  */
+  Data& operator*=(const Data& right);
+  Data& operator*=(const boost::python::object& right);
+
+ /**
+     \brief
+     Overloaded operator /=
+     \param right - Input - The right hand side.
+  */
+  Data& operator/=(const Data& right);
+  Data& operator/=(const boost::python::object& right);
+
+  /**
+     \brief
+     Return the power of Data.
+  */
+  Data powD(const Data& right) const;
+  Data powO(const boost::python::object& right) const;
 
   /**
      \brief
      Return the C wrapper for the Data object.
   */
-  escriptDataC
-  getDataC();
+  escriptDataC getDataC();
 
   /**
      \brief
      Return the C wrapper for the Data object - const version.
   */
-  escriptDataC
-  getDataC() const;
+  escriptDataC getDataC() const;
 
   /**
      \brief
      Write the data as a string.
   */
-  inline
-  std::string
-  toString() const
-  {
-    return m_data->toString();
-  }
+  std::string toString() const;
 
   /**
      \brief
@@ -258,14 +312,29 @@ class Data {
 
   /**
      \brief
-     Whatever the current Data type make this into a DataExpanded.
+     Perform a deep copy.
+  */
+  void
+  copy(const Data& other);
+
+  /**
+    \brief
+    Copy other Data object into this Data object where mask is positive.
+  */
+  void
+  copyWithMask(const Data& other,
+               const Data& mask);
+
+  /**
+     \brief
+     Whatever the current Data type make it expanded.
   */
   void
   expand();
 
   /**
      \brief
-     If possible convert this Data to DataTagged. This will only allow
+     If possible convert the Data type to tagged. This will only allow
      Constant data to be converted to tagged. An attempt to convert
      Expanded data to tagged will throw an exception.
   */
@@ -288,17 +357,17 @@ class Data {
 
   /**
      \brief
-     Return true if this Data is constant.
-  */
-  bool
-  isConstant() const;
-
-  /**
-     \brief
      Return true if this Data is empty.
   */
   bool
   isEmpty() const;
+
+  /**
+     \brief
+     Return true if this Data is constant.
+  */
+  bool
+  isConstant() const;
 
   /**
      \brief
@@ -349,17 +418,6 @@ class Data {
 
   /**
      \brief
-     Return the number of samples.
-  */
-  inline
-  int
-  getNumSamples() const
-  {
-    return m_data->getNumSamples();
-  }
-
-  /**
-     \brief
      Return the number of data points per sample.
   */
   inline
@@ -371,16 +429,28 @@ class Data {
 
   /**
      \brief
+     Return the number of samples.
+  */
+  int
+  getNumSamples() const;
+
+  /**
+     \brief
+     Check *this and the right operand are compatible. Throws
+     an exception if they aren't.
+     \param right - Input - The right hand side.
+  */
+  void
+  operandCheck(const Data& right) const;
+
+  /**
+     \brief
      Return the sample data for the given sample no. This is not the
      preferred interface but is provided for use by C code.
      \param sampleNo - Input - the given sample no.
   */
-  inline
   DataAbstract::ValueType::value_type*
-  getSampleData(DataAbstract::ValueType::size_type sampleNo)
-  {
-    return m_data->getSampleData(sampleNo);
-  }
+  getSampleData(DataAbstract::ShapeType::size_type sampleNo);
 
   /**
      \brief
@@ -388,12 +458,8 @@ class Data {
      access data that isn't tagged an exception will be thrown.
      \param tag - Input - the tag key.
   */
-  inline
   DataAbstract::ValueType::value_type*
-  getSampleDataByTag(int tag)
-  {
-    return m_data->getSampleDataByTag(tag);
-  }
+  getSampleDataByTag(int tag);
 
   /**
      \brief
@@ -420,7 +486,7 @@ class Data {
 
   /**
      \brief
-     Return the data point shape as a tuple of integers.
+     Return data point shape as a tuple of integers:
   */
   boost::python::tuple
   getShapeTuple() const;
@@ -435,54 +501,14 @@ class Data {
 
   /**
      \brief
-     Return the number of doubles stored for this Data.
+     Return the number of doubles stored for Data.
   */
   DataArrayView::ValueType::size_type
   getLength() const;
 
   /**
      \brief
-     Assign the given value to the tag. Implicitly converts this
-     object to type DataTagged. Throws an exception if this object
-     cannot be converted to a DataTagged object.
-     \param tagKey - Input - Integer key.
-     \param value - Input - Value to associate with given key.
-  */
-  void
-  setTaggedValue(int tagKey,
-                 const boost::python::object& value);
-
-  /**
-     \brief
-     Assign the given value to the tag. Implicitly converts this
-     object to type DataTagged. Throws an exception if this object
-     cannot be converted to a DataTagged object.
-     \param tagKey - Input - Integer key.
-     \param value - Input - Value to associate with given key.
-     Note: removed for now - this version not needed, and breaks escript.cpp
-  */
-  /*
-  void
-  setTaggedValue(int tagKey,
-                 const DataArrayView& value);
-  */
-
-  /**
-    \brief
-    Copy other Data object into this Data object where mask is positive.
-  */
-  void
-  copyWithMask(const Data& other,
-               const Data& mask);
-
-  /**
-     Data object operation methods and operators.
-  */
-
-  /**
-     \brief
-     Interpolates this onto the given functionspace and returns
-     the result as a Data object.
+     Interpolates this onto the given functionspace and returns the result as a Data object.
   */
   Data
   interpolate(const FunctionSpace& functionspace) const;
@@ -514,6 +540,13 @@ class Data {
 
   /**
      \brief
+     Return a Data with a 1 for +ive values and a 0 for -ive values.
+  */
+  Data
+  whereNonNegative() const;
+
+  /**
+     \brief
      Return a Data with a 1 for -ive values and a 0 for +ive or 0 values.
   */
   Data
@@ -521,210 +554,106 @@ class Data {
 
   /**
      \brief
-     Return a Data with a 1 for +ive or 0 values and a 0 for -ive values.
-  */
-  Data
-  whereNonNegative() const;
-
-  /**
-     \brief
-     Return a Data with a 1 for -ive or 0 values and a 0 for +ive values.
-  */
-  Data
-  whereNonPositive() const;
-
-  /**
-     \brief
-     Return a Data with a 1 for 0 values and a 0 for +ive or -ive values.
+     Return a Data with a 1 for 0 values a 0 for +ive or -ive.
   */
   Data
   whereZero() const;
 
   /**
      \brief
-     Return a Data with a 0 for 0 values and a 1 for +ive or -ive values.
-  */
-  Data
-  whereNonZero() const;
-
-  /**
-     \brief
-     Return the sin of each data point of this Data object.
+     Return the sin of Data.
   */
   Data
   sin() const;
 
   /**
      \brief
-     Return the cos of each data point of this Data object.
+     Return the cos of Data.
   */
   Data
   cos() const;
 
   /**
      \brief
-     Return the tan of each data point of this Data object.
+     Return the tan of Data.
   */
   Data
   tan() const;
 
   /**
      \brief
-     Return the log to base 10 of each data point of this Data object.
+     Return the log to base 10 of Data.
   */
   Data
   log() const;
 
   /**
      \brief
-     Return the natural log of each data point of this Data object.
+     Return the natural log of Data.
   */
   Data
   ln() const;
 
   /**
      \brief
-     Return the maximum absolute value of this Data object.
+     Return a Data containing a slice of this Data.
+  */
+  Data
+  getSlice(const DataArrayView::RegionType& region) const;
+
+  /**
+     \brief
+     Copy the specified region from the given value.
+     \param value - Input - Data to copy from.
+     \param region - Input - Region to copy.
+  */
+  void
+  setSlice(const Data& value,
+           const DataArrayView::RegionType& region);
+
+  /**
+     \brief
+     Return the maximum absolute value.
   */
   double
   Lsup() const;
 
   /**
      \brief
-     Return the maximum value of this Data object.
+     Return the maximum value.
   */
   double
   sup() const;
 
   /**
      \brief
-     Return the minimum value of this Data object.
+     Return the minimum value.
   */
   double
   inf() const;
 
   /**
      \brief
-     Return the absolute value of each data point of this Data object.
+     Returns a slice from this.
   */
   Data
-  abs() const;
+  getItem(const boost::python::object& key) const;
 
   /**
      \brief
-     Return the maximum value of each data point of this Data object.
+     Copies slice from value into this.
   */
-  Data
-  maxval() const;
+  void
+  setItem(const boost::python::object& key,
+          const Data& value);
 
   /**
      \brief
-     Return the minimum value of each data point of this Data object.
+     Convert the underlying data type to match the RHS.
+     \param right - Input - data type to match.
   */
-  Data
-  minval() const;
-
-  /**
-     \brief
-     Return the length of each data point of this Data object.
-     sqrt(sum(A[i,j,k,l]^2))
-  */
-  Data
-  length() const;
-
-  /**
-     \brief
-     Return the sign of each data point of this Data object.
-     -1 for negative values, zero for zero values, 1 for positive values.
-  */
-  Data
-  sign() const;
-
-  /**
-    \transpose
-    Transpose each data point of this Data object around the given axis.
-  */
-  Data
-  transpose(int axis) const;
-
-  /**
-    \trace
-    Calculate the trace of each data point of this Data object.
-    sum(A[i,i,i,i])
-  */
-  Data
-  trace() const;
-
-  /**
-    \exp
-    Return the exponential function of each data point of this Data object.
-  */
-  Data
-  exp() const;
-
-  /**
-    \sqrt
-    Return the square root of each data point of this Data object.
-  */
-  Data
-  sqrt() const;
-
-  /**
-     \brief
-     Return the given power of each data point of this Data object.
-  */
-  Data
-  powD(const Data& right) const;
-
-  Data
-  powO(const boost::python::object& right) const;
-
-  /**
-    \brief
-    Return the negation of each data point of this Data object.
-  */
-  Data
-  neg() const;
-
-  /**
-    \brief
-    Return the identity of each data point of this Data object.
-    Simply returns this object unmodified.
-  */
-  Data
-  pos() const;
-
-  /**
-     \brief
-     Overloaded operator +=
-     \param right - Input - The right hand side.
-  */
-  Data& operator+=(const Data& right);
-  Data& operator+=(const boost::python::object& right);
-
-  /**
-     \brief
-     Overloaded operator -=
-     \param right - Input - The right hand side.
-  */
-  Data& operator-=(const Data& right);
-  Data& operator-=(const boost::python::object& right);
-
- /**
-     \brief
-     Overloaded operator *=
-     \param right - Input - The right hand side.
-  */
-  Data& operator*=(const Data& right);
-  Data& operator*=(const boost::python::object& right);
-
- /**
-     \brief
-     Overloaded operator /=
-     \param right - Input - The right hand side.
-  */
-  Data& operator/=(const Data& right);
-  Data& operator/=(const boost::python::object& right);
+  void
+  typeMatch(const Data& right);
 
   /**
      \brief
@@ -734,142 +663,33 @@ class Data {
   probeInterpolation(const FunctionSpace& functionspace) const;
 
   /**
-     Data object slicing methods.
-  */
-
-  /**
      \brief
-     Returns a slice from this Data object.
-
-     /description
-     Implements the [] get operator in python.
-     Calls getSlice.
-
-     \param key - Input - python slice tuple specifying
-     slice to return.
-  */
-  Data
-  getItem(const boost::python::object& key) const;
-
-  /**
-     \brief
-     Copies slice from value into this Data object.
-
-     \description
-     Implements the [] set operator in python.
-     Calls setSlice.
-
-     \param key - Input - python slice tuple specifying
-     slice to copy from value.
-     \param value - Input - Data object to copy from.
+     Assign the given value to the tag. Implicitly converts this
+     object to type DataTagged. Throws an exception if this object
+     cannot be converted to a DataTagged object.
+     \param tagKey - Input - Integer key.
+     \param value - Input - Value to associate with given key.
   */
   void
-  setItemD(const boost::python::object& key,
-           const Data& value);
-
-  void
-  setItemO(const boost::python::object& key,
-           const boost::python::object& value);
-
-  // These following public methods should be treated as private.
+  setTaggedValue(int tagKey,
+                 const boost::python::object& value);
 
   /**
      \brief
-     Perform the given unary operation on every element of every data point in
-     this Data object.
+     Assign the given value to the tag. Implicitly converts this
+     object to type DataTagged. Throws an exception if this object
+     cannot be converted to a DataTagged object.
+     \param tagKey - Input - Integer key.
+     \param value - Input - Value to associate with given key.
+     Note: removed for now - this version not needed, and breaks escript.cpp
   */
-  template <class UnaryFunction>
-  inline
+  /*
   void
-  unaryOp(UnaryFunction operation);
-
-  /**
-     \brief
-     Return a Data object containing the specified slice of
-     this Data object.
-     \param region - Input - Region to copy.
+  setTaggedValue(int tagKey,
+                 const DataArrayView& value);
   */
-  Data
-  getSlice(const DataArrayView::RegionType& region) const;
-
-  /**
-     \brief
-     Copy the specified slice from the given value into this
-     Data object.
-     \param value - Input - Data to copy from.
-     \param region - Input - Region to copy.
-  */
-  void
-  setSlice(const Data& value,
-           const DataArrayView::RegionType& region);
-
- protected:
 
  private:
-
-  /**
-     \brief
-     Check *this and the right operand are compatible. Throws
-     an exception if they aren't.
-     \param right - Input - The right hand side.
-  */
-  inline
-  void
-  operandCheck(const Data& right) const
-  {
-    return m_data->operandCheck(*(right.m_data.get()));
-  }
-
-  /**
-     \brief
-     Perform the specified reduction algorithm on every element of every data point in
-     this Data object and return the single double value result.
-  */
-  template <class UnaryFunction>
-  inline
-  double
-  algorithm(UnaryFunction operation) const;
-
-  /**
-     \brief
-     Perform the given binary operation on all of the data's elements.
-     The underlying type of the right hand side (right) determines the final
-     type of *this after the operation. For example if the right hand side
-     is expanded *this will be expanded if necessary.
-     RHS is a Data object.
-  */
-  template <class BinaryFunction>
-  inline
-  void
-  binaryOp(const Data& right,
-           BinaryFunction operation);
-
-  /**
-     \brief
-     Perform the given binary operation on all of the data's elements.
-     RHS is a boost::python object.
-  */
-  template <class BinaryFunction>
-  inline
-  void
-  binaryOp(const boost::python::object& right,
-           BinaryFunction operation);
-
-  /**
-     \brief
-     Convert the data type of the RHS to match this.
-     \param right - Input - data type to match.
-  */
-  void
-  typeMatchLeft(Data& right) const;
-
-  /**
-     \brief
-     Convert the data type of this to match the RHS.
-     \param right - Input - data type to match.
-  */
-  void
-  typeMatchRight(const Data& right);
 
   /**
      \brief
@@ -892,7 +712,7 @@ class Data {
   reshapeDataPoint(const DataArrayView::ShapeType& shape);
 
   //
-  // pointer to the actual data object
+  // pointer to the actual data
   boost::shared_ptr<DataAbstract> m_data;
 
 };
@@ -910,18 +730,47 @@ Data::initialise(const IValueType& value,
   // within the shared_ptr constructor.
   if (expanded) {
     DataAbstract* temp=new DataExpanded(value,what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+    m_data=boost::shared_ptr<DataAbstract>(temp);
   } else {
     DataAbstract* temp=new DataConstant(value,what);
-    boost::shared_ptr<DataAbstract> temp_data(temp);
-    m_data=temp_data;
+    m_data=boost::shared_ptr<DataAbstract>(temp);
   }
 }
 
-/**
-   Binary Data object operators.
-*/
+inline
+DataAbstract::ValueType::value_type*
+Data::getSampleData(DataAbstract::ValueType::size_type sampleNo)
+{
+  return m_data->getSampleData(sampleNo);
+}
+
+inline
+DataAbstract::ValueType::value_type*
+Data::getSampleDataByTag(int tag)
+{
+  return m_data->getSampleDataByTag(tag);
+}
+
+inline
+void
+Data::operandCheck(const Data& right) const
+{
+  return m_data->operandCheck(*(right.m_data.get()));
+}
+
+inline
+int
+Data::getNumSamples() const
+{
+  return m_data->getNumSamples();
+}
+
+inline
+std::string
+Data::toString() const
+{
+  return m_data->toString();
+}
 
 /**
   \brief
@@ -1027,13 +876,8 @@ std::ostream& operator<<(std::ostream& o, const Data& data);
   NB: this operator does very little at this point, and isn't to 
   be relied on. Requires further implementation.
 */
-//bool operator==(const Data& left, const Data& right);
+bool operator==(const Data& left, const Data& right);
 
-/**
-  \brief
-  Perform the given binary operation with this and right as operands.
-  Right is a Data object.
-*/
 template <class BinaryFunction>
 inline
 void
@@ -1063,7 +907,7 @@ Data::binaryOp(const Data& right,
    operandCheck(tempRight);
    //
    // ensure this has the right type for the RHS
-   typeMatchRight(tempRight);
+   typeMatch(tempRight);
    //
    // Need to cast to the concrete types so that the correct binaryOp
    // is called.
@@ -1089,7 +933,9 @@ Data::binaryOp(const Data& right,
        EsysAssert((rightC!=0), "Programming error - casting to DataConstant.");
        escript::binaryOp(*leftC,*rightC,operation);
      }
-   } else if (isConstant()) {
+   } else {
+     //
+     // can only be DataConstant
      DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
      DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
      EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
@@ -1097,11 +943,6 @@ Data::binaryOp(const Data& right,
    }
 }
 
-/**
-  \brief
-  Perform the given binary operation with this and right as operands.
-  Right is a boost::python object.
-*/
 template <class BinaryFunction>
 inline
 void
@@ -1122,7 +963,10 @@ Data::binaryOp(const boost::python::object& right,
                   "Error - RHS shape doesn't match LHS shape.",temp.getView().getShape()));
      }
    }
+
    if (isExpanded()) {
+     //
+     // Expanded data will be done in parallel
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
      EsysAssert((leftC!=0),"Programming error - casting to DataExpanded.");
      escript::binaryOp(*leftC,temp.getView(),operation);
@@ -1130,45 +974,23 @@ Data::binaryOp(const boost::python::object& right,
      DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
      EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
      escript::binaryOp(*leftC,temp.getView(),operation);
-   } else if (isConstant()) {
+   } else {
+     //
+     // can only be DataConstant
      DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
      EsysAssert((leftC!=0),"Programming error - casting to DataConstant.");
      escript::binaryOp(*leftC,temp.getView(),operation);
    }
 }
 
-/**
-  \brief
-  Perform the given unary operation on other and return the result.
-  Given operation is performed on each element of each data point, thus
-  argument object is a rank n Data object, and returned object is a rank n
-  Data object.
-  Calls Data::unaryOp.
-*/
-template <class UnaryFunction>
-inline
-Data
-unaryOp(const Data& other,
-        UnaryFunction operation)
-{
-  Data result;
-  result.copy(other);
-  result.unaryOp(operation);
-  return result;
-}
-
-/**
-  \brief
-  Perform the given unary operation on this.
-  Given operation is performed on each element of each data point.
-  Calls escript::unaryOp.
-*/
 template <class UnaryFunction>
 inline
 void
 Data::unaryOp(UnaryFunction operation)
 {
   if (isExpanded()) {
+    //
+    // Expanded data will be done in parallel
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
     escript::unaryOp(*leftC,operation);
@@ -1176,77 +998,52 @@ Data::unaryOp(UnaryFunction operation)
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
     escript::unaryOp(*leftC,operation);
-  } else if (isConstant()) {
+  } else {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataConstant.");
     escript::unaryOp(*leftC,operation);
   }
 }
 
-/**
-  \brief
-  Perform the given Data object reduction algorithm on this and return the result.
-  Given operation combines each element of each data point, thus argument
-  object (*this) is a rank n Data object, and returned object is a scalar.
-  Calls escript::algorithm.
-*/
 template <class UnaryFunction>
 inline
 double
 Data::algorithm(UnaryFunction operation) const
 {
   if (isExpanded()) {
+    //
+    // Expanded data will be done in parallel
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
     return escript::algorithm(*leftC,operation);
-  } else if (isTagged()) {
+  }
+  else if (isTagged()) {
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
     return escript::algorithm(*leftC,operation);
-  } else if (isConstant()) {
+  } else {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataConstant.");
     return escript::algorithm(*leftC,operation);
   }
-  return 0;
 }
 
-/**
-  \brief
-  Perform the given data point reduction algorithm on data and return the result.
-  Given operation combines each element within each data point into a scalar,
-  thus argument object is a rank n Data object, and returned object is a 
-  rank 0 Data object.
-  Calls escript::dp_algorithm.
-*/
 template <class UnaryFunction>
 inline
 Data
-dp_algorithm(const Data& data,
-             UnaryFunction operation)
+unaryOp(const Data& other,
+        UnaryFunction operation)
 {
-  Data result(0,DataArrayView::ShapeType(),data.getFunctionSpace(),data.isExpanded());
-  if (data.isExpanded()) {
-    DataExpanded* dataE=dynamic_cast<DataExpanded*>(data.m_data.get());
-    DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
-    EsysAssert((dataE!=0), "Programming error - casting data to DataExpanded.");
-    EsysAssert((resultE!=0), "Programming error - casting result to DataExpanded.");
-    escript::dp_algorithm(*dataE,*resultE,operation);
-  } else if (data.isTagged()) {
-    DataTagged* dataT=dynamic_cast<DataTagged*>(data.m_data.get());
-    DataTagged* resultT=dynamic_cast<DataTagged*>(result.m_data.get());
-    EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
-    EsysAssert((resultT!=0), "Programming error - casting result to DataTagged.");
-    escript::dp_algorithm(*dataT,*resultT,operation);
-  } else if (data.isConstant()) {
-    DataConstant* dataC=dynamic_cast<DataConstant*>(data.m_data.get());
-    DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
-    EsysAssert((dataC!=0), "Programming error - casting data to DataConstant.");
-    EsysAssert((resultC!=0), "Programming error - casting result to DataConstant.");
-    escript::dp_algorithm(*dataC,*resultC,operation);
-  }
+  //
+  // Perform the given operation on a copy of the input data and return the result
+  Data result;
+  //
+  // perform a deep copy
+  result.copy(other);
+  result.unaryOp(operation);
   return result;
 }
 
 }
+
 #endif

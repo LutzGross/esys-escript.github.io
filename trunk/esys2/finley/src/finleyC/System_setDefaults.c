@@ -19,31 +19,23 @@
 /* set the default values for solver options */
 
 void Finley_SystemMatrix_setDefaults(Finley_SolverOptions* options) {
-  options->method=ESCRIPT_DEFAULT_METHOD;
-  options->symmetric=FALSE;
-  options->verbose=TRUE;
-  options->reordering=ESCRIPT_NO_REORDERING;
+  options->verbose=FALSE;
+  options->reordering=NO_REORDERING;
   options->tolerance=1.E-8;
   options->final_residual=0;
-  options->preconditioner=ESCRIPT_JACOBI;
+  options->iterative_method=BICGSTAB;
+  options->preconditioner=JACOBI;
   options->iter_max=1000;
   options->iter=0;
   options->drop_tolerance=0.01;
   options->drop_storage=2.;
-  options->restart=-1;
-  options->truncation=20;
+  options->iterative=FALSE;
 }
 
 /*
  * $Log$
- * Revision 1.2  2004/12/14 05:39:31  jgs
+ * Revision 1.3  2004/12/15 03:48:47  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1.2.2  2004/12/07 10:12:05  gross
- * GMRES added
- *
- * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
- * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
  *
  * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
  * initial import of project esys2

@@ -1,4 +1,3 @@
-// $Id$
 /*
  *****************************************************************************
  *                                                                           *
@@ -12,9 +11,6 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "finley/CPPAdapter/MeshAdapter.h"
-#include "finley/CPPAdapter/MeshAdapterFactory.h"
-#include "escript/Data/AbstractContinuousDomain.h"
 #include "finley/CPPAdapter/SystemMatrixAdapter.h"
 #include "finley/CPPAdapter/FinleyAdapterException.h"
 #include "finley/CPPAdapter/FinleyError.h"
@@ -30,7 +26,6 @@ using namespace finley;
 
 static Finley_Mesh *mesh;
 static Finley_SystemMatrix *system_matrix;
-static Finley_SystemMatrixPattern *matrix_pattern;
 
 static Finley_SystemMatrixType type;
 
@@ -51,7 +46,7 @@ void SystemMatrixAdapterTestCase::setUp() {
 
   mesh = Finley_Mesh_alloc("foo", 2, 1);
 
-  type = CSR;
+  type = UNKNOWN;
 
   symmetric = 0;
 
@@ -61,8 +56,7 @@ void SystemMatrixAdapterTestCase::setUp() {
   reduce_row_order = 0;
   reduce_col_order = 0;
 
-  matrix_pattern = Finley_getPattern(mesh, reduce_row_order, reduce_col_order);
-  system_matrix = Finley_SystemMatrix_alloc(type,matrix_pattern,row_blocksize, column_blocksize);
+  system_matrix = Finley_SystemMatrix_alloc(mesh, type, symmetric, row_blocksize, reduce_row_order, column_blocksize, reduce_col_order);
 
 }
 

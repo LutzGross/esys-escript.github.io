@@ -135,13 +135,13 @@ int Finley_Solver_BiCGStab(
   /* Executable Statements */
 
   /*     allocate memory: */
-  rtld=TMPMEMALLOC(n,double);
-  p=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  t=TMPMEMALLOC(n,double);
-  phat=TMPMEMALLOC(n,double);
-  shat=TMPMEMALLOC(n,double);
-  s=TMPMEMALLOC(n,double);
+  rtld=(double*)TMPMEMALLOC(n*sizeof(double));
+  p=(double*)TMPMEMALLOC(n*sizeof(double));
+  v=(double*)TMPMEMALLOC(n*sizeof(double));
+  t=(double*)TMPMEMALLOC(n*sizeof(double));
+  phat=(double*)TMPMEMALLOC(n*sizeof(double));
+  shat=(double*)TMPMEMALLOC(n*sizeof(double));
+  s=(double*)TMPMEMALLOC(n*sizeof(double));
 
   /*     Test the input parameters. */
 
@@ -289,11 +289,8 @@ int Finley_Solver_BiCGStab(
 
 /*
  * $Log$
- * Revision 1.2  2004/12/14 05:39:31  jgs
+ * Revision 1.3  2004/12/15 03:48:47  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1.2.1  2004/11/24 01:37:16  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
  * initial import of project esys2

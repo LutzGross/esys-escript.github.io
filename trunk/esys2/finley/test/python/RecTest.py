@@ -10,15 +10,14 @@ sys.path.append(esys_root+'/escript/py_src')
                                                                                                                                                           
 from escript import *
 from util import *
-from linearPDEs import *
+from linearPDE import *
 
 import finley
-import numarray
 
 #
 # this test the assemblage of problems with periodic boundary conditions:
 # 
-numElements=15
+numElements=11
 sml=0.1
 #
 #    test solution is u_ex=sin(2*Pi*n*x0)*...*sin(2*Pi*n*x_dim)
@@ -30,14 +29,11 @@ def TheTest(msh,constraints,reduce):
     u_ex=Scalar(1,what=n)
     for i in range(msh.getDim()):
       u_ex*=sin(2*Pi*x[i])
-    mypde=LinearPDE(A=numarray.identity(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
-    mypde.setSymmetryOn()
-    mypde.setDebugOn()
-    mypde.setReducedOrderTo(reduce)
+    mypde=linearPDE(A=Id(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
+    mypde.setReducedOrderForEquationsTo(reduce)
     return Lsup(mypde.getSolution()-u_ex)/Lsup(u_ex)
 
 max_error=0
-max_text="none"
 for onElements in [False,True]:
  if onElements==True:
     onElmtext=", with elements on faces"
@@ -51,10 +47,8 @@ for onElements in [False,True]:
        redtext=""
     for dim in [2,3]:
         if dim==2:
-          # for i0 in [True,False]:
-          #  for i1 in [True,False]:
-          for i0 in [True,True]:
-            for i1 in [True,True]:
+          for i0 in [True,False]:
+            for i1 in [True,False]:
               msh=finley.Rectangle(numElements,numElements,order,periodic0=i0,periodic1=i1,useElementsOnFace=onElements)
               n=ContinuousFunction(msh)
               x=n.getX()

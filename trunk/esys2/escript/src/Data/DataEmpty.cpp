@@ -1,4 +1,3 @@
-//$Id$
 /*
  ******************************************************************************
  *                                                                            *
@@ -19,71 +18,57 @@
 namespace escript {
 
 DataEmpty::DataEmpty() :
-  DataAbstract(FunctionSpace())
+DataAbstract(FunctionSpace())
 {
 }
 
-DataEmpty::~DataEmpty()
-{
+DataEmpty::~DataEmpty() {
 }
 
-std::string
-DataEmpty::toString() const
-{
+std::string DataEmpty::toString() const {
   return "Empty Data.";
 }
 
-void
-DataEmpty::throwStandardException(const std::string& functionName) const
+void DataEmpty::throwStandardException(const std::string& functionName) const
 {
   throw DataException("Error - "+functionName+" function call invalid for DataEmpty.");
 }
 
-DataArrayView::ValueType::size_type
-DataEmpty::getPointOffset(int sampleNo,
-                          int dataPointNo) const 
+DataArrayView::ValueType::size_type DataEmpty::getPointOffset(int sampleNo,int dataPointNo) const 
 {
   throwStandardException("getPointOffset");
   return 0;
 }
 
-double*
-DataEmpty::getSampleDataByTag(int tag)
+double* DataEmpty::getSampleDataByTag(int tag)
 {
   throwStandardException("getSampleDataByTag");
   return 0;
 }
 
-DataArrayView
-DataEmpty::getDataPoint(int sampleNo,
-                        int dataPointNo)
+DataArrayView DataEmpty::getDataPoint(int samplesNo, int dataPointNo)
 {
   throwStandardException("getDataPoint");
   return getPointDataView();
 }
 
-DataArrayView::ValueType::size_type
-DataEmpty::getLength() const
+DataArrayView::ValueType::size_type DataEmpty::getLength() const
 {
   return 0;
 }
 
-DataAbstract*
-DataEmpty::getSlice(const DataArrayView::RegionType& region) const
+DataAbstract* DataEmpty::getSlice(const DataArrayView::RegionType& region) const
 {
   throwStandardException("getSlice");
   return 0;
 }
 
-void
-DataEmpty::setSlice(const DataAbstract* value,
-                    const DataArrayView::RegionType& region) 
+void DataEmpty::setSlice(const DataAbstract* value, const DataArrayView::RegionType& region) 
 {
   throwStandardException("setSlice");
 }
 
-void
-DataEmpty::reshapeDataPoint(const DataArrayView::ShapeType& shape)
+void  DataEmpty::reshapeDataPoint(const DataArrayView::ShapeType& shape)
 {
   throwStandardException("reshapeDataPoint");
 }

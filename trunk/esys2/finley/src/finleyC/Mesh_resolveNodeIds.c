@@ -61,13 +61,13 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   newNodeFile=Finley_NodeFile_alloc(numDim);
   if (Finley_ErrorCode!=NO_ERROR) goto clean;
 
-  maskNodes=TMPMEMALLOC(len,maybelong);
+  maskNodes=(maybelong*)TMPMEMALLOC(len*sizeof(maybelong));
   if (Finley_checkPtr(maskNodes)) goto clean;
 
-  maskElements=TMPMEMALLOC(len,maybelong);
+  maskElements=(maybelong*)TMPMEMALLOC(len*sizeof(maybelong));
   if (Finley_checkPtr(maskElements)) goto clean;
 
-  index=TMPMEMALLOC(in->Nodes->numNodes,maybelong);
+  index=(maybelong*)TMPMEMALLOC(in->Nodes->numNodes*sizeof(maybelong));
   if (Finley_checkPtr(maskElements)) goto clean;
 
   Finley_NodeFile_allocTable(newNodeFile,len);
@@ -137,11 +137,8 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
 
 /*
 * $Log$
-* Revision 1.2  2004/12/14 05:39:30  jgs
+* Revision 1.3  2004/12/15 03:48:45  jgs
 * *** empty log message ***
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
 * initial import of project esys2

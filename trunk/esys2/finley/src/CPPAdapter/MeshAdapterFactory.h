@@ -1,4 +1,3 @@
-/* $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -100,7 +99,7 @@ namespace finley {
   */
   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
-			   double tolerance=100.*std::numeric_limits<double>::epsilon());
+			   double tolerance=std::numeric_limits<double>::epsilon());
   /**
      \brief
      Detects matching faces in the mesh and replaces them by joint elements.
@@ -110,7 +109,7 @@ namespace finley {
   */
   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
 			double safety_factor=0.2, 
-			double tolerance=100.*std::numeric_limits<double>::epsilon());
+			double tolerance=std::numeric_limits<double>::epsilon());
  
 } // end of namespace
 #endif

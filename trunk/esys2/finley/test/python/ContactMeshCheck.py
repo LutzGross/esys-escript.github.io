@@ -11,6 +11,7 @@ sys.path.append(esys_root+'/escript/py_src')
                                                                                                                                                           
 from escript import *
 from util import *
+from linearPDE import *
 
 import finley
 import math
