@@ -2,17 +2,11 @@
 import sys
 import os
 import unittest
-                                                                                                                                                          
-esys_root=os.getenv('ESYS_ROOT')
-sys.path.append(esys_root+'/finley/lib')
-sys.path.append(esys_root+'/escript/lib')
-sys.path.append(esys_root+'/escript/py_src')
-                                                                                                                                                          
-from escript import *
-from util import *
-from linearPDEs import *
 
-import finley
+from esys.escript import *
+from esys.linearPDEs import *
+from esys.finley import *
+
 import numarray
 
 #
@@ -30,7 +24,8 @@ def TheTest(msh,constraints,reduce):
     u_ex=Scalar(1,what=n)
     for i in range(msh.getDim()):
       u_ex*=sin(2*Pi*x[i])
-    mypde=LinearPDE(A=numarray.identity(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
+    mypde=LinearPDE(msh)
+    mypde.setValue(A=numarray.identity(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
     mypde.setSymmetryOn()
     mypde.setDebugOn()
     mypde.setReducedOrderTo(reduce)
@@ -55,7 +50,7 @@ for onElements in [False,True]:
           #  for i1 in [True,False]:
           for i0 in [True,True]:
             for i1 in [True,True]:
-              msh=finley.Rectangle(numElements,numElements,order,periodic0=i0,periodic1=i1,useElementsOnFace=onElements)
+              msh=Rectangle(numElements,numElements,order,periodic0=i0,periodic1=i1,useElementsOnFace=onElements)
               n=ContinuousFunction(msh)
               x=n.getX()
               c=Scalar(0,what=n) 
@@ -73,7 +68,7 @@ for onElements in [False,True]:
           for i0 in [True,False]:
             for i1 in [True,False]:
               for i2 in [True,False]:
-                msh=finley.Brick(numElements,numElements,numElements,order,periodic0=i0,periodic1=i1,periodic2=i2,useElementsOnFace=onElements)
+                msh=Brick(numElements,numElements,numElements,order,periodic0=i0,periodic1=i1,periodic2=i2,useElementsOnFace=onElements)
                 n=ContinuousFunction(msh)
                 x=n.getX()
                 c=Scalar(0,what=n)

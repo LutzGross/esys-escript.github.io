@@ -215,7 +215,7 @@ class LinearPDE:
    GMRES=util.GMRES
    PRES20=util.PRES20
 
-   def __init__(self,**args):
+   def __init__(self,domain,numEquations=0,numSolutions=0):
      """
      @brief initializes a new linear PDE.
 
@@ -224,9 +224,9 @@ class LinearPDE:
 
      # initialize attributes
      self.__debug=None
-     self.__domain=None
-     self.__numEquations=0
-     self.__numSolutions=0
+     self.__domain=domain
+     self.__numEquations=numEquations
+     self.__numSolutions=numSolutions
      self.cleanCoefficients()
 
      self.__operator=escript.Operator()
@@ -235,23 +235,6 @@ class LinearPDE:
      self.__righthandside_isValid=False
      self.__solution=escript.Data()
      self.__solution_isValid=False
-
-     # check the arguments
-     coef={}
-     for arg in args.iterkeys():
-          if arg=="domain":
-              self.__domain=args[arg]
-          elif arg=="numEquations":
-              self.__numEquations=args[arg]
-          elif arg=="numSolutions":
-              self.__numSolutions=args[arg]
-          elif _PDECoefficientTypes.has_key(arg):
-              coef[arg]=args[arg]
-          else:
-              raise ValueError,"Illegal argument %s"%arg
-
-     # get the domain of the PDE
-     self.__domain=identifyDomain(self.__domain,coef)
 
      # set some default values:
      self.__homogeneous_constraint=True
@@ -262,10 +245,6 @@ class LinearPDE:
      self.__matrix_type=self.__domain.getSystemMatrixTypeId(util.DEFAULT_METHOD,False)
      self.__sym=False
      self.__lumping=False
-     self.__numEquations=0
-     self.__numSolutions=0
-     # now we can set the ceofficients:
-     self._setCoefficient(**coef)
 
    def getCoefficient(self,name):
      """
@@ -281,10 +260,10 @@ class LinearPDE:
 
       @param coefficients
       """
-      self._setCoefficient(**coefficients)
+      self._setValue(**coefficients)
       
 
-   def _setCoefficient(self,**coefficients):
+   def _setValue(self,**coefficients):
       """
       @brief sets new values to coefficients
 
@@ -303,10 +282,7 @@ class LinearPDE:
                 else:
                   alteredCoefficients[i]=escript.Data(d,self.getFunctionSpaceOfCoefficient(i))
             else:
-                if self.__numEquations>0 and  self.__numSolutions>0:
-                   alteredCoefficients[i]=escript.Data(d,self.getShapeOfCoefficient(i),self.getFunctionSpaceOfCoefficient(i))
-                else:
-                   alteredCoefficients[i]=escript.Data(d,self.getFunctionSpaceOfCoefficient(i))
+                alteredCoefficients[i]=escript.Data(d,self.getFunctionSpaceOfCoefficient(i))
          else:
             raise ValueError,"Attempt to set undefined coefficient %s"%i
       # if numEquations and numSolutions is undefined we try identify their values based on the coefficients:
@@ -883,6 +859,12 @@ class LinearPDE:
      """
      return self.__domain
 
+   def getDim(self):
+     """
+     @brief returns the spatial dimension of the PDE
+     """
+     return self.getDomain().getDim()
+
    def getNumEquations(self):
      """
      @brief returns the number of equations
@@ -959,17 +941,20 @@ class Poisson(LinearPDE):
 
    def __init__(self,domain=None,f=escript.Data(),q=escript.Data()):
        LinearPDE.__init__(self,domain=identifyDomain(domain,{"f":f, "q":q}))
-       self._setCoefficient(A=numarray.identity(self.getDomain().getDim()))
+       self._setValue(A=numarray.identity(self.getDomain().getDim()))
        self.setSymmetryOn()
        self.setValue(f,q)
 
    def setValue(self,f=escript.Data(),q=escript.Data()):
-       self._setCoefficient(Y=f,q=q)
+       self._setValue(Y=f,q=q)
  
                                                                                                                                                            
 # $Log$
-# Revision 1.2  2004/12/15 07:08:27  jgs
+# Revision 1.3  2004/12/17 07:43:10  jgs
 # *** empty log message ***
+#
+# Revision 1.1.2.3  2004/12/16 00:12:34  gross
+# __init__ of LinearPDE does not accept any coefficients anymore
 #
 # Revision 1.1.2.2  2004/12/14 03:55:01  jgs
 # *** empty log message ***

@@ -196,7 +196,14 @@ def length(arg):
     @param arg
     """
     if isinstance(arg,escript.Data):
-       return arg.length()
+       if arg.getRank()==1:
+          sum=escript.Scalar(0,arg.getFunctionSpace())
+          for i in range(arg.getShape()[0]):
+             sum+=arg[i]**2
+          return sqrt(sum)
+       else:
+          raise SystemError,"length is not been implemented yet"
+       # return arg.length()
     else:
        return sqrt((arg**2).sum())
 
@@ -274,3 +281,39 @@ def dot(arg1,arg2):
        return arg2.dot(arg1)
     else:
        return numarray.dot(arg1,arg2)
+#
+# $Log$
+# Revision 1.6  2004/12/17 07:43:10  jgs
+# *** empty log message ***
+#
+# Revision 1.2.2.5  2004/12/17 00:06:53  gross
+# mk sets ESYS_ROOT is undefined
+#
+# Revision 1.2.2.4  2004/12/07 03:19:51  gross
+# options for GMRES and PRES20 added
+#
+# Revision 1.2.2.3  2004/12/06 04:55:18  gross
+# function wraper extended
+#
+# Revision 1.2.2.2  2004/11/22 05:44:07  gross
+# a few more unitary functions have been added but not implemented in Data yet
+#
+# Revision 1.2.2.1  2004/11/12 06:58:15  gross
+# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+#
+# Revision 1.2  2004/10/27 00:23:36  jgs
+# fixed minor syntax error
+#
+# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
+# initial import of project esys2
+#
+# Revision 1.1.2.3  2004/10/26 06:43:48  jgs
+# committing Lutz's and Paul's changes to brach jgs
+#
+# Revision 1.1.4.1  2004/10/20 05:32:51  cochrane
+# Added incomplete Doxygen comments to files, or merely put the docstrings that already exist into Doxygen form.
+#
+# Revision 1.1  2004/08/05 03:58:27  gross
+# Bug in Assemble_NodeCoordinates fixed
+#
+#

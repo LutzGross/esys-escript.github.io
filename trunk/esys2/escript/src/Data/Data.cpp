@@ -634,6 +634,13 @@ Data::sqrt() const
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sqrt);
 }
 
+void
+Data::saveDX(std::string fileName) const
+{
+  getDomain().saveDX(fileName,*this);
+  return;
+}
+
 Data&
 Data::operator+=(const Data& right)
 {

@@ -94,8 +94,8 @@ class AbstractDomain {
    \brief
    Return true if domains equal. 
   */
-  virtual bool operator==(const AbstractDomain& other) const;
-  virtual bool operator!=(const AbstractDomain& other) const;
+  bool operator==(const AbstractDomain& other) const;
+  bool operator!=(const AbstractDomain& other) const;
   /**
      \brief
      writes the doamin to an external file filename.

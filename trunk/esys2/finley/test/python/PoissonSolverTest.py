@@ -1,18 +1,8 @@
 # $Id$
 
-import sys
-import os
-import unittest
-
-esys_root=os.getenv('ESYS_ROOT')
-sys.path.append(esys_root+'/finley/lib')
-sys.path.append(esys_root+'/escript/lib')
-sys.path.append(esys_root+'/escript/py_src')
-
-from escript import *
-from util import *
-from LinearPDEs import *
-import finley
+from esys.escript import *
+from esys.linearPDEs import Poisson
+import esys.finley as finley
 
 ne_list=[10,15,22,33,50,75]
 height_list=[0.25,0.5,1.]
