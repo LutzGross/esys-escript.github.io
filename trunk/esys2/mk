@@ -1,0 +1,32 @@
+#!/bin/env bash
+# $Id$
+# a brutal building script for esys
+
+#MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
+MODULES="escript finley"
+
+if [ "$1" == "clean" ];
+then
+	for module in $MODULES ; do \
+		(echo Cleaning: $module; cd $module; make clean) \
+	done
+fi
+
+(cd escript/lib; if [ ! -e py_src ]; then mkdir py_src; fi)
+
+(cd escript/inc; if [ ! -e escript ]; then ln -s ../src escript; fi)
+(cd esysUtils/inc; if [ ! -e esysUtils ]; then ln -s ../src esysUtils; fi)
+(cd finley/inc; if [ ! -e finley ]; then ln -s ../src finley; fi)
+
+(cd escript; if [ ! -e Makefile ]; then ln -s ./escript.mk Makefile; fi)
+(cd esysUtils; if [ ! -e Makefile ]; then ln -s ./esysUtils.mk Makefile; fi)
+(cd finley; if [ ! -e Makefile ]; then ln -s ./finley.mk Makefile; fi)
+(cd tools/mmio; if [ ! -e Makefile ]; then ln -s ./mmio.mk Makefile; fi)
+(cd tools/CppUnitTest; if [ ! -e Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
+
+for module in $MODULES ; do \
+	(echo Building: $module; cd $module; make) \
+done
+
+(cd escript/lib; if [ ! -e escript.so ]; then ln -s libescript.so escript.so; fi)
+(cd finley/lib; if [ ! -e  finley.so ]; then ln -s libfinley.so finley.so; fi)

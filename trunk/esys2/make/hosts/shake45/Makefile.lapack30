@@ -1,0 +1,19 @@
+# $Id$
+
+# Lapack 3.0
+
+PKG_CC_INC_DIRS += ${NULL}	# standard directory
+PKG_CPP_INC_DIRS += ${NULL}	# standard directory
+PKG_LD_LIB_DIRS += ${NULL}	# standard directory
+PKG_LD_LIBS += lapack
+
+# $Log$
+# Revision 1.1  2004/10/26 06:53:59  jgs
+# Initial revision
+#
+# Revision 1.1.1.1  2004/06/24 04:00:39  johng
+# Initial version of eys using boost-python.
+#
+# Revision 1.1  2003/09/11 02:03:52  davies
+# Added makefile configurations for several platforms.
+#

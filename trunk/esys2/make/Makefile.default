@@ -1,0 +1,124 @@
+# $Id$
+# John Gerschwitz 28-11-2003
+#
+
+#
+# Set default values for local Makefile variables. 
+#
+
+# Check ESYS_ROOT has been set.
+ifeq ($(strip $(ESYS_ROOT)),)
+   ERRORTARGETS += ESYS_ROOT_ERROR
+   ERRORBUILDTARGET := error
+endif
+
+# Some useful definitions
+NULL  :=
+SPACE := ${NULL} ${NULL}
+SHELL := /bin/sh
+
+# Make settings
+MAKE_DIR := $(ESYS_ROOT)/make
+HOSTNAME := ${shell hostname | sed -e 's/\..*//'}
+
+#
+# Set defaults for local variables if not already set
+#
+
+# Current directory
+ifeq ($(strip $(L_DIR)),)
+   L_DIR := ${shell pwd}
+endif
+
+# Source file directory
+ifeq ($(strip $(L_SRC_DIR)),)
+   L_SRC_DIR := ./src
+endif
+
+# ?
+ifeq ($(strip $(L_MOD_DIR)),)
+   L_MOD_DIR := ./mod
+endif
+
+# Library directory
+ifeq ($(strip $(L_LIB_DIR)),)
+   L_LIB_DIR := ./lib
+endif
+
+# Include file directory
+ifeq ($(strip $(L_INC_DIR)),)
+   L_INC_DIR := ./inc
+endif
+
+# Object file directory
+ifeq ($(strip $(L_OBJ_DIR)),)
+   L_OBJ_DIR := ./obj
+endif
+
+# Dependency file directory
+ifeq ($(strip $(L_DEP_DIR)),)
+   L_DEP_DIR := ./dep
+endif
+
+# External library directory
+ifeq ($(strip $(L_EXT_LIB_DIRS)),)
+   L_EXT_LIB_DIRS := ${NULL}
+endif
+
+# External libraries
+ifeq ($(strip $(L_EXT_LIBS)),)
+   L_EXT_LIBS := ${NULL}
+endif
+
+# External include directories
+ifeq ($(strip $(L_EXT_INC_DIRS)),)
+   L_EXT_INC_DIRS := ${NULL}
+endif
+
+# External object files
+ifeq ($(strip $(L_EXT_OBJS)),)
+   L_EXT_OBJS := ${NULL}
+endif
+
+# Packages to link with
+ifeq ($(strip $(PACKAGES)),)
+   PACKAGES := ${NULL}
+endif
+
+# Do debug compilations or not?
+ifeq ($(strip $(DODEBUG)),)
+   DODEBUG := NO
+endif
+
+# Do test compilations or not?
+ifeq ($(strip $(DOTEST)),)
+   DOTEST := NO
+endif
+
+# Include remainder of Makefiles
+include ${MAKE_DIR}/Makefile.source
+include ${MAKE_DIR}/hosts/${HOSTNAME}/Makefile.host
+include ${MAKE_DIR}/Makefile.phony
+include ${MAKE_DIR}/Makefile.package
+include ${MAKE_DIR}/Makefile.depend
+include ${MAKE_DIR}/Makefile.implicit
+
+# Eliminate default known suffixes
+.SUFFIXES:
+
+# Delete all targets for whom make process fails
+.DELETE_ON_ERROR:
+
+# Define messages to print on specific error conditions
+error: $(ERRORTARGETS)
+	@echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"; \
+	echo "Fatal errors detected.";\
+	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";\
+	exit 1
+
+ESYS_ROOT_ERROR:
+	@echo " - ESYS_ROOT variable hasn't been set."
+
+NO_SOURCE_FILES_ERROR:
+	@echo "No source files could be found for L_SRC_DIR: $(L_SRC_DIR)
+

@@ -1,0 +1,18 @@
+# $Id$
+
+PKG_CC_INC_DIRS += /usr/include/boost/
+PKG_CPP_INC_DIRS += /usr/include/boost/
+#
+# Just hardcode this path for now. Need to make the make a little smarter to 
+# work out the appropriate lib based on compile options
+PKG_LD_LIB_DIRS += /usr/lib/
+PKG_LD_LIBS += boost_python
+
+# $Log$
+# Revision 1.1  2004/10/26 06:53:58  jgs
+# Initial revision
+#
+# Revision 1.1  2004/08/02 11:23:09  gross
+# some progress toward slicing
+#
+#

@@ -1,0 +1,7 @@
+#!/bin/bash
+# $Id$
+if [ ! -e Makefile ]; then ln -s ./DataArrayViewTest.mk Makefile; fi
+make -f ./Makefile clean
+make -f ./Makefile DODEBUG=YES
+./DataArrayViewTest.exe
+make -f ./Makefile clean

@@ -1,0 +1,36 @@
+# $Id$
+
+# Define Makefile variables specifying package libraries to link with
+
+# Package dependencies
+PKG_CC_INC_DIRS := ${NULL}
+PKG_CPP_INC_DIRS := ${NULL}
+PKG_LD_LIB_DIRS := ${NULL}
+PKG_LD_LIBS := ${NULL}
+
+# Include definitions which enable linking with any required package libraries
+ifneq (${strip ${PACKAGES}},)
+-include ${addprefix ${MAKE_DIR}/hosts/${HOSTNAME}/Makefile., ${PACKAGES}}
+endif
+
+# $Log$
+# Revision 1.1  2004/10/26 06:53:58  jgs
+# Initial revision
+#
+# Revision 1.2  2004/09/23 01:48:45  jgs
+# make: augmented Makefiles with comments throughout
+#
+#         Makefile.default - changed order of includes for clarity
+#         Makfile.phony    - reordered phony targets
+#                          - added target "all" - now first target to be encountered
+#
+# Revision 1.1.1.1  2004/06/24 04:00:39  johng
+# Initial version of eys using boost-python.
+#
+# Revision 1.2  2003/09/01 01:55:55  davies
+# Added SCSL 1.4.1pre makefile support.
+#
+# Revision 1.1.1.1  2003/08/21 00:58:20  davies
+# Imported sources from Lutz Gross.
+#
+

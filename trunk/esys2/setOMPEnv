@@ -1,0 +1,4 @@
+export OMP_SCHEDULE="dynamic"
+export OMP_NUM_THREADS=1
+export OMP_DYNAMIC=TRUE
+export OMP_NESTED=FALSE
