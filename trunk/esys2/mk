@@ -2,8 +2,8 @@
 # $Id$
 # a brutal building script for esys
 
-#MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
-MODULES="escript finley"
+MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
+#MODULES="escript finley"
 
 if [ "$1" == "clean" ];
 then
