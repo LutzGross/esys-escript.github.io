@@ -21,10 +21,9 @@ extern "C" {
 #include "finley/CPPAdapter/FinleyError.h"
 #include "finley/CPPAdapter/MeshAdapterFactory.h"
 
-
-
 #include <iostream>
 #include <sstream>
+#include <boost/python/extract.hpp>
 
 using namespace std;
 using namespace escript;
@@ -138,24 +137,62 @@ namespace finley {
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp;
   }
-  AbstractContinuousDomain*  meshMerge(const boost::python::list& meshList)
+  AbstractContinuousDomain* meshMerge(const boost::python::list& meshList)
   {
-    AbstractContinuousDomain* temp=new MeshAdapter(0);
+    Finley_Mesh* fMesh=0;
+    //
+    // extract the meshes from meshList
+    int numMsh=boost::python::extract<int>(meshList.attr("__len__")());
+    Finley_Mesh* mshes[numMsh];
+    for (int i=0;i<numMsh;++i) {
+         AbstractContinuousDomain& meshListMember=boost::python::extract<AbstractContinuousDomain&>(meshList[i]);
+         const MeshAdapter* finley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
+         mshes[i]=finley_meshListMember->getFinley_Mesh();
+    }
+    //
+    // merge the meshes:
+    fMesh=Finley_Mesh_merge(numMsh,mshes);
+    //
+    // Convert any finley errors into a C++ exception
+    checkFinleyError();
+    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp;
   }
   AbstractContinuousDomain*  glueFaces(const boost::python::list& meshList,
-			double safetyFactor, 
+			double safety_factor, 
 			double tolerance)
   {
-    AbstractContinuousDomain* temp=new MeshAdapter(0);
-    return temp;
+    Finley_Mesh* fMesh=0;
+    //
+    // merge the meshes:
+    AbstractContinuousDomain* merged_meshes=meshMerge(meshList);
+    //
+    // glue the faces:
+    const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes);
+    fMesh=merged_finley_meshes->getFinley_Mesh();
+    Finley_Mesh_glueFaces(fMesh,safety_factor,tolerance);
+    //
+    // Convert any finley errors into a C++ exception
+    checkFinleyError();
+    return merged_meshes;
   }
   AbstractContinuousDomain*  joinFaces(const boost::python::list& meshList,
 			double safety_factor, 
 			double tolerance)
   {
-    AbstractContinuousDomain* temp=new MeshAdapter(0);
-    return temp;
+    Finley_Mesh* fMesh=0;
+    //
+    // merge the meshes:
+    AbstractContinuousDomain* merged_meshes=meshMerge(meshList);
+    //
+    // join the faces:
+    const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes);
+    fMesh=merged_finley_meshes->getFinley_Mesh();
+    Finley_Mesh_joinFaces(fMesh,safety_factor,tolerance);
+    //
+    // Convert any finley errors into a C++ exception
+    checkFinleyError();
+    return merged_meshes;
   }
 
 }  // end of namespace

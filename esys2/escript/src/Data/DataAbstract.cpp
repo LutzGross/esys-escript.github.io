@@ -76,14 +76,28 @@ DataAbstract::operandCheck(const DataAbstract& right) const
 DataAbstract::ValueType::value_type*
 DataAbstract::getSampleDataByTag(int tag)
 {
-    throw DataException("Error - Data type does not have tag values.");
+    throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
 }
 
 void
 DataAbstract::setTaggedValue(int tagKey,
                              const DataArrayView& value)
 {
-    throw DataException("Error - Data type does not have tag values.");
+    throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
+}
+
+void
+DataAbstract::setRefValue(int ref,
+                          const DataArray& value)
+{
+    throw DataException("Error - DataAbstract::setRefValue: Data type cannot be accessed by reference values.");
+}
+
+void
+DataAbstract::getRefValue(int ref,
+                          DataArray& value)
+{
+    throw DataException("Error - DataAbstract::getRefValue: Data type cannot be accessed by reference values.");
 }
 
 }  // end of namespace

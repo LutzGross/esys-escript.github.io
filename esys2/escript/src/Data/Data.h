@@ -69,6 +69,8 @@ class Data {
 
   public:
 
+  // These typedefs allow function names to be cast to pointers
+  // to functions of the appropriate type when calling unaryOp etc.
   typedef double (*UnaryDFunPtr)(double);
   typedef double (*BinaryDFunPtr)(double,double);
 
@@ -398,6 +400,45 @@ class Data {
 
   /**
      \brief
+     Assign the given value to the data-points referenced by the given
+     reference number.
+
+     The value supplied is a python numarray object.  The data from this numarray
+     is unpacked into a DataArray, and this is used to set the corresponding
+     data-points in the underlying Data object.
+
+     If the underlying Data object cannot be accessed via reference numbers, an
+     exception will be thrown.
+
+     \param ref - Input - reference number.
+     \param value - Input - value to assign to data-points associated with
+                            the given reference number.
+  */
+  void
+  setRefValue(int ref,
+              const boost::python::numeric::array& value);
+
+  /**
+     \brief
+     Return the values associated with the data-points referenced by the given
+     reference number.
+
+     The value supplied is a python numarray object. The data from the corresponding
+     data-points in this Data object are packed into the given numarray object.
+
+     If the underlying Data object cannot be accessed via reference numbers, an
+     exception will be thrown.
+
+     \param ref - Input - reference number.
+     \param value - Output - object to receive values from data-points
+                             associated with the given reference number.
+  */
+  void
+  getRefValue(int ref,
+              boost::python::numeric::array& value);
+
+  /**
+     \brief
      Return a view into the data for the data point specified.
      NOTE: Construction of the DataArrayView is a relatively expensive
      operation.
@@ -687,6 +728,13 @@ class Data {
   */
   void
   saveDX(std::string fileName) const;
+
+  /**
+    \brief
+    writes the object to a file in the VTK file format
+  */
+  void
+  saveVTK(std::string fileName) const;
 
   /**
     \brief

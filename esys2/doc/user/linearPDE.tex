@@ -381,50 +381,51 @@ returns the residual when insering \var{u} into the PDE
 In cases of PDEs dominated by the advection terms $B$ and $C$ against the diffusion term $A$
 up-winding has been used. 
 The \AdvectivePDE class applies upwinding to the advective terms, see \Ref{SUPG}. 
+
+In the following we set
+\begin{eqnarray}\label{LINEARPDE.UPWIND.Z}
+Z\hackscore{j}=C\hackscore{j}-B\hackscore{j}
+\mbox{ or } \\
+Z\hackscore{ikl}=C\hackscore{ikl}-B\hackscore{ilk}
+\end{eqnarray}
 To measure the dominance of the advective terms over the diffusive term $A$ the 
 Pelclet number is used \index{Pelclet number}. The are defined as
 \begin{eqnarray}\label{LINEARPDE.Peclet.single}
-P^{B}=\frac{h\|B\hackscore{:}\|}{2\|A\hackscore{::}\|}
-\mbox{ and }
-P^{C}=\frac{h\|C\hackscore{:}\|}{2\|A\hackscore{::}\|}
+P=\frac{h\|Z\hackscore{:}\|}{2\|A\hackscore{::}\|}
 \end{eqnarray}
 \begin{eqnarray}\label{LINEARPDE.Peclet.system}
-P^{B}_{ik}=\frac{h\|B\hackscore{i:k}\|}{2\|A\hackscore{i:k:}\|}
-\mbox{ and }
-P^{C}_{ik}=\frac{h\|C\hackscore{ik:}\|}{2\|A\hackscore{i:k:}\|}
+P\hackscore{ik}=\frac{h\|Z\hackscore{i:k}\|}{2\|A\hackscore{i:k:}\|}
 \end{eqnarray}
 where $h$ is the local cell size and
 \begin{eqnarray}\label{LINEARPDE.ADVECTIVE.1b}
-\|C\hackscore{:}\|^2=C\hackscore{j}C\hackscore{j} \\
+\|Z\hackscore{:}\|^2=Z\hackscore{j}Z\hackscore{j} \\
 \|A\hackscore{::}\|^2=A\hackscore{jl}A\hackscore{jl} \\
-\|C\hackscore{i:k}\|^2=C\hackscore{ijk}C\hackscore{ijk} \\
-\|A\hackscore{i:k:}\|^2=A\hackscore{ijkl}A\hackscore{ijkl} \; .
+\|Z\hackscore{i:k}\|^2=\delta\hackscore{in} \delta\hackscore{km} Z\hackscore{njm}Z\hackscore{njm} \\
+\|A\hackscore{i:k:}\|^2=\delta\hackscore{in} \delta\hackscore{km} A\hackscore{njml}A\hackscore{njml} \; .
 \end{eqnarray}
-From the Pelclet number the stabilization parameters $\Xi^{B}$ and $\Xi^{C}$ are calculated:
+In the case that it is $\|A\hackscore{::}\|$ we set $P=0$ if $\|Z\hackscore{:}\|=0$ and
+$P=\infinity$ if $\|Z\hackscore{:}\|=0$. Analogously for $P$ in the case of a systems of PDEs.
+
+From the Pelclet number the stabilization parameters $\Xi$ and $\Xi$ are calculated:
 \begin{eqnarray}\label{LINEARPDE.Peclet.2}
-\Xi^{B}=\frac{\xi(P^{B}) h}{\|B\hackscore{:}\|}
-\mbox{ and }
-\Xi^{C}=\frac{\xi(P^{C}) h}{\|C\hackscore{:}\|} \\
-\mbox{ or }
-\Xi^{B}\hackscore{ik}=\frac{\xi(P^{B}\hackscore{ik}) h}{\|B\hackscore{i:k}\|}
-\mbox{ and }
-\Xi^{C}\hackscore{ik}=\frac{\xi(P^{C}\hackscore{ik}) h}{\|C\hackscore{ik:}\|}
+\Xi=\xi(P) \frac{h}{\|Z\hackscore{:}\|}  \\
+\mbox{ or } \\
+\Xi\hackscore{ik}=\xi(P\hackscore{ik}) \frac{h}{\|Z\hackscore{i:k}\|}
 \end{eqnarray}
 where $\xi$ is a suitable function of the Peclet number.
 In the case of a single PDE the coefficient are up-dated in the following way:
 \begin{eqnarray}\label{LINEARPDE.ADVECTIVE.1}
-A\hackscore{jl} \leftarrow A\hackscore{jl} + \Xi^{B} B\hackscore{j} B\hackscore{l} + \Xi^{C} C\hackscore{j} C\hackscore{l} \\
-B\hackscore{j} \leftarrow B\hackscore{j} + \Xi^{C} C\hackscore{j} D \\
-C\hackscore{j} \leftarrow C\hackscore{j} + \Xi^{B} B\hackscore{j} D \\
-X\hackscore{j} \leftarrow X\hackscore{j} + (Xi^{B} B\hackscore{j} + \Xi^{C} C\hackscore{j}) Y \\
+A\hackscore{jl} \leftarrow A\hackscore{jl} + \Xi Z\hackscore{j} Z\hackscore{l} \\
+B\hackscore{j} \leftarrow B\hackscore{j} + \Xi C\hackscore{j} D \\
+C\hackscore{j} \leftarrow C\hackscore{j} + \Xi B\hackscore{j} D \\
+X\hackscore{j} \leftarrow X\hackscore{j} + \Xi Z\hackscore{j} Y \\
 \end{eqnarray}
 Similar for the case of a systems of PDEs:
 \begin{eqnarray}\label{LINEARPDE.ADVECTIVE.SYSTEM}
-A\hackscore{ijkl} \leftarrow A\hackscore{ijl} + \Xi^{B}\hackscore{ik} B\hackscore{ijk} B\hackscore{ilk} + 
-                                                \Xi^{C}\hackscore{ik} C\hackscore{ikj} C\hackscore{ikl} \\
-B\hackscore{ijk} \leftarrow B\hackscore{ijk} + \Xi^{C}\hackscore{ij} C\hackscore{ikj} D\hackscore{ik} \\
-C\hackscore{ikl} \leftarrow C\hackscore{ikl} + \Xi^{B}\hackscore{ik} B\hackscore{ilk} D\hackscore{ik} \\
-X\hackscore{ij} \leftarrow X\hackscore{ij} + (Xi^{B}\hackscore{ik} B\hackscore{ij} + \Xi^{C}\hackscore{ik} C\hackscore{ij}) Y\hackscore{i} \\
+A\hackscore{ijkl} \leftarrow A\hackscore{ijl} + \delta\hackscore{pm} \Xi\hackscore{mi} Z\hackscore{pij} Z\hackscore{mkl} \\
+B\hackscore{ijk} \leftarrow B\hackscore{ijk} +  \delta\hackscore{pm} \Xi\hackscore{mi} D\hackscore{pk} C\hackscore{mij} \\
+C\hackscore{ikl} \leftarrow C\hackscore{ikl} +  \delta\hackscore{pm} \Xi\hackscore{mi} D\hackscore{pk} B\hackscore{mli} \\
+X\hackscore{ij} \leftarrow X\hackscore{ij} + \delta\hackscore{pm} \Xi\hackscore{mi}  Y\hackscore{p} Z\hackscore{mij}\\
 \end{eqnarray}
 Using upwinding in this form, introduces an additonal error which is proprtional to the cell size $h$
 but with the intension to stabilize the solution.
@@ -435,7 +436,7 @@ and \var{numSolutions} gives the number of equations and the number of solutiopn
 If \var{numEquations} and \var{numSolutions} is non-positive, the number of equations 
 and the number solutions, respectively, stay undefined until a coefficient is
 defined. \var{xi} defines a function which returns for any given  Preclet number $P\ge 0$ the 
-$\xi$-value used to define the stabilization parameters $\Xi^{B}$ and $\Xi^{C}$.
+$\xi$-value used to define the stabilization parameters $\Xi$ and $\Xi$.
 \AdvectivePDE is derived from \LinearPDE.
 \end{classdesc}
 

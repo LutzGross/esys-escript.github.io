@@ -1,52 +1,55 @@
 # $Id$
 from esys.escript import *
-import esys.finley
-import numarray
+from esys.linearPDEs import LinearPDE
+from esys.finley import Brick
+from numarray import identity
+ne=10           # number of cells in x_0-direction
+depth=10000.   # length in x_0-direction
+width=100000.  # length in x_1 and x_2 direction
+lam=3.462e9
+mu=3.462e9
+rho=1154.
+tau=10.
+umax=2.
+tend=60
+h=1./5.*sqrt(rho/(lam+2*mu))*(depth/ne)
+print "time step size = ",h
 
-def wavePropagation(domain,dt,tend,lame_lambda,lame_mu,rho,xc,r,tau,umax):
-   # ... get characteristic function of impact region:
+def s_tt(t): return umax/tau**2*(6*t/tau-9*(t/tau)**4)*exp(-(t/tau)**3)
+
+def wavePropagation(domain,h,tend,lam,mu,rho,s_tt):
    x=domain.getX()
-   location=x[0].whereZero()*(length(x-xc)-r).whereNegative()
    # ... open new PDE ...
-   myPDE=LinearPDE(mydomain)
-   myPDE.setLumpingOn()
-   myPDE.setValue(D=numarray.identity(myPDE.getDim())*rho,q=location*numarray.identity(myPDE.getDim())[:,0])
-   # ... set the initial values :
-   t=dt
+   mypde=LinearPDE(domain)
+   mypde.setLumpingOn()
+   kronecker=identity(mypde.getDim())
+   mypde.setValue(D=kronecker*rho, \
+                  q=x[0].whereZero()*kronecker[1,:])
+   # ... set initial values ....
    n=0
-   u=0
-   v=0
-   a=0
+   u=Vector(0,ContinuousFunction(domain))
+   u_last=Vector(0,ContinuousFunction(domain))
+   t=0
    while t<tend:
-     # ... up-date displacement ....  
-     u=u+dt*v+dt**2/2*a
      # ... get current stress ....
      g=grad(u)
-     stress=lame_lambda*trace(g)+lame_mu*(g+transpose(g))
+     stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
      # ... get new acceleration ....
-     myPDE.setValue(X=stress,q=impact_location, \
-                r=umax/tau**2*(6*t/tau-9*(t/tau)^4)*exp(-(t/tau)^3)*numarray.identity(myPDE.getDim())[:,0])
-     a_new=myPDE.getSolution()
-     # ... update velocity ... 
-     v=v+h/2*(a+a_new)
-     # ... next time step ...
-     a=a_new
-     t+=dt
+     mypde.setValue(X=-stress,r=s_tt(t+h)*kronecker[1,:])
+     a=mypde.getSolution()
+     # ... get new displacement ...
+     u_new=2*u-u_last+h**2*a
+     # ... shift displacements ....
+     u_last=u
+     u=u_new
+     t+=h
      n+=1
-     # ... save current displacement:
-     if n%10: u.saveDX("u.%i.dx"%n)
+     print n,"-th time step t ",t
+     print "a=",inf(a),sup(a)
+     print "u=",inf(u),sup(u)
+     # ... save current acceleration in units of gravity
+     if n%10==0 : (length(a)/9.81).saveDX("/tmp/res/u.%i.dx"%(n/10)
 
-ne=6 
-lame_lambda=3.462e9
-lame_mu=3.462e9
-rho=1154.
-tau=2.
-umax=15.
-xc=[0,1000,1000]
-r=1.
-tend=10.
-dt=1./5.*sqrt(rho/(lame_lambda+2*lame_mu))(20000./ne)
-print "step size = ",dt
-mydomain=finely.Brick(ne,10*ne,10*ne,l0=20000,l1=200000,l2=200000)
-wavePropagation(mydomain,dt,tend,lame_lambda,lame_mu,rho,xc,r,tau,umax)
+mydomain=Brick(ne,int(width/depth)*ne,int(width/depth)*ne,l0=depth,l1=width,l2=width)
+wavePropagation(mydomain,h,tend,lam,mu,rho,s_tt)
 

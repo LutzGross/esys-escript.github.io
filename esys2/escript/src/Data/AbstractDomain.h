@@ -106,10 +106,14 @@ class AbstractDomain {
   /**
      \brief
      sets the tagList pointer and length of tag list numTags.
-     *tagList may be null in which case on tags are used for functionSpaceType on the Domain.
-     has to be implemented by the actual Domain adapter.
   */
   virtual void getTagList(int functionSpaceType, int** tagList, int* numTags) const;
+
+  /**
+     \brief
+     sets the referenceNoList pointer and length of tag list numReferenceNo.
+  */
+  virtual void getReferenceNoList(int functionSpaceType, int** referenceNoList, int* numReferenceNo) const;
 
  /**
      \brief
@@ -127,6 +131,13 @@ class AbstractDomain {
      \param sampleNo Input - The sample number.
   */
   virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+  /**
+     \brief
+     Return the reference number of  the given sample number.
+     \param functionSpaceType Input - The function space type.
+     \param sampleNo Input - The sample number.
+  */
+  virtual int getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const;
   /**
      \brief
      assigns new location to the domain
@@ -194,11 +205,20 @@ class AbstractDomain {
 
   /**
      \brief
-     saves data arg to a OpenDX input file.
+     saves data arg to an OpenDX input file.
      considered as cell centered data.
      has to be implemented by the actual Domain adapter.
   */
   virtual void saveDX(const std::string& filename,const escript::Data& arg) const;
+
+  /**
+     \brief
+     saves data arg to a VTK input file.
+     considered as cell centered data.
+     has to be implemented by the actual Domain adapter.
+  */
+  virtual void saveVTK(const std::string& filename,const escript::Data& arg) const;
+
   /**
      \brief
      returns the function space representation of the type functionSpaceCode on this domain
