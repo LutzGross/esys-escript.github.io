@@ -25,6 +25,7 @@ bool NullDomain::isValidFunctionSpaceType(int functionSpaceType) const
   // allow anything
   return true;
 }
+
 std::string NullDomain::getDescription() const 
 {
   return "NullDomain";

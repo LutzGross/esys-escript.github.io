@@ -79,11 +79,11 @@ Finley_SystemMatrix* Finley_SystemMatrix_alloc(Finley_SystemMatrixType type,Finl
         out->col_block_size=col_block_size;
      }
      if (out_type==CSC || type==CSC_BLK1 ||  type==CSC_SYM || type==CSC_BLK1_SYM ) {
-         out->num_cols=pattern->n_index;
-         out->num_rows=pattern->n_ptr;
-     } else {
          out->num_rows=pattern->n_index;
          out->num_cols=pattern->n_ptr;
+     } else {
+         out->num_rows=pattern->n_ptr;
+         out->num_cols=pattern->n_index;
      } 
 
      out->type=out_type;
@@ -143,11 +143,3 @@ void Finley_SystemMatrix_dealloc(Finley_SystemMatrix* in) {
      }
    }
 }
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:33  jgs
- * *** empty log message ***
- *
- *
- *
- */

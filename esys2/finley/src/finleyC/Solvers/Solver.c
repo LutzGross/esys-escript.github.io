@@ -15,10 +15,8 @@
 #include "System.h"
 #include "Solver.h"
 #include "Common.h"
-#if ITERATIVE_SOLVER == NO_LIB
 #if PTR_OFFSET !=0 || INDEX_OFFSET!=0
 #error Finley library usage requires PTR_OFFSET=0 and INDEX_OFFSET=0
-#endif
 #endif
 
 
@@ -27,15 +25,12 @@
 /*  free space */
 
 void Finley_Solver_free(Finley_SystemMatrix* A) {
-#if ITERATIVE_SOLVER == NO_LIB
     Finley_Preconditioner_free(A->iterative);
     A->iterative=NULL;
-#endif
 }
 /*  call the iterative solver: */
 
 void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptions* options) {
-#if ITERATIVE_SOLVER == NO_LIB
     double norm2OfB,tol,tolerance,time_iter,time_prec,*r=NULL,norm_of_residual,last_norm_of_residual;
     int i,totIter,cntIter,finalizeIteration,errorCode,method;
     int n_col = A->num_cols * A-> col_block_size;
@@ -216,8 +211,4 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
        printf("timing: preconditioner: %.4e sec\n",time_prec);
        if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
     }
-#else
-    Finley_ErrorCode=SYSTEM_ERROR;
-    sprintf(Finley_ErrorMsg,"No native Finley solver available.");
-#endif
 }

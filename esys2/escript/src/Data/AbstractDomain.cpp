@@ -28,8 +28,7 @@ AbstractDomain::~AbstractDomain() {
 
 void AbstractDomain::throwStandardException(const std::string& functionName) const
 {
-  throw DomainException("Error - Base class function: " + 
-			functionName + " should not be called. Programming error.");
+  throw DomainException("Error - Base class function: " + functionName + " should not be called. Programming error.");
 }
 
 bool AbstractDomain::isValidFunctionSpaceType(int functionSpaceType) const
@@ -120,11 +119,13 @@ escript::Data AbstractDomain::getNormal() const
   throwStandardException("AbstractDomain::getNormal");
   return Data();
 }
+
 escript::Data AbstractDomain::getSize() const
 {
   throwStandardException("AbstractDomain::getSize");
   return Data();
 }
+
 void AbstractDomain::setToX(escript::Data& out) const
 {
   throwStandardException("AbstractDomain::setToX");
@@ -136,6 +137,7 @@ void AbstractDomain::setToNormal(escript::Data& out) const
   throwStandardException("AbstractDomain::setToNormal");
   return;
 }
+
 void AbstractDomain::setToSize(escript::Data& out) const
 {
   throwStandardException("AbstractDomain::setToSize");
@@ -188,4 +190,4 @@ bool AbstractDomain::operator!=(const AbstractDomain& other) const
   return (!operator==(other));
 }
 
-}  // end of namespace
+} // end of namespace

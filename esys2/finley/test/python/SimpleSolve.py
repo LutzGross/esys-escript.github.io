@@ -11,18 +11,19 @@ from esys import finley
 print "\nSimpleSolve.py"
 print "--------------"
 
-alpha=0.01
+alpha=0.025
 
 # generate mesh
 
 # print "\nGenerate mesh: finley.Rectangle(9,12,1)=>"
-# mydomain=finley.Rectangle(1,1)
+# mydomain=finley.Rectangle(140,140)
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
-mydomain=finley.Rectangle(4,4,1)
+# mydomain=finley.Rectangle(4,4,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
-# mydomain=finley.Rectangle(151,151,1)
+mydomain=finley.Rectangle(151,151,1)
+# mydomain=finley.Rectangle(128,128,1)
 
 print "\nSetup domain and functions"
 print "--------------------------"
@@ -59,7 +60,9 @@ print "mypde.checkSymmetry()"
 print mypde.checkSymmetry()
 
 print "\nIterative Solver (1)=>"
-u_i=mypde.getSolution()
+u_i=mypde.getSolution(preconditioner=ILU0,iter_max=3000)
+# u_i=mypde.getSolution(iter_max=3000)
+
 
 print "\nDirect Solver (1)=>"
 mypde.setSolverMethod(DIRECT)
@@ -99,6 +102,7 @@ print "----------------------------"
 
 print "\nDirect Solver (2)=>"
 
+
 # mypde.setSymmetryOn() : is not woking yet!
 mypde.setSolverMethod(mypde.DIRECT)
 u_d=mypde.getSolution()
@@ -107,7 +111,7 @@ print "\nIterative Solver (2)=>"
 
 mypde.setSymmetryOn() 
 mypde.setSolverMethod(DEFAULT_METHOD)
-u_i=mypde.getSolution()
+u_i=mypde.getSolution(iter_max=3000)
 
 print "\n******************************************************************"
 error=u_ex-u_d
@@ -119,5 +123,3 @@ print "******************************************************************"
 print "\n-----"
 print "Done."
 print "-----"
-
-grad(u_d).saveDX("t.dx")

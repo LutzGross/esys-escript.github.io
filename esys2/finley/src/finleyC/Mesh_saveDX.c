@@ -57,8 +57,14 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
       switch(getFunctionSpaceType(data_p)) {
        case(FINLEY_DEGREES_OF_FREEDOM):
           nodetype=FINLEY_DEGREES_OF_FREEDOM;
+          isCellCentered=FALSE;
+          elements=mesh_p->Elements;
+          break;
        case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
           nodetype=FINLEY_REDUCED_DEGREES_OF_FREEDOM;
+          isCellCentered=FALSE;
+          break;
+          elements=mesh_p->Elements;
        case(FINLEY_NODES):
           nodetype=FINLEY_NODES;
           isCellCentered=FALSE;
@@ -118,9 +124,9 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
         int NN=elements->ReferenceElement->Type->numNodes;
         fprintf(fileHandle_p, "object 2 class array type int rank 1 shape %d items %d data follows\n",numDXNodesPerElement, elements->numElements);
         for (i = 0; i < elements->numElements; i++) {
-          fprintf(fileHandle_p,"%d",mesh_p->Nodes->toReduced[mesh_p->Elements->Nodes[INDEX2(resortIndex[0], i, NN)]]);
+          fprintf(fileHandle_p,"%d",mesh_p->Nodes->toReduced[elements->Nodes[INDEX2(resortIndex[0], i, NN)]]);
           for (j = 1; j < numDXNodesPerElement; j++) {
-             fprintf(fileHandle_p," %d",mesh_p->Nodes->toReduced[mesh_p->Elements->Nodes[INDEX2(resortIndex[j], i, NN)]]);
+             fprintf(fileHandle_p," %d",mesh_p->Nodes->toReduced[elements->Nodes[INDEX2(resortIndex[j], i, NN)]]);
           }
           fprintf(fileHandle_p, "\n");
         } 
@@ -167,9 +173,9 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
                        values=getSampleData(data_p,i);
                        break;
                  }
+                 for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", values[k]);
+	         fprintf(fileHandle_p, "\n");
               }
-              for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", values[k]);
-	      fprintf(fileHandle_p, "\n");
           }
           fprintf(fileHandle_p, "attribute \"dep\" string \"positions\"\n");
       }
@@ -185,28 +191,3 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
   fclose(fileHandle_p);
   return;
 }
-
-/*
- * $Log$
- * Revision 1.2  2005/02/28 07:06:33  jgs
- * *** empty log message ***
- *
- * Revision 1.1.1.1.2.3  2005/02/17 23:43:06  cochrane
- * Fixed error throwing bug.  Default case of switch statement should have ended
- * with return instead of break, hence errors weren't being thrown (but they now
- * should be).
- *
- * Revision 1.1.1.1.2.2  2005/02/17 05:53:26  gross
- * some bug in saveDX fixed: in fact the bug was in
- * DataC/getDataPointShape
- *
- * Revision 1.1.1.1.2.1  2005/02/17 03:23:01  gross
- * some performance improvements in MVM
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.1  2004/07/27 08:27:11  gross
- * Finley: saveDX added: now it is possible to write data on boundary and contact elements
- *
- */

@@ -11,8 +11,8 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
-#if !defined  escript_FunctionSpace_20040323_H
+
+#if !defined escript_FunctionSpace_20040323_H
 #define escript_FunctionSpace_20040323_H
 
 #include "escript/Data/AbstractDomain.h"
@@ -35,7 +35,6 @@ namespace escript {
    For templates describe any conditions that the parameters used in the
    template must satisfy
 */
-
 
 class FunctionSpace {
 
@@ -62,8 +61,10 @@ class FunctionSpace {
 
      Description:
      Constructor for FunctionSpace.
+
      NOTE: The FunctionSpace class relies on the domain existing
-     for the lifetime of the FunctionSpace object.
+     for the lifetime of the FunctionSpace object. ie: domain must
+     be an externally managed object (!).
   */
   FunctionSpace(const AbstractDomain& domain, int functionSpaceType);
 
@@ -104,7 +105,7 @@ class FunctionSpace {
 
   /**
    \brief
-   Return a test description of the function space.
+   Return a text description of the function space.
   */
   std::string toString() const;
 
@@ -113,6 +114,7 @@ class FunctionSpace {
    Return the tag associated with the given sample number.
   */
   int getTagFromSampleNo(int sampleNo) const;
+
   /**
    \brief
    Return the reference nomber associated with the given sample number.
@@ -139,7 +141,7 @@ class FunctionSpace {
 
   /**
    \brief
-   Return the number of samples:
+   Return the number of samples.
   */
   inline int getNumSamples() const {
      return getDataShape().second;
@@ -163,7 +165,7 @@ class FunctionSpace {
   inline int getDim() const {
       return getDomain().getDim();
   }
-  
+
  protected:
 
  private:

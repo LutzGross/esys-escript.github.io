@@ -2,7 +2,7 @@
 
 /**********************************************************************/
 
-/* Finley: Solver: Finley_Solver_mis 
+/* Finley: SystemMatrixPattern: Finley_SystemMatrixPattern_mis 
 
    searches for a maximal independent set MIS in the matrix pattern 
    vertices in the maximal independent set are marked in mis_marker
@@ -18,12 +18,11 @@
 #include "Finley.h"
 #include "System.h"
 #include "Util.h"
-#include "Solver.h"
 
 
 /* used to generate pseudo random numbers: */
 
-static double Finley_Solver_coloring_seed=.4142135623730951;
+static double Finley_SystemMatrixPattern_mis_seed=.4142135623730951;
 
 
 /***************************************************************/
@@ -33,7 +32,7 @@ static double Finley_Solver_coloring_seed=.4142135623730951;
 #define IS_IN_MIS -3
 #define IS_CONNECTED_TO_MIS -4
 
-void Finley_Solver_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_marker) {
+void Finley_SystemMatrixPattern_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_marker) {
 
   maybelong i,naib,iptr;
   int flag;
@@ -41,7 +40,7 @@ void Finley_Solver_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_mar
   double *value=TMPMEMALLOC(n,double);
   if (!Finley_checkPtr(value)) {
      #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;i++) mis_marker[i]=IS_AVAILABLE;
+     for (i=0;i<n;++i) mis_marker[i]=IS_AVAILABLE;
    
      /* is there any vertex available ?*/
      while (Finley_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
@@ -51,18 +50,21 @@ void Finley_Solver_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_mar
                    its naighbours are removed from the graph by setting it mis_marker to FALSE */
       
         /* step 2: is the vertex is available, check if its value is the smaller than all values of its naigbours */
-                   
-        #pragma omp parallel 
-        {
+
            /* assign random number in [0,1] to each vertex */
-           #pragma omp for private(i) schedule(static)
-           for (i=0;i<n;i++) value[i]=fmod(Finley_Solver_coloring_seed*(i+1),1.);
+           #pragma omp parallel for private(i) schedule(static)
+           for (i=0;i<n;++i) {
+                 if (mis_marker[i]==IS_AVAILABLE) {
+                    value[i]=fmod(Finley_SystemMatrixPattern_mis_seed*(i+1),1.);
+                 } else {
+                    value[i]=2.;
+                 }
+           }
            /* update the seed */
-           #pragma omp master
-           Finley_Solver_coloring_seed=fmod(sqrt(Finley_Solver_coloring_seed*(n+1)),1.);
+           Finley_SystemMatrixPattern_mis_seed=fmod(sqrt(Finley_SystemMatrixPattern_mis_seed*(n+1)),1.);
            /* detect independent vertices as those vertices that have a value less than all values of its naigbours */
-           #pragma omp for private(naib,i,iptr,flag) schedule(static)
-           for (i=0;i<n;i++) {
+           #pragma omp parallel for private(naib,i,iptr,flag) schedule(static) 
+           for (i=0;i<n;++i) {
               if (mis_marker[i]==IS_AVAILABLE) {
                  flag=IS_IN_MIS_NOW;
                  for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; ++iptr) {
@@ -76,13 +78,16 @@ void Finley_Solver_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_mar
               }
            }
            /* detect independent vertices as those vertices that have a value less than all values of its naigbours */
-           #pragma omp for private(naib,i,iptr) schedule(static)
-           for (i=0;i<n;i++) 
+           #pragma omp parallel for private(naib,i,iptr) schedule(static)
+           for (i=0;i<n;i++) {
               if (mis_marker[i]==IS_IN_MIS_NOW) {
-                 for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; ++iptr) mis_marker[pattern_p->index[iptr]]=IS_CONNECTED_TO_MIS;
+                 for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; ++iptr) {
+                     naib=pattern_p->index[iptr];
+                     if (naib!=i) mis_marker[naib]=IS_CONNECTED_TO_MIS;
+                 }
                  mis_marker[i]=IS_IN_MIS;
               }
-       }
+           }
      }
      /* swap to TRUE/FALSE in mis_marker */
      #pragma omp parallel for private(i) schedule(static)
@@ -97,11 +102,11 @@ void Finley_Solver_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_mar
 
 /*
  * $Log$
- * Revision 1.2  2005/02/28 07:06:33  jgs
+ * Revision 1.2  2005/03/04 07:12:46  jgs
  * *** empty log message ***
  *
- * Revision 1.1.2.1  2005/02/18 03:35:17  gross
- * another function added in prepartion for the reimplementation of ILU
+ * Revision 1.1.2.1  2005/03/02 23:35:06  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
  *
  *
  */
