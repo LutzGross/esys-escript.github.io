@@ -125,9 +125,9 @@ def sqrt(arg):
 
     @param arg
     """
-     if hasattr(arg,"sqrt"):
-        return arg.sqrt()
-     else:
+    if hasattr(arg,"sqrt"):
+       return arg.sqrt()
+    else:
        return numarray.sqrt(arg)
 
 def sin(arg):
@@ -209,8 +209,11 @@ def sign(arg):
     return arg.sign()
 #
 # $Log$
-# Revision 1.1  2004/10/26 06:53:56  jgs
-# Initial revision
+# Revision 1.2  2004/10/27 00:23:36  jgs
+# fixed minor syntax error
+#
+# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
+# initial import of project esys2
 #
 # Revision 1.1.2.3  2004/10/26 06:43:48  jgs
 # committing Lutz's and Paul's changes to brach jgs
