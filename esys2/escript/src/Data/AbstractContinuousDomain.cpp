@@ -100,7 +100,6 @@ int AbstractContinuousDomain::getSystemMatrixTypeId(const int solver, const bool
    return 0;
 }
 
-
 const AbstractContinuousDomain& AbstractContinuousDomain::asAbstractContinuousDomain(const AbstractDomain& domain)
 {
   return dynamic_cast<const AbstractContinuousDomain&>(domain);

@@ -12,13 +12,14 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
-#if !defined  escript_AbstractContinuousDomain_20040528_H
+
+#if !defined escript_AbstractContinuousDomain_20040528_H
 #define escript_AbstractContinuousDomain_20040528_H
 
 #include "escript/Data/AbstractDomain.h"
 #include "escript/Data/AbstractSystemMatrix.h"
 #include "escript/Data/Data.h"
+
 #include <boost/python/tuple.hpp>
 #include <boost/python/object.hpp>
 
@@ -26,19 +27,22 @@
 #include <vector>
 
 namespace escript {
+
 //
 // Forward declaration
 class FunctionSpace;
+
 /**
    \brief
    AbstractContinuousDomain, base class for continuous domains.
 
    Description:
    AbstractContinuousDomain, base class for continuous domains.
+
    NOTE: Most of the virtual functions would be pure virtual except
    boost.python requires a non abstract base class.
 */
-class AbstractContinuousDomain:public AbstractDomain {
+class AbstractContinuousDomain : public AbstractDomain {
 
  public:
 
@@ -70,7 +74,6 @@ class AbstractContinuousDomain:public AbstractDomain {
      Describe any exceptions thrown
   */
   virtual ~AbstractContinuousDomain();
-
   /**
      \brief
      Returns true if the given integer is a valid function space type
@@ -122,22 +125,19 @@ class AbstractContinuousDomain:public AbstractDomain {
      Return a DiracDeltaFunction code
   */
   virtual int getDiracDeltaFunctionCode() const;
-
   /**
      \brief
      return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, preconditioner 
      and symmetric matrix is used.
   */
   virtual int getSystemMatrixTypeId(const int solver, const bool symmetry) const;
-
-   /**
+  /**
      \brief
      copies the integrals of the function defined by arg into integrals.
      arg has to be defined on this.
      has to be implemented by the Domain Adapter.
   */
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
-
   /**
      \brief
      Return the domain as const AbstractContinuousDomain&
@@ -147,7 +147,9 @@ class AbstractContinuousDomain:public AbstractDomain {
  protected:
 
  private:
+
 };
 
 } // end of namespace
+
 #endif

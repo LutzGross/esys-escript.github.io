@@ -444,6 +444,115 @@ Data::getDataPointShape() const
 }
 
 boost::python::numeric::array
+Data::convertToNumArray()
+{
+  //
+  // determine the current number of data points
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDataPointsPerSample();
+  int numDataPoints = numSamples * numDataPointsPerSample;
+
+  //
+  // determine the rank and shape of each data point
+  int dataPointRank = getDataPointRank();
+  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+
+  //
+  // create the numeric array to be returned
+  boost::python::numeric::array numArray(0.0);
+
+  //
+  // the rank of the returned numeric array will be the rank of
+  // the data points, plus one. Where the rank of the array is n,
+  // the last n-1 dimensions will be equal to the shape of the
+  // data points, whilst the first dimension will be equal to the
+  // total number of data points. Thus the array will consist of
+  // a serial vector of the data points.
+  int arrayRank = dataPointRank + 1;
+  DataArrayView::ShapeType arrayShape;
+  arrayShape.push_back(numDataPoints);
+  for (int d=0; d<dataPointRank; d++) {
+     arrayShape.push_back(dataPointShape[d]);
+  }
+
+  //
+  // resize the numeric array to the shape just calculated
+  if (arrayRank==1) {
+    numArray.resize(arrayShape[0]);
+  }
+  if (arrayRank==2) {
+    numArray.resize(arrayShape[0],arrayShape[1]);
+  }
+  if (arrayRank==3) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
+  }
+  if (arrayRank==4) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
+  }
+  if (arrayRank==5) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3],arrayShape[4]);
+  }
+
+  //
+  // loop through each data point in turn, loading the values for that data point
+  // into the numeric array.
+  int dataPoint = 0;
+  for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+
+      DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+
+      if (dataPointRank==0) {
+        numArray[dataPoint]=dataPointView();
+      }
+
+      if (dataPointRank==1) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+          numArray[dataPoint][i]=dataPointView(i);
+        }
+      }
+
+      if (dataPointRank==2) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+          for (int j=0; j<dataPointShape[1]; j++) {
+            numArray[dataPoint][i][j] = dataPointView(i,j);
+          }
+        }
+      }
+
+      if (dataPointRank==3) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+          for (int j=0; j<dataPointShape[1]; j++) {
+            for (int k=0; k<dataPointShape[2]; k++) {
+              numArray[dataPoint][i][j][k]=dataPointView(i,j,k);
+            }
+          }
+        }
+      }
+
+      if (dataPointRank==4) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+          for (int j=0; j<dataPointShape[1]; j++) {
+            for (int k=0; k<dataPointShape[2]; k++) {
+              for (int l=0; l<dataPointShape[3]; l++) {
+                numArray[dataPoint][i][j][k][l]=dataPointView(i,j,k,l);
+              }
+            }
+          }
+        }
+      }
+
+      dataPoint++;
+
+    }
+  }
+
+  //
+  // return the loaded array
+  return numArray;
+}
+
+boost::python::numeric::array
 Data::integrate() const
 {
   int index;
@@ -582,6 +691,14 @@ Data::Lsup() const
   //
   // set the initial absolute maximum value to zero
   return algorithm(DataAlgorithmAdapter<AbsMax>(0));
+}
+
+double
+Data::Linf() const
+{
+  //
+  // set the initial absolute minimum value to max double
+  return algorithm(DataAlgorithmAdapter<AbsMin>(numeric_limits<double>::max()));
 }
 
 double

@@ -72,9 +72,9 @@ void  Finley_SystemMatrix_add(Finley_SystemMatrix* in,int NN_Equa,maybelong* Nod
 	            for (k=in->pattern->ptr[iptr]-PTR_OFFSET;k<in->pattern->ptr[iptr+1]-PTR_OFFSET;++k) {
 	                if (in->pattern->index[k]==index) {
                           for (ic=0;ic<col_block_size;++ic) {
-                                i_Sol=ic+num_subblocks_Sol*l_col;
+                                i_Sol=ic+col_block_size*l_col;
                                 for (ir=0;ir<row_block_size;++ir) {
-                                   i_Equa=ir+num_subblocks_Equa*l_row;
+                                   i_Equa=ir+row_block_size*l_row;
 		                   in->val[k*block_size+ir+row_block_size*ic]+=
                                            array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                 }
@@ -88,11 +88,3 @@ void  Finley_SystemMatrix_add(Finley_SystemMatrix* in,int NN_Equa,maybelong* Nod
          }
    }
 }
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:33  jgs
- * *** empty log message ***
- *
- *
- *
- */

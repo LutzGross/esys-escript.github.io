@@ -17,16 +17,23 @@
 from esys.escript import *
 from esys.linearPDEs import *
 import esys.finley as pdelib
+from time import time
 
 from numarray import *
 
 # these values are currently fixed:
 len_x0=1.
-alpha=0.1
+alpha=10.
+tm=0
 
 #############################################################################################################3
 def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
-
+    
+    if prec=="":
+        prec_id=0
+    else:
+       prec_id=eval("LinearPDE.%s"%prec)
+    solver_method_id=eval("LinearPDE.%s"%solver_method)
     print "Vector solver:"
     recDim=array([len_x0,1.,1.])
     # Define Computational Domain
@@ -74,15 +81,16 @@ def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
     # Build the pdelib System Matrix and RHS
     mypde=LinearPDE(mesh)
     mypde.setValue(A = A, Y = - 2 * alpha * (meshDim - 1)*ones(meshDim), q = bndryMask, r = u)
-    mypde.setSolverMethod(solver_method)
+    mypde.setSolverMethod(solver_method_id)
 
     # Solve for Approximate Solution
-    u_approx = mypde.getSolution(preconditioner=prec,iter_max=10000)
+    tm=time()
+    u_approx = mypde.getSolution(preconditioner=prec_id,iter_max=10000)
+    tm=time()-tm
 
     # Report Results
     error=Lsup(u - u_approx)/Lsup(u)
-    print "    error L^sup Norm : ", error
-    print "    residual L^sup Norm : ", Lsup(mypde.getResidual(u_approx))
+    print "@@ Vector %d : %d : %s(%s): error L^sup Norm : %e, time %e"%(mypde.getDim(),totElem,solver_method,prec,error,tm)
   
     return error
 
@@ -90,6 +98,11 @@ def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
 
 def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
 
+    if prec=="":
+        prec_id=0
+    else:
+       prec_id=eval("LinearPDE.%s"%prec)
+    solver_method_id=eval("LinearPDE.%s"%solver_method)
     print "Scalar solver:"
     recDim=array([len_x0,1.,1.])
     # Define Computational Domain
@@ -128,15 +141,16 @@ def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
     # Build the pdelib System Matrix and RHS
     mypde=LinearPDE(mesh)
     mypde.setValue(A = identity(numDim), D = alpha, Y = alpha * u - 2 * meshDim, q = bndryMask, r = u)
-    mypde.setSolverMethod(solver_method)
+    mypde.setSolverMethod(solver_method_id)
 
     # Solve for Approximate Solution
-    u_approx = mypde.getSolution(preconditioner=prec,iter_max=10000)
+    tm=time()
+    u_approx = mypde.getSolution(preconditioner=prec_id,iter_max=10000)
+    tm=time()-tm
 
     # Report Results
     error=Lsup(u - u_approx)/Lsup(u)
-    print "    error L^sup Norm : ", error
-    print "    residual L^sup Norm : ", Lsup(mypde.getResidual(u_approx))
+    print "@@ Scalar %d : %d : %s(%s): error L^sup Norm : %e, time %e"%(mypde.getDim(),totElem,solver_method,prec,error,tm)
   
     return error
 
@@ -146,15 +160,12 @@ def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
 print "Test is started:"
 print "----------------"
 error=0.
-# for numDim in [2,3]:
-for numDim in [3]:
-   for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400]:
-      # for problem in [solveScalar,solveVector]:
-      for problem in [solveScalar]:
-         # for solver_method in [ LinearPDE.PRES20, LinearPDE.PCG, LinearPDE.DIRECT, LinearPDE.BICGSTAB]:
-         for solver_method in [ LinearPDE.PCG ]:
-            # for prec in [ LinearPDE.JACOBI, LinearPDE.ILU0 ]:
-            for prec in [ LinearPDE.ILU0 ]:
+for numDim in [2,3]:
+   for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400,204800]:
+      for problem in [solveScalar,solveVector]:
+         if totalNumElem*2**numDim*numDim< 200000: error=max([problem(numDim, totalNumElem, len_x0, alpha,"DIRECT",""),error])
+         for solver_method in [ "PCG" ]:
+            for prec in [ "JACOBI", "ILU0" ]:
                error=max([problem(numDim, totalNumElem, len_x0, alpha, solver_method,prec),error])
 print "----------------"
 print "maximum error over all tests is ",error

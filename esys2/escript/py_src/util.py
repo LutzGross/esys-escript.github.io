@@ -392,6 +392,19 @@ def Lsup(arg):
     else:
        return max(numarray.abs(arg))
 
+def Linf(arg):
+    """
+    @brief
+
+    @param arg
+    """
+    if isinstance(arg,escript.Data):
+       return arg.Linf()
+    elif isinstance(arg,float) or isinstance(arg,int):
+       return abs(arg)
+    else:
+       return min(numarray.abs(arg))
+
 def dot(arg1,arg2):
     """
     @brief
@@ -407,3 +420,13 @@ def dot(arg1,arg2):
 
 def kronecker(d):
    return numarray.identity(d)
+
+def unit(i,d):
+   """
+   @brief return a unit vector of dimension d with nonzero index i
+   @param d dimension
+   @param i index
+   """
+   e = numarray.zeros((d,))
+   e[i] = 1.0
+   return e

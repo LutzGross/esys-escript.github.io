@@ -110,6 +110,18 @@ struct AbsMax : public std::binary_function<double,double,double>
 
 /**
    \brief
+   Return the absolute minimum value of the two given values.
+*/
+struct AbsMin : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::min(fabs(x),fabs(y));
+  }
+};
+
+/**
+   \brief
    Return the length between the two given values.
 */
 struct Length : public std::binary_function<double,double,double>

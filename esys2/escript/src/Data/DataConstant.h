@@ -117,7 +117,7 @@ class DataConstant : public DataAbstract  {
      Return the number of doubles stored for the Data object.
   */
   virtual
-  ValueType::size_type
+  DataArrayView::ValueType::size_type
   getLength() const;
 
   /**

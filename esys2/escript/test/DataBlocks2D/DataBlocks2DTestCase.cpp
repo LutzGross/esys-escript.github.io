@@ -12,6 +12,7 @@
  *                                                                           *
  *****************************************************************************
 */
+
 #include "escript/Data/DataBlocks2D.h"
 #include "esysUtils/EsysException.h"
 
@@ -40,20 +41,7 @@ void DataBlocks2DTestCase::testAll() {
 
   cout << endl;
 
-  {
-    cout << "\tTest DOASSERT exception." << endl;
-    DataBlocks2D myData;
-    try {
-      myData.index(1,2);
-      assert(false);
-    }
-    catch (EsysException& e) {
-      //std::cout << e.what() << std::endl;
-      assert(true);
-    }
-  }
-
-  cout << "\tTest DataBlocks2D constructor for various size arrays:" << endl;
+  cout << "\tTest DataBlocks2D constructor for various dimension values:" << endl;
 
   {
     cout << "\t\tnumRows = 1, numCols = 1, blockSize = 20." << endl;
@@ -61,8 +49,10 @@ void DataBlocks2DTestCase::testAll() {
     int numCols=1;
     int blockSize=20;
     DataBlocks2D myData(numRows,numCols,blockSize);
-    assert(myData.index(numRows-1,numCols-1) == ((numRows-1)*(numCols-1)*blockSize));
-    assert(myData.getData().size() == numRows*numCols*blockSize);
+    int i = numRows-1;
+    int j = numCols-1;
+    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
+    assert(myData.size() == numRows*numCols*blockSize);
   }
 
   {
@@ -71,8 +61,10 @@ void DataBlocks2DTestCase::testAll() {
     int numCols=5;
     int blockSize=20;
     DataBlocks2D myData(numRows,numCols,blockSize);
-    assert(myData.index(numRows-1,numCols-1) == ((numRows*numCols-1)*blockSize));
-    assert(myData.getData().size() == numRows*numCols*blockSize);
+    int i = numRows-1;
+    int j = numCols-1;
+    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
+    assert(myData.size() == numRows*numCols*blockSize);
   }
 
   {
@@ -81,8 +73,10 @@ void DataBlocks2DTestCase::testAll() {
     int numCols=5;
     int blockSize=1;
     DataBlocks2D myData(numRows,numCols,blockSize);
-    assert(myData.index(numRows-1,numCols-1) == ((numRows*numCols-1)*blockSize));
-    assert(myData.getData().size() == numRows*numCols*blockSize);
+    int i = numRows-1;
+    int j = numCols-1;
+    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
+    assert(myData.size() == numRows*numCols*blockSize);
   }
 
   {
@@ -91,26 +85,40 @@ void DataBlocks2DTestCase::testAll() {
     int numCols=1;
     int blockSize=1;
     DataBlocks2D myData(numRows,numCols,blockSize);
-    assert(myData.index(numRows-1,numCols-1) == ((numRows*numCols-1)*blockSize));
-    assert(myData.getData().size() == numRows*numCols*blockSize);
+    int i = numRows-1;
+    int j = numCols-1;
+    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
+    assert(myData.size() == numRows*numCols*blockSize);
   }
 
   {
-    cout << "\tTest DataBlocks2D.index and DataBlocks2D.getData for blockSize = 3." << endl;
+    cout << "\tTest DataBlocks2D.index and DataBlocks2D operator[] for blockSize = 3." << endl;
     int numRows=10;
     int numCols=8;
     int blockSize=3;
     DataBlocks2D myData(numRows,numCols,blockSize);
-    for (int iR=0;iR<numRows;++iR) {
-      for (int iC=0;iC<numCols;++iC) {
-        //cout << "i=" << iR << " j=" << iC << " index=" << myData.index(iR,iC) << endl;
-	assert(myData.getData()[myData.index(iR,iC)] == 0);
+    int val=0;
+    for (int i=0; i<numRows; i++) {
+      for (int j=0; j<numCols; j++) {
+        for (int k=0; k<blockSize; k++) {
+	  myData[myData.index(i,j)+k] = val;
+          val++;
+        }
+      }
+    }
+    val=0;
+    for (int i=0; i<numRows; i++) {
+      for (int j=0; j<numCols; j++) {
+        for (int k=0; k<blockSize; k++) {
+	  assert(myData[myData.index(i,j)+k] == val);
+          val++;
+        }
       }
     }
   }
 
   {
-    cout << "\tTest DataBlocks2D.getData for blockSize = 0 - will generate exceptions." << endl;
+    cout << "\tTest DataBlocks2D for blockSize = 0." << endl;
     //
     // every attempted access for a 0 size block should cause an exception
     int numRows=10;
@@ -118,14 +126,13 @@ void DataBlocks2DTestCase::testAll() {
     int blockSize=0;
     int exceptionCount=0;
     DataBlocks2D myData(numRows,numCols,blockSize);
-    for (int iR=0;iR<numRows;++iR) {
-      for (int iC=0;iC<numCols;++iC) {
+    for (int i=0;i<numRows;i++) {
+      for (int j=0;j<numCols;j++) {
 	try {
-	  myData.getData()[myData.index(iR,iC)];
+	  myData[myData.index(i,j)];
           assert(false);
 	}
 	catch(EsysException& e) {
-          //cout << e.toString() << endl;
 	  ++exceptionCount;
           assert(true);
 	}
@@ -135,13 +142,14 @@ void DataBlocks2DTestCase::testAll() {
   }
 
   {
-    cout << "\tTest getNumRows and getNumCols." << endl;
+    cout << "\tTest getNumRows, getNumCols and getBlockSize." << endl;
     int numRows=1;
     int numCols=1;
     int blockSize=1;
     DataBlocks2D myData(numRows,numCols,blockSize);
     assert(myData.getNumRows() == numRows);
     assert(myData.getNumCols() == numCols);
+    assert(myData.getBlockSize() == blockSize);
   }
 
   {
@@ -153,13 +161,40 @@ void DataBlocks2DTestCase::testAll() {
     myData.resize(numRows,numCols,blockSize);
     assert(myData.getNumRows() == numRows);
     assert(myData.getNumCols() == numCols);
+    assert(myData.getBlockSize() == blockSize);
   }
 
   {
     cout << "\tTest = operator, swap, and copy constructor." << endl;
     DataBlocks2D myData1;
     DataBlocks2D myData2(1, 1, 1);
+    int val=0;
+    for (int i=0; i<1; i++) {
+      for (int j=0; j<1; j++) {
+        for (int k=0; k<1; k++) {
+	  myData2[myData2.index(i,j)+k] = val;
+          val++;
+        }
+      }
+    }
     myData1 = myData2;
+    for (int i=0; i<myData1.getNumRows(); i++) {
+      for (int j=0; j<myData1.getNumCols(); j++) {
+	assert(myData1(i,j) == myData2(i,j));
+      }
+    }
+  }
+
+  {
+    cout << "\tTest DOASSERT exception." << endl;
+    DataBlocks2D myData;
+    try {
+      myData.index(1,2);
+      assert(false);
+    }
+    catch (EsysException& e) {
+      assert(true);
+    }
   }
 
 }
