@@ -23,6 +23,7 @@
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/BinaryOp.h"
 #include "escript/Data/UnaryOp.h"
+#include "escript/Data/DataException.h"
 
 extern "C" {
 #include "escript/Data/DataC.h"

@@ -194,7 +194,7 @@ def TestSystem(numEqu,numComp,mydomain,reduce):
                x=mult4(c_A,gradu)
                mypde1=LinearPDE(mydomain)
                mypde1.setValue(A=c_A2,X=eval(x,elem))
-               mypde1.setReducedOrderForSolutionsTo(reduce)
+               mypde1.setReducedOrderForSolutionTo(reduce)
                checkSystem(text+" const with X",mypde1.getOperator(),U,mypde1.getRightHandSide())
                # check div( A grad(u) ) = Y
                y=-algebraicDiv(x)

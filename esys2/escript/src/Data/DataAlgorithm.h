@@ -168,7 +168,7 @@ algorithm(DataExpanded& data,
 #pragma omp for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-	resultLocal=data.getPointDataView().algorithm(data.getPointOffset(i,j), operation);
+	resultLocal=data.getPointDataView().reductionOp(data.getPointOffset(i,j), operation);
 #pragma omp critical (algorithm)
 	operation(resultLocal);
       }
@@ -190,11 +190,11 @@ algorithm(DataTagged& data,
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
   DataArrayView& dataView=data.getPointDataView();
   for (i=lookup.begin();i!=lookupEnd;i++) {
-    operation(dataView.algorithm(i->second,operation));
+    operation(dataView.reductionOp(i->second,operation));
   }
   //
   // finally perform the operation on the default value
-  operation(data.getDefaultValue().algorithm(operation));
+  operation(data.getDefaultValue().reductionOp(operation));
   return operation.getResult();
 }
 
@@ -204,7 +204,7 @@ double
 algorithm(DataConstant& data,
           UnaryFunction operation)
 {
-  return data.getPointDataView().algorithm(operation);
+  return data.getPointDataView().reductionOp(operation);
 }
 
 /**
@@ -237,7 +237,7 @@ dp_algorithm(DataExpanded& data,
       for (j=0;j<numDPPSample;j++) {
 #pragma omp critical (dp_algorithm)
         result.getPointDataView().getData(data.getPointOffset(i,j)) =
-          data.getPointDataView().dp_algorithm(data.getPointOffset(i,j),operation);
+          data.getPointDataView().dp_reductionOp(data.getPointOffset(i,j),operation);
       }
     }
   }
@@ -258,13 +258,13 @@ dp_algorithm(DataTagged& data,
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
   for (i=lookup.begin();i!=lookupEnd;i++) {
     result.getPointDataView().getData(i->second) =
-      data.getPointDataView().dp_algorithm(i->second,operation);
+      data.getPointDataView().dp_reductionOp(i->second,operation);
   }
   //
   // finally perform the operation on the default data value
   // and assign this to the default element in result
   result.getPointDataView().getData(0) =
-    data.getDefaultValue().dp_algorithm(operation);
+    data.getDefaultValue().dp_reductionOp(operation);
 }
 
 template <class UnaryFunction>
@@ -278,7 +278,7 @@ dp_algorithm(DataConstant& data,
   // perform the operation on the default data value
   // and assign this to the default element in result
   result.getPointDataView().getData(0) =
-    data.getPointDataView().dp_algorithm(operation);
+    data.getPointDataView().dp_reductionOp(operation);
 }
 
 } // end of namespace

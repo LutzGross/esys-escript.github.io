@@ -460,6 +460,7 @@ Data::integrate() const
   // and load the array with the integral values
   boost::python::numeric::array bp_array(1.0);
   if (rank==0) {
+    bp_array.resize(1);
     index = 0;
     bp_array[0] = integrals[index];
   }
@@ -588,7 +589,7 @@ Data::sup() const
 {
   //
   // set the initial maximum value to min possible double
-  return algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::min()));
+  return algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
 }
 
 double
@@ -602,7 +603,7 @@ Data::inf() const
 Data
 Data::maxval() const
 {
-  return dp_algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::min()));
+  return dp_algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
 }
 
 Data
@@ -963,7 +964,11 @@ Data::setItemD(const boost::python::object& key,
   if (slice_region.size()!=view.getRank()) {
     throw DataException("Error - slice size does not match Data rank.");
   }
-  setSlice(value,slice_region);
+  if (getFunctionSpace()!=value.getFunctionSpace()) {
+     setSlice(Data(value,getFunctionSpace()),slice_region);
+  } else {
+     setSlice(value,slice_region);
+  }
 }
 
 void

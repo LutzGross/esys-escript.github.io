@@ -146,6 +146,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       ("OperatorAdapter",no_init)
       .def("nullifyRowsAndCols",&finley::SystemMatrixAdapter::nullifyRowsAndCols)
       .def("setValue",&finley::SystemMatrixAdapter::setValue)
+      .def("resetSolver",&finley::SystemMatrixAdapter::resetSolver)
       .def("saveMM",&finley::SystemMatrixAdapter::saveMM);
 
 }

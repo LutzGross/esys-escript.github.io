@@ -5,7 +5,7 @@ import os
 import unittest
 
 from esys.escript import *
-import esys.finley
+import esys.finley as finley
 
 import math
 TMPFILE="tmp.msh"
@@ -344,7 +344,7 @@ def mkMesh(dim,order,onElem):
 failed=[]
 
 case="Contact: 2D, order 1"
-my_dom=mkMesh(2,1,FALSE)
+my_dom=mkMesh(2,1,False)
 if checker(my_dom,Contact_2D_order1):
   print case," passed."
 else:
@@ -358,7 +358,7 @@ else:
   failed.append(case)
 
 case="Contact: 2D, order 2"
-my_dom=mkMesh(2,2,FALSE)
+my_dom=mkMesh(2,2,False)
 if checker(my_dom,Contact_2D_order2):
   print case," passed."
 else:
@@ -372,7 +372,7 @@ else:
   failed.append(case)
 
 case="Contact: 3D, order 1"
-my_dom=mkMesh(3,1,FALSE)
+my_dom=mkMesh(3,1,False)
 if checker(my_dom,Contact_3D_order1):
   print case," passed."
 else:
@@ -386,7 +386,7 @@ else:
   failed.append(case)
 
 case="Contact: 3D, order 2"
-my_dom=mkMesh(3,2,FALSE)
+my_dom=mkMesh(3,2,False)
 if checker(my_dom,Contact_3D_order2):
   print case," passed."
 else:

@@ -49,7 +49,8 @@ def Solve1(mydomain,height):
              f_p*=x[j]*(x[j]-l[j])
        f+=f_p
 
-    mypde=Poisson(f=f,q=msk)
+    mypde=Poisson(mydomain)
+    mypde.setValue(f=f,q=msk)
     u=mypde.getSolution()
     error=Lsup(u-u_ex)/Lsup(u_ex)
     print "error = ",error
@@ -80,7 +81,8 @@ def Solve2(mydomain,height):
           else:
              f_p*=x[j]*(2*l[j]-x[j])
        f+=f_p
-    mypde=Poisson(f=f,q=msk)
+    mypde=Poisson(mydomain)
+    mypde.setValue(f=f,q=msk)
     u=mypde.getSolution()
     error=Lsup(u-u_ex)/Lsup(u_ex)
     print "error = ",error

@@ -64,18 +64,28 @@ def grad(arg,where=None):
     @param where: FunctionSpace in which the gradient will be. If None Function(dom) where dom is the
                   domain of the Data object arg.
     """
-    if where==None:
-       return arg.grad()
+    if isinstance(arg,escript.Data):
+       if where==None:
+          return arg.grad()
+       else:
+          return arg.grad(where)
     else:
-       return arg.grad(where)
+       return arg*0.
 
-def integrate(arg):
+def integrate(arg,what=None):
     """
     @brief return the integral if the function represented by Data object arg over its domain.
 
     @param arg
     """
-    return arg.integrate()
+    if not what==None:
+       arg2=escript.Data(arg,what)
+    else:
+       arg2=arg
+    if arg2.getRank()==0:
+        return arg2.integrate()[0]
+    else:
+        return arg2.integrate()
 
 def interpolate(arg,where):
     """
@@ -84,7 +94,10 @@ def interpolate(arg,where):
     @param arg
     @param where
     """
-    return arg.interpolate(where)
+    if isinstance(arg,escript.Data):
+       return arg.interpolate(where)
+    else:
+       return arg
 
 # functions returning Data objects:
 
@@ -95,6 +108,16 @@ def transpose(arg,axis=None):
     @param arg
     """
     if isinstance(arg,escript.Data):
+       # hack for transpose 
+       r=arg.getRank()
+       if r!=2: raise ValueError,"Tranpose only avalaible for rank 2 objects"
+       s=arg.getShape()
+       out=escript.Data(0.,(s[1],s[0]),arg.getFunctionSpace())
+       for i in range(s[0]):
+          for j in range(s[1]):
+             out[j,i]=arg[i,j]
+       return out
+       # end hack for transpose 
        if axis==None: axis=arg.getRank()/2
        return arg.transpose(axis)
     else:
@@ -108,6 +131,15 @@ def trace(arg):
     @param arg
     """
     if isinstance(arg,escript.Data):
+       # hack for trace 
+       r=arg.getRank()
+       if r!=2: raise ValueError,"trace only avalaible for rank 2 objects"
+       s=arg.getShape()
+       out=escript.Scalar(0,arg.getFunctionSpace())
+       for i in range(min(s)):
+             out+=arg[i,i]
+       return out
+       # end hack for trace
        return arg.trace()
     else:
        return numarray.trace(arg)
@@ -175,6 +207,8 @@ def maxval(arg):
     """
     if isinstance(arg,escript.Data):
        return arg.maxval()
+    elif isinstance(arg,float) or isinstance(arg,int):
+       return arg
     else:
        return arg.max()
 
@@ -186,8 +220,10 @@ def minval(arg):
     """
     if isinstance(arg,escript.Data):
        return arg.minval()
+    elif isinstance(arg,float) or isinstance(arg,int):
+       return arg
     else:
-       return arg.max()
+       return arg.min()
 
 def length(arg):
     """
@@ -196,10 +232,34 @@ def length(arg):
     @param arg
     """
     if isinstance(arg,escript.Data):
-       if arg.getRank()==1:
+       if arg.isEmpty(): return escript.Data()
+       if arg.getRank()==0:
+          return abs(arg)
+       elif arg.getRank()==1:
           sum=escript.Scalar(0,arg.getFunctionSpace())
           for i in range(arg.getShape()[0]):
              sum+=arg[i]**2
+          return sqrt(sum)
+       elif arg.getRank()==2:
+          sum=escript.Scalar(0,arg.getFunctionSpace())
+          for i in range(arg.getShape()[0]):
+             for j in range(arg.getShape()[1]):
+                sum+=arg[i,j]**2
+          return sqrt(sum)
+       elif arg.getRank()==3:
+          sum=escript.Scalar(0,arg.getFunctionSpace())
+          for i in range(arg.getShape()[0]):
+             for j in range(arg.getShape()[1]):
+                for k in range(arg.getShape()[2]):
+                   sum+=arg[i,j,k]**2
+          return sqrt(sum)
+       elif arg.getRank()==4:
+          sum=escript.Scalar(0,arg.getFunctionSpace())
+          for i in range(arg.getShape()[0]):
+             for j in range(arg.getShape()[1]):
+                for k in range(arg.getShape()[2]):
+                   for l in range(arg.getShape()[3]):
+                      sum+=arg[i,j,k,l]**2
           return sqrt(sum)
        else:
           raise SystemError,"length is not been implemented yet"
@@ -236,6 +296,8 @@ def sup(arg):
     """
     if isinstance(arg,escript.Data):
        return arg.sup()
+    elif isinstance(arg,float) or isinstance(arg,int):
+       return arg
     else:
        return arg.max()
 
@@ -247,6 +309,8 @@ def inf(arg):
     """
     if isinstance(arg,escript.Data):
        return arg.inf()
+    elif isinstance(arg,float) or isinstance(arg,int):
+       return arg
     else:
        return arg.min()
 
@@ -256,7 +320,12 @@ def L2(arg):
 
     @param arg
     """
-    return arg.L2()
+    if isinstance(arg,escript.Data):
+       return arg.L2()
+    elif isinstance(arg,float) or isinstance(arg,int):
+       return abs(arg)
+    else:
+       return numarry.sqrt(dot(arg,arg))
 
 def Lsup(arg):
     """
@@ -266,8 +335,10 @@ def Lsup(arg):
     """
     if isinstance(arg,escript.Data):
        return arg.Lsup()
+    elif isinstance(arg,float) or isinstance(arg,int):
+       return abs(arg)
     else:
-       return arg.max(numarray.abs(arg))
+       return max(numarray.abs(arg))
 
 def dot(arg1,arg2):
     """
@@ -281,39 +352,3 @@ def dot(arg1,arg2):
        return arg2.dot(arg1)
     else:
        return numarray.dot(arg1,arg2)
-#
-# $Log$
-# Revision 1.6  2004/12/17 07:43:10  jgs
-# *** empty log message ***
-#
-# Revision 1.2.2.5  2004/12/17 00:06:53  gross
-# mk sets ESYS_ROOT is undefined
-#
-# Revision 1.2.2.4  2004/12/07 03:19:51  gross
-# options for GMRES and PRES20 added
-#
-# Revision 1.2.2.3  2004/12/06 04:55:18  gross
-# function wraper extended
-#
-# Revision 1.2.2.2  2004/11/22 05:44:07  gross
-# a few more unitary functions have been added but not implemented in Data yet
-#
-# Revision 1.2.2.1  2004/11/12 06:58:15  gross
-# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
-#
-# Revision 1.2  2004/10/27 00:23:36  jgs
-# fixed minor syntax error
-#
-# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
-# initial import of project esys2
-#
-# Revision 1.1.2.3  2004/10/26 06:43:48  jgs
-# committing Lutz's and Paul's changes to brach jgs
-#
-# Revision 1.1.4.1  2004/10/20 05:32:51  cochrane
-# Added incomplete Doxygen comments to files, or merely put the docstrings that already exist into Doxygen form.
-#
-# Revision 1.1  2004/08/05 03:58:27  gross
-# Bug in Assemble_NodeCoordinates fixed
-#
-#

@@ -35,17 +35,17 @@ class DataException:public esysUtils::EsysException {
      \brief
      Default constructor for the exception.
   */
-  DataException() : EsysException() {}
+  DataException() : esysUtils::EsysException() {}
   /**
      \brief
      Constructor for the exception.
   */
-  DataException(const char *cstr) : EsysException(cstr) {}
+  DataException(const char *cstr) : esysUtils::EsysException(cstr) {}
   /**
      \brief
      Constructor for the exception.
   */
-  DataException(const std::string &str) : EsysException(str) {}
+  DataException(const std::string &str) : esysUtils::EsysException(str) {}
   /**
      \brief
      Returns the name of the exception.
