@@ -2,6 +2,8 @@
 # $Id$
 # a brutal building script for esys
 
+export ESYS_ROOT=${ESYS_ROOT:=`pwd`}
+
 MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
 #MODULES="escript finley"
 
@@ -10,6 +12,7 @@ then
 	for module in $MODULES ; do \
 		(echo Cleaning: $module; cd $module; gmake clean) \
 	done
+        exit
 fi
 
 (cd escript/lib; if [ ! -e py_src ]; then mkdir py_src; fi)
@@ -25,13 +28,13 @@ fi
 (cd tools/CppUnitTest; if [ ! -e Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
 
 for module in $MODULES ; do \
-	(echo Building: $module; cd $module; make) \
+	(echo Building: $module; cd $module; gmake) \
 done
 
 if [ "$1" == "install" ];
 then
 	for module in $MODULES ; do \
-		(echo Installing: $module; cd $module; make install) \
+		(echo Installing: $module; cd $module; gmake install) \
 	done
 	(cd esys; if [ ! -e escriptcpp.so ]; then ln -s ../lib/libescriptcpp.so escriptcpp.so; fi)
 	(cd esys; if [ ! -e finleycpp.so ]; then ln -s ../lib/libfinleycpp.so finleycpp.so; fi)
