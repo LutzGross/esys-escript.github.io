@@ -35,7 +35,12 @@ class DataArrayViewTestCase : public CppUnitTest::TestCase
   void testAll();
   void testShapeToString();
   void testScalarView();
+  void testResultSliceShape();
   void testSlicing();
+  void testMatMult();
+  void testUnaryOp();
+  void testBinaryOp();
+
   DataArrayViewTestCase (std::string name) : TestCase (name) {}
   ~DataArrayViewTestCase() {}
   //

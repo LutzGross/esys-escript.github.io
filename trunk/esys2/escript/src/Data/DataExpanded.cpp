@@ -96,6 +96,8 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   // initialise this Data object to the shape of the slice
   initialise(shape,other.getNumSamples(),other.getNumDPPSample());
   //
+  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  //
   // copy the data
   DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
   DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
@@ -104,7 +106,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   for (i=0;i<numRows;++i) {
     for (j=0;j<numCols;++j) {
       try {
-        getPointDataView().copySlice(getPointOffset(i,j),other.getPointDataView(),other.getPointOffset(i,j),region);
+        getPointDataView().copySlice(getPointOffset(i,j),other.getPointDataView(),other.getPointOffset(i,j),region_loop_range);
       }
       catch (std::exception& e) {
         cout << e.what() << endl;
@@ -176,12 +178,17 @@ DataExpanded::setSlice(const DataAbstract* value,
   if (tempDataExp==0) {
     throw DataException("Programming error - casting to DataExpanded.");
   }
+  //
+  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  //
+  // check shape:
   if (getPointDataView().getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
-  if (!value->getPointDataView().checkShape(DataArrayView::getResultSliceShape(region))) {
+  if (tempDataExp->getPointDataView().getRank()>0 and !value->getPointDataView().checkShape(shape)) {
     throw DataException (value->getPointDataView().createShapeErrorMessage(
-		"Error - Couldn't copy slice due to shape mismatch.",DataArrayView::getResultSliceShape(region)));
+		"Error - Couldn't copy slice due to shape mismatch.",shape));
   }
   //
   // copy the data
@@ -191,7 +198,7 @@ DataExpanded::setSlice(const DataAbstract* value,
 #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
-      getPointDataView().copySliceFrom(getPointOffset(i,j),tempDataExp->getPointDataView(),tempDataExp->getPointOffset(i,j),region);
+      getPointDataView().copySliceFrom(getPointOffset(i,j),tempDataExp->getPointDataView(),tempDataExp->getPointOffset(i,j),region_loop_range);
     }
   }
 }

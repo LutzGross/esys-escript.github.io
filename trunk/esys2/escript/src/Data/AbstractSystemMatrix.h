@@ -135,6 +135,11 @@ class AbstractSystemMatrix {
   */
   virtual void setValue(const double value) const;
 
+  /**
+     \brief cleans any setting, allocations by the solver. 
+  */
+  virtual void resetSolver() const;
+
 
  protected:
 

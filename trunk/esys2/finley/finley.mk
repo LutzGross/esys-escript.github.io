@@ -7,7 +7,7 @@
 
 # Matt Davies 04/08/03
 
-DODEBUG = YES
+DODEBUG = NO
 
 DEFAULT_TARGET := libfinleyC.a libfinleycpp.so
 

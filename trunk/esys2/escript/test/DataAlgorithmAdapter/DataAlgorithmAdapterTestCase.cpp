@@ -40,18 +40,30 @@ void DataAlgorithmAdapterTestCase::testAll() {
 
   cout << endl;
 
-  cout << "\tSize: " << sizeof(DataAlgorithmAdapter<FMin>) << endl;
-
   cout << "\tTesting FMax." << endl;
-  DataAlgorithmAdapter<FMax> sup(numeric_limits<double>::min());
+
+  FMax fmax;
+  assert(fmax(5,6)==6);
+  assert(fmax(5,-6)==5);
+  assert(fmax(0,0)==0);
+  assert(fmax(15,-96)==15);
+
+  DataAlgorithmAdapter<FMax> sup(numeric_limits<double>::max()*-1);
   sup.resetResult();
-  sup(1);
-  sup(2);
-  sup(14);
+  sup(-1);
+  sup(-2);
+  sup(-14);
   sup(3);
-  assert(sup.getResult()==14);
+  assert(sup.getResult()==3);
 
   cout << "\tTesting AbsMax." << endl;
+
+  AbsMax absmax;
+  assert(absmax(5,6)==6);
+  assert(absmax(5,-6)==6);
+  assert(absmax(0,0)==0);
+  assert(absmax(15,-96)==96);
+
   DataAlgorithmAdapter<AbsMax> Lsup(0);
   Lsup.resetResult();
   Lsup(-2);
@@ -61,6 +73,13 @@ void DataAlgorithmAdapterTestCase::testAll() {
   assert(Lsup.getResult()==10);
 
   cout << "\tTesting FMin." << endl;
+
+  FMin fmin;
+  assert(fmin(5,6)==5);
+  assert(fmin(5,-6)==-6);
+  assert(fmin(0,0)==0);
+  assert(fmin(15,-96)==-96);
+
   DataAlgorithmAdapter<FMin> inf(numeric_limits<double>::max());
   inf.resetResult();
   inf(1);
@@ -70,6 +89,13 @@ void DataAlgorithmAdapterTestCase::testAll() {
   assert(inf.getResult()==1);
 
   cout << "\tTesting Length." << endl;
+
+  Length lngth;
+  assert(lngth(5,6)==std::sqrt(61.0));
+  assert(lngth(5,-6)==std::sqrt(61.0));
+  assert(lngth(0,0)==std::sqrt(0.0));
+  assert(lngth(15,-96)==std::sqrt(9441.0));
+
   DataAlgorithmAdapter<Length> length(0);
   length.resetResult();
   length(2);
@@ -85,6 +111,13 @@ void DataAlgorithmAdapterTestCase::testAll() {
   assert(length.getResult()==std::sqrt(41.0));
 
   cout << "\tTesting Trace." << endl;
+
+  Trace trce;
+  assert(trce(5,6)==11);
+  assert(trce(5,-6)==-1);
+  assert(trce(0,0)==0);
+  assert(trce(15,-96)==-81);
+
   DataAlgorithmAdapter<Trace> trace(0);
   trace.resetResult();
   trace(1);

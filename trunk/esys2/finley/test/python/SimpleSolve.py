@@ -47,23 +47,21 @@ x=e.getX()
 print "norm_u_ex=u_ex.Lsup():"
 norm_u_ex=u_ex.Lsup()
 
+print "\nGenerate a test solution (1)"
+print "----------------------------"
+
 print "mypde=LinearPDE( A=[[1.,0.8],[0.4,1.]], D=alpha, Y=alpha, domain=mydomain)"
 mypde=LinearPDE(mydomain)
 mypde.setDebugOn()
 mypde.setValue(A=[[1.,0.8],[0.4,1.]],D=alpha,Y=alpha)
-mypde.getOperator().saveMM("t.msh")
 
-# generate a test solution 1
-
-print "\nGenerate a test solution (1)"
-print "----------------------------"
+print "mypde.checkSymmetry()"
+print mypde.checkSymmetry()
 
 print "\nIterative Solver (1)=>"
-
 u_i=mypde.getSolution()
 
 print "\nDirect Solver (1)=>"
-
 mypde.setSolverMethod(DIRECT)
 u_d=mypde.getSolution()
 
@@ -88,8 +86,11 @@ msk=x[0].whereZero()+(x[0]-1.).whereZero()
 
 print "mypde=LinearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)"
 mypde=LinearPDE(mydomain)
-mypde.setValue(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)
 mypde.setDebugOn()
+mypde.setValue(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)
+
+print "mypde.checkSymmetry()"
+print mypde.checkSymmetry()
 
 # generate a test solution 2
 
@@ -104,7 +105,7 @@ u_d=mypde.getSolution()
 
 print "\nIterative Solver (2)=>"
 
-#mypde.setSymmetryOn() 
+mypde.setSymmetryOn() 
 mypde.setSolverMethod(DEFAULT_METHOD)
 u_i=mypde.getSolution()
 

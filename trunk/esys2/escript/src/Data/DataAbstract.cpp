@@ -14,6 +14,7 @@
 */
 
 #include "escript/Data/DataAbstract.h"
+#include "escript/Data/DataException.h"
 
 #include <iostream>
 

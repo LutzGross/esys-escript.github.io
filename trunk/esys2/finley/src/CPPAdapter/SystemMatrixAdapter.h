@@ -104,6 +104,12 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
   */
   virtual void setValue(const double value) const;
 
+  /**
+     \brief cleans any setting and allocations by the solver.
+  */
+
+  virtual void resetSolver() const;
+
 
  protected:
 

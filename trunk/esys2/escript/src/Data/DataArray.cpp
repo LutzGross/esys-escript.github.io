@@ -24,12 +24,8 @@ namespace escript {
 
 DataArray::DataArray(double value)
 {
-    //
-    // The default is a scalar, an empty shape vector is interpreted
-    // as a scalar.
     m_data.push_back(value);
-    //
-    // create a view with an empty shape type
+    // create a view with an empty shape, a scalar.
     m_dataView.reset(new DataArrayView(m_data,DataArrayView::ShapeType()));
 }
 
@@ -52,9 +48,8 @@ DataArray::DataArray(const DataArrayView& value):
     m_dataView.reset(new DataArrayView(m_data,value.getShape()));
 }
 
-DataArray::DataArray(const object& value) 
+DataArray::DataArray(const object& value)
 {
-    //
     // this will throw if the value cannot be represented
     numeric::array asNumArray(value);
     initialise(asNumArray);
@@ -68,16 +63,16 @@ DataArray::DataArray(const boost::python::numeric::array& value)
 void
 DataArray::initialise(const boost::python::numeric::array& value)
 {
-    //
-    // extract the shape from the numarray
+    // extract the shape of the numarray
     DataArrayView::ShapeType tempShape;  
-    for (int i=0; i<value.getrank(); ++i) {
+    for (int i=0; i<value.getrank(); i++) {
       tempShape.push_back(extract<int>(value.getshape()[i]));
     }
-    //
-    // allocate the space
+    // allocate the space for the data vector
     m_data.resize(DataArrayView::noValues(tempShape));
+    // create a view with the same shape
     m_dataView.reset(new DataArrayView(m_data,tempShape));
+    // fill the data vector with the values from the numarray
     m_dataView->copy(value);
 }
 

@@ -129,7 +129,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("Lsup",&escript::Data::Lsup)
     .def("sup",&escript::Data::sup)
     .def("inf",&escript::Data::inf)
-    .def("abs",&escript::Data::abs)
+    .def("__abs__",&escript::Data::abs)
     .def("exp",&escript::Data::exp)
     .def("sqrt",&escript::Data::sqrt)
     .def("maxval",&escript::Data::maxval)
@@ -219,6 +219,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("of",&escript::AbstractSystemMatrix::vectorMultiply)
      .def("saveMM",&escript::AbstractSystemMatrix::saveMM)
      .def("setValue",&escript::AbstractSystemMatrix::setValue)
+     .def("resetSolver",&escript::AbstractSystemMatrix::resetSolver)
      .def(self*other<escript::Data>());
 
   //

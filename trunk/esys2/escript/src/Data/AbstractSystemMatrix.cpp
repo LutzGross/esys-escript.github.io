@@ -58,15 +58,13 @@ Data AbstractSystemMatrix::vectorMultiply(const Data& right) const
 {
      if (isEmpty())
           throw SystemMatrixException("Error - Matrix is empty.");
-     if (right.getFunctionSpace()!=getColumnFunctionSpace())
-          throw SystemMatrixException("Error - column function space and function space of input data do not match.");
      if (right.getDataPointSize()!=getColumnBlockSize())
           throw SystemMatrixException("Error - column block size and input data size do not match.");
      DataArrayView::ShapeType shape;
      if (getRowBlockSize()>1) shape.push_back(getRowBlockSize());
 
      Data out=Data(0.,shape,getRowFunctionSpace(),true);
-     ypAx(out,right);
+     ypAx(out,Data(right,getColumnFunctionSpace()));
      return out;
 }
 
@@ -97,8 +95,13 @@ void AbstractSystemMatrix::saveMM(const std::string& fileName) const
 {
     throw SystemMatrixException("Error - Matrix Market interface not available.");
 }
-void AbstractSystemMatrix:: setValue(const double value) const
+void AbstractSystemMatrix::setValue(const double value) const
 {
+    throw SystemMatrixException("Error - setValue is not implemented.");
+}
+void AbstractSystemMatrix::resetSolver() const
+{
+    throw SystemMatrixException("Error - resetSolver not implemented.");
 }
 
 }  // end of namespace
