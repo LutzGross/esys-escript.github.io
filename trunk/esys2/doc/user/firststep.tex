@@ -9,36 +9,35 @@
 \label{fig:FirstSteps.1}
 \end{figure}
 
-In this chapter we will show the basics of how to use \escript to solve 
-a partial differential equation \index{partial differential equation} (PDE \index{partial differential equation!PDE}). The reader should be familiar with
-the basics of Python. The knowledge presented the Python tutorial at \url{http://docs.python.org/tut/tut.html}
-is sufficient. It is helpful if the reader has some basic knowledge on PDEs \index{PDE}.
+In this chapter we will give an introduction how to use \escript to solve 
+a partial differential equation \index{partial differential equation} (PDE \index{partial differential equation!PDE}). The reader should be familiar with Python. The knowledge presented at the Python tutorial at \url{http://docs.python.org/tut/tut.html}
+is sufficient. It is helpful if the reader has some basic knowledge of PDEs \index{partial differential equation}.
 
-The \index{PDE} we want to solve is the Poisson equation \index{Poisson equation} 
+The PDE \index{partial differential equation} we wish to solve is the Poisson equation \index{Poisson equation} 
 \begin{equation}
 -\Delta u =f 
 \label{eq:FirstSteps.1}
 \end{equation}
-for the solution $u$. The domain of interest which we denote by $\Omega$
+for the solution $u$. The function $f$ is the given right hand side. The domain of interest, denoted by $\Omega$
 is the unit square 
 \begin{equation}
 \Omega=[0,1]^2=\{ (x\hackscore 0;x\hackscore 1) | 0\le x\hackscore{0} \le 1 \mbox{ and } 0\le x\hackscore{1} \le 1 \}
 \label{eq:FirstSteps.1b}
 \end{equation}
-The domain is shown in Figure~\fig{fig:FirstSteps.1}.
+The domain is shown in \fig{fig:FirstSteps.1}.
 
 $\Delta$ denotes the Laplace operator\index{Laplace operator} which is defined by
 \begin{equation}
 \Delta u = (u\hackscore {,0})\hackscore{,0}+(u\hackscore{,1})\hackscore{,1}
 \label{eq:FirstSteps.1.1}
 \end{equation}
-where for any function $w$ and any direction $i$ $u\hackscore{,i}$
-denotes the partial derivative \index{partial derivative} of $w$ with respect to $i$.  
+where, for any function $w$ and any direction $i$, $u\hackscore{,i}$
+denotes the partial derivative \index{partial derivative} of $u$ with respect to $i$.  
 \footnote{Some readers
 may be more familiar with the Laplace operator\index{Laplace operator} being written
 as $\nabla^2$, and written in the form
 \begin{equation*}
-\nabla^2 u = \frac{\partial^2 u}{\partial x\hackscore 0^2} 
+\nabla^2 u = \nabla^t \cot \nabla u =  \frac{\partial^2 u}{\partial x\hackscore 0^2} 
 + \frac{\partial^2 u}{\partial  x\hackscore 1^2}
 \end{equation*}
 and \eqn{eq:FirstSteps.1} as
@@ -46,7 +45,7 @@ and \eqn{eq:FirstSteps.1} as
 -\nabla^2 u = f
 \end{equation*}
 }
-Basically in the subindex of a function any index left to the comma denotes a spatial derivative with respect 
+Basically, in the subindex of a function, any index to the left of the comma denotes a spatial derivative with respect 
 to the index. To get a more compact form we will write $w\hackscore{,ij}=(w\hackscore {,i})\hackscore{,j}$
 which leads to
 \begin{equation}
@@ -55,13 +54,14 @@ which leads to
 \end{equation}
 In some cases, and we will see examples for this in the next chapter,
 the usage of the nested $\sum$ symbols blows up the formulas and therefore
-it is convenient to use Einstein summation convention \index{summation convention} which 
-says that $\sum$ sign is dropped and a summation over a repeated index is performed 
+it is convenient to use the Einstein summation convention \index{summation convention}. This 
+drops the $\sum$ sign and assumes that a summation over a repeated index is performed 
 ("repeated index means summation"). For instance we write
 \begin{eqnarray}
 x\hackscore{i}y\hackscore{i}=\sum\hackscore{i=0}^2 x\hackscore{i}y\hackscore{i}   \\
 x\hackscore{i}u\hackscore{,i}=\sum\hackscore{i=0}^2 x\hackscore{i}u\hackscore{,i}   \\
 u\hackscore{,ii}=\sum\hackscore{i=0}^2 u\hackscore{,ii} \\
+x\hackscore{ij}u\hackscore{i,j}=\sum\hackscore{j=0}^2\sum\hackscore{i=0}^2 x\hackscore{ij}u\hackscore{i,j}   \\
 \label{eq:FirstSteps.1.1c}
 \end{eqnarray}
 With the summation convention we can write the Poisson equation \index{Poisson equation} as
@@ -80,8 +80,8 @@ n\hackscore{i} u\hackscore{,i}= 0 \;.
 $n=(n\hackscore{i})$ denotes the outer normal field
 of the domain, see \fig{fig:FirstSteps.1}. Remember that we 
 are applying the Einstein summation convention \index{summation convention}, i.e
-$n\hackscore{i} u\hackscore{,i}= n\hackscore1 u\hackscore{,1} +
-n\hackscore2 u\hackscore{,2}$. 
+$n\hackscore{i} u\hackscore{,i}= n\hackscore{0} u\hackscore{,0} +
+n\hackscore{1} u\hackscore{,1}$. 
 \footnote{Some readers may familiar with the notation
 \begin{equation*}
 \frac{\partial u}{\partial n} = n\hackscore{i} u\hackscore{,i}
@@ -93,7 +93,7 @@ set $\Gamma^N$ which is the top and right edge of the domain:
 \Gamma^N=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=1 \mbox{ or } x\hackscore{1}=1  \}
 \label{eq:FirstSteps.2b}
 \end{equation}
-On the bottom and the left edge of the domain which defined
+On the bottom and the left edge of the domain which is defined
 as 
 \begin{equation}
 \Gamma^D=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=0 \mbox{ or } x\hackscore{1}=0  \}
@@ -104,12 +104,13 @@ the solution shall be identically zero:
 u=0 \; .
 \label{eq:FirstSteps.2d}
 \end{equation}
-The kind of boundary condition is called a homogeneous Dirichlet boundary condition
+This kind of boundary condition is called a homogeneous Dirichlet boundary condition
 \index{Dirichlet boundary condition!homogeneous}. The partial differential equation in \eqn{eq:FirstSteps.1.sum} together
 with the Neumann boundary condition \eqn{eq:FirstSteps.2} and 
 Dirichlet boundary condition in \eqn{eq:FirstSteps.2d} form a so
 called boundary value
-problem\index{boundary value problem} (BVP\index{boundary value problem!BVP}) for unknown
+problem\index{boundary value problem} (BVP\index{boundary value problem!BVP}) for 
+the unknown
 function $u$. 
 
 
@@ -127,15 +128,15 @@ methods have to be used construct an approximation of the solution
 $u$. Here we will use the finite element method\index{finite element
 method} (FEM\index{finite element
 method!FEM}). The basic idea is to fill the domain with a
-set of points, so called nodes. The solution is approximated by its
+set of points called nodes. The solution is approximated by its
 values on the nodes\index{finite element
-method!nodes}. Moreover, the domain is subdivide into small
-sub-domain, so-called elements \index{finite element
+method!nodes}. Moreover, the domain is subdivided into small,
+sub-domain called elements \index{finite element
 method!element}. On each element the solution is
 represented by a polynomial of a certain degree through its values at
 the nodes located in the element. The nodes and its connection through
 elements is called a mesh\index{finite element
-method!mesh}. Figure~\fig{fig:FirstSteps.2} shows an
+method!mesh}. \fig{fig:FirstSteps.2} shows an
 example of a FEM mesh with four elements in the $x_0$ and four elements
 in the $x_1$ direction over the unit square.  
 For more details we refer the reader to the literature, for instance
@@ -151,21 +152,22 @@ to solve the PDE. Here we are using the FEM library \finley \index{finite elemen
 method}. The following statements create the \Domain object \var{mydomain} from the 
 \finley method \method{Rectangle}
 \begin{python}
-import finley
-mydomain = finley.Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+from esys.finley import Rectangle
+mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
 \end{python}
 In this case the domain is a rectangle with the lower, left corner at point $(0,0)$ and
 the right, upper corner at $(\var{l0},\var{l1})=(1,1)$.
-The arguments \var{l0} and \var{l1} define the number of elements in $x\hackscore{0}$ and
+The arguments \var{n0} and \var{n1} define the number of elements in $x\hackscore{0}$ and
 $x\hackscore{1}$-direction respectively. For more details on \method{Rectangle} and
 other \Domain generators within the \finley module,
 see \Chap{CHAPTER ON FINLEY}.
 
-The following statements define the \Poisson object \var{mypde} with domain var{mydomain} and
+The following statements define the \Poisson class object \var{mypde} with domain \var{mydomain} and
 the right hand side $f$ of the PDE to constant $1$: 
 \begin{python}
-import escript
-mypde = escript.Poisson(domain=mydomain,f=1)
+from esys.escript import Poisson
+mypde = Poisson(mydomain)
+mypde.setValue(f=1)
 \end{python}
 We have not specified any boundary condition but the 
 \Poisson class implicitly assumes homogeneous Neuman boundary conditions \index{Neumann
@@ -173,42 +175,47 @@ boundary condition!homogeneous} defined by \eqn{eq:FirstSteps.2}. With this boun
 condition the BVP\index{boundary value problem!BVP} we have defined has no unique solution. In fact, with any solution $u$
 and any constant $C$ the function $u+C$ becomes a solution as well. We have to add 
 a Dirichlet boundary condition \index{Dirichlet boundary condition}. This is done 
-by defines a characteristic function \index{characteristic function} 
-which has a positive values at locations $(x_0,x_1)$ where Dirichlet boundary condition is set
+by defining a characteristic function \index{characteristic function} 
+which has positive values at locations $x=(x\hackscore{0},x\hackscore{1})$ where Dirichlet boundary condition is set
 and $0$ elsewhere. In our case of $\Gamma^D$ defined by \eqn{eq:FirstSteps.2c},
-we need a function which is positive for the cases $x_0=0$ or $x_1=0$:   
+we need a function which is positive for the cases $x\hackscore{0}=0$ or $x\hackscore{1}=0$:   
 \begin{python}
 x=mydomain.getX()
 gammaD=x[0].whereZero()+x[1].whereZero()
 \end{python}
-In first statement returns, the method \method{getX} of the \Domain \var{mydomain} access to the locations 
-in the domain defined by \var{mydomain}. The object \var{x} is actually an \Data object
-which we will learn more about later. \code{x[0]} returns the $x_0$ coordinates of the locations and
+In the first statement, the method \method{getX} of the \Domain \var{mydomain} 
+gives access to locations 
+in the domain defined by \var{mydomain}. The object \var{x} is actually a \Data object
+which we will learn more about later. \code{x[0]} returns the $x\hackscore{0}$ coordinates of the locations and
 \code{x[0].whereZero()} creates function which equals $1$ where \code{x[0]} is (nearly) equal to zero 
-and $0$ elsewhere. The sum of the results of \code{x[0].whereZero()} and \code{x[1].whereZero()} gives a function on the domain \var{mydomain} which is exactly positive where $x_0$ or $x_1$ is equal to zero.
+and $0$ elsewhere. 
+Similarly, \code{x[1].whereZero()} creates function which equals $1$ where \code{x[1]} is 
+equal to zero and $0$ elsewhere.
+The sum of the results of \code{x[0].whereZero()} and \code{x[1].whereZero()} gives a function on the domain \var{mydomain} which is exactly positive where $x\hackscore{0}$ or $x\hackscore{1}$ is equal to zero.
 
-The additional parameter \var{q} of the \Poisson object creater defines the 
+The additional parameter \var{q} of the \code{setValue} method of the \Poisson class defines the 
 characteristic function \index{characteristic function} of the locations
 of the domain where homogeneous Dirichlet boundary condition \index{Dirichlet boundary condition!homogeneous}
 are set. The complete definition of our example is now: 
 \begin{python}
-from linearPDEs import Poisson
+from esys.linearPDEs import Poisson
 x = mydomain.getX()
 gammaD = x[0].whereZero()+x[1].whereZero()
-mypde = Poisson(domain=mydomain,f=1,q=gammaD)
+mypde = Poisson(domain=mydomain)
+mypde = setValue(f=1,q=gammaD)
 \end{python}
-The first statement imports the \Poisson class definition form the \linearPDEsPack module which is part of the \escript module.
-To get the solution of the Poisson equation defines by \var{mypde} we just have to call its
+The first statement imports the \Poisson class definition form the \linearPDEsPack module which is part of the \ESyS package.
+To get the solution of the Poisson equation defined by \var{mypde} we just have to call its
 \method{getSolution}. 
 
 Now we can write the script to solve our test problem (Remember that
-lines starting with '\#' are commend lines in Python) (available as \file{mypoisson.py} 
+lines starting with '\#' are comment lines in Python) (available as \file{mypoisson.py} 
 in the \ExampleDirectory):
 \begin{python}
-import esys.finley
+from esys.finley import Rectangle
 from esys.linearPDEs import Poisson
 # generate domain:
-mydomain = esys.finley.Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
 # define characteristic function of Gamma^D
 x = mydomain.getX()
 gammaD = x[0].whereZero()+x[1].whereZero()
@@ -225,12 +232,12 @@ from \url{http://www.opendx.org}.
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{FirstStepResult.eps}}
-\caption{\OpenDX visualization of the Possion equation soluition for $f=1$}
+\caption{\OpenDX Visualization of the Possion Equation Solution for $f=1$}
 \label{fig:FirstSteps.3}
 \end{figure}
 
-You can edit this script using your favourite text editor (or the Integrated DeveLopment Environment IDLE
-for Python). If the script file has the name \file{mypoisson.py} \index{scripts!\file{mypoisson.py}} you can run the
+You can edit the script file using your favourite text editor (or the Integrated DeveLopment Environment IDLE
+for Python, see \url{http://idlefork.sourceforge.net}). If the script file has the name \file{mypoisson.py} \index{scripts!\file{mypoisson.py}} you can run the
 script from any shell using the command:
 \begin{verbatim} 
 python mypoisson.py
@@ -238,10 +245,6 @@ python mypoisson.py
 After the script has (hopefully successfully) been completed you will find the file \file{u.dx} in the current
 directory. An easy way to visualize the results is the command
 \begin{verbatim} 
-dx -prompter
+dx -prompter &
 \end{verbatim}
 to start the generic data visualization interface of \OpenDX. \fig{fig:FirstSteps.3} shows the result.
-
-
-
- 
