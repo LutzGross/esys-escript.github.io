@@ -43,5 +43,6 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_reference(Finley_SystemMa
 void Finley_SystemMatrixPattern_dealloc(Finley_SystemMatrixPattern*);
 int Finley_comparIndex(const void *,const void *);
 Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_SystemMatrixPattern*,int,maybelong*,maybelong*);
+void Finley_SystemMatrixPattern_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_marker);
 
 #endif /* #ifndef INC_FINLEY_SYSTEMPATTERN */

@@ -21,13 +21,15 @@
 
 Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_alloc(int n_ptr, maybelong* ptr,maybelong* index) {
   Finley_SystemMatrixPattern*out;
-  maybelong loc_min_index=INDEX_OFFSET,loc_max_index=INDEX_OFFSET-1,min_index=INDEX_OFFSET,max_index=INDEX_OFFSET-1;
+  maybelong loc_min_index,loc_max_index,min_index=INDEX_OFFSET,max_index=INDEX_OFFSET-1;
   maybelong i,k;
   Finley_ErrorCode=NO_ERROR;
 
 
   #pragma omp parallel private(loc_min_index,loc_max_index,i,k)
   {
+     loc_min_index=INDEX_OFFSET;
+     loc_max_index=INDEX_OFFSET-1;
      #if PTR_OFFSET>0
         #pragma omp for schedule(static)
         for (i=0;i<n_ptr+1;++i) ptr[i]+=PTR_OFFSET;
@@ -114,16 +116,3 @@ int Finley_comparIndex(const void *index1,const void *index2){
       }
    }
 }
-/*
- * $Log$
- * Revision 1.2  2004/12/15 07:08:33  jgs
- * *** empty log message ***
- *
- * Revision 1.1.2.2  2004/11/24 01:37:15  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- * Revision 1.1.2.1  2004/11/14 23:49:09  gross
- * the forgotten files
- *
- *
- */

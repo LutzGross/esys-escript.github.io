@@ -34,8 +34,6 @@ maybelong Finley_Util_getMinInt(int dim,int N,maybelong* values);
 maybelong Finley_Util_packMask(maybelong N,maybelong* mask,maybelong* index);
 int Finley_Util_isAny(maybelong N,maybelong* array,maybelong value);
 void Finley_copyDouble(int n,double* source,double* target);
-int Finley_Util_SmallMatLU(int,double*,double*,int*);
-void Finley_Util_SmallMatForwardBackwardSolve(int,int,double*,int*,double*,double*);
 maybelong Finley_Util_cumsum(maybelong,maybelong*);
 
 
