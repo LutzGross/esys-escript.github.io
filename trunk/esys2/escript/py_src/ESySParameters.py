@@ -198,6 +198,26 @@ class ESySParameters:
                iostream.write("</%s>\n"%_PARAMETER)
 
 
+   def writeProperties(self, iostream, nameSpace = None):
+     """writes the object as a property list to an IO stream"""
+     if nameSpace != None and nameSpace != "":
+        nameSpace += ".";
+     for name,value in self.__dict__.iteritems():
+        if name[0]!="_":
+           if isinstance(value,ESySParameters):
+              value.writeProperties(iostream, name)
+           else:
+               if isinstance(value,types.ListType):
+                  sequence=_PARAMETER_SEQUENCE_LIST
+                  type=_getTypeNameOfList(value)
+               elif isinstance(value,types.TupleType):
+                  sequence=_PARAMETER_SEQUENCE_TUPLE
+                  type=_getTypeNameOfList(value)
+               else:
+                  sequence=_PARAMETER_SEQUENCE_SINGLE
+                  type=_getTypeName(value)
+               iostream.write("%s = %s\n" % (nameSpace + name, value.__str__()))
+
    def writeESySXML(self,iostream):
         """writes an ESyS XML file"""
         iostream.write("<?xml version=\"1.0\"?><ESyS>")
@@ -417,6 +437,7 @@ if  (__name__=="__main__"):
     test(parm)
     print "@@@ read and write:"
     parm.writeESySXML(file("/tmp/test.xml",mode="w"))
+    parm.writeProperties(file("/tmp/test.dat",mode="w"))
     parm2=readESySXMLFile("/tmp/test.xml")
     print parm2
     test(parm2)
