@@ -299,4 +299,72 @@ DataExpanded::getLength() const
   return m_data.getData().size();
 }
 
+void
+DataExpanded::setRefValue(int ref,
+                          const DataArray& value)
+{
+  //
+  // Check number of samples and data-points per sample.
+  int numSamples = getNumSamples();
+  int numDPPSample = getNumDPPSample();
+  if (numDPPSample > 1) {
+    throw DataException("DataExpanded::setRefValue error: more than one DPPSample in this Data.");
+  }
+
+  //
+  // Determine the data-point which corresponds to this reference number.
+  int sampleNo = -1;
+  int tempRef = -1;
+  for (int n=0; n<numSamples; n++) {
+    tempRef = getFunctionSpace().getReferenceNoFromSampleNo(n);
+    if (tempRef == ref) {
+      sampleNo = n;
+      break;
+    }
+  }
+  if (sampleNo == -1) {
+    throw DataException("DataExpanded::setRefValue error: invalid ref number supplied.");
+  }
+
+  DataArrayView pointView = getDataPoint(sampleNo, 0);
+
+  //
+  // Assign the values in the DataArray to this data-point.
+  pointView.copy(value.getView());
+}
+
+void
+DataExpanded::getRefValue(int ref,
+                          DataArray& value)
+{
+  //
+  // Check number of samples and data-points per sample.
+  int numSamples = getNumSamples();
+  int numDPPSample = getNumDPPSample();
+  if (numDPPSample > 1) {
+    throw DataException("DataExpanded::getRefValue error: more than one DPPSample in this Data.");
+  }
+
+  //
+  // Determine the data-point which corresponds to this reference number
+  int sampleNo = -1;
+  int tempRef = -1;
+  for (int n=0; n<numSamples; n++) {
+    tempRef = getFunctionSpace().getReferenceNoFromSampleNo(n);
+    if (tempRef == ref) {
+      sampleNo = n;
+      break;
+    }
+  }
+  if (sampleNo == -1) {
+    throw DataException("DataExpanded::getRefValue error: invalid ref number supplied.");
+  }
+
+  DataArrayView pointView = getDataPoint(sampleNo, 0);
+
+  //
+  // Load the values from this data-point into the DataArray
+  value.getView().copy(pointView);
+}
+
 }  // end of namespace

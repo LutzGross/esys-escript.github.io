@@ -113,6 +113,11 @@ class FunctionSpace {
    Return the tag associated with the given sample number.
   */
   int getTagFromSampleNo(int sampleNo) const;
+  /**
+   \brief
+   Return the reference nomber associated with the given sample number.
+  */
+  int getReferenceNoFromSampleNo(int sampleNo) const;
 
   /**
    \brief

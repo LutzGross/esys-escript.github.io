@@ -351,7 +351,7 @@ else:
   failed.append(case)
 
 case="Contact: 2D, order 1,elements on face"
-my_dom=mkMesh(2,1,TRUE)
+my_dom=mkMesh(2,1,True)
 if checker(my_dom,Contact_2D_order1_onFace):
   print case," passed."
 else:
@@ -365,7 +365,7 @@ else:
   failed.append(case)
 
 case="Contact: 2D, order 2,elements on face"
-my_dom=mkMesh(2,2,TRUE)
+my_dom=mkMesh(2,2,True)
 if checker(my_dom,Contact_2D_order2_onFace):
   print case," passed."
 else:
@@ -379,7 +379,7 @@ else:
   failed.append(case)
 
 case="Contact: 3D, order 1,elements on face"
-my_dom=mkMesh(3,1,TRUE)
+my_dom=mkMesh(3,1,True)
 if checker(my_dom,Contact_3D_order1_onFace):
   print case," passed."
 else:
@@ -393,7 +393,7 @@ else:
   failed.append(case)
 
 case="Contact: 3D, order 2,elements on face"
-my_dom=mkMesh(3,2,TRUE)
+my_dom=mkMesh(3,2,True)
 if checker(my_dom,Contact_3D_order2_onFace):
   print case," passed."
 else:

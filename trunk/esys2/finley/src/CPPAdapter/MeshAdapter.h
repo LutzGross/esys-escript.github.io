@@ -127,6 +127,31 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
 			       int* numTags) const;
   /**
      \brief
+     Return the reference number list indexed by sampleNo. 
+     \param functionSpaceType Input
+     \param referenceNoList Output
+     \param numReferenceNo Output
+  */
+  void getReferenceNoList(int functionSpaceType, int** referenceNoList, 
+			       int* numReferenceNo) const;
+
+   /**
+     \brief
+     Return the tag key for the given sample number.
+     \param functionSpaceType Input - The function space type.
+     \param sampleNo Input - The sample number.
+  */
+  int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+  /**
+     \brief
+     Return the reference number of  the given sample number.
+     \param functionSpaceType Input - The function space type.
+     \param sampleNo Input - The sample number.
+  */
+  int getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const;
+
+  /**
+     \brief
      Returns true if the given integer is a valid function space type
      for this domain.
   */
@@ -141,13 +166,7 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      Return a description for the given function space type code
   */
   virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
-  /**
-     \brief
-     Return the tag key for the given sample number.
-     \param functionSpaceType Input - The function space type.
-     \param sampleNo Input - The sample number.
-  */
-  virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+
   /**
      \brief
      Build the table of function space type names
@@ -275,10 +294,16 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   virtual bool isCellOriented(int functionSpaceCode) const;
   /**
      \brief
-     saves data arg to a OpenDX input file.
+     saves data arg to an OpenDX input file.
      considered as cell centered data.
   */
   virtual void saveDX(const std::string& filename,const escript::Data& arg) const;
+  /**
+     \brief
+     saves data arg to a VTK input file.
+     considered as cell centered data.
+  */
+  virtual void saveVTK(const std::string& filename,const escript::Data& arg) const;
   /**
      \brief
      returns the function space representation of the type functionSpaceCode on this domain

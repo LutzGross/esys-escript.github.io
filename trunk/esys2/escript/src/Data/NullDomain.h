@@ -110,6 +110,13 @@ class NullDomain : public AbstractDomain {
   virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
   /**
      \brief
+     Return the reference number of  the given sample number.
+     \param functionSpaceType Input - The function space type.
+     \param sampleNo Input - The sample number.
+  */
+  virtual int getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const;
+  /**
+     \brief
   */
   virtual int getDim() const;
  protected:

@@ -99,6 +99,14 @@ int NullDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
   // return an arbitary value
   return 1; 
 }
+
+int NullDomain::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const
+{
+  //
+  // return an arbitary value
+  return 1; 
+}
+
 int NullDomain::getDim() const
 {
   //
