@@ -8,7 +8,7 @@ MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
 if [ "$1" == "clean" ];
 then
 	for module in $MODULES ; do \
-		(echo Cleaning: $module; cd $module; make clean) \
+		(echo Cleaning: $module; cd $module; gmake clean) \
 	done
 fi
 
@@ -28,5 +28,12 @@ for module in $MODULES ; do \
 	(echo Building: $module; cd $module; make) \
 done
 
-(cd escript/lib; if [ ! -e escript.so ]; then ln -s libescript.so escript.so; fi)
-(cd finley/lib; if [ ! -e  finley.so ]; then ln -s libfinley.so finley.so; fi)
+if [ "$1" == "install" ];
+then
+	for module in $MODULES ; do \
+		(echo Installing: $module; cd $module; make install) \
+	done
+	(cd esys; if [ ! -e escriptcpp.so ]; then ln -s ../lib/libescriptcpp.so escriptcpp.so; fi)
+	(cd esys; if [ ! -e finleycpp.so ]; then ln -s ../lib/libfinleycpp.so finleycpp.so; fi)
+fi
+
