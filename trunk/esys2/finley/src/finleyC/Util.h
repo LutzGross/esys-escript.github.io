@@ -36,6 +36,7 @@ int Finley_Util_isAny(maybelong N,maybelong* array,maybelong value);
 void Finley_copyDouble(int n,double* source,double* target);
 int Finley_Util_SmallMatLU(int,double*,double*,int*);
 void Finley_Util_SmallMatForwardBackwardSolve(int,int,double*,int*,double*,double*);
+maybelong Finley_Util_cumsum(maybelong,maybelong*);
 
 
 
@@ -53,12 +54,3 @@ void Finley_Util_sortValueAndIndex(int n,Finley_Util_ValueAndIndex* array);
 int Finley_Util_ValueAndIndex_compar(const void *, const void *);
 
 #endif /* #ifndef INC_FINLEY_UTIL */
-
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:34  jgs
- * *** empty log message ***
- *
- *
- *
- */

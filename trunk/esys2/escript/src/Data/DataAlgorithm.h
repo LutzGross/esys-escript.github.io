@@ -25,100 +25,28 @@
 #include <algorithm>
 #include <math.h>
 #include <limits>
+#include <vector>
 
 namespace escript {
 
 /**
    \brief
-   Return the maximum value.
+   Adapt binary algorithms so they may be used in DataArrayView reduction operations.
 
    Description:
-   Return the maximum value.
-*/
-struct FMax : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return std::max(x,y);
-  }
-};
-
-/**
-   \brief
-   Return the minimum value.
-
-   Description:
-   Return the minimum value.
-*/
-struct FMin : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return std::min(x,y);
-  }
-};
-
-/**
-   \brief
-   Return the absolute maximum value.
-
-   Description:
-   Return the absolute maximum value.
-*/
-struct AbsMax : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return std::max(fabs(x),fabs(y));
-  }
-};
-
-/**
-   \brief
-   Return the length.
-
-   Description:
-   Return the length.
-*/
-struct Length : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return std::sqrt(std::pow(x,2)+std::pow(y,2));
-  }
-};
-
-/**
-   \brief
-   Return the trace.
-
-   Description:
-   Return the trace.
-*/
-struct Trace : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return x+y;
-  }
-};
-
-/**
-   \brief
-   Adapt algorithms so they may be used by Data.
-
-   Description:
-   Adapt algorithms so they may be used by Data. The functor 
-   maintains state, the currentValue returned by the operation,
-   and the initial value.
+   This functor adapts the given BinaryFunction operation by starting with the
+   given inital value applying this operation to successive values, storing the
+   rolling result in m_currentValue - which can be accessed or reset by getResult
+   and resetResult respectively.
 */
 template <class BinaryFunction>
 class DataAlgorithmAdapter {
- public:
+  public:
     DataAlgorithmAdapter(double initialValue):
       m_initialValue(initialValue),
       m_currentValue(initialValue)
-    {}
+    {
+    }
     inline void operator()(double value)
     {
       m_currentValue=operation(m_currentValue,value);
@@ -132,7 +60,7 @@ class DataAlgorithmAdapter {
     {
       return m_currentValue;
     }
- private:
+  private:
     //
     // the initial operation value
     double m_initialValue;
@@ -146,12 +74,70 @@ class DataAlgorithmAdapter {
 
 /**
    \brief
-   Perform the given operation upon all Data elements and return a single
-   result.
+   Return the maximum value of the two given values.
+*/
+struct FMax : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::max(x,y);
+  }
+};
 
-   Description:
-   Perform the given operation upon all Data elements and return a single
-   result.
+/**
+   \brief
+   Return the minimum value of the two given values.
+*/
+struct FMin : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::min(x,y);
+  }
+};
+
+/**
+   \brief
+   Return the absolute maximum value of the two given values.
+*/
+struct AbsMax : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::max(fabs(x),fabs(y));
+  }
+};
+
+/**
+   \brief
+   Return the length between the two given values.
+*/
+struct Length : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::sqrt(std::pow(x,2)+std::pow(y,2));
+  }
+};
+
+/**
+   \brief
+   Return the trace of the two given values.
+*/
+struct Trace : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return x+y;
+  }
+};
+
+/**
+   \brief
+   Perform the given operation upon all values in all data-points in the
+   given Data object and return the final result.
+
+   Calls DataArrayView::reductionOp
 */
 template <class UnaryFunction>
 inline
@@ -160,19 +146,28 @@ algorithm(DataExpanded& data,
           UnaryFunction operation)
 {
   int i,j;
-  DataArrayView::ValueType::size_type numDPPSample=data.getNumDPPSample();
-  DataArrayView::ValueType::size_type numSamples=data.getNumSamples();
-  double resultLocal=0;
-#pragma omp parallel private(resultLocal)
+  int numDPPSample=data.getNumDPPSample();
+  int numSamples=data.getNumSamples();
+  int resultVectorLength=numDPPSample*numSamples;
+  std::vector<double> resultVector(resultVectorLength);
+  DataArrayView dataView=data.getPointDataView();
+  // calculate the reduction operation value for each data point
+  // storing the result for each data-point in successive entries
+  // in resultVector
   {
 #pragma omp for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-	resultLocal=data.getPointDataView().reductionOp(data.getPointOffset(i,j), operation);
-#pragma omp critical (algorithm)
-	operation(resultLocal);
+#pragma omp critical (reductionOp)
+	resultVector[j*numSamples+i]=dataView.reductionOp(data.getPointOffset(i,j),operation);
       }
     }
+  }
+  // now calculate the reduction operation value across the results
+  // for each data-point
+  operation.resetResult();
+  for (int l=0;l<resultVectorLength;l++) {
+    operation(resultVector[l]);
   }
   return operation.getResult();
 }
@@ -183,18 +178,25 @@ double
 algorithm(DataTagged& data,
           UnaryFunction operation)
 {
-  //
-  // perform the operation on each tagged value
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
   DataArrayView& dataView=data.getPointDataView();
+  std::vector<double> resultVector;
+  int resultVectorLength;
+  // perform the operation on each tagged value
   for (i=lookup.begin();i!=lookupEnd;i++) {
-    operation(dataView.reductionOp(i->second,operation));
+    resultVector.push_back(dataView.reductionOp(i->second,operation));
   }
-  //
-  // finally perform the operation on the default value
-  operation(data.getDefaultValue().reductionOp(operation));
+  // perform the operation on the default value
+  resultVector.push_back(data.getDefaultValue().reductionOp(operation));
+  // now calculate the reduction operation value across the results
+  // for each tagged value
+  resultVectorLength=resultVector.size();
+  operation.resetResult();
+  for (int l=0;l<resultVectorLength;l++) {
+    operation(resultVector[l]);
+  }
   return operation.getResult();
 }
 
@@ -209,14 +211,14 @@ algorithm(DataConstant& data,
 
 /**
    \brief
-   Perform the given data point reduction operation on all data points
-   in data, storing results in corresponding elements of result.
+   Perform the given data-point reduction operation on all data-points
+   in data, storing results in corresponding data-points of result.
 
    Objects data and result must be of the same type, and have the same number
    of data points, but where data has data points of rank n, result must have
    data points of rank 0.
 
-   Calls DataArrayView::dp_algorithm.
+   Calls DataArrayView::reductionOp
 */
 template <class UnaryFunction>
 inline
@@ -225,19 +227,20 @@ dp_algorithm(DataExpanded& data,
              DataExpanded& result,
              UnaryFunction operation)
 {
-  //
-  // perform the operation on each data value
-  // and assign this to the corresponding element in result
   int i,j;
-  DataArrayView::ValueType::size_type numDPPSample=data.getNumDPPSample();
-  DataArrayView::ValueType::size_type numSamples=data.getNumSamples();
+  int numDPPSample=data.getNumDPPSample();
+  int numSamples=data.getNumSamples();
+  DataArrayView dataView=data.getPointDataView();
+  DataArrayView resultView=result.getPointDataView();
+  // perform the operation on each data-point and assign
+  // this to the corresponding element in result
   {
 #pragma omp for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-#pragma omp critical (dp_algorithm)
-        result.getPointDataView().getData(data.getPointOffset(i,j)) =
-          data.getPointDataView().dp_reductionOp(data.getPointOffset(i,j),operation);
+#pragma omp critical (reductionOp)
+        resultView.getData(data.getPointOffset(i,j)) =
+          dataView.reductionOp(data.getPointOffset(i,j),operation);
       }
     }
   }
@@ -250,21 +253,21 @@ dp_algorithm(DataTagged& data,
              DataTagged& result,
              UnaryFunction operation)
 {
-  //
-  // perform the operation on each tagged data value
-  // and assign this to the corresponding element in result
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
+  DataArrayView dataView=data.getPointDataView();
+  DataArrayView resultView=result.getPointDataView();
+  // perform the operation on each tagged data value
+  // and assign this to the corresponding element in result
   for (i=lookup.begin();i!=lookupEnd;i++) {
-    result.getPointDataView().getData(i->second) =
-      data.getPointDataView().dp_reductionOp(i->second,operation);
+    resultView.getData(i->second) =
+      dataView.reductionOp(i->second,operation);
   }
-  //
-  // finally perform the operation on the default data value
+  // perform the operation on the default data value
   // and assign this to the default element in result
-  result.getPointDataView().getData(0) =
-    data.getDefaultValue().dp_reductionOp(operation);
+  resultView.getData(0) =
+    data.getDefaultValue().reductionOp(operation);
 }
 
 template <class UnaryFunction>
@@ -274,11 +277,10 @@ dp_algorithm(DataConstant& data,
              DataConstant& result,
              UnaryFunction operation)
 {
-  //
-  // perform the operation on the default data value
-  // and assign this to the default element in result
+  // perform the operation on the data value
+  // and assign this to the element in result
   result.getPointDataView().getData(0) =
-    data.getPointDataView().dp_reductionOp(operation);
+    data.getPointDataView().reductionOp(operation);
 }
 
 } // end of namespace

@@ -11,10 +11,12 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/DataArrayView.h"
 #include "escript/Data/DataArray.h"
-#include "DataArrayViewTestCase.h"
+#include "escript/Data/DataArrayView.h"
+#include "escript/Data/DataAlgorithm.h"
 #include "esysUtils/EsysException.h"
+
+#include "DataArrayViewTestCase.h"
 
 #include <iostream>
 
@@ -1666,10 +1668,9 @@ void DataArrayViewTestCase::testAll()
 void DataArrayViewTestCase::testMatMult()
 {
 
-/*
   {
     cout << endl;
-    cout << "\tTest matrix multiplication." << endl;
+    cout << "\tTest result shape." << endl;
 
     DataArrayView::ShapeType leftShape;
     leftShape.push_back(1);
@@ -1685,73 +1686,29 @@ void DataArrayViewTestCase::testMatMult()
 
     DataArrayView::ShapeType resultShape=DataArrayView::determineResultShape(leftDataView,rightDataView);
 
-    for (int i=0;i<resultShape.size();++i) {
-      cout << "\tDimension: " << i << " size: " << resultShape[i] << endl;
-    }
-
-    DataArrayView::ValueType resultData(DataArrayView::noValues(resultShape),0);
-    DataArrayView resultDataView(resultData,resultShape);
-  
-    cout << "\tTest result shape." << endl;
-
     assert(resultShape.size()==2);
     assert(resultShape[0]==1);
     assert(resultShape[1]==2);
 
-    // Assign some values
-    cout << "\tAssign values." << endl;
+    DataArrayView::ValueType resultData(DataArrayView::noValues(resultShape),0);
+    DataArrayView resultDataView(resultData,resultShape);
+  
+    cout << "\tTest matrix multiplication.";
     double aValue=0.0;
-    for (int i=0;i<leftShape[0];++i) {
-      for (int j=0;j<leftShape[1];++j) {
+    for (int i=0;i<leftShape[0];i++) {
+      for (int j=0;j<leftShape[1];j++) {
 	leftDataView(i,j)=++aValue;
       }
     }
     aValue=0.0;
-    for (int i=0;i<rightShape[0];++i) {
-      for (int j=0;j<rightShape[1];++j) {
+    for (int i=0;i<rightShape[0];i++) {
+      for (int j=0;j<rightShape[1];j++) {
 	rightDataView(i,j)=++aValue;
       }
     }
 
-    cout << "\tDo matrix multiplication." << endl;
     DataArrayView::matMult(leftDataView,rightDataView,resultDataView);
-
-    cout << "\tCheck result." << endl;
-    //need to hand build result matrix and compare with generated result here.
-
-    cout << "Create a vector." << endl;
-    DataArray v;
-    DataArray::ShapeType vShape;
-    vShape.push_back(3);
-    v.setShape(vShape);
-    double aValue=0.0;
-    for (int i=0;i<vShape[0];++i) {
-      v(i)=++aValue;
-    }
-
-    cout << "Create a matrix." << endl;
-    DataArray mat;
-    DataArray::ShapeType mShape;
-    mShape.push_back(3);
-    mShape.push_back(2);
-    mat.setShape(mShape);
-    aValue=0.0;
-    for (int i=0;i<mShape[0];++i) {
-      for (int j=0;j<mShape[1];++j) {
-	mat(i,j)=++aValue;
-      }
-    }
-
-    // [1,2,3] x |1, 2| = [22,28]
-    //           |3, 4|
-    //           |5, 6|
-
-    cout << "Test multiplication of matrix and vector." << endl;
-    DataArray result=DataArray::matMult(v,mat);
-    assert(fabs(result(0) - 22) < 0.1);
-    assert(fabs(result(1) - 28) < 0.1);
-  }  
-*/
+  }
 
   cout << endl;
 
@@ -1909,7 +1866,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest BinaryOp on scalar DataArrayViews.";
+    cout << "\tTest binaryOp on scalar DataArrayViews.";
 
     // define the shape for the DataArrayViews
     DataArrayView::ShapeType shape;
@@ -1947,7 +1904,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest BinaryOp on shape (2,3) DataArrayViews.";
+    cout << "\tTest binaryOp on shape (2,3) DataArrayViews.";
 
     // define the shape for the DataArrayViews
     DataArrayView::ShapeType shape;
@@ -2053,7 +2010,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest BinaryOp on scalar DataArrayView and single value.";
+    cout << "\tTest binaryOp on scalar DataArrayView and single value.";
 
     // define the shape for the DataArrayView
     DataArrayView::ShapeType shape;
@@ -2087,7 +2044,7 @@ void DataArrayViewTestCase::testBinaryOp()
 
   {
     cout << endl;
-    cout << "\tTest BinaryOp on shape (2,3) DataArrayView and single value.";
+    cout << "\tTest binaryOp on shape (2,3) DataArrayView and single value.";
 
     // define the shape for the DataArrayView
     DataArrayView::ShapeType shape;
@@ -2187,6 +2144,124 @@ void DataArrayViewTestCase::testBinaryOp()
 
 }
 
+void DataArrayViewTestCase::testReductionOp()
+{
+
+  {
+    cout << endl;
+    cout << "\tTest reductionOp on scalar DataArrayView.";
+
+    // define the shape for the DataArrayView
+    DataArrayView::ShapeType shape;
+
+    // allocate the data for the DataArrayView
+    int npoints=4;
+    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+
+    // constructor
+    DataArrayView dataView(data,shape);
+
+    // step the view along each data point in the underlying data
+    for (int p=0;p<npoints;p++) {
+
+      // assign values to the data point
+      dataView()=p;
+
+      // apply a reduction operation to this data point and check the results
+      assert(dataView.reductionOp(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==p);
+
+      if (p<npoints-1) {
+        dataView.incrOffset();
+      }
+
+    }
+
+  }
+
+  {
+    cout << endl;
+    cout << "\tTest reductionOp on shape (2,3) DataArrayView.";
+
+    // define the shape for the DataArrayView
+    DataArrayView::ShapeType shape;
+    shape.push_back(2);
+    shape.push_back(3);
+
+    // allocate the data for the DataArrayView
+    int npoints=4;
+    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+
+    // constructor
+    DataArrayView dataView(data,shape);
+
+    // step the view along each data point in the underlying data
+    for (int p=0;p<npoints;p++) {
+
+      // assign values to the data point
+      for (int i=0;i<shape[0];i++) {
+        for (int j=0;j<shape[1];j++) {
+          dataView(i,j)=dataView.index(i,j);
+        }
+      }
+
+      // apply a reduction operation to this data point and check the results
+      assert(dataView.reductionOp(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==dataView.index(0,0));
+
+      if (p<npoints-1) {
+        dataView.incrOffset();
+      }
+
+    }
+
+  }
+
+  {
+    cout << endl;
+    cout << "\tTest reductionOp on shape (9,8,5,11) DataArrayView.";
+
+    // define the shape for the DataArrayView
+    DataArrayView::ShapeType shape;
+    shape.push_back(9);
+    shape.push_back(8);
+    shape.push_back(5);
+    shape.push_back(11);
+
+    // allocate the data for the DataArrayView
+    int npoints=4;
+    DataArrayView::ValueType data(DataArrayView::noValues(shape)*npoints,0);
+
+    // constructor
+    DataArrayView dataView(data,shape);
+
+    // step the view along each data point in the underlying data
+    for (int p=0;p<npoints;p++) {
+
+      // assign values to the data point
+      for (int i=0;i<shape[0];i++) {
+        for (int j=0;j<shape[1];j++) {
+          for (int k=0;k<shape[2];k++) {
+            for (int l=0;l<shape[3];l++) {
+              dataView(i,j,k,l)=dataView.index(i,j,k,l);
+            }
+          }
+        }
+      }
+
+      // apply a reduction operation to this data point and check the results
+      assert(dataView.reductionOp(DataAlgorithmAdapter<AbsMax>(0))==dataView.index(8,7,4,10));
+
+      if (p<npoints-1) {
+        dataView.incrOffset();
+      }
+
+    }
+
+  }
+
+  cout << endl;
+
+}
+
 TestSuite* DataArrayViewTestCase::suite ()
 {
   //
@@ -2198,8 +2273,9 @@ TestSuite* DataArrayViewTestCase::suite ()
   testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testScalarView",&DataArrayViewTestCase::testScalarView));
   testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testResultSliceShape",&DataArrayViewTestCase::testResultSliceShape));
   testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testSlicing",&DataArrayViewTestCase::testSlicing));
-  testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testMatMult",&DataArrayViewTestCase::testMatMult));
   testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testUnaryOp",&DataArrayViewTestCase::testUnaryOp));
   testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testBinaryOp",&DataArrayViewTestCase::testBinaryOp));
+  testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testReductionOp",&DataArrayViewTestCase::testReductionOp));
+  testSuite->addTest (new TestCaller< DataArrayViewTestCase>("testMatMult",&DataArrayViewTestCase::testMatMult));
   return testSuite;
 }

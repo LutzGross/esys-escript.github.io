@@ -38,6 +38,8 @@ void Finley_Solver_setILU0(Finley_SystemMatrix*);
 void Finley_Solver_solveILU0(Finley_SystemMatrix*, double*, double*);
 
 void Finley_Solver_getMainDiagonal(Finley_SystemMatrix*,maybelong*);
+void Finley_Solver_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_marker);
+
 void Finley_Solver_coloring(Finley_SystemMatrixPattern*,maybelong*,maybelong*);
 
 #endif /* #ifndef INC_SOLVER */

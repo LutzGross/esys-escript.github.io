@@ -18,7 +18,7 @@
 
 
 /* used to generate pseudo random numbers: */
-static double Finley_Solver_coloring_seed=.4142135623730951;
+static double Finley_Solver_coloring_seed2=.4142135623730951;
 
 #define CONNECTED_TO_CURRENT_COLOR -1
 #define NOT_COLORED_NOW -2
@@ -29,7 +29,6 @@ static double Finley_Solver_coloring_seed=.4142135623730951;
 /* inverse preconditioner setup */
 
 void Finley_Solver_coloring(Finley_SystemMatrixPattern* pattern_p,maybelong* numColors, maybelong* color) {
-#if ITERATIVE_SOLVER == NO_LIB
   int i,iptr,currentColor,naib;
   maybelong n=pattern_p->n_ptr;
   double *value=TMPMEMALLOC(n,double);
@@ -58,14 +57,14 @@ void Finley_Solver_coloring(Finley_SystemMatrixPattern* pattern_p,maybelong* num
                 #pragma omp for private(i) schedule(static)
                 for (i=0;i<n;i++) {
                    if (color[i]==MAYBE_COLORED_NOW) {
-                       value[i]=fmod(Finley_Solver_coloring_seed*(i+1),1.);
+                       value[i]=fmod(Finley_Solver_coloring_seed2*(i+1),1.);
                    } else {
                        value[i]=2.;
                    }
                 }
                 /* update the seed */
                 #pragma omp master
-                Finley_Solver_coloring_seed=fmod(sqrt(Finley_Solver_coloring_seed*(n+1)),1.);
+                Finley_Solver_coloring_seed2=fmod(sqrt(Finley_Solver_coloring_seed2*(n+1)),1.);
                 /* if a row is MAYBE_COLORED_NOW and its value is smaller than all the values of its naigbours */
                 /* the row is independent from the un-colored rows */
                 /* otherwise the row is connected to another row and the row is marked as NOT_COLORED_NOW */
@@ -73,7 +72,7 @@ void Finley_Solver_coloring(Finley_SystemMatrixPattern* pattern_p,maybelong* num
                 #pragma omp for private(naib,i,iptr) schedule(static)
                 for (i=0;i<n;i++) {
                    if (color[i]==MAYBE_COLORED_NOW) {
-                     for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; iptr++) {
+                     for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; ++iptr) {
                           naib=pattern_p->index[iptr];
                           if (naib!=i && value[naib]<=value[i]) {
                                color[i]=NOT_COLORED_NOW;
@@ -87,7 +86,7 @@ void Finley_Solver_coloring(Finley_SystemMatrixPattern* pattern_p,maybelong* num
                 #pragma omp for private(naib,iptr,i) schedule(static)
                 for (i=0;i<n;i++) {
                    if (color[i]==MAYBE_COLORED_NOW) {
-                     for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; iptr++) {
+                     for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; ++iptr) {
                           naib=pattern_p->index[iptr];
                           if (naib!=i && color[naib]<0) color[naib]=CONNECTED_TO_CURRENT_COLOR;
                      }
@@ -108,9 +107,7 @@ void Finley_Solver_coloring(Finley_SystemMatrixPattern* pattern_p,maybelong* num
   printf("row coloring finalized. %d colors used.\n",*numColors);
   #endif
   TMPMEMFREE(value);
-#endif
 }
 #undef CONNECTED_TO_CURRENT_COLOR
 #undef MAYBE_COLORED_NOW
 #undef NOT_COLORED_NOW
-

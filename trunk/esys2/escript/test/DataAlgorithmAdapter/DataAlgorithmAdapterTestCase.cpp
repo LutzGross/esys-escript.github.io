@@ -12,6 +12,9 @@
  *                                                                           *
  *****************************************************************************
 */
+
+#include "escript/Data/DataExpanded.h"
+#include "escript/Data/DataArrayView.h"
 #include "escript/Data/DataAlgorithm.h"
 #include "DataAlgorithmAdapterTestCase.h"
 
@@ -136,6 +139,114 @@ void DataAlgorithmAdapterTestCase::testAll() {
 
 }
 
+void DataAlgorithmAdapterTestCase::testAlgorithm() {
+
+  {
+    cout << endl;
+    cout << "\tTest algorithm on Data objects with a single data-point.";
+
+    // define the shape for the DataArrayView
+    DataArrayView::ShapeType shape;
+    shape.push_back(2);
+    shape.push_back(3);
+
+    // allocate the data for the DataArrayView
+    DataArrayView::ValueType dataArray(DataArrayView::noValues(shape),0);
+
+    // construct DataArrayView
+    DataArrayView dataView(dataArray,shape);
+
+    // assign values to the data point
+    for (int i=0;i<shape[0];i++) {
+      for (int j=0;j<shape[1];j++) {
+        dataView(i,j)=dataView.index(i,j);
+      }
+    }
+
+    // create a few Data objects from the created DataArrayView
+    DataExpanded dataExp(dataView,FunctionSpace());
+    DataConstant dataCon(dataView,FunctionSpace());
+    DataTagged   dataTag(dataCon);
+
+    // test algorithm on DataExpanded
+    assert(escript::algorithm(dataExp,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==0);
+    assert(escript::algorithm(dataExp,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==5);
+
+    // test algorithm on DataTagged
+    assert(escript::algorithm(dataTag,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==0);
+    assert(escript::algorithm(dataTag,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==5);
+
+    // test algorithm on DataConstant
+    assert(escript::algorithm(dataCon,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==0);
+    assert(escript::algorithm(dataCon,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==5);
+
+  }
+
+  cout << endl;
+
+}
+
+void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
+
+  {
+    cout << endl;
+    cout << "\tTest dp_algorithm on Data objects with a single data-point.";
+
+    // define the shapes for the DataArrayViews
+    DataArrayView::ShapeType shape;
+    shape.push_back(2);
+    shape.push_back(3);
+    DataArrayView::ShapeType shape2;
+
+    // allocate the data for the DataArrayViews
+    DataArrayView::ValueType dataArray(DataArrayView::noValues(shape),0);
+    DataArrayView::ValueType dataArray2(DataArrayView::noValues(shape2),0);
+
+    // construct DataArrayViews
+    DataArrayView dataView(dataArray,shape);
+    DataArrayView dataView2(dataArray2,shape2);
+
+    // assign values to the data point
+    for (int i=0;i<shape[0];i++) {
+      for (int j=0;j<shape[1];j++) {
+        dataView(i,j)=dataView.index(i,j);
+      }
+    }
+
+    // create a few Data objects from the created DataArrayViews
+    DataExpanded dataExp(dataView,FunctionSpace());
+    DataConstant dataCon(dataView,FunctionSpace());
+    DataTagged   dataTag(dataCon);
+
+    // and create Data objects to receive the results of the dp_algorithm calls
+    DataExpanded dataExp2(dataView2,FunctionSpace());
+    DataConstant dataCon2(dataView2,FunctionSpace());
+    DataTagged   dataTag2(dataCon2);
+
+    // test dp_algorithm on DataExpanded
+    escript::dp_algorithm(dataExp,dataExp2,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+    assert(dataExp2.getDataPoint(0,0)()==0);
+    escript::dp_algorithm(dataExp,dataExp2,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+    assert(dataExp2.getDataPoint(0,0)()==5);
+
+    // test dp_algorithm on DataTagged
+    escript::dp_algorithm(dataTag,dataTag2,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+    assert(dataTag2.getDataPoint(0,0)()==0);
+    escript::dp_algorithm(dataTag,dataTag2,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+    assert(dataTag2.getDataPoint(0,0)()==5);
+
+    // test dp_algorithm on DataConstant
+    escript::dp_algorithm(dataCon,dataCon2,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+    assert(dataCon2.getDataPoint(0,0)()==0);
+    escript::dp_algorithm(dataCon,dataCon2,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+    assert(dataCon2.getDataPoint(0,0)()==5);
+
+  }
+
+  cout << endl;
+
+}
+
 TestSuite* DataAlgorithmAdapterTestCase::suite ()
 {
   //
@@ -143,6 +254,8 @@ TestSuite* DataAlgorithmAdapterTestCase::suite ()
   TestSuite *testSuite = new TestSuite ("DataAlgorithmAdapterTestCase");
 
   testSuite->addTest (new TestCaller< DataAlgorithmAdapterTestCase>("testAll",&DataAlgorithmAdapterTestCase::testAll));
+  testSuite->addTest (new TestCaller<DataAlgorithmAdapterTestCase>("testAlgorithm",&DataAlgorithmAdapterTestCase::testAlgorithm));
+  testSuite->addTest (new TestCaller<DataAlgorithmAdapterTestCase>("testDpAlgorithm",&DataAlgorithmAdapterTestCase::testDpAlgorithm));
   return testSuite;
 }
 

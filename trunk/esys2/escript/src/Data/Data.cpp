@@ -603,12 +603,16 @@ Data::inf() const
 Data
 Data::maxval() const
 {
+  //
+  // set the initial maximum value to min possible double
   return dp_algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
 }
 
 Data
 Data::minval() const
 {
+  //
+  // set the initial minimum value to max possible double
   return dp_algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
 }
 
