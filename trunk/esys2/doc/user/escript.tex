@@ -1,0 +1,544 @@
+% $Id$
+
+\chapter{The module \escript}
+
+\declaremodule{extension}{escript} \modulesynopsis{Handling data on
+data points like \class{Nodes}, \class{Elements}}
+
+The class \Data of the module \escript allows handling
+data which are hold on data points \index{data points}. Examples for
+data points are nodes or the quadrature points in elements of a finite
+element mesh. Another examples a particles or the connection between
+particles in the case of discrete element methods.  Handlers to data
+points are issued by the structure which contains the data points,
+e.g. a \finley mesh.
+
+The simplest form of data attached to a data point is a single scalar
+$a$ value which for instance represent the temperature or pressure at
+this particular data point. Another example is a velocity field. in
+this case each data point holds a vector $a(0),a(1),a(2)$ representing
+the velocity at the particular data point. For the case that the
+values are representing a stress tensor the value is a matrix of the
+form
+$a(0,0),a(0,1),a(0,2),a(1,0),a(1,1),a(1,2),a(2,0),a(2,1),a(2,2)$. In
+general, values hald by data points can have up to four indices. The
+number of indices is called rank \index{rank}. The tuple of length
+rank which defines the upper-bound for each index component is called
+the shape. A stress has rank 2 and the shape is (3,3). For a vector we
+have rank 1 and shape (3,). A scalar can have rank 0 or rank 1 with
+shape (1,).
+
+In general, the data are stored for each data point. This status of
+the data is called expanded \index{expanded}. But in some cases, all
+data points hold the same value. In this case only a single value is
+stored, which is refered by each data point if needed. This saves
+memory as well as compute time. In some cases, it is very usefull to
+have slightly more general way which allows to define piecewise
+constant data. For this, each data point has to wear a tag which is an
+integer \index{tag}. The tag is used to distingish between various
+types of data points. Typical example of the usage of tags is to
+assign different material parameters to various subdomains. Then one
+assigns the same tag to all elements in a finite element mesh which
+lay in the same subdomain.  Later each tag can be assigns individual
+material parameters.
+
+The following table shows unitary operations that can be applied to an
+\Data object \var{arg}:
+\begin{tableii}{l|l}{textrm}{expression}{Description}
+\lineii{+\var{arg}} {just \var{arg} \index{+}}
+\lineii{-\var{arg}} {swapping the sign\index{-}}
+\lineii{\function{abs}(\var{arg})} {absolute value}
+\lineii{\function{sin}(\var{arg})} {sine function}
+\lineii{\function{cos}(\var{arg})} {cosine function}
+\lineii{\function{exp}(\var{arg})} {exponential function}
+\lineii{\function{sqrt}(\var{arg})} {square root}
+\end{tableii}
+An unitary operation returns a \Data objects of the same shape
+and defined on the data points like \var{arg}.
+
+The following table shows binary operations that can be applied to
+\Data objects:
+\begin{tableii}{l|l}{textrm}{expression}{Description}
+\lineii{\var{arg1}+\var{arg2}} {adds \var{arg1} and \var{arg2} \index{+}}
+\lineii{\var{arg1}*\var{arg2}} {multiplies \var{arg1} and \var{arg2} \index{*}}
+\lineii{\var{arg1}-\var{arg2}} {difference \var{arg2} from\var{arg2} \index{-}}
+\lineii{\var{arg1}/\var{arg2}} {ratio \var{arg1} by \var{arg2} \index{/}}
+\lineii{\var{arg1}**\var{arg2}} {raises \var{arg1} to the power of \var{arg2} \index{**}}
+\end{tableii}
+At least on of the arguments \var{arg1} or \var{arg2} must be a
+\Data object. One of the arguments may be an object that can be
+converted into a \Data object. If \var{arg1} or \var{arg2} are
+defined on different data points it is tried to interpolate \var{arg1}
+onto the data points of \var{arg2} or to interpolate \var{arg2} onto
+the data points of \var{arg1}. Boths arguments must have the same
+shape or one of the arguments my be of rank 0 or shape (1,). In the
+latter case it is assumed that the particular argument is of the same
+shape like the other argument but constant over all components.
+
+The returned \Data object has the same shape and is defined on
+the data points like \var{arg1} or \var{arg2}.
+
+The following table shows the update operations that can be applied to
+\Data objects:
+\begin{tableii}{l|l}{textrm}{expression}{Description}
+\lineii{\var{arg1}+=\var{arg2}} {adds \var{arg1} to \var{arg2} \index{+}}
+\lineii{\var{arg1}*=\var{arg2}} {multiplies \var{arg1} with \var{arg2} \index{*}}
+\lineii{\var{arg1}-=\var{arg2}} {subtracts \var{arg2} from\var{arg2} \index{-}}
+\lineii{\var{arg1}/=\var{arg2}} {divides \var{arg1} by \var{arg2} \index{/}}
+\end{tableii}
+\var{arg1} must be a \Data object. \var{arg1} must be a
+\Data object or an object that can be converted into a
+\Data object. \var{arg1} must have the same shape like
+\var{arg1} or has rank 0 or shape (1,).  In the latter case it is
+assumed that the values of \var{arg1} are constant for all
+components. \var{arg2} must be defined on the same data points like
+\var{arg1} or it must be possible to interpolate \var{arg2} onto the
+data points where \var{arg1} is hold.
+
+
+%TODO:
+Slicing \index{slicing}.
+
+\begin{classdesc}{Data}{}
+A class that holds values assigned to data points.
+\end{classdesc}
+
+\begin{classdesc}{Scalar}{value=None,where=None,expand=None}
+A class that holds a single value per data point.
+\end{classdesc}
+
+\begin{classdesc}{Vector}{value=None,dim=None,where=None,expand=None}
+A class that holds a vector per data point.
+\end{classdesc}
+
+\begin{classdesc}{Tensor}{value=None,dim=None,where=None,expand=None}
+A class that holds a tensor order 2 (matrix) per data point.
+\end{classdesc}
+
+\begin{classdesc}{Tensor3}{value=None,dim=None,where=None,expand=None}
+A class that holds a tensor order 3 per data point.
+\end{classdesc}
+
+\begin{classdesc}{Tensor4}{value=None,dim=None,where=None,expand=None}
+A class that holds a tensor order 4 per data point.
+\end{classdesc}
+
+\begin{funcdesc}{abs}{arg}
+returns the absulute value of \Data \var{arg}. The returned
+\Data object has the same rank, shape and is defined on the
+same \class{_Atom} like \var{arg}. An entries in the returned object
+is the absolute value of the corresponding entry in \var{arg}.
+\index{absolute value}
+\end{funcdesc}
+
+\begin{funcdesc}{L2}{arg}
+  returns the $L^2$-norm of the \Data \var{arg} by using method
+\method{arg.L2()}.  \index{$L^2$-norm}
+\end{funcdesc}
+
+\begin{funcdesc}{grad}{arg}
+returns the gradient of the interpolation function of \Data
+\var{arg} by using \method{arg.grad}. \index{gradient}
+\end{funcdesc}
+
+\begin{funcdesc}{integrate}{arg}
+returns the integral of the interpolation function of \Data
+\var{arg} by using \method{arg.integrate}. \index{integral}
+\end{funcdesc}
+
+\begin{funcdesc}{interpolate}{arg,where}
+interpolates the \Data \var{arg} onto \class{_Atom} where by
+using \method{arg.interpolate}. \index{interpolation}
+\end{funcdesc}
+
+\begin{funcdesc}{transpose}{arg}
+returns the transpose of \var{arg} where \var{arg} has to be
+\Data or \class{numarray.array}. If \var{arg} is of
+\Data the method \method{arg.transpose} is used otherwise
+\function{numarray.transpose} is called. \index{transpose}
+\end{funcdesc}
+
+\begin{funcdesc}{trace}{arg}
+returns the trace of \var{arg} where \var{arg} has to be \Data
+or \class{numarray.array} of rank 2. If \var{arg} is of \Data
+the method \method{arg.trace} is used otherwise
+\function{numarray.trace} is called. \index{trace}
+\end{funcdesc}
+
+\begin{funcdesc}{exp}{arg}
+applies the exponential function to \var{arg} where \var{arg} has to
+be \Data or \class{numarray.array}. If \var{arg} is of
+\Data the method \method{arg.exp} is used otherwise
+\function{numarray.exp} is called. \index{exponential function}
+\end{funcdesc}
+
+\begin{funcdesc}{sqrt}{arg}
+applies the square root function to \var{arg} where \var{arg} has to
+be \Data or \class{numarray.array}. If \var{arg} is of
+\Data the method \method{arg.sqrt} is used otherwise
+\function{numarray.sqrt} is called. \index{square root}
+\end{funcdesc}
+
+\begin{funcdesc}{sin}{arg}
+applies the sine function to \var{arg} where \var{arg} has to be
+\Data or \class{numarray.array}. If \var{arg} is of
+\Data the method \method{arg.sin} is used otherwise
+\function{numarray.sin} is called. \index{sine function}
+\end{funcdesc}
+
+\begin{funcdesc}{cos}{arg}
+applies the cosine function to \var{arg} where \var{arg} has to be
+\Data or \class{numarray.array}. If \var{arg} is of
+\Data the method \method{arg.cos} is used otherwise
+\function{numarray.cos} is called. \index{cosine function}
+\end{funcdesc}
+
+\begin{funcdesc}{maxval}{arg}
+returns for each data point the maximum value over all components of
+\Data \var{arg} by using \method{arg.maxval}.  \index{maximum
+value}
+\end{funcdesc}
+
+\begin{funcdesc}{minval}{arg}
+returns for each data point the minimum value over all components of
+\Data \var{arg} by using \method{arg.minval}.  \index{minimum
+value}
+\end{funcdesc}
+
+\begin{funcdesc}{inf}{arg}
+returns the minimum value (infimum) over all components and all data
+points of \Data \var{arg} by using \method{arg.inf}.
+\index{infimum}
+\end{funcdesc}
+
+\begin{funcdesc}{sup}{arg}
+returns the maximum value (supremum) over all components and all data
+points of \Data \var{arg} by using \method{arg.sup}.
+\index{supremum}
+\end{funcdesc}
+
+\begin{funcdesc}{Lsup}{arg}
+returns the maximum absulute value ($L^{sup}$-norm) over all
+components and all data points of \Data \var{arg} by using
+\method{arg.sup}.  The returned value equals
+\function{sup}(\function(arg)).  \index{$L^{sup}$-norm}
+\end{funcdesc}
+
+\begin{funcdesc}{matmult}{arg1,arg2}
+returns for each data point the matrix-matrix product of \var{arg1}
+and \var{arg2} \index{matrix-matrix product}. At least of the
+arguments \var{arg1} and \var{arg2} has to be a \Data
+object. If the other argument is not a \Data object it must be
+convertable into a \Data object. The returned \Data
+object has rank \var{arg1.getRank()}+\var{arg2.getRank()}-2 and shape
+(\var{arg1.getShape()}[r-1],\var{arg2.getShape()}[1:]), where
+\var{r}=\var{arg1.getRank()}. The last dimension of \var{arg1} and the
+first dimension of \var{arg2} have to match,
+i.e. \var{arg1.getShape()[r-1]}=\var{arg2.getShape()[0]}
+
+For the case that \var{arg1} and \var{arg2} are both of rank $2$ the
+result \var{res} is calculated as
+\begin{equation}
+res(i,j;s)=
+arg1(i,0;s) \cdot arg2(0,j;s)+
+\ldots
+arg1(i,n-1;s) \cdot arg2(n-1,j;s)
+\end{equation}
+for all $0\le i <$ \var{arg1.getShape()[0]}, $0\le j <$
+\var{arg2.getShape()[1]} and all data points $s$, where
+$n$=\var{arg2.getShape()[0]},
+
+If the arguments are not defined on the same data points, \var{arg1}
+is tried to be interpolated on the data points of \var{arg2} or
+\var{arg2} is tried to be interpolated on the data points of
+\var{arg1}. What ever case works defines the data points of the
+result.
+\end{funcdesc}
+
+%==================================================================
+\section{\Data class}
+\begin{classdesc}{Data}{value=None,shape=None,where=None,expand=None}
+\end{classdesc}
+
+\begin{methoddesc}[Data]{getAtoms}{}
+returns a handel to the data points on which the object is definded
+\index{data points}.  The returned object is of \class{_Atoms}.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{getShape}{}
+returns the shape of the data on each data point as a \class{tuple} of
+integers. \index{shape}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{getRank}{}
+returns the rank of the data on each data point. \index{rank}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{hasShape}{shape}
+is true if the object has the shape \var{shape}.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{expand}{}
+returns an expanded version of the object if the object is not
+expanded. Otherwise it returns itself. \index{expanded}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{makeExpanded}{}
+turns the object into an expanded \Data
+object. \index{expanded}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{isExpanded}{}
+is true if the object is expanded. \index{expanded}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{isTagged}{}
+is true if the object is defined using tags. \index{tagged}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{asArray}{}
+returns the object as a \class{numarray.array} array. The array is one
+rank higher than the rank of the object. The extra dimension is the
+number of data points.
+% TODO: be more accurate on the shape
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{addTaggedValue}{tag,value=0}
+assigns the \var{value} to all data points which have the tag
+\var{tag} which has to be an integer or a list of
+integers. \var{value} must be an object of class
+\class{numarray.array} or must be convertable into a
+\class{numarray.array} object. \var{value} (or the cooresponding
+\class{numarray.array} object) must be of rank $0$ or must have the
+same rank like the object. \index{tagged}
+
+If a value has allready be defined for tag \var{tag} within the object
+it is overwritten by the new \var{value}.  If the object is expanded,
+the value assigned to data points with tag \var{tag} is replaced by
+\var{value}.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{getTaggedValue}{tag}
+returns the value assigned to \var{tag}. An exception is raised if the
+object is not defined by tagged data, e.g. if the object is
+expanded.\index{tagged}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{L2}{}
+returns the $L^2$-norm of the object. This is square root of sum of
+the squares of all values over all components and all data points.
+\index{$L^2$-norm}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{grad}{}
+returns the gradient of the interpolation function. The returned
+\Data object is of rank r+1 where r is the rank of the object.
+Typically the object of to be defined on nodes and the returned
+gradient is defined on the quadrature points of elements.
+\index{gradient}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{integrate}{}
+returns the integral of the interpolation function. The method returns
+a \class{numarray.array} object of the same shape like the object.  A
+component of the returned object is the integral of the corresponding
+component of the object.  \index{integral}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{interpolate}{where}
+interpolates onto the data points of the \class{_Atom}
+\var{where}. The returned \Data object is of the same shape
+like the object and is defined on the data points \var{where}.
+\index{interpolation}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{transpose}{}
+returns the transpose of the object. The return value is an object has
+the same shape and is defined on the same data points like the object.
+For each data point the value is set to transposed of the
+corresponding value of the object by reversing the index of the data.
+
+For the case that object \var{self} is of rank 3 the result \var{res} is
+\begin{equation}
+res(i,j,k;s)=self(k,j,i;s)
+\end{equation}
+for all 
+$0\le i <$ \var{self.getShape()[2]},
+$0\le j <$ \var{self.getShape()[1]},
+$0\le k <$ \var{self.getShape()[0]}
+and all data points $s$.
+\index{transpose}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{trace}{}
+returns the trace of the object of rank 2. The return value is an
+object has rank 0 or shape (1,) and is defined on the same data points
+like the object. For each data point the value is set to sum of the
+main diagonal entries.
+
+For the case that object \var{self} is of rank 2 the result \var{res}
+is
+\begin{equation}
+res(0;s)=
+self(0,0;s)+
+self(1,1;s)+
+\ldots +
+self(n,n;s)
+\end{equation}
+for all data points $s$ where
+$n=min($\var{self.getShape()[0]},\var{self.getShape()[1]}$)$.
+\index{trace}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{exp}{}
+applies the exponential function to the values of the object. The
+return value is an object has the same shape and is defined on the
+same data points like the object.  For each data point and all
+components the value is calculated by applying the exponention
+function to the corresponding value of the object.  \index{exponential
+function}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{sqrt}{}
+applies the square root function to the values of the object. The
+return value is an object has the same shape and is defined on the
+same data points like the object.  For each data point and all
+components the value is calculated by applying the square root
+function to the corresponding value of the object. An exception is
+raised if the value is negative.  \index{square root}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{sin}{}
+applies the sine function to the values of the object. The return
+value is an object has the same shape and is defined on the same data
+points like the object.  For each data point and all components the
+value is calculated by applying the sine function to the
+corresponding value of the object.  \index{sine function}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{cos}{}
+applies the cosine function to the values of the object. The return
+value is an object has the same shape and is defined on the same data
+points like the object.  For each data point and all components the
+value is calculated by applying the cosine function to the
+corresponding value of the object.  \index{cosine function}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{maxval}{}
+returns for each data point the maximum value over all components. The
+return value is an object of rank 0 or shape (1,) and is defined on
+the same data points like the object.  \index{maximum value}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{minval}{}
+returns for each data point the minimum value over all components. The
+return value is an object of rank 0 or shape (1,) and is defined on
+the same data points like the object.  \index{minimum value}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{inf}{}
+returns the minimum value (infimum) of the object. The minimum is
+taken over all components and all data points.  \index{infimum}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{sup}{}
+returns the maximum value (supremum) of the object. The maximum is
+taken over all components and all data points.  \index{supremum}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{Lsup}{}
+returns the $L^{sup}$-norm of the object. This is maximum value of the
+absolut values of the object over all data points and all components.
+\index{$L^{sup}$-norm}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{wherePositive}{}
+returns \Data object which has the same shape and is defined on
+the same data points like the object. The returned values are $1$
+where the object is positive and $0$ elsewhere.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{whereNonnegative}{}
+returns \Data object which has the same shape and is defined on
+the same data points like the object. The returned values are $1$
+where the object is non-negative and $0$ elsewhere.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{whereNegative}{}
+returns \Data object which has the same shape and is defined on
+the same data points like the object. The returned values are $1$
+where the object is negative and $0$ elsewhere.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{whereZero}{tolerance=Constants.EPSILON}
+returns \Data object which has the same shape and is defined on
+the same data points like the object. The returned values are $1$
+where the object is nearly zero, i.e. where the absolute value is less
+than \var{tolerance}, and $0$ elsewhere.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{whereNonzero}{tolerance=Constants.EPSILON}
+returns \Data object which has the same shape and is defined on
+the same data points like the object. The returned values are $1$
+where the object is nearly non-zero, i.e. where the absolute value is
+greater or equal than \var{tolerance}, and $0$ elsewhere.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{saveDX}{fileName}
+saves the object to an openDX format file of name \var{fileName}, see
+\ulink{www.opendx.org}{\url{www.opendx.org}}.  \index{openDX}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{saveMM}{fileName}
+saves the object to a matrix market format file of name
+\var{fileName}, see
+\ulink{maths.nist.gov/MatrixMarket}{\url{http://maths.nist.gov/MatrixMarket}}.
+\index{Matrix Market}
+\end{methoddesc}
+
+%=====================================================
+\section{Subclasses of \var{class}}
+\begin{classdesc}{Scalar}{value=None,where=None,expand=None}
+\Data object with a single value (scalar) per data
+point. \var{value} must be a float number.  If \var{expand} is true,
+the \var{value} is copied to each data point.
+\end{classdesc}
+
+\begin{classdesc}{Vector}{value=None,dim=None,where=None,expand=None}
+\Data object with a vector of length \var{dim} value (scalar)
+per data point.  If \var{dim} is not present or equals \var{None},
+\var{dim} is assumed to be the spatial dimension of the data points
+defined by \var{where}. \var{value} may be a float number or a
+\class{numarray.array} object with shape (\var{dim},).  If
+\var{expand} is true, the \var{value} is copied to each data point.
+\end{classdesc}
+
+\begin{classdesc}{Tensor}{value=None,dim=None,where=None,expand=None}
+\Data object with a \var{dim} $\times$ \var{dim} - tensor of
+order 2 per data point.  If \var{dim} is not present or equals
+\var{None}, \var{dim} is assumed to be the spatial dimension of the
+data points defined by \var{where}. \var{value} may be a float number
+or a \class{numarray.array} object with shape (\var{dim},\var{dim}).
+If \var{expand} is true, the \var{value} is copied to each data point.
+\end{classdesc}
+
+\begin{classdesc}{Tensor3}{value=None,dim=None,where=None,expand=None}
+\Data object with a \var{dim} $\times$ \var{dim} $\times$
+\var{dim} - tensor of order 3 per data point.  If \var{dim} is not
+present or equals \var{None}, \var{dim} is assumed to be the spatial
+dimension of the data points defined by \var{where}. \var{value} may
+be a float number or a \class{numarray.array} object with shape
+(\var{dim},\var{dim},var{dim}).  If \var{expand} is true, the
+\var{value} is copied to each data point.
+\end{classdesc}
+
+\begin{classdesc}{Tensor4}{value=None,dim=None,where=None,expand=None}
+\Data object with a \var{dim} $\times$ \var{dim} $\times$
+\var{dim} $\times$ \var{dim} - tensor of order 4 per data point.  If
+\var{dim} is not present or equals \var{None}, \var{dim} is assumed to
+be the spatial dimension of the data points defined by
+\var{where}. \var{value} may be a float number or a
+\class{numarray.array} object with shape
+(\var{dim},\var{dim},var{dim},var{dim}).  If \var{expand} is true, the
+\var{value} is copied to each data point.
+\end{classdesc}

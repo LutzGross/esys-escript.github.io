@@ -1,0 +1,41 @@
+
+after clean checkout:
+
+to make - "mk"
+
+to remake - "make clean"
+
+manual make order - "mmio -> esysUtils -> escript -> finley"
+
+
+before starting, need to:
+
+. setOMPEnv
+. setTestEnv
+ 
+23 August 2004 (jgs):
+
+Changed to Makefile structure:
+
+	standardised all Makefile names: $module.mk, Makefile -> $module.mk
+
+	make: augmented Makefiles with comments throughout
+
+	Makefile.default - changed order of includes for clarity
+	Makfile.phony    - reordered phony targets
+			 - added target "all" - now first target to be encountered
+
+	escript: added "pyc" to default target
+
+	finley: merged two original makefiles
+		two default targets: libfinleyC.a libfinley.so
+
+	for each module now - just need to do "make" or "make clean"
+
+Rewrote "mk" in root directory - "mk clean" to do full clean rebuild
+
+23 September 2004 (jgs):
+
+Makefile symlinks now created by mk and unit_test scripts
+
+.so and inc symlinks now created by mk script

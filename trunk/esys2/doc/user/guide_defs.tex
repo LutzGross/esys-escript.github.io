@@ -1,0 +1,82 @@
+% $Id$
+
+\usepackage{epsfig}
+\usepackage{graphicx,color}
+\usepackage{makeidx}  % handle the index properly
+\usepackage{xspace}   % handle spaces after commands more nicely
+% use the ams math stuff, as it makes the maths easier to code, and
+% nicer output than the standard LaTeX stuff
+\usepackage{amsmath,amsfonts,amssymb} % this is handy for mathematicians and physicists
+			              % see http://www.ams.org/tex/amslatex.html
+\usepackage{alltt}   % handy verbatim stuff
+
+
+% define some handy commands for escript stuff
+\newcommand{\ESyS}{\module{ESyS}\xspace}
+\newcommand{\escript}{\module{escript}\xspace}
+\newcommand{\finley}{\module{finley}\xspace}
+\newcommand{\linearPDE}{\class{linearPDE}\xspace}
+\newcommand{\Data}{\class{Data}\xspace}
+
+% default width for figures
+\newcommand{\figwidth}{100mm}
+
+% commands useful in cross-referencing
+\newcommand {\Ref}[1] {Reference~\cite{#1}}
+\newcommand {\Sec}[1] {Section~\ref{#1}}
+\newcommand {\App}[1] {Appendix~\ref{#1}}
+\newcommand {\Chap}[1] {Chapter~\ref{#1}}
+\newcommand {\etal} {\emph{~et~al.}}
+\newcommand {\fig}[1] {Figure~\ref{#1}}
+\newcommand {\eqn}[1] {Equation~(\ref{#1})} 
+\newcommand {\tab}[1] {Table~\ref{#1}}
+
+% improved version of caption handling
+\usepackage{ccaption}
+\captionnamefont{\scshape}
+\captionstyle{}
+\makeatletter
+\renewcommand{\fnum@figure}[1]{\quad\small\textsc{\figurename~\thefigure}:}
+\renewcommand{\@makecaption}[2]{%
+\vskip\abovecaptionskip
+\sbox\@tempboxa{#1: #2}%
+\ifdim \wd\@tempboxa >\hsize
+  \def\baselinestretch{1}\@normalsize
+  #1: #2\par
+  \def\baselinestretch{1.5}\@normalsize
+\else
+  \global \@minipagefalse
+  \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+\fi
+\vskip\belowcaptionskip}
+\makeatother
+
+\usepackage{fancyvrb}  % fancy verbatim stuff.  Needed so code below goes
+%%% this code grabbed from the PyScript docs
+%%% pyscript.sourceforge.net
+
+% --------------------------------------------------------------
+% Code format within \Verb
+% --------------------------------------------------------------
+
+\definecolor{pycolor}{rgb}{0,0.4,0}
+
+\DefineVerbatimEnvironment{python}{Verbatim}
+{frame=leftline,framerule=.5mm,rulecolor=\color{pycolor},
+formatcom=\color{pycolor}\small,fontshape=rm}
+
+%\DefineShortVerb[formatcom=\color{dgreen}\small,fontshape=sl]{\|}
+
+\RecustomVerbatimCommand{\Verb}{Verb}{formatcom=\color{pycolor}\small,fontshape=rm}
+
+%%% end of grabbed code
+
+% this is for when one uses pdflatex and therefore needs to load pdf
+% figures into \includegraphics
+\ifpdf
+	\DeclareGraphicsExtensions{.pdf}  % this command defined in graphicx
+	\pdfcompresslevel=9  % 0: no compression, 9: highest compression
+			     % or, set compress_level 9 in file pdftex.cfg
+\else
+	\DeclareGraphicsExtensions{.eps}
+\fi
