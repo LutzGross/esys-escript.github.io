@@ -3,16 +3,10 @@
 import sys
 import os
 import unittest
-                                                                                                                                                          
-esys_root=os.getenv('ESYS_ROOT')
-sys.path.append(esys_root+'/finley/lib')
-sys.path.append(esys_root+'/escript/lib')
-sys.path.append(esys_root+'/escript/py_src')
-                                                                                                                                                          
-from escript import *
-from util import *
 
-import finley
+from esys.escript import *
+import esys.finley
+
 import math
 TMPFILE="tmp.msh"
 numElm=1

@@ -1,8 +1,11 @@
 # $Id$
+
 """tests a variety of functions in connection with contact elements"""
-from escript import *
-from linearPDEs import LinearPDE
-import finley
+
+from esys.escript import *
+from esys.linearPDEs import LinearPDE
+import esys.finley
+
 import math
 numElements=4
 numEquations=2
@@ -18,14 +21,14 @@ def randomNum():
 
 def mkMesh(dim,order,numElm,onElem):
     if dim==2:
-         ms1=finley.Rectangle(numElm,numElm,order,l1=0.5,useElementsOnFace=onElem)
-         ms2=finley.Rectangle(numElm,numElm,order,l1=0.5,useElementsOnFace=onElem)
+         ms1=Rectangle(numElm,numElm,order,l1=0.5,useElementsOnFace=onElem)
+         ms2=Rectangle(numElm,numElm,order,l1=0.5,useElementsOnFace=onElem)
          ms2.setX(ms2.getX()+[0,0.5])
     else:
-         ms1=finley.Brick(numElm,numElm,numElm,order,l2=0.5,useElementsOnFace=onElem)
-         ms2=finley.Brick(numElm,numElm,numElm,order,l2=0.5,useElementsOnFace=onElem)
+         ms1=Brick(numElm,numElm,numElm,order,l2=0.5,useElementsOnFace=onElem)
+         ms2=Brick(numElm,numElm,numElm,order,l2=0.5,useElementsOnFace=onElem)
          ms2.setX(ms2.getX()+[0,0,0.5])
-    return finley.JoinFaces([ms1,ms2])
+    return JoinFaces([ms1,ms2])
 
 
 def mkCharateristicFunction(msh):
@@ -46,7 +49,8 @@ def mkCharateristicFunction(msh):
       e=Function(msh)
       d=msh.getDim()
       x=e.getX()[d-1]
-      mypde=LinearPDE(D=1,Y=(x-0.5).whatPositive())
+      mypde=LinearPDE(msh)
+      mypde.setValue(D=1,Y=(x-0.5).whatPositive())
       return 2*mypde.getSolution(**options)-1
 
 max_error_text=""

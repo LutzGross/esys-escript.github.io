@@ -681,6 +681,13 @@ class Data {
 
   /**
     \brief
+    writes the object to a file in the DX file format
+  */
+  void
+  saveDX(std::string fileName) const;
+
+  /**
+    \brief
     Return the negation of each data point of this Data object.
   */
   Data

@@ -48,9 +48,9 @@ print "norm_u_ex=u_ex.Lsup():"
 norm_u_ex=u_ex.Lsup()
 
 print "mypde=LinearPDE( A=[[1.,0.8],[0.4,1.]], D=alpha, Y=alpha, domain=mydomain)"
-mypde=LinearPDE(A=[[1.,0.8],[0.4,1.]],D=alpha,Y=alpha,domain=mydomain)
+mypde=LinearPDE(mydomain)
 mypde.setDebugOn()
-#mypde=LinearPDE(A=[[1.,0.],[0.,1.]],D=alpha,Y=alpha,domain=mydomain)
+mypde.setValue(A=[[1.,0.8],[0.4,1.]],D=alpha,Y=alpha)
 mypde.getOperator().saveMM("t.msh")
 
 # generate a test solution 1
@@ -87,7 +87,8 @@ print "msk=x[0].whereZero()+(x[0]-1.).whereZero()"
 msk=x[0].whereZero()+(x[0]-1.).whereZero()
 
 print "mypde=LinearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)"
-mypde=LinearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)
+mypde=LinearPDE(mydomain)
+mypde.setValue(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)
 mypde.setDebugOn()
 
 # generate a test solution 2
@@ -98,7 +99,7 @@ print "----------------------------"
 print "\nDirect Solver (2)=>"
 
 # mypde.setSymmetryOn() : is not woking yet!
-mypde.setSolverMethod(DIRECT)
+mypde.setSolverMethod(mypde.DIRECT)
 u_d=mypde.getSolution()
 
 print "\nIterative Solver (2)=>"

@@ -326,8 +326,6 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   */
   virtual escript::Data getSize() const;
 
-
-  // `virtual bool operator==(const escript::AbstractDomain& other) const;
   bool operator==(const MeshAdapter& other) const;
   bool operator!=(const MeshAdapter& other) const;
 

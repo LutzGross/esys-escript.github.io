@@ -17,7 +17,7 @@
 #include "esysUtils/EsysException.h"
 
 #include <iostream>
-#include <vector>;
+#include <vector>
 
 using namespace CppUnitTest;
 using namespace esysUtils;
