@@ -70,8 +70,8 @@ void  Finley_RawScaledSystemMatrixVector(double alpha,
     double beta,
     double* out) {
 
-  maybelong ir,icol,iptr,icb,irb,irow,ic;
-  double reg,reg1,reg2,reg3;
+  register maybelong ir,icol,iptr,icb,irb,irow,ic;
+  register double reg,reg1,reg2,reg3;
   #pragma omp barrier
 
   if (ABS(beta)>0.) {
@@ -99,7 +99,7 @@ void  Finley_RawScaledSystemMatrixVector(double alpha,
 	}
 	break;
       case CSC:
-        /* TODO: parallelize */
+        /* TODO: parallelize (good luck!) */
         #pragma omp single
 	for (icol=0;icol< A->pattern->n_ptr;++icol) {
 	  for (iptr=A->pattern->ptr[icol]-PTR_OFFSET;iptr<A->pattern->ptr[icol+1]-PTR_OFFSET; ++iptr) {

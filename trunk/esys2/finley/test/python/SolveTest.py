@@ -25,7 +25,7 @@ len_x0=1.
 alpha=0.1
 
 #############################################################################################################3
-def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method):
+def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
 
     print "Vector solver:"
     recDim=array([len_x0,1.,1.])
@@ -77,7 +77,7 @@ def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method):
     mypde.setSolverMethod(solver_method)
 
     # Solve for Approximate Solution
-    u_approx = mypde.getSolution(iter_max=10000)
+    u_approx = mypde.getSolution(preconditioner=prec,iter_max=10000)
 
     # Report Results
     error=Lsup(u - u_approx)/Lsup(u)
@@ -88,7 +88,7 @@ def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method):
 
 #################################################################################################################
 
-def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method):
+def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
 
     print "Scalar solver:"
     recDim=array([len_x0,1.,1.])
@@ -131,7 +131,7 @@ def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method):
     mypde.setSolverMethod(solver_method)
 
     # Solve for Approximate Solution
-    u_approx = mypde.getSolution(iter_max=10000)
+    u_approx = mypde.getSolution(preconditioner=prec,iter_max=10000)
 
     # Report Results
     error=Lsup(u - u_approx)/Lsup(u)
@@ -146,13 +146,16 @@ def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method):
 print "Test is started:"
 print "----------------"
 error=0.
-for numDim in [2,3]:
-   for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400]:
-      # for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400]:
-      for problem in [solveScalar,solveVector]:
+# for numDim in [2,3]:
+for numDim in [3]:
+   for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400]:
+      # for problem in [solveScalar,solveVector]:
+      for problem in [solveScalar]:
          # for solver_method in [ LinearPDE.PRES20, LinearPDE.PCG, LinearPDE.DIRECT, LinearPDE.BICGSTAB]:
          for solver_method in [ LinearPDE.PCG ]:
-            error=max([problem(numDim, totalNumElem, len_x0, alpha, solver_method),error])
+            # for prec in [ LinearPDE.JACOBI, LinearPDE.ILU0 ]:
+            for prec in [ LinearPDE.ILU0 ]:
+               error=max([problem(numDim, totalNumElem, len_x0, alpha, solver_method,prec),error])
 print "----------------"
 print "maximum error over all tests is ",error
 print "----------------"

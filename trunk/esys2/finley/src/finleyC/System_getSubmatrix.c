@@ -46,10 +46,10 @@ Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,int
                  for (i=0;i<n_row_sub;++i) {
                      subpattern_row=row_list[i];
                      for (k=A->pattern->ptr[subpattern_row]-PTR_OFFSET;k<A->pattern->ptr[subpattern_row+1]-PTR_OFFSET;++k) {
-                        tmp=new_col_index[A->pattern->index[k]-INDEX_OFFSET]+INDEX_OFFSET;
+                        tmp=new_col_index[A->pattern->index[k]-INDEX_OFFSET];
                         if (tmp>-1) {
                            for (m=out->pattern->ptr[i]-PTR_OFFSET;m<out->pattern->ptr[i+1]-PTR_OFFSET;++m) {
-                               if (A->pattern->index[m]==tmp) {
+                               if (out->pattern->index[m]==tmp+INDEX_OFFSET) {
                                    Finley_copyDouble(A->block_size,&(A->val[k*A->block_size]),&(out->val[m*A->block_size]));
                                    break;
                                }
@@ -64,13 +64,3 @@ Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,int
       }
       return out;
 }
-/*
- * $Log$
- * Revision 1.2  2005/02/28 07:06:33  jgs
- * *** empty log message ***
- *
- * Revision 1.1.2.1  2005/02/18 02:27:31  gross
- * two function that will be used for a reimplementation of the ILU preconditioner
- *
- *
- */

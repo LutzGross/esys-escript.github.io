@@ -72,7 +72,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
 	   local_X=THREAD_MEMALLOC(NN*numDim,double);
 	   if (! Finley_checkPtr(local_X) ) {
 	     /* open the element loop */
-             #pragma omp for private(e,min_diff,diff,n0,n1,d,q,i,element_size_array)
+             #pragma omp for private(e,min_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
 	     for(e=0;e<elements->numElements;e++) {
 	       /* gather local coordinates of nodes into local_X(numDim,NN): */
 	       Finley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(node_offset,e,NN)]),numDim,nodes->Coordinates,local_X);
@@ -103,11 +103,3 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   }
   return;
 }
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:32  jgs
- * *** empty log message ***
- *
- *
- *
- */

@@ -41,7 +41,7 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_Syst
             subpattern_row=row_list[i];
             for (k=pattern->ptr[subpattern_row]-PTR_OFFSET;k<pattern->ptr[subpattern_row+1]-PTR_OFFSET;++k) 
                if (new_col_index[pattern->index[k]-INDEX_OFFSET]>-1) j++;
-            ptr[subpattern_row]=j;
+            ptr[i]=j;
         }
      }
      /* accummulate ptr */
@@ -57,7 +57,10 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_Syst
              subpattern_row=row_list[i];
              for (k=pattern->ptr[subpattern_row]-PTR_OFFSET;k<pattern->ptr[subpattern_row+1]-PTR_OFFSET;++k) {
                 tmp=new_col_index[pattern->index[k]-INDEX_OFFSET];
-                if (tmp>-1) index[j++]=tmp;
+                if (tmp>-1) {
+                    index[j]=tmp;
+                    ++j;
+                }
              }
         }
         /* create return value */
@@ -70,13 +73,3 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_Syst
   }
   return out;
 }
-/*
- * $Log$
- * Revision 1.2  2005/02/28 07:06:33  jgs
- * *** empty log message ***
- *
- * Revision 1.1.2.1  2005/02/18 02:27:31  gross
- * two function that will be used for a reimplementation of the ILU preconditioner
- *
- *
- */
