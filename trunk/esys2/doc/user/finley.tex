@@ -28,43 +28,43 @@ is parallelized using the OpenMP \index{OpenMP} paradigm.
 
 \subsection{Meshes}
 To understand the usage of \finley one needs to have an understanding of how the finite element meshes
-\index{FEM!mesh} are defined. \fig{FINLEY FIG 0} shoes an example of the
+\index{FEM!mesh} are defined. \fig{FINLEY FIG 0} shows an example of the
 subdivision of an ellipse into so called elements \index{FEM!elements} \index{element}. 
 In this case, triangles have been used but other forms of subdivisions
 can be constructed, e.g. into quadrilaterals or, in the three dimensional case, into tetrahedrons
 and hexahedrons. The idea of the finite element method is to approximate the solution by a function
 which is a polynomial of a certain order and is continuous across it boundary to neighbour elements.
-In the example of \fig{FINLEY FIG 0} a linear polynomial is used on each triangle. As one can seen, the triangulation
-is a quite poor approximation of the ellipse. It can be improved by introducing a midpoint on each element edge and
-position those nodes, which are located on an edge expecting to describing the boundary, onto the boundary.
+In the example of \fig{FINLEY FIG 0} a linear polynomial is used on each triangle. As one can see, the triangulation
+is quite a poor approximation of the ellipse. It can be improved by introducing a midpoint on each element edge then
+positioning those nodes located on an edge expected to describe the boundary, onto the boundary.
 In this case the triangle gets a curved edge which requires a parametrization of the triangle using a 
 quadratic polynomial. For this case, the solution is also approximated by a piecewise quadratic polynomial
 (which explains the name isoparametrical elements), see \Ref{Zienc,NumHand} for more details.   
 
 The union of all elements defines the domain of the PDE.
-Each element is defined by the nodes used to describe is shape. In \fig{FINLEY FIG 0} the element,
-which have type \finleyelement{Tri3},
-with the element reference number $19$ \index{element!reference number} is defined by the nodes
-with the reference numbers $9$, $11$ and $0$ \index{node!reference number}. Notice that the order is counterclockwise. 
+Each element is defined by the nodes used to describe its shape. In \fig{FINLEY FIG 0} the element,
+which has type \finleyelement{Tri3},
+with element reference number $19$ \index{element!reference number} is defined by the nodes
+with reference numbers $9$, $11$ and $0$ \index{node!reference number}. Notice that the order is counterclockwise. 
 The coefficients of the PDE are evaluated at integration nodes with each individual element. 
 For quadrilateral elements a Gauss quadrature scheme is used. In the case of triangular elements a 
-modified from is applied. The boundary of the domain is also subdivided into elements \index{element!face}. In \fig{FINLEY FIG 0}
+modified form is applied. The boundary of the domain is also subdivided into elements. \index{element!face} In \fig{FINLEY FIG 0}
 line elements with two nodes are used. The elements are also defined by their describing nodes, e.g.
 the face element reference number $20$ which has type \finleyelement{Line2} is defined by the nodes
 with the reference numbers $11$ and $0$. Again the order is crucial, if moving from the first
-to second node the domain has to lay on the left hand side (in case of a two dimension surface element
-the domain has to lay on left hand side when moving counterclockwise). If the gradient on the
-surface of the domain wants to be calculated rich face elements face to be used. Rich elements on a face
-is identical to interior elements but with a modified order of nodes such that the 'first' face of the element aligns
+to second node the domain has to lie on the left hand side (in the case of a two dimension surface element
+the domain has to lie on the left hand side when moving counterclockwise). If the gradient on the
+surface of the domain is to be calculated rich face elements face to be used. Rich elements on a face
+are identical to interior elements but with a modified order of nodes such that the 'first' face of the element aligns
 with the surface of the domian. In \fig{FINLEY FIG 0}
 elements of the type \finleyelement{Tri3Face} are used. 
 The face element reference number $20$ as a rich face element is defined by the nodes
-with the reference numbers $11$, $0$ and $9$. Notice that the face element $20$ is identical to the
-interior element $19$ however, in this case, the order of the node is different to align the first
+with reference numbers $11$, $0$ and $9$. Notice that the face element $20$ is identical to the
+interior element $19$ except that, in this case, the order of the node is different to align the first
 edge of the triangle (which is the edge starting with the first node) with the boundary of the domain.
 
 Be aware that face elements and elements in the interior of the domain must match, i.e. a face element must be the face
-of an interior element or, in case of a rich face element, must be identical to an interior element.
+of an interior element or, in case of a rich face element, it must be identical to an interior element.
 If no face elements are specified
 \finley implicitly assumes homogeneous natural boundary conditions \index{natural boundary conditions!homogeneous},
 i.e. \var{d}=$0$ and \var{y}=$0$, on the entire boundary of the domain. For  
@@ -77,19 +77,19 @@ even if $d^{contact}$ and $y^{contact}$ are zero. \fig{FINLEY FIG 01} shows a si
 of rectangular elements around a contact region $\Gamma^{contact}$ \index{element!contact}. 
 The contact region is described by the
 elements $4$, $3$ and $6$. Their element type is \finleyelement{Line2_Contact}. 
-The nodes $9$, $12$, $6$, $5$ are defining contact element $4$, where the coordinates of nodes $12$ and $5$ and
+The nodes $9$, $12$, $6$, $5$ define contact element $4$, where the coordinates of nodes $12$ and $5$ and
 nodes $4$ and $6$ are identical with the idea that nodes $12$ and $9$ are located above and 
-nodes $5$ and $6$ are below the contact region.  
+nodes $5$ and $6$ below the contact region.  
 Again, the order of the nodes within an element is crucial. There is also the option of using rich elements
-if the gradient wants to be calculated on the contact region. Similar to the rich face elements 
-they are constructed from two interior elements with reordering the nodes such that
+if the gradient is to be calculated on the contact region. Similarly to the rich face elements 
+these are constructed from two interior elements by reordering the nodes such that
 the 'first' face of the element above and the 'first' face of the element below the 
-contact regions are lining up.  The rich version of element 
+contact regions line up.  The rich version of element 
 $4$ is of type \finleyelement{Rec4Face_Contact} and is defined by the nodes $9$, $12$, $16$, $18$, $6$, $5$, $0$ and 
 $2$.
 
 \tab{FINLEY TAB 1} shows the interior element types and the corresponding element types to be used
-on face and contacts. \fig{FINLEY.FIG:1}, \fig{FINLEY.FIG:2} and \fig{FINLEY.FIG:4} show the ordering of
+on the face and contacts. \fig{FINLEY.FIG:1}, \fig{FINLEY.FIG:2} and \fig{FINLEY.FIG:4} show the ordering of
 the nodes within an element.
 
 \begin{table}
@@ -107,20 +107,20 @@ the nodes within an element.
 \linev{\finleyelement{Hex20}}{\finleyelement{Rec8}}{\finleyelement{Hex20Face}}{\finleyelement{Rec8_Contact}}{\finleyelement{Hex20Face_Contact}}
 \end{tablev}
 \caption{Finley elements and corresponding elements to be used on domain faces and contacts.
-The rich types have to be used if the gradient of function wants to calculated on faces and contacts, resepctively.}
+The rich types have to be used if the gradient of function is to be calculated on faces and contacts, resepctively.}
 \label{FINLEY TAB 1}
 \end{table}
 
 The native \finley file format is defined as follows.
 Each node \var{i} has \var{dim} spatial coordinates \var{Node[i]}, a reference number
 \var{Node_ref[i]}, a degree of freedom \var{Node_DOF[i]} and tag \var{Node_tag[i]}.
-In most cases \var{Node_DOF[i]}=\var{Node_ref[i]} however for periodic boundary conditions
+In most cases \var{Node_DOF[i]}=\var{Node_ref[i]} however, for periodic boundary conditions,
 \var{Node_DOF[i]} is chosen differently, see example below. The tag can be used to mark nodes sharing
 the same properties. Element \var{i} is defined by the \var{Element_numNodes} nodes \var{Element_Nodes[i]}
 which is a list of node reference numbers. The order is crucial.
 It has a reference number \var{Element_ref[i]} and a tag \var{Element_tag[i]}. The tag 
 can be used to mark elements  sharing the same properties. For instance elements above 
-a contact region are marked with $2$ and element below a contact region are marked with $1$. 
+a contact region are marked with $2$ and elements below a contact region are marked with $1$. 
 \var{Element_Type} and \var{Element_Num} give the element type and the number of elements in the mesh.
 Analogue notations are used for face and contact elements. The following Python script
 prints the mesh definition in the \finley file format:
@@ -189,7 +189,8 @@ Line2_Contact 3
 Point1 0
 \end{verbatim}
 Notice that the order in which the nodes and elements are given is arbitrary.
-In that case rich contact element are used the contact element section get the form
+In the case that rich contact elements are used the contact element section gets
+ the form
 \begin{verbatim}
 Rec4Face_Contact 3
  4 0  9 12 16 18  6  5  0  2
@@ -197,7 +198,7 @@ Rec4Face_Contact 3
  6 0 15 13 19 20 10  8  3  7
 \end{verbatim}
 Periodic boundary condition \index{boundary conditions!periodic} can be introduced by altering \var{Node_DOF}.
-It allows to identify nodes even if they have different physical locations. For instance, to
+It allows identification of nodes even if they have different physical locations. For instance, to
 enforce periodic boundary conditions at the face $x_0=0$ and $x_0=1$ one identifies
 the degrees of freedom for nodes $0$, $5$, $12$ and $16$ with the degrees of freedom for
 $7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh gets now the form:  
@@ -225,14 +226,14 @@ $7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh get
 \include{finleyelements}
 
 \subsection{Linear Solvers in \LinearPDE}
-Currently \finley support the linear solvers \PCG, \GMRES, \PRESTWENTY and \BiCGStab. 
+Currently \finley supports the linear solvers \PCG, \GMRES, \PRESTWENTY and \BiCGStab. 
 For \GMRES the options \var{trancation} and \var{restart} of the \method{getSolution} can be
 used to control the trunction and restart during iteration. Default values are
 \var{truncation}=5 and \var{restart}=20.
-The default solver is \BiCGStab but if the symmetry flag is set \PCG is the default solver.
+The default solver is \BiCGStab  but if the symmetry flag is set \PCG is the default solver.
 \finley supports the solver options \var{iter_max} which specifies the maximum number of iterations steps,
 \var{verbose}=\True or \False and \var{preconditioner}=\constant{JACOBI} or \constant {ILU0}.
-In some installation \finley supports \Direct solver and the
+In some installations \finley supports the \Direct solver and the
 solver options \var{reordering}=\constant{util.NO_REORDERING}, 
 \constant{util.MINIMUM_FILL_IN} or \constant{util.NESTED_DISSECTION} (default is \constant{util.NO_REORDERING}),
 \var{drop_tolerance} specifying the threshold for values to be dropped in the 

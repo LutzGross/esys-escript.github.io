@@ -5,7 +5,7 @@
 \declaremodule{extension}{linearPDEs} \modulesynopsis{Linear partial pifferential equation handler}
 The module \linearPDEsPack provides an interface to define and solve linear partial 
 differential equations within \escript. \linearPDEsPack does not provide any 
-solver capabilities in itself but hand the PDE over to 
+solver capabilities in itself but hands the PDE over to 
 the PDE solver library defined through the \Domain of the PDE.
 The general interface is provided through the \LinearPDE class. The
 \AdvectivePDE which is derived from the \LinearPDE class
@@ -21,7 +21,7 @@ for an unknown function $u$ on a given $\Omega$ defined through a \Domain object
 In the following $\Gamma$ denotes the boundary of the domain $\Omega$. $n$ denotes
 the outer normal field on $\Gamma$. 
 
-A single PDE with a solution with a single component the linear PDE is defined in the 
+For a single PDE with a solution with a single component the linear PDE is defined in the 
 following form:
 \begin{equation}\label{LINEARPDE.SINGLE.1}
 -(A\hackscore{jl} u\hackscore{,l}){,j}+(B\hackscore{j} u)\hackscore{,j}+C\hackscore{l} u\hackscore{,l}+D u =-X\hackscore{j,j}+Y \; .
@@ -126,6 +126,13 @@ If the coefficient is not a \Data object, it is converted into a \Data object in
 appropriate \FunctionSpace.
 \end{methoddesc}
 
+\begin{methoddesc}[LinearPDE]{createCoefficient}{name}
+facilitates the creation of a \Data object corresponding to coefficient of name
+\var{name}. If \var{name} is not a valid name an exception is raised. The
+returned \Data object is initialised to zero and is not set as a value of the
+LinearPDE.
+\end{methoddesc}
+
 \begin{methoddesc}[LinearPDE]{getCoefficient}{name}
 return the value assigned to coefficient \var{name}. If \var{name} is not a valid name 
 an exception is raised. 
@@ -134,6 +141,9 @@ an exception is raised.
 \begin{methoddesc}[LinearPDE]{cleanCoefficients}{}
 resets all coefficients to their initialization values. This method is useful to call when trying to save memory
 as is releaces eqnerences to coefficients but keeping the differential operator.
+\end{methoddesc}
+\begin{methoddesc}[LinearPDE]{createNewCoefficient}{name}
+returns a \Data object which has the \FunctionSpace and \Shape of coefficient \var{name}. The initial value is $0$.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getShapeOfCoefficient}{name}
@@ -368,7 +378,102 @@ returns the residual when insering \var{u} into the PDE
 \end{methoddesc}
 
 \section{\AdvectivePDE Class}
-under construction
+In cases of PDEs dominated by the advection terms $B$ and $C$ against the diffusion term $A$
+up-winding has been used. 
+The \AdvectivePDE class applies upwinding to the advective terms, see \Ref{SUPG}. 
+To measure the dominance of the advective terms over the diffusive term $A$ the 
+Pelclet number is used \index{Pelclet number}. The are defined as
+\begin{eqnarray}\label{LINEARPDE.Peclet.single}
+P^{B}=\frac{h\|B\hackscore{:}\|}{2\|A\hackscore{::}\|}
+\mbox{ and }
+P^{C}=\frac{h\|C\hackscore{:}\|}{2\|A\hackscore{::}\|}
+\end{eqnarray}
+\begin{eqnarray}\label{LINEARPDE.Peclet.system}
+P^{B}_{ik}=\frac{h\|B\hackscore{i:k}\|}{2\|A\hackscore{i:k:}\|}
+\mbox{ and }
+P^{C}_{ik}=\frac{h\|C\hackscore{ik:}\|}{2\|A\hackscore{i:k:}\|}
+\end{eqnarray}
+where $h$ is the local cell size and
+\begin{eqnarray}\label{LINEARPDE.ADVECTIVE.1b}
+\|C\hackscore{:}\|^2=C\hackscore{j}C\hackscore{j} \\
+\|A\hackscore{::}\|^2=A\hackscore{jl}A\hackscore{jl} \\
+\|C\hackscore{i:k}\|^2=C\hackscore{ijk}C\hackscore{ijk} \\
+\|A\hackscore{i:k:}\|^2=A\hackscore{ijkl}A\hackscore{ijkl} \; .
+\end{eqnarray}
+From the Pelclet number the stabilization parameters $\Xi^{B}$ and $\Xi^{C}$ are calculated:
+\begin{eqnarray}\label{LINEARPDE.Peclet.2}
+\Xi^{B}=\frac{\xi(P^{B}) h}{\|B\hackscore{:}\|}
+\mbox{ and }
+\Xi^{C}=\frac{\xi(P^{C}) h}{\|C\hackscore{:}\|} \\
+\mbox{ or }
+\Xi^{B}\hackscore{ik}=\frac{\xi(P^{B}\hackscore{ik}) h}{\|B\hackscore{i:k}\|}
+\mbox{ and }
+\Xi^{C}\hackscore{ik}=\frac{\xi(P^{C}\hackscore{ik}) h}{\|C\hackscore{ik:}\|}
+\end{eqnarray}
+where $\xi$ is a suitable function of the Peclet number.
+In the case of a single PDE the coefficient are up-dated in the following way:
+\begin{eqnarray}\label{LINEARPDE.ADVECTIVE.1}
+A\hackscore{jl} \leftarrow A\hackscore{jl} + \Xi^{B} B\hackscore{j} B\hackscore{l} + \Xi^{C} C\hackscore{j} C\hackscore{l} \\
+B\hackscore{j} \leftarrow B\hackscore{j} + \Xi^{C} C\hackscore{j} D \\
+C\hackscore{j} \leftarrow C\hackscore{j} + \Xi^{B} B\hackscore{j} D \\
+X\hackscore{j} \leftarrow X\hackscore{j} + (Xi^{B} B\hackscore{j} + \Xi^{C} C\hackscore{j}) Y \\
+\end{eqnarray}
+Similar for the case of a systems of PDEs:
+\begin{eqnarray}\label{LINEARPDE.ADVECTIVE.SYSTEM}
+A\hackscore{ijkl} \leftarrow A\hackscore{ijl} + \Xi^{B}\hackscore{ik} B\hackscore{ijk} B\hackscore{ilk} + 
+                                                \Xi^{C}\hackscore{ik} C\hackscore{ikj} C\hackscore{ikl} \\
+B\hackscore{ijk} \leftarrow B\hackscore{ijk} + \Xi^{C}\hackscore{ij} C\hackscore{ikj} D\hackscore{ik} \\
+C\hackscore{ikl} \leftarrow C\hackscore{ikl} + \Xi^{B}\hackscore{ik} B\hackscore{ilk} D\hackscore{ik} \\
+X\hackscore{ij} \leftarrow X\hackscore{ij} + (Xi^{B}\hackscore{ik} B\hackscore{ij} + \Xi^{C}\hackscore{ik} C\hackscore{ij}) Y\hackscore{i} \\
+\end{eqnarray}
+Using upwinding in this form, introduces an additonal error which is proprtional to the cell size $h$
+but with the intension to stabilize the solution.
+
+\begin{classdesc}{AdvectivePDE}{domain,numEquations=0,numSolutions=0,xi=AdvectivePDE.ELMAN_RAMAGE}
+opens a linear, steady, second order PDE on the \Domain \var{domain}. \var{numEquations}
+and \var{numSolutions} gives the number of equations and the number of solutiopn components.
+If \var{numEquations} and \var{numSolutions} is non-positive, the number of equations 
+and the number solutions, respectively, stay undefined until a coefficient is
+defined. \var{xi} defines a function which returns for any given  Preclet number $P\ge 0$ the 
+$\xi$-value used to define the stabilization parameters $\Xi^{B}$ and $\Xi^{C}$.
+\AdvectivePDE is derived from \LinearPDE.
+\end{classdesc}
+
+\begin{memberdesc}[AdvectivePDE]{SIMPLIFIED_BROOKS_HUGHES}{}
+Predefined function to set a values for $\xi$ from a Preclet number $P$. 
+This function uses the method suggested in \Ref{SUPG1}
+where $\xi(P)$ is given by 
+\begin{equation}\label{LINEARPDE.ADVECTIVE.1d}
+\xi(P)=coth(P)-\frac{1}{P} \;.
+\end{equation}
+As the evaluation of $coth$ is expensive we are using the approximation:
+The function $\xi$ is approximated by
+\begin{equation}\label{LINEARPDE.ADVECTIVE.23}
+\xi(P)=
+\left\{ 
+\begin{array}{lc}
+\frac{P}{6} & P<3 \\
+\frac{1}{2} & \mbox{otherwise}
+\end{array}
+\right.
+\end{equation}
+\end{memberdesc}
+
+\begin{memberdesc}[AdvectivePDE]{ELMAN_RAMAGE}{}
+Predefined function to set a values for $\xi$ from a Preclet number $P$. 
+This function uses the method suggested in \Ref{SUPG2}
+where $\xi(P)$ is given by 
+\begin{equation}\label{LINEARPDE.ADVECTIVE.23b}
+\xi(P)=
+\left\{ 
+\begin{array}{lc}
+0  & P<1 \\
+\frac{1}{2}(1-\frac{1}{P}) & \mbox{otherwise}
+\end{array}
+\right.
+\end{equation}
+\end{memberdesc}
+
 
 \section{The \Poisson Class}
 
