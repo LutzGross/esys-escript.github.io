@@ -19,10 +19,10 @@ alpha=0.01
 # mydomain=finley.Rectangle(1,1)
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
-# mydomain=finley.Rectangle(4,4,1)
+mydomain=finley.Rectangle(4,4,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
-mydomain=finley.Rectangle(151,151,1)
+# mydomain=finley.Rectangle(151,151,1)
 
 print "\nSetup domain and functions"
 print "--------------------------"
@@ -119,3 +119,5 @@ print "******************************************************************"
 print "\n-----"
 print "Done."
 print "-----"
+
+grad(u_d).saveDX("t.dx")

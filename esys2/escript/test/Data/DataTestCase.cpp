@@ -19,6 +19,7 @@
 #include "DataTestCase.h"
 
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 using namespace CppUnitTest;
@@ -374,65 +375,116 @@ void DataTestCase::testConstructors() {
 }
 
 void DataTestCase::testOperations() {
+
   cout << endl;
 
-  cout << "\tCreate a rank 2 Data object" << endl;
-  DataArrayView::ShapeType viewShape;
-  viewShape.push_back(2);
-  viewShape.push_back(3);
+  // define the shape for the DataArrayView test data
+  DataArrayView::ShapeType shape;
+  shape.push_back(2);
+  shape.push_back(3);
 
-  Data base(2.0,viewShape,FunctionSpace(),true);
-  Data power(3.0,viewShape,FunctionSpace(),true);
+  // allocate the data for the DataArrayView
+  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
 
-  cout << "\tPerform basic exercises of unary operations" << endl;
+  // construct DataArrayView
+  DataArrayView dataView(data,shape);
 
+  // assign values to the data
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      dataView(i,j)=dataView.index(i,j);
+    }
+  }
+
+  Data base(dataView);
+
+  // test unary operations
+
+  cout << "\tTest Data::pow." << endl;
+  Data power(3.0,shape,FunctionSpace(),true);
   Data result(base.powD(power));
-  assert(result.getDataPoint(0,0)(0,0) == 8);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      assert(result.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
+    }
+  }
 
+  cout << "\tTest Data::sin." << endl;
   result.copy(base.sin());
   assert(true);
 
+  cout << "\tTest Data::cos." << endl;
   result.copy(base.cos());
   assert(true);
 
+  cout << "\tTest Data::tan." << endl;
   result.copy(base.tan());
   assert(true);
 
+  cout << "\tTest Data::log." << endl;
   result.copy(base.log());
   assert(true);
 
+  cout << "\tTest Data::ln." << endl;
   result.copy(base.ln());
   assert(true);
 
+  cout << "\tTest Data::abs." << endl;
   result.copy(base.abs());
   assert(true);
 
+  cout << "\tTest Data::sign." << endl;
   result.copy(base.sign());
   assert(true);
 
+  cout << "\tTest Data::exp." << endl;
   result.copy(base.exp());
   assert(true);
 
+  cout << "\tTest Data::sqrt." << endl;
   result.copy(base.sqrt());
   assert(true);
 
+  cout << "\tTest Data::neg." << endl;
   result.copy(base.neg());
   assert(true);
 
+  cout << "\tTest Data::pos." << endl;
   result.copy(base.pos());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      assert(result.getPointDataView()(i,j) == dataView.index(i,j));
+    }
+  }
 
+  // test reduction operations
+
+  cout << "\tTest Data::Lsup." << endl;
+  assert(base.Lsup() == 5);
+
+  cout << "\tTest Data::sup." << endl;
+  assert(base.sup() == 5);
+
+  cout << "\tTest Data::inf." << endl;
+  assert(base.inf() == 0);
+
+  // test data-point reduction operations
+
+  cout << "\tTest Data::minval." << endl;
   result.copy(base.minval());
-  assert(true);
+  assert(result.getPointDataView()() == 0);
 
+  cout << "\tTest Data::maxval." << endl;
   result.copy(base.maxval());
-  assert(true);
+  assert(result.getPointDataView()() == 5);
 
+  cout << "\tTest Data::length." << endl;
   result.copy(base.length());
-  assert(true);
+  assert(pow(result.getPointDataView()(),2.0) == 55);
 
+  cout << "\tTest Data::trace." << endl;
   result.copy(base.trace());
-  assert(true);
+  assert(result.getPointDataView()() == 15);
 
   //result.copy(base.transpose(0));
   //assert(true);
@@ -443,7 +495,7 @@ void DataTestCase::testRefValue() {
 
   //
   // Note - this test can't be run as boost::python::numeric::array
-  // objects can only be created and used form within a pythin thread!
+  // objects can only be created and used from within a python thread!
   //
 
   cout << endl;

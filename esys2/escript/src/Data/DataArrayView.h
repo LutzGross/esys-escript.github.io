@@ -733,41 +733,6 @@ class DataArrayView {
      the data point using the given operation, returning the result as a 
      scalar. Operation must be a pointer to a function.
 
-     Called by escript::dp_algorithm.
-
-     \param operation - Input -
-                  Operation to apply. Must be a pointer to a function.
-  */
-  template <class UnaryFunction>
-  double
-  dp_reductionOp(UnaryFunction operation) const;
-
-  /**
-     \brief
-     Perform the given data point reduction operation on the data point
-     specified by the given offset into the view. Reduces all elements of
-     the data point using the given operation, returning the result as a 
-     scalar. Operation must be a pointer to a function.
-
-     Called by escript::dp_algorithm.
-
-     \param offset - Input -
-                  Apply the operation to data starting at this offset in this view.
-     \param operation - Input -
-                  Operation to apply. Must be a pointer to a function.
-  */
-  template <class UnaryFunction>
-  double
-  dp_reductionOp(ValueType::size_type offset,
-                 UnaryFunction operation) const;
-
-  /**
-     \brief
-     Perform the given reduction operation on the data point
-     specified by the default offset into the view. Reduces all elements of
-     the data point using the given operation, returning the result as a 
-     scalar. Operation must be a pointer to a function.
-
      Called by escript::algorithm.
 
      \param operation - Input -
@@ -779,7 +744,7 @@ class DataArrayView {
 
   /**
      \brief
-     Perform the given reduction operation on the data point
+     Perform the given data point reduction operation on the data point
      specified by the given offset into the view. Reduces all elements of
      the data point using the given operation, returning the result as a 
      scalar. Operation must be a pointer to a function.
@@ -798,10 +763,8 @@ class DataArrayView {
 
   /**
      \brief
-     Perform matrix multiply.
-
-     Description:
-     Perform matrix multiply.
+     Perform a matrix multiply of the given views.
+     This is purely a utility method and has no bearing on this view.
 
      \param left - Input - The left hand side.
      \param right - Input - The right hand side.
@@ -958,33 +921,10 @@ DataArrayView::binaryOp(ValueType::size_type offset,
                         BinaryFunction operation)
 {
   EsysAssert((!isEmpty()&&checkOffset(offset)),
-             "Error - Couldn't perform binaryOp due to insufficient storage.");
+             "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
   for (ValueType::size_type i=0;i<noValues();i++) {
     (*m_data)[offset+i]=operation((*m_data)[offset+i],right);
   }
-}
-
-template <class UnaryFunction>
-inline
-double
-DataArrayView::dp_reductionOp(UnaryFunction operation) const
-{
-  return dp_reductionOp(m_offset,operation);
-}
-
-template <class UnaryFunction>
-inline
-double
-DataArrayView::dp_reductionOp(ValueType::size_type offset,
-                              UnaryFunction operation) const
-{
-  EsysAssert((!isEmpty()&&checkOffset(offset)),
-               "Error - Couldn't perform dp_reductionOp due to insufficient storage.");
-  operation.resetResult();
-  for (ValueType::size_type i=0;i<noValues();i++) {
-    operation((*m_data)[offset+i]);
-  }
-  return operation.getResult();
 }
 
 template <class UnaryFunction>
@@ -1003,6 +943,7 @@ DataArrayView::reductionOp(ValueType::size_type offset,
 {
   EsysAssert((!isEmpty()&&checkOffset(offset)),
                "Error - Couldn't perform reductionOp due to insufficient storage.");
+  operation.resetResult();
   for (ValueType::size_type i=0;i<noValues();i++) {
     operation((*m_data)[offset+i]);
   }

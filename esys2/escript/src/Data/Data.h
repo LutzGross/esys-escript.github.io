@@ -880,13 +880,20 @@ class Data {
   /**
      \brief
      Perform the specified reduction algorithm on every element of every data point in
-     this Data object and return the single double value result.
+     this Data object according to the given function and return the single value result.
   */
   template <class UnaryFunction>
   inline
   double
   algorithm(UnaryFunction operation) const;
 
+  /**
+     \brief
+     Reduce each data-point in this Data object using the given operation. Return a Data
+     object with the same number of data-points, but with each data-point containing only
+     one value - the result of the reduction operation on the corresponding data-point in
+     this Data object
+  */
   template <class UnaryFunction>
   inline
   Data

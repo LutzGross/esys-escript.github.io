@@ -7,7 +7,7 @@ kappa=1.
 omega=0.1
 eta=10.
 #... generate domain ...
-mydomain = esys.finley.Rectangle(l0=5.,l1=1.,n0=50, n1=10)
+mydomain = Rectangle(l0=5.,l1=1.,n0=50, n1=10)
 #... open PDE and set coefficients ...
 mypde=Helmholtz(mydomain)
 n=mydomain.getNormal()

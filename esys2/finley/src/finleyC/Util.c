@@ -15,6 +15,9 @@
 #include "Common.h"
 #include "Finley.h"
 #include "Util.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /**************************************************************/
 
@@ -497,17 +500,46 @@ int Finley_Util_isAny(maybelong N,maybelong* array,maybelong value) {
    for (i=0;i<N;i++) out=out || (array[i]==value);
    return out;
 }
+/* calculates the cummultative sum in array and returns the total sum */
+maybelong Finley_Util_cumsum(maybelong N,maybelong* array) {
+   maybelong out=0,tmp,i;
+   #ifdef _OPENMP
+      maybelong partial_sums[omp_get_max_threads()],sum;
+      #pragma omp parallel private(sum,i,tmp)
+      {
+        sum=0;
+        #pragma omp for 
+        for (i=0;i<N;++i) {
+          tmp=sum;
+          sum+=array[i];
+          array[i]=tmp;
+        } 
+        #pragma omp critical
+        partial_sums[omp_get_thread_num()]=sum;
+        #pragma omp master
+        {
+          out=0;
+          for (i=0;i<omp_get_max_threads();++i) {
+             tmp=out;
+             out+=partial_sums[i];
+             partial_sums[i]=tmp;
+           } 
+        }
+        sum=partial_sums[omp_get_thread_num()];
+        #pragma omp for 
+        for (i=0;i<N;++i) array[i]+=sum;
+      }
+   #else 
+      for (i=0;i<N;++i) {
+         tmp=out;
+         out+=array[i];
+         array[i]=tmp;
+      }
+   #endif
+   return out;
+}
 
 void Finley_copyDouble(int n,double* source, double* target) {
   int i;
   for (i=0;i<n;i++) target[i]=source[i];
 }
-
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:34  jgs
- * *** empty log message ***
- *
- *
- *
- */

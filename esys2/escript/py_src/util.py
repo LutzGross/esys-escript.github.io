@@ -49,6 +49,7 @@ TIFF=7
 OPENINVENTOR=8
 RENDERMAN=9
 PNM=10
+
 #
 # wrapper for various functions: if the argument has attribute the function name
 # as an argument it calls the correspong methods. Otherwise the coresponsing numarray
@@ -267,6 +268,57 @@ def length(arg):
     else:
        return sqrt((arg**2).sum())
 
+def deviator(arg):
+    """
+    @brief
+
+    @param arg1
+    """
+    if isinstance(arg,escript.Data):
+        shape=arg.getShape()
+    else:
+        shape=arg.shape
+    if len(shape)!=2:
+          raise ValueError,"Deviator requires rank 2 object"
+    if shape[0]!=shape[1]:
+          raise ValueError,"Deviator requires a square matrix"
+    return arg-1./(shape[0]*1.)*trace(arg)*kronecker(shape[0])
+
+def inner(arg1,arg2):
+    """
+    @brief
+
+    @param arg1, arg2
+    """
+    sum=escript.Scalar(0,arg1.getFunctionSpace())
+    if arg.getRank()==0:
+          return arg1*arg2
+    elif arg.getRank()==1:
+         sum=escript.Scalar(0,arg.getFunctionSpace())
+         for i in range(arg.getShape()[0]):
+            sum+=arg1[i]*arg2[i]
+    elif arg.getRank()==2:
+        sum=escript.Scalar(0,arg.getFunctionSpace())
+        for i in range(arg.getShape()[0]):
+           for j in range(arg.getShape()[1]):
+              sum+=arg1[i,j]*arg2[i,j]
+    elif arg.getRank()==3:
+        sum=escript.Scalar(0,arg.getFunctionSpace())
+        for i in range(arg.getShape()[0]):
+            for j in range(arg.getShape()[1]):
+               for k in range(arg.getShape()[2]):
+                  sum+=arg1[i,j,k]*arg2[i,j,k]
+    elif arg.getRank()==4:
+        sum=escript.Scalar(0,arg.getFunctionSpace())
+        for i in range(arg.getShape()[0]):
+           for j in range(arg.getShape()[1]):
+              for k in range(arg.getShape()[2]):
+                 for l in range(arg.getShape()[3]):
+                    sum+=arg1[i,j,k,l]*arg2[i,j,k,l]
+    else:
+          raise SystemError,"inner is not been implemented yet"
+    return sum
+
 def sign(arg):
     """
     @brief
@@ -352,3 +404,6 @@ def dot(arg1,arg2):
        return arg2.dot(arg1)
     else:
        return numarray.dot(arg1,arg2)
+
+def kronecker(d):
+   return numarray.identity(d)

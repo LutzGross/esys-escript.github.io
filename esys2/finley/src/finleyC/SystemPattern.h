@@ -42,19 +42,6 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_alloc(int, maybelong*,may
 Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_reference(Finley_SystemMatrixPattern*);
 void Finley_SystemMatrixPattern_dealloc(Finley_SystemMatrixPattern*);
 int Finley_comparIndex(const void *,const void *);
+Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_SystemMatrixPattern*,int,maybelong*,maybelong*);
 
 #endif /* #ifndef INC_FINLEY_SYSTEMPATTERN */
-
-/*
- * $Log$
- * Revision 1.2  2004/12/15 07:08:33  jgs
- * *** empty log message ***
- *
- * Revision 1.1.2.2  2004/11/24 01:37:16  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- * Revision 1.1.2.1  2004/11/14 23:49:10  gross
- * the forgotten files
- *
- *
- */

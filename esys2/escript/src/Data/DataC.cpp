@@ -69,11 +69,20 @@ int getDataPointRank(struct escriptDataC* data)
   }
 }
 
-int* getDataPointShape(struct escriptDataC* data)
+int getDataPointShape(struct escriptDataC* data,int i)
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  const escript::DataArrayView::ShapeType view=temp->getDataPointShape();
-  return (int*) &(view[0]);
+  if (data == (struct escriptDataC*)0) {
+       return 0;
+  } else {
+     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+     int rank = temp->getDataPointRank();
+     if (i<0 || i>=rank) {
+        return 1;
+     } else {
+        const escript::DataArrayView::ShapeType view=temp->getDataPointShape();
+        return view[i];
+     }
+  }
 }
 
 int getDataPointSize(struct escriptDataC* data)
