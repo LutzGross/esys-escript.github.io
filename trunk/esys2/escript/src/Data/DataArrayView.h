@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -21,6 +22,8 @@
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>
 #include <boost/shared_ptr.hpp>
+
+#include <iostream>
 
 namespace escript {
 
@@ -178,7 +181,7 @@ class DataArrayView {
 
   /**
      \brief
-     Return true if the shapes are the same.
+     Return true if the given shape is the same as this object's shape.
   */
   bool
   checkShape(const DataArrayView::ShapeType& other) const;
@@ -228,10 +231,12 @@ class DataArrayView {
 
   /**
      \brief
-     Copy a slice from the given view. This view must be the right shape for the slice.
+     Copy a slice specified by the given region from the given view
+     into this view.
+     The given region must be the same shape as this view.
 
-     \param other - Input - Data to copy from.
-     \param region - Input - Slice region.
+     \param other - Input - view to copy from.
+     \param region - Input - region in other to copy.
   */
   void
   copySlice(const DataArrayView& other,
@@ -239,12 +244,13 @@ class DataArrayView {
 
   /**
      \brief
-     Copy a slice from the given view. This view must be the right shape for the slice.
+     Copy a slice specified by the given region from the given view into this view.
+     The given region must be the same shape as this view.
 
-     \param thisOffset - Input - use this view offset instead of the default.
-     \param other - Input - Data to copy from.
-     \param otherOffset - Input - use this slice offset instead of the default.
-     \param region - Input - Slice region.
+     \param thisOffset - Input - use this offset into this object instead of the default.
+     \param other - Input - view to copy from.
+     \param otherOffset - Input - use this offset into the given object instead of the default.
+     \param region - Input - region in other to copy.
   */
   void
   copySlice(ValueType::size_type thisOffset,
@@ -254,7 +260,8 @@ class DataArrayView {
 
  /**
      \brief
-     Copy into a slice from the given view. This view must have the same rank as the slice region.
+     Copy into a slice from the given view.
+     This view must have the same rank as the slice region.
 
      \param other - Input - Data to copy from.
      \param region - Input - Slice region.
@@ -265,7 +272,8 @@ class DataArrayView {
 
   /**
      \brief
-     Copy into a slice from the given value. This view must have the same rank as the slice region.
+     Copy into a slice from the given value.
+     This view must have the same rank as the slice region.
 
      \param thisOffset - Input - use this view offset instead of the default.
      \param other - Input - Data to copy from.
@@ -288,15 +296,47 @@ class DataArrayView {
 
   /**
      \brief
-     Returns the range for the slices defined by the key which is a Python
-     slice object or a tuple of Python slice object.
+     Determine the region specified by the given python slice object.
+
+     \param key - Input - python slice object specifying region to be returned.
+
+     \description
+
+     The slice object is a tuple of n python slice specifiers, where
+     n <= the rank of this Data object. Each slice specifier specifies the
+     range of indexes to be sliced from the corresponding dimension. The
+     first specifier corresponds to the first dimension, the second to the
+     second and so on. Where n < the rank, the remaining dimensions are
+     sliced across the full range of their indicies.
+
+     Each slice specifier is of the form "a:b", which specifies a slice
+     from index a, up to but not including index b. Where index a is ommitted
+     a is assumed to be 0. Where index b is ommitted, b is assumed to be the
+     length of this dimension.
+
+     The return value is a vector of pairs with length equal to the rank of
+     this object. Each pair corresponds to the range of indexes from the
+     corresponding dimension to be sliced from, as specified in the input
+     slice object.
+
+     Examples:
+
+       For a rank 1 object of shape(5):
+
+         getSliceRegion(:)   => < <0,5> >
+         getSliceRegion(2:3) => < <2,3> >
+         getSliceRegion(:3)  => < <0,3> >
+         getSliceRegion(2:)  => < <2,5> >
+
+       For a rank 3 object of shape (2,4,6):
+
+         getSliceRegion(0:2,0:4,0:6) => < <0,2> <0,4> <0,6> >
+         getSliceRegion(:,:,:)       => < <0,2> <0,4> <0,6> >
+         getSliceRegion(0:1)         => < <0,1> <0,4> <0,6> >
+         getSliceRegion(:1,0:2)      => < <0,1> <0,2> <0,6> >
   */
   DataArrayView::RegionType
   getSliceRegion(const boost::python::object& key) const;
-  /*
-  DataArrayView::RegionType
-  getSliceRegion2(const boost::python::object& key) const;
-  */
 
   // *******************************************************************
   // NOTE: The following relIndex functions are a hack. The indexing
@@ -451,6 +491,33 @@ class DataArrayView {
 
   /**
      \brief
+     Perform the given data point reduction operation on the data point
+     specified by the given offset into the view. Reduces all elements of
+     the data point using the given operation, returning the result as a 
+     scalar.
+
+     Called by escript::dp_algorithm.
+  */
+  template <class UnaryFunction>
+  double
+  dp_algorithm(ValueType::size_type leftOffset,
+               UnaryFunction operation);
+
+  /**
+     \brief
+     Perform the given data point reduction operation on the data point
+     specified by the default offset into the view. Reduces all elements of
+     the data point using the given operation, returning the result as a 
+     scalar.
+
+     Called by escript::dp_algorithm.
+  */
+  template <class UnaryFunction>
+  double
+  dp_algorithm(UnaryFunction operation);
+
+  /**
+     \brief
      Perform the given operation and return a result.
   */
   template <class UnaryFunction>
@@ -567,6 +634,20 @@ class DataArrayView {
 
 };
 
+/**
+  \brief
+  Calculate the slice range from the given python key object
+  Used by DataArrayView::getSliceRegion.
+  Returns the python slice object key as a pair of ints where the first 
+  member is the start and the second member is the end. the presence of a possible
+  step attribute with value different from one will throw an exception
+
+  /param key - Input - key object specifying slice range.
+*/
+std::pair<int,int>
+getSliceRange(const boost::python::object& key,
+              const int shape);
+
 inline
 DataArrayView::ValueType::size_type
 DataArrayView::getOffset() const
@@ -598,7 +679,7 @@ void
 DataArrayView::unaryOp(ValueType::size_type leftOffset,
                        UnaryFunction operation)
 {
-  for (ValueType::size_type i=0;i<(noValues(m_shape));++i) {
+  for (ValueType::size_type i=0;i<(noValues(m_shape));i++) {
     (*m_data)[i+leftOffset]=operation((*m_data)[i+leftOffset]);
   }
 }
@@ -609,6 +690,26 @@ void
 DataArrayView::unaryOp(UnaryFunction operation)
 {
   unaryOp(m_offset,operation);
+}
+
+template <class UnaryFunction>
+inline
+double
+DataArrayView::dp_algorithm(ValueType::size_type leftOffset,
+                            UnaryFunction operation)
+{
+  for (ValueType::size_type i=0;i<(noValues(m_shape));i++) {
+    operation((*m_data)[i+leftOffset]);
+  }
+  return operation.getResult();
+}
+
+template <class UnaryFunction>
+inline
+double
+DataArrayView::dp_algorithm(UnaryFunction operation)
+{
+  return dp_algorithm(m_offset,operation);
 }
 
 template <class UnaryFunction>
@@ -874,13 +975,6 @@ DataArrayView::operator()() const
 
 bool operator==(const DataArrayView& left, const DataArrayView& right);
 bool operator!=(const DataArrayView& left, const DataArrayView& right);
-
-/* returns the python slice object key as a pair of ints where the first 
-    member is the start and the second member is the end. the presence of a possible
-    step attribute with value different from one will truow an exception */
-std::pair<int,int>
-getSliceRange(const int s,
-              const boost::python::object&  key);
 
 } // end of namespace
 

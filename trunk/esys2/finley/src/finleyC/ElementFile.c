@@ -32,7 +32,7 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,int order){
   
   /*  allocate the return value */
   
-  out=(Finley_ElementFile*)MEMALLOC(sizeof(Finley_ElementFile));
+  out=MEMALLOC(1,Finley_ElementFile);
   if (Finley_checkPtr(out)) return NULL;
   out->ReferenceElement=NULL;
   out->LinearReferenceElement=NULL;
@@ -74,14 +74,9 @@ void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
 }
 /* 
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

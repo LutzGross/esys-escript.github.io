@@ -46,9 +46,6 @@ void  Finley_ScaledSystemMatrixVector(double alpha,
   } else if (getLength(out) != A ->row_block_size * A ->num_rows) {
     Finley_ErrorCode=TYPE_ERROR;
     sprintf(Finley_ErrorMsg,"matrix vector product : lnegth of output Data object and matrix row dimensions don't match.");
-  } else if (A ->symmetric) {
-    Finley_ErrorCode=SYSTEM_ERROR;
-    sprintf(Finley_ErrorMsg,"matrix-vector product for symmetrix matric has not been implemented yet.");
   }
 
   /* delegate to routine */
@@ -92,36 +89,36 @@ void  Finley_RawScaledSystemMatrixVector(double alpha,
       switch(A->type) {
       case CSR:
         #pragma omp for private(irow,iptr) schedule(static)
-	for (irow=0;irow< A->num_rows;irow++) {
-	  for (iptr=A->ptr[irow]-PTR_OFFSET;iptr<A->ptr[irow+1]-PTR_OFFSET; iptr++) {
-	    out[irow] += alpha * A->val[iptr] * in[A->index[iptr]-INDEX_OFFSET];
+	for (irow=0;irow< A->pattern->n_ptr;++irow) {
+	  for (iptr=(A->pattern->ptr[irow])-PTR_OFFSET;iptr<(A->pattern->ptr[irow+1])-PTR_OFFSET; ++iptr) {
+	    out[irow] += alpha * A->val[iptr] * in[A->pattern->index[iptr]-INDEX_OFFSET];
 	  }
 	}
 	break;
       case CSC:
         /* TODO: parallelize */
         #pragma omp single
-	for (icol=0;icol< A->num_cols;icol++) {
-	  for (iptr=A->ptr[icol]-PTR_OFFSET;iptr<A->ptr[icol+1]-PTR_OFFSET; iptr++) {
-	    out[A->index[iptr]-INDEX_OFFSET]+= alpha * A->val[iptr] * in[icol];
+	for (icol=0;icol< A->pattern->n_ptr;++icol) {
+	  for (iptr=A->pattern->ptr[icol]-PTR_OFFSET;iptr<A->pattern->ptr[icol+1]-PTR_OFFSET; ++iptr) {
+	    out[A->pattern->index[iptr]-INDEX_OFFSET]+= alpha * A->val[iptr] * in[icol];
 	  }
 	}
 	break;
       default:
 	Finley_ErrorCode=TYPE_ERROR;
-	sprintf(Finley_ErrorMsg,"Unknown matrix type.");
+	sprintf(Finley_ErrorMsg,"Unknown matrix type in MVM.");
       } /* switch A->type */
     } else {
       switch(A->type) {
       case CSR:
         #pragma omp for private(ir,iptr,irb,icb,irow,icol) schedule(static)
-	for (ir=0;ir< A->num_rows;ir++) {
-	  for (iptr=A->ptr[ir]-PTR_OFFSET;iptr<A->ptr[ir+1]-PTR_OFFSET; iptr++) {
+	for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	  for (iptr=A->pattern->ptr[ir]-PTR_OFFSET;iptr<A->pattern->ptr[ir+1]-PTR_OFFSET; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*ir;
 	      for (icb=0;icb< A->col_block_size;icb++) {
-		icol=icb+A->col_block_size*(A->index[iptr]-INDEX_OFFSET);
-		out[irow] += alpha * A->val[iptr*A->row_block_size*A->col_block_size+icb+A->col_block_size*irb] * in[icol];
+		icol=icb+A->col_block_size*(A->pattern->index[iptr]-INDEX_OFFSET);
+		out[irow] += alpha * A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
 	      }
 	    }
 	  }
@@ -130,20 +127,20 @@ void  Finley_RawScaledSystemMatrixVector(double alpha,
       case CSC:
         /* TODO: parallelize */
         #pragma omp single
-	for (ic=0;ic< A->num_cols;ic++) {
-	  for (iptr=A->ptr[ic]-PTR_OFFSET;iptr<A->ptr[ic+1]-PTR_OFFSET; iptr++) {
+	for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	  for (iptr=A->pattern->ptr[ic]-PTR_OFFSET;iptr<A->pattern->ptr[ic+1]-PTR_OFFSET; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
-	      irow=irb+A->row_block_size*(A->index[iptr]-INDEX_OFFSET);
+	      irow=irb+A->row_block_size*(A->pattern->index[iptr]-INDEX_OFFSET);
 	      for (icb=0;icb< A->col_block_size;icb++) {
 		icol=icb+A->col_block_size*ic;
-		out[irow] += alpha * A->val[iptr*A->row_block_size*A->col_block_size+icb+A->col_block_size*irb] * in[icol];
+		out[irow] += alpha * A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
 	      }
 	    }
 	  }
 	}
       default:
 	Finley_ErrorCode=TYPE_ERROR;
-	sprintf(Finley_ErrorMsg,"Unknown matrix type.");
+	sprintf(Finley_ErrorMsg,"Unknown matrix type in MVM.");
       } /* switch A->type */
     }
   }
@@ -152,23 +149,9 @@ void  Finley_RawScaledSystemMatrixVector(double alpha,
 
 /*
  * $Log$
- * Revision 1.3  2004/12/15 03:48:46  jgs
+ * Revision 1.4  2004/12/15 07:08:33  jgs
  * *** empty log message ***
  *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.2.2.2  2004/10/26 06:36:39  jgs
- * committing Lutz's changes to branch jgs
- *
- * Revision 1.3  2004/10/21 04:55:54  gross
- * bug in CSC MVM fixed
- *
- * Revision 1.2  2004/08/13 00:12:53  gross
- * Gradtest is getting further now. PDE assemblage has been added but not tested.
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
  *
  *
  */

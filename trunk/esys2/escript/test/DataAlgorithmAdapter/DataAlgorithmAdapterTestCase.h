@@ -1,3 +1,4 @@
+// $Id$
 /* 
  *****************************************************************************
  *                                                                           *
@@ -11,8 +12,8 @@
  *                                                                           *
  *****************************************************************************
 */
-#if !defined  DataAlgorithmAdapterTestCase_20040715_H
-#define  DataAlgorithmAdapterTestCase_20040715_H
+#if !defined DataAlgorithmAdapterTestCase_20040715_H
+#define DataAlgorithmAdapterTestCase_20040715_H
 
 #include "CppUnitTest/TestCase.h"
 #include "CppUnitTest/TestSuite.h"

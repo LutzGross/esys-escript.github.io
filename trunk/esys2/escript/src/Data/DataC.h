@@ -1,3 +1,4 @@
+/* $Id$ */
 /* 
  ******************************************************************************
  *                                                                            *
@@ -51,7 +52,7 @@ int getFunctionSpaceType(escriptDataC* data);
    \param _fs_ Input - function space type to checked against
    \param _data_ Input - C wrapper for Data.
 */
-#define functionSpaceTypeEqual(_fs_,_data_) ( (_fs_==getFunctionSpaceType(_data_)) || isEmpty(_data_) ) ? 1 : 0
+#define functionSpaceTypeEqual(_fs_,_data_) ( (isEmpty(_data_) || _fs_==getFunctionSpaceType(_data_)) ) ? 1 : 0
 
 /**
    \brief

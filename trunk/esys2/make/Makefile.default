@@ -35,14 +35,19 @@ ifeq ($(strip $(L_SRC_DIR)),)
    L_SRC_DIR := ./src
 endif
 
-# ?
-ifeq ($(strip $(L_MOD_DIR)),)
-   L_MOD_DIR := ./mod
-endif
-
 # Library directory
 ifeq ($(strip $(L_LIB_DIR)),)
    L_LIB_DIR := ./lib
+endif
+
+# Library install directory
+ifeq ($(strip $(L_INSTLIB_DIR)),)
+   L_INSTLIB_DIR := ../lib
+endif
+
+# Python package install directory
+ifeq ($(strip $(L_PYTH_DIR)),)
+   L_PYTH_DIR := ../esys
 endif
 
 # Include file directory
@@ -58,6 +63,11 @@ endif
 # Dependency file directory
 ifeq ($(strip $(L_DEP_DIR)),)
    L_DEP_DIR := ./dep
+endif
+
+# ?
+ifeq ($(strip $(L_MOD_DIR)),)
+   L_MOD_DIR := ./mod
 endif
 
 # External library directory

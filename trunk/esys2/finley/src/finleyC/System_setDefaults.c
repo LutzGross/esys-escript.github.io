@@ -19,32 +19,26 @@
 /* set the default values for solver options */
 
 void Finley_SystemMatrix_setDefaults(Finley_SolverOptions* options) {
-  options->verbose=FALSE;
-  options->reordering=NO_REORDERING;
+  options->method=ESCRIPT_DEFAULT_METHOD;
+  options->symmetric=FALSE;
+  options->verbose=TRUE;
+  options->reordering=ESCRIPT_NO_REORDERING;
   options->tolerance=1.E-8;
   options->final_residual=0;
-  options->iterative_method=BICGSTAB;
-  options->preconditioner=JACOBI;
+  options->preconditioner=ESCRIPT_JACOBI;
   options->iter_max=1000;
   options->iter=0;
   options->drop_tolerance=0.01;
   options->drop_storage=2.;
-  options->iterative=FALSE;
+  options->restart=-1;
+  options->truncation=20;
 }
 
 /*
  * $Log$
- * Revision 1.3  2004/12/15 03:48:47  jgs
+ * Revision 1.4  2004/12/15 07:08:34  jgs
  * *** empty log message ***
  *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.2  2004/08/28 12:58:08  gross
- * SimpleSolve is not running yet: problem with == of functionsspace
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
  *
  *
  */

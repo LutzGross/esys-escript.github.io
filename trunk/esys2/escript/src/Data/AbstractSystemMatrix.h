@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -123,6 +124,17 @@ class AbstractSystemMatrix {
      returns the solution u of the linear system this*u=in
   */
   Data solve(const Data& in,const boost::python::dict& options) const;
+
+  /**
+     \brief writes the matrix to a file using the Matrix Market file format
+  */
+  virtual void saveMM(const std::string& fileName) const;
+                                                                                                                                                     
+  /**
+     \brief sets the matrix entries to value
+  */
+  virtual void setValue(const double value) const;
+
 
  protected:
 

@@ -27,8 +27,8 @@ void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
         maybelong NN=(*in)->ReferenceElement->Type->numNodes;
-        item_list=(Finley_Util_ValueAndIndex*) TMPMEMALLOC((*in)->numElements*sizeof(Finley_Util_ValueAndIndex));
-        index=(maybelong*) TMPMEMALLOC((*in)->numElements*sizeof(maybelong));
+        item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
+        index=TMPMEMALLOC((*in)->numElements,maybelong);
         if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {
            out=Finley_ElementFile_alloc((*in)->ReferenceElement->Type->TypeId,(*in)->order);
            if (Finley_ErrorCode==NO_ERROR) {
@@ -57,14 +57,9 @@ void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
 }
 /* 
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

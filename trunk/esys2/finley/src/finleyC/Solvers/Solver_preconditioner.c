@@ -25,6 +25,7 @@ void Finley_Preconditioner_free(void* in) {
        Finley_Solver_Preconditioner* prec=(Finley_Solver_Preconditioner*) in;
        MEMFREE(prec->values);
        MEMFREE(prec->mainDiag);
+       MEMFREE(prec->pivot);
        MEMFREE(prec->color);
        MEMFREE(prec);
     }
@@ -37,24 +38,28 @@ void Finley_Solver_setPreconditioner(Finley_SystemMatrix* A,Finley_SolverOptions
     Finley_Solver_Preconditioner* prec=NULL;
     if (A->iterative==NULL) {
         /* allocate structure to hold preconditioner */
-        prec=(Finley_Solver_Preconditioner*) MEMALLOC(sizeof(Finley_Solver_Preconditioner));
+        prec=MEMALLOC(1,Finley_Solver_Preconditioner);
         if (Finley_checkPtr(prec)) return;
         prec->type=UNKNOWN;
-        prec->values=NULL;
         prec->numColors=0;
+
+        prec->values=NULL;
         prec->mainDiag=NULL;
+        prec->pivot=NULL;
         prec->color=NULL;
+
         A->iterative=prec;
         switch (options->preconditioner) {
            default:
-              printf("Information: Unsupported preconditioner selected. ILU0 is used.\n");
-           case ILU0:
-              Finley_Solver_setILU0(A);
-              prec->type=ILU0;
-              break;
-           case JACOBI:
+           case ESCRIPT_JACOBI:
+              if (options->verbose) printf("Jacobi preconditioner is used.\n");
               Finley_Solver_setJacobi(A);
-              prec->type=JACOBI;
+              prec->type=ESCRIPT_JACOBI;
+              break;
+           case ESCRIPT_ILU0:
+              if (options->verbose) printf("ILU(0) preconditioner is used.\n");
+              Finley_Solver_setILU0(A);
+              prec->type=ESCRIPT_ILU0;
               break;
         }
         if (Finley_ErrorCode!=NO_ERROR) {
@@ -73,15 +78,13 @@ void Finley_Solver_solvePreconditioner(Finley_SystemMatrix* A,double* x,double* 
     Finley_Solver_Preconditioner* prec=(Finley_Solver_Preconditioner*) A->iterative;
     #pragma omp barrier
     switch (prec->type) {
-        case ILU0:
-           Finley_Solver_solveILU0(A,x,b);
-           break;
-        case JACOBI:
+        default:
+        case ESCRIPT_JACOBI:
            Finley_Solver_solveJacobi(A,x,b);
            break;
-        default:
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"Unknown preconditioner type.");
+        case ESCRIPT_ILU0:
+           Finley_Solver_solveILU0(A,x,b);
+           break;
     }
 #endif
 
@@ -89,14 +92,9 @@ void Finley_Solver_solvePreconditioner(Finley_SystemMatrix* A,double* x,double* 
 
 /*
 * $Log$
-* Revision 1.3  2004/12/15 03:48:47  jgs
+* Revision 1.4  2004/12/15 07:08:35  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:58  jgs
-* initial import of project esys2
-*
-* Revision 1.1  2004/07/02 04:21:14  gross
-* Finley C code has been included
 *
 *
 */

@@ -2,63 +2,390 @@
 
 \chapter{The module \escript}
 
-\declaremodule{extension}{escript} \modulesynopsis{Handling data on
-data points like \class{Nodes}, \class{Elements}}
+\declaremodule{extension}{escript} 
+\modulesynopsis{Data manipulation}
 
-The class \Data of the module \escript allows handling
-data which are hold on data points \index{data points}. Examples for
-data points are nodes or the quadrature points in elements of a finite
-element mesh. Another examples a particles or the connection between
-particles in the case of discrete element methods.  Handlers to data
-points are issued by the structure which contains the data points,
-e.g. a \finley mesh.
+\begin{figure}
+\includegraphics[width=\textwidth]{EscriptDiagram1.eps}
+\caption{\label{ESCRIPT DEP}Dependency of Function Spaces. An arrow indicates that a function in the 
+function space at the starting point can be interpreted as a function in the function space of the arrow target.}
+\end{figure}
 
-The simplest form of data attached to a data point is a single scalar
-$a$ value which for instance represent the temperature or pressure at
-this particular data point. Another example is a velocity field. in
-this case each data point holds a vector $a(0),a(1),a(2)$ representing
-the velocity at the particular data point. For the case that the
-values are representing a stress tensor the value is a matrix of the
-form
-$a(0,0),a(0,1),a(0,2),a(1,0),a(1,1),a(1,2),a(2,0),a(2,1),a(2,2)$. In
-general, values hald by data points can have up to four indices. The
-number of indices is called rank \index{rank}. The tuple of length
-rank which defines the upper-bound for each index component is called
-the shape. A stress has rank 2 and the shape is (3,3). For a vector we
-have rank 1 and shape (3,). A scalar can have rank 0 or rank 1 with
-shape (1,).
+\escript is an extension of Python to handle functions represented by their values on
+\DataSamplePoints. The \DataSamplePoints for the geometrical region on which
+the function is defined. The region as well as the method which is used 
+to interpolate value on the \DataSamplePoints is defined by     
+\Domain class objects. For instance when using 
+the finite element method (FEM) \index{finite element method} 
+\Domain object holds the information about the FEM mesh, eg. 
+a table of nodes and a table of elements. Although \Domain contains
+the discretization method to be used \escript does not use this information directly.
+\Domain objects are created from a module which want to make use 
+\escript, e.g. \finley.
 
-In general, the data are stored for each data point. This status of
-the data is called expanded \index{expanded}. But in some cases, all
-data points hold the same value. In this case only a single value is
-stored, which is refered by each data point if needed. This saves
-memory as well as compute time. In some cases, it is very usefull to
-have slightly more general way which allows to define piecewise
-constant data. For this, each data point has to wear a tag which is an
-integer \index{tag}. The tag is used to distingish between various
-types of data points. Typical example of the usage of tags is to
-assign different material parameters to various subdomains. Then one
-assigns the same tag to all elements in a finite element mesh which
-lay in the same subdomain.  Later each tag can be assigns individual
-material parameters.
+The solution of a PDE is a function of its location in the domain of interest $\Omega$. 
+When solving a partial differential equation \index{partial differential equation} (PDE) using FEM
+the solution is (piecewise) differentiable but, in general, its gradient
+is discontinuous. To reflect these different degrees of smoothness different
+representations of the functions are used. For instance; in FEM
+the displacement field is represented by its values at the nodes of the mesh, while the 
+strain, which is the symmetric part of the gradient of the displacement field, is stored on the 
+element centers. To be able to classify functions with respect to their smoothness, \escript has the
+concept of the "function space". A function space is described by a \FunctionSpace object.
+The following statement generates the object \var{solution_space} which is 
+a \FunctionSpace object and provides access to the function space of 
+PDE solutions on the \Domain \var{mydomain}:
+\begin{python}
+solution_space=Solution(mydomain)
+\end{python}
+The following generators for function spaces on a \Domain \var{mydomin} are available: 
+\begin{itemize}
+\item \var{Solution(mydomain)}: solutions of a PDE.  
+\item \var{ContinuousFunction(mydomain)}: continuous functions, eg. a temperature distribution.
+\item \var{Function(mydomain)}: general functions which are not necessarily continuous, eg. a stress field.
+\item \var{FunctionOnBoundary(mydomain)}: functions on the boundary of the domain, eg. a surface pressure.
+\item \var{FunctionOnContact0(mydomain)}: functions on side $0$ of the discontinuity. 
+\item \var{FunctionOnContact1(mydomain)}: functions on side $1$ of the discontinuity.
+\end{itemize}
+A discontinuity \index{discontinuity} is a region within the domain across which functions may be discontinuous.  
+The location of discontinuity is defined in the \Domain object.
+\fig{ESCRIPT DEP} shows the dependency between the types of function spaces. 
+The solution of a PDE is a continuous function. Any continuous function can be seen as a general function
+on the domain and can be restricted to the boundary as well as to any side of the 
+discontinuity (the result will be different depending on 
+which side is chosen). Functions on any side of the  
+discontinuity can be seen as a function on the corresponding other side. 
+A function on the boundary or on one side of
+the discontinuity cannot be seen as a general function on the domain as there are no values 
+defined for the interior. For most PDE solver libraries
+the space of the solution and continuous functions is identical, however in some cases, eg.
+when periodic boundary conditions are used in \finley, a solution 
+fulfils periodic boundary conditions while a continuous function does not have to be periodic.
+   
+The concept of function spaces describes the properties of 
+functions and allows abstraction from the actual representation 
+of the function in the context of a particular application. For instance, 
+in the FEM context a
+function in the \Function function space
+is typically represented by its values at the element center, 
+but in a finite difference scheme the edge midpoint of cells is preferred. 
+Using the concept of function spaces 
+allows the user to run the same script on different
+PDE solver libraries by just changing the creator of the \Domain object.     
+Changing the function space of a particular function
+will typically lead to a change of its representation. 
+So, when seen as a general function,
+a continuous function which is typically represented by its values
+on the node of the FEM mesh or finite difference grid 
+has to be interpolated to the element centers or the cell edges,
+respectively.
 
-The following table shows unitary operations that can be applied to an
-\Data object \var{arg}:
-\begin{tableii}{l|l}{textrm}{expression}{Description}
-\lineii{+\var{arg}} {just \var{arg} \index{+}}
-\lineii{-\var{arg}} {swapping the sign\index{-}}
-\lineii{\function{abs}(\var{arg})} {absolute value}
-\lineii{\function{sin}(\var{arg})} {sine function}
-\lineii{\function{cos}(\var{arg})} {cosine function}
-\lineii{\function{exp}(\var{arg})} {exponential function}
-\lineii{\function{sqrt}(\var{arg})} {square root}
-\end{tableii}
-An unitary operation returns a \Data objects of the same shape
-and defined on the data points like \var{arg}.
+\Data class objects store functions of the location in a domain. 
+The function is represented through its values on \DataSamplePoints where
+the \DataSamplePoints are chosen according to the function space 
+of the function.  
+\Data class objects are used to define the coefficients
+of the PDEs to be solved by a PDE solver library 
+and to store the returned solutions.
 
-The following table shows binary operations that can be applied to
+The values of the function have a rank which gives the
+number of indexes, and a \Shape defining the range of each index.
+The rank in \escript is limited to the range $0$ through $4$ and
+it is assumed that the rank and \Shape is the same for all \DataSamplePoints.
+The \Shape of a \Data object is a tuple \var{s} of integers. The length
+of \var{s} is the rank of the \Data object and \var{s[i]} is the maximum
+value for the \var{i}-th index.
+For instance, a stress field has rank $2$ and 
+\Shape $(d,d)$ where $d$ is the spatial dimension.
+The following statement creates the \Data object
+\var{mydat} representing a 
+continuous function with values 
+of \Shape $(2,3)$ and rank $2$:
+\begin{python}
+mydat=Data(value=1,what=ContinuousFunction(myDomain),shape=(2,3))
+\end{python}
+The initial value is the constant $1$ for all \DataSamplePoints and
+all components.
+
+\Data objects can also be created from any \numarray
+array or any object, such as a list of floating point numbers, 
+that can be converted into a \numarray array \Ref{NUMARRAY}. 
+The following two statements
+create objects which are equivalent to \var{mydat}:
+\begin{python}
+mydat1=Data(value=numarray.ones((2,3)),what=ContinuousFunction(myDomain))
+mydat2=Data(value=[[1,1],[1,1],[1,1]],what=ContinuousFunction(myDomain))
+\end{python}
+In the first case the initial value is \var{numarray.ones((2,3))}
+which generates a $2 \times 3$ matrix as a \numarray array 
+filled with ones. The \Shape of the created \Data object
+it taken from the \Shape of the array. In the second
+case, the creator converts the initial value, which is a list of lists,
+and converts it into a \numarray array before creating the actuall
+\Data object.      
+
+For convenience \escript provides creators for the most common types
+of \Data objects in the following forms (\var{d} defines the 
+spatial dimension):
+\begin{itemize}
+\item \var{Scalar(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(,))}, 
+e.g a temperature field. 
+\item \var{Vector(0,Function(mydomain))}is the same as \var{Data(0,Function(myDomain),(d))}, e.g
+a velocity field.   
+\item \var{Tensor(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d))},
+eg. a stress field.  
+\item \var{Tensor4(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d,d,d))}
+eg. a Hook tensor field.   
+\end{itemize}
+Here the initial value is $0$ but any object that can be converted into a \numarray array and whose \Shape
+is consistent with \Shape of the \Data object to be created can be used as the initial value.
+
+\Data objects can be manipulated by applying unitary operations (eg. cos, sin, log) 
+and be combined by applying binary operations (eg. +, - ,* , /). 
+It is to be emphasized that \escript itself does not handle any spatial dependencies itself as 
+it does not know how values are interpreted by the processing PDE solver library. 
+However \escript invokes interpolation if this is needed during data manipulations. 
+Typically, this occurs in binary operation when both arguments belong to different
+function spaces or when data are handed over to a PDE solver library 
+which requires functions to be represented in a particular way. 
+
+The following example shows the usage of {\tt Data} objects: Assume we have a
+displacement field $u$ and we want to calculate the corresponding stress field
+$\sigma$ using the linear--elastic isotropic material model
+\begin{eqnarray}\label{eq: linear elastic stress}
+\sigma\hackscore {ij}=\lambda u\hackscore {k,k} \delta\hackscore {ij} + \mu ( u\hackscore {i,j} + u\hackscore {j,i})
+\end{eqnarray}
+where $\delta\hackscore {ij}$ is the Kronecker symbol and 
+$\lambda$ and $\mu$ are the Lame coefficients. The following function
+takes the displacement {\tt u} and the Lame coefficients
+\var{lam} and \var{mu} as arguments and returns the corresponding stress:
+\begin{python}
+import numarray
+def getStress(u,lam,mu):
+  d=u.getDomain().getDim()
+  g=grad(u)
+  stress=lam*trace(g)*numarray.identity(d)+ \
+                                 mu*(g+transpose(g))
+  return stress     
+\end{python}
+The variable 
+\var{d} gives the spatial dimension of the 
+domain on which the displacements are defined.
+\var{identity} is a \numarray function which returns the Kronecker symbol with indexes 
+$i$ and $j$ running from $0$ to \var{d}-1. The call \var{grad(u)} requires 
+the displacement field \var{u} to be in the \var{Solution} or \ContinuousFunction
+function space. The result \var{g} as well as the returned stress will be in the \Function function space. 
+If \var{u} is available, eg. by solving a PDE, \var{getStress} might be called
+in the following way:
+\begin{python}
+s=getStress(u,1.,2.)
+\end{python}
+However \var{getStress} can also be called with \Data objects as values for
+\var{lam} and \var{mu} which,
+for instance in the case of a temperature dependency, are calculated by an expression. 
+The following call is equivalent to the previous example:
+\begin{python}
+lam=Scalar(1.,ContinuousFunction(mydomain))
+mu=Scalar(2.,Function(mydomain))
+s=getStress(u,lam,mu)
+\end{python}
+The function \var{lam} belongs to the \ContinuousFunction function space
+but with \var{g} the function \var{trace(g)} is in the \Function function space.
+Therefore the evaluation of the product \var{lam*trace(g)} in the stress calculation 
+produces a problem, as both functions are represented differently, eg. in FEM
+\var{lam} by its values on the node, and in \var{trace(g)} by its values at the element centers.
+In the case of inconsistent function spaces of arguments in a binary operation, \escript 
+interprets the arguments in the appropriate function space according to the inclusion 
+defined in Table~\ref{ESCRIPT DEP}. In this example that means
+ \escript sees \var{lam} as a function of the \Function function space. 
+In the context of FEM this means the nodal values of 
+\var{lam} are interpolated to the element centers. Behind the scenes
+\escript calls the appropriate function from the PDE solver library.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{EscriptDiagram2.eps}
+\caption{\label{Figure: tag}Element Tagging. A rectangular mesh over a region with two rock types {\it white} and {\it gray}.
+The number in each cell refers to the major rock type present in the cell ($1$ for {\it white} and $2$ for {\it gray}).
+}
+\end{figure}
+
+Material parameters such as the Lame coefficients are typically dependent on rock types present in the 
+area of interest. A common technique to handle these kinds of material parameters is "tagging". \fig{Figure: tag}
+shows an example. In this case two rock types {\it white} and {\it gray} can be found in the domain. The domain
+is subdivided into rectangular shaped cells (which is not necessarily the best subdivision for this case). Each 
+cell has a tag indicating the rock type predominately found in this cell. Here $1$ is used to indicate
+rock type {\it white} and $2$ for rock type {\it gray}. The tags are assigned at the time when the cells are generated
+(\escript provides tools to manipulate tags at a later stage) 
+and stored in the \Domain class object. The following statements show how for the
+example of \fig{Figure: tag} and the stress calculation discussed before tagged values are used for
+\var{lam}:
+\begin{python}
+lam=Scalar(value=2.,what=Function(mydomain))
+lam.setTaggedValue(1,30.)
+lam.setTaggedValue(2,5000.)
+s=getStress(u,lam,2.)
+\end{python}
+In this example \var{lam} is set to $30$ for those cells with tag $1$ and to $5000.$ for those cells 
+with tag $2$. The initial value $2$ of \var{lam} is used as a default value for the case when a tag
+is encountered which has not been linked with a value. Note that the \var{getStress} method
+is called without modification. \escript resolves the tags when \var{lam*trace(g)} is calculated.
+
+The \Data class provides a transparent interface to various data representations and the 
+translations between them. As shown in the example of stress calculation, this allows the user to
+develop and test algorithms for a simple case (for instance with the Lame coefficients as constants)
+and then without further modifications of the program code to apply the algorithm in a
+more complex application (for instance a definition of the Lame coefficients using tags). 
+As described here, there are three ways in which \Data objects are represented internally, constant, tagged, and expanded (other representions will become available in later versions of \escript):
+In the constant case, if the same value is used at each sample point a single value is stored to save memory and compute time. 
+Any operation on this constant data will only be performed on the single value. 
+In the expanded case, each sample point has an individual value, eg. the solution of a PDE,
+and the values are stored as a complete array. The tagged case has already been discussed above.
+ 
+Values are accessed through a sample reference number. Operations on expanded \Data
+objects have to be performed for each sample point individually. If tagged values are used values are
+held in a dictionary. Operations on tagged data require processing the set of tagged values only, rather than 
+processing the value for each individual sample point. 
+\escript allows use of constant, tagged and expanded data in a single expression.
+
+
+
+\section{\Domain class}
+
+\begin{classdesc}{Domain}{}
+A \Domain objects is used to describe a geometrical region together with 
+a way of representing functions over this region.
+The \Domain class provides an abstract access to the domain of \FunctionSpace and \Data objects. 
+\Domain itself has no initialization but implementations of \Domain are 
+instantiated by numerical libraries making use of \Data objects. 
+\end{classdesc}
+
+\begin{methoddesc}[Domain]{getDim}{}
+returns the spatial dimension of the \Domain.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{getX}{}
+returns the locations in the \Domain. The \FunctionSpace of the returned
+\Data object is chosen by the \Domain implementation. Typically it will be
+in the \Function.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{setX}{newX}
+assigns a new location to the \Domain. \var{newX} has to have \Shape $(d,)$
+where $d$ is the spatial dimension of the domain. Typically \var{newX} must be
+in the \ContinuousFunction but the space actually to be used depends on the \Domain implementation.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{getNormal}{}
+returns the surface normals on the boundary of the \Domain as \Data object.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{getSize}{}
+returns the local sample size, e.g. the element diameter, as \Data object.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{__eq__}{arg}
+returns \True of the \Domain \var{arg} describes the same domain. Otherwise
+\False is returned.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{__ne__}{arg}
+returns \True of the \Domain \var{arg} does not describe the same domain. 
+Otherwise \False is returned.
+\end{methoddesc}
+
+\section{\Domain class}
+\begin{classdesc}{FunctionSpace}{}
+\FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
+are instantiated by generator functions. \Data objects in particular \FunctionSpace are
+represented by their values at \DataSamplePoints which are defined by the type and the \Domain of the
+\FunctionSpace.
+\end{classdesc}
+
+\begin{methoddesc}[FunctionSpace]{getDim}{}
+returns the spatial dimension of the \Domain of the \FunctionSpace.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionSpace]{getX}{}
+returns the location of the \DataSamplePoints.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionSpace]{getNormal}{}
+If the domain of functions in the \FunctionSpace 
+is a hypermanifold (e.g. the boundary of a domain)
+the method returns the outer normal at each of the 
+\DataSamplePoints. Otherwise an exception is raised.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionSpace]{getSize}{}
+returns a \Data objects measuring the spacing of the \DataSamplePoints.  
+The size may be zero.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionSpace]{getDomain}{}
+returns the \Domain of the \FunctionSpace.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionSpace]{__eq__}{arg}
+returns \True of the \Domain \var{arg} describes the same domain. Otherwise
+\False is returned.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionSpace]{__ne__}{arg}
+returns \True of the \Domain \var{arg} describes the note same domain. 
+Otherwise \False is returned.
+\end{methoddesc}
+
+The following function provide generators for \FunctionSpace objects:
+\begin{funcdesc}{Function}{domain}
+returns the \Function on the \Domain \var{domain}. \Data objects in this type of \Function
+are defined over the whole geometrical region defined by \var{domain}. 
+\end{funcdesc}
+
+\begin{funcdesc}{ContinuousFunction}{domain}
+returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
+are defined over the whole geometrical region defined by \var{domain} and assumed to represent
+a continuous function.
+\end{funcdesc}
+
+\begin{funcdesc}{FunctionOnBoundary}{domain}
+returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
+are defined on the boundary of the geometrical region defined by \var{domain}. 
+\end{funcdesc}
+
+\begin{funcdesc}{FunctionOnContactZero}{domain}
+returns the \FunctionOnContactZero the \Domain domain. \Data objects in this type of \Function
+are defined on side 0 of a discontinutiy  within the geometrical region defined by \var{domain}.
+The discontinutiy is defined when \var{domain} is instantiated.
+\end{funcdesc}
+
+\begin{funcdesc}{FunctionOnContactOne}{domain}
+returns the \FunctionOnContactOne on the \Domain domain. 
+\Data objects in this type of \Function
+are defined on side 1 of a discontinutiy  within the geometrical region defined by \var{domain}.
+The discontinutiy is defined when \var{domain} is instantiated.
+\end{funcdesc}
+
+\begin{funcdesc}{Solution}{domain}
+returns the \SolutionFS on the \Domain domain. \Data objects in this type of \Function
+are defined on geometrical region defined by \var{domain} and are solutions of
+partial differential equations \index{partial differential equation}. 
+\end{funcdesc}
+
+\begin{funcdesc}{ReducedSolution}{domain}
+returns the \ReducedSolutionFS on the \Domain domain. \Data objects in this type of \Function
+are defined on geometrical region defined by \var{domain} and are solutions of
+partial differential equations \index{partial differential equation} with a reduced smoothness 
+for the solution approximation.
+\end{funcdesc}
+
+\section{\Data Class}
+
+
+The following table shows binary and unitary operations that can be applied to
 \Data objects:
 \begin{tableii}{l|l}{textrm}{expression}{Description}
+\lineii{+\var{arg1}} {just \var{arg} \index{+}}
+\lineii{-\var{arg1}} {swapping the sign\index{-}}
 \lineii{\var{arg1}+\var{arg2}} {adds \var{arg1} and \var{arg2} \index{+}}
 \lineii{\var{arg1}*\var{arg2}} {multiplies \var{arg1} and \var{arg2} \index{*}}
 \lineii{\var{arg1}-\var{arg2}} {difference \var{arg2} from\var{arg2} \index{-}}
@@ -68,15 +395,15 @@ The following table shows binary operations that can be applied to
 At least on of the arguments \var{arg1} or \var{arg2} must be a
 \Data object. One of the arguments may be an object that can be
 converted into a \Data object. If \var{arg1} or \var{arg2} are
-defined on different data points it is tried to interpolate \var{arg1}
-onto the data points of \var{arg2} or to interpolate \var{arg2} onto
-the data points of \var{arg1}. Boths arguments must have the same
-shape or one of the arguments my be of rank 0 or shape (1,). In the
+defined on different \FunctionSpace it is tried to embed \var{arg1}
+into the \FunctionSpace of \var{arg2} or to embed \var{arg2} into
+the \FunctionSpace of \var{arg1}. Boths arguments must have the same
+\Shape or one of the arguments my be of rank 0 or \Shape (1,). In the
 latter case it is assumed that the particular argument is of the same
-shape like the other argument but constant over all components.
+\Shape like the other argument but constant over all components.
 
-The returned \Data object has the same shape and is defined on
-the data points like \var{arg1} or \var{arg2}.
+The returned \Data object has the same \Shape and is defined on
+the \DataSamplePoints like \var{arg1} or \var{arg2}.
 
 The following table shows the update operations that can be applied to
 \Data objects:
@@ -88,457 +415,487 @@ The following table shows the update operations that can be applied to
 \end{tableii}
 \var{arg1} must be a \Data object. \var{arg1} must be a
 \Data object or an object that can be converted into a
-\Data object. \var{arg1} must have the same shape like
-\var{arg1} or has rank 0 or shape (1,).  In the latter case it is
+\Data object. \var{arg1} must have the same \Shape like
+\var{arg1} or has rank 0 or \Shape (1,).  In the latter case it is
 assumed that the values of \var{arg1} are constant for all
-components. \var{arg2} must be defined on the same data points like
+components. \var{arg2} must be defined on the same \DataSamplePoints like
 \var{arg1} or it must be possible to interpolate \var{arg2} onto the
-data points where \var{arg1} is hold.
+\DataSamplePoints where \var{arg1} is hold.
+
+The \Data class supports getting slices as well as assigning new values to components in an existing
+\Data object \index{slicing}.
+The following expression for getting (expression on the right hand side of the
+equal sign) and setting slices (expression on the left hand side of the
+equal sign) are valid:
+\begin{tableiii}{l|ll}{textrm}{rank of \var{arg}}{slicing expression}{\Shape of returned and assigned object}
+\lineiii{0}{ no slicing }                      {-}
+\lineiii{1}{\var{arg[l0:u0]}}                   {(\var{u0}-\var{l0},)}
+\lineiii{2}{\var{arg[l0:u0,l1:u1]}}             {(\var{u0}-\var{l0},\var{u1}-\var{l1})}
+\lineiii{3}{\var{arg[l0:u0,l1:u1,l2:u2]} }      {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2})}
+\lineiii{4}{\var{arg[l0:u0,l1:u1,l2:u2,l3:u3]}} {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2},\var{u3}-\var{l3})}
+\end{tableiii}
+where 
+$0 \le \var{l0} \le \var{u0} \le \var{s[0]}$,
+$0 \le \var{l1} \le \var{u1} \le \var{s[1]}$, 
+$0 \le \var{l2} \le \var{u2} \le \var{s[2]}$, 
+$0 \le \var{l3} \le \var{u3} \le \var{s[3]}$ and \var{s} the \Shape if \var{arg}. 
+Any of the lower indexes \var{l0}, \var{l1}, \var{l2} and \var{l3} may not be present in which case 
+$0$ is assumed. 
+Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may not be present in which case 
+\var{s} is assumed. The lower and upper index may be identical, in which case the column and the lower or upper
+index may be dropped. In the returned or in the object assigned to a slice the corresponding component is dropped,
+i.e. the rank is reduced by one in comparison to \var{arg}.
+The follwing examples showing the usage of slicing:  
+\begin{python}
+t[1,1,1,0]=9.
+s=t[:2,:,2:6,5] # s has rank 3
+s[:,:,1]=1.
+t[:2,:2,5,5]=s[2:4,1,:2]
+\end{python}
 
 
-%TODO:
-Slicing \index{slicing}.
+
+\begin{classdesc}{Data}{value=0,shape=(,),what=FunctionSpace(),expanded=\False}
+creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
+The values at all \DataSamplePoints are set to the double value \var{value}. If \var{expanded} is \True
+the \Data object is represented in expanded from.
+\end{classdesc}
+
+\begin{classdesc}{Data}{value,what=FunctionSpace(),expanded=\False}
+creates a \Data object in the \FunctionSpace \var{what}. 
+The value for each \DataSamplePoints is set to \numarray object \var{value}. 
+The \Shape of the returned object is equal to the \Shape of \var{value}. If \var{expanded} is \True
+the \Data object is represented in expanded from.
+\end{classdesc}
+
+\begin{classdesc}{Data}{value,what=FunctionSpace()}
+creates a \Data object in the \FunctionSpace \var{what} from the \Data object \var{value}.
+The \Shape of the created \Data object is equal to the \Shape of \var{value}.
+If the \FunctionSpace of \var{value} is equal to the \var{what}, a shallow copy, i.e.
+a reference to the representation of \var{value} is greated. Otherwise,
+\var{value} is interpolated into the \var{what}. 
+\end{classdesc}
 
 \begin{classdesc}{Data}{}
-A class that holds values assigned to data points.
+creates an \EmptyData object. The \EmptyData object is used to indicate that an argument is not present
+where a \Data object is required.
 \end{classdesc}
 
-\begin{classdesc}{Scalar}{value=None,where=None,expand=None}
-A class that holds a single value per data point.
-\end{classdesc}
+\begin{methoddesc}[Data]{getFunctionSpace}{}
+returns the \FunctionSpace of the object.
+\end{methoddesc}
 
-\begin{classdesc}{Vector}{value=None,dim=None,where=None,expand=None}
-A class that holds a vector per data point.
-\end{classdesc}
-
-\begin{classdesc}{Tensor}{value=None,dim=None,where=None,expand=None}
-A class that holds a tensor order 2 (matrix) per data point.
-\end{classdesc}
-
-\begin{classdesc}{Tensor3}{value=None,dim=None,where=None,expand=None}
-A class that holds a tensor order 3 per data point.
-\end{classdesc}
-
-\begin{classdesc}{Tensor4}{value=None,dim=None,where=None,expand=None}
-A class that holds a tensor order 4 per data point.
-\end{classdesc}
-
-\begin{funcdesc}{abs}{arg}
-returns the absulute value of \Data \var{arg}. The returned
-\Data object has the same rank, shape and is defined on the
-same \class{_Atom} like \var{arg}. An entries in the returned object
-is the absolute value of the corresponding entry in \var{arg}.
-\index{absolute value}
-\end{funcdesc}
-
-\begin{funcdesc}{L2}{arg}
-  returns the $L^2$-norm of the \Data \var{arg} by using method
-\method{arg.L2()}.  \index{$L^2$-norm}
-\end{funcdesc}
-
-\begin{funcdesc}{grad}{arg}
-returns the gradient of the interpolation function of \Data
-\var{arg} by using \method{arg.grad}. \index{gradient}
-\end{funcdesc}
-
-\begin{funcdesc}{integrate}{arg}
-returns the integral of the interpolation function of \Data
-\var{arg} by using \method{arg.integrate}. \index{integral}
-\end{funcdesc}
-
-\begin{funcdesc}{interpolate}{arg,where}
-interpolates the \Data \var{arg} onto \class{_Atom} where by
-using \method{arg.interpolate}. \index{interpolation}
-\end{funcdesc}
-
-\begin{funcdesc}{transpose}{arg}
-returns the transpose of \var{arg} where \var{arg} has to be
-\Data or \class{numarray.array}. If \var{arg} is of
-\Data the method \method{arg.transpose} is used otherwise
-\function{numarray.transpose} is called. \index{transpose}
-\end{funcdesc}
-
-\begin{funcdesc}{trace}{arg}
-returns the trace of \var{arg} where \var{arg} has to be \Data
-or \class{numarray.array} of rank 2. If \var{arg} is of \Data
-the method \method{arg.trace} is used otherwise
-\function{numarray.trace} is called. \index{trace}
-\end{funcdesc}
-
-\begin{funcdesc}{exp}{arg}
-applies the exponential function to \var{arg} where \var{arg} has to
-be \Data or \class{numarray.array}. If \var{arg} is of
-\Data the method \method{arg.exp} is used otherwise
-\function{numarray.exp} is called. \index{exponential function}
-\end{funcdesc}
-
-\begin{funcdesc}{sqrt}{arg}
-applies the square root function to \var{arg} where \var{arg} has to
-be \Data or \class{numarray.array}. If \var{arg} is of
-\Data the method \method{arg.sqrt} is used otherwise
-\function{numarray.sqrt} is called. \index{square root}
-\end{funcdesc}
-
-\begin{funcdesc}{sin}{arg}
-applies the sine function to \var{arg} where \var{arg} has to be
-\Data or \class{numarray.array}. If \var{arg} is of
-\Data the method \method{arg.sin} is used otherwise
-\function{numarray.sin} is called. \index{sine function}
-\end{funcdesc}
-
-\begin{funcdesc}{cos}{arg}
-applies the cosine function to \var{arg} where \var{arg} has to be
-\Data or \class{numarray.array}. If \var{arg} is of
-\Data the method \method{arg.cos} is used otherwise
-\function{numarray.cos} is called. \index{cosine function}
-\end{funcdesc}
-
-\begin{funcdesc}{maxval}{arg}
-returns for each data point the maximum value over all components of
-\Data \var{arg} by using \method{arg.maxval}.  \index{maximum
-value}
-\end{funcdesc}
-
-\begin{funcdesc}{minval}{arg}
-returns for each data point the minimum value over all components of
-\Data \var{arg} by using \method{arg.minval}.  \index{minimum
-value}
-\end{funcdesc}
-
-\begin{funcdesc}{inf}{arg}
-returns the minimum value (infimum) over all components and all data
-points of \Data \var{arg} by using \method{arg.inf}.
-\index{infimum}
-\end{funcdesc}
-
-\begin{funcdesc}{sup}{arg}
-returns the maximum value (supremum) over all components and all data
-points of \Data \var{arg} by using \method{arg.sup}.
-\index{supremum}
-\end{funcdesc}
-
-\begin{funcdesc}{Lsup}{arg}
-returns the maximum absulute value ($L^{sup}$-norm) over all
-components and all data points of \Data \var{arg} by using
-\method{arg.sup}.  The returned value equals
-\function{sup}(\function(arg)).  \index{$L^{sup}$-norm}
-\end{funcdesc}
-
-\begin{funcdesc}{matmult}{arg1,arg2}
-returns for each data point the matrix-matrix product of \var{arg1}
-and \var{arg2} \index{matrix-matrix product}. At least of the
-arguments \var{arg1} and \var{arg2} has to be a \Data
-object. If the other argument is not a \Data object it must be
-convertable into a \Data object. The returned \Data
-object has rank \var{arg1.getRank()}+\var{arg2.getRank()}-2 and shape
-(\var{arg1.getShape()}[r-1],\var{arg2.getShape()}[1:]), where
-\var{r}=\var{arg1.getRank()}. The last dimension of \var{arg1} and the
-first dimension of \var{arg2} have to match,
-i.e. \var{arg1.getShape()[r-1]}=\var{arg2.getShape()[0]}
-
-For the case that \var{arg1} and \var{arg2} are both of rank $2$ the
-result \var{res} is calculated as
-\begin{equation}
-res(i,j;s)=
-arg1(i,0;s) \cdot arg2(0,j;s)+
-\ldots
-arg1(i,n-1;s) \cdot arg2(n-1,j;s)
-\end{equation}
-for all $0\le i <$ \var{arg1.getShape()[0]}, $0\le j <$
-\var{arg2.getShape()[1]} and all data points $s$, where
-$n$=\var{arg2.getShape()[0]},
-
-If the arguments are not defined on the same data points, \var{arg1}
-is tried to be interpolated on the data points of \var{arg2} or
-\var{arg2} is tried to be interpolated on the data points of
-\var{arg1}. What ever case works defines the data points of the
-result.
-\end{funcdesc}
-
-%==================================================================
-\section{\Data class}
-\begin{classdesc}{Data}{value=None,shape=None,where=None,expand=None}
-\end{classdesc}
-
-\begin{methoddesc}[Data]{getAtoms}{}
-returns a handel to the data points on which the object is definded
-\index{data points}.  The returned object is of \class{_Atoms}.
+\begin{methoddesc}[Data]{getFunctionSpace}{}
+returns the \Domain  of the object.
 \end{methoddesc}
 
 \begin{methoddesc}[Data]{getShape}{}
-returns the shape of the data on each data point as a \class{tuple} of
-integers. \index{shape}
+returns the \Shape  of the object as a \class{tuple} of
+integers.
 \end{methoddesc}
 
 \begin{methoddesc}[Data]{getRank}{}
 returns the rank of the data on each data point. \index{rank}
 \end{methoddesc}
 
-\begin{methoddesc}[Data]{hasShape}{shape}
-is true if the object has the shape \var{shape}.
+\begin{methoddesc}[Data]{isEmpty}{}
+returns \True id the \Data object is the \EmptyData object.
+Otherwise \False is returned.
 \end{methoddesc}
 
-\begin{methoddesc}[Data]{expand}{}
-returns an expanded version of the object if the object is not
-expanded. Otherwise it returns itself. \index{expanded}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{makeExpanded}{}
-turns the object into an expanded \Data
-object. \index{expanded}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{isExpanded}{}
-is true if the object is expanded. \index{expanded}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{isTagged}{}
-is true if the object is defined using tags. \index{tagged}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{asArray}{}
-returns the object as a \class{numarray.array} array. The array is one
-rank higher than the rank of the object. The extra dimension is the
-number of data points.
-% TODO: be more accurate on the shape
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{addTaggedValue}{tag,value=0}
-assigns the \var{value} to all data points which have the tag
-\var{tag} which has to be an integer or a list of
-integers. \var{value} must be an object of class
+\begin{methoddesc}[Data]{setTaggedValue}{tag,value}
+assigns the \var{value} to all \DataSamplePoints which have the tag
+\var{tag}. \var{value} must be an object of class
 \class{numarray.array} or must be convertable into a
 \class{numarray.array} object. \var{value} (or the cooresponding
 \class{numarray.array} object) must be of rank $0$ or must have the
-same rank like the object. \index{tagged}
-
-If a value has allready be defined for tag \var{tag} within the object
+same rank like the object.
+If a value has already be defined for tag \var{tag} within the object
 it is overwritten by the new \var{value}.  If the object is expanded,
-the value assigned to data points with tag \var{tag} is replaced by
+the value assigned to \DataSamplePoints with tag \var{tag} is replaced by
 \var{value}.
 \end{methoddesc}
 
-\begin{methoddesc}[Data]{getTaggedValue}{tag}
-returns the value assigned to \var{tag}. An exception is raised if the
-object is not defined by tagged data, e.g. if the object is
-expanded.\index{tagged}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{L2}{}
-returns the $L^2$-norm of the object. This is square root of sum of
-the squares of all values over all components and all data points.
-\index{$L^2$-norm}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{grad}{}
-returns the gradient of the interpolation function. The returned
-\Data object is of rank r+1 where r is the rank of the object.
-Typically the object of to be defined on nodes and the returned
-gradient is defined on the quadrature points of elements.
-\index{gradient}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{integrate}{}
-returns the integral of the interpolation function. The method returns
-a \class{numarray.array} object of the same shape like the object.  A
-component of the returned object is the integral of the corresponding
-component of the object.  \index{integral}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{interpolate}{where}
-interpolates onto the data points of the \class{_Atom}
-\var{where}. The returned \Data object is of the same shape
-like the object and is defined on the data points \var{where}.
-\index{interpolation}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{transpose}{}
-returns the transpose of the object. The return value is an object has
-the same shape and is defined on the same data points like the object.
-For each data point the value is set to transposed of the
-corresponding value of the object by reversing the index of the data.
-
-For the case that object \var{self} is of rank 3 the result \var{res} is
-\begin{equation}
-res(i,j,k;s)=self(k,j,i;s)
-\end{equation}
-for all 
-$0\le i <$ \var{self.getShape()[2]},
-$0\le j <$ \var{self.getShape()[1]},
-$0\le k <$ \var{self.getShape()[0]}
-and all data points $s$.
-\index{transpose}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{trace}{}
-returns the trace of the object of rank 2. The return value is an
-object has rank 0 or shape (1,) and is defined on the same data points
-like the object. For each data point the value is set to sum of the
-main diagonal entries.
-
-For the case that object \var{self} is of rank 2 the result \var{res}
-is
-\begin{equation}
-res(0;s)=
-self(0,0;s)+
-self(1,1;s)+
-\ldots +
-self(n,n;s)
-\end{equation}
-for all data points $s$ where
-$n=min($\var{self.getShape()[0]},\var{self.getShape()[1]}$)$.
-\index{trace}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{exp}{}
-applies the exponential function to the values of the object. The
-return value is an object has the same shape and is defined on the
-same data points like the object.  For each data point and all
-components the value is calculated by applying the exponention
-function to the corresponding value of the object.  \index{exponential
-function}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{sqrt}{}
-applies the square root function to the values of the object. The
-return value is an object has the same shape and is defined on the
-same data points like the object.  For each data point and all
-components the value is calculated by applying the square root
-function to the corresponding value of the object. An exception is
-raised if the value is negative.  \index{square root}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{sin}{}
-applies the sine function to the values of the object. The return
-value is an object has the same shape and is defined on the same data
-points like the object.  For each data point and all components the
-value is calculated by applying the sine function to the
-corresponding value of the object.  \index{sine function}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{cos}{}
-applies the cosine function to the values of the object. The return
-value is an object has the same shape and is defined on the same data
-points like the object.  For each data point and all components the
-value is calculated by applying the cosine function to the
-corresponding value of the object.  \index{cosine function}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{maxval}{}
-returns for each data point the maximum value over all components. The
-return value is an object of rank 0 or shape (1,) and is defined on
-the same data points like the object.  \index{maximum value}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{minval}{}
-returns for each data point the minimum value over all components. The
-return value is an object of rank 0 or shape (1,) and is defined on
-the same data points like the object.  \index{minimum value}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{inf}{}
-returns the minimum value (infimum) of the object. The minimum is
-taken over all components and all data points.  \index{infimum}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{sup}{}
-returns the maximum value (supremum) of the object. The maximum is
-taken over all components and all data points.  \index{supremum}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{Lsup}{}
-returns the $L^{sup}$-norm of the object. This is maximum value of the
-absolut values of the object over all data points and all components.
-\index{$L^{sup}$-norm}
-\end{methoddesc}
-
 \begin{methoddesc}[Data]{wherePositive}{}
-returns \Data object which has the same shape and is defined on
-the same data points like the object. The returned values are $1$
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
 where the object is positive and $0$ elsewhere.
 \end{methoddesc}
 
+\begin{methoddesc}[Data]{wherePositive}{}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is non-positive and $0$ elsewhere.
+\end{methoddesc}
+
 \begin{methoddesc}[Data]{whereNonnegative}{}
-returns \Data object which has the same shape and is defined on
-the same data points like the object. The returned values are $1$
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
 where the object is non-negative and $0$ elsewhere.
 \end{methoddesc}
 
 \begin{methoddesc}[Data]{whereNegative}{}
-returns \Data object which has the same shape and is defined on
-the same data points like the object. The returned values are $1$
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
 where the object is negative and $0$ elsewhere.
 \end{methoddesc}
 
-\begin{methoddesc}[Data]{whereZero}{tolerance=Constants.EPSILON}
-returns \Data object which has the same shape and is defined on
-the same data points like the object. The returned values are $1$
+\begin{methoddesc}[Data]{whereZero}{tolerance=1.e-8}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
 where the object is nearly zero, i.e. where the absolute value is less
 than \var{tolerance}, and $0$ elsewhere.
 \end{methoddesc}
 
-\begin{methoddesc}[Data]{whereNonzero}{tolerance=Constants.EPSILON}
-returns \Data object which has the same shape and is defined on
-the same data points like the object. The returned values are $1$
+\begin{methoddesc}[Data]{whereNonzero}{tolerance=1.e-8}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
 where the object is nearly non-zero, i.e. where the absolute value is
 greater or equal than \var{tolerance}, and $0$ elsewhere.
 \end{methoddesc}
 
+\begin{methoddesc}[Data]{sign}{}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is positive, $-1$ where the value is negative and $0$ elsewhere.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{copyWithMask}{arg,mask}
+copies the \Data object \var{arg} into the object 
+where the \Data object \var{mask} is positive. \var{arg}
+and \var{mask} must have the same \Shape 
+and must belong to same \FunctionSpace as
+the object.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{Lsup}{}
+returns the $L^{sup}$-norm of the object. This is maximum absolute values over all components and all \DataSamplePoints. \index{$L^{sup}$-norm}.
+\end{methoddesc}
+\begin{methoddesc}[Data]{inf}{}
+returns the minimum value (infimum) of the object. The minimum is
+taken over all components and all \DataSamplePoints .  \index{infimum}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{sup}{}
+returns the maximum value (supremum) of the object. The maximum is
+taken over all components and all \DataSamplePoints .  \index{supremum}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{grad}{\optional{on}}
+returns the gradient of the function represented by the object.
+\Data object is in \FunctionSpace \var{on} and has rank r+1 where r is the rank of the object.
+If \var{on} is not present, a suitbale \FunctionSpace is used. 
+\index{gradient}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{integrate}{}
+returns the integral of the function represented by the object. The method returns
+a \class{numarray.array} object of the same \Shape like the object.  A
+component of the returned object is the integral of the corresponding
+component of the object. \index{integral}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{interpolate}{on}
+interpolates 
+the function represented by the object
+into the \FunctionSpace\var{on}.
+\index{interpolation}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{abs}{} 
+applies the absolute value function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the exponential
+function. \index{function!absolute value}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{exp}{} 
+applies the exponential function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the exponential
+function. \index{function!exponential}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{sqrt}{}
+applies the square root function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the square root function. 
+An exception is
+raised if the value is negative.  \index{function!square root}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{sin}{}
+applies the sine function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the sine function. \index{function!sine}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{cos}{}
+applies the cosine function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the cosine function. \index{function!cosine}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{tan}{}
+applies the tangent function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the tangent function. \index{function!tangent}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{log}{}
+applies the logarithmic function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the logarithmic function. An exception is
+raised if the value is negative.\index{function!logarithmic}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{maxval}{}
+returns the maximum value over all components. The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints
+the value is calculated as the maximum value over all components. \index{function!maximum}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{minval}{}
+returns the minimum value over all components. The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints
+the value is calculated as the minimum value over all components. \index{function!minimum}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{length}{}
+returns the Euclidean length at all \DataSamplePoints. The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints
+the value is calculated as the square root of the sum of the square over all over all components. \index{function!length}
+\end{methoddesc}
+\begin{methoddesc}[Data]{transpose}{axis}
+returns the transpose of the object around \var{axis}. \var{axis} is a non-negative integer
+which is less the rank $r$ of the object. Transpose swaps the indexes $0$ to \var{axis}
+with the indexes \var{axis}+1 to $r$. If the \var{d} is \RankFour one has 
+\begin{python}
+d[i,j,k,l]=d.transpose(0)[i,j,k,l]
+d[i,j,k,l]=d.transpose(1)[j,k,l,i]
+d[i,j,k,l]=d.transpose(2)[k,l,i,j]
+d[i,j,k,l]=d.transpose(3)[l,i,j,k]
+\end{python}
+\index{function!transpose}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{trace}{}
+returns sum of the components with identical indexes. 
+The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object.
+\index{function!trace}
+\end{methoddesc}
 \begin{methoddesc}[Data]{saveDX}{fileName}
 saves the object to an openDX format file of name \var{fileName}, see
 \ulink{www.opendx.org}{\url{www.opendx.org}}.  \index{openDX}
 \end{methoddesc}
 
-\begin{methoddesc}[Data]{saveMM}{fileName}
+
+For convenience the following factories are provided to created \Data object:
+
+\begin{funcdesc}{Scalar}{value=0.,what=escript::FunctionSpace(),expand=\False}
+returns a \Data object of rank 0 in the \FunctionSpace \var{what}.
+Values are initialed with the double \var{value}. If \var{expanded} is \True
+the \Data object is represented in expanded from.
+\end{funcdesc}
+
+\begin{funcdesc}{Vector}{value=0.,what=escript::FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what} 
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialed with the double \var{value}. If \var{expanded} is \True
+the \Data object is represented in expanded from.
+\end{funcdesc}
+
+\begin{funcdesc}{Tensor}{value=0.,what=escript::FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what} 
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialed with the double \var{value}. If \var{expanded} is \True
+the \Data object is represented in expanded from.
+\end{funcdesc}
+
+\begin{funcdesc}{Tensor3}{value=0.,what=escript::FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what} 
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialed with the double \var{value}. If \var{expanded} is \True
+the \Data object is re\var{arg}presented in expanded from.
+\end{funcdesc}
+
+\begin{funcdesc}{Tensor4}{value=0.,what=escript::FunctionSpace(),expand=\False}
+returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what} 
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialed with the double \var{value}. If \var{expanded} is \True
+the \Data object is represented in expanded from.
+\end{funcdesc}
+
+\begin{funcdesc}{abs}{arg} 
+returns the absolute value of \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{sin}{arg}
+returns the sine of \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{cos}{arg}
+returns the cosine of \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{exp}{arg}
+returns the value of the exponential function for \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{sqrt}{arg}
+returns the square root of \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{maxval}{arg}
+returns the maximum value over all component of \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{minval}{arg}
+returns the minumum value over all component of \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{length}{arg}
+returns the length of \var{arg} which is the
+square root of the sum of the squares of all component of \var{arg}. \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{sign}{arg}
+return the sign of \var{arg} where \var{arg}
+can be double, a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{transpose}{arg,\optional{axis}}
+returns the transpose of \var{arg} around \var{axis}. \var{axis} is a non-negative integer
+which is less the rank $r$ of the object. Transpose swaps the indexes $0$ to \var{axis}
+with the indexes \var{axis}+1 to $r$. If \var{axis} is not present, \var{axis}=$r/2$ is assumed.
+\var{arg}
+may be a \Data object or an \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{transpose}{arg,\optional{axis}}
+returns the trace the object of \var{arg}. The trace is the sum over those components
+with identical indexed. 
+\var{arg}
+may be a \Data object or a \numarray object.
+\end{funcdesc}
+
+\begin{funcdesc}{sum}{arg}
+returns the sum over all components and all 
+\DataSamplePoints of \var{arg}, where \var{arg}
+is a \Data object. 
+\end{funcdesc}
+
+\begin{funcdesc}{sup}{arg}
+returns the maximum over all components and all 
+\DataSamplePoints of \var{arg}, where \var{arg}
+is a \Data object. 
+\end{funcdesc}
+
+\begin{funcdesc}{inf}{arg}
+returns the mimumum over all components and all 
+\DataSamplePoints of \var{arg}, where \var{arg}
+is a \Data object. 
+\end{funcdesc}
+
+
+\begin{funcdesc}{L2}{arg}
+returns the $L^2$ norm of \var{arg}. This is the square root 
+of the sum of the squared value over all components and all 
+\DataSamplePoints of \var{arg}, where \var{arg}
+is a \Data object. 
+\end{funcdesc}
+
+\begin{funcdesc}{Lsup}{arg}
+returns the $L^{sup}$ norm of \var{arg}. This is the maximum of the absolute values
+ over all components and all 
+\DataSamplePoints of \var{arg}, where \var{arg}
+is a \Data object. 
+\end{funcdesc}
+
+\begin{funcdesc}{dot}{arg1,arg2}
+returns the dot product of of \var{arg1} and \var{arg2}. This is sum
+of the product of corresponding entries in \var{arg1} and \var{arg2} over all
+components and and all 
+\DataSamplePoints. \var{arg1} and \var{arg2} are \Data objects of the
+same \Shape and in the same \FunctionSpace.
+\end{funcdesc}
+
+\begin{funcdesc}{grad}{arg,\optional{where}}
+returns the gradient of \var{arg} as a function in the \FunctionSpace \var{where}.
+If \var{where} is not present a reasonable \FunctionSpace is chosen.
+\var{arg}
+is a \Data object. 
+\end{funcdesc}
+
+\begin{funcdesc}{integrate}{arg}
+returns the integral of \var{arg} as a \numarray object.
+If \var{where} is not present a reasonable \FunctionSpace is chosen.
+\var{arg}
+is a \Data object. 
+\end{funcdesc}
+
+\begin{funcdesc}{interpolate}{arg,where}
+interpolate \Data object \var{arg} into the \FunctionSpace \var{where}
+\end{funcdesc}
+
+
+\section{\Operator Class}
+
+The \Operator class provides an abstract access to operators build
+within the \LinearPDE class. \Operator objects are created 
+when a PDE is handed over to a PDE solver library and handled
+by the \LinearPDE class defining the PDE. The user can gain access
+to the \Operator of a \LinearPDE object through the \var{getOperator}
+method.
+
+\begin{classdesc}{Operator}{}
+creates an empty \Operator object.
+\end{classdesc}
+
+\begin{methoddesc}[Operator]{isEmpty}{fileName}
+returns \True is the object is empty. Otherwise \True is returned.
+\end{methoddesc}
+
+\begin{methoddesc}[Operator]{setValue}{value}
+resets all entires in the obeject representation to \var{value}
+\end{methoddesc}
+
+\begin{methoddesc}[Operator]{solves}{rhs}
+solves the operator equation with right hand side \var{rhs}
+\end{methoddesc}
+
+\begin{methoddesc}[Operator]{of}{u}
+applies the operator to the \Data object \var{u}
+\end{methoddesc}
+
+\begin{methoddesc}[Operator]{saveMM}{fileName}
 saves the object to a matrix market format file of name
 \var{fileName}, see
 \ulink{maths.nist.gov/MatrixMarket}{\url{http://maths.nist.gov/MatrixMarket}}.
 \index{Matrix Market}
 \end{methoddesc}
 
-%=====================================================
-\section{Subclasses of \var{class}}
-\begin{classdesc}{Scalar}{value=None,where=None,expand=None}
-\Data object with a single value (scalar) per data
-point. \var{value} must be a float number.  If \var{expand} is true,
-the \var{value} is copied to each data point.
-\end{classdesc}
-
-\begin{classdesc}{Vector}{value=None,dim=None,where=None,expand=None}
-\Data object with a vector of length \var{dim} value (scalar)
-per data point.  If \var{dim} is not present or equals \var{None},
-\var{dim} is assumed to be the spatial dimension of the data points
-defined by \var{where}. \var{value} may be a float number or a
-\class{numarray.array} object with shape (\var{dim},).  If
-\var{expand} is true, the \var{value} is copied to each data point.
-\end{classdesc}
-
-\begin{classdesc}{Tensor}{value=None,dim=None,where=None,expand=None}
-\Data object with a \var{dim} $\times$ \var{dim} - tensor of
-order 2 per data point.  If \var{dim} is not present or equals
-\var{None}, \var{dim} is assumed to be the spatial dimension of the
-data points defined by \var{where}. \var{value} may be a float number
-or a \class{numarray.array} object with shape (\var{dim},\var{dim}).
-If \var{expand} is true, the \var{value} is copied to each data point.
-\end{classdesc}
-
-\begin{classdesc}{Tensor3}{value=None,dim=None,where=None,expand=None}
-\Data object with a \var{dim} $\times$ \var{dim} $\times$
-\var{dim} - tensor of order 3 per data point.  If \var{dim} is not
-present or equals \var{None}, \var{dim} is assumed to be the spatial
-dimension of the data points defined by \var{where}. \var{value} may
-be a float number or a \class{numarray.array} object with shape
-(\var{dim},\var{dim},var{dim}).  If \var{expand} is true, the
-\var{value} is copied to each data point.
-\end{classdesc}
-
-\begin{classdesc}{Tensor4}{value=None,dim=None,where=None,expand=None}
-\Data object with a \var{dim} $\times$ \var{dim} $\times$
-\var{dim} $\times$ \var{dim} - tensor of order 4 per data point.  If
-\var{dim} is not present or equals \var{None}, \var{dim} is assumed to
-be the spatial dimension of the data points defined by
-\var{where}. \var{value} may be a float number or a
-\class{numarray.array} object with shape
-(\var{dim},\var{dim},var{dim},var{dim}).  If \var{expand} is true, the
-\var{value} is copied to each data point.
-\end{classdesc}
