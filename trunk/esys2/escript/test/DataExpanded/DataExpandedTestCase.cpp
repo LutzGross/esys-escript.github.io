@@ -71,6 +71,10 @@ void DataExpandedTestCase::testAll() {
   assert(dataView.getRank()==shape.size());
   assert(dataView.noValues()==shape[0]*1);
   assert(dataView.getShape()[0]==shape[0]);
+  assert(testData.getNumDPPSample()==1);
+  assert(testData.getNumSamples()==1);
+  assert(testData.validSamplePointNo(testData.getNumDPPSample()-1));
+  assert(testData.validSampleNo(testData.getNumSamples()-1));
 
   //
   // Test copy constructor
@@ -90,6 +94,10 @@ void DataExpandedTestCase::testAll() {
   assert(dataView.getRank()==shape.size());
   assert(dataView.noValues()==shape[0]*1);
   assert(dataView.getShape()[0]==shape[0]);
+  assert(testData2.getNumDPPSample()==1);
+  assert(testData2.getNumSamples()==1);
+  assert(testData2.validSamplePointNo(testData2.getNumDPPSample()-1));
+  assert(testData2.validSampleNo(testData2.getNumSamples()-1));
 
 }
 
@@ -141,6 +149,10 @@ void DataExpandedTestCase::testReshape() {
   assert(dataView.getShape()[0]==shape[0]);
   assert(dataView.getShape()[1]==shape[1]);
   assert(dataView.getShape()[2]==shape[2]);
+  assert(testData.getNumDPPSample()==1);
+  assert(testData.getNumSamples()==1);
+  assert(testData.validSamplePointNo(testData.getNumDPPSample()-1));
+  assert(testData.validSampleNo(testData.getNumSamples()-1));
 
   //
   // Test reshape - illegal

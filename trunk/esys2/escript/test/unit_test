@@ -2,7 +2,7 @@
 # $Id$
 # simple script to run all escript unit tests
 
-MODULES="DataAlgorithmAdapter DataArrayView DataC DataEmpty DataFactory FunctionSpace multiTest Data DataArray DataBlocks2D DataConstant DataExpanded DataTagged"
+MODULES="DataEmpty DataConstant DataTagged DataExpanded DataFactory DataArray DataArrayView DataBlocks2D DataVector DataC DataAlgorithmAdapter FunctionSpace Data"
 
 for module in $MODULES ; do \
 	(echo Testing: $module; cd $module; ./unit_test) \

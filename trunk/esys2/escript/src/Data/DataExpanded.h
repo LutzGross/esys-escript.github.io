@@ -25,6 +25,8 @@
 
 namespace escript {
 
+//
+// Forward declarations of other Data types.
 class DataEmpty;
 class DataConstant;
 class DataTagged;
@@ -34,42 +36,29 @@ class DataTagged;
    Give a short description of what DataExpanded does.
 
    Description:
-   Give a detailed description of DataExpanded
+   Give a detailed description of DataExpanded.
 
    Template Parameters:
    For templates describe any conditions that the parameters used in the
-   template must satisfy
+   template must satisfy.
 */
 
-class DataExpanded : public DataAbstract{
+class DataExpanded : public DataAbstract {
 
  public:
 
   /**
      \brief
-     Copy constructor for DataExpanded. Performs a deep copy.
-  */
-  DataExpanded(const DataExpanded& other);
-
-  /**
-     \brief
-     Construct a DataExpanded from a DataConstant.
-  */
-  DataExpanded(const DataConstant& other);
-
-  /**
-     \brief
-     Construct a DataExpanded from a DataTagged.
-  */
-  DataExpanded(const DataTagged& other);
-
-  /**
-     \brief
-     Constructor for DataExpanded
+     Constructor for DataExpanded.
 
      Description:
-     Constructor for DataExpanded
-     \param value - Input - Data value for a single point.
+     Constructor for DataExpanded.
+
+     The given single data value is copied to all the data points in 
+     this data object, where the number of data points is defined by
+     the given function space.
+
+     \param value - Input - A single data value.
      \param what - Input - A description of what this data represents.
   */
   DataExpanded(const boost::python::numeric::array& value,
@@ -77,13 +66,17 @@ class DataExpanded : public DataAbstract{
 
   /**
      \brief
-     Alternative constructor for DataExpanded
+     Alternative constructor for DataExpanded.
 
      Description:
      Alternative Constructor for DataExpanded.
-     \param value - Input - Data value for a single point.
-     \param what - Input - A description of what this data represents.
 
+     The given single data value is copied to all the data points in 
+     this data object, where the number of data points is defined by
+     the given function space.
+
+     \param value - Input - A single data value.
+     \param what - Input - A description of what this data represents.
   */
   DataExpanded(const DataArrayView& value,
                const FunctionSpace& what);
@@ -101,14 +94,35 @@ class DataExpanded : public DataAbstract{
 
   /**
      \brief
-     Destructor
+     Copy constructor for DataExpanded.
+     Performs a deep copy from another DataExpanded.
+  */
+  DataExpanded(const DataExpanded& other);
+
+  /**
+     \brief
+     Copy constructor for DataExpanded.
+     Construct a DataExpanded from a DataConstant.
+  */
+  DataExpanded(const DataConstant& other);
+
+  /**
+     \brief
+     Copy constructor for DataExpanded.
+     Construct a DataExpanded from a DataTagged.
+  */
+  DataExpanded(const DataTagged& other);
+
+  /**
+     \brief
+     Default destructor for DataExpanded.
   */
   virtual
   ~DataExpanded();
 
   /**
      \brief
-     Return a textual representation of the data
+     Return a textual representation of the data.
   */
   virtual
   std::string
@@ -125,11 +139,12 @@ class DataExpanded : public DataAbstract{
 
   /**
      \brief
-     Return the offset for the given sample. This is somewhat artificial notion
-     but returns the offset in bytes for the given point into the container
+     Return the offset for the given given data point. This returns
+     the offset in bytes for the given point into the container
      holding the point data.
-     \param sampleNo - Input - number of samples.
-     \param dataPointNo - Input - Input.
+
+     \param sampleNo - Input - sample number.
+     \param dataPointNo - Input - data point number.
   */
   virtual
   DataArrayView::ValueType::size_type
@@ -138,12 +153,14 @@ class DataExpanded : public DataAbstract{
 
   /**
      \brief
-     Return a view into the data for the data point specified.
+     Return a view into the data array for the data point specified.
+
      NOTE: Construction of the DataArrayView is a relatively expensive 
      operation.
-     \param sampleNo - Input
-     \param dataPointNo - Input
-     \return DataArrayView of the data point.
+
+     \param sampleNo - Input - sample number.
+     \param dataPointNo - Input - data point number.
+     \return DataArrayView for the data point.
   */
   DataArrayView
   getDataPoint(int sampleNo,
@@ -161,6 +178,7 @@ class DataExpanded : public DataAbstract{
      \brief
      Factory method that returns a newly created DataExpanded.
      The caller is reponsible for managing the object created.
+
      \param region - Input - Region to copy.
   */
   virtual
@@ -170,7 +188,8 @@ class DataExpanded : public DataAbstract{
   /**
      \brief
      Copy the specified region from the given value.
-     \param value - Input - Data to copy from
+
+     \param value - Input - Data object to copy from.
      \param region - Input - Region to copy.
   */
   virtual
@@ -233,13 +252,18 @@ class DataExpanded : public DataAbstract{
 
   /**
      \brief
-     Common initialisation called from constructors
+     Common initialisation called from constructors.
 
      Description:
-     Common initialisation called from constructors
+     Common initialisation called from constructors.
+
+     Resizes the underlying data array to provide sufficient storage for the
+     given shape and number of data points, and creates the corresponding
+     DataArrayView of this data.
+
      \param shape - Input - The shape of the point data.
      \param noSamples - Input - number of samples.
-     \param noDataPointsPerSample - Input -
+     \param noDataPointsPerSample - Input - number of data points per sample.
   */
   void
   initialise(const DataArrayView::ShapeType& shape,
@@ -248,11 +272,12 @@ class DataExpanded : public DataAbstract{
 
   /**
      \brief
-     Copy the given data point to all data points.
+     Copy the given data point to all data points in this object.
 
      Description:
-     Copy the given data point to all data points.
-     \param value Input - Value for a single data point.
+     Copy the given data point to all data points in this object.
+
+     \param value Input - A single data point value.
   */
   void
   copy(const DataArrayView& value);
@@ -261,7 +286,8 @@ class DataExpanded : public DataAbstract{
   copy(const boost::python::numeric::array& value);
 
   //
-  // The main data storage, a 2D array of data blocks.
+  // The main data storage array, a 2D array of data blocks.
+  // noSamples * noDataPointsPerSample
   DataBlocks2D m_data;
 
 };

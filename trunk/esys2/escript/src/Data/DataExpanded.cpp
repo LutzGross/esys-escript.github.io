@@ -35,11 +35,12 @@ DataExpanded::DataExpanded(const boost::python::numeric::array& value,
 {
   DataArrayView::ShapeType tempShape;
   //
-  // extract the shape from the python array
-  for (int i=0; i<value.getrank(); ++i) {
-    //cout << extract<int>(value.getshape()[i]) << endl;
+  // extract the shape of the python numarray
+  for (int i=0; i<value.getrank(); i++) {
     tempShape.push_back(extract<int>(value.getshape()[i]));
   }
+  //
+  // initialise the data array for this object
   initialise(tempShape,what.getNumSamples(),what.getNumDPPSample());
   //
   // copy the given value to every data point
@@ -49,7 +50,7 @@ DataExpanded::DataExpanded(const boost::python::numeric::array& value,
 DataExpanded::DataExpanded(const DataExpanded& other)
   : DataAbstract(other.getFunctionSpace()),
   m_data(other.m_data)
-{    
+{
   //
   // create the view for the data
   DataArrayView temp(m_data.getData(),other.getPointDataView().getShape());
@@ -58,25 +59,32 @@ DataExpanded::DataExpanded(const DataExpanded& other)
 
 DataExpanded::DataExpanded(const DataConstant& other)
   : DataAbstract(other.getFunctionSpace())
-{    
+{
+  //
+  // initialise the data array for this object
   initialise(other.getPointDataView().getShape(),other.getNumSamples(),other.getNumDPPSample());
   //
-  // DataConstant only has one value
+  // DataConstant only has one value, copy this to every data point
   copy(other.getPointDataView());
 }
 
 DataExpanded::DataExpanded(const DataTagged& other)
   : DataAbstract(other.getFunctionSpace())
-{    
+{
+  //
+  // initialise the data for this object
   initialise(other.getPointDataView().getShape(),other.getNumSamples(),other.getNumDPPSample());
+  //
+  // for each data point in this object, extract and copy the corresponding data
+  // value from the given DataTagged object
   int i,j;
   DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
   DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
 #pragma omp parallel for private(i,j) schedule(static)
-  for (i=0;i<numRows;++i) {
-    for (j=0;j<numCols;++j) {
+  for (i=0;i<numRows;i++) {
+    for (j=0;j<numCols;j++) {
       try {
-        getPointDataView().copy(getPointOffset(i,j), other.getPointDataView(), other.getPointOffset(i,j));
+        getPointDataView().copy(getPointOffset(i,j),other.getPointDataView(),other.getPointOffset(i,j));
       }
       catch (std::exception& e) {
         cout << e.what() << endl;
@@ -96,15 +104,14 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   // initialise this Data object to the shape of the slice
   initialise(shape,other.getNumSamples(),other.getNumDPPSample());
   //
-  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
-  //
   // copy the data
+  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
   DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
   int i,j;
 #pragma omp parallel for private(i,j) schedule(static)
-  for (i=0;i<numRows;++i) {
-    for (j=0;j<numCols;++j) {
+  for (i=0;i<numRows;i++) {
+    for (j=0;j<numCols;j++) {
       try {
         getPointDataView().copySlice(getPointOffset(i,j),other.getPointDataView(),other.getPointOffset(i,j),region_loop_range);
       }
@@ -119,8 +126,14 @@ DataExpanded::DataExpanded(const DataArrayView& value,
                            const FunctionSpace& what)
   : DataAbstract(what)
 {
+  //
+  // get the shape of the given data value
   DataArrayView::ShapeType tempShape=value.getShape();
+  //
+  // initialise this Data object to the shape of the given data value
   initialise(tempShape,what.getNumSamples(),what.getNumDPPSample());
+  //
+  // copy the given value to every data point
   copy(value);
 }
 
@@ -131,8 +144,6 @@ DataExpanded::~DataExpanded()
 void
 DataExpanded::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
 {
-  //
-  // reshape a rank zero data point
   if (getPointDataView().getRank()!=0) {
     stringstream temp;
     temp << "Error - Can only reshape Data with data points of rank 0. "
@@ -140,7 +151,9 @@ DataExpanded::reshapeDataPoint(const DataArrayView::ShapeType& shape)
          << getPointDataView().getRank();
     throw DataException(temp.str());
   }
-  DataBlocks2D newData(getNumSamples(),getNumDPPSample(), DataArrayView::noValues(shape));
+  //
+  // create the new DataBlocks2D data array, and a corresponding DataArrayView
+  DataBlocks2D newData(getNumSamples(),getNumDPPSample(),DataArrayView::noValues(shape));
   DataArrayView newView(newData.getData(),shape);
   //
   // Copy the original data to every value for the new shape
@@ -148,18 +161,18 @@ DataExpanded::reshapeDataPoint(const DataArrayView::ShapeType& shape)
   int nRows=m_data.getNumRows();
   int nCols=m_data.getNumCols();
 #pragma omp parallel for private(i,j) schedule(static)
-  for (i=0;i<nRows;++i) {
-    for (j=0;j<nCols;++j) {
-      //
-      // Copy the data into the specified offset
+  for (i=0;i<nRows;i++) {
+    for (j=0;j<nCols;j++) {
       // NOTE: An exception may be thown from this call if 
       // DOASSERT is on which of course will play
       // havoc with the omp threads. Run single threaded
       // if using DOASSERT. 
-      newView.copy(newData.index(i,j),m_data.getData()[m_data.index(i,j)]);
+      newView.copy(newData.index(i,j),m_data(i,j));
     }
   }
+  // swap the new data array for the original
   m_data.Swap(newData);
+  // set the corresponding DataArrayView
   DataArrayView temp(m_data.getData(),shape);
   setPointDataView(temp);
 }
@@ -179,10 +192,11 @@ DataExpanded::setSlice(const DataAbstract* value,
     throw DataException("Programming error - casting to DataExpanded.");
   }
   //
+  // get shape of slice
   DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
   DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   //
-  // check shape:
+  // check shape
   if (getPointDataView().getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
@@ -191,7 +205,7 @@ DataExpanded::setSlice(const DataAbstract* value,
 		"Error - Couldn't copy slice due to shape mismatch.",shape));
   }
   //
-  // copy the data
+  // copy the data from the slice into this object
   DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
   DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
   int i, j;
@@ -207,15 +221,13 @@ void
 DataExpanded::copy(const DataArrayView& value) 
 {
   //
-  // Copy a single value to every data point
+  // copy a single value to every data point in this object
   int nRows=m_data.getNumRows();
   int nCols=m_data.getNumCols();
-  int i, j;
+  int i,j;
 #pragma omp parallel for private(i,j) schedule(static)
-  for (i=0;i<nRows;++i) {
-    for (j=0;j<nCols;++j) {
-      //
-      // Copy the data into the specified offset
+  for (i=0;i<nRows;i++) {
+    for (j=0;j<nCols;j++) {
       // NOTE: An exception may be thown from this call if 
       // DOASSERT is on which of course will play
       // havoc with the omp threads. Run single threaded
@@ -229,17 +241,17 @@ void
 DataExpanded::copy(const boost::python::numeric::array& value) 
 {
   //
-  // first convert the numarray into a DataArrayView format
+  // first convert the numarray into a DataArray object
   DataArray temp(value);
   //
-  // check the input shape matches this shape, this will throw an exception
+  // check the input shape matches this shape
   if (!getPointDataView().checkShape(temp.getView().getShape())) {
     throw DataException(getPointDataView().createShapeErrorMessage(
                         "Error - (DataExpanded) Cannot copy due to shape mismatch.",
                         temp.getView().getShape()));
   }
   //
-  // now copy over the entire data structure
+  // now copy over the data
   copy(temp.getView());
 }
 
@@ -249,10 +261,10 @@ DataExpanded::initialise(const DataArrayView::ShapeType& shape,
                          int noDataPointsPerSample)
 {
   //
-  // resize data to the required size
+  // resize data array to the required size
   m_data.resize(noSamples,noDataPointsPerSample,DataArrayView::noValues(shape));
   //
-  // create a point data viewer of the data
+  // create the data view of the data array
   DataArrayView temp(m_data.getData(),shape);
   setPointDataView(temp);
 }
@@ -264,8 +276,8 @@ DataExpanded::toString() const
   //
   // create a temporary view as the offset will be changed
   DataArrayView tempView(getPointDataView().getData(),getPointDataView().getShape(),getPointDataView().getOffset());
-  for (int i=0;i<m_data.getNumRows();++i) {
-    for (int j=0;j<m_data.getNumCols();++j) {
+  for (int i=0;i<m_data.getNumRows();i++) {
+    for (int j=0;j<m_data.getNumCols();j++) {
       tempView.setOffset(m_data.index(i,j));
       stringstream suffix;
       suffix << "(" << i << "," << j << ")";
@@ -296,7 +308,7 @@ DataExpanded::getDataPoint(int sampleNo,
 DataArrayView::ValueType::size_type
 DataExpanded::getLength() const
 {
-  return m_data.getData().size();
+  return m_data.size();
 }
 
 void
@@ -327,7 +339,6 @@ DataExpanded::setRefValue(int ref,
     //
     // Get each data-point in the sample in turn.
     DataArrayView pointView = getDataPoint(sampleNo, n);
-
     //
     // Assign the values in the DataArray to this data-point.
     pointView.copy(value.getView());

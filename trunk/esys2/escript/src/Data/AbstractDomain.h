@@ -21,10 +21,11 @@
 
 namespace escript {
 
-    // forward declarations of certain classes which will be used
-    class Data;
-    class AbstractSystemMatrix;
-    class FunctionSpace;
+//
+// forward declarations of certain classes which will be used
+class Data;
+class AbstractSystemMatrix;
+class FunctionSpace;
 
 /**
    \brief
@@ -40,32 +41,32 @@ class AbstractDomain {
 
   /**
      \brief
-     Default constructor for AbstractDomain
+     Default constructor for AbstractDomain.
 
      Description:
      Default constructor for AbstractDomain. As the name suggests
      this is intended to be an abstract base class but by making it
-     constructable avoid a boost.python wrapper class. A call to 
+     constructable we avoid a boost.python wrapper class. A call to 
      almost any of the base class functions will throw an exception
      as they are not intended to be used directly, but are overridden
-     by the underlying solver package which is linked to.
+     by the underlying solver package which escript is linked to.
 
      By default, this class is overridden by the class NullDomain.
 
      Preconditions:
-     Describe any preconditions
+     Describe any preconditions.
 
      Throws:
-     Describe any exceptions thrown
+     Describe any exceptions thrown.
   */
   AbstractDomain();
 
   /**
      \brief
-     Destructor for AbstractDomain
+     Destructor for AbstractDomain.
 
      Description:
-     Destructor for AbstractDomain
+     Destructor for AbstractDomain.
   */
   virtual ~AbstractDomain();
 
@@ -78,40 +79,35 @@ class AbstractDomain {
 
   /**
      \brief
-     Return a description for this domain
+     Return a description for this domain.
   */
   virtual std::string getDescription() const;
 
   /**
      \brief
-     Return a description for the given function space type code
+     Return a description for the given function space type code.
   */
   virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
 
   /**
      \brief
-     Throw a standard exception. This function is called if any attempt 
-     is made to use a base class function.
-  */
-  void throwStandardException(const std::string& functionName) const;
-
-  /**
-     \brief
       Returns the spatial dimension of the domain.
-      has to be implemented by the actual Domain adapter.
+
+      This has to be implemented by the actual Domain adapter.
   */
   virtual int getDim() const;
 
   /**
-   \brief
-   Return true if given domains are equal.
+     \brief
+     Return true if given domains are equal.
   */
   bool operator==(const AbstractDomain& other) const;
   bool operator!=(const AbstractDomain& other) const;
 
   /**
      \brief
-     Writes the doamin to an external file filename.
+     Writes the domain to an external file filename.
+
      This has to be implemented by the actual Domain adapter.
   */
   virtual void write(const std::string& filename) const;
@@ -131,7 +127,9 @@ class AbstractDomain {
   /**
      \brief
      Return the number of data points per sample, and the number of samples as a pair.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
+
      \param functionSpaceCode Input - Code for the function space type.
      \return pair, first - number of data points per sample, second - number of samples
   */
@@ -155,15 +153,17 @@ class AbstractDomain {
 
   /**
      \brief
-     Assigns new location to the domain
-     has to be implemented by the actual Domain adapter.
+     Assigns new location to the domain.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void setNewX(const escript::Data& arg);
 
   /**
      \brief
      Interpolates data given on source onto target where source and target have to be given on the same domain.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
@@ -171,23 +171,27 @@ class AbstractDomain {
   /**
      \brief
      Interpolates data given on source onto target where source and target are given on different domains.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
   virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
   /**
-     \brief returns locations in the domain. The function space is chosen appropriately.
+     \brief
+     Returns locations in the domain. The function space is chosen appropriately.
   */
   virtual escript::Data getX() const;
 
   /**
-     \brief return boundary normals. The function space is chosen appropriately.
+     \brief
+     Return boundary normals. The function space is chosen appropriately.
   */
   virtual escript::Data getNormal() const;
 
   /**
-     \brief returns the local size of samples. The function space is chosen appropriately.
+     \brief
+     Returns the local size of samples. The function space is chosen appropriately.
   */
   virtual escript::Data getSize() const;
   
@@ -196,7 +200,8 @@ class AbstractDomain {
      Copies the location of data points on the domain into out.
      The actual function space to be considered
      is defined by out. out has to be defined on this.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void setToX(escript::Data& out) const;
 
@@ -205,7 +210,8 @@ class AbstractDomain {
      Copies the surface normals at data points into out.
      The actual function space to be considered
      is defined by out. out has to be defined on this.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void setToNormal(escript::Data& out) const;
 
@@ -214,7 +220,8 @@ class AbstractDomain {
      Copies the size of samples into out. The actual
      function space to be considered
      is defined by out. out has to be defined on this.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void setToSize(escript::Data& out) const;
 
@@ -222,7 +229,8 @@ class AbstractDomain {
      \brief
      Copies the gradient of arg into grad. The actual function space to be considered
      for the gradient is defined by grad. arg and grad have to be defined on this.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
 
@@ -230,7 +238,8 @@ class AbstractDomain {
      \brief
      Saves data arg to an OpenDX input file.
      considered as cell centered data.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void saveDX(const std::string& filename,const escript::Data& arg) const;
 
@@ -238,7 +247,8 @@ class AbstractDomain {
      \brief
      saves data arg to a VTK input file.
      considered as cell centered data.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual void saveVTK(const std::string& filename,const escript::Data& arg) const;
 
@@ -246,7 +256,8 @@ class AbstractDomain {
      \brief
      returns the function space representation of the type functionSpaceCode on this domain
      as a vtkObject.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   //virtual vtkObject createVtkObject(int functionSpaceCode) const;
 
@@ -254,9 +265,17 @@ class AbstractDomain {
      \brief
      returns true if data on this domain and a function space of type functionSpaceCode has to
      considered as cell centered data.
-     has to be implemented by the actual Domain adapter.
+
+     This has to be implemented by the actual Domain adapter.
   */
   virtual bool isCellOriented(int functionSpaceCode) const;
+
+  /**
+     \brief
+     Throw a standard exception. This function is called if any attempt 
+     is made to use a base class function.
+  */
+  void throwStandardException(const std::string& functionName) const;
 
  protected:
 
@@ -265,4 +284,5 @@ class AbstractDomain {
 };
 
 } // end of namespace
+
 #endif

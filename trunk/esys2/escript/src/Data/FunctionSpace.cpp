@@ -33,14 +33,13 @@ FunctionSpace::FunctionSpace():
   m_domain(static_cast<AbstractDomain*>(&m_nullDomainValue)),
   m_functionSpaceType(m_nullDomainValue.getFunctionCode())
 {
-  //std::cout << "Called FunctionSpace DEFAULT constructor." << std::endl;
 }
 
-FunctionSpace::FunctionSpace(const AbstractDomain& domain, int functionSpaceType):
+FunctionSpace::FunctionSpace(const AbstractDomain& domain,
+                             int functionSpaceType):
   m_domain(dynamic_cast<const AbstractDomain*>(&domain)),
   m_functionSpaceType(functionSpaceType)
 {
-  //std::cout << "Called FunctionSpace constructor." << std::endl;
   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {
     std::stringstream temp;
     temp << "Invalid function space type: " << functionSpaceType 
@@ -49,22 +48,27 @@ FunctionSpace::FunctionSpace(const AbstractDomain& domain, int functionSpaceType
   }
 }
 
-std::pair<int,int> FunctionSpace::getDataShape() const
+std::pair<int,int>
+FunctionSpace::getDataShape() const
 {
   return m_domain->getDataShape(m_functionSpaceType);
 }
 
-int FunctionSpace::getTypeCode() const 
+int
+FunctionSpace::getTypeCode() const 
 {
   return  m_functionSpaceType;
 }
 
-const AbstractDomain& FunctionSpace::getDomain() const
+const
+AbstractDomain&
+FunctionSpace::getDomain() const
 {
   return *m_domain;
 }
 
-std::string FunctionSpace::toString() const
+std::string
+FunctionSpace::toString() const
 {
   std::stringstream temp;
   temp << "Function space type: " 
@@ -73,17 +77,20 @@ std::string FunctionSpace::toString() const
   return temp.str();
 }
 
-int FunctionSpace::getTagFromSampleNo(int sampleNo) const
+int
+FunctionSpace::getTagFromSampleNo(int sampleNo) const
 {
   return m_domain->getTagFromSampleNo(m_functionSpaceType,sampleNo);
 }
 
-int FunctionSpace::getReferenceNoFromSampleNo(int sampleNo) const
+int
+FunctionSpace::getReferenceNoFromSampleNo(int sampleNo) const
 {
   return m_domain->getReferenceNoFromSampleNo(m_functionSpaceType,sampleNo);
 }
 
-FunctionSpace& FunctionSpace::operator=(const FunctionSpace& other)
+FunctionSpace&
+FunctionSpace::operator=(const FunctionSpace& other)
 {
   //
   // explicitly defined assignment operator to emphasise pointer copy
@@ -93,31 +100,36 @@ FunctionSpace& FunctionSpace::operator=(const FunctionSpace& other)
   return *this;
 }
 
-bool FunctionSpace::operator==(const FunctionSpace& other) const
+bool
+FunctionSpace::operator==(const FunctionSpace& other) const
 {
   return (other.m_domain==m_domain && other.m_functionSpaceType==m_functionSpaceType);
 }
 
-bool FunctionSpace::operator!=(const FunctionSpace& other) const
+bool
+FunctionSpace::operator!=(const FunctionSpace& other) const
 {
   return (!(other==*this));
 }
 
-escript::Data FunctionSpace::getX() const 
+escript::Data
+FunctionSpace::getX() const 
 {
   Data out=escript::Vector(0,*this,true);
   getDomain().setToX(out);
   return out;
 }
 
-escript::Data FunctionSpace::getNormal() const
+escript::Data
+FunctionSpace::getNormal() const
 {
   Data out=escript::Vector(0,*this,true);
   getDomain().setToNormal(out);
   return out;
 }
 
-escript::Data FunctionSpace::getSize() const
+escript::Data
+FunctionSpace::getSize() const
 {
   Data out=escript::Scalar(0,*this,true);
   getDomain().setToSize(out);

@@ -22,18 +22,20 @@
 
 namespace escript {
 
-  class Data;
+//
+// Forward declaration for class Data.
+class Data;
 
 /**
    \brief
    Give a short description of what FunctionSpace does.
 
    Description:
-   Give a detailed description of FunctionSpace
+   Give a detailed description of FunctionSpace.
 
    Template Parameters:
    For templates describe any conditions that the parameters used in the
-   template must satisfy
+   template must satisfy.
 */
 
 class FunctionSpace {
@@ -41,23 +43,23 @@ class FunctionSpace {
  public:
   /**
      \brief
-     Default constructor for FunctionSpace
+     Default constructor for FunctionSpace.
 
      Description:
      Default constructor for FunctionSpace
      Generates a function space with a null domain.
 
      Preconditions:
-     Describe any preconditions
+     Describe any preconditions.
 
      Throws:
-     Describe any exceptions thrown
+     Describe any exceptions thrown.
   */
   FunctionSpace();
 
   /**
      \brief
-     Constructor for FunctionSpace
+     Constructor for FunctionSpace.
 
      Description:
      Constructor for FunctionSpace.
@@ -66,19 +68,23 @@ class FunctionSpace {
      for the lifetime of the FunctionSpace object. ie: domain must
      be an externally managed object (!).
   */
-  FunctionSpace(const AbstractDomain& domain, int functionSpaceType);
+  FunctionSpace(const AbstractDomain& domain,
+                int functionSpaceType);
 
   /**
     \brief
     Return the function space type code.
   */
-  int getTypeCode() const;
+  int
+  getTypeCode() const;
 
   /**
    \brief
    Return the function space domain.
   */
-  const AbstractDomain& getDomain() const;
+  const
+  AbstractDomain&
+  getDomain() const;
 
   /**
    \brief
@@ -86,13 +92,15 @@ class FunctionSpace {
    NOTE: Assignment just copies the domain object pointer
    as this object is managed externally to this class.
   */
-  FunctionSpace& operator=(const FunctionSpace& other);
+  FunctionSpace&
+  operator=(const FunctionSpace& other);
 
   /**
    \brief
    Return the shape of the data needed to represent the function space.
   */
-  std::pair<int,int> getDataShape() const;
+  std::pair<int,int>
+  getDataShape() const;
 
   /**
    \brief
@@ -100,50 +108,61 @@ class FunctionSpace {
    Return true if function spaces are equal.
    ie: Same domain and same function space type.
   */
-  bool operator==(const FunctionSpace& other) const;
-  bool operator!=(const FunctionSpace& other) const;
+  bool
+  operator==(const FunctionSpace& other) const;
+
+  bool
+  operator!=(const FunctionSpace& other) const;
 
   /**
    \brief
    Return a text description of the function space.
   */
-  std::string toString() const;
+  std::string
+  toString() const;
 
   /**
    \brief
    Return the tag associated with the given sample number.
   */
-  int getTagFromSampleNo(int sampleNo) const;
+  int
+  getTagFromSampleNo(int sampleNo) const;
 
   /**
    \brief
    Return the reference nomber associated with the given sample number.
   */
-  int getReferenceNoFromSampleNo(int sampleNo) const;
+  int
+  getReferenceNoFromSampleNo(int sampleNo) const;
 
   /**
    \brief
    Return the location of the data points.
   */
-  escript::Data getX() const;
+  escript::Data
+  getX() const;
   
   /**
    \brief
    Return the surface normal field.
   */
-  escript::Data getNormal() const;
+  escript::Data
+  getNormal() const;
 
   /**
    \brief
    Return the sample size (e.g. the diameter of elements, radius of particles).
   */
-  escript::Data getSize() const;
+  escript::Data
+  getSize() const;
 
   /**
    \brief
    Return the number of samples.
   */
-  inline int getNumSamples() const {
+  inline
+  int
+  getNumSamples() const {
      return getDataShape().second;
   }
 
@@ -151,10 +170,14 @@ class FunctionSpace {
    \brief
    Return the number of data points per sample.
   */
-  inline int getNumDPPSample() const {
+  inline
+  int
+  getNumDPPSample() const {
      return getNumDataPointsPerSample();
   }
-  inline int getNumDataPointsPerSample() const {
+  inline
+  int
+  getNumDataPointsPerSample() const {
      return getDataShape().first;
   }
 
@@ -162,7 +185,9 @@ class FunctionSpace {
    \brief
    Return the spatial dimension of the underlying domain.
   */
-  inline int getDim() const {
+  inline
+  int
+  getDim() const {
       return getDomain().getDim();
   }
 
@@ -185,4 +210,5 @@ class FunctionSpace {
 };
 
 } // end of namespace
+
 #endif

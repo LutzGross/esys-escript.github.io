@@ -38,10 +38,10 @@ class NullDomain : public AbstractDomain {
 
   /**
      \brief
-     Default constructor for NullDomain
+     Default constructor for NullDomain.
 
      Description:
-     Default constructor for NullDomain
+     Default constructor for NullDomain.
 
   */
   NullDomain();
@@ -55,55 +55,55 @@ class NullDomain : public AbstractDomain {
 
   /**
      \brief
-     Return a description for this domain
+     Return a description for this domain.
   */
   virtual std::string getDescription() const;
 
   /**
      \brief
-     Return a continuous FunctionSpace
+     Return a continuous FunctionSpace.
   */
   virtual int getContinuousFunctionCode() const;
 
   /**
      \brief
-     Return a functon FunctionSpace
+     Return a function FunctionSpace.
   */
   virtual int getFunctionCode() const;
 
   /**
      \brief
-     Return a function on boundary FunctionSpace
+     Return a function on boundary FunctionSpace.
   */
   virtual int getFunctionOnBoundaryCode() const;
 
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace.
   */
   virtual int getFunctionOnContactZeroCode() const;
 
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace.
   */
   virtual int getFunctionOnContactOneCode() const;
 
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace.
   */
   virtual int getSolutionCode() const;
 
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace.
   */
   virtual int getReducedSolutionCode() const;
 
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace.
   */
   virtual int getDiracDeltaFunctionCode() const;
 
@@ -125,7 +125,7 @@ class NullDomain : public AbstractDomain {
 
   /**
      \brief
-     Return the reference number of  the given sample number.
+     Return the reference number of the given sample number.
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
   */
@@ -143,4 +143,5 @@ class NullDomain : public AbstractDomain {
 };
 
 } // end of namespace
+
 #endif

@@ -223,6 +223,13 @@ class Data {
 
   /**
      \brief
+     Return the values of all data-points in a single python numarray object.
+  */
+  boost::python::numeric::array
+  convertToNumArray();
+
+  /**
+     \brief
      Return the C wrapper for the Data object.
   */
   escriptDataC
@@ -630,6 +637,13 @@ class Data {
   */
   double
   Lsup() const;
+
+  /**
+     \brief
+     Return the minimum absolute value of this Data object.
+  */
+  double
+  Linf() const;
 
   /**
      \brief

@@ -27,7 +27,6 @@ DataAbstract::DataAbstract(const FunctionSpace& what):
     m_noSamples(what.getNumSamples()),
     m_functionSpace(what)
 {
-    //cout << "Calling DataAbstract constructor." << endl;
 }
 
 DataAbstract::~DataAbstract() 
@@ -60,7 +59,6 @@ DataAbstract::operandCheck(const DataAbstract& right) const
 
     //
     // Check the shape of the point data, a rank of 0(scalar) is okay
-
     if (!((right.getPointDataView().getRank()==0) || 
 	  (right.getPointDataView().getShape()==getPointDataView().getShape())))
       {
