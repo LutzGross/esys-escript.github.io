@@ -643,6 +643,7 @@ class Data {
   /**
     \transpose
     Transpose each data point of this Data object around the given axis.
+    --* not implemented yet *--
   */
   Data
   transpose(int axis) const;
@@ -836,6 +837,11 @@ class Data {
   inline
   double
   algorithm(UnaryFunction operation) const;
+
+  template <class UnaryFunction>
+  inline
+  Data
+  dp_algorithm(UnaryFunction operation) const;
 
   /**
      \brief
@@ -1229,24 +1235,23 @@ Data::algorithm(UnaryFunction operation) const
 template <class UnaryFunction>
 inline
 Data
-dp_algorithm(const Data& data,
-             UnaryFunction operation)
+Data::dp_algorithm(UnaryFunction operation) const
 {
-  Data result(0,DataArrayView::ShapeType(),data.getFunctionSpace(),data.isExpanded());
-  if (data.isExpanded()) {
-    DataExpanded* dataE=dynamic_cast<DataExpanded*>(data.m_data.get());
+  Data result(0,DataArrayView::ShapeType(),getFunctionSpace(),isExpanded());
+  if (isExpanded()) {
+    DataExpanded* dataE=dynamic_cast<DataExpanded*>(m_data.get());
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
     EsysAssert((dataE!=0), "Programming error - casting data to DataExpanded.");
     EsysAssert((resultE!=0), "Programming error - casting result to DataExpanded.");
     escript::dp_algorithm(*dataE,*resultE,operation);
-  } else if (data.isTagged()) {
-    DataTagged* dataT=dynamic_cast<DataTagged*>(data.m_data.get());
+  } else if (isTagged()) {
+    DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
     DataTagged* resultT=dynamic_cast<DataTagged*>(result.m_data.get());
     EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
     EsysAssert((resultT!=0), "Programming error - casting result to DataTagged.");
     escript::dp_algorithm(*dataT,*resultT,operation);
-  } else if (data.isConstant()) {
-    DataConstant* dataC=dynamic_cast<DataConstant*>(data.m_data.get());
+  } else if (isConstant()) {
+    DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
     EsysAssert((dataC!=0), "Programming error - casting data to DataConstant.");
     EsysAssert((resultC!=0), "Programming error - casting result to DataConstant.");

@@ -382,8 +382,8 @@ void DataTestCase::testOperations() {
   viewShape.push_back(2);
   viewShape.push_back(3);
 
-  Data base(2.0,viewShape,FunctionSpace(),false);
-  Data power(3.0,viewShape,FunctionSpace(),false);
+  Data base(2.0,viewShape,FunctionSpace(),true);
+  Data power(3.0,viewShape,FunctionSpace(),true);
 
   cout << "\tPerform basic exercises of unary operations" << endl;
 
@@ -408,22 +408,7 @@ void DataTestCase::testOperations() {
   result.copy(base.abs());
   assert(true);
 
-  result.copy(base.maxval());
-  assert(true);
-
-  result.copy(base.minval());
-  assert(true);
-
-  result.copy(base.length());
-  assert(true);
-
   result.copy(base.sign());
-  assert(true);
-
-  result.copy(base.transpose(0));
-  assert(true);
-
-  result.copy(base.trace());
   assert(true);
 
   result.copy(base.exp());
@@ -437,6 +422,22 @@ void DataTestCase::testOperations() {
 
   result.copy(base.pos());
   assert(true);
+
+  result.copy(base.minval());
+  assert(true);
+
+  result.copy(base.maxval());
+  assert(true);
+
+  result.copy(base.length());
+  assert(true);
+
+  result.copy(base.trace());
+  assert(true);
+
+  //result.copy(base.transpose(0));
+  //assert(true);
+
 }
 
 TestSuite* DataTestCase::suite ()
