@@ -13,7 +13,7 @@
  ******************************************************************************
 */
                                                                            
-#if !defined  escript_DataAbstract_20040315_H
+#if !defined escript_DataAbstract_20040315_H
 #define escript_DataAbstract_20040315_H
 
 #include "escript/Data/DataException.h"
@@ -59,7 +59,8 @@ class DataAbstract {
     \brief
     Destructor for DataAbstract.
   */
-  virtual ~DataAbstract();
+  virtual
+  ~DataAbstract();
 
   /**
      \brief
@@ -165,8 +166,9 @@ class DataAbstract {
      \param dataPointNo Input
   */
   virtual
-  DataArrayView getDataPoint(int samplesNo,
-                             int dataPointNo) = 0;
+  DataArrayView
+  getDataPoint(int samplesNo,
+               int dataPointNo) = 0;
 
   /**
      \brief
@@ -250,7 +252,7 @@ class DataAbstract {
 
 inline
 bool
- DataAbstract::validSamplePointNo(int samplePointNo) const 
+DataAbstract::validSamplePointNo(int samplePointNo) const 
 {
   return ((0 <= samplePointNo) && (samplePointNo < m_noDataPointsPerSample));
 }
@@ -284,14 +286,16 @@ DataAbstract::getNumSamples() const
 }
 
 inline
-const FunctionSpace&
+const
+FunctionSpace&
 DataAbstract::getFunctionSpace() const
 {
   return m_functionSpace;
 }
 
 inline
-const DataArrayView&
+const
+DataArrayView&
 DataAbstract::getPointDataView() const
 {
   return *(m_pointDataView.get());

@@ -75,16 +75,48 @@ struct AbsMax : public std::binary_function<double,double,double>
 
 /**
    \brief
+   Return the length.
+
+   Description:
+   Return the length.
+*/
+struct Length : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::sqrt(std::pow(x,2)+std::pow(y,2));
+  }
+};
+
+/**
+   \brief
+   Return the trace.
+
+   Description:
+   Return the trace.
+*/
+struct Trace : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return x+y;
+  }
+};
+
+/**
+   \brief
    Adapt algorithms so they may be used by Data.
 
    Description:
    Adapt algorithms so they may be used by Data. The functor 
-   maintains state, ie the currentValue retuned by the operation.
+   maintains state, the currentValue returned by the operation,
+   and the initial value.
 */
 template <class BinaryFunction>
 class DataAlgorithmAdapter {
  public:
     DataAlgorithmAdapter(double initialValue):
+      m_initialValue(initialValue),
       m_currentValue(initialValue)
     {}
     inline void operator()(double value)
@@ -92,11 +124,18 @@ class DataAlgorithmAdapter {
       m_currentValue=operation(m_currentValue,value);
       return;
     }
+    inline void resetResult()
+    {
+      m_currentValue=m_initialValue;
+    }
     inline double getResult() const
     {
       return m_currentValue;
     }
  private:
+    //
+    // the initial operation value
+    double m_initialValue;
     //
     // the current operation value
     double m_currentValue;
@@ -170,22 +209,25 @@ algorithm(DataConstant& data,
 
 /**
    \brief
-   Perform the given data point reduction operation upon all data points
+   Perform the given data point reduction operation on all data points
    in data, storing results in corresponding elements of result.
 
    Objects data and result must be of the same type, and have the same number
-   of samples and number of data points per sample, but where data has data
-   points of rank n, result must have data points of rank 0.
+   of data points, but where data has data points of rank n, result must have
+   data points of rank 0.
 
    Calls DataArrayView::dp_algorithm.
 */
 template <class UnaryFunction>
 inline
 void
-dp_algorithm(DataExpanded& result,
-             DataExpanded& data,
+dp_algorithm(DataExpanded& data,
+             DataExpanded& result,
              UnaryFunction operation)
 {
+  //
+  // perform the operation on each data value
+  // and assign this to the corresponding element in result
   int i,j;
   DataArrayView::ValueType::size_type numDPPSample=data.getNumDPPSample();
   DataArrayView::ValueType::size_type numSamples=data.getNumSamples();
@@ -193,9 +235,9 @@ dp_algorithm(DataExpanded& result,
 #pragma omp for private(i,j) schedule(static)
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
-        // assign this to corresponding element in result
-	data.getPointDataView().dp_algorithm(data.getPointOffset(i,j),operation);
 #pragma omp critical (dp_algorithm)
+        result.getPointDataView().getData(data.getPointOffset(i,j)) =
+          data.getPointDataView().dp_algorithm(data.getPointOffset(i,j),operation);
       }
     }
   }
@@ -204,35 +246,39 @@ dp_algorithm(DataExpanded& result,
 template <class UnaryFunction>
 inline
 void
-dp_algorithm(DataTagged& result,
-             DataTagged& data,
+dp_algorithm(DataTagged& data,
+             DataTagged& result,
              UnaryFunction operation)
 {
   //
-  // perform the operation on each tagged value
+  // perform the operation on each tagged data value
+  // and assign this to the corresponding element in result
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
   for (i=lookup.begin();i!=lookupEnd;i++) {
-    // assign this to corresponding element in result
-    data.getPointDataView().dp_algorithm(i->second,operation);
+    result.getPointDataView().getData(i->second) =
+      data.getPointDataView().dp_algorithm(i->second,operation);
   }
   //
-  // finally perform the operation on the default value
-  // assign this to corresponding element in result
-  data.getDefaultValue().dp_algorithm(operation);
+  // finally perform the operation on the default data value
+  // and assign this to the default element in result
+  result.getPointDataView().getData(0) =
+    data.getDefaultValue().dp_algorithm(operation);
 }
 
 template <class UnaryFunction>
 inline
 void
-dp_algorithm(DataConstant& result,
-             DataConstant& data,
+dp_algorithm(DataConstant& data,
+             DataConstant& result,
              UnaryFunction operation)
 {
-  //result.getPointDataView().getData()
-  // assign this to corresponding element in result
-  data.getPointDataView().dp_algorithm(operation);
+  //
+  // perform the operation on the default data value
+  // and assign this to the default element in result
+  result.getPointDataView().getData(0) =
+    data.getPointDataView().dp_algorithm(operation);
 }
 
 } // end of namespace
