@@ -1,8 +1,8 @@
 # $Id$
-import esys.finley
+from esys.finley import Rectangle
 from esys.linearPDEs import Poisson
 # generate domain:
-mydomain = esys.finley.Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
 # define characteristic function of Gamma^D
 x = mydomain.getX()
 gammaD = x[0].whereZero()+x[1].whereZero()

@@ -77,7 +77,8 @@ DataConstant::DataConstant(const DataConstant& other,
   // create a view of the data with the correct shape
   DataArrayView tempView(m_data,shape);
   // copy the data from the slice to the temp view
-  tempView.copySlice(other.getPointDataView(),region);
+  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  tempView.copySlice(other.getPointDataView(),region_loop_range);
   //
   // store the temp view of the data in this object
   setPointDataView(tempView);
@@ -129,7 +130,20 @@ DataConstant::setSlice(const DataAbstract* value,
   if (tempDataConst==0) {
     throw DataException("Programming error - casting to DataConstant.");
   }
-  getPointDataView().copySliceFrom(tempDataConst->getPointDataView(),region);
+  // 
+  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  //
+  // check shape:
+  if (getPointDataView().getRank()!=region.size()) {
+    throw DataException("Error - Invalid slice region.");
+  }
+  if (tempDataConst->getPointDataView().getRank()>0 and !value->getPointDataView().checkShape(shape)) {
+    throw DataException (value->getPointDataView().createShapeErrorMessage(
+                "Error - Couldn't copy slice due to shape mismatch.",shape));
+  }
+  //
+  getPointDataView().copySliceFrom(tempDataConst->getPointDataView(),region_loop_range);
 }
 
 void

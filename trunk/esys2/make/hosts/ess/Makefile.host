@@ -3,7 +3,7 @@
 # Define all Makefile variables specfying compiler settings relevant to this host
 
 # C Compiler Settings
-CC := /opt/intel/cmplrs/80.058/intel_cc_80/bin/icc
+CC := icc
 CC_SYS_INC_DIRS := ${NULL}
 CC_INC_DIR_FLAG := -I
 CC_DEF_FLAG := -D
@@ -19,7 +19,7 @@ CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report2
 CC_OUTPUT_FLAG := -o
 
 # CPP Compiler Settings
-CPP := /opt/intel/cmplrs/80.058/intel_cc_80/bin/icc
+CPP := icc
 CPP_SYS_INC_DIRS := ${NULL}
 CPP_INC_DIR_FLAG := -I
 CPP_DEF_FLAG := -D
@@ -42,9 +42,9 @@ endif
 CPP_OUTPUT_FLAG := -o
 
 # Linker Settings
-LD := /opt/intel/cmplrs/80.058/intel_cc_80/bin/icc
-LD_SYS_LIB_DIRS := /opt/intel/cmplrs/80.058/intel_cc_80/lib
-LD_SYS_LIBS := guide
+LD := icc
+LD_SYS_LIB_DIRS := ${NULL}
+LD_SYS_LIBS := guide irc
 LD_LIB_DIR_FLAG := -L
 LD_LIB_FLAG := -l
 LD_DIAG_FLAGS := ${NULL}

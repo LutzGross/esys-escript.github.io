@@ -4,8 +4,8 @@
 import sys
 import os
 
-import esys.escript
-import esys.finley
+from esys.escript import *
+from esys.finley import *
 
 TMPFILE="tmp.msh"
 

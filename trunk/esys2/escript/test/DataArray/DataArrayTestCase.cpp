@@ -1,4 +1,4 @@
-/* 
+/*
  *****************************************************************************
  *                                                                           *
  *       COPYRIGHT  ACcESS  -  All Rights Reserved                           *
@@ -11,10 +11,12 @@
  *                                                                           *
  *****************************************************************************
 */
+
 #include "escript/Data/DataArrayView.h"
 #include "escript/Data/DataArray.h"
-#include "DataArrayTestCase.h"
 #include "esysUtils/EsysException.h"
+
+#include "DataArrayTestCase.h"
 
 #include <iostream>
 #include <vector>
@@ -47,72 +49,128 @@ void DataArrayTestCase::testAll() {
 
   {
     cout << endl;
-    cout << "\tTest default DataArray constructor." << endl;
+    cout << "\tTest default DataArray constructor - default value." << endl;
 
     cout << "\tConstruct Default DataArray." << endl;
+    DataArrayView::ShapeType newShape;
     DataArray newArray;
     DataArrayView newView = newArray.getView();
-    DataArrayView::ShapeType newShape = newView.getShape();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==0);
     assert(newView.noValues()==1);
 
-    cout << "\tCheck DataArray data values." << endl;
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType arrayData = newArray.getData();
     DataArrayView::ValueType viewData = newView.getData();
     assert(viewData==arrayData);
-    assert(arrayData[0]==0.0);
+    int noValues = newView.noValues();
+    for (int i=0; i<noValues; i++) {
+      assert(arrayData[i]==0.0);
+    }
     assert(newView()==0.0);
   }
 
   {
     cout << endl;
-    cout << "\tTest DataArray shape constructor, shape()." << endl;
+    cout << "\tTest default DataArray constructor - value 5.0." << endl;
 
-    cout << "\tConstruct new DataArray, rank 0." << endl;
+    cout << "\tConstruct Default DataArray." << endl;
     DataArrayView::ShapeType newShape;
-    DataArray newArray(newShape);
+    DataArray newArray(5.0);
     DataArrayView newView = newArray.getView();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==0);
     assert(newView.noValues()==1);
 
-    cout << "\tCheck DataArray data values." << endl;
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType arrayData = newArray.getData();
     DataArrayView::ValueType viewData = newView.getData();
     assert(viewData==arrayData);
-    assert(arrayData[0]==0.0);
+    int noValues = newView.noValues();
+    for (int i=0; i<noValues; i++) {
+      assert(arrayData[i]==5.0);
+    }
+    assert(newView()==5.0);
+  }
+
+  {
+    cout << endl;
+    cout << "\tTest DataArray shape constructor, shape() - default value." << endl;
+
+    cout << "\tConstruct new DataArray with rank 0 view." << endl;
+    DataArrayView::ShapeType newShape;
+    DataArray newArray(newShape);
+    DataArrayView newView = newArray.getView();
+
+    cout << "\tCheck DataArray view shape." << endl;
+    assert(newView.getShape()==newShape);
+    assert(newView.getRank()==0);
+    assert(newView.noValues()==1);
+
+    cout << "\tCheck DataArray data vector values." << endl;
+    DataArrayView::ValueType arrayData = newArray.getData();
+    DataArrayView::ValueType viewData = newView.getData();
+    assert(viewData==arrayData);
+    int noValues = newView.noValues();
+    for (int i=0; i<noValues; i++) {
+      assert(arrayData[i]==0.0);
+    }
     assert(newView()==0.0);
+  }
+
+  {
+    cout << endl;
+    cout << "\tTest DataArray shape constructor, shape() - value 5.0." << endl;
+
+    cout << "\tConstruct new DataArray with rank 0 view." << endl;
+    DataArrayView::ShapeType newShape;
+    DataArray newArray(newShape, 5.0);
+    DataArrayView newView = newArray.getView();
+
+    cout << "\tCheck DataArray view shape." << endl;
+    assert(newView.getShape()==newShape);
+    assert(newView.getRank()==0);
+    assert(newView.noValues()==1);
+
+    cout << "\tCheck DataArray data vector values." << endl;
+    DataArrayView::ValueType arrayData = newArray.getData();
+    DataArrayView::ValueType viewData = newView.getData();
+    assert(viewData==arrayData);
+    int noValues = newView.noValues();
+    for (int i=0; i<noValues; i++) {
+      assert(arrayData[i]==5.0);
+    }
+    assert(newView()==5.0);
   }
 
   {
     cout << endl;
     cout << "\tTest DataArray shape constructor, shape(5)." << endl;
 
-    cout << "\tConstruct new DataArray, rank 1." << endl;
+    cout << "\tConstruct new DataArray with rank 1 view." << endl;
     DataArrayView::ShapeType newShape;
     newShape.push_back(5);
     DataArray newArray(newShape);
     DataArrayView newView = newArray.getView();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==1);
     assert(newView.noValues()==5);
 
-    cout << "\tCheck DataArray data values." << endl;
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType::size_type index;
     DataArrayView::ValueType arrayData = newArray.getData();
     DataArrayView::ValueType viewData = newView.getData();
     assert(viewData==arrayData);
-    for (int i=0;i<newShape[0];++i) {
+    for (int i=0; i<newShape[0]; i++) {
       index=newView.index(i);
       assert(arrayData[index]==0.0);
-      assert(arrayData[index]==newView(i));
+      assert(newView(i)==0.0);
     }
   }
   
@@ -120,29 +178,28 @@ void DataArrayTestCase::testAll() {
     cout << endl;
     cout << "\tTest DataArray shape constructor, shape(2,3)." << endl;
 
-    cout << "\tConstruct new DataArray, rank 2." << endl;
+    cout << "\tConstruct new DataArray with rank 2 view." << endl;
     DataArrayView::ShapeType newShape;
     newShape.push_back(2);
     newShape.push_back(3);
     DataArray newArray(newShape);
     DataArrayView newView = newArray.getView();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==2);
     assert(newView.noValues()==6);
 
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType::size_type index;
-    DataArrayView::ValueType viewData = newView.getData();
     DataArrayView::ValueType arrayData = newArray.getData();
-
-    cout << "\tCheck DataArray data values." << endl;
+    DataArrayView::ValueType viewData = newView.getData();
     assert(viewData==arrayData);
-    for (int i=0;i<newShape[0];++i) {
-      for (int j=0;j<newShape[1];++j) {
+    for (int i=0; i<newShape[0]; i++) {
+      for (int j=0; j<newShape[1]; j++) {
         index=newView.index(i,j);
         assert(arrayData[index]==0.0);
-        assert(arrayData[index]==newView(i,j));
+        assert(newView(i,j)==0.0);
       }
     }
   }
@@ -151,7 +208,7 @@ void DataArrayTestCase::testAll() {
     cout << endl;
     cout << "\tTest DataArray shape constructor, shape(2,3,4)." << endl;
 
-    cout << "\tConstruct new DataArray, rank 3." << endl;
+    cout << "\tConstruct new DataArray with rank 3 view." << endl;
     DataArrayView::ShapeType newShape;
     newShape.push_back(2);
     newShape.push_back(3);
@@ -159,23 +216,22 @@ void DataArrayTestCase::testAll() {
     DataArray newArray(newShape);
     DataArrayView newView = newArray.getView();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==3);
     assert(newView.noValues()==24);
 
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType::size_type index;
     DataArrayView::ValueType viewData = newView.getData();
     DataArrayView::ValueType arrayData = newArray.getData();
-
-    cout << "\tCheck DataArray data values." << endl;
     assert(viewData==arrayData);
-    for (int i=0;i<newShape[0];++i) {
-      for (int j=0;j<newShape[1];++j) {
-        for (int k=0;k<newShape[2];++k) {
+    for (int i=0; i<newShape[0]; i++) {
+      for (int j=0; j<newShape[1]; j++) {
+        for (int k=0; k<newShape[2]; k++) {
           index=newView.index(i,j,k);
           assert(arrayData[index]==0.0);
-          assert(arrayData[index]==newView(i,j,k));
+          assert(newView(i,j,k)==0.0);
         }
       }
     }
@@ -185,7 +241,7 @@ void DataArrayTestCase::testAll() {
     cout << endl;
     cout << "\tTest DataArray shape constructor, shape(2,3,4,7)." << endl;
 
-    cout << "\tConstruct new DataArray, rank 4." << endl;
+    cout << "\tConstruct new DataArray with rank 4 view." << endl;
     DataArrayView::ShapeType newShape;
     newShape.push_back(2);
     newShape.push_back(3);
@@ -194,24 +250,23 @@ void DataArrayTestCase::testAll() {
     DataArray newArray(newShape);
     DataArrayView newView = newArray.getView();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==4);
     assert(newView.noValues()==168);
 
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType::size_type index;
     DataArrayView::ValueType viewData = newView.getData();
     DataArrayView::ValueType arrayData = newArray.getData();
-
-    cout << "\tCheck DataArray data values." << endl;
     assert(viewData==arrayData);
-    for (int i=0;i<newShape[0];++i) {
-      for (int j=0;j<newShape[1];++j) {
-        for (int k=0;k<newShape[2];++k) {
-          for (int l=0;l<newShape[3];++l) {
+    for (int i=0; i<newShape[0]; i++) {
+      for (int j=0; j<newShape[1]; j++) {
+        for (int k=0; k<newShape[2]; k++) {
+          for (int l=0; l<newShape[3]; l++) {
             index=newView.index(i,j,k,l);
             assert(arrayData[index]==0.0);
-            assert(arrayData[index]==newView(i,j,k,l));
+            assert(newView(i,j,k,l)==0.0);
           }
         }
       }
@@ -226,16 +281,16 @@ void DataArrayTestCase::testAll() {
     DataArray oldArray;
 
     cout << "\tCopy Default DataArray." << endl;
+    DataArrayView::ShapeType newShape;
     DataArray newArray(oldArray);
     DataArrayView newView = newArray.getView();
-    DataArrayView::ShapeType newShape = newView.getShape();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==0);
     assert(newView.noValues()==1);
 
-    cout << "\tCheck DataArray data values." << endl;
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType arrayData = newArray.getData();
     DataArrayView::ValueType viewData = newView.getData();
     assert(viewData==arrayData);
@@ -247,33 +302,72 @@ void DataArrayTestCase::testAll() {
     cout << endl;
     cout << "\tTest DataArray copy constructor, shape(2,3)." << endl;
 
-    cout << "\tConstruct new DataArray, rank 2." << endl;
+    cout << "\tConstruct new DataArray with rank 2 view." << endl;
     DataArrayView::ShapeType oldShape;
     oldShape.push_back(2);
     oldShape.push_back(3);
     DataArray oldArray(oldShape);
 
     cout << "\tCopy rank 2 DataArray." << endl;
+    DataArrayView::ShapeType newShape = oldShape;
     DataArray newArray(oldArray);
     DataArrayView newView = newArray.getView();
-    DataArrayView::ShapeType newShape = newView.getShape();
 
-    cout << "\tCheck DataArray shape." << endl;
-    assert(newShape==oldShape);
+    cout << "\tCheck DataArray view shape." << endl;
+    assert(newView.getShape()==newShape);
     assert(newView.getRank()==2);
     assert(newView.noValues()==6);
 
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType::size_type index;
     DataArrayView::ValueType viewData = newView.getData();
     DataArrayView::ValueType arrayData = newArray.getData();
-
-    cout << "\tCheck DataArray data values." << endl;
     assert(viewData==arrayData);
-    for (int i=0;i<newShape[0];++i) {
-      for (int j=0;j<newShape[1];++j) {
+    for (int i=0; i<newShape[0]; i++) {
+      for (int j=0; j<newShape[1]; j++) {
         index=newView.index(i,j);
         assert(arrayData[index]==0.0);
-        assert(arrayData[index]==newView(i,j));
+        assert(newView(i,j)==0.0);
+      }
+    }
+  }
+
+  {
+    cout << endl;
+    cout << "\tTest DataArray copy constructor, shape(2,3,4,7)." << endl;
+
+    cout << "\tConstruct new DataArray with rank 4 view." << endl;
+    DataArrayView::ShapeType oldShape;
+    oldShape.push_back(2);
+    oldShape.push_back(3);
+    oldShape.push_back(4);
+    oldShape.push_back(7);
+    DataArray oldArray(oldShape);
+
+    cout << "\tCopy rank 4 DataArray." << endl;
+    DataArrayView::ShapeType newShape = oldShape;
+    DataArray newArray(oldArray);
+    DataArrayView newView = newArray.getView();
+
+    cout << "\tCheck DataArray view shape." << endl;
+    assert(newView.getShape()==newShape);
+    assert(newView.getRank()==4);
+    assert(newView.noValues()==168);
+
+    cout << "\tCheck DataArray data vector values." << endl;
+    DataArrayView::ValueType::size_type index;
+    DataArrayView::ValueType viewData = newView.getData();
+    DataArrayView::ValueType arrayData = newArray.getData();
+    assert(viewData==arrayData);
+    for (int i=0; i<newShape[0]; i++) {
+      for (int j=0; j<newShape[1]; j++) {
+        for (int k=0; k<newShape[2]; k++) {
+          for (int l=0; l<newShape[3]; l++) {
+            index=newView.index(i,j,k,l);
+            assert(arrayData[index]==0.0);
+            assert(newView(i,j,k,l)==0.0);
+          }
+        }
       }
     }
   }
@@ -289,16 +383,16 @@ void DataArrayTestCase::testAll() {
     DataArrayView oldView = oldArray.getView();
 
     cout << "\tCopy Default DataArray from DataArrayView." << endl;
+    DataArrayView::ShapeType newShape;
     DataArray newArray(oldView);
     DataArrayView newView = newArray.getView();
-    DataArrayView::ShapeType newShape = newView.getShape();
 
-    cout << "\tCheck DataArray shape." << endl;
+    cout << "\tCheck DataArray view shape." << endl;
     assert(newView.getShape()==newShape);
     assert(newView.getRank()==0);
     assert(newView.noValues()==1);
 
-    cout << "\tCheck DataArray data values." << endl;
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType arrayData = newArray.getData();
     DataArrayView::ValueType viewData = newView.getData();
     assert(viewData==arrayData);
@@ -310,36 +404,78 @@ void DataArrayTestCase::testAll() {
     cout << endl;
     cout << "\tTest DataArray DataArrayView constructor, shape(2,3)." << endl;
 
-    cout << "\tConstruct new DataArray, rank 2." << endl;
+    cout << "\tConstruct new DataArray with rank 2 view." << endl;
     DataArrayView::ShapeType oldShape;
     oldShape.push_back(2);
     oldShape.push_back(3);
     DataArray oldArray(oldShape);
 
-    cout << "\tExtract rank2 DataArray DataArrayView." << endl;
+    cout << "\tExtract rank 2 DataArray DataArrayView." << endl;
     DataArrayView oldView = oldArray.getView();
 
     cout << "\tCopy rank 2 DataArray from DataArrayView." << endl;
+    DataArrayView::ShapeType newShape = oldShape;
     DataArray newArray(oldView);
     DataArrayView newView = newArray.getView();
-    DataArrayView::ShapeType newShape = newView.getShape();
 
-    cout << "\tCheck DataArray shape." << endl;
-    assert(newShape==oldShape);
+    cout << "\tCheck DataArray view shape." << endl;
+    assert(newView.getShape()==newShape);
     assert(newView.getRank()==2);
     assert(newView.noValues()==6);
 
+    cout << "\tCheck DataArray data vector values." << endl;
     DataArrayView::ValueType::size_type index;
     DataArrayView::ValueType viewData = newView.getData();
     DataArrayView::ValueType arrayData = newArray.getData();
-
-    cout << "\tCheck DataArray data values." << endl;
     assert(viewData==arrayData);
-    for (int i=0;i<newShape[0];++i) {
-      for (int j=0;j<newShape[1];++j) {
+    for (int i=0; i<newShape[0]; i++) {
+      for (int j=0; j<newShape[1]; j++) {
         index=newView.index(i,j);
         assert(arrayData[index]==0.0);
-        assert(arrayData[index]==newView(i,j));
+        assert(newView(i,j)==0.0);
+      }
+    }
+  }
+
+  {
+    cout << endl;
+    cout << "\tTest DataArray DataArrayView constructor, shape(2,3,4,7)." << endl;
+
+    cout << "\tConstruct new DataArray with rank 4 view." << endl;
+    DataArrayView::ShapeType oldShape;
+    oldShape.push_back(2);
+    oldShape.push_back(3);
+    oldShape.push_back(4);
+    oldShape.push_back(7);
+    DataArray oldArray(oldShape);
+
+    cout << "\tExtract rank 4 DataArray DataArrayView." << endl;
+    DataArrayView oldView = oldArray.getView();
+
+    cout << "\tCopy rank 4 DataArray from DataArrayView." << endl;
+    DataArrayView::ShapeType newShape = oldShape;
+    DataArray newArray(oldView);
+    DataArrayView newView = newArray.getView();
+
+    cout << "\tCheck DataArray view shape." << endl;
+    assert(newView.getShape()==newShape);
+    assert(newView.getRank()==4);
+    assert(newView.noValues()==168);
+
+    cout << "\tCheck DataArray data vector values." << endl;
+    DataArrayView::ValueType::size_type index;
+    DataArrayView::ValueType viewData = newView.getData();
+    DataArrayView::ValueType arrayData = newArray.getData();
+    assert(viewData==arrayData);
+    for (int i=0; i<newShape[0]; i++) {
+      for (int j=0; j<newShape[1]; j++) {
+        for (int k=0; k<newShape[2]; k++) {
+          for (int l=0; l<newShape[3]; l++) {
+            index=newView.index(i,j,k,l);
+            assert(arrayData[index]==0.0);
+            assert(newView(i,j,k,l)==0.0);
+          }
+        }
       }
     }
   }
@@ -355,4 +491,3 @@ TestSuite* DataArrayTestCase::suite ()
   testSuite->addTest (new TestCaller< DataArrayTestCase>("testAll",&DataArrayTestCase::testAll));
   return testSuite;
 }
-

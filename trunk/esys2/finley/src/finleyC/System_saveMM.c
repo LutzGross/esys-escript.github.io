@@ -43,7 +43,7 @@ void Finley_SystemMatrix_saveMM(Finley_SystemMatrix * A_p, char * fileName_p) {
          for (ir = 0; ir< A_p->row_block_size; ir++) {
 	    for (iPtr = A_p->pattern->ptr[iRow] - PTR_OFFSET;iPtr < A_p->pattern->ptr[iRow+1] - PTR_OFFSET; iPtr++) {
                for (ic = 0; ic< A_p->col_block_size; ic++) {
-	          fprintf(fileHandle_p, "%12d %12d %22.15g\n",
+	          fprintf(fileHandle_p, "%12d %12d %e\n",
 		          iRow*A_p->row_block_size+ir+ 1, 
 		          (A_p->pattern->index[iPtr]-INDEX_OFFSET)*A_p->col_block_size+ic+1, 
 		          A_p->val[iPtr*A_p->block_size+ir+A_p->row_block_size*ic]);
@@ -57,7 +57,7 @@ void Finley_SystemMatrix_saveMM(Finley_SystemMatrix * A_p, char * fileName_p) {
          for (ic = 0; ic< A_p->col_block_size; ic++) {
 	    for (iPtr = A_p->pattern->ptr[iCol] - PTR_OFFSET;iPtr < A_p->pattern->ptr[iCol+1] - PTR_OFFSET; iPtr++) {
                for (ir = 0; ir< A_p->row_block_size; ir++) {
-	          fprintf(fileHandle_p, "%12d %12d %22.15g\n",
+	          fprintf(fileHandle_p, "%12d %12d %e\n",
 		          (A_p->pattern->index[iPtr]-INDEX_OFFSET)*A_p->row_block_size+ir+1, 
 		          iCol*A_p->col_block_size+ic+ 1, 
 		          A_p->val[iPtr*A_p->block_size+ir+A_p->row_block_size*ic]);
@@ -72,11 +72,3 @@ void Finley_SystemMatrix_saveMM(Finley_SystemMatrix * A_p, char * fileName_p) {
   
   return;
 }
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:33  jgs
- * *** empty log message ***
- *
- *
- *
- */

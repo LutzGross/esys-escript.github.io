@@ -199,23 +199,6 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       numarray.greater(numarray.abs(arrays1[2]-3.),EPSILON), \
                       wh)
 
-      # transpose:
-      #axis=arrays1[0]/2
-      #ref=checkResult("transpose("+ex1+")", \
-      #                arg1.transpose(), \
-      #                numarray.transpose(arrays1[0],axis), \
-      #                numarray.transpose(arrays1[1],axis), \
-      #                numarray.transpose(arrays1[2],axis), \
-      #                wh)
-
-      # trace:
-      #ref=checkResult("trace("+ex1+")", \
-      #                arg1.trace(), \
-      #                numarray.trace(arrays1[0]), \
-      #                numarray.trace(arrays1[1]), \
-      #                numarray.trace(arrays1[2]), \
-      #                wh)
-
       # exponential function:
       ref=checkResult("exp("+ex1+")", \
                       arg1.exp(), \
@@ -225,12 +208,12 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       wh)
 
       # sqrt
-      ref=checkResult("sqrt("+ex1+")", \
-                      arg1.abs().sqrt(), \
-                      numarray.sqrt(numarray.abs(arrays1[0])), \
-                      numarray.sqrt(numarray.abs(arrays1[1])), \
-                      numarray.sqrt(numarray.abs(arrays1[2])), \
-                      wh)
+      #ref=checkResult("sqrt("+ex1+")", \
+      #                arg1.abs().sqrt(), \
+      #                numarray.sqrt(numarray.abs(arrays1[0])), \
+      #                numarray.sqrt(numarray.abs(arrays1[1])), \
+      #                numarray.sqrt(numarray.abs(arrays1[2])), \
+      #                wh)
 
       # sin:
       ref=checkResult("sin("+ex1+")", \
@@ -270,6 +253,23 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       #                numarray.sqrt((arrays1[0]**2).sum()), \
       #                numarray.sqrt((arrays1[1]**2).sum()), \
       #                numarray.sqrt((arrays1[2]**2).sum()), \
+      #                wh)
+
+      # trace:
+      #ref=checkResult("trace("+ex1+")", \
+      #                arg1.trace(), \
+      #                numarray.trace(arrays1[0]), \
+      #                numarray.trace(arrays1[1]), \
+      #                numarray.trace(arrays1[2]), \
+      #                wh)
+
+      # transpose:
+      #axis=arrays1[0]/2
+      #ref=checkResult("transpose("+ex1+")", \
+      #                arg1.transpose(), \
+      #                numarray.transpose(arrays1[0],axis), \
+      #                numarray.transpose(arrays1[1],axis), \
+      #                numarray.transpose(arrays1[2],axis), \
       #                wh)
 
       # get the signs of the values:

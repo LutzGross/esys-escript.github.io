@@ -10,53 +10,6 @@ import escript
 import util
 import numarray
 
-def identifyDomain(domain=None,data={}):
-     """
-     @brief Return the Domain which is equal to the input domain (if not None)
-     and is the domain of all Data objects in the dictionary data.
-     An exception is raised if this is not possible
-
-     @param domain
-     @param data
-     """
-     # get the domain used by any Data object in the list data:
-     data_domain=None
-     for d in data.itervalues():
-          if isinstance(d,escript.Data):
-             if not d.isEmpty(): data_domain=d.getDomain()
-     # check if domain and data_domain are identical?
-     if domain == None:
-         if data_domain == None:
-              raise ValueError,"Undefined PDE domain. Specify a domain or use a Data class object as coefficient"
-     else:
-         if data_domain == None:
-              data_domain=domain
-         else:
-           if not data_domain == domain:
-                 raise ValueError,"Domain of coefficients doesnot match specified domain"
-     # now we check if all Data class object coefficients are defined on data_domain:
-     for i,d in data.iteritems():
-         if isinstance(d,escript.Data):
-            if not d.isEmpty(): 
-               if not data_domain==d.getDomain():
-                 raise ValueError,"Illegal domain for coefficient %s."%i
-     # done:
-     return data_domain
-
-def identifyNumEquationsAndSolutions(dim,coef={}):
-     # get number of equations and number of unknowns:
-     numEquations=0
-     numSolutions=0
-     for i in coef.iterkeys():
-        if not coef[i].isEmpty():
-           res=_PDECoefficientTypes[i].estimateNumEquationsAndNumSolutions(coef[i].getShape(),dim)
-           if res==None:
-               raise ValueError,"Illegal shape %s of coefficient %s"%(coef[i].getShape().__str__(),i)
-           else:
-               numEquations=max(numEquations,res[0])
-               numSolutions=max(numSolutions,res[1])
-     return numEquations,numSolutions
-
 
 def _CompTuple2(t1,t2):
    """
@@ -70,16 +23,16 @@ def _CompTuple2(t1,t2):
    elif dif>0: return -1
    else: return 0
 
-class PDECoefficientType:
+class PDECoefficient:
     """
     @brief
     """
-    # identifier for location of Data objects defining coefficients
+    # identifier for location of Data objects defining COEFFICIENTS
     INTERIOR=0
     BOUNDARY=1
     CONTACT=2
     CONTINUOUS=3
-    # identifier in the pattern of coefficients:
+    # identifier in the pattern of COEFFICIENTS:
     # the pattern is a tuple of EQUATION,SOLUTION,DIM where DIM represents the spatial dimension, EQUATION the number of equations and SOLUTION the
     # number of unknowns.
     EQUATION=3
@@ -96,6 +49,13 @@ class PDECoefficientType:
        self.what=where
        self.pattern=pattern
        self.altering=altering
+       self.resetValue()
+
+    def resetValue(self):
+       """
+       @brief resets coefficient value to default
+       """
+       self.value=escript.Data()
 
     def getFunctionSpace(self,domain):
        """
@@ -108,6 +68,18 @@ class PDECoefficientType:
        elif self.what==self.CONTACT: return escript.FunctionOnContactZero(domain)
        elif self.what==self.CONTINUOUS: return escript.ContinuousFunction(domain)
 
+    def getValue(self):
+       """
+       @brief returns the value of the coefficient:
+       """
+       return self.value
+     
+    def setValue(self,newValue):
+       """
+       @brief set the value of the coefficient to new value
+       """
+       self.value=newValue
+     
     def isAlteringOperator(self):
         """
 	@brief return true if the operator of the PDE is changed when the coefficient is changed
@@ -168,24 +140,9 @@ class PDECoefficientType:
                 s=s+(dim,)
         return s
 
-_PDECoefficientTypes={
-"A"         : PDECoefficientType(PDECoefficientType.INTERIOR,(PDECoefficientType.EQUATION,PDECoefficientType.DIM,PDECoefficientType.SOLUTION,PDECoefficientType.DIM),PDECoefficientType.OPERATOR),
-"B"         : PDECoefficientType(PDECoefficientType.INTERIOR,(PDECoefficientType.EQUATION,PDECoefficientType.DIM,PDECoefficientType.SOLUTION),PDECoefficientType.OPERATOR),
-"C"         : PDECoefficientType(PDECoefficientType.INTERIOR,(PDECoefficientType.EQUATION,PDECoefficientType.SOLUTION,PDECoefficientType.DIM),PDECoefficientType.OPERATOR),
-"D"         : PDECoefficientType(PDECoefficientType.INTERIOR,(PDECoefficientType.EQUATION,PDECoefficientType.SOLUTION),PDECoefficientType.OPERATOR),
-"X"         : PDECoefficientType(PDECoefficientType.INTERIOR,(PDECoefficientType.EQUATION,PDECoefficientType.DIM),PDECoefficientType.RIGHTHANDSIDE),
-"Y"         : PDECoefficientType(PDECoefficientType.INTERIOR,(PDECoefficientType.EQUATION,),PDECoefficientType.RIGHTHANDSIDE),
-"d"         : PDECoefficientType(PDECoefficientType.BOUNDARY,(PDECoefficientType.EQUATION,PDECoefficientType.SOLUTION),PDECoefficientType.OPERATOR),
-"y"         : PDECoefficientType(PDECoefficientType.BOUNDARY,(PDECoefficientType.EQUATION,),PDECoefficientType.RIGHTHANDSIDE),
-"d_contact" : PDECoefficientType(PDECoefficientType.CONTACT,(PDECoefficientType.EQUATION,PDECoefficientType.SOLUTION),PDECoefficientType.OPERATOR),
-"y_contact" : PDECoefficientType(PDECoefficientType.CONTACT,(PDECoefficientType.EQUATION,),PDECoefficientType.RIGHTHANDSIDE),
-"r"         : PDECoefficientType(PDECoefficientType.CONTINUOUS,(PDECoefficientType.EQUATION,),PDECoefficientType.RIGHTHANDSIDE),
-"q"         : PDECoefficientType(PDECoefficientType.CONTINUOUS,(PDECoefficientType.SOLUTION,),PDECoefficientType.BOTH),
-}
-
 class LinearPDE:
    """
-   @brief Class to define a linear PDE
+   @brief Class to handel a linear PDE
    
    class to define a linear PDE of the form
 
@@ -204,6 +161,7 @@ class LinearPDE:
          u_i=r_i where q_i>0
 
    """
+   TOL=1.e-13
    DEFAULT_METHOD=util.DEFAULT_METHOD
    DIRECT=util.DIRECT
    CHOLEVSKY=util.CHOLEVSKY
@@ -221,6 +179,20 @@ class LinearPDE:
 
      @param args
      """
+     # COEFFICIENTS can be overwritten by subclasses:
+     self.COEFFICIENTS={
+       "A"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM,PDECoefficient.SOLUTION,PDECoefficient.DIM),PDECoefficient.OPERATOR),
+       "B"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM,PDECoefficient.SOLUTION),PDECoefficient.OPERATOR),
+       "C"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.SOLUTION,PDECoefficient.DIM),PDECoefficient.OPERATOR),
+       "D"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.SOLUTION),PDECoefficient.OPERATOR),
+       "X"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM),PDECoefficient.RIGHTHANDSIDE),
+       "Y"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "d"         : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.EQUATION,PDECoefficient.SOLUTION),PDECoefficient.OPERATOR),
+       "y"         : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "d_contact" : PDECoefficient(PDECoefficient.CONTACT,(PDECoefficient.EQUATION,PDECoefficient.SOLUTION),PDECoefficient.OPERATOR),
+       "y_contact" : PDECoefficient(PDECoefficient.CONTACT,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "r"         : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "q"         : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.SOLUTION,),PDECoefficient.BOTH)}
 
      # initialize attributes
      self.__debug=None
@@ -246,131 +218,32 @@ class LinearPDE:
      self.__sym=False
      self.__lumping=False
 
+   def createCoefficient(self, name):
+     """
+     @brief create a data object corresponding to coefficient name
+     @param name
+     """
+     return escript.Data(shape = getShapeOfCoefficient(name), \
+                         what = getFunctionSpaceOfCoefficient(name))
+
+   def __del__(self):
+     pass
+
    def getCoefficient(self,name):
      """
-     @brief return the value of the coefficient name
+     @brief return the value of the parameter name
 
      @param name
      """
-     return self.__coefficient[name]
+     return self.COEFFICIENTS[name].getValue()
 
-   def setValue(self,**coefficients):
-      """
-      @brief sets new values to coefficients
-
-      @param coefficients
-      """
-      self._setValue(**coefficients)
-      
-
-   def _setValue(self,**coefficients):
-      """
-      @brief sets new values to coefficients
-
-      @param coefficients
-      """
-      
-      # get the dictionary of the coefficinets been altered:
-      alteredCoefficients={}
-      for i,d in coefficients.iteritems():
-         if self.hasCoefficient(i):
-            if d == None:
-                alteredCoefficients[i]=escript.Data()
-            elif isinstance(d,escript.Data):
-                if d.isEmpty():
-                  alteredCoefficients[i]=escript.Data()
-                else:
-                  alteredCoefficients[i]=escript.Data(d,self.getFunctionSpaceOfCoefficient(i))
-            else:
-                alteredCoefficients[i]=escript.Data(d,self.getFunctionSpaceOfCoefficient(i))
-         else:
-            raise ValueError,"Attempt to set undefined coefficient %s"%i
-      # if numEquations and numSolutions is undefined we try identify their values based on the coefficients:
-      if self.__numEquations<1 or self.__numSolutions<1:
-            numEquations,numSolutions=identifyNumEquationsAndSolutions(self.getDomain().getDim(),alteredCoefficients)
-            if self.__numEquations<1 and numEquations>0: self.__numEquations=numEquations
-            if self.__numSolutions<1 and numSolutions>0: self.__numSolutions=numSolutions
-            if self.debug() and self.__numEquations>0: print "PDE Debug: identified number of equations is ",self.__numEquations
-            if self.debug() and self.__numSolutions>0: print "PDE Debug: identified number of solutions is ",self.__numSolutions
-
-      # now we check the shape of the coefficient if numEquations and numSolutions are set:
-      if  self.__numEquations>0 and  self.__numSolutions>0:
-         for i in self.__coefficient.iterkeys():
-             if alteredCoefficients.has_key(i) and not alteredCoefficients[i].isEmpty():
-                 if not self.getShapeOfCoefficient(i)==alteredCoefficients[i].getShape():
-                    raise ValueError,"Expected shape for coefficient %s is %s but actual shape is %s."%(i,self.getShapeOfCoefficient(i),alteredCoefficients[i].getShape())
-             else:
-                 if not self.__coefficient[i].isEmpty():
-                    if not self.getShapeOfCoefficient(i)==self.__coefficient[i].getShape():
-                       raise ValueError,"Expected shape for coefficient %s is %s but actual shape is %s."%(i,self.getShapeOfCoefficient(i),self.__coefficient[i].getShape())
-      # overwrite new values:
-      for i,d in alteredCoefficients.iteritems():
-         if self.debug(): print "PDE Debug: Coefficient %s has been altered."%i
-         self.__coefficient[i]=d
-         self.alteredCoefficient(i)
-
-      # reset the HomogeneousConstraintFlag:
-      self.__setHomogeneousConstraintFlag()
-      if not "q" in alteredCoefficients and not self.__homogeneous_constraint: self.__rebuildSystem()
-
-   def cleanCoefficients(self):
+   def getCoefficientOfPDE(self,name):
      """
-     @brief resets all coefficients to default values. 
-     """
-     self.__coefficient={}
-     for i in _PDECoefficientTypes.iterkeys():
-         self.__coefficient[i]=escript.Data()
-
-   def getShapeOfCoefficient(self,name):
-     """
-     @brief return the shape of the coefficient name
-
+     @brief return the value of the coefficient name of the general PDE. This method is called by the assembling routine
+            it can be overwritten to map coefficients of a particualr PDE to the general PDE.
      @param name
      """
-     if self.hasCoefficient(name):
-        return _PDECoefficientTypes[name].buildShape(self.getNumEquations(),self.getNumSolutions(),self.getDomain().getDim())
-     else:
-        raise ValueError,"Solution coefficient %s requested"%name
-
-   def getFunctionSpaceOfCoefficient(self,name):
-     """
-     @brief return the atoms of the coefficient name
-
-     @param name
-     """
-     if self.hasCoefficient(name):
-        return _PDECoefficientTypes[name].getFunctionSpace(self.getDomain())
-     else:
-        raise ValueError,"Solution coefficient %s requested"%name
-
-   def alteredCoefficient(self,name):
-     """
-     @brief annonced that coefficient name has been changed
-
-     @param name
-     """
-     if self.hasCoefficient(name):
-        if _PDECoefficientTypes[name].isAlteringOperator(): self.__rebuildOperator()
-        if _PDECoefficientTypes[name].isAlteringRightHandSide(): self.__rebuildRightHandSide()
-     else:
-        raise ValueError,"Solution coefficient %s requested"%name
-
-   def __setHomogeneousConstraintFlag(self): 
-      """
-      @brief checks if the constraints are homogeneous and sets self.__homogeneous_constraint accordingly.
-      """
-      self.__homogeneous_constraint=True
-      q=self.getCoefficient("q")
-      r=self.getCoefficient("r")
-      if not q.isEmpty() and not r.isEmpty():
-         print (q*r).Lsup(), 1.e-13*r.Lsup()
-         if (q*r).Lsup()>=1.e-13*r.Lsup(): self.__homogeneous_constraint=False
-      if self.debug():
-           if self.__homogeneous_constraint:
-               print "PDE Debug: Constraints are homogeneous."
-           else:
-               print "PDE Debug: Constraints are inhomogeneous."
- 
+     return self.getCoefficient(name)
 
    def hasCoefficient(self,name):
       """
@@ -378,7 +251,7 @@ class LinearPDE:
 
       @param name
       """
-      return self.__coefficient.has_key(name)
+      return self.COEFFICIENTS.has_key(name)
 
    def getFunctionSpaceForEquation(self):
      """
@@ -391,6 +264,63 @@ class LinearPDE:
      @brief return true if the interpolation of the solution should use reduced order
      """
      return self.__column_function_space
+
+   def setValue(self,**coefficients):
+      """
+      @brief sets new values to coefficients
+
+      @param coefficients
+      """
+      self._setValue(**coefficients)
+      
+
+   def cleanCoefficients(self):
+     """
+     @brief resets all coefficients to default values. 
+     """
+     for i in self.COEFFICIENTS.iterkeys():
+         self.COEFFICIENTS[i].resetValue()
+
+   def createNewCoefficient(self,name):
+     """
+     @brief returns a new coefficient appropriate for coefficient name:
+     """
+     return escript.Data(0,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
+      
+
+   def getShapeOfCoefficient(self,name):
+     """
+     @brief return the shape of the coefficient name
+
+     @param name
+     """
+     if self.hasCoefficient(name):
+        return self.COEFFICIENTS[name].buildShape(self.getNumEquations(),self.getNumSolutions(),self.getDomain().getDim())
+     else:
+        raise ValueError,"Solution coefficient %s requested"%name
+
+   def getFunctionSpaceForCoefficient(self,name):
+     """
+     @brief return the atoms of the coefficient name
+
+     @param name
+     """
+     if self.hasCoefficient(name):
+        return self.COEFFICIENTS[name].getFunctionSpace(self.getDomain())
+     else:
+        raise ValueError,"Solution coefficient %s requested"%name
+
+   def alteredCoefficient(self,name):
+     """
+     @brief annonced that coefficient name has been changed
+
+     @param name
+     """
+     if self.hasCoefficient(name):
+        if self.COEFFICIENTS[name].isAlteringOperator(): self.__rebuildOperator()
+        if self.COEFFICIENTS[name].isAlteringRightHandSide(): self.__rebuildRightHandSide()
+     else:
+        raise ValueError,"unknown coefficient %s requested"%name
 
    # ===== debug ==============================================================
    def setDebugOn(self):
@@ -417,7 +347,6 @@ class LinearPDE:
       @brief indicates to use matrix lumping
       """
       if not self.isUsingLumping():
-         raise SystemError,"Lumping is not working yet! Talk to the experts"
          if self.debug() : print "PDE Debug: lumping is set on"
          self.__rebuildOperator()
          self.__lumping=True
@@ -604,7 +533,6 @@ class LinearPDE:
      else:
         self.setReducedOrderForEquationOff()
                                                                                                                                                            
-
    # ==== initialization =====================================================================
    def __makeNewOperator(self):
        """
@@ -638,6 +566,7 @@ class LinearPDE:
            if self.debug() : print "PDE Debug: New operator allocated"
        else:
            self.__operator.setValue(0.)
+           self.__operator.resetSolver()
            if self.debug() : print "PDE Debug: Operator reset to zero"
        return self.__operator
 
@@ -654,204 +583,6 @@ class LinearPDE:
            if self.debug() : print "PDE Debug: Right hand side reset to zero"
        return  self.__righthandside
 
-   # ==== rebuild switches =====================================================================
-   def __rebuildSolution(self,deep=False):
-       """
-       @brief indicates the PDE has to be reolved if the solution is requested
-       """
-       if self.__solution_isValid and self.debug() : print "PDE Debug: PDE has to be resolved."
-       self.__solution_isValid=False
-       if deep: self.__solution=escript.Data(deep)
-
-
-   def __rebuildOperator(self,deep=False):
-       """
-       @brief indicates the operator has to be rebuilt next time it is used
-       """
-       if self.__operator_isValid and self.debug() : print "PDE Debug: Operator has to be rebuilt."
-       self.__rebuildSolution(deep)
-       self.__operator_isValid=False
-       if deep: self.__operator=escript.Operator()
-
-   def __rebuildRightHandSide(self,deep=False):
-       """
-       @brief indicates the right hand side has to be rebuild next time it is used
-       """
-       if self.__righthandside_isValid and self.debug() : print "PDE Debug: Right hand side has to be rebuilt."
-       self.__rebuildSolution(deep)
-       self.__righthandside_isValid=False
-       if not self.__homogeneous_constraint: self.__rebuildOperator()
-       if deep: self.__righthandside=escript.Data()
-
-   def __rebuildSystem(self,deep=False):
-       """
-       @brief annonced that all coefficient name has been changed
-       """
-       self.__rebuildSolution(deep)
-       self.__rebuildOperator(deep)
-       self.__rebuildRightHandSide(deep)
-   
-   def __checkMatrixType(self):
-     """
-     @brief reassess the matrix type and, if needed, initiates an operator rebuild
-     """
-     new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod(),self.isSymmetric())
-     if not new_matrix_type==self.__matrix_type:
-         if self.debug() : print "PDE Debug: Matrix type is now %d."%new_matrix_type
-         self.__matrix_type=new_matrix_type
-         self.__rebuildOperator(deep=True)
-
-   #============ assembling =======================================================
-   def __copyConstraint(self,u):
-      """
-      @brief copies the constrint condition into u
-      """
-      q=self.getCoefficient("q")
-      r=self.getCoefficient("r")
-      if not q.isEmpty():
-          if r.isEmpty():
-             r2=escript.Data(0,u.getShape(),u.getFunctionSpace())
-          else:
-             r2=escript.Data(r,u.getFunctionSpace())
-          u.copyWithMask(r2,escript.Data(q,u.getFunctionSpace()))
-
-   def __applyConstraint(self,rhs_update=True):
-       """
-       @brief applies the constraints  defined by q and r to the system
-       """
-       q=self.getCoefficient("q")
-       r=self.getCoefficient("r")
-       if not q.isEmpty() and not self.__operator.isEmpty():
-          # q is the row and column mask to indicate where constraints are set:
-          row_q=escript.Data(q,self.getFunctionSpaceForEquation())
-          col_q=escript.Data(q,self.getFunctionSpaceForSolution())
-          u=self.__makeNewSolution()
-          if r.isEmpty():
-             r_s=self.__makeNewSolution()
-          else:
-             r_s=escript.Data(r,self.getFunctionSpaceForSolution())
-          u.copyWithMask(r_s,col_q)
-          if not self.__righthandside.isEmpty() and rhs_update: self.__righthandside-=self.__operator*u
-          self.__operator.nullifyRowsAndCols(row_q,col_q,1.)
-
-   def getOperator(self):
-       """
-       @brief returns the operator of the PDE
-       """
-       if not self.__operator_isValid:
-           # some Constraints are applying for a lumpled stifness matrix:
-           if self.isUsingLumping():
-              if self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution():
-                       raise TypeError,"Lumped matrix requires same order for equations and unknowns"
-              if not self.getCoefficient("A").isEmpty():
-                       raise Warning,"Lumped matrix does not allow coefficient A"
-              if not self.getCoefficient("B").isEmpty():
-                       raise Warning,"Lumped matrix does not allow coefficient B"
-              if not self.getCoefficient("C").isEmpty():
-                       raise Warning,"Lumped matrix does not allow coefficient C"
-              if not self.getCoefficient("D").isEmpty():
-                       raise Warning,"Lumped matrix does not allow coefficient D"
-              if self.debug() : print "PDE Debug: New lumped operator is built."
-              mat=self.__makeNewOperator(self)
-           else:
-              if self.debug() : print "PDE Debug: New operator is built."
-              mat=self.__getFreshOperator()
-
-           self.getDomain().addPDEToSystem(mat,escript.Data(), \
-                        self.getCoefficient("A"), \
-                        self.getCoefficient("B"), \
-                        self.getCoefficient("C"), \
-                        self.getCoefficient("D"), \
-                        escript.Data(), \
-                        escript.Data(), \
-                        self.getCoefficient("d"), \
-                        escript.Data(),\
-                        self.getCoefficient("d_contact"), \
-                        escript.Data())
-           if self.isUsingLumping():
-              self.__operator=mat*escript.Data(1,(self.getNumSolutions(),),self.getFunctionSpaceOfSolution(),True)
-           else:
-              self.__applyConstraint(rhs_update=False)
-           self.__operator_isValid=True
-       return self.__operator
-
-   def getRightHandSide(self,ignoreConstraint=False):
-       """
-       @brief returns the right hand side of the PDE
-
-       @param ignoreConstraint
-       """
-       if not self.__righthandside_isValid:
-           if self.debug() : print "PDE Debug: New right hand side is built."
-           self.getDomain().addPDEToRHS(self.__getFreshRightHandSide(), \
-                         self.getCoefficient("X"), \
-                         self.getCoefficient("Y"),\
-                         self.getCoefficient("y"),\
-                         self.getCoefficient("y_contact"))
-           self.__righthandside_isValid=True
-           if ignoreConstraint: self.__copyConstraint(self.__righthandside)
-       return self.__righthandside
-
-   def getSystem(self):
-       """
-       @brief
-       """
-       if not self.__operator_isValid and not self.__righthandside_isValid:
-          if self.debug() : print "PDE Debug: New PDE is built."
-          if self.isUsingLumping():
-              self.getRightHandSide(ignoreConstraint=True)
-              self.getOperator()
-          else:
-              self.getDomain().addPDEToSystem(self.__getFreshOperator(),self.__getFreshRightHandSide(), \
-                            self.getCoefficient("A"), \
-                            self.getCoefficient("B"), \
-                            self.getCoefficient("C"), \
-                            self.getCoefficient("D"), \
-                            self.getCoefficient("X"), \
-                            self.getCoefficient("Y"), \
-                            self.getCoefficient("d"), \
-                            self.getCoefficient("y"), \
-                            self.getCoefficient("d_contact"), \
-                            self.getCoefficient("y_contact"))
-          self.__operator_isValid=True
-          self.__righthandside_isValid=True
-          self.__applyConstraint()
-          self.__copyConstraint(self.__righthandside)
-       elif not self.__operator_isValid:
-          self.getOperator()
-       elif not self.__righthandside_isValid:
-          self.getRightHandSide()
-       return (self.__operator,self.__righthandside)
-
-   def solve(self,**options):
-      """
-      @brief solve the PDE
-
-      @param options
-      """
-      mat,f=self.getSystem()
-      if self.isUsingLumping():
-         out=f/mat
-         self.__copyConstraint(out)
-      else:
-         options[util.TOLERANCE_KEY]=self.getTolerance()
-         options[util.METHOD_KEY]=self.getSolverMethod()
-         options[util.SYMMETRY_KEY]=self.isSymmetric()
-         if self.debug() : print "PDE Debug: solver options: ",options
-         out=mat.solve(f,options)
-      return out
-
-   def getSolution(self,**options):
-       """
-       @brief returns the solution of the PDE
-
-       @param options
-       """
-       if not self.__solution_isValid:
-           if self.debug() : print "PDE Debug: PDE is resolved."
-           self.__solution=self.solve(**options)
-           self.__solution_isValid=True
-       return self.__solution
    #============ some serivice functions  =====================================================
    def getDomain(self):
      """
@@ -884,13 +615,66 @@ class LinearPDE:
         raise ValueError,"Number of solution is undefined. Please specify argument numSolutions."
 
 
-   def checkSymmetry(self):
+   def checkSymmetry(self,verbose=True):
       """
       @brief returns if the Operator is symmetric. This is a very expensive operation!!! The symmetry flag is not altered.
       """
-      raise SystemError,"checkSymmetry is not implemented yet"
-
-      return None
+      verbose=verbose or self.debug()
+      out=True
+      if self.getNumSolutions()!=self.getNumEquations():
+         if verbose: print "non-symmetric PDE because of different number of equations and solutions"
+         out=False
+      else:
+         A=self.getCoefficientOfPDE("A")
+         if not A.isEmpty():
+            tol=util.Lsup(A)*self.TOL
+            if self.getNumSolutions()>1:
+               for i in range(self.getNumEquations()):
+                  for j in range(self.getDim()):
+                     for k in range(self.getNumSolutions()):
+                        for l in range(self.getDim()):
+                            if util.Lsup(A[i,j,k,l]-A[k,l,i,j])>tol:
+                               if verbose: print "non-symmetric PDE because A[%d,%d,%d,%d]!=A[%d,%d,%d,%d]"%(i,j,k,l,k,l,i,j)
+                               out=False
+            else:
+               for j in range(self.getDim()):
+                  for l in range(self.getDim()):
+                     if util.Lsup(A[j,l]-A[l,j])>tol:
+                        if verbose: print "non-symmetric PDE because A[%d,%d]!=A[%d,%d]"%(j,l,l,j)
+                        out=False
+         B=self.getCoefficientOfPDE("B")
+         C=self.getCoefficientOfPDE("C")
+         if B.isEmpty() and not C.isEmpty():
+            if verbose: print "non-symmetric PDE because B is not present but C is"
+            out=False
+         elif not B.isEmpty() and C.isEmpty():
+            if verbose: print "non-symmetric PDE because C is not present but B is"
+            out=False
+         elif not B.isEmpty() and not C.isEmpty():
+            tol=(util.Lsup(B)+util.Lsup(C))*self.TOL/2.
+            if self.getNumSolutions()>1:
+               for i in range(self.getNumEquations()):
+                   for j in range(self.getDim()):
+                      for k in range(self.getNumSolutions()):
+                         if util.Lsup(B[i,j,k]-C[i,j,k])>tol:
+                              if verbose: print "non-symmetric PDE because B[%d,%d,%d]!=C[%d,%d,%d]"%(i,j,k,i,j,k)
+                              out=False
+            else:
+               for j in range(self.getDim()):
+                  if util.Lsup(B[j]-C[j])>tol:
+                     if verbose: print "non-symmetric PDE because B[%d]!=C[%d]"%(j,j)
+                     out=False
+         if self.getNumSolutions()>1:
+           D=self.getCoefficientOfPDE("D")
+           if not D.isEmpty():
+             tol=util.Lsup(D)*self.TOL
+             for i in range(self.getNumEquations()):
+                for k in range(self.getNumSolutions()):
+                  if util.Lsup(D[i,k]-D[k,i])>tol:
+                      if verbose: print "non-symmetric PDE because D[%d,%d]!=D[%d,%d]"%(i,k,k,i)
+                      out=False
+            
+      return out
 
    def getFlux(self,u):
        """
@@ -921,6 +705,437 @@ class LinearPDE:
        """
        return self.applyOperator(u)-self.getRightHandSide()
 
+   def _setValue(self,**coefficients):
+      """
+      @brief sets new values to coefficient
+
+      @param coefficients
+      """
+      # check if the coefficients are  legal:
+      for i in coefficients.iterkeys():
+         if not self.hasCoefficient(i):
+            raise ValueError,"Attempt to set unknown coefficient %s"%i
+      # if the number of unknowns or equations is still unknown we try to estimate them:
+      if self.__numEquations<1 or self.__numSolutions<1:
+         for i,d in coefficients.iteritems():
+            if hasattr(d,"shape"):
+                s=d.shape
+            elif hasattr(d,"getShape"):
+                s=d.getShape()
+            else:
+                s=numarray.array(d).shape
+            if s!=None:
+                # get number of equations and number of unknowns:
+                res=self.COEFFICIENTS[i].estimateNumEquationsAndNumSolutions(s,self.getDim())
+                if res==None:
+                    raise ValueError,"Illegal shape %s of coefficient %s"%(s,i)
+                else:
+                    if self.__numEquations<1: self.__numEquations=res[0]
+                    if self.__numSolutions<1: self.__numSolutions=res[1]
+      if self.__numEquations<1: raise ValueError,"unidententified number of equations"
+      if self.__numSolutions<1: raise ValueError,"unidententified number of solutions"
+      # now we check the shape of the coefficient if numEquations and numSolutions are set:
+      for i,d in coefficients.iteritems():
+        if d==None:
+             d2=escript.Data()
+        elif isinstance(d,escript.Data):
+             if d.isEmpty():
+                d2=d
+             else:
+                d2=escript.Data(d,self.getFunctionSpaceForCoefficient(i))
+        else:
+              d2=escript.Data(d,self.getFunctionSpaceForCoefficient(i))
+        if not d2.isEmpty():
+           if not self.getShapeOfCoefficient(i)==d2.getShape():
+               raise ValueError,"Expected shape for coefficient %s is %s but actual shape is %s."%(i,self.getShapeOfCoefficient(i),d2.getShape())
+        # overwrite new values:
+        if self.debug(): print "PDE Debug: Coefficient %s has been altered."%i
+        self.COEFFICIENTS[i].setValue(d2)
+        self.alteredCoefficient(i)
+      
+      # reset the HomogeneousConstraintFlag:
+      self.__setHomogeneousConstraintFlag()
+      if len(coefficients)>0 and not self.isUsingLumping() and not self.__homogeneous_constraint: self.__rebuildSystem()
+
+   def __setHomogeneousConstraintFlag(self): 
+      """
+      @brief checks if the constraints are homogeneous and sets self.__homogeneous_constraint accordingly.
+      """
+      self.__homogeneous_constraint=True
+      q=self.getCoefficientOfPDE("q")
+      r=self.getCoefficientOfPDE("r")
+      if not q.isEmpty() and not r.isEmpty():
+         if (q*r).Lsup()>=1.e-13*r.Lsup(): self.__homogeneous_constraint=False
+      if self.debug():
+           if self.__homogeneous_constraint:
+               print "PDE Debug: Constraints are homogeneous."
+           else:
+               print "PDE Debug: Constraints are inhomogeneous."
+ 
+
+   # ==== rebuild switches =====================================================================
+   def __rebuildSolution(self,deep=False):
+       """
+       @brief indicates the PDE has to be reolved if the solution is requested
+       """
+       if self.__solution_isValid and self.debug() : print "PDE Debug: PDE has to be resolved."
+       self.__solution_isValid=False
+       if deep: self.__solution=escript.Data()
+
+
+   def __rebuildOperator(self,deep=False):
+       """
+       @brief indicates the operator has to be rebuilt next time it is used
+       """
+       if self.__operator_isValid and self.debug() : print "PDE Debug: Operator has to be rebuilt."
+       self.__rebuildSolution(deep)
+       self.__operator_isValid=False
+       if deep: self.__operator=escript.Operator()
+
+   def __rebuildRightHandSide(self,deep=False):
+       """
+       @brief indicates the right hand side has to be rebuild next time it is used
+       """
+       if self.__righthandside_isValid and self.debug() : print "PDE Debug: Right hand side has to be rebuilt."
+       self.__rebuildSolution(deep)
+       self.__righthandside_isValid=False
+       if deep: self.__righthandside=escript.Data()
+
+   def __rebuildSystem(self,deep=False):
+       """
+       @brief annonced that all coefficient name has been changed
+       """
+       self.__rebuildSolution(deep)
+       self.__rebuildOperator(deep)
+       self.__rebuildRightHandSide(deep)
+   
+   def __checkMatrixType(self):
+     """
+     @brief reassess the matrix type and, if needed, initiates an operator rebuild
+     """
+     new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod(),self.isSymmetric())
+     if not new_matrix_type==self.__matrix_type:
+         if self.debug() : print "PDE Debug: Matrix type is now %d."%new_matrix_type
+         self.__matrix_type=new_matrix_type
+         self.__rebuildOperator(deep=True)
+
+   #============ assembling =======================================================
+   def __copyConstraint(self):
+      """
+      @brief copies the constrint condition into u
+      """
+      if not self.__righthandside.isEmpty(): 
+         q=self.getCoefficientOfPDE("q")
+         r=self.getCoefficientOfPDE("r")
+         if not q.isEmpty():
+             if r.isEmpty():
+                r2=escript.Data(0,self.__righthandside.getShape(),self.__righthandside.getFunctionSpace())
+             else:
+                r2=escript.Data(r,self.__righthandside.getFunctionSpace())
+             self.__righthandside.copyWithMask(r2,escript.Data(q,self.__righthandside.getFunctionSpace()))
+
+   def __applyConstraint(self):
+       """
+       @brief applies the constraints defined by q and r to the system
+       """
+       q=self.getCoefficientOfPDE("q")
+       r=self.getCoefficientOfPDE("r")
+       if not q.isEmpty() and not self.__operator.isEmpty():
+          # q is the row and column mask to indicate where constraints are set:
+          row_q=escript.Data(q,self.getFunctionSpaceForEquation())
+          col_q=escript.Data(q,self.getFunctionSpaceForSolution())
+          u=self.__makeNewSolution()
+          if r.isEmpty():
+             r_s=self.__makeNewSolution()
+          else:
+             r_s=escript.Data(r,self.getFunctionSpaceForSolution())
+          u.copyWithMask(r_s,col_q)
+          if self.isUsingLumping():
+             self.__operator.copyWithMask(escript.Data(1,q.getShape(),self.getFunctionSpaceForEquation()),row_q)
+          else:
+             if not self.__righthandside.isEmpty(): self.__righthandside-=self.__operator*u
+             self.__operator.nullifyRowsAndCols(row_q,col_q,1.)
+
+   def getSystem(self):
+       """
+       @brief return the operator and right hand side of the PDE
+       """
+       if not self.__operator_isValid or not self.__righthandside_isValid:
+          if self.isUsingLumping():
+              if not self.__operator_isValid:
+                 if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution():
+                       raise TypeError,"Lumped matrix requires same order for equations and unknowns"
+                 if not self.getCoefficientOfPDE("A").isEmpty():
+                          raise Warning,"Lumped matrix does not allow coefficient A"
+                 if not self.getCoefficientOfPDE("B").isEmpty():
+                          raise Warning,"Lumped matrix does not allow coefficient B"
+                 if not self.getCoefficientOfPDE("C").isEmpty():
+                          raise Warning,"Lumped matrix does not allow coefficient C"
+                 if self.debug() : print "PDE Debug: New lumped operator is built."
+                 mat=self.__makeNewOperator()
+                 self.getDomain().addPDEToSystem(mat,escript.Data(), \
+                           self.getCoefficientOfPDE("A"), \
+                           self.getCoefficientOfPDE("B"), \
+                           self.getCoefficientOfPDE("C"), \
+                           self.getCoefficientOfPDE("D"), \
+                           escript.Data(), \
+                           escript.Data(), \
+                           self.getCoefficientOfPDE("d"), \
+                           escript.Data(),\
+                           self.getCoefficientOfPDE("d_contact"), \
+                           escript.Data())
+                 self.__operator=mat*escript.Data(1,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
+                 self.__applyConstraint()
+                 self.__operator_isValid=True
+              if not self.__righthandside_isValid:
+                 if self.debug() : print "PDE Debug: New right hand side is built."
+                 self.getDomain().addPDEToRHS(self.__getFreshRightHandSide(), \
+                               self.getCoefficientOfPDE("X"), \
+                               self.getCoefficientOfPDE("Y"),\
+                               self.getCoefficientOfPDE("y"),\
+                               self.getCoefficientOfPDE("y_contact"))
+                 self.__copyConstraint()
+                 self.__righthandside_isValid=True
+          else:
+             if not self.__operator_isValid and not self.__righthandside_isValid:
+                 if self.debug() : print "PDE Debug: New system is built."
+                 self.getDomain().addPDEToSystem(self.__getFreshOperator(),self.__getFreshRightHandSide(), \
+                               self.getCoefficientOfPDE("A"), \
+                               self.getCoefficientOfPDE("B"), \
+                               self.getCoefficientOfPDE("C"), \
+                               self.getCoefficientOfPDE("D"), \
+                               self.getCoefficientOfPDE("X"), \
+                               self.getCoefficientOfPDE("Y"), \
+                               self.getCoefficientOfPDE("d"), \
+                               self.getCoefficientOfPDE("y"), \
+                               self.getCoefficientOfPDE("d_contact"), \
+                               self.getCoefficientOfPDE("y_contact"))
+                 self.__applyConstraint()
+                 self.__copyConstraint()
+                 self.__operator_isValid=True
+                 self.__righthandside_isValid=True
+             elif not self.__righthandside_isValid:
+                 if self.debug() : print "PDE Debug: New right hand side is built."
+                 self.getDomain().addPDEToRHS(self.__getFreshRightHandSide(), \
+                               self.getCoefficientOfPDE("X"), \
+                               self.getCoefficientOfPDE("Y"),\
+                               self.getCoefficientOfPDE("y"),\
+                               self.getCoefficientOfPDE("y_contact"))
+                 self.__copyConstraint()
+                 self.__righthandside_isValid=True
+             elif not self.__operator_isValid:
+                 if self.debug() : print "PDE Debug: New operator is built."
+                 self.getDomain().addPDEToSystem(self.__getFreshOperator(),escript.Data(), \
+                            self.getCoefficientOfPDE("A"), \
+                            self.getCoefficientOfPDE("B"), \
+                            self.getCoefficientOfPDE("C"), \
+                            self.getCoefficientOfPDE("D"), \
+                            escript.Data(), \
+                            escript.Data(), \
+                            self.getCoefficientOfPDE("d"), \
+                            escript.Data(),\
+                            self.getCoefficientOfPDE("d_contact"), \
+                            escript.Data())
+                 self.__applyConstraint()
+                 self.__operator_isValid=True
+       return (self.__operator,self.__righthandside)
+   def getOperator(self):
+       """
+       @brief returns the operator of the PDE
+       """
+       return self.getSystem()[0]
+
+   def getRightHandSide(self):
+       """
+       @brief returns the right hand side of the PDE
+       """
+       return self.getSystem()[1]
+
+   def solve(self,**options):
+      """
+      @brief solve the PDE
+
+      @param options
+      """
+      mat,f=self.getSystem()
+      if self.isUsingLumping():
+         out=f/mat
+      else:
+         options[util.TOLERANCE_KEY]=self.getTolerance()
+         options[util.METHOD_KEY]=self.getSolverMethod()
+         options[util.SYMMETRY_KEY]=self.isSymmetric()
+         if self.debug() : print "PDE Debug: solver options: ",options
+         out=mat.solve(f,options)
+      return out
+
+   def getSolution(self,**options):
+       """
+       @brief returns the solution of the PDE
+
+       @param options
+       """
+       if not self.__solution_isValid:
+           if self.debug() : print "PDE Debug: PDE is resolved."
+           self.__solution=self.solve(**options)
+           self.__solution_isValid=True
+       return self.__solution
+
+class AdvectivePDE(LinearPDE):
+   """
+   @brief Class to handel a linear PDE domineated by advective terms:
+   
+   class to define a linear PDE of the form
+
+     -(A_{ijkl}u_{k,l})_{,j} -(B_{ijk}u_k)_{,j} + C_{ikl}u_{k,l} +D_{ik}u_k = - (X_{ij})_{,j} + Y_i
+
+     with boundary conditons:
+
+        n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_{ik}u_k = - n_j*X_{ij} + y_i
+
+    and contact conditions
+
+        n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_contact_{ik}[u_k] = - n_j*X_{ij} + y_contact_i
+
+    and constraints:
+
+         u_i=r_i where q_i>0
+
+    The PDE is solved by stabilizing the advective terms using SUPG approach:
+
+       A_{ijkl}<-A_{ijkl}+0.5*h*(xi(b_{ik})*B_{ijk}*B_{ilk}/length(B_{i:k})^2)+0.5*h*xi_{c_{ik}}*(C_{ikj}*C_{ikl}/length(C_{ik:})^2)
+
+    where   
+
+           b_{ik}=length(B_{i:k})*h/2/length(A_{i:k:})
+           c_{ik}=length(C_{i:k})*h/2/length(A_{i:k:})
+
+                      alpha/3        alpha<3
+           xi(alpha)=          for                  approximating cotanh(alpha)-1/alpha
+                       1             alpha>=3
+   """
+   def __getXi(self,alpha):
+         c=alpha-3.
+         return c*c.whereNegative()/3.+1.
+ 
+   def __getUpdateVector(self,V,hover2,alphaByU):
+     v=util.length(V)
+     v_max=util.Lsup(v)
+     if v_max>0:
+         V/=v+v_max*self.TOL
+         alpha=alphaByU*v
+         A_bar=v*hover2*self.__getXi(alpha)
+         print "-------------"
+         print "@ max alpha ",util.Lsup(alpha)
+         print "-------------"
+     else:
+         A_bar=1.
+     return V,A_bar
+
+   def __getAlphaByU(self,A,hover2):
+      a=util.length(A)
+      a_max=util.Lsup(a)
+      if a_max>0:
+         return hover2/(a+a_max*self.TOL)
+      else:
+         return 1./self.TOL
+
+
+   def getCoefficientOfPDE(self,name):
+     """
+     @brief return the value of the coefficient name of the general PDE
+     @param name
+     """
+     if name == "A" : 
+         A=self.getCoefficient("A")
+         B=self.getCoefficient("B")
+         C=self.getCoefficient("C")
+         if not B.isEmpty() or not C.isEmpty():
+             if A.isEmpty(): 
+                 A=self.createNewCoefficient("A")
+             else:
+                 A=A[:]
+             hover2=self.getDomain().getSize()/2.
+             if self.getNumEquations()>1:
+                if self.getNumSolutions()>1:
+                   for i in range(self.getNumEquations()):
+                      for k in range(self.getNumSolutions()):
+                         alphaByU=self.__getAlphaByU(A[i,:,k,:],hover2)
+                         if not B.isEmpty():
+                             b_sub,f=self.__getUpdateVector(B[i,:,k],hover2,alphaByU)
+                             for j in range(self.getDim()):
+                                for l in range(self.getDim()):
+                                   A[i,j,k,l]+=f*b_sub[j]*b_sub[l]
+                         if not C.isEmpty():
+                             c_sub,f=self.__getUpdateVector(C[i,k,:],hover2,alphaByU)
+                             for j in range(self.getDim()):
+                                for l in range(self.getDim()):
+                                   A[i,j,k,l]+=f*c_sub[j]*c_sub[l]
+                else:  
+                   for i in range(self.getNumEquations()):
+                      alphaByU=self.__getAlphaByU(A[i,:,:],hover2)
+                      if not B.isEmpty():
+                          b_sub,f=self.__getUpdateVector(B[i,:],hover2,alphaByU)
+                          for j in range(self.getDim()):
+                             for l in range(self.getDim()):
+                                 A[i,j,l]+=f*b_sub[j]*b_sub[l]
+                      if not C.isEmpty():
+                           c_sub,f=self.__getUpdateVector(C[i,:],hover2,alphaByU)
+                           for j in range(self.getDim()):
+                              for l in range(self.getDim()):
+                                 A[i,j,l]+=f*c_sub[j]*c_sub[l]
+             else:
+                if self.getNumSolutions()>1:
+                   for k in range(self.getNumSolutions()):
+                      alphaByU=self.__getAlphaByU(A[:,k,:],hover2)
+                      if not B.isEmpty():
+                         b_sub,f=self.__getUpdateVector(B[:,k],hover2,alphaByU)
+                         for j in range(self.getDim()):
+                            for l in range(self.getDim()):
+                                   A[j,k,l]+=f*b_sub[j]*b_sub[l]
+                      if not C.isEmpty():
+                         c_sub,f=self.__getUpdateVector(C[k,:],hover2,alphaByU)
+                         for j in range(self.getDim()):
+                            for l in range(self.getDim()):
+                               A[j,k,l]+=f*c_sub[j]*c_sub[l]
+                else:  
+                   alphaByU=self.__getAlphaByU(A[:,:],hover2)
+                   if not B.isEmpty():
+                       b_sub,f=self.__getUpdateVector(B[:],hover2,alphaByU)
+                       for j in range(self.getDim()):
+                          for l in range(self.getDim()):
+                             A[j,l]+=f*b_sub[j]*b_sub[l]
+                   if not C.isEmpty():
+                      c_sub,f=self.__getUpdateVector(C[:],hover2,alphaByU)
+                      for j in range(self.getDim()):
+                          for l in range(self.getDim()):
+                             A[j,l]+=f*c_sub[j]*c_sub[l]
+         return A
+     elif name == "B" : 
+         return self.getCoefficient("B")
+     elif name == "C" : 
+         return self.getCoefficient("C")
+     elif name == "D" : 
+         return self.getCoefficient("D")
+     elif name == "X" : 
+         return self.getCoefficient("X")
+     elif name == "Y" : 
+         return self.getCoefficient("Y")
+     elif name == "d" : 
+         return self.getCoefficient("d")
+     elif name == "y" : 
+         return self.getCoefficient("y")
+     elif name == "d_contact" : 
+         return self.getCoefficient("d_contact")
+     elif name == "y_contact" :
+         return self.getCoefficient("y_contact")
+     elif name == "r" : 
+         return self.getCoefficient("r")
+     elif name == "q" : 
+         return self.getCoefficient("q")
+     else:
+         raise SystemError,"unknown PDE coefficient %s",name
+
+
 class Poisson(LinearPDE):
    """
    @brief Class to define a Poisson equstion problem:
@@ -939,63 +1154,45 @@ class Poisson(LinearPDE):
                                                                                                                                                              
    """
 
-   def __init__(self,domain=None,f=escript.Data(),q=escript.Data()):
-       LinearPDE.__init__(self,domain=identifyDomain(domain,{"f":f, "q":q}))
-       self._setValue(A=numarray.identity(self.getDomain().getDim()))
+   def __init__(self,domain,f=escript.Data(),q=escript.Data()):
+       LinearPDE.__init__(self,domain,1,1)
+       self.COEFFICIENTS={
+       "f"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "q"         : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.EQUATION,),PDECoefficient.BOTH)}
        self.setSymmetryOn()
        self.setValue(f,q)
 
    def setValue(self,f=escript.Data(),q=escript.Data()):
-       self._setValue(Y=f,q=q)
- 
-                                                                                                                                                           
-# $Log$
-# Revision 1.3  2004/12/17 07:43:10  jgs
-# *** empty log message ***
-#
-# Revision 1.1.2.3  2004/12/16 00:12:34  gross
-# __init__ of LinearPDE does not accept any coefficients anymore
-#
-# Revision 1.1.2.2  2004/12/14 03:55:01  jgs
-# *** empty log message ***
-#
-# Revision 1.1.2.1  2004/12/12 22:53:47  gross
-# linearPDE has been renamed LinearPDE
-#
-# Revision 1.1.1.1.2.7  2004/12/07 10:13:08  gross
-# GMRES added
-#
-# Revision 1.1.1.1.2.6  2004/12/07 03:19:50  gross
-# options for GMRES and PRES20 added
-#
-# Revision 1.1.1.1.2.5  2004/12/01 06:25:15  gross
-# some small changes
-#
-# Revision 1.1.1.1.2.4  2004/11/24 01:50:21  gross
-# Finley solves 4M unknowns now
-#
-# Revision 1.1.1.1.2.3  2004/11/15 06:05:26  gross
-# poisson solver added
-#
-# Revision 1.1.1.1.2.2  2004/11/12 06:58:15  gross
-# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
-#
-# Revision 1.1.1.1.2.1  2004/10/28 22:59:22  gross
-# finley's RecTest.py is running now: problem in SystemMatrixAdapater fixed
-#
-# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
-# initial import of project esys2
-#
-# Revision 1.3.2.3  2004/10/26 06:43:48  jgs
-# committing Lutz's and Paul's changes to brach jgs
-#
-# Revision 1.3.4.1  2004/10/20 05:32:51  cochrane
-# Added incomplete Doxygen comments to files, or merely put the docstrings that already exist into Doxygen form.
-#
-# Revision 1.3  2004/09/23 00:53:23  jgs
-# minor fixes
-#
-# Revision 1.1  2004/08/28 12:58:06  gross
-# SimpleSolve is not running yet: problem with == of functionsspace
-#
-#
+       self._setValue(f=f,q=q)
+
+   def getCoefficientOfPDE(self,name):
+     """
+     @brief return the value of the coefficient name of the general PDE
+     @param name
+     """
+     if name == "A" : 
+         return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))
+     elif name == "B" : 
+         return escript.Data()
+     elif name == "C" : 
+         return escript.Data()
+     elif name == "D" : 
+         return escript.Data()
+     elif name == "X" : 
+         return escript.Data()
+     elif name == "Y" : 
+         return self.getCoefficient("f")
+     elif name == "d" : 
+         return escript.Data()
+     elif name == "y" : 
+         return escript.Data()
+     elif name == "d_contact" : 
+         return escript.Data()
+     elif name == "y_contact" :
+         return escript.Data()
+     elif name == "r" : 
+         return escript.Data()
+     elif name == "q" : 
+         return self.getCoefficient("q")
+     else:
+         raise SystemError,"unknown PDE coefficient %s",name

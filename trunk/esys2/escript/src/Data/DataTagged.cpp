@@ -15,6 +15,8 @@
 
 #include "escript/Data/DataTagged.h"
 #include "escript/Data/DataConstant.h"
+#include "escript/Data/DataExpanded.h"
+#include "escript/Data/DataException.h"
 
 #include <sstream>
 
@@ -74,18 +76,18 @@ DataTagged::DataTagged(const DataTagged& other,
   //
   // get the shape of the slice to copy from other
   DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
-  //
+  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   // allocate enough space for all values
   m_data.resize(DataArrayView::noValues(shape)*(other.m_offsetLookup.size()+1));
   DataArrayView temp(m_data,shape);
   setPointDataView(temp);
-  getDefaultValue().copySlice(other.getDefaultValue(),region);
+  getDefaultValue().copySlice(other.getDefaultValue(),region_loop_range);
   //
   // Loop through the tag values
   DataMapType::const_iterator pos;
   DataArrayView::ValueType::size_type tagOffset=getPointDataView().noValues();
   for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();++pos){
-    getPointDataView().copySlice(tagOffset,other.getPointDataView(), pos->second,region);
+    getPointDataView().copySlice(tagOffset,other.getPointDataView(), pos->second,region_loop_range);
     m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
     tagOffset+=getPointDataView().noValues();
   } 
@@ -136,23 +138,24 @@ DataTagged::setSlice(const DataAbstract* value,
   if (tempDataTag==0) {
     throw DataException("Programming error - casting to DataTagged.");
   }
+  //
+  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
+  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  //
   if (getPointDataView().getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
-  //
-  // get the shape of the slice
-  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
-  if (!value->getPointDataView().checkShape(shape)) {
+  if (tempDataTag->getPointDataView().getRank()>0 && !value->getPointDataView().checkShape(shape)) {
     throw DataException (value->getPointDataView().createShapeErrorMessage(
                 "Error - Couldn't copy slice due to shape mismatch.",shape));
   }
   //
-  getDefaultValue().copySliceFrom(tempDataTag->getDefaultValue(),region);
+  getDefaultValue().copySliceFrom(tempDataTag->getDefaultValue(),region_loop_range);
   //
   // Loop through the tag values
   DataMapType::const_iterator pos;
   for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();++pos){
-    getDataPointByTag(pos->first).copySliceFrom(tempDataTag->getDataPointByTag(pos->first),region);
+    getDataPointByTag(pos->first).copySliceFrom(tempDataTag->getDataPointByTag(pos->first),region_loop_range);
   } 
 }
 
