@@ -11,11 +11,12 @@
 
 /**************************************************************/
 
+#include <stdlib.h>
 #include "Finley.h"
 #include "System.h"
+#include "SCSL.h"
 #if ITERATIVE_SOLVER == SGI_SCSL
 #include <scsl_sparse.h>
-#include "SCSL.h"
 #endif
 
 /***********************************************************************************/
@@ -39,10 +40,6 @@ void Finley_SCSL_iterative(Finley_SystemMatrix* A,
       sprintf(Finley_ErrorMsg,"SCSL linear solver can only be applied to block size 1.");
       return;
     }
-    #ifdef Finley_TRACE
-    printf("solver is SCSL\n");
-    #endif
-
     switch(A->type) {
     case CSR:
       storage=0;
@@ -52,16 +49,16 @@ void Finley_SCSL_iterative(Finley_SystemMatrix* A,
       break;
     default:
       Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Unknown matrix type.");
+      sprintf(Finley_ErrorMsg,"Matrix type %d is not supported by SCSL iterative solver.",A->type);
       return;
     } /* switch A->type */
 
-    if (A->symmetric) {
-      switch (options->iterative_method) {
-      case PCG:
+    if (options->symmetric) {
+      switch (options->method) {
+      case ESCRIPT_PCG:
 	method=0;
 	break;
-      case CR:
+      case ESCRIPT_CR:
 	method=1;
 	break;
       default:
@@ -69,11 +66,11 @@ void Finley_SCSL_iterative(Finley_SystemMatrix* A,
 	break;
       }
     } else {
-      switch (options->iterative_method) {
-      case CGS:
+      switch (options->method) {
+      case ESCRIPT_CGS:
 	method=10;
 	break;
-      case BICGSTAB:
+      case ESCRIPT_BICGSTAB:
 	method=11;
 	break;
       default:
@@ -82,18 +79,18 @@ void Finley_SCSL_iterative(Finley_SystemMatrix* A,
       }
     }
     switch (options->preconditioner) {
-    case JACOBI:
+    case ESCRIPT_JACOBI:
       precond=0;
       break;
-    case SSOR:
+    case ESCRIPT_SSOR:
       precond=1;
       break;
-    case ILU0:
-      if (A->symmetric) precond = 2;
+    case ESCRIPT_ILU0:
+      if (options->symmetric) precond = 2;
       else precond=0;
       break;
-    case ILUT:
-      if (A->symmetric) precond = 3;
+    case ESCRIPT_ILUT:
+      if (options->symmetric) precond = 3;
       else precond=0;
       break;
     default:
@@ -113,7 +110,7 @@ void Finley_SCSL_iterative(Finley_SystemMatrix* A,
     } else {
       unsetenv("ITERATIVE_VERBOSE");
     }
-    if (options->reordering==NO_REORDERING) {
+    if (options->reordering==ESCRIPT_NO_REORDERING) {
       sprintf(text2,"%d",0);
     } else {
       sprintf(text2,"%d",-1);
@@ -122,24 +119,16 @@ void Finley_SCSL_iterative(Finley_SystemMatrix* A,
     setenv("ITERATIVE_COPY","1",1);
 
     time0=Finley_timer();
-    DIterative(A->num_rows,A->ptr,A->index,A->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
+    DIterative(A->num_rows,A->pattern->ptr,A->pattern->index,A->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
     options->iter=iters;
     options->final_residual=finalres;
     time0=Finley_timer()-time0;
-    printf("timing SCSL: solve: %.4e sec\n",time0);
-    if (iters>0) printf("timing: per iteration: %.4e sec\n",time0/iters);
+    if (options->verbose) {
+          printf("timing SCSL: solve: %.4e sec\n",time0);
+          if (iters>0) printf("timing: per iteration: %.4e sec\n",time0/iters);
+    }
+#else
+    Finley_ErrorCode=SYSTEM_ERROR;
+    sprintf(Finley_ErrorMsg,"No SCSL iterative solver available.");
 #endif
 }
-/*
- * $Log$
- * Revision 1.3  2004/12/15 03:48:47  jgs
- * *** empty log message ***
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.1  2004/07/02 04:21:14  gross
- * Finley C code has been included
- *
- *
- */

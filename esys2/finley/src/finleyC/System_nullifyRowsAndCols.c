@@ -58,16 +58,16 @@ void  Finley_SystemMatrix_nullifyRowsAndCols(Finley_SystemMatrix* A,
 
 void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
 
-  maybelong ir,icol,iptr,icb,irb,irow,ic;
+  maybelong ir,icol,iptr,icb,irb,irow,ic,l;
 
   if (A ->col_block_size==1 && A ->row_block_size ==1) {
     switch(A->type) {
     case CSR:
       #pragma omp parallel for private(irow, iptr,icol) schedule(static)
-      for (irow=0;irow< A->num_rows;irow++) {
+      for (irow=0;irow< A->pattern->n_ptr;irow++) {
 	/* TODO: test mask_row here amd not inside every loop */
-	for (iptr=A->ptr[irow]-PTR_OFFSET;iptr<A->ptr[irow+1]-PTR_OFFSET; iptr++) {
-	  icol=A->index[iptr]-INDEX_OFFSET;
+	for (iptr=A->pattern->ptr[irow]-PTR_OFFSET;iptr<A->pattern->ptr[irow+1]-PTR_OFFSET; iptr++) {
+	  icol=A->pattern->index[iptr]-INDEX_OFFSET;
 	  if (mask_col[icol]>0. || mask_row[irow]>0. ) {
             if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
 	      A->val[iptr]=main_diagonal_value;
@@ -80,9 +80,9 @@ void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double
       break;
     case CSC:
       #pragma omp parallel for private(irow, iptr,icol) schedule(static)
-      for (icol=0;icol< A->num_cols;icol++) {
-	for (iptr=A->ptr[icol]-PTR_OFFSET;iptr<A->ptr[icol+1]-PTR_OFFSET; iptr++) {
-	  irow=A->index[iptr]-INDEX_OFFSET;
+      for (icol=0;icol< A->pattern->n_ptr;icol++) {
+	for (iptr=A->pattern->ptr[icol]-PTR_OFFSET;iptr<A->pattern->ptr[icol+1]-PTR_OFFSET; iptr++) {
+	  irow=A->pattern->index[iptr]-INDEX_OFFSET;
 	  if (mask_col[icol]>0. || mask_row[irow]>0. ) {
             if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
 	      A->val[iptr]=main_diagonal_value;
@@ -100,18 +100,19 @@ void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double
   } else {
     switch(A->type) {
     case CSR:
-      #pragma omp parallel for private(irow, iptr,icol,ir,irb,icb) schedule(static)
-      for (ir=0;ir< A->num_rows;ir++) {
-	for (iptr=A->ptr[ir]-PTR_OFFSET;iptr<A->ptr[ir+1]-PTR_OFFSET; iptr++) {
+      #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
+      for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	for (iptr=A->pattern->ptr[ir]-PTR_OFFSET;iptr<A->pattern->ptr[ir+1]-PTR_OFFSET; iptr++) {
 	  for (irb=0;irb< A->row_block_size;irb++) {
 	    irow=irb+A->row_block_size*ir;
 	    for (icb=0;icb< A->col_block_size;icb++) {
-	      icol=icb+A->col_block_size*(A->index[iptr]-INDEX_OFFSET);
+	      icol=icb+A->col_block_size*(A->pattern->index[iptr]-INDEX_OFFSET);
 	      if (mask_col[icol]>0. || mask_row[irow]>0. ) {
+                l=iptr*A->block_size+irb+A->row_block_size*icb;
 		if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
-		  A->val[iptr]=main_diagonal_value;
+		  A->val[l]=main_diagonal_value;
 		} else {
-		  A->val[iptr]=0;
+		  A->val[l]=0;
 		}
 	      }
 	    }
@@ -120,18 +121,19 @@ void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double
       }
       break;
     case CSC:
-      #pragma omp parallel for private(irow, iptr,icol,ic,irb,icb) schedule(static)
-      for (ic=0;ic< A->num_cols;ic++) {
-	for (iptr=A->ptr[ic]-PTR_OFFSET;iptr<A->ptr[ic+1]-PTR_OFFSET; iptr++) {
+      #pragma omp parallel for private(l,irow, iptr,icol,ic,irb,icb) schedule(static)
+      for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	for (iptr=A->pattern->ptr[ic]-PTR_OFFSET;iptr<A->pattern->ptr[ic+1]-PTR_OFFSET; iptr++) {
 	  for (irb=0;irb< A->row_block_size;irb++) {
-	    irow=irb+A->row_block_size*(A->index[iptr]-INDEX_OFFSET);
+	    irow=irb+A->row_block_size*(A->pattern->index[iptr]-INDEX_OFFSET);
 	    for (icb=0;icb< A->col_block_size;icb++) {
 	      icol=icb+A->col_block_size*ic;
 	      if (mask_col[icol]>0. || mask_row[irow]>0. ) {
+                l=iptr*A->block_size+irb+A->row_block_size*icb;
 		if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
-		  A->val[iptr]=main_diagonal_value;
+		  A->val[l]=main_diagonal_value;
 		} else {
-		  A->val[iptr]=0;
+		  A->val[l]=0;
 		}
 	      }
 	    }
@@ -149,14 +151,8 @@ void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double
 
 /*
  * $Log$
- * Revision 1.3  2004/12/15 03:48:46  jgs
+ * Revision 1.4  2004/12/15 07:08:33  jgs
  * *** empty log message ***
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
  *
  *
  */

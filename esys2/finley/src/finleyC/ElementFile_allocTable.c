@@ -27,10 +27,10 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,int numElements) {
   /*  allocate memory: */
   
   numNodes=(maybelong) in->ReferenceElement->Type->numNodes;
-  Id2=(maybelong*) MEMALLOC(numElements*sizeof(maybelong));
-  Nodes2=(maybelong*) MEMALLOC(numElements*numNodes*sizeof(maybelong));
-  Tag2=(maybelong*) MEMALLOC(numElements*sizeof(maybelong));
-  Color2=(maybelong*) MEMALLOC(numElements*sizeof(maybelong));
+  Id2=MEMALLOC(numElements,maybelong);
+  Nodes2=MEMALLOC(numElements*numNodes,maybelong);
+  Tag2=MEMALLOC(numElements,maybelong);
+  Color2=MEMALLOC(numElements,maybelong);
   
   /*  if fine, deallocate the old table and replace by new: */
   
@@ -74,14 +74,9 @@ void Finley_ElementFile_deallocTable(Finley_ElementFile* in) {
 
 /* 
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

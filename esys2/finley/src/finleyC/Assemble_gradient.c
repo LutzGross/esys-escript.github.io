@@ -104,12 +104,12 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
           {
                local_X=local_data=dVdv=dvdV=Vol=d_datadv=NULL;
    	      /* allocation of work arrays */
-   	      local_X=(double*) THREAD_MEMALLOC(NS*numDim*sizeof(double));
-   	      local_data=(double*) THREAD_MEMALLOC(NS*numComps*sizeof(double));
-   	      dVdv=(double*) THREAD_MEMALLOC(numQuad*numDim*numDim*sizeof(double));
-   	      dvdV=(double*) THREAD_MEMALLOC(numQuad*numDim*numDim*sizeof(double));
-   	      Vol=(double*) THREAD_MEMALLOC(numQuad*sizeof(double));
-   	      d_datadv=(double*) THREAD_MEMALLOC(numQuad*numComps*numDim*sizeof(double));
+   	      local_X=THREAD_MEMALLOC(NS*numDim,double);
+   	      local_data=THREAD_MEMALLOC(NS*numComps,double);
+   	      dVdv=THREAD_MEMALLOC(numQuad*numDim*numDim,double);
+   	      dvdV=THREAD_MEMALLOC(numQuad*numDim*numDim,double);
+   	      Vol=THREAD_MEMALLOC(numQuad,double);
+   	      d_datadv=THREAD_MEMALLOC(numQuad*numComps*numDim,double);
    	      if (!(Finley_checkPtr(local_X) || Finley_checkPtr(dVdv) || Finley_checkPtr(dvdV) || Finley_checkPtr(Vol) || Finley_checkPtr(d_datadv) || Finley_checkPtr(local_data) ))  {
    	        /* open the element loop */
                 #pragma omp for private(e,i,q,data_array) schedule(static)
@@ -165,26 +165,9 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 }
 /*
  * $Log$
- * Revision 1.3  2004/12/15 03:48:45  jgs
+ * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
  *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.5  2004/08/26 12:03:52  gross
- * Some other bug in Finley_Assemble_gradient fixed.
- *
- * Revision 1.4  2004/08/26 11:37:28  gross
- * memory leaking in Finley_Assemble_gardient fixed.
- *
- * Revision 1.3  2004/08/13 00:12:53  gross
- * Gradtest is getting further now. PDE assemblage has been added but not tested.
- *
- * Revision 1.2  2004/07/21 05:00:54  gross
- * name changes in DataC
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
  *
  *
  */

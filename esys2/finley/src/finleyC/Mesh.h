@@ -46,6 +46,7 @@
 
 #include "NodeFile.h"
 #include "ElementFile.h"
+#include "SystemPattern.h"
 #include "escript/Data/DataC.h"
 
 /**************************************************************/
@@ -61,6 +62,13 @@ struct Finley_Mesh {
   Finley_ElementFile* FaceElements;     /* the table of the face elements */
   Finley_ElementFile* ContactElements;  /* the table of the contact elements */
   Finley_ElementFile* Points;           /* the table of points (treated as elements of dimension 0) */
+
+  /* pointer to the sparse matrix pattern */
+
+  Finley_SystemMatrixPattern *FullFullPattern;
+  Finley_SystemMatrixPattern *FullReducedPattern;
+  Finley_SystemMatrixPattern *ReducedFullPattern;
+  Finley_SystemMatrixPattern *ReducedReducedPattern;
 };
 
 typedef struct Finley_Mesh Finley_Mesh;
@@ -78,11 +86,14 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 /*  interfaces: */
 
 Finley_Mesh* Finley_Mesh_alloc(char*,int,int);
+Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
 void Finley_Mesh_dealloc(Finley_Mesh*);
 int Finley_Mesh_getDim(Finley_Mesh*);
 int Finley_Mesh_getNumNodes(Finley_Mesh*);
 int Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh*);
 int Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh*);
+Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,int reduce_row_order, int reduce_col_order);
+Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,int reduce_row_order, int reduce_col_order);
 void Finley_Mesh_write(Finley_Mesh*,char*);
 Finley_Mesh* Finley_Mesh_read(char*,int);
 
@@ -108,26 +119,9 @@ void Finley_Mesh_saveDX(const char *, Finley_Mesh *, escriptDataC*);
 
 /*
  * $Log$
- * Revision 1.3  2004/12/15 03:48:45  jgs
+ * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
  *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.5  2004/07/27 08:26:45  gross
- * Finley: saveDX added: now it is possible to write data on boundary and contact elements
- *
- * Revision 1.4  2004/07/26 04:27:15  gross
- * it allmost compiles now
- *
- * Revision 1.3  2004/07/02 04:21:13  gross
- * Finley C code has been included
- *
- * Revision 1.2  2004/07/02 00:03:29  gross
- * interface for saveDX added
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
  *
  *
  */

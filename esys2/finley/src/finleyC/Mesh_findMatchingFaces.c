@@ -59,8 +59,8 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
     int a1[NN],a2[NN],*perm,*perm_tmp,n;
     Finley_Mesh_findMatchingFaces_center *center;
 
-    X=(double*) TMPMEMALLOC(sizeof(double)*NN*numDim*faces->numElements);
-    center=(Finley_Mesh_findMatchingFaces_center*) TMPMEMALLOC(sizeof(Finley_Mesh_findMatchingFaces_center)*faces->numElements);
+    X=TMPMEMALLOC(NN*numDim*faces->numElements,double);
+    center=TMPMEMALLOC(faces->numElements,Finley_Mesh_findMatchingFaces_center);
     if (!(Finley_checkPtr(X) || Finley_checkPtr(center)) ) {
        /* OMP */
        for (e=0;e<faces->numElements;e++) {
@@ -171,17 +171,9 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
 
 /*
 * $Log$
-* Revision 1.3  2004/12/15 03:48:45  jgs
+* Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
 *
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.2  2004/07/02 04:21:13  gross
-* Finley C code has been included
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
 *
 *
 */

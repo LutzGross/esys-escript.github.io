@@ -1,3 +1,4 @@
+// $Id$
 /* 
  *****************************************************************************
  *                                                                           *
@@ -32,17 +33,28 @@ class DataExpandedTestCase : public CppUnitTest::TestCase
   //
   // A test method must return void and have no arguments
   // DataExpanded class
-  void testAll();
+
   //
-  // Test function that allows a rank 0 object to change shape
+  // General test case
+  void testAll();
+
+  //
+  // Test case that tests reshaping of rank 0 object
   void testReshape();
+
+  //
+  // Test cases to test slicing of DataExpanded objects
+  void testSlicing();
+  void testSlicing2();
+  void testSlicing3();
+  void testSliceSetting();
+  void testSliceSetting2();
 
   DataExpandedTestCase (std::string name) : TestCase (name) {}
   ~DataExpandedTestCase() {}
-  //
+
   //
   // return the suite of tests to perform
-  //
   static CppUnitTest::TestSuite* suite ();
 };
 

@@ -36,8 +36,8 @@ void Finley_Solver_free(Finley_SystemMatrix* A) {
 
 void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptions* options) {
 #if ITERATIVE_SOLVER == NO_LIB
-    double norm2OfB,tol,tolerance,time0,time1,*r=NULL,norm_of_residual,last_norm_of_residual;
-    int i,totIter,cntIter,finalizeIteration,errorCode;
+    double norm2OfB,tol,tolerance,time_iter,time_prec,*r=NULL,norm_of_residual,last_norm_of_residual;
+    int i,totIter,cntIter,finalizeIteration,errorCode,method;
     int n_col = A->num_cols * A-> col_block_size;
     int n_row = A->num_rows * A-> row_block_size;
 
@@ -49,18 +49,6 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
       sprintf(Finley_ErrorMsg, "Iterative solver requires CSR format.");
       return;
     }
-    if (A->symmetric) {
-      Finley_ErrorCode = TYPE_ERROR;
-      sprintf(Finley_ErrorMsg, "Iterative solver does not accept matrices stored in symmetric format.");
-      return;
-    }
-
-    if (A->col_block_size != A->row_block_size) {
-       Finley_ErrorCode = TYPE_ERROR;
-       sprintf(Finley_ErrorMsg, "preconditioner requires row and column block sizes to be equal.");
-       return;
-     }
-    /* check matrix is square */
     if (A->col_block_size != A->row_block_size) {
        Finley_ErrorCode = TYPE_ERROR;
        sprintf(Finley_ErrorMsg, "preconditioner requires row and column block sizes to be equal.");
@@ -71,6 +59,49 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
        sprintf(Finley_ErrorMsg, "This method requires a square matrix.");
        return;
      }
+     /* select iterative method */
+     switch (options->method) {
+        default:
+            if (options->symmetric) {
+               method=ESCRIPT_PCG;
+            } else {
+               method=ESCRIPT_BICGSTAB;
+            }
+            break;
+        case ESCRIPT_BICGSTAB:
+            method=ESCRIPT_BICGSTAB;
+            break;
+        case ESCRIPT_PCG:
+            method=ESCRIPT_PCG;
+            break;
+        case ESCRIPT_PRES20:
+            method=ESCRIPT_PRES20;
+            break;
+        case ESCRIPT_GMRES:
+            method=ESCRIPT_GMRES;
+            break;
+     }
+     if (options->verbose) {
+        switch (method) {
+           case ESCRIPT_BICGSTAB:
+               printf("Iterative method is BiCGStab.\n");
+               break;
+           case ESCRIPT_PCG:
+               printf("Iterative method is PCG.\n");
+               break;
+           case ESCRIPT_PRES20:
+               printf("Iterative method is PRES20.\n");
+               break;
+           case ESCRIPT_GMRES:
+               if (options->restart>0) {
+                  printf("Iterative method is GMRES(%d,%d)\n",options->truncation,options->restart);
+               } else {
+                  printf("Iterative method is GMRES(%d)\n",options->truncation);
+               }
+               break;
+          
+        }
+    }
     /* get the norm of the right hand side */
     norm2OfB=0;
     #pragma omp parallel for private(i) reduction(+:norm2OfB) schedule(static)
@@ -82,24 +113,25 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
     if (norm2OfB <=0.) {
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n_col; i++) x[i]=0.;
+        if (options->verbose) printf("right hand side is identical zero.\n");
         return;
     }
   
 
     /* construct the preconditioner */
     
-    time1=Finley_timer();
+    time_prec=Finley_timer();
     Finley_Solver_setPreconditioner(A,options);
-    time1=Finley_timer()-time1;
+    time_prec=Finley_timer()-time_prec;
     if (Finley_ErrorCode!=NO_ERROR) return;
 
     /* get an initial guess by evaluating the preconditioner */
-    time0=Finley_timer();
+    time_iter=Finley_timer();
     #pragma omp parallel
     Finley_Solver_solvePreconditioner(A,x,b);
     if (Finley_ErrorCode!=NO_ERROR) return;
     /* start the iteration process :*/
-    r=(double*)TMPMEMALLOC(n_row*sizeof(double));
+    r=TMPMEMALLOC(n_row,double);
     if (Finley_checkPtr(r)) return;
     totIter = 0;
     finalizeIteration = FALSE;
@@ -126,21 +158,25 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
           if (norm_of_residual>tolerance*norm2OfB) {
       	     if (totIter>0) {
                   tol=MAX(tolerance*tol/norm_of_residual,EPSILON*10.)*norm2OfB;
-                  printf("new stopping criterion is %e.\n",tol);
+                  if (options->verbose) printf("new stopping criterion is %e.\n",tol);
       	     } else {
                   tol=tolerance*norm2OfB;
-                  printf("Stopping criterion is %e.\n",tol);
+                  if (options->verbose) printf("Stopping criterion is %e.\n",tol);
       	     }
              last_norm_of_residual=norm_of_residual;
              /* call the solver */
-             switch (options->iterative_method) {
-                    default:
-                        printf("Information: selceted iterative method not yet implemented. BiCGStab used instead.\n");
-                    case BICGSTAB:
+             switch (method) {
+                    case ESCRIPT_BICGSTAB:
                         errorCode = Finley_Solver_BiCGStab(A, r, x, &cntIter, &tol); 
                         break;
-                    case PCG:
+                    case ESCRIPT_PCG:
                         errorCode = Finley_Solver_PCG(A, r, x, &cntIter, &tol); 
+                        break;
+                    case ESCRIPT_PRES20:
+                        errorCode = Finley_Solver_GMRES(A, r, x, &cntIter, &tol,5,20); 
+                        break;
+                    case ESCRIPT_GMRES:
+                        errorCode = Finley_Solver_GMRES(A, r, x, &cntIter, &tol,options->truncation,options->restart); 
                         break;
               }
               totIter += cntIter;
@@ -159,7 +195,7 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
                        Finley_ErrorCode =ZERO_DIVISION_ERROR;
          	      sprintf(Finley_ErrorMsg, "fatal break down in iterative solver.");
                   } else {
-         	      printf("Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
+         	      if (options->verbose) printf("Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
                       finalizeIteration = FALSE;
                   }
               } else if (errorCode == SOLVER_MEMORY_ERROR) {
@@ -173,25 +209,15 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
       }
     } /* while */
     MEMFREE(r);
-    time0=Finley_timer()-time0;
-    printf("Iterative solver reached tolerance %.5e after %d steps.\n",norm_of_residual,totIter);
-    printf("timing: solver: %.4e sec\n",time1+time0);
-    printf("timing: preconditioner: %.4e sec\n",time1);
-    if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time0/totIter);
-
+    time_iter=Finley_timer()-time_iter;
+    if (options->verbose)  {
+       printf("Iterative solver reached tolerance %.5e after %d steps.\n",norm_of_residual,totIter);
+       printf("timing: solver: %.4e sec\n",time_prec+time_iter);
+       printf("timing: preconditioner: %.4e sec\n",time_prec);
+       if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
+    }
+#else
+    Finley_ErrorCode=SYSTEM_ERROR;
+    sprintf(Finley_ErrorMsg,"No native Finley solver available.");
 #endif
 }
-
-/*
-* $Log$
-* Revision 1.3  2004/12/15 03:48:47  jgs
-* *** empty log message ***
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1  2004/07/02 04:21:14  gross
-* Finley C code has been included
-*
-*
-*/

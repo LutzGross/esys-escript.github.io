@@ -1,0 +1,114 @@
+# $Id$
+
+import sys
+import os
+import unittest
+
+esys_root=os.getenv('ESYS_ROOT')
+sys.path.append(esys_root+'/finley/lib')
+sys.path.append(esys_root+'/escript/lib')
+sys.path.append(esys_root+'/escript/py_src')
+
+from escript import *
+from util import *
+from LinearPDEs import *
+import finley
+
+ne_list=[10,15,22,33,50,75]
+height_list=[0.25,0.5,1.]
+
+
+def getDomain(dim,ne,height):
+
+    if dim==2:
+     ne1=int(ne*height+0.5)
+     mydomain=finley.Rectangle(n0=ne,n1=ne1,l1=height,order=2)
+     totne=ne1*ne
+    else:
+     ne2=int(ne*height+0.5)
+     mydomain=finley.Brick(n0=ne,n1=ne,n2=ne2,l2=height,order=2)
+     totne=ne2*ne*ne
+    print "%d -dimensional domain generated."%dim
+    print "height of the domain is ",height
+    print "total number of elements is ",totne
+    return mydomain
+
+
+def Solve1(mydomain,height):
+    print "Fully constraint solution"
+    l=[1.,1.,1.]
+    l[mydomain.getDim()-1]=height
+    cf=ContinuousFunction(mydomain)
+    x=cf.getX()
+    #construct exact solution:
+    u_ex=Scalar(1.,cf)
+    for i in range(mydomain.getDim()):
+      u_ex*=x[i]*(x[i]-l[i])
+    #construct mask:
+    msk=Scalar(0.,cf)
+    for i in range(mydomain.getDim()):
+      msk+=x[i].whereZero()+(x[i]-l[i]).whereZero()
+    #construct right hand side 
+    f=Scalar(0,cf)
+    for i in range(mydomain.getDim()):
+       f_p=Scalar(1,cf)
+       for j in range(mydomain.getDim()):
+          if i==j:
+             f_p*=-2.
+          else:
+             f_p*=x[j]*(x[j]-l[j])
+       f+=f_p
+
+    mypde=Poisson(f=f,q=msk)
+    u=mypde.getSolution()
+    error=Lsup(u-u_ex)/Lsup(u_ex)
+    print "error = ",error
+    return error
+
+def Solve2(mydomain,height):
+    print "Partially constraint solution"
+    l=[1.,1.,1.]
+    l[mydomain.getDim()-1]=height
+    print l
+    cf=ContinuousFunction(mydomain)
+    x=cf.getX()
+    #construct exact solution:
+    u_ex=Scalar(1.,cf)
+    for i in range(mydomain.getDim()):
+      u_ex*=x[i]*(2*l[i]-x[i])
+    #construct mask:
+    msk=Scalar(0.,cf)
+    for i in range(mydomain.getDim()):
+      msk+=x[i].whereZero()
+    #construct right hand side 
+    f=Scalar(0,cf)
+    for i in range(mydomain.getDim()):
+       f_p=Scalar(1,cf)
+       for j in range(mydomain.getDim()):
+          if i==j:
+             f_p*=2.
+          else:
+             f_p*=x[j]*(2*l[j]-x[j])
+       f+=f_p
+    mypde=Poisson(f=f,q=msk)
+    u=mypde.getSolution()
+    error=Lsup(u-u_ex)/Lsup(u_ex)
+    print "error = ",error
+    return error
+
+
+error=0
+for ne in ne_list:
+   for dim in [2,3]:
+      for height in height_list:
+         print "***************************************************************"
+         mydomain= getDomain(dim,ne,height)
+         print "---------------------------------------------------------------"
+         error=max(error,Solve1(mydomain,height))
+         print "---------------------------------------------------------------"
+         error=max(error,Solve2(mydomain,height))
+         print "***************************************************************"
+
+print "***************************************************************"
+print "maximum error: ",error
+print "***************************************************************"
