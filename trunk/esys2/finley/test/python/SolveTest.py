@@ -147,10 +147,11 @@ print "Test is started:"
 print "----------------"
 error=0.
 for numDim in [2,3]:
-   for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400]:
+   for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400]:
+      # for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400]:
       for problem in [solveScalar,solveVector]:
          # for solver_method in [ LinearPDE.PRES20, LinearPDE.PCG, LinearPDE.DIRECT, LinearPDE.BICGSTAB]:
-         for solver_method in [ LinearPDE.PRES20, LinearPDE.PCG, LinearPDE.BICGSTAB]:
+         for solver_method in [ LinearPDE.PCG ]:
             error=max([problem(numDim, totalNumElem, len_x0, alpha, solver_method),error])
 print "----------------"
 print "maximum error over all tests is ",error

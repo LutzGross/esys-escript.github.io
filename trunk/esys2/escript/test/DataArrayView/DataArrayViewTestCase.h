@@ -40,6 +40,7 @@ class DataArrayViewTestCase : public CppUnitTest::TestCase
   void testMatMult();
   void testUnaryOp();
   void testBinaryOp();
+  void testReductionOp();
 
   DataArrayViewTestCase (std::string name) : TestCase (name) {}
   ~DataArrayViewTestCase() {}

@@ -646,20 +646,6 @@ DataArrayView::copySliceFrom(ValueType::size_type thisOffset,
 
 }
  
-DataArrayView::ShapeType
-DataArrayView::determineResultShape(const DataArrayView& left,
-                                    const DataArrayView& right)
-{
-    DataArrayView::ShapeType temp;
-    for (int i=0; i<(left.getRank()-1); i++) {
-      temp.push_back(left.getShape()[i]);
-    }
-    for (int i=1; i<right.getRank(); i++) {
-      temp.push_back(right.getShape()[i]);
-    }
-    return temp;
-}
-
 string
 DataArrayView::toString(const string& suffix) const
 {
@@ -745,6 +731,7 @@ DataArrayView::matMult(const DataArrayView& left,
                        const DataArrayView& right, 
                        DataArrayView& result)
 {
+
     if (left.getRank()==0 || right.getRank()==0) {
       stringstream temp;
       temp << "Error - (matMult) Invalid for rank 0 objects.";
@@ -759,6 +746,7 @@ DataArrayView::matMult(const DataArrayView& left,
 	   << " of RHS don't match.";
       throw DataException(temp.str());
     }
+
     int outputRank=left.getRank()+right.getRank()-2;
     
     if (outputRank < 0) {
@@ -798,63 +786,78 @@ DataArrayView::matMult(const DataArrayView& left,
     }
 
     switch (left.getRank()) {
-    case 1:
-      switch (right.getRank()) {
+
       case 1:
-	result()=0;
-	for (int i=0;i<left.getShape()[0];++i) {
-	  result()+=left(i)*right(i);
-	}
-	break;
-      case 2:
-        for (int i=0;i<result.getShape()[0];++i) {
-	  result(i)=0;
-	  for (int j=0;j<right.getShape()[0];++j) {
-	    result(i)+=left(j)*right(j,i);
-	  }
-	}
+        switch (right.getRank()) {
+          case 1:
+            result()=0;
+            for (int i=0;i<left.getShape()[0];i++) {
+              result()+=left(i)*right(i);
+            }
+            break;
+          case 2:
+            for (int i=0;i<result.getShape()[0];i++) {
+              result(i)=0;
+              for (int j=0;j<right.getShape()[0];j++) {
+                result(i)+=left(j)*right(j,i);
+              }
+            }
+            break;
+          default:
+            stringstream temp; temp << "Error - (matMult) Invalid rank. Programming error.";
+            throw DataException(temp.str());
+            break;
+        }
         break;
+
+      case 2:
+        switch (right.getRank()) {
+          case 1:
+            result()=0;
+              for (int i=0;i<left.getShape()[0];i++) {
+               result(i)=0;
+               for (int j=0;j<left.getShape()[1];j++) {
+                 result(i)+=left(i,j)*right(i);
+               }
+            }
+	    break;
+          case 2:
+            for (int i=0;i<result.getShape()[0];i++) {
+              for (int j=0;j<result.getShape()[1];j++) {
+                result(i,j)=0;
+                for (int jR=0;jR<right.getShape()[0];jR++) {
+                  result(i,j)+=left(i,jR)*right(jR,j);
+                }
+              }
+            }
+            break;
+          default:
+            stringstream temp; temp << "Error - (matMult) Invalid rank. Programming error.";
+            throw DataException(temp.str());
+            break;
+        }
+        break;
+
       default:
-	stringstream temp;
-	temp << "Error - (matMult) Invalid rank. Programming error.";
+        stringstream temp; temp << "Error - (matMult) Not supported for rank: " << left.getRank();
         throw DataException(temp.str());
         break;
-      }
-      break;
-    case 2:
-      switch (right.getRank()) {
-      case 1:
-	result()=0;
-	for (int i=0;i<left.getShape()[0];++i) {
-	  result(i)=0;
-	  for (int j=0;j<left.getShape()[1];++j) {
-	    result(i)+=left(i,j)*right(i);
-	  }
-	}
-	break;
-      case 2:
-        for (int i=0;i<result.getShape()[0];++i) {
-	  for (int j=0;j<result.getShape()[1];++j) {
-	    result(i,j)=0;
-	    for (int jR=0;jR<right.getShape()[0];++jR) {
-	      result(i,j)+=left(i,jR)*right(jR,j);
-	    }
-	  }
-	}
-        break;
-      default:
-	stringstream temp;
-	temp << "Error - (matMult) Invalid rank. Programming error.";
-        throw DataException(temp.str());
-        break;
-      }
-      break;
-    default:
-      stringstream temp;
-      temp << "Error - (matMult) Not supported for rank: " << left.getRank();
-      throw DataException(temp.str());
-      break;
     }
+
+}
+
+DataArrayView::ShapeType
+DataArrayView::determineResultShape(const DataArrayView& left,
+                                    const DataArrayView& right)
+{
+    DataArrayView::ShapeType temp;
+    for (int i=0; i<(left.getRank()-1); i++) {
+      temp.push_back(left.getShape()[i]);
+    }
+    for (int i=1; i<right.getRank(); i++) {
+      temp.push_back(right.getShape()[i]);
+    }
+    return temp;
 }
 
 bool operator==(const DataArrayView& left, const DataArrayView& right)

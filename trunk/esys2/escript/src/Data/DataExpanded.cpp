@@ -304,15 +304,12 @@ DataExpanded::setRefValue(int ref,
                           const DataArray& value)
 {
   //
-  // Check number of samples and data-points per sample.
+  // Get the number of samples and data-points per sample.
   int numSamples = getNumSamples();
   int numDPPSample = getNumDPPSample();
-  if (numDPPSample > 1) {
-    throw DataException("DataExpanded::setRefValue error: more than one DPPSample in this Data.");
-  }
 
   //
-  // Determine the data-point which corresponds to this reference number.
+  // Determine the sample number which corresponds to this reference number.
   int sampleNo = -1;
   int tempRef = -1;
   for (int n=0; n<numSamples; n++) {
@@ -326,11 +323,15 @@ DataExpanded::setRefValue(int ref,
     throw DataException("DataExpanded::setRefValue error: invalid ref number supplied.");
   }
 
-  DataArrayView pointView = getDataPoint(sampleNo, 0);
+  for (int n=0; n<numDPPSample; n++) {
+    //
+    // Get each data-point in the sample in turn.
+    DataArrayView pointView = getDataPoint(sampleNo, n);
 
-  //
-  // Assign the values in the DataArray to this data-point.
-  pointView.copy(value.getView());
+    //
+    // Assign the values in the DataArray to this data-point.
+    pointView.copy(value.getView());
+  }
 }
 
 void
@@ -338,15 +339,12 @@ DataExpanded::getRefValue(int ref,
                           DataArray& value)
 {
   //
-  // Check number of samples and data-points per sample.
+  // Get the number of samples and data-points per sample.
   int numSamples = getNumSamples();
   int numDPPSample = getNumDPPSample();
-  if (numDPPSample > 1) {
-    throw DataException("DataExpanded::getRefValue error: more than one DPPSample in this Data.");
-  }
 
   //
-  // Determine the data-point which corresponds to this reference number
+  // Determine the sample number which corresponds to this reference number
   int sampleNo = -1;
   int tempRef = -1;
   for (int n=0; n<numSamples; n++) {
@@ -360,6 +358,8 @@ DataExpanded::getRefValue(int ref,
     throw DataException("DataExpanded::getRefValue error: invalid ref number supplied.");
   }
 
+  //
+  // Get the first data-point associated with this sample number.
   DataArrayView pointView = getDataPoint(sampleNo, 0);
 
   //

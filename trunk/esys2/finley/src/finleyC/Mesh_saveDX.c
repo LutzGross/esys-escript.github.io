@@ -44,8 +44,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
                                                                    nDim, mesh_p->Nodes->reducedNumNodes);
   for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
     if (mesh_p->Nodes->toReduced[i]>=0) {
-       fprintf(fileHandle_p, "%e", mesh_p->Nodes->Coordinates[INDEX2(0, i, nDim)]);
-       for (j = 1; j < nDim; j++) fprintf(fileHandle_p, " %f",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
+       fprintf(fileHandle_p, "%g", mesh_p->Nodes->Coordinates[INDEX2(0, i, nDim)]);
+       for (j = 1; j < nDim; j++) fprintf(fileHandle_p, " %g",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
        fprintf(fileHandle_p, "\n");
     }
   } 
@@ -84,7 +84,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
        default:
           Finley_ErrorCode=TYPE_ERROR;
           sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",getFunctionSpaceType(data_p));
-          break;
+          return;
      }
   }
   /* if no element table is present jump over the connection table */
@@ -131,23 +131,22 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
   /* data */
   if (!isEmpty(data_p)) {
       int rank=getDataPointRank(data_p);
-      int* shape=getDataPointShape(data_p);
       int nComp=getDataPointSize(data_p);
       fprintf(fileHandle_p, "object 3 class array type float rank %d ", rank);
       if (0 < rank) {
          fprintf(fileHandle_p, "shape ");
-         for (i = 0; i < rank; i++) fprintf(fileHandle_p, "%d ", shape[i]);
+         for (i = 0; i < rank; i++) fprintf(fileHandle_p, "%d ", getDataPointShape(data_p,i));
       }
       if (isCellCentered) {
           int numPointsPerSample=elements->ReferenceElement->numQuadNodes;
-          if (numPointsPerSample) {
+          if (numPointsPerSample>0) {
              fprintf(fileHandle_p, "items %d data follows\n", elements->numElements);
              for (i=0;i<elements->numElements;i++) {
                  values=getSampleData(data_p,i);
                  for (k=0;k<nComp;k++) {
                      rtmp=0.;
                      for (j=0;j<numPointsPerSample;j++) rtmp+=values[INDEX2(k,j,nComp)];
-                     fprintf(fileHandle_p, " %f", rtmp/numPointsPerSample);
+                     fprintf(fileHandle_p, " %g", rtmp/numPointsPerSample);
                  }
 	         fprintf(fileHandle_p, "\n");
              }
@@ -169,7 +168,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
                        break;
                  }
               }
-              for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %f", values[k]);
+              for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", values[k]);
 	      fprintf(fileHandle_p, "\n");
           }
           fprintf(fileHandle_p, "attribute \"dep\" string \"positions\"\n");
@@ -189,8 +188,23 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/02/28 07:06:33  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.3  2005/02/17 23:43:06  cochrane
+ * Fixed error throwing bug.  Default case of switch statement should have ended
+ * with return instead of break, hence errors weren't being thrown (but they now
+ * should be).
+ *
+ * Revision 1.1.1.1.2.2  2005/02/17 05:53:26  gross
+ * some bug in saveDX fixed: in fact the bug was in
+ * DataC/getDataPointShape
+ *
+ * Revision 1.1.1.1.2.1  2005/02/17 03:23:01  gross
+ * some performance improvements in MVM
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1  2004/07/27 08:27:11  gross
  * Finley: saveDX added: now it is possible to write data on boundary and contact elements

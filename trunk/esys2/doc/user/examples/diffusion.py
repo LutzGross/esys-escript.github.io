@@ -1,6 +1,6 @@
 # $Id$
 from mytools import Helmholtz
-from esys.escript import Lsup
+from esys.escript import Lsup,length
 from esys.finley import Rectangle
 #... set some parameters ...
 xc=[0.02,0.002]

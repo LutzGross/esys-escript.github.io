@@ -11,7 +11,7 @@ CC_DEP_FLAGS := -MM
 CC_OBJ_FLAGS := -c -fpic
 CC_SHARE_FLAGS := -fpic
 CC_CONFORM_FLAGS := -ansi -ansi_alias -c99 -no-gcc
-CC_DIAG_FLAGS := -w1 -Wall
+CC_DIAG_FLAGS := -w1
 CC_ARCH_FLAGS := -tpp2
 CC_ARCH_FLAGS := 
 CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report2
@@ -27,7 +27,7 @@ CPP_DEP_FLAGS := -MM
 CPP_OBJ_FLAGS := -c -fpic
 CPP_SHARE_FLAGS := -fpic
 CPP_CONFORM_FLAGS := -ansi -ansi_alias -mp1 -no-gcc
-CPP_DIAG_FLAGS := -w1 
+CPP_DIAG_FLAGS := -w1
 CPP_ARCH_FLAGS := -tpp2
 ifeq ($(strip $(DODEBUG)),YES)
   CPP_OPT_FLAGS := -g -O0 -openmp -openmp_report2

@@ -34,6 +34,8 @@ class DataAlgorithmAdapterTestCase : public CppUnitTest::TestCase
   // A test method must return void and have no arguments
   // DataAlgorithmAdapter class
   void testAll();
+  void testAlgorithm();
+  void testDpAlgorithm();
 
   DataAlgorithmAdapterTestCase (std::string name) : TestCase (name) {}
   ~DataAlgorithmAdapterTestCase() {}

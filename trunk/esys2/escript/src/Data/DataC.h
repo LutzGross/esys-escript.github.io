@@ -90,10 +90,11 @@ int getDataPointRank(escriptDataC* data);
 
 /**
    \brief
-   Returns the pointer to the shape array of the point data.
+   Returns the value of the i-th comppnent of the shape of the point data.
+   \param data Input - C wrapper for Data.
    \param data Input - C wrapper for Data.
 */
-int* getDataPointShape(escriptDataC* data);
+int getDataPointShape(escriptDataC* data,int i);
 
 /**
    \brief

@@ -48,8 +48,9 @@ def wavePropagation(domain,h,tend,lam,mu,rho,s_tt):
      print "a=",inf(a),sup(a)
      print "u=",inf(u),sup(u)
      # ... save current acceleration in units of gravity
-     if n%10==0 : (length(a)/9.81).saveDX("/tmp/res/u.%i.dx"%(n/10)
+     if n%10==0: (length(a)/9.81).saveDX("u.%i.dx"%(n/10))
 
+print int(width/depth)
 mydomain=Brick(ne,int(width/depth)*ne,int(width/depth)*ne,l0=depth,l1=width,l2=width)
 wavePropagation(mydomain,h,tend,lam,mu,rho,s_tt)
 

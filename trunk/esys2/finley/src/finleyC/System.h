@@ -110,14 +110,6 @@ void Finley_SystemMatrix_nullifyRowsAndCols(Finley_SystemMatrix* A, escriptDataC
 void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 void Finley_SystemMatrix_setDefaults(Finley_SolverOptions*);
 int Finley_SystemMatrix_getSystemMatrixTypeId(int, int);
+Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,int,maybelong*,maybelong*);
 
 #endif /* #ifndef INC_FINLEY_SYSTEM */
-
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:33  jgs
- * *** empty log message ***
- *
- *
- *
- */
