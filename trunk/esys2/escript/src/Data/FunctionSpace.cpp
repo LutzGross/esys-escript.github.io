@@ -77,6 +77,11 @@ int FunctionSpace::getTagFromSampleNo(int sampleNo) const
   return m_domain->getTagFromSampleNo(m_functionSpaceType,sampleNo);
 }
 
+int FunctionSpace::getReferenceNoFromSampleNo(int sampleNo) const
+{
+  return m_domain->getReferenceNoFromSampleNo(m_functionSpaceType,sampleNo);
+}
+
 FunctionSpace& FunctionSpace::operator=(const FunctionSpace& other)
 {
   //

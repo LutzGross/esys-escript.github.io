@@ -11,7 +11,7 @@ DODEBUG =
 
 DEFAULT_TARGET := libescriptcpp.so pyc
 
-INSTALL_PYTH := ./py_src/__init__.py ./py_src/linearPDEs.py ./py_src/util.py ./py_src/escript.py ./py_src/ESySParameters.py
+INSTALL_PYTH := ./py_src/__init__.py ./py_src/linearPDEs.py ./py_src/util.py ./py_src/escript.py ./py_src/esysXML.py ./py_src/timeseries.py
 
 INSTALL_LIB := ./lib/libescriptcpp.so
 
@@ -20,6 +20,10 @@ PACKAGES := esysUtils python23 boostStatic
 L_DEFS := DOASSERT
 
 L_SRC_DIR:= ./src ./py_src 
+
+#L_INSTLIB_DIR := /raid2/tools/esys/lib
+
+#L_PYTH_DIR := /raid2/tools/esys/esys
 
 include $(ESYS_ROOT)/make/Makefile.default
 

@@ -114,6 +114,9 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("useElementsOnFace")=false),
       return_value_policy<manage_new_object>());
 
+  def("Merge",finley::meshMerge,
+      return_value_policy<manage_new_object>());
+
   def("GlueFaces",finley::glueFaces,
       (arg("safetyFactor")=0.2,
       arg("tolerance")=std::numeric_limits<double>::epsilon()),
@@ -137,6 +140,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("addPDEToRHS",&finley::MeshAdapter::addPDEToRHS)
       .def("newOperator",&finley::MeshAdapter::newSystemMatrix)
       .def("getSystemMatrixTypeId",&finley::MeshAdapter::getSystemMatrixTypeId)
+      .def("setX",&finley::MeshAdapter::setNewX)
       .def("getX",&finley::MeshAdapter::getX)
       .def("getNormal",&finley::MeshAdapter::getNormal)
       .def("getSize",&finley::MeshAdapter::getSize);

@@ -22,5 +22,9 @@ PACKAGES := escript mmio esysUtils python23 boost scsl141pre
 
 L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL ./src/CPPAdapter
 
+#L_PYTH_DIR := /raid2/tools/esys/esys
+
+#L_INSTLIB_DIR := /raid2/tools/esys/lib
+
 include $(ESYS_ROOT)/make/Makefile.default
 

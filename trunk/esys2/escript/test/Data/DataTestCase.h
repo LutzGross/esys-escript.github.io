@@ -34,31 +34,15 @@ class DataTestCase : public CppUnitTest::TestCase
   //
   // A test method must return void and have no arguments
 
-  // Data class
   void testAll();
-
   void testMore();
-
-  //
-  // Test the constructors
   void testConstructors();
-
-  //
-  // Tests for DataConstant
   void testDataConstant();
-
-  //
-  // Tests for DataTagged
   void testDataTagged();
-
-  //
-  // Tests for DataTagged exceptions
   void testDataTaggedExceptions();
-
-  //
-  // Tests for slicing
   void testSlicing();
   void testOperations();
+  void testRefValue();
 
   DataTestCase (std::string name) : TestCase (name) {}
   ~DataTestCase() {}

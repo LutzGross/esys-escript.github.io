@@ -224,7 +224,7 @@ class LinearPDE:
      @param name
      """
      return escript.Data(shape = getShapeOfCoefficient(name), \
-                         what = getFunctionSpaceOfCoefficient(name))
+                         what = getFunctionSpaceForCoefficient(name))
 
    def __del__(self):
      pass
@@ -656,8 +656,8 @@ class LinearPDE:
                for i in range(self.getNumEquations()):
                    for j in range(self.getDim()):
                       for k in range(self.getNumSolutions()):
-                         if util.Lsup(B[i,j,k]-C[i,j,k])>tol:
-                              if verbose: print "non-symmetric PDE because B[%d,%d,%d]!=C[%d,%d,%d]"%(i,j,k,i,j,k)
+                         if util.Lsup(B[i,j,k]-C[k,i,j])>tol:
+                              if verbose: print "non-symmetric PDE because B[%d,%d,%d]!=C[%d,%d,%d]"%(i,j,k,k,i,j)
                               out=False
             else:
                for j in range(self.getDim()):
@@ -980,6 +980,15 @@ class LinearPDE:
            self.__solution_isValid=True
        return self.__solution
 
+
+
+def ELMAN_RAMAGE(P): return (P-1.).wherePositive()*0.5*(1.-1./(P+1.e-15))
+def SIMPLIFIED_BROOK_HUGHES(P): 
+         c=(P-3.).whereNegative()
+         return P/6.*c+1./2.*(1.-c)
+def HALF(P): return escript.Scalar(0.5,P.getFunctionSpace())
+
+
 class AdvectivePDE(LinearPDE):
    """
    @brief Class to handel a linear PDE domineated by advective terms:
@@ -1000,124 +1009,191 @@ class AdvectivePDE(LinearPDE):
 
          u_i=r_i where q_i>0
 
-    The PDE is solved by stabilizing the advective terms using SUPG approach:
-
-       A_{ijkl}<-A_{ijkl}+0.5*h*(xi(b_{ik})*B_{ijk}*B_{ilk}/length(B_{i:k})^2)+0.5*h*xi_{c_{ik}}*(C_{ikj}*C_{ikl}/length(C_{ik:})^2)
-
-    where   
-
-           b_{ik}=length(B_{i:k})*h/2/length(A_{i:k:})
-           c_{ik}=length(C_{i:k})*h/2/length(A_{i:k:})
-
-                      alpha/3        alpha<3
-           xi(alpha)=          for                  approximating cotanh(alpha)-1/alpha
-                       1             alpha>=3
    """
-   def __getXi(self,alpha):
-         c=alpha-3.
-         return c*c.whereNegative()/3.+1.
- 
-   def __getUpdateVector(self,V,hover2,alphaByU):
-     v=util.length(V)
-     v_max=util.Lsup(v)
-     if v_max>0:
-         V/=v+v_max*self.TOL
-         alpha=alphaByU*v
-         A_bar=v*hover2*self.__getXi(alpha)
-         print "-------------"
-         print "@ max alpha ",util.Lsup(alpha)
-         print "-------------"
-     else:
-         A_bar=1.
-     return V,A_bar
+   def __init__(self,domain,numEquations=0,numSolutions=0,xi=ELMAN_RAMAGE):
+      LinearPDE.__init__(self,domain,numEquations,numSolutions)
+      self.__xi=xi
+      self.__Xi=escript.Data()
 
-   def __getAlphaByU(self,A,hover2):
-      a=util.length(A)
-      a_max=util.Lsup(a)
-      if a_max>0:
-         return hover2/(a+a_max*self.TOL)
-      else:
-         return 1./self.TOL
+   def __calculateXi(self,peclet_factor,Z,h):
+       Z_max=util.Lsup(Z)
+       if Z_max>0.:
+          return h*self.__xi(Z*peclet_factor)/(Z+Z_max*self.TOL)
+       else:
+          return 0.
 
+   def setValue(self,**args):
+       if "A" in args.keys()   or "B" in args.keys() or "C" in args.keys(): self.__Xi=escript.Data()
+       self._setValue(**args)
+           
+   def getXi(self):
+      if self.__Xi.isEmpty():
+         B=self.getCoefficient("B")
+         C=self.getCoefficient("C")
+         A=self.getCoefficient("A")
+         h=self.getDomain().getSize()
+         self.__Xi=escript.Scalar(0.,self.getFunctionSpaceForCoefficient("A"))
+         if not C.isEmpty() or not B.isEmpty():
+            if not C.isEmpty() and not B.isEmpty():
+                Z2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
+                if self.getNumEquations()>1:
+                   if self.getNumSolutions()>1:
+                      for i in range(self.getNumEquations()):
+                         for k in range(self.getNumSolutions()):
+                            for l in range(self.getDim()): Z2+=(C[i,k,l]-B[i,l,k])**2
+                   else:
+                      for i in range(self.getNumEquations()):
+                         for l in range(self.getDim()): Z2+=(C[i,l]-B[i,l])**2
+                else:
+                   if self.getNumSolutions()>1:
+                      for k in range(self.getNumSolutions()):
+                         for l in range(self.getDim()): Z2+=(C[k,l]-B[l,k])**2
+                   else:
+                      for l in range(self.getDim()): Z2+=(C[l]-B[l])**2
+                length_of_Z=util.sqrt(Z2)
+            elif C.isEmpty():
+              length_of_Z=util.length(B)
+            else:
+              length_of_Z=util.length(C)
+
+            Z_max=util.Lsup(length_of_Z)
+            if Z_max>0.:
+               length_of_A=util.length(A)
+               A_max=util.Lsup(length_of_A)
+               if A_max>0:
+                    inv_A=1./(length_of_A+A_max*self.TOL)
+               else:
+                    inv_A=1./self.TOL
+               peclet_number=length_of_Z*h/2*inv_A
+               xi=self.__xi(peclet_number)
+               self.__Xi=h*xi/(length_of_Z+Z_max*self.TOL)
+               print "@ preclet number = %e"%util.Lsup(peclet_number),util.Lsup(xi),util.Lsup(length_of_Z)
+      return self.__Xi
+      
 
    def getCoefficientOfPDE(self,name):
      """
      @brief return the value of the coefficient name of the general PDE
      @param name
      """
+     if not self.getNumEquations() == self.getNumSolutions():
+          raise ValueError,"AdvectivePDE expects the number of solution componets and the number of equations to be equal."
+
      if name == "A" : 
          A=self.getCoefficient("A")
          B=self.getCoefficient("B")
          C=self.getCoefficient("C")
-         if not B.isEmpty() or not C.isEmpty():
-             if A.isEmpty(): 
-                 A=self.createNewCoefficient("A")
-             else:
-                 A=A[:]
-             hover2=self.getDomain().getSize()/2.
-             if self.getNumEquations()>1:
-                if self.getNumSolutions()>1:
-                   for i in range(self.getNumEquations()):
+         if B.isEmpty() and C.isEmpty():
+            Aout=A
+         else:
+            if A.isEmpty(): 
+               Aout=self.createNewCoefficient("A")
+            else:
+               Aout=A[:]
+            Xi=self.getXi()
+            if self.getNumEquations()>1:
+                for i in range(self.getNumEquations()):
+                   for j in range(self.getDim()):
                       for k in range(self.getNumSolutions()):
-                         alphaByU=self.__getAlphaByU(A[i,:,k,:],hover2)
-                         if not B.isEmpty():
-                             b_sub,f=self.__getUpdateVector(B[i,:,k],hover2,alphaByU)
-                             for j in range(self.getDim()):
-                                for l in range(self.getDim()):
-                                   A[i,j,k,l]+=f*b_sub[j]*b_sub[l]
-                         if not C.isEmpty():
-                             c_sub,f=self.__getUpdateVector(C[i,k,:],hover2,alphaByU)
-                             for j in range(self.getDim()):
-                                for l in range(self.getDim()):
-                                   A[i,j,k,l]+=f*c_sub[j]*c_sub[l]
-                else:  
-                   for i in range(self.getNumEquations()):
-                      alphaByU=self.__getAlphaByU(A[i,:,:],hover2)
-                      if not B.isEmpty():
-                          b_sub,f=self.__getUpdateVector(B[i,:],hover2,alphaByU)
-                          for j in range(self.getDim()):
-                             for l in range(self.getDim()):
-                                 A[i,j,l]+=f*b_sub[j]*b_sub[l]
-                      if not C.isEmpty():
-                           c_sub,f=self.__getUpdateVector(C[i,:],hover2,alphaByU)
-                           for j in range(self.getDim()):
-                              for l in range(self.getDim()):
-                                 A[i,j,l]+=f*c_sub[j]*c_sub[l]
-             else:
-                if self.getNumSolutions()>1:
-                   for k in range(self.getNumSolutions()):
-                      alphaByU=self.__getAlphaByU(A[:,k,:],hover2)
-                      if not B.isEmpty():
-                         b_sub,f=self.__getUpdateVector(B[:,k],hover2,alphaByU)
-                         for j in range(self.getDim()):
-                            for l in range(self.getDim()):
-                                   A[j,k,l]+=f*b_sub[j]*b_sub[l]
-                      if not C.isEmpty():
-                         c_sub,f=self.__getUpdateVector(C[k,:],hover2,alphaByU)
-                         for j in range(self.getDim()):
-                            for l in range(self.getDim()):
-                               A[j,k,l]+=f*c_sub[j]*c_sub[l]
-                else:  
-                   alphaByU=self.__getAlphaByU(A[:,:],hover2)
-                   if not B.isEmpty():
-                       b_sub,f=self.__getUpdateVector(B[:],hover2,alphaByU)
-                       for j in range(self.getDim()):
-                          for l in range(self.getDim()):
-                             A[j,l]+=f*b_sub[j]*b_sub[l]
-                   if not C.isEmpty():
-                      c_sub,f=self.__getUpdateVector(C[:],hover2,alphaByU)
-                      for j in range(self.getDim()):
-                          for l in range(self.getDim()):
-                             A[j,l]+=f*c_sub[j]*c_sub[l]
-         return A
+                         for l in range(self.getDim()):
+                            if not C.isEmpty() and not B.isEmpty():
+                               for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*(C[p,i,j]-B[p,j,i])*(C[p,k,l]-B[p,l,k])
+                            elif C.isEmpty():
+                               for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*B[p,j,i]*B[p,l,k]
+                            else:
+                               for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*C[p,i,j]*C[p,k,l]
+            else:
+                for j in range(self.getDim()):
+                   for l in range(self.getDim()):
+                      if not C.isEmpty() and not B.isEmpty():
+                          Aout[j,l]+=Xi*(C[j]-B[j])*(C[l]-B[l])
+                      elif C.isEmpty():
+                          Aout[j,l]+=Xi*B[j]*B[l]
+                      else:
+                          Aout[j,l]+=Xi*C[j]*C[l]
+         return Aout
      elif name == "B" : 
-         return self.getCoefficient("B")
+         B=self.getCoefficient("B")
+         C=self.getCoefficient("C")
+         D=self.getCoefficient("D")
+         if C.isEmpty() or D.isEmpty():
+            Bout=B
+         else:
+            Xi=self.getXi()
+            if B.isEmpty(): 
+                Bout=self.createNewCoefficient("B")
+            else:
+                Bout=B[:]
+            if self.getNumEquations()>1:
+               for k in range(self.getNumSolutions()):
+                  for p in range(self.getNumEquations()): 
+                     tmp=Xi*D[p,k]
+                     for i in range(self.getNumEquations()):
+                        for j in range(self.getDim()):
+                           Bout[i,j,k]+=tmp*C[p,i,j]
+            else:
+               tmp=Xi*D
+               for j in range(self.getDim()): Bout[j]+=tmp*C[j]
+         return Bout
      elif name == "C" : 
-         return self.getCoefficient("C")
+         B=self.getCoefficient("B")
+         C=self.getCoefficient("C")
+         D=self.getCoefficient("D")
+         if B.isEmpty() or D.isEmpty():
+            Cout=C
+         else:
+            Xi=self.getXi()
+            if C.isEmpty(): 
+                Cout=self.createNewCoefficient("C")
+            else:
+                Cout=C[:]
+            if self.getNumEquations()>1:
+               for k in range(self.getNumSolutions()):
+                   for p in range(self.getNumEquations()):
+                      tmp=Xi*D[p,k]
+                      for i in range(self.getNumEquations()):
+                        for l in range(self.getDim()):
+                                 Cout[i,k,l]+=tmp*B[p,l,i]
+            else:
+               tmp=Xi*D
+               for j in range(self.getDim()): Cout[j]+=tmp*B[j]
+         return Cout
      elif name == "D" : 
          return self.getCoefficient("D")
      elif name == "X" : 
-         return self.getCoefficient("X")
+         X=self.getCoefficient("X")
+         Y=self.getCoefficient("Y")
+         B=self.getCoefficient("B")
+         C=self.getCoefficient("C")
+         if Y.isEmpty() or (B.isEmpty() and C.isEmpty()):
+            Xout=X
+         else:
+            if X.isEmpty():
+                Xout=self.createNewCoefficient("X")
+            else:
+                Xout=X[:]
+            Xi=self.getXi()
+            if self.getNumEquations()>1:
+                 for p in range(self.getNumEquations()): 
+                    tmp=Xi*Y[p]
+                    for i in range(self.getNumEquations()):
+                       for j in range(self.getDim()):
+                          if not C.isEmpty() and not B.isEmpty():
+                             Xout[i,j]+=tmp*(C[p,i,j]-B[p,j,i])
+                          elif C.isEmpty():
+                             Xout[i,j]-=tmp*B[p,j,i]
+                          else:
+                             Xout[i,j]+=tmp*C[p,i,j]
+            else:
+                 tmp=Xi*Y
+                 for j in range(self.getDim()):
+                    if not C.isEmpty() and not B.isEmpty():
+                       Xout[j]+=tmp*(C[j]-B[j])
+                    elif C.isEmpty():
+                       Xout[j]-=tmp*B[j]
+                    else:
+                       Xout[j]+=tmp*C[j]
+         return Xout
      elif name == "Y" : 
          return self.getCoefficient("Y")
      elif name == "d" : 

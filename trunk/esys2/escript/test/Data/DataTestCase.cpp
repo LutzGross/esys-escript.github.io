@@ -247,7 +247,6 @@ void DataTestCase::testAll() {
   Data exData(myView,FunctionSpace(),expanded);
   Data cData(myView);
   Data result;
-
   assert(exData.isExpanded());
   assert(cData.isConstant());
   assert(result.isEmpty());
@@ -440,6 +439,78 @@ void DataTestCase::testOperations() {
 
 }
 
+void DataTestCase::testRefValue() {
+
+  //
+  // Note - this test can't be run as boost::python::numeric::array
+  // objects can only be created and used form within a pythin thread!
+  //
+
+  cout << endl;
+
+  cout << "\tTest Data object RefValue methods." << endl;
+
+  // Create three Data object - DataExpanded, DataConstant and DataEmpty
+  DataArrayView::ValueType viewData;
+  DataArrayView::ShapeType viewShape;
+  viewShape.push_back(3);
+  for (int i=0;i<viewShape[0];++i) {
+    viewData.push_back(i);
+  }
+  DataArrayView myView(viewData,viewShape);
+
+  bool expanded=true;
+
+  Data expandedData(myView,FunctionSpace(),expanded);
+  Data constantData(myView);
+  Data emptyData;
+
+  assert(expandedData.isExpanded());
+  assert(constantData.isConstant());
+  assert(emptyData.isEmpty());
+
+  // Check assertions are thrown for RefValue methods on DataEmpty
+
+  int ref = 0;
+  boost::python::numeric::array num_array(1.0);
+
+  try {
+      emptyData.getRefValue(ref,num_array);
+      assert(false);
+  }
+  catch (EsysException& e) {
+      assert(true);
+  }
+  try {
+      emptyData.setRefValue(ref,num_array);
+      assert(false);
+  }
+  catch (EsysException& e) {
+      assert(true);
+  }
+
+  // Check assertions are thrown for RefValue methods on DataConstant
+  try {
+      constantData.getRefValue(ref,num_array);
+      assert(false);
+  }
+  catch (EsysException& e) {
+      assert(true);
+  }
+  try {
+      constantData.setRefValue(ref,num_array);
+      assert(false);
+  }
+  catch (EsysException& e) {
+      assert(true);
+  }
+
+  // Check calls to RefValue methods on DataExpanded
+  expandedData.getRefValue(ref,num_array);
+  expandedData.setRefValue(ref,num_array);
+
+}
+
 TestSuite* DataTestCase::suite ()
 {
   //
@@ -454,6 +525,7 @@ TestSuite* DataTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTestCase>("testConstructors",&DataTestCase::testConstructors));
   testSuite->addTest (new TestCaller< DataTestCase>("testSlicing",&DataTestCase::testSlicing));
   testSuite->addTest (new TestCaller< DataTestCase>("testOperations",&DataTestCase::testOperations));
+  //testSuite->addTest (new TestCaller< DataTestCase>("testRefValue",&DataTestCase::testRefValue));
 
   return testSuite;
 }

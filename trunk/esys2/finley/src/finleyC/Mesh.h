@@ -114,14 +114,6 @@ int Finley_Mesh_findMatchingFaces_compar(const void*,const void*);
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
 void Finley_Mesh_print(Finley_Mesh *in);
 void Finley_Mesh_saveDX(const char *, Finley_Mesh *, escriptDataC*);
+void Finley_Mesh_saveVTK(const char *, Finley_Mesh *, escriptDataC*);
 
 #endif /* #ifndef INC_FINLEY_MESH */
-
-/*
- * $Log$
- * Revision 1.4  2004/12/15 07:08:32  jgs
- * *** empty log message ***
- *
- *
- *
- */

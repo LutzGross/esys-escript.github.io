@@ -50,6 +50,9 @@ class DataExpandedTestCase : public CppUnitTest::TestCase
   void testSliceSetting();
   void testSliceSetting2();
 
+  // Test cases for setRefValue and GetRefValue methods
+  void testRefValue();
+
   DataExpandedTestCase (std::string name) : TestCase (name) {}
   ~DataExpandedTestCase() {}
 

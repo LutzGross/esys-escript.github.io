@@ -61,7 +61,8 @@ def makeRandomFloatTensor(l,k,m,n,val_low=0.,val_up=1.):
     return out
 
 ne=20
-for d in [2,3]:
+# for d in [2,3]:
+for d in [3]:
    # create domain:
    if d==2:
      mydomain=finley.Rectangle(ne,ne,1)
@@ -73,7 +74,7 @@ for d in [2,3]:
      msk=x[0].whereZero()+(x[0]-1.).whereZero()+x[1].whereZero()+(x[1]-1.).whereZero()+x[2].whereZero()+(x[2]-1.).whereZero()
    print "@ generated %d-dimension mesh with %d elements in each direction"%(d,ne)
    # for ncomp in [1,2]:
-   for ncomp in [1,2]:
+   for ncomp in [2]:
         if ncomp==1:
            maskf=1.
            Z=makeRandomFloats(d,-1.,0.)
@@ -86,6 +87,7 @@ for d in [2,3]:
            K=numarray.zeros([ncomp,d,ncomp,d])*0.
            for i in range(ncomp):
              K[i,:,i,:]=numarray.identity(d)*1.
+        K_sup=numarray.array(K_sup)
         Z=numarray.array(Z)
         Z/=length(Z)
         if ncomp==1:
@@ -96,13 +98,12 @@ for d in [2,3]:
            Zx=x[0]*Z[:,0]
            for j in range(1,d):
               Zx+=x[j]*Z[:,j]
-        K_sup=numarray.array(makeRandomFloatMatrix(d,d,-1.,1.))
-        K+=0.05*K_sup/length(K_sup)
+        K+=0.02*K_sup/length(K_sup)
         K/=length(K)
         if ncomp==1:
            U=numarray.matrixmultiply(numarray.transpose(K),Z)
         else:
-           U=numarray.zeros([ncomp,d,ncomp])*0.
+           U=numarray.zeros([ncomp,d,ncomp])*1.
            for m in range(ncomp):
               for l in range(ncomp):
                  for j in range(d):
@@ -113,14 +114,16 @@ for d in [2,3]:
         mypde=AdvectivePDE(mydomain)
         # mypde.setSolverMethod(mypde.DIRECT)
         mypde.setValue(q=msk*maskf,A=K)
+        mypde.checkSymmetry()
         # run Peclet
-        for Pe in [0.001,1.,1.,10.,100,1000.,10000.,100000.,1000000.]:
-           print "@@@  Peclet Number :",Pe*length(U)/length(K)
+        for Pe in [0.001,1.,1.,10.,100,1000.,10000.,100000.,1000000.,10000000.]:
+           peclet=Pe*length(U)/2./length(K)/ne
+           print "@@@  Peclet Number :",peclet
            u_ex=exp(Pe*Zx)
            mypde.setValue(r=u_ex)
-           mypde.setValue(B=Data(),C=Pe*U)
-           u=mypde.getSolution()
-           print "@@@@ C=U: Pe = ",Pe,printError(u,u_ex)
+           # mypde.setValue(B=Data(),C=Pe*U)
+           # u=mypde.getSolution()
+           # print "@@@@ C=U: Pe = ",peclet,printError(u,u_ex)
            mypde.setValue(C=Data(),B=-Pe*U)
            u=mypde.getSolution()
-           print "@@@@ B=-U: Pe = ",Pe,printError(u,u_ex)
+           print "@@@@ B=-U: Pe = ",peclet,printError(u,u_ex)

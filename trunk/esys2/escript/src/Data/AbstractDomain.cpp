@@ -68,6 +68,12 @@ void AbstractDomain::getTagList(int functionSpaceType, int** tagList, int* numTa
   return;
 }
 
+void AbstractDomain::getReferenceNoList(int functionSpaceType, int** referenceNoList, int* numReferenceNo) const
+{
+  throwStandardException("AbstractDomain::getTagList");
+  return;
+}
+
 std::pair<int,int> AbstractDomain::getDataShape(int functionSpaceCode) const
 {
   throwStandardException("AbstractDomain::getDataShape");
@@ -77,6 +83,12 @@ std::pair<int,int> AbstractDomain::getDataShape(int functionSpaceCode) const
 int AbstractDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 {
   throwStandardException("AbstractDomain::getTagFromSampleNo");
+  return 0;
+}
+
+int AbstractDomain::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const
+{
+  throwStandardException("AbstractDomain::getReferenceNoFromSampleNo");
   return 0;
 }
 
@@ -139,6 +151,12 @@ void AbstractDomain::setToGradient(escript::Data& grad, const escript::Data& arg
 void AbstractDomain::saveDX(const std::string& filename,const escript::Data& arg) const
 {
   throwStandardException("AbstractDomain::saveDX");
+  return;
+}
+
+void AbstractDomain::saveVTK(const std::string& filename,const escript::Data& arg) const
+{
+  throwStandardException("AbstractDomain::saveVTK");
   return;
 }
 

@@ -639,6 +639,13 @@ Data::saveDX(std::string fileName) const
   return;
 }
 
+void
+Data::saveVTK(std::string fileName) const
+{
+  getDomain().saveVTK(fileName,*this);
+  return;
+}
+
 Data&
 Data::operator+=(const Data& right)
 {
@@ -1028,6 +1035,64 @@ Data::setTaggedValue(int tagKey,
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,valueDataArray.getView());
+}
+
+void
+Data::setRefValue(int ref,
+                  const boost::python::numeric::array& value)
+{
+  //
+  // Construct DataArray from boost::python::object input value
+  DataArray valueDataArray(value);
+
+  //
+  // Call DataAbstract::setRefValue
+  m_data->setRefValue(ref,valueDataArray);
+}
+
+void
+Data::getRefValue(int ref,
+                  boost::python::numeric::array& value)
+{
+  //
+  // Construct DataArray for boost::python::object return value
+  DataArray valueDataArray(value);
+
+  //
+  // Load DataArray with values from data-points specified by ref
+  m_data->getRefValue(ref,valueDataArray);
+
+  //
+  // Load values from valueDataArray into return numarray
+
+  // extract the shape of the numarray
+  int rank = value.getrank();
+  DataArrayView::ShapeType shape;
+  for (int i=0; i < rank; i++) {
+    shape.push_back(extract<int>(value.getshape()[i]));
+  }
+
+  // and load the numarray with the data from the DataArray
+  DataArrayView valueView = valueDataArray.getView();
+
+  if (rank==0) {
+    throw DataException("Data::getRefValue error: only rank 1 data handled for now.");
+  }
+  if (rank==1) {
+    for (int i=0; i < shape[0]; i++) {
+      value[i] = valueView(i);
+    }
+  }
+  if (rank==2) {
+    throw DataException("Data::getRefValue error: only rank 1 data handled for now.");
+  }
+  if (rank==3) {
+    throw DataException("Data::getRefValue error: only rank 1 data handled for now.");
+  }
+  if (rank==4) {
+    throw DataException("Data::getRefValue error: only rank 1 data handled for now.");
+  }
+
 }
 
 /*

@@ -179,18 +179,6 @@ int MeshAdapter::getDiracDeltaFunctionCode() const
 {
   return Points;
 }
-
-int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
-{
-  //
-  // It is assumed the sampleNo has been checked 
-  // before calling this function.
-  int* tagList;
-  int numTags;
-  getTagList(functionSpaceType, &tagList, &numTags);
-  return tagList[sampleNo];
-}
-
 //
 // returns a pointer to the tag list of samples of functionSpaceType
 //
@@ -255,6 +243,83 @@ void MeshAdapter::getTagList(int functionSpaceType, int** tagList,
 	 << functionSpaceType << " for domain: " << getDescription();
     throw FinleyAdapterException(temp.str());
     break;
+  }
+  if (*tagList==NULL) {
+    stringstream temp;
+    temp << "Error - no tags available for " << functionSpaceType << " for domain: " << getDescription();
+    throw FinleyAdapterException(temp.str());
+  }
+  return;
+}
+//
+// returns a pointer to the reference no list of samples of functionSpaceType
+//
+void MeshAdapter::getReferenceNoList(int functionSpaceType, int** referenceNoList,
+			     int* numReferenceNo) const
+{
+  *referenceNoList=NULL;
+  *numReferenceNo=0;
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  switch (functionSpaceType) {
+  case(Nodes):
+    if (mesh->Nodes!=NULL) {
+      *referenceNoList=mesh->Nodes->Id;
+      *numReferenceNo=mesh->Nodes->numNodes;
+    }
+    break;
+  case(Elements):
+    if (mesh->Elements!=NULL) {
+      *referenceNoList=mesh->Elements->Id;
+      *numReferenceNo=mesh->Elements->numElements;
+    }
+    break;
+  case(FaceElements):
+    if (mesh->FaceElements!=NULL) {
+      *referenceNoList=mesh->FaceElements->Id;
+      *numReferenceNo=mesh->FaceElements->numElements;
+    }
+    break;
+  case(Points):
+    if (mesh->Points!=NULL) {
+      *referenceNoList=mesh->Points->Id;
+      *numReferenceNo=mesh->Points->numElements;
+    }
+    break;
+  case(ContactElementsZero):
+    if (mesh->ContactElements!=NULL) {
+      *referenceNoList=mesh->ContactElements->Id;
+      *numReferenceNo=mesh->ContactElements->numElements;
+    }
+    break;
+  case(ContactElementsOne):
+    if (mesh->ContactElements!=NULL) {
+      *referenceNoList=mesh->ContactElements->Id;
+      *numReferenceNo=mesh->ContactElements->numElements;
+    }
+    break;
+  case(DegreesOfFreedom):
+    if (mesh->Nodes!=NULL) {
+      *referenceNoList=NULL;
+      *numReferenceNo=0;
+    }
+    break;
+  case(ReducedDegreesOfFreedom):
+    if (mesh->Nodes!=NULL) {
+      *referenceNoList=NULL;
+      *numReferenceNo=0;
+    }
+    break;
+  default:
+    stringstream temp;
+    temp << "Error - Invalid function space type: "
+	 << functionSpaceType << " for domain: " << getDescription();
+    throw FinleyAdapterException(temp.str());
+    break;
+  }
+  if (*referenceNoList==NULL) {
+    stringstream temp;
+    temp << "Error - reference number list available for " << functionSpaceType << " for domain: " << getDescription();
+    throw FinleyAdapterException(temp.str());
   }
   return;
 }
@@ -747,6 +812,12 @@ void MeshAdapter::saveDX(const std::string& filename,const Data& arg) const
   Finley_Mesh_saveDX(filename.c_str(),m_finleyMesh.get(),&(arg.getDataC()));
   checkFinleyError();
 }
+// saves a data array in openVTK format:
+void MeshAdapter::saveVTK(const std::string& filename,const Data& arg) const
+{ 
+  Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),&(arg.getDataC()));
+  checkFinleyError();
+}
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros:
 SystemMatrixAdapter MeshAdapter::newSystemMatrix(
                       const int row_blocksize,
@@ -935,5 +1006,20 @@ Data MeshAdapter::getSize() const
   return function(asAbstractContinuousDomain()).getSize();
 }
 
+int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
+{
+  int* tagList;
+  int numTags;
+  getTagList(functionSpaceType, &tagList, &numTags);
+  return tagList[sampleNo];
+}
+
+int MeshAdapter::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const
+{
+  int* referenceNoList;
+  int numReferenceNo;
+  getReferenceNoList(functionSpaceType, &referenceNoList, &numReferenceNo);
+  return referenceNoList[sampleNo];
+}
 
 }  // end of namespace
