@@ -5,15 +5,6 @@
 export ESYS_ROOT=${ESYS_ROOT:=`pwd`}
 
 MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
-#MODULES="escript finley"
-
-if [ "$1" == "clean" ];
-then
-	for module in $MODULES ; do \
-		(echo Cleaning: $module; cd $module; gmake clean) \
-	done
-        exit
-fi
 
 (cd escript/lib; if [ ! -e py_src ]; then mkdir py_src; fi)
 
@@ -26,6 +17,14 @@ fi
 (cd finley; if [ ! -e Makefile ]; then ln -s ./finley.mk Makefile; fi)
 (cd tools/mmio; if [ ! -e Makefile ]; then ln -s ./mmio.mk Makefile; fi)
 (cd tools/CppUnitTest; if [ ! -e Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
+
+if [ "$1" == "clean" ];
+then
+	for module in $MODULES ; do \
+		(echo Cleaning: $module; cd $module; gmake clean) \
+	done
+        exit
+fi
 
 for module in $MODULES ; do \
 	(echo Building: $module; cd $module; gmake) \
