@@ -97,6 +97,102 @@ void Finley_Util_SmallMatSetMult(int len,int A1,int A2, double* A, int B2, doubl
     }
 }
 
+/* calcultes the LU factorization for a small matrix dimxdim matrix A */
+/* TODO: use LAPACK */
+
+int Finley_Util_SmallMatLU(int dim,double* A,double *LU,int* pivot){
+     double D,A11,A12,A13,A21,A22,A23,A31,A32,A33;
+     int info=0;
+     /* LAPACK version */
+     /* memcpy(LU,A,sizeof(douple)); */
+     /* dgetf2_(&dim,&dim,A,&dim,LU,pivot,&info); */
+     switch(dim) {
+      case 1: 
+            D=A[INDEX2(0,0,dim)];
+            if (ABS(D) >0. ){
+               LU[INDEX2(0,0,dim)]=1./D;
+            } else {
+               info=2;
+            }
+         break;
+
+      case 2: 
+            A11=A[INDEX2(0,0,dim)];
+            A12=A[INDEX2(0,1,dim)];
+            A21=A[INDEX2(1,0,dim)];
+            A22=A[INDEX2(1,1,dim)];
+
+            D = A11*A22-A12*A21;
+            if (ABS(D) > 0 ){
+               D=1./D;
+               LU[INDEX2(0,0,dim)]= A22*D;
+               LU[INDEX2(1,0,dim)]=-A21*D;
+               LU[INDEX2(0,1,dim)]=-A12*D;
+               LU[INDEX2(1,1,dim)]= A11*D;
+            } else {
+               info=2;
+            }
+         break;
+
+      case 3: 
+            A11=A[INDEX2(0,0,dim)];
+            A21=A[INDEX2(1,0,dim)];
+            A31=A[INDEX2(2,0,dim)];
+            A12=A[INDEX2(0,1,dim)];
+            A22=A[INDEX2(1,1,dim)];
+            A32=A[INDEX2(2,1,dim)];
+            A13=A[INDEX2(0,2,dim)];
+            A23=A[INDEX2(1,2,dim)];
+            A33=A[INDEX2(2,2,dim)];
+
+            D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+            if (ABS(D) > 0 ){
+               D=1./D;
+               LU[INDEX2(0,0,dim)]=(A22*A33-A23*A32)*D;
+               LU[INDEX2(1,0,dim)]=(A31*A23-A21*A33)*D;
+               LU[INDEX2(2,0,dim)]=(A21*A32-A31*A22)*D;
+               LU[INDEX2(0,1,dim)]=(A13*A32-A12*A33)*D;
+               LU[INDEX2(1,1,dim)]=(A11*A33-A31*A13)*D;
+               LU[INDEX2(2,1,dim)]=(A12*A31-A11*A32)*D;
+               LU[INDEX2(0,2,dim)]=(A12*A23-A13*A22)*D;
+               LU[INDEX2(1,2,dim)]=(A13*A21-A11*A23)*D;
+               LU[INDEX2(2,2,dim)]=(A11*A22-A12*A21)*D;
+            } else {
+               info=2;
+            }
+         break;
+       default:
+            info=1;
+   }
+   return info;
+}
+
+/* solves LUx=b where LU is a LU factorization calculated by an Finley_Util_SmallMatLU call */
+void Finley_Util_SmallMatForwardBackwardSolve(int dim ,int nrhs,double* LU,int* pivot,double* x,double* b) {
+     int i;
+     switch(dim) {
+      case 1: 
+         for (i=0;i<nrhs;i++) {
+            x[INDEX2(0,i,dim)]=LU[0]*b[INDEX2(0,i,dim)];
+         }
+         break;
+      case 2: 
+         for (i=0;i<nrhs;i++) {
+            x[INDEX2(0,i,dim)]=LU[INDEX2(0,0,dim)]*b[INDEX2(0,i,dim)]+LU[INDEX2(0,1,dim)]*b[INDEX2(1,i,dim)];
+            x[INDEX2(1,i,dim)]=LU[INDEX2(1,0,dim)]*b[INDEX2(0,i,dim)]+LU[INDEX2(1,1,dim)]*b[INDEX2(1,i,dim)];
+         }
+         break;
+
+      case 3: 
+         for (i=0;i<nrhs;i++) {
+            x[INDEX2(0,i,dim)]=LU[INDEX2(0,0,dim)]*b[INDEX2(0,i,dim)]+LU[INDEX2(0,1,dim)]*b[INDEX2(1,i,dim)]+LU[INDEX2(0,2,dim)]*b[INDEX2(2,i,dim)];
+            x[INDEX2(1,i,dim)]=LU[INDEX2(1,0,dim)]*b[INDEX2(0,i,dim)]+LU[INDEX2(1,1,dim)]*b[INDEX2(1,i,dim)]+LU[INDEX2(1,2,dim)]*b[INDEX2(2,i,dim)];
+            x[INDEX2(2,i,dim)]=LU[INDEX2(2,0,dim)]*b[INDEX2(0,i,dim)]+LU[INDEX2(2,1,dim)]*b[INDEX2(1,i,dim)]+LU[INDEX2(2,2,dim)]*b[INDEX2(2,i,dim)];
+         }
+         break;
+   }
+   return;
+}
 /*    inverts the set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 /*    the determinante is returned. */
 
@@ -108,14 +204,15 @@ void Finley_Util_InvertSmallMat(int len,int dim,double* A,double *invA, double* 
       case 1: 
          for (q=0;q<len;q++) {
             D=A[INDEX3(0,0,q,dim,dim)];
-            if (D == 0 ){
+            if (ABS(D) > 0 ){
+               det[q]=D;
+               D=1./D;
+               invA[INDEX3(0,0,q,dim,dim)]=D;
+            } else {
                Finley_ErrorCode=ZERO_DIVISION_ERROR;
                sprintf(Finley_ErrorMsg,"Non-regular matrix");
                return;
             }
-            det[q]=D;
-            D=1./D;
-            invA[INDEX3(0,0,q,dim,dim)]=D;
          }
          break;
 
@@ -127,17 +224,18 @@ void Finley_Util_InvertSmallMat(int len,int dim,double* A,double *invA, double* 
             A22=A[INDEX3(1,1,q,dim,dim)];
 
             D = A11*A22-A12*A21;
-            if (D == 0 ){
+            if (ABS(D) > 0 ){
+               det[q]=D;
+               D=1./D;
+               invA[INDEX3(0,0,q,dim,dim)]= A22*D;
+               invA[INDEX3(1,0,q,dim,dim)]=-A21*D;
+               invA[INDEX3(0,1,q,dim,dim)]=-A12*D;
+               invA[INDEX3(1,1,q,dim,dim)]= A11*D;
+            } else {
                Finley_ErrorCode=ZERO_DIVISION_ERROR;
                sprintf(Finley_ErrorMsg,"Non-regular matrix");
                return;
             }
-            det[q]=D;
-            D=1./D;
-            invA[INDEX3(0,0,q,dim,dim)]= A22*D;
-            invA[INDEX3(1,0,q,dim,dim)]=-A21*D;
-            invA[INDEX3(0,1,q,dim,dim)]=-A12*D;
-            invA[INDEX3(1,1,q,dim,dim)]= A11*D;
          }
          break;
 
@@ -154,22 +252,23 @@ void Finley_Util_InvertSmallMat(int len,int dim,double* A,double *invA, double* 
             A33=A[INDEX3(2,2,q,dim,dim)];
 
             D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
-            if (D == 0 ){
+            if (ABS(D) > 0 ){
+               det[q]    =D;
+               D=1./D;
+               invA[INDEX3(0,0,q,dim,dim)]=(A22*A33-A23*A32)*D;
+               invA[INDEX3(1,0,q,dim,dim)]=(A31*A23-A21*A33)*D;
+               invA[INDEX3(2,0,q,dim,dim)]=(A21*A32-A31*A22)*D;
+               invA[INDEX3(0,1,q,dim,dim)]=(A13*A32-A12*A33)*D;
+               invA[INDEX3(1,1,q,dim,dim)]=(A11*A33-A31*A13)*D;
+               invA[INDEX3(2,1,q,dim,dim)]=(A12*A31-A11*A32)*D;
+               invA[INDEX3(0,2,q,dim,dim)]=(A12*A23-A13*A22)*D;
+               invA[INDEX3(1,2,q,dim,dim)]=(A13*A21-A11*A23)*D;
+               invA[INDEX3(2,2,q,dim,dim)]=(A11*A22-A12*A21)*D;
+            } else {
                Finley_ErrorCode=ZERO_DIVISION_ERROR;
                sprintf(Finley_ErrorMsg,"Non-regular matrix");
                return;
             }
-            det[q]    =D;
-            D=1./D;
-            invA[INDEX3(0,0,q,dim,dim)]=(A22*A33-A23*A32)*D;
-            invA[INDEX3(1,0,q,dim,dim)]=(A31*A23-A21*A33)*D;
-            invA[INDEX3(2,0,q,dim,dim)]=(A21*A32-A31*A22)*D;
-            invA[INDEX3(0,1,q,dim,dim)]=(A13*A32-A12*A33)*D;
-            invA[INDEX3(1,1,q,dim,dim)]=(A11*A33-A31*A13)*D;
-            invA[INDEX3(2,1,q,dim,dim)]=(A12*A31-A11*A32)*D;
-            invA[INDEX3(0,2,q,dim,dim)]=(A12*A23-A13*A22)*D;
-            invA[INDEX3(1,2,q,dim,dim)]=(A13*A21-A11*A23)*D;
-            invA[INDEX3(2,2,q,dim,dim)]=(A11*A22-A12*A21)*D;
          }
          break;
 
@@ -406,8 +505,14 @@ void Finley_copyDouble(int n,double* source, double* target) {
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:31  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.3  2004/08/26 12:03:52  gross
  * Some other bug in Finley_Assemble_gradient fixed.

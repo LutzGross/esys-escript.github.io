@@ -27,18 +27,15 @@ void Finley_Solver_setILU0(Finley_SystemMatrix * A_p) {
 #if ITERATIVE_SOLVER == NO_LIB
   Finley_Solver_Preconditioner* prec=(Finley_Solver_Preconditioner*) (A_p->iterative);
   maybelong n=A_p->num_rows;
-  #ifdef FINLEY_SOLVER_TRACE
-  printf("ILU(0) preconditioner is used.\n");
-  #endif
   /* allocate arrays */
-  prec->mainDiag = (maybelong *) MEMALLOC(sizeof(maybelong) * n);
-  prec->color = (maybelong *) MEMALLOC(sizeof(maybelong) * n);
-  prec->values = (double *) MEMALLOC(sizeof(double) * (A_p->lenOfVal));
+  prec->mainDiag =MEMALLOC(n,maybelong);
+  prec->color = MEMALLOC(n,maybelong);
+  prec->values = MEMALLOC((A_p->len)*(size_t) n,double);
   if (! (Finley_checkPtr(prec->mainDiag) || Finley_checkPtr(prec->color) || Finley_checkPtr(prec->values))) {
      /* find the main diagonal: */
      Finley_Solver_getMainDiagonal(A_p,prec->mainDiag);
      /* color the rows : */
-     Finley_Solver_coloring(A_p,&(prec->numColors),prec->color);
+     Finley_Solver_coloring(A_p->pattern,&(prec->numColors),prec->color);
      if (Finley_ErrorCode==NO_ERROR) {
          /* allocate vector to hold main diagonal entries: */
          Finley_SystemMatrix_copy(A_p,prec->values);
@@ -48,7 +45,7 @@ void Finley_Solver_setILU0(Finley_SystemMatrix * A_p) {
            sprintf(Finley_ErrorMsg, "ILU preconditioner requires block size =1 .");
            return;
          } else {
-           Finley_Solver_setILU0_1(n,A_p->ptr,A_p->index,prec->values,prec->numColors,prec->color,prec->mainDiag);
+           Finley_Solver_setILU0_1(n,A_p->pattern->ptr,A_p->pattern->index,prec->values,prec->numColors,prec->color,prec->mainDiag);
          }
      }
   }
@@ -72,9 +69,9 @@ void Finley_Solver_solveILU0(Finley_SystemMatrix * A_p, double * x, double * b) 
      #pragma omp for private(i)
      for (i=0;i<n*A_p->row_block_size;i++) x[i]=b[i];
      if (A_p->row_block_size > 1) {
-        /* Finley_Solver_solveILU0_blk(n,x,A_p->ptr,A_p->index,prec->values,prec->numColors,prec->color,prec->mainDiag); */
+        /* Finley_Solver_solveILU0_blk(n,x,A_p->pattern->ptr,A_p->pattern->index,prec->values,prec->numColors,prec->color,prec->mainDiag); */
      } else {
-         Finley_Solver_solveILU0_1(n,x,A_p->ptr,A_p->index,prec->values,prec->numColors,prec->color,prec->mainDiag);
+         Finley_Solver_solveILU0_1(n,x,A_p->pattern->ptr,A_p->pattern->index,prec->values,prec->numColors,prec->color,prec->mainDiag);
      }
      return;
 #endif
@@ -178,8 +175,17 @@ void Finley_Solver_setILU0_1(int n,maybelong* ptr,maybelong* index,double* value
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:58  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:32  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:17  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:21  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+ * initial import of project esys2
  *
  * Revision 1.1  2004/07/02 04:21:14  gross
  * Finley C code has been included

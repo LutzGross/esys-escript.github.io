@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -12,7 +13,7 @@
  ******************************************************************************
 */
                                                                            
-#if !defined  escript_DataAlgorithm_20040714_H
+#if !defined escript_DataAlgorithm_20040714_H
 #define escript_DataAlgorithm_20040714_H
 
 #include "escript/Data/DataExpanded.h"
@@ -26,6 +27,7 @@
 #include <limits>
 
 namespace escript {
+
 /**
    \brief
    Return the maximum value.
@@ -70,6 +72,7 @@ struct AbsMax : public std::binary_function<double,double,double>
     return std::max(fabs(x),fabs(y));
   }
 };
+
 /**
    \brief
    Adapt algorithms so they may be used by Data.
@@ -95,7 +98,7 @@ class DataAlgorithmAdapter {
     }
  private:
     //
-    // the current maximum value
+    // the current operation value
     double m_currentValue;
     //
     // The operation to perform
@@ -104,28 +107,30 @@ class DataAlgorithmAdapter {
 
 /**
    \brief
-   Perform the given operation upon all DataElements and return a single
+   Perform the given operation upon all Data elements and return a single
    result.
 
    Description:
-   Perform the given operation upon all DataElements and return a single
+   Perform the given operation upon all Data elements and return a single
    result.
 */
 template <class UnaryFunction>
-inline double algorithm(DataExpanded& data, UnaryFunction operation)
+inline
+double
+algorithm(DataExpanded& data,
+          UnaryFunction operation)
 {
   int i,j;
   DataArrayView::ValueType::size_type numDPPSample=data.getNumDPPSample();
   DataArrayView::ValueType::size_type numSamples=data.getNumSamples();
-  double resultLocal;
-  #pragma omp parallel private(resultLocal)
+  double resultLocal=0;
+#pragma omp parallel private(resultLocal)
   {
-    #pragma omp parallel for private(i,j) schedule(static)
-    for (i=0;i<numSamples;++i) {
-      for (j=0;j<numDPPSample;++j) {
-	resultLocal=data.getPointDataView().algorithm(data.getPointOffset(i,j),
-						      operation);
-	#pragma omp critical (algorithm)
+#pragma omp for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+      for (j=0;j<numDPPSample;j++) {
+	resultLocal=data.getPointDataView().algorithm(data.getPointOffset(i,j), operation);
+#pragma omp critical (algorithm)
 	operation(resultLocal);
       }
     }
@@ -134,15 +139,18 @@ inline double algorithm(DataExpanded& data, UnaryFunction operation)
 }
 
 template <class UnaryFunction>
-inline double algorithm(DataTagged& data, UnaryFunction operation)
+inline
+double
+algorithm(DataTagged& data,
+          UnaryFunction operation)
 {
   //
-  // perform the operation on each tagged value including the default
+  // perform the operation on each tagged value
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
   DataArrayView& dataView=data.getPointDataView();
-  for (i=lookup.begin();i!=lookupEnd;++i) {
+  for (i=lookup.begin();i!=lookupEnd;i++) {
     operation(dataView.algorithm(i->second,operation));
   }
   //
@@ -152,11 +160,80 @@ inline double algorithm(DataTagged& data, UnaryFunction operation)
 }
 
 template <class UnaryFunction>
-inline double algorithm(DataConstant& data, UnaryFunction operation)
+inline
+double
+algorithm(DataConstant& data,
+          UnaryFunction operation)
 {
   return data.getPointDataView().algorithm(operation);
 }
 
+/**
+   \brief
+   Perform the given data point reduction operation upon all data points
+   in data, storing results in corresponding elements of result.
+
+   Objects data and result must be of the same type, and have the same number
+   of samples and number of data points per sample, but where data has data
+   points of rank n, result must have data points of rank 0.
+
+   Calls DataArrayView::dp_algorithm.
+*/
+template <class UnaryFunction>
+inline
+void
+dp_algorithm(DataExpanded& result,
+             DataExpanded& data,
+             UnaryFunction operation)
+{
+  int i,j;
+  DataArrayView::ValueType::size_type numDPPSample=data.getNumDPPSample();
+  DataArrayView::ValueType::size_type numSamples=data.getNumSamples();
+  {
+#pragma omp for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+      for (j=0;j<numDPPSample;j++) {
+        // assign this to corresponding element in result
+	data.getPointDataView().dp_algorithm(data.getPointOffset(i,j),operation);
+#pragma omp critical (dp_algorithm)
+      }
+    }
+  }
+}
+
+template <class UnaryFunction>
+inline
+void
+dp_algorithm(DataTagged& result,
+             DataTagged& data,
+             UnaryFunction operation)
+{
+  //
+  // perform the operation on each tagged value
+  const DataTagged::DataMapType& lookup=data.getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
+  for (i=lookup.begin();i!=lookupEnd;i++) {
+    // assign this to corresponding element in result
+    data.getPointDataView().dp_algorithm(i->second,operation);
+  }
+  //
+  // finally perform the operation on the default value
+  // assign this to corresponding element in result
+  data.getDefaultValue().dp_algorithm(operation);
+}
+
+template <class UnaryFunction>
+inline
+void
+dp_algorithm(DataConstant& result,
+             DataConstant& data,
+             UnaryFunction operation)
+{
+  //result.getPointDataView().getData()
+  // assign this to corresponding element in result
+  data.getPointDataView().dp_algorithm(operation);
+}
 
 } // end of namespace
 #endif

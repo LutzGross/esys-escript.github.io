@@ -251,15 +251,15 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
 
          /* allocate work arrays: */
 
-         EM_S=(double*) THREAD_MEMALLOC(p.NN_row*p.NN_col*p.numEqu*p.numComp*sizeof(double));
-         EM_F=(double*) THREAD_MEMALLOC(p.NN_row*p.numEqu*sizeof(double));
-         V=(double*) THREAD_MEMALLOC(p.NN*p.numDim*sizeof(double));
-         dVdv=(double*) THREAD_MEMALLOC(p.numDim*p.numDim*p.numQuad*sizeof(double));
-         dvdV=(double*) THREAD_MEMALLOC(p.numDim*p.numDim*p.numQuad*sizeof(double));
-         dSdV=(double*) THREAD_MEMALLOC(p.NS_row*p.numQuad*p.numDim*sizeof(double));
-         Vol=(double*) THREAD_MEMALLOC(p.numQuad*sizeof(double));
-         index_col=(maybelong*) THREAD_MEMALLOC(p.NN_col*sizeof(maybelong));
-         index_row=(maybelong*) THREAD_MEMALLOC(p.NN_row*sizeof(maybelong));
+         EM_S=(double*) THREAD_MEMALLOC(p.NN_row*p.NN_col*p.numEqu*p.numComp,double);
+         EM_F=(double*) THREAD_MEMALLOC(p.NN_row*p.numEqu,double);
+         V=(double*) THREAD_MEMALLOC(p.NN*p.numDim,double);
+         dVdv=(double*) THREAD_MEMALLOC(p.numDim*p.numDim*p.numQuad,double);
+         dvdV=(double*) THREAD_MEMALLOC(p.numDim*p.numDim*p.numQuad,double);
+         dSdV=(double*) THREAD_MEMALLOC(p.NS_row*p.numQuad*p.numDim,double);
+         Vol=(double*) THREAD_MEMALLOC(p.numQuad,double);
+         index_col=(maybelong*) THREAD_MEMALLOC(p.NN_col,maybelong);
+         index_row=(maybelong*) THREAD_MEMALLOC(p.NN_row,maybelong);
 
          if (! (Finley_checkPtr(EM_S) || Finley_checkPtr(EM_F) || Finley_checkPtr(V) || Finley_checkPtr(index_col) ||
                 Finley_checkPtr(index_row) || Finley_checkPtr(dVdv) || Finley_checkPtr(dSdV) || Finley_checkPtr(Vol) ))  {
@@ -342,8 +342,14 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
 }
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2004/12/14 05:39:29  jgs
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.3  2004/07/30 04:37:06  gross
  * escript and finley are linking now and RecMeshTest.py has been passed

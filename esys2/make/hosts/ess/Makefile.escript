@@ -7,11 +7,17 @@ PKG_CPP_INC_DIRS += $(ESYS_ROOT)/escript/inc
 
 PKG_LD_LIB_DIRS += $(ESYS_ROOT)/escript/lib
 
-PKG_LD_LIBS += escript
+PKG_LD_LIBS += escriptcpp
 
 # $Log$
-# Revision 1.1  2004/10/26 06:53:58  jgs
-# Initial revision
+# Revision 1.2  2004/12/14 05:39:33  jgs
+# *** empty log message ***
+#
+# Revision 1.1.1.1.2.1  2004/12/09 06:22:21  jgs
+# *** empty log message ***
+#
+# Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+# initial import of project esys2
 #
 # Revision 1.1.1.1.2.2  2004/09/28 07:03:14  jgs
 # *** empty log message ***

@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -12,13 +13,13 @@
  ******************************************************************************
 */
                                                                            
-#if !defined  escript_EsysAssert_20040330_H
+#if !defined escript_EsysAssert_20040330_H
 #define escript_EsysAssert_20040330_H
 
 /**
    \brief
    EsysAssert is a MACRO that will throw an exception if the boolean
-   condition is false.
+   condition specified is false.
 
    Description:
    EsysAssert is conditionally compiled into code only when DOASSERT is
@@ -28,18 +29,19 @@
 
 //
 // Note that the ANSI C Standard requires all headers to be idempotent except
-// <assert.h> which is explicitly required not to be idempotent
-// (section 4.1.2).
+// <assert.h> which is explicitly required not to be idempotent (section 4.1.2).
 // This version of EsysAssert follows this requirement, consequently this
-// part of the header is intentionally outside the single pass guard
+// part of the header is intentionally outside the single pass guard.
 //
 
 #undef  EsysAssert
 
 #if defined DOASSERT
+
 //
 // DOASSERT is defined, replace EsysAssert with Exception throw
 //
+
 #include "EsysAssertException.h"
 #include <sstream>
 
@@ -76,21 +78,18 @@ namespace esysUtils {
 }
 
 #define EsysAssert(AssertTest,AssertMessage) \
-   (void)((AssertTest) || ((esysUtils::EsysAssertException::assertFailure(#AssertTest, __DATE__, \
-					       __FILE__, __LINE__, \
-		                 (esysUtils::ErrStream()<<AssertMessage).toString())),0),0)
+   (void)((AssertTest) || \
+           ((esysUtils::EsysAssertException::assertFailure(#AssertTest, __DATE__, __FILE__, __LINE__, \
+             (esysUtils::ErrStream()<<AssertMessage).toString())),0),0)
 
 #else
+
 //
 // DOASSERT os not defined, replace EsysAssert with "NO-OP"
 //
+
 #define EsysAssert(AssertTest,AssertMessage) ((void)0)
 
 #endif
 
 #endif
-
-
-
-
-

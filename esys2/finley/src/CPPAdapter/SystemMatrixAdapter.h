@@ -1,3 +1,4 @@
+// $Id$
 /* 
  ******************************************************************************
  *                                                                            *
@@ -49,11 +50,12 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
      /brief
      Constructor for SystemMatrixAdapter.
   */
-  SystemMatrixAdapter(const Finley_SystemMatrix* system_matrix,
+  SystemMatrixAdapter(Finley_SystemMatrix* system_matrix,
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
                       const escript::FunctionSpace& colum_functionspace);
+
 
   /**
      \brief
@@ -91,6 +93,17 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
     nullifyRowsAndCols - calls Finley_SystemMatrix_nullifyRowsAndCols.
   */
   void nullifyRowsAndCols(const escript::Data& row_q, const escript::Data& col_q, const double mdv) const;
+
+  /**
+     \brief writes the matrix to a file using the Matrix Market file format
+  */
+  virtual void saveMM(const std::string& fileName) const;
+
+  /**
+     \brief sets the matrix entries to value
+  */
+  virtual void setValue(const double value) const;
+
 
  protected:
 
