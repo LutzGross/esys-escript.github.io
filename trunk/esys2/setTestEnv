@@ -1,4 +1,0 @@
-export LD_LIBRARY_PATH=/raid2/tools/python-2.3.4/lib:/raid2/tools/boost/lib:$ESYS_ROOT/escript/lib:$ESYS_ROOT/finley/lib:$LD_LIBRARY_PATH
-export PATH=/raid2/tools/python-2.3.4/bin:/usr/local/bin:${PATH}
-export PYTHON_INCLUDE=/raid2/tools/python-2.3.4/include/python2.3
-export PYTHON_LIB_PATH=/raid2/tools/python-2.3.4/lib
