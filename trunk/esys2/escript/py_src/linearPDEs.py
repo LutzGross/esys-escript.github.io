@@ -172,6 +172,8 @@ class LinearPDE:
    SSOR=util.SSOR
    GMRES=util.GMRES
    PRES20=util.PRES20
+   ILU0=util.ILU0
+   JACOBI=util.JACOBI
 
    def __init__(self,domain,numEquations=0,numSolutions=0):
      """
