@@ -1,0 +1,20 @@
+# $Id$
+
+# Python 2.2 api
+
+PKG_CC_INC_DIRS += /usr/include/python2.2
+PKG_CPP_INC_DIRS += /usr/include/python2.2
+
+# $Log$
+# Revision 1.1  2004/10/26 06:53:58  jgs
+# Initial revision
+#
+# Revision 1.1.2.1  2004/09/27 06:44:11  jgs
+# restructured makefiles
+#
+# Revision 1.1.1.1  2004/06/24 04:00:39  johng
+# Initial version of eys using boost-python.
+#
+# Revision 1.1.1.1  2003/08/21 00:58:20  davies
+# Imported sources from Lutz Gross.
+#

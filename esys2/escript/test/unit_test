@@ -1,0 +1,9 @@
+#!/bin/env bash
+# $Id$
+# simple script to run all escript unit tests
+
+MODULES="DataAlgorithmAdapter DataArrayView DataC DataEmpty DataFactory FunctionSpace multiTest Data DataArray DataBlocks2D DataConstant DataExpanded DataTagged"
+
+for module in $MODULES ; do \
+	(echo Testing: $module; cd $module; ./unit_test) \
+done

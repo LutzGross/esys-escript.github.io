@@ -1,0 +1,19 @@
+# $Id$
+
+# Python 2.2 api
+
+PKG_CC_INC_DIRS += /usr/include/python2.3
+PKG_CPP_INC_DIRS += /usr/include/python2.3
+PKG_LD_LIB_DIRS += ${NULL}
+PKG_LD_LIBS += ${NULL}
+#PKG_LD_LIB_DIRS += /usr/local/lib/python2.2/config
+#PKG_LD_LIBS += python2.2 dl util
+
+# $Log$
+# Revision 1.1  2004/10/26 06:53:58  jgs
+# Initial revision
+#
+# Revision 1.1  2004/08/02 11:23:11  gross
+# some progress toward slicing
+#
+#

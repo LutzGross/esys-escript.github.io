@@ -1,0 +1,9 @@
+#!/bin/env bash
+# $Id$
+# simple script to run all finley unit tests
+
+MODULES="MeshAdapter SystemMatrixAdapter"
+
+for module in $MODULES ; do \
+	(echo Testing: $module; cd $module; ./unit_test) \
+done

@@ -1,0 +1,746 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2004 -  All Rights Reserved                        *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
+#include "escript/Data/FunctionSpace.h"
+#include "finley/CPPAdapter/MeshAdapter.h"
+#include <iostream>
+
+using namespace std;
+using namespace escript;
+
+namespace finley {
+
+struct null_deleter
+{
+  void operator()(void const *ptr) const
+  {
+  }
+};
+
+MeshAdapter::MeshAdapter(Finley_Mesh* finleyMesh)
+{
+  //
+  // need to use a null_deleter as Finley_Mesh_dealloc deletes the pointer
+  // for us.
+  m_finleyMesh.reset(finleyMesh,null_deleter());
+}
+//
+// The copy constructor should just increment the use count
+MeshAdapter::MeshAdapter(const MeshAdapter& in):
+m_finleyMesh(in.m_finleyMesh)
+{
+}
+
+MeshAdapter::~MeshAdapter()
+{
+  //
+  // I hope the case for the pointer being zero has been taken care of.
+  //  cout << "In MeshAdapter destructor." << endl;
+  if (m_finleyMesh.unique()) {
+    //   cout << "Calling dealloc." << endl;
+    Finley_Mesh_dealloc(m_finleyMesh.get());
+    //   cout << "Finished dealloc." << endl;
+  }
+}
+
+void MeshAdapter::write(const std::string& fileName) const
+{
+  char fName[fileName.size()+1];
+  strcpy(fName,fileName.c_str());
+  Finley_Mesh_write(m_finleyMesh.get(),fName);
+}
+
+string MeshAdapter::getDescription() const
+{
+  return "FinleyMesh";
+}
+
+bool MeshAdapter::isValidFunctionSpaceType(int functionSpaceType) const
+{
+  FunctionSpaceNamesMapType::iterator loc;
+  loc=m_functionSpaceTypeNames.find(functionSpaceType);
+  return (loc!=m_functionSpaceTypeNames.end());
+}
+
+FunctionSpace MeshAdapter::createFunctionSpace(int functionSpaceType) const
+{
+  return FunctionSpace(*this,functionSpaceType);
+}
+
+void MeshAdapter::setFunctionSpaceTypeNames()
+{
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(DegreesOfFreedom,"Finley_DegreesOfFreedom"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(ReducedDegreesOfFreedom,"Finley_ReducedDegreesOfFreedom"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(Nodes,"Finley_Nodes"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(Elements,"Finley_Elements"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(FaceElements,"Finley_Face_Elements"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(Points,"Finley_Points"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(ContactElementsZero,"Finley_Contact_Elements_0"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(ContactElementsOne,"Finley_Contact_Elements_1"));
+}
+
+FunctionSpace MeshAdapter::getContinuousFunctions() const
+{
+  return createFunctionSpace(Nodes);
+}
+FunctionSpace MeshAdapter::getFunctions() const
+{
+  return createFunctionSpace(Elements);
+}
+FunctionSpace MeshAdapter::getFunctionsOnBoundary() const
+{
+  return createFunctionSpace(FaceElements);
+}
+FunctionSpace MeshAdapter::getFunctionsOnContactZero() const
+{
+  return createFunctionSpace(ContactElementsZero);
+}
+FunctionSpace MeshAdapter::getFunctionsOnContactOne() const
+{
+  return createFunctionSpace(ContactElementsOne);
+}
+
+FunctionSpace MeshAdapter::getSolutionSpace() const
+{
+  return createFunctionSpace(DegreesOfFreedom);
+}
+FunctionSpace MeshAdapter::getReducedSolutionSpace() const
+{
+  return createFunctionSpace(ReducedDegreesOfFreedom);
+}
+FunctionSpace MeshAdapter::getDiracDeltaFunctions() const
+{
+  return createFunctionSpace(Points);
+}
+=======================
+FunctionSpace.getType()
+
+methods of Data
+
+createRandomAccess(FunctionSpace) : checks/interpolate data on FunctionSpace and returns a C-structure with a pointer to a double array 
+createReadAccess(FunctionSpace) : checks/interpolate data on FunctionSpace and returns a C-structure which can be used to acess data through id and tag.
+                                  the should be a possiblity to find out if the data are constant for a sample.
+           if FunctionSpace=0 or not present any domain is accepted.
+
+it should also be possible to check the rank, and shape of the Data and the number of sample points and the function space type
+
+========================
+//returns the spatial dimension:
+int MeshAdapter::getDim() const
+{
+   numDim=Finley_Mesh_getDim(m_finleyMesh.get());
+   checkFinleyError();
+   return numDim;
+}
+// returns the number of data points needed to represent data on a parts of the mesh.
+integerlist MeshAdapter::getDataShape(FunctionSpace m_FunctionSpace) const
+{
+   int primary_dim=0,second_dim=0;
+   Finley_Mesh mesh=m_finleyMesh.get()
+   switch (m_FunctionSpace.getType()) {
+      case(FINLEY_NODES):
+         primary_dim=1;
+         if (mesh->Nodes!=NULL) secondary_dim=mesh->Nodes->numNodes;
+         break;
+      case(FINLEY_ELEMENTS):
+         if (mesh->Elements!=NULL) {
+             secondary_dim=mesh->Elements->numElements;
+             primary_dim=mesh->Elements->ReferenceElement->numQuadNodes;
+         }
+         break;
+      case(FINLEY_FACE_ELEMENTS):
+         if (mesh->FaceElements!=NULL) {
+             primary_dim=mesh->FaceElements->ReferenceElement->numQuadNodes;
+             secondary_dim=mesh->FaceElements->numElements;
+         }
+         break;
+      case(FINLEY_POINTS):
+         if (mesh->Points!=NULL) {
+             primary_dim=1;
+             secondary_dim=mesh->Points->numElements;
+         }
+         break;
+      case(FINLEY_CONTACT_ELEMENTS_1):
+         if (mesh->ContactElements!=NULL) {
+             primary_dim=mesh->ContactElements->ReferenceElement->numQuadNodes;
+             secondary_dim=mesh->ContactElements->numElements;
+         }
+         break;
+      case(FINLEY_CONTACT_ELEMENTS_2):
+         if (mesh->ContactElements!=NULL) {
+             primary_dim=mesh->ContactElements->ReferenceElement->numQuadNodes;
+             secondary_dim=mesh->ContactElements->numElements;
+         }
+         break;
+      case(FINLEY_DEGREES_OF_FREEDOM):
+         if (mesh->Nodes!=NULL) {
+             primary_dim=1;
+             secondary_dim=mesh->Nodes->numDegreesOfFreedom;
+         }
+         break;
+      case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+         if (mesh->Nodes!=NULL) {
+             primary_dim=1;
+             secondary_dim=mesh->Nodes->reducedNumDegreesOfFreedom;
+         }
+         break;
+      default:
+         Finley_ErrorCode=VALUE_ERROR;
+         sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",m_FunctionSpace.getType());
+         break;
+   }
+   checkFinleyError();
+   return primary_dim,secondary_dim
+}
+// returns a handle to the sparse matrix generated by a mesh
+SystemMatrix MeshAdapter:: initSystemMatrix(
+				rowBlockSize=1,
+				reduceRowOrder=false,
+				colBlockSize=1,
+				reduceColOrder=false,
+				type=Constants.UNKNOWN,
+				sym=false) const 
+{
+   out=SystemMatrix(m_finleyMesh.get(),
+                    rowBlockSize,reduceRowOrder,
+                    colBlockSize,reduceColOrder,type,sym);
+   checkFinleyError();
+   return SystemMatrix::New(out);
+
+}
+// adds linear PDE of second order into a given stiffness matrix and right hand side:
+void MeshAdapter::assemblePDE(
+                     SystemMatrix mat, Data rhs,
+                     Data A, Data B, Data C, Data D, Data X, Data Y) const 
+{
+   Finley_Mesh* mesh=m_finleyMesh.get()
+   // get access to matrix:
+   Finley_SystemMatrix* mat_access=mat.get()
+   // get access to rhs:
+   if (mat_acces->reduceRowOrder) {
+         rhs_functionspace=getReducedSolutionSpace();
+   } else {
+         rhs_functionspace=getSolutionSpace();
+   }
+   rhs_access=rhs.createRandomAccess(rhs_functionspace);
+   // get access to all coefficients and 
+   A_access=A.createReadAccess(getFunctions())
+   B_access=B.createReadAccess(getFunctions())
+   C_access=C.createReadAccess(getFunctions())
+   D_access=D.createReadAccess(getFunctions())
+   X_access=X.createReadAccess(getFunctions())
+   Y_access=Y.createReadAccess(getFunctions())
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat_access,rhs_access,
+                       A_access,B_access,C_access,D_access,X_access,Y_access);
+   checkFinleyError();
+}
+// adds Robin boundary conditions as natural boundary condition into a given stiffness matrix and right hand side:
+void MeshAdapter::assembleRobinConditions(
+                     SystemMatrix mat, Data rhs,
+                     Data d, Data y) const 
+{
+   Finley_Mesh* mesh=m_finleyMesh.get()
+   // get access to matrix:
+   Finley_SystemMatrix* mat_access=mat.get()
+   // get access to rhs:
+   if (mat_acces->reduceRowOrder) {
+         rhs_functionspace=getReducedSolutionSpace();
+   } else {
+         rhs_functionspace=getSolutionSpace();
+   }
+   rhs_access=rhs.createRandomAccess(rhs_functionspace);
+   // get access to all coefficients and 
+   d_access=d.createReadAccess(FunctionOnBoundary(*this))
+   y_access=y.createReadAccess(FunctionOnBoundary(*this))
+                                                                
+   // and assemble things:
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,mat_access,rhs_access,
+                                  d_access,y_access,
+                                  Finley_Assemble_handelShapeMissMatch_Mean_out);
+   // all done:
+   checkFinleyError();
+}
+// adds contact conditions as natural boundary condition into a given stiffness matrix and right hand side:
+void MeshAdapter::assembleContact(
+                     SystemMatrix mat, Data rhs,
+                     Data d_contact, Data y_contact) const 
+{
+   Finley_Mesh* mesh=m_finleyMesh.get()
+   // get access to matrix:
+   Finley_SystemMatrix* mat_access=mat.get()
+   // get access to rhs:
+   if (mat_acces->reduceRowOrder) {
+         rhs_functionspace=getReducedSolutionSpace();
+   } else {
+         rhs_functionspace=getSolutionSpace();
+   }
+   rhs_access=rhs.createRandomAccess(rhs_functionspace);
+   // get access to all coefficients and 
+   d_contact_access=d.createReadAccess(FunctionsOnContactOne())
+   y_contact_access=y.createReadAccess(FunctionsOnContactOne())
+                                                                
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,mat_access,rhs_access,
+                                  d_contact_access,y_contact_access,
+                                  Finley_Assemble_handelShapeMissMatch_Step_out);
+   checkFinleyError();
+}
+//
+// return the location of data points as a Data object:
+//
+void Data MeshAdapter::getX(Data x) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  // in case of values node coordinates we can do the job directly:
+  if (x.getFunctionSpaceType()==FINLEY_NODES) {
+     x_access=x.createRandomAccess();
+     Finley_Assemble_NodeCoordinates(mesh->Nodes,x_access);
+  } else {
+     // otherwise a temporay Data object with node cooredintes is used:
+     tmp_data=Data::New(0,shape=(m_finleyMesh.getDim(),),what=m_finleyMesh.Nodes());
+     tmp_data_access=tmp_data.createRandomAccess(tmp_data.getFunctionSpace());
+     Finley_Assemble_NodeCoordinates(mesh->Nodes,tmp_data_access);
+     // this is then interpolated onto x:
+     m_finleyMesh.interpolate(tmp_data,x);
+  }
+  checkFinleyError();
+}
+//
+// return the normal vectors at the location of data points as a Data object:
+//
+void MeshAdapter::getNormal(Data normal) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get()
+  normal_access=normal.createRandomAccess(normal.getFunctionSpace());
+  switch(normal.getFunctionSpaceType()) {
+    case(FINLEY_NODES):
+      Finley_ErrorCode=VALUE_ERROR;
+      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for nodes");
+      break;
+    case(FINLEY_ELEMENTS):
+      Finley_ErrorCode=VALUE_ERROR;
+      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for elements");
+      break;
+    case (FINLEY_FACE_ELEMENTS):
+      Finley_Assemble_setNormal(mesh->Nodes,mesh->FaceElements,normal_access);
+      break;
+    case(FINLEY_POINTS):
+      Finley_ErrorCode=VALUE_ERROR;
+      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for point elements");
+      break;
+    case (FINLEY_CONTACT_ELEMENTS_2):
+      Finley_Assemble_setNormal(mesh->Nodes,mesh->ContactElements,normal_access);
+      break;
+    case (FINLEY_CONTACT_ELEMENTS_1):
+      Finley_Assemble_setNormal(mesh->Nodes,mesh->ContactElements,normal_access);
+      break;
+    case(FINLEY_DEGREES_OF_FREEDOM) {
+            Finley_ErrorCode=VALUE_ERROR;
+            sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for degrees of freedom.");
+      break;
+    case(FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+            Finley_ErrorCode=VALUE_ERROR;
+            sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for reduced degrees of freedom.");
+      break;
+    default:
+            Finley_ErrorCode=VALUE_ERROR;
+            sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",normal.getFunctionSpaceType());
+      break;
+  } 
+  checkFinleyError();
+}
+//
+// replaces the values of an Data object data by the corresponding values from new_data where tagged with tag:
+//
+void MeshAdapter::insertTaggedValue(Data data,int tag, Data new_data) const
+{
+   Finley_Mesh* mesh=m_finleyMesh.get()
+   data_access=data.createRandomAccess();
+   new_data_access=new_data.createReadAccess();
+
+  switch(data.getFunctionSpaceType()) {
+     case(FINLEY_NODES):
+        Finley_Assemble_insertTaggedValue(data_access,mesh->Nodes,(maybelong)tag,new_data_access);
+        break;
+     case(FINLEY_ELEMENTS):
+        Finley_Assemble_insertTaggedValue(data_access,mesh->Elements,(maybelong)tag,new_data_access);
+        break;
+     case(FINLEY_FACE_ELEMENTS):
+        Finley_Assemble_insertTaggedValue(data_access,mesh->FaceElements,(maybelong)tag,new_data_access);
+        break;
+     case(FINLEY_POINTS):
+        Finley_Assemble_insertTaggedValue(data_access,mesh->Points,(maybelong)tag,new_data_access);
+        break;
+     case(FINLEY_CONTACT_ELEMENTS_1):
+        Finley_Assemble_insertTaggedValue(data_access,mesh->ContactElements,(maybelong)tag,new_data_access);
+        break;
+     case(FINLEY_CONTACT_ELEMENTS_2):
+        Finley_Assemble_insertTaggedValue(data_access,mesh->ContactElements,(maybelong)tag,new_data_access);
+        break;
+     case(FINLEY_DEGREES_OF_FREEDOM):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Tagged values for degrees of freedorm is not supported.");
+        break;
+     case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Tagged values for reduced degrees of freedom is not supported.");
+        break;
+     default:
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",normal.getFunctionSpaceType());
+        break;
+  }
+  checkFinleyError();
+  return;
+}
+// interpolates data to other domain:
+Data MeshAdapter::interpolateACross(Data out, Data in) const
+{
+  Finley_ErrorCode=SYSTEM_ERROR;
+  sprintf(Finley_ErrorMsg,"Finley does not allow interpolation across domains yet.");
+  checkFinleyError();
+}
+// interpolates data between different function spaces:
+Data MeshAdapter::interpolateOnDomain(Data out, Data in) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get()
+  out_access=out.createReadAccess();
+  in_access=in.createRandomAccess();
+  switch(in.getFunctionSpaceType()) {
+     case(FINLEY_NODES):
+       switch(out.getFunctionSpaceType()) {
+          case(FINLEY_NODES):
+             if (mesh->Nodes!=NULL) Finley_DataArray_FromData(out_access,mesh->Nodes->Tag,in_access);
+             break;
+          case(FINLEY_ELEMENTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,in_access,out_access)
+             break;
+          case(FINLEY_FACE_ELEMENTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,in_access,out_access)
+             break;
+          case(FINLEY_POINTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,in_access,out_access)
+             break;
+          case(FINLEY_CONTACT_ELEMENTS_1):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,in_access,out_access)
+             break;
+          case(FINLEY_CONTACT_ELEMENTS_2):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,in_access,out_access)
+             break;
+          case(FINLEY_DEGREES_OF_FREEDOM):
+             if (mesh->Nodes!=NULL)
+                     Finley_Assemble_ScatterFromData(out_access,mesh->Nodes->numNodes,mesh->Nodes->degreeOfFreedom,mesh->Nodes->Tag,in_access);
+             break;
+          case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+             if (mesh->Nodes!=NULL) 
+                    Finley_Assemble_ScatterFromData(out_access,mesh->Nodes->numNodes,mesh->Nodes->reducedDegreeOfFreedom,mesh->Nodes->Tag,in_access);
+             break;
+          default:
+             Finley_ErrorCode=VALUE_ERROR;
+             sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",out.getFunctionSpaceType());
+             break;
+       }
+        break;
+     case(FINLEY_ELEMENTS):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"No interpolation with data on elements possible.");
+        break;
+     case(FINLEY_FACE_ELEMENTS):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"No interpolation with data on face elements possible.");
+        break;
+     case(FINLEY_POINTS):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"No interpolation with data on points possible.");
+        break;
+     case(FINLEY_CONTACT_ELEMENTS_1):
+     case(FINLEY_CONTACT_ELEMENTS_2):
+       switch(out.getFunctionSpaceType()) {
+          case(FINLEY_NODES):
+             Finley_ErrorCode=VALUE_ERROR;
+             sprintf(Finley_ErrorMsg,"No interpolation from contact elements to nodes possible.");
+             break;
+          case(FINLEY_ELEMENTS):
+             sprintf(Finley_ErrorMsg,"No interpolation from contact elements to elements possible.");
+             break;
+          case(FINLEY_FACE_ELEMENTS):
+             sprintf(Finley_ErrorMsg,"No interpolation from contact elements to face elements possible.");
+             break;
+          case(FINLEY_POINTS):
+             sprintf(Finley_ErrorMsg,"No interpolation from contact elements to points possible.");
+             break;
+          case(FINLEY_CONTACT_ELEMENTS_2):
+          case(FINLEY_CONTACT_ELEMENTS_1):
+             if (mesh->ContactElements!=NULL) Finley_DataArray_FromData(out_access,mesh->ContactElements->Tag,in_access);
+             break;
+          case(FINLEY_DEGREES_OF_FREEDOM):
+             sprintf(Finley_ErrorMsg,"No interpolation from contact elements to degrees of freedom possible.");
+             break;
+          case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+             sprintf(Finley_ErrorMsg,"No interpolation from contact elements to reduced degrees of freedom possible.");
+             break;
+          default:
+             Finley_ErrorCode=VALUE_ERROR;
+             sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",out.getFunctionSpaceType());
+             break;
+        }
+        break;
+     case(FINLEY_DEGREES_OF_FREEDOM):
+       switch(out.getFunctionSpaceType()) {
+          case(FINLEY_NODES):
+             if (mesh->Nodes!=NULL) Finley_DataArray_GatherFromData(out_access,mesh->Nodes->degreeOfFreedom,mesh->Nodes->Tag,data_access);
+             break;
+          case(FINLEY_ELEMENTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,in_access,out_access);
+             break;
+          case(FINLEY_FACE_ELEMENTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,in_access,out_access);
+             break;
+          case(FINLEY_POINTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,in_access,out_access);
+             break;
+          case(FINLEY_CONTACT_ELEMENTS_1):
+          case(FINLEY_CONTACT_ELEMENTS_2):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,in_access,out_access);
+             break;
+          case(FINLEY_DEGREES_OF_FREEDOM):
+             if (mesh->Nodes!=NULL) Finley_DataArray_FromData(out_access,mesh->Nodes->Tag,in_access);
+             break;
+          case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+             if (mesh->Nodes!=NULL) Finley_DataArray_GatherFromData(out,mesh->Nodes->reducedDegreeOfFreedom,mesh->Nodes->Tag,data);
+             break;
+          default:
+             Finley_ErrorCode=VALUE_ERROR;
+             sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",out.getFunctionSpaceType());
+             break;
+        }
+        break;
+     case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+       switch(out.getFunctionSpaceType()) {
+          case(FINLEY_NODES):
+             if (mesh->Nodes!=NULL) Finley_DataArray_GatherFromData(out,mesh->Nodes->reducedDegreeOfFreedom,mesh->Nodes->Tag,data);
+             break;
+          case(FINLEY_ELEMENTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,in_access,out_access);
+             break;
+          case(FINLEY_FACE_ELEMENTS):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,in_access,out_access);
+             break;
+          case(FINLEY_POINTS):
+            Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,in_access,out_access);
+             break;
+          case(FINLEY_CONTACT_ELEMENTS_1):
+          case(FINLEY_CONTACT_ELEMENTS_2):
+             Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,in_access,out_access);
+             break;
+          case(FINLEY_DEGREES_OF_FREEDOM):
+             Finley_ErrorCode=VALUE_ERROR;
+             sprintf(Finley_ErrorMsg,"Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
+             break;
+          case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+             if (mesh->Nodes!=NULL) Finley_DataArray_FromData(out_access,mesh->Nodes->Tag,in_access);
+             break;
+          default:
+             Finley_ErrorCode=VALUE_ERROR;
+             sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",out.getFunctionSpaceType());
+             break;
+       }
+        break;
+     default:
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",in.getFunctionSpaceType());
+        break;
+  }
+  checkFinleyError();
+}
+// calculates the gradient of data:
+Data MeshAdapter::gradient(Data grad, Data arg) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get()
+  arg_access=arg.createReadAccess();
+  grad_access=grad.createRandomAccess();
+
+  switch(grad.getFunctionSpaceType()) {
+       case(FINLEY_NODES):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Gradient at nodes is not supported.");
+          break;
+       case(FINLEY_ELEMENTS):
+          Finley_Assemble_gradient(mesh->Nodes,mesh->Elements,grad_access,arg_access);
+          break;
+       case(FINLEY_FACE_ELEMENTS):
+          Finley_Assemble_gradient(mesh->Nodes,mesh->FaceElements,grad_access,arg_access);
+          break;
+       case(FINLEY_POINTS):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Gradient at points is not supported.");
+          break;
+       case(FINLEY_CONTACT_ELEMENTS_1):
+          Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,grad_access,arg_access);
+          break;
+       case(FINLEY_CONTACT_ELEMENTS_2):
+          Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,grad_access,arg_access);
+          break;
+       case(FINLEY_DEGREES_OF_FREEDOM):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Gradient at degrees of freedom is not supported.");
+          break;
+       case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Gradient at reduced degrees of freedom is not supported.");
+          break;
+       default:
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",arg.getFunctionSpaceType());
+          break;
+  }
+  checkFinleyError();
+}
+
+// calculates the integral of a function defined of arg:
+PyArrayObject* MeshAdapter::integrate(Data arg) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get()
+  arg=arg.createReadAccess();
+  double* integrals=(double*) TMPMEMALLOC(sizeof(double)*arg->numComponents);
+  if (integrals==NULL) ?
+
+  switch(arg.getFunctionSpaceType()) {
+     case(FINLEY_NODES):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Integral of data on nodes is not supported.");
+        break;
+     case(FINLEY_ELEMENTS):
+        Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,arg,integrals);
+        break;
+     case(FINLEY_FACE_ELEMENTS):
+        Finley_Assemble_integrate(mesh->Nodes,mesh->FaceElements,arg,integrals);
+        break;
+     case(FINLEY_POINTS):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Integral of data on points is not supported.");
+        break;
+     case(FINLEY_CONTACT_ELEMENTS_1):
+        Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,arg,integrals);
+        break;
+     case(FINLEY_CONTACT_ELEMENTS_2):
+        Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,arg,integrals);
+        break;
+     case(FINLEY_DEGREES_OF_FREEDOM):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Integral of data on degrees of freedom is not supported.");
+        break;
+     case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Integral of data on reduced degrees of freedom is not supported.");
+        break;
+     default:
+        Finley_ErrorCode=VALUE_ERROR;
+        sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",arg.getFunctionSpaceType());
+        break;
+  }
+  checkFinleyError();
+  TMPMEMFREE(integrals);
+
+  return FinleyPy_turnToPyArrayObject(arg->rank,arg->dimensions,integrals);
+}
+
+// returns the size of elements:
+Data MeshAdapter::getSize(Data size) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get()
+  size_access=size.createReadAccess();
+
+  switch(grad.getFunctionSpaceType()) {
+       case(FINLEY_NODES):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Size of nodes is not supported.");
+          break;
+       case(FINLEY_ELEMENTS):
+          Finley_Assemble_getSize(mesh->Nodes,mesh->Elements,size_access);
+          break;
+       case(FINLEY_FACE_ELEMENTS):
+          Finley_Assemble_getSize(mesh->Nodes,mesh->FaceElements,size_access);
+          break;
+       case(FINLEY_POINTS):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Size of point elements is not supported.");
+          break;
+       case(FINLEY_CONTACT_ELEMENTS_1):
+       case(FINLEY_CONTACT_ELEMENTS_2):
+          Finley_Assemble_getSize(mesh->Nodes,mesh->ContactElements,size_access);
+          break;
+       case(FINLEY_DEGREES_OF_FREEDOM):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Size of degrees of freedom is not supported.");
+          break;
+       case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Size of reduced degrees of freedom is not supported.");
+          break;
+       default:
+          Finley_ErrorCode=VALUE_ERROR;
+          sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",size.getFunctionSpaceType());
+          break;
+  }
+  checkFinleyError();
+}
+// sets the location of nodes:
+void MeshAdapter::setX(Data new_x) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get()
+  new_x_access=new_x.createRandomAccess(m_finleyMesh.ContinuousFunction());
+  if (mesh->Nodes!=NULL) Finley_NodeFile_setCoordinates(mesh->Nodes,new_x_access);
+  checkFinleyError();
+}
+// saves a data array in openDX format:
+void MeshAdapter::saveDX(char* filename,Data arg) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get()
+  arg_access=arg.createRandomAccess();
+  Finley_saveDX(filename,mesh, arg_access);
+  checkFinleyError();
+}
+// 
+// vtkObject MeshAdapter::createVtkObject() const
+//
+// returns true if data at the atom_type is considered as being cell centered:
+bool MeshAdapter::isCellOrientedAtoms(atom_type) const
+{
+    if atom_type=="Finley_Elements": return true
+    elif atom_type=="Finley_Face_Elements": return true
+    elif atom_type=="Finley_Points": return true
+    elif atom_type=="Finley_Contact_Elements_1":  return true
+    elif atom_type=="Finley_Contact_Elements_0": return true
+    else:
+       return false
+}
+// returns a sequence of function spaces needed to interpolate data on source_atoms onto 
+// target_atoms. The function returns a tuple of atoms where the last atom is target_atoms.
+// null is returned if there is no path to interpolate data from source_atoms onto 
+// target_atoms.
+
+functionspacelist getInterpolationPath(source_atom_type,target_atoms) const
+{
+
+}
+
+}  // end of namespace
