@@ -69,4 +69,3 @@ pyc: ${PYTHON_BYTE}
 
 # Always remake the default target
 ${DEFAULT_TARGET}:
-

@@ -32,9 +32,9 @@ DataConstant::DataConstant(const boost::python::numeric::array& value,
   //
   // copy the data in the correct format
   m_data=temp.getData();
-  DataArrayView tempView(m_data,temp.getView().getShape());
   //
-  // copy the view of the data
+  // create the view of the data
+  DataArrayView tempView(m_data,temp.getView().getShape());
   setPointDataView(tempView);
 }
 
@@ -45,9 +45,9 @@ DataConstant::DataConstant(const DataArrayView& value,
   //
   // copy the data in the correct format
   m_data=value.getData();
-  DataArrayView tempView(m_data,value.getShape());
   //
-  // copy the view of the data
+  // create the view of the data
+  DataArrayView tempView(m_data,value.getShape());
   setPointDataView(tempView);
 }
 
@@ -57,9 +57,9 @@ DataConstant::DataConstant(const DataConstant& other)
   // 
   // copy the data in the correct format
   m_data=other.m_data;
-  DataArrayView tempView(m_data,other.getPointDataView().getShape());
   //
-  // copy the view of the data
+  // create the view of the data
+  DataArrayView tempView(m_data,other.getPointDataView().getShape());
   setPointDataView(tempView);
 }
 
@@ -76,11 +76,24 @@ DataConstant::DataConstant(const DataConstant& other,
   //
   // create a view of the data with the correct shape
   DataArrayView tempView(m_data,shape);
-  // copy the data from the slice to the temp view
   DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
-  tempView.copySlice(other.getPointDataView(),region_loop_range);
   //
-  // store the temp view of the data in this object
+  // load the view with the data from the slice
+  tempView.copySlice(other.getPointDataView(),region_loop_range);
+  setPointDataView(tempView);
+}
+
+DataConstant::DataConstant(const FunctionSpace& what,
+                           const DataArrayView::ShapeType &shape,
+                           const DataArrayView::ValueType &data)
+  : DataAbstract(what)
+{
+  //
+  // copy the data in the correct format
+  m_data=data;
+  //
+  // create the view of the data
+  DataArrayView tempView(m_data,shape);
   setPointDataView(tempView);
 }
 

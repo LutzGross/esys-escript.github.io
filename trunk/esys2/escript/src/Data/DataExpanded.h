@@ -94,6 +94,20 @@ class DataExpanded : public DataAbstract {
 
   /**
      \brief
+     Alternative constructor for DataExpanded objects.
+
+     Description:
+     Alternative Constructor for DataExpanded objects.
+     \param what - Input - A description of what this data object represents.
+     \param shape - Input - the shape of each data-point.
+     \param data - the data values for each data-point.
+  */
+  DataExpanded(const FunctionSpace& what,
+               const DataArrayView::ShapeType &shape,
+               const DataArrayView::ValueType &data);
+
+  /**
+     \brief
      Copy constructor for DataExpanded.
      Performs a deep copy from another DataExpanded.
   */

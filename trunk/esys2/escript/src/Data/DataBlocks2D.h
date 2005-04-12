@@ -182,7 +182,7 @@ class DataBlocks2D {
 
   /**
      \brief
-     Return the underlying data array.
+     Return a reference to the underlying data array.
      Data returned is an array type object that can be indexed via indexes generated
      by DataBlocks2D::index.
   */

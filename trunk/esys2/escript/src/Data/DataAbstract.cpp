@@ -40,6 +40,12 @@ DataAbstract::setPointDataView(const DataArrayView& input)
 }
 
 void
+DataAbstract::resetPointDataView()
+{
+    m_pointDataView.reset(new DataArrayView());
+}
+
+void
 DataAbstract::operandCheck(const DataAbstract& right) const
 {
     if ((right.getNumDPPSample()!=getNumDPPSample()) ||

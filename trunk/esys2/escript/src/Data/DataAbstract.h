@@ -281,6 +281,9 @@ class DataAbstract {
   void
   setPointDataView(const DataArrayView& input);
 
+  void
+  resetPointDataView();
+
  private:
 
   //
