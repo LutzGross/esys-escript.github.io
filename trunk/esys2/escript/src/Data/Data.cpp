@@ -18,6 +18,7 @@
 #include "escript/Data/Data.h"
 
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <vector>
 #include <exception>
@@ -29,7 +30,6 @@
 #include <boost/python/long.hpp>
 
 #include "escript/Data/DataException.h"
-
 #include "escript/Data/DataExpanded.h"
 #include "escript/Data/DataConstant.h"
 #include "escript/Data/DataTagged.h"
@@ -1235,6 +1235,286 @@ Data::setTaggedValue(int tagKey,
   m_data->setTaggedValue(tagKey,value);
 }
 */
+
+void
+Data::archiveData(const std::string fileName)
+{
+  cout << "Archiving Data object to: " << fileName << endl;
+
+  //
+  // Determine type of this Data object
+  int dataType = -1;
+
+  if (isEmpty()) {
+    dataType = 0;
+    cout << "\tdataType: DataEmpty" << endl;
+  }
+  if (isConstant()) {
+    dataType = 1;
+    cout << "\tdataType: DataConstant" << endl;
+  }
+  if (isTagged()) {
+    dataType = 2;
+    cout << "\tdataType: DataTagged" << endl;
+  }
+  if (isExpanded()) {
+    dataType = 3;
+    cout << "\tdataType: DataExpanded" << endl;
+  }
+  if (dataType == -1) {
+    throw DataException("archiveData Error: undefined dataType");
+  }
+
+  //
+  // Collect data items common to all Data types
+  int noSamples = getNumSamples();
+  int noDPPSample = getNumDataPointsPerSample();
+  int functionSpaceType = getFunctionSpace().getTypeCode();
+  int dataPointRank = getDataPointRank();
+  int dataPointSize = getDataPointSize();
+  int dataLength = getLength();
+  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+  int referenceNumbers[noSamples];
+  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+    referenceNumbers[sampleNo] = getFunctionSpace().getReferenceNoFromSampleNo(sampleNo);
+  }
+  int tagNumbers[noSamples];
+  if (isTagged()) {
+    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+      tagNumbers[sampleNo] = getFunctionSpace().getTagFromSampleNo(sampleNo);
+    }
+  }
+
+  cout << "\tnoSamples: " << noSamples << " noDPPSample: " << noDPPSample << endl;
+  cout << "\tfunctionSpaceType: " << functionSpaceType << endl;
+  cout << "\trank: " << dataPointRank << " size: " << dataPointSize << " length: " << dataLength << endl;
+
+  //
+  // Flatten Shape to an array of integers suitable for writing to file
+  int flatShape[4] = {0,0,0,0};
+  cout << "\tshape: < ";
+  for (int dim=0; dim<dataPointRank; dim++) {
+    flatShape[dim] = dataPointShape[dim];
+    cout << dataPointShape[dim] << " ";
+  }
+  cout << ">" << endl;
+
+  //
+  // Write common data items to archive file
+  ofstream archiveFile;
+  archiveFile.open(fileName.data(), ios::out);
+
+  if (!archiveFile.good()) {
+    throw DataException("archiveData Error: problem opening archive file");
+  }
+
+  archiveFile.write(reinterpret_cast<char *>(&dataType),sizeof(int));
+  archiveFile.write(reinterpret_cast<char *>(&noSamples),sizeof(int));
+  archiveFile.write(reinterpret_cast<char *>(&noDPPSample),sizeof(int));
+  archiveFile.write(reinterpret_cast<char *>(&functionSpaceType),sizeof(int));
+  archiveFile.write(reinterpret_cast<char *>(&dataPointRank),sizeof(int));
+  archiveFile.write(reinterpret_cast<char *>(&dataPointSize),sizeof(int));
+  archiveFile.write(reinterpret_cast<char *>(&dataLength),sizeof(int));
+  for (int dim = 0; dim < 4; dim++) {
+    archiveFile.write(reinterpret_cast<char *>(&flatShape[dim]),sizeof(int));
+  }
+  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+    archiveFile.write(reinterpret_cast<char *>(&referenceNumbers[sampleNo]),sizeof(int));
+  }
+  if (isTagged()) {
+    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+      archiveFile.write(reinterpret_cast<char *>(&tagNumbers[sampleNo]),sizeof(int));
+    }
+  }
+
+  if (!archiveFile.good()) {
+    throw DataException("archiveData Error: problem writing to archive file");
+  }
+
+  archiveFile.close();
+
+  if (!archiveFile.good()) {
+    throw DataException("archiveData Error: problem closing archive file");
+  }
+
+  //
+  // Collect and archive underlying data values for each Data type
+  switch (dataType) {
+    case 0:
+      // DataEmpty
+      break;
+    case 1:
+      // DataConstant
+      break;
+    case 2:
+      // DataTagged
+      break;
+    case 3:
+      // DataExpanded
+      break;
+  }
+
+}
+
+void
+Data::extractData(const std::string fileName,
+                  const FunctionSpace& fspace)
+{
+  //
+  // Can only extract Data to an object which is initially DataEmpty
+  if (!isEmpty()) {
+    throw DataException("extractData Error: can only extract to DataEmpty object");
+  }
+
+  cout << "Extracting Data object from: " << fileName << endl;
+
+  int dataType;
+  int noSamples;
+  int noDPPSample;
+  int functionSpaceType;
+  int dataPointRank;
+  int dataPointSize;
+  int dataLength;
+  DataArrayView::ShapeType dataPointShape;
+  int flatShape[4];
+
+  //
+  // Open the archive file and read common data items
+  ifstream archiveFile;
+  archiveFile.open(fileName.data(), ios::in);
+
+  if (!archiveFile.good()) {
+    throw DataException("extractData Error: problem opening archive file");
+  }
+
+  archiveFile.read(reinterpret_cast<char *>(&dataType),sizeof(int));
+  archiveFile.read(reinterpret_cast<char *>(&noSamples),sizeof(int));
+  archiveFile.read(reinterpret_cast<char *>(&noDPPSample),sizeof(int));
+  archiveFile.read(reinterpret_cast<char *>(&functionSpaceType),sizeof(int));
+  archiveFile.read(reinterpret_cast<char *>(&dataPointRank),sizeof(int));
+  archiveFile.read(reinterpret_cast<char *>(&dataPointSize),sizeof(int));
+  archiveFile.read(reinterpret_cast<char *>(&dataLength),sizeof(int));
+  for (int dim = 0; dim < 4; dim++) {
+    archiveFile.read(reinterpret_cast<char *>(&flatShape[dim]),sizeof(int));
+    if (flatShape[dim]>0) {
+      dataPointShape.push_back(flatShape[dim]);
+    }
+  }
+  int referenceNumbers[noSamples];
+  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+    archiveFile.read(reinterpret_cast<char *>(&referenceNumbers[sampleNo]),sizeof(int));
+  }
+  int tagNumbers[noSamples];
+  if (dataType==2) {
+    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+      archiveFile.read(reinterpret_cast<char *>(&tagNumbers[sampleNo]),sizeof(int));
+    }
+  }
+
+  if (!archiveFile.good()) {
+    throw DataException("extractData Error: problem reading from archive file");
+  }
+
+  archiveFile.close();
+
+  if (!archiveFile.good()) {
+    throw DataException("extractData Error: problem closing archive file");
+  }
+
+  switch (dataType) {
+    case 0:
+      cout << "\tdataType: DataEmpty" << endl;
+      break;
+    case 1:
+      cout << "\tdataType: DataConstant" << endl;
+      break;
+    case 2:
+      cout << "\tdataType: DataTagged" << endl;
+      break;
+    case 3:
+      cout << "\tdataType: DataExpanded" << endl;
+      break;
+    default:
+      throw DataException("extractData Error: undefined dataType read from archive file");
+      break;
+  }
+
+  cout << "\tnoSamples: " << noSamples << " noDPPSample: " << noDPPSample << endl;
+  cout << "\tfunctionSpaceType: " << functionSpaceType << endl;
+  cout << "\trank: " << dataPointRank << " size: " << dataPointSize << " length: " << dataLength << endl;
+  cout << "\tshape: < ";
+  for (int dim = 0; dim < dataPointRank; dim++) {
+    cout << dataPointShape[dim] << " ";
+  }
+  cout << ">" << endl;
+
+  //
+  // Verify that supplied FunctionSpace object is compatible with this Data object.
+  if ( (fspace.getTypeCode()!=functionSpaceType) ||
+       (fspace.getNumSamples()!=noSamples) ||
+       (fspace.getNumDPPSample()!=noDPPSample)
+     ) {
+    throw DataException("extractData Error: incompatible FunctionSpace");
+  }
+  for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+    if (referenceNumbers[sampleNo] != fspace.getReferenceNoFromSampleNo(sampleNo)) {
+      throw DataException("extractData Error: incompatible FunctionSpace");
+    }
+  }
+  if (dataType==2) {
+    for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
+      if (tagNumbers[sampleNo] != fspace.getTagFromSampleNo(sampleNo)) {
+        throw DataException("extractData Error: incompatible FunctionSpace");
+      }
+    }
+  }
+
+  //
+  // Construct a DataVector to hold underlying data values
+  DataVector dataVec(dataLength);
+
+  //
+  // Load this DataVector with the appropriate values
+  switch (dataType) {
+    case 0:
+      // DataEmpty
+      break;
+    case 1:
+      // DataConstant
+      break;
+    case 2:
+      // DataTagged
+      break;
+    case 3:
+      // DataExpanded
+      break;
+  }
+
+  //
+  // Construct an appropriate Data object
+  DataAbstract* tempData;
+  switch (dataType) {
+    case 0:
+      // DataEmpty
+      tempData=new DataEmpty();
+      break;
+    case 1:
+      // DataConstant
+      tempData=new DataConstant(fspace,dataPointShape,dataVec);
+      break;
+    case 2:
+      // DataTagged
+      tempData=new DataTagged(fspace,dataPointShape,tagNumbers,dataVec);
+      break;
+    case 3:
+      // DataExpanded
+      tempData=new DataExpanded(fspace,dataPointShape,dataVec);
+      break;
+  }
+  shared_ptr<DataAbstract> temp_data(tempData);
+  m_data=temp_data;
+
+}
 
 ostream& escript::operator<<(ostream& o, const Data& data)
 {

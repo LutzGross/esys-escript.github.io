@@ -41,12 +41,34 @@ DataTagged::DataTagged(const TagListType& tagKeys,
   : DataAbstract(what)
 {
   //
+  // Initialise the array of data values
   // The default value is always the first item in the values list
   m_data.insert(m_data.end(), &defaultValue.getData(0), &defaultValue.getData(defaultValue.noValues()) );
+  // create the data view
   DataArrayView temp(m_data,defaultValue.getShape());
   setPointDataView(temp);
   // add remaining tags and values
   addTaggedValues(tagKeys,values);
+}
+
+DataTagged::DataTagged(const FunctionSpace& what,
+                       const DataArrayView::ShapeType &shape,
+                       const int tags[],
+                       const DataArrayView::ValueType &data)
+  : DataAbstract(what)
+{
+  //
+  // copy the data in the correct format
+  m_data=data;
+  //
+  // create the view of the data
+  DataArrayView tempView(m_data,shape);
+  setPointDataView(tempView);
+  //
+  // create the tag lookup map
+  for (int sampleNo=0; sampleNo<getNumSamples(); sampleNo++) {
+    m_offsetLookup.insert(DataMapType::value_type(sampleNo,tags[sampleNo]));
+  }
 }
 
 DataTagged::DataTagged(const DataTagged& other)
@@ -54,6 +76,7 @@ DataTagged::DataTagged(const DataTagged& other)
   m_data(other.m_data),
   m_offsetLookup(other.m_offsetLookup)
 {
+  // create the data view
   DataArrayView temp(m_data,other.getPointDataView().getShape());
   setPointDataView(temp);
 }
@@ -65,6 +88,7 @@ DataTagged::DataTagged(const DataConstant& other)
   // Fill the default value with the constant value item from other
   const DataArrayView& value=other.getPointDataView();
   m_data.insert(m_data.end(), &value.getData(0), &value.getData(value.noValues()) );
+  // create the data view
   DataArrayView temp(m_data,value.getShape());
   setPointDataView(temp);
 }
@@ -79,11 +103,13 @@ DataTagged::DataTagged(const DataTagged& other,
   DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
   // allocate enough space for all values
   m_data.resize(DataArrayView::noValues(shape)*(other.m_offsetLookup.size()+1));
+  // create the data view
   DataArrayView temp(m_data,shape);
   setPointDataView(temp);
+  // copy the default value
   getDefaultValue().copySlice(other.getDefaultValue(),region_loop_range);
   //
-  // Loop through the tag values
+  // Loop through the tag values copying these
   DataMapType::const_iterator pos;
   DataArrayView::ValueType::size_type tagOffset=getPointDataView().noValues();
   for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();++pos){

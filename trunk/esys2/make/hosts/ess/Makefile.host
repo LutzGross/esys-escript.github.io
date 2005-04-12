@@ -10,12 +10,14 @@ CC_DEF_FLAG := -D
 CC_DEP_FLAGS := -MM
 CC_OBJ_FLAGS := -c -fpic
 CC_SHARE_FLAGS := -fpic
-CC_CONFORM_FLAGS := -ansi -ansi_alias -c99 -no-gcc
+CC_CONFORM_FLAGS := -ansi_alias -c99 -no-gcc
 CC_DIAG_FLAGS := -w1
 CC_ARCH_FLAGS := -tpp2
-CC_ARCH_FLAGS := 
-CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report2
-# CC_OPT_FLAGS := -O3 -IPF_fma -ftz -parallel -par_report3 -openmp -openmp_report2
+ifeq ($(strip $(DODEBUG)),YES)
+  CC_OPT_FLAGS := -g -O0 -openmp -openmp_report2
+else 
+  CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report2 -mp1
+endif
 CC_OUTPUT_FLAG := -o
 
 # CPP Compiler Settings
@@ -26,17 +28,14 @@ CPP_DEF_FLAG := -D
 CPP_DEP_FLAGS := -MM
 CPP_OBJ_FLAGS := -c -fpic
 CPP_SHARE_FLAGS := -fpic
-CPP_CONFORM_FLAGS := -ansi -ansi_alias -mp1 -no-gcc
+CPP_CONFORM_FLAGS := -ansi -ansi_alias -no-gcc
 CPP_DIAG_FLAGS := -w1
 CPP_ARCH_FLAGS := -tpp2
 ifeq ($(strip $(DODEBUG)),YES)
   CPP_OPT_FLAGS := -g -O0 -openmp -openmp_report2
-  #
-  # libraries built with debug on have this extension appended to their name
-  # eg the debug version of libCppUnitTest.a would be libCppUnitTestg.a
   DEBUG_FILE_EXT := g
 else
-  CPP_OPT_FLAGS := -O2 -openmp -openmp_report2
+  CPP_OPT_FLAGS := -O3 -openmp -openmp_report2 -mp1
   DEBUG_FILE_EXIT := ${NULL}
 endif
 CPP_OUTPUT_FLAG := -o

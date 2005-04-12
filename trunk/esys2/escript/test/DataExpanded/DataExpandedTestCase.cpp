@@ -77,6 +77,32 @@ void DataExpandedTestCase::testAll() {
   assert(testData.validSampleNo(testData.getNumSamples()-1));
 
   //
+  // Test alternative constructor
+  cout << "\tTest DataExpanded alternative constructor." << endl;
+  data[0]=0.0;
+  data[1]=1.0;
+  data[2]=2.0;
+  DataExpanded testData1(FunctionSpace(),shape,data);
+
+  cout << "\tTest getLength." << endl;
+  assert(testData1.getLength()==pointData.noValues());
+
+  cout << "\tTest getPointDataView." << endl;
+  for (int i=0;i<testData1.getPointDataView().getShape()[0];i++) {
+      assert(testData1.getPointDataView()(i)==pointData(i));
+  }
+
+  cout << "\tVerify data point attributes." << endl;
+  dataView=testData1.getPointDataView();
+  assert(dataView.getRank()==shape.size());
+  assert(dataView.noValues()==shape[0]*1);
+  assert(dataView.getShape()[0]==shape[0]);
+  assert(testData.getNumDPPSample()==1);
+  assert(testData.getNumSamples()==1);
+  assert(testData.validSamplePointNo(testData.getNumDPPSample()-1));
+  assert(testData.validSampleNo(testData.getNumSamples()-1));
+
+  //
   // Test copy constructor
   cout << "\tTest DataExpanded copy constructor." << endl;
   DataExpanded testData2(testData);

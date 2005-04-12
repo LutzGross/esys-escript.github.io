@@ -12,4 +12,3 @@ DEFAULT_TARGET := libCppUnitTest.a
 PACKAGES := ${NULL}
 
 include ${ESYS_ROOT}/make/Makefile.default
-

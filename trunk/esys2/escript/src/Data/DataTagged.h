@@ -44,11 +44,13 @@ class DataTagged : public DataAbstract {
 
  public:
 
+  //
+  // Types for the lists of tags and values
   typedef std::vector<int> TagListType;
   typedef std::vector<DataArrayView> ValueListType;
 
   //
-  // Map type, maps the key to an array offset. 
+  // Map from the tag to an offset the the data array. 
   typedef std::map<int, int> DataMapType;
 
   /**
@@ -82,6 +84,22 @@ class DataTagged : public DataAbstract {
              const ValueListType& values,
 	     const DataArrayView& defaultValue,
 	     const FunctionSpace& what);
+
+  /**
+     \brief
+     Alternative constructor for DataTagged objects.
+
+     Description:
+     Alternative Constructor for DataTagged objects.
+     \param what - Input - A description of what this data object represents.
+     \param shape - Input - the shape of each data-point.
+     \param tags - Input - array of tags, one for each sample number
+     \param data - the data values for each data-point.
+  */
+  DataTagged(const FunctionSpace& what,
+             const DataArrayView::ShapeType &shape,
+             const int tags[],
+             const DataArrayView::ValueType &data);
 
   /**
      \brief
@@ -280,13 +298,6 @@ class DataTagged : public DataAbstract {
   DataArrayView&
   getDefaultValue();
 
-  /**
-     \brief
-     getDefaultValue
-
-     Description:
-     Return the default value, const version.
-  */
   const DataArrayView&
   getDefaultValue() const;
 
@@ -349,12 +360,12 @@ class DataTagged : public DataAbstract {
   DataMapType m_offsetLookup;
 
   //
-  // The actual data
-  DataArrayView::ValueType m_data;
-
-  //
   // the default value offset
   static const int m_defaultValueOffset = 0;
+
+  //
+  // The actual data
+  DataArrayView::ValueType m_data;
 
 };
 
