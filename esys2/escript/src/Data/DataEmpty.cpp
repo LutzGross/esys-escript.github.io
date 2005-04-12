@@ -21,6 +21,7 @@ namespace escript {
 DataEmpty::DataEmpty() :
   DataAbstract(FunctionSpace())
 {
+  resetPointDataView();
 }
 
 DataEmpty::~DataEmpty()

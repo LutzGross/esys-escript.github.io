@@ -874,6 +874,26 @@ class Data {
   setSlice(const Data& value,
            const DataArrayView::RegionType& region);
 
+  /**
+     \brief
+     Archive the current Data object to the given file.
+     \param fileName - Input - file to archive to.
+  */
+  void
+  archiveData(const std::string fileName);
+
+  /**
+     \brief
+     Extract the Data object archived in the given file, overwriting
+     the current Data object.
+     Note - the current object must be of type DataEmpty.
+     \param fileName - Input - file to extract from.
+     \param what - Input - a suitable FunctionSpace descibing the data.
+  */
+  void
+  extractData(const std::string fileName,
+              const FunctionSpace& fspace);
+
  protected:
 
  private:

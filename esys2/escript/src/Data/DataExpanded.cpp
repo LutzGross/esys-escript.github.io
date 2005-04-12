@@ -72,7 +72,7 @@ DataExpanded::DataExpanded(const DataTagged& other)
   : DataAbstract(other.getFunctionSpace())
 {
   //
-  // initialise the data for this object
+  // initialise the data array for this object
   initialise(other.getPointDataView().getShape(),other.getNumSamples(),other.getNumDPPSample());
   //
   // for each data point in this object, extract and copy the corresponding data
@@ -135,6 +135,20 @@ DataExpanded::DataExpanded(const DataArrayView& value,
   //
   // copy the given value to every data point
   copy(value);
+}
+
+DataExpanded::DataExpanded(const FunctionSpace& what,
+                           const DataArrayView::ShapeType &shape,
+                           const DataArrayView::ValueType &data)
+  : DataAbstract(what)
+{
+  //
+  // copy the data in the correct format
+  m_data.getData()=data;
+  //
+  // create the view of the data
+  DataArrayView tempView(m_data.getData(),shape);
+  setPointDataView(tempView);
 }
 
 DataExpanded::~DataExpanded()

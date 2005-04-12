@@ -84,28 +84,59 @@ def isScalar(arg):
 
 print "\n\n"
 
-msh=finley.Rectangle(1,1,1)
+msh=finley.Rectangle(10,9,1)
 
-for wh in [ContinuousFunction(msh),Function(msh)]:
+#for wh in [ContinuousFunction(msh),Function(msh)]:
 
-  print wh.toString()
+#  print wh.toString()
 
-  for ex in ["Constant","Expanded"]:
+#  for ex in ["Constant","Expanded"]:
 
-    for a in arglist:
+#    for a in arglist:
 
-      print "\n", ex, a, "==>"
+#      print "\n", ex, a, "==>"
 
-      arg=prepareArg(a,ex,wh)
+#      arg=prepareArg(a,ex,wh)
 
-      arrays=turnToArray(a)
+#      arrays=turnToArray(a)
 
-      #print "toString", arg.toString()
-      #print "Rank:", getRank(arg)
-      #print "Scalar:", isScalar(arg)
+#      #print "toString", arg.toString()
+#      #print "Rank:", getRank(arg)
+#      #print "Scalar:", isScalar(arg)
 
-      narry = arg.convertToNumArray()
+#      narry = arg.convertToNumArray()
 
-      print narry
+#      print narry
+
+print "\n\nTests of archiveData and extractData"
+
+print "\nDataExpanded:"
+archDataE=Data([[1.0],[2.0]],Function(msh),True)
+archDataE.archiveData("data-archiveE")
+exDataE=Data()
+exDataE.extractData("data-archiveE",Function(msh))
+exDataE.archiveData("data-archive2E");
+
+print "\nDataTagged:"
+archDataT=Data([[1.0],[2.0]],Function(msh))
+archDataT.tag()
+archDataT.archiveData("data-archiveT")
+exDataT=Data()
+exDataT.extractData("data-archiveT",Function(msh))
+exDataT.archiveData("data-archive2T");
+
+print "\nDataConstant:"
+archDataC=Data([1.0], Function(msh))
+archDataC.archiveData("data-archiveC")
+exDataC=Data()
+exDataC.extractData("data-archiveC",Function(msh))
+exDataC.archiveData("data-archive2C");
+
+print "\nDataEmpty:"
+archDataM=Data()
+archDataM.archiveData("data-archiveE")
+exDataM=Data()
+exDataM.extractData("data-archiveE",FunctionSpace())
+exDataM.archiveData("data-archive2E");
 
 # end

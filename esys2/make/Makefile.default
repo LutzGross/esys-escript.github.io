@@ -100,11 +100,6 @@ ifeq ($(strip $(DODEBUG)),)
    DODEBUG := NO
 endif
 
-# Do test compilations or not?
-ifeq ($(strip $(DOTEST)),)
-   DOTEST := NO
-endif
-
 # Include remainder of Makefiles
 include ${MAKE_DIR}/Makefile.source
 include ${MAKE_DIR}/hosts/${HOSTNAME}/Makefile.host
