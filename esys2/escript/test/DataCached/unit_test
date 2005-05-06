@@ -1,0 +1,7 @@
+#!/bin/bash
+# $Id$
+if [ ! -e Makefile ]; then ln -s ./DataCachedTest.mk Makefile; fi
+make -f ./Makefile clean
+make -f ./Makefile DODEBUG=YES
+./DataCachedTest.exe
+make -f ./Makefile clean

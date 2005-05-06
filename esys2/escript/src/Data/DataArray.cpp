@@ -24,7 +24,7 @@ namespace escript {
 
 DataArray::DataArray(double value)
 {
-    m_data.push_back(value);
+    m_data.resize(1,value);
     // create a view with an empty shape, a scalar.
     m_dataView.reset(new DataArrayView(m_data,DataArrayView::ShapeType()));
 }

@@ -1,5 +1,5 @@
 % $Id$
-\chapter{How to Solve A Diffusion Problem}
+\section{The Diffusion Problem}
 \label{DIFFUSION CHAP}
 
 \begin{figure}
@@ -8,7 +8,7 @@
 \label{DIFFUSION FIG 1}
 \end{figure}
 
-\section{\label{DIFFUSION OUT SEC}Outline}
+\subsection{\label{DIFFUSION OUT SEC}Outline}
 In this chapter we will discuss how to solve the time dependent-temperature diffusion\index{diffusion equation} for
 a block of material. Within the block there is a heat source which drives the temperature diffusion.
 On the surface, energy can radiate into the surrounding environment.
@@ -22,7 +22,7 @@ The implementation of a Helmholtz equation solver will be discussed in \Sec{DIFF
 In Section~\ref{DIFFUSION TRANS SEC} the solver of the Helmholtz equation is used to build a
 solver for the temperature diffusion problem. 
 
-\section{\label{DIFFUSION TEMP SEC}Temperature Diffusion}
+\subsection{\label{DIFFUSION TEMP SEC}Temperature Diffusion}
 
 The unknown temperature $T$ is a function of its location in the domain and time $t>0$. The governing equation
 in the interior of the domain is given by
@@ -100,7 +100,7 @@ this forms a boundary value problem that has to be solved for each time step.
 As a first step to implement a solver for the temperature diffusion problem we will 
 first implement a solver for the  boundary value problem that has to be solved at each time step.
 
-\section{\label{DIFFUSION HELM SEC}Helmholtz Problem}
+\subsection{\label{DIFFUSION HELM SEC}Helmholtz Problem}
 The partial differential equation to be solved for $T^{(n)}$ has the form 
 \begin{equation}
 \omega u  - (\kappa u\hackscore{,i})\hackscore{,i} = f
@@ -177,7 +177,7 @@ class Helmholtz(LinearPDE):
    def setValue(self,kappa=0,omega=1,f=0,eta=0,g=0)
         ndim=self.getDim()
         kronecker=numarray.identity(ndim)
-        self._setValue(A=kappa*kronecker,D=omega,Y=f,d=eta,y=g)
+        self._LinearPDE_setValue(A=kappa*kronecker,D=omega,Y=f,d=eta,y=g)
 \end{python}
 \code{class Helmholtz(linearPDE)} declares the new \class{Helmholtz} class as a subclass 
 of \LinearPDE which we have imported in the first line of the script. 
@@ -185,8 +185,8 @@ We add the method \method{setValue} to the class which overwrites the
 \method{setValue} method of the \LinearPDE class. The new method which has the 
 parameters of the Helmholtz \eqn{DIFFUSION HELM EQ 1} as arguments 
 maps the parameters of the coefficients of the general PDE defined 
-in \eqn{EQU.FEM.1}. We are actually using the \method{_setValue} of 
-the \LinearPDE class (notice the leeding underscoure). 
+in \eqn{EQU.FEM.1}. We are actually using the \method{_LinearPDE__setValue} of 
+the \LinearPDE class. 
 The coefficient \var{A} involves the Kronecker symbol. We use the
 \numarray function \function{identity} which returns a square matrix with ones on the
 main diagonal and zeros off the main diagonal. The argument of \function{identity} gives the order of the matrix.
@@ -249,7 +249,7 @@ However most PDE packages use an iterative solver which is terminated
 when a given tolerance has been reached. The default tolerance is $10^{-8}$. This value can be altered by using the 
 \method{setTolerance} of the \LinearPDE class. 
 
-\section{The Transition Problem}
+\subsection{The Transition Problem}
 \label{DIFFUSION TRANS SEC}
 Now we are ready to solve the original time dependent problem. The main 
 part of the script is the loop over time $t$ which takes the following form:

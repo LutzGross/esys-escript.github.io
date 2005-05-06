@@ -9,7 +9,7 @@
 
 DEFAULT_TARGET := libescriptcpp.so pyc
 
-INSTALL_PYTH := ./py_src/__init__.py ./py_src/linearPDEs.py ./py_src/projector.py ./py_src/util.py ./py_src/escript.py ./py_src/esysXML.py ./py_src/timeseries.py
+INSTALL_PYTH := ./py_src/__init__.py ./py_src/linearPDEs.py ./py_src/pdetools.py ./py_src/util.py ./py_src/escript.py ./py_src/modelframe.py ./py_src/timeseries.py
 
 INSTALL_LIB := ./lib/libescriptcpp.so
 

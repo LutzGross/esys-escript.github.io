@@ -14,24 +14,127 @@
 
 #include <iostream>
 
-#include "escript/Data/DataVector.h" 
+#include "escript/Data/DataVector.h"
+#include "escript/Data/Taipan.h"
+#include "escript/Data/DataException.h"
 
 using namespace std;
+using namespace escript;
 
 namespace escript {
 
-DataVector::DataVector() {
+Taipan arrayManager;
+
+DataVector::DataVector() :
+  m_array_data(0),
+  m_size(0),
+  m_dim(0),
+  m_N(0)
+{
 }
 
-DataVector::DataVector(const DataVector& other) {
-  m_data=other.m_data;
+DataVector::DataVector(const DataVector& other) :
+  m_array_data(0),
+  m_size(other.m_size),
+  m_dim(other.m_dim),
+  m_N(other.m_N)
+{
+  m_array_data = arrayManager.new_array(m_dim,m_N);
+  for (int i=0; i<m_size; i++) {
+    m_array_data[i] = other.m_array_data[i];
+  }
 }
 
-DataVector::DataVector(ValueType::size_type size, ValueType::value_type val) {
-  resize(size, val);
+DataVector::DataVector(const DataVector::size_type size,
+                       const DataVector::value_type val,
+                       const DataVector::size_type blockSize) :
+  m_array_data(0),
+  m_size(size),
+  m_dim(blockSize)
+{
+  resize(size, val, blockSize);
 }
 
-DataVector::~DataVector() {
+DataVector::~DataVector()
+{
+  // dispose of data array
+  arrayManager.delete_array(m_array_data);
+
+  // clear data members
+  m_size = -1;
+  m_dim = -1;
+  m_N = -1;
+  m_array_data = 0;
+}
+
+void
+DataVector::resize(const DataVector::size_type newSize,
+                   const DataVector::value_type newValue,
+                   const DataVector::size_type newBlockSize)
+{
+  assert(m_size >= 0);
+
+  if ( (newSize % newBlockSize) != 0) {
+    throw DataException("DataVector: invalid blockSize specified");
+  }
+
+  arrayManager.delete_array(m_array_data);
+
+  m_size = newSize;
+  m_dim = newBlockSize;
+  m_N = newSize / newBlockSize;
+  m_array_data = arrayManager.new_array(m_dim,m_N);
+
+  for (int i=0; i<m_size; i++) {
+    m_array_data[i]=newValue;
+  }
+}
+
+DataVector&
+DataVector::operator=(const DataVector& other)
+{
+  assert(m_size >= 0);
+
+  arrayManager.delete_array(m_array_data);
+
+  m_size = other.m_size;
+  m_dim = other.m_dim;
+  m_N = other.m_N;
+
+  m_array_data = arrayManager.new_array(m_dim,m_N);
+  for (int i=0; i<m_size; i++) {
+    m_array_data[i] = other.m_array_data[i];
+  }
+
+  return *this;
+}
+
+bool
+DataVector::operator==(const DataVector& other) const
+{
+  assert(m_size >= 0);
+
+  if (m_size!=other.m_size) {
+    return false;
+  }
+  if (m_dim!=other.m_dim) {
+    return false;
+  }
+  if (m_N!=other.m_N) {
+    return false;
+  }
+  for (int i=0; i<m_size; i++) {
+    if (m_array_data[i] != other.m_array_data[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool
+DataVector::operator!=(const DataVector& other) const
+{
+  return !(*this==other);
 }
 
 } // end of namespace

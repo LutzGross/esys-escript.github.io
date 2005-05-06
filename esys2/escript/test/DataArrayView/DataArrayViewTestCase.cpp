@@ -1101,10 +1101,10 @@ void DataArrayViewTestCase::testScalarView() {
   // Create a vector containing enough data for three scalars
   // and check three scalar views return the appropriate data
   DataArrayView::ShapeType vShape;
-  DataArrayView::ValueType vData;
-  vData.push_back(0);
-  vData.push_back(1);
-  vData.push_back(2);
+  DataArrayView::ValueType vData(3);
+  vData[0]=0;
+  vData[1]=1;
+  vData[2]=2;
 
   // create the three scalar views
   DataArrayView zView(vData,vShape,0);

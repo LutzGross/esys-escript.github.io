@@ -31,28 +31,37 @@
                                                                                                                                           
 using namespace boost::python;
 
-/**
-   @memo
-   escript is the python module that contains the interfaces
-   to the C++ side of escript.
+/*! \mainpage Esys Documentation
+ *
+ * \version 1.0.0
+ *
+ * - \ref escript
+ *
+ * - \ref esys_exception "Esys Exception"
+ *
+ * - \ref finley
+ *
+ */
 
-   @version 1.0.0 
-
-   @doc
-
-   Class Description:
-   Data
-
-   Class Limitations:
-   None
-
-   Class Conditions of Use:
-   None
-
-   Throws:
-   None
-
-*/
+/*! \page escript Escript
+ * Escript is the python module that contains the interfaces
+ * to the C++ side of escript.
+ *
+ * \version 1.0.0 
+ *
+ * \section class_desc Class Description:
+ * Data
+ *
+ * \section class_limits Class Limitations:
+ * None
+ *
+ * \section class_conds Class Conditions of Use:
+ * None
+ *
+ * \section class_throws Throws:
+ * None
+ *
+ */
 
 BOOST_PYTHON_MODULE(escriptcpp)
 {
@@ -122,6 +131,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("grad",&escript::Data::gradOn)
     .def("grad",&escript::Data::grad)
     .def("convertToNumArray",&escript::Data::convertToNumArray)
+    .def("convertToNumArrayFromSampleNo",&escript::Data::convertToNumArrayFromSampleNo)
+    .def("convertToNumArrayFromDPNo",&escript::Data::convertToNumArrayFromDPNo)
     .def("archiveData",&escript::Data::archiveData)
     .def("extractData",&escript::Data::extractData)
     .def("integrate",&escript::Data::integrate)
@@ -137,16 +148,20 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("sup",&escript::Data::sup)
     .def("inf",&escript::Data::inf)
     .def("__abs__",&escript::Data::abs)
+    .def("abs",&escript::Data::abs)
     .def("exp",&escript::Data::exp)
     .def("sqrt",&escript::Data::sqrt)
     .def("maxval",&escript::Data::maxval)
     .def("minval",&escript::Data::minval)
+    .def("mindp",&escript::Data::mindp)
     .def("length",&escript::Data::length)
     .def("sign",&escript::Data::sign)
     // following implements the python "-" negation operator
     .def("__neg__",&escript::Data::neg)
+    .def("neg",&escript::Data::neg)
     // following implements the python "+" identity operator
     .def("__pos__",&escript::Data::pos)
+    .def("pos",&escript::Data::pos)
     // following two functions implement the python [] operator
     .def("__getitem__",&escript::Data::getItem)
     .def("__setitem__",&escript::Data::setItemO)

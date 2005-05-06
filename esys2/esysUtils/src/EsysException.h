@@ -21,86 +21,91 @@
 
 namespace esysUtils {
 /**
-   @memo
+   \page esys_exception Esys Exceptions
    A base class for exception classes used within Esys system.
 
-   @version 1.0.0 
+   \version 1.0.0 
 
-   @doc
-
-   Class Description:
+   \section class_desc Class Description:
    A base class for exception classes used within Esys system.
 
-   Class Limitations:
+   \section class_limits Class Limitations:
    None
 
-   Class Conditions of Use:
+   \section class_conds Class Conditions of Use:
    None
 
-   Throws:
+   \section throws Throws:
    None
 
 */
 class EsysException:public std::exception {
   public:
   /**
-     @memo
+     \brief
      Default Constructor. Creates an exception with no message.
   */
   EsysException();
   /**
-     @memo
+   * \brief
      Constructor which creates a EsysException with the given message
      
      @param exceptionReason Input - Exception message.
   */
   EsysException(const std::string &exceptionReason);
   /**
-     @memo
+   * \brief
      Constructor which creates a EsysException with the given message
+
      @param cStr - Exception message.
   */
   EsysException( const char *cStr );
   /**
-     @memo
+   * \brief
      Copy constructor   
+
      @param inException Input - EsysException
   */
   EsysException(const EsysException &inException);
   /// Destructor
   virtual ~EsysException() throw();
   /**
-     @memo
+     \brief
      Assignment operator.
+
      @param inException Input - Exception to be copied.
   */  
   EsysException &operator=(const EsysException &inException);
   /**
-     @memo
+     \brief
      Return the exception message in the form
-     <Exception Name>: <Exception Message>
+     &lt;Exception Name&gt;: &lt;Exception Message&gt;
+
      @return the exception message.
   */
   std::string toString() const;
   /**
-     @memo
+     \brief
      Return the name of the exception. This is expected to be overloaded
      in derived classes with the derived class name.
+
      @return the name of the exception.
   */
   virtual std::string exceptionName() const;
   /**
-     @memo
+     \brief
      Return the ostrstream that contains the exception message.
      This is useful for entering or adding to the message as the stream
      insertion operators can then be used.
+     
      @return the ostrstream for the exception reason.
   */
   std::ostringstream& reason();
   /**
-     @memo
+     \brief
      Return a description of the exception in the same format as the toString
      method.
+
      @return a description of the exception.
   */
   virtual const char* what() const throw();
@@ -113,8 +118,9 @@ class EsysException:public std::exception {
   mutable std::string m_exceptionMessage;
 };
 /**
-   @memo
+   \brief
    Stream insertion operator for EsysExceptions
+
    @param output Input - Output stream.
    @param inException Input - The exception to be inserted into the output 
                             stream.

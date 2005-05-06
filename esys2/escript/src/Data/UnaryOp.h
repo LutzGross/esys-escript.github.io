@@ -36,6 +36,7 @@ namespace escript {
    Calls DataArrayView::unaryOp.
    For DataExpanded objects, operation is done in parallel.
    \param data Input/Output - The data.
+   \param operation Input - The operation to perform.
 */
 
 template <class UnaryFunction>

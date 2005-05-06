@@ -101,8 +101,8 @@ class AbstractDomain {
      \brief
      Return true if given domains are equal.
   */
-  bool operator==(const AbstractDomain& other) const;
-  bool operator!=(const AbstractDomain& other) const;
+  virtual bool operator==(const AbstractDomain& other) const;
+  virtual bool operator!=(const AbstractDomain& other) const;
 
   /**
      \brief

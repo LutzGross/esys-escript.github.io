@@ -240,8 +240,8 @@ dp_algorithm(DataExpanded& data,
              UnaryFunction operation)
 {
   int i,j;
-  int numDPPSample=data.getNumDPPSample();
   int numSamples=data.getNumSamples();
+  int numDPPSample=data.getNumDPPSample();
   DataArrayView dataView=data.getPointDataView();
   DataArrayView resultView=result.getPointDataView();
   // perform the operation on each data-point and assign
@@ -251,7 +251,7 @@ dp_algorithm(DataExpanded& data,
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
 #pragma omp critical (reductionOp)
-        resultView.getData(data.getPointOffset(i,j)) =
+        resultView.getData(result.getPointOffset(i,j)) =
           dataView.reductionOp(data.getPointOffset(i,j),operation);
       }
     }

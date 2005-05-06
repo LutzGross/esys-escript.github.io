@@ -977,14 +977,19 @@ bool MeshAdapter::probeInterpolationACross(int functionSpaceType_source,const Ab
     return false;
 }
 
-bool MeshAdapter::operator==(const MeshAdapter& other) const
+bool MeshAdapter::operator==(const AbstractDomain& other) const
 {
-  return (m_finleyMesh==other.m_finleyMesh);
+  const MeshAdapter* temp=dynamic_cast<const MeshAdapter*>(&other);
+  if (temp!=0) {
+    return (m_finleyMesh==temp->m_finleyMesh);
+  } else {
+    return false;
+  }
 }
 
-bool MeshAdapter::operator!=(const MeshAdapter& other) const
+bool MeshAdapter::operator!=(const AbstractDomain& other) const
 {
-  return !operator==(other);
+  return !(operator==(other));
 }
 
 int MeshAdapter::getSystemMatrixTypeId(const int solver, const bool symmetry) const

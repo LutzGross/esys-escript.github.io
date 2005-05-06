@@ -120,7 +120,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
   print wh
 
-  for ex1 in ["Constant", "Expanded", "Tagged1", "Tagged2"]:
+  for ex1 in ["Constant", "Expanded"]:
 
     print "Slice getting: ", ex1, ":"
 

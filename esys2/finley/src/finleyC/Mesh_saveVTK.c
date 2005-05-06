@@ -348,11 +348,26 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	    "type=\"Int32\" "
 	    "format=\"ascii\">\n");
     int NN = elements->ReferenceElement->Type->numNodes;
+    int counter = 0;
     for (i = 0; i < numCells; i++) {
       fprintf(fileHandle_p, "%d ", 
 	      mesh_p->Elements->Nodes[INDEX2(0, i, NN)]);
+      counter++; /* counter for the number of connectivity points written */
+      /* if the counter gets too big (i.e. the line gets too long), 
+       * then add a newline and reset */
+      if (counter > 19) { 
+	  fprintf(fileHandle_p, "\n"); 
+	  counter = 0; 
+      }
       for (j = 1; j < numVTKNodesPerElement; j++) {
 	fprintf(fileHandle_p,"%d ", mesh_p->Elements->Nodes[INDEX2(j, i, NN)]);
+	counter++;
+	/* if the counter gets too big (i.e. the line gets too long), 
+	 * then add a newline and reset */
+	if (counter > 19) {
+	    fprintf(fileHandle_p, "\n");
+	    counter = 0;
+	}
       }
     } 
     fprintf(fileHandle_p, "\n");
@@ -363,19 +378,35 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	    "Name=\"offsets\" "
 	    "type=\"Int32\" "
 	    "format=\"ascii\">\n");
+    counter = 0;  /* counter for the number of offsets written to file */
     for (i=numVTKNodesPerElement; i<=numCells*numVTKNodesPerElement; i+=numVTKNodesPerElement) {
       fprintf(fileHandle_p, "%d ", i);
+      counter++;
+      /* if the counter gets too big (i.e. the line gets too long), 
+       * then add a newline and reset */
+      if (counter > 19) {
+	  counter = 0;
+	  fprintf(fileHandle_p, "\n");
+      }
     }
     fprintf(fileHandle_p, "\n");
     fprintf(fileHandle_p, "</DataArray>\n");
 
     /* write out the DataArray element for the types */
+    counter = 0; /* counter for the number of types written to file */
     fprintf(fileHandle_p, "<DataArray "
 	    "Name=\"types\" "
 	    "type=\"UInt8\" "
 	    "format=\"ascii\">\n");
     for (i=0; i<numCells; i++) { 
       fprintf(fileHandle_p, "%d ", cellType);
+      counter++;
+      /* if the counter gets too big (i.e. the line gets too long), 
+       * then add a newline and reset */
+      if (counter > 30) {
+	  counter = 0;
+	  fprintf(fileHandle_p, "\n");
+      }
     }
     fprintf(fileHandle_p, "\n");
     fprintf(fileHandle_p, "</DataArray>\n");
@@ -502,7 +533,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	      "type=\"Float32\" "
 	      "NumberOfComponents=\"%d\" "
 	      "format=\"ascii\">\n",
-	      dataNameStr, nComp);
+	      dataNameStr, nCompReqd);
       for (i=0; i<mesh_p->Nodes->numNodes; i++) {
 	switch (nodetype) {
 	case(FINLEY_DEGREES_OF_FREEDOM):
@@ -583,3 +614,40 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
   fclose(fileHandle_p);
   return;
 }
+
+/*
+ * $Log$
+ * Revision 1.4  2005/05/06 04:26:15  jgs
+ * Merge of development branch back to main trunk on 2005-05-06
+ *
+ * Revision 1.1.2.6  2005/05/06 01:17:19  cochrane
+ * Fixed incorrect reporting of number of components in PointData arrays for
+ * vector data.
+ *
+ * Revision 1.1.2.5  2005/05/05 05:38:44  cochrane
+ * Improved formatting of VTK file output.
+ *
+ * Revision 1.1.2.4  2005/02/22 10:03:54  cochrane
+ * Implementation of writing of vtk xml files from finley.  This function will
+ * require more testing, but on the cases that I have tried (and with the help
+ * of Lutz and mayavi), it looks like it's producing the correct output.  Testing
+ * with more realistic data would be good.  I'm at least confident enough to
+ * commit my changes.
+ *
+ * Revision 1.1.2.3  2005/02/17 05:53:26  gross
+ * some bug in saveDX fixed: in fact the bug was in
+ * DataC/getDataPointShape
+ *
+ * Revision 1.1.2.2  2005/02/10 01:34:22  cochrane
+ * Quick fix to make sure that saveVTK compiles so that finley is still buildable.  Apologies to those this has affected.
+ *
+ * Revision 1.1.2.1  2005/02/09 06:53:15  cochrane
+ * Initial import to repository.  This is the file to implement saving finley/escript meshes out to vtk formatted files.  It is basically just a hack of the opendx equivalent, with a lot of the opendx stuff still in the file, so it doesn't actually work just yet, but it probably needs to be added to the cvs.
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.1  2004/07/27 08:27:11  gross
+ * Finley: saveDX added: now it is possible to write data on boundary and contact elements
+ *
+ */
