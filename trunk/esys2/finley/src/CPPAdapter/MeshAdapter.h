@@ -222,7 +222,7 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
  /**
      \brief
      Return the number of data points per sample, and the number of samples as a pair.
-     \param functionSpace Input -
+     \param functionSpaceCode Input -
   */
   virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
 
@@ -351,8 +351,8 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   */
   virtual escript::Data getSize() const;
 
-  bool operator==(const MeshAdapter& other) const;
-  bool operator!=(const MeshAdapter& other) const;
+  virtual bool operator==(const AbstractDomain& other) const;
+  virtual bool operator!=(const AbstractDomain& other) const;
 
  protected:
 

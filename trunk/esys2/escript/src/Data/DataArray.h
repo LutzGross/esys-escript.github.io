@@ -137,7 +137,6 @@ class DataArray {
 
   //
   // data vector
-  // this is a simple STL vector of floats
   DataArrayView::ValueType m_data;
 
   //

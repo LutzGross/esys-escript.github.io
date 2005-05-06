@@ -18,6 +18,7 @@
 #include "escript/Data/AbstractSystemMatrix.h"
 #include "escript/Data/FunctionSpace.h"
 
+using namespace std;
 namespace escript {
 
 AbstractDomain::AbstractDomain() {
@@ -182,12 +183,14 @@ bool AbstractDomain::isCellOriented(int functionSpaceCode) const
 
 bool AbstractDomain::operator==(const AbstractDomain& other) const
 {
-  return (this==&other);
+  throwStandardException("AbstractDomain::operator==");
+  return false;
 }
                                                                                                                                        
 bool AbstractDomain::operator!=(const AbstractDomain& other) const
 {
-  return (!operator==(other));
+  throwStandardException("AbstractDomain::operator!=");
+  return false;
 }
 
 } // end of namespace

@@ -136,6 +136,13 @@ class NullDomain : public AbstractDomain {
   */
   virtual int getDim() const;
 
+  /**
+     \brief
+     Return true if given domains are equal.
+  */
+  virtual bool operator==(const AbstractDomain& other) const;
+  virtual bool operator!=(const AbstractDomain& other) const;
+
  protected:
 
  private:

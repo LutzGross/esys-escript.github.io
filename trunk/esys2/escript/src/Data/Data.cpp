@@ -185,7 +185,7 @@ Data::getDataC() const
   return temp;
 }
 
-tuple
+const boost::python::tuple
 Data::getShapeTuple() const
 {
   const DataArrayView::ShapeType& shape=getDataPointShape();
@@ -443,11 +443,12 @@ Data::getDataPointShape() const
   return getPointDataView().getShape();
 }
 
+const
 boost::python::numeric::array
 Data::convertToNumArray()
 {
   //
-  // determine the current number of data points
+  // determine the total number of data points
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDataPointsPerSample();
   int numDataPoints = numSamples * numDataPointsPerSample;
@@ -499,19 +500,15 @@ Data::convertToNumArray()
   int dataPoint = 0;
   for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-
       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
-
       if (dataPointRank==0) {
         numArray[dataPoint]=dataPointView();
       }
-
       if (dataPointRank==1) {
         for (int i=0; i<dataPointShape[0]; i++) {
           numArray[dataPoint][i]=dataPointView(i);
         }
       }
-
       if (dataPointRank==2) {
         for (int i=0; i<dataPointShape[0]; i++) {
           for (int j=0; j<dataPointShape[1]; j++) {
@@ -519,7 +516,6 @@ Data::convertToNumArray()
           }
         }
       }
-
       if (dataPointRank==3) {
         for (int i=0; i<dataPointShape[0]; i++) {
           for (int j=0; j<dataPointShape[1]; j++) {
@@ -529,7 +525,6 @@ Data::convertToNumArray()
           }
         }
       }
-
       if (dataPointRank==4) {
         for (int i=0; i<dataPointShape[0]; i++) {
           for (int j=0; j<dataPointShape[1]; j++) {
@@ -541,9 +536,203 @@ Data::convertToNumArray()
           }
         }
       }
-
       dataPoint++;
+    }
+  }
 
+  //
+  // return the loaded array
+  return numArray;
+}
+
+const
+boost::python::numeric::array
+Data::convertToNumArrayFromSampleNo(int sampleNo)
+{
+  //
+  // Check a valid sample number has been supplied
+  if (sampleNo >= getNumSamples()) {
+    throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+  }
+
+  //
+  // determine the number of data points per sample
+  int numDataPointsPerSample = getNumDataPointsPerSample();
+
+  //
+  // determine the rank and shape of each data point
+  int dataPointRank = getDataPointRank();
+  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+
+  //
+  // create the numeric array to be returned
+  boost::python::numeric::array numArray(0.0);
+
+  //
+  // the rank of the returned numeric array will be the rank of
+  // the data points, plus one. Where the rank of the array is n,
+  // the last n-1 dimensions will be equal to the shape of the
+  // data points, whilst the first dimension will be equal to the
+  // total number of data points. Thus the array will consist of
+  // a serial vector of the data points.
+  int arrayRank = dataPointRank + 1;
+  DataArrayView::ShapeType arrayShape;
+  arrayShape.push_back(numDataPointsPerSample);
+  for (int d=0; d<dataPointRank; d++) {
+     arrayShape.push_back(dataPointShape[d]);
+  }
+
+  //
+  // resize the numeric array to the shape just calculated
+  if (arrayRank==1) {
+    numArray.resize(arrayShape[0]);
+  }
+  if (arrayRank==2) {
+    numArray.resize(arrayShape[0],arrayShape[1]);
+  }
+  if (arrayRank==3) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
+  }
+  if (arrayRank==4) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
+  }
+  if (arrayRank==5) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3],arrayShape[4]);
+  }
+
+  //
+  // loop through each data point in turn, loading the values for that data point
+  // into the numeric array.
+  for (int dataPoint = 0; dataPoint < numDataPointsPerSample; dataPoint++) {
+    DataArrayView dataPointView = getDataPoint(sampleNo, dataPoint);
+    if (dataPointRank==0) {
+      numArray[dataPoint]=dataPointView();
+    }
+    if (dataPointRank==1) {
+      for (int i=0; i<dataPointShape[0]; i++) {
+        numArray[dataPoint][i]=dataPointView(i);
+      }
+    }
+    if (dataPointRank==2) {
+      for (int i=0; i<dataPointShape[0]; i++) {
+        for (int j=0; j<dataPointShape[1]; j++) {
+          numArray[dataPoint][i][j] = dataPointView(i,j);
+        }
+      }
+    }
+    if (dataPointRank==3) {
+      for (int i=0; i<dataPointShape[0]; i++) {
+        for (int j=0; j<dataPointShape[1]; j++) {
+          for (int k=0; k<dataPointShape[2]; k++) {
+            numArray[dataPoint][i][j][k]=dataPointView(i,j,k);
+          }
+        }
+      }
+    }
+    if (dataPointRank==4) {
+      for (int i=0; i<dataPointShape[0]; i++) {
+        for (int j=0; j<dataPointShape[1]; j++) {
+          for (int k=0; k<dataPointShape[2]; k++) {
+            for (int l=0; l<dataPointShape[3]; l++) {
+              numArray[dataPoint][i][j][k][l]=dataPointView(i,j,k,l);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  //
+  // return the loaded array
+  return numArray;
+}
+
+const
+boost::python::numeric::array
+Data::convertToNumArrayFromDPNo(int sampleNo,
+                                int dataPointNo)
+{
+  //
+  // Check a valid sample number has been supplied
+  if (sampleNo >= getNumSamples()) {
+    throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+  }
+
+  //
+  // Check a valid data point number has been supplied
+  if (dataPointNo >= getNumDataPointsPerSample()) {
+    throw DataException("Error - Data::convertToNumArray: invalid dataPointNo.");
+  }
+
+  //
+  // determine the rank and shape of each data point
+  int dataPointRank = getDataPointRank();
+  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+
+  //
+  // create the numeric array to be returned
+  boost::python::numeric::array numArray(0.0);
+
+  //
+  // the shape of the returned numeric array will be the same
+  // as that of the data point
+  int arrayRank = dataPointRank;
+  DataArrayView::ShapeType arrayShape = dataPointShape;
+
+  //
+  // resize the numeric array to the shape just calculated
+  if (arrayRank==0) {
+    numArray.resize(1);
+  }
+  if (arrayRank==1) {
+    numArray.resize(arrayShape[0]);
+  }
+  if (arrayRank==2) {
+    numArray.resize(arrayShape[0],arrayShape[1]);
+  }
+  if (arrayRank==3) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
+  }
+  if (arrayRank==4) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
+  }
+
+  //
+  // load the values for the data point into the numeric array.
+  DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+  if (dataPointRank==0) {
+    numArray[0]=dataPointView();
+  }
+  if (dataPointRank==1) {
+    for (int i=0; i<dataPointShape[0]; i++) {
+      numArray[i]=dataPointView(i);
+    }
+  }
+  if (dataPointRank==2) {
+    for (int i=0; i<dataPointShape[0]; i++) {
+      for (int j=0; j<dataPointShape[1]; j++) {
+        numArray[i][j] = dataPointView(i,j);
+      }
+    }
+  }
+  if (dataPointRank==3) {
+    for (int i=0; i<dataPointShape[0]; i++) {
+      for (int j=0; j<dataPointShape[1]; j++) {
+        for (int k=0; k<dataPointShape[2]; k++) {
+          numArray[i][j][k]=dataPointView(i,j,k);
+        }
+      }
+    }
+  }
+  if (dataPointRank==4) {
+    for (int i=0; i<dataPointShape[0]; i++) {
+      for (int j=0; j<dataPointShape[1]; j++) {
+        for (int k=0; k<dataPointShape[2]; k++) {
+          for (int l=0; l<dataPointShape[3]; l++) {
+            numArray[i][j][k][l]=dataPointView(i,j,k,l);
+          }
+        }
+      }
     }
   }
 
@@ -731,6 +920,31 @@ Data::minval() const
   //
   // set the initial minimum value to max possible double
   return dp_algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+}
+
+const boost::python::tuple
+Data::mindp() const
+{
+  Data temp=minval();
+
+  int numSamples=temp.getNumSamples();
+  int numDPPSample=temp.getNumDataPointsPerSample();
+
+  int i,j,lowi=0,lowj=0;
+  double min=numeric_limits<double>::max();
+
+  for (i=0; i<numSamples; i++) {
+    for (j=0; j<numDPPSample; j++) {
+      double next=temp.getDataPoint(i,j)();
+      if (next<min) {
+        min=next;
+        lowi=i;
+        lowj=j;
+      }
+    }
+  }
+
+  return make_tuple(lowi,lowj);
 }
 
 Data
@@ -1159,6 +1373,23 @@ Data::setTaggedValue(int tagKey,
 }
 
 void
+Data::setTaggedValueFromCPP(int tagKey,
+                            const DataArrayView& value)
+{
+  //
+  // Ensure underlying data object is of type DataTagged
+  tag();
+
+  if (!isTagged()) {
+    throw DataException("Error - DataTagged conversion failed!!");
+  }
+                                                                                                               
+  //
+  // Call DataAbstract::setTaggedValue
+  m_data->setTaggedValue(tagKey,value);
+}
+
+void
 Data::setRefValue(int ref,
                   const boost::python::numeric::array& value)
 {
@@ -1215,26 +1446,6 @@ Data::getRefValue(int ref,
   }
 
 }
-
-/*
-Note: this version removed for now. Not needed, and breaks escript.cpp
-void
-Data::setTaggedValue(int tagKey,
-                     const DataArrayView& value)
-{
-  //
-  // Ensure underlying data object is of type DataTagged
-  tag();
-
-  if (!isTagged()) {
-    throw DataException("Error - DataTagged conversion failed!!");
-  }
-                                                                                                               
-  //
-  // Call DataAbstract::setTaggedValue
-  m_data->setTaggedValue(tagKey,value);
-}
-*/
 
 void
 Data::archiveData(const std::string fileName)

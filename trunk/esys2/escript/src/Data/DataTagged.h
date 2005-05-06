@@ -1,5 +1,6 @@
 // $Id$
-/* 
+
+/*
  ******************************************************************************
  *                                                                            *
  *       COPYRIGHT  ACcESS 2004 -  All Rights Reserved                        *
@@ -12,7 +13,7 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined escript_DataTagged_20040615_H
 #define escript_DataTagged_20040615_H
 
@@ -46,8 +47,9 @@ class DataTagged : public DataAbstract {
 
   //
   // Types for the lists of tags and values
-  typedef std::vector<int> TagListType;
+  typedef std::vector<int>           TagListType;
   typedef std::vector<DataArrayView> ValueListType;
+  typedef DataArrayView::ValueType   ValueType;
 
   //
   // Map from the tag to an offset the the data array. 
@@ -99,7 +101,7 @@ class DataTagged : public DataAbstract {
   DataTagged(const FunctionSpace& what,
              const DataArrayView::ShapeType &shape,
              const int tags[],
-             const DataArrayView::ValueType &data);
+             const ValueType &data);
 
   /**
      \brief
@@ -164,7 +166,7 @@ class DataTagged : public DataAbstract {
      \param dataPointNo - Input - data-point number.
    */
   virtual
-  DataArrayView::ValueType::size_type
+  ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
@@ -173,16 +175,14 @@ class DataTagged : public DataAbstract {
      addTaggedValues
 
      Description:
-     Add the given tags and values to this DataTagged object. 
+     Add the given tags and values to this DataTagged object, by repeatedly
+     using addTaggedValue for each given tag/value pair.
      \param tagKeys - Input - A vector of integer keys.
      \param values - Input - A vector of DataArrayViews. If this is empty
-                   then all given tags will be assigned a value of zero. If 
-                   it contains one value all tags will be assigned the same value.
-                   Otherwise if there is a mismatch between the number of tags and 
-                   the number of values an exception will be generated.
-     NB: If a tag given here already exists in this object, this attempt to add the given
-     value will have no effect. setTaggedValues is more versatile and should be
-     used in most cases in preference to addTaggedValues.
+                      then all given tags will be assigned a value of zero. If 
+                      it contains one value all tags will be assigned the same value.
+                      Otherwise if there is a mismatch between the number of tags and 
+                      the number of values an exception will be generated.
   */
   void
   addTaggedValues(const TagListType& tagKeys,
@@ -193,12 +193,10 @@ class DataTagged : public DataAbstract {
      addTaggedValue
 
      Description:
-     Add a single tag and value to this DataTagged object.
+     Add a single tag and value to this DataTagged object. If this tag already has
+     a value associated with it, setTaggedValue will be used to update this value.
      \param tagKey - Input - Integer key.
-     \param value - Input - DataArrayView.
-     NB: If this tag already exists in this object, this attempt to add the given
-     value will have no effect. setTaggedValue is more versatile and should be
-     used in most cases in preference to addTaggedValue.
+     \param value - Input - Single DataArrayView value to be assigned to the tag.
   */
   void
   addTaggedValue(int tagKey,
@@ -209,14 +207,14 @@ class DataTagged : public DataAbstract {
      setTaggedValues
 
      Description:
-     Assign the given values to the tags listed.
+     Set the given tags to the given values in this DataTagged object, by repeatedly
+     using setTaggedValue for each given tag/value pair.
      \param tagKeys - Input - A vector of integer keys.
      \param values - Input - A vector of DataArrayViews. If this is empty
                       then all given tags will be assigned a value of zero. If 
                       it contains one value all tag values will be assigned the same value.
                       Otherwise if there is a mismatch between the number of keys and 
                       the number of values an exception will be generated.
-     NB: If a given tag does not yet exist in this DataTagged object, it will be added.
   */
   void
   setTaggedValues(const TagListType& tagKeys,
@@ -227,10 +225,10 @@ class DataTagged : public DataAbstract {
      setTaggedValue
 
      Description:
-     Assign the given value to the given tag.
+     Assign the given value to the given tag. If this tag does not already have a value
+     associated with it, addTaggedValue will be used to add this tag/value pair.
      \param tagKey - Input - Integer key.
      \param value - Input - Single DataArrayView value to be assigned to the tag.
-     NB: If the given tag does not yet exist in this DataTagged object, it will be added.
   */
   virtual
   void
@@ -365,7 +363,7 @@ class DataTagged : public DataAbstract {
 
   //
   // The actual data
-  DataArrayView::ValueType m_data;
+  ValueType m_data;
 
 };
 
@@ -381,7 +379,6 @@ inline
 DataArrayView&
 DataTagged::getDefaultValue()
 {
-  //
   // The default value is always the first value.
   return getPointDataView();
 }
@@ -390,7 +387,6 @@ inline
 const DataArrayView&
 DataTagged::getDefaultValue() const
 {
-  //
   // The default value is always the first value.
   return getPointDataView();
 }

@@ -11,6 +11,6 @@ PACKAGES := CppUnitTest esysUtils python23Static boost
 
 L_EXT_INC_DIRS := ../../inc
 
-L_EXT_OBJS := ../../obj/src/Data/DataVector.lo
+L_EXT_OBJS := ../../obj/src/Data/DataVector.lo ../../obj/src/Data/Taipan.lo
 
 include $(ESYS_ROOT)/make/Makefile.default

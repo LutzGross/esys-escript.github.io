@@ -11,7 +11,7 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined escript_DataVector_20050324_H
 #define escript_DataVector_20050324_H
 
@@ -24,12 +24,13 @@ namespace escript {
 /**
    \brief
    DataVector implements an arbitrarily long vector of data values.
+   DataVector is the underlying data container for Data objects.
 
    Description:
    DataVector provides an implementation of a vector of data values for use
    by DataBlocks2D and DataArrayView. Hiding the vector in this container
    allows different implementations to be swapped in without disrupting the
-   client classes. This is the underlying data container for Data objects.
+   client classes.
 */
 
 class DataVector {
@@ -42,15 +43,14 @@ class DataVector {
 
   //
   // The underlying type used to implement the vector.
-  typedef std::vector<ElementType> ValueType;
+  typedef ElementType *  ValueType;
 
   //
-  // Various types needed by clients of this class.
-  typedef ValueType::value_type       value_type;
-  typedef ValueType::size_type        size_type;
-  typedef ValueType::reference        reference;
-  typedef ValueType::const_reference  const_reference;
-  typedef ValueType::iterator         iterator;
+  // Various types exported to clients of this class.
+  typedef ElementType          value_type;
+  typedef long                 size_type;
+  typedef ElementType &        reference;
+  typedef const ElementType &  const_reference;
 
   /**
      \brief
@@ -77,11 +77,16 @@ class DataVector {
 
      Description:
      Constructs a DataVector object of length "size" with all elements
-     initilised to "val". Default for "val" is zero.
+     initilised to "val".
 
      \param size - Input - Number of elements in the vector.
+     \param val - Input - Initial value for all elements in the vector. Default is 0.0.
+     \param blockSize - Input - size of blocks within the vector, overall vector
+                size must be a precise multiple of the block size. Default is 1.
   */
-  DataVector(ValueType::size_type size, ValueType::value_type val=0.0);
+  DataVector(const size_type size,
+             const value_type val=0.0,
+             const size_type blockSize=1);
 
   /**
      \brief
@@ -96,20 +101,23 @@ class DataVector {
      \brief
      Resize the DataVector to the given length "newSize".
      All current data is lost. All elements in the new DataVector are
-     initialised to "newVal", which defaults to zero.
+     initialised to "newVal".
 
      \param newSize - Input - New size for the vector.
+     \param newVal - Input - New initial value for all elements in the vector.
+     \param newBlockSize - Input - New block size for the vector.
   */
-  inline
   void
-  resize(ValueType::size_type newSize, ValueType::value_type newVal=0.0);
+  resize(const size_type newSize,
+         const value_type newVal=0.0,
+         const size_type newBlockSize=1);
 
   /**
      \brief
      Return the number of elements in this DataVector.
   */
   inline
-  ValueType::size_type
+  size_type
   size() const;
 
   /**
@@ -117,7 +125,6 @@ class DataVector {
      DataVector assignment operator "=".
      Assign the given DataVector object to this.
   */
-  inline
   DataVector&
   operator=(const DataVector& other);
 
@@ -126,18 +133,16 @@ class DataVector {
      DataVector equality comparison operator "==".
      Return true if the given DataVector is equal to this.
   */
-  inline
   bool
-  operator==(const DataVector& other);
+  operator==(const DataVector& other) const;
 
   /**
      \brief
      DataVector inequality comparison operator "!=".
      Return true if the given DataVector is not equal to this.
   */
-  inline
   bool
-  operator!=(const DataVector& other);
+  operator!=(const DataVector& other) const;
 
   /**
     \brief
@@ -148,121 +153,47 @@ class DataVector {
     in order to provide a facility equivalent to an end() pointer.
   */
   inline
-  ValueType::reference
-  operator[](ValueType::size_type i);
+  reference
+  operator[](const size_type i);
 
   inline
-  ValueType::const_reference
-  operator[](ValueType::size_type i) const;
-
-  /**
-    \brief
-    Add the element x at the end of the vector.
-  */
-  inline
-  void
-  push_back(const ValueType::value_type& x);
-
-  /**
-    \brief
-    Insert.
-  */
-  inline
-  void
-  insert(iterator pos, const ValueType::value_type* first, const ValueType::value_type* last);
-
-  /**
-    \brief
-    End.
-  */
-  inline
-  iterator
-  end();
+  const_reference
+  operator[](const size_type i) const;
 
  protected:
 
  private:
 
+  size_type m_size;
+  size_type m_dim;
+  size_type m_N;
+
   //
   // The container for the elements contained in this DataVector.
-  ValueType m_data;
-
+  ValueType m_array_data;
 };
 
 inline
-DataVector::ValueType::size_type
+DataVector::size_type
 DataVector::size() const
 {
-  return m_data.size();
+  return m_size;
 }
 
 inline
-DataVector::ValueType::reference
-DataVector::operator[](DataVector::ValueType::size_type i)
+DataVector::reference
+DataVector::operator[](const DataVector::size_type i)
 {
-  // Allow access to element one beyond end of vector to simulate end().
-  EsysAssert(i<=size(),"DataVector: invalid index specified.");
-  return m_data[i];
+  EsysAssert(i<size(),"DataVector: invalid index specified.");
+  return m_array_data[i];
 }
 
 inline
-DataVector::ValueType::const_reference
-DataVector::operator[](DataVector::ValueType::size_type i) const
+DataVector::const_reference
+DataVector::operator[](const DataVector::size_type i) const
 {
-  // Allow access to element one beyond end of vector to simulate end().
-  EsysAssert(i<=size(),"DataVector: invalid index specified.");
-  return m_data[i];
-}
-
-inline
-DataVector&
-DataVector::operator=(const DataVector& other)
-{
-  DataVector temp(other);
-  swap(m_data,temp.m_data);
-  return *this;
-}
-
-inline
-bool
-DataVector::operator==(const DataVector& other)
-{
-  return m_data==other.m_data;
-}
-
-inline
-bool
-DataVector::operator!=(const DataVector& other)
-{
-  return m_data!=other.m_data;
-}
-
-inline
-void
-DataVector::resize(DataVector::ValueType::size_type newSize, DataVector::ValueType::value_type newValue)
-{
-  m_data.resize(newSize,newValue);
-}
-
-inline
-void
-DataVector::push_back(const ValueType::value_type& x)
-{
-  m_data.push_back(x);
-}
-
-inline
-void
-DataVector::insert(DataVector::iterator pos, const ValueType::value_type* first, const ValueType::value_type* last)
-{
-  m_data.insert(pos, first, last);
-}
-
-inline
-DataVector::iterator
-DataVector::end()
-{
-  return m_data.end();
+  EsysAssert(i<size(),"DataVector: invalid index specified.");
+  return m_array_data[i];
 }
 
 } // end of namespace

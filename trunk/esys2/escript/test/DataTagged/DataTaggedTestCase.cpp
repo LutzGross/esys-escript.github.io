@@ -17,12 +17,6 @@
 #include "escript/Data/UnaryOp.h"
 #include "esysUtils/EsysException.h"
 
-/*
-#include "finley/CPPAdapter/MeshAdapter.h"
-#include "finley/CPPAdapter/MeshAdapterFactory.h"
-#include "escript/Data/AbstractContinuousDomain.h"
-*/
-
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/DataFactory.h"
 
@@ -36,8 +30,6 @@ using namespace CppUnitTest;
 using namespace escript;
 using namespace esysUtils;
 using namespace std;
-
-//using namespace finley;
 
 void DataTaggedTestCase::setUp() {
   //
@@ -93,13 +85,15 @@ void DataTaggedTestCase::testOperations() {
   cout << endl;
 
   {
-    cout << "\tTest default DataTagged contains only a default value." << endl;
     DataTagged left;
     DataTagged right;
+
+    cout << "\tTest default DataTagged contains only a default value." << endl;
     binaryOp(left,right,plus<double>());
     assert(left.getPointDataView()()==0);
     assert(right.getPointDataView()()==0);
-    cout << "\tTest addTaggedValue and binaryOp(plus)." << endl;
+
+    cout << "\tTest binaryOp(plus)." << endl;
     DataArray vOne(1.0);
     DataArray vTwo(2.0);
     right.addTaggedValue(1,vOne.getView());
@@ -108,7 +102,8 @@ void DataTaggedTestCase::testOperations() {
     assert(left.getPointDataView()()==0);
     assert(left.getDataPointByTag(1)==vOne.getView());
     assert(left.getDataPointByTag(2)==vTwo.getView());
-    cout << "\tTest setTaggedValue and binaryOp(multiplies)." << endl;
+
+    cout << "\tTest binaryOp(multiplies)." << endl;
     DataArray vZero(0.0);
     right.setTaggedValue(1,vZero.getView());
     right.setTaggedValue(2,vZero.getView());
@@ -118,13 +113,13 @@ void DataTaggedTestCase::testOperations() {
     assert(left.getDataPointByTag(2)==vZero.getView());
   }
   {
-    DataArrayView::ValueType viewData;
     DataArrayView::ShapeType viewShape;
     viewShape.push_back(3);
+    DataArrayView::ValueType viewData(3);
     DataTagged::TagListType keys;
     DataTagged::ValueListType values;
     for (int i=0;i<viewShape[0];++i) {
-      viewData.push_back(i);
+      viewData[i]=i;
     }
     DataArrayView myView(viewData,viewShape);
     cout << "\tCreate tagged data with no tag values just a default." << endl;
@@ -184,11 +179,12 @@ void DataTaggedTestCase::testOperations() {
     assert(tData.getDataPointByTag(2)==tTwoView);
     assert(tData.getDataPointByTag(3)==tThreeView);
   }
-
 }
 
 void DataTaggedTestCase::testAll() {
+
   cout << endl;
+
   {
     cout << "\tTest default construction." << endl;
     DataTagged myData;
@@ -206,13 +202,13 @@ void DataTaggedTestCase::testAll() {
     }
   }
   {
-    DataArrayView::ValueType viewData;
     DataArrayView::ShapeType viewShape;
     viewShape.push_back(3);
+    DataArrayView::ValueType viewData(3);
     DataTagged::TagListType keys;
     DataTagged::ValueListType values;
     for (int i=0;i<viewShape[0];++i) {
-      viewData.push_back(0.0);
+      viewData[i]=0.0;
     }
     DataArrayView myView(viewData,viewShape);
     cout << "\tCreate tagged data with no tag values just a default." << endl;
@@ -245,19 +241,18 @@ void DataTaggedTestCase::testAll() {
       assert(false);
     }
     catch (EsysException& e) {
-      //cout << e.what() << endl;
       assert(true);
     }
   }
   {
     cout << "\tTest creation of tagged data with multiple tags." << endl;
-    DataArrayView::ValueType viewData;
     DataArrayView::ShapeType viewShape;
     viewShape.push_back(3);
+    DataArrayView::ValueType viewData(3);
     DataTagged::TagListType keys;
     DataTagged::ValueListType values;
     for (int i=0;i<viewShape[0];++i) {
-      viewData.push_back(0.0);
+      viewData[i]=0.0;
     }
     DataArrayView myView(viewData,viewShape);
     DataArray eOne(myView);
@@ -293,20 +288,16 @@ void DataTaggedTestCase::testAll() {
     viewShape.push_back(1);
     keys.clear();
     values.clear();
-    viewData.resize(0);
-    for (int i=0;i<viewShape[0];++i) {
-      viewData.push_back(0.0);
-    }
+    viewData.resize(1,0.0);
     DataArrayView myView2(viewData,viewShape);
     try {
       myData.addTaggedValue(5,myView2);
       assert(false);
     }
     catch (EsysException& e) {
-      //cout << e.what() << endl;
       assert(true);
     }
-    cout << "\tTest setTaggedValues." << endl;
+    cout << "\tTest addTaggedValues." << endl;
     DataTagged myData2;
     myData2.reshapeDataPoint(myView.getShape());
     keys.clear();
@@ -317,13 +308,16 @@ void DataTaggedTestCase::testAll() {
     values.push_back(eOne.getView());
     values.push_back(eTwo.getView());
     values.push_back(eThree.getView());
-    myData2.setTaggedValues(keys,values);
+    myData2.addTaggedValues(keys,values);
     assert(myData2.getDataPointByTag(1)==eOne.getView());
     assert(myData2.getDataPointByTag(2)==eTwo.getView());
     assert(myData2.getDataPointByTag(3)==eThree.getView());
     cout << "\tTest setTaggedValue." << endl;
     DataTagged myData3;
     myData3.reshapeDataPoint(myView.getShape());
+    myData3.addTaggedValue(1,eThree.getView());
+    myData3.addTaggedValue(2,eOne.getView());
+    myData3.addTaggedValue(3,eTwo.getView());
     myData3.setTaggedValue(1,eOne.getView());
     myData3.setTaggedValue(2,eTwo.getView());
     myData3.setTaggedValue(3,eThree.getView());
@@ -331,60 +325,6 @@ void DataTaggedTestCase::testAll() {
     assert(myData3.getDataPointByTag(2)==eTwo.getView());
     assert(myData3.getDataPointByTag(3)==eThree.getView());
   }
-
-}
-
-void DataTaggedTestCase::testSubtraction() {
-
-  // An error with FinleyMesh::getTagList used to cause binary operations
-  // between DataExpanded and DataTagged objects to seg-fault. This test
-  // case will provoke this error if it arises again.
-
-  // This test requires the version of setTaggedData which takes a Data
-  // object as an argument. This version is not currently available, so
-  // this test is disabled for now
-
-  /*
-
-  cout << endl;
-
-  cout << "\tCreate domain and function-space." << endl;
-  AbstractContinuousDomain* myDomain = rectangle(10,10);
-  FunctionSpace f = functionOnBoundary(*myDomain);
-
-  cout << "\tCreate two vectors, one being DataExpanded." << endl;
-  Data A = Vector(0,f);
-  Data B = Vector(0,f,true);
-
-  cout << "\tCreate some tags and values to add to the other." << endl;
-  DataArrayView::ValueType viewData;
-  DataArrayView::ShapeType viewShape;
-  viewShape.push_back(2);
-  for (int i=0;i<viewShape[0];++i) {
-    viewData.push_back(0.0);
-  }
-  DataArrayView myView(viewData,viewShape);
-  DataArray eOne(myView);
-  for (int i=0;i<eOne.getView().getShape()[0];++i) {
-    eOne.getView()(i)=i+1.0;
-  }
-
-  A.setTaggedValue(2,eOne.getView());
-
-  //cout << A.toString() << endl;
-
-  cout << "\tCalculate difference." << endl;
-  Data difference = B - A;
-
-  cout << "\tCalculate other binaryOps just to be sure." << endl;
-  Data sum = B + A;
-  Data product = B * A;
-  Data dividend = B / A;
-
-  // If we get here, subtraction operation did not seg-fault.
-  assert(true);
-
-  */
 
 }
 
@@ -396,6 +336,5 @@ TestSuite* DataTaggedTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAll",&DataTaggedTestCase::testAll));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testReshape",&DataTaggedTestCase::testReshape));
-  //testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSubtraction",&DataTaggedTestCase::testSubtraction));
   return testSuite;
 }

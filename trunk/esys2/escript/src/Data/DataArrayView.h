@@ -497,8 +497,6 @@ class DataArrayView {
      \param key - Input -
                     python slice object specifying region to be returned.
 
-     \description
-
      The slice object is a tuple of n python slice specifiers, where
      n <= the rank of this Data object. Each slice specifier specifies the
      range of indexes to be sliced from the corresponding dimension. The

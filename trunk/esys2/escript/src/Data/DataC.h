@@ -75,8 +75,8 @@ int isDataPointShapeEqual(escriptDataC* data, int rank, int* dimensions);
    of samples equal the input values. In the case that data is empty or NULL,
    true is returned.
    \param data Input - C wrapper for Data.
-   \param noDataPointsPerSample Input - number of data points per sample
-   \param noSamples Input - number of samples
+   \param numDataPointsPerSample Input - number of data points per sample
+   \param numSamples Input - number of samples
 */
 int numSamplesEqual(escriptDataC* data, int numDataPointsPerSample,
 		    int numSamples);
@@ -90,9 +90,9 @@ int getDataPointRank(escriptDataC* data);
 
 /**
    \brief
-   Returns the value of the i-th comppnent of the shape of the point data.
+   Returns the value of the i-th component of the shape of the point data.
    \param data Input - C wrapper for Data.
-   \param data Input - C wrapper for Data.
+   \param i Input - index of shape component.
 */
 int getDataPointShape(escriptDataC* data,int i);
 

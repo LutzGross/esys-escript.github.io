@@ -8,4 +8,4 @@ class Helmholtz(LinearPDE):
         # get kronecker symbol from numarray: kronecker[i,j]=1 for i=j and =0 else
         kronecker=numarray.identity(ndim)
         # map kappa, omega, f, eta, g to the coefficients of the general PDE
-        self._setValue(A=kappa*kronecker,D=omega,Y=f,d=eta,y=g)
+        self._LinearPDE__setValue(A=kappa*kronecker,D=omega,Y=f,d=eta,y=g)

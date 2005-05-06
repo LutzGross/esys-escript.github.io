@@ -190,11 +190,11 @@ void DataTestCase::testMore() {
 
   cout << "\tCreate a Data object from a DataArrayView" << endl;
 
-  DataArrayView::ValueType viewData;
   DataArrayView::ShapeType viewShape;
   viewShape.push_back(3);
+  DataArrayView::ValueType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
-    viewData.push_back(i);
+    viewData[i]=i;
   }
   DataArrayView myView(viewData,viewShape);
 
@@ -235,11 +235,11 @@ void DataTestCase::testAll() {
 
   cout << "\tCreate a Data object from a DataArrayView" << endl;
 
-  DataArrayView::ValueType viewData;
   DataArrayView::ShapeType viewShape;
   viewShape.push_back(3);
+  DataArrayView::ValueType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
-    viewData.push_back(i);
+    viewData[i]=i;
   }
   DataArrayView myView(viewData,viewShape);
 
@@ -264,13 +264,13 @@ void DataTestCase::testDataConstant() {
 
   cout << "\tCreate a DataConstant object from a DataArrayView" << endl;
 
-  DataArrayView::ValueType viewData;
   DataArrayView::ShapeType viewShape;
   viewShape.push_back(2);
   viewShape.push_back(3);
   viewShape.push_back(4);
+  DataArrayView::ValueType viewData(2*3*4);
   for (int i=0;i<DataArrayView::noValues(viewShape);++i) {
-    viewData.push_back(i);
+    viewData[i]=i;
   }
   DataArrayView myView(viewData,viewShape);
 
@@ -333,11 +333,11 @@ void DataTestCase::testDataTagged() {
 
   DataTagged::TagListType keys;
   DataTagged::ValueListType values;
-  DataArrayView::ValueType viewData;
   DataArrayView::ShapeType viewShape;
   viewShape.push_back(3);
+  DataArrayView::ValueType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
-    viewData.push_back(i);
+    viewData[i]=i;
   }
   DataArrayView myView(viewData,viewShape);
 
@@ -503,11 +503,11 @@ void DataTestCase::testRefValue() {
   cout << "\tTest Data object RefValue methods." << endl;
 
   // Create three Data object - DataExpanded, DataConstant and DataEmpty
-  DataArrayView::ValueType viewData;
   DataArrayView::ShapeType viewShape;
   viewShape.push_back(3);
+  DataArrayView::ValueType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
-    viewData.push_back(i);
+    viewData[i]=i;
   }
   DataArrayView myView(viewData,viewShape);
 

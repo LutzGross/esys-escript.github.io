@@ -98,7 +98,7 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
         }
     }
     /* get the norm of the right hand side */
-    norm2OfB=0;
+    norm2OfB=0.;
     #pragma omp parallel for private(i) reduction(+:norm2OfB) schedule(static)
     for (i = 0; i < n_row ; i++) norm2OfB += b[i] * b[i];
     norm2OfB=sqrt(norm2OfB);
@@ -212,3 +212,35 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
        if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
     }
 }
+
+/*
+* $Log$
+* Revision 1.6  2005/05/06 04:26:15  jgs
+* Merge of development branch back to main trunk on 2005-05-06
+*
+* Revision 1.1.1.1.2.6  2005/04/14 06:53:11  gross
+* a problem with header files fixed: bug appeared  for case -O0 -g in the icc compiler only
+*
+* Revision 1.1.1.1.2.5  2005/03/02 23:35:07  gross
+* reimplementation of the ILU in Finley. block size>1 still needs some testing
+*
+* Revision 1.1.1.1.2.4  2004/12/07 10:12:06  gross
+* GMRES added
+*
+* Revision 1.1.1.1.2.3  2004/11/24 01:37:17  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+*
+* Revision 1.1.1.1.2.2  2004/11/15 06:05:27  gross
+* poisson solver added
+*
+* Revision 1.1.1.1.2.1  2004/11/12 06:58:20  gross
+* a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
+*
+* Revision 1.1  2004/07/02 04:21:14  gross
+* Finley C code has been included
+*
+*
+*/

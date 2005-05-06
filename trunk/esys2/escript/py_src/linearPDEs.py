@@ -273,7 +273,7 @@ class LinearPDE:
 
       @param coefficients
       """
-      self._setValue(**coefficients)
+      self.__setValue(**coefficients)
       
 
    def cleanCoefficients(self):
@@ -536,7 +536,7 @@ class LinearPDE:
         self.setReducedOrderForEquationOff()
                                                                                                                                                            
    # ==== initialization =====================================================================
-   def __makeNewOperator(self):
+   def __getNewOperator(self):
        """
        @brief
        """
@@ -547,43 +547,39 @@ class LinearPDE:
                            self.getFunctionSpaceForSolution(), \
                            self.__matrix_type)
 
-   def __makeNewRightHandSide(self):
+   def __makeFreshRightHandSide(self):
        """
        @brief
        """
-       return escript.Data(0.,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
+       if self.debug() : print "PDE Debug: New right hand side allocated"
+       if self.getNumEquations()>1:
+           self.__righthandside=escript.Data(0.,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
+       else:
+           self.__righthandside=escript.Data(0.,(),self.getFunctionSpaceForEquation(),True)
+       return self.__righthandside
 
-   def __makeNewSolution(self):
+   def __getNewSolution(self):
        """
        @brief
        """
-       return escript.Data(0.,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
+       if self.debug() : print "PDE Debug: New right hand side allocated"
+       if self.getNumSolutions()>1:
+           return escript.Data(0.,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
+       else:
+           return escript.Data(0.,(),self.getFunctionSpaceForSolution(),True)
 
-   def __getFreshOperator(self):
+   def __makeFreshOperator(self):
        """
        @brief
        """
        if self.__operator.isEmpty():
-           self.__operator=self.__makeNewOperator()
+           self.__operator=self.__getNewOperator()
            if self.debug() : print "PDE Debug: New operator allocated"
        else:
            self.__operator.setValue(0.)
            self.__operator.resetSolver()
            if self.debug() : print "PDE Debug: Operator reset to zero"
        return self.__operator
-
-   def __getFreshRightHandSide(self):
-       """
-       @brief
-       """
-       if self.__righthandside.isEmpty():
-           self.__righthandside=self.__makeNewRightHandSide()
-           if self.debug() : print "PDE Debug: New right hand side allocated"
-       else:
-           print "fix self.__righthandside*=0"
-           self.__righthandside*=0.
-           if self.debug() : print "PDE Debug: Right hand side reset to zero"
-       return  self.__righthandside
 
    #============ some serivice functions  =====================================================
    def getDomain(self):
@@ -707,7 +703,7 @@ class LinearPDE:
        """
        return self.applyOperator(u)-self.getRightHandSide()
 
-   def _setValue(self,**coefficients):
+   def __setValue(self,**coefficients):
       """
       @brief sets new values to coefficient
 
@@ -846,9 +842,9 @@ class LinearPDE:
           # q is the row and column mask to indicate where constraints are set:
           row_q=escript.Data(q,self.getFunctionSpaceForEquation())
           col_q=escript.Data(q,self.getFunctionSpaceForSolution())
-          u=self.__makeNewSolution()
+          u=self.__getNewSolution()
           if r.isEmpty():
-             r_s=self.__makeNewSolution()
+             r_s=self.__getNewSolution()
           else:
              r_s=escript.Data(r,self.getFunctionSpaceForSolution())
           u.copyWithMask(r_s,col_q)
@@ -874,7 +870,7 @@ class LinearPDE:
                  if not self.getCoefficientOfPDE("C").isEmpty():
                           raise Warning,"Lumped matrix does not allow coefficient C"
                  if self.debug() : print "PDE Debug: New lumped operator is built."
-                 mat=self.__makeNewOperator()
+                 mat=self.__getNewOperator()
                  self.getDomain().addPDEToSystem(mat,escript.Data(), \
                            self.getCoefficientOfPDE("A"), \
                            self.getCoefficientOfPDE("B"), \
@@ -891,7 +887,7 @@ class LinearPDE:
                  self.__operator_isValid=True
               if not self.__righthandside_isValid:
                  if self.debug() : print "PDE Debug: New right hand side is built."
-                 self.getDomain().addPDEToRHS(self.__getFreshRightHandSide(), \
+                 self.getDomain().addPDEToRHS(self.__makeFreshRightHandSide(), \
                                self.getCoefficientOfPDE("X"), \
                                self.getCoefficientOfPDE("Y"),\
                                self.getCoefficientOfPDE("y"),\
@@ -901,7 +897,7 @@ class LinearPDE:
           else:
              if not self.__operator_isValid and not self.__righthandside_isValid:
                  if self.debug() : print "PDE Debug: New system is built."
-                 self.getDomain().addPDEToSystem(self.__getFreshOperator(),self.__getFreshRightHandSide(), \
+                 self.getDomain().addPDEToSystem(self.__makeFreshOperator(),self.__makeFreshRightHandSide(), \
                                self.getCoefficientOfPDE("A"), \
                                self.getCoefficientOfPDE("B"), \
                                self.getCoefficientOfPDE("C"), \
@@ -918,7 +914,7 @@ class LinearPDE:
                  self.__righthandside_isValid=True
              elif not self.__righthandside_isValid:
                  if self.debug() : print "PDE Debug: New right hand side is built."
-                 self.getDomain().addPDEToRHS(self.__getFreshRightHandSide(), \
+                 self.getDomain().addPDEToRHS(self.__makeFreshRightHandSide(), \
                                self.getCoefficientOfPDE("X"), \
                                self.getCoefficientOfPDE("Y"),\
                                self.getCoefficientOfPDE("y"),\
@@ -927,7 +923,7 @@ class LinearPDE:
                  self.__righthandside_isValid=True
              elif not self.__operator_isValid:
                  if self.debug() : print "PDE Debug: New operator is built."
-                 self.getDomain().addPDEToSystem(self.__getFreshOperator(),escript.Data(), \
+                 self.getDomain().addPDEToSystem(self.__makeFreshOperator(),escript.Data(), \
                             self.getCoefficientOfPDE("A"), \
                             self.getCoefficientOfPDE("B"), \
                             self.getCoefficientOfPDE("C"), \
@@ -1026,7 +1022,7 @@ class AdvectivePDE(LinearPDE):
 
    def setValue(self,**args):
        if "A" in args.keys()   or "B" in args.keys() or "C" in args.keys(): self.__Xi=escript.Data()
-       self._setValue(**args)
+       self._LinearPDE__setValue(**args)
            
    def getXi(self):
       if self.__Xi.isEmpty():
@@ -1241,7 +1237,7 @@ class Poisson(LinearPDE):
        self.setValue(f,q)
 
    def setValue(self,f=escript.Data(),q=escript.Data()):
-       self._setValue(f=f,q=q)
+       self._LinearPDE__setValue(f=f,q=q)
 
    def getCoefficientOfPDE(self,name):
      """
@@ -1274,3 +1270,105 @@ class Poisson(LinearPDE):
          return self.getCoefficient("q")
      else:
          raise SystemError,"unknown PDE coefficient %s",name
+
+# $Log$
+# Revision 1.7  2005/05/06 04:26:10  jgs
+# Merge of development branch back to main trunk on 2005-05-06
+#
+# Revision 1.1.2.20  2005/04/15 07:09:08  gross
+# some problems with functionspace and linearPDEs fixed.
+#
+# Revision 1.1.2.19  2005/03/04 05:27:07  gross
+# bug in SystemPattern fixed.
+#
+# Revision 1.1.2.18  2005/02/08 06:16:45  gross
+# Bugs in AdvectivePDE fixed, AdvectiveTest is stable but more testing is needed
+#
+# Revision 1.1.2.17  2005/02/08 05:56:19  gross
+# Reference Number handling added
+#
+# Revision 1.1.2.16  2005/02/07 04:41:28  gross
+# some function exposed to python to make mesh merging running
+#
+# Revision 1.1.2.15  2005/02/03 00:14:44  gross
+# timeseries add and ESySParameter.py renames esysXML.py for consistence
+#
+# Revision 1.1.2.14  2005/02/01 06:44:10  gross
+# new implementation of AdvectivePDE which now also updates right hand side. systems of PDEs are still not working
+#
+# Revision 1.1.2.13  2005/01/25 00:47:07  gross
+# updates in the documentation
+#
+# Revision 1.1.2.12  2005/01/12 01:28:04  matt
+# Added createCoefficient method for linearPDEs.
+#
+# Revision 1.1.2.11  2005/01/11 01:55:34  gross
+# a problem in linearPDE class fixed
+#
+# Revision 1.1.2.10  2005/01/07 01:13:29  gross
+# some bugs in linearPDE fixed
+#
+# Revision 1.1.2.9  2005/01/06 06:24:58  gross
+# some bugs in slicing fixed
+#
+# Revision 1.1.2.8  2005/01/05 04:21:40  gross
+# FunctionSpace checking/matchig in slicing added
+#
+# Revision 1.1.2.7  2004/12/29 10:03:41  gross
+# bug in setValue fixed
+#
+# Revision 1.1.2.6  2004/12/29 05:29:59  gross
+# AdvectivePDE successfully tested for Peclet number 1000000. there is still a problem with setValue and Data()
+#
+# Revision 1.1.2.5  2004/12/29 00:18:41  gross
+# AdvectivePDE added
+#
+# Revision 1.1.2.4  2004/12/24 06:05:41  gross
+# some changes in linearPDEs to add AdevectivePDE
+#
+# Revision 1.1.2.3  2004/12/16 00:12:34  gross
+# __init__ of LinearPDE does not accept any coefficient anymore
+#
+# Revision 1.1.2.2  2004/12/14 03:55:01  jgs
+# *** empty log message ***
+#
+# Revision 1.1.2.1  2004/12/12 22:53:47  gross
+# linearPDE has been renamed LinearPDE
+#
+# Revision 1.1.1.1.2.7  2004/12/07 10:13:08  gross
+# GMRES added
+#
+# Revision 1.1.1.1.2.6  2004/12/07 03:19:50  gross
+# options for GMRES and PRES20 added
+#
+# Revision 1.1.1.1.2.5  2004/12/01 06:25:15  gross
+# some small changes
+#
+# Revision 1.1.1.1.2.4  2004/11/24 01:50:21  gross
+# Finley solves 4M unknowns now
+#
+# Revision 1.1.1.1.2.3  2004/11/15 06:05:26  gross
+# poisson solver added
+#
+# Revision 1.1.1.1.2.2  2004/11/12 06:58:15  gross
+# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+#
+# Revision 1.1.1.1.2.1  2004/10/28 22:59:22  gross
+# finley's RecTest.py is running now: problem in SystemMatrixAdapater fixed
+#
+# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
+# initial import of project esys2
+#
+# Revision 1.3.2.3  2004/10/26 06:43:48  jgs
+# committing Lutz's and Paul's changes to brach jgs
+#
+# Revision 1.3.4.1  2004/10/20 05:32:51  cochrane
+# Added incomplete Doxygen comments to files, or merely put the docstrings that already exist into Doxygen form.
+#
+# Revision 1.3  2004/09/23 00:53:23  jgs
+# minor fixes
+#
+# Revision 1.1  2004/08/28 12:58:06  gross
+# SimpleSolve is not running yet: problem with == of functionsspace
+#
+#

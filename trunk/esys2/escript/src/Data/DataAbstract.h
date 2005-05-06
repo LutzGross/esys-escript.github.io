@@ -275,7 +275,7 @@ class DataAbstract {
      \brief
      Set the pointDataView DataArrayView associated with this object.
 
-     \param right - Input - The point data view. DataAbstract takes ownership
+     \param input - Input - The point data view. DataAbstract takes ownership
      of the DataArrayView provided. It will delete it when it is destructed.
   */
   void

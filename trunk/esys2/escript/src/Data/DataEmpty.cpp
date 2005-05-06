@@ -1,4 +1,5 @@
 //$Id$
+
 /*
  ******************************************************************************
  *                                                                            *
@@ -31,13 +32,7 @@ DataEmpty::~DataEmpty()
 std::string
 DataEmpty::toString() const
 {
-  return "Empty Data.";
-}
-
-void
-DataEmpty::throwStandardException(const std::string& functionName) const
-{
-  throw DataException("Error - "+functionName+" function call invalid for DataEmpty.");
+  return "(Empty Data)";
 }
 
 DataArrayView::ValueType::size_type
@@ -45,13 +40,6 @@ DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
 {
   throwStandardException("getPointOffset");
-  return 0;
-}
-
-double*
-DataEmpty::getSampleDataByTag(int tag)
-{
-  throwStandardException("getSampleDataByTag");
   return 0;
 }
 
@@ -87,6 +75,12 @@ void
 DataEmpty::reshapeDataPoint(const DataArrayView::ShapeType& shape)
 {
   throwStandardException("reshapeDataPoint");
+}
+
+void
+DataEmpty::throwStandardException(const std::string& functionName) const
+{
+  throw DataException("Error - "+functionName+" function call invalid for DataEmpty.");
 }
 
 }  // end of namespace

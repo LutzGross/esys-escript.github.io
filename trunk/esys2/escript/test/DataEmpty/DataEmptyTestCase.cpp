@@ -48,21 +48,11 @@ void DataEmptyTestCase::testAll() {
   DataEmpty testData;
 
   cout << "\tTest toString method." << endl;
-  assert(testData.toString() == "Empty Data.");
+  assert(testData.toString() == "(Empty Data)");
 
   try {
     cout << "\tTest getPointOffset." << endl;
     assert(testData.getPointOffset(0,0) == 0);
-    assert(false);
-  }
-  catch (EsysException& e) {
-    //cout << e.toString() << endl;
-    assert(true);
-  }
-  
-  try {
-    cout << "\tTest getSampleDataByTag." << endl;
-    assert(testData.getSampleDataByTag(0) == 0);
     assert(false);
   }
   catch (EsysException& e) {
