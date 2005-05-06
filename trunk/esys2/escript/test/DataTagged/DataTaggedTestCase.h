@@ -36,7 +36,6 @@ class DataTaggedTestCase : public CppUnitTest::TestCase
   void testAll();
   void testReshape();
   void testOperations();
-  void testSubtraction();
 
   DataTaggedTestCase (std::string name) : TestCase (name) {}
   ~DataTaggedTestCase() {}

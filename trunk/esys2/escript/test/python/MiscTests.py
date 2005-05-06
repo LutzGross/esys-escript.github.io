@@ -84,29 +84,86 @@ def isScalar(arg):
 
 print "\n\n"
 
-msh=finley.Rectangle(10,9,1)
+msh=finley.Rectangle(1,1,1)
 
-#for wh in [ContinuousFunction(msh),Function(msh)]:
+for wh in [ContinuousFunction(msh),Function(msh)]:
 
-#  print wh.toString()
+  print wh.toString()
 
-#  for ex in ["Constant","Expanded"]:
+  for ex in ["Constant","Expanded"]:
 
-#    for a in arglist:
+    for a in arglist:
 
-#      print "\n", ex, a, "==>"
+      print "\n", ex, a, "==>"
 
-#      arg=prepareArg(a,ex,wh)
+      arg=prepareArg(a,ex,wh)
 
-#      arrays=turnToArray(a)
+      #print "toString", arg.toString()
+      #print "Rank:", getRank(arg)
+      #print "Scalar:", isScalar(arg)
 
-#      #print "toString", arg.toString()
-#      #print "Rank:", getRank(arg)
-#      #print "Scalar:", isScalar(arg)
+      narry1 = arg.convertToNumArray()
+      narry2 = arg.convertToNumArrayFromSampleNo(0)
+      narry3 = arg.convertToNumArrayFromDPNo(0,0)
 
-#      narry = arg.convertToNumArray()
+      print "arg.convertToNumArray()"
+      print narry1
 
-#      print narry
+      print "arg.convertToNumArrayFromSampleNo(0)"
+      print narry2
+
+      print "arg.convertToNumArrayFromDPNo(0,0)"
+      print narry3
+
+      print "\n\nTests of misc python functions"
+
+      print "\nabs:"
+      print arg.abs()
+
+      print "\nmaxval:"
+      print arg.maxval()
+
+      print "\nminval:"
+      print arg.minval()
+
+      print "\nmindp:"
+      print arg.mindp()
+
+      print "\nlength"
+      print arg.length()
+
+      print "\nsign"
+      print arg.sign()
+
+      print "\ntrace"
+      print arg.trace()
+
+      print "\nexp"
+      print arg.exp()
+
+      print "\nsqrt"
+      print arg.sqrt()
+
+      print "\nneg"
+      print arg.neg()
+
+      print "\npos"
+      print arg.pos()
+
+      print "\nsin"
+      print arg.sin()
+
+      print "\ncos"
+      print arg.cos()
+
+      print "\ntan"
+      print arg.tan()
+
+      print "\nlog"
+      print arg.log()
+
+      print "\nln"
+      print arg.ln()
 
 print "\n\nTests of archiveData and extractData"
 
@@ -138,5 +195,32 @@ archDataM.archiveData("data-archiveE")
 exDataM=Data()
 exDataM.extractData("data-archiveE",FunctionSpace())
 exDataM.archiveData("data-archive2E");
+
+print "\nDo some Tagged data tests"
+print "\nCreate a Tagged data:"
+tagData=Data([ [1.0,1.1],[2.0,2.1] ],Function(msh))
+tagData.setTaggedValue(1,[[3.0,3.1],[4.0,4.1]])
+tagData.setTaggedValue(2,[[5.0,5.1],[6.0,6.1]])
+print tagData
+print "\nSlice it [0:1,:]"
+print tagData[0:1]
+print "\nSlice it [0,0:1]"
+print tagData[0]
+print "\nSlice it [1:2]"
+print tagData[1:2]
+print "\nSlice it [1,1]"
+print tagData[1,1]
+
+print "\nSlice to it [1,1]"
+tagData[0,0] = tagData[1,1]
+print tagData
+
+print "\nSlice to it [1:2,0:1]"
+tagData[1:2,0:1] = tagData[0,1]
+print tagData
+
+print "\nSlice to it [0,1]"
+tagData[0,1] = 9.0
+print tagData
 
 # end

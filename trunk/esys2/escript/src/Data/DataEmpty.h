@@ -12,7 +12,7 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined escript_DataEmpty_20040726_H
 #define escript_DataEmpty_20040726_H
 
@@ -27,6 +27,7 @@ namespace escript {
    Description:
    Implements the DataAbstract interface for an empty Data object.
 */
+
 class DataEmpty : public DataAbstract {
 
  public:
@@ -58,9 +59,9 @@ class DataEmpty : public DataAbstract {
 
   /**
      \brief
-     Return the offset for the given sample. This is a somewhat artificial notion
-     but returns the offset in bytes for the given point into the container
-     holding the point data.
+     Return the offset for the given sample.
+     NB: This will throw an exception as obviously an empty Data object contains no
+     samples. An implementation is required by parent DataAbstract class.
      \param sampleNo - Input - Sample number.
      \param dataPointNo - Input - data-point number.
    */
@@ -72,8 +73,8 @@ class DataEmpty : public DataAbstract {
   /**
      \brief
      Return a view into the data for the data point specified.
-     NOTE: Construction of the DataArrayView is a relatively expensive 
-     operation.
+     NB: This will throw an exception as obviously an empty Data object contains no
+     data points. An implementation is required by parent DataAbstract class.
      \param sampleNo - Input - Sample number.
      \param dataPointNo - Input - data-point number.
   */
@@ -84,24 +85,8 @@ class DataEmpty : public DataAbstract {
 
   /**
      \brief
-     Return the sample data for the given tag key. If the data isn't tagged
-     an exception will be thrown.
-  */
-  virtual
-  double*
-  getSampleDataByTag(int tag);
-
-  /**
-     \brief
-     Throw a standard exception. This function is called if an attempt
-     is made to use functions of DataEmpty that are not valid.
-  */
-  void
-  throwStandardException(const std::string& functionName) const;
-
-  /**
-     \brief
      Return the number of doubles stored for the Data object.
+     As this is an empty Data object, this method will always return 0.
   */
   virtual
   ValueType::size_type
@@ -111,7 +96,8 @@ class DataEmpty : public DataAbstract {
      \brief
      Factory method that returns a newly created DataEmpty sliced from the
      current Data object according to the specified region.
-     The caller is reponsible for managing the object created.
+     NB: This will throw an exception as obviously an empty Data object contains no
+     data to slice from. An implementation is required by parent DataAbstract class.
   */
   virtual
   DataAbstract*
@@ -121,6 +107,8 @@ class DataEmpty : public DataAbstract {
      \brief
      Set the current Data object according to the specified slice from the
      given input value.
+     NB: This will throw an exception as obviously an empty Data object contains no
+     data to slice to. An implementation is required by parent DataAbstract class.
      \param value Input - Data to copy from
      \param region Input - Region to copy.
   */
@@ -132,8 +120,8 @@ class DataEmpty : public DataAbstract {
   /**
      \brief
      Reshape the data point if the data point is currently rank 0.
-     The original data point value is used for all values of the new
-     data point.
+     NB: This will throw an exception as obviously an empty Data object contains no
+     data to reshape. An implementation is required by parent DataAbstract class.
   */
   virtual
   void
@@ -143,7 +131,16 @@ class DataEmpty : public DataAbstract {
 
  private:
 
+  /**
+     \brief
+     Throw a standard exception. This function is called if an attempt
+     is made to use functions of DataEmpty that are not valid.
+  */
+  void
+  throwStandardException(const std::string& functionName) const;
+
 };
 
 } // end of namespace
+
 #endif

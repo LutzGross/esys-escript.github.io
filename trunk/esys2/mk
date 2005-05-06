@@ -32,7 +32,7 @@ fi
 (cd tools/CppUnitTest; if [ ! -e Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
 
 for module in $MODULES ; do \
-	(echo Building: $module; cd $module; env $ENVVARS gmake) \
+	(echo Building: $module; cd $module; env $ENVVARS gmake -j 8) \
 done
 
 if [ "$1" == "install" ];

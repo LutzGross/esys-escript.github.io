@@ -31,6 +31,7 @@ namespace escript {
    Perform the given binary operation.
    \param left Input/Output - The left hand side.
    \param right Input - The right hand side.
+   \param operation Input - The operation to perform.
 */
 template <class BinaryFunction>
 inline void binaryOp(DataTagged& left, const DataConstant& right, 

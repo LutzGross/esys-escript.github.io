@@ -115,4 +115,19 @@ int NullDomain::getDim() const
   return 1; 
 }
 
+bool NullDomain::operator==(const AbstractDomain& other) const
+{
+  const NullDomain* temp=dynamic_cast<const NullDomain*>(&other);
+  if (temp!=0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool NullDomain::operator!=(const AbstractDomain& other) const
+{
+  return(!(*this==other));
+}
+
 }  // end of namespace

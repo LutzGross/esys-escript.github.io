@@ -48,7 +48,10 @@ void FunctionSpaceTestCase::testAll() {
   cout << "\tTest default FunctionSpace constructor." << endl;
 
   // Test Default constructor
+  FunctionSpace testFunctionSpace0;
   FunctionSpace testFunctionSpace1;
+
+  assert(testFunctionSpace0==testFunctionSpace1);
 
   cout << "\tTest FunctionSpace constructor." << endl;
 

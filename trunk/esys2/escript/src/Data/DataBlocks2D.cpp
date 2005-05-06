@@ -60,7 +60,7 @@ DataBlocks2D::resize(int numRows, int numCols, int blockSize)
       throw DataException(mess.str());
     }
     ValueType::size_type size=numRows*numCols*blockSize;
-    m_data.resize(size,0.0);
+    m_data.resize(size);
     m_numRows=numRows;
     m_numCols=numCols;
     m_blockSize=blockSize;

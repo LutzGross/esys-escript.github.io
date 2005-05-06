@@ -52,33 +52,33 @@ void DataVectorTestCase::testAll() {
     DataVector vec;
     assert(vec.size() == 0);
 
-    vec.resize(1);
+    vec.resize(1,0,1);
     assert(vec.size() == 1);
 
-    vec.resize(1000);
+    vec.resize(1000,0,1);
     assert(vec.size() == 1000);
 
-    vec.resize(0);
+    vec.resize(0,0,1);
     assert(vec.size() == 0);
   }
  
   {
     cout << "\tCreate and check DataVector objects of various sizes." << endl;
 
-    DataVector vec1(0);
+    DataVector vec1(0,0,1);
     assert(vec1.size() == 0);
 
-    DataVector vec2(1);
+    DataVector vec2(1,0,1);
     assert(vec2.size() == 1);
 
-    DataVector vec3(1000);
+    DataVector vec3(1000,0,1);
     assert(vec3.size() == 1000);
   }
 
   {
     cout << "\tAssign and check various elements to a DataVector." << endl;
 
-    DataVector vec(1000);
+    DataVector vec(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec[i] = i;
@@ -100,7 +100,7 @@ void DataVectorTestCase::testAll() {
   {
     cout << "\tCheck DataVector copy constructor." << endl;
 
-    DataVector vec1(1000);
+    DataVector vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
@@ -118,7 +118,7 @@ void DataVectorTestCase::testAll() {
   {
     cout << "\tCheck DataVector = operator." << endl;
 
-    DataVector vec1(1000);
+    DataVector vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
@@ -138,7 +138,7 @@ void DataVectorTestCase::testAll() {
   {
     cout << "\tCheck DataVector == operator." << endl;
 
-    DataVector vec1(1000);
+    DataVector vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
@@ -154,7 +154,7 @@ void DataVectorTestCase::testAll() {
   {
     cout << "\tCheck DataVector != operator." << endl;
 
-    DataVector vec1(1000);
+    DataVector vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
@@ -168,7 +168,7 @@ void DataVectorTestCase::testAll() {
   {
     cout << "\tCheck DataVector index exception." << endl;
 
-    DataVector vec(1000);
+    DataVector vec(1000,0,1);
 
     try {
       double x = vec[1001];

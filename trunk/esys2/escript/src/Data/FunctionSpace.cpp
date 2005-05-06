@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sstream>
 
+using namespace std;
 namespace escript {
 
 //
@@ -70,6 +71,7 @@ FunctionSpace::getDomain() const
 std::string
 FunctionSpace::toString() const
 {
+cout << "toString" << m_domain->getDescription() << "\n";
   std::stringstream temp;
   temp << "Function space type: " 
        << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
@@ -103,13 +105,13 @@ FunctionSpace::operator=(const FunctionSpace& other)
 bool
 FunctionSpace::operator==(const FunctionSpace& other) const
 {
-  return (other.m_domain==m_domain && other.m_functionSpaceType==m_functionSpaceType);
+  return ((*(other.m_domain)==*(m_domain)) && (other.m_functionSpaceType==m_functionSpaceType));
 }
 
 bool
 FunctionSpace::operator!=(const FunctionSpace& other) const
 {
-  return (!(other==*this));
+  return !(operator==(other));
 }
 
 escript::Data

@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 #define LenString_MAX FILENAME_MAX*2
 #define LenErrorMsg_MAX LenString_MAX
@@ -29,7 +31,6 @@
 
 typedef int maybelong;
 #define MAYBELONG_MAX INT_MAX
-#define HUGE_VAL DBL_MAX
 #define EPSILON DBL_EPSILON
 
 /**************************************************************/
@@ -77,8 +78,14 @@ typedef int maybelong;
 
 /*
  * $Log$
- * Revision 1.4  2004/12/15 07:08:32  jgs
- * *** empty log message ***
+ * Revision 1.5  2005/05/06 04:26:15  jgs
+ * Merge of development branch back to main trunk on 2005-05-06
+ *
+ * Revision 1.1.1.1.2.2  2005/04/14 06:53:11  gross
+ * a problem with header files fixed: bug appeared  for case -O0 -g in the icc compiler only
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:13  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  *
  *

@@ -34,24 +34,22 @@ extern "C" {
 using namespace boost::python;
 
 /**
-   @memo
-   finley is the python module name that contains the interfaces
+   \page finley Finley
+   Finley is the python module name that contains the interfaces
    to the C++ wrapper to finley.
 
-   @version 1.0.0 
+   \version 1.0.0 
 
-   @doc
-
-   Class Description:
+   \section class_desc Class Description:
    Data
 
-   Class Limitations:
+   \section class_limits Class Limitations:
    None
 
-   Class Conditions of Use:
+   \section class_conds Class Conditions of Use:
    None
 
-   Throws:
+   \section throws Throws:
    None
 
 */

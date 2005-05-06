@@ -121,11 +121,9 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
   print wh
 
-  #for ex1 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
-  for ex1 in ["Constant","Expanded","Tagged1","Tagged2"]:
+  for ex1 in ["Constant","Expanded"]:
 
-    #for ex2 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
-    for ex2 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
+    for ex2 in ["Array","Constant","Expanded"]:
 
           print "Slice setting: ", ex1, ",", ex2, ":"
 

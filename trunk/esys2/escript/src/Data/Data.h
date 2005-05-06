@@ -1,6 +1,5 @@
 // $Id$
-/*=============================================================================
-
+/*
  ******************************************************************************
  *                                                                            *
  *       COPYRIGHT ACcESS 2004 -  All Rights Reserved                         *
@@ -12,8 +11,9 @@
  * person has a software license agreement with ACcESS.                       *
  *                                                                            *
  ******************************************************************************
+*/
 
-******************************************************************************/
+/** \file Data.h */
 
 #ifndef DATA_H
 #define DATA_H
@@ -40,22 +40,6 @@ extern "C" {
 #include <boost/python/tuple.hpp>
 #include <boost/python/numeric.hpp>
 
-/**
-   \brief
-   Data is essentially a factory class which creates the appropriate Data
-   object for the given construction arguments. It retains control over
-   the object created for the lifetime of the object.
-   The type of Data object referred to may change during the lifetime of
-   the Data object.
-
-   Description:
-   Data is essentially a factory class which creates the appropriate Data
-   object for the given construction arguments. It retains control over
-   the object created for the lifetime of the object.
-   The type of Data object referred to may change during the lifetime of
-   the Data object.
-*/
-
 namespace escript {
 
 //
@@ -65,6 +49,18 @@ class DataConstant;
 class DataTagged;
 class DataExpanded;
 
+/**
+   \brief
+   Data creates the appropriate Data object for the given construction 
+   arguments. 
+
+   Description:
+   Data is essentially a factory class which creates the appropriate Data
+   object for the given construction arguments. It retains control over
+   the object created for the lifetime of the object.
+   The type of Data object referred to may change during the lifetime of
+   the Data object.
+*/
 class Data {
 
   public:
@@ -223,10 +219,25 @@ class Data {
 
   /**
      \brief
-     Return the values of all data-points in a single python numarray object.
+     Return the values of all data-points as a single python numarray object.
   */
-  boost::python::numeric::array
+  const boost::python::numeric::array
   convertToNumArray();
+
+  /**
+     \brief
+     Return the values of all data-points for the given sample as a single python numarray object.
+  */
+  const boost::python::numeric::array
+  convertToNumArrayFromSampleNo(int sampleNo);
+
+  /**
+     \brief
+     Return the value of the specified data-point as a single python numarray object.
+  */
+  const boost::python::numeric::array
+  convertToNumArrayFromDPNo(int sampleNo,
+                            int dataPointNo);
 
   /**
      \brief
@@ -471,7 +482,7 @@ class Data {
      \brief
      Return the data point shape as a tuple of integers.
   */
-  boost::python::tuple
+  const boost::python::tuple
   getShapeTuple() const;
 
   /**
@@ -508,13 +519,10 @@ class Data {
      cannot be converted to a DataTagged object.
      \param tagKey - Input - Integer key.
      \param value - Input - Value to associate with given key.
-     Note: removed for now - this version not needed, and breaks escript.cpp
   */
-  /*
   void
-  setTaggedValue(int tagKey,
-                 const DataArrayView& value);
-  */
+  setTaggedValueFromCPP(int tagKey,
+                        const DataArrayView& value);
 
   /**
     \brief
@@ -682,6 +690,14 @@ class Data {
 
   /**
      \brief
+     Return the (sample number, data-point number) of the data point with
+     the minimum value in this Data object.
+  */
+  const boost::python::tuple
+  mindp() const;
+
+  /**
+     \brief
      Return the length of each data point of this Data object.
      sqrt(sum(A[i,j,k,l]^2))
   */
@@ -697,7 +713,7 @@ class Data {
   sign() const;
 
   /**
-    \transpose
+    \brief
     Transpose each data point of this Data object around the given axis.
     --* not implemented yet *--
   */
@@ -705,7 +721,7 @@ class Data {
   transpose(int axis) const;
 
   /**
-    \trace
+    \brief
     Calculate the trace of each data point of this Data object.
     sum(A[i,i,i,i])
   */
@@ -713,26 +729,49 @@ class Data {
   trace() const;
 
   /**
-    \exp
+    \brief
     Return the exponential function of each data point of this Data object.
   */
   Data
   exp() const;
 
   /**
-    \sqrt
+    \brief
     Return the square root of each data point of this Data object.
   */
   Data
   sqrt() const;
 
   /**
+    \brief
+    Return the negation of each data point of this Data object.
+  */
+  Data
+  neg() const;
+
+  /**
+    \brief
+    Return the identity of each data point of this Data object.
+    Simply returns this object unmodified.
+  */
+  Data
+  pos() const;
+
+  /**
      \brief
      Return the given power of each data point of this Data object.
+
+     \param right Input - the power to raise the object to.
   */
   Data
   powD(const Data& right) const;
 
+  /**
+   * \brief
+   * Return the given power of each data point of this boost python object.
+   *
+   * \param right Input - the power to raise the object to.
+   */
   Data
   powO(const boost::python::object& right) const;
 
@@ -749,21 +788,6 @@ class Data {
   */
   void
   saveVTK(std::string fileName) const;
-
-  /**
-    \brief
-    Return the negation of each data point of this Data object.
-  */
-  Data
-  neg() const;
-
-  /**
-    \brief
-    Return the identity of each data point of this Data object.
-    Simply returns this object unmodified.
-  */
-  Data
-  pos() const;
 
   /**
      \brief
@@ -826,7 +850,6 @@ class Data {
      \brief
      Copies slice from value into this Data object.
 
-     \description
      Implements the [] set operator in python.
      Calls setSlice.
 
@@ -888,7 +911,7 @@ class Data {
      the current Data object.
      Note - the current object must be of type DataEmpty.
      \param fileName - Input - file to extract from.
-     \param what - Input - a suitable FunctionSpace descibing the data.
+     \param fspace - Input - a suitable FunctionSpace descibing the data.
   */
   void
   extractData(const std::string fileName,
