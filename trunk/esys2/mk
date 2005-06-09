@@ -3,14 +3,37 @@
 # $Id$
 # An explicit building script for esys
 
+#**********************************************************************
+# NB: this script is setup to perform default developmental builds
+# change any settings you require, but PLEASE do not check any changes
+# to this script back into the repository - talk to Jon first
+#**********************************************************************
+
+# the modules to make
 MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
 
-# use for local developmental builds
+# the tests to run
+TESTS="escript finley"
+
+# use this setting for local developmental builds
 ENVVARS="DODEBUG=YES"
 
-# use for production installs  - NB: overwrites installed esys llibraries
+# use this setting for production installs on altix
+# ** NB: overwrites centrally installed esys libraries on altix ***
 #ENVVARS="L_INSTLIB_DIR=/raid2/tools/esys/lib L_PYTH_DIR=/raid2/tools/esys/esys"
 
+# ensure required symlinks are setup first
+(cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
+(cd esysUtils/inc; if [ ! -h esysUtils ]; then ln -s ../src esysUtils; fi)
+(cd finley/inc; if [ ! -h finley ]; then ln -s ../src finley; fi)
+
+(cd escript; if [ ! -h Makefile ]; then ln -s ./escript.mk Makefile; fi)
+(cd esysUtils; if [ ! -h Makefile ]; then ln -s ./esysUtils.mk Makefile; fi)
+(cd finley; if [ ! -h Makefile ]; then ln -s ./finley.mk Makefile; fi)
+(cd tools/mmio; if [ ! -h Makefile ]; then ln -s ./mmio.mk Makefile; fi)
+(cd tools/CppUnitTest; if [ ! -h Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
+
+# clean all modules
 if [ "$1" == "clean" ];
 then
 	for module in $MODULES ; do \
@@ -19,28 +42,62 @@ then
         exit
 fi
 
-(cd escript/lib; if [ ! -e py_src ]; then mkdir py_src; fi)
+# uninstall all modules
+if [ "$1" == "uninstall" ];
+then
+	for module in $MODULES ; do \
+		(echo Cleaning: $module; cd $module; gmake uninstall) \
+	done
+        exit
+fi
 
-(cd escript/inc; if [ ! -e escript ]; then ln -s ../src escript; fi)
-(cd esysUtils/inc; if [ ! -e esysUtils ]; then ln -s ../src esysUtils; fi)
-(cd finley/inc; if [ ! -e finley ]; then ln -s ../src finley; fi)
-
-(cd escript; if [ ! -e Makefile ]; then ln -s ./escript.mk Makefile; fi)
-(cd esysUtils; if [ ! -e Makefile ]; then ln -s ./esysUtils.mk Makefile; fi)
-(cd finley; if [ ! -e Makefile ]; then ln -s ./finley.mk Makefile; fi)
-(cd tools/mmio; if [ ! -e Makefile ]; then ln -s ./mmio.mk Makefile; fi)
-(cd tools/CppUnitTest; if [ ! -e Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
-
+# default case - just build all modules
 for module in $MODULES ; do \
-	(echo Building: $module; cd $module; env $ENVVARS gmake -j 8) \
+	(echo Building: $module; cd $module; env $ENVVARS gmake -j 10) \
 done
 
+# install all modules
 if [ "$1" == "install" ];
 then
 	for module in $MODULES ; do \
-		(echo Installing: $module; cd $module; env $ENVVARS gmake install ) \
+		(echo Installing: $module; cd $module; env $ENVVARS gmake install) \
 	done
+        (cd esys; if [ ! -h escriptcpp.so ]; then ln -s ../lib/libescriptcpp.so escriptcpp.so; fi)
+        (cd esys; if [ ! -h finleycpp.so ]; then ln -s ../lib/libfinleycpp.so finleycpp.so; fi)
 fi
 
-(cd esys; if [ ! -e escriptcpp.so ]; then ln -s ../lib/libescriptcpp.so escriptcpp.so; fi)
-(cd esys; if [ ! -e finleycpp.so ]; then ln -s ../lib/libfinleycpp.so finleycpp.so; fi)
+# run the unit tests
+if [ "$1" == "unit_test" ]
+then
+    for module in $TESTS
+    do
+	echo "Running unit tests for: $module"
+	cd $ESYS_ROOT/$module/test
+	unit_test
+    done
+fi
+
+# run the python tests
+if [ "$1" == "py_test" ]
+then
+    for module in $TESTS
+    do
+	echo "Running python tests for: $module"
+	if [ "$module" == "finley" ]
+	then
+	    cd $ESYS_ROOT/$module/test/python
+            python ImportTest.py
+	    python SimpleSolve.py
+	    python GradTest.py
+	elif [ "$module" == "escript" ]
+	then
+	    cd $ESYS_ROOT/$module/test/python
+            python ImportTest.py
+	    python BinaryOps.py
+	    python UnaryOps.py
+	    python SliceGetting.py
+	    python SliceSetting.py
+            python MiscTests.py
+	fi
+    done
+fi

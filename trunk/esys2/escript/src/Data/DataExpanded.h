@@ -100,7 +100,7 @@ class DataExpanded : public DataAbstract {
      Alternative Constructor for DataExpanded objects.
      \param what - Input - A description of what this data object represents.
      \param shape - Input - the shape of each data-point.
-     \param data - the data values for each data-point.
+     \param data - the array of data values for the data-points.
   */
   DataExpanded(const FunctionSpace& what,
                const DataArrayView::ShapeType &shape,

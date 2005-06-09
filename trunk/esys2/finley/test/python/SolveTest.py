@@ -163,10 +163,11 @@ error=0.
 for numDim in [2, 3]:
    for totalNumElem in [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400,204800]:
       for problem in [solveScalar,solveVector]:
-         if totalNumElem*2**numDim*numDim< 200000: error=max([problem(numDim, totalNumElem, len_x0, alpha,"DIRECT",""),error])
-         for solver_method in [ "PCG" ]:
-            for prec in [ "JACOBI", "ILU0" ]:
-               error=max([problem(numDim, totalNumElem, len_x0, alpha, solver_method,prec),error])
+         error=max([problem(numDim, totalNumElem, len_x0, alpha,"DIRECT",""),error])
+         #if totalNumElem*2**numDim*numDim< 200000: error=max([problem(numDim, totalNumElem, len_x0, alpha,"DIRECT",""),error])
+         # for solver_method in [ "PCG" ]:
+         #    for prec in [ "JACOBI", "ILU0" ]:
+         #       error=max([problem(numDim, totalNumElem, len_x0, alpha, solver_method,prec),error])
 print "----------------"
 print "maximum error over all tests is ",error
 print "----------------"

@@ -19,7 +19,13 @@ SHELL := /bin/sh
 
 # Make settings
 MAKE_DIR := $(ESYS_ROOT)/make
-HOSTNAME := ${shell hostname | sed -e 's/\..*//'}
+
+# gcc settings
+ifeq ($(strip $(USE_GCC)),)
+   HOSTNAME := ${shell hostname | sed -e 's/\..*//'}
+else
+   HOSTNAME := gcc
+endif
 
 #
 # Set defaults for local variables if not already set
@@ -40,16 +46,6 @@ ifeq ($(strip $(L_LIB_DIR)),)
    L_LIB_DIR := ./lib
 endif
 
-# Library install directory
-ifeq ($(strip $(L_INSTLIB_DIR)),)
-   L_INSTLIB_DIR := ../lib
-endif
-
-# Python package install directory
-ifeq ($(strip $(L_PYTH_DIR)),)
-   L_PYTH_DIR := ../esys
-endif
-
 # Include file directory
 ifeq ($(strip $(L_INC_DIR)),)
    L_INC_DIR := ./inc
@@ -65,7 +61,7 @@ ifeq ($(strip $(L_DEP_DIR)),)
    L_DEP_DIR := ./dep
 endif
 
-# ?
+# Mod file directory
 ifeq ($(strip $(L_MOD_DIR)),)
    L_MOD_DIR := ./mod
 endif
@@ -100,6 +96,16 @@ ifeq ($(strip $(DODEBUG)),)
    DODEBUG := NO
 endif
 
+# Library install directory
+ifeq ($(strip $(L_INSTLIB_DIR)),)
+   L_INSTLIB_DIR := $(ESYS_ROOT)/lib
+endif
+
+# Python package install directory
+ifeq ($(strip $(L_PYTH_DIR)),)
+   L_PYTH_DIR := $(ESYS_ROOT)/esys
+endif
+
 # Include remainder of Makefiles
 include ${MAKE_DIR}/Makefile.source
 include ${MAKE_DIR}/hosts/${HOSTNAME}/Makefile.host
@@ -126,4 +132,3 @@ ESYS_ROOT_ERROR:
 
 NO_SOURCE_FILES_ERROR:
 	@echo "No source files could be found for L_SRC_DIR: $(L_SRC_DIR)
-

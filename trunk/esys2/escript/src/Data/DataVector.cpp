@@ -13,6 +13,7 @@
 */
 
 #include <iostream>
+#include <cassert>
 
 #include "escript/Data/DataVector.h"
 #include "escript/Data/Taipan.h"
@@ -40,7 +41,9 @@ DataVector::DataVector(const DataVector& other) :
   m_N(other.m_N)
 {
   m_array_data = arrayManager.new_array(m_dim,m_N);
-  for (int i=0; i<m_size; i++) {
+  int i;
+  #pragma omp parallel for private(i) schedule(static)
+  for (i=0; i<m_size; i++) {
     m_array_data[i] = other.m_array_data[i];
   }
 }
@@ -85,8 +88,10 @@ DataVector::resize(const DataVector::size_type newSize,
   m_N = newSize / newBlockSize;
   m_array_data = arrayManager.new_array(m_dim,m_N);
 
-  for (int i=0; i<m_size; i++) {
-    m_array_data[i]=newValue;
+  int i;
+  #pragma omp parallel for private(i) schedule(static)
+  for (i=0; i<m_size; i++) {
+    m_array_data[i] = newValue;
   }
 }
 
@@ -102,7 +107,9 @@ DataVector::operator=(const DataVector& other)
   m_N = other.m_N;
 
   m_array_data = arrayManager.new_array(m_dim,m_N);
-  for (int i=0; i<m_size; i++) {
+  int i;
+  #pragma omp parallel for private(i) schedule(static)
+  for (i=0; i<m_size; i++) {
     m_array_data[i] = other.m_array_data[i];
   }
 

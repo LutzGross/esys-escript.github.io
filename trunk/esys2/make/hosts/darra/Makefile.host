@@ -3,7 +3,6 @@
 # Define all Makefile variables specfying compiler settings relevant to this host
 
 # C Compiler Settings
-#CC := /opt/intel/cmplrs/80.058/intel_cc_80/bin/icc
 CC := gcc
 CC_SYS_INC_DIRS := ${NULL}
 CC_INC_DIR_FLAG := -I
@@ -11,19 +10,13 @@ CC_DEF_FLAG := -D
 CC_DEP_FLAGS := -MM
 CC_OBJ_FLAGS := -c -fpic
 CC_SHARE_FLAGS := -fpic
-#CC_CONFORM_FLAGS := -ansi -ansi_alias -c99 -no-gcc
-CC_CONFORM_FLAGS := -ansi -std=c99
-#CC_DIAG_FLAGS := -w1 -Wall
-CC_DIAG_FLAGS := -W -Wall
-#CC_ARCH_FLAGS := -tpp2
+CC_CONFORM_FLAGS := -std=c99
+CC_DIAG_FLAGS := -W -Wall -Wno-unknown-pragmas
 CC_ARCH_FLAGS :=
-#CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report2
 CC_OPT_FLAGS := -O3
-# CC_OPT_FLAGS := -O3 -IPF_fma -ftz -parallel -par_report3 -openmp -openmp_report2
 CC_OUTPUT_FLAG := -o
 
 # CPP Compiler Settings
-#CPP := /opt/intel/cmplrs/80.058/intel_cc_80/bin/icc
 CPP := g++
 CPP_SYS_INC_DIRS := ${NULL}
 CPP_INC_DIR_FLAG := -I
@@ -31,32 +24,24 @@ CPP_DEF_FLAG := -D
 CPP_DEP_FLAGS := -MM
 CPP_OBJ_FLAGS := -c -fpic
 CPP_SHARE_FLAGS := -fpic
-#CPP_CONFORM_FLAGS := -ansi -ansi_alias -mp1 -no-gcc
 CPP_CONFORM_FLAGS := -ansi 
-#CPP_DIAG_FLAGS := -w1 
-CPP_DIAG_FLAGS := -W -Wall
-#CPP_ARCH_FLAGS := -tpp2
+CPP_DIAG_FLAGS := -W -Wall -Wno-unknown-pragmas
 CPP_ARCH_FLAGS :=
 ifeq ($(strip $(DODEBUG)),YES)
-  #CPP_OPT_FLAGS := -g -O0 -openmp -openmp_report2
   CPP_OPT_FLAGS := -g -O0
   #
   # libraries built with debug on have this extension appended to their name
   # eg the debug version of libCppUnitTest.a would be libCppUnitTestg.a
   DEBUG_FILE_EXT := g
 else
-  #CPP_OPT_FLAGS := -O2 -openmp -openmp_report2
   CPP_OPT_FLAGS := -O2
   DEBUG_FILE_EXIT := ${NULL}
 endif
 CPP_OUTPUT_FLAG := -o
 
 # Linker Settings
-#LD := /opt/intel/cmplrs/80.058/intel_cc_80/bin/icc
 LD := gcc
-#LD_SYS_LIB_DIRS := /opt/intel/cmplrs/80.058/intel_cc_80/lib
 LD_SYS_LIB_DIRS :=
-#LD_SYS_LIBS := guide
 LD_SYS_LIBS :=
 LD_LIB_DIR_FLAG := -L
 LD_LIB_FLAG := -l
@@ -77,7 +62,6 @@ AR_OPTION_FLAGS := crus
 #SWIG_OUTPUT_FLAG := -o
 
 # Python Compiler Settings
-#PYTHON := /raid2/tools/python-2.3.4/bin/python
 PYTHON := /opt/py24/bin/python
 PYTHON_CMD_FLAG := -c
 PYTHON_OPT_FLAGS := -O
@@ -85,8 +69,23 @@ PYTHON_DIAG_FLAGS := -Wall
 PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'
 
 # $Log$
+# Revision 1.3  2005/06/09 05:38:03  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
 # Revision 1.2  2004/12/17 07:43:11  jgs
 # *** empty log message ***
+#
+# Revision 1.1.2.5  2005/05/16 03:04:36  imran
+# darra setup was modified! reverting back
+#
+# Revision 1.1.2.4  2005/05/13 05:48:18  gross
+# some changes to get this running under gcc
+#
+# Revision 1.1.2.3  2005/05/10 08:10:43  imran
+# Finally I get frustrated with the 'ignoring unknown pragma' messages!
+#
+# Revision 1.1.2.2  2005/05/09 03:12:25  imran
+# removed unnecessary comments
 #
 # Revision 1.1.2.1  2004/12/17 02:50:45  imran
 # added files for host 'darra'

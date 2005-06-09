@@ -7,16 +7,17 @@
 
 # Matt Davies 04/08/03
 
-DEFAULT_TARGET := libfinleyC.a libfinleycpp.so
+DEFAULT_TARGET := libfinleyC.a libfinleycpp.so pyc
 
-INSTALL_PYTH := ./py_src/finley.py
+INSTALL_PYTH := ./lib/py_src/finley.pyc
 
 INSTALL_LIB := ./lib/libfinleycpp.so
 
-L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=SGI_SCSL
+# These settings are now specified in Makefile.host
+#L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
 
 PACKAGES := escript mmio esysUtils python23 boost scsl141pre
 
-L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL ./src/CPPAdapter
+L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL ./src/CPPAdapter ./py_src
 
 include $(ESYS_ROOT)/make/Makefile.default

@@ -14,8 +14,14 @@ ifneq (${strip ${PACKAGES}},)
 endif
 
 # $Log$
-# Revision 1.1  2004/10/26 06:53:58  jgs
-# Initial revision
+# Revision 1.2  2005/06/09 05:38:02  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.1.1.1.2.1  2005/05/17 01:31:15  jgs
+# set L_INSTLIB_DIR and L_PYTH_DIR defaults relative to ESYS_ROOT
+#
+# Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+# initial import of project esys2
 #
 # Revision 1.2  2004/09/23 01:48:45  jgs
 # make: augmented Makefiles with comments throughout
@@ -33,4 +39,3 @@ endif
 # Revision 1.1.1.1  2003/08/21 00:58:20  davies
 # Imported sources from Lutz Gross.
 #
-

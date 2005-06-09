@@ -166,17 +166,19 @@ algorithm(DataExpanded& data,
   // calculate the reduction operation value for each data point
   // storing the result for each data-point in successive entries
   // in resultVector
-  {
-#pragma omp for private(i,j) schedule(static)
-    for (i=0;i<numSamples;i++) {
-      for (j=0;j<numDPPSample;j++) {
-#pragma omp critical (reductionOp)
-	resultVector[j*numSamples+i]=dataView.reductionOp(data.getPointOffset(i,j),operation);
-      }
+  //
+  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
+  // which maintains state between calls which would be corrupted by parallel execution
+  for (i=0;i<numSamples;i++) {
+    for (j=0;j<numDPPSample;j++) {
+      resultVector[j*numSamples+i]=dataView.reductionOp(data.getPointOffset(i,j),operation);
     }
   }
   // now calculate the reduction operation value across the results
   // for each data-point
+  //
+  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
+  // which maintains state between calls which would be corrupted by parallel execution
   operation.resetResult();
   for (int l=0;l<resultVectorLength;l++) {
     operation(resultVector[l]);
@@ -204,6 +206,9 @@ algorithm(DataTagged& data,
   resultVector.push_back(data.getDefaultValue().reductionOp(operation));
   // now calculate the reduction operation value across the results
   // for each tagged value
+  //
+  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
+  // which maintains state between calls which would be corrupted by parallel execution
   resultVectorLength=resultVector.size();
   operation.resetResult();
   for (int l=0;l<resultVectorLength;l++) {
@@ -246,14 +251,13 @@ dp_algorithm(DataExpanded& data,
   DataArrayView resultView=result.getPointDataView();
   // perform the operation on each data-point and assign
   // this to the corresponding element in result
-  {
-#pragma omp for private(i,j) schedule(static)
-    for (i=0;i<numSamples;i++) {
-      for (j=0;j<numDPPSample;j++) {
-#pragma omp critical (reductionOp)
-        resultView.getData(result.getPointOffset(i,j)) =
-          dataView.reductionOp(data.getPointOffset(i,j),operation);
-      }
+  //
+  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
+  // which maintains state between calls which would be corrupted by parallel execution
+  for (i=0;i<numSamples;i++) {
+    for (j=0;j<numDPPSample;j++) {
+      resultView.getData(result.getPointOffset(i,j)) =
+        dataView.reductionOp(data.getPointOffset(i,j),operation);
     }
   }
 }
@@ -272,6 +276,9 @@ dp_algorithm(DataTagged& data,
   DataArrayView resultView=result.getPointDataView();
   // perform the operation on each tagged data value
   // and assign this to the corresponding element in result
+  //
+  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
+  // which maintains state between calls which would be corrupted by parallel execution
   for (i=lookup.begin();i!=lookupEnd;i++) {
     resultView.getData(i->second) =
       dataView.reductionOp(i->second,operation);
@@ -296,4 +303,5 @@ dp_algorithm(DataConstant& data,
 }
 
 } // end of namespace
+
 #endif

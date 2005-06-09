@@ -1,0 +1,81 @@
+# $Id$
+
+# Define all Makefile variables specfying compiler settings relevant to this host
+
+# C Compiler Settings
+CC := gcc
+CC_SYS_INC_DIRS := ${NULL}
+CC_INC_DIR_FLAG := -I
+CC_DEF_FLAG := -D
+CC_DEP_FLAGS := -MM
+CC_OBJ_FLAGS := -c -fpic
+CC_SHARE_FLAGS := -fpic
+CC_CONFORM_FLAGS := -std=c99
+CC_DIAG_FLAGS := -W -Wall -Wno-unknown-pragmas
+CC_ARCH_FLAGS :=
+CC_OPT_FLAGS := -O3
+CC_OUTPUT_FLAG := -o
+
+# CPP Compiler Settings
+CPP := g++
+CPP_SYS_INC_DIRS := ${NULL}
+CPP_INC_DIR_FLAG := -I
+CPP_DEF_FLAG := -D
+CPP_DEP_FLAGS := -MM
+CPP_OBJ_FLAGS := -c -fpic
+CPP_SHARE_FLAGS := -fpic
+CPP_CONFORM_FLAGS := -ansi 
+CPP_DIAG_FLAGS := -W -Wall -Wno-unknown-pragmas
+CPP_ARCH_FLAGS :=
+ifeq ($(strip $(DODEBUG)),YES)
+  CPP_OPT_FLAGS := -g -O0
+  #
+  # libraries built with debug on have this extension appended to their name
+  # eg the debug version of libCppUnitTest.a would be libCppUnitTestg.a
+  DEBUG_FILE_EXT := g
+else
+  CPP_OPT_FLAGS := -O2
+  DEBUG_FILE_EXIT := ${NULL}
+endif
+CPP_OUTPUT_FLAG := -o
+
+# Finley Solver settings
+L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
+
+
+# Linker Settings
+LD := gcc
+LD_SYS_LIB_DIRS :=
+LD_SYS_LIBS :=
+LD_LIB_DIR_FLAG := -L
+LD_LIB_FLAG := -l
+LD_DIAG_FLAGS := ${NULL}
+LD_SHARE_FLAG := -shared
+LD_OUTPUT_FLAG := -o
+
+# Archiver Settings
+AR := /usr/bin/ar
+AR_OPTION_FLAGS := crus
+
+# Swig Compiler Settings
+#SWIG := /usr/bin/swig
+#SWIG_INC_DIR_FLAGS := ${patsubst %, -I%, ${L_EXT_INC_DIRS}}
+#SWIG_OPT_FLAGS := -stat -v -strict 2
+#SWIG_DOC_FLAG := -dnone
+#SWIG_LANG_FLAG := -c++ -python -shadow
+#SWIG_OUTPUT_FLAG := -o
+
+# Python Compiler Settings
+PYTHON := /usr/bin/python
+PYTHON_CMD_FLAG := -c
+PYTHON_OPT_FLAGS := -O
+PYTHON_DIAG_FLAGS := -Wall
+PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'
+
+# $Log$
+# Revision 1.2  2005/06/09 05:38:04  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.1.2.2  2005/05/17 01:31:32  gross
+# fedora_gcc compile environment added
+#
