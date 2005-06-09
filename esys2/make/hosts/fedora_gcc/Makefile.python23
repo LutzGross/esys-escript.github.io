@@ -1,0 +1,15 @@
+# $Id$
+
+# Python 2.3 - include files only
+
+PKG_CC_INC_DIRS  += /usr/include/python2.3
+PKG_CPP_INC_DIRS += /usr/include/python2.3
+
+# $Log$
+# Revision 1.2  2005/06/09 05:38:04  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.1.2.2  2005/05/17 01:31:32  gross
+# fedora_gcc compile environment added
+#
+

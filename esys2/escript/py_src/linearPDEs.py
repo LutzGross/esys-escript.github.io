@@ -3,7 +3,7 @@
 ## @file linearPDEs.py
 
 """
-@brief Functions and classes for linear PDEs
+Functions and classes for linear PDEs
 """
 
 import escript
@@ -13,19 +13,30 @@ import numarray
 
 def _CompTuple2(t1,t2):
    """
-   @brief
+   Compare two tuples
 
-   @param t1
-   @param t2
+   \param t1 The first tuple
+   \param t2 The second tuple
    """
+
    dif=t1[0]+t1[1]-(t2[0]+t2[1])
    if dif<0: return 1
    elif dif>0: return -1
    else: return 0
 
+def ELMAN_RAMAGE(P): 
+    return (P-1.).wherePositive()*0.5*(1.-1./(P+1.e-15))
+
+def SIMPLIFIED_BROOK_HUGHES(P): 
+    c=(P-3.).whereNegative()
+    return P/6.*c+1./2.*(1.-c)
+
+def HALF(P): 
+    return escript.Scalar(0.5,P.getFunctionSpace())
+
 class PDECoefficient:
     """
-    @brief
+    A class for PDE coefficients
     """
     # identifier for location of Data objects defining COEFFICIENTS
     INTERIOR=0
@@ -44,7 +55,7 @@ class PDECoefficient:
     BOTH=7
     def __init__(self,where,pattern,altering):
        """
-       @brief Initialise a PDE Coefficient type
+       Initialise a PDE Coefficient type
        """
        self.what=where
        self.pattern=pattern
@@ -53,15 +64,15 @@ class PDECoefficient:
 
     def resetValue(self):
        """
-       @brief resets coefficient value to default
+       resets coefficient value to default
        """
        self.value=escript.Data()
 
     def getFunctionSpace(self,domain):
        """
-       @brief defines the FunctionSpace of the coefficient on the domain
+       defines the FunctionSpace of the coefficient on the domain
 
-       @param domain
+       @param domain:
        """
        if self.what==self.INTERIOR: return escript.Function(domain)
        elif self.what==self.BOUNDARY: return escript.FunctionOnBoundary(domain)
@@ -70,19 +81,19 @@ class PDECoefficient:
 
     def getValue(self):
        """
-       @brief returns the value of the coefficient:
+       returns the value of the coefficient:
        """
        return self.value
      
     def setValue(self,newValue):
        """
-       @brief set the value of the coefficient to new value
+       set the value of the coefficient to new value
        """
        self.value=newValue
      
     def isAlteringOperator(self):
         """
-	@brief return true if the operator of the PDE is changed when the coefficient is changed
+	return true if the operator of the PDE is changed when the coefficient is changed
 	"""
         if self.altering==self.OPERATOR or self.altering==self.BOTH:
             return not None
@@ -91,7 +102,7 @@ class PDECoefficient:
 
     def isAlteringRightHandSide(self):
         """
-	@brief return true if the right hand side of the PDE is changed when the coefficient is changed
+	return true if the right hand side of the PDE is changed when the coefficient is changed
 	"""
         if self.altering==self.RIGHTHANDSIDE or self.altering==self.BOTH:
             return not None
@@ -100,10 +111,10 @@ class PDECoefficient:
 
     def estimateNumEquationsAndNumSolutions(self,shape=(),dim=3):
        """
-       @brief tries to estimate the number of equations in a given tensor shape for a given spatial dimension dim
+       tries to estimate the number of equations in a given tensor shape for a given spatial dimension dim
 
-       @param shape
-       @param dim
+       @param shape:
+       @param dim:
        """
        if len(shape)>0:
            num=max(shape)+1
@@ -124,11 +135,11 @@ class PDECoefficient:
 
     def buildShape(self,e=1,u=1,dim=3):
         """
-	@brief builds the required shape for a given number of equations e, number of unknowns u and spatial dimension dim
+	builds the required shape for a given number of equations e, number of unknowns u and spatial dimension dim
 
-	@param e
-	@param u
-	@param dim
+	@param e:
+	@param u:
+	@param dim:
 	"""
         s=()
         for i in self.pattern:
@@ -142,23 +153,31 @@ class PDECoefficient:
 
 class LinearPDE:
    """
-   @brief Class to handel a linear PDE
+   Class to handle a linear PDE
    
    class to define a linear PDE of the form
 
+   \f[
      -(A_{ijkl}u_{k,l})_{,j} -(B_{ijk}u_k)_{,j} + C_{ikl}u_{k,l} +D_{ik}u_k = - (X_{ij})_{,j} + Y_i
+   \f]
 
-     with boundary conditons:
+   with boundary conditons:
 
-        n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_{ik}u_k = - n_j*X_{ij} + y_i
+   \f[
+   n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_{ik}u_k = - n_j*X_{ij} + y_i
+   \f]
 
-    and contact conditions
+   and contact conditions
 
-        n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_contact_{ik}[u_k] = - n_j*X_{ij} + y_contact_i
+   \f[
+   n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_contact_{ik}[u_k] = - n_j*X_{ij} + y_contact_i
+   \f]
 
-    and constraints:
+   and constraints:
 
-         u_i=r_i where q_i>0
+   \f[
+   u_i=r_i \quad \mathrm{where} \quad q_i>0
+   \f]
 
    """
    TOL=1.e-13
@@ -177,9 +196,9 @@ class LinearPDE:
 
    def __init__(self,domain,numEquations=0,numSolutions=0):
      """
-     @brief initializes a new linear PDE.
+     initializes a new linear PDE.
 
-     @param args
+     @param args:
      """
      # COEFFICIENTS can be overwritten by subclasses:
      self.COEFFICIENTS={
@@ -222,8 +241,8 @@ class LinearPDE:
 
    def createCoefficient(self, name):
      """
-     @brief create a data object corresponding to coefficient name
-     @param name
+     create a data object corresponding to coefficient name
+     @param name:
      """
      return escript.Data(shape = getShapeOfCoefficient(name), \
                          what = getFunctionSpaceForCoefficient(name))
@@ -233,68 +252,70 @@ class LinearPDE:
 
    def getCoefficient(self,name):
      """
-     @brief return the value of the parameter name
+     return the value of the parameter name
 
-     @param name
+     @param name:
      """
      return self.COEFFICIENTS[name].getValue()
 
    def getCoefficientOfPDE(self,name):
      """
-     @brief return the value of the coefficient name of the general PDE. This method is called by the assembling routine
-            it can be overwritten to map coefficients of a particualr PDE to the general PDE.
-     @param name
+     return the value of the coefficient name of the general PDE. 
+     This method is called by the assembling routine it can be 
+     overwritten to map coefficients of a particualr PDE to the general PDE.
+
+     @param name:
      """
      return self.getCoefficient(name)
 
    def hasCoefficient(self,name):
       """
-      @brief return true if name is the name of a coefficient
+      return true if name is the name of a coefficient
 
-      @param name
+      @param name:
       """
       return self.COEFFICIENTS.has_key(name)
 
    def getFunctionSpaceForEquation(self):
      """
-     @brief return true if the test functions should use reduced order
+     return true if the test functions should use reduced order
      """
      return self.__row_function_space
 
    def getFunctionSpaceForSolution(self):
      """
-     @brief return true if the interpolation of the solution should use reduced order
+     return true if the interpolation of the solution should use reduced order
      """
      return self.__column_function_space
 
    def setValue(self,**coefficients):
       """
-      @brief sets new values to coefficients
+      sets new values to coefficients
 
-      @param coefficients
+      @param coefficients:
       """
       self.__setValue(**coefficients)
       
 
    def cleanCoefficients(self):
      """
-     @brief resets all coefficients to default values. 
+     resets all coefficients to default values. 
      """
      for i in self.COEFFICIENTS.iterkeys():
          self.COEFFICIENTS[i].resetValue()
 
    def createNewCoefficient(self,name):
      """
-     @brief returns a new coefficient appropriate for coefficient name:
+     returns a new coefficient appropriate for coefficient name:
      """
      return escript.Data(0,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
       
 
    def getShapeOfCoefficient(self,name):
      """
-     @brief return the shape of the coefficient name
+     return the shape of the coefficient name
 
-     @param name
+     @param name:
      """
      if self.hasCoefficient(name):
         return self.COEFFICIENTS[name].buildShape(self.getNumEquations(),self.getNumSolutions(),self.getDomain().getDim())
@@ -303,9 +324,9 @@ class LinearPDE:
 
    def getFunctionSpaceForCoefficient(self,name):
      """
-     @brief return the atoms of the coefficient name
+     return the atoms of the coefficient name
 
-     @param name
+     @param name:
      """
      if self.hasCoefficient(name):
         return self.COEFFICIENTS[name].getFunctionSpace(self.getDomain())
@@ -314,9 +335,9 @@ class LinearPDE:
 
    def alteredCoefficient(self,name):
      """
-     @brief annonced that coefficient name has been changed
+     announce that coefficient name has been changed
 
-     @param name
+     @param name:
      """
      if self.hasCoefficient(name):
         if self.COEFFICIENTS[name].isAlteringOperator(): self.__rebuildOperator()
@@ -327,26 +348,24 @@ class LinearPDE:
    # ===== debug ==============================================================
    def setDebugOn(self):
        """
-       @brief
        """
        self.__debug=not None
 
    def setDebugOff(self):
        """
-       @brief
        """
        self.__debug=None
 
    def debug(self):
        """
-       @brief returns true if the PDE is in the debug mode
+       returns true if the PDE is in the debug mode
        """
        return self.__debug
 
    #===== Lumping ===========================
    def setLumpingOn(self):
       """
-      @brief indicates to use matrix lumping
+      indicates to use matrix lumping
       """
       if not self.isUsingLumping():
          if self.debug() : print "PDE Debug: lumping is set on"
@@ -355,7 +374,7 @@ class LinearPDE:
 
    def setLumpingOff(self):
       """
-      @brief switches off matrix lumping
+      switches off matrix lumping
       """
       if self.isUsingLumping():
          if self.debug() : print "PDE Debug: lumping is set off"
@@ -364,7 +383,7 @@ class LinearPDE:
 
    def setLumping(self,flag=False):
       """
-      @brief set the matrix lumping flag to flag
+      set the matrix lumping flag to flag
       """
       if flag:
          self.setLumpingOn()
@@ -373,14 +392,14 @@ class LinearPDE:
 
    def isUsingLumping(self):
       """
-      @brief 
+      
       """
       return self.__lumping
 
    #============ method business =========================================================
    def setSolverMethod(self,solver=util.DEFAULT_METHOD):
        """
-       @brief sets a new solver
+       sets a new solver
        """
        if not solver==self.getSolverMethod():
            self.__solver_method=solver
@@ -389,14 +408,14 @@ class LinearPDE:
 
    def getSolverMethod(self):
        """
-       @brief returns the solver method
+       returns the solver method
        """
        return self.__solver_method
 
    #============ tolerance business =========================================================
    def setTolerance(self,tol=1.e-8):
        """
-       @brief resets the tolerance to tol.
+       resets the tolerance to tol.
        """
        if not tol>0:
            raise ValueException,"Tolerance as to be positive"
@@ -406,20 +425,20 @@ class LinearPDE:
        return
    def getTolerance(self):
        """
-       @brief returns the tolerance set for the solution
+       returns the tolerance set for the solution
        """
        return self.__tolerance
 
    #===== symmetry  flag ==========================
    def isSymmetric(self):
       """
-      @brief returns true is the operator is considered to be symmetric
+      returns true is the operator is considered to be symmetric
       """
       return self.__sym
 
    def setSymmetryOn(self):
       """
-      @brief sets the symmetry flag to true
+      sets the symmetry flag to true
       """
       if not self.isSymmetric():
          if self.debug() : print "PDE Debug: Operator is set to be symmetric"
@@ -428,7 +447,7 @@ class LinearPDE:
 
    def setSymmetryOff(self):
       """
-      @brief sets the symmetry flag to false
+      sets the symmetry flag to false
       """
       if self.isSymmetric():
          if self.debug() : print "PDE Debug: Operator is set to be unsymmetric"
@@ -437,9 +456,9 @@ class LinearPDE:
 
    def setSymmetryTo(self,flag=False):
      """
-     @brief sets the symmetry flag to flag
+     sets the symmetry flag to flag
 
-     @param flag
+     @param flag:
      """
      if flag:
         self.setSymmetryOn()
@@ -449,23 +468,23 @@ class LinearPDE:
    #===== order reduction ==========================
    def setReducedOrderOn(self):
      """
-     @brief switches to on reduced order
+     switches to on reduced order
      """
      self.setReducedOrderForSolutionOn()
      self.setReducedOrderForEquationOn()
 
    def setReducedOrderOff(self):
      """
-     @brief switches to full order 
+     switches to full order 
      """
      self.setReducedOrderForSolutionOff()
      self.setReducedOrderForEquationOff()
 
    def setReducedOrderTo(self,flag=False):
      """
-     @brief sets order according to flag
+     sets order according to flag
 
-     @param flag
+     @param flag:
      """
      self.setReducedOrderForSolutionTo(flag)
      self.setReducedOrderForEquationTo(flag)
@@ -474,7 +493,7 @@ class LinearPDE:
    #===== order reduction solution ==========================
    def setReducedOrderForSolutionOn(self):
      """
-     @brief switches to reduced order to interpolate solution
+     switches to reduced order to interpolate solution
      """
      new_fs=escript.ReducedSolution(self.getDomain())
      if self.getFunctionSpaceForSolution()!=new_fs:
@@ -484,7 +503,7 @@ class LinearPDE:
 
    def setReducedOrderForSolutionOff(self):
      """
-     @brief switches to full order to interpolate solution
+     switches to full order to interpolate solution
      """
      new_fs=escript.Solution(self.getDomain())
      if self.getFunctionSpaceForSolution()!=new_fs:
@@ -494,9 +513,9 @@ class LinearPDE:
 
    def setReducedOrderForSolutionTo(self,flag=False):
      """
-     @brief sets order for test functions according to flag
+     sets order for test functions according to flag
 
-     @param flag
+     @param flag:
      """
      if flag:
         self.setReducedOrderForSolutionOn()
@@ -506,7 +525,7 @@ class LinearPDE:
    #===== order reduction equation ==========================
    def setReducedOrderForEquationOn(self):
      """
-     @brief switches to reduced order for test functions
+     switches to reduced order for test functions
      """
      new_fs=escript.ReducedSolution(self.getDomain())
      if self.getFunctionSpaceForEquation()!=new_fs:
@@ -516,7 +535,7 @@ class LinearPDE:
 
    def setReducedOrderForEquationOff(self):
      """
-     @brief switches to full order for test functions
+     switches to full order for test functions
      """
      new_fs=escript.Solution(self.getDomain())
      if self.getFunctionSpaceForEquation()!=new_fs:
@@ -526,9 +545,9 @@ class LinearPDE:
 
    def setReducedOrderForEquationTo(self,flag=False):
      """
-     @brief sets order for test functions according to flag
+     sets order for test functions according to flag
 
-     @param flag
+     @param flag:
      """
      if flag:
         self.setReducedOrderForEquationOn()
@@ -538,7 +557,6 @@ class LinearPDE:
    # ==== initialization =====================================================================
    def __getNewOperator(self):
        """
-       @brief
        """
        return self.getDomain().newOperator( \
                            self.getNumEquations(), \
@@ -549,7 +567,6 @@ class LinearPDE:
 
    def __makeFreshRightHandSide(self):
        """
-       @brief
        """
        if self.debug() : print "PDE Debug: New right hand side allocated"
        if self.getNumEquations()>1:
@@ -560,7 +577,6 @@ class LinearPDE:
 
    def __getNewSolution(self):
        """
-       @brief
        """
        if self.debug() : print "PDE Debug: New right hand side allocated"
        if self.getNumSolutions()>1:
@@ -570,7 +586,6 @@ class LinearPDE:
 
    def __makeFreshOperator(self):
        """
-       @brief
        """
        if self.__operator.isEmpty():
            self.__operator=self.__getNewOperator()
@@ -584,19 +599,19 @@ class LinearPDE:
    #============ some serivice functions  =====================================================
    def getDomain(self):
      """
-     @brief returns the domain of the PDE
+     returns the domain of the PDE
      """
      return self.__domain
 
    def getDim(self):
      """
-     @brief returns the spatial dimension of the PDE
+     returns the spatial dimension of the PDE
      """
      return self.getDomain().getDim()
 
    def getNumEquations(self):
      """
-     @brief returns the number of equations
+     returns the number of equations
      """
      if self.__numEquations>0:
          return self.__numEquations
@@ -605,7 +620,7 @@ class LinearPDE:
 
    def getNumSolutions(self):
      """
-     @brief returns the number of unknowns
+     returns the number of unknowns
      """
      if self.__numSolutions>0:
         return self.__numSolutions
@@ -615,7 +630,7 @@ class LinearPDE:
 
    def checkSymmetry(self,verbose=True):
       """
-      @brief returns if the Operator is symmetric. This is a very expensive operation!!! The symmetry flag is not altered.
+      returns if the Operator is symmetric. This is a very expensive operation!!! The symmetry flag is not altered.
       """
       verbose=verbose or self.debug()
       out=True
@@ -676,38 +691,38 @@ class LinearPDE:
 
    def getFlux(self,u):
        """
-       @brief returns the flux J_ij for a given u
+       returns the flux J_ij for a given u
 
-            J_ij=A_{ijkl}u_{k,l}+B_{ijk}u_k-X_{ij}
+       \f[
+       J_ij=A_{ijkl}u_{k,l}+B_{ijk}u_k-X_{ij}
+       \f]
 
-       @param u argument of the operator 
-
+       @param u: argument of the operator 
        """
        raise SystemError,"getFlux is not implemented yet"
        return None
 
    def applyOperator(self,u):
        """
-       @brief applies the operator of the PDE to a given solution u in weak from
+       applies the operator of the PDE to a given solution u in weak from
 
-       @param u argument of the operator 
-
+       @param u: argument of the operator 
        """
        return self.getOperator()*escript.Data(u,self.getFunctionSpaceForSolution())
                                                                                                                                                            
    def getResidual(self,u):
        """
-       @brief return the residual of u in the weak from
+       return the residual of u in the weak from
 
-       @param u 
+       @param u:
        """
        return self.applyOperator(u)-self.getRightHandSide()
 
    def __setValue(self,**coefficients):
       """
-      @brief sets new values to coefficient
+      sets new values to coefficient
 
-      @param coefficients
+      @param coefficients:
       """
       # check if the coefficients are  legal:
       for i in coefficients.iterkeys():
@@ -757,7 +772,7 @@ class LinearPDE:
 
    def __setHomogeneousConstraintFlag(self): 
       """
-      @brief checks if the constraints are homogeneous and sets self.__homogeneous_constraint accordingly.
+      checks if the constraints are homogeneous and sets self.__homogeneous_constraint accordingly.
       """
       self.__homogeneous_constraint=True
       q=self.getCoefficientOfPDE("q")
@@ -774,7 +789,7 @@ class LinearPDE:
    # ==== rebuild switches =====================================================================
    def __rebuildSolution(self,deep=False):
        """
-       @brief indicates the PDE has to be reolved if the solution is requested
+       indicates the PDE has to be reolved if the solution is requested
        """
        if self.__solution_isValid and self.debug() : print "PDE Debug: PDE has to be resolved."
        self.__solution_isValid=False
@@ -783,7 +798,7 @@ class LinearPDE:
 
    def __rebuildOperator(self,deep=False):
        """
-       @brief indicates the operator has to be rebuilt next time it is used
+       indicates the operator has to be rebuilt next time it is used
        """
        if self.__operator_isValid and self.debug() : print "PDE Debug: Operator has to be rebuilt."
        self.__rebuildSolution(deep)
@@ -792,7 +807,7 @@ class LinearPDE:
 
    def __rebuildRightHandSide(self,deep=False):
        """
-       @brief indicates the right hand side has to be rebuild next time it is used
+       indicates the right hand side has to be rebuild next time it is used
        """
        if self.__righthandside_isValid and self.debug() : print "PDE Debug: Right hand side has to be rebuilt."
        self.__rebuildSolution(deep)
@@ -801,7 +816,7 @@ class LinearPDE:
 
    def __rebuildSystem(self,deep=False):
        """
-       @brief annonced that all coefficient name has been changed
+       annonced that all coefficient name has been changed
        """
        self.__rebuildSolution(deep)
        self.__rebuildOperator(deep)
@@ -809,7 +824,7 @@ class LinearPDE:
    
    def __checkMatrixType(self):
      """
-     @brief reassess the matrix type and, if needed, initiates an operator rebuild
+     reassess the matrix type and, if needed, initiates an operator rebuild
      """
      new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod(),self.isSymmetric())
      if not new_matrix_type==self.__matrix_type:
@@ -820,7 +835,7 @@ class LinearPDE:
    #============ assembling =======================================================
    def __copyConstraint(self):
       """
-      @brief copies the constrint condition into u
+      copies the constrint condition into u
       """
       if not self.__righthandside.isEmpty(): 
          q=self.getCoefficientOfPDE("q")
@@ -834,7 +849,7 @@ class LinearPDE:
 
    def __applyConstraint(self):
        """
-       @brief applies the constraints defined by q and r to the system
+       applies the constraints defined by q and r to the system
        """
        q=self.getCoefficientOfPDE("q")
        r=self.getCoefficientOfPDE("r")
@@ -856,7 +871,7 @@ class LinearPDE:
 
    def getSystem(self):
        """
-       @brief return the operator and right hand side of the PDE
+       return the operator and right hand side of the PDE
        """
        if not self.__operator_isValid or not self.__righthandside_isValid:
           if self.isUsingLumping():
@@ -939,21 +954,21 @@ class LinearPDE:
        return (self.__operator,self.__righthandside)
    def getOperator(self):
        """
-       @brief returns the operator of the PDE
+       returns the operator of the PDE
        """
        return self.getSystem()[0]
 
    def getRightHandSide(self):
        """
-       @brief returns the right hand side of the PDE
+       returns the right hand side of the PDE
        """
        return self.getSystem()[1]
 
    def solve(self,**options):
       """
-      @brief solve the PDE
+      solve the PDE
 
-      @param options
+      @param options:
       """
       mat,f=self.getSystem()
       if self.isUsingLumping():
@@ -968,9 +983,9 @@ class LinearPDE:
 
    def getSolution(self,**options):
        """
-       @brief returns the solution of the PDE
+       returns the solution of the PDE
 
-       @param options
+       @param options:
        """
        if not self.__solution_isValid:
            if self.debug() : print "PDE Debug: PDE is resolved."
@@ -980,33 +995,45 @@ class LinearPDE:
 
 
 
-def ELMAN_RAMAGE(P): return (P-1.).wherePositive()*0.5*(1.-1./(P+1.e-15))
+def ELMAN_RAMAGE(P): 
+     """   """
+     return (P-1.).wherePositive()*0.5*(1.-1./(P+1.e-15))
 def SIMPLIFIED_BROOK_HUGHES(P): 
-         c=(P-3.).whereNegative()
-         return P/6.*c+1./2.*(1.-c)
-def HALF(P): return escript.Scalar(0.5,P.getFunctionSpace())
+     """   """
+     c=(P-3.).whereNegative()
+     return P/6.*c+1./2.*(1.-c)
 
+def HALF(P): 
+    """ """
+    return escript.Scalar(0.5,P.getFunctionSpace())
 
 class AdvectivePDE(LinearPDE):
    """
-   @brief Class to handel a linear PDE domineated by advective terms:
+   Class to handle a linear PDE dominated by advective terms:
    
    class to define a linear PDE of the form
 
-     -(A_{ijkl}u_{k,l})_{,j} -(B_{ijk}u_k)_{,j} + C_{ikl}u_{k,l} +D_{ik}u_k = - (X_{ij})_{,j} + Y_i
+   \f[
+   -(A_{ijkl}u_{k,l})_{,j} -(B_{ijk}u_k)_{,j} + C_{ikl}u_{k,l} +D_{ik}u_k = - (X_{ij})_{,j} + Y_i
+   \f]
 
-     with boundary conditons:
+   with boundary conditons:
 
-        n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_{ik}u_k = - n_j*X_{ij} + y_i
+   \f[
+   n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_{ik}u_k = - n_j*X_{ij} + y_i
+   \f]
 
-    and contact conditions
+   and contact conditions
 
-        n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d_contact_{ik}[u_k] = - n_j*X_{ij} + y_contact_i
+   \f[
+   n_j*(A_{ijkl}u_{k,l}+B_{ijk}u_k)_{,j} + d^{contact}_{ik}[u_k] = - n_j*X_{ij} + y^{contact}_{i}
+   \f]
 
-    and constraints:
+   and constraints:
 
-         u_i=r_i where q_i>0
-
+   \f[
+   u_i=r_i \quad \mathrm{where} \quad q_i>0
+   \f]
    """
    def __init__(self,domain,numEquations=0,numSolutions=0,xi=ELMAN_RAMAGE):
       LinearPDE.__init__(self,domain,numEquations,numSolutions)
@@ -1071,8 +1098,9 @@ class AdvectivePDE(LinearPDE):
 
    def getCoefficientOfPDE(self,name):
      """
-     @brief return the value of the coefficient name of the general PDE
-     @param name
+     return the value of the coefficient name of the general PDE
+
+     @param name:
      """
      if not self.getNumEquations() == self.getNumSolutions():
           raise ValueError,"AdvectivePDE expects the number of solution componets and the number of equations to be equal."
@@ -1212,20 +1240,24 @@ class AdvectivePDE(LinearPDE):
 
 class Poisson(LinearPDE):
    """
-   @brief Class to define a Poisson equstion problem:
-                                                                                                                                                             
+   Class to define a Poisson equstion problem:
+
    class to define a linear PDE of the form
-                                                                                                                                                             
-        -u_{,jj} = f
-                                                                                                                                                             
-     with boundary conditons:
-                                                                                                                                                             
-        n_j*u_{,j} = 0
-                                                                                                                                                             
-    and constraints:
-                                                                                                                                                             
-         u=0 where q>0
-                                                                                                                                                             
+   \f[
+   -u_{,jj} = f
+   \f]
+
+   with boundary conditons:
+
+   \f[
+   n_j*u_{,j} = 0
+   \f]
+
+   and constraints:
+
+   \f[
+   u=0 \quad \mathrm{where} \quad q>0
+   \f]
    """
 
    def __init__(self,domain,f=escript.Data(),q=escript.Data()):
@@ -1241,8 +1273,9 @@ class Poisson(LinearPDE):
 
    def getCoefficientOfPDE(self,name):
      """
-     @brief return the value of the coefficient name of the general PDE
-     @param name
+     return the value of the coefficient name of the general PDE
+
+     @param name:
      """
      if name == "A" : 
          return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))
@@ -1272,8 +1305,24 @@ class Poisson(LinearPDE):
          raise SystemError,"unknown PDE coefficient %s",name
 
 # $Log$
+# Revision 1.8  2005/06/09 05:37:59  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
 # Revision 1.7  2005/05/06 04:26:10  jgs
 # Merge of development branch back to main trunk on 2005-05-06
+#
+# Revision 1.1.2.23  2005/05/13 00:55:20  cochrane
+# Fixed up some docstrings.  Moved module-level functions to top of file so
+# that epydoc and doxygen can pick them up properly.
+#
+# Revision 1.1.2.22  2005/05/12 11:41:30  gross
+# some basic Models have been added
+#
+# Revision 1.1.2.21  2005/05/12 07:16:12  cochrane
+# Moved ELMAN_RAMAGE, SIMPLIFIED_BROOK_HUGHES, and HALF functions to bottom of
+# file so that the AdvectivePDE class is picked up by doxygen.  Some
+# reformatting of docstrings.  Addition of code to make equations come out
+# as proper LaTeX.
 #
 # Revision 1.1.2.20  2005/04/15 07:09:08  gross
 # some problems with functionspace and linearPDEs fixed.

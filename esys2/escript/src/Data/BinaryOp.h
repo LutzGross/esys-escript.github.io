@@ -53,11 +53,11 @@ inline void binaryOp(DataTagged& left, const DataArrayView& right,
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
   DataArrayView& leftView=left.getPointDataView();
   if (right.getRank()==0) {
-    for (i=lookup.begin();i!=lookupEnd;++i) {
+    for (i=lookup.begin();i!=lookupEnd;i++) {
       leftView.binaryOp(i->second,right(),operation);
     }
   } else {
-    for (i=lookup.begin();i!=lookupEnd;++i) {
+    for (i=lookup.begin();i!=lookupEnd;i++) {
       leftView.binaryOp(i->second,right,right.getOffset(),operation);
     }
   }
@@ -75,7 +75,7 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
   const DataTagged::DataMapType& rightLookup=right.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator rightLookupEnd=rightLookup.end();
-  for (i=rightLookup.begin();i!=rightLookupEnd;++i) {
+  for (i=rightLookup.begin();i!=rightLookupEnd;i++) {
     //
     // Add the right hand tag to the left hand tag list and assign
     // the rights default value. If the tag already exists the 
@@ -87,9 +87,8 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
   // the right hand side will use the right's default value as the right operand
   const DataTagged::DataMapType& leftLookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator leftLookupEnd=leftLookup.end();
-  for (i=leftLookup.begin();i!=leftLookupEnd;++i) {
-    left.getDataPointByTag(i->first).binaryOp(right.getDataPointByTag(i->first),
-						  operation);
+  for (i=leftLookup.begin();i!=leftLookupEnd;i++) {
+    left.getDataPointByTag(i->first).binaryOp(right.getDataPointByTag(i->first),operation);
   }
   //
   // finally perform the operation on the default value
@@ -114,9 +113,9 @@ inline void binaryOp(DataConstant& left, const DataArrayView& right,
   if (right.getRank()==0) {
     //
     // special case of applying a single value to the entire array
-    left.getPointDataView().binaryOp(right(), operation);
+    left.getPointDataView().binaryOp(right(),operation);
   } else {
-    left.getPointDataView().binaryOp(right, operation);
+    left.getPointDataView().binaryOp(right,operation);
   }
 }
 
@@ -130,17 +129,18 @@ inline void binaryOp(DataExpanded& left, const DataAbstract& right,
   if (right.getPointDataView().getRank()==0) {
     //
     // This will call the double version of binaryOp
-#pragma omp parallel for private(i,j) schedule(static)
-    for (i=0;i<numSamples;++i) {
-      for (j=0;j<numDPPSample;++j) {
+    #pragma omp parallel for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+      for (j=0;j<numDPPSample;j++) {
 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
-					 right.getPointDataView().getData(right.getPointOffset(i,j)),operation);
+					 right.getPointDataView().getData(right.getPointOffset(i,j)),
+                                         operation);
       }
     }
   } else {
-#pragma omp parallel for private(i,j) schedule(static)
-    for (i=0;i<numSamples;++i) {
-      for (j=0;j<numDPPSample;++j) {
+    #pragma omp parallel for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+      for (j=0;j<numDPPSample;j++) {
 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
 					 right.getPointDataView(),
 					 right.getPointOffset(i,j),
@@ -160,19 +160,21 @@ inline void binaryOp(DataExpanded& left, const DataArrayView& right,
   if (right.getRank()==0) {
     //
     // This will call the double version of binaryOp
-#pragma omp parallel for private(i,j) schedule(static)
-     for (i=0;i<numSamples;++i) {
-       for (j=0;j<numDPPSample;++j) {
+    #pragma omp parallel for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+       for (j=0;j<numDPPSample;j++) {
 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
-					 right(),operation);
+					 right(),
+                                         operation);
       }
     }
   } else {
-#pragma omp parallel for private(i,j) schedule(static)
-    for (i=0;i<numSamples;++i) {
-      for (j=0;j<numDPPSample;++j) {
+    #pragma omp parallel for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+      for (j=0;j<numDPPSample;j++) {
 	left.getPointDataView().binaryOp(left.getPointOffset(i,j),
-					 right,0,
+					 right,
+                                         0,
 					 operation);
       }
     }
@@ -180,4 +182,5 @@ inline void binaryOp(DataExpanded& left, const DataArrayView& right,
 }
 
 } // end of namespace
+
 #endif

@@ -1,0 +1,9 @@
+# boostStatic - include directories plus library to link with
+
+PKG_CC_INC_DIRS  += /usr/include
+PKG_CPP_INC_DIRS += /usr/include
+
+PKG_LD_LIB_DIRS += /usr/lib
+
+PKG_LD_LIBS += boost_python
+

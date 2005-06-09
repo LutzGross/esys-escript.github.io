@@ -20,6 +20,7 @@
 #include "escript/Data/DataArrayView.h"
 #include "escript/Data/DataVector.h"
 #include "escript/Data/Data.h"
+#include "escript/Data/DataExpanded.h"
 
 namespace escript {
 
@@ -39,7 +40,7 @@ class DataVariable {
 
  public:
 
-  typedef enum {id, add} OpCode;
+  enum OpCode {nullop, idop, sumop, diffop};
 
   /**
      \brief
@@ -69,7 +70,7 @@ class DataVariable {
      Throws:
      Describe any exceptions thrown
   */
-  DataVariable(Data& data);
+  DataVariable(Data* data);
 
   /**
      \brief
@@ -99,25 +100,66 @@ class DataVariable {
      Throws:
      Describe any exceptions thrown
   */
-  void evaluate();
+  Data evaluate();
+
+  /**
+     \brief
+     Evaluator by sampleNo for DataVariable
+
+     Description:
+     Evaluator by sampleNo for DataVariable
+
+     Preconditions:
+     Describe any preconditions
+
+     Throws:
+     Describe any exceptions thrown
+  */
+  double* evaluate_samp(int sampleNo);
+
+  /**
+     \brief
+     Addor for DataVariable
+
+     Description:
+     Addor for DataVariable
+
+     Preconditions:
+     Describe any preconditions
+
+     Throws:
+     Describe any exceptions thrown
+  */
+  void sum(DataVariable* right);
+
+  /**
+     \brief
+     Diffor for DataVariable
+
+     Description:
+     Diffor for DataVariable
+
+     Preconditions:
+     Describe any preconditions
+
+     Throws:
+     Describe any exceptions thrown
+  */
+  void diff(DataVariable* right);
 
  protected:
 
  private:
 
-  FunctionSpace* functionSpace;
-
-  DataArrayView::ShapeType shape;
-
-  DataArrayView::ValueType left;
-
-  DataVariable* right;
-
   OpCode op;
 
-};
+  Data* leftArg;
 
-DataVariable operator+(const DataVariable& left, const DataVariable& right);
+  DataVariable* rightArg;
+
+  double* opBuffer;
+
+};
 
 } // end of namespace
 

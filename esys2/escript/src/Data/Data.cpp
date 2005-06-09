@@ -35,7 +35,6 @@
 #include "escript/Data/DataTagged.h"
 #include "escript/Data/DataEmpty.h"
 #include "escript/Data/DataArray.h"
-#include "escript/Data/DataAlgorithm.h"
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "escript/Data/UnaryFuncs.h"

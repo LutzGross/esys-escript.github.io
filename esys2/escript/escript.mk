@@ -9,14 +9,12 @@
 
 DEFAULT_TARGET := libescriptcpp.so pyc
 
-INSTALL_PYTH := ./py_src/__init__.py ./py_src/linearPDEs.py ./py_src/pdetools.py ./py_src/util.py ./py_src/escript.py ./py_src/modelframe.py ./py_src/timeseries.py
+INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/linearPDEs.pyc ./lib/py_src/pdetools.pyc ./lib/py_src/util.pyc ./lib/py_src/escript.pyc ./lib/py_src/modelframe.pyc ./lib/py_src/timeseries.pyc ./lib/py_src/modellib/*.pyc
 
 INSTALL_LIB := ./lib/libescriptcpp.so
 
 PACKAGES := esysUtils python23 boostStatic
 
-L_DEFS := DOASSERT
-
-L_SRC_DIR:= ./src ./py_src 
+L_SRC_DIR:= ./src ./py_src ./py_src/modellib
 
 include $(ESYS_ROOT)/make/Makefile.default

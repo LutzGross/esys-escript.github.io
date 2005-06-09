@@ -39,7 +39,27 @@ void DataVariableTestCase::testAll() {
   // something more suitable. 
   // As many test methods as desired may be added.
 
-  DataVariable d;
+  DataArrayView::ShapeType viewShape;
+  viewShape.push_back(2);
+  viewShape.push_back(2);
+
+  Data d1(1.0,viewShape,FunctionSpace(),false);
+  Data d2(2.0,viewShape,FunctionSpace(),false);
+  Data d3(3.0,viewShape,FunctionSpace(),false);
+  Data d4(4.0,viewShape,FunctionSpace(),false);
+
+  DataVariable dv1(&d1);
+  DataVariable dv2(&d2);
+  DataVariable dv3(&d3);
+  DataVariable dv4(&d4);
+
+  dv3.sum(&dv4);
+  dv2.diff(&dv3);
+  dv1.sum(&dv2);
+
+  Data d5 = dv1.evaluate();
+
+  cout << d5.toString() << endl;
 
 }
 

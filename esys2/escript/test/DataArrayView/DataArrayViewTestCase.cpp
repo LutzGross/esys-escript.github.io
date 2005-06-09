@@ -1735,6 +1735,7 @@ void DataArrayViewTestCase::testUnaryOp()
     // constructor
     DataArrayView dataView(data,shape);
 
+    double tmp;
     // step the view along each data point in the underlying data
     for (int p=0;p<npoints;p++) {
 
@@ -1745,7 +1746,8 @@ void DataArrayViewTestCase::testUnaryOp()
       dataView.unaryOp((UnaryDFunPtr)std::sin);
 
       // check the results
-      assert(dataView()==std::sin((double)p));
+      tmp = std::sin((double)p);
+      assert(dataView()==tmp);
 
       if (p<npoints-1) {
         dataView.incrOffset();
@@ -2071,10 +2073,12 @@ void DataArrayViewTestCase::testBinaryOp()
       // apply a binary operation to the data point
       dataView.binaryOp(5.8,multiplies<double>());
 
+      double tmp;
       // check the results
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
-          assert(dataView(i,j)==5.8*dataView.index(i,j));
+          tmp=5.8*dataView.index(i,j);
+          assert(dataView(i,j)==tmp);
         }
       }
 
@@ -2121,12 +2125,14 @@ void DataArrayViewTestCase::testBinaryOp()
       // apply a binary operation to the data point
       dataView.binaryOp(5.4,multiplies<double>());
 
+      double tmp;
       // check the results
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
-              assert(dataView(i,j,k,l)==5.4*dataView.index(i,j,k,l));
+              tmp=5.4*dataView.index(i,j,k,l);
+              assert(dataView(i,j,k,l)==tmp);
             }
           }
         }

@@ -16,6 +16,7 @@
 ******************************************************************************/
 
 #include "escript/Data/Data.h"
+#include "escript/Data/DataVariable.h"
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/DataFactory.h"
@@ -40,6 +41,10 @@ using namespace boost::python;
  * - \ref esys_exception "Esys Exception"
  *
  * - \ref finley
+ *
+ * - <a href=http://www.esscc.uq.edu.au/~cochrane/esys_python_doc/html/index.html>Python module documentation (doxygen generated)</a>
+ *
+ * - <a href=http://www.esscc.uq.edu.au/~cochrane/esys_python_doc/index.html>Python module documentation (epydoc generated)</a>
  *
  */
 
@@ -93,6 +98,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("toString",&escript::FunctionSpace::toString)
      .def(self == self)
      .def(self != self);
+
+  //
+  // Interface for DataVariable
+  //
+  class_<escript::DataVariable>("DataVariable",init<>())
+    .def(init<escript::Data*>())
+    .def("evaluate",&escript::DataVariable::evaluate)
+    .def("sum",&escript::DataVariable::sum)
+    .def("diff",&escript::DataVariable::diff);
 
   //
   // Interface for Data
