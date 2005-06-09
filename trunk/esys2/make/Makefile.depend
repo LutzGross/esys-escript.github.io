@@ -7,8 +7,10 @@
 # dependency rules for those source files. If the makefiles containing these rules cannot be found
 # make will attempt to remake them.
 ifneq (${MAKECMDGOALS},clean)
+ifneq (${MAKECMDGOALS},uninstall)
 ifneq (${strip ${CC_SRC} ${CPP_SRC} ${SWIG_SRC}},)
 -include ${addprefix ${L_DEP_DIR}/, ${CC_SRC:.c=.d} ${CPP_SRC:.cpp=.d} ${SWIG_SRC:.i=.d}}
+endif
 endif
 endif
 
@@ -31,8 +33,14 @@ ${L_DEP_DIR}/%.d: %.cpp
 	@echo Generated \"$@: $<\".
 
 # $Log$
-# Revision 1.1  2004/10/26 06:53:58  jgs
-# Initial revision
+# Revision 1.2  2005/06/09 05:38:02  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.1.1.1.2.1  2005/05/18 06:38:39  jgs
+# don't make dependencies on target uninstall
+#
+# Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+# initial import of project esys2
 #
 # Revision 1.2  2004/09/23 01:48:45  jgs
 # make: augmented Makefiles with comments throughout

@@ -419,7 +419,10 @@ def dot(arg1,arg2):
        return numarray.dot(arg1,arg2)
 
 def kronecker(d):
-   return numarray.identity(d)
+   if hasattr(d,"getDim"):
+      return numarray.identity(d.getDim())
+   else:
+      return numarray.identity(d)
 
 def unit(i,d):
    """
@@ -430,3 +433,69 @@ def unit(i,d):
    e = numarray.zeros((d,))
    e[i] = 1.0
    return e
+
+#
+# $Log$
+# Revision 1.10  2005/06/09 05:37:59  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.2.2.14  2005/05/20 04:05:23  gross
+# some work on a darcy flow started
+#
+# Revision 1.2.2.13  2005/03/16 05:17:58  matt
+# Implemented unit(idx, dim) to create cartesian unit basis vectors to
+# complement kronecker(dim) function.
+#
+# Revision 1.2.2.12  2005/03/10 08:14:37  matt
+# Added non-member Linf utility function to complement Data::Linf().
+#
+# Revision 1.2.2.11  2005/02/17 05:53:25  gross
+# some bug in saveDX fixed: in fact the bug was in
+# DataC/getDataPointShape
+#
+# Revision 1.2.2.10  2005/01/11 04:59:36  gross
+# automatic interpolation in integrate switched off
+#
+# Revision 1.2.2.9  2005/01/11 03:38:13  gross
+# Bug in Data.integrate() fixed for the case of rank 0. The problem is not totallly resolved as the method should return a scalar rather than a numarray object in the case of rank 0. This problem is fixed by the util.integrate wrapper.
+#
+# Revision 1.2.2.8  2005/01/05 04:21:41  gross
+# FunctionSpace checking/matchig in slicing added
+#
+# Revision 1.2.2.7  2004/12/29 05:29:59  gross
+# AdvectivePDE successfully tested for Peclet number 1000000. there is still a problem with setValue and Data()
+#
+# Revision 1.2.2.6  2004/12/24 06:05:41  gross
+# some changes in linearPDEs to add AdevectivePDE
+#
+# Revision 1.2.2.5  2004/12/17 00:06:53  gross
+# mk sets ESYS_ROOT is undefined
+#
+# Revision 1.2.2.4  2004/12/07 03:19:51  gross
+# options for GMRES and PRES20 added
+#
+# Revision 1.2.2.3  2004/12/06 04:55:18  gross
+# function wraper extended
+#
+# Revision 1.2.2.2  2004/11/22 05:44:07  gross
+# a few more unitary functions have been added but not implemented in Data yet
+#
+# Revision 1.2.2.1  2004/11/12 06:58:15  gross
+# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+#
+# Revision 1.2  2004/10/27 00:23:36  jgs
+# fixed minor syntax error
+#
+# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
+# initial import of project esys2
+#
+# Revision 1.1.2.3  2004/10/26 06:43:48  jgs
+# committing Lutz's and Paul's changes to brach jgs
+#
+# Revision 1.1.4.1  2004/10/20 05:32:51  cochrane
+# Added incomplete Doxygen comments to files, or merely put the docstrings that already exist into Doxygen form.
+#
+# Revision 1.1  2004/08/05 03:58:27  gross
+# Bug in Assemble_NodeCoordinates fixed
+#
+#

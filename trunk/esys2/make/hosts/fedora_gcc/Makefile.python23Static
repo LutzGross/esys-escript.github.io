@@ -1,0 +1,20 @@
+# $Id$
+
+# Python 2.3 Static - include files plus library to link with
+
+PKG_CC_INC_DIRS  += /usr/include/python2.3
+PKG_CPP_INC_DIRS += /usr/include/python2.3
+
+PKG_LD_LIB_DIRS += /usr/lib
+
+PKG_LD_LIBS += python2.3 dl util
+
+
+# $Log$
+# Revision 1.2  2005/06/09 05:38:04  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.1.2.2  2005/05/17 01:31:33  gross
+# fedora_gcc compile environment added
+#
+#

@@ -15,6 +15,10 @@
 #include "escript/Data/Taipan.h"
 
 #include <iostream>
+#include <cassert>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace std;
 
@@ -53,13 +57,18 @@ Taipan::new_array(int dim, int N) {
   assert(totalElements >= 0);
 
   int len = 0;
+                                                                                                                                       
+  #ifdef _OPENMP
+  int numThreads = omp_get_num_threads();
+  #else
   int numThreads = 1;
+  #endif
 
   Taipan_MemTable *tab;
   Taipan_MemTable *new_tab;
   Taipan_MemTable *tab_prev;
 
-  //numThreads = omp_get_max_threads();
+//  numThreads = omp_get_max_threads();
 
   // is a suitable array already available?
   if (memTable_Root != 0) {
@@ -96,14 +105,13 @@ Taipan::new_array(int dim, int N) {
 
   // allocate and initialise the new array
   new_tab->array = new double[len];
-
-  //#pragma omp parallel for private(i,j)
-  for (int i=0; i<N; i++) {
-    for (int j=0; j<dim; j++) {
+  int i,j;
+  #pragma omp parallel for private(i,j) schedule(static)
+  for (i=0; i<N; i++) {
+    for (j=0; j<dim; j++) {
       new_tab->array[j+dim*i]=0.0;
     }
   }
-
   totalElements += len;
 
   return new_tab->array;

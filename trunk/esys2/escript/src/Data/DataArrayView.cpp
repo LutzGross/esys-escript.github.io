@@ -33,7 +33,7 @@ DataArrayView::DataArrayView():
     m_offset(0),
     m_noValues(0)
 {
-    m_data=0;
+  m_data=0;
 }
 
 DataArrayView::DataArrayView(ValueType& data,
@@ -74,7 +74,7 @@ DataArrayView::DataArrayView(const DataArrayView& other):
 bool
 DataArrayView::isEmpty() const
 {
-    return (m_data==0);
+  return (m_data==0);
 }
 
 void
@@ -91,29 +91,29 @@ DataArrayView::copy(const boost::python::numeric::array& value)
     if (value.getrank()==0) {
       (*this)()=extract<double>(value[value.getshape()]);
     } else if (value.getrank()==1) {
-      for (ValueType::size_type i=0;i<tempShape[0];++i) {
+      for (ValueType::size_type i=0;i<tempShape[0];i++) {
 	(*this)(i)=extract<double>(value[i]);
       }
     } else if (value.getrank()==2) {
-      for (ValueType::size_type i=0;i<tempShape[0];++i) {
-	for (ValueType::size_type j=0;j<tempShape[1];++j) {
+      for (ValueType::size_type i=0;i<tempShape[0];i++) {
+	for (ValueType::size_type j=0;j<tempShape[1];j++) {
 	  (*this)(i,j)=extract<double>(value[i][j]);
 	}
       }
     } else if (value.getrank()==3) {
-      for (ValueType::size_type i=0;i<tempShape[0];++i) {
-	for (ValueType::size_type j=0;j<tempShape[1];++j) {
-	  for (ValueType::size_type k=0;k<tempShape[2];++k) {
+      for (ValueType::size_type i=0;i<tempShape[0];i++) {
+	for (ValueType::size_type j=0;j<tempShape[1];j++) {
+	  for (ValueType::size_type k=0;k<tempShape[2];k++) {
 	    (*this)(i,j,k)=extract<double>(value[i][j][k]);
 	  }
 	}
       }
     } else if (value.getrank()==4) {
-      for (ValueType::size_type i=0;i<tempShape[0];++i) {
-	for (ValueType::size_type j=0;j<tempShape[1];++j) {
-	  for (ValueType::size_type k=0;k<tempShape[2];++k) {
-	    for (ValueType::size_type m=0;m<tempShape[3];++m) {
-	      (*this)(i,j,k,m)=extract<double>(value[i][j][k][m]);
+      for (ValueType::size_type i=0;i<tempShape[0];i++) {
+	for (ValueType::size_type j=0;j<tempShape[1];j++) {
+	  for (ValueType::size_type k=0;k<tempShape[2];k++) {
+	    for (ValueType::size_type l=0;l<tempShape[3];l++) {
+	      (*this)(i,j,k,l)=extract<double>(value[i][j][k][l]);
 	    }
 	  }
 	}
@@ -124,7 +124,7 @@ DataArrayView::copy(const boost::python::numeric::array& value)
 void
 DataArrayView::copy(const DataArrayView& other)
 {
-    copy(m_offset,other);
+  copy(m_offset,other);
 }
 
 void
@@ -165,7 +165,7 @@ DataArrayView::copy(ValueType::size_type offset,
     EsysAssert((!isEmpty()&&checkOffset(offset)),
 	       "Error - Couldn't copy due to insufficient storage.");
     if (checkOffset(offset)) {
-      ValueType temp(noValues(),value);
+      vector<double> temp(noValues(),value);
       memcpy(&(*m_data)[offset],&temp[0],sizeof(double)*noValues());
     } else {
       throw DataException("Error - invalid offset specified.");
@@ -175,62 +175,62 @@ DataArrayView::copy(ValueType::size_type offset,
 int
 DataArrayView::getRank() const
 {
-    return m_shape.size();
+  return m_shape.size();
 }
 
 const
 DataArrayView::ShapeType&
 DataArrayView::getShape() const
 {
-    return m_shape;
+  return m_shape;
 }
 
 int
 DataArrayView::noValues(const ShapeType& shape) 
 {
-    ShapeType::const_iterator i;
-    //
-    // An empty shape vector means rank 0 which contains 1 value
-    int noValues=1;
-    for (i=shape.begin();i!=shape.end();i++) {
-      noValues*=(*i);
-    }
-    return noValues;
+  ShapeType::const_iterator i;
+  //
+  // An empty shape vector means rank 0 which contains 1 value
+  int noValues=1;
+  for (i=shape.begin();i!=shape.end();i++) {
+    noValues*=(*i);
+  }
+  return noValues;
 }
 
 int
 DataArrayView::noValues(const RegionLoopRangeType& region) 
 {
-    //
-    // An empty region vector means rank 0 which contains 1 value
-    int noValues=1;
-    for (int i=0; i<region.size(); i++) {
-      noValues*=region[i].second-region[i].first;
-    }
-    return noValues;
+  //
+  // An empty region vector means rank 0 which contains 1 value
+  int noValues=1;
+  for (int i=0;i<region.size();i++) {
+    noValues*=region[i].second-region[i].first;
+  }
+  return noValues;
 }
  
 int
 DataArrayView::noValues() const
 {
-    return m_noValues;
+  return m_noValues;
 }
 
 bool
 DataArrayView::checkShape(const DataArrayView::ShapeType& other) const
 {
-    return (m_shape==other);
+  return (m_shape==other);
 }
 
 string 
 DataArrayView::createShapeErrorMessage(const string& messagePrefix,
                                        const DataArrayView::ShapeType& other) const
 {
-    stringstream temp;
-    temp << messagePrefix
-	 << " This shape: " << shapeToString(m_shape)
-	 << " Other shape: " << shapeToString(other);
-    return temp.str();
+  stringstream temp;
+  temp << messagePrefix
+       << " This shape: " << shapeToString(m_shape)
+       << " Other shape: " << shapeToString(other);
+  return temp.str();
 }
 
 DataArrayView::ValueType::size_type
@@ -242,35 +242,35 @@ DataArrayView::getOffset() const
 void
 DataArrayView::setOffset(ValueType::size_type offset)
 {
-    EsysAssert((checkOffset(offset)), "Error - Invalid offset.");
-    if (checkOffset(offset)) {
-      m_offset=offset;
-    } else {
-      throw DataException("Error - invalid offset specified.");
-    }
+  EsysAssert((checkOffset(offset)), "Error - Invalid offset.");
+  if (checkOffset(offset)) {
+    m_offset=offset;
+  } else {
+    throw DataException("Error - invalid offset specified.");
+  }
 }
 
 void
 DataArrayView::incrOffset()
 {
-    EsysAssert((checkOffset(m_offset+noValues())), "Error - Cannot increment offset.");
-    if (checkOffset(m_offset+noValues())) {
-      m_offset=m_offset+noValues();
-    } else {
-      throw DataException("Error - Cannot increment offset.");
-    }
+  EsysAssert((checkOffset(m_offset+noValues())), "Error - Cannot increment offset.");
+  if (checkOffset(m_offset+noValues())) {
+    m_offset=m_offset+noValues();
+  } else {
+    throw DataException("Error - Cannot increment offset.");
+  }
 }
 
 bool
 DataArrayView::checkOffset() const
 {
-    return checkOffset(m_offset);
+  return checkOffset(m_offset);
 }
 
 bool
 DataArrayView::checkOffset(ValueType::size_type offset) const
 {
-    return (m_data->size() >= (offset+noValues()));
+  return (m_data->size() >= (offset+noValues()));
 }
 
 DataArrayView::ValueType&
@@ -292,16 +292,16 @@ DataArrayView::getData(ValueType::size_type i) const
 DataArrayView::ShapeType
 DataArrayView::getResultSliceShape(const RegionType& region)
 {
-    int dimSize;
-    RegionType::const_iterator i;
-    ShapeType result;
-    for (i=region.begin();i!=region.end();i++) {
-      dimSize=((i->second)-(i->first));
-      if (dimSize!=0) {
-	result.push_back(dimSize);
-      }
+  int dimSize;
+  RegionType::const_iterator i;
+  ShapeType result;
+  for (i=region.begin();i!=region.end();i++) {
+    dimSize=((i->second)-(i->first));
+    if (dimSize!=0) {
+      result.push_back(dimSize);
     }
-    return result;
+  }
+  return result;
 }
 
 DataArrayView::RegionType
@@ -401,9 +401,9 @@ void
 DataArrayView::copySlice(const DataArrayView& other, 
                          const RegionLoopRangeType& region)
 {
-    //
-    // version of copySlice that uses the default offsets
-    copySlice(m_offset,other,other.m_offset,region);
+  //
+  // version of copySlice that uses the default offsets
+  copySlice(m_offset,other,other.m_offset,region);
 }
 
 void
@@ -439,6 +439,7 @@ DataArrayView::copySlice(ValueType::size_type thisOffset,
     //
     // copy the values in the specified region of the other view into this view
 
+    // the following loops cannot be parallelised due to the numCopy counter
     int numCopy=0;
 
     switch (region.size()) {
@@ -537,6 +538,7 @@ DataArrayView::copySliceFrom(ValueType::size_type thisOffset,
     // allow for case where other view is a scalar
     if (other.getRank()==0) {
 
+        // the following loops cannot be parallelised due to the numCopy counter
         int numCopy=0;
 
         switch (region.size()) {
@@ -591,6 +593,7 @@ DataArrayView::copySliceFrom(ValueType::size_type thisOffset,
 
     } else {
 
+        // the following loops cannot be parallelised due to the numCopy counter
         int numCopy=0;
 
         switch (region.size()) {

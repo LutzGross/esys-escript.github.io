@@ -80,11 +80,13 @@ DataExpanded::DataExpanded(const DataTagged& other)
   int i,j;
   DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
   DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
-#pragma omp parallel for private(i,j) schedule(static)
+  #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
       try {
-        getPointDataView().copy(getPointOffset(i,j),other.getPointDataView(),other.getPointOffset(i,j));
+        getPointDataView().copy(getPointOffset(i,j),
+                                other.getPointDataView(),
+                                other.getPointOffset(i,j));
       }
       catch (std::exception& e) {
         cout << e.what() << endl;
@@ -109,11 +111,14 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
   DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
   int i,j;
-#pragma omp parallel for private(i,j) schedule(static)
+  #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
       try {
-        getPointDataView().copySlice(getPointOffset(i,j),other.getPointDataView(),other.getPointOffset(i,j),region_loop_range);
+        getPointDataView().copySlice(getPointOffset(i,j),
+                                     other.getPointDataView(),
+                                     other.getPointOffset(i,j),
+                                     region_loop_range);
       }
       catch (std::exception& e) {
         cout << e.what() << endl;
@@ -174,7 +179,7 @@ DataExpanded::reshapeDataPoint(const DataArrayView::ShapeType& shape)
   int i,j;
   int nRows=m_data.getNumRows();
   int nCols=m_data.getNumCols();
-#pragma omp parallel for private(i,j) schedule(static)
+  #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<nRows;i++) {
     for (j=0;j<nCols;j++) {
       // NOTE: An exception may be thown from this call if 
@@ -223,10 +228,13 @@ DataExpanded::setSlice(const DataAbstract* value,
   DataArrayView::ValueType::size_type numRows=m_data.getNumRows();
   DataArrayView::ValueType::size_type numCols=m_data.getNumCols();
   int i, j;
-#pragma omp parallel for private(i,j) schedule(static)
+  #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numRows;i++) {
     for (j=0;j<numCols;j++) {
-      getPointDataView().copySliceFrom(getPointOffset(i,j),tempDataExp->getPointDataView(),tempDataExp->getPointOffset(i,j),region_loop_range);
+      getPointDataView().copySliceFrom(getPointOffset(i,j),
+                                       tempDataExp->getPointDataView(),
+                                       tempDataExp->getPointOffset(i,j),
+                                       region_loop_range);
     }
   }
 }
@@ -239,7 +247,7 @@ DataExpanded::copy(const DataArrayView& value)
   int nRows=m_data.getNumRows();
   int nCols=m_data.getNumCols();
   int i,j;
-#pragma omp parallel for private(i,j) schedule(static)
+  #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<nRows;i++) {
     for (j=0;j<nCols;j++) {
       // NOTE: An exception may be thown from this call if 

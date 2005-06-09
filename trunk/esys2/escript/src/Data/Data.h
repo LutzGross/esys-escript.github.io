@@ -20,6 +20,7 @@
 
 #include "escript/Data/DataAbstract.h"
 #include "escript/Data/DataTagged.h"
+#include "escript/Data/DataAlgorithm.h"
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/BinaryOp.h"
 #include "escript/Data/UnaryOp.h"
