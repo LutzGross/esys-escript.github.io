@@ -10,12 +10,6 @@
 #include <omp.h>
 #endif
 
-/* Table of constant values */
-
-static double ONE = 1.000000000000000;
-static double ZERO = 0.000000000000000;
-static double TOLERANCE_FOR_SCALARS = 0.;
-
 /*
 *
 *  Purpose
@@ -41,43 +35,6 @@ static double TOLERANCE_FOR_SCALARS = 0.;
 *          On input, the maximum iterations to be performed.
 *          On output, actual number of iterations performed.
 *
-*  rESID   (input/output) DOUBLE PRECISION
-*          On input, the allowable convergence measure for
-*          norm( b - A*x )
-*          On output, the final value of this measure.
-*
-*  MATVEC  (external subroutine)
-*          The user must provide a subroutine to perform the
-*          matrix-vector product
-*
-*               y := alpha*A*x + beta*y,
-*
-*          where alpha and beta are scalars, x and y are vectors,
-*          and A is a matrix. Vector x must remain unchanged.
-*          The solution is over-written on vector y.
-*
-*          The call is:
-*
-*             CALL MATVEC( ALPHA, x, BETA, Y )
-*
-*          The matrix is passed into the routine in a common block.
-*
-*  PSOLVE  (external subroutine)
-*          The user must provide a subroutine to perform the
-*          preconditioner solve routine for the linear system
-*
-*               M*x = b,
-*
-*          where x and b are vectors, and M a matrix. Vector b must
-*          remain unchanged.
-*          The solution is over-written on vector b.
-*
-*          The call is:
-*
-*             CALL PSOLVE( x, B )
-*
-*          The preconditioner is passed into the routine in a common block.
-*
 *  INFO    (output) INT
 *
 *          = SOLVER_NO_ERROR: Successful exit. Iterated approximate solution returned.
@@ -89,20 +46,20 @@ static double TOLERANCE_FOR_SCALARS = 0.;
 *  ==============================================================
 */
 
-int Finley_Solver_PCG(
+err_t Finley_Solver_PCG(
     Finley_SystemMatrix * A,
     double * r,
     double * x,
-    int *iter,
+    dim_t *iter,
     double * tolerance) {
 
 
   /* Local variables */
-  int num_iter=0,maxit,num_iter_global;
-  int i0;
-  int breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
-  int status = SOLVER_NO_ERROR;
-  int n = A->num_cols * A-> col_block_size;;
+  dim_t num_iter=0,maxit,num_iter_global;
+  dim_t i0;
+  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+  err_t status = SOLVER_NO_ERROR;
+  dim_t n = A->num_cols * A-> col_block_size;
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
   double d,norm_of_residual,norm_of_residual_global;
@@ -225,6 +182,12 @@ int Finley_Solver_PCG(
 }
 
 /*
- * $Log
+ * $Log$
+ * Revision 1.5  2005/07/08 04:08:00  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.2  2005/06/29 02:34:59  gross
+ * some changes towards 64 integers in finley
+ *
  *
  */

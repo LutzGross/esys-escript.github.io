@@ -19,12 +19,12 @@
 
 /**************************************************************/
 
-Finley_Mesh* Finley_RectangularMesh_Hex20(int*,double*,int*,int,int);
-Finley_Mesh* Finley_RectangularMesh_Hex8(int*,double*,int*,int,int);
-Finley_Mesh* Finley_RectangularMesh_Rec8(int*,double*,int*,int,int);
-Finley_Mesh* Finley_RectangularMesh_Rec4(int*,double*,int*,int,int);
-Finley_Mesh* Finley_RectangularMesh_Line3(int*,double*,int*,int,int);
-Finley_Mesh* Finley_RectangularMesh_Line2(int*,double*,int*,int,int);
+Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t*,double*,bool_t*,dim_t,dim_t);
+Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t*,double*,bool_t*,dim_t,dim_t);
+Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t*,double*,bool_t*,dim_t,dim_t);
+Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t*,double*,bool_t*,dim_t,dim_t);
+Finley_Mesh* Finley_RectangularMesh_Line3(dim_t*,double*,bool_t*,dim_t,dim_t);
+Finley_Mesh* Finley_RectangularMesh_Line2(dim_t*,double*,bool_t*,dim_t,dim_t);
 
 #define COLOR_MOD(_I_) ((_I_%2)+((_I_==0) ? 2 : 0))
 
@@ -32,8 +32,14 @@ Finley_Mesh* Finley_RectangularMesh_Line2(int*,double*,int*,int,int);
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:56  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:55  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1.1.1  2004/06/24 04:00:40  johng
  * Initial version of eys using boost-python.

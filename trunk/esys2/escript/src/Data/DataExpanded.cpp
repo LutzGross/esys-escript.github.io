@@ -400,4 +400,18 @@ DataExpanded::getRefValue(int ref,
   value.getView().copy(pointView);
 }
 
+int
+DataExpanded::archiveData(ofstream& archiveFile,
+                          const DataArrayView::ValueType::size_type noValues) const
+{
+  return(m_data.archiveData(archiveFile, noValues));
+}
+
+int
+DataExpanded::extractData(ifstream& archiveFile,
+                          const DataArrayView::ValueType::size_type noValues)
+{
+  return(m_data.extractData(archiveFile, noValues));
+}
+
 }  // end of namespace

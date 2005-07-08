@@ -32,9 +32,11 @@ void Finley_Solver_free(Finley_SystemMatrix* A) {
 
 void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptions* options) {
     double norm2OfB,tol,tolerance,time_iter,time_prec,*r=NULL,norm_of_residual,last_norm_of_residual;
-    int i,totIter,cntIter,finalizeIteration,errorCode,method;
-    int n_col = A->num_cols * A-> col_block_size;
-    int n_row = A->num_rows * A-> row_block_size;
+    dim_t i,totIter,cntIter,method;
+    bool_t finalizeIteration;
+    err_t errorCode;
+    dim_t n_col = A->num_cols * A-> col_block_size;
+    dim_t n_row = A->num_rows * A-> row_block_size;
 
     tolerance=MAX(options->tolerance,EPSILON);
     Finley_ErrorCode=NO_ERROR;
@@ -215,8 +217,14 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
 
 /*
 * $Log$
+* Revision 1.7  2005/07/08 04:08:00  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.6  2005/05/06 04:26:15  jgs
 * Merge of development branch back to main trunk on 2005-05-06
+*
+* Revision 1.1.1.1.2.7  2005/06/29 02:34:59  gross
+* some changes towards 64 integers in finley
 *
 * Revision 1.1.1.1.2.6  2005/04/14 06:53:11  gross
 * a problem with header files fixed: bug appeared  for case -O0 -g in the icc compiler only

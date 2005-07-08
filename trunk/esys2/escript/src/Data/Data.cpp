@@ -35,6 +35,7 @@
 #include "escript/Data/DataTagged.h"
 #include "escript/Data/DataEmpty.h"
 #include "escript/Data/DataArray.h"
+#include "escript/Data/DataProf.h"
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "escript/Data/UnaryFuncs.h"
@@ -44,6 +45,10 @@ using namespace boost::python;
 using namespace boost;
 using namespace escript;
 
+//
+// global table of profiling data for all Data objects
+DataProf dataProfTable;
+
 Data::Data()
 {
   //
@@ -51,6 +56,8 @@ Data::Data()
   DataAbstract* temp=new DataEmpty();
   shared_ptr<DataAbstract> temp_data(temp);
   m_data=temp_data;
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(double value,
@@ -64,6 +71,8 @@ Data::Data(double value,
   }
   DataArray temp(dataPointShape,value);
   initialise(temp.getView(),what,expanded);
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(double value,
@@ -74,11 +83,15 @@ Data::Data(double value,
   DataArray temp(dataPointShape,value);
   pair<int,int> dataShape=what.getDataShape();
   initialise(temp.getView(),what,expanded);
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const Data& inData)
 {
   m_data=inData.m_data;
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const Data& inData,
@@ -89,6 +102,8 @@ Data::Data(const Data& inData,
   DataAbstract* tmp = inData.m_data->getSlice(region);
   shared_ptr<DataAbstract> temp_data(tmp);
   m_data=temp_data;
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const Data& inData,
@@ -98,10 +113,10 @@ Data::Data(const Data& inData,
     m_data=inData.m_data;
   } else {
     Data tmp(0,inData.getPointDataView().getShape(),functionspace,true);
-    // Note for Lutz, Must use a reference or pointer to a derived object
+    // Note: Must use a reference or pointer to a derived object
     // in order to get polymorphic behaviour. Shouldn't really
     // be able to create an instance of AbstractDomain but that was done
-    // as a boost python work around which may no longer be required.
+    // as a boost:python work around which may no longer be required.
     const AbstractDomain& inDataDomain=inData.getDomain();
     if  (inDataDomain==functionspace.getDomain()) {
       inDataDomain.interpolateOnDomain(tmp,inData);
@@ -110,6 +125,8 @@ Data::Data(const Data& inData,
     }
     m_data=tmp.m_data;
   }
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const DataTagged::TagListType& tagKeys,
@@ -124,6 +141,8 @@ Data::Data(const DataTagged::TagListType& tagKeys,
   if (expanded) {
     expand();
   }
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const numeric::array& value,
@@ -131,6 +150,8 @@ Data::Data(const numeric::array& value,
            bool expanded)
 {
   initialise(value,what,expanded);
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const DataArrayView& value,
@@ -138,6 +159,8 @@ Data::Data(const DataArrayView& value,
            bool expanded)
 {
   initialise(value,what,expanded);
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const object& value,
@@ -146,6 +169,8 @@ Data::Data(const object& value,
 {
   numeric::array asNumArray(value);
   initialise(asNumArray,what,expanded);
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 Data::Data(const object& value,
@@ -166,6 +191,8 @@ Data::Data(const object& value,
     // Create a DataConstant with the same sample shape as other
     initialise(temp.getView(),other.getFunctionSpace(),false);
   }
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
 }
 
 escriptDataC
@@ -352,42 +379,49 @@ Data::reshapeDataPoint(const DataArrayView::ShapeType& shape)
 Data
 Data::wherePositive() const
 {
+  profData->where++;
   return escript::unaryOp(*this,bind2nd(greater<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
+  profData->where++;
   return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
+  profData->where++;
   return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
+  profData->where++;
   return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0));
 }
 
 Data
 Data::whereZero() const
 {
+  profData->where++;
   return escript::unaryOp(*this,bind2nd(equal_to<double>(),0.0));
 }
 
 Data
 Data::whereNonZero() const
 {
+  profData->where++;
   return escript::unaryOp(*this,bind2nd(not_equal_to<double>(),0.0));
 }
 
 Data
 Data::interpolate(const FunctionSpace& functionspace) const
 {
+  profData->interpolate++;
   return Data(*this,functionspace);
 }
 
@@ -409,6 +443,7 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
+  profData->grad++;
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
   DataArrayView::ShapeType grad_shape=getPointDataView().getShape();
@@ -747,6 +782,8 @@ Data::integrate() const
   int rank = getDataPointRank();
   DataArrayView::ShapeType shape = getDataPointShape();
 
+  profData->integrate++;
+
   //
   // calculate the integral values
   vector<double> integrals(getDataPointSize());
@@ -810,72 +847,84 @@ Data::integrate() const
 Data
 Data::sin() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sin);
 }
 
 Data
 Data::cos() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cos);
 }
 
 Data
 Data::tan() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tan);
 }
 
 Data
 Data::log() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log10);
 }
 
 Data
 Data::ln() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log);
 }
 
 Data
 Data::sign() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,escript::fsign);
 }
 
 Data
 Data::abs() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::fabs);
 }
 
 Data
 Data::neg() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,negate<double>());
 }
 
 Data
 Data::pos() const
 {
+  profData->unary++;
   return (*this);
 }
 
 Data
 Data::exp() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::exp);
 }
 
 Data
 Data::sqrt() const
 {
+  profData->unary++;
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sqrt);
 }
 
 double
 Data::Lsup() const
 {
+  profData->reduction1++;
   //
   // set the initial absolute maximum value to zero
   return algorithm(DataAlgorithmAdapter<AbsMax>(0));
@@ -884,6 +933,7 @@ Data::Lsup() const
 double
 Data::Linf() const
 {
+  profData->reduction1++;
   //
   // set the initial absolute minimum value to max double
   return algorithm(DataAlgorithmAdapter<AbsMin>(numeric_limits<double>::max()));
@@ -892,6 +942,7 @@ Data::Linf() const
 double
 Data::sup() const
 {
+  profData->reduction1++;
   //
   // set the initial maximum value to min possible double
   return algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
@@ -900,6 +951,7 @@ Data::sup() const
 double
 Data::inf() const
 {
+  profData->reduction1++;
   //
   // set the initial minimum value to max possible double
   return algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
@@ -908,6 +960,7 @@ Data::inf() const
 Data
 Data::maxval() const
 {
+  profData->reduction2++;
   //
   // set the initial maximum value to min possible double
   return dp_algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
@@ -916,9 +969,33 @@ Data::maxval() const
 Data
 Data::minval() const
 {
+  profData->reduction2++;
   //
   // set the initial minimum value to max possible double
   return dp_algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+}
+
+Data
+Data::length() const
+{
+  profData->reduction2++;
+  return dp_algorithm(DataAlgorithmAdapter<Length>(0));
+}
+
+Data
+Data::trace() const
+{
+  profData->reduction2++;
+  return dp_algorithm(DataAlgorithmAdapter<Trace>(0));
+}
+
+Data
+Data::transpose(int axis) const
+{
+  profData->reduction2++;
+  // not implemented
+  throw DataException("Error - Data::transpose not implemented yet.");
+  return Data();
 }
 
 const boost::python::tuple
@@ -946,26 +1023,6 @@ Data::mindp() const
   return make_tuple(lowi,lowj);
 }
 
-Data
-Data::length() const
-{
-  return dp_algorithm(DataAlgorithmAdapter<Length>(0));
-}
-
-Data
-Data::trace() const
-{
-  return dp_algorithm(DataAlgorithmAdapter<Trace>(0));
-}
-
-Data
-Data::transpose(int axis) const
-{
-  // not implemented
-  throw DataException("Error - Data::transpose not implemented yet.");
-  return Data();
-}
-
 void
 Data::saveDX(std::string fileName) const
 {
@@ -983,6 +1040,7 @@ Data::saveVTK(std::string fileName) const
 Data&
 Data::operator+=(const Data& right)
 {
+  profData->binary++;
   binaryOp(right,plus<double>());
   return (*this);
 }
@@ -990,6 +1048,7 @@ Data::operator+=(const Data& right)
 Data&
 Data::operator+=(const boost::python::object& right)
 {
+  profData->binary++;
   binaryOp(right,plus<double>());
   return (*this);
 }
@@ -997,6 +1056,7 @@ Data::operator+=(const boost::python::object& right)
 Data&
 Data::operator-=(const Data& right)
 {
+  profData->binary++;
   binaryOp(right,minus<double>());
   return (*this);
 }
@@ -1004,6 +1064,7 @@ Data::operator-=(const Data& right)
 Data&
 Data::operator-=(const boost::python::object& right)
 {
+  profData->binary++;
   binaryOp(right,minus<double>());
   return (*this);
 }
@@ -1011,6 +1072,7 @@ Data::operator-=(const boost::python::object& right)
 Data&
 Data::operator*=(const Data& right)
 {
+  profData->binary++;
   binaryOp(right,multiplies<double>());
   return (*this);
 }
@@ -1018,6 +1080,7 @@ Data::operator*=(const Data& right)
 Data&
 Data::operator*=(const boost::python::object& right)
 {
+  profData->binary++;
   binaryOp(right,multiplies<double>());
   return (*this);
 }
@@ -1025,6 +1088,7 @@ Data::operator*=(const boost::python::object& right)
 Data&
 Data::operator/=(const Data& right)
 {
+  profData->binary++;
   binaryOp(right,divides<double>());
   return (*this);
 }
@@ -1032,6 +1096,7 @@ Data::operator/=(const Data& right)
 Data&
 Data::operator/=(const boost::python::object& right)
 {
+  profData->binary++;
   binaryOp(right,divides<double>());
   return (*this);
 }
@@ -1039,6 +1104,7 @@ Data::operator/=(const boost::python::object& right)
 Data
 Data::powO(const boost::python::object& right) const
 {
+  profData->binary++;
   Data result;
   result.copy(*this);
   result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
@@ -1048,6 +1114,7 @@ Data::powO(const boost::python::object& right) const
 Data
 Data::powD(const Data& right) const
 {
+  profData->binary++;
   Data result;
   result.copy(*this);
   result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
@@ -1055,7 +1122,7 @@ Data::powD(const Data& right) const
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator+(const Data& left, const Data& right)
 {
@@ -1068,7 +1135,7 @@ escript::operator+(const Data& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator-(const Data& left, const Data& right)
 {
@@ -1081,7 +1148,7 @@ escript::operator-(const Data& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator*(const Data& left, const Data& right)
 {
@@ -1094,7 +1161,7 @@ escript::operator*(const Data& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator/(const Data& left, const Data& right)
 {
@@ -1107,7 +1174,7 @@ escript::operator/(const Data& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator+(const Data& left, const boost::python::object& right)
 {
@@ -1123,7 +1190,7 @@ escript::operator+(const Data& left, const boost::python::object& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator-(const Data& left, const boost::python::object& right)
 {
@@ -1139,7 +1206,7 @@ escript::operator-(const Data& left, const boost::python::object& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator*(const Data& left, const boost::python::object& right)
 {
@@ -1155,7 +1222,7 @@ escript::operator*(const Data& left, const boost::python::object& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator/(const Data& left, const boost::python::object& right)
 {
@@ -1171,7 +1238,7 @@ escript::operator/(const Data& left, const boost::python::object& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator+(const boost::python::object& left, const Data& right)
 {
@@ -1184,7 +1251,7 @@ escript::operator+(const boost::python::object& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator-(const boost::python::object& left, const Data& right)
 {
@@ -1197,7 +1264,7 @@ escript::operator-(const boost::python::object& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator*(const boost::python::object& left, const Data& right)
 {
@@ -1210,7 +1277,7 @@ escript::operator*(const boost::python::object& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
+// NOTE: It is essential to specify the namespace this operator belongs to
 Data
 escript::operator/(const boost::python::object& left, const Data& right)
 {
@@ -1223,7 +1290,6 @@ escript::operator/(const boost::python::object& left, const Data& right)
 }
 
 //
-// NOTE: It is essential to specify the namepsace this operator belongs to
 //bool escript::operator==(const Data& left, const Data& right)
 //{
 //  /*
@@ -1285,6 +1351,7 @@ Data::getItem(const boost::python::object& key) const
 Data
 Data::getSlice(const DataArrayView::RegionType& region) const
 {
+  profData->slicing++;
   return Data(*this,region);
 }
 
@@ -1301,6 +1368,7 @@ Data::setItemD(const boost::python::object& key,
                const Data& value)
 {
   const DataArrayView& view=getPointDataView();
+
   DataArrayView::RegionType slice_region=view.getSliceRegion(key);
   if (slice_region.size()!=view.getRank()) {
     throw DataException("Error - slice size does not match Data rank.");
@@ -1316,6 +1384,7 @@ void
 Data::setSlice(const Data& value,
                const DataArrayView::RegionType& region)
 {
+  profData->slicing++;
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
@@ -1471,6 +1540,7 @@ Data::archiveData(const std::string fileName)
     dataType = 3;
     cout << "\tdataType: DataExpanded" << endl;
   }
+
   if (dataType == -1) {
     throw DataException("archiveData Error: undefined dataType");
   }
@@ -1510,7 +1580,7 @@ Data::archiveData(const std::string fileName)
   cout << ">" << endl;
 
   //
-  // Write common data items to archive file
+  // Open archive file
   ofstream archiveFile;
   archiveFile.open(fileName.data(), ios::out);
 
@@ -1518,6 +1588,8 @@ Data::archiveData(const std::string fileName)
     throw DataException("archiveData Error: problem opening archive file");
   }
 
+  //
+  // Write common data items to archive file
   archiveFile.write(reinterpret_cast<char *>(&dataType),sizeof(int));
   archiveFile.write(reinterpret_cast<char *>(&noSamples),sizeof(int));
   archiveFile.write(reinterpret_cast<char *>(&noDPPSample),sizeof(int));
@@ -1541,27 +1613,55 @@ Data::archiveData(const std::string fileName)
     throw DataException("archiveData Error: problem writing to archive file");
   }
 
+  //
+  // Archive underlying data values for each Data type
+  int noValues;
+  switch (dataType) {
+    case 0:
+      // DataEmpty
+      noValues = 0;
+      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
+      cout << "\tnoValues: " << noValues << endl;
+      break;
+    case 1:
+      // DataConstant
+      noValues = m_data->getLength();
+      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
+      cout << "\tnoValues: " << noValues << endl;
+      if (m_data->archiveData(archiveFile,noValues)) {
+        throw DataException("archiveData Error: problem writing data to archive file");
+      }
+      break;
+    case 2:
+      // DataTagged
+      noValues = m_data->getLength();
+      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
+      cout << "\tnoValues: " << noValues << endl;
+      if (m_data->archiveData(archiveFile,noValues)) {
+        throw DataException("archiveData Error: problem writing data to archive file");
+      }
+      break;
+    case 3:
+      // DataExpanded
+      noValues = m_data->getLength();
+      archiveFile.write(reinterpret_cast<char *>(&noValues),sizeof(int));
+      cout << "\tnoValues: " << noValues << endl;
+      if (m_data->archiveData(archiveFile,noValues)) {
+        throw DataException("archiveData Error: problem writing data to archive file");
+      }
+      break;
+  }
+
+  if (!archiveFile.good()) {
+    throw DataException("archiveData Error: problem writing data to archive file");
+  }
+
+  //
+  // Close archive file
   archiveFile.close();
 
   if (!archiveFile.good()) {
     throw DataException("archiveData Error: problem closing archive file");
-  }
-
-  //
-  // Collect and archive underlying data values for each Data type
-  switch (dataType) {
-    case 0:
-      // DataEmpty
-      break;
-    case 1:
-      // DataConstant
-      break;
-    case 2:
-      // DataTagged
-      break;
-    case 3:
-      // DataExpanded
-      break;
   }
 
 }
@@ -1589,7 +1689,7 @@ Data::extractData(const std::string fileName,
   int flatShape[4];
 
   //
-  // Open the archive file and read common data items
+  // Open the archive file
   ifstream archiveFile;
   archiveFile.open(fileName.data(), ios::in);
 
@@ -1597,6 +1697,8 @@ Data::extractData(const std::string fileName,
     throw DataException("extractData Error: problem opening archive file");
   }
 
+  //
+  // Read common data items from archive file
   archiveFile.read(reinterpret_cast<char *>(&dataType),sizeof(int));
   archiveFile.read(reinterpret_cast<char *>(&noSamples),sizeof(int));
   archiveFile.read(reinterpret_cast<char *>(&noDPPSample),sizeof(int));
@@ -1625,12 +1727,8 @@ Data::extractData(const std::string fileName,
     throw DataException("extractData Error: problem reading from archive file");
   }
 
-  archiveFile.close();
-
-  if (!archiveFile.good()) {
-    throw DataException("extractData Error: problem closing archive file");
-  }
-
+  //
+  // Verify the values just read from the archive file
   switch (dataType) {
     case 0:
       cout << "\tdataType: DataEmpty" << endl;
@@ -1685,19 +1783,46 @@ Data::extractData(const std::string fileName,
 
   //
   // Load this DataVector with the appropriate values
+  int noValues;
+  archiveFile.read(reinterpret_cast<char *>(&noValues),sizeof(int));
+  cout << "\tnoValues: " << noValues << endl;
   switch (dataType) {
     case 0:
       // DataEmpty
+      if (noValues != 0) {
+        throw DataException("extractData Error: problem reading data from archive file");
+      }
       break;
     case 1:
       // DataConstant
+      if (dataVec.extractData(archiveFile,noValues)) {
+        throw DataException("extractData Error: problem reading data from archive file");
+      }
       break;
     case 2:
       // DataTagged
+      if (dataVec.extractData(archiveFile,noValues)) {
+        throw DataException("extractData Error: problem reading data from archive file");
+      }
       break;
     case 3:
       // DataExpanded
+      if (dataVec.extractData(archiveFile,noValues)) {
+        throw DataException("extractData Error: problem reading data from archive file");
+      }
       break;
+  }
+
+  if (!archiveFile.good()) {
+    throw DataException("extractData Error: problem reading from archive file");
+  }
+
+  //
+  // Close archive file
+  archiveFile.close();
+
+  if (!archiveFile.good()) {
+    throw DataException("extractData Error: problem closing archive file");
   }
 
   //

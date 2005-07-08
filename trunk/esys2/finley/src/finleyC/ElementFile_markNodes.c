@@ -18,10 +18,11 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_markNodes(int* mask,int offset,Finley_ElementFile* in,int useLinear) {
-   int i,NN,NN2,e,color,*lin_node;
+void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFile* in,bool_t useLinear) {
+   dim_t i,NN,NN2,e;
+   index_t color,*lin_node;
    if (in!=NULL) {
-     int id[in->ReferenceElement->Type->numNodes];
+     index_t id[in->ReferenceElement->Type->numNodes];
      for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
      if (useLinear) {
         NN=in->LinearReferenceElement->Type->numNodes;
@@ -33,7 +34,7 @@ void Finley_ElementFile_markNodes(int* mask,int offset,Finley_ElementFile* in,in
      NN2=in->ReferenceElement->Type->numNodes;
      #pragma omp parallel private(color)
      {
-        for (color=0;color<in->numColors;color++) {
+        for (color=in->minColor;color<=in->maxColor;color++) {
           #pragma omp for private(e,i) schedule(static)
           for (e=0;e<in->numElements;e++) {
             if (in->Color[e]==color) {
@@ -47,8 +48,14 @@ void Finley_ElementFile_markNodes(int* mask,int offset,Finley_ElementFile* in,in
 }
 /* 
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:50  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:49  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

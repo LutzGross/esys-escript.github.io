@@ -26,10 +26,10 @@
 
 void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in) {
     if (nodes==NULL) return;
-    int n,i;
-    int numComps=getDataPointSize(out);
-    int in_data_type=getFunctionSpaceType(in);
-    int out_data_type=getFunctionSpaceType(out);
+    dim_t n,i;
+    dim_t numComps=getDataPointSize(out);
+    type_t in_data_type=getFunctionSpaceType(in);
+    type_t out_data_type=getFunctionSpaceType(out);
 
     /* check out and in */
     if (numComps!=getDataPointSize(in)) {
@@ -130,8 +130,14 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 }
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:56  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:45  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:46  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:56  jgs
+ * initial import of project esys2
  *
  * Revision 1.2  2004/07/21 05:00:54  gross
  * name changes in DataC

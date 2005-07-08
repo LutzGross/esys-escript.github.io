@@ -358,4 +358,18 @@ DataTagged::getLength() const
   return m_data.size();
 }
 
+int
+DataTagged::archiveData(ofstream& archiveFile,
+                        const DataArrayView::ValueType::size_type noValues) const
+{
+  return(m_data.archiveData(archiveFile, noValues));
+}
+
+int
+DataTagged::extractData(ifstream& archiveFile,
+                        const DataArrayView::ValueType::size_type noValues)
+{
+  return(m_data.extractData(archiveFile, noValues));
+}
+
 }  // end of namespace

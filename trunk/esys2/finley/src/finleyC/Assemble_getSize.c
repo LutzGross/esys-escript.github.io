@@ -30,15 +30,16 @@
 void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* elements, escriptDataC* element_size) {
 
   double *local_X=NULL,*element_size_array;
-  int e,n0,n1,q,i,node_offset;
+  dim_t e,n0,n1,q,i;
+  index_t node_offset;
   double d,diff,min_diff;
 
   if (nodes==NULL || elements==NULL) return;
-  int NVertices=elements->ReferenceElement->Type->numVertices;
-  int NN=elements->ReferenceElement->Type->numNodes;
-  int NS=elements->ReferenceElement->Type->numShapes;
-  int numQuad=elements->ReferenceElement->numQuadNodes;
-  int numDim=nodes->numDim;
+  dim_t NVertices=elements->ReferenceElement->Type->numVertices;
+  dim_t NN=elements->ReferenceElement->Type->numNodes;
+  dim_t NS=elements->ReferenceElement->Type->numShapes;
+  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
+  dim_t numDim=nodes->numDim;
 
   /* set a few more parameters */
 
@@ -103,3 +104,31 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   }
   return;
 }
+/*
+ * $Log$
+ * Revision 1.6  2005/07/08 04:07:47  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:48  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.2  2005/03/02 23:35:05  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.3  2004/07/30 04:37:06  gross
+ * escript and finley are linking now and RecMeshTest.py has been passed
+ *
+ * Revision 1.2  2004/07/21 05:00:54  gross
+ * name changes in DataC
+ *
+ * Revision 1.1  2004/07/02 04:21:13  gross
+ * Finley C code has been included
+ *
+ *
+ */

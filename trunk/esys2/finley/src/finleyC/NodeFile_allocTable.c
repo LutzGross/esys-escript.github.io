@@ -20,18 +20,18 @@
 /*  is deallocated. use Finley_Mesh_setLinearMesh to create a new one. */
 
 void Finley_NodeFile_allocTable(Finley_NodeFile* in ,int numNodes) {
-  maybelong *Id2=NULL, *Tag2=NULL, *degreeOfFreedom2=NULL, *reducedDegreeOfFreedom2=NULL, *toReduced2=NULL;
+  index_t *Id2=NULL, *Tag2=NULL, *degreeOfFreedom2=NULL, *reducedDegreeOfFreedom2=NULL, *toReduced2=NULL;
   double *Coordinates2=NULL;
-  maybelong n,i;
+  dim_t n,i;
   
   /*  allocate memory: */
   
-  Id2=MEMALLOC(numNodes,maybelong);
+  Id2=MEMALLOC(numNodes,index_t);
   Coordinates2=MEMALLOC(numNodes*in->numDim,double);
-  Tag2=MEMALLOC(numNodes,maybelong);
-  degreeOfFreedom2=MEMALLOC(numNodes,maybelong);
-  reducedDegreeOfFreedom2=MEMALLOC(numNodes,maybelong);
-  toReduced2=MEMALLOC(numNodes,maybelong);
+  Tag2=MEMALLOC(numNodes,index_t);
+  degreeOfFreedom2=MEMALLOC(numNodes,index_t);
+  reducedDegreeOfFreedom2=MEMALLOC(numNodes,index_t);
+  toReduced2=MEMALLOC(numNodes,index_t);
   
   /*  if fine, deallocate the old table and replace by new: */
   
@@ -87,8 +87,16 @@ void Finley_NodeFile_deallocTable(Finley_NodeFile* in) {
 }
 /* 
 * $Log$
+* Revision 1.5  2005/07/08 04:07:55  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.2  2005/06/29 02:34:54  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:15  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

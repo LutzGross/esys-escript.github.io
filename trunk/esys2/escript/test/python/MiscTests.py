@@ -98,13 +98,11 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       arg=prepareArg(a,ex,wh)
 
-      #print "toString", arg.toString()
-      #print "Rank:", getRank(arg)
-      #print "Scalar:", isScalar(arg)
-
       narry1 = arg.convertToNumArray()
       narry2 = arg.convertToNumArrayFromSampleNo(0)
       narry3 = arg.convertToNumArrayFromDPNo(0,0)
+
+      print "\n\nTests of conversion to numarray:"
 
       print "arg.convertToNumArray()"
       print narry1
@@ -115,7 +113,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "arg.convertToNumArrayFromDPNo(0,0)"
       print narry3
 
-      print "\n\nTests of misc python functions"
+      print "\n\nTests of misc python functions:"
 
       print "\nabs:"
       print arg.abs()
@@ -132,11 +130,11 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "\nlength"
       print arg.length()
 
-      print "\nsign"
-      print arg.sign()
-
       print "\ntrace"
       print arg.trace()
+
+      print "\nsign"
+      print arg.sign()
 
       print "\nexp"
       print arg.exp()
@@ -165,17 +163,29 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "\nln"
       print arg.ln()
 
-print "\n\nTests of archiveData and extractData"
+      print "\nLsup"
+      print arg.Lsup()
+
+      print "\nLinf"
+      print arg.Linf()
+
+      print "\nsup"
+      print arg.sup()
+
+      print "\ninf"
+      print arg.inf()
+
+print "\n\nTests of archiveData and extractData:"
 
 print "\nDataExpanded:"
-archDataE=Data([[1.0],[2.0]],Function(msh),True)
+archDataE=Data([[1.00001],[2.00001]],Function(msh),True)
 archDataE.archiveData("data-archiveE")
 exDataE=Data()
 exDataE.extractData("data-archiveE",Function(msh))
 exDataE.archiveData("data-archive2E");
 
 print "\nDataTagged:"
-archDataT=Data([[1.0],[2.0]],Function(msh))
+archDataT=Data([[1.00001],[2.00001]],Function(msh))
 archDataT.tag()
 archDataT.archiveData("data-archiveT")
 exDataT=Data()
@@ -183,7 +193,7 @@ exDataT.extractData("data-archiveT",Function(msh))
 exDataT.archiveData("data-archive2T");
 
 print "\nDataConstant:"
-archDataC=Data([1.0], Function(msh))
+archDataC=Data([1.00001], Function(msh))
 archDataC.archiveData("data-archiveC")
 exDataC=Data()
 exDataC.extractData("data-archiveC",Function(msh))
@@ -196,7 +206,8 @@ exDataM=Data()
 exDataM.extractData("data-archiveE",FunctionSpace())
 exDataM.archiveData("data-archive2E");
 
-print "\nDo some Tagged data tests"
+print "\n\nDo some Tagged data tests:"
+
 print "\nCreate a Tagged data:"
 tagData=Data([ [1.0,1.1],[2.0,2.1] ],Function(msh))
 tagData.setTaggedValue(1,[[3.0,3.1],[4.0,4.1]])

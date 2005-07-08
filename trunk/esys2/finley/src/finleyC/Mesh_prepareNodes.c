@@ -22,17 +22,17 @@
 /**************************************************************/
 
 void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
-  int n,id,max_id,min_id,len;
-  maybelong *maskReducedDOF=NULL,*maskDOF=NULL,*reducedNodesMask=NULL,*index=NULL;
+  dim_t n,len;
+  index_t id,max_id,min_id,*maskReducedDOF=NULL,*maskDOF=NULL,*reducedNodesMask=NULL,*index=NULL;
 
   max_id=Finley_Util_getMaxInt(1,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
   min_id=Finley_Util_getMinInt(1,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
   len=max_id-min_id+1;
 
-  reducedNodesMask=TMPMEMALLOC(in->Nodes->numNodes,maybelong);
-  maskDOF=TMPMEMALLOC(len,maybelong);
-  maskReducedDOF=TMPMEMALLOC(len,maybelong);
-  index=TMPMEMALLOC(MAX(in->Nodes->numNodes,len),maybelong);
+  reducedNodesMask=TMPMEMALLOC(in->Nodes->numNodes,index_t);
+  maskDOF=TMPMEMALLOC(len,index_t);
+  maskReducedDOF=TMPMEMALLOC(len,index_t);
+  index=TMPMEMALLOC(MAX(in->Nodes->numNodes,len),index_t);
 
   if  (! (Finley_checkPtr(maskDOF) || Finley_checkPtr(maskReducedDOF) 
                                         || Finley_checkPtr(reducedNodesMask) || Finley_checkPtr(index) ) ) {
@@ -91,8 +91,16 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
 
 /*
 * $Log$
+* Revision 1.5  2005/07/08 04:07:53  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.3  2005/06/29 02:34:52  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.2  2004/11/24 01:37:14  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

@@ -22,8 +22,9 @@
 void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance) { 
    Finley_NodeFile *newNodeFile=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL;
-   int numPairs,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL;
-   int e,i,n,face_node;
+   dim_t numPairs,e,i,n;
+   index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL;
+
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
@@ -32,17 +33,17 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
      return;
    }
 
-   int NNFace=self->FaceElements->ReferenceElement->Type->numNodesOnFace;
-   int NN=self->FaceElements->ReferenceElement->Type->numNodes;
-   int numDim=self->Nodes->numDim;
+   dim_t NNFace=self->FaceElements->ReferenceElement->Type->numNodesOnFace;
+   dim_t NN=self->FaceElements->ReferenceElement->Type->numNodes;
+   dim_t numDim=self->Nodes->numDim;
    /* allocate work arrays */
-   elem1=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem0=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,int);
-   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,int);
-   new_node_label=TMPMEMALLOC(self->Nodes->numNodes,int);
-   new_node_list=TMPMEMALLOC(self->Nodes->numNodes,int);
-   new_node_mask=TMPMEMALLOC(self->Nodes->numNodes,int);
+   elem1=TMPMEMALLOC(self->FaceElements->numElements,index_t);
+   elem0=TMPMEMALLOC(self->FaceElements->numElements,index_t);
+   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,index_t);
+   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,index_t);
+   new_node_label=TMPMEMALLOC(self->Nodes->numNodes,index_t);
+   new_node_list=TMPMEMALLOC(self->Nodes->numNodes,index_t);
+   new_node_mask=TMPMEMALLOC(self->Nodes->numNodes,index_t);
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(new_node_label) || Finley_checkPtr(new_node_list) || Finley_checkPtr(new_node_mask) || Finley_checkPtr(matching_nodes_in_elem1)) ) {
       /* find the matching face elements */
       Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
@@ -59,7 +60,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /* create an index of face elements */
-         int new_numFaceElements=0;
+         dim_t new_numFaceElements=0;
          for(e=0;e<self->FaceElements->numElements;e++) {
              if (elem_mask[e]<1) {
                elem_mask[new_numFaceElements]=e;
@@ -67,7 +68,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /* get the new number of nodes */
-         int newNumNodes=0;
+         dim_t newNumNodes=0;
          for (n=0;n<self->Nodes->numNodes;n++) new_node_mask[n]=-1;
          for (n=0;n<self->Nodes->numNodes;n++) new_node_mask[new_node_label[n]]=1;
          for (n=0;n<self->Nodes->numNodes;n++) {
@@ -120,8 +121,16 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
 
 /*
 * $Log$
+* Revision 1.5  2005/07/08 04:07:52  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.2  2005/06/29 02:34:51  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

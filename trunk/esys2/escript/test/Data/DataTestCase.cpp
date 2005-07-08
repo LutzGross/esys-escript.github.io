@@ -151,7 +151,7 @@ void DataTestCase::testSlicing() {
     DataArrayView::ShapeType viewShape;
     Data source(10.0,viewShape,FunctionSpace(),true);
     //
-    // weak tests for setting a slice of DataConstant
+    // weak tests for setting a slice of DataExpanded
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data target(1.3,viewShape,FunctionSpace(),true);
@@ -221,7 +221,6 @@ void DataTestCase::testMore() {
 
   cout << "\tExercise wherePositive method" << endl;
   assert(!exData.wherePositive().isEmpty());
-  //assert(exData.wherePositive()==exData.wherePositive());
 
   cout << "\tExercise copyWithMask method" << endl;
   exData.copyWithMask(result, exData.wherePositive());
@@ -248,6 +247,7 @@ void DataTestCase::testAll() {
   Data exData(myView,FunctionSpace(),expanded);
   Data cData(myView);
   Data result;
+
   assert(exData.isExpanded());
   assert(cData.isConstant());
   assert(result.isEmpty());
@@ -302,8 +302,10 @@ void DataTestCase::testDataTaggedExceptions() {
   cout << endl;
 
   cout << "\tTest DataTagged operations exceptions." << endl;
+
   Data myData;
   DataArrayView myView;
+
   try {
       myData.getSampleDataByTag(0);;
       assert(false);
@@ -312,6 +314,7 @@ void DataTestCase::testDataTaggedExceptions() {
       //cout << e.what() << endl;
       assert(true);
   }
+
   /*
   try {
       myData.setTaggedValue(0,myView);;
@@ -369,8 +372,6 @@ void DataTestCase::testConstructors() {
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data temp(1.3,viewShape,FunctionSpace(),false);
-    cout << "\tDump it toString:" << endl;
-    cout << temp.toString() << endl;
   }
 }
 

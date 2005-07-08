@@ -20,9 +20,9 @@
 
 void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance) {
 
-   int numPairs,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
+   index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
-   int e,i,e0,e1;
+   dim_t e,i,numPairs;
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
@@ -47,10 +47,10 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    }
 
    /* allocate work arrays */
-   elem1=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem0=TMPMEMALLOC(self->FaceElements->numElements,int);
-   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,int);
-   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,int);
+   elem1=TMPMEMALLOC(self->FaceElements->numElements,index_t);
+   elem0=TMPMEMALLOC(self->FaceElements->numElements,index_t);
+   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,index_t);
+   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,index_t);
 
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(matching_nodes_in_elem1)))  {
       /* find the matching face elements */
@@ -63,7 +63,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
              elem_mask[elem0[e]]=0;
              elem_mask[elem1[e]]=0;
          }
-         int new_numFaceElements=0;
+         dim_t new_numFaceElements=0;
          /* OMP */
          for(e=0;e<self->FaceElements->numElements;e++) {
              if (elem_mask[e]>0) {
@@ -84,7 +84,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
             Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
             /* get the Contact elements which are still in use:*/
             Finley_ElementFile_copyTable(0,newContactElementsFile,0,0,self->ContactElements);
-            int c=self->ContactElements->numElements;
+            dim_t c=self->ContactElements->numElements;
             /* OMP */
             for (e=0;e<numPairs;e++) {
                  e0=elem0[e];
@@ -96,7 +96,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
                  for (i=0;i<NN;i++) newContactElementsFile->Nodes[INDEX2(i+NN,c,NN_Contact)]=matching_nodes_in_elem1[INDEX2(i,e,NN)];
                  c++;
             }
-            newContactElementsFile->numColors=numPairs;
+            newContactElementsFile->minColor=0;
+            newContactElementsFile->maxColor=numPairs-1;
          } 
          /* set new face and Contact elements */
          if (Finley_ErrorCode==NO_ERROR) {
@@ -125,8 +126,16 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
 
 /*
 * $Log$
+* Revision 1.5  2005/07/08 04:07:52  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.2  2005/06/29 02:34:52  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

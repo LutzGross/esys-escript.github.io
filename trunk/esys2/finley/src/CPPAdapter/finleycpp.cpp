@@ -143,12 +143,12 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("getNormal",&finley::MeshAdapter::getNormal)
       .def("getSize",&finley::MeshAdapter::getSize);
 
-
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter",no_init)
       .def("nullifyRowsAndCols",&finley::SystemMatrixAdapter::nullifyRowsAndCols)
       .def("setValue",&finley::SystemMatrixAdapter::setValue)
       .def("resetSolver",&finley::SystemMatrixAdapter::resetSolver)
-      .def("saveMM",&finley::SystemMatrixAdapter::saveMM);
+      .def("saveMM",&finley::SystemMatrixAdapter::saveMM)
+      .def("saveHB",&finley::SystemMatrixAdapter::saveHB);
 
 }

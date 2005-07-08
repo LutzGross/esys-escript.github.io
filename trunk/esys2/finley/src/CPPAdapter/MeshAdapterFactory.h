@@ -42,31 +42,31 @@ namespace finley {
 				     int integrationOrder=-1);
   /**
      \brief
-     Creates a rectangular mesh with n1 x n2 x n3 elements over the brick 
-     [0,l1] x [0,l2] x [0,l3].
+     Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
+     [0,l0] x [0,l1] x [0,l2].
 
-     \param n1,n2,n3 Input - number of elements in each dimension
+     \param n0,n1,n2 Input - number of elements in each dimension
      \param order Input - =1 or =2 gives the order of shape function
-     \param l1,l2,l3 Input - length of each side of brick
+     \param l0,l1,l2 Input - length of each side of brick
      \param integrationOrder Input - order of the quadrature scheme.
      \param useElementsOnFace Input - whether or not to use elements on face
      \param periodic0, periodic1, periodic2 Input - whether or not boundary 
      conditions of the dimension are periodic
   */
-  escript::AbstractContinuousDomain* brick(int n1=1,int n2=1,int n3=1,int order=1,
-		    double l1=1.0,double l2=1.0,double l3=1.0,
+  escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
+		    double l0=1.0,double l1=1.0,double l2=1.0,
 		    int periodic0=0,int periodic1=0,
 		    int periodic2=0,
 		    int integrationOrder=-1,
 		    int useElementsOnFace=0);
   /**
      \brief
-     Creates a rectangular mesh with n1 x n2 elements over the brick 
-     [0,l1] x [0,l2].
+     Creates a rectangular mesh with n0 x n1 elements over the brick 
+     [0,l0] x [0,l1].
 
-     \param n1,n2 Input - number of elements in each dimension
+     \param n0,n1 Input - number of elements in each dimension
      \param order Input - =1 or =2 gives the order of shape function
-     \param l1,l2 Input - length of each side of brick
+     \param l0,l1 Input - length of each side of brick
      \param integrationOrder Input - order of the quadrature scheme. 
      If integrationOrder<0 the integration order is selected 
      independently.
@@ -74,17 +74,17 @@ namespace finley {
      conditions of the dimension are periodic
      \param useElementsOnFace Input - whether or not to use elements on face
   */
-  escript::AbstractContinuousDomain* rectangle(int n1=1,int n2=1,int order=1,
-				      double l1=1.0, double l2=1.0,
+  escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
+				      double l0=1.0, double l1=1.0,
 				      int periodic0=false,int periodic1=false,
 				      int integrationOrder=-1,
 				      int useElementsOnFace=false);
   /**
      \brief
      Creates an equidistant mesh with n elements over the interval [0,l].
-     \param n1 Input - number of elements
+     \param n0 Input - number of elements
      \param order Input - =1 or =2 gives the order of shape function.
-     \param l1 Input - length of the brick
+     \param l0 Input - length of the brick
      \param integrationOrder Input - order of the quadrature scheme. 
      If integrationOrder<0 the integration order is selected 
      independently.
@@ -93,7 +93,7 @@ namespace finley {
      \param useElementsOnFace Input - whether or not to use the elements
      on the face
   */
-  escript::AbstractContinuousDomain* interval(int n1=1,int order=1,double l1=1.0,
+  escript::AbstractContinuousDomain* interval(int n0=1,int order=1,double l0=1.0,
 				     int periodic0=false,
 				     int integrationOrder=-1,
 				     int useElementsOnFace=false);

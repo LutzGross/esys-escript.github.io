@@ -56,20 +56,21 @@ to
    then ILU is applied to S again until S becomes empty 
 
 */
-Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,int verbose) {
+Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,bool_t verbose) {
   Finley_Solver_ILU* out=NULL;
-  maybelong n=A_p->num_rows;
-  maybelong n_block=A_p->row_block_size;
-  maybelong* mis_marker=NULL;  
-  maybelong* counter=NULL;  
-  maybelong i,iPtr, *index, *where_p,k;
+  dim_t n=A_p->num_rows;
+  dim_t n_block=A_p->row_block_size;
+  index_t* mis_marker=NULL;  
+  index_t* counter=NULL;  
+  index_t iPtr,*index, *where_p;
+  dim_t i,k;
   Finley_SystemMatrix * schur=NULL;
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
    
 
   /* identify independend set of rows/columns */
-  mis_marker=TMPMEMALLOC(n,maybelong);
-  counter=TMPMEMALLOC(n,maybelong);
+  mis_marker=TMPMEMALLOC(n,index_t);
+  counter=TMPMEMALLOC(n,index_t);
   out=MEMALLOC(1,Finley_Solver_ILU);
   out->ILU_of_Schur=NULL;
   out->inv_A_FF=NULL;
@@ -100,8 +101,8 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,int verbose) {
            printf("ILU: number of vertices to be eliminated = %d\n",out->n_F);
            printf("ILU: number of vertices in coarse level  = %d\n",n-out->n_F);
         }
-        out->mask_F=MEMALLOC(n,maybelong);
-        out->rows_in_F=MEMALLOC(out->n_F,maybelong);
+        out->mask_F=MEMALLOC(n,index_t);
+        out->rows_in_F=MEMALLOC(out->n_F,index_t);
         out->inv_A_FF=MEMALLOC(n_block*n_block*out->n_F,double);
         out->A_FF_pivot=NULL; /* later use for block size>3 */
         if (! (Finley_checkPtr(out->mask_F) || Finley_checkPtr(out->inv_A_FF) || Finley_checkPtr(out->rows_in_F) ) ) {
@@ -124,16 +125,16 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,int verbose) {
                 /* find main diagonal */
                 iPtr=A_p->pattern->ptr[out->rows_in_F[i]];
                 index=&(A_p->pattern->index[iPtr]);
-                where_p=(maybelong*)bsearch(&out->rows_in_F[i],
+                where_p=(index_t*)bsearch(&out->rows_in_F[i],
                                         index,
                                         A_p->pattern->ptr[out->rows_in_F[i] + 1]-A_p->pattern->ptr[out->rows_in_F[i]],
-                                        sizeof(maybelong),
+                                        sizeof(index_t),
                                         Finley_comparIndex);
                 if (where_p==NULL) {
                     Finley_ErrorCode = VALUE_ERROR;
                     sprintf(Finley_ErrorMsg, "no main diagonal in row %d",i);
                 } else {
-                    iPtr+=(maybelong)(where_p-index);
+                    iPtr+=(index_t)(where_p-index);
                     /* get inverse of A_FF block: */
                     if (n_block==1) {
                        if (ABS(A_p->val[iPtr])>0.) {
@@ -193,8 +194,8 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,int verbose) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
               if (out->n_C>0) {
-                   out->rows_in_C=MEMALLOC(out->n_C,maybelong);
-                   out->mask_C=MEMALLOC(n,maybelong);
+                   out->rows_in_C=MEMALLOC(out->n_C,index_t);
+                   out->mask_C=MEMALLOC(n,index_t);
                    if (! (Finley_checkPtr(out->mask_C) || Finley_checkPtr(out->rows_in_C) ) ) {
                        /* creates an index for C from mask */
                        #pragma omp parallel for private(i) schedule(static)
@@ -307,8 +308,8 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,int verbose) {
 */
 
 void Finley_Solver_solveILU(Finley_Solver_ILU * ilu, double * x, double * b) {
-     maybelong i,k;
-     maybelong n_block=ilu->n_block;
+     dim_t i,k;
+     dim_t n_block=ilu->n_block;
      
      if (ilu->n_C==0) {
         /* x=invA_FF*b  */
@@ -362,3 +363,25 @@ void Finley_Solver_solveILU(Finley_Solver_ILU * ilu, double * x, double * b) {
      }
      return;
 }
+/*
+ * $Log$
+ * Revision 1.4  2005/07/08 04:08:00  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.2.5  2005/06/29 02:34:59  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.2.4  2005/03/07 00:10:50  gross
+ * ILU with blocks is running now!
+ *
+ * Revision 1.1.2.3  2005/03/04 05:27:08  gross
+ * bug in SystemPattern fixed.
+ *
+ * Revision 1.1.2.2  2005/03/04 05:09:46  gross
+ * a missing file from the ILU reimplementation
+ *
+ * Revision 1.1.2.1  2005/03/02 23:35:07  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ *
+ */

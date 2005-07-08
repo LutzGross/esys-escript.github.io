@@ -19,8 +19,8 @@
 /**************************************************************/
 
 
-void Finley_Solver_applyBlockDiagonalMatrix(int n_block,int n,double* D,maybelong* pivot,double* x,double* b) {
-     int i;
+void Finley_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b) {
+     dim_t i;
      if (n_block==1) {
          #pragma omp for private(i) schedule(static)
          for (i=0;i<n;i++) {
@@ -45,8 +45,14 @@ void Finley_Solver_applyBlockDiagonalMatrix(int n_block,int n,double* D,maybelon
 
 /*
  * $Log$
+ * Revision 1.3  2005/07/08 04:08:00  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.2  2005/03/04 07:12:47  jgs
  * *** empty log message ***
+ *
+ * Revision 1.1.2.2  2005/06/29 02:35:00  gross
+ * some changes towards 64 integers in finley
  *
  * Revision 1.1.2.1  2005/03/04 05:09:46  gross
  * a missing file from the ILU reimplementation

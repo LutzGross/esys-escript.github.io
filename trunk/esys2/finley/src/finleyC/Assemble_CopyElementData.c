@@ -25,10 +25,10 @@
 
 void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     if (elements==NULL) return;
-    maybelong n,q;
-    int numElements=elements->numElements;
-    int numQuad=elements->ReferenceElement->numQuadNodes;
-    int numComps=getDataPointSize(out);
+    dim_t n,q;
+    dim_t numElements=elements->numElements;
+    dim_t numQuad=elements->ReferenceElement->numQuadNodes;
+    dim_t numComps=getDataPointSize(out);
     double *in_array,*out_array;
 
     /* check out and in */
@@ -66,8 +66,14 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
 }
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:56  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:45  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:46  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:56  jgs
+ * initial import of project esys2
  *
  * Revision 1.2  2004/07/21 05:00:54  gross
  * name changes in DataC

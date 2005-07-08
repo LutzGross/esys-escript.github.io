@@ -20,9 +20,9 @@
 /****************************************************************************/
 
 
-void Finley_ElementFile_copyTable(int offset,Finley_ElementFile* out,int node_offset, int idOffset,Finley_ElementFile* in) {
-    maybelong i,n;
-    maybelong NN=out->ReferenceElement->Type->numNodes;
+void Finley_ElementFile_copyTable(index_t offset,Finley_ElementFile* out,index_t node_offset, index_t idOffset,Finley_ElementFile* in) {
+    dim_t i,n;
+    dim_t NN=out->ReferenceElement->Type->numNodes;
     if (in==NULL) return;
     /* check dimension and file size */
     if (out->ReferenceElement->Type->TypeId!=in->ReferenceElement->Type->TypeId) {
@@ -38,16 +38,26 @@ void Finley_ElementFile_copyTable(int offset,Finley_ElementFile* out,int node_of
        for(n=0;n<in->numElements;n++) {
           out->Id[offset+n]=in->Id[n]+idOffset;
           out->Tag[offset+n]=in->Tag[n];
-          out->Color[offset+n]=in->Color[n]+out->numColors;
+          out->Color[offset+n]=in->Color[n]+out->maxColor+1;
           for(i=0;i<NN;i++) out->Nodes[INDEX2(i,offset+n,NN)]=in->Nodes[INDEX2(i,n,in->ReferenceElement->Type->numNodes)]+node_offset;
        }
-       out->numColors+=in->numColors;
+       out->minColor=MIN(out->minColor,in->minColor+out->maxColor+1);
+       out->maxColor=MAX(out->maxColor,in->maxColor+out->maxColor+1);
     }
 }
 /* 
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:49  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.2  2005/06/30 01:53:55  gross
+* a bug in coloring fixed
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:49  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

@@ -17,9 +17,9 @@ struct Finley_ElementFile {
 						    the same quadrature
 						    scheme */
 
-  maybelong numElements;                         /* number of elements. */
-
-  maybelong *Id;                                 /* Id[i] is the id nmber of
+  dim_t numElements;                             /* number of elements. */
+  
+  index_t *Id;                                 /* Id[i] is the id nmber of
 						    node i. this number is not
 						    used but useful when
 						    elements are resorted. in
@@ -29,10 +29,10 @@ struct Finley_ElementFile {
 						    explicitly stated
 						    otherwise. */
 
-  maybelong *Tag;                                /* Tag[i] is the tag of
+  index_t *Tag;                                /* Tag[i] is the tag of
 						    element i. */
 
-  maybelong *Nodes;                              /* Nodes[INDEX(k, i,
+  index_t *Nodes;                              /* Nodes[INDEX(k, i,
 						    ReferenceElement.Type.numNodes)
 						    is the k-the node in the
 						    i-the element. note that
@@ -43,36 +43,43 @@ struct Finley_ElementFile {
 						    when refering to the
 						    linear version of the
 						    mesh. */
-  maybelong numColors;                           /* number of colours (sould be as small as possible) */
-  maybelong *Color;                              /* assigns each element a color. elements with the same color     */
+  index_t minColor;                           /* minimum color */
+  index_t maxColor;                           /* maximum color */
+  index_t *Color;                              /* assigns each element a color. elements with the same color     */
 						 /* are don't share a node so they can be processed simultaneously */
                                                  /* at anytime Color must provide a valid value. In any case one can set  */
                                                  /* Color[e]=e  for all e */
-  int order;					 /* order of the element */
+  index_t order;					 /* order of the element */
 };
 
 typedef struct Finley_ElementFile Finley_ElementFile;
 
-Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId,int);
+Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId,dim_t);
 void Finley_ElementFile_dealloc(Finley_ElementFile*);
-void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNodes,maybelong* degreeOfFreedom);
+void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
 void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in);
-void Finley_ElementFile_setNodeRange(int*,int*,Finley_ElementFile*);
-void Finley_ElementFile_relableNodes(int*,int,Finley_ElementFile*);
-void Finley_ElementFile_markNodes(int*,int,Finley_ElementFile*,int);
-void Finley_ElementFile_scatter(int*,Finley_ElementFile*,Finley_ElementFile*);
-void Finley_ElementFile_gather(int*,Finley_ElementFile*,Finley_ElementFile*);
-void Finley_ElementFile_copyTable(int,Finley_ElementFile*,int,int,Finley_ElementFile*);
-void Finley_ElementFile_allocTable(Finley_ElementFile*,int);
+void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
+void Finley_ElementFile_relableNodes(dim_t*,dim_t,Finley_ElementFile*);
+void Finley_ElementFile_markNodes(dim_t*,dim_t,Finley_ElementFile*,dim_t);
+void Finley_ElementFile_scatter(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
+void Finley_ElementFile_gather(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
+void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_ElementFile*);
+void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
 void Finley_ElementFile_deallocTable(Finley_ElementFile*);
-void Finley_ElementFile_prepare(Finley_ElementFile** in,maybelong numNodes,maybelong* degreeOfFreedom);
+void Finley_ElementFile_prepare(Finley_ElementFile** in,dim_t numNodes,dim_t* degreeOfFreedom);
 
 #endif /* #ifndef INC_FINLEY_ELEMENTFILE */
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:49  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:49  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1.1.1  2004/06/24 04:00:40  johng
  * Initial version of eys using boost-python.

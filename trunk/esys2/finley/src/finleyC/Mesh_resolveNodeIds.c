@@ -16,22 +16,23 @@
 
 #include "Finley.h"
 #include "Mesh.h"
+#include "Util.h"
 
 /**************************************************************/
 
 void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
-  maybelong k,min_id,max_id,min_id2,max_id2,len,numDim,newNumNodes,n;
-  maybelong *maskNodes=NULL,*maskElements=NULL,*index=NULL;
+  dim_t k,len,numDim,newNumNodes,n;
+  index_t min_id,max_id,min_id2,max_id2,*maskNodes=NULL,*maskElements=NULL,*index=NULL;
   Finley_NodeFile *newNodeFile=NULL;
   Finley_ErrorCode=NO_ERROR;
   numDim=Finley_Mesh_getDim(in);
   
   /*   find the minimum and maximum id used: */
   
-  min_id=MAYBELONG_MAX;
-  max_id=-MAYBELONG_MAX;
+  min_id=INDEX_T_MAX;
+  max_id=-INDEX_T_MAX;
   Finley_NodeFile_setIdRange(&min_id2,&max_id2,in->Nodes);
-  if (min_id2==MAYBELONG_MAX || max_id2==-MAYBELONG_MAX) {
+  if (min_id2==INDEX_T_MAX || max_id2==-INDEX_T_MAX) {
     Finley_ErrorCode=VALUE_ERROR;
     sprintf(Finley_ErrorMsg,"Mesh has not been defined completely.");
     goto clean;
@@ -61,13 +62,13 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   newNodeFile=Finley_NodeFile_alloc(numDim);
   if (Finley_ErrorCode!=NO_ERROR) goto clean;
 
-  maskNodes=TMPMEMALLOC(len,maybelong);
+  maskNodes=TMPMEMALLOC(len,index_t);
   if (Finley_checkPtr(maskNodes)) goto clean;
 
-  maskElements=TMPMEMALLOC(len,maybelong);
+  maskElements=TMPMEMALLOC(len,index_t);
   if (Finley_checkPtr(maskElements)) goto clean;
 
-  index=TMPMEMALLOC(in->Nodes->numNodes,maybelong);
+  index=TMPMEMALLOC(in->Nodes->numNodes,index_t);
   if (Finley_checkPtr(maskElements)) goto clean;
 
   Finley_NodeFile_allocTable(newNodeFile,len);
@@ -137,8 +138,16 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
 
 /*
 * $Log$
+* Revision 1.5  2005/07/08 04:07:54  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.2  2005/06/29 02:34:53  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

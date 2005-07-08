@@ -70,7 +70,7 @@ void  Finley_RawScaledSystemMatrixVector(double alpha,
     double beta,
     double* out) {
 
-  register maybelong ir,icol,iptr,icb,irb,irow,ic;
+  register index_t ir,icol,iptr,icb,irb,irow,ic;
   register double reg,reg1,reg2,reg3;
   #pragma omp barrier
 
@@ -215,3 +215,41 @@ void  Finley_RawScaledSystemMatrixVector(double alpha,
   }
   return;
 }
+
+/*
+ * $Log$
+ * Revision 1.7  2005/07/08 04:07:57  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.5  2005/06/29 02:34:56  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.4  2005/03/02 23:35:06  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ * Revision 1.1.1.1.2.3  2005/02/17 03:23:02  gross
+ * some performance improvements in MVM
+ *
+ * Revision 1.1.1.1.2.2  2004/12/07 10:12:05  gross
+ * GMRES added
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.2.2.2  2004/10/26 06:36:39  jgs
+ * committing Lutz's changes to branch jgs
+ *
+ * Revision 1.3  2004/10/21 04:55:54  gross
+ * bug in CSC MVM fixed
+ *
+ * Revision 1.2  2004/08/13 00:12:53  gross
+ * Gradtest is getting further now. PDE assemblage has been added but not tested.
+ *
+ * Revision 1.1  2004/07/02 04:21:13  gross
+ * Finley C code has been included
+ *
+ *
+ */
