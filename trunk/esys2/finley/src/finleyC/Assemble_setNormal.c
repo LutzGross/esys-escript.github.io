@@ -27,13 +27,14 @@
 
 void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* elements, escriptDataC* normal) {
   double *local_X=NULL, *dVdv=NULL,*normal_array;
-  int e,sign,q,node_offset;
+  index_t sign,node_offset;
+  dim_t e,q;
   if (nodes==NULL || elements==NULL) return;
-  int NN=elements->ReferenceElement->Type->numNodes;
-  int NS=elements->ReferenceElement->Type->numShapes;
-  int numDim=nodes->numDim;
-  int numQuad=elements->ReferenceElement->numQuadNodes;
-  int numDim_local=elements->ReferenceElement->Type->numDim;
+  dim_t NN=elements->ReferenceElement->Type->numNodes;
+  dim_t NS=elements->ReferenceElement->Type->numShapes;
+  dim_t numDim=nodes->numDim;
+  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
+  dim_t numDim_local=elements->ReferenceElement->Type->numDim;
 
   /* set some parameter */
 
@@ -91,8 +92,16 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
 }
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:48  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:48  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:13  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  *
  *

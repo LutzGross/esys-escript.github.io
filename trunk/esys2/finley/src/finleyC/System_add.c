@@ -25,14 +25,14 @@
 
 /**************************************************************/
 
-void  Finley_SystemMatrix_add(Finley_SystemMatrix* in,int NN_Equa,maybelong* Nodes_Equa, int num_Equa, 
-                                                      int NN_Sol,maybelong* Nodes_Sol, int num_Sol, double* array) {
-  int k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,index,k,iptr;
-  int row_block_size=in->row_block_size;
-  int col_block_size=in->col_block_size;
-  int block_size=in->block_size;
-  int num_subblocks_Equa=num_Equa/row_block_size;
-  int num_subblocks_Sol=num_Sol/col_block_size;
+void  Finley_SystemMatrix_add(Finley_SystemMatrix* in,dim_t NN_Equa,index_t* Nodes_Equa, dim_t num_Equa, 
+                                                      dim_t NN_Sol,index_t* Nodes_Sol, dim_t num_Sol, double* array) {
+  dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,index,k,iptr;
+  dim_t row_block_size=in->row_block_size;
+  dim_t col_block_size=in->col_block_size;
+  dim_t block_size=in->block_size;
+  dim_t num_subblocks_Equa=num_Equa/row_block_size;
+  dim_t num_subblocks_Sol=num_Sol/col_block_size;
 
   if (in->type==CSR) {
           for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) {
@@ -88,3 +88,25 @@ void  Finley_SystemMatrix_add(Finley_SystemMatrix* in,int NN_Equa,maybelong* Nod
          }
    }
 }
+/*
+ * $Log$
+ * Revision 1.6  2005/07/08 04:07:58  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:56  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.2  2005/03/15 07:23:55  gross
+ * Finley's interface to the SCSL library can deal with systems of PDEs now. tests shows that the SCSL library cannot deal with problems with more then 200000 unknowns. problem has been reported to SGI.
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.1  2004/07/02 04:21:13  gross
+ * Finley C code has been included
+ *
+ *
+ */

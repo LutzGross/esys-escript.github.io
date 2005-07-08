@@ -22,7 +22,11 @@ inline
 double
 fsign(double x)
 {
-  return x/fabs(x);
+  if (x == 0) {
+    return 0;
+  } else {
+    return x/fabs(x);
+  }
 }
 
 } // end of namespace

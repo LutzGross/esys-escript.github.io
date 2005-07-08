@@ -17,6 +17,7 @@
 #include "escript/Data/DataException.h"
 
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -102,6 +103,20 @@ DataAbstract::getRefValue(int ref,
                           DataArray& value)
 {
     throw DataException("Error - DataAbstract::getRefValue: Data type cannot be accessed by reference values.");
+}
+
+int
+DataAbstract::archiveData(ofstream& archiveFile,
+                          const ValueType::size_type noValues) const
+{
+  return 0;
+}
+
+int
+DataAbstract::extractData(ifstream& archiveFile,
+                          const ValueType::size_type noValues)
+{
+  return 0;
 }
 
 }  // end of namespace

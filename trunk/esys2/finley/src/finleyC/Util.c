@@ -25,8 +25,8 @@
 
 /*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
 
-void Finley_Util_Gather_double(int len,maybelong* index,int numData,double* in, double * out){
-    int s,i;
+void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in, double * out){
+    dim_t s,i;
     for (s=0;s<len;s++) {
        for (i=0;i<numData;i++) {
           out[INDEX2(i,s,numData)]=in[INDEX2(i,index[s],numData)];
@@ -41,8 +41,8 @@ void Finley_Util_Gather_double(int len,maybelong* index,int numData,double* in, 
 
 /*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
 
-void Finley_Util_Gather_int(int len,maybelong* index,int numData, maybelong* in, maybelong * out){
-    int s,i;
+void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in, index_t * out){
+    dim_t s,i;
     for (s=0;s<len;s++) {
        for (i=0;i<numData;i++) {
           out[INDEX2(i,s,numData)]=in[INDEX2(i,index[s],numData)];
@@ -56,8 +56,8 @@ void Finley_Util_Gather_int(int len,maybelong* index,int numData, maybelong* in,
 
 /*        out(1:numData,index(1:len))+=in(1:numData,1:len) */
 
-void Finley_Util_AddScatter(int len,maybelong* index,int numData,double* in,double * out){
-   int i,s;
+void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out){
+   dim_t i,s;
    for (s=0;s<len;s++) {
        for(i=0;i<numData;i++) {
           #pragma omp atomic
@@ -70,8 +70,8 @@ void Finley_Util_AddScatter(int len,maybelong* index,int numData,double* in,doub
 
 /*          A(1:A1,1:A2)=B(1:A1,1:B2)*C(1:B2,1:A2) */
 
-void Finley_Util_SmallMatMult(int A1,int A2, double* A, int B2, double*B, double* C) {
-    int i,j,s;
+void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+    dim_t i,j,s;
     for (i=0;i<A1*A2;i++) A[i]=0;
        for (i=0;i<A1;i++) {
           for (j=0;j<A2;j++) {
@@ -86,8 +86,8 @@ void Finley_Util_SmallMatMult(int A1,int A2, double* A, int B2, double*B, double
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2,i) i=1,len */
 
-void Finley_Util_SmallMatSetMult(int len,int A1,int A2, double* A, int B2, double*B, double* C) {
-    int q,i,j,s;
+void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+    dim_t q,i,j,s;
     for (i=0;i<A1*A2*len;i++) A[i]=0;
     for (q=0;q<len;q++) {
        for (i=0;i<A1;i++) {
@@ -102,9 +102,9 @@ void Finley_Util_SmallMatSetMult(int len,int A1,int A2, double* A, int B2, doubl
 /*    inverts the set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 /*    the determinante is returned. */
 
-void Finley_Util_InvertSmallMat(int len,int dim,double* A,double *invA, double* det){
-   int q;
-   double D,A11,A12,A13,A21,A22,A23,A31,A32,A33;
+void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, double* det){
+   dim_t q;
+   register double D,A11,A12,A13,A21,A22,A23,A31,A32,A33;
 
    switch(dim) {
       case 1: 
@@ -184,9 +184,9 @@ void Finley_Util_InvertSmallMat(int len,int dim,double* A,double *invA, double* 
 
 /*    sets the derterminate of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 
-void Finley_Util_DetOfSmallMat(int len,int dim,double* A, double* det){
-   int q;
-   double A11,A12,A13,A21,A22,A23,A31,A32,A33;
+void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
+   dim_t q;
+   register double A11,A12,A13,A21,A22,A23,A31,A32,A33;
 
    switch(dim) {
       case 1: 
@@ -228,9 +228,9 @@ void Finley_Util_DetOfSmallMat(int len,int dim,double* A, double* det){
 /*    returns the normalized vector Normal[dim,len] orthogonal to A(:,0,q) and A(:,1,q) in the case of dim=3  */
 /*    or the vector A(:,0,q) in the case of dim=2                                             */
 
-void  Finley_NormalVector(int len, int dim, int dim1, double* A,double* Normal) {
-   int q;
-   double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33,length,invlength;
+void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* Normal) {
+   dim_t q;
+   register double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33,length,invlength;
 
    switch(dim) {
       case 1: 
@@ -285,8 +285,8 @@ void  Finley_NormalVector(int len, int dim, int dim1, double* A,double* Normal) 
 /*    return the length of the vector which is orthogonal to the vectors A(:,0,q) and A(:,1,q) in the case of dim=3 */
 /*    or the vector A(:,0,q) in the case of dim=2                                                                   */
 
-void  Finley_LengthOfNormalVector(int len, int dim, int dim1, double* A,double* length) {
-   int q;
+void  Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* length) {
+   dim_t q;
    double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33;
 
    switch(dim) {
@@ -323,8 +323,8 @@ void  Finley_LengthOfNormalVector(int len, int dim, int dim1, double* A,double* 
 /* there is no range checking! */
 /* at output Map[invMap[i]]=i for i=0:lenInvMap */
 
-void Finley_Util_InvertMap(int lenInvMap, maybelong* invMap,int lenMap, maybelong* Map) {
-   int i;
+void Finley_Util_InvertMap(dim_t lenInvMap, index_t* invMap,dim_t lenMap, index_t* Map) {
+   dim_t i;
    for (i=0;i<lenInvMap;i++) invMap[i]=0;
    for (i=0;i<lenMap;i++) {
       if (Map[i]>=0) invMap[Map[i]]=i;
@@ -342,7 +342,7 @@ int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
    if (e1->value > e2->value) return  1;
    return 0;
 }
-void Finley_Util_sortValueAndIndex(int n,Finley_Util_ValueAndIndex* array) {
+void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
      /* OMP : needs parallelization !*/
      qsort(array,n,sizeof(Finley_Util_ValueAndIndex),Finley_Util_ValueAndIndex_compar);
 }
@@ -352,9 +352,10 @@ void Finley_Util_sortValueAndIndex(int n,Finley_Util_ValueAndIndex* array) {
 
 /* calculates the minimum value from a dim X N integer array */
 
-maybelong Finley_Util_getMinInt(int dim,int N,maybelong* values) {
-   maybelong i,j,out,out_local;
-   out=MAYBELONG_MAX;
+index_t Finley_Util_getMinInt(dim_t dim,dim_t N,index_t* values) {
+   dim_t i,j;
+   index_t out,out_local;
+   out=INDEX_T_MAX;
    if (values!=NULL && dim*N>0 ) {
      out=values[0];
      #pragma omp parallel private(out_local)
@@ -373,9 +374,10 @@ maybelong Finley_Util_getMinInt(int dim,int N,maybelong* values) {
                                                                                                                                                    
 /* calculates the maximum value from a dim X N integer array */
 
-maybelong Finley_Util_getMaxInt(int dim,int N,maybelong* values) {
-   maybelong i,j,out,out_local;
-   out=-MAYBELONG_MAX;
+index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
+   dim_t i,j;
+   index_t out,out_local;
+   out=-INDEX_T_MAX;
    if (values!=NULL && dim*N>0 ) {
      out=values[0];
      #pragma omp parallel private(out_local)
@@ -394,8 +396,8 @@ maybelong Finley_Util_getMaxInt(int dim,int N,maybelong* values) {
 
 /* set the index of the positive entries in mask. The length of index is returned. */
 
-maybelong Finley_Util_packMask(maybelong N,maybelong* mask,maybelong* index) {
-      maybelong out,k;
+dim_t Finley_Util_packMask(dim_t N,index_t* mask,index_t* index) {
+      dim_t out,k;
       out=0;
       /*OMP */
       for (k=0;k<N;k++) {
@@ -408,18 +410,19 @@ maybelong Finley_Util_packMask(maybelong N,maybelong* mask,maybelong* index) {
 }
 
 /* returns true if array contains value */
-int Finley_Util_isAny(maybelong N,maybelong* array,maybelong value) {
-   int out=FALSE;
-   maybelong i;
+bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value) {
+   bool_t out=FALSE;
+   dim_t i;
    #pragma omp parallel for private(i) schedule(static) reduction(||:out)
    for (i=0;i<N;i++) out = out || (array[i]==value);
    return out;
 }
 /* calculates the cummultative sum in array and returns the total sum */
-maybelong Finley_Util_cumsum(maybelong N,maybelong* array) {
-   maybelong out=0,tmp,i;
+index_t Finley_Util_cumsum(dim_t N,index_t* array) {
+   index_t out=0,tmp;
+   dim_t i;
    #ifdef _OPENMP
-      maybelong partial_sums[omp_get_max_threads()],sum;
+      index_t partial_sums[omp_get_max_threads()],sum;
       #pragma omp parallel private(sum,i,tmp)
       {
         sum=0;
@@ -455,7 +458,39 @@ maybelong Finley_Util_cumsum(maybelong N,maybelong* array) {
    return out;
 }
 
-void Finley_copyDouble(int n,double* source, double* target) {
-  int i;
+void Finley_copyDouble(dim_t n,double* source, double* target) {
+  dim_t i;
   for (i=0;i<n;i++) target[i]=source[i];
 }
+
+/*
+ * $Log$
+ * Revision 1.7  2005/07/08 04:07:59  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.4  2005/06/29 02:34:57  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.3  2005/03/02 23:35:06  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ * Revision 1.1.1.1.2.2  2005/02/18 02:27:31  gross
+ * two function that will be used for a reimplementation of the ILU preconditioner
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.3  2004/08/26 12:03:52  gross
+ * Some other bug in Finley_Assemble_gradient fixed.
+ *
+ * Revision 1.2  2004/07/02 04:21:13  gross
+ * Finley C code has been included
+ *
+ * Revision 1.1.1.1  2004/06/24 04:00:40  johng
+ * Initial version of eys using boost-python.
+ *
+ *
+ */

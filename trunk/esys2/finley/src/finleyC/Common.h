@@ -29,8 +29,12 @@
 /* on some arcitectures it could be a good idea to use long rather than int */
 /* this has not really been tested */
 
-typedef int maybelong;
-#define MAYBELONG_MAX INT_MAX
+typedef int dim_t;
+typedef int index_t;
+typedef int bool_t;
+typedef int type_t;
+typedef int err_t;
+#define INDEX_T_MAX INT_MAX
 #define EPSILON DBL_EPSILON
 
 /**************************************************************/
@@ -78,8 +82,14 @@ typedef int maybelong;
 
 /*
  * $Log$
+ * Revision 1.6  2005/07/08 04:07:48  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.5  2005/05/06 04:26:15  jgs
  * Merge of development branch back to main trunk on 2005-05-06
+ *
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:48  gross
+ * some changes towards 64 integers in finley
  *
  * Revision 1.1.1.1.2.2  2005/04/14 06:53:11  gross
  * a problem with header files fixed: bug appeared  for case -O0 -g in the icc compiler only

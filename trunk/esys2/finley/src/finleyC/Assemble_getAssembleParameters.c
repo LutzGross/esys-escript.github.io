@@ -22,7 +22,7 @@
 
 void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* elements,Finley_SystemMatrix* S, 
                                         escriptDataC* F,Assemble_Parameters *parm) {
-  int i;
+  dim_t i;
   parm->NN=elements->ReferenceElement->Type->numNodes;
   for (i=0;i<parm->NN;i++) parm->id[i]=i;
   parm->NS=elements->ReferenceElement->Type->numShapes;
@@ -43,6 +43,7 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
       sprintf(Finley_ErrorMsg,"matrix row block size and number of components of right hand side don't match.");
       return;
     }
+
     if (! numSamplesEqual(F,1,(S->num_rows*S->row_block_size)/S->logical_row_block_size)) {
       Finley_ErrorCode=TYPE_ERROR;
       sprintf(Finley_ErrorMsg,"number of rows of matrix and length of right hand side don't match.");
@@ -125,8 +126,31 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
 
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:47  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
+ * Revision 1.1.1.1.2.4  2005/07/01 07:02:13  gross
+ * some bug with OPENMP fixed
+ *
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:48  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.2  2004/11/12 06:58:18  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1.2.1  2004/10/28 22:59:24  gross
+ * finley's RecTest.py is running now: problem in SystemMatrixAdapater fixed
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.2  2004/07/21 05:00:54  gross
+ * name changes in DataC
+ *
+ * Revision 1.1  2004/07/02 04:21:13  gross
+ * Finley C code has been included
  *
  *
  */

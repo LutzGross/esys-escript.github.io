@@ -17,10 +17,9 @@
 
 /*  reads a mesh from a Finley file of name fname */
 
-Finley_Mesh* Finley_Mesh_read(char* fname,int order) {
+Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
-  int numNodes, numDim, numEle;
-  int i0, i1;
+  dim_t numNodes, numDim, numEle, i0, i1;
   char name[LenString_MAX],element_type[LenString_MAX];
   Finley_NodeFile *nodes_p=NULL;
   double time0=Finley_timer();
@@ -83,7 +82,8 @@ Finley_Mesh* Finley_Mesh_read(char* fname,int order) {
   /* read the elements */
   mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order);
   Finley_ElementFile_allocTable(mesh_p->Elements, numEle);
-  mesh_p->Elements->numColors=numEle+1;
+  mesh_p->Elements->minColor=0;
+  mesh_p->Elements->maxColor=numEle-1;
   for (i0 = 0; i0 < numEle; i0++) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->Elements->Id[i0], &mesh_p->Elements->Tag[i0]);
     mesh_p->Elements->Color[i0]=i0;
@@ -104,7 +104,8 @@ Finley_Mesh* Finley_Mesh_read(char* fname,int order) {
   }
   mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order);
   Finley_ElementFile_allocTable(mesh_p->FaceElements, numEle);
-  mesh_p->FaceElements->numColors=numEle+1;
+  mesh_p->FaceElements->minColor=0;
+  mesh_p->FaceElements->maxColor=numEle-1;
   for (i0 = 0; i0 < numEle; i0++) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->FaceElements->Id[i0], &mesh_p->FaceElements->Tag[i0]);
     mesh_p->FaceElements->Color[i0]=i0;
@@ -125,7 +126,8 @@ Finley_Mesh* Finley_Mesh_read(char* fname,int order) {
   }
   mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order);
   Finley_ElementFile_allocTable(mesh_p->ContactElements, numEle);
-  mesh_p->ContactElements->numColors=numEle+1;
+  mesh_p->ContactElements->minColor=0;
+  mesh_p->ContactElements->maxColor=numEle-1;
   for (i0 = 0; i0 < numEle; i0++) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->ContactElements->Id[i0], &mesh_p->ContactElements->Tag[i0]);
     mesh_p->ContactElements->Color[i0]=i0;
@@ -147,7 +149,8 @@ Finley_Mesh* Finley_Mesh_read(char* fname,int order) {
   mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order);
 
   Finley_ElementFile_allocTable(mesh_p->Points, numEle);
-  mesh_p->Points->numColors=numEle+1;
+  mesh_p->Points->minColor=0;
+  mesh_p->Points->maxColor=numEle-1;
   for (i0 = 0; i0 < numEle; i0++) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->Points->Id[i0], &mesh_p->Points->Tag[i0]);
     mesh_p->Points->Color[i0]=i0;
@@ -178,8 +181,14 @@ Finley_Mesh* Finley_Mesh_read(char* fname,int order) {
 }
 /*
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:54  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:53  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

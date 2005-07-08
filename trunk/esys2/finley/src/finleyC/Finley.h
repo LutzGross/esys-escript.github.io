@@ -18,7 +18,6 @@
 
 /**************************************************************/
 
-/* Atom types:                                                                 */
 #define FINLEY_DEGREES_OF_FREEDOM 1
 #define FINLEY_REDUCED_DEGREES_OF_FREEDOM 2
 #define FINLEY_NODES 3
@@ -27,8 +26,6 @@
 #define FINLEY_POINTS 6
 #define FINLEY_CONTACT_ELEMENTS_1 7
 #define FINLEY_CONTACT_ELEMENTS_2 8
-
-
 
 /* error codes */
 
@@ -55,14 +52,20 @@ extern char Finley_ErrorMsg[LenErrorMsg_MAX];
 
 
 double Finley_timer(void);
-int Finley_checkPtr(void*);
+bool_t Finley_checkPtr(void*);
 
 #endif /* #ifndef INC_FINLEY */
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:51  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:50  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.3  2004/07/02 04:21:13  gross
  * Finley C code has been included

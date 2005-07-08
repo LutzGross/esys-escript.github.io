@@ -82,5 +82,19 @@ DataBlocks2D::operator=(const DataBlocks2D& other)
     Swap(temp);
     return *this;
 }
+
+int
+DataBlocks2D::archiveData(ofstream& archiveFile,
+                          const ValueType::size_type noValues) const
+{
+  return(m_data.archiveData(archiveFile, noValues));
+}
+
+int
+DataBlocks2D::extractData(ifstream& archiveFile,
+                          const ValueType::size_type noValues)
+{
+  return(m_data.extractData(archiveFile, noValues));
+}
  
 }  // end of namespace

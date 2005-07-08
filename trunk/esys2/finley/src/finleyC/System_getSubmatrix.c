@@ -27,7 +27,7 @@
 */
 
 
-Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,int n_row_sub,maybelong* row_list,maybelong* new_col_index){
+Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,int n_row_sub,index_t* row_list,index_t* new_col_index){
       Finley_SystemMatrixPattern* sub_pattern=NULL;
       Finley_SystemMatrix* out=NULL;
       Finley_ErrorCode=NO_ERROR;
@@ -64,3 +64,19 @@ Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,int
       }
       return out;
 }
+/*
+ * $Log$
+ * Revision 1.4  2005/07/08 04:07:58  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.2.3  2005/06/29 02:34:57  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.2.2  2005/03/02 23:35:06  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ * Revision 1.1.2.1  2005/02/18 02:27:31  gross
+ * two function that will be used for a reimplementation of the ILU preconditioner
+ *
+ *
+ */

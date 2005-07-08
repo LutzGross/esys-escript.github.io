@@ -28,17 +28,19 @@
 
 void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* elements,escriptDataC* data,escriptDataC* interpolated_data) {
   double* local_data=NULL,*S=NULL,*data_array; 
-  int dof_offset,q,*resort_nodes,type,i,NS_DOF,NN_DOF,numNodes,e;
+  index_t dof_offset,*resort_nodes;
+  dim_t q,i,NS_DOF,NN_DOF,numNodes,e;
+  type_t type;
   #define NODES 0
   #define DOF 1
   #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
-  int NN=elements->ReferenceElement->Type->numNodes;
-  int NS=elements->ReferenceElement->Type->numShapes;
-  int numComps=getDataPointSize(data);
-  int data_type=getFunctionSpaceType(data);
-  int numQuad=elements->ReferenceElement->numQuadNodes;
-  int id[NN];
+  dim_t NN=elements->ReferenceElement->Type->numNodes;
+  dim_t NS=elements->ReferenceElement->Type->numShapes;
+  dim_t numComps=getDataPointSize(data);
+  type_t data_type=getFunctionSpaceType(data);
+  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
+  index_t id[NN];
   for (i=0;i<NN;i++) id[i]=i;
 
   /* set some parameter */
@@ -146,8 +148,16 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 }
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:48  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:48  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:12  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  *
  *

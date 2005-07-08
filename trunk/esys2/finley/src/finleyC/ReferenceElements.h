@@ -104,27 +104,27 @@ typedef enum {
 typedef struct Finley_RefElementInfo {
   ElementTypeId TypeId;                      /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
-  int numDim;                                /* dimension of the element */
-  int numNodes;                              /* number of nodes defining the element*/
-  int numShapes;                             /* number of shape functions, typically = numNodes*/
-  int numOrder;                              /* order of the shape functions */
-  int numVertices;                           /* number of vertices of the element */
+  dim_t numDim;                              /* dimension of the element */
+  dim_t numNodes;                            /* number of nodes defining the element*/
+  dim_t numShapes;                           /* number of shape functions, typically = numNodes*/
+  dim_t numOrder;                            /* order of the shape functions */
+  dim_t numVertices;                         /* number of vertices of the element */
   ElementTypeId LinearTypeId;                /* id of the linear version of the element */
-  int linearNodes[MAX_numNodes];             /* gives the list of nodes defining the linear element, typically it is linearNodes[i]=i */
+  index_t linearNodes[MAX_numNodes];         /* gives the list of nodes defining the linear element, typically it is linearNodes[i]=i */
   Finley_Shape_Function* getValues;          /* function to evaluate the shape functions at a set of points */
   Finley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points */
   Finley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
-  int numGeoNodes;                           /* nuber of nodes used to describe the geometry of the geometrically relevant part of the element */
+  dim_t numGeoNodes;                         /* nuber of nodes used to describe the geometry of the geometrically relevant part of the element */
                                              /* typically this is numNodes but for volumenic elements used to descrbe faces this is the number of */
                                              /* nodes on the particular face */
-  int geoNodes[MAX_numNodes];                /* list to gather the geometrically relevant nodes */
-  int numNodesOnFace;                        /* if the element is allowed as a face element, numNodesOnFace defines the number of nodes */
+  index_t geoNodes[MAX_numNodes];            /* list to gather the geometrically relevant nodes */
+  dim_t numNodesOnFace;                      /* if the element is allowed as a face element, numNodesOnFace defines the number of nodes */
                                              /* defining the face */
                 /* the following lists are only used for face elements defined by numNodesOnFace>0 */
-  int faceNode[MAX_numNodes];             /* list of the nodes defining the face */
-  int shiftNodes[MAX_numNodes];             /* defines a permutation of the nodes which rotates the nodes on the face */
-  int reverseNodes[MAX_numNodes];           /* reverses the order of the nodes on a face. teh permutation has keep 0 fixed. */
-                                            /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
+  index_t faceNode[MAX_numNodes];             /* list of the nodes defining the face */
+  index_t shiftNodes[MAX_numNodes];           /* defines a permutation of the nodes which rotates the nodes on the face */
+  index_t reverseNodes[MAX_numNodes];         /* reverses the order of the nodes on a face. teh permutation has keep 0 fixed. */
+                                              /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
 }  Finley_RefElementInfo;
 
 /**************************************************************/
@@ -152,8 +152,14 @@ ElementTypeId Finley_RefElement_getTypeId(char*);
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:56  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:55  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1.1.1  2004/06/24 04:00:40  johng
  * Initial version of eys using boost-python.

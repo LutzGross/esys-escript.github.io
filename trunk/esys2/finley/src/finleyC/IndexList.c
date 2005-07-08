@@ -22,13 +22,14 @@
    triangle of the matrix is stored. */
 
 void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
-                                       int reduce_row_order, maybelong* row_Label,
-                                       int reduce_col_order, maybelong* col_Label) {
-  maybelong e,kr,kc,NN_row,NN_col,i,icol,irow,color;
+                                       bool_t reduce_row_order, index_t* row_Label,
+                                       bool_t reduce_col_order, index_t* col_Label) {
+  index_t color;
+  dim_t e,kr,kc,NN_row,NN_col,i,icol,irow;
 
   if (elements!=NULL) {
-    maybelong NN=elements->ReferenceElement->Type->numNodes;
-    maybelong id[NN],*row_node,*col_node;
+    dim_t NN=elements->ReferenceElement->Type->numNodes;
+    index_t id[NN],*row_node,*col_node;
     for (i=0;i<NN;i++) id[i]=i;
     if (reduce_col_order) {
        col_node=elements->ReferenceElement->Type->linearNodes;
@@ -44,7 +45,7 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
        row_node=id;
        NN_row=elements->ReferenceElement->Type->numNodes;
     }
-    for (color=0;color<elements->numColors;color++) {
+    for (color=elements->minColor;color<=elements->maxColor;color++) {
         #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
         for (e=0;e<elements->numElements;e++) {
             if (elements->Color[e]==color) {
@@ -64,8 +65,8 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
 
 /* inserts row index row into the Finley_IndexList in if it does not exist */
 
-void Finley_IndexList_insertIndex(Finley_IndexList* in, maybelong index) {
-  int i;
+void Finley_IndexList_insertIndex(Finley_IndexList* in, index_t index) {
+  dim_t i;
   /* is index in in? */
   for (i=0;i<in->n;i++) {
     if (in->index[i]==index)  return;
@@ -89,7 +90,7 @@ void Finley_IndexList_insertIndex(Finley_IndexList* in, maybelong index) {
 
 /* counts the number of row indices in the Finley_IndexList in */
 
-int Finley_IndexList_count(Finley_IndexList* in) {
+dim_t Finley_IndexList_count(Finley_IndexList* in) {
   if (in==NULL) {
      return 0;
   } else {
@@ -99,8 +100,8 @@ int Finley_IndexList_count(Finley_IndexList* in) {
 
 /* count the number of row indices in the Finley_IndexList in */
 
-void Finley_IndexList_toArray(Finley_IndexList* in, maybelong* array) {
-  int i;
+void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array) {
+  dim_t i;
   if (in!=NULL) {
     for (i=0;i<in->n;i++) array[i]=in->index[i]+INDEX_OFFSET;
     Finley_IndexList_toArray(in->extension,&(array[in->n]));
@@ -118,8 +119,16 @@ void Finley_IndexList_free(Finley_IndexList* in) {
 
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:51  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:50  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:13  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  *
  *

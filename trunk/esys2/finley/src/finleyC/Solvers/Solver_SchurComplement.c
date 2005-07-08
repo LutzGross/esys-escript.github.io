@@ -19,12 +19,12 @@
 
 
 
-void Finley_Solver_updateIncompleteSchurComplement(Finley_SystemMatrix* A_CC,Finley_SystemMatrix *A_CF,double* invA_FF,maybelong* A_FF_pivot,Finley_SystemMatrix *A_FC) {
-  maybelong iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
-  size_t index_CC_len;
-  int set_A;
-  maybelong n_rows=A_CC->num_rows;
-  maybelong n_block=A_CC->row_block_size;
+void Finley_Solver_updateIncompleteSchurComplement(Finley_SystemMatrix* A_CC,Finley_SystemMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,Finley_SystemMatrix *A_FC) {
+  index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
+  dim_t index_CC_len;
+  bool_t set_A;
+  dim_t n_rows=A_CC->num_rows;
+  dim_t n_block=A_CC->row_block_size;
   double A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,
          invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,
          A11,A21,A31,A12,A22,A32,A13,A23,A33,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33;
@@ -41,13 +41,13 @@ void Finley_Solver_updateIncompleteSchurComplement(Finley_SystemMatrix* A_CC,Fin
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-                where_p=(maybelong*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(maybelong),Finley_comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Finley_comparIndex);
                 if (where_p!=NULL) {
                     if (set_A) {
                        A11=A_CF->val[iPtr_CF]*invA_FF[col_CF];
                        set_A=FALSE;
                    }
-                   A_CC->val[iPtr_CC+(maybelong)(where_p-index_CC)]-=A11*A_FC->val[iPtr_FC];
+                   A_CC->val[iPtr_CC+(index_t)(where_p-index_CC)]-=A11*A_FC->val[iPtr_FC];
                 }
             } /* end of iPtr_FC loop */
          } /* end of iPtr_CF loop */
@@ -65,9 +65,9 @@ void Finley_Solver_updateIncompleteSchurComplement(Finley_SystemMatrix* A_CC,Fin
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-                where_p=(maybelong*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(maybelong),Finley_comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Finley_comparIndex);
                 if (where_p!=NULL) {
-                    iPtr_CC_2=iPtr_CC+(maybelong)(where_p-index_CC);
+                    iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
                     /* this calculutes A_CF*invA_FF(i,col_CF) */
                     if (set_A) {
                        A_CF_11=A_CF->val[4*iPtr_CF  ];
@@ -115,9 +115,9 @@ void Finley_Solver_updateIncompleteSchurComplement(Finley_SystemMatrix* A_CC,Fin
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-                where_p=(maybelong*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(maybelong),Finley_comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Finley_comparIndex);
                 if (where_p!=NULL) {
-                    iPtr_CC_2=iPtr_CC+(maybelong)(where_p-index_CC);
+                    iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
                     /* this calculutes A_CF*invA_FF(i,col_CF) */
                     if (set_A) {
                        A_CF_11=A_CF->val[9*iPtr_CF  ];
@@ -181,8 +181,14 @@ void Finley_Solver_updateIncompleteSchurComplement(Finley_SystemMatrix* A_CC,Fin
 }
 /*
  * $Log$
+ * Revision 1.3  2005/07/08 04:08:00  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.2  2005/03/04 07:12:47  jgs
  * *** empty log message ***
+ *
+ * Revision 1.1.2.2  2005/06/29 02:34:59  gross
+ * some changes towards 64 integers in finley
  *
  * Revision 1.1.2.1  2005/03/02 23:35:07  gross
  * reimplementation of the ILU in Finley. block size>1 still needs some testing

@@ -22,7 +22,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
   if (mesh_p==NULL) return;
   Finley_ElementFile* elements=NULL;
   char elemTypeStr[32];
-  int i, j, k, numVTKNodesPerElement, isCellCentered, nodetype;
+  int i, j, k, numVTKNodesPerElement, isCellCentered=FALSE, nodetype=FINLEY_DEGREES_OF_FREEDOM;
   double* values, rtmp;
   int nDim = mesh_p->Nodes->numDim;
 
@@ -432,7 +432,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
      * if the rank == 2:   --> tensor data
      */
     char dataNameStr[31], dataTypeStr[63];
-    int nCompReqd;   /* the number of components required by vtk */
+    int nCompReqd=1;   /* the number of components required by vtk */
     if (rank == 0) {
       strcpy(dataNameStr, "escript_scalar_data");
       sprintf(dataTypeStr, "Scalars=\"%s\"", dataNameStr);
@@ -617,8 +617,14 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:55  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2005/05/06 04:26:15  jgs
  * Merge of development branch back to main trunk on 2005-05-06
+ *
+ * Revision 1.1.2.7  2005/06/29 02:34:54  gross
+ * some changes towards 64 integers in finley
  *
  * Revision 1.1.2.6  2005/05/06 01:17:19  cochrane
  * Fixed incorrect reporting of number of components in PointData arrays for

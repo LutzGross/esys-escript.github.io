@@ -23,7 +23,8 @@ static double  Finley_Mesh_lockingGridSize=0;
 
 int Finley_Mesh_findMatchingFaces_compar(const void *arg1 , const void *arg2 ) {
    Finley_Mesh_findMatchingFaces_center *e1,*e2;
-   int i,l,g;
+   bool_t l,g;
+   dim_t i;
    e1=(Finley_Mesh_findMatchingFaces_center*) arg1;
    e2=(Finley_Mesh_findMatchingFaces_center*) arg2;
    for (i=0;i<MAX_numDim;i++) {
@@ -38,26 +39,26 @@ int Finley_Mesh_findMatchingFaces_compar(const void *arg1 , const void *arg2 ) {
 }
 
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *faces, double safety_factor,double tolerance,
-                                   int* numPairs, int* elem0,int* elem1,int* matching_nodes_in_elem1) {
+                                   dim_t* numPairs, index_t* elem0,index_t* elem1,index_t* matching_nodes_in_elem1) {
 #define getDist(_dist_,_e0_,_i0_,_e1_,_i1_) \
-      {int i;   \
+      {dim_t i;   \
       _dist_=0; \
       for (i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)])); \
       } 
 
 #define SWAP(_i1_,_i2_) \
-            {int* i;  \
+            {index_t* i;  \
               i=(_i2_); \
               (_i2_)=(_i1_); \
               (_i1_)=i; \
              }
 
-    int e,i,i0,i1,e_0,e_1;
     double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;
-    int NN=faces->ReferenceElement->Type->numNodes;
-    int numDim=nodes->numDim;
-    int a1[NN],a2[NN],*perm,*perm_tmp,n;
+    dim_t NN=faces->ReferenceElement->Type->numNodes;
+    dim_t numDim=nodes->numDim;
     Finley_Mesh_findMatchingFaces_center *center;
+    index_t e_0,e_1,a1[NN],a2[NN],*perm,*perm_tmp;
+    dim_t e,i,i0,i1,n;
 
     X=TMPMEMALLOC(NN*numDim*faces->numElements,double);
     center=TMPMEMALLOC(faces->numElements,Finley_Mesh_findMatchingFaces_center);
@@ -171,8 +172,16 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
 
 /*
 * $Log$
+* Revision 1.5  2005/07/08 04:07:51  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.2  2005/06/29 02:34:51  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

@@ -5,7 +5,7 @@ enum Finley_ErrorCodeType Finley_ErrorCode=NO_ERROR;
 char Finley_ErrorMsg[LenErrorMsg_MAX]={'\0'};
 
 void setFinleyError(enum Finley_ErrorCodeType errorCode, char* errorMess,
-		    int lenMess) 
+		    size_t lenMess) 
 {
   Finley_ErrorCode=errorCode;
   if (lenMess>=LenErrorMsg_MAX) {

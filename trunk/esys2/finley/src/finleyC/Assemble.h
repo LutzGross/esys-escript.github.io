@@ -21,35 +21,35 @@
 #include "escript/Data/DataC.h"
 
 struct Assemble_Parameters {
-   int numQuad;
-   int numDim;
-   int numElementDim;
+   dim_t numQuad;
+   dim_t numDim;
+   dim_t numElementDim;
 
-   int NN;
-   int NS;
+   dim_t NN;
+   dim_t NS;
    Finley_RefElement* referenceElement;
 
-   int numEqu;
-   maybelong* label_row;
+   dim_t numEqu;
+   index_t* label_row;
    Finley_RefElement* referenceElement_row;
-   maybelong* row_node;
-   int NN_row;
-   int NS_row;
+   index_t* row_node;
+   dim_t NN_row;
+   dim_t NS_row;
 
-   int numComp;
-   maybelong * label_col;
+   dim_t numComp;
+   index_t * label_col;
    Finley_RefElement* referenceElement_col;
-   maybelong* col_node;
-   int NN_col;
-   int NS_col;
+   index_t* col_node;
+   dim_t NN_col;
+   dim_t NS_col;
 
-   maybelong id[MAX_numNodes]; /* used to hold a reordering vector, referenced by row_node and col_node */
+   index_t id[MAX_numNodes]; /* used to hold a reordering vector, referenced by row_node and col_node */
 };
 
 typedef struct Assemble_Parameters Assemble_Parameters;
 
 
-typedef void (Finley_Assemble_handelShapeMissMatch) (int, int,int, double*,int, int);
+typedef void (Finley_Assemble_handelShapeMissMatch) (dim_t, dim_t,dim_t, double*,dim_t, dim_t);
 
 void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Finley_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;
@@ -64,10 +64,10 @@ void Finley_Assemble_integrate(Finley_NodeFile*,Finley_ElementFile*,escriptDataC
 void Finley_Assemble_getSize(Finley_NodeFile*,Finley_ElementFile*, escriptDataC*);
 void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in);
 void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
-void Finley_Assemble_PDEMatrix_System2(int,int,int,int,int,double*,double*, double*,int, double*, double*,int, double*,int,double*,int,double*,int);
-void Finley_Assemble_PDEMatrix_Single2(int,int,int,double*,double*, double*,int, double*, double*,int, double*,int,double*,int,double*,int);
-void Finley_Assemble_RHSMatrix_System(int,int,int,int,double*,double*,double*,int, double*,double*,int,double*,int);
-void Finley_Assemble_RHSMatrix_Single(int,int,int,double*,double*,double*,int, double*,double*,int,double*,int);
+void Finley_Assemble_PDEMatrix_System2(dim_t,dim_t,dim_t,dim_t,dim_t,double*,double*, double*,dim_t, double*, double*,dim_t, double*,dim_t,double*,dim_t,double*,dim_t);
+void Finley_Assemble_PDEMatrix_Single2(dim_t,dim_t,dim_t,double*,double*, double*,dim_t, double*, double*,dim_t, double*,dim_t,double*,dim_t,double*,dim_t);
+void Finley_Assemble_RHSMatrix_System(dim_t,dim_t,dim_t,dim_t,double*,double*,double*,dim_t, double*,double*,dim_t,double*,dim_t);
+void Finley_Assemble_RHSMatrix_Single(dim_t,dim_t,dim_t,double*,double*,double*,dim_t, double*,double*,dim_t,double*,dim_t);
 
 
 void Assemble_getAssembleParameters(Finley_NodeFile*,Finley_ElementFile*,Finley_SystemMatrix*,escriptDataC*,Assemble_Parameters*);
@@ -80,8 +80,14 @@ Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_i
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:56  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:45  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:46  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:56  jgs
+ * initial import of project esys2
  *
  * Revision 1.1  2004/07/02 04:21:13  gross
  * Finley C code has been included

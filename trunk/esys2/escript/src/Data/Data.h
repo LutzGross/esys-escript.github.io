@@ -541,6 +541,7 @@ class Data {
      \brief
      Interpolates this onto the given functionspace and returns
      the result as a Data object.
+     *
   */
   Data
   interpolate(const FunctionSpace& functionspace) const;
@@ -549,6 +550,7 @@ class Data {
      \brief
      Calculates the gradient of the data at the data points of functionspace.
      If functionspace is not present the function space of Function(getDomain()) is used.
+     *
   */
   Data
   gradOn(const FunctionSpace& functionspace) const;
@@ -559,6 +561,7 @@ class Data {
   /**
      \brief
      Calculate the integral over the function space domain.
+     *
   */
   boost::python::numeric::array
   integrate() const;
@@ -566,6 +569,7 @@ class Data {
   /**
      \brief
      Return a Data with a 1 for +ive values and a 0 for 0 or -ive values.
+     *
   */
   Data
   wherePositive() const;
@@ -573,6 +577,7 @@ class Data {
   /**
      \brief
      Return a Data with a 1 for -ive values and a 0 for +ive or 0 values.
+     *
   */
   Data
   whereNegative() const;
@@ -580,6 +585,7 @@ class Data {
   /**
      \brief
      Return a Data with a 1 for +ive or 0 values and a 0 for -ive values.
+     *
   */
   Data
   whereNonNegative() const;
@@ -587,6 +593,7 @@ class Data {
   /**
      \brief
      Return a Data with a 1 for -ive or 0 values and a 0 for +ive values.
+     *
   */
   Data
   whereNonPositive() const;
@@ -594,6 +601,7 @@ class Data {
   /**
      \brief
      Return a Data with a 1 for 0 values and a 0 for +ive or -ive values.
+     *
   */
   Data
   whereZero() const;
@@ -601,48 +609,15 @@ class Data {
   /**
      \brief
      Return a Data with a 0 for 0 values and a 1 for +ive or -ive values.
+     *
   */
   Data
   whereNonZero() const;
 
   /**
      \brief
-     Return the sin of each data point of this Data object.
-  */
-  Data
-  sin() const;
-
-  /**
-     \brief
-     Return the cos of each data point of this Data object.
-  */
-  Data
-  cos() const;
-
-  /**
-     \brief
-     Return the tan of each data point of this Data object.
-  */
-  Data
-  tan() const;
-
-  /**
-     \brief
-     Return the log to base 10 of each data point of this Data object.
-  */
-  Data
-  log() const;
-
-  /**
-     \brief
-     Return the natural log of each data point of this Data object.
-  */
-  Data
-  ln() const;
-
-  /**
-     \brief
      Return the maximum absolute value of this Data object.
+     *
   */
   double
   Lsup() const;
@@ -650,6 +625,7 @@ class Data {
   /**
      \brief
      Return the minimum absolute value of this Data object.
+     *
   */
   double
   Linf() const;
@@ -657,6 +633,7 @@ class Data {
   /**
      \brief
      Return the maximum value of this Data object.
+     *
   */
   double
   sup() const;
@@ -664,6 +641,7 @@ class Data {
   /**
      \brief
      Return the minimum value of this Data object.
+     *
   */
   double
   inf() const;
@@ -671,6 +649,7 @@ class Data {
   /**
      \brief
      Return the absolute value of each data point of this Data object.
+     *
   */
   Data
   abs() const;
@@ -678,6 +657,7 @@ class Data {
   /**
      \brief
      Return the maximum value of each data point of this Data object.
+     *
   */
   Data
   maxval() const;
@@ -685,6 +665,7 @@ class Data {
   /**
      \brief
      Return the minimum value of each data point of this Data object.
+     *
   */
   Data
   minval() const;
@@ -701,6 +682,7 @@ class Data {
      \brief
      Return the length of each data point of this Data object.
      sqrt(sum(A[i,j,k,l]^2))
+     *
   */
   Data
   length() const;
@@ -709,51 +691,98 @@ class Data {
      \brief
      Return the sign of each data point of this Data object.
      -1 for negative values, zero for zero values, 1 for positive values.
+     *
   */
   Data
   sign() const;
 
   /**
-    \brief
-    Transpose each data point of this Data object around the given axis.
-    --* not implemented yet *--
+     \brief
+     Transpose each data point of this Data object around the given axis.
+     --* not implemented yet *--
+     *
   */
   Data
   transpose(int axis) const;
 
   /**
-    \brief
-    Calculate the trace of each data point of this Data object.
-    sum(A[i,i,i,i])
+     \brief
+     Calculate the trace of each data point of this Data object.
+     sum(A[i,i,i,i])
+     *
   */
   Data
   trace() const;
 
   /**
-    \brief
-    Return the exponential function of each data point of this Data object.
+     \brief
+     Return the sin of each data point of this Data object.
+     *
+  */
+  Data
+  sin() const;
+
+  /**
+     \brief
+     Return the cos of each data point of this Data object.
+     *
+  */
+  Data
+  cos() const;
+
+  /**
+     \brief
+     Return the tan of each data point of this Data object.
+     *
+  */
+  Data
+  tan() const;
+
+  /**
+     \brief
+     Return the log to base 10 of each data point of this Data object.
+     *
+  */
+  Data
+  log() const;
+
+  /**
+     \brief
+     Return the natural log of each data point of this Data object.
+     *
+  */
+  Data
+  ln() const;
+
+  /**
+     \brief
+     Return the exponential function of each data point of this Data object.
+     *
   */
   Data
   exp() const;
 
   /**
-    \brief
-    Return the square root of each data point of this Data object.
+     \brief
+     Return the square root of each data point of this Data object.
+     *
   */
   Data
   sqrt() const;
 
   /**
-    \brief
-    Return the negation of each data point of this Data object.
+     \brief
+     Return the negation of each data point of this Data object.
+     *
   */
   Data
   neg() const;
 
   /**
-    \brief
-    Return the identity of each data point of this Data object.
-    Simply returns this object unmodified.
+     \brief
+     Return the identity of each data point of this Data object.
+     Simply returns this object unmodified.
+     *
   */
   Data
   pos() const;
@@ -763,29 +792,31 @@ class Data {
      Return the given power of each data point of this Data object.
 
      \param right Input - the power to raise the object to.
+     *
   */
   Data
   powD(const Data& right) const;
 
   /**
-   * \brief
-   * Return the given power of each data point of this boost python object.
-   *
-   * \param right Input - the power to raise the object to.
+     \brief
+     Return the given power of each data point of this boost python object.
+    
+     \param right Input - the power to raise the object to.
+     *
    */
   Data
   powO(const boost::python::object& right) const;
 
   /**
-    \brief
-    writes the object to a file in the DX file format
+     \brief
+     writes the object to a file in the DX file format
   */
   void
   saveDX(std::string fileName) const;
 
   /**
-    \brief
-    writes the object to a file in the VTK file format
+     \brief
+     writes the object to a file in the VTK file format
   */
   void
   saveVTK(std::string fileName) const;
@@ -794,6 +825,7 @@ class Data {
      \brief
      Overloaded operator +=
      \param right - Input - The right hand side.
+     *
   */
   Data& operator+=(const Data& right);
   Data& operator+=(const boost::python::object& right);
@@ -802,6 +834,7 @@ class Data {
      \brief
      Overloaded operator -=
      \param right - Input - The right hand side.
+     *
   */
   Data& operator-=(const Data& right);
   Data& operator-=(const boost::python::object& right);
@@ -810,6 +843,7 @@ class Data {
      \brief
      Overloaded operator *=
      \param right - Input - The right hand side.
+     *
   */
   Data& operator*=(const Data& right);
   Data& operator*=(const boost::python::object& right);
@@ -818,6 +852,7 @@ class Data {
      \brief
      Overloaded operator /=
      \param right - Input - The right hand side.
+     *
   */
   Data& operator/=(const Data& right);
   Data& operator/=(const boost::python::object& right);
@@ -883,6 +918,7 @@ class Data {
      Return a Data object containing the specified slice of
      this Data object.
      \param region - Input - Region to copy.
+     *
   */
   Data
   getSlice(const DataArrayView::RegionType& region) const;
@@ -893,6 +929,7 @@ class Data {
      Data object.
      \param value - Input - Data to copy from.
      \param region - Input - Region to copy.
+     *
   */
   void
   setSlice(const Data& value,
@@ -1021,6 +1058,10 @@ class Data {
   //
   // pointer to the actual data object
   boost::shared_ptr<DataAbstract> m_data;
+
+  //
+  // pointer to the internal profiling data
+  struct profDataEntry *profData;
 
 };
 

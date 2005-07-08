@@ -32,11 +32,12 @@ static double Finley_SystemMatrixPattern_mis_seed=.4142135623730951;
 #define IS_IN_MIS -3
 #define IS_CONNECTED_TO_MIS -4
 
-void Finley_SystemMatrixPattern_mis(Finley_SystemMatrixPattern* pattern_p, maybelong* mis_marker) {
+void Finley_SystemMatrixPattern_mis(Finley_SystemMatrixPattern* pattern_p, index_t* mis_marker) {
 
-  maybelong i,naib,iptr;
-  int flag;
-  maybelong n=pattern_p->n_ptr;
+  dim_t i;
+  index_t naib,iptr;
+  bool_t flag;
+  dim_t n=pattern_p->n_ptr;
   double *value=TMPMEMALLOC(n,double);
   if (!Finley_checkPtr(value)) {
      #pragma omp parallel for private(i) schedule(static)
@@ -102,8 +103,14 @@ void Finley_SystemMatrixPattern_mis(Finley_SystemMatrixPattern* pattern_p, maybe
 
 /*
  * $Log$
+ * Revision 1.3  2005/07/08 04:07:57  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.2  2005/03/04 07:12:46  jgs
  * *** empty log message ***
+ *
+ * Revision 1.1.2.2  2005/06/29 02:34:56  gross
+ * some changes towards 64 integers in finley
  *
  * Revision 1.1.2.1  2005/03/02 23:35:06  gross
  * reimplementation of the ILU in Finley. block size>1 still needs some testing

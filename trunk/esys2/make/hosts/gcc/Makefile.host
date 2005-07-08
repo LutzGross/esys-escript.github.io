@@ -13,7 +13,6 @@ CC_SHARE_FLAGS := -fpic
 CC_CONFORM_FLAGS := -std=c99
 CC_DIAG_FLAGS := -W -Wall -Wno-unknown-pragmas
 CC_ARCH_FLAGS :=
-CC_OPT_FLAGS := -O3
 ifeq ($(strip $(DODEBUG)),YES)
   CC_OPT_FLAGS := -O0
 else
@@ -34,8 +33,8 @@ CPP_CONFORM_FLAGS := -ansi
 CPP_DIAG_FLAGS := -W -Wall -Wno-unknown-pragmas
 CPP_ARCH_FLAGS :=
 ifeq ($(strip $(DODEBUG)),YES)
-  CPP_OPT_FLAGS := -O0
-  DEBUG_FILE_EXT := ${NULL}
+  CPP_OPT_FLAGS := -g -O0
+  DEBUG_FILE_EXT := g
   L_DEFS := DOASSERT
 else
   CPP_OPT_FLAGS := -O3
@@ -76,8 +75,14 @@ PYTHON_DIAG_FLAGS := -Wall
 PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'
 
 # $Log$
+# Revision 1.3  2005/07/08 04:08:12  jgs
+# Merge of development branch back to main trunk on 2005-07-08
+#
 # Revision 1.2  2005/06/09 05:38:04  jgs
 # Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.1.2.4  2005/06/17 04:52:38  imran
+# removed redundant lines + added in extension for debug builds
 #
 # Revision 1.1.2.3  2005/05/19 05:30:07  jgs
 # fixed DODEBUG compilation settings to ensure DOASSERT is on and -O0

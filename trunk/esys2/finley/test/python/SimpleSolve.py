@@ -19,7 +19,7 @@ alpha=0.025
 # mydomain=finley.Rectangle(140,140)
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
-# mydomain=finley.Rectangle(4,4,1)
+# mydomain=finley.Rectangle(5,5,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
 mydomain=finley.Rectangle(151,151,1)
@@ -101,6 +101,8 @@ print "----------------------------"
 
 print "\nDirect Solver (2)=>"
 
+#mypde.setSymmetryOn() 
+mypde.setTolerance(1.e-13)
 
 # mypde.setSymmetryOn() : is not woking yet!
 mypde.setSolverMethod(mypde.DIRECT)
@@ -109,7 +111,7 @@ u_d=mypde.getSolution()
 print "\nIterative Solver (2)=>"
 
 mypde.setSymmetryOn() 
-mypde.setSolverMethod(DEFAULT_METHOD)
+mypde.setSolverMethod(mypde.DEFAULT_METHOD)
 u_i=mypde.getSolution(iter_max=3000)
 
 print "\n******************************************************************"

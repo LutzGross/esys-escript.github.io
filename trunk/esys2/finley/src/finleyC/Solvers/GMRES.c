@@ -44,9 +44,6 @@
 *  ==============================================================
 */
 
-static double ONE = 1.000000000000000;
-static double ZERO = 0.000000000000000;
-
 #include "Common.h"
 #include "System.h"
 #include "Solver.h"
@@ -54,12 +51,12 @@ static double ZERO = 0.000000000000000;
 #include <omp.h>
 #endif
 
-int Finley_Solver_GMRES(
+err_t Finley_Solver_GMRES(
     Finley_SystemMatrix * A,
     double * r,
     double * x,
-    int *iter,
-    double * tolerance,int length_of_recursion,int restart) {
+    dim_t *iter,
+    double * tolerance,dim_t length_of_recursion,dim_t restart) {
 
   /* Local variables */
 
@@ -67,15 +64,15 @@ int Finley_Solver_GMRES(
   double r_PRES_MEMdotAP[MAX(length_of_recursion,0)],L2_r_PRES_MEM[MAX(length_of_recursion,0)],BREAKF_MEM[MAX(length_of_recursion,0)];
   double r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4,L2_r_PRES;
   double *tmp,tol,BREAKF,factor,GAMMA,SC1,SC2,norm_of_residual,diff,L2_R,norm_of_residual_global;
-  int maxit,num_iter_global,num_iter_restart,num_iter;
-  int i,z,OLDEST,ORDER;
-  int breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
-  int status=SOLVER_NO_ERROR;
+  dim_t maxit,num_iter_global,num_iter_restart,num_iter;
+  dim_t i,z,OLDEST,ORDER;
+  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
+  err_t status=SOLVER_NO_ERROR;
 
   /* adapt original routine parameters */
 
-  int n_col=A->num_cols * A-> col_block_size;
-  int n_row=A->num_rows * A-> row_block_size;
+  dim_t n_col=A->num_cols * A-> col_block_size;
+  dim_t n_row=A->num_rows * A-> row_block_size;
 
   /*     Test the input parameters. */
   if (restart>0) restart=MAX(length_of_recursion,restart);

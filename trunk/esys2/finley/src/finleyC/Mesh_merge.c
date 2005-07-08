@@ -21,26 +21,26 @@
 
 static double  Finley_Mesh_lockingGridSize=0;
 
-Finley_Mesh* Finley_Mesh_merge(int numMsh, Finley_Mesh** msh) {
+Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   Finley_Mesh* out=NULL;
-  int i;
+  dim_t i;
   char newName[LenString_MAX];
   if (numMsh==0) {
      Finley_ErrorCode=VALUE_ERROR;
      sprintf(Finley_ErrorMsg,"Empty mesh list");
   } else {
-    int order=msh[0]->order;
-    int numDim=msh[0]->Nodes->numDim;
+    index_t order=msh[0]->order;
+    dim_t numDim=msh[0]->Nodes->numDim;
     ElementTypeId elementTypeId=NoType;
     ElementTypeId faceElementTypeId=NoType;
     ElementTypeId pointTypeId=NoType;
     ElementTypeId contactTypeId=NoType;
     strcpy(newName,"");
-    int numNodes=0;
-    int numElements=0;
-    int numFaceElements=0;
-    int numContactElements=0;
-    int numPoints=0;
+    dim_t numNodes=0;
+    dim_t numElements=0;
+    dim_t numFaceElements=0;
+    dim_t numContactElements=0;
+    dim_t numPoints=0;
     for (i=0;i<numMsh;i++) {
        /* check if all mesh have the same type and dimensions */
        order=MAX(order,msh[i]->order);
@@ -125,15 +125,15 @@ Finley_Mesh* Finley_Mesh_merge(int numMsh, Finley_Mesh** msh) {
 
     if (Finley_ErrorCode == NO_ERROR) {
 
-        int numNodes=0;
-        int numElements=0;
-        int numFaceElements=0;
-        int numContactElements=0;
-        int numPoints=0;
-        int maxNodeID=0;
-        int maxDOF=0;
-        int maxElementID=0;
-        int maxElementID2=0;
+        dim_t numNodes=0;
+        dim_t numElements=0;
+        dim_t numFaceElements=0;
+        dim_t numContactElements=0;
+        dim_t numPoints=0;
+        index_t maxNodeID=0;
+        index_t maxDOF=0;
+        index_t maxElementID=0;
+        index_t maxElementID2=0;
 
         for (i=0;i<numMsh;i++) {
 
@@ -180,8 +180,14 @@ Finley_Mesh* Finley_Mesh_merge(int numMsh, Finley_Mesh** msh) {
 
 /*
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:53  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:52  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.2  2004/07/30 04:37:06  gross
 * escript and finley are linking now and RecMeshTest.py has been passed

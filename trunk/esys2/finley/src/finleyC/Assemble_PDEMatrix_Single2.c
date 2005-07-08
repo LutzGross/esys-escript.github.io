@@ -32,14 +32,14 @@
 #include "Assemble.h"
 
 /**************************************************************/
-void Finley_Assemble_PDEMatrix_Single2(int NS,int numDim,int numQuad,
+void Finley_Assemble_PDEMatrix_Single2(dim_t NS,dim_t numDim,dim_t numQuad,
                                               double* S,double* DSDX, double* Vol,
-                                              int NN, double* EM_S,
-                                              double* A, int extendedA,  
-                                              double* B, int extendedB, 
-                                              double* C, int extendedC, 
-                                              double* D, int extendedD ) {
-   int s,r,i,j,q;
+                                              dim_t NN, double* EM_S,
+                                              double* A, bool_t extendedA,  
+                                              double* B, bool_t extendedB, 
+                                              double* C, bool_t extendedC, 
+                                              double* D, bool_t extendedD ) {
+   dim_t s,r,i,j,q;
    double rtmp;
 
    for (s=0;s<NS;s++) {
@@ -131,8 +131,14 @@ void Finley_Assemble_PDEMatrix_Single2(int NS,int numDim,int numQuad,
 }
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:46  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:47  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.2  2004/07/30 04:37:06  gross
  * escript and finley are linking now and RecMeshTest.py has been passed

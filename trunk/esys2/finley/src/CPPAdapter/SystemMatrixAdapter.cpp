@@ -108,6 +108,15 @@ void SystemMatrixAdapter::saveMM(const std::string& fileName) const
     checkFinleyError();
 }
 
+void SystemMatrixAdapter::saveHB(const std::string& fileName) const
+{
+    char fName[fileName.size()+1];
+    strcpy(fName,fileName.c_str());
+    Finley_SystemMatrix* system_matrix_ptr = getFinley_SystemMatrix();
+    Finley_SystemMatrix_saveHB(system_matrix_ptr,fName);
+    checkFinleyError();
+}
+
 void SystemMatrixAdapter::setValue(const double value) const
 {
    Finley_SystemMatrix* system_matrix_ptr = getFinley_SystemMatrix();

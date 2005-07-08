@@ -52,9 +52,9 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
 
   double *EM_S=NULL,*EM_F=NULL,*V=NULL,*dVdv=NULL,*dSdV=NULL,*Vol=NULL,*dvdV=NULL;
   double time0;
-  int dimensions[ESCRIPT_MAX_DATA_RANK],e,q,color;
+  dim_t dimensions[ESCRIPT_MAX_DATA_RANK],e,q;
   Assemble_Parameters p;
-  maybelong *index_row=NULL,*index_col=NULL;
+  index_t *index_row=NULL,*index_col=NULL,color;
 
   if (nodes==NULL || elements==NULL) return;
   if (S==NULL && isEmpty(F)) return;
@@ -75,7 +75,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
     return;
   }
   /*  get a functionspace */
-  int funcspace=UNKNOWN;
+  type_t funcspace=UNKNOWN;
   updateFunctionSpaceType(funcspace,A);
   updateFunctionSpaceType(funcspace,B);
   updateFunctionSpaceType(funcspace,C);
@@ -258,14 +258,14 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
          dvdV=(double*) THREAD_MEMALLOC(p.numDim*p.numDim*p.numQuad,double);
          dSdV=(double*) THREAD_MEMALLOC(p.NS_row*p.numQuad*p.numDim,double);
          Vol=(double*) THREAD_MEMALLOC(p.numQuad,double);
-         index_col=(maybelong*) THREAD_MEMALLOC(p.NN_col,maybelong);
-         index_row=(maybelong*) THREAD_MEMALLOC(p.NN_row,maybelong);
+         index_col=(index_t*) THREAD_MEMALLOC(p.NN_col,index_t);
+         index_row=(index_t*) THREAD_MEMALLOC(p.NN_row,index_t);
 
          if (! (Finley_checkPtr(EM_S) || Finley_checkPtr(EM_F) || Finley_checkPtr(V) || Finley_checkPtr(index_col) ||
                 Finley_checkPtr(index_row) || Finley_checkPtr(dVdv) || Finley_checkPtr(dSdV) || Finley_checkPtr(Vol) ))  {
 
            /*  open loop over all colors: */
-           for (color=0;color<elements->numColors;color++) {
+           for (color=elements->minColor;color<=elements->maxColor;color++) {
               /*  open loop over all elements: */
               #pragma omp for private(e) schedule(static) 
               for(e=0;e<elements->numElements;e++){
@@ -342,8 +342,16 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
 }
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:46  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
+ * Revision 1.1.1.1.2.2  2005/06/29 02:34:47  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  *
  *
