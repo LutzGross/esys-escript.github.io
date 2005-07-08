@@ -1,0 +1,16 @@
+#!/bin/bash
+if [ ! -e Makefile ]; then ln -s ./HBtest.mk Makefile; fi
+make -f ./Makefile clean
+make -f ./Makefile
+echo ----------------------------------------------------------------------------
+./HBtest.exe mtx.mm out.hb skjfhysdkh
+cmp -s out.hb out.hb.correct
+if [ $? != 0 ]
+then
+	echo "out.hb and out.hb.correct differ"
+	echo "!! Test FAILED !!"
+else
+	echo "** Test PASSED **"
+	rm -f out.hb
+fi
+make -f ./Makefile clean

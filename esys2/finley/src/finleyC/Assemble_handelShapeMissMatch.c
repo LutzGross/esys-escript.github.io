@@ -27,10 +27,10 @@
 
 /* this takes the mean value: */
 
-void Finley_Assemble_handelShapeMissMatch_Mean_in(int N, int numNodes0,int numNodes1, double* V,int numShapes0, int numShapes1) {
-  int l0=MIN(numShapes0,numNodes0-numShapes0);
-  int l1=MIN(numShapes1,numNodes1-numShapes1);
-  int i,k0,k1;
+void Finley_Assemble_handelShapeMissMatch_Mean_in(dim_t N, dim_t numNodes0,dim_t numNodes1, double* V,dim_t numShapes0, dim_t numShapes1) {
+  dim_t l0=MIN(numShapes0,numNodes0-numShapes0);
+  dim_t l1=MIN(numShapes1,numNodes1-numShapes1);
+  dim_t i,k0,k1;
   if (MAX(l0,l1)>0) {
     if (numNodes1==numShapes1) {
       for (k0=0;k0<l0;k0++) {
@@ -52,11 +52,11 @@ void Finley_Assemble_handelShapeMissMatch_Mean_in(int N, int numNodes0,int numNo
   }
 }
 
-void Finley_Assemble_handelShapeMissMatch_Mean_out(int N, int numNodes0,int numNodes1, double* V,int numShapes0, int numShapes1) {
+void Finley_Assemble_handelShapeMissMatch_Mean_out(dim_t N, dim_t numNodes0,dim_t numNodes1, double* V,dim_t numShapes0, dim_t numShapes1) {
   double RTMP;
-  int i,k0,k1;
-  int l0=MIN(numShapes0,numNodes0-numShapes0);
-  int l1=MIN(numShapes1,numNodes1-numShapes1);
+  dim_t i,k0,k1;
+  dim_t l0=MIN(numShapes0,numNodes0-numShapes0);
+  dim_t l1=MIN(numShapes1,numNodes1-numShapes1);
   if (MAX(l0,l1)>0) {
     if (numNodes1==numShapes1) {
       for (k0=0;k0<l0;k0++) {
@@ -90,10 +90,10 @@ void Finley_Assemble_handelShapeMissMatch_Mean_out(int N, int numNodes0,int numN
   }
 }
 
-void Finley_Assemble_handelShapeMissMatch_Step_in(int N, int numNodes0,int numNodes1, double* V,int numShapes0, int numShapes1) {
-  int l0=MIN(numShapes0,numNodes0-numShapes0);
-  int l1=MIN(numShapes1,numNodes1-numShapes1);
-  int i,k0,k1;
+void Finley_Assemble_handelShapeMissMatch_Step_in(dim_t N, dim_t numNodes0,dim_t numNodes1, double* V,dim_t numShapes0, dim_t numShapes1) {
+  dim_t l0=MIN(numShapes0,numNodes0-numShapes0);
+  dim_t l1=MIN(numShapes1,numNodes1-numShapes1);
+  dim_t i,k0,k1;
   if (MAX(l0,l1)>0) {
     if (numNodes1==numShapes1) {
       for (k0=0;k0<l0;k0++) {
@@ -117,11 +117,11 @@ void Finley_Assemble_handelShapeMissMatch_Step_in(int N, int numNodes0,int numNo
   }
 }
 
-void Finley_Assemble_handelShapeMissMatch_Step_out(int N, int numNodes0,int numNodes1, double* V,int numShapes0, int numShapes1) {
+void Finley_Assemble_handelShapeMissMatch_Step_out(dim_t N, dim_t numNodes0,dim_t numNodes1, double* V,dim_t numShapes0, dim_t numShapes1) {
   double RTMP;
-  int i,k0,k1;
-  int l0=MIN(numShapes0,numNodes0-numShapes0);
-  int l1=MIN(numShapes1,numNodes1-numShapes1);
+  dim_t i,k0,k1;
+  dim_t l0=MIN(numShapes0,numNodes0-numShapes0);
+  dim_t l1=MIN(numShapes1,numNodes1-numShapes1);
   if (MAX(l0,l1)>0) {
     if (numNodes1==numShapes1) {
       for (k0=0;k0<l0;k0++) {
@@ -157,8 +157,14 @@ void Finley_Assemble_handelShapeMissMatch_Step_out(int N, int numNodes0,int numN
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:47  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:48  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1  2004/07/02 04:21:13  gross
  * Finley C code has been included

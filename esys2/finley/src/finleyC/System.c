@@ -101,8 +101,6 @@ Finley_SystemMatrix* Finley_SystemMatrix_alloc(Finley_SystemMatrixType type,Finl
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
      out->logical_block_size=out->logical_row_block_size*out->logical_block_size;
-     out->row_block_size=out->row_block_size;
-     out->col_block_size=out->col_block_size;
      out->block_size=out->row_block_size*out->col_block_size;
      out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
      /* allocate memory for matrix entries */
@@ -147,3 +145,34 @@ void Finley_SystemMatrix_dealloc(Finley_SystemMatrix* in) {
      }
    }
 }
+/*
+ * $Log$
+ * Revision 1.7  2005/07/08 04:07:56  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.6  2005/06/30 01:53:56  gross
+ * a bug in coloring fixed
+ *
+ * Revision 1.1.1.1.2.5  2005/03/15 07:23:55  gross
+ * Finley's interface to the SCSL library can deal with systems of PDEs now. tests shows that the SCSL library cannot deal with problems with more then 200000 unknowns. problem has been reported to SGI.
+ *
+ * Revision 1.1.1.1.2.4  2005/03/02 23:35:05  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ * Revision 1.1.1.1.2.3  2004/11/24 01:37:15  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1.2.2  2004/11/12 06:58:18  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1.2.1  2004/10/28 22:59:24  gross
+ * finley's RecTest.py is running now: problem in SystemMatrixAdapater fixed
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.1  2004/07/02 04:21:13  gross
+ * Finley C code has been included
+ *
+ *
+ */

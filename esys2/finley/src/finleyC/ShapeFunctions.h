@@ -26,7 +26,7 @@
 
 /*   Interfaces: */
 
-typedef void (Finley_Shape_Function) (int,double*,double*,double*);
+typedef void (Finley_Shape_Function) (dim_t,double*,double*,double*);
 
 Finley_Shape_Function Finley_Shape_Point1;
 Finley_Shape_Function Finley_Shape_Line2;
@@ -52,8 +52,14 @@ Finley_Shape_Function Finley_Shape_Hex32;
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:56  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:55  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.1.1.1  2004/06/24 04:00:40  johng
  * Initial version of eys using boost-python.

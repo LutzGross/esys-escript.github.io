@@ -24,7 +24,7 @@
 /* This function checks if the pointer ptr has a target. If not an
    error is raised and TRUE is returned. */
 
-int Finley_checkPtr(void* ptr) {
+bool_t Finley_checkPtr(void* ptr) {
    if (ptr==NULL) {
       Finley_ErrorCode=MEMORY_ERROR;
       sprintf(Finley_ErrorMsg,"Out of memory.");
@@ -50,8 +50,14 @@ double Finley_timer(void) {
 
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:50  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:50  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.2  2004/07/02 04:21:13  gross
  * Finley C code has been included

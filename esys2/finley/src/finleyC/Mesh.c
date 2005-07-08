@@ -20,7 +20,7 @@
 
 extern Finley_RefElementInfo Finley_RefElement_InfoList[];
 
-Finley_Mesh* Finley_Mesh_alloc(char* name,int numDim, int order) {
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order) {
   Finley_Mesh *out;
   
   /*  allocate the return value */
@@ -104,7 +104,7 @@ void Finley_Mesh_dealloc(Finley_Mesh* in) {
 
 /*  returns the spatial dimension of the mesh: */
 
-int Finley_Mesh_getDim(Finley_Mesh *in) {
+dim_t Finley_Mesh_getDim(Finley_Mesh *in) {
   return in->Nodes->numDim;
 }
 
@@ -112,27 +112,35 @@ int Finley_Mesh_getDim(Finley_Mesh *in) {
 
 /*  returns the number of nodes in the mesh: */
 
-int Finley_Mesh_getNumNodes(Finley_Mesh *in) {
+dim_t Finley_Mesh_getNumNodes(Finley_Mesh *in) {
   return in->Nodes->numNodes;
 }
 /**************************************************************/
 
 /*  returns the number of degrees of freedom in the mesh: */
 
-int Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh *in) {
+dim_t Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh *in) {
   return in->Nodes->numDegreesOfFreedom;
 }
 /**************************************************************/
 
 /*  returns the number of degrees of freedom in the mesh: */
 
-int Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh *in) {
+dim_t Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh *in) {
   return in->Nodes->reducedNumDegreesOfFreedom;
 }
 /* 
 * $Log$
+* Revision 1.5  2005/07/08 04:07:51  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.3  2005/06/29 02:34:51  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.2  2004/11/24 01:37:13  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

@@ -55,8 +55,8 @@
 
 struct Finley_Mesh {
   char* Name;                           /* the name of the mesh */
-  int order;                            /* integration order */
-  int reference_counter;                /* counts the number of references to the mesh; */
+  index_t order;                          /* integration order */
+  dim_t reference_counter;              /* counts the number of references to the mesh; */
   Finley_NodeFile* Nodes;               /* the table of the nodes */
   Finley_ElementFile* Elements;         /* the table of the elements */
   Finley_ElementFile* FaceElements;     /* the table of the face elements */
@@ -76,7 +76,7 @@ typedef struct Finley_Mesh Finley_Mesh;
 /* these structures are used for matching surfaces elements: */
 
 struct Finley_Mesh_findMatchingFaces_center{
-   int refId;
+   index_t refId;
    double x[MAX_numDim];
 };
 typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFaces_center;
@@ -88,21 +88,21 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 Finley_Mesh* Finley_Mesh_alloc(char*,int,int);
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
 void Finley_Mesh_dealloc(Finley_Mesh*);
-int Finley_Mesh_getDim(Finley_Mesh*);
-int Finley_Mesh_getNumNodes(Finley_Mesh*);
-int Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh*);
-int Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh*);
-Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,int reduce_row_order, int reduce_col_order);
-Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,int reduce_row_order, int reduce_col_order);
+dim_t Finley_Mesh_getDim(Finley_Mesh*);
+dim_t Finley_Mesh_getNumNodes(Finley_Mesh*);
+dim_t Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh*);
+dim_t Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh*);
+Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
+Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 void Finley_Mesh_write(Finley_Mesh*,char*);
-Finley_Mesh* Finley_Mesh_read(char*,int);
+Finley_Mesh* Finley_Mesh_read(char*,index_t);
 
 void Finley_Mesh_prepare(Finley_Mesh* in);
 void Finley_Mesh_prepareNodes(Finley_Mesh* in);
 void Finley_Mesh_improveColoring(Finley_Mesh* in);
 void Finley_Mesh_optimizeElementDistribution(Finley_Mesh* in);
 void  Finley_Mesh_resolveNodeIds(Finley_Mesh*);
-Finley_Mesh* Finley_Mesh_merge(int, Finley_Mesh**);
+Finley_Mesh* Finley_Mesh_merge(dim_t, Finley_Mesh**);
 
 void Finley_Mesh_relableElementNodes(int*,int,Finley_Mesh*);
 void Finley_Mesh_markNodes(int*,int,Finley_Mesh*,int);
@@ -117,3 +117,38 @@ void Finley_Mesh_saveDX(const char *, Finley_Mesh *, escriptDataC*);
 void Finley_Mesh_saveVTK(const char *, Finley_Mesh *, escriptDataC*);
 
 #endif /* #ifndef INC_FINLEY_MESH */
+
+/*
+ * $Log$
+ * Revision 1.6  2005/07/08 04:07:51  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.3  2005/06/29 02:34:51  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.2  2005/02/09 06:53:59  cochrane
+ * Added Finley_Mesh_saveVTK.
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:18  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.5  2004/07/27 08:26:45  gross
+ * Finley: saveDX added: now it is possible to write data on boundary and contact elements
+ *
+ * Revision 1.4  2004/07/26 04:27:15  gross
+ * it allmost compiles now
+ *
+ * Revision 1.3  2004/07/02 04:21:13  gross
+ * Finley C code has been included
+ *
+ * Revision 1.2  2004/07/02 00:03:29  gross
+ * interface for saveDX added
+ *
+ * Revision 1.1.1.1  2004/06/24 04:00:40  johng
+ * Initial version of eys using boost-python.
+ *
+ *
+ */

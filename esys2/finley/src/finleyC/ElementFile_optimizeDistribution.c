@@ -22,13 +22,14 @@
 void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
      Finley_Util_ValueAndIndex* item_list=NULL;
      Finley_ElementFile* out=NULL;
-     maybelong* index=NULL,e,i;
+     dim_t e,i;
+     index_t *index=NULL;
 
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
-        maybelong NN=(*in)->ReferenceElement->Type->numNodes;
+        dim_t NN=(*in)->ReferenceElement->Type->numNodes;
         item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
-        index=TMPMEMALLOC((*in)->numElements,maybelong);
+        index=TMPMEMALLOC((*in)->numElements,index_t);
         if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {
            out=Finley_ElementFile_alloc((*in)->ReferenceElement->Type->TypeId,(*in)->order);
            if (Finley_ErrorCode==NO_ERROR) {
@@ -57,8 +58,16 @@ void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
 }
 /* 
 * $Log$
+* Revision 1.5  2005/07/08 04:07:50  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.2  2005/06/29 02:34:50  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:13  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

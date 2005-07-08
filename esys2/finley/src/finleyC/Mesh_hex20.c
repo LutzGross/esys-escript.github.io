@@ -22,8 +22,9 @@
 
 /**************************************************************/
 
-Finley_Mesh* Finley_RectangularMesh_Hex20(int* numElements,double* Length,int* periodic,int order,int useElementsOnFace) {
-  int N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,node0,totalNECount,faceNECount,NDOF0,NDOF1,NDOF2,NFaceElements,NUMNODES;
+Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,double* Length,bool_t* periodic,index_t order,bool_t useElementsOnFace) {
+  dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,totalNECount,faceNECount,NDOF0,NDOF1,NDOF2,NFaceElements,NUMNODES;
+  index_t node0;
   Finley_Mesh* out;
   char name[50];
   double time0=Finley_timer();
@@ -163,7 +164,8 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(int* numElements,double* Length,int* p
       }
     }
   }
-  out->Elements->numColors=COLOR_MOD(0)+3*COLOR_MOD(0)+9*COLOR_MOD(0)+1;
+  out->Elements->minColor=0;
+  out->Elements->maxColor=COLOR_MOD(0)+3*COLOR_MOD(0)+9*COLOR_MOD(0);
   
   /*   face elements: */
   
@@ -491,7 +493,8 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(int* numElements,double* Length,int* p
      totalNECount+=NE0*NE2;
      faceNECount+=NE0*NE2;
   }
-  out->FaceElements->numColors=24;
+  out->FaceElements->minColor=0;
+  out->FaceElements->maxColor=24;
 
   /*  face elements done: */
   
@@ -513,8 +516,14 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(int* numElements,double* Length,int* p
 
 /*
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:52  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:51  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

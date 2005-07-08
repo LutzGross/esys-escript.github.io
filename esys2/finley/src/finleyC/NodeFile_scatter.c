@@ -20,8 +20,9 @@
 
 /**************************************************************/
 
-void Finley_NodeFile_scatter(maybelong* index, Finley_NodeFile* in, Finley_NodeFile* out) {
-   maybelong i,k,j;
+void Finley_NodeFile_scatter(index_t* index, Finley_NodeFile* in, Finley_NodeFile* out) {
+   dim_t i,j;
+   index_t k;
    if (in->Id!=NULL) {
      #pragma omp parallel for private(i,j,k) schedule(static)
      for (i=0;i<in->numNodes;i++) {
@@ -37,8 +38,14 @@ void Finley_NodeFile_scatter(maybelong* index, Finley_NodeFile* in, Finley_NodeF
 }
 /* 
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:55  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:54  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

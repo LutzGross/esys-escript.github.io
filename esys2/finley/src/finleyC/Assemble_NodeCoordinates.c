@@ -24,7 +24,7 @@
 /**************************************************************/
 
 void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
-  maybelong n;
+  dim_t n;
   if (nodes==NULL) return;
   if (! numSamplesEqual(x,1,nodes->numNodes)) {
        Finley_ErrorCode=TYPE_ERROR;
@@ -46,8 +46,14 @@ void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
 }
 /*
  * $Log$
- * Revision 1.1  2004/10/26 06:53:57  jgs
- * Initial revision
+ * Revision 1.2  2005/07/08 04:07:45  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.1  2005/06/29 02:34:46  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
  *
  * Revision 1.5  2004/08/26 12:03:52  gross
  * Some other bug in Finley_Assemble_gradient fixed.

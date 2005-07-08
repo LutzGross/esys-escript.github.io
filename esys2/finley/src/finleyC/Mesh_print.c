@@ -17,7 +17,7 @@
 /*  prints the mesh to the standarts output: */
 
 void Finley_Mesh_print(Finley_Mesh *in) {
-  int NN,i,j,numDim;
+  dim_t NN,i,j,numDim;
 
   /* write header */
 
@@ -41,8 +41,8 @@ void Finley_Mesh_print(Finley_Mesh *in) {
   /*  write elements: */
 
   if (in->Elements!=NULL) {
-    printf( "=== %s:\nnumber of elements=%d\nnumber of colors=%d\n",
-                       in->Elements->ReferenceElement->Type->Name,in->Elements->numElements,in->Elements->numColors);
+    printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
+                       in->Elements->ReferenceElement->Type->Name,in->Elements->numElements,in->Elements->minColor,in->Elements->maxColor);
     NN=in->Elements->ReferenceElement->Type->numNodes;
     if (in->Elements->numElements>0) {
        printf("Id,Tag,Color,Nodes\n");
@@ -58,8 +58,8 @@ void Finley_Mesh_print(Finley_Mesh *in) {
 
 
   if (in->FaceElements!=NULL) {
-    printf( "=== %s:\nnumber of elements=%d\nnumber of colors=%d\n",
-                       in->FaceElements->ReferenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->numColors);
+    printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
+               in->FaceElements->ReferenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->minColor,in->FaceElements->maxColor);
     NN=in->FaceElements->ReferenceElement->Type->numNodes;
     if (in->FaceElements->numElements>0) {
        printf("Id,Tag,Color,Nodes\n");
@@ -73,8 +73,8 @@ void Finley_Mesh_print(Finley_Mesh *in) {
 
   /*  write Contact elements : */
   if (in->ContactElements!=NULL) {
-    printf( "=== %s:\nnumber of elements=%d\nnumber of colors=%d\n",
-                       in->ContactElements->ReferenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->numColors);
+    printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
+                       in->ContactElements->ReferenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->minColor,in->ContactElements->maxColor);
     NN=in->ContactElements->ReferenceElement->Type->numNodes;
     if (in->ContactElements->numElements>0) {
        printf("Id,Tag,Color,Nodes\n");
@@ -88,8 +88,8 @@ void Finley_Mesh_print(Finley_Mesh *in) {
   
   /*  write points: */
   if (in->Points!=NULL) {
-    printf( "=== %s:\nnumber of elements=%d\nnumber of colors=%d\n",
-                       in->Points->ReferenceElement->Type->Name,in->Points->numElements,in->Points->numColors);
+    printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
+                       in->Points->ReferenceElement->Type->Name,in->Points->numElements,in->Points->minColor,in->Points->maxColor);
     NN=in->Points->ReferenceElement->Type->numNodes;
     if (in->Points->numElements>0) {
        printf("Id,Tag,Color,Nodes\n");
@@ -104,8 +104,14 @@ void Finley_Mesh_print(Finley_Mesh *in) {
 
 /*
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:54  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:53  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

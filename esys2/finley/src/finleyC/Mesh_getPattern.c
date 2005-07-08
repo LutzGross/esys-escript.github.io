@@ -20,7 +20,7 @@
 
 /* returns a reference to the matrix pattern                  */
 
-Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,int reduce_row_order, int reduce_col_order) {
+Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
    Finley_SystemMatrixPattern *out=NULL;
    Finley_ErrorCode=NO_ERROR;
    /* make sure that the requested pattern is available */
@@ -54,10 +54,10 @@ Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,int reduce_row_o
    }  
    return out;
 }
-Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,int reduce_row_order, int reduce_col_order) {
+Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
   double time0;
-  maybelong i,n,s,itmp;
-  maybelong *rowLabel=NULL,*colLabel=NULL, *ptr=NULL, *index=NULL;
+  dim_t i,n;
+  index_t s,itmp,*rowLabel=NULL,*colLabel=NULL, *ptr=NULL, *index=NULL;
   Finley_IndexList* index_list=NULL;
   Finley_ErrorCode=NO_ERROR;
   
@@ -79,7 +79,7 @@ Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,int reduce_row_
   }
 
   index_list=TMPMEMALLOC(n,Finley_IndexList);
-  ptr=MEMALLOC(n+1,maybelong);
+  ptr=MEMALLOC(n+1,index_t);
   if (! (Finley_checkPtr(index_list) || Finley_checkPtr(ptr)) ) {
       #pragma omp parallel private(i,s,itmp)
       {
@@ -99,7 +99,9 @@ Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,int reduce_row_
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
         /* get the number of connections per row */
         #pragma omp for schedule(static)
-        for(i=0;i<n;++i) ptr[i]=Finley_IndexList_count(&index_list[i]);
+        for(i=0;i<n;++i) {
+            ptr[i]=Finley_IndexList_count(&index_list[i]);
+        }
         /* accumalate ptr */
         /* OMP */
         #pragma omp master 
@@ -112,7 +114,7 @@ Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,int reduce_row_
             }
             ptr[n]=s;
             /* fill index */
-            index=MEMALLOC(ptr[n],maybelong);
+            index=MEMALLOC(ptr[n],index_t);
         }
         #pragma omp barrier
         if (! Finley_checkPtr(index)) {
@@ -139,8 +141,17 @@ Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,int reduce_row_
 }
 /*
  * $Log$
+ * Revision 1.3  2005/07/08 04:07:52  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.2  2004/12/15 07:08:33  jgs
  * *** empty log message ***
+ *
+ * Revision 1.1.2.5  2005/06/30 01:53:55  gross
+ * a bug in coloring fixed
+ *
+ * Revision 1.1.2.4  2005/06/29 02:34:51  gross
+ * some changes towards 64 integers in finley
  *
  * Revision 1.1.2.3  2004/11/24 01:37:14  gross
  * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now

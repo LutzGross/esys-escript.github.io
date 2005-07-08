@@ -1,9 +1,0 @@
-# boostStatic - include directories plus library to link with
-
-PKG_CC_INC_DIRS  += /opt/boost_1_32_0/include/boost-1_32
-PKG_CPP_INC_DIRS += /opt/boost_1_32_0/include/boost-1_32
-
-PKG_LD_LIB_DIRS += /opt/boost_1_32_0/lib
-
-PKG_LD_LIBS += boost_python-gcc-d-1_32
-

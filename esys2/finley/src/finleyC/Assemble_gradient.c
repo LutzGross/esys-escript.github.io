@@ -25,22 +25,25 @@
 /*****************************************************************/
 
 
+#define NODES 0
+#define DOF 1
+#define REDUCED_DOF 2
+
 void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elements,
              escriptDataC* grad_data,escriptDataC* data) {
 
   double *local_X=NULL, *local_data=NULL, *dVdv=NULL, *dvdV=NULL, *Vol=NULL, *d_datadv=NULL, *gradS=NULL,*data_array;
-  int numNodes,e,node_offset,*resort_nodes,i,q,type,NS_DOF,NN_DOF,dof_offset;
-  #define NODES 0
-  #define DOF 1
-  #define REDUCED_DOF 2
+  index_t node_offset,*resort_nodes=FALSE,dof_offset;
+  dim_t numNodes=0,e,i,q,NS_DOF=0,NN_DOF=0;
+  type_t type=DOF;
   if (nodes==NULL || elements==NULL) return;
-  int NN=elements->ReferenceElement->Type->numNodes;
-  int NS=elements->ReferenceElement->Type->numShapes;
-  int id[NN];
-  int numDim=nodes->numDim;
-  int data_type=getFunctionSpaceType(data);
-  int numComps=getDataPointSize(data);
-  int numQuad=elements->ReferenceElement->numQuadNodes;
+  dim_t NN=elements->ReferenceElement->Type->numNodes;
+  dim_t NS=elements->ReferenceElement->Type->numShapes;
+  index_t id[NN];
+  dim_t numDim=nodes->numDim;
+  type_t data_type=getFunctionSpaceType(data);
+  dim_t numComps=getDataPointSize(data);
+  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
   for (i=0;i<NN;i++) id[i]=i;
 
     /* set some parameter */
@@ -159,14 +162,22 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
    	      THREAD_MEMFREE(d_datadv);
       }
   }
-  #undef NODES
-  #undef DOF
-  #undef REDUCED_DOF
 }
+#undef NODES
+#undef DOF
+#undef REDUCED_DOF
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:47  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2004/12/15 07:08:32  jgs
  * *** empty log message ***
+ * Revision 1.1.1.1.2.2  2005/06/29 02:34:48  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:12  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
  *
  *
  *

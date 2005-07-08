@@ -20,8 +20,9 @@
 
 /**************************************************************/
 
-Finley_Mesh* Finley_RectangularMesh_Line3(int* numElements,double* Length,int* periodic,int order,int useElementsOnFace) {
-  int N0,NE0,i0,k,node0,NDOF0,NFaceElements,NUMNODES;
+Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool_t* periodic,index_t order,bool_t useElementsOnFace) {
+  dim_t N0,NE0,i0,NDOF0,NFaceElements,NUMNODES;
+  index_t k,node0;
   Finley_Mesh* out;
   char name[50];
   double time0=Finley_timer();
@@ -95,7 +96,8 @@ Finley_Mesh* Finley_RectangularMesh_Line3(int* numElements,double* Length,int* p
     out->Elements->Nodes[INDEX2(1,k,3)]=node0+2;
     out->Elements->Nodes[INDEX2(2,k,3)]=node0+1;
   }
-  out->Elements->numColors=COLOR_MOD(0)+1;
+  out->Elements->minColor=0;
+  out->Elements->maxColor=COLOR_MOD(0);
   
   /*   face elements: */
   if (useElementsOnFace) {
@@ -127,7 +129,8 @@ Finley_Mesh* Finley_RectangularMesh_Line3(int* numElements,double* Length,int* p
         out->FaceElements->Nodes[INDEX2(0,1,NUMNODES)]=N0-1;
      }
   }
-  out->FaceElements->numColors=2;
+  out->FaceElements->minColor=0;
+  out->FaceElements->maxColor=1;
 
   /*  face elements done: */
   
@@ -150,8 +153,14 @@ Finley_Mesh* Finley_RectangularMesh_Line3(int* numElements,double* Length,int* p
 
 /*
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/07/08 04:07:53  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.1  2005/06/29 02:34:52  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.1.1.1  2004/06/24 04:00:40  johng
 * Initial version of eys using boost-python.

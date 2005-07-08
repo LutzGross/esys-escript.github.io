@@ -19,21 +19,21 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNodes, maybelong* degreeOfFreedom) {
+void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes, index_t* degreeOfFreedom) {
     if (in==NULL) return;
-    maybelong NN=in->ReferenceElement->Type->numNodes;
-    maybelong old_numColors,*maskDOF,*old_Color,e,i,numUncoloredElements,n,color,independent;
+    dim_t NN=in->ReferenceElement->Type->numNodes;
+    dim_t e,i,numUncoloredElements,n,len;
+    index_t *maskDOF,*old_Color,color,min_id,max_id,old_maxColor,old_minColor;
+    bool_t independent;
     Finley_ErrorCode=NO_ERROR;
-    int min_id,max_id;
-    maybelong len;
 
     if (in->numElements<1) return;
 
     min_id=Finley_Util_getMinInt(1,numNodes,degreeOfFreedom);
     max_id=Finley_Util_getMaxInt(1,numNodes,degreeOfFreedom);
     len=max_id-min_id+1;
-    maskDOF=TMPMEMALLOC(len,maybelong);
-    old_Color=TMPMEMALLOC(in->numElements,maybelong);
+    maskDOF=TMPMEMALLOC(len,index_t);
+    old_Color=TMPMEMALLOC(in->numElements,index_t);
     
     if (! (Finley_checkPtr(maskDOF) || Finley_checkPtr(old_Color) ) ) {
          #pragma omp parallel for private(e) schedule(static)
@@ -41,8 +41,10 @@ void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNode
                old_Color[e]=in->Color[e];
                in->Color[e]=-1;
          }
-         old_numColors=in->numColors;
-         in->numColors=0;
+         old_maxColor=in->maxColor;
+         old_minColor=in->minColor;
+         in->maxColor=-1;
+         in->minColor=0;
          numUncoloredElements=in->numElements;
          while (numUncoloredElements>0) {
             #pragma omp parallel private(color)
@@ -53,7 +55,7 @@ void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNode
                /* the existing coloring is used to make sure that the new coloring can be done in parallel */
                #pragma omp master
                numUncoloredElements=0;
-               for (color=0;color<old_numColors;color++) {
+               for (color=old_minColor;color<=old_maxColor;color++) {
                   #pragma omp for private(i,e,independent) schedule(static) reduction(+:numUncoloredElements)
                   for (e=0;e<in->numElements;e++) {
                      if (old_Color[e]==color) {
@@ -64,7 +66,7 @@ void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNode
                         if (independent) {
                             for (i=0;i<NN;i++) maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id]=1;
                             old_Color[e]=-1;
-                            in->Color[e]=in->numColors;
+                            in->Color[e]=in->maxColor+1;
                          } else {
                             numUncoloredElements++;
                          }
@@ -72,7 +74,7 @@ void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNode
                   }
                } /* end of color loop */
             }
-            in->numColors++;
+            in->maxColor++;
          }  /* end of while loop */
     }
 
@@ -83,8 +85,16 @@ void Finley_ElementFile_improveColoring(Finley_ElementFile* in,maybelong numNode
 }
 /* 
 * $Log$
+* Revision 1.5  2005/07/08 04:07:49  jgs
+* Merge of development branch back to main trunk on 2005-07-08
+*
 * Revision 1.4  2004/12/15 07:08:32  jgs
 * *** empty log message ***
+* Revision 1.1.1.1.2.2  2005/06/29 02:34:49  gross
+* some changes towards 64 integers in finley
+*
+* Revision 1.1.1.1.2.1  2004/11/24 01:37:13  gross
+* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
 *
 *
 *

@@ -31,6 +31,14 @@ extern "C" {
 
 namespace finley {
 
+struct null_deleter
+{
+  void operator()(void const *ptr) const
+  {
+  }
+};
+
+
 /**
    \brief
    MeshAdapter implements the AbstractContinuousDomain

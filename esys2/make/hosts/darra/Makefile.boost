@@ -1,5 +1,0 @@
-
-# boost - include directories only
-
-PKG_CC_INC_DIRS  += /opt/boost_1_32_0/include/boost-1_32
-PKG_CPP_INC_DIRS += /opt/boost_1_32_0/include/boost-1_32

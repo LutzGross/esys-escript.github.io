@@ -195,6 +195,29 @@ class DataBlocks2D {
   ValueType&
   getData() const;
 
+  /**
+    \brief
+    Archive the data managed by this DataBlocks2D to the file referenced
+    by ofstream. A count of the number of values expected to be written
+    is provided as a cross-check.
+
+    The return value indicates success (0) or otherwise (1).
+  */
+  int
+  archiveData(std::ofstream& archiveFile,
+              const ValueType::size_type noValues) const;
+
+  /**
+    \brief
+    Extract the number of values specified by noValues from the file
+    referenced by ifstream to this DataBlocks2D.
+
+    The return value indicates success (0) or otherwise (1).
+  */
+  int
+  extractData(std::ifstream& archiveFile,
+              const ValueType::size_type noValues);
+
  protected:
 
  private:

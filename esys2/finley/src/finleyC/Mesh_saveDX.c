@@ -29,7 +29,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
                    };
   Finley_ElementFile* elements=NULL;
   char elemTypeStr[32];
-  int i,j,k,numDXNodesPerElement,*resortIndex,isCellCentered,nodetype;
+  int i,j,k,numDXNodesPerElement,*resortIndex,isCellCentered=TRUE,nodetype=FINLEY_DEGREES_OF_FREEDOM;
   double* values,rtmp;
   int nDim = mesh_p->Nodes->numDim;
   /* open the file  and check handel */
@@ -191,3 +191,34 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
   fclose(fileHandle_p);
   return;
 }
+
+/*
+ * $Log$
+ * Revision 1.4  2005/07/08 04:07:55  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.5  2005/06/29 02:34:53  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.4  2005/03/03 05:01:12  gross
+ * bug in saveDX fixed
+ *
+ * Revision 1.1.1.1.2.3  2005/02/17 23:43:06  cochrane
+ * Fixed error throwing bug.  Default case of switch statement should have ended
+ * with return instead of break, hence errors weren't being thrown (but they now
+ * should be).
+ *
+ * Revision 1.1.1.1.2.2  2005/02/17 05:53:26  gross
+ * some bug in saveDX fixed: in fact the bug was in
+ * DataC/getDataPointShape
+ *
+ * Revision 1.1.1.1.2.1  2005/02/17 03:23:01  gross
+ * some performance improvements in MVM
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.1  2004/07/27 08:27:11  gross
+ * Finley: saveDX added: now it is possible to write data on boundary and contact elements
+ *
+ */

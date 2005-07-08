@@ -254,6 +254,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("solve",&escript::AbstractSystemMatrix::solve)
      .def("of",&escript::AbstractSystemMatrix::vectorMultiply)
      .def("saveMM",&escript::AbstractSystemMatrix::saveMM)
+     .def("saveHB",&escript::AbstractSystemMatrix::saveHB)
      .def("setValue",&escript::AbstractSystemMatrix::setValue)
      .def("resetSolver",&escript::AbstractSystemMatrix::resetSolver)
      .def(self*other<escript::Data>());

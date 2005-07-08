@@ -58,7 +58,7 @@ void  Finley_SystemMatrix_nullifyRowsAndCols(Finley_SystemMatrix* A,
 
 void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
 
-  maybelong ir,icol,iptr,icb,irb,irow,ic,l;
+  index_t ir,icol,iptr,icb,irb,irow,ic,l;
 
   if (A ->col_block_size==1 && A ->row_block_size ==1) {
     switch(A->type) {
@@ -151,8 +151,22 @@ void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double
 
 /*
  * $Log$
+ * Revision 1.5  2005/07/08 04:07:58  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
  * Revision 1.4  2004/12/15 07:08:33  jgs
  * *** empty log message ***
+ * Revision 1.1.1.1.2.2  2005/06/29 02:34:57  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.1  2004/07/02 04:21:13  gross
+ * Finley C code has been included
  *
  *
  */

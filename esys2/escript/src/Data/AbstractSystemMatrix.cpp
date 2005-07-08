@@ -95,6 +95,10 @@ void AbstractSystemMatrix::saveMM(const std::string& fileName) const
 {
     throw SystemMatrixException("Error - Matrix Market interface not available.");
 }
+void AbstractSystemMatrix::saveHB(const std::string& fileName) const
+{
+    throw SystemMatrixException("Error - Harwell-Boeing interface not available.");
+}
 void AbstractSystemMatrix::setValue(const double value) const
 {
     throw SystemMatrixException("Error - setValue is not implemented.");

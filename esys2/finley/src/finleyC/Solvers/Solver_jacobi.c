@@ -31,10 +31,11 @@ void Finley_Solver_Jacobi_free(Finley_Solver_Jacobi * in) {
 
 Finley_Solver_Jacobi* Finley_Solver_getJacobi(Finley_SystemMatrix * A_p) {
   Finley_Solver_Jacobi* out=NULL;
-  int n = A_p->num_cols;
-  int n_block=A_p->row_block_size;
-  int block_size=A_p->block_size;
-  int i,iPtr;
+  dim_t n = A_p->num_cols;
+  dim_t n_block=A_p->row_block_size;
+  dim_t block_size=A_p->block_size;
+  dim_t i;
+  index_t iPtr;
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   /* check matrix is square */
   if (A_p->col_block_size !=A_p->row_block_size) {
@@ -157,3 +158,31 @@ void Finley_Solver_solveJacobi(Finley_Solver_Jacobi * prec, double * x, double *
      Finley_Solver_applyBlockDiagonalMatrix(prec->n_block,prec->n,prec->values,prec->pivot,x,b);
      return;
 }
+/*
+ * $Log$
+ * Revision 1.6  2005/07/08 04:08:00  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.5  2005/06/29 02:35:00  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.4  2005/03/02 23:35:08  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ * Revision 1.1.1.1.2.3  2004/12/07 10:12:06  gross
+ * GMRES added
+ *
+ * Revision 1.1.1.1.2.2  2004/11/24 01:37:17  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1.2.1  2004/11/12 06:58:21  gross
+ * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.1  2004/07/02 04:21:14  gross
+ * Finley C code has been included
+ *
+ *
+ */

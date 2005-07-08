@@ -19,10 +19,10 @@
 
 /* allocates a SystemMatrixPattern  */
 
-Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_alloc(int n_ptr, maybelong* ptr,maybelong* index) {
+Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_alloc(int n_ptr, index_t* ptr,index_t* index) {
   Finley_SystemMatrixPattern*out;
-  maybelong loc_min_index,loc_max_index,min_index=INDEX_OFFSET,max_index=INDEX_OFFSET-1;
-  maybelong i,k;
+  index_t loc_min_index,loc_max_index,min_index=INDEX_OFFSET,max_index=INDEX_OFFSET-1,k;
+  dim_t i;
   Finley_ErrorCode=NO_ERROR;
 
 
@@ -35,15 +35,15 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_alloc(int n_ptr, maybelon
         for (i=0;i<n_ptr+1;++i) ptr[i]+=PTR_OFFSET;
      #endif
      #if INDEX_OFFSET>0
-        #pragma omp for schedule(static)
+        #pragma omp for schedule(static) 
         for (i=0;i<n_ptr;++i) 
              for (k=ptr[i];k<ptr[i+1];++k) index[k]+=INDEX_OFFSET;
      #endif
         
-     #pragma omp for schedule(static)
+     #pragma omp for schedule(static) 
      for (i=0;i<n_ptr;++i) {
          if (ptr[i]<ptr[i+1]) {
-           qsort(&(index[ptr[i]-PTR_OFFSET]),(int)(ptr[i+1]-ptr[i]),sizeof(maybelong),Finley_comparIndex); 
+           qsort(&(index[ptr[i]-PTR_OFFSET]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Finley_comparIndex); 
            loc_min_index=MIN(loc_min_index,index[ptr[i]]);
            loc_max_index=MAX(loc_max_index,index[ptr[i+1]-1]);
          }
@@ -103,9 +103,9 @@ void Finley_SystemMatrixPattern_dealloc(Finley_SystemMatrixPattern* in) {
 /*  this routine is used by qsort called in Finley_SystemMatrixPattern_alloc */
 
 int Finley_comparIndex(const void *index1,const void *index2){
-   maybelong Iindex1,Iindex2;
-   Iindex1=*(maybelong*)index1;
-   Iindex2=*(maybelong*)index2;
+   index_t Iindex1,Iindex2;
+   Iindex1=*(index_t*)index1;
+   Iindex2=*(index_t*)index2;
    if (Iindex1<Iindex2) {
       return -1;
    } else {
@@ -116,3 +116,28 @@ int Finley_comparIndex(const void *index1,const void *index2){
       }
    }
 }
+/*
+ * $Log$
+ * Revision 1.4  2005/07/08 04:07:57  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.2.6  2005/07/01 07:02:13  gross
+ * some bug with OPENMP fixed
+ *
+ * Revision 1.1.2.5  2005/06/30 01:53:56  gross
+ * a bug in coloring fixed
+ *
+ * Revision 1.1.2.4  2005/06/29 02:34:55  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.2.3  2005/03/04 05:27:07  gross
+ * bug in SystemPattern fixed.
+ *
+ * Revision 1.1.2.2  2004/11/24 01:37:15  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.2.1  2004/11/14 23:49:09  gross
+ * the forgotten files
+ *
+ *
+ */

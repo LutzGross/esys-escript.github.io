@@ -14,12 +14,6 @@
 #include <omp.h>
 #endif
 
-/* Table of constant values */
-
-static double ONE = 1.000000000000000;
-static double ZERO = 0.000000000000000;
-static double TOLERANCE_FOR_SCALARS = 0.;
-
 /*  -- Iterative template routine --
 *     Univ. of Tennessee and Oak Ridge National Laboratory
 *     October 1, 1993
@@ -42,22 +36,13 @@ static double TOLERANCE_FOR_SCALARS = 0.;
 *  Arguments
 *  =========
 *
-*  N       (input) INT.
-*          On entry, the dimension of the matrix.
-*          Unchanged on exit.
+*  A       (input) 
 *
 *  R       (input) DOUBLE PRECISION array, dimension N.
 *          On entry, residual of inital guess X
 *
 *  X       (input/output) DOUBLE PRECISION array, dimension N.
 *          On input, the initial guess. 
-*
-*  WORK    (workspace) DOUBLE PRECISION array, dimension (LDW,7)
-*          Workspace for residual, direction vector, etc.
-*          Note that vectors R and S shared the same workspace.
-*
-*  LDW     (input) INT
-*          The leading dimension of the array WORK. LDW >= max(1,N).
 *
 *  ITER    (input/output) INT
 *          On input, the maximum iterations to be performed.
@@ -68,39 +53,7 @@ static double TOLERANCE_FOR_SCALARS = 0.;
 *          norm( b - A*x ) 
 *          On output, the final value of this measure.
 *
-*  MATVEC  (external subroutine)
-*          The user must provide a subroutine to perform the
-*          matrix-vector product
-*
-*               y := alpha*A*x + beta*y,
-*
-*          where alpha and beta are scalars, x and y are vectors,
-*          and A is a matrix. Vector x must remain unchanged.
-*          The solution is over-written on vector y.
-*
-*          The call is:
-*
-*             CALL MATVEC( ALPHA, X, BETA, Y )
-*
-*          The matrix is passed into the routine in a common block.
-*
-*  PSOLVE  (external subroutine)
-*          The user must provide a subroutine to perform the
-*          preconditioner solve routine for the linear system
-*
-*               M*x = b,
-*
-*          where x and b are vectors, and M a matrix. Vector b must
-*          remain unchanged.
-*          The solution is over-written on vector b.
-*
-*          The call is:
-*
-*             CALL PSOLVE( X, B )
-*
-*          The preconditioner is passed into the routine in a common block.
-*
-*  INFO    (output) INT
+*  return value
 *
 *          = SOLVER_NO_ERROR: Successful exit. Iterated approximate solution returned.
 *          = SOLVER_MAXITER_REACHED
@@ -111,11 +64,11 @@ static double TOLERANCE_FOR_SCALARS = 0.;
 *  ==============================================================
 */
 
-int Finley_Solver_BiCGStab(
+err_t Finley_Solver_BiCGStab(
     Finley_SystemMatrix * A,
     double * r,
     double * x,
-    int *iter,
+    dim_t *iter,
     double * tolerance) {
 
 
@@ -123,13 +76,13 @@ int Finley_Solver_BiCGStab(
   double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;
   double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
   double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
-  int num_iter=0,maxit,num_iter_global;
-  int i0;
-  int breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
-  int status = SOLVER_NO_ERROR;
+  dim_t num_iter=0,maxit,num_iter_global;
+  dim_t i0;
+  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+  dim_t status = SOLVER_NO_ERROR;
 
   /* adapt original routine parameters */
-  int n = A->num_cols * A-> col_block_size;;
+  dim_t n = A->num_cols * A-> col_block_size;;
   double * resid = tolerance;
 
   /* Executable Statements */
@@ -286,3 +239,22 @@ int Finley_Solver_BiCGStab(
   /*     End of BICGSTAB */
   return status;
 }
+/*
+ * $Log$
+ * Revision 1.5  2005/07/08 04:08:00  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.1.1.2.2  2005/06/29 02:34:58  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.1.1.2.1  2004/11/24 01:37:16  gross
+ * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
+ *
+ * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+ * initial import of project esys2
+ *
+ * Revision 1.1  2004/07/02 04:21:14  gross
+ * Finley C code has been included
+ *
+ *
+ */

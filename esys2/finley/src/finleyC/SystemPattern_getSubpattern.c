@@ -21,13 +21,13 @@
 /* creates SystemMatrixPattern  */
 
 Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_SystemMatrixPattern* pattern, \
-                                           int new_n_rows, maybelong* row_list,maybelong* new_col_index) {
+                                           int new_n_rows, index_t* row_list,index_t* new_col_index) {
   Finley_SystemMatrixPattern*out=NULL;
-  maybelong *ptr=NULL,*index=NULL;
-  maybelong i,k,j,subpattern_row,tmp;
+  index_t *ptr=NULL,*index=NULL,k,j,subpattern_row,tmp;
+  dim_t i;
   Finley_ErrorCode=NO_ERROR;
 
-  ptr=MEMALLOC(new_n_rows+1,maybelong);
+  ptr=MEMALLOC(new_n_rows+1,index_t);
   if (! Finley_checkPtr(ptr))  {
      #pragma omp parallel
      {
@@ -46,7 +46,7 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_Syst
      }
      /* accummulate ptr */
      ptr[new_n_rows]=Finley_Util_cumsum(new_n_rows,ptr);
-     index=MEMALLOC(ptr[new_n_rows],maybelong);
+     index=MEMALLOC(ptr[new_n_rows],index_t);
      if (Finley_checkPtr(index))  {
         MEMFREE(ptr);
      } else {
@@ -73,3 +73,19 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_getSubpattern(Finley_Syst
   }
   return out;
 }
+/*
+ * $Log$
+ * Revision 1.4  2005/07/08 04:07:57  jgs
+ * Merge of development branch back to main trunk on 2005-07-08
+ *
+ * Revision 1.1.2.3  2005/06/29 02:34:56  gross
+ * some changes towards 64 integers in finley
+ *
+ * Revision 1.1.2.2  2005/03/02 23:35:06  gross
+ * reimplementation of the ILU in Finley. block size>1 still needs some testing
+ *
+ * Revision 1.1.2.1  2005/02/18 02:27:31  gross
+ * two function that will be used for a reimplementation of the ILU preconditioner
+ *
+ *
+ */

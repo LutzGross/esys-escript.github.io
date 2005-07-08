@@ -36,14 +36,6 @@ using namespace std;
 using namespace escript;
 
 namespace finley {
-
-struct null_deleter
-{
-  void operator()(void const *ptr) const
-  {
-  }
-};
-
 //
 // define the statics
 MeshAdapter::FunctionSpaceNamesMapType MeshAdapter::m_functionSpaceTypeNames;
