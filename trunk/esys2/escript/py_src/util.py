@@ -13,13 +13,13 @@ TODO for Data:
    
   * implementation of outer outer(a,b)[:,*]=a[:]*b[*]
   * trace: trace(arg,axis0=a0,axis1=a1)(:,&,*)=sum_i trace(:,i,&,i,*) (i are at index a0 and a1)
-
 """
 
 import numarray
 import escript
+
 #
-#   escript constants (have to be consistent witj utilC.h 
+#   escript constants (have to be consistent with utilC.h )
 #
 UNKNOWN=-1
 EPSILON=1.e-15
@@ -59,8 +59,9 @@ TIFF=7
 OPENINVENTOR=8
 RENDERMAN=9
 PNM=10
+
 #===========================================================
-#  a simple tool box to deal with _differentials of functions 
+# a simple tool box to deal with _differentials of functions 
 #===========================================================
 
 class Symbol:
@@ -165,7 +166,6 @@ class Symbol:
        else:
          return self
 
-
    def __str__(self):
        """returns a string representation of the symbol"""
        return self.__name
@@ -177,7 +177,6 @@ class Symbol:
        else:
           a=_matchShape([self,other])
           return Add_Symbol(a[0],a[1])
-
 
    def __radd__(self,other):
        """adds other to symbol self. if _testForZero(other) self is returned."""
@@ -300,7 +299,6 @@ class Tensor4Symbol(Symbol):
       else:    
            d=dim
       Symbol.__init__(self,shape=(d,d,d,d),dim=d,name=name)
-
 
 class Add_Symbol(Symbol):
    """symbol representing the sum of two arguments"""
@@ -446,8 +444,9 @@ def _matchShape(args,shape=None):
             else:  
                 raise ValueError,"cannot adopt shape of %s to %s"%(str(args[i]),str(shape))
     return out  
+
 #=========================================================
-#   wrapper for various mathematical functions:
+#   wrappers for various mathematical functions:
 #=========================================================
 def diff(arg,dep):
     """returns the derivative of arg with respect to dep. If arg is not Symbol object
@@ -528,6 +527,29 @@ class Log_Symbol(Symbol):
       return "log(%s)"%str(self.getArgument(0))
    def eval(self,argval):
        return log(self.getEvaluatedArguments(argval)[0])
+   def _diff(self,arg):
+       return self.getDifferentiatedArguments(arg)[0]/self.getArgument(0)
+
+def ln(arg):
+    """
+    @brief applies the natural logarithmic function to arg
+    @param arg (input): argument 
+    """
+    if isinstance(arg,Symbol):
+       return Ln_Symbol(arg)
+    elif hasattr(arg,"ln"):
+       return arg.log()
+    else:
+       return numarray.log(arg)
+
+class Ln_Symbol(Symbol):
+   """symbol representing natural logarithm of the argument"""
+   def __init__(self,arg):
+       Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
+   def __str__(self):
+      return "ln(%s)"%str(self.getArgument(0))
+   def eval(self,argval):
+       return ln(self.getEvaluatedArguments(argval)[0])
    def _diff(self,arg):
        return self.getDifferentiatedArguments(arg)[0]/self.getArgument(0)
 
@@ -857,11 +879,10 @@ def Integral_Symbol(Float_Symbol):
 #=============================
 #
 # wrapper for various functions: if the argument has attribute the function name
-# as an argument it calls the correspong methods. Otherwise the coresponsing numarray
-# function is called.
-#
+# as an argument it calls the corresponding methods. Otherwise the corresponding
+# numarray function is called.
+
 # functions involving the underlying Domain:
-#
 
 
 # functions returning Data objects:
@@ -918,8 +939,6 @@ def trace(arg,axis0=0,axis1=1):
        return arg.transpose(axis0=axis0,axis1=axis1)
     else:
        return numarray.trace(arg,axis0=axis0,axis1=axis1)
-
-
 
 def Trace_Symbol(Symbol):
     pass
@@ -1035,6 +1054,7 @@ def matrixmult(arg0,arg1):
           return out
       else:
           raise SystemError,"matrixmult is not fully implemented yet!"
+
 #=========================================================
 # reduction operations:
 #=========================================================
@@ -1127,7 +1147,6 @@ def unit(i,d):
    e[i] = 1.0
    return e
 
-#
 # ============================================
 #   testing
 # ============================================
@@ -1137,7 +1156,6 @@ if __name__=="__main__":
   v=ScalarSymbol(dim=2,name="v")
   v=VectorSymbol(2,"v")
   u=VectorSymbol(2,"u")
-
 
   print u+5,(u+5).diff(u)
   print 5+u,(5+u).diff(u)
@@ -1180,8 +1198,13 @@ if __name__=="__main__":
   g=grad(u)
   print diff(5*g,g)
   4*(g+transpose(g))/2+6*trace(g)*kronecker(3) 
+
 #
 # $Log$
+# Revision 1.12  2005/07/20 06:14:58  jgs
+# added ln(data) style wrapper for data.ln() - also added corresponding
+# implementation of Ln_Symbol class (not sure if this is right though)
+#
 # Revision 1.11  2005/07/08 04:07:35  jgs
 # Merge of development branch back to main trunk on 2005-07-08
 #
