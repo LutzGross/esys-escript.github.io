@@ -101,11 +101,6 @@ ifeq ($(strip $(L_INSTLIB_DIR)),)
    L_INSTLIB_DIR := $(ESYS_ROOT)/lib
 endif
 
-# Python package install directory
-ifeq ($(strip $(L_PYTH_DIR)),)
-   L_PYTH_DIR := $(ESYS_ROOT)/esys
-endif
-
 # Include remainder of Makefiles
 include ${MAKE_DIR}/Makefile.source
 include ${MAKE_DIR}/hosts/${HOSTNAME}/Makefile.host
