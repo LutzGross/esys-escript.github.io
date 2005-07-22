@@ -6,6 +6,7 @@ from esys.escript import *
 from esys import finley
 
 import numarray
+from numarray import array,Float64,ones,greater
 
 """
 
@@ -15,19 +16,12 @@ Version $Id$
 
 """
 
-from numarray import array,Float64,ones,greater
-
-
-#  list of arguments: a list item has the form [a0,a1,a2]
-#  what a0 is the default value and a1 is used for tag Tag1
-#  and a2 for tag2. a0,a1,a2 are converted into numarrays.
-
 arglist = [ \
+3.0, \
 [3,4], \
 [[1,2],[3,4]], \
 [[15,8],[12,8]], \
-[[[15,8],[12,8]],[[-9,9],[13,8]]], \
-3.0 \
+[[[15,8],[12,8]],[[-9,9],[13,8]]] \
 ]
 
 def turnToArray(val):
@@ -98,20 +92,36 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       arg=prepareArg(a,ex,wh)
 
-      narry1 = arg.convertToNumArray()
-      narry2 = arg.convertToNumArrayFromSampleNo(0)
-      narry3 = arg.convertToNumArrayFromDPNo(0,0)
+      print "\n\nTests of copy method:"
+
+      arg_copy = Data()
+      arg_copy.copy(arg)
+      print arg
+      print arg_copy
 
       print "\n\nTests of conversion to numarray:"
 
+      narray1 = arg.convertToNumArray()
+      narray2 = arg.convertToNumArrayFromSampleNo(0)
+      narray3 = arg.convertToNumArrayFromDPNo(0,0)
+
       print "arg.convertToNumArray()"
-      print narry1
+      print narray1
 
       print "arg.convertToNumArrayFromSampleNo(0)"
-      print narry2
+      print narray2
 
       print "arg.convertToNumArrayFromDPNo(0,0)"
-      print narry3
+      print narray3
+
+      if (ex == "Expanded"):
+        print "\n\nTests of get/setRefValue functions:"
+        result_array = numarray.array(a)
+        print result_array
+        result_array+=1
+        arg.setRefValue(0,result_array)
+        arg.getRefValue(0,result_array)
+        print result_array
 
       print "\n\nTests of misc python functions:"
 

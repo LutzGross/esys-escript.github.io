@@ -309,7 +309,7 @@ class DataExpanded : public DataAbstract {
 
   /**
      \brief
-     Copy the given data point to all data points in this object.
+     Copy the given data point value to all data points in this object.
 
      Description:
      Copy the given data point to all data points in this object.
@@ -319,8 +319,29 @@ class DataExpanded : public DataAbstract {
   void
   copy(const DataArrayView& value);
 
+  /**
+     \brief
+     Copy the given data point value given a numarray object to all data points in this object.
+
+     Description:
+     Copy the given data point value given a numarray object to all data points in this object.
+
+     \param value Input - A single data point value.
+  */
   void
   copy(const boost::python::numeric::array& value);
+
+  /**
+     \brief
+     Copy the numarray object to the data points in this object.
+
+     Description:
+     Copy the numarray object to the data points in this object.
+
+     \param value Input - new values for the data points
+  */
+  void
+  copyAll(const boost::python::numeric::array& value);
 
   //
   // The main data storage array, a 2D array of data blocks.

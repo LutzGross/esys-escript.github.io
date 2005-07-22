@@ -742,7 +742,7 @@ DataArrayView::matMult(const DataArrayView& left,
       throw DataException(temp.str());
     }
 
-    if (left.getShape()[left.getRank()-1]!=right.getShape()[0]) {
+    if (left.getShape()[left.getRank()-1] != right.getShape()[0]) {
       stringstream temp;
       temp << "Error - (matMult) Dimension: " << left.getRank() 
 	   << ", size: " << left.getShape()[left.getRank()-1] 
@@ -751,11 +751,11 @@ DataArrayView::matMult(const DataArrayView& left,
       throw DataException(temp.str());
     }
 
-    int outputRank=left.getRank()+right.getRank()-2;
-    
+    int outputRank = left.getRank()+right.getRank()-2;
+
     if (outputRank < 0) {
       stringstream temp;
-      temp << "Error - (matMult) Left and right operands cannot be multiplied "
+      temp << "Error - (matMult) LHS and RHS cannot be multiplied "
 	   << "as they have incompatable rank.";
       throw DataException(temp.str());
     }
@@ -768,23 +768,23 @@ DataArrayView::matMult(const DataArrayView& left,
       throw DataException(temp.str());
     }
 
-    for (int i=0; i<(left.getRank()-1); ++i) {
-      if (left.getShape()[i]!=result.getShape()[i]) {
+    for (int i=0; i<(left.getRank()-1); i++) {
+      if (left.getShape()[i] != result.getShape()[i]) {
 	stringstream temp;
 	temp << "Error - (matMult) Dimension: " << i 
-	     << " of LHS and output array don't match.";
+	     << " of LHS and result array don't match.";
 	throw DataException(temp.str());
       }
     }
 
-    for (int i=1; i<right.getRank(); ++i) {
+    for (int i=1; i<right.getRank(); i++) {
       if (right.getShape()[i] != result.getShape()[i+left.getRank()-2]) {
 	stringstream temp;
 	temp << "Error - (matMult) Dimension: " << i
 	     << ", size: " << right.getShape()[i]
 	     << " of RHS and dimension: " << i+left.getRank()-1 
 	     << ", size: " << result.getShape()[i+left.getRank()-1]
-	     << " of output array don't match.";
+	     << " of result array don't match.";
 	throw DataException(temp.str());
       }
     }

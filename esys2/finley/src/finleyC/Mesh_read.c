@@ -88,7 +88,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->Elements->Id[i0], &mesh_p->Elements->Tag[i0]);
     mesh_p->Elements->Color[i0]=i0;
     for (i1 = 0; i1 < mesh_p->Elements->ReferenceElement->Type->numNodes; i1++) {
-         fscanf(fileHandle_p, " %d", 
+         fscanf(fileHandle_p, " %d",
             &mesh_p->Elements->Nodes[INDEX2(i1, i0, mesh_p->Elements->ReferenceElement->Type->numNodes)]);
     }	/* for i1 */
     fscanf(fileHandle_p, "\n");
@@ -110,7 +110,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->FaceElements->Id[i0], &mesh_p->FaceElements->Tag[i0]);
     mesh_p->FaceElements->Color[i0]=i0;
     for (i1 = 0; i1 < mesh_p->FaceElements->ReferenceElement->Type->numNodes; i1++) {
-         fscanf(fileHandle_p, " %d", 
+         fscanf(fileHandle_p, " %d",
             &mesh_p->FaceElements->Nodes[INDEX2(i1, i0, mesh_p->FaceElements->ReferenceElement->Type->numNodes)]);
     }	/* for i1 */
     fscanf(fileHandle_p, "\n");
@@ -132,7 +132,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->ContactElements->Id[i0], &mesh_p->ContactElements->Tag[i0]);
     mesh_p->ContactElements->Color[i0]=i0;
     for (i1 = 0; i1 < mesh_p->ContactElements->ReferenceElement->Type->numNodes; i1++) {
-        fscanf(fileHandle_p, " %d", 
+        fscanf(fileHandle_p, " %d",
            &mesh_p->ContactElements->Nodes[INDEX2(i1, i0, mesh_p->ContactElements->ReferenceElement->Type->numNodes)]);
     }	/* for i1 */
     fscanf(fileHandle_p, "\n");
@@ -155,7 +155,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     fscanf(fileHandle_p, "%d %d", &mesh_p->Points->Id[i0], &mesh_p->Points->Tag[i0]);
     mesh_p->Points->Color[i0]=i0;
     for (i1 = 0; i1 < mesh_p->Points->ReferenceElement->Type->numNodes; i1++) {
-        fscanf(fileHandle_p, " %d", 
+        fscanf(fileHandle_p, " %d",
            &mesh_p->Points->Nodes[INDEX2(i1, i0, mesh_p->Points->ReferenceElement->Type->numNodes)]);
     }	/* for i1 */
     fscanf(fileHandle_p, "\n");
@@ -167,13 +167,14 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   fclose(fileHandle_p);
 
   /*   resolve id's : */
-                                                                                                                                  
+
   Finley_Mesh_resolveNodeIds(mesh_p);
-                                                                                                                                     
+
   /* rearrange elements: */
-  
+
   Finley_Mesh_prepare(mesh_p);
-                                                                                                                                     
+  printf ("nodes read!\n");
+
   /* that's it */
   printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
   if (Finley_ErrorCode!=NO_ERROR) Finley_Mesh_dealloc(mesh_p);
@@ -181,8 +182,14 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 }
 /*
 * $Log$
+* Revision 1.3  2005/07/22 03:53:08  jgs
+* Merge of development branch back to main trunk on 2005-07-22
+*
 * Revision 1.2  2005/07/08 04:07:54  jgs
 * Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.2  2005/07/18 10:34:54  gross
+* some informance improvements when reading meshes
 *
 * Revision 1.1.1.1.2.1  2005/06/29 02:34:53  gross
 * some changes towards 64 integers in finley

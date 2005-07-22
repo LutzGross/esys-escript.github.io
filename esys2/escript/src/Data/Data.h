@@ -226,6 +226,12 @@ class Data {
   convertToNumArray();
 
   /**
+     \brief fills the expanded Data object from values of a  python numarray object.
+
+  */
+  void 
+  fillFromNumArray(const boost::python::numeric::array);
+  /**
      \brief
      Return the values of all data-points for the given sample as a single python numarray object.
   */
