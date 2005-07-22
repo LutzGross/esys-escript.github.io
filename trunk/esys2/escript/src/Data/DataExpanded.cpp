@@ -359,7 +359,7 @@ DataExpanded::setRefValue(int ref,
 
   for (int n=0; n<numDPPSample; n++) {
     //
-    // Get each data-point in the sample in turn.
+    // Get *each* data-point in the sample in turn.
     DataArrayView pointView = getDataPoint(sampleNo, n);
     //
     // Assign the values in the DataArray to this data-point.
@@ -392,7 +392,7 @@ DataExpanded::getRefValue(int ref,
   }
 
   //
-  // Get the first data-point associated with this sample number.
+  // Get the *first* data-point associated with this sample number.
   DataArrayView pointView = getDataPoint(sampleNo, 0);
 
   //
@@ -414,4 +414,58 @@ DataExpanded::extractData(ifstream& archiveFile,
   return(m_data.extractData(archiveFile, noValues));
 }
 
+void
+DataExpanded::copyAll(const boost::python::numeric::array& value) {
+  //
+  // Get the number of samples and data-points per sample.
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  int dataPointRank = getPointDataView().getRank();
+  ShapeType dataPointShape = getPointDataView().getShape();
+  //
+  // check rank:
+  if (value.getrank()!=dataPointRank+1)
+       throw DataException("Rank of numarray does not match Data object rank");
+  if (value.getshape()[0]!=numSamples*numDataPointsPerSample)
+       throw DataException("leading dimension of numarray is too small");
+  //
+  int dataPoint = 0;
+  for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+      DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+      if (dataPointRank==0) {
+         dataPointView()=extract<double>(value[dataPoint]);
+      } else if (dataPointRank==1) {
+         for (int i=0; i<dataPointShape[0]; i++) {
+            dataPointView(i)=extract<double>(value[dataPoint][i]);
+         }
+      } else if (dataPointRank==2) {
+         for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+             dataPointView(i,j)=extract<double>(value[dataPoint][i][j]);
+           }
+         }
+       } else if (dataPointRank==3) {
+         for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+             for (int k=0; k<dataPointShape[2]; k++) {
+                 dataPointView(i,j,k)=extract<double>(value[dataPoint][i][j][k]);
+             }
+           }
+         }
+       } else if (dataPointRank==4) {
+         for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+             for (int k=0; k<dataPointShape[2]; k++) {
+               for (int l=0; l<dataPointShape[3]; l++) {
+                 dataPointView(i,j,k,l)=extract<double>(value[dataPoint][i][j][k][l]);
+               }
+             }
+           }
+         }
+      }
+      dataPoint++;
+    }
+  }
+}
 }  // end of namespace

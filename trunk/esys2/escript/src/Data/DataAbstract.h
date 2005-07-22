@@ -295,6 +295,19 @@ class DataAbstract {
   extractData(std::ifstream& archiveFile,
               const ValueType::size_type noValues);
 
+  /**
+     \brief
+     Copy the numarray object to the data points in this object.
+
+     Description:
+     Copy the numarray object to the data points in this object.
+
+     \param value Input - new values for the data points
+  */
+  virtual void
+  copyAll(const boost::python::numeric::array& value);
+
+
  protected:
 
   /**

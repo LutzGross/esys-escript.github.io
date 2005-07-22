@@ -555,7 +555,7 @@ class Ln_Symbol(Symbol):
 
 def sin(arg):
     """
-    @brief applies the sinus function to arg
+    @brief applies the sin function to arg
     @param arg (input): argument 
     """
     if isinstance(arg,Symbol):
@@ -566,7 +566,7 @@ def sin(arg):
        return numarray.sin(arg)
 
 class Sin_Symbol(Symbol):
-   """symbol representing logarithm of the argument"""
+   """symbol representing sin of the argument"""
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -578,7 +578,7 @@ class Sin_Symbol(Symbol):
 
 def cos(arg):
     """
-    @brief applies the sinus function to arg
+    @brief applies the cos function to arg
     @param arg (input): argument 
     """
     if isinstance(arg,Symbol):
@@ -589,7 +589,7 @@ def cos(arg):
        return numarray.cos(arg)
 
 class Cos_Symbol(Symbol):
-   """symbol representing logarithm of the argument"""
+   """symbol representing cos of the argument"""
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -601,7 +601,7 @@ class Cos_Symbol(Symbol):
 
 def tan(arg):
     """
-    @brief applies the sinus function to arg
+    @brief applies the tan function to arg
     @param arg (input): argument 
     """
     if isinstance(arg,Symbol):
@@ -612,7 +612,7 @@ def tan(arg):
        return numarray.tan(arg)
 
 class Tan_Symbol(Symbol):
-   """symbol representing logarithm of the argument"""
+   """symbol representing tan of the argument"""
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -660,7 +660,7 @@ def maxval(arg):
        return arg
 
 class Max_Symbol(Symbol):
-   """symbol representing the sign of the argument"""
+   """symbol representing the maximum value of the argument"""
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -670,7 +670,7 @@ class Max_Symbol(Symbol):
 
 def minval(arg):
     """
-    @brief returns the maximum value of argument arg""
+    @brief returns the minimum value of argument arg""
     @param arg (input): argument 
     """
     if isinstance(arg,Symbol):
@@ -683,7 +683,7 @@ def minval(arg):
        return arg
 
 class Min_Symbol(Symbol):
-   """symbol representing the sign of the argument"""
+   """symbol representing the minimum value of the argument"""
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -693,7 +693,7 @@ class Min_Symbol(Symbol):
 
 def wherePositive(arg):
     """
-    @brief returns the maximum value of argument arg""
+    @brief returns the positive values of argument arg""
     @param arg (input): argument 
     """
     if _testForZero(arg):
@@ -721,7 +721,7 @@ class WherePositive_Symbol(Symbol):
 
 def whereNegative(arg):
     """
-    @brief returns the maximum value of argument arg""
+    @brief returns the negative values of argument arg""
     @param arg (input): argument 
     """
     if _testForZero(arg):
@@ -768,7 +768,7 @@ def outer(arg0,arg1):
           raise ValueError,"outer is not fully implemented yet."
 
 class Outer_Symbol(Symbol):
-   """symbol representing the outer product of its two argument"""
+   """symbol representing the outer product of its two arguments"""
    def __init__(self,arg0,arg1):
        a=[arg0,arg1]
        s=tuple(list(_identifyShape(arg0))+list(_identifyShape(arg1)))
@@ -935,7 +935,7 @@ def trace(arg,axis0=0,axis1=1):
           for j in range(s[1]):
              out+=arg[i,j]
        return out
-       # end hack for transpose 
+       # end hack for trace
        return arg.transpose(axis0=axis0,axis1=axis1)
     else:
        return numarray.trace(arg,axis0=axis0,axis1=axis1)
@@ -980,8 +980,8 @@ def length(arg):
                       sum+=arg[i,j,k,l]**2
           return sqrt(sum)
        else:
-          raise SystemError,"length is not been implemented yet"
-       # return arg.length()
+          raise SystemError,"length is not been fully implemented yet"
+          # return arg.length()
     else:
        return sqrt((arg**2).sum())
 
@@ -1050,6 +1050,7 @@ def matrixmult(arg0,arg1):
           out=escript.Data(0,(arg0.getShape()[0],),arg0.getFunctionSpace())
           for i in range(arg0.getShape()[0]):
              for j in range(arg0.getShape()[1]):
+               # uses Data object slicing, plus Data * and += operators
                out[i]+=arg0[i,j]*arg1[j]
           return out
       else:
@@ -1201,6 +1202,25 @@ if __name__=="__main__":
 
 #
 # $Log$
+# Revision 1.13  2005/07/22 03:53:01  jgs
+# Merge of development branch back to main trunk on 2005-07-22
+#
+# Revision 1.12  2005/07/20 06:14:58  jgs
+# added ln(data) style wrapper for data.ln() - also added corresponding
+# implementation of Ln_Symbol class (not sure if this is right though)
+#
+# Revision 1.11  2005/07/08 04:07:35  jgs
+# Merge of development branch back to main trunk on 2005-07-08
+#
+# Revision 1.10  2005/06/09 05:37:59  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.2.2.19  2005/07/21 04:01:28  jgs
+# minor comment fixes
+#
+# Revision 1.2.2.18  2005/07/21 01:02:43  jgs
+# commit ln() updates to development branch version
+#
 # Revision 1.12  2005/07/20 06:14:58  jgs
 # added ln(data) style wrapper for data.ln() - also added corresponding
 # implementation of Ln_Symbol class (not sure if this is right though)
