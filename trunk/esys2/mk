@@ -16,7 +16,12 @@ MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
 TESTS="escript finley"
 
 # use this setting for local developmental builds
-ENVVARS="DODEBUG=YES"
+#ENVVARS="DODEBUG=YES"
+
+if [ "$2" == "DEBUG" ];
+then
+    ENVVARS="DODEBUG=YES"
+fi
 
 if [ "$2" == "NODEBUG" ];
 then
