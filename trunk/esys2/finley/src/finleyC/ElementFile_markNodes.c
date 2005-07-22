@@ -32,24 +32,37 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFil
         lin_node=id;
      }
      NN2=in->ReferenceElement->Type->numNodes;
-     #pragma omp parallel private(color)
-     {
-        for (color=in->minColor;color<=in->maxColor;color++) {
-          #pragma omp for private(e,i) schedule(static)
-          for (e=0;e<in->numElements;e++) {
-            if (in->Color[e]==color) {
-               for (i=0;i<NN;i++) mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
-            }
-          }
+     if ((in->maxColor-in->minColor+1)*NN<in->numElements) {
+        #pragma omp parallel private(color)
+        {
+           for (color=in->minColor;color<=in->maxColor;color++) {
+             #pragma omp for private(e,i) schedule(static)
+             for (e=0;e<in->numElements;e++) {
+               if (in->Color[e]==color) {
+                  for (i=0;i<NN;i++) mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
+               }
+             }
+           }
+           #pragma omp barrier
         }
-        #pragma omp barrier
-     }
+      } else {
+        #pragma omp parallel for private(e,i) schedule(static)
+        for (e=0;e<in->numElements;e++) {
+           for (i=0;i<NN;i++) mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
+        }
+      }
    }
 }
 /* 
 * $Log$
+* Revision 1.3  2005/07/22 03:53:08  jgs
+* Merge of development branch back to main trunk on 2005-07-22
+*
 * Revision 1.2  2005/07/08 04:07:50  jgs
 * Merge of development branch back to main trunk on 2005-07-08
+*
+* Revision 1.1.1.1.2.2  2005/07/18 10:34:54  gross
+* some informance improvements when reading meshes
 *
 * Revision 1.1.1.1.2.1  2005/06/29 02:34:49  gross
 * some changes towards 64 integers in finley

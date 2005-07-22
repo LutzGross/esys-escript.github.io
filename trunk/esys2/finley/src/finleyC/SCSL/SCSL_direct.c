@@ -99,13 +99,13 @@ void Finley_SCSL_direct(Finley_SystemMatrix* A,
        }
        time0=Finley_timer();
        if (TokenSym[token]) {
-            DPSLDLT_Ordering(token,reordering_method);
-            DPSLDLT_Preprocess(token,A->num_rows,A->pattern->ptr,A->pattern->index,&non_zeros,&ops);
+            /* DPSLDLT_Ordering(token,reordering_method); (does not work)*/
+            DPSLDLT_Preprocess(token,A->num_rows,A->pattern->ptr,A->pattern->index,&non_zeros,&ops); 
             DPSLDLT_Factor(token,A->num_rows,A->pattern->ptr,A->pattern->index,A->val);
             if (options->verbose) printf("timing SCSL: Cholevsky factorization: %.4e sec (token = %d)\n",Finley_timer()-time0,token);
        } else {
-            DPSLDU_Ordering(token,reordering_method);
-            DPSLDU_Preprocess(token,A->num_rows,A->pattern->ptr,A->pattern->index,&non_zeros,&ops);
+            /* DPSLDU_Ordering(token,reordering_method);(does not work)*/
+            DPSLDU_Preprocess(token,A->num_rows,A->pattern->ptr,A->pattern->index,&non_zeros,&ops); 
             DPSLDU_Factor(token,A->num_rows,A->pattern->ptr,A->pattern->index,A->val);
             if (options->verbose) printf("timing SCSL: LDU factorization: %.4e sec (token = %d)\n",Finley_timer()-time0,token);
        }
@@ -126,8 +126,14 @@ void Finley_SCSL_direct(Finley_SystemMatrix* A,
 }
 /*
  * $Log$
+ * Revision 1.3  2005/07/22 03:53:08  jgs
+ * Merge of development branch back to main trunk on 2005-07-22
+ *
  * Revision 1.2  2004/12/15 07:08:34  jgs
  * *** empty log message ***
+ *
+ * Revision 1.1.2.2  2005/07/18 10:34:55  gross
+ * some informance improvements when reading meshes
  *
  * Revision 1.1.2.1  2004/11/12 06:58:20  gross
  * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry

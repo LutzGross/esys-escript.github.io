@@ -15,12 +15,20 @@ except NameError:
 from xml.dom import minidom
 
 def dataNode(document, tagName, data):
+    """
+    dataNodes are the building blocks of the xml documents constructed in
+    this module. document is the current xml document, tagName is the
+    associated xml tag, and data is the values in the tag.
+    """
     t = document.createTextNode(str(data))
     n = document.createElement(tagName)
     n.appendChild(t)
     return n
 
 def esysDoc():
+    """
+    Global method for creating an instance of an EsysXML document.
+    """
     doc = minidom.Document()
     esys = doc.createElement('ESys')
     doc.appendChild(esys)
@@ -85,34 +93,44 @@ class Link:
      """
     
     def __init__(self,target,attribute=None):
-        """creates a link to the object target. If attribute is given, the link is
+        """
+        creates a link to the object target. If attribute is given, the link is
         establised to this attribute of the target.  Otherwise the attribute is
-        undefined."""
+        undefined.
+        """
         self.target = target
         self.attribute = None
         self.setAttributeName(attribute)
     
     def setAttributeName(self,attribute):
-        """set a new attribute name to be collected from the target object. The
-        target object must have the attribute with name attribute."""
+        """
+        set a new attribute name to be collected from the target object. The
+        target object must have the attribute with name attribute.
+        """
         if attribute and self.target and not hasattr(self.target, attribute):
             raise AttributeError("%s: target %s has no attribute %s."%(self, self.target, attribute))
         self.attribute = attribute
     
     def hasDefinedAttributeName(self):
-        """returns true if an attribute name is set"""
+        """
+        returns true if an attribute name is set
+        """
         return self.attribute != None
     
     def __repr__(self):
-        """returns a string representation of the link"""
+        """
+        returns a string representation of the link
+        """
         if self.hasDefinedAttributeName():
             return "<Link to attribute %s of %s>" % (self.attribute, self.target)
         else:
             return "<Link to target %s>" % self.target
     
     def __call__(self,name=None):
-        """returns the value of the attribute of the target object. If the
-        atrribute is callable then the return value of the call is returned."""
+        """
+        returns the value of the attribute of the target object. If the
+        atrribute is callable then the return value of the call is returned.
+        """
         if name:
             out=getattr(self.target, name)
         else:
@@ -124,8 +142,10 @@ class Link:
             return out
 
     def toDom(self, document, node):
-        """ toDom method of Link. Creates a Link node and appends it to the current XML 
-        document """
+        """
+        toDom method of Link. Creates a Link node and appends it to the current XML 
+        document 
+        """
         link = document.createElement('Link')
         link.appendChild(dataNode(document, 'Target', self.target.id))
         # this use of id will not work for purposes of being able to retrieve the intended
@@ -144,9 +164,11 @@ class Link:
     fromDom = classmethod(fromDom)
     
     def writeXML(self,ostream=stdout):
-        """writes an XML representation of self to the output stream ostream.
+        """
+        writes an XML representation of self to the output stream ostream.
         If ostream is nor present the standart output stream is used.  If
-        esysheader==True the esys XML header is written"""
+        esysheader==True the esys XML header is written
+        """
 
         document, rootnode = esysDoc()
         self.toDom(document, rootnode)
@@ -240,13 +262,13 @@ class SimulationFrame(LinkableObject):
     MAX_TIME_STEP_REDUCTION=20
     MAX_ITER_STEPS=50
     
-    def __init__(self,*args, **kwargs):
+    def __init__(self,**kwargs):
         """
         Initialises a simulation
         
         Just calls the parent constructor.
         """
-        LinkableObject.__init__(self,*args, **kwargs)
+        LinkableObject.__init__(self,**kwargs)
     
     def doInitialization(self,t):
         """initializes the time stepping scheme. This function may be
@@ -363,9 +385,9 @@ class SimulationFrame(LinkableObject):
 class Simulation(SimulationFrame): 
     """A Simulation object is comprised by SimulationFrame(s) called subsimulations."""
     
-    def __init__(self, subsimulations=[], *args, **kwargs):
+    def __init__(self, subsimulations=[], **kwargs):
         """initiates a simulation from a list of subsimulations. """
-        SimulationFrame.__init__(self, *args, **kwargs)
+        SimulationFrame.__init__(self, **kwargs)
         self.__subsimulations=[]
 
         for i in range(len(subsimulations)): 
@@ -634,16 +656,22 @@ class ParameterSet(LinkableObject):
 
         def _stringfromValue(doc):
             return str(doc.nodeValue.strip())
-        
+       
+        def _intfromValue(doc):
+            return int(doc.nodeValue.strip())
+
+        def _boolfromValue(doc):
+            return bool(doc.nodeValue.strip())
+       
         # Mapping from text types in the xml to methods used to process trees of that type
         ptypemap = {"Simulation": Simulation.fromDom,
                     "Model":Model.fromDom,
                     "ParameterSet":ParameterSet.fromDom,
                     "Link":Link.fromDom,
                     "float":_floatfromValue,
-                    #"int":_intfromValue,
+                    "int":_intfromValue,
                     "str":_stringfromValue,
-                    #"bool":_boolfromValue
+                    "bool":_boolfromValue
                     }
 
         parameters = {}
@@ -680,10 +708,10 @@ class ParameterSet(LinkableObject):
 class Model(ParameterSet,SimulationFrame):
     """a Model is a SimulationFrame which is also a ParameterSet.""" 
 
-    def __init__(self,parameters=[],*args,**kwargs):
+    def __init__(self,parameters=[],**kwargs):
         """creates a model"""
         ParameterSet.__init__(self, parameters=parameters)
-        SimulationFrame.__init__(self,*args,**kwargs)
+        SimulationFrame.__init__(self,**kwargs)
 
     def toDom(self, document, node):
         """ toDom method of Model class """
@@ -713,7 +741,8 @@ class NonPositiveStepSizeError(Exception):
 #
 #   ignore this text:
 #
-""" the Model class provides a framework to run a time-dependent simulation. A
+""" 
+the Model class provides a framework to run a time-dependent simulation. A
 Model has a set of parameter which may be fixed or altered by the Model itself
 or other Models over time.   
 

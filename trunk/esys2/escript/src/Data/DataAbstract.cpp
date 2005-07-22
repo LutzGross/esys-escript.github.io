@@ -119,4 +119,11 @@ DataAbstract::extractData(ifstream& archiveFile,
   return 0;
 }
 
+void
+DataAbstract::copyAll(const boost::python::numeric::array& value)
+{
+    throw DataException("Error - DataAbstract::copying data from numarray objects is not supported.");
+}
+
+
 }  // end of namespace

@@ -773,6 +773,10 @@ class DataArrayView {
      Perform a matrix multiply of the given views.
      This is purely a utility method and has no bearing on this view.
 
+     NB: Only multiplies together the two given views, ie: two data-points,
+     would need to call this over all data-points to multiply the entire
+     Data objects involved.
+
      \param left - Input - The left hand side.
      \param right - Input - The right hand side.
      \param result - Output - The result of the operation.
