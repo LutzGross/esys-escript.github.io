@@ -10,7 +10,7 @@
 #**********************************************************************
 
 # the modules to make
-MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
+MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley modellib"
 
 # the tests to run
 TESTS="escript finley"
@@ -42,6 +42,7 @@ fi
 (cd finley; if [ ! -h Makefile ]; then ln -s ./finley.mk Makefile; fi)
 (cd tools/mmio; if [ ! -h Makefile ]; then ln -s ./mmio.mk Makefile; fi)
 (cd tools/CppUnitTest; if [ ! -h Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
+(cd modellib; if [ ! -h Makefile ]; then ln -s ./modellib.mk Makefile; fi)
 
 # clean all modules
 if [ "$1" == "clean" ];
@@ -72,8 +73,8 @@ then
 	for module in $MODULES ; do \
 		(echo Installing: $module; cd $module; env $ENVVARS gmake install) \
 	done
-        (cd esys; if [ ! -h escriptcpp.so ]; then ln -s ../lib/libescriptcpp.so escriptcpp.so; fi)
-        (cd esys; if [ ! -h finleycpp.so ]; then ln -s ../lib/libfinleycpp.so finleycpp.so; fi)
+        (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../lib/libescriptcpp.so escriptcpp.so; fi)
+        (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../lib/libfinleycpp.so finleycpp.so; fi)
 fi
 
 # run the unit tests
