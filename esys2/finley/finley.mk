@@ -9,6 +9,8 @@
 
 DEFAULT_TARGET := libfinleyC.a libfinleycpp.so pyc
 
+L_PYTH_DIR := $(ESYS_ROOT)/esys/finley
+
 INSTALL_PYTH := ./lib/py_src/finley.pyc
 
 INSTALL_LIB := ./lib/libfinleycpp.so
