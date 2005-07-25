@@ -73,8 +73,8 @@ then
 	for module in $MODULES ; do \
 		(echo Installing: $module; cd $module; env $ENVVARS gmake install) \
 	done
-        (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../lib/libescriptcpp.so escriptcpp.so; fi)
-        (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../lib/libfinleycpp.so finleycpp.so; fi)
+        (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../../lib/libescriptcpp.so escriptcpp.so; fi)
+        (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../../lib/libfinleycpp.so finleycpp.so; fi)
 fi
 
 # run the unit tests
