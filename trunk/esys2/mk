@@ -10,7 +10,7 @@
 #**********************************************************************
 
 # the modules to make
-MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley modellib"
+MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
 
 # the tests to run
 TESTS="escript finley"
