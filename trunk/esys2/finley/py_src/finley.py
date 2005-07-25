@@ -1,5 +1,5 @@
 # $Id$
 
-import esys.escript
-from esys.finleycpp import *
+import escript.escript
+from finleycpp import *
 

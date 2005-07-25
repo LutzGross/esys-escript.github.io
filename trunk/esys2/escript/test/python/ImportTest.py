@@ -7,7 +7,7 @@ import sys
 #sys.path.append(esys_root+'/escript/lib')
 #sys.path.append(esys_root+'/escript/py_src')
                                                                                                                  
-from esys.escript import *
+from escript.escript import *
 
 """
 

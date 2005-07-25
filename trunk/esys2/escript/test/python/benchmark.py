@@ -2,8 +2,8 @@
 
 from os import getenv
 from time import time
-from esys.escript import *
-from esys.finley import Brick
+from escript.escript import *
+from finley.finley import Brick
 from numarray import ones
 
 cache_size=3 # Mbytes

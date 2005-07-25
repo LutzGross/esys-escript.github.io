@@ -11,9 +11,9 @@ import sys
 import os
 import unittest
 
-from esys.escript import *
-from esys.linearPDEs import *
-from esys import finley
+from escript.escript import *
+from escript.linearPDEs import *
+from finley import finley
 
 from math import *
 from numarray import array

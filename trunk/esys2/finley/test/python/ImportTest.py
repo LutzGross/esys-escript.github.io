@@ -3,8 +3,8 @@
 import os
 import sys
 
-from esys.escript import *
-from esys import finley
+from escript.escript import *
+from finley import finley
 
 """
 

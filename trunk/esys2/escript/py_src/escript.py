@@ -6,5 +6,5 @@
 ##
 ## <a href="http://www.esscc.uq.edu.au/~cochrane/esys_doc/html/index.html">Esys Documentation</a>
 
-from esys.escriptcpp import *
-from esys.util import *
+from escriptcpp import *
+from util import *
