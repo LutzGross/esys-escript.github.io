@@ -1008,29 +1008,29 @@ def inner(arg0,arg1):
     @param arg0, arg1
     """
     sum=escript.Scalar(0,arg0.getFunctionSpace())
-    if arg.getRank()==0:
+    if arg0.getRank()==0:
           return arg0*arg1
-    elif arg.getRank()==1:
-         sum=escript.Scalar(0,arg.getFunctionSpace())
-         for i in range(arg.getShape()[0]):
+    elif arg0.getRank()==1:
+         sum=escript.Scalar(0,arg0.getFunctionSpace())
+         for i in range(arg0.getShape()[0]):
             sum+=arg0[i]*arg1[i]
-    elif arg.getRank()==2:
-        sum=escript.Scalar(0,arg.getFunctionSpace())
-        for i in range(arg.getShape()[0]):
-           for j in range(arg.getShape()[1]):
+    elif arg0.getRank()==2:
+        sum=escript.Scalar(0,arg0.getFunctionSpace())
+        for i in range(arg0.getShape()[0]):
+           for j in range(arg0.getShape()[1]):
               sum+=arg0[i,j]*arg1[i,j]
-    elif arg.getRank()==3:
-        sum=escript.Scalar(0,arg.getFunctionSpace())
-        for i in range(arg.getShape()[0]):
-            for j in range(arg.getShape()[1]):
-               for k in range(arg.getShape()[2]):
+    elif arg0.getRank()==3:
+        sum=escript.Scalar(0,arg0.getFunctionSpace())
+        for i in range(arg0.getShape()[0]):
+            for j in range(arg0.getShape()[1]):
+               for k in range(arg0.getShape()[2]):
                   sum+=arg0[i,j,k]*arg1[i,j,k]
-    elif arg.getRank()==4:
-        sum=escript.Scalar(0,arg.getFunctionSpace())
-        for i in range(arg.getShape()[0]):
-           for j in range(arg.getShape()[1]):
-              for k in range(arg.getShape()[2]):
-                 for l in range(arg.getShape()[3]):
+    elif arg0.getRank()==4:
+        sum=escript.Scalar(0,arg0.getFunctionSpace())
+        for i in range(arg0.getShape()[0]):
+           for j in range(arg0.getShape()[1]):
+              for k in range(arg0.getShape()[2]):
+                 for l in range(arg0.getShape()[3]):
                     sum+=arg0[i,j,k,l]*arg1[i,j,k,l]
     else:
           raise SystemError,"inner is not been implemented yet"
@@ -1202,6 +1202,9 @@ if __name__=="__main__":
 
 #
 # $Log$
+# Revision 1.14  2005/07/25 05:28:13  jgs
+# Merge of development branch back to main trunk on 2005-07-25
+#
 # Revision 1.13  2005/07/22 03:53:01  jgs
 # Merge of development branch back to main trunk on 2005-07-22
 #
@@ -1214,6 +1217,9 @@ if __name__=="__main__":
 #
 # Revision 1.10  2005/06/09 05:37:59  jgs
 # Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.2.2.20  2005/07/25 01:26:27  gross
+# bug in inner fixed
 #
 # Revision 1.2.2.19  2005/07/21 04:01:28  jgs
 # minor comment fixes

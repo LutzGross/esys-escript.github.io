@@ -3,8 +3,7 @@
 from types import StringType,IntType,FloatType,BooleanType,ListType,DictType
 from sys import stdout
 import itertools
-
-import modellib
+# import modellib  temporarily removed!!!
 
 # import the 'set' module if it's not defined (python2.3/2.4 difference)
 try:

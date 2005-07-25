@@ -1240,7 +1240,7 @@ class AdvectivePDE(LinearPDE):
 
 class Poisson(LinearPDE):
    """
-   Class to define a Poisson equstion problem:
+   Class to define a Poisson equation problem:
 
    class to define a linear PDE of the form
    \f[
@@ -1269,6 +1269,7 @@ class Poisson(LinearPDE):
        self.setValue(f,q)
 
    def setValue(self,f=escript.Data(),q=escript.Data()):
+       """set value of PDE parameters f and q"""
        self._LinearPDE__setValue(f=f,q=q)
 
    def getCoefficientOfPDE(self,name):
@@ -1304,12 +1305,100 @@ class Poisson(LinearPDE):
      else:
          raise SystemError,"unknown PDE coefficient %s",name
 
+class LameEquation(LinearPDE):
+   """
+   Class to define a Lame equation problem:
+
+   class to define a linear PDE of the form
+   \f[
+   -(\lambda (u_{i,j}+u_{j,i}))_{,j} - \mu u_{j,ji}} = F_i -\sigma_{ij,j}
+   \f]
+
+   with boundary conditons:
+
+   \f[
+   n_j(\lambda(u_{i,j}+u_{j,i})-sigma_{ij}) + n_i\mu u_{j,j} = f_i
+   \f]
+
+   and constraints:
+
+   \f[
+   u_i=r_i \quad \mathrm{where} \quad q_i>0
+   \f]
+   """
+
+   def __init__(self,domain,f=escript.Data(),q=escript.Data()):
+       LinearPDE.__init__(self,domain,domain.getDim(),domain.getDim())
+       self.COEFFICIENTS={
+       "lame_lambda"  : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
+       "lame_mu"      : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
+       "F"            : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM),PDECoefficient.RIGHTHANDSIDE),
+       "sigma"        : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.EQUATION),PDECoefficient.RIGHTHANDSIDE),
+       "f"            : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "r"            : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.EQUATION,),PDECoefficient.BOTH),
+       "q"            : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.EQUATION,),PDECoefficient.BOTH)}
+       self.setSymmetryOn()
+
+   def setValue(self,lame_lambda=escript.Data(),lame_mu=escript.Data(),F=escript.Data(),sigma=escript.Data(),f=escript.Data(),r=escript.Data(),q=escript.Data()):
+       """set value of PDE parameters"""
+       self._LinearPDE__setValue(lame_lambda=lame_lambda, \
+                                 lame_mu=lame_mu, \
+                                 F=F, \
+                                 sigma=sigma, \
+                                 f=f, \
+                                 r=r, \
+                                 q=q) 
+   def getCoefficientOfPDE(self,name):
+     """
+     return the value of the coefficient name of the general PDE
+
+     @param name:
+     """
+     if name == "A" : 
+         A =self.createNewCoefficient("A")
+         for i in range(self.getDim()):
+           for j in range(self.getDim()):
+             out[i,i,j,j] += self.getCoefficient("lame_mu")
+             out[i,j,j,i] += self.getCoefficient("lame_lambda")
+             out[i,j,i,j] += self.getCoefficient("lame_lambda")
+         return out
+     elif name == "B" : 
+         return escript.Data()
+     elif name == "C" : 
+         return escript.Data()
+     elif name == "D" : 
+         return escript.Data()
+     elif name == "X" : 
+         return self.getCoefficient("sigma")
+     elif name == "Y" : 
+         return self.getCoefficient("F")
+     elif name == "d" : 
+         return escript.Data()
+     elif name == "y" : 
+         return self.getCoefficient("f")
+     elif name == "d_contact" : 
+         return escript.Data()
+     elif name == "y_contact" :
+         return escript.Data()
+     elif name == "r" : 
+         return self.getCoefficient("r")
+     elif name == "q" : 
+         return self.getCoefficient("q")
+     else:
+         raise SystemError,"unknown PDE coefficient %s",name
+
 # $Log$
+# Revision 1.9  2005/07/25 05:28:13  jgs
+# Merge of development branch back to main trunk on 2005-07-25
+#
 # Revision 1.8  2005/06/09 05:37:59  jgs
 # Merge of development branch back to main trunk on 2005-06-09
 #
 # Revision 1.7  2005/05/06 04:26:10  jgs
 # Merge of development branch back to main trunk on 2005-05-06
+#
+# Revision 1.1.2.24  2005/07/22 06:37:11  gross
+# some extensions to modellib and linearPDEs
 #
 # Revision 1.1.2.23  2005/05/13 00:55:20  cochrane
 # Fixed up some docstrings.  Moved module-level functions to top of file so
