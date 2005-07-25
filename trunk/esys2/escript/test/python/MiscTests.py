@@ -2,8 +2,8 @@ import sys
 import unittest
 import os
 
-from esys.escript import *
-from esys import finley
+from escript.escript import *
+from finley import finley
 
 import numarray
 from numarray import array,Float64,ones,greater
