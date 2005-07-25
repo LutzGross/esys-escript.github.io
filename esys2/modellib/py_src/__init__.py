@@ -5,5 +5,3 @@ try:
     import materials
     import temperature
     import visualization
-except ImportError:
-    pass
