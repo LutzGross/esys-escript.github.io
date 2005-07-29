@@ -8,6 +8,8 @@ import sys
 #sys.path.append(esys_root+'/escript/py_src')
                                                                                                                  
 from escript.escript import *
+from escript.linearPDEs import *
+from escript.pdetools import *
 
 """
 
