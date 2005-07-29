@@ -9,9 +9,14 @@
 
 DEFAULT_TARGET := libescriptcpp.so pyc
 
-L_PYTH_DIR := $(ESYS_ROOT)/esys/escript
+# Python install directory
+ifeq ($(strip $(L_PYTH_DIR)),)
+   L_PYTH_DIR := $(ESYS_ROOT)/esys
+endif
 
-INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/linearPDEs.pyc ./lib/py_src/pdetools.pyc ./lib/py_src/util.pyc ./lib/py_src/escript.pyc ./lib/py_src/modelframe.pyc ./lib/py_src/timeseries.pyc
+L_PYTH_DIR := $(L_PYTH_DIR)/escript
+
+INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/linearPDEs.pyc ./lib/py_src/pdetools.pyc ./lib/py_src/util.pyc ./lib/py_src/escript.pyc ./lib/py_src/modelframe.pyc ./lib/py_src/timeseries.pyc ./lib/py_src/esysXML.pyc
 
 INSTALL_LIB := ./lib/libescriptcpp.so
 

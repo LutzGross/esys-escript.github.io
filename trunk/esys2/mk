@@ -30,7 +30,7 @@ fi
 
 # use this setting for production installs on altix
 # ** NB: overwrites centrally installed esys libraries on altix ***
-#ENVVARS="L_INSTLIB_DIR=/raid2/tools/esys/lib L_PYTH_DIR=/raid2/tools/esys/esys"
+# ENVVARS="$ENVVARS L_INSTLIB_DIR=/raid2/tools/esys/lib L_PYTH_DIR=/raid2/tools/esys/esys"
 
 # ensure required symlinks are setup first
 (cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
@@ -48,7 +48,7 @@ fi
 if [ "$1" == "clean" ];
 then
 	for module in $MODULES ; do \
-		(echo Cleaning: $module; cd $module; gmake clean) \
+		(echo Cleaning: $module; cd $module; make clean) \
 	done
         exit
 fi
@@ -64,14 +64,15 @@ fi
 
 # default case - just build all modules
 for module in $MODULES ; do \
-	(echo Building: $module; cd $module; env $ENVVARS gmake -j 10) \
+	(echo Building: $module; cd $module; env $ENVVARS make -j 10) \
 done
 
 # install all modules
 if [ "$1" == "install" ];
 then
 	for module in $MODULES ; do \
-		(echo Installing: $module; cd $module; env $ENVVARS gmake install) \
+                 echo ENVARS = $ENVVARS
+		(echo Installing: $module; cd $module; env $ENVVARS make install) \
 	done
         (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../../lib/libescriptcpp.so escriptcpp.so; fi)
         (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../../lib/libfinleycpp.so finleycpp.so; fi)

@@ -8,8 +8,8 @@ provides a some tools related to PDEs currently includes:
 
 """
 
-from esys.escript import *
-from esys.linearPDEs import LinearPDE
+from escript import *
+from linearPDEs import LinearPDE
 import numarray
 
 class Projector:

@@ -9,7 +9,7 @@
 
 DEFAULT_TARGET := pyc
 
-L_PYTH_DIR := $(ESYS_ROOT)/esys/modellib
+L_PYTH_DIR := $(L_PYTH_DIR)/modellib
 
 INSTALL_PYTH := ./lib/__init__.pyc ./lib/darcy.pyc ./lib/geometry.pyc ./lib/input.pyc ./lib/materials.pyc ./lib/temperature.pyc ./lib/visualization.pyc
 
