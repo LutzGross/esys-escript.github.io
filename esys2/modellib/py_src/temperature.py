@@ -1,142 +1,69 @@
 # $Id$
 
+from escript.escript import *
+from escript.modelframe import Model,IterationDivergenceError
+from escript.linearPDEs import AdvectivePDE,LinearPDE
+import numarray
 
-from esys.escript import *
-from esys.modelframe import Model,IterationDivergenceError
-from esys.linearPDEs import AdvectivePDE,LinearPDE
 
-class TemperatureDiffusion(Model):
-       """ """
+class TemperatureAdvection(Model):
+       """
 
+         The conservation of internal heat energy is given by
+
+         \f[
+             \rho c_p ( T_{,t}+v_{j}T_{,j} )-(\kappa T_{,i})_{,i}=Q,
+         \f]
+         \f[
+                 n_i\kappa T_{,i}=0
+         \f]
+
+          it is assummed that \f[ \rho c_p \f] is constant in time.
+
+          solved by Taylor Galerkin method
+
+       """
        def __init__(self,debug=False):
            Model.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
-                                 tend=0., \
-                                 dt=0.1, \
                                  temperature=1., \
+                                 velocity=numarray.zeros([3]),
                                  density=1., \
-                                 c_p=1., \
+                                 heat_capacity=1., \
                                  thermal_permabilty=1., \
-                                 reference_temperature=0., \
-                                 radiation_coefficient=0., \
+                                 # reference_temperature=0., \
+                                 # radiation_coefficient=0., \
                                  thermal_source=0., \
-                                 location_fixed_temperature=Data(), \
-                                 iterate=True, \
-                                 tol=1.e-8, \
-                                 implicit=True)
-           self.iter=0
+                                 fixed_temperature=0.,
+                                 location_fixed_temperature=Data(),
+                                 safety_factor=0.1)
 
-       def doInitialization(self,t):
-           self.tn=t
-           self.pde=LinearPDE(self.domain)
-           self.pde.setSymmetryOn()
-
-       def doIterationInitialization(self,dt):
-            self.iter=0
-            self.T_last=self.temperature
-            self.diff=1.e400
-
-       def doIterationStep(self,dt):
-          T=self.temperature
-          diff=self.diff
-          dim=self.pde.getDim()
-          self.iter+=1
-          rhocp=self.density*self.c_p
-          self.pde.setValue(A=self.thermal_permabilty*kronecker(dim), \
-                              D=rhocp/dt, \
-                              Y=self.thermal_source+rhocp/dt*self.T_last, \
-                              d=self.radiation_coefficient, \
-                              y=self.radiation_coefficient*self.reference_temperature, \
-                              q=self.location_fixed_temperature, \
-                              r=self.T_last)
-          if isinstance(self,TemperatureAdvection): self.pde.setValue(C=self.velocity[:dim]*rhocp)
-          self.pde.setTolerance(self.tol*1.e-2)
-          self.temperature=self.pde.getSolution()
-          self.diff=Lsup(T-self.temperature)
-          if diff<=self.diff:
-              raise IterationDivergenceError,"no improvement in the temperature iteration"
-
-       def terminate(self):
-          if not self.implicit:
-              return True
-          elif self.iter<1:
-              return False
-          else:
-             return self.diff<self.tol*Lsup(self.temperature)
-
-       def doIterationFinalization(self,dt):
-          self.tn+=dt
+       def doInitialization(self):
+           self.__pde=LinearPDE(self.domain)
+           self.__pde.setSymmetryOn()
+           # self.__pde.setReducedOrderOn()
+           # self.__pde.setLumpingOn()
+           self.__pde.setValue(D=self.heat_capacity*self.density)
 
        def getSafeTimeStepSize(self,dt):
-           return self.dt
+           """returns new step size"""
+           h=self.domain.getSize()
+           return self.safety_factor*inf(h**2/(h*abs(self.heat_capacity*self.density)*length(self.velocity)+self.thermal_permabilty))
 
-       def finalize(self):
-            return self.tn>=self.tend
+       def G(self,T,alpha):
+           """tangential operator for taylor galerikin"""
+           g=grad(T)
+           self.__pde.setValue(X=-self.thermal_permabilty*g, \
+                               Y=self.thermal_source-self.__rhocp*inner(self.velocity,g), \
+                               r=(self.__fixed_T-self.temperature)*alpha,\
+                               q=self.location_fixed_temperature)
+           return self.__pde.getSolution()
+           
 
-class TemperatureAdvection(Model):
-       """ """
-
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
-           self.declareParameter(velocity=numarray.zeros([3]))
-
-       def doInitialization(self,t):
-           self.tn=t
-           self.pde=AdvectivePDE(self.domain)
-
-       def getSafeTimeStepSize(self,dt):
-           v=Lsup(self.velocity)
-           if v>0.:
-               return min(self.dt,Lsup(self.pde.getDomain().getSize())/v)
-           else:
-               return self.dt
-
-       
-
-if __name__=="__main__":
-   from esys.modelframe import Link,Simulation,ExplicitSimulation
-   from esys.visualization import WriteVTK
-   from esys.materials import MaterialTable
-   from esys.geometry import RectangularDomain,ScalarConstrainer
-   from esys.input import InterpolatedTimeProfile,GausseanProfile
-
-   dom=RectangularDomain()
-   constraints=ScalarConstrainer()
-   constraints.domain=Link(dom)
-   constraints.top=1
-   constraints.bottom=1
-   
-   mt=MaterialTable()
-   
-   pf=InterpolatedTimeProfile()
-   pf.t=[0.,0.25,0.5,0.75]
-   pf.values=[0.,1.,1.,0.]
-   
-   q=GausseanProfile()
-   q.domain=Link(dom)
-   q.width=0.05
-   q.x_c=numarray.array([0.5,0.5,0.5])
-   q.r=0.01
-   q.A=Link(pf,"out")
-   
-   tt=TemperatureDiffusion()
-   tt.domain=Link(dom)
-   tt.tend=1.
-   tt.dt=0.1
-   tt.temperature=0.
-   tt.density=Link(mt)
-   tt.c_p=Link(mt)
-   tt.thermal_permabilty=Link(mt)
-   tt.reference_temperature=0.
-   tt.radiation_coefficient=Link(mt)
-   tt.thermal_source=Link(q,"out")
-   tt.location_fixed_temperature=Link(constraints,"location_of_constraint")
-   tt.implicit=True
-   
-   vis=WriteVTK()
-   vis.scalar=Link(tt,"temperature")
-   
-   s=ExplicitSimulation([dom,constraints,pf,q,Simulation([mt,tt],debug=True),vis],debug=True)
-   # s=Simulation([dom,constraints,pf,q,Simulation([mt,tt]),vis])
-   s.writeXML()
-   s.run()
+       def doStepPostprocessing(self,dt):
+           """perform taylor galerkin step"""
+           T=self.temperature
+	   self.__rhocp=self.heat_capacity*self.density
+           self.__fixed_T=self.fixed_temperature
+           self.temperature=dt*self.G(dt/2*self.G(T,1./dt)+T,1./dt)+T
+           self.trace("Temperature range is %e %e"%(inf(self.temperature),sup(self.temperature)))

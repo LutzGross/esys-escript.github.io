@@ -9,7 +9,6 @@
 
 DEFAULT_TARGET := libfinleyC.a libfinleycpp.so pyc
 
-# Python install directory
 ifeq ($(strip $(L_PYTH_DIR)),)
    L_PYTH_DIR := $(ESYS_ROOT)/esys
 endif
@@ -23,7 +22,7 @@ INSTALL_LIB := ./lib/libfinleycpp.so
 # These settings are now specified in Makefile.host
 #L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
 
-PACKAGES := escript mmio esysUtils python23 boost scsl141pre
+PACKAGES := escript mmio esysUtils python boost scsl141pre
 
 L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL ./src/CPPAdapter ./py_src
 

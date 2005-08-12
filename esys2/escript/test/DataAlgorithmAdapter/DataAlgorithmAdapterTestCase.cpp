@@ -169,16 +169,18 @@ void DataAlgorithmAdapterTestCase::testAlgorithm() {
     DataTagged   dataTag(dataCon);
 
     // test algorithm on DataExpanded
-    assert(escript::algorithm(dataExp,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==0);
-    assert(escript::algorithm(dataExp,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==5);
+    FMin fmin_func;
+    assert(escript::algorithm(dataExp,fmin_func,numeric_limits<double>::max())==0);
+    FMax fmax_func;
+    assert(escript::algorithm(dataExp,fmax_func,numeric_limits<double>::max()*-1)==5);
 
     // test algorithm on DataTagged
-    assert(escript::algorithm(dataTag,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==0);
-    assert(escript::algorithm(dataTag,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==5);
+    assert(escript::algorithm(dataTag,fmin_func,numeric_limits<double>::max())==0);
+    assert(escript::algorithm(dataTag,fmax_func,numeric_limits<double>::max()*-1)==5);
 
     // test algorithm on DataConstant
-    assert(escript::algorithm(dataCon,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==0);
-    assert(escript::algorithm(dataCon,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==5);
+    assert(escript::algorithm(dataCon,fmin_func,numeric_limits<double>::max())==0);
+    assert(escript::algorithm(dataCon,fmax_func,numeric_limits<double>::max()*-1)==5);
 
   }
 
@@ -224,21 +226,23 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
     DataTagged   dataTag2(dataCon2);
 
     // test dp_algorithm on DataExpanded
-    escript::dp_algorithm(dataExp,dataExp2,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+    FMin fmin_func;
+    escript::dp_algorithm(dataExp,dataExp2,fmin_func,numeric_limits<double>::max());
     assert(dataExp2.getDataPoint(0,0)()==0);
-    escript::dp_algorithm(dataExp,dataExp2,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+    FMax fmax_func;
+    escript::dp_algorithm(dataExp,dataExp2,fmax_func,numeric_limits<double>::max()*-1);
     assert(dataExp2.getDataPoint(0,0)()==5);
 
     // test dp_algorithm on DataTagged
-    escript::dp_algorithm(dataTag,dataTag2,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+    escript::dp_algorithm(dataTag,dataTag2,fmin_func,numeric_limits<double>::max());
     assert(dataTag2.getDataPoint(0,0)()==0);
-    escript::dp_algorithm(dataTag,dataTag2,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+    escript::dp_algorithm(dataTag,dataTag2,fmax_func,numeric_limits<double>::max()*-1);
     assert(dataTag2.getDataPoint(0,0)()==5);
 
     // test dp_algorithm on DataConstant
-    escript::dp_algorithm(dataCon,dataCon2,DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+    escript::dp_algorithm(dataCon,dataCon2,fmin_func,numeric_limits<double>::max());
     assert(dataCon2.getDataPoint(0,0)()==0);
-    escript::dp_algorithm(dataCon,dataCon2,DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+    escript::dp_algorithm(dataCon,dataCon2,fmax_func,numeric_limits<double>::max()*-1);
     assert(dataCon2.getDataPoint(0,0)()==5);
 
   }

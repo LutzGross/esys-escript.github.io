@@ -47,6 +47,12 @@ class DataAlgorithmAdapter {
       m_currentValue(initialValue)
     {
     }
+    DataAlgorithmAdapter(const DataAlgorithmAdapter& other):
+      m_initialValue(other.m_initialValue),
+      m_currentValue(other.m_initialValue),
+      operation(other.operation)
+    {
+    }
     inline void operator()(double value)
     {
       m_currentValue=operation(m_currentValue,value);
@@ -151,11 +157,12 @@ struct Trace : public std::binary_function<double,double,double>
 
    Calls DataArrayView::reductionOp
 */
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 double
 algorithm(DataExpanded& data,
-          UnaryFunction operation)
+          BinaryFunction operation,
+	  double initial_value)
 {
   int i,j;
   int numDPPSample=data.getNumDPPSample();
@@ -166,31 +173,27 @@ algorithm(DataExpanded& data,
   // calculate the reduction operation value for each data point
   // storing the result for each data-point in successive entries
   // in resultVector
-  //
-  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
-  // which maintains state between calls which would be corrupted by parallel execution
+  #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
     for (j=0;j<numDPPSample;j++) {
-      resultVector[j*numSamples+i]=dataView.reductionOp(data.getPointOffset(i,j),operation);
+      resultVector[j*numSamples+i]=dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value);
     }
   }
   // now calculate the reduction operation value across the results
   // for each data-point
-  //
-  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
-  // which maintains state between calls which would be corrupted by parallel execution
-  operation.resetResult();
+  double current_value=initial_value;
   for (int l=0;l<resultVectorLength;l++) {
-    operation(resultVector[l]);
+    current_value=operation(current_value,resultVector[l]);
   }
-  return operation.getResult();
+  return current_value;
 }
 
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 double
 algorithm(DataTagged& data,
-          UnaryFunction operation)
+          BinaryFunction operation,
+	  double initial_value)
 {
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
@@ -200,30 +203,28 @@ algorithm(DataTagged& data,
   int resultVectorLength;
   // perform the operation on each tagged value
   for (i=lookup.begin();i!=lookupEnd;i++) {
-    resultVector.push_back(dataView.reductionOp(i->second,operation));
+    resultVector.push_back(dataView.reductionOp(i->second,operation,initial_value));
   }
   // perform the operation on the default value
-  resultVector.push_back(data.getDefaultValue().reductionOp(operation));
+  resultVector.push_back(data.getDefaultValue().reductionOp(operation,initial_value));
   // now calculate the reduction operation value across the results
   // for each tagged value
-  //
-  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
-  // which maintains state between calls which would be corrupted by parallel execution
   resultVectorLength=resultVector.size();
-  operation.resetResult();
+  double current_value=initial_value;
   for (int l=0;l<resultVectorLength;l++) {
-    operation(resultVector[l]);
+    current_value=operation(current_value,resultVector[l]);
   }
-  return operation.getResult();
+  return current_value;
 }
 
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 double
 algorithm(DataConstant& data,
-          UnaryFunction operation)
+          BinaryFunction operation,
+	  double initial_value)
 {
-  return data.getPointDataView().reductionOp(operation);
+  return data.getPointDataView().reductionOp(operation,initial_value);
 }
 
 /**
@@ -237,12 +238,13 @@ algorithm(DataConstant& data,
 
    Calls DataArrayView::reductionOp
 */
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 void
 dp_algorithm(DataExpanded& data,
              DataExpanded& result,
-             UnaryFunction operation)
+             BinaryFunction operation,
+	     double initial_value)
 {
   int i,j;
   int numSamples=data.getNumSamples();
@@ -251,23 +253,22 @@ dp_algorithm(DataExpanded& data,
   DataArrayView resultView=result.getPointDataView();
   // perform the operation on each data-point and assign
   // this to the corresponding element in result
-  //
-  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
-  // which maintains state between calls which would be corrupted by parallel execution
+  #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
     for (j=0;j<numDPPSample;j++) {
       resultView.getData(result.getPointOffset(i,j)) =
-        dataView.reductionOp(data.getPointOffset(i,j),operation);
+        dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value);
     }
   }
 }
 
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 void
 dp_algorithm(DataTagged& data,
              DataTagged& result,
-             UnaryFunction operation)
+             BinaryFunction operation,
+	     double initial_value)
 {
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
@@ -276,30 +277,28 @@ dp_algorithm(DataTagged& data,
   DataArrayView resultView=result.getPointDataView();
   // perform the operation on each tagged data value
   // and assign this to the corresponding element in result
-  //
-  // this loop cannot be prallelised as "operation" is an instance of DataAlgorithmAdapter
-  // which maintains state between calls which would be corrupted by parallel execution
   for (i=lookup.begin();i!=lookupEnd;i++) {
     resultView.getData(i->second) =
-      dataView.reductionOp(i->second,operation);
+      dataView.reductionOp(i->second,operation,initial_value);
   }
   // perform the operation on the default data value
   // and assign this to the default element in result
   resultView.getData(0) =
-    data.getDefaultValue().reductionOp(operation);
+    data.getDefaultValue().reductionOp(operation,initial_value);
 }
 
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 void
 dp_algorithm(DataConstant& data,
              DataConstant& result,
-             UnaryFunction operation)
+             BinaryFunction operation,
+	     double initial_value)
 {
   // perform the operation on the data value
   // and assign this to the element in result
   result.getPointDataView().getData(0) =
-    data.getPointDataView().reductionOp(operation);
+    data.getPointDataView().reductionOp(operation,initial_value);
 }
 
 } // end of namespace

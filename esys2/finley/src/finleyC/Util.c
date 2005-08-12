@@ -21,6 +21,15 @@
 
 /**************************************************************/
 
+/*   returns true if any of the values in the short array values is not equalt to Zero */
+
+bool_t Finley_Util_anyNonZeroDouble(dim_t N, double* values) {
+   dim_t q;
+   for (q=0;q<N;++q) if (ABS(values[q])>0) return TRUE;
+   return FALSE;
+}
+/**************************************************************/
+
 /*   gathers double values out from in by index: */
 
 /*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
@@ -465,6 +474,12 @@ void Finley_copyDouble(dim_t n,double* source, double* target) {
 
 /*
  * $Log$
+ * Revision 1.8  2005/08/12 01:45:43  jgs
+ * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.7.2.1  2005/08/04 22:41:11  gross
+ * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)
+ *
  * Revision 1.7  2005/07/08 04:07:59  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

@@ -4,23 +4,25 @@ import sys
 import unittest
 import os
 
-from esys.escript import *
-from esys import finley
+from escript.escript import *
+from finley import finley
 
 import numarray
 
 class escriptTestCase(unittest.TestCase):
+
   def testPow(self):
     """Test the pow function."""
     myFuncSpac=escript.FunctionSpace()
     myVector=numarray.array([[1,2],[3,4]])
     myData=escript.Data(myVector,myFuncSpac,True)
     print myData**3
+
   def testFunctionSpace(self):
-      """Test the creation of FunctionSpace objects."""
-      print
-      mesh=finley.Brick(1,1,1,1,1.,1.,1.,1,1,1,1,1)
-      cFunc=escript.ContinuousFunction(mesh)
+    """Test the creation of FunctionSpace objects."""
+    mesh=finley.Brick(1,1,1,1,1.,1.,1.,1,1,1,1,1)
+    cFunc=escript.ContinuousFunction(mesh)
+
   def testDataOperations(self):
     """Test the operations that may be performed on Data."""
     myFuncSpac=escript.FunctionSpace()
@@ -65,6 +67,4 @@ suite=unittest.TestSuite()
 suite.addTest(unittest.makeSuite(escriptTestCase))
 unittest.TextTestRunner(verbosity=2).run(suite)
 
-
-
-
+sys.exit(0)

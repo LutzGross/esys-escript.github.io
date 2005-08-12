@@ -348,27 +348,36 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	    "type=\"Int32\" "
 	    "format=\"ascii\">\n");
     int NN = elements->ReferenceElement->Type->numNodes;
-    int counter = 0;
-    for (i = 0; i < numCells; i++) {
-      fprintf(fileHandle_p, "%d ", 
-	      mesh_p->Elements->Nodes[INDEX2(0, i, NN)]);
-      counter++; /* counter for the number of connectivity points written */
-      /* if the counter gets too big (i.e. the line gets too long), 
-       * then add a newline and reset */
-      if (counter > 19) { 
-	  fprintf(fileHandle_p, "\n"); 
-	  counter = 0; 
-      }
-      for (j = 1; j < numVTKNodesPerElement; j++) {
-	fprintf(fileHandle_p,"%d ", mesh_p->Elements->Nodes[INDEX2(j, i, NN)]);
-	counter++;
-	/* if the counter gets too big (i.e. the line gets too long), 
-	 * then add a newline and reset */
-	if (counter > 19) {
-	    fprintf(fileHandle_p, "\n");
-	    counter = 0;
-	}
-      }
+    if (VTK_QUADRATIC_HEXAHEDRON==cellType) {
+       for (i = 0; i < numCells; i++) {
+         fprintf(fileHandle_p,"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
+                            mesh_p->Elements->Nodes[INDEX2(0, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(1, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(2, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(3, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(4, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(5, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(6, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(7, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(8, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(9, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(10, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(11, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(16, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(17, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(18, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(19, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(12, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(13, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(14, i, NN)],
+                            mesh_p->Elements->Nodes[INDEX2(15, i, NN)]);
+         fprintf(fileHandle_p, "\n");
+       }
+    } else {
+       for (i = 0; i < numCells; i++) {
+         for (j = 0; j < numVTKNodesPerElement; j++) fprintf(fileHandle_p,"%d ", mesh_p->Elements->Nodes[INDEX2(j, i, NN)]);
+         fprintf(fileHandle_p, "\n");
+       }
     } 
     fprintf(fileHandle_p, "\n");
     fprintf(fileHandle_p, "</DataArray>\n");
@@ -378,7 +387,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	    "Name=\"offsets\" "
 	    "type=\"Int32\" "
 	    "format=\"ascii\">\n");
-    counter = 0;  /* counter for the number of offsets written to file */
+    int counter = 0;  /* counter for the number of offsets written to file */
     for (i=numVTKNodesPerElement; i<=numCells*numVTKNodesPerElement; i+=numVTKNodesPerElement) {
       fprintf(fileHandle_p, "%d ", i);
       counter++;
@@ -617,6 +626,12 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 
 /*
  * $Log$
+ * Revision 1.6  2005/08/12 01:45:43  jgs
+ * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.5.2.1  2005/08/10 06:14:37  gross
+ * QUADRATIC HEXAHEDRON elements fixed
+ *
  * Revision 1.5  2005/07/08 04:07:55  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

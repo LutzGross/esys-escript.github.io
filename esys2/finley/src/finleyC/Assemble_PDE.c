@@ -88,27 +88,27 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
 
   if (! functionSpaceTypeEqual(funcspace,A) ) {
         Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient A");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient A");
   }
   if (! functionSpaceTypeEqual(funcspace,B) ) {
         Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient B");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient B");
   }
   if (! functionSpaceTypeEqual(funcspace,C) ) {
         Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient C");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient C");
   }
   if (! functionSpaceTypeEqual(funcspace,D) ) {
         Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient D");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient D");
   }
   if (! functionSpaceTypeEqual(funcspace,X) ) {
         Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient X");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient X");
   }
   if (! functionSpaceTypeEqual(funcspace,Y) ) {
         Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient Y");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient Y");
   }
 
   /* check if all function spaces are the same */
@@ -342,6 +342,12 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
 }
 /*
  * $Log$
+ * Revision 1.6  2005/08/12 01:45:42  jgs
+ * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.5.2.1  2005/08/03 08:54:27  gross
+ * contact element assemblage was called with wrong element table pointer
+ *
  * Revision 1.5  2005/07/08 04:07:46  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

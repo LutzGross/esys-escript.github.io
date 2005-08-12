@@ -115,21 +115,42 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                   if (n>=0) Finley_copyDouble(numComps,getSampleData(in,nodes->degreeOfFreedom[i]),getSampleData(out,n));
               }
            }
-       } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+        } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
            if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
               #pragma omp parallel for private(n) schedule(static)
               for (n=0;n<nodes->reducedNumDegreesOfFreedom;n++) 
                     Finley_copyDouble(numComps,getSampleData(in,n),getSampleData(out,n));
+           } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM && numSamplesEqual(out,1,nodes->reducedNumDegreesOfFreedom)) {
+              #pragma omp parallel for private(n) schedule(static)
+              for (i=0;i<nodes->numNodes;i++) {
+                  n=nodes->reducedDegreeOfFreedom[i];
+                  if (n>=0) Finley_copyDouble(numComps,getSampleData(in,n),getSampleData(out,nodes->degreeOfFreedom[i]));
+              }
+           } else if (out_data_type == FINLEY_NODES && numSamplesEqual(out,1,nodes->reducedNumDegreesOfFreedom)) {
+              #pragma omp parallel for private(n) schedule(static)
+              for (i=0;i<nodes->numNodes;i++) {
+                  n=nodes->reducedDegreeOfFreedom[i];
+                  if (n>=0) Finley_copyDouble(numComps,getSampleData(in,n),getSampleData(out,i));
+              }
            } else {
              Finley_ErrorCode=TYPE_ERROR;
              sprintf(Finley_ErrorMsg,"cannot copy from data on reduced degrees of freedom");
            }
-      }
+        }
    }
    return;
 }
 /*
  * $Log$
+ * Revision 1.3  2005/08/12 01:45:42  jgs
+ * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.2.2.2  2005/08/09 02:23:12  gross
+ * print statement removed
+ *
+ * Revision 1.2.2.1  2005/08/03 09:55:33  gross
+ * ContactTest is passing now./mk install!
+ *
  * Revision 1.2  2005/07/08 04:07:45  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

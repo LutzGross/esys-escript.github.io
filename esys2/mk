@@ -10,7 +10,7 @@
 #**********************************************************************
 
 # the modules to make
-MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley"
+MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley modellib"
 
 # the tests to run
 TESTS="escript finley"
@@ -18,19 +18,19 @@ TESTS="escript finley"
 # use this setting for local developmental builds
 #ENVVARS="DODEBUG=YES"
 
-if [ "$2" == "DEBUG" ];
+if [ "$2" == "DEBUG" ]
 then
     ENVVARS="DODEBUG=YES"
 fi
 
-if [ "$2" == "NODEBUG" ];
+if [ "$2" == "NODEBUG" ]
 then
     ENVVARS="DODEBUG=NO"
 fi
 
 # use this setting for production installs on altix
 # ** NB: overwrites centrally installed esys libraries on altix ***
-# ENVVARS="$ENVVARS L_INSTLIB_DIR=/raid2/tools/esys/lib L_PYTH_DIR=/raid2/tools/esys/esys"
+#ENVVARS="$ENVVARS L_INSTLIB_DIR=/raid2/tools/esys/lib L_PYTH_DIR=/raid2/tools/esys/esys"
 
 # ensure required symlinks are setup first
 (cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
@@ -45,37 +45,21 @@ fi
 (cd modellib; if [ ! -h Makefile ]; then ln -s ./modellib.mk Makefile; fi)
 
 # clean all modules
-if [ "$1" == "clean" ];
+if [ "$1" == "clean" ]
 then
-	for module in $MODULES ; do \
-		(echo Cleaning: $module; cd $module; make clean) \
+	for module in $MODULES ; do
+		(echo Cleaning: $module; cd $module; make clean)
 	done
-        exit
+        exit 0
 fi
 
 # uninstall all modules
-if [ "$1" == "uninstall" ];
+if [ "$1" == "uninstall" ]
 then
-	for module in $MODULES ; do \
-		(echo Cleaning: $module; cd $module; gmake uninstall) \
+	for module in $MODULES ; do
+		(echo Uninstalling: $module; cd $module; gmake uninstall)
 	done
-        exit
-fi
-
-# default case - just build all modules
-for module in $MODULES ; do \
-	(echo Building: $module; cd $module; env $ENVVARS make -j 10) \
-done
-
-# install all modules
-if [ "$1" == "install" ];
-then
-	for module in $MODULES ; do \
-                 echo ENVARS = $ENVVARS
-		(echo Installing: $module; cd $module; env $ENVVARS make install) \
-	done
-        (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../../lib/libescriptcpp.so escriptcpp.so; fi)
-        (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../../lib/libfinleycpp.so finleycpp.so; fi)
+        exit 0
 fi
 
 # run the unit tests
@@ -85,8 +69,14 @@ then
     do
 	echo "Running unit tests for: $module"
 	cd $ESYS_ROOT/$module/test
-	unit_test
+	./unit_test
+        if [ $? != 0 ]
+        then
+          echo Unit Testing FAILED for module: $module
+          exit 1
+        fi
     done
+    exit 0
 fi
 
 # run the python tests
@@ -99,17 +89,120 @@ then
 	then
 	    cd $ESYS_ROOT/$module/test/python
             python ImportTest.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	    python SimpleSolve.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	    python GradTest.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	elif [ "$module" == "escript" ]
 	then
 	    cd $ESYS_ROOT/$module/test/python
             python ImportTest.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	    python BinaryOps.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	    python UnaryOps.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	    python SliceGetting.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	    python SliceSetting.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
             python MiscTests.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
+            python newEscriptTests.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
+            python escriptTest.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
+            python DataVariableTests.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
+            python test_xml.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
+            python pdetoolsTest.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	fi
     done
+    exit 0
+fi
+
+# default case - just build all modules
+for module in $MODULES ; do
+	(echo Building: $module; cd $module; env $ENVVARS make -j 10)
+        if [ $? != 0 ]
+        then
+            echo Build FAILED for module: $module
+            exit 1
+        fi
+done
+
+# install all modules
+if [ "$1" == "install" ]
+then
+	for module in $MODULES ; do \
+                echo ENVARS = $ENVVARS
+		(echo Installing: $module; cd $module; env $ENVVARS make install)
+                if [ $? != 0 ]
+                then
+                  echo Installation FAILED for module: $module
+                  exit 1
+                fi
+	done
+        (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../../lib/libescriptcpp.so escriptcpp.so; fi)
+        (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../../lib/libfinleycpp.so finleycpp.so; fi)
+        exit 0
 fi

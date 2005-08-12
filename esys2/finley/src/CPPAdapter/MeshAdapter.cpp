@@ -409,7 +409,7 @@ void MeshAdapter::addPDEToSystem(
                                   &(d.getDataC()),&(y.getDataC()),
                                   Finley_Assemble_handelShapeMissMatch_Mean_out);
    checkFinleyError();
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->ContactElements,
 				  mat.getFinley_SystemMatrix(),
 				  &(rhs.getDataC()),
                                   &(d_contact.getDataC()),
@@ -424,15 +424,17 @@ void MeshAdapter::addPDEToRHS( Data& rhs,
                      const  Data& X,const  Data& Y, const Data& y, const Data& y_contact) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
-   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,0,&(rhs.getDataC()),0,0,0,0,&(X.getDataC()),&(Y.getDataC()));
+
+   // Finley_Assemble_PDE_RHS(mesh->Nodes,mesh->Elements,&(rhs.getDataC()),&(X.getDataC()),&(Y.getDataC()));
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,0,&(rhs.getDataC()),0,0,0,0,&(X.getDataC()),&(Y.getDataC())); 
    checkFinleyError();
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,0,&(rhs.getDataC()),0,&(y.getDataC()),
-                                  Finley_Assemble_handelShapeMissMatch_Mean_out);
-// cout << "Calling :addPDEToRHS." << endl;
+
+   // Finley_Assemble_RobinCondition_RHS(mesh->Nodes,mesh->FaceElements,&(rhs.getDataC()),&(y.getDataC()),Finley_Assemble_handelShapeMissMatch_Mean_out);
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,0,&(rhs.getDataC()),0,&(y.getDataC()),Finley_Assemble_handelShapeMissMatch_Mean_out); 
+
    checkFinleyError();
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,0,&(rhs.getDataC()),0,&(y_contact.getDataC()),
-                                  Finley_Assemble_handelShapeMissMatch_Step_out);
-// cout << "Calling :addPDEToRHS." << endl;
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->ContactElements,0,&(rhs.getDataC()),0,&(y_contact.getDataC()),Finley_Assemble_handelShapeMissMatch_Step_out); 
+   // Finley_Assemble_RobinCondition_RHS(mesh->Nodes,mesh->ContactElements,&(rhs.getDataC()),&(y_contact.getDataC()),Finley_Assemble_handelShapeMissMatch_Step_out); 
    checkFinleyError();
 }
 //
@@ -541,7 +543,6 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
      case(ReducedDegreesOfFreedom):
        switch(target.getFunctionSpace().getTypeCode()) {
           case(ReducedDegreesOfFreedom):
-          case(Nodes):
              Finley_Assemble_CopyNodalData(mesh->Nodes,&(target.getDataC()),&(in.getDataC()));
              break;
           case(Elements):
@@ -556,6 +557,10 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
           case(ContactElementsZero):
           case(ContactElementsOne):
              Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&(in.getDataC()),&(target.getDataC()));
+             break;
+          case(Nodes):
+             Finley_ErrorCode=TYPE_ERROR;
+             sprintf(Finley_ErrorMsg,"Finley does not support interpolation from reduced degrees of freedom to mesh nodes.");
              break;
           case(DegreesOfFreedom):
              Finley_ErrorCode=TYPE_ERROR;
@@ -942,13 +947,13 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
      case(ReducedDegreesOfFreedom):
        switch(functionSpaceType_target) {
           case(ReducedDegreesOfFreedom):
-          case(Nodes):
           case(Elements):
           case(FaceElements):
           case(Points):
           case(ContactElementsZero):
           case(ContactElementsOne):
               return true;
+          case(Nodes):
           case(DegreesOfFreedom):
              return false;
           default:

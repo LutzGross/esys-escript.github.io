@@ -81,8 +81,9 @@ def checkResult(text,res,val0,val1,val2,wh):
      error=Lsup(ref-res)/norm
      print "@@ %s, shape %s: error = %e"%(text,ref.getShape(),error)
      if error>tol:
-       #raise SystemError,"@@ %s at %s: error is too large"%(text,wh)
        print "**** %s: error is too large"%(text)
+       raise SystemError,"@@ %s at %s: error is too large"%(text,wh)
+       sys.exit(1)
 
 def getRank(arg):
     if isinstance(arg,Data):
@@ -208,12 +209,12 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       wh)
 
       # sqrt
-      #ref=checkResult("sqrt("+ex1+")", \
-      #                arg1.abs().sqrt(), \
-      #                numarray.sqrt(numarray.abs(arrays1[0])), \
-      #                numarray.sqrt(numarray.abs(arrays1[1])), \
-      #                numarray.sqrt(numarray.abs(arrays1[2])), \
-      #                wh)
+      ref=checkResult("sqrt("+ex1+")", \
+                      arg1.abs().sqrt(), \
+                      numarray.sqrt(numarray.abs(arrays1[0])), \
+                      numarray.sqrt(numarray.abs(arrays1[1])), \
+                      numarray.sqrt(numarray.abs(arrays1[2])), \
+                      wh)
 
       # sin:
       ref=checkResult("sin("+ex1+")", \
@@ -283,4 +284,5 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                         -numarray.less(arrays1[2],numarray.zeros(arrays1[2].shape)),\
                       wh)
 
+sys.exit(0)
 # end

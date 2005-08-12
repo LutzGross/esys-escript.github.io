@@ -2174,7 +2174,8 @@ void DataArrayViewTestCase::testReductionOp()
       dataView()=p;
 
       // apply a reduction operation to this data point and check the results
-      assert(dataView.reductionOp(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1))==p);
+      FMax fmax_func;
+      assert(dataView.reductionOp(fmax_func,numeric_limits<double>::max()*-1)==p);
 
       if (p<npoints-1) {
         dataView.incrOffset();
@@ -2211,7 +2212,8 @@ void DataArrayViewTestCase::testReductionOp()
       }
 
       // apply a reduction operation to this data point and check the results
-      assert(dataView.reductionOp(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()))==dataView.index(0,0));
+      FMin fmin_func;
+      assert(dataView.reductionOp(fmin_func,numeric_limits<double>::max())==dataView.index(0,0));
 
       if (p<npoints-1) {
         dataView.incrOffset();
@@ -2254,7 +2256,8 @@ void DataArrayViewTestCase::testReductionOp()
       }
 
       // apply a reduction operation to this data point and check the results
-      assert(dataView.reductionOp(DataAlgorithmAdapter<AbsMax>(0))==dataView.index(8,7,4,10));
+      AbsMax absmax_func;
+      assert(dataView.reductionOp(absmax_func,0)==dataView.index(8,7,4,10));
 
       if (p<npoints-1) {
         dataView.incrOffset();

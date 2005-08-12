@@ -71,7 +71,6 @@ FunctionSpace::getDomain() const
 std::string
 FunctionSpace::toString() const
 {
-cout << "toString" << m_domain->getDescription() << "\n";
   std::stringstream temp;
   temp << "Function space type: " 
        << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
