@@ -35,12 +35,12 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
     if (numComps!=getDataPointSize(in)) {
        Finley_ErrorCode=TYPE_ERROR;
        sprintf(Finley_ErrorMsg,"number of components of input and output Data do not match.");
-    } else if (numSamplesEqual(out,numQuad,numElements)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of output Data object");
-    } else if (numSamplesEqual(in,numQuad,numElements)) {
+    } else if (!numSamplesEqual(in,numQuad,numElements)) {
        Finley_ErrorCode=TYPE_ERROR;
        sprintf(Finley_ErrorMsg,"illegal number of samples of input Data object");
+    } else if (!numSamplesEqual(out,numQuad,numElements)) {
+       Finley_ErrorCode=TYPE_ERROR;
+       sprintf(Finley_ErrorMsg,"illegal number of samples of output Data object");
     } else if (!isExpanded(out)) {
        Finley_ErrorCode=TYPE_ERROR;
        sprintf(Finley_ErrorMsg,"expanded Data object is expected for output data.");
@@ -66,6 +66,12 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
 }
 /*
  * $Log$
+ * Revision 1.3  2005/08/12 01:45:42  jgs
+ * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.2.2.1  2005/08/02 05:29:11  gross
+ * bug in finley/src/Assemble_CopyElementData fixed
+ *
  * Revision 1.2  2005/07/08 04:07:45  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

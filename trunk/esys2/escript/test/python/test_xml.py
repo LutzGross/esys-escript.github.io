@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
+# $Id$
 
 import unittest
-from modelframe import *
+from escript.modelframe import Model,Link,Simulation,ParameterSet,parse
 import math
 from cStringIO import StringIO
 from xml.dom import minidom
@@ -20,7 +21,7 @@ class XMLDocumentTestCase(unittest.TestCase):
         m=Messenger()
         o1.dt=0.01
         m.message=Link(o1)
-        s=ExplicitSimulation([Simulation([o1,o2],debug=False),m],debug=False)
+        s=Simulation([o1,o2,m],debug=False)
         s.run() 
         output = StringIO()
         s.writeXML(output)
@@ -57,22 +58,25 @@ class SimulationTestCase(unittest.TestCase):
         m=Messenger()
         o1.dt=0.01
         m.message=Link(o1)
-        self.s=s=ExplicitSimulation([Simulation([o1,o2],debug=False),m],debug=False)
-        s.run() 
+        self.s=Simulation([o1,o2,m],debug=False)
+        self.s.run() 
         output = StringIO()
-        s.writeXML(output)
+        self.s.writeXML(output)
         output.reset()
         self.xml = output.read()
 
     def testSimulation(self):
-        assert "<Link" in self.xml, "I should see a link"
-
-        o = parse(self.xml)
-        output = StringIO()
-        o.writeXML(output)
-        output.reset()
-        xml = output.read()
-        assert '<Link' in xml, "Missing a link! It should be in this!"
+        assert "<Simulation" in self.xml, "I should see a Simulation"
+        
+    def testParseAndInstanceOfSimulation(self):
+        
+        newSim = parse(self.xml)
+        assert (isinstance (newSim, Simulation))
+        newout = StringIO()
+        newSim.writeXML(newout)
+        newout.reset()
+        xml = newout.read()
+        assert '<Simulation' in xml, "Missing a Simulation! It should be in this!"
 
 
 
@@ -132,23 +136,25 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert ("gamma1" in xmlout)
         assert ("gamma2" in xmlout)
         assert ("gamma3" in xmlout)
-        parsable = minidom.parseString(xmlout)
-        assert parsable.getElementsByTagName("ParameterSet")
+        parsable = parse(xmlout)
+        assert (isinstance (parsable, ParameterSet))
+        assert (self._dom().getElementsByTagName("ParameterSet"))
 
     def testParameterSetFromXML(self):
-        doc = self._dom()
-        pset = ParameterSet.fromDom(doc.getElementsByTagName("ParameterSet")[0])
+        doc = self._class()
+        pset = ParameterSet.fromDom(self._dom().getElementsByTagName("ParameterSet")[0])
         assert (isinstance(pset, ParameterSet))
-        self.assertEqual(self.p.gamma1,pset.gamma1)
+        assert (isinstance(doc, ParameterSet))
+        self.assertEqual(self.p.gamma1,doc.gamma1)
 
 
     def testParameterSetWithChildrenFromXML(self):
         p2 = ParameterSet()
         p2.declareParameter(s="abc", f=3.)
         self.p.declareParameter(child=p2)
-        doc = self._dom()
-        pset = ParameterSet.fromDom(doc.getElementsByTagName("ParameterSet")[0])
-        self.assertEqual(self.p.child.f, pset.child.f) 
+        doc = self._class()
+        #pset = ParameterSet.fromDom(doc.getElementsByTagName("ParameterSet")[0])
+        self.assertEqual(self.p.child.f, doc.child.f) 
 
     def testParameterSetChild(self):
         p2 = ParameterSet()
@@ -165,23 +171,43 @@ class ParamaterSetTestCase(unittest.TestCase):
         doc = minidom.parseString(xmlout)
         return doc
 
+    def _class(self):
+        s = StringIO()
+        self.p.writeXML(s)
+        s.reset()
+        xmlout = s.read()
+        doc = parse(xmlout)
+        return doc
+
 class ModeltoDomTestCase(unittest.TestCase):
     
-    def _dom(self):
+    def _class(self):
+        # returns a modelframe class, generated from the xml
         s = StringIO()
         self.o1.writeXML(s)
         s.reset()
-        xmlout = s.read()
-        doc = minidom.parseString(xmlout)
+        self.xmlout = s.read()
+        doc = parse(self.xmlout)
         return doc
 
+    def _dom(self):
+        # returns a minidom dom element, generated from the xml
+        s = StringIO()
+        self.o1.writeXML(s)
+        s.reset()
+        self.xmlout = s.read()
+        doc = minidom.parseString(self.xmlout)
+        return doc
+    
     def setUp(self):
         self.o1=ODETEST(debug=False)
+        self.o1.message='blah'
 
     def testModelExists(self):
+        modeldoc = self._class()
+        assert (isinstance, (modeldoc, Model))
         assert self._dom().getElementsByTagName("Model")
-        #print self._dom().toxml()
-
+    
     def testModelhasID(self):
         assert int(self._dom().getElementsByTagName("Model")[0].getAttribute("id"))>99
         
@@ -190,11 +216,11 @@ class Messenger(Model):
         Model.__init__(self, *args, **kwargs)
         self.declareParameter(message="none")
 
-    def doInitialization(self,t):
-        self.__t=t
+    def doInitialization(self):
+        self.__t=0
         #print "I start talking now!"
 
-    def doStep(self,dt):
+    def doStepPostprocessing(self,dt):
         self.__t+=dt
         #print "Message (time %e) : %s "%(self.__t,self.message)
 
@@ -228,15 +254,15 @@ class ODETEST(Model):
         Model.__init__(self, *args, **kwargs)
         self.declareParameter(tend=1.,dt=0.1,a=0.9,u=10.,f=0.,message="",tol=1.e-8)
 
-    def doInitialization(self,t):
-        self.__tn=t
+    def doInitialization(self):
+        self.__tn=0
         self.__iter=0
        
-    def doIterationInitialization(self,dt):
+    def doStepPreprocessing(self,dt):
         self.__iter=0
         self.__u_last=self.u            
 
-    def doIterationStep(self,dt):
+    def doStep(self,dt):
         self.__iter+=1
         self.__u_old=self.u
         self.u=self.__u_last+dt*(self.a*self.__u_old+self.f)
@@ -247,7 +273,7 @@ class ODETEST(Model):
         else:
             return abs(self.__u_old-self.u)<self.tol*abs(self.u)
 
-    def doIterationFinalization(self,dt):
+    def doStepPostprocessing(self,dt):
         self.__tn+=dt
         self.message="current error = %e"%abs(self.u-10.*math.exp((self.a-1.)*self.__tn))
 

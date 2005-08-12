@@ -1030,7 +1030,8 @@ Data::Lsup() const
   profData->reduction1++;
   //
   // set the initial absolute maximum value to zero
-  return algorithm(DataAlgorithmAdapter<AbsMax>(0));
+  AbsMax abs_max_func;
+  return algorithm(abs_max_func,0);
 }
 
 double
@@ -1039,7 +1040,8 @@ Data::Linf() const
   profData->reduction1++;
   //
   // set the initial absolute minimum value to max double
-  return algorithm(DataAlgorithmAdapter<AbsMin>(numeric_limits<double>::max()));
+  AbsMin abs_min_func;
+  return algorithm(abs_min_func,numeric_limits<double>::max());
 }
 
 double
@@ -1048,7 +1050,8 @@ Data::sup() const
   profData->reduction1++;
   //
   // set the initial maximum value to min possible double
-  return algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+  FMax fmax_func;
+  return algorithm(fmax_func,numeric_limits<double>::max()*-1);
 }
 
 double
@@ -1057,7 +1060,8 @@ Data::inf() const
   profData->reduction1++;
   //
   // set the initial minimum value to max possible double
-  return algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+  FMin fmin_func;
+  return algorithm(fmin_func,numeric_limits<double>::max());
 }
 
 Data
@@ -1066,7 +1070,8 @@ Data::maxval() const
   profData->reduction2++;
   //
   // set the initial maximum value to min possible double
-  return dp_algorithm(DataAlgorithmAdapter<FMax>(numeric_limits<double>::max()*-1));
+  FMax fmax_func;
+  return dp_algorithm(fmax_func,numeric_limits<double>::max()*-1);
 }
 
 Data
@@ -1075,21 +1080,24 @@ Data::minval() const
   profData->reduction2++;
   //
   // set the initial minimum value to max possible double
-  return dp_algorithm(DataAlgorithmAdapter<FMin>(numeric_limits<double>::max()));
+  FMin fmin_func;
+  return dp_algorithm(fmin_func,numeric_limits<double>::max());
 }
 
 Data
 Data::length() const
 {
   profData->reduction2++;
-  return dp_algorithm(DataAlgorithmAdapter<Length>(0));
+  Length len_func;
+  return dp_algorithm(len_func,0);
 }
 
 Data
 Data::trace() const
 {
   profData->reduction2++;
-  return dp_algorithm(DataAlgorithmAdapter<Trace>(0));
+  Trace trace_func;
+  return dp_algorithm(trace_func,0);
 }
 
 Data

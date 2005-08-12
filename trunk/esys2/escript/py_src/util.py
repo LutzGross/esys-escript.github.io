@@ -747,6 +747,16 @@ class WhereNegative_Symbol(Symbol):
    def eval(self,argval):
        return whereNegative(self.getEvaluatedArguments(argval)[0])
 
+def maximum(arg0,arg1):
+    """return arg1 where arg1 is bigger then arg0 otherwise arg0 is returned"""
+    m=whereNegative(arg0-arg1)
+    return m*arg1+(1.-m)*arg0
+   
+def minimum(arg0,arg1):
+    """return arg0 where arg1 is bigger then arg0 otherwise arg1 is returned"""
+    m=whereNegative(arg0-arg1)
+    return m*arg0+(1.-m)*arg1
+   
 def outer(arg0,arg1):
    if _testForZero(arg0) or _testForZero(arg1):
       return 0
@@ -808,6 +818,16 @@ def Interpolated_Symbol(Symbol):
    def _diff(self,arg):
        a=self.getDifferentiatedArguments(arg)
        return integrate(a[0],where=self.getArgument(1))
+
+def div(arg,where=None):
+    """
+    @brief returns the divergence of arg at where.
+
+    @param arg:   Data object representing the function which gradient to be calculated.
+    @param where: FunctionSpace in which the gradient will be calculated. If not present or
+                  None an appropriate default is used. 
+    """
+    return trace(grad(arg,where))
 
 def grad(arg,where=None):
     """
@@ -931,12 +951,10 @@ def trace(arg,axis0=0,axis1=1):
        if s[axis0]!=s[axis1]:
            raise ValueError,"illegal axis in trace"
        out=escript.Scalar(0.,arg.getFunctionSpace())
-       for i in range(s[0]):
-          for j in range(s[1]):
-             out+=arg[i,j]
+       for i in range(s[axis0]):
+          out+=arg[i,i]
        return out
        # end hack for trace
-       return arg.transpose(axis0=axis0,axis1=axis1)
     else:
        return numarray.trace(arg,axis0=axis0,axis1=axis1)
 
@@ -954,34 +972,36 @@ def length(arg):
        if arg.getRank()==0:
           return abs(arg)
        elif arg.getRank()==1:
-          sum=escript.Scalar(0,arg.getFunctionSpace())
+          out=escript.Scalar(0,arg.getFunctionSpace())
           for i in range(arg.getShape()[0]):
-             sum+=arg[i]**2
-          return sqrt(sum)
+             out+=arg[i]**2
+          return sqrt(out)
        elif arg.getRank()==2:
-          sum=escript.Scalar(0,arg.getFunctionSpace())
+          out=escript.Scalar(0,arg.getFunctionSpace())
           for i in range(arg.getShape()[0]):
              for j in range(arg.getShape()[1]):
-                sum+=arg[i,j]**2
-          return sqrt(sum)
+                out+=arg[i,j]**2
+          return sqrt(out)
        elif arg.getRank()==3:
-          sum=escript.Scalar(0,arg.getFunctionSpace())
+          out=escript.Scalar(0,arg.getFunctionSpace())
           for i in range(arg.getShape()[0]):
              for j in range(arg.getShape()[1]):
                 for k in range(arg.getShape()[2]):
-                   sum+=arg[i,j,k]**2
-          return sqrt(sum)
+                   out+=arg[i,j,k]**2
+          return sqrt(out)
        elif arg.getRank()==4:
-          sum=escript.Scalar(0,arg.getFunctionSpace())
+          out=escript.Scalar(0,arg.getFunctionSpace())
           for i in range(arg.getShape()[0]):
              for j in range(arg.getShape()[1]):
                 for k in range(arg.getShape()[2]):
                    for l in range(arg.getShape()[3]):
-                      sum+=arg[i,j,k,l]**2
-          return sqrt(sum)
+                      out+=arg[i,j,k,l]**2
+          return sqrt(out)
        else:
           raise SystemError,"length is not been fully implemented yet"
           # return arg.length()
+    elif isinstance(arg,float):
+       return abs(arg)
     else:
        return sqrt((arg**2).sum())
 
@@ -1007,34 +1027,39 @@ def inner(arg0,arg1):
 
     @param arg0, arg1
     """
-    sum=escript.Scalar(0,arg0.getFunctionSpace())
-    if arg0.getRank()==0:
+    if isinstance(arg0,escript.Data):
+       arg=arg0
+    else:
+       arg=arg1
+
+    out=escript.Scalar(0,arg.getFunctionSpace())
+    if arg.getRank()==0:
           return arg0*arg1
-    elif arg0.getRank()==1:
-         sum=escript.Scalar(0,arg0.getFunctionSpace())
-         for i in range(arg0.getShape()[0]):
-            sum+=arg0[i]*arg1[i]
-    elif arg0.getRank()==2:
-        sum=escript.Scalar(0,arg0.getFunctionSpace())
-        for i in range(arg0.getShape()[0]):
-           for j in range(arg0.getShape()[1]):
-              sum+=arg0[i,j]*arg1[i,j]
-    elif arg0.getRank()==3:
-        sum=escript.Scalar(0,arg0.getFunctionSpace())
-        for i in range(arg0.getShape()[0]):
-            for j in range(arg0.getShape()[1]):
-               for k in range(arg0.getShape()[2]):
-                  sum+=arg0[i,j,k]*arg1[i,j,k]
-    elif arg0.getRank()==4:
-        sum=escript.Scalar(0,arg0.getFunctionSpace())
-        for i in range(arg0.getShape()[0]):
-           for j in range(arg0.getShape()[1]):
-              for k in range(arg0.getShape()[2]):
-                 for l in range(arg0.getShape()[3]):
-                    sum+=arg0[i,j,k,l]*arg1[i,j,k,l]
+    elif arg.getRank()==1:
+         out=escript.Scalar(0,arg.getFunctionSpace())
+         for i in range(arg.getShape()[0]):
+            out+=arg0[i]*arg1[i]
+    elif arg.getRank()==2:
+        out=escript.Scalar(0,arg.getFunctionSpace())
+        for i in range(arg.getShape()[0]):
+           for j in range(arg.getShape()[1]):
+              out+=arg0[i,j]*arg1[i,j]
+    elif arg.getRank()==3:
+        out=escript.Scalar(0,arg.getFunctionSpace())
+        for i in range(arg.getShape()[0]):
+            for j in range(arg.getShape()[1]):
+               for k in range(arg.getShape()[2]):
+                  out+=arg0[i,j,k]*arg1[i,j,k]
+    elif arg.getRank()==4:
+        out=escript.Scalar(0,arg.getFunctionSpace())
+        for i in range(arg.getShape()[0]):
+           for j in range(arg.getShape()[1]):
+              for k in range(arg.getShape()[2]):
+                 for l in range(arg.getShape()[3]):
+                    out+=arg0[i,j,k,l]*arg1[i,j,k,l]
     else:
           raise SystemError,"inner is not been implemented yet"
-    return sum
+    return out
 
 def matrixmult(arg0,arg1):
 
@@ -1053,6 +1078,8 @@ def matrixmult(arg0,arg1):
                # uses Data object slicing, plus Data * and += operators
                out[i]+=arg0[i,j]*arg1[j]
           return out
+      elif arg0.getRank()==1 and arg1.getRank()==1:
+          return inner(arg0,arg1)
       else:
           raise SystemError,"matrixmult is not fully implemented yet!"
 
@@ -1134,9 +1161,9 @@ def dot(arg0,arg1):
 
 def kronecker(d):
    if hasattr(d,"getDim"):
-      return numarray.identity(d.getDim())
+      return numarray.identity(d.getDim())*1.
    else:
-      return numarray.identity(d)
+      return numarray.identity(d)*1.
 
 def unit(i,d):
    """
@@ -1202,21 +1229,20 @@ if __name__=="__main__":
 
 #
 # $Log$
-# Revision 1.14  2005/07/25 05:28:13  jgs
-# Merge of development branch back to main trunk on 2005-07-25
+# Revision 1.15  2005/08/12 01:45:36  jgs
+# erge of development branch dev-02 back to main trunk on 2005-08-12
 #
-# Revision 1.13  2005/07/22 03:53:01  jgs
-# Merge of development branch back to main trunk on 2005-07-22
+# Revision 1.14.2.3  2005/08/03 09:55:33  gross
+# ContactTest is passing now./mk install!
 #
-# Revision 1.12  2005/07/20 06:14:58  jgs
-# added ln(data) style wrapper for data.ln() - also added corresponding
-# implementation of Ln_Symbol class (not sure if this is right though)
+# Revision 1.14.2.2  2005/08/02 03:15:14  gross
+# bug inb trace fixed!
 #
-# Revision 1.11  2005/07/08 04:07:35  jgs
-# Merge of development branch back to main trunk on 2005-07-08
+# Revision 1.14.2.1  2005/07/29 07:10:28  gross
+# new functions in util and a new pde type in linearPDEs
 #
-# Revision 1.10  2005/06/09 05:37:59  jgs
-# Merge of development branch back to main trunk on 2005-06-09
+# Revision 1.2.2.21  2005/07/28 04:19:23  gross
+# new functions maximum and minimum introduced.
 #
 # Revision 1.2.2.20  2005/07/25 01:26:27  gross
 # bug in inner fixed

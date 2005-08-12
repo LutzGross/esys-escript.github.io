@@ -20,7 +20,7 @@ INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/linearPDEs.pyc ./lib/py_s
 
 INSTALL_LIB := ./lib/libescriptcpp.so
 
-PACKAGES := esysUtils python23 boostStatic
+PACKAGES := esysUtils python boostStatic
 
 L_SRC_DIR:= ./src ./py_src
 

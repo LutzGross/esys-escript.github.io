@@ -81,8 +81,9 @@ def checkResult(text,res,val0,val1,val2,wh):
      error=Lsup(ref-res)/norm
      print "@@ %s, shape %s: error = %e"%(text,ref.getShape(),error)
      if error>tol:
-       #raise SystemError,"@@ %s: error is too large"%(text)
        print "**** %s: error is too large"%(text)
+       raise SystemError,"@@ %s: error is too large"%(text)
+       sys.exit(1)
 
 def getRank(arg):
     if isinstance(arg,Data):
@@ -424,4 +425,5 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       arrays2[2], \
                       wh)
 
+sys.exit(0)
 # end

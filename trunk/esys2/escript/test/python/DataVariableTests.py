@@ -2,8 +2,8 @@ import sys
 import unittest
 import os
 
-from esys.escript import *
-from esys import finley
+from escript.escript import *
+from finley import finley
 
 import numarray
 
@@ -107,4 +107,5 @@ d5 = dv1.evaluate()
 
 print d5.toString()
 
+sys.exit(0)
 # end

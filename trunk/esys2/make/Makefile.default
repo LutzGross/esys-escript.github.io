@@ -30,6 +30,10 @@ endif
 #
 # Set defaults for local variables if not already set
 #
+# Python install directory
+ifeq ($(strip $(L_PYTH_DIR)),)
+   L_PYTH_DIR := $(ESYS_ROOT)/esys
+endif
 
 # Current directory
 ifeq ($(strip $(L_DIR)),)

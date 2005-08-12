@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# $Id$
+
 """
 Make an mpeg movie from the pnm files in the current directory
 """
@@ -8,21 +10,23 @@ import os, sys, re
 import getopt
 
 (opts, args) = getopt.getopt(sys.argv[1:], 
-	"s:o:f:h", 
-	["framestem=", "output=", "format=", "help"],
+	"s:o:f:p:h", 
+	["framestem=", "output=", "format=", "pad=", "help"],
 	)
 
 def usage():
     print "Usage:"
-    print "  make_movie -s <framestem> -o <output filename> -f <format>\n"
+    print "  make_movie -s <framestem> -o <output filename> -f <format> -p <pad>\n"
     print "  Arguments:"
     print "    -s/--framestem: The frame filename stem (the stuff before .pnm) (required)"
     print "    -o/--output: Output mpeg filename (optional)"
     print "    -f/--format: Input frame image format (optional)"
+    print "    -p/--pad: How many frames to pad the movie (optional)"
 
 mpegName = None
 fnameStem = None
 format = "pnm"  # if format not specified assume pnm
+pad = 1
 
 for option, arg in opts:
     if option in ('-s', '--stem'):
@@ -31,6 +35,8 @@ for option, arg in opts:
 	mpegName = arg
     elif option in ('-f', '--format'):
 	format = arg
+    elif option in ('-p', '--pad'):
+	pad = int(arg)
     elif option in ('-h', '--help'):
 	usage()
 	sys.exit(0)
@@ -51,6 +57,9 @@ for fname in dirList:
     if r.match(fname):
 	fnames.append(fname)
 	count += 1
+
+if count == 0:
+    raise ValueError, "No matching files found"
 
 # do a conversion if necessary
 if format != "pnm":
@@ -100,14 +109,25 @@ fnames.sort()
 firstFile = fnames[0]
 lastFile = fnames[-1]
 
-r = re.compile("([a-zA-Z])(\\d+)(\\.\\w+)")
+r = re.compile("([a-zA-Z-_\.\d])(\\d+)(\\.\\w+)$")
 firstNum = r.findall(firstFile)
 firstNum = firstNum[0][1]
 lastNum = r.findall(lastFile)
 lastNum = lastNum[0][1]
 
+
 # finish off the params file string
-paramsFileString += "%s*.pnm [%s-%s]\n" % (fnameStem, firstNum, lastNum)
+if pad == 1:
+    paramsFileString += "%s*.pnm [%s-%s]\n" % (fnameStem, firstNum, lastNum)
+elif pad > 1:
+    # positive padding: add duplicate frames (slow the movie down)
+    for i in range(int(firstNum), int(lastNum)+1):
+	for j in range(pad):
+	    paramsFileString += "%s%04d.pnm\n" % (fnameStem, i)
+elif pad < 1:
+    # negative padding: i.e. remove frames (speed the movie up)
+    for i in range(int(firstNum), int(lastNum)+1, abs(pad)):
+	paramsFileString += "%s%04d.pnm\n" % (fnameStem, i)
 
 paramsFileString += """END_INPUT
 PIXEL HALF

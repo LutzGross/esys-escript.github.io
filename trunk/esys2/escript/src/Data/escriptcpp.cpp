@@ -95,7 +95,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getX",&escript::FunctionSpace::getX)
      .def("getNormal",&escript::FunctionSpace::getNormal)
      .def("getSize",&escript::FunctionSpace::getSize)
-     .def("toString",&escript::FunctionSpace::toString)
+     .def("__str__",&escript::FunctionSpace::toString)
      .def(self == self)
      .def(self != self);
 
@@ -133,6 +133,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
     .def("copy",&escript::Data::copy)
+
     .def("saveDX",&escript::Data::saveDX)
     .def("saveVTK",&escript::Data::saveVTK)
     .def("wherePositive",&escript::Data::wherePositive)

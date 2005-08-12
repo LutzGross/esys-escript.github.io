@@ -3,5 +3,12 @@
 if [ ! -e Makefile ]; then ln -s ./DataTest.mk Makefile; fi
 make -f ./Makefile clean
 make -f ./Makefile DODEBUG=YES
-./DataTest.exe
-make -f ./Makefile clean
+./DataTest.exe 
+if [ $? != 0 ]
+then
+  make -f ./Makefile clean
+  exit 1
+else
+  make -f ./Makefile clean
+  exit 0
+fi

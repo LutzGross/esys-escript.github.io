@@ -26,8 +26,8 @@ class DarcyFlow(Model):
                                  implicit=True)
            self.iter=0
 
-       def doInitialization(self,t):
-           self.tn=t
+       def doInitialization(self):
+           self.tn=0
            self.pde=LinearPDE(self.domain)
            self.pde.setSymmetryOn()
 

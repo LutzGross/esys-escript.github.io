@@ -983,10 +983,11 @@ class Data {
      Perform the specified reduction algorithm on every element of every data point in
      this Data object according to the given function and return the single value result.
   */
-  template <class UnaryFunction>
+  template <class BinaryFunction>
   inline
   double
-  algorithm(UnaryFunction operation) const;
+  algorithm(BinaryFunction operation,
+            double initial_value) const;
 
   /**
      \brief
@@ -995,10 +996,11 @@ class Data {
      one value - the result of the reduction operation on the corresponding data-point in
      this Data object
   */
-  template <class UnaryFunction>
+  template <class BinaryFunction>
   inline
   Data
-  dp_algorithm(UnaryFunction operation) const;
+  dp_algorithm(BinaryFunction operation,
+               double initial_value) const;
 
   /**
      \brief
@@ -1364,23 +1366,23 @@ Data::unaryOp(UnaryFunction operation)
   object (*this) is a rank n Data object, and returned object is a scalar.
   Calls escript::algorithm.
 */
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 double
-Data::algorithm(UnaryFunction operation) const
+Data::algorithm(BinaryFunction operation, double initial_value) const
 {
   if (isExpanded()) {
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
-    return escript::algorithm(*leftC,operation);
+    return escript::algorithm(*leftC,operation,initial_value);
   } else if (isTagged()) {
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
-    return escript::algorithm(*leftC,operation);
+    return escript::algorithm(*leftC,operation,initial_value);
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     EsysAssert((leftC!=0), "Programming error - casting to DataConstant.");
-    return escript::algorithm(*leftC,operation);
+    return escript::algorithm(*leftC,operation,initial_value);
   }
   return 0;
 }
@@ -1393,10 +1395,10 @@ Data::algorithm(UnaryFunction operation) const
   rank 0 Data object.
   Calls escript::dp_algorithm.
 */
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 Data
-Data::dp_algorithm(UnaryFunction operation) const
+Data::dp_algorithm(BinaryFunction operation, double initial_value) const
 {
   Data result(0,DataArrayView::ShapeType(),getFunctionSpace(),isExpanded());
   if (isExpanded()) {
@@ -1404,19 +1406,19 @@ Data::dp_algorithm(UnaryFunction operation) const
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
     EsysAssert((dataE!=0), "Programming error - casting data to DataExpanded.");
     EsysAssert((resultE!=0), "Programming error - casting result to DataExpanded.");
-    escript::dp_algorithm(*dataE,*resultE,operation);
+    escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
   } else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
     DataTagged* resultT=dynamic_cast<DataTagged*>(result.m_data.get());
     EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
     EsysAssert((resultT!=0), "Programming error - casting result to DataTagged.");
-    escript::dp_algorithm(*dataT,*resultT,operation);
+    escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
   } else if (isConstant()) {
     DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
     EsysAssert((dataC!=0), "Programming error - casting data to DataConstant.");
     EsysAssert((resultC!=0), "Programming error - casting result to DataConstant.");
-    escript::dp_algorithm(*dataC,*resultC,operation);
+    escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
   }
   return result;
 }

@@ -8,6 +8,6 @@ L_SRC_DIR := .
 
 L_DEFS := DOASSERT
 
-PACKAGES := escript CppUnitTest esysUtils python23Static boost
+PACKAGES := escript CppUnitTest esysUtils pythonStatic boost
 
 include $(ESYS_ROOT)/make/Makefile.default

@@ -745,9 +745,10 @@ class DataArrayView {
      \param operation - Input -
                   Operation to apply. Must be a pointer to a function.
   */
-  template <class UnaryFunction>
+  template <class BinaryFunction>
   double
-  reductionOp(UnaryFunction operation) const;
+  reductionOp(BinaryFunction operation,
+              double initial_value) const;
 
   /**
      \brief
@@ -763,10 +764,11 @@ class DataArrayView {
      \param operation - Input -
                   Operation to apply. Must be a pointer to a function.
   */
-  template <class UnaryFunction>
+  template <class BinaryFunction>
   double
   reductionOp(ValueType::size_type offset,
-              UnaryFunction operation) const;
+              BinaryFunction operation,
+              double initial_value) const;
 
   /**
      \brief
@@ -940,27 +942,29 @@ DataArrayView::binaryOp(ValueType::size_type offset,
   }
 }
 
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 double
-DataArrayView::reductionOp(UnaryFunction operation) const
+DataArrayView::reductionOp(BinaryFunction operation,
+                           double initial_value) const
 {
-  return reductionOp(m_offset,operation);
+  return reductionOp(m_offset,operation,initial_value);
 }
 
-template <class UnaryFunction>
+template <class BinaryFunction>
 inline
 double
 DataArrayView::reductionOp(ValueType::size_type offset,
-                           UnaryFunction operation) const
+                           BinaryFunction operation,
+                           double initial_value) const
 {
   EsysAssert((!isEmpty()&&checkOffset(offset)),
                "Error - Couldn't perform reductionOp due to insufficient storage.");
-  operation.resetResult();
+  double current_value=initial_value;
   for (ValueType::size_type i=0;i<noValues();i++) {
-    operation((*m_data)[offset+i]);
+    current_value=operation(current_value,(*m_data)[offset+i]);
   }
-  return operation.getResult();
+  return current_value;
 }
 
 inline

@@ -201,7 +201,7 @@ class LinearPDE:
      @param args:
      """
      # COEFFICIENTS can be overwritten by subclasses:
-     self.COEFFICIENTS={
+     self.__COEFFICIENTS={
        "A"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM,PDECoefficient.SOLUTION,PDECoefficient.DIM),PDECoefficient.OPERATOR),
        "B"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM,PDECoefficient.SOLUTION),PDECoefficient.OPERATOR),
        "C"         : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.SOLUTION,PDECoefficient.DIM),PDECoefficient.OPERATOR),
@@ -215,6 +215,7 @@ class LinearPDE:
        "r"         : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
        "q"         : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.SOLUTION,),PDECoefficient.BOTH)}
 
+     self.COEFFICIENTS=self.__COEFFICIENTS
      # initialize attributes
      self.__debug=None
      self.__domain=domain
@@ -276,6 +277,14 @@ class LinearPDE:
       """
       return self.COEFFICIENTS.has_key(name)
 
+   def hasPDECoefficient(self,name):
+      """
+      return true if name is the name of a coefficient
+
+      @param name:
+      """
+      return self.__COEFFICIENTS.has_key(name)
+
    def getFunctionSpaceForEquation(self):
      """
      return true if the test functions should use reduced order
@@ -310,6 +319,33 @@ class LinearPDE:
      """
      return escript.Data(0,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
       
+   def createNewCoefficientOfPDE(self,name):
+     """
+     returns a new coefficient appropriate for coefficient name:
+     """
+     return escript.Data(0,self.getShapeOfCoefficientOfPDE(name),self.getFunctionSpaceForCoefficientOfPDE(name))
+      
+   def getShapeOfCoefficientOfPDE(self,name):
+     """
+     return the shape of the coefficient name
+
+     @param name:
+     """
+     if self.hasPDECoefficient(name):
+        return self.__COEFFICIENTS[name].buildShape(self.getNumEquations(),self.getNumSolutions(),self.getDomain().getDim())
+     else:
+        raise ValueError,"Unknown coefficient %s requested"%name
+
+   def getFunctionSpaceForCoefficientOfPDE(self,name):
+     """
+     return the atoms of the coefficient name
+
+     @param name:
+     """
+     if self.hasPDECoefficient(name):
+        return self.__COEFFICIENTS[name].getFunctionSpace(self.getDomain())
+     else:
+        raise ValueError,"unknown coefficient %s requested"%name
 
    def getShapeOfCoefficient(self,name):
      """
@@ -320,7 +356,7 @@ class LinearPDE:
      if self.hasCoefficient(name):
         return self.COEFFICIENTS[name].buildShape(self.getNumEquations(),self.getNumSolutions(),self.getDomain().getDim())
      else:
-        raise ValueError,"Solution coefficient %s requested"%name
+        raise ValueError,"Unknown coefficient %s requested"%name
 
    def getFunctionSpaceForCoefficient(self,name):
      """
@@ -331,7 +367,7 @@ class LinearPDE:
      if self.hasCoefficient(name):
         return self.COEFFICIENTS[name].getFunctionSpace(self.getDomain())
      else:
-        raise ValueError,"Solution coefficient %s requested"%name
+        raise ValueError,"unknown coefficient %s requested"%name
 
    def alteredCoefficient(self,name):
      """
@@ -1311,13 +1347,13 @@ class LameEquation(LinearPDE):
 
    class to define a linear PDE of the form
    \f[
-   -(\lambda (u_{i,j}+u_{j,i}))_{,j} - \mu u_{j,ji}} = F_i -\sigma_{ij,j}
+   -(\mu (u_{i,j}+u_{j,i}))_{,j} - \lambda u_{j,ji}} = F_i -\sigma_{ij,j}
    \f]
 
    with boundary conditons:
 
    \f[
-   n_j(\lambda(u_{i,j}+u_{j,i})-sigma_{ij}) + n_i\mu u_{j,j} = f_i
+   n_j(\mu (u_{i,j}+u_{j,i})-sigma_{ij}) + n_i\lambda u_{j,j} = f_i
    \f]
 
    and constraints:
@@ -1332,8 +1368,8 @@ class LameEquation(LinearPDE):
        self.COEFFICIENTS={
        "lame_lambda"  : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
        "lame_mu"      : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
-       "F"            : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM),PDECoefficient.RIGHTHANDSIDE),
-       "sigma"        : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.EQUATION),PDECoefficient.RIGHTHANDSIDE),
+       "F"            : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "sigma"        : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.EQUATION,PDECoefficient.DIM),PDECoefficient.RIGHTHANDSIDE),
        "f"            : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.EQUATION,),PDECoefficient.RIGHTHANDSIDE),
        "r"            : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.EQUATION,),PDECoefficient.BOTH),
        "q"            : PDECoefficient(PDECoefficient.CONTINUOUS,(PDECoefficient.EQUATION,),PDECoefficient.BOTH)}
@@ -1355,12 +1391,12 @@ class LameEquation(LinearPDE):
      @param name:
      """
      if name == "A" : 
-         A =self.createNewCoefficient("A")
+         out =self.createNewCoefficientOfPDE("A")
          for i in range(self.getDim()):
            for j in range(self.getDim()):
-             out[i,i,j,j] += self.getCoefficient("lame_mu")
-             out[i,j,j,i] += self.getCoefficient("lame_lambda")
-             out[i,j,i,j] += self.getCoefficient("lame_lambda")
+             out[i,i,j,j] += self.getCoefficient("lame_lambda")
+             out[i,j,j,i] += self.getCoefficient("lame_mu")
+             out[i,j,i,j] += self.getCoefficient("lame_mu")
          return out
      elif name == "B" : 
          return escript.Data()
@@ -1388,14 +1424,14 @@ class LameEquation(LinearPDE):
          raise SystemError,"unknown PDE coefficient %s",name
 
 # $Log$
-# Revision 1.9  2005/07/25 05:28:13  jgs
-# Merge of development branch back to main trunk on 2005-07-25
+# Revision 1.10  2005/08/12 01:45:36  jgs
+# erge of development branch dev-02 back to main trunk on 2005-08-12
 #
-# Revision 1.8  2005/06/09 05:37:59  jgs
-# Merge of development branch back to main trunk on 2005-06-09
+# Revision 1.9.2.1  2005/07/29 07:10:27  gross
+# new functions in util and a new pde type in linearPDEs
 #
-# Revision 1.7  2005/05/06 04:26:10  jgs
-# Merge of development branch back to main trunk on 2005-05-06
+# Revision 1.1.2.25  2005/07/28 04:21:09  gross
+# Lame equation: (linear elastic, isotropic) added
 #
 # Revision 1.1.2.24  2005/07/22 06:37:11  gross
 # some extensions to modellib and linearPDEs

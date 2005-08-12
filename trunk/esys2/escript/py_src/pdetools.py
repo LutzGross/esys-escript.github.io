@@ -67,78 +67,54 @@ class Projector:
     return out
 
 
-class Location:
-     """Location provides a factory to access the values of data objects at a given spatial coordinate x.
-        In fact, a Location object finds the sample in the set of samples of a given function space or domain which is closest
-        to the given point x. """
+class Locator:
+     """
 
-     def __init__(self,x,where):
-       """initializes a Location to access values in Data objects on the Doamin or FunctionSpace where for the sample point which
+        Locator provides a  access the values of data objects at a given spatial coordinate x.
+        In fact, a Locator object finds the sample in the set of samples of a given function space or domain where which is closest
+        to the given point x. 
+
+     """
+
+     def __init__(self,where,x=numarray.zeros((3,))):
+       """initializes a Locator to access values in Data objects on the Doamin or FunctionSpace where for the sample point which
           closest to the given point x"""
        if isinstance(where,FunctionSpace):
-          self.__where=where
+          self.__function_space=where
        else:
-          self.__where=ContinuousFunction(where)
-       self.__id=length(x-self.__where.getX()).minarg()
+          self.__function_space=ContinuousFunction(where)
+       self.__id=length(x[:self.__function_space.getDim()]-self.__function_space.getX()).mindp()
 
-     def getValue(self,data):
-        """returns the value of data at the Location at a numarray object"""
-        if isinstance(data,Data):
-           return data
-        else:
-           if not data.getFunctionSpace()==self.getFunctionSpace():
-             raise ValueError,"function space of data obejct does not match function space of Location"
-           else:
-             return data.getValue(self.getId())
-     def getX(self):
-        """returns the exact coordinates of the Location"""
-        return self.getValue(self.getFunctionSpace().getX())
+     def __str__(self):
+       """returns the coordinates of the Locator as a string"""
+       return "<Locator %s>"%str(self.getX())
+
+     def getFunctionSpace(self):
+        """returns the function space of the Locator"""
+        return self.__function_space
 
      def getId(self):
         """returns the identifier of the location"""
         return self.__id
 
-     def getFunctionSpace(self):
-        """returns the function space of the Location"""
-        return self.__function_space
+     def getX(self):
+        """returns the exact coordinates of the Locator"""
+        return self(self.getFunctionSpace().getX())
 
-     def __str__(self):
-       """returns the coordinates of the Location as a string"""
-       return str(self.getX())
+     def __call__(self,data):
+        """returns the value of data at the Locator of a Data object otherwise the object is returned."""
+        return self.getValue(data)
 
-def testProjector(domain):
-      """runs a few test of the Projector factory and returns the largest error plus a description of the test this error occured"""
-      error_max=0.
-      error_text=""
-      x=ContinuousFunction(domain).getX()
-      for f in [True,False]:
-         p=Projector(domain,reduce=False,fast=f)
-         for r in range(5):
-            text="range %s , fast=%s"%(r,f)
-            if r==0:
-               td_ref=x[0]
-            elif r==1:
-               td_ref=x
-            elif r==2:
-               td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
-            elif r==3:
-               td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
-            elif r==3:
-               td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
-            td=p(td_ref.interpolate(Function(domain)))
-            er=Lsup(td-td_ref)/Lsup(td_ref)
-            print text," error = ",er
-            if er>error_max:
-                 error_max=er
-                 error_text=text
-      return error_max,error_text
-
-
-# this should be removed later
-if __name__=="__main__":
-    from esys.finley import Rectangle
-    txt=testProjector(Rectangle(56,61))
-    print "test Projector: ",txt
-
-
-
+     def getValue(self,data):
+        """returns the value of data at the Locator if data is a Data object otherwise the object is returned."""
+        if isinstance(data,Data):
+           if data.getFunctionSpace()==self.getFunctionSpace():
+             out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
+           else:
+             out=data.interpolate(self.getFunctionSpace()).convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
+           if data.getRank()==0:
+              return out[0]
+           else:
+              return out
+        else:
+           return data

@@ -4,4 +4,11 @@ if [ ! -e Makefile ]; then ln -s ./FunctionSpaceTest.mk Makefile; fi
 make -f ./Makefile clean
 make -f ./Makefile DODEBUG=YES
 ./FunctionSpaceTest.exe
-make -f ./Makefile clean
+if [ $? != 0 ]
+then
+  make -f ./Makefile clean
+  exit 1
+else
+  make -f ./Makefile clean
+  exit 0
+fi

@@ -9,8 +9,11 @@ if [ $? != 0 ]
 then
 	echo "out.hb and out.hb.correct differ"
 	echo "!! Test FAILED !!"
+        make -f ./Makefile clean
+        exit 1
 else
 	echo "** Test PASSED **"
 	rm -f out.hb
+        make -f ./Makefile clean
+        exit 0
 fi
-make -f ./Makefile clean

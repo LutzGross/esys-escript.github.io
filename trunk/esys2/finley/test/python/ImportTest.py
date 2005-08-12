@@ -13,3 +13,4 @@ Tests importation of finley modules.
 """
 
 print "Success!"
+sys.exit(0)

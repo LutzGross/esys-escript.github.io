@@ -4,6 +4,15 @@
 
 MODULES="MeshAdapter SystemMatrixAdapter MMtest"
 
-for module in $MODULES ; do \
-	(echo Testing: $module; cd $module; ./unit_test) \
+for module in $MODULES ; do
+  echo Testing: $module
+  cd $module
+  ./unit_test
+  if [ $? != 0 ]
+  then
+    echo Unit Testing FAILED for module: $module
+    exit 1
+  fi
+  cd ..
 done
+exit 0

@@ -9,6 +9,6 @@
 
 DEFAULT_TARGET := libesysUtils.a
 
-PACKAGES := python23 boost
+PACKAGES := python boost
 
 include ${ESYS_ROOT}/make/Makefile.default

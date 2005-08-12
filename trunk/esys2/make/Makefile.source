@@ -24,8 +24,9 @@ SWIG_SHOBJ := ${patsubst %.i, %.lo, ${SWIG_SRC}}
 
 # Python Source
 # Find all .py files in source directory, and define matching .pyc files
-PYTHON_SRC := ${patsubst ${L_SRC_DIR}/%, %, ${shell find ${L_SRC_DIR} -name \*.py | grep -v '-'}}
-PYTHON_BYTE := ${patsubst %.py, %.pyc, ${PYTHON_SRC}}
+PYTHON_SRC_SRC := ${shell find ${L_SRC_DIR} -name \*.py | grep -v '-'}
+PYTHON_SRC := ${patsubst ${L_SRC_DIR}/%, %, ${PYTHON_SRC_SRC}}
+PYTHON_BYTE := ${patsubst %.py, %.pyc, ${PYTHON_SRC_SRC}}
 
 # Search Paths
 # define locations to search for each file type
@@ -40,6 +41,20 @@ vpath %.so  ${L_LIB_DIR}
 vpath %.pyc ${L_LIB_DIR}
 
 # $Log$
+# Revision 1.3  2005/08/12 01:45:45  jgs
+# erge of development branch dev-02 back to main trunk on 2005-08-12
+#
+# Revision 1.2.2.1  2005/08/01 10:23:56  gross
+# Bug in installation of python only components such as modellib fixed:
+#
+# C/C++ in ./src is directly compiled into ./lib but python code in ./py_src into ./lib/py_src.
+# therefore for C/C++ code the leading directory ./src in names is removed for the output. The same is
+# tried for python code however the substitution is not done correctly when leads to the effect that components that
+# are compiled from one directory only the leading subdirectory is removed but for components build from more than one
+# directory only the first subdirectory (typically ./src) is removed but subsequent directories are not removed.
+# Therefore escript is run but not modellib (at least the compiled code apeared in ./lib rather than ./lib/py_src).
+# The fix works around this problem for python compilations.
+#
 # Revision 1.2  2005/06/09 05:38:03  jgs
 # Merge of development branch back to main trunk on 2005-06-09
 #
