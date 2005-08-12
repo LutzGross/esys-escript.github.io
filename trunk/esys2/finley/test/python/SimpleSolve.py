@@ -12,6 +12,7 @@ print "\nSimpleSolve.py"
 print "--------------"
 
 alpha=0.025
+error_tol=pow(10,-9)
 
 # generate mesh
 
@@ -63,16 +64,23 @@ print "\nIterative Solver (1)=>"
 # u_i=mypde.getSolution(preconditioner=ILU0,iter_max=3000)
 u_i=mypde.getSolution(iter_max=3000)
 
-
 print "\nDirect Solver (1)=>"
 mypde.setSolverMethod(DIRECT)
 u_d=mypde.getSolution()
 
 print "\n***************************************************************"
 error=u_ex-u_d
-print "norm of the error for direct solver is   : ",error.Lsup()/norm_u_ex
+error_norm=error.Lsup()/norm_u_ex
+print "norm of the error for direct solver is   : ",error_norm
+if error_norm > error_tol:
+  print "### error norm exceeded maximum tolerance ###"
+  sys.exit(1)
 error=u_ex-u_i
-print "norm of the error for iterative solver is: ",error.Lsup()/norm_u_ex
+error_norm=error.Lsup()/norm_u_ex
+print "norm of the error for iterative solver is: ",error_norm
+if error_norm > error_tol:
+  print "### error norm exceeded maximum tolerance ###"
+  sys.exit(1)
 print "***************************************************************"
 
 # get handles to nodes and elements 2
@@ -116,11 +124,21 @@ u_i=mypde.getSolution(iter_max=3000)
 
 print "\n******************************************************************"
 error=u_ex-u_d
-print "norm of the error for direct solver is   : ",error.Lsup()/norm_u_ex
+error_norm=error.Lsup()/norm_u_ex
+print "norm of the error for direct solver is   : ",error_norm
+if error_norm > error_tol:
+  print "### error norm exceeded maximum tolerance ###"
+  sys.exit(1)
 error=u_ex-u_i
-print "norm of the error for iterative solver is: ",error.Lsup()/norm_u_ex
+error_norm=error.Lsup()/norm_u_ex
+print "norm of the error for iterative solver is: ",error_norm
+if error_norm > 10:
+  print "### error norm exceeded maximum tolerance ###"
+  sys.exit(1)
 print "******************************************************************"
 
 print "\n-----"
 print "Done."
 print "-----"
+
+sys.exit(0)

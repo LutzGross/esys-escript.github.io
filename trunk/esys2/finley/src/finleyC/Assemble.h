@@ -53,8 +53,10 @@ typedef void (Finley_Assemble_handelShapeMissMatch) (dim_t, dim_t,dim_t, double*
 
 void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Finley_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;
+void Finley_Assemble_PDE_RHS(Finley_NodeFile*,Finley_ElementFile*,escriptDataC*,escriptDataC*,escriptDataC*) ;
 void Finley_Assemble_RobinCondition(Finley_NodeFile*,Finley_ElementFile*,Finley_SystemMatrix*,escriptDataC*,
                                     escriptDataC*,escriptDataC*,Finley_Assemble_handelShapeMissMatch) ;
+void Finley_Assemble_RobinCondition_RHS(Finley_NodeFile*,Finley_ElementFile*,escriptDataC*,escriptDataC*,Finley_Assemble_handelShapeMissMatch);
 /* void Finley_Assemble_Points(Finley_Mesh*,Finley_SystemMatrix*,escriptDataC*,escriptDataC*,escriptDataC*) ;*/
 void Finley_Assemble_NodeCoordinates(Finley_NodeFile*,escriptDataC*);
 void Finley_Assemble_setNormal(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*);
@@ -80,6 +82,12 @@ Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_i
 
 /*
  * $Log$
+ * Revision 1.3  2005/08/12 01:45:42  jgs
+ * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.2.2.1  2005/08/04 22:41:11  gross
+ * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)
+ *
  * Revision 1.2  2005/07/08 04:07:45  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

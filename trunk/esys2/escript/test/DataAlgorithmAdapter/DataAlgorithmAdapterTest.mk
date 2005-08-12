@@ -5,7 +5,7 @@ DEFAULT_TARGET := DataAlgorithmAdapterTest.exe
 
 L_SRC_DIR := .
 
-PACKAGES := escript CppUnitTest esysUtils python23Static boost
+PACKAGES := escript CppUnitTest esysUtils pythonStatic boost
 
 L_DEFS := DOASSERT
 

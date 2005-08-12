@@ -21,6 +21,7 @@ from numarray import array
 numElements=10
 max_error=0.
 max_error_text=""
+error_tol=pow(10,-10)
 
 for dim in [2,3]:
   for order in [1,2]:
@@ -237,3 +238,9 @@ print "\n\n"
 print "******************************************************************************************************************"
 print "maximal error:", max_error_text
 print "******************************************************************************************************************"
+
+if max_error > error_tol:
+  print "max error exceeds tolerance"
+  sys.exit(1)
+
+sys.exit(0)

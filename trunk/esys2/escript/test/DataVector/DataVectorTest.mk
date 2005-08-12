@@ -7,7 +7,7 @@ L_SRC_DIR := .
 
 L_DEFS := DOASSERT
 
-PACKAGES := CppUnitTest esysUtils python23Static boost
+PACKAGES := CppUnitTest esysUtils pythonStatic boost
 
 L_EXT_INC_DIRS := ../../inc
 

@@ -2,9 +2,9 @@
 #
 # $Id$
 
-from esys.escript import *
-from esys.linearPDEs import *
-import esys.finley as finley
+from escript.escript import *
+from escript.linearPDEs import *
+import finley.finley as finley
 from math import *
 
 global seed
@@ -116,7 +116,7 @@ def mult2(A,u):
       return out
 
 
-def eval(u,this):
+def evaluate(u,this):
     x=this.getX()
     if u.rank==2:
        out=Data(value=0,shape=(u.shape[0],),what=this,expand=True)
@@ -172,7 +172,7 @@ def TestSystem(numEqu,numComp,mydomain,reduce):
    # u=numarray.zeros([numComp,len_Basis])
    # u[0,0]=1
    # u[0,1]=1
-   U=eval(u,nodes)
+   U=evaluate(u,nodes)
    gradu=algebraicGrad(u)
    #
    #   test A:
@@ -193,13 +193,13 @@ def TestSystem(numEqu,numComp,mydomain,reduce):
                   text="A[%d,%d,%d,%d]"%(p,i,q,j)
                x=mult4(c_A,gradu)
                mypde1=LinearPDE(mydomain)
-               mypde1.setValue(A=c_A2,X=eval(x,elem))
+               mypde1.setValue(A=c_A2,X=evaluate(x,elem))
                mypde1.setReducedOrderForSolutionTo(reduce)
                checkSystem(text+" const with X",mypde1.getOperator(),U,mypde1.getRightHandSide())
                # check div( A grad(u) ) = Y
                y=-algebraicDiv(x)
                mypde2=LinearPDE(mydomain)
-               mypde2.setValue(Y=eval(y,elem),y=matmult(eval(x,face_elem),nrml))
+               mypde2.setValue(Y=evaluate(y,elem),y=matrixmult(evaluate(x,face_elem),nrml))
                mypde2.setReducedOrderForSolutionsTo(reduce)
                checkSystem(text+" const with Y",mypde1.getOperator(),U,mypde2.getRightHandSide())
 
@@ -214,13 +214,13 @@ def TestSystem(numEqu,numComp,mydomain,reduce):
                text="B[%d,%d,%d]"%(p,i,q)
             x=mult3_2(c_B,u)
             mypde1=LinearPDE(mydomain)
-            mypde1.setValue(B=c_B2,X=eval(x,elem))
+            mypde1.setValue(B=c_B2,X=evaluate(x,elem))
             mypde1.setReducedOrderForSolutionsTo(reduce)
             checkSystem(text+" const with X",mypde1.getOperator(),U,mypde1.getRightHandSide())
             # check div( B u ) = Y
             y=-algebraicDiv(x)
             mypde2=LinearPDE(mydomain)
-            mypde2.setValue(Y=eval(y,elem),y=matmult(eval(x,face_elem),nrml))
+            mypde2.setValue(Y=evaluate(y,elem),y=matrixmult(evaluate(x,face_elem),nrml))
             mypde2.setReducedOrderForSolutionsTo(reduce)
             checkSystem(text+" const with Y",mypde1.getOperator(),U,mypde2.getRightHandSide())
 
@@ -235,7 +235,7 @@ def TestSystem(numEqu,numComp,mydomain,reduce):
                text="C[%d,%d,%d]"%(p,q,i)
             y=mult3_1(c_C,gradu)
             mypde1=LinearPDE(mydomain)
-            mypde1.setValue(C=c_C2,Y=eval(y,elem))
+            mypde1.setValue(C=c_C2,Y=evaluate(y,elem))
             mypde1.setReducedOrderForSolutionsTo(reduce)
             checkSystem(text+" const with Y",mypde1.getOperator(),U,mypde1.getRightHandSide())
 
@@ -251,7 +251,7 @@ def TestSystem(numEqu,numComp,mydomain,reduce):
             text="D[%d,%d]"%(p,q)
          y=mult2(c_D,u)
          mypde1=LinearPDE(mydomain)
-         mypde1.setValue(D=c_D2,Y=eval(y,elem))
+         mypde1.setValue(D=c_D2,Y=evaluate(y,elem))
          mypde1.setReducedOrderForSolutionsTo(reduce)
          checkSystem(text+" const with Y",mypde1.getOperator(),U,mypde1.getRightHandSide())
 

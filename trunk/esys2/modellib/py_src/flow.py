@@ -1,12 +1,11 @@
 # $Id$
 
-
-from esys.escript import *
-from esys.modelframe import Model,IterationDivergenceError
-from esys.linearPDEs import LameEquation
+from escript.escript import *
+from escript.modelframe import Model,IterationDivergenceError
+from escript.linearPDEs import LameEquation
 
 class SteadyIncompressibleFlow(Model):
-       """ 
+       """
 
                    \f[
                    -\left(\eta\left(v_{i,j}+v_{j,i}\right)\right)_{,j}+p_{,i}=F_i
@@ -21,7 +20,7 @@ class SteadyIncompressibleFlow(Model):
                    \f[
                    -v_{k,k} = 0 \; .
                    \f]
-                   
+
        """
 
        def __init__(self,debug=False):
@@ -30,44 +29,45 @@ class SteadyIncompressibleFlow(Model):
            self.declareParameter(domain=None, \
                                  velocity=0., \
                                  pressure=0., \
-                                 viscocity=1., \
+                                 viscosity=1., \
                                  internal_force=0., \
-                                 location_prescribed_velocities=Data(), \
-                                 prescribed_velocities=Data(), \
-                                 rel_tol=1.e-8,abs_tol=1.e-15,max_iter=10,relaxation=0.01) 
+                                 location_prescribed_velocity=Data(), \
+                                 prescribed_velocity=Data(), \
+                                 rel_tol=1.e-3,abs_tol=0.,max_iter=10,relaxation=0.001)
            self.__iter=0
 
-       def doInitialization(self,t):
+       def doInitialization(self):
            """initialize model"""
-           self.__pressure_history=None
-           self.__dt_history=None
+           self.__p_old=None
+           self.__p_very_old=None
+           self.__dt_old=None
            self.__pde=LameEquation(self.domain)
 
        def stress(self):
            """returns current stress"""
-           return 2*self.viscocity*self.stretching-self.pressure
+           return 2*self.viscosity*self.stretching-self.pressure*kronecker(self.domain)
 
        def stretching(self):
            """returns stertching tensor"""
            g=grad(self.velocity)
            return (g+transpose(g))/2
-           
-       def doIterationInitialization(self,dt):
+
+       def doStepPreprocessing(self,dt):
             """
                step up pressure iteration
 
                if run within a time dependend problem extrapolation of pressure from previous time steps is used to
-               get an initial guess 
+               get an initial guess (that needs some work!!!!!!!)
             """
-            if self.__dt_history==None:
-               self.__pressure_history=self.pressure
-               self.__iter=0
-            else:
-               self.__pressure_history,self.pressure=self.pressure,(1.+dt/self.__dt_history)*self.pressure+dt/self.__dt_history*self.__pressure_history
-               self.__iter=1
-            self.diff=1.e400
+            self.__iter=0
+            self.__diff=1.e40
+            if not self.__p_old==None:
+               if self.__p_very_old==None:
+                  self.pressure=self.__p_old
+               else:
+                  self.pressure=(1.+dt/self.__dt_old)*self.__p_old-dt/self.__dt_old*self.__p_very_old
 
-       def doIterationStep(self,dt):
+       def doStep(self,dt):
           """
 
              performs an iteration step of the penalty method.
@@ -75,62 +75,32 @@ class SteadyIncompressibleFlow(Model):
 
           """
           penalty=self.viscosity/self.relaxation
-          self.__pde.setValue(lame_lambda=self.viscosity, \
-                              lame_my=penalty, \
-                              F=F, \
-                              sigma0=self.pressure*kronecker(self.__pde.getDomain()), \
-                              r=self.location_prescribed_velocities, \
-                              q=self.location_prescribed_velocities) 
-          self.__pde.setTolerance(self.tol*1.e-2)
-          self.velocity=self.pde.getSolution()
+          self.__pde.setValue(lame_mu=self.viscosity, \
+                              lame_lambda=penalty, \
+                              F=self.internal_force, \
+                              sigma=self.pressure*kronecker(self.__pde.getDomain()), \
+                              r=self.prescribed_velocity, \
+                              q=self.location_prescribed_velocity)
+          self.__pde.setTolerance(self.rel_tol/10.)
+          self.velocity=self.__pde.getSolution()
           update=penalty*div(self.velocity)
+          print "f=",inf(update),sup(update)
           self.pressure=self.pressure-update
-          self.diff,diff=Lsup(update),self.diff
-          print "Pressure iteration: step %d: correction %e"%(self.__iter,self.diff/Lsup(self.pressure))
-          if diff<=self.diff:
+          self.__diff,diff_old=Lsup(update),self.__diff
+          self.__iter+=1
+          self.trace("velocity range %e:%e"%(inf(self.velocity),sup(self.velocity)))
+          self.trace("pressure range %e:%e"%(inf(self.pressure),sup(self.pressure)))
+          self.trace("pressure correction: %e"%self.__diff)
+          if self.__iter>2 and diff_old<self.__diff:
+              self.trace("Pressure iteration failed!")
               raise IterationDivergenceError,"no improvement in pressure iteration"
+          if self.__iter>self.max_iter:
+              raise IterationDivergenceError,"Maximum number of iterations steps reached"
 
-       def terminate(self):
-          """iteration is terminated if relative pressure change is less then rel_tol"""
-          if self.iter<2:
-              return False
-          else:
-             return self.diff<self.rel_tol*Lsup(self.pressure)+self.abs_tol
+       def terminateIteration(self):
+          """iteration is terminateIterationd if relative pressure change is less then rel_tol"""
+          return self.__diff<=self.rel_tol*Lsup(self.pressure)+self.abs_tol
 
-       def doIterationFinalization(self,dt):
-          self.__dt_history=dt
-if __name__=="__main__":
-
-
-
-   from esys.modelframe import Link,Simulation,ExplicitSimulation
-   from esys.geometry import RectangularDomain,VectorConstrainer
-   from esys.probe import Probe
-   from esys.input import InterpolatedTimeProfile,GausseanProfile
-
-   dom=RectangularDomain()
-   constraints=VectorConstrainer()
-   constraints.domain=Link(dom)
-   constraints.left=[1,1,1]
-   constraints.right=[1,1,1]
-   constraints.top=[1,1,1]
-   constraints.bottom=[1,1,1]
-   constraints.front=[1,1,1]
-   constraints.back=[1,1,1]
-
-   flow=SteadyIncompressibleFlow()
-   flow.domain=Link(dom)
-   flow.velocity=0.
-   flow.pressure=0. 
-   flow.viscocity=1.
-   flow.internal_force=[1.,1.,0.]
-   flow.location_prescribed_velocities=Link(constraints,"location_of_constraint")
-   flow.prescribed_velocities=Data(), \
-
-   ptest=Probe()
-   ptest.reference("x[0]+x[1]")
-   ptest.value=Link(flow,"pressure")
-
-   s=ExplicitSimulation([dom,constraints,flow,ptest])
-   s.writeXML()
-   s.run()
+       def doStepPostprocessing(self,dt):
+          self.__dt_old=dt
+          self.__p_old,self.__p_very_old=self.pressure,self.__p_old

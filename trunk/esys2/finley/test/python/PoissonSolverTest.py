@@ -1,8 +1,12 @@
 # $Id$
 
-from esys.escript import *
-from esys.linearPDEs import Poisson
-import esys.finley as finley
+
+# from esys.escript import *
+# from esys.linearPDEs import Poisson
+# import esys.finley as finley
+from escript.escript import *
+from escript.linearPDEs import Poisson
+import finley.finley as finley
 
 ne_list=[10,15,22,33,50,75]
 height_list=[0.25,0.5,1.]
@@ -50,6 +54,7 @@ def Solve1(mydomain,height):
        f+=f_p
 
     mypde=Poisson(mydomain)
+    mypde.setTolerance(1.e-10)
     mypde.setValue(f=f,q=msk)
     u=mypde.getSolution()
     error=Lsup(u-u_ex)/Lsup(u_ex)
@@ -82,6 +87,7 @@ def Solve2(mydomain,height):
              f_p*=x[j]*(2*l[j]-x[j])
        f+=f_p
     mypde=Poisson(mydomain)
+    mypde.setTolerance(1.e-10)
     mypde.setValue(f=f,q=msk)
     u=mypde.getSolution()
     error=Lsup(u-u_ex)/Lsup(u_ex)
@@ -92,6 +98,7 @@ def Solve2(mydomain,height):
 error=0
 for ne in ne_list:
    for dim in [2,3]:
+   # for dim in [2]:
       for height in height_list:
          print "***************************************************************"
          mydomain= getDomain(dim,ne,height)

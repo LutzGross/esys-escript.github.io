@@ -63,11 +63,11 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
 
   if (! functionSpaceTypeEqual(funcspace,d) ) {
         Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient d");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient d");
   }
   if (! functionSpaceTypeEqual(funcspace,y) ) {
         Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space typ for coefficient y");
+        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient y");
   }
 
   /* check if all function spaces are the same */
@@ -104,14 +104,14 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
       dimensions[1]=p.numComp;
       if (! isDataPointShapeEqual(d,2,dimensions)) {
           Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient D, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          sprintf(Finley_ErrorMsg,"coefficient d, expected shape (%d,%d)",dimensions[0],dimensions[1]);
       }
     }
     if (!isEmpty(y)) {
       dimensions[0]=p.numEqu;
       if (! isDataPointShapeEqual(y,1,dimensions)) {
           Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient D, expected shape (%d,)",dimensions[0]);
+          sprintf(Finley_ErrorMsg,"coefficient y, expected shape (%d,)",dimensions[0]);
       }
     }
   }
@@ -223,6 +223,15 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
 }
 /*
  * $Log$
+ * Revision 1.6  2005/08/12 01:45:43  jgs
+ * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.5.2.2  2005/08/04 22:41:11  gross
+ * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)
+ *
+ * Revision 1.5.2.1  2005/08/03 08:55:46  gross
+ * typo fixed
+ *
  * Revision 1.5  2005/07/08 04:07:46  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

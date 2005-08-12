@@ -82,7 +82,7 @@ msh=finley.Rectangle(1,1,1)
 
 for wh in [ContinuousFunction(msh),Function(msh)]:
 
-  print wh.toString()
+  print wh
 
   for ex in ["Constant","Expanded"]:
 
@@ -244,4 +244,5 @@ print "\nSlice to it [0,1]"
 tagData[0,1] = 9.0
 print tagData
 
+sys.exit(0)
 # end
