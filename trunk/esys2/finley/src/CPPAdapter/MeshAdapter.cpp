@@ -853,6 +853,7 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
     checkFinleyError();
     Finley_SystemMatrix* fsystemMatrix=Finley_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
     checkFinleyError();
+    Finley_SystemMatrixPattern_dealloc(fsystemMatrixPattern);
     return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
 //

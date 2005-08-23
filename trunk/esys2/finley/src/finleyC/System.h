@@ -61,6 +61,8 @@ typedef struct Finley_SystemMatrix {
   dim_t len;
   double *val;
 
+  double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
+  bool_t normalizer_is_valid;
   void* direct;  /* pointer to data needed by the direct solver */
   void* iterative; /* pointer to data needed by the iterative solver */
 
@@ -113,11 +115,18 @@ void Finley_SystemMatrixNullify(Finley_SystemMatrix* A, double* mask_row, double
 void Finley_SystemMatrix_setDefaults(Finley_SolverOptions*);
 int Finley_SystemMatrix_getSystemMatrixTypeId(dim_t, bool_t);
 Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,dim_t,index_t*,index_t*);
+double* Finley_SystemMatrix_borrowNormalization(Finley_SystemMatrix* A);
 
 #endif /* #ifndef INC_FINLEY_SYSTEM */
 
 /*
  * $Log$
+ * Revision 1.8  2005/08/23 01:24:30  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-08-23
+ *
+ * Revision 1.7.2.1  2005/08/19 02:44:09  gross
+ * stopping criterion modified to cope with badly balanced equations
+ *
  * Revision 1.7  2005/07/08 04:07:57  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

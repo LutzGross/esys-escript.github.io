@@ -19,10 +19,10 @@
 #define ESCRIPT_MAX_DATA_RANK 4
 /**
    \brief
-   solver options, they have to be consistent with util.py settings 
+   solver options, they have to be consistent with LinearPDE.py settings 
 
    Description:
-   solver options, they have to be consistent with util.py settings 
+   solver options, they have to be consistent with LinearPDE.py settings 
 
 */
 #define ESCRIPT_UNKNOWN -1
@@ -42,6 +42,7 @@
 #define ESCRIPT_JACOBI 10
 #define ESCRIPT_GMRES 11
 #define ESCRIPT_PRES20 12
+#define ESCRIPT_LUMPING 13
 
 /* keyword in solver options relevant for lineraPDE class */
 #define ESCRIPT_TOLERANCE_KEY "tolerance"

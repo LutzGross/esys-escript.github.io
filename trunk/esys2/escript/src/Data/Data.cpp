@@ -1007,7 +1007,10 @@ Data
 Data::pos() const
 {
   profData->unary++;
-  return (*this);
+  Data result;
+  // perform a deep copy
+  result.copy(*this);
+  return result;
 }
 
 Data
@@ -1112,26 +1115,58 @@ Data::transpose(int axis) const
 const boost::python::tuple
 Data::mindp() const
 {
+  // NB: calc_mindp had to be split off from mindp as boost::make_tuple causes an
+  // abort (for unknown reasons) if there are openmp directives with it in the
+  // surrounding function
+
+  int SampleNo;
+  int DataPointNo;
+
+  calc_mindp(SampleNo,DataPointNo);
+
+  return make_tuple(SampleNo,DataPointNo);
+}
+
+void
+Data::calc_mindp(int& SampleNo,
+                 int& DataPointNo) const
+{
+  int i,j;
+  int lowi=0,lowj=0;
+  double min=numeric_limits<double>::max();
+
   Data temp=minval();
 
   int numSamples=temp.getNumSamples();
   int numDPPSample=temp.getNumDataPointsPerSample();
 
-  int i,j,lowi=0,lowj=0;
-  double min=numeric_limits<double>::max();
+  double next,local_min;
+  int local_lowi,local_lowj;
 
-  for (i=0; i<numSamples; i++) {
-    for (j=0; j<numDPPSample; j++) {
-      double next=temp.getDataPoint(i,j)();
-      if (next<min) {
-        min=next;
-        lowi=i;
-        lowj=j;
+  #pragma omp parallel private(next,local_min,local_lowi,local_lowj)
+  {
+    local_min=min;
+    #pragma omp for private(i,j) schedule(static)
+    for (i=0; i<numSamples; i++) {
+      for (j=0; j<numDPPSample; j++) {
+        next=temp.getDataPoint(i,j)();
+        if (next<local_min) {
+          local_min=next;
+          local_lowi=i;
+          local_lowj=j;
+        }
       }
+    }
+    #pragma omp critical
+    if (local_min<min) {
+      min=local_min;
+      lowi=local_lowi;
+      lowj=local_lowj;
     }
   }
 
-  return make_tuple(lowi,lowj);
+  SampleNo = lowi;
+  DataPointNo = lowj;
 }
 
 void

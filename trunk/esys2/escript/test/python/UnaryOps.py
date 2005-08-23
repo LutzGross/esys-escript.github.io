@@ -187,17 +187,17 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       # where zero:
       ref=checkResult("where zero("+ex1+")", \
                       (arg1-3).whereZero(), \
-                      numarray.less_equal(numarray.abs(arrays1[0]-3.),EPSILON), \
-                      numarray.less_equal(numarray.abs(arrays1[1]-3.),EPSILON), \
-                      numarray.less_equal(numarray.abs(arrays1[2]-3.),EPSILON), \
+                      numarray.less_equal(numarray.abs(arrays1[0]-3.),0.0), \
+                      numarray.less_equal(numarray.abs(arrays1[1]-3.),0.0), \
+                      numarray.less_equal(numarray.abs(arrays1[2]-3.),0.0), \
                       wh)
 
       # where non-zero:
       ref=checkResult("where nonzero("+ex1+")", \
                       (arg1-3).whereNonZero(), \
-                      numarray.greater(numarray.abs(arrays1[0]-3.),EPSILON), \
-                      numarray.greater(numarray.abs(arrays1[1]-3.),EPSILON), \
-                      numarray.greater(numarray.abs(arrays1[2]-3.),EPSILON), \
+                      numarray.greater(numarray.abs(arrays1[0]-3.),0.0), \
+                      numarray.greater(numarray.abs(arrays1[1]-3.),0.0), \
+                      numarray.greater(numarray.abs(arrays1[2]-3.),0.0), \
                       wh)
 
       # exponential function:

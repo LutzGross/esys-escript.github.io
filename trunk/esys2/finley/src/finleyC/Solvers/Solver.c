@@ -31,7 +31,9 @@ void Finley_Solver_free(Finley_SystemMatrix* A) {
 /*  call the iterative solver: */
 
 void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptions* options) {
-    double norm2OfB,tol,tolerance,time_iter,time_prec,*r=NULL,norm_of_residual,last_norm_of_residual;
+    double norm2_of_b,tol,tolerance,time_iter,time_prec,*r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b,
+           norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local,norm_max_of_residual_local,norm_max_of_residual,
+           last_norm_max_of_residual,*scaling;
     dim_t i,totIter,cntIter,method;
     bool_t finalizeIteration;
     err_t errorCode;
@@ -78,7 +80,39 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
             method=ESCRIPT_GMRES;
             break;
      }
-     if (options->verbose) {
+    /* get normalization */
+    scaling=Finley_SystemMatrix_borrowNormalization(A);
+    if (Finley_ErrorCode!=NO_ERROR) return;
+    /* get the norm of the right hand side */
+    norm2_of_b=0.;
+    norm_max_of_b=0.;
+    #pragma omp parallel private(norm2_of_b_local,norm_max_of_b_local) 
+    { 
+            norm2_of_b_local=0.;
+            norm_max_of_b_local=0.;
+            #pragma omp for private(i) schedule(static)
+            for (i = 0; i < n_row ; ++i) {
+                  norm2_of_b_local += b[i] * b[i];
+                  norm_max_of_b_local = MAX(ABS(scaling[i]*b[i]),norm_max_of_b_local);
+            }
+            #pragma omp critical
+            {
+               norm2_of_b += norm2_of_b_local;
+               norm_max_of_b = MAX(norm_max_of_b_local,norm_max_of_b);
+            }
+    }
+    norm2_of_b=sqrt(norm2_of_b);
+
+    /* if norm2_of_b==0 we are ready: x=0 */
+    if (norm2_of_b <=0.) {
+        #pragma omp parallel for private(i) schedule(static)
+        for (i = 0; i < n_col; i++) x[i]=0.;
+        if (options->verbose) printf("right hand side is identical zero.\n");
+        return;
+    }
+    if (options->verbose) {
+        printf("l2/lmax-norm of right hand side is  %e/%e.\n",norm2_of_b,norm_max_of_b);
+        printf("l2/lmax-stopping criterion is  %e/%e.\n",norm2_of_b*tolerance,norm_max_of_b*tolerance);
         switch (method) {
            case ESCRIPT_BICGSTAB:
                printf("Iterative method is BiCGStab.\n");
@@ -96,25 +130,8 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
                   printf("Iterative method is GMRES(%d)\n",options->truncation);
                }
                break;
-          
         }
     }
-    /* get the norm of the right hand side */
-    norm2OfB=0.;
-    #pragma omp parallel for private(i) reduction(+:norm2OfB) schedule(static)
-    for (i = 0; i < n_row ; i++) norm2OfB += b[i] * b[i];
-    norm2OfB=sqrt(norm2OfB);
-
-    /* if norm2OfB==0 we are ready: x=0 */
-
-    if (norm2OfB <=0.) {
-        #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < n_col; i++) x[i]=0.;
-        if (options->verbose) printf("right hand side is identical zero.\n");
-        return;
-    }
-  
-
     /* construct the preconditioner */
     
     time_prec=Finley_timer();
@@ -132,35 +149,48 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
     if (Finley_checkPtr(r)) return;
     totIter = 0;
     finalizeIteration = FALSE;
-    norm_of_residual=norm2OfB;
+    last_norm2_of_residual=norm2_of_b;
+    last_norm_max_of_residual=norm_max_of_b;
     while (! finalizeIteration) {
        cntIter = options->iter_max - totIter;
        finalizeIteration = TRUE;
        /*     Set initial residual. */
-       norm_of_residual = 0;
-       #pragma omp parallel
+       norm2_of_residual = 0;
+       norm_max_of_residual = 0;
+       #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
        {
           #pragma omp for private(i) schedule(static)
           for (i = 0; i < n_row; i++) r[i]=b[i];
+
           Finley_RawScaledSystemMatrixVector(DBLE(-1), A, x, DBLE(1), r);
-          #pragma omp for private(i) reduction(+:norm_of_residual) schedule(static)
-          for (i = 0; i < n_row; i++) norm_of_residual+= r[i] * r[i];
+
+          norm2_of_residual_local = 0;
+          norm_max_of_residual_local = 0;
+          #pragma omp for private(i) schedule(static)
+          for (i = 0; i < n_row; i++) {
+                 norm2_of_residual_local+= r[i] * r[i];
+                 norm_max_of_residual_local=MAX(ABS(scaling[i]*r[i]),norm_max_of_residual_local);
+          }
+          #pragma omp critical
+          {
+             norm2_of_residual += norm2_of_residual_local;
+             norm_max_of_residual = MAX(norm_max_of_residual_local,norm_max_of_residual);
+          }
        }
-       norm_of_residual =sqrt(norm_of_residual);
-       if (totIter>0 && norm_of_residual>=last_norm_of_residual) {
+       norm2_of_residual =sqrt(norm2_of_residual);
+
+       if (options->verbose) printf("Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
+       if (totIter>0 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
+            if (options->verbose) printf(" divergence!\n");
             Finley_ErrorCode=WARNING;
 	    sprintf(Finley_ErrorMsg, "No improvement during iteration.\nIterative solver gives up.");
        } else {
           /* */
-          if (norm_of_residual>tolerance*norm2OfB) {
-      	     if (totIter>0) {
-                  tol=MAX(tolerance*tol/norm_of_residual,EPSILON*10.)*norm2OfB;
-                  if (options->verbose) printf("new stopping criterion is %e.\n",tol);
-      	     } else {
-                  tol=tolerance*norm2OfB;
-                  if (options->verbose) printf("Stopping criterion is %e.\n",tol);
-      	     }
-             last_norm_of_residual=norm_of_residual;
+          if (norm2_of_residual>tolerance*norm2_of_b || norm_max_of_residual>tolerance*norm_max_of_b ) {
+              tol=tolerance*MIN(norm2_of_b,0.1*norm2_of_residual/norm_max_of_residual*norm_max_of_b);
+             if (options->verbose) printf(" (new tolerance = %e).\n",tol);
+             last_norm2_of_residual=norm2_of_residual;
+             last_norm_max_of_residual=norm_max_of_residual;
              /* call the solver */
              switch (method) {
                     case ESCRIPT_BICGSTAB:
@@ -202,13 +232,14 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
          	      Finley_ErrorCode=SYSTEM_ERROR;
          	      sprintf(Finley_ErrorMsg,"unidentified error in iterative solver.");
               }
+         } else {
+            if (options->verbose) printf(". convergence! \n");
          }
       }
     } /* while */
     MEMFREE(r);
     time_iter=Finley_timer()-time_iter;
     if (options->verbose)  {
-       printf("Iterative solver reached tolerance %.5e after %d steps.\n",norm_of_residual,totIter);
        printf("timing: solver: %.4e sec\n",time_prec+time_iter);
        printf("timing: preconditioner: %.4e sec\n",time_prec);
        if (totIter>0) printf("timing: per iteration step: %.4e sec\n",time_iter/totIter);
@@ -217,6 +248,12 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
 
 /*
 * $Log$
+* Revision 1.8  2005/08/23 01:24:30  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-08-23
+*
+* Revision 1.7.2.1  2005/08/19 02:44:09  gross
+* stopping criterion modified to cope with badly balanced equations
+*
 * Revision 1.7  2005/07/08 04:08:00  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

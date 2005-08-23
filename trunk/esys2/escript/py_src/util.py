@@ -18,48 +18,6 @@ TODO for Data:
 import numarray
 import escript
 
-#
-#   escript constants (have to be consistent with utilC.h )
-#
-UNKNOWN=-1
-EPSILON=1.e-15
-Pi=numarray.pi
-# some solver options:
-NO_REORDERING=0
-MINIMUM_FILL_IN=1
-NESTED_DISSECTION=2
-# solver methods
-DEFAULT_METHOD=0
-DIRECT=1
-CHOLEVSKY=2
-PCG=3
-CR=4
-CGS=5
-BICGSTAB=6
-SSOR=7
-ILU0=8
-ILUT=9
-JACOBI=10
-GMRES=11
-PRES20=12
-
-METHOD_KEY="method"
-SYMMETRY_KEY="symmetric"
-TOLERANCE_KEY="tolerance"
-
-# supported file formats:
-VRML=1
-PNG=2
-JPEG=3
-JPG=3
-PS=4
-OOGL=5
-BMP=6
-TIFF=7
-OPENINVENTOR=8
-RENDERMAN=9
-PNM=10
-
 #===========================================================
 # a simple tool box to deal with _differentials of functions 
 #===========================================================
@@ -1229,8 +1187,14 @@ if __name__=="__main__":
 
 #
 # $Log$
+# Revision 1.16  2005/08/23 01:24:28  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-08-23
+#
 # Revision 1.15  2005/08/12 01:45:36  jgs
 # erge of development branch dev-02 back to main trunk on 2005-08-12
+#
+# Revision 1.14.2.4  2005/08/18 04:39:32  gross
+# the constants have been removed from util.py as they not needed anymore. PDE related constants are accessed through LinearPDE attributes now
 #
 # Revision 1.14.2.3  2005/08/03 09:55:33  gross
 # ContactTest is passing now./mk install!

@@ -21,9 +21,4 @@ if testdata.isEmpty():
 else:
   exit_code = 1
 
-print "If an 8 is printed here => ", OPENINVENTOR, " <= util was imported OK."
-
-if OPENINVENTOR != 8:
-  exit_code = 1
-
 sys.exit(exit_code)

@@ -7,7 +7,7 @@
 
 from escript.modelframe import Link,Simulation
 from modellib.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
-from modellib.input import Sequencer,InterpolateOverBox,GausseanProfile,LinearCombination
+from modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
 from modellib.flow import SteadyIncompressibleFlow
 from modellib.temperature import TemperatureAdvection
 from modellib.materials import SimpleEarthModel,GravityForce
@@ -89,7 +89,7 @@ vis.scalar=Link(temp,"temperature")
 vis.vector=Link(vel,"velocity")
 vis.stride=5
 
-per=GausseanProfile()
+per=GaussianProfile()
 per.domain=Link(dom)
 per.x_c=[0.5,0.5,0.5]
 per.A=0.0001
@@ -103,6 +103,7 @@ lc.f1=1.
 lc.v1=Link(temp_val,"out")
 temp.temperature=Link(lc,"out")
 
-s=Simulation([dom,sq,temp_constraints,vel_constraints,temp_val,per,lc,mat,grav,Simulation([vel],debug=True),temp,vis],debug=True)
+# s=Simulation([dom,sq,temp_constraints,vel_constraints,temp_val,per,lc,mat,grav,Simulation([vel],debug=True),temp,vis],debug=True)
+s=Simulation([dom,sq,Simulation([vel],debug=True),temp,vis],debug=True)
 s.writeXML()
 s.run()
