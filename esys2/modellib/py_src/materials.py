@@ -1,10 +1,10 @@
 # $Id$
 
-from escript.modelframe import Model
+from escript.modelframe import Model,ParameterSet
 from escript.util import exp
 import numarray
 
-class GravityForce(Model):
+class GravityForce(ParameterSet):
        """@brief sets a gravity force of given direction in given domain:
 
               @param domain (in) - domain of interest
@@ -14,7 +14,7 @@ class GravityForce(Model):
 
        """
        def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+           ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None,
                                  gravity=9.81, \
                                  density=1., \
@@ -29,7 +29,7 @@ class GravityForce(Model):
      
 
     
-class MaterialTable(Model):
+class MaterialTable(ParameterSet):
        """@brief a simple matrial table which allows setting physical parameters of a model
 
               @param density (in/out) - density
@@ -40,14 +40,14 @@ class MaterialTable(Model):
 
        """
        def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+           ParameterSet.__init__(self,debug=debug)
            self.declareParameter(gravity=9.81, \
                                  density=1., \
                                  heat_capacity=1., \
                                  thermal_permabilty=1., \
                                  radiation_coefficient=0.)
 
-class SimpleEarthModel(Model):
+class SimpleEarthModel(ParameterSet):
        """@brief a simple matrial table run convection models:
 
               density=density0*(1-rayleigh_number*(temperature-reference_temperature))
@@ -67,7 +67,7 @@ class SimpleEarthModel(Model):
 
        """
        def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+           ParameterSet.__init__(self,debug=debug)
            self.declareParameter(reference_temperature=1.,
                                  gravity=9.81, \
                                  density0=1., \

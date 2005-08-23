@@ -167,25 +167,24 @@ algorithm(DataExpanded& data,
   int i,j;
   int numDPPSample=data.getNumDPPSample();
   int numSamples=data.getNumSamples();
-  int resultVectorLength=numDPPSample*numSamples;
-  std::vector<double> resultVector(resultVectorLength);
+  double global_current_value=initial_value;
+  double local_current_value;
   DataArrayView dataView=data.getPointDataView();
   // calculate the reduction operation value for each data point
-  // storing the result for each data-point in successive entries
-  // in resultVector
-  #pragma omp parallel for private(i,j) schedule(static)
-  for (i=0;i<numSamples;i++) {
-    for (j=0;j<numDPPSample;j++) {
-      resultVector[j*numSamples+i]=dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value);
-    }
+  // reducing the result for each data-point into the current_value variables
+  #pragma omp parallel private(local_current_value)
+  {
+      local_current_value=initial_value;
+      #pragma omp for private(i,j) schedule(static)
+      for (i=0;i<numSamples;i++) {
+        for (j=0;j<numDPPSample;j++) {
+          local_current_value=operation(local_current_value,dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value));
+        }
+      }
+      #pragma omp critical
+      global_current_value=operation(global_current_value,local_current_value);
   }
-  // now calculate the reduction operation value across the results
-  // for each data-point
-  double current_value=initial_value;
-  for (int l=0;l<resultVectorLength;l++) {
-    current_value=operation(current_value,resultVector[l]);
-  }
-  return current_value;
+  return global_current_value;
 }
 
 template <class BinaryFunction>
@@ -199,21 +198,13 @@ algorithm(DataTagged& data,
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
   DataArrayView& dataView=data.getPointDataView();
-  std::vector<double> resultVector;
-  int resultVectorLength;
+  double current_value=initial_value;
   // perform the operation on each tagged value
   for (i=lookup.begin();i!=lookupEnd;i++) {
-    resultVector.push_back(dataView.reductionOp(i->second,operation,initial_value));
+    current_value=operation(current_value,dataView.reductionOp(i->second,operation,initial_value));
   }
   // perform the operation on the default value
-  resultVector.push_back(data.getDefaultValue().reductionOp(operation,initial_value));
-  // now calculate the reduction operation value across the results
-  // for each tagged value
-  resultVectorLength=resultVector.size();
-  double current_value=initial_value;
-  for (int l=0;l<resultVectorLength;l++) {
-    current_value=operation(current_value,resultVector[l]);
-  }
+  current_value=operation(current_value,data.getDefaultValue().reductionOp(operation,initial_value));
   return current_value;
 }
 

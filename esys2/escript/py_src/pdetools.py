@@ -23,7 +23,8 @@ class Projector:
     @param fast Flag to use a fast method based on matrix lumping (default is true)
     """
     self.__pde = LinearPDE(domain)
-    self.__pde.setLumping(fast)
+    if fast:
+      self.__pde.setSolverMethod(LinearPDE.LUMPING)
     self.__pde.setSymmetryOn()
     self.__pde.setReducedOrderTo(reduce)
     self.__pde.setValue(D = 1.)

@@ -27,9 +27,16 @@ void  Finley_SystemMatrix_setValues(Finley_SystemMatrix* in,double value) {
          for (j=0;j<(in->block_size);++j) in->val[iptr*(in->block_size)+j]=value;
      }
   }
+  in->normalizer_is_valid=FALSE;
 }
 /*
  * $Log$
+ * Revision 1.6  2005/08/23 01:24:30  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-08-23
+ *
+ * Revision 1.5.2.1  2005/08/19 02:44:09  gross
+ * stopping criterion modified to cope with badly balanced equations
+ *
  * Revision 1.5  2005/07/08 04:07:59  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

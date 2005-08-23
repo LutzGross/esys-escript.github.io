@@ -77,7 +77,7 @@ Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_alloc(int n_ptr, index_t*
 /* returns a reference to in */
 
 Finley_SystemMatrixPattern* Finley_SystemMatrixPattern_reference(Finley_SystemMatrixPattern* in) {
-     if (in!=NULL) ++in->reference_counter;
+     if (in!=NULL) ++(in->reference_counter);
      return in;
 }
   
@@ -118,6 +118,15 @@ int Finley_comparIndex(const void *index1,const void *index2){
 }
 /*
  * $Log$
+ * Revision 1.5  2005/08/23 01:24:30  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-08-23
+ *
+ * Revision 1.4.2.2  2005/08/19 02:44:09  gross
+ * stopping criterion modified to cope with badly balanced equations
+ *
+ * Revision 1.4.2.1  2005/08/15 12:02:53  gross
+ * memory leak fixed. it is still not clear if there is no problem anymore
+ *
  * Revision 1.4  2005/07/08 04:07:57  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *
