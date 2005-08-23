@@ -175,6 +175,12 @@ then
               echo Python Testing FAILED for module: $module
               exit 1
             fi
+            python TimingTests.py
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for module: $module
+              exit 1
+            fi
 	fi
     done
     exit 0

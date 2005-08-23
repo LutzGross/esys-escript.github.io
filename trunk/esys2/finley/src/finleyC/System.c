@@ -27,6 +27,7 @@ Finley_SystemMatrix* Finley_SystemMatrix_alloc(Finley_SystemMatrixType type,Finl
   Finley_SystemMatrix*out=NULL;
   Finley_ErrorCode=NO_ERROR;
   time0=Finley_timer();
+  dim_t n_norm,i;
   out=MEMALLOC(1,Finley_SystemMatrix);
   if (! Finley_checkPtr(out)) {  
      out->pattern=NULL;  
@@ -94,9 +95,12 @@ Finley_SystemMatrix* Finley_SystemMatrix_alloc(Finley_SystemMatrixType type,Finl
      if (out->type==CSC || out->type==CSC_SYM ) {
          out->num_rows=out->pattern->n_index;
          out->num_cols=out->pattern->n_ptr;
+         n_norm = out->num_cols * out->col_block_size;
+
      } else {
          out->num_rows=out->pattern->n_ptr;
          out->num_cols=out->pattern->n_index;
+         n_norm = out->num_rows * out->row_block_size;
      } 
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
@@ -105,8 +109,14 @@ Finley_SystemMatrix* Finley_SystemMatrix_alloc(Finley_SystemMatrixType type,Finl
      out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
      /* allocate memory for matrix entries */
      out->val=MEMALLOC(out->len,double);
+     out->normalizer=MEMALLOC(n_norm,double);
+     out->normalizer_is_valid=FALSE;
      if (! Finley_checkPtr(out->val)) {
         Finley_SystemMatrix_setValues(out,DBLE(0));
+     }
+     if (! Finley_checkPtr(out->normalizer)) {
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
      }
   }
   /* all done: */
@@ -136,6 +146,7 @@ void Finley_SystemMatrix_dealloc(Finley_SystemMatrix* in) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
         MEMFREE(in->val);
+        MEMFREE(in->normalizer);
         Finley_SystemMatrixPattern_dealloc(in->pattern);
         Finley_SystemMatrix_solve_free(in); 
         MEMFREE(in);
@@ -147,6 +158,15 @@ void Finley_SystemMatrix_dealloc(Finley_SystemMatrix* in) {
 }
 /*
  * $Log$
+ * Revision 1.8  2005/08/23 01:24:29  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-08-23
+ *
+ * Revision 1.7.2.2  2005/08/19 02:44:09  gross
+ * stopping criterion modified to cope with badly balanced equations
+ *
+ * Revision 1.7.2.1  2005/08/15 12:02:53  gross
+ * memory leak fixed. it is still not clear if there is no problem anymore
+ *
  * Revision 1.7  2005/07/08 04:07:56  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

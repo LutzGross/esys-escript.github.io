@@ -25,11 +25,11 @@ H.saveVTK("H.xml")
 h_pde=LinearPDE(mydomain)
 h_pde.setValue(D=1.)
 h_pde.setSymmetryOn()
-h_pde.setLumpingOn()
+h_pde.setSolverMethod(h_pde.LUMPING)
 hv_pde=LinearPDE(mydomain)
 hv_pde.setValue(D=kronecker(mydomain))
 hv_pde.setSymmetryOn()
-hv_pde.setLumpingOn()
+hv_pde.setSolverMethod(hv_pde.LUMPING)
 #====================================
 
 def getDh(h_pde,h,v,hv,H):

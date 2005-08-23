@@ -11,8 +11,8 @@ from finley import finley
 print "\nSimpleSolve.py"
 print "--------------"
 
-alpha=0.025
-error_tol=pow(10,-9)
+alpha=0.07
+error_tol=1.e-5
 
 # generate mesh
 
@@ -20,10 +20,10 @@ error_tol=pow(10,-9)
 # mydomain=finley.Rectangle(140,140)
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
-# mydomain=finley.Rectangle(5,5,1)
+mydomain=finley.Rectangle(190,190,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
-mydomain=finley.Rectangle(151,151,1)
+# mydomain=finley.Rectangle(151,151,1)
 # mydomain=finley.Rectangle(128,128,1)
 
 print "\nSetup domain and functions"
@@ -65,7 +65,7 @@ print "\nIterative Solver (1)=>"
 u_i=mypde.getSolution(iter_max=3000)
 
 print "\nDirect Solver (1)=>"
-mypde.setSolverMethod(DIRECT)
+mypde.setSolverMethod(mypde.DIRECT)
 u_d=mypde.getSolution()
 
 print "\n***************************************************************"
@@ -132,7 +132,7 @@ if error_norm > error_tol:
 error=u_ex-u_i
 error_norm=error.Lsup()/norm_u_ex
 print "norm of the error for iterative solver is: ",error_norm
-if error_norm > 10:
+if error_norm >  error_tol:
   print "### error norm exceeded maximum tolerance ###"
   sys.exit(1)
 print "******************************************************************"

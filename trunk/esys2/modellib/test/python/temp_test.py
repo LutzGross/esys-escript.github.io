@@ -49,6 +49,6 @@ probe.t=Link(sqe)
 probe.value=Link(tt,"temperature")
 
 
-s=Simulation([sqe,dom,constraints,boundaryvalue,source,tt,probe],debug=True)
+s=Simulation([sqe,dom,tt,probe],debug=True)
 s.writeXML()
 s.run()

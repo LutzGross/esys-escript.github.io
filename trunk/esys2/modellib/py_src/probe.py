@@ -1,11 +1,11 @@
 # $Id$
 
-from escript.modelframe import Model
+from escript.modelframe import Model,ParameterSet
 from escript.escript import Data
 from escript.util import *
 
 
-class EvaluateExpression(Model):
+class EvaluateExpression(ParameterSet):
        """@brief return the evaluation of an expression at current time t and locations in the domain
 
            WARNING: this class use python's eval function!!!!! Please use input.InterpolateOverBox is possible!!!!
@@ -17,7 +17,7 @@ class EvaluateExpression(Model):
 
        def __init__(self,debug=False):
            """set up parameters"""
-           Model.__init__(self,debug=debug)
+           ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
                                  t=0., \
                                  expression="x[0]")

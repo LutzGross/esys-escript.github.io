@@ -84,7 +84,6 @@ class SteadyIncompressibleFlow(Model):
           self.__pde.setTolerance(self.rel_tol/10.)
           self.velocity=self.__pde.getSolution()
           update=penalty*div(self.velocity)
-          print "f=",inf(update),sup(update)
           self.pressure=self.pressure-update
           self.__diff,diff_old=Lsup(update),self.__diff
           self.__iter+=1

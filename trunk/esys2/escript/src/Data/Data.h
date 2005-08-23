@@ -684,6 +684,10 @@ class Data {
   const boost::python::tuple
   mindp() const;
 
+  void
+  calc_mindp(int& SampleNo,
+             int& DataPointNo) const;
+
   /**
      \brief
      Return the length of each data point of this Data object.

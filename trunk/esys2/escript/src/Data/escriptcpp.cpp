@@ -133,7 +133,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
     .def("copy",&escript::Data::copy)
-
     .def("saveDX",&escript::Data::saveDX)
     .def("saveVTK",&escript::Data::saveVTK)
     .def("wherePositive",&escript::Data::wherePositive)

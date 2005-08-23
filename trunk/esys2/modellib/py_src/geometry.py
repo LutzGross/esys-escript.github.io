@@ -2,7 +2,7 @@
 
 
 from escript.escript import *
-from escript.modelframe import Model
+from escript.modelframe import Model,ParameterSet
 from finley import finley
 
 class RectangularDomain(Model):
@@ -54,7 +54,7 @@ class RectangularDomain(Model):
 
           return self._domain
 
-class ScalarConstrainer(Model):
+class ScalarConstrainer(ParameterSet):
      """@brief creates a characteristic function for the location of constraints for a scalar value
 
               @param domain (in) - rectangular domain
@@ -70,7 +70,7 @@ class ScalarConstrainer(Model):
 
      """
      def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+           ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
                                  left=False, \
                                  right=False, \
@@ -99,7 +99,7 @@ class ScalarConstrainer(Model):
                 if self.top: self._location_of_constraint+=(x[1]-sup(x[1])).whereZero()
           return self._location_of_constraint
 
-class VectorConstrainer(Model):
+class VectorConstrainer(ParameterSet):
       """@brief creates a characteristic function for the location of constraints for a scalar value
 
               @param domain (in) - rectangular domain
@@ -121,7 +121,7 @@ class VectorConstrainer(Model):
 
       """
       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+           ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
                                  left=[0,0,0],  \
                                  right=[0,0,0],  \
