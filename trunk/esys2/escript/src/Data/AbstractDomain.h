@@ -22,7 +22,7 @@
 namespace escript {
 
 //
-// forward declarations of certain classes which will be used
+// forward declarations
 class Data;
 class AbstractSystemMatrix;
 class FunctionSpace;

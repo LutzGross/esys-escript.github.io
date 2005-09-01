@@ -2,8 +2,8 @@ import sys
 import unittest
 import os
 
-from escript.escript import *
-from finley import finley
+from esys.escript import *
+from esys import finley
 
 import numarray
 from numarray import array,Float64,ones,greater
@@ -114,6 +114,15 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "arg.convertToNumArrayFromDPNo(0,0)"
       print narray3
 
+      if (ex == "Constant"):
+        print "\n\nTest of getTagNumber:"
+        arg_copy = Data()
+        arg_copy.copy(arg)
+        arg_copy.tag()
+        for dpno in range(narray1.shape[0]):
+          print arg_copy.getTagNumber(dpno)
+          print wh.getTagFromDataPointNo(dpno)
+
       if (ex == "Expanded"):
         print "\n\nTests of get/setRefValue functions:"
         result_array = numarray.array(a)
@@ -125,6 +134,9 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       print "\n\nTests of misc python functions:"
 
+      print "\nmindp:"
+      print arg.mindp()
+
       print "\nabs:"
       print arg.abs()
 
@@ -133,9 +145,6 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       print "\nminval:"
       print arg.minval()
-
-      print "\nmindp:"
-      print arg.mindp()
 
       print "\nlength"
       print arg.length()

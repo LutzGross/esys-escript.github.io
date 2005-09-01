@@ -1,26 +1,23 @@
 # $Id$
 
-from escript.escript import *
-from escript.modelframe import Model,IterationDivergenceError
-from escript.linearPDEs import AdvectivePDE,LinearPDE
+from esys.escript.escript import *
+from esys.escript.modelframe import Model,IterationDivergenceError
+from esys.escript.linearPDEs import AdvectivePDE,LinearPDE
 import numarray
 
 
 class TemperatureAdvection(Model):
        """
 
-         The conservation of internal heat energy is given by
+       The conservation of internal heat energy is given by
 
-         \f[
-             \rho c_p ( T_{,t}+v_{j}T_{,j} )-(\kappa T_{,i})_{,i}=Q,
-         \f]
-         \f[
-                 n_i\kappa T_{,i}=0
-         \f]
+       M{S{rho} c_p ( dT/dt+v[j]*grad(T)[j])-grad(\kappa grad(T)_{,i}=Q}
 
-          it is assummed that \f[ \rho c_p \f] is constant in time.
+       M{n_i\kappa T_{,i}=0}
 
-          solved by Taylor Galerkin method
+       it is assummed that M{\rho c_p} is constant in time.
+
+       solved by Taylor Galerkin method
 
        """
        def __init__(self,debug=False):
@@ -46,12 +43,16 @@ class TemperatureAdvection(Model):
            self.__pde.setValue(D=self.heat_capacity*self.density)
 
        def getSafeTimeStepSize(self,dt):
-           """returns new step size"""
+           """
+           returns new step size
+           """
            h=self.domain.getSize()
            return self.safety_factor*inf(h**2/(h*abs(self.heat_capacity*self.density)*length(self.velocity)+self.thermal_permabilty))
 
        def G(self,T,alpha):
-           """tangential operator for taylor galerikin"""
+           """
+           tangential operator for taylor galerikin
+           """
            g=grad(T)
            self.__pde.setValue(X=-self.thermal_permabilty*g, \
                                Y=self.thermal_source-self.__rhocp*inner(self.velocity,g), \
@@ -61,7 +62,9 @@ class TemperatureAdvection(Model):
            
 
        def doStepPostprocessing(self,dt):
-           """perform taylor galerkin step"""
+           """
+           perform taylor galerkin step
+           """
            T=self.temperature
 	   self.__rhocp=self.heat_capacity*self.density
            self.__fixed_T=self.fixed_temperature

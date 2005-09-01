@@ -155,6 +155,14 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
+     Return the tag number associated with the given data-point number.
+  */
+  virtual
+  int
+  getTagNumber(int dpno);
+
+  /**
+     \brief
      getPointOffset
 
      Description:

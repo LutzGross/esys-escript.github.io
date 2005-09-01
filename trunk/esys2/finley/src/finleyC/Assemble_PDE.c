@@ -337,13 +337,21 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Fin
          THREAD_MEMFREE(index_col); 
          THREAD_MEMFREE(index_row); 
      }
+     #ifdef Finley_TRACE
      printf("timing: assemblage PDE: %.4e sec\n",Finley_timer()-time0);
+     #endif
   }
 }
 /*
  * $Log$
+ * Revision 1.7  2005/09/01 03:31:35  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
  * Revision 1.6  2005/08/12 01:45:42  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.5.2.2  2005/08/24 02:02:18  gross
+ * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
  *
  * Revision 1.5.2.1  2005/08/03 08:54:27  gross
  * contact element assemblage was called with wrong element table pointer

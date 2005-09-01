@@ -219,6 +219,7 @@ void DataExpandedTestCase::testSlicing() {
   cout << "\tTest slicing (whole object)." << endl;
   DataArrayView::RegionType region;
   region.push_back(DataArrayView::RegionType::value_type(0,shape[0]));
+
   DataAbstract* testData2=testData.getSlice(region);
 
   //
@@ -234,6 +235,7 @@ void DataExpandedTestCase::testSlicing() {
   assert(dataView.noValues()==shape[0]*1);
   assert(dataView.getShape()[0]==shape[0]);
 
+  delete testData2;
 }
 
 void DataExpandedTestCase::testSlicing2() {
@@ -308,6 +310,9 @@ void DataExpandedTestCase::testSlicing2() {
   assert(dataView.noValues()==(region2[0].second-region2[0].first)*(region2[1].second-region2[1].first));
   assert(dataView.getShape()[0]==(region2[0].second-region2[0].first));
   assert(dataView.getShape()[1]==(region2[1].second-region2[1].first));
+
+  delete testData2;
+  delete testData3;
 
 }
 
@@ -421,6 +426,9 @@ void DataExpandedTestCase::testSlicing3() {
   assert(dataView.getShape()[1]==(region[1].second-region[1].first));
   assert(dataView.getShape()[2]==(region[2].second-region[2].first));
 
+  delete testData2;
+  delete testData3;
+
 }
 
 
@@ -496,6 +504,8 @@ void DataExpandedTestCase::testSliceSetting() {
     }
    }
 
+  delete testData3;
+
 }
 
 void DataExpandedTestCase::testSliceSetting2() {
@@ -562,6 +572,8 @@ void DataExpandedTestCase::testSliceSetting2() {
       assert(testData2.getPointDataView()(i,j)==pointData());
     }
    }
+
+  delete testData3;
 
 }
 

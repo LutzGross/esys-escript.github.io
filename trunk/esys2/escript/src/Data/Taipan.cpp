@@ -28,12 +28,21 @@ Taipan::Taipan() :
   memTable_Root(0),
   totalElements(0)
 {
+  // create and initialise a new StatTable
+  statTable = new Taipan_StatTable;
+  clear_stats();
 }
 
 Taipan::~Taipan() {
 
   Taipan_MemTable *tab;
   Taipan_MemTable *tab_next;
+
+  // dump memory usage statistics
+  dump_stats();
+
+  // deallocate StatTable object
+  delete statTable;
 
   // deallocate all managed arrays and the memTable
   tab = memTable_Root;
@@ -57,7 +66,6 @@ Taipan::new_array(int dim, int N) {
   assert(totalElements >= 0);
 
   int len = 0;
-                                                                                                                                       
   #ifdef _OPENMP
   int numThreads = omp_get_num_threads();
   #else
@@ -68,7 +76,10 @@ Taipan::new_array(int dim, int N) {
   Taipan_MemTable *new_tab;
   Taipan_MemTable *tab_prev;
 
-//  numThreads = omp_get_max_threads();
+  // increment count of alloc opperations called
+  statTable->allocs++;
+
+  // numThreads = omp_get_max_threads();
 
   // is a suitable array already available?
   if (memTable_Root != 0) {
@@ -114,6 +125,12 @@ Taipan::new_array(int dim, int N) {
   }
   totalElements += len;
 
+  // increment count of arrays allocated
+  statTable->arrays++;
+
+  // increment count of elements allocated
+  statTable->elements+=len;
+
   return new_tab->array;
 }
 
@@ -148,6 +165,9 @@ Taipan::delete_array(double* array) {
       return;
     }
 
+    // increment count of dealloc opperations called
+    statTable->deallocs++;
+
     // are there any N block arrays still in use?
     tab = memTable_Root;
     while (tab != 0) {
@@ -170,6 +190,8 @@ Taipan::delete_array(double* array) {
           memTable_Root = tab->next;
         }
         delete tab;
+        // increment count of arrays dealloced
+        statTable->dearrays++;
       } else {
         tab_prev = tab;
       }
@@ -177,6 +199,9 @@ Taipan::delete_array(double* array) {
     }
 
     totalElements -= len;
+
+    // increment count of elements dealloced
+    statTable->deelements+=len;
 
   } else {
     // what to do if no arrays under management?
@@ -250,6 +275,32 @@ long
 Taipan::num_elements() {
   assert(totalElements >= 0);
   return totalElements;
+}
+
+void
+Taipan::dump_stats() {
+  float elMb=statTable->elements*8.0/1048576;
+  float deelMb=statTable->deelements*8.0/1048576;
+  cout << "========== Mem Stats ==================" << endl;
+  cout << "Total Num allocs:     " << statTable->allocs << endl;
+  cout << "Total Num deallocs:   " << statTable->deallocs << endl;
+  cout << "Total Num arrays:     " << statTable->arrays << endl;
+  cout << "Total Num dearrays:   " << statTable->dearrays << endl;
+  cout << "Total Num elements:   " << statTable->elements << " (" << elMb << " Mb)" << endl;
+  cout << "Total Num deelements: " << statTable->deelements << " (" << deelMb << " Mb)" << endl;
+  cout << "Curr  Num arrays:     " << num_arrays() << endl;
+  cout << "Curr  Num elements:   " << num_elements() << endl;
+  cout << "=======================================" << endl;
+}
+
+void
+Taipan::clear_stats() {
+  statTable->allocs=0;
+  statTable->deallocs=0;
+  statTable->arrays=0;
+  statTable->dearrays=0;
+  statTable->elements=0;
+  statTable->deelements=0;
 }
 
 }  // end of namespace

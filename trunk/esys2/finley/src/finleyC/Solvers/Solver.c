@@ -248,8 +248,17 @@ void Finley_Solver(Finley_SystemMatrix* A,double* x,double* b,Finley_SolverOptio
 
 /*
 * $Log$
+* Revision 1.9  2005/09/01 03:31:37  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-01
+*
 * Revision 1.8  2005/08/23 01:24:30  jgs
 * Merge of development branch dev-02 back to main trunk on 2005-08-23
+*
+* Revision 1.7.2.3  2005/08/31 08:45:03  gross
+* in the case of lumping no new system is allocated if the constraint is changed.
+*
+* Revision 1.7.2.2  2005/08/29 22:34:18  gross
+* memory leak in ILU fixed.
 *
 * Revision 1.7.2.1  2005/08/19 02:44:09  gross
 * stopping criterion modified to cope with badly balanced equations

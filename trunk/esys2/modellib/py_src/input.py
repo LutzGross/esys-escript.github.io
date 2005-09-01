@@ -1,6 +1,6 @@
 # $Id$
-from escript.escript import *
-from escript.modelframe import Model,ParameterSet
+from esys.escript import *
+from esys.escript.modelframe import Model,ParameterSet
 from math import log
 
 class Sequencer(Model):
@@ -9,14 +9,15 @@ class Sequencer(Model):
     """
     def __init__(self,t=0.,t_end=Model.UNDEF_DT,dt_max=Model.UNDEF_DT,debug=False):
         """
-           @param t_end: - model is terminated when t_end is passed  (exposed in writeXML)
-           @type t_end: float
-           @param dt_max: - maximum time step size 
-           @type dt_max: float
-           @param t: - initial time
-           @type t: float
+        @param t_end: - model is terminated when t_end is passed  
+                   (exposed in writeXML)
+        @type t_end: float
+        @param dt_max: - maximum time step size 
+        @type dt_max: float
+        @param t: - initial time
+        @type t: float
 
-         """
+        """
         Model.__init__(self,debug=debug)
         self.declareParameter(t=t, \
                               t_end=t_end,  \
@@ -24,7 +25,7 @@ class Sequencer(Model):
 
     def doInitialization(self):
         """ 
-            @brief initialize time integration
+        initialize time integration
         """
         self.__t_old = self.t
 
@@ -48,15 +49,15 @@ class Sequencer(Model):
 
 class GaussianProfile(ParameterSet):
     """
-    Generates a gaussian profile at center x_c, width width and height A 
+    Generates a Gaussian profile at center x_c, width width and height A 
     over a domain
 
-    @param domain: (in) - domain
-    @param x_c: (in)  - center of the Gaussian profile (default [0.,0.,0.])
-    @param A: (in)  - height of the profile. A maybe a vector. (default 1.)
-    @param width: (in) - width of the profile (default 0.1)
-    @param r: (in) -  radius of the circle (default = 0)
-    @param out: (callable) - profile
+    @ivar domain (in): domain
+    @ivar x_c (in): center of the Gaussian profile (default [0.,0.,0.])
+    @ivar A (in): height of the profile. A maybe a vector. (default 1.)
+    @ivar width (in): width of the profile (default 0.1)
+    @ivar r (in): radius of the circle (default = 0)
+    @ivar out (callable): profile
 
     In the case that the spatial dimension is two, The third component of 
     x_c is dropped
@@ -70,6 +71,9 @@ class GaussianProfile(ParameterSet):
                               r=0)
 
     def out(self):
+        """
+        Generate the Gaussian profile
+        """
         x = self.domain.getX()
         dim = self.domain.getDim()
         l = length(x-self.x_c[:dim])
@@ -82,18 +86,22 @@ class InterpolateOverBox(ParameterSet):
     Returns values at each time. The values are defined through given values 
     at time node.
 
-    @param domain: (in) - domain
-    @param left_bottom_front: (in) - coordinates of left,bottom,front corner of the box
-    @param right_top_back: (in) - coordinates of the right, top, back corner of the box
-    @param value_left_bottom_front: (in) - value at left,bottom,front corner
-    @param value_right_bottom_front: (in) - value at right, bottom, front corner
-    @param value_left_top_front: (in) - value at left,top,front corner
-    @param value_right_top_front: (in) - value at right,top,front corner
-    @param value_left_bottom_back: (in) - value at  left,bottom,back corner
-    @param value_right_bottom_back: (in) - value at right,bottom,back corner
-    @param value_left_top_back: (in) - value at left,top,back  corner
-    @param value_right_top_back: (in) - value at right,top,back corner
-    @param out: (callable) - values at doamin locations by bilinear interpolation. for two dimensional domains back values are ignored.
+    @ivar domain (in): domain
+    @ivar left_bottom_front (in): coordinates of left, bottom, front corner 
+              of the box
+    @ivar right_top_back (in): coordinates of the right, top, back corner 
+              of the box
+    @ivar value_left_bottom_front (in): value at left,bottom,front corner
+    @ivar value_right_bottom_front (in): value at right, bottom, front corner
+    @ivar value_left_top_front (in): value at left,top,front corner
+    @ivar value_right_top_front (in): value at right,top,front corner
+    @ivar value_left_bottom_back (in): value at  left,bottom,back corner
+    @ivar value_right_bottom_back (in): value at right,bottom,back corner
+    @ivar value_left_top_back (in): value at left,top,back  corner
+    @ivar value_right_top_back (in): value at right,top,back corner
+    @ivar out (callable): values at domain locations by bilinear 
+              interpolation.  For two dimensional domains back values are 
+              ignored.
     """
 
     def __init__(self, debug=False):
@@ -157,10 +165,10 @@ class InterpolatedTimeProfile(ParameterSet):
        For time t<nodes[0], value[0] is used and for t>nodes[l], values[l] 
        is used where l=len(nodes)-1.
  
-       @param t: (in) - current time
-       @param node: (in) - list of time nodes
-       @param values: (in) - list of values at time nodes
-       @param out: (callable) - current value 
+       @ivar t (in): current time
+       @ivar node (in): list of time nodes
+       @ivar values (in): list of values at time nodes
+       @ivar out (callable): current value 
        """
 
        def __init__(self,debug=False):
@@ -185,17 +193,17 @@ class LinearCombination(Model):
     """
     Returns a linear combination of the f0*v0+f1*v1+f2*v2+f3*v3+f4*v4
             
-    @param f0: (in) numerical object or None (default: None) 
-    @param v0: (in) numerical object or None (default: None) 
-    @param f1: (in) numerical object or None (default: None) 
-    @param v1: (in) numerical object or None (default: None) 
-    @param f2: (in) numerical object or None (default: None) 
-    @param v2: (in) numerical object or None (default: None) 
-    @param f3: (in) numerical object or None (default: None) 
-    @param v3: (in) numerical object or None (default: None) 
-    @param f4: (in) numerical object or None (default: None) 
-    @param v4: (in) numerical object or None (default: None)
-    @param out: (callable) - current value 
+    @ivar f0 (in): numerical object or None (default: None) 
+    @ivar v0 (in): numerical object or None (default: None) 
+    @ivar f1 (in): numerical object or None (default: None) 
+    @ivar v1 (in): numerical object or None (default: None) 
+    @ivar f2 (in): numerical object or None (default: None) 
+    @ivar v2 (in): numerical object or None (default: None) 
+    @ivar f3 (in): numerical object or None (default: None) 
+    @ivar v3 (in): numerical object or None (default: None) 
+    @ivar f4 (in): numerical object or None (default: None) 
+    @ivar v4 (in): numerical object or None (default: None)
+    @ivar out (callable): current value 
     """
     def __init__(self,debug=False):
         Model.__init__(self,debug=debug)

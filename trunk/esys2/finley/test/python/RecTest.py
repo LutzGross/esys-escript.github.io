@@ -4,10 +4,11 @@ import os
 import unittest
 
 from esys.escript import *
-from esys.linearPDEs import *
-from esys.finley import *
+from esys.escript.linearPDEs import *
+from esys import finley
 
 import numarray
+Pi=numarray.pi
 
 #
 # this test the assemblage of problems with periodic boundary conditions:

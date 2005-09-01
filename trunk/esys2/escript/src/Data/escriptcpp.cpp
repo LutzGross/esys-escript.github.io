@@ -95,6 +95,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getX",&escript::FunctionSpace::getX)
      .def("getNormal",&escript::FunctionSpace::getNormal)
      .def("getSize",&escript::FunctionSpace::getSize)
+     .def("getTagFromDataPointNo",&escript::FunctionSpace::getTagFromDataPointNo)
      .def("__str__",&escript::FunctionSpace::toString)
      .def(self == self)
      .def(self != self);
@@ -111,7 +112,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for Data
   //
-  class_<escript::Data>("Data",init<>())
+  class_<escript::Data>("Data","TEST DOCUMENTATION",init<>())
     // various constructors for Data objects
     .def(init<const numeric::array&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
@@ -149,6 +150,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("convertToNumArrayFromSampleNo",&escript::Data::convertToNumArrayFromSampleNo)
     .def("convertToNumArrayFromDPNo",&escript::Data::convertToNumArrayFromDPNo)
     .def("fillFromNumArray",&escript::Data::fillFromNumArray)
+    .def("getTagNumber",&escript::Data::getTagNumber)
     .def("archiveData",&escript::Data::archiveData)
     .def("extractData",&escript::Data::extractData)
     .def("integrate",&escript::Data::integrate)
@@ -257,8 +259,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("of",&escript::AbstractSystemMatrix::vectorMultiply)
      .def("saveMM",&escript::AbstractSystemMatrix::saveMM)
      .def("saveHB",&escript::AbstractSystemMatrix::saveHB)
-     .def("setValue",&escript::AbstractSystemMatrix::setValue)
-     .def("resetSolver",&escript::AbstractSystemMatrix::resetSolver)
+     .def("resetValues",&escript::AbstractSystemMatrix::resetValues)
      .def(self*other<escript::Data>());
 
   //

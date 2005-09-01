@@ -2,9 +2,9 @@
 #
 # $Id$
 
-from escript.escript import *
-from escript.linearPDEs import *
-import finley.finley as finley
+from esys.escript import *
+from esys.escript.linearPDEs import *
+from esys import finley
 from math import *
 
 global seed

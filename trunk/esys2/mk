@@ -10,13 +10,18 @@
 #**********************************************************************
 
 # the modules to make
-MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley modellib"
+MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley bruce modellib"
 
-# the tests to run
-TESTS="escript finley"
+# the modules to test
+TESTS="escript finley bruce"
+
+# the python tests to run
+FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py escriptTest.py DataVariableTests.py test_xml.py pdetoolsTest.py"
+BRUCE_PYTESTS="ImportTest.py"
 
 # use this setting for local developmental builds
-#ENVVARS="DODEBUG=YES"
+ENVVARS="DODEBUG=YES"
 
 if [ "$2" == "DEBUG" ]
 then
@@ -33,15 +38,17 @@ fi
 #ENVVARS="$ENVVARS L_INSTLIB_DIR=/raid2/tools/esys/lib L_PYTH_DIR=/raid2/tools/esys/esys"
 
 # ensure required symlinks are setup first
-(cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
 (cd esysUtils/inc; if [ ! -h esysUtils ]; then ln -s ../src esysUtils; fi)
+(cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
 (cd finley/inc; if [ ! -h finley ]; then ln -s ../src finley; fi)
+(cd bruce/inc; if [ ! -h bruce ]; then ln -s ../src bruce; fi)
 
-(cd escript; if [ ! -h Makefile ]; then ln -s ./escript.mk Makefile; fi)
-(cd esysUtils; if [ ! -h Makefile ]; then ln -s ./esysUtils.mk Makefile; fi)
-(cd finley; if [ ! -h Makefile ]; then ln -s ./finley.mk Makefile; fi)
 (cd tools/mmio; if [ ! -h Makefile ]; then ln -s ./mmio.mk Makefile; fi)
 (cd tools/CppUnitTest; if [ ! -h Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
+(cd esysUtils; if [ ! -h Makefile ]; then ln -s ./esysUtils.mk Makefile; fi)
+(cd escript; if [ ! -h Makefile ]; then ln -s ./escript.mk Makefile; fi)
+(cd finley; if [ ! -h Makefile ]; then ln -s ./finley.mk Makefile; fi)
+(cd bruce; if [ ! -h Makefile ]; then ln -s ./bruce.mk Makefile; fi)
 (cd modellib; if [ ! -h Makefile ]; then ln -s ./modellib.mk Makefile; fi)
 
 # clean all modules
@@ -57,7 +64,10 @@ fi
 if [ "$1" == "uninstall" ]
 then
 	for module in $MODULES ; do
-		(echo Uninstalling: $module; cd $module; gmake uninstall)
+		(echo Cleaning: $module; cd $module; make clean)
+	done
+	for module in $MODULES ; do
+		(echo Uninstalling: $module; cd $module; make uninstall)
 	done
         exit 0
 fi
@@ -85,108 +95,50 @@ then
     for module in $TESTS
     do
 	echo "Running python tests for: $module"
+	cd $ESYS_ROOT/$module/test/python
 	if [ "$module" == "finley" ]
 	then
-	    cd $ESYS_ROOT/$module/test/python
-            python ImportTest.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-	    python SimpleSolve.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-	    python GradTest.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
+            for pytest in $FINLEY_PYTESTS
+            do 
+	        echo "Running python test: $pytest"
+                python $pytest
+                if [ $? != 0 ]
+                then
+                  echo Python Testing FAILED for $pytest in module $module
+                  exit 1
+                fi
+            done
 	elif [ "$module" == "escript" ]
 	then
-	    cd $ESYS_ROOT/$module/test/python
-            python ImportTest.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-	    python BinaryOps.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-	    python UnaryOps.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-	    python SliceGetting.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-	    python SliceSetting.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-            python MiscTests.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-            python newEscriptTests.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-            python escriptTest.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-            python DataVariableTests.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-            python test_xml.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-            python pdetoolsTest.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
-            python TimingTests.py
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for module: $module
-              exit 1
-            fi
+            for pytest in $ESCRIPT_PYTESTS
+            do 
+	        echo "Running python test: $pytest"
+                python $pytest
+                if [ $? != 0 ]
+                then
+                  echo Python Testing FAILED for $pytest in module $module
+                  exit 1
+                fi
+            done
+	elif [ "$module" == "bruce" ]
+	then
+            for pytest in $BRUCE_PYTESTS
+            do 
+	        echo "Running python test: $pytest"
+                python $pytest
+                if [ $? != 0 ]
+                then
+                  echo Python Testing FAILED for $pytest in module $module
+                  exit 1
+                fi
+            done
 	fi
     done
     exit 0
 fi
 
 # default case - just build all modules
+echo "*************** build ************************************"
 for module in $MODULES ; do
 	(echo Building: $module; cd $module; env $ENVVARS make -j 10)
         if [ $? != 0 ]
@@ -199,8 +151,9 @@ done
 # install all modules
 if [ "$1" == "install" ]
 then
+        echo "***************installation ************************************"
 	for module in $MODULES ; do \
-                echo ENVARS = $ENVVARS
+                echo ENVVARS = $ENVVARS
 		(echo Installing: $module; cd $module; env $ENVVARS make install)
                 if [ $? != 0 ]
                 then
@@ -208,7 +161,9 @@ then
                   exit 1
                 fi
 	done
+        (cd esys; touch __init__.py)
         (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../../lib/libescriptcpp.so escriptcpp.so; fi)
         (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../../lib/libfinleycpp.so finleycpp.so; fi)
+        (cd esys/bruce; if [ ! -h brucecpp.so ]; then ln -s ../../lib/libbrucecpp.so brucecpp.so; fi)
         exit 0
 fi

@@ -307,6 +307,16 @@ class DataAbstract {
   virtual void
   copyAll(const boost::python::numeric::array& value);
 
+  /**
+     \brief
+     Return the tag number associated with the given data-point number.
+
+     If the object cannot be referenced by tag numbers, an exception
+     will be thrown.
+  */
+  virtual
+  int
+  getTagNumber(int dpno);
 
  protected:
 

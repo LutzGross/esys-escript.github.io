@@ -1,30 +1,26 @@
 # $Id$
 
-from escript.escript import *
-from escript.modelframe import Model,IterationDivergenceError
-from escript.linearPDEs import LameEquation
+from esys.escript import *
+from esys.escript.modelframe import Model,IterationDivergenceError
+from esys.escript.linearPDEs import LameEquation
 
 class SteadyIncompressibleFlow(Model):
        """
 
-                   \f[
-                   -\left(\eta\left(v_{i,j}+v_{j,i}\right)\right)_{,j}+p_{,i}=F_i
-                   \f]
+       M{-\left(\eta\left(v_{i,j}+v_{j,i}\right)\right)_{,j}+p_{,i}=F_i}
+       
+       M{\sigma_{ij}=2\eta D_{ij}-p\,\delta_{ij}}
 
-                   \f[
-                   \sigma_{ij}=2\eta D_{ij}-p\,\delta_{ij}
-                   \f[
-                   D_{ij}=\frac{1}{2}\left( v_{j,i} + v_{i,j }\right) \; .
-                   \f]
-
-                   \f[
-                   -v_{k,k} = 0 \; .
-                   \f]
+       M{D_{ij}=\frac{1}{2}\left( v_{j,i} + v_{i,j }\right)}
+       
+       M{v_{k,k} = 0}
 
        """
 
        def __init__(self,debug=False):
-           """set up model"""
+           """
+           set up model
+           """
            Model.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
                                  velocity=0., \
@@ -37,27 +33,32 @@ class SteadyIncompressibleFlow(Model):
            self.__iter=0
 
        def doInitialization(self):
-           """initialize model"""
+           """
+           initialize model
+           """
            self.__p_old=None
            self.__p_very_old=None
            self.__dt_old=None
            self.__pde=LameEquation(self.domain)
 
        def stress(self):
-           """returns current stress"""
+           """
+           returns current stress"""
            return 2*self.viscosity*self.stretching-self.pressure*kronecker(self.domain)
 
        def stretching(self):
-           """returns stertching tensor"""
+           """
+           returns stertching tensor
+           """
            g=grad(self.velocity)
            return (g+transpose(g))/2
 
        def doStepPreprocessing(self,dt):
             """
-               step up pressure iteration
+            step up pressure iteration
 
-               if run within a time dependend problem extrapolation of pressure from previous time steps is used to
-               get an initial guess (that needs some work!!!!!!!)
+            if run within a time dependend problem extrapolation of pressure from previous time steps is used to
+            get an initial guess (that needs some work!!!!!!!)
             """
             self.__iter=0
             self.__diff=1.e40
@@ -70,8 +71,8 @@ class SteadyIncompressibleFlow(Model):
        def doStep(self,dt):
           """
 
-             performs an iteration step of the penalty method.
-             IterationDivergenceError is raised if pressure error cannot be reduced or max_iter is reached.
+          performs an iteration step of the penalty method.
+          IterationDivergenceError is raised if pressure error cannot be reduced or max_iter is reached.
 
           """
           penalty=self.viscosity/self.relaxation

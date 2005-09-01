@@ -24,10 +24,11 @@
 #include <sstream>
 
 using namespace std;
+
 namespace escript {
 
 //
-// Create a null domain for use with a default constructed function space
+// Create a null domain for use with any default-constructed function space
 NullDomain FunctionSpace::m_nullDomainValue;
 
 FunctionSpace::FunctionSpace():
@@ -44,7 +45,7 @@ FunctionSpace::FunctionSpace(const AbstractDomain& domain,
   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {
     std::stringstream temp;
     temp << "Invalid function space type: " << functionSpaceType 
-	 <<" for domain: " << m_domain->getDescription();
+	 << " for domain: " << m_domain->getDescription();
     throw FunctionSpaceException(temp.str());
   }
 }
@@ -85,6 +86,36 @@ FunctionSpace::getTagFromSampleNo(int sampleNo) const
 }
 
 int
+FunctionSpace::getTagFromDataPointNo(int dataPointNo) const
+{
+  //
+  // Get the number of samples and data-points per sample
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  int numDataPoints = numSamples * numDataPointsPerSample;
+
+  if (numDataPointsPerSample==0) {
+    throw DataException("FunctionSpace::getTagFromDataPointNo error: no data-points associated with this object.");
+  }
+
+  if (dataPointNo<0 || dataPointNo>numDataPoints) {
+    throw DataException("FunctionSpace::getTagFromDataPointNo error: invalid data-point number supplied.");
+  }
+
+  //
+  // Determine the sample number which corresponds to this data-point number
+  int sampleNo = dataPointNo / numDataPointsPerSample;
+
+  //
+  // Determine the tag number which corresponds to this sample number
+  int tagNo = getTagFromSampleNo(sampleNo);
+
+  //
+  // return the tag number
+  return(tagNo);
+}
+
+int
 FunctionSpace::getReferenceNoFromSampleNo(int sampleNo) const
 {
   return m_domain->getReferenceNoFromSampleNo(m_functionSpaceType,sampleNo);
@@ -93,7 +124,6 @@ FunctionSpace::getReferenceNoFromSampleNo(int sampleNo) const
 FunctionSpace&
 FunctionSpace::operator=(const FunctionSpace& other)
 {
-  //
   // explicitly defined assignment operator to emphasise pointer copy
   m_nullDomainValue=other.m_nullDomainValue;
   m_functionSpaceType=other.m_functionSpaceType;

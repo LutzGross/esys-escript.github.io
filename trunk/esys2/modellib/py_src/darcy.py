@@ -2,8 +2,8 @@
 
 
 from esys.escript import *
-from esys.modelframe import Model,IterationDivergenceError
-from esys.linearPDEs import AdvectivePDE,LinearPDE
+from esys.escript.modelframe import Model,IterationDivergenceError
+from esys.escript.linearPDEs import AdvectivePDE,LinearPDE
 
 class DarcyFlow(Model):
        """ """

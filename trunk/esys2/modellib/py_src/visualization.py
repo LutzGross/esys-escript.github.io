@@ -1,6 +1,6 @@
 # $Id$
 
-from escript.modelframe import Model
+from esys.escript.modelframe import Model
 import os
 
 class Visualization(Model):
@@ -8,12 +8,12 @@ class Visualization(Model):
     Generic visualization of scalar, vector and tensorial data 
     (not implemeted yet)
 
-    t: current time
-    scalar: scalar data set
-    vector: vector data set
-    tensor: tensor data set
-    stride: visulaization is done every strides time step
-    filename: name of the movie file
+    @ivar t: current time
+    @ivar scalar: scalar data set
+    @ivar vector: vector data set
+    @ivar tensor: tensor data set
+    @ivar stride: visulaization is done every strides time step
+    @ivar filename: name of the movie file
     """
 
     def __init__(self, debug=False):

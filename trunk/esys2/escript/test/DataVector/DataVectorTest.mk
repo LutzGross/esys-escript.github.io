@@ -5,8 +5,6 @@ DEFAULT_TARGET := DataVectorTest.exe
 
 L_SRC_DIR := .
 
-L_DEFS := DOASSERT
-
 PACKAGES := CppUnitTest esysUtils pythonStatic boost
 
 L_EXT_INC_DIRS := ../../inc

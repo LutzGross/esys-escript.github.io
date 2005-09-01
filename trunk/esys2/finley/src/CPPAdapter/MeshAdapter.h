@@ -13,7 +13,7 @@
  ******************************************************************************
 */
                                                                            
-#if !defined  finley_MeshAdapter_20040526_H
+#if !defined finley_MeshAdapter_20040526_H
 #define finley_MeshAdapter_20040526_H
 
 #include "escript/Data/AbstractContinuousDomain.h"
@@ -23,6 +23,7 @@ extern "C" {
 #include "finley/finleyC/Mesh.h"
 }
 #include "finley/CPPAdapter/SystemMatrixAdapter.h"
+
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
 #include <map>
@@ -83,18 +84,21 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
                                destructor.
   */
   MeshAdapter(Finley_Mesh* finleyMesh=0);
+
   /**
      \brief
      Copy constructor.
   */
   MeshAdapter(const MeshAdapter& in);
+
   /**
      \brief
      Destructor for MeshAdapter. As specified in the constructor
-     this calls  Finley_Mesh_deallocate for the pointer given to the 
+     this calls Finley_Mesh_deallocate for the pointer given to the 
      constructor.
   */
   ~MeshAdapter();
+
   /**
      \brief
      return this as an AbstractContinuousDomain.
@@ -112,17 +116,20 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   {
      return *(static_cast<const AbstractDomain*>(this));
   }
+
   /**
      \brief
      Write the current mesh to a file with the given name.
      \param fileName Input - The name of the file to write to.
   */
   void write(const std::string& fileName) const;
+
   /**
      \brief
-     return the pointer of the underlying finley mesh structure
+     return the pointer to the underlying finley mesh structure
   */
   Finley_Mesh* getFinley_Mesh() const;
+
   /**
      \brief
      Return the tag list indexed by sampleNo. 
@@ -130,7 +137,6 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      \param tagList Output
      \param numTags Output
   */
-
   void getTagList(int functionSpaceType, int** tagList, 
 			       int* numTags) const;
   /**
@@ -150,6 +156,7 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      \param sampleNo Input - The sample number.
   */
   int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+
   /**
      \brief
      Return the reference number of  the given sample number.
@@ -164,11 +171,13 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      for this domain.
   */
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
+
   /**
      \brief
      Return a description for this domain
   */
   virtual std::string getDescription() const;
+
   /**
      \brief
      Return a description for the given function space type code
@@ -180,54 +189,66 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      Build the table of function space type names
   */
   void setFunctionSpaceTypeNames();
+
   /**
      \brief
      Return a continuous FunctionSpace code
   */
   virtual int getContinuousFunctionCode() const;
+
   /**
      \brief
      Return a functon FunctionSpace code
   */
   virtual int getFunctionCode() const;
+
   /**
      \brief
      Return a function on boundary FunctionSpace code
   */
   virtual int getFunctionOnBoundaryCode() const;
+
   /**
      \brief
      Return a FunctionOnContactZero code
   */
   virtual int getFunctionOnContactZeroCode() const;
+
   /**
      \brief
      Return a FunctionOnContactOne code
   */
   virtual int getFunctionOnContactOneCode() const;
+
   /**
      \brief
      Return a Solution code
   */
   virtual int getSolutionCode() const;
+
   /**
      \brief
      Return a ReducedSolution code
   */
   virtual int getReducedSolutionCode() const;
+
   /**
      \brief
      Return a DiracDeltaFunction code
   */
   virtual int getDiracDeltaFunctionCode() const;
-  //
-  //
+
+  /**
+     \brief
+  */
   typedef std::map<int, std::string> FunctionSpaceNamesMapType;
+
   /**
      \brief
   */
   virtual int getDim() const;
- /**
+
+  /**
      \brief
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
@@ -240,17 +261,20 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      has to be implemented by the actual Domain adapter.
   */
   virtual void setToX(escript::Data& arg) const;
+
   /**
      \brief
      assigns new location to the domain
   */
   virtual void setNewX(const escript::Data& arg);
+
   /**
      \brief
      interpolates data given on source onto target where source and target have to be given on the same domain.
   */
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+
   /**
      \brief
      interpolates data given on source onto target where source and target are given on different domains.
@@ -258,12 +282,14 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   */
   virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
   virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
+
   /**
      \brief
-     copies the surface normals at data points into out.  The actual function space to be considered
+     copies the surface normals at data points into out. The actual function space to be considered
      is defined by out. out has to be defined on this.
   */
   virtual void setToNormal(escript::Data& out) const;
+
   /**
      \brief
      copies the size of samples into out. The actual function space to be considered
@@ -285,7 +311,7 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   */
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
 
- /**
+  /**
      \brief
      return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, preconditioner
      and symmetric matrix is used.
@@ -300,24 +326,28 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      considered as cell centered data.
   */
   virtual bool isCellOriented(int functionSpaceCode) const;
+
   /**
      \brief
      saves data arg to an OpenDX input file.
      considered as cell centered data.
   */
   virtual void saveDX(const std::string& filename,const escript::Data& arg) const;
+
   /**
      \brief
      saves data arg to a VTK input file.
      considered as cell centered data.
   */
   virtual void saveVTK(const std::string& filename,const escript::Data& arg) const;
+
   /**
      \brief
      returns the function space representation of the type functionSpaceCode on this domain
      as a vtkObject.
   */
   // vtkObject createVtkObject(int functionSpaceCode) const;
+
   /**
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
@@ -328,6 +358,7 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
                      const escript::Data& d_contact, const escript::Data& y_contact) const;
+
   /**
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
@@ -335,6 +366,7 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact) const;
+
   /**
      \brief
     creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros:
@@ -350,21 +382,27 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
      \brief returns locations in the FEM nodes
   */
   virtual escript::Data getX() const;
+
   /**
      \brief return boundary normals at the quadrature point on the face elements
   */
   virtual escript::Data getNormal() const;
+
   /**
      \brief returns the element size
   */
   virtual escript::Data getSize() const;
 
+  /**
+     \brief comparison operators
+  */
   virtual bool operator==(const AbstractDomain& other) const;
   virtual bool operator!=(const AbstractDomain& other) const;
 
  protected:
 
  private:
+
   //
   // pointer to the externally created finley mesh
   boost::shared_ptr<Finley_Mesh> m_finleyMesh;
@@ -374,4 +412,5 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
 };
 
 } // end of namespace
+
 #endif

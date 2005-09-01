@@ -44,7 +44,7 @@ extern "C" {
 namespace escript {
 
 //
-// Forward declaration for various implimentations of Data.
+// Forward declaration for various implementations of Data.
 class DataEmpty;
 class DataConstant;
 class DataTagged;
@@ -226,12 +226,6 @@ class Data {
   convertToNumArray();
 
   /**
-     \brief fills the expanded Data object from values of a  python numarray object.
-
-  */
-  void 
-  fillFromNumArray(const boost::python::numeric::array);
-  /**
      \brief
      Return the values of all data-points for the given sample as a single python numarray object.
   */
@@ -245,6 +239,23 @@ class Data {
   const boost::python::numeric::array
   convertToNumArrayFromDPNo(int sampleNo,
                             int dataPointNo);
+
+  /**
+     \brief
+     Fills the expanded Data object from values of a python numarray object.
+  */
+  void
+  fillFromNumArray(const boost::python::numeric::array);
+
+  /**
+     \brief
+     Return the tag number associated with the given data-point.
+
+     The data-point number here corresponds to the data-point number in the
+     numarray returned by convertToNumArray.
+  */
+  int
+  getTagNumber(int dpno);
 
   /**
      \brief
