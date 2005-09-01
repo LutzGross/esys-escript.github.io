@@ -10,8 +10,17 @@ PKG_LD_LIB_DIRS += $(ESYS_ROOT)/finley/lib
 PKG_LD_LIBS += finleyC
 
 # $Log$
-# Revision 1.1  2004/10/26 06:53:58  jgs
-# Initial revision
+# Revision 1.2  2005/09/01 03:31:38  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-01
+#
+# Revision 1.1.1.1.6.2  2005/08/26 01:03:04  jgs
+# remove solver library settings - don't work here
+#
+# Revision 1.1.1.1.6.1  2005/08/24 02:06:33  gross
+# -0 -O reduced to -O to be able to run epydoc. performance shouldn't change
+#
+# Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+# initial import of project esys2
 #
 # Revision 1.1.1.1.2.2  2004/09/28 07:03:14  jgs
 # *** empty log message ***

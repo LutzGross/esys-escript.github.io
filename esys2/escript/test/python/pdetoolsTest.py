@@ -1,8 +1,8 @@
 # $Id$
 
-from escript.escript import *
-from escript.pdetools import Locator,Projector
-from finley.finley import Rectangle
+from esys.escript import *
+from esys.escript.pdetools import Locator,Projector
+from esys.finley import Rectangle
 
 def testLocator(domain):
       """runs a few test of the Locator"""

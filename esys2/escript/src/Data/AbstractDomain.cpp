@@ -19,6 +19,7 @@
 #include "escript/Data/FunctionSpace.h"
 
 using namespace std;
+
 namespace escript {
 
 AbstractDomain::AbstractDomain() {
@@ -186,7 +187,6 @@ bool AbstractDomain::operator==(const AbstractDomain& other) const
   throwStandardException("AbstractDomain::operator==");
   return false;
 }
-                                                                                                                                       
 bool AbstractDomain::operator!=(const AbstractDomain& other) const
 {
   throwStandardException("AbstractDomain::operator!=");

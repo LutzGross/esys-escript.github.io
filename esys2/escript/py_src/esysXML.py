@@ -1,7 +1,10 @@
 # $Id$
-""" A simple tool to handel parameters for a simulation in easy way
-    The idea is that all parameters are stored in a single object in a hierachical form
-    and can accessed using python's attribute notation.  For instance:
+""" 
+A simple tool to handle parameters for a simulation in easy way.
+
+The idea is that all parameters are stored in a single object in a 
+hierachical form and can accessed using python's attribute notation.  
+For instance::
 
         parm.parm2.alpha=814.
         parm.parm1.gamma=0.
@@ -17,43 +20,41 @@
         parm.parm1.parm11.gamma2=2.
         parm.parm1.parm11.gamma3=3.
 
-This structure can be stored/defined through an XML file parm.xml:
+This structure can be stored/defined through an XML file parm.xml::
 
-<?xml version="1.0"?>
-<ESyS>
-   <Component type="Geodynamics">
-   <Name>parm1</Name>
-   <Description>
-     a few examples of parameters
-   </Description>
-   <Parameter><Item>gamma</Item><Value>0.</Value></Parameter>
-   <Parameter type="int"><Item>dim</Item><Value>2</Value></Parameter>
-   <Parameter type="real"><Item>tol_v</Item><Value>0.001</Value></Parameter>
-   <Parameter type="string"><Item>output_file</Item><Value>/tmp/u.%3.3d.dx</Value></Parameter>
-   <Parameter type="bool"><Item>runFlag</Item><Value>true</Value></Parameter>
-   <Parameter type="real" sequence="single"><Item>T</Item><Value>1.</Value><Value>2</Value></Parameter>
-   <Parameter type="real" sequence="list"><Item>x1</Item><Value>-1.</Value><Value>2</Value></Parameter>
-   <Parameter type="real" sequence="tuple"><Item>x2</Item><Value>10</Value><Value>11</Value></Parameter>
-   <Parameter sequence="tuple"><Item>x3</Item><Value>-10.</Value></Parameter>
-   <Component>
-           <Name>parm11</Name>
-           <Description>
-          a sub compoment
-           </Description>
-            <Parameter><Item>gamma1</Item><Value>1.</Value></Parameter>
-            <Parameter><Item>gamma2</Item><Value>2.</Value></Parameter>
-            <Parameter><Item>gamma3</Item><Value>3.</Value></Parameter>
-           </Component>   
-   </Component>
-    <Component type="Geodynamics">
-   <Name>parm2</Name>
-   <Description>
-     another component
-   </Description>
-   <Parameter><Item>alpha</Item><Value>0814</Value></Parameter>
-   </Component>
-</ESyS>
-
+    <?xml version="1.0"?>
+    <ESyS>
+       <Component type="Geodynamics">
+       <Name>parm1</Name>
+       <Description>
+	 a few examples of parameters
+       </Description>
+       <Parameter><Item>gamma</Item><Value>0.</Value></Parameter>
+       <Parameter type="int"><Item>dim</Item><Value>2</Value></Parameter>
+       <Parameter type="real"><Item>tol_v</Item><Value>0.001</Value></Parameter>
+       <Parameter type="string"><Item>output_file</Item><Value>/tmp/u.%3.3d.dx</Value></Parameter>
+       <Parameter type="bool"><Item>runFlag</Item><Value>true</Value></Parameter>
+       <Parameter type="real" sequence="single"><Item>T</Item><Value>1.</Value><Value>2</Value></Parameter>
+       <Parameter type="real" sequence="list"><Item>x1</Item><Value>-1.</Value><Value>2</Value></Parameter>
+       <Parameter type="real" sequence="tuple"><Item>x2</Item><Value>10</Value><Value>11</Value></Parameter>
+       <Parameter sequence="tuple"><Item>x3</Item><Value>-10.</Value></Parameter>
+       <Component>
+	       <Name>parm11</Name>
+	       <Description>
+		 a sub compoment
+	       </Description>
+		<Parameter><Item>gamma1</Item><Value>1.</Value></Parameter>
+		<Parameter><Item>gamma2</Item><Value>2.</Value></Parameter>
+		<Parameter><Item>gamma3</Item><Value>3.</Value></Parameter>
+       </Component>
+       <Component type="Geodynamics">
+       <Name>parm2</Name>
+       <Description>
+	 another component
+       </Description>
+       <Parameter><Item>alpha</Item><Value>0814</Value></Parameter>
+       </Component>
+    </ESyS>
 """
 
 import types
@@ -61,71 +62,74 @@ from xml.dom import minidom
 from string import atoi,atof
 
 class ESySParameters:
-   """is an object to store simulation parameters in the form of a tree and
-      access their values in an easy form
+    """
+    Is an object to store simulation parameters in the form of a tree and
+    access their values in an easy form
       
-      Leaves of  an ESySParameters objects can be 
+    Leaves of an ESySParameters object can be:
 
-           a single real number or a list or tuple of real numbers
-           a single integer number or a list or tuple of integer  numbers
-           a single strings or a list or tuple of strings
-           a single boolean value or a list or tuple of boolean values
-           a ESySParameters object
-           any other object (not considered by writeESySXML and writeXML)
+        - a single real number or a list or tuple of real numbers
+        - a single integer number or a list or tuple of integer  numbers
+        - a single strings or a list or tuple of strings
+        - a single boolean value or a list or tuple of boolean values
+        - a ESySParameters object
+        - any other object (not considered by writeESySXML and writeXML)
 
-          Example how to create an ESySParameters object:
+    Example how to create an ESySParameters object::
 
-                parm=ESySParameters()
-                parm.parm1=ESySParameters()
-                parm.parm1.gamma=0.
-                parm.parm1.dim=2
-                parm.parm1.tol_v=0.001
-                parm.parm1.output_file="/tmp/u.%3.3d.dx"
-                parm.parm1.runFlag=True
-                parm.parm1.T=1.
-                parm.parm1.x1=[-1.,2]
-                parm.parm1.x2=(10.,11)
-                parm.parm1.x3=(-10.,)
-                parm.parm1.parm11=ESySParameters()
-                parm.parm1.parm11.gamma1=1.
-                parm.parm1.parm11.gamma2=2.
-                parm.parm1.parm11.gamma3=3.
-                parm.parm2=ESySParameters()
-                parm.parm2.alpha=814.
+        parm=ESySParameters()
+        parm.parm1=ESySParameters()
+        parm.parm1.gamma=0.
+        parm.parm1.dim=2
+        parm.parm1.tol_v=0.001
+        parm.parm1.output_file="/tmp/u.%3.3d.dx"
+        parm.parm1.runFlag=True
+        parm.parm1.T=1.
+        parm.parm1.x1=[-1.,2]
+        parm.parm1.x2=(10.,11)
+        parm.parm1.x3=(-10.,)
+        parm.parm1.parm11=ESySParameters()
+        parm.parm1.parm11.gamma1=1.
+        parm.parm1.parm11.gamma2=2.
+        parm.parm1.parm11.gamma3=3.
+        parm.parm2=ESySParameters()
+        parm.parm2.alpha=814.
 
-                print parm
+        print parm
 
-            Output is
+    Output is::
 
-            (parm1=(dim=2,output_file=/tmp/u.%3.3d.dx,parm11=(gamma3=3.0,gamma2=2.0,gamma1=1.0),
-                    tol_v=0.001,T=1.0,x2=(10,),x3=(-10,),runFlag=True,x1=[-1.0, 2.0],gamma=0.0),parm2=(alpha=814.0))
+        (parm1=(dim=2,output_file=/tmp/u.%3.3d.dx,parm11=(gamma3=3.0,gamma2=2.0,gamma1=1.0),
+            tol_v=0.001,T=1.0,x2=(10,),x3=(-10,),runFlag=True,x1=[-1.0, 2.0],gamma=0.0),parm2=(alpha=814.0))
 
-            Notice that parm.parm1.x1 is now a list of two floats although it is defined by a list of a float and an integer.
-            ESySParameter is trying to use the same type for all items in a list or a tuple.
-            
-   """
+    Notice that C{parm.parm1.x1} is now a list of two floats although it is
+    defined by a list of a float and an integer.  ESySParameter is trying to
+    use the same type for all items in a list or a tuple.
+    """
 
-   def __init__(self,description="none",type=None):
-      self.setDescription(description)
-      self.setType(type)
+    def __init__(self,description="none",type=None):
+        self.setDescription(description)
+        self.setType(type)
       
-   def getTypeName(self):
+    def getTypeName(self):
        if self.__type==None:
           return None
        else:
           return self.__type.__str__()
 
-   def getDescription(self):
+    def getDescription(self):
        return self.__description
 
-   def setType(self,type=None):
+    def setType(self,type=None):
        self.__type=type
          
-   def setDescription(self,description="none"):
+    def setDescription(self,description="none"):
        self.__description=description
 
-   def __str__(self):
-       """returns a string representation"""
+    def __str__(self):
+       """
+       Returns a string representation.
+       """
        out=""
        for name,value in self.__dict__.iteritems():
            if name[0]!="_":
@@ -135,36 +139,40 @@ class ESySParameters:
                    out=out+","+name+"="+str(value)
        return "("+out+")"
         
-   def __setattr__(self,name,value):
-     """defines attribute name and assigns value. if name does not start
-        with an underscore value has to be a valid Parameter."""
-     name=name.replace(" ","_")
-     if name[0]!="_":
-       if value==None:
+    def __setattr__(self,name,value):
+        """
+        Defines attribute C{name} and assigns C{value}.  If name does not start
+        with an underscore value has to be a valid Parameter.
+        """
+        name=name.replace(" ","_")
+        if name[0]!="_":
+          if value==None:
+             self.__dict__[name]=value
+          elif isinstance(value,ESySParameters):
+             self.__dict__[name]=value
+          elif isinstance(value,types.BooleanType):
+             self.__dict__[name]=value   
+          elif isinstance(value,types.ListType):
+             self.__dict__[name]=_mkSameType(value)
+          elif isinstance(value,types.TupleType):
+             self.__dict__[name]=tuple(_mkSameType(value))
+          elif isinstance(value,types.BooleanType):
+             self.__dict__[name]=value
+          elif isinstance(value,types.IntType):
+             self.__dict__[name]=value
+          elif isinstance(value,types.FloatType):
+             self.__dict__[name]=value
+          elif isinstance(value,types.StringType) or isinstance(value,types.UnicodeType):
+             self.__dict__[name]=str(value)
+          else:
+             self.__dict__[name]=value
+        else:
           self.__dict__[name]=value
-       elif isinstance(value,ESySParameters):
-          self.__dict__[name]=value
-       elif isinstance(value,types.BooleanType):
-          self.__dict__[name]=value   
-       elif isinstance(value,types.ListType):
-          self.__dict__[name]=_mkSameType(value)
-       elif isinstance(value,types.TupleType):
-          self.__dict__[name]=tuple(_mkSameType(value))
-       elif isinstance(value,types.BooleanType):
-          self.__dict__[name]=value
-       elif isinstance(value,types.IntType):
-          self.__dict__[name]=value
-       elif isinstance(value,types.FloatType):
-          self.__dict__[name]=value
-       elif isinstance(value,types.StringType) or isinstance(value,types.UnicodeType):
-          self.__dict__[name]=str(value)
-       else:
-          self.__dict__[name]=value
-     else:
-       self.__dict__[name]=value
            
-   def writeXML(self,iostream):
-     """writes the object as an XML object into an IO stream"""
+    def writeXML(self,iostream):
+     """
+     Writes the object as an XML object into an IO stream.
+     """
      for name,value in self.__dict__.iteritems():
         if name[0]!="_":
            if isinstance(value,ESySParameters):
@@ -198,8 +206,10 @@ class ESySParameters:
                iostream.write("</%s>\n"%_PARAMETER)
 
 
-   def writeProperties(self, iostream, nameSpace = None):
-     """writes the object as a property list to an IO stream"""
+    def writeProperties(self, iostream, nameSpace = None):
+     """
+     Writes the object as a property list to an IO stream.
+     """
      if nameSpace != None and nameSpace != "":
         nameSpace += ".";
      for name,value in self.__dict__.iteritems():
@@ -218,14 +228,18 @@ class ESySParameters:
                   type=_getTypeName(value)
                iostream.write("%s = %s\n" % (nameSpace + name, value.__str__()))
 
-   def writeESySXML(self,iostream):
-        """writes an ESyS XML file"""
+    def writeESySXML(self,iostream):
+        """
+	Writes an ESyS XML file.
+	"""
         iostream.write("<?xml version=\"1.0\"?><ESyS>")
         self.writeXML(iostream)
         iostream.write("</ESyS>")
 
 def readESySXMLFile(filename):
-       """reads an ESyS XML file and returns it as a ESySParameter object"""
+       """
+       Reads an ESyS XML file and returns it as a ESySParameter object.
+       """
        return _readParametersFromDOM(minidom.parse(filename).getElementsByTagName(_ESYS)[0])
 
 
@@ -251,7 +265,9 @@ _PARAMETER_SEQUENCE_TUPLE="tuple"
 
 
 def _mkSameType(list):
-    """returns list where all items in the list have the same type"""
+    """
+    Returns list where all items in the list have the same type.
+    """
     out=[]
     if len(list)>0:
         type=0
@@ -294,7 +310,9 @@ def _mkSameType(list):
     return out
 
 def _getTypeNameOfList(values):
-    """returns the type of the parameters in list values"""
+    """
+    Returns the type of the parameters in list values.
+    """
     if len(values)==0:
         type=_PARAMETER_TYPE_UNKNOWN
     else:
@@ -302,7 +320,9 @@ def _getTypeNameOfList(values):
     return type
 
 def _getTypeName(value):
-    """returns the type of the parameter value"""
+    """
+    Returns the type of the parameter value.
+    """
     if isinstance(value,types.FloatType):
            type=_PARAMETER_TYPE_REAL
     elif isinstance(value,types.BooleanType):
@@ -317,7 +337,9 @@ def _getTypeName(value):
 
     
 def _extractStrippedValue(dom):
-    """exracts a string from a DOM node"""
+    """
+    Exracts a string from a DOM node.
+    """
     out=""
     for i in dom.childNodes:
         s=i.nodeValue.strip()
@@ -399,21 +421,36 @@ def _readParametersFromDOM(dom):
 # test section:
 if  (__name__=="__main__"):
     def test(parm):
-        if parm.parm1.gamma!=0. : raise IOError,"unexpected value for parm.parm1.gamma"
-        if parm.parm1.dim!=2: raise IOError,"unexpected value for parm.parm1.dim"
-        if parm.parm1.tol_v!=0.001: raise IOError,"unexpected value for parm.parm1.tol_v"
-        if parm.parm1.output_file!="/tmp/u.%3.3d.dx": raise IOError,"unexpected value for parm.parm1.output_file"
-        if parm.parm1.runFlag!=True: raise IOError,"unexpected value for parm.parm1.runFlag"
-        if parm.parm1.T!=1.: raise IOError,"unexpected value for parm.parm1.T"
-        if parm.parm1.x1[0]!=-1.: raise IOError,"unexpected value for parm.parm1.x1[0]"
-        if parm.parm1.x1[1]!=2.: raise IOError,"unexpected value for parm.parm1.x1[1]"
-        if parm.parm1.x2[0]!=10.: raise IOError,"unexpected value for parm.parm1.x2[0]"
-        if parm.parm1.x2[1]!=11.: raise IOError,"unexpected value for parm.parm1.x2[1]"
-        if parm.parm1.x3[0]!=-10: raise IOError,"unexpected value for parm.parm1.x3[0]"
-        if parm.parm1.parm11.gamma1!=1.: raise IOError,"unexpected value for parm.parm1.parm11.gamma1"
-        if parm.parm1.parm11.gamma2!=2.: raise IOError,"unexpected value for parm.parm1.parm11.gamma2"
-        if parm.parm1.parm11.gamma3!=3.: raise IOError,"unexpected value for parm.parm1.parm11.gamma3"
-        if parm.parm2.alpha!=814.: raise IOError,"unexpected value for parm.parm2.alpha"
+        if parm.parm1.gamma!=0. : 
+	    raise IOError,"unexpected value for parm.parm1.gamma"
+        if parm.parm1.dim!=2: 
+	    raise IOError,"unexpected value for parm.parm1.dim"
+        if parm.parm1.tol_v!=0.001: 
+	    raise IOError,"unexpected value for parm.parm1.tol_v"
+        if parm.parm1.output_file!="/tmp/u.%3.3d.dx": 
+	    raise IOError,"unexpected value for parm.parm1.output_file"
+        if parm.parm1.runFlag!=True: 
+	    raise IOError,"unexpected value for parm.parm1.runFlag"
+        if parm.parm1.T!=1.: 
+	    raise IOError,"unexpected value for parm.parm1.T"
+        if parm.parm1.x1[0]!=-1.: 
+	    raise IOError,"unexpected value for parm.parm1.x1[0]"
+        if parm.parm1.x1[1]!=2.: 
+	    raise IOError,"unexpected value for parm.parm1.x1[1]"
+        if parm.parm1.x2[0]!=10.: 
+	    raise IOError,"unexpected value for parm.parm1.x2[0]"
+        if parm.parm1.x2[1]!=11.: 
+	    raise IOError,"unexpected value for parm.parm1.x2[1]"
+        if parm.parm1.x3[0]!=-10: 
+	    raise IOError,"unexpected value for parm.parm1.x3[0]"
+        if parm.parm1.parm11.gamma1!=1.: 
+	    raise IOError,"unexpected value for parm.parm1.parm11.gamma1"
+        if parm.parm1.parm11.gamma2!=2.: 
+	    raise IOError,"unexpected value for parm.parm1.parm11.gamma2"
+        if parm.parm1.parm11.gamma3!=3.: 
+	    raise IOError,"unexpected value for parm.parm1.parm11.gamma3"
+        if parm.parm2.alpha!=814.: 
+	    raise IOError,"unexpected value for parm.parm2.alpha"
 
     print "@@@ explicit construction"  
     parm=ESySParameters()
@@ -480,3 +517,5 @@ if  (__name__=="__main__"):
     parm3=readESySXMLFile("/tmp/test2.xml")
     print parm3
     test(parm3)
+
+# vim: expandtab shiftwidth=4:

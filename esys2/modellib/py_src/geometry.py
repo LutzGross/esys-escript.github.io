@@ -1,22 +1,21 @@
 # $Id$
 
 
-from escript.escript import *
-from escript.modelframe import Model,ParameterSet
-from finley import finley
+from esys.escript import *
+from esys.escript.modelframe import Model,ParameterSet
+from esys import finley
 
 class RectangularDomain(Model):
-       """generates a mesh over a rectangular domain finley
+       """
+       Generates a mesh over a rectangular domain finley.
 
-             dim
-             l
-             n
-             order
-             periodic
-             intergration order
-
-             domain (callable)
-
+       @ivar dim:
+       @ivar l:
+       @ivar n:
+       @ivar order:
+       @ivar periodic:
+       @ivar intergration order:
+       @ivar domain (callable):
        """
        def __init__(self,debug=False):
            Model.__init__(self,debug=debug)
@@ -55,19 +54,28 @@ class RectangularDomain(Model):
           return self._domain
 
 class ScalarConstrainer(ParameterSet):
-     """@brief creates a characteristic function for the location of constraints for a scalar value
+     """
+     Creates a characteristic function for the location of constraints 
+     for a scalar value.
 
-              @param domain (in) - rectangular domain
-              @param left (in)  - True to set a constraint at the left face of the domain (x[0]=min x[0]), default is False
-              @param right (in) - True to set a constraint at the left face of the domain (x[0]=max x[0]), default is False
-              @param top (in)  - True to set a constraint at the left face of the domain (x[1]=min x[1]), default is False
-              @param bottom (in) - True to set a constraint at the left face of the domain (x[1]=max x[1]), default is False
-              @param front (in)  - True to set a constraint at the left face of the domain (x[2]=min x[2]), default is False
-              @param back (in) - True to set a constraint at the left face of the domain (x[2]=max x[2]), default is False
-              @param location_of_constraint (out) - object that defines the location of the constraints.
+     In the case that the spatial dimension is two, the arguments front 
+     and back are ignored.
 
-       In the case that the spatial dimension is two, teh arguments front and back are ignored
-
+     @ivar domain (in): rectangular domain
+     @ivar left (in): True to set a constraint at the left face of the 
+               domain (x[0]=min x[0]), default is False
+     @ivar right (in): True to set a constraint at the left face of the 
+               domain (x[0]=max x[0]), default is False
+     @ivar top (in): True to set a constraint at the left face of the 
+               domain (x[1]=min x[1]), default is False
+     @ivar bottom (in): True to set a constraint at the left face of the 
+               domain (x[1]=max x[1]), default is False
+     @ivar front (in): True to set a constraint at the left face of the 
+               domain (x[2]=min x[2]), default is False
+     @ivar back (in): True to set a constraint at the left face of the 
+               domain (x[2]=max x[2]), default is False
+     @ivar location_of_constraint (out): object that defines the location 
+               of the constraints.
      """
      def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
@@ -81,7 +89,9 @@ class ScalarConstrainer(ParameterSet):
            self._location_of_constraint=None
 
      def location_of_constraint(self):
-          """returns the mask of the location of constraint"""
+          """
+          Returns the mask of the location of constraint.
+          """
           if self._location_of_constraint==None:
              x=self.domain.getX()
              self._location_of_constraint=Scalar(0,x.getFunctionSpace())
@@ -100,25 +110,39 @@ class ScalarConstrainer(ParameterSet):
           return self._location_of_constraint
 
 class VectorConstrainer(ParameterSet):
-      """@brief creates a characteristic function for the location of constraints for a scalar value
+      """
+      Creates a characteristic function for the location of constraints 
+      for a scalar value.
 
-              @param domain (in) - rectangular domain
-              @param left (in)  - list of three boolean. left[i]==True sets a constraint for the i-th component at the left
-                                  face of the domain (x[0]=min x[0]), default is [False,False,False]
-              @param right (in) - list of three boolean. left[i]==True sets a constraint for the i-th component at the right
-                                  face of the domain (x[0]=max x[0]), default is [False,False,False]
-              @param top (in)  - list of three boolean. left[i]==True sets a constraint for the i-th component at the top
-                                  face of the domain (x[1]=min x[1]), default is [False,False,False]
-              @param bottom (in) - list of three boolean. left[i]==True sets a constraint for the i-th component at the bottom
-                                  face of the domain (x[1]=min x[1]), default is [False,False,False]
-              @param front (in)  - list of three boolean. left[i]==True sets a constraint for the i-th component at the front
-                                  face of the domain (x[2]=min x[2]), default is [False,False,False]
-              @param back (in) - list of three boolean. left[i]==True sets a constraint for the i-th component at the back
-                                  face of the domain (x[2]=max x[2]), default is [False,False,False]
-              @param location_of_constraint (callable) - object that defines the location of the constraints for each vector component.
+      @ivar domain (in): rectangular domain
+      @ivar left (in): list of three boolean. left[i]==True sets a 
+                constraint for the i-th component at the left
+                face of the domain (x[0]=min x[0]), 
+                default is [False,False,False]
+      @ivar right (in): list of three boolean. left[i]==True sets a 
+                constraint for the i-th component at the right
+                face of the domain (x[0]=max x[0]), 
+                default is [False,False,False]
+      @ivar top (in): list of three boolean. left[i]==True sets a 
+                constraint for the i-th component at the top
+                face of the domain (x[1]=min x[1]), 
+                default is [False,False,False]
+      @ivar bottom (in): list of three boolean. left[i]==True sets a 
+                constraint for the i-th component at the bottom
+                face of the domain (x[1]=min x[1]), 
+                default is [False,False,False]
+      @ivar front (in): list of three boolean. left[i]==True sets a 
+                constraint for the i-th component at the front
+                face of the domain (x[2]=min x[2]), 
+                default is [False,False,False]
+      @ivar back (in): list of three boolean. left[i]==True sets a 
+                constraint for the i-th component at the back
+                face of the domain (x[2]=max x[2]), 
+                default is [False,False,False]
+      @ivar location_of_constraint (callable): object that defines the location of the constraints for each vector component.
 
-       In the case that the spatial dimension is two, thh arguments front and back as well as the third component of each argument is ignored.
-
+      In the case that the spatial dimension is two, thh arguments front and
+      back as well as the third component of each argument is ignored.
       """
       def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
@@ -131,7 +155,9 @@ class VectorConstrainer(ParameterSet):
                                  back=[0,0,0])
            self._location_of_constraint=None
       def location_of_constraint(self):
-          """returns the mask of the location of constraint"""
+          """
+          Returns the mask of the location of constraint.
+          """
           if self._location_of_constraint==None:
              x=self.domain.getX()
              self._location_of_constraint=Vector(0,x.getFunctionSpace())
@@ -174,3 +200,5 @@ class VectorConstrainer(ParameterSet):
                 if self.top[0]: self._location_of_constraint+=top_mask*[1.,0.]
                 if self.top[1]: self._location_of_constraint+=top_mask*[0.,1.]
           return self._location_of_constraint
+
+# vim: expandtab shiftwidth=4:

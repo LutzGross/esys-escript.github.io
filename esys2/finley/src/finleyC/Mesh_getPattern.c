@@ -130,7 +130,9 @@ Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_r
     for(i=0;i<n;++i) Finley_IndexList_free(index_list[i].extension);
   }
   TMPMEMFREE(index_list);
+  #ifdef Finley_TRACE
   printf("timing: mesh to matrix pattern: %.4e sec\n",Finley_timer()-time0);
+  #endif
   if (Finley_ErrorCode!=NO_ERROR) {
     MEMFREE(ptr);
     MEMFREE(index);
@@ -141,6 +143,12 @@ Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_r
 }
 /*
  * $Log$
+ * Revision 1.4  2005/09/01 03:31:35  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
+ * Revision 1.3.2.1  2005/08/24 02:02:18  gross
+ * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
+ *
  * Revision 1.3  2005/07/08 04:07:52  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

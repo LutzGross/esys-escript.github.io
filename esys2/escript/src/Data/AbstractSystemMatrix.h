@@ -136,15 +136,9 @@ class AbstractSystemMatrix {
   virtual void saveHB(const std::string& fileName) const;
 
   /**
-     \brief sets the matrix entries to value
+     \brief resets the matrix entries
   */
-  virtual void setValue(const double value) const;
-
-  /**
-     \brief cleans any setting, allocations by the solver. 
-  */
-  virtual void resetSolver() const;
-
+  virtual void resetValues() const;
 
  protected:
 

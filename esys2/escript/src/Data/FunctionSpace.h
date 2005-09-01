@@ -89,7 +89,7 @@ class FunctionSpace {
   /**
    \brief
    Assignment operator. 
-   NOTE: Assignment just copies the domain object pointer
+   NOTE: Assignment copies the domain object pointer
    as this object is managed externally to this class.
   */
   FunctionSpace&
@@ -130,18 +130,25 @@ class FunctionSpace {
 
   /**
    \brief
-   Return the reference nomber associated with the given sample number.
+   Return the tag associated with the given data-point number.
+  */
+  int
+  getTagFromDataPointNo(int dataPointNo) const;
+
+  /**
+   \brief
+   Return the reference number associated with the given sample number.
   */
   int
   getReferenceNoFromSampleNo(int sampleNo) const;
 
   /**
    \brief
-   Return the location of the data points.
+   Return the spatial locations of the data points.
   */
   escript::Data
   getX() const;
-  
+ 
   /**
    \brief
    Return the surface normal field.
@@ -175,6 +182,7 @@ class FunctionSpace {
   getNumDPPSample() const {
      return getNumDataPointsPerSample();
   }
+
   inline
   int
   getNumDataPointsPerSample() const {
@@ -202,8 +210,8 @@ class FunctionSpace {
   //
   // function space domain
   const AbstractDomain*  m_domain;
-  //
 
+  //
   // function space type code.
   int m_functionSpaceType;
 

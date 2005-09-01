@@ -15,15 +15,27 @@ endif
 
 L_PYTH_DIR := $(L_PYTH_DIR)/finley
 
-INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/finley.pyc
+INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/finley.pyc 
 
 INSTALL_LIB := ./lib/libfinleycpp.so
-
-# These settings are now specified in Makefile.host
-#L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
 
 PACKAGES := escript mmio esysUtils python boost scsl141pre
 
 L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL ./src/CPPAdapter ./py_src
+
+# determine solver packages to use
+ifeq ($(strip $(USE_GCC)),)
+   HOSTNAME := ${shell hostname | sed -e 's/\..*//'}
+else
+   HOSTNAME := gcc
+endif
+
+ifeq ($(strip $(HOSTNAME)),ess)
+   L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=SGI_SCSL
+endif
+
+ifeq ($(strip $(HOSTNAME)),gcc)
+   L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
+endif
 
 include $(ESYS_ROOT)/make/Makefile.default

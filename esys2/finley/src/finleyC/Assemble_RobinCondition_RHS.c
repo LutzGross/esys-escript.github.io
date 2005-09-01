@@ -153,13 +153,21 @@ void Finley_Assemble_RobinCondition_RHS(Finley_NodeFile* nodes,Finley_ElementFil
         THREAD_MEMFREE(Area);
         THREAD_MEMFREE(index_row);
      }
+     #ifdef Finley_TRACE
      printf("timing: assemblage natural BC right hand side: %.4e sec\n",Finley_timer()-time0);
+     #endif
   }
 }
 /*
  * $Log$
+ * Revision 1.3  2005/09/01 03:31:35  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
  * Revision 1.2  2005/08/12 01:45:43  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.1.2.2  2005/08/24 02:02:18  gross
+ * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
  *
  * Revision 1.1.2.1  2005/08/04 22:41:11  gross
  * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)

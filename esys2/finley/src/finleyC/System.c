@@ -124,8 +124,8 @@ Finley_SystemMatrix* Finley_SystemMatrix_alloc(Finley_SystemMatrixType type,Finl
     Finley_SystemMatrix_dealloc(out);
     return NULL;
   } else {
-    printf("timing: system matrix %.4e sec\n",Finley_timer()-time0);
     #ifdef Finley_TRACE
+    printf("timing: system matrix %.4e sec\n",Finley_timer()-time0);
     printf("Finley_SystemMatrix_alloc: %ld x %ld system matrix has been allocated.\n",(long)out->num_rows,(long)out->num_cols);
     #endif
     return out;
@@ -158,8 +158,14 @@ void Finley_SystemMatrix_dealloc(Finley_SystemMatrix* in) {
 }
 /*
  * $Log$
+ * Revision 1.9  2005/09/01 03:31:36  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
  * Revision 1.8  2005/08/23 01:24:29  jgs
  * Merge of development branch dev-02 back to main trunk on 2005-08-23
+ *
+ * Revision 1.7.2.3  2005/08/24 02:02:18  gross
+ * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
  *
  * Revision 1.7.2.2  2005/08/19 02:44:09  gross
  * stopping criterion modified to cope with badly balanced equations

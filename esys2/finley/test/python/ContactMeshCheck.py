@@ -5,7 +5,7 @@ import os
 import unittest
 
 from esys.escript import *
-import esys.finley as finley
+from esys import finley
 
 import math
 TMPFILE="tmp.msh"

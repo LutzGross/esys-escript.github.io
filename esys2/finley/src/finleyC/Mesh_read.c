@@ -176,12 +176,20 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   printf ("nodes read!\n");
 
   /* that's it */
+  #ifdef Finley_TRACE
   printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
+  #endif
   if (Finley_ErrorCode!=NO_ERROR) Finley_Mesh_dealloc(mesh_p);
   return mesh_p;
 }
 /*
 * $Log$
+* Revision 1.4  2005/09/01 03:31:36  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-01
+*
+* Revision 1.3.2.1  2005/08/24 02:02:18  gross
+* timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
+*
 * Revision 1.3  2005/07/22 03:53:08  jgs
 * Merge of development branch back to main trunk on 2005-07-22
 *

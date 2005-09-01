@@ -3,8 +3,8 @@ import unittest
 
 import numarray
 
-from escript.escript import *
-from finley import finley
+from esys.escript import *
+from esys import finley
 
 class DataTestCase(unittest.TestCase):
 
@@ -34,7 +34,7 @@ class DataTestCase(unittest.TestCase):
       
    def unaryOperationTest(self):
       constData=escript.Data([1,2])
-      result=escript.sin(constData)
+      result=sin(constData)
       print result
 
    def dataExpansionTest(self):

@@ -5,8 +5,8 @@ Test writing data object to various file formats
 by Lutz Gross, ACcESS, University of Queensland, Australia, 2005.
 """
 
-from escript.escript import *
-from finley.finley import Rectangle,Brick
+from esys.escript import *
+from esys.finley import Rectangle,Brick
 
 
 ne=1

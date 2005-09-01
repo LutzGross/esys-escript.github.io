@@ -62,7 +62,7 @@ err_t Finley_Solver_GMRES(
 
   double *x_PRES,*r_PRES,*P,*AP,*x_PRES_MEM[MAX(length_of_recursion,0)],*r_PRES_MEM[MAX(length_of_recursion,0)];
   double r_PRES_MEMdotAP[MAX(length_of_recursion,0)],L2_r_PRES_MEM[MAX(length_of_recursion,0)],BREAKF_MEM[MAX(length_of_recursion,0)];
-  double r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4,L2_r_PRES;
+  double r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4,L2_r_PRES,r_PRES_MEMdotAP5;
   double *tmp,tol,BREAKF,factor,GAMMA,SC1,SC2,norm_of_residual,diff,L2_R,norm_of_residual_global;
   dim_t maxit,num_iter_global,num_iter_restart,num_iter;
   dim_t i,z,OLDEST,ORDER;
@@ -118,6 +118,7 @@ err_t Finley_Solver_GMRES(
       }
 
       next:
+         #pragma omp barrier
          if (restartFlag) {
              #pragma omp for private(z) schedule(static) nowait
              for (z=0; z < n_row; ++z) r_PRES[z]=r[z];
@@ -126,6 +127,7 @@ err_t Finley_Solver_GMRES(
              num_iter_restart=0;
              OLDEST=length_of_recursion-1;
              BREAKF=ONE;
+             restartFlag=FALSE;
          }
          ++num_iter;
          ++num_iter_restart;
@@ -152,6 +154,7 @@ err_t Finley_Solver_GMRES(
                L2_r_PRES=ZERO;
                r_PRESdotAP=ZERO;
             }
+            #pragma omp barrier
             #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP) schedule(static)
             for (z=0;z<n_row;++z) {
                 L2_r_PRES+=r_PRES[z]*r_PRES[z];
@@ -164,6 +167,7 @@ err_t Finley_Solver_GMRES(
               r_PRESdotAP=ZERO;
               r_PRES_MEMdotAP0=ZERO;
             }
+            #pragma omp barrier
             #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0) schedule(static)
             for (z=0;z<n_row;++z) {
                 L2_r_PRES+=r_PRES[z]*r_PRES[z];
@@ -183,6 +187,7 @@ err_t Finley_Solver_GMRES(
                r_PRES_MEMdotAP0=ZERO;
                r_PRES_MEMdotAP1=ZERO;
             }
+            #pragma omp barrier
             #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1) schedule(static)
             for (z=0;z<n_row;++z) {
                 L2_r_PRES+=r_PRES[z]*r_PRES[z];
@@ -205,6 +210,7 @@ err_t Finley_Solver_GMRES(
               r_PRES_MEMdotAP1=ZERO;
               r_PRES_MEMdotAP2=ZERO;
             }
+            #pragma omp barrier
             #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2) schedule(static)
             for (z=0;z<n_row;++z) {
                 L2_r_PRES+=r_PRES[z]*r_PRES[z];
@@ -229,6 +235,7 @@ err_t Finley_Solver_GMRES(
               r_PRES_MEMdotAP2=ZERO;
               r_PRES_MEMdotAP3=ZERO;
             }
+            #pragma omp barrier
             #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3) schedule(static)
             for (z=0;z<n_row;++z) {
                 L2_r_PRES+=r_PRES[z]*r_PRES[z];
@@ -256,6 +263,7 @@ err_t Finley_Solver_GMRES(
               r_PRES_MEMdotAP3=ZERO;
               r_PRES_MEMdotAP4=ZERO;
             }
+            #pragma omp barrier
             #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4) schedule(static)
             for (z=0;z<n_row;++z) {
                 L2_r_PRES+=r_PRES[z]*r_PRES[z];
@@ -274,6 +282,39 @@ err_t Finley_Solver_GMRES(
               r_PRES_MEMdotAP[3]=r_PRES_MEMdotAP3;
               r_PRES_MEMdotAP[4]=r_PRES_MEMdotAP4;
             }
+         } else if (ORDER==6) {
+            #pragma omp master
+            {
+              L2_r_PRES=ZERO;
+              r_PRESdotAP=ZERO;
+              r_PRES_MEMdotAP0=ZERO;
+              r_PRES_MEMdotAP1=ZERO;
+              r_PRES_MEMdotAP2=ZERO;
+              r_PRES_MEMdotAP3=ZERO;
+              r_PRES_MEMdotAP4=ZERO;
+              r_PRES_MEMdotAP5=ZERO;
+            }
+            #pragma omp barrier
+            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4,r_PRES_MEMdotAP5) schedule(static)
+            for (z=0;z<n_row;++z) {
+                L2_r_PRES+=r_PRES[z]*r_PRES[z];
+                r_PRESdotAP+=r_PRES[z]*AP[z];
+                r_PRES_MEMdotAP0+=r_PRES_MEM[0][z]*AP[z];
+                r_PRES_MEMdotAP1+=r_PRES_MEM[1][z]*AP[z];
+                r_PRES_MEMdotAP2+=r_PRES_MEM[2][z]*AP[z];
+                r_PRES_MEMdotAP3+=r_PRES_MEM[3][z]*AP[z];
+                r_PRES_MEMdotAP4+=r_PRES_MEM[4][z]*AP[z];
+                r_PRES_MEMdotAP5+=r_PRES_MEM[5][z]*AP[z];
+             }
+            #pragma omp master
+            {
+              r_PRES_MEMdotAP[0]=r_PRES_MEMdotAP0;
+              r_PRES_MEMdotAP[1]=r_PRES_MEMdotAP1;
+              r_PRES_MEMdotAP[2]=r_PRES_MEMdotAP2;
+              r_PRES_MEMdotAP[3]=r_PRES_MEMdotAP3;
+              r_PRES_MEMdotAP[4]=r_PRES_MEMdotAP4;
+              r_PRES_MEMdotAP[5]=r_PRES_MEMdotAP5;
+            }
          } else {
             #pragma omp master
             {
@@ -281,6 +322,7 @@ err_t Finley_Solver_GMRES(
               r_PRESdotAP=ZERO;
               r_PRES_MEMdotAP0=ZERO;
             }
+            #pragma omp barrier
             #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP) schedule(static)
             for (z=0;z<n_row;++z) {
                 L2_r_PRES+=r_PRES[z]*r_PRES[z];
@@ -294,6 +336,7 @@ err_t Finley_Solver_GMRES(
                   r_PRES_MEMdotAP[i]=r_PRES_MEMdotAP0;
                   r_PRES_MEMdotAP0=ZERO;
                 }
+                #pragma omp barrier
             }
          }
          /* if L2_r_PRES=0 there is a fatal breakdown */
@@ -316,6 +359,7 @@ err_t Finley_Solver_GMRES(
             ***   r_PRES_MEM and x_PRES_MEM                                     
             ***                                                                 
             **/
+            #pragma omp barrier
             if (ORDER==0) {
               #pragma omp for private(z) schedule(static)
               for (z=0;z<n_row;++z)
@@ -378,12 +422,27 @@ err_t Finley_Solver_GMRES(
                                             +r_PRES_MEMdotAP[2]*x_PRES_MEM[2][z]
                                             +r_PRES_MEMdotAP[3]*x_PRES_MEM[3][z]
                                             +r_PRES_MEMdotAP[4]*x_PRES_MEM[4][z];
+            } else if (ORDER==6) {
+              #pragma omp for private(z) schedule(static)
+              for (z=0;z<n_row;++z)
+                 AP[z]+=r_PRESdotAP*r_PRES[z]+r_PRES_MEMdotAP[0]*r_PRES_MEM[0][z]
+                                             +r_PRES_MEMdotAP[1]*r_PRES_MEM[1][z]
+                                             +r_PRES_MEMdotAP[2]*r_PRES_MEM[2][z]
+                                             +r_PRES_MEMdotAP[3]*r_PRES_MEM[3][z]
+                                             +r_PRES_MEMdotAP[4]*r_PRES_MEM[4][z]
+                                             +r_PRES_MEMdotAP[5]*r_PRES_MEM[5][z];
+              #pragma omp for private(z) schedule(static)
+              for (z=0;z<n_col;++z)
+                 P[z]=-P[z]+r_PRESdotAP*x_PRES[z]+r_PRES_MEMdotAP[0]*x_PRES_MEM[0][z]
+                                            +r_PRES_MEMdotAP[1]*x_PRES_MEM[1][z]
+                                            +r_PRES_MEMdotAP[2]*x_PRES_MEM[2][z]
+                                            +r_PRES_MEMdotAP[3]*x_PRES_MEM[3][z]
+                                            +r_PRES_MEMdotAP[4]*x_PRES_MEM[4][z]
+                                            +r_PRES_MEMdotAP[5]*x_PRES_MEM[5][z];
             } else {
-
               #pragma omp for private(z) schedule(static)
               for (z=0;z<n_row;++z)
                 AP[z]+=r_PRESdotAP*r_PRES[z];
-                /* AP[z]+=r_PRESdotAP*r_PRES[z]; */
               #pragma omp for private(z) schedule(static)
               for (z=0;z<n_col;++z)
                 P[z]=-P[z]+r_PRESdotAP*x_PRES[z];
@@ -425,6 +484,7 @@ err_t Finley_Solver_GMRES(
                 for (z=0;z<n_col;++z) x_PRES[z]=P[z];
                 /* is there any progress */
                 breakFlag=TRUE;
+                #pragma omp barrier
                 for (i=0;i<ORDER;++i) if (BREAKF_MEM[i]>ZERO) breakFlag=FALSE;
                 convergeFlag = FALSE;
                 maxIterFlag = FALSE;
@@ -443,6 +503,7 @@ err_t Finley_Solver_GMRES(
                  L2_R=ZERO;
               }
               factor=ONE/factor;
+              #pragma omp barrier
               #pragma omp for private(z,diff) reduction(+:SC1,SC2) schedule(static)
               for (z=0;z<n_row;++z) {
                 r_PRES[z]=factor*AP[z];

@@ -1,22 +1,26 @@
 # $Id$
 
-from escript.modelframe import Model,ParameterSet
-from escript.escript import Data
-from escript.util import *
+from esys.escript.modelframe import Model,ParameterSet
+from esys.escript.escript import Data
+from esys.escript.util import *
 
 
 class EvaluateExpression(ParameterSet):
-       """@brief return the evaluation of an expression at current time t and locations in the domain
+       """
+       Return the evaluation of an expression at current time t and 
+       locations in the domain
 
-           WARNING: this class use python's eval function!!!!! Please use input.InterpolateOverBox is possible!!!!
-
-          @param expression (in) - expression or list of expressions defining expression value
-          @param out (out) - current value of the expression
-
-        """
+       @warning: this class use python's eval function!!!!! 
+                 Please use input.InterpolateOverBox is possible!!!!
+       @ivar expression (in): expression or list of expressions defining 
+                 expression value
+       @ivar out (callable): current value of the expression
+       """
 
        def __init__(self,debug=False):
-           """set up parameters"""
+           """
+           Set up parameters
+           """
            ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
                                  t=0., \
@@ -33,23 +37,27 @@ class EvaluateExpression(ParameterSet):
          return out
 
 class Probe(Model):
-       """@brief tests values against a expression which may depend on time and spatial coordinates
-                 it prints out the relative error in each time step and the maximum relative error over
-                 all time steps at the end
+       """
+       Tests values against a expression which may depend on time and spatial 
+       coordinates.
+       
+       It prints out the relative error in each time step and the maximum
+       relative error over all time steps at the end.
 
-           WARNING: this class use python's eval function!!!!!
+       @warning: this class use python's eval function!!!!!
+       @ivar value (in): values to be tested
+       @ivar expression (in): expressions defining expression values to test against. If None only value is reported.
+       @ivar line_tag (in): tag to be used when printing error
+       @ivar t (in): current time
+       @ivar max_error (out): maximum error
+       @ivar t_max (out): time of maximum error
 
-          @param value (in) - values to be tested
-          @param expression (in) - expressions defining expression values to test against. If None only value is reported.
-          @param line_tag (in) - tag to be used when printing error
-          @param t (in) - current time
-          @param max_error (out) - maximum error
-          @param t_max (out) - time of maximum error
-
-        """
+       """
 
        def __init__(self,debug=False):
-           """set up parameters"""
+           """
+           Set up parameters
+           """
            Model.__init__(self,debug=debug)
            self.declareParameter(expression=None, \
                                  value=0., \
@@ -57,7 +65,9 @@ class Probe(Model):
                                  line_tag="PROBE")
 
        def doInitialization(self):
-           """initializes values"""
+           """
+           Initializes values
+           """
            self.t_max=None
            self.max_error=0.
 
@@ -94,5 +104,9 @@ class Probe(Model):
                    self.max_error=err
 
        def doFinalization(self):
-          """print out the maximum error"""
+          """
+	  Print out the maximum error.
+	  """
           if not self.t_max==None: print "%s : == maximum error %e at time %e == "%(self.line_tag,self.max_error,self.t_max)
+
+# vim: expandtab shiftwidth=4:
