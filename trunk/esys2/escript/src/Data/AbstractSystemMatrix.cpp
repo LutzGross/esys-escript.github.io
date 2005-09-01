@@ -99,13 +99,9 @@ void AbstractSystemMatrix::saveHB(const std::string& fileName) const
 {
     throw SystemMatrixException("Error - Harwell-Boeing interface not available.");
 }
-void AbstractSystemMatrix::setValue(const double value) const
+void AbstractSystemMatrix::resetValues() const
 {
     throw SystemMatrixException("Error - setValue is not implemented.");
-}
-void AbstractSystemMatrix::resetSolver() const
-{
-    throw SystemMatrixException("Error - resetSolver not implemented.");
 }
 
 }  // end of namespace

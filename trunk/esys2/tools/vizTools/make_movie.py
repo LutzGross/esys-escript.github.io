@@ -3,15 +3,15 @@
 # $Id$
 
 """
-Make an mpeg movie from the pnm files in the current directory
+Make an mpeg movie from the pnm files in the specified directory
 """
 
 import os, sys, re
 import getopt
 
 (opts, args) = getopt.getopt(sys.argv[1:], 
-	"s:o:f:p:h", 
-	["framestem=", "output=", "format=", "pad=", "help"],
+	"s:d:o:f:p:h", 
+	["framestem=", "dirname=", "output=", "format=", "pad=", "help"],
 	)
 
 def usage():
@@ -19,10 +19,12 @@ def usage():
     print "  make_movie -s <framestem> -o <output filename> -f <format> -p <pad>\n"
     print "  Arguments:"
     print "    -s/--framestem: The frame filename stem (the stuff before .pnm) (required)"
+    print "    -d/--dirname: The directory of frames (optional)"
     print "    -o/--output: Output mpeg filename (optional)"
     print "    -f/--format: Input frame image format (optional)"
     print "    -p/--pad: How many frames to pad the movie (optional)"
 
+dirname = "./"
 mpegName = None
 fnameStem = None
 format = "pnm"  # if format not specified assume pnm
@@ -31,6 +33,8 @@ pad = 1
 for option, arg in opts:
     if option in ('-s', '--stem'):
 	fnameStem = arg
+    elif option in ('-d', '--dirname'):
+	dirname = arg
     elif option in ('-o', '--output'):
 	mpegName = arg
     elif option in ('-f', '--format'):
@@ -49,7 +53,7 @@ if mpegName is None:
     mpegName = fnameStem + ".mpg"
 
 # determine the number of files to convert
-dirList = os.listdir('./')
+dirList = os.listdir(dirname)
 r = re.compile( "%s\\d+\\.%s"%(fnameStem,format) )
 count = 0  # counter for the number of files found
 fnames = []
@@ -118,16 +122,17 @@ lastNum = lastNum[0][1]
 
 # finish off the params file string
 if pad == 1:
-    paramsFileString += "%s*.pnm [%s-%s]\n" % (fnameStem, firstNum, lastNum)
+    paramsFileString += "%s/%s*.pnm [%s-%s]\n" % \
+	    (dirname, fnameStem, firstNum, lastNum)
 elif pad > 1:
     # positive padding: add duplicate frames (slow the movie down)
     for i in range(int(firstNum), int(lastNum)+1):
 	for j in range(pad):
-	    paramsFileString += "%s%04d.pnm\n" % (fnameStem, i)
+	    paramsFileString += "%s/%s%04d.pnm\n" % (dirname, fnameStem, i)
 elif pad < 1:
     # negative padding: i.e. remove frames (speed the movie up)
     for i in range(int(firstNum), int(lastNum)+1, abs(pad)):
-	paramsFileString += "%s%04d.pnm\n" % (fnameStem, i)
+	paramsFileString += "%s/%s%04d.pnm\n" % (dirname, fnameStem, i)
 
 paramsFileString += """END_INPUT
 PIXEL HALF
@@ -135,14 +140,14 @@ ASPECT_RATIO 1
 """
 
 # write the string to file
-fp = open( "%s.params" % (fnameStem,), "w" )
+fp = open( "%s/%s.params" % (dirname,fnameStem,), "w" )
 fp.write(paramsFileString + '\n')
 fp.close()
 print "Done params file generation"
 
 # now do the conversion to mpeg
 print "Performing conversion to mpeg"
-convertString = "ppmtompeg %s.params" % (fnameStem,)
+convertString = "ppmtompeg %s/%s.params" % (dirname, fnameStem)
 result = os.system(convertString)
 if result != 0:
     print "An error occurred in mpeg conversion"

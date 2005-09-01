@@ -5,13 +5,13 @@
 #    a very simple convection model in model frame:
 #
 
-from escript.modelframe import Link,Simulation
-from modellib.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
-from modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
-from modellib.flow import SteadyIncompressibleFlow
-from modellib.temperature import TemperatureAdvection
-from modellib.materials import SimpleEarthModel,GravityForce
-from modellib.visualization import WriteVTK
+from esys.escript.modelframe import Link,Simulation
+from esys.modellib.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
+from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
+from esys.modellib.flow import SteadyIncompressibleFlow
+from esys.modellib.temperature import TemperatureAdvection
+from esys.modellib.materials import SimpleEarthModel,GravityForce
+from esys.modellib.visualization import WriteVTK
 
 # from esys.modelframe.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
 # from esys.modelframe.input import Sequencer,InterpolateOverBox

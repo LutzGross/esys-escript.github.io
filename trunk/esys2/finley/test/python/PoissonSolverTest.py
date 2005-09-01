@@ -1,12 +1,9 @@
 # $Id$
 
 
-# from esys.escript import *
-# from esys.linearPDEs import Poisson
-# import esys.finley as finley
-from escript.escript import *
-from escript.linearPDEs import Poisson
-import finley.finley as finley
+from esys.escript import *
+from esys.escript.linearPDEs import Poisson
+from esys import finley
 
 ne_list=[10,15,22,33,50,75]
 height_list=[0.25,0.5,1.]

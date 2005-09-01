@@ -29,7 +29,7 @@ void print_entries( index_t *r, index_t *c, double *v )
 
 	for( i=0; i<nz; i++ )
 	{
-		printf( "(%ld, %ld) == %e\n", r[i], c[i], v[i] );
+		printf( "(%ld, %ld) == %e\n", (long)r[i], (long)c[i], v[i] );
 	}
 }
 
@@ -321,6 +321,13 @@ Finley_SystemMatrix* Finley_SystemMatrix_loadMM_toCSC( char *fileName_p )
 
 /*
  * $Log$
+ * Revision 1.4  2005/09/01 03:31:36  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
+ * Revision 1.3.2.1  2005/08/31 00:51:47  jgs
+ * added a cast to long in print_entries to stop compiler compaining about
+ * invalid format string conversion
+ *
  * Revision 1.3  2005/07/08 04:07:58  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

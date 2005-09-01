@@ -14,9 +14,9 @@ CC_CONFORM_FLAGS := -c99 -ansi_alias -no-gcc
 CC_DIAG_FLAGS := -w1
 CC_ARCH_FLAGS := -tpp2
 ifeq ($(strip $(DODEBUG)),YES)
-  CC_OPT_FLAGS := -O0 -openmp -openmp_report2
+  CC_OPT_FLAGS := -O0 -openmp -openmp_report0
 else 
-  CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report2 -mp1
+  CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1
 endif
 CC_OUTPUT_FLAG := -o
 
@@ -32,11 +32,11 @@ CPP_CONFORM_FLAGS := -ansi -ansi_alias -no-gcc
 CPP_DIAG_FLAGS := -w1
 CPP_ARCH_FLAGS := -tpp2
 ifeq ($(strip $(DODEBUG)),YES)
-  CPP_OPT_FLAGS := -O0 -openmp -openmp_report2
+  CPP_OPT_FLAGS := -O0 -openmp -openmp_report0
   DEBUG_FILE_EXT := ${NULL}
-  L_DEFS := DOASSERT
+  L_DEFS := ${L_DEFS} DOASSERT
 else
-  CPP_OPT_FLAGS := -O3 -openmp -openmp_report2 -mp1
+  CPP_OPT_FLAGS := -O3 -openmp -openmp_report0 -mp1
   DEBUG_FILE_EXT := ${NULL}
 endif
 CPP_OUTPUT_FLAG := -o
@@ -50,9 +50,6 @@ LD_LIB_FLAG := -l
 LD_DIAG_FLAGS := ${NULL}
 LD_SHARE_FLAG := -shared
 LD_OUTPUT_FLAG := -o
-
-# Finley Solver settings
-L_DEFS := ${L_DEFS} ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=SGI_SCSL
 
 # Archiver Settings
 AR := /usr/bin/ar
@@ -69,11 +66,23 @@ AR_OPTION_FLAGS := crus
 # Python Compiler Settings
 PYTHON := /raid2/tools/python-2.3.4/bin/python
 PYTHON_CMD_FLAG := -c
-PYTHON_OPT_FLAGS := -O -O
+PYTHON_OPT_FLAGS := -O
 PYTHON_DIAG_FLAGS := -Wall
 PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'
 
 # $Log$
+# Revision 1.9  2005/09/01 03:31:38  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-01
+#
+# Revision 1.8.2.3  2005/08/26 03:19:07  jgs
+# turned down level of openmp reporting
+#
+# Revision 1.8.2.2  2005/08/26 00:37:31  jgs
+# ensure LDEFS is appended to, not overwritten
+#
+# Revision 1.8.2.1  2005/08/24 02:06:33  gross
+# -0 -O reduced to -O to be able to run epydoc. performance shouldn't change
+#
 # Revision 1.8  2005/06/09 05:38:03  jgs
 # Merge of development branch back to main trunk on 2005-06-09
 #

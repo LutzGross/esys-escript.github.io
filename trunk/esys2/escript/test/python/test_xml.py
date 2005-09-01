@@ -3,7 +3,7 @@
 # $Id$
 
 import unittest
-from escript.modelframe import Model,Link,Simulation,ParameterSet,parse
+from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,parse
 import math
 from cStringIO import StringIO
 from xml.dom import minidom

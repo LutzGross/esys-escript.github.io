@@ -1,30 +1,33 @@
 # $Id$
 
 """
-provides a some tools related to PDEs currently includes:
+Provides some tools related to PDEs. 
 
-     Projector - to project a discontinuous
-
-
+Currently includes:
+    - Projector - to project a discontinuous
 """
 
-from escript import *
-from linearPDEs import LinearPDE
+import escript
+import linearPDEs
 import numarray
+import util
 
 class Projector:
-  """The Projector is a factory which projects a discontiuous function onto a continuous function on the a given domain"""
+  """
+  The Projector is a factory which projects a discontiuous function onto a
+  continuous function on the a given domain.
+  """
   def __init__(self, domain, reduce = True, fast=True):
     """
-    @brief Create a continuous function space projector for a domain.
+    Create a continuous function space projector for a domain.
 
-    @param domain Domain of the projection.
-    @param reduce Flag to reduce projection order (default is True)
-    @param fast Flag to use a fast method based on matrix lumping (default is true)
+    @param domain: Domain of the projection.
+    @param reduce: Flag to reduce projection order (default is True)
+    @param fast: Flag to use a fast method based on matrix lumping (default is true)
     """
-    self.__pde = LinearPDE(domain)
+    self.__pde = linearPDEs.LinearPDE(domain)
     if fast:
-      self.__pde.setSolverMethod(LinearPDE.LUMPING)
+      self.__pde.setSolverMethod(linearPDEs.LinearPDE.LUMPING)
     self.__pde.setSymmetryOn()
     self.__pde.setReducedOrderTo(reduce)
     self.__pde.setValue(D = 1.)
@@ -35,11 +38,11 @@ class Projector:
 
   def __call__(self, input_data):
     """
-    @brief projects input_data onto a continuous function
+    Projects input_data onto a continuous function
 
-    @param input_data  The input_data to be projected.
+    @param input_data: The input_data to be projected.
     """
-    out=Data(0.,input_data.getShape(),what=ContinuousFunction(self.__pde.getDomain()))
+    out=escript.Data(0.,input_data.getShape(),what=escript.ContinuousFunction(self.__pde.getDomain()))
     if input_data.getRank()==0:
         self.__pde.setValue(Y = input_data)
         out=self.__pde.getSolution()
@@ -70,45 +73,63 @@ class Projector:
 
 class Locator:
      """
-
-        Locator provides a  access the values of data objects at a given spatial coordinate x.
-        In fact, a Locator object finds the sample in the set of samples of a given function space or domain where which is closest
-        to the given point x. 
-
+     Locator provides access to the values of data objects at a given
+     spatial coordinate x.  
+     
+     In fact, a Locator object finds the sample in the set of samples of a
+     given function space or domain where which is closest to the given
+     point x. 
      """
 
      def __init__(self,where,x=numarray.zeros((3,))):
-       """initializes a Locator to access values in Data objects on the Doamin or FunctionSpace where for the sample point which
-          closest to the given point x"""
-       if isinstance(where,FunctionSpace):
+       """
+       Initializes a Locator to access values in Data objects on the Doamin 
+       or FunctionSpace where for the sample point which
+       closest to the given point x.
+       """
+       if isinstance(where,escript.FunctionSpace):
           self.__function_space=where
        else:
-          self.__function_space=ContinuousFunction(where)
-       self.__id=length(x[:self.__function_space.getDim()]-self.__function_space.getX()).mindp()
+          self.__function_space=escript.ContinuousFunction(where)
+       self.__id=util.length(x[:self.__function_space.getDim()]-self.__function_space.getX()).mindp()
 
      def __str__(self):
-       """returns the coordinates of the Locator as a string"""
+       """
+       Returns the coordinates of the Locator as a string.
+       """
        return "<Locator %s>"%str(self.getX())
 
      def getFunctionSpace(self):
-        """returns the function space of the Locator"""
+        """
+	Returns the function space of the Locator.
+	"""
         return self.__function_space
 
      def getId(self):
-        """returns the identifier of the location"""
+        """
+	Returns the identifier of the location.
+	"""
         return self.__id
 
      def getX(self):
-        """returns the exact coordinates of the Locator"""
+        """
+	Returns the exact coordinates of the Locator.
+	"""
         return self(self.getFunctionSpace().getX())
 
      def __call__(self,data):
-        """returns the value of data at the Locator of a Data object otherwise the object is returned."""
+        """
+	Returns the value of data at the Locator of a Data object otherwise 
+	the object is returned.
+	"""
         return self.getValue(data)
 
      def getValue(self,data):
-        """returns the value of data at the Locator if data is a Data object otherwise the object is returned."""
-        if isinstance(data,Data):
+        """
+	Returns the value of data at the Locator if data is a Data object 
+	otherwise the object is returned.
+	"""
+        if isinstance(data,escript.Data):
            if data.getFunctionSpace()==self.getFunctionSpace():
              out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
            else:
@@ -119,3 +140,5 @@ class Locator:
               return out
         else:
            return data
+
+# vim: expandtab shiftwidth=4:

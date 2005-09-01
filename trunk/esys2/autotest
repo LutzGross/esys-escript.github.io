@@ -3,14 +3,14 @@
 # $Id$
 # An explicit testing script for esys
 
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au"
 
 echo cd $1
 cd $1
 if [ $? != 0 ]
 then
   echo couldnt cd $1
-  echo "couldnt cd $1" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "couldnt cd $1" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 1
 fi
 
@@ -21,7 +21,7 @@ module load intel_cc.80.058
 if [ $? != 0 ]
 then
   echo couldnt load esys setup
-  echo "couldnt load esys setup" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "couldnt load esys setup" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 2
 fi
 
@@ -30,7 +30,7 @@ cvs update -P -d
 if [ $? != 0 ]
 then
   echo cvs update failed
-  echo "cvs update failed" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "cvs update failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 3
 fi
 
@@ -39,7 +39,7 @@ echo running mk uninstall
 if [ $? != 0 ]
 then
   echo ./mk uninstall failed
-  echo "./mk uninstall failed" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "./mk uninstall failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 4
 fi
 
@@ -48,7 +48,7 @@ echo running mk clean
 if [ $? != 0 ]
 then
   echo ./mk clean failed
-  echo "./mk clean failed" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "./mk clean failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 5
 fi
 
@@ -57,7 +57,7 @@ echo running mk install
 if [ $? != 0 ]
 then
   echo ./mk install failed
-  echo "./mk install failed" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "./mk install failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 6
 fi
 
@@ -66,7 +66,7 @@ echo running mk unit_test
 if [ $? != 0 ]
 then
   echo ./mk unit_test failed
-  echo "./mk unit_test failed" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "./mk unit_test failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 7
 fi
 
@@ -75,9 +75,9 @@ echo running mk py_test
 if [ $? != 0 ]
 then
   echo ./mk py_test failed
-  echo "./mk py_test failed" | mail -s "autotest results" $MAIL_RECIPIENTS
+  echo "./mk py_test failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 8
 fi
 
-echo "success" | mail -s "autotest results" $MAIL_RECIPIENTS
+echo "success" | mail -s "esys autotest results" $MAIL_RECIPIENTS
 exit 0

@@ -1,7 +1,7 @@
 
-from escript.escript import *
-from escript.linearPDEs import *
-from finley import finley
+from esys.escript import *
+from esys.escript.linearPDEs import *
+from esys import finley
 
 def makeParallelFaultSystem2D(xne=1,yne=1,xl=1.,yfaults=[0.,1.],integrationOrder=0,p1=0,p2=0):
  """

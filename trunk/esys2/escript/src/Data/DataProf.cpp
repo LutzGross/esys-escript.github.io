@@ -133,7 +133,7 @@ DataProf::compProf() {
 
   stringstream temp_str;
 
-  temp_str << "=============================\n";
+  temp_str << "========== Op Stats ===================\n";
   temp_str << "Total objects: " << totalDataObjects << "\n";
   temp_str << "interpolate  : " << comp_interpolate << "\n";
   temp_str << "grad         : " << comp_grad << "\n";
@@ -144,7 +144,7 @@ DataProf::compProf() {
   temp_str << "reduction1   : " << comp_reduction1 << "\n";
   temp_str << "reduction2   : " << comp_reduction2 << "\n";
   temp_str << "slicing      : " << comp_slicing << "\n";
-  temp_str << "=============================\n ";
+  temp_str << "======================================= ";
   temp_str << endl;
 
   return temp_str.str();

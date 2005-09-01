@@ -481,103 +481,26 @@ void
 Data::fillFromNumArray(const boost::python::numeric::array num_array) 
 {
   //
-  // check rank:
+  // check rank
   if (num_array.getrank()<getDataPointRank()) 
       throw DataException("Rank of numarray does not match Data object rank");
+
   //
-  // check rank of num_array
+  // check shape of num_array
   for (int i=0; i<getDataPointRank(); i++) {
     if (extract<int>(num_array.getshape()[i+1])!=getDataPointShape()[i])
        throw DataException("Shape of numarray does not match Data object rank");
   }
+
   //
   // make sure data is expanded:
-  if (! isExpanded()) expand();
+  if (!isExpanded()) {
+    expand();
+  }
+
   //
-  // and copy over:
+  // and copy over
   m_data->copyAll(num_array);
-  //
-  // the rank of the returned numeric array will be the rank of
-  // the data points, plus one. Where the rank of the array is n,
-  // the last n-1 dimensions will be equal to the shape of the
-  // data points, whilst the first dimension will be equal to the
-  // total number of data points. Thus the array will consist of
-  // a serial vector of the data points.
-  // int arrayRank = dataPointRank + 1;
-  // DataArrayView::ShapeType arrayShape;
-  // arrayShape.push_back(numDataPoints);
-  // for (int d=0; d<dataPointRank; d++) {
-  //    arrayShape.push_back(dataPointShape[d]);
-  // }
-
-  //
-  // resize the numeric array to the shape just calculated
-  // if (arrayRank==1) {
-  //   numArray.resize(arrayShape[0]);
-  // }
-  // if (arrayRank==2) {
-  //   numArray.resize(arrayShape[0],arrayShape[1]);
-  // }
-  // if (arrayRank==3) {
-  //   numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-  // }
-  // if (arrayRank==4) {
-  //   numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-  // }
-  // if (arrayRank==5) {
-  //   numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3],arrayShape[4]);
-  // }
-
-  //
-  // loop through each data point in turn, loading the values for that data point
-  // into the numeric array.
-  // int dataPoint = 0;
-  // for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-  //   for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-  //     DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
-  //     if (dataPointRank==0) {
-  //       dataPointView()=numArray[dataPoint];
-  //     }
-  //     if (dataPointRank==1) {
-  //       for (int i=0; i<dataPointShape[0]; i++) {
-  //         dataPointView(i)=numArray[dataPoint][i];
-  //       }
-  //     }
-  //     if (dataPointRank==2) {
-  //       for (int i=0; i<dataPointShape[0]; i++) {
-  //         for (int j=0; j<dataPointShape[1]; j++) {
-  //           numArray[dataPoint][i][j] = dataPointView(i,j);
-  //         }
-  //       }
-  //     }
-  //     if (dataPointRank==3) {
-  //       for (int i=0; i<dataPointShape[0]; i++) {
-  //         for (int j=0; j<dataPointShape[1]; j++) {
-  //           for (int k=0; k<dataPointShape[2]; k++) {
-  //             numArray[dataPoint][i][j][k]=dataPointView(i,j,k);
-  //           }
-  //         }
-  //       }
-  //     }
-  //     if (dataPointRank==4) {
-  //       for (int i=0; i<dataPointShape[0]; i++) {
-  //         for (int j=0; j<dataPointShape[1]; j++) {
-  //           for (int k=0; k<dataPointShape[2]; k++) {
-  //             for (int l=0; l<dataPointShape[3]; l++) {
-  //               numArray[dataPoint][i][j][k][l]=dataPointView(i,j,k,l);
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //     dataPoint++;
-  //   }
-  // }
-
-  //
-  // return the loaded array
-  // return numArray;
-
 }
 
 const
@@ -1601,6 +1524,12 @@ Data::setTaggedValueFromCPP(int tagKey,
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,value);
+}
+
+int
+Data::getTagNumber(int dpno)
+{
+  return m_data->getTagNumber(dpno);
 }
 
 void

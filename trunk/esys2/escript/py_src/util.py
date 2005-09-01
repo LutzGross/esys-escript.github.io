@@ -3,16 +3,18 @@
 ## @file util.py
 
 """
-@brief Utility functions for escript
+Utility functions for escript
 
-TODO for Data:
+@todo:
 
-  * binary operations @:               (a@b)[:,*]=a[:]@b[:,*] if rank(a)<rank(b)
-                @=+,-,*,/,**           (a@b)[:]=a[:]@b[:] if rank(a)=rank(b)
-                                       (a@b)[*,:]=a[*,:]@b[:] if rank(a)>rank(b)
-   
-  * implementation of outer outer(a,b)[:,*]=a[:]*b[*]
-  * trace: trace(arg,axis0=a0,axis1=a1)(:,&,*)=sum_i trace(:,i,&,i,*) (i are at index a0 and a1)
+  - binary operations @ (@=+,-,*,/,**)::
+      (a@b)[:,*]=a[:]@b[:,*] if rank(a)<rank(b)
+      (a@b)[:]=a[:]@b[:] if rank(a)=rank(b)
+      (a@b)[*,:]=a[*,:]@b[:] if rank(a)>rank(b)
+  - implementation of outer::
+      outer(a,b)[:,*]=a[:]*b[*]
+  - trace:: 
+      trace(arg,axis0=a0,axis1=a1)(:,&,*)=sum_i trace(:,i,&,i,*) (i are at index a0 and a1)
 """
 
 import numarray
@@ -23,11 +25,18 @@ import escript
 #===========================================================
 
 class Symbol:
-   """symbol class"""
+   """
+   Symbol class.
+   """
    def __init__(self,name="symbol",shape=(),dim=3,args=[]):
-       """creates an instance of a symbol of shape shape and spatial dimension dim
-          The symbol may depending on a list of arguments args which
-          may be symbols or other objects. name gives the name of the symbol."""
+       """
+       Creates an instance of a symbol of shape shape and spatial dimension
+       dim.
+       
+       The symbol may depending on a list of arguments args which may be
+       symbols or other objects. name gives the name of the symbol.
+       """
+
        self.__args=args
        self.__name=name
        self.__shape=shape
@@ -40,23 +49,34 @@ class Symbol:
        self.__cache_argval=None
 
    def getArgument(self,i):
-       """returns the i-th argument"""
+       """
+       Returns the i-th argument.
+       """
        return self.__args[i]
 
    def getDim(self):
-       """returns the spatial dimension of the symbol"""
+       """
+       Returns the spatial dimension of the symbol.
+       """
        return self.__dim
 
    def getRank(self):
-       """returns the rank of the symbol"""
+       """
+       Returns the rank of the symbol.
+       """
        return len(self.getShape())
 
    def getShape(self):
-       """returns the shape of the symbol"""
+       """
+       Returns the shape of the symbol.
+       """
        return self.__shape
 
    def getEvaluatedArguments(self,argval):
-       """returns the list of evaluated arguments by subsituting symbol u by argval[u]."""
+       """
+       Returns the list of evaluated arguments by subsituting symbol u by 
+       argval[u].
+       """
        if argval==self.__cache_argval:
            print "%s: cached value used"%self
            return self.__cache_val
@@ -72,7 +92,9 @@ class Symbol:
            return out
 
    def getDifferentiatedArguments(self,arg):
-       """returns the list of the arguments _differentiated by arg""" 
+       """
+       Returns the list of the arguments _differentiated by arg.
+       """ 
        out=[]
        for a in self.__args:
           if isinstance(a,Symbol):
@@ -82,7 +104,9 @@ class Symbol:
        return out
 
    def diff(self,arg):
-       """returns the _differention of self by arg."""
+       """
+       Returns the _differention of self by arg.
+       """
        if self==arg:
           out=numarray.zeros(tuple(2*list(self.getShape())),numarray.Float)
           if self.getRank()==0:
@@ -112,24 +136,33 @@ class Symbol:
           return self._diff(arg)
 
    def _diff(self,arg):
-       """return derivate of self with respect to arg (!=self). 
-          This method is overwritten by a particular symbol"""
+       """
+       Return derivate of self with respect to arg (!=self). 
+
+       This method is overwritten by a particular symbol.
+       """
        return 0
 
    def eval(self,argval):
-       """subsitutes symbol u in self by argval[u] and returns the result. If
-          self is not a key of argval then self is returned."""
+       """
+       Subsitutes symbol u in self by argval[u] and returns the result. If
+       self is not a key of argval then self is returned.
+       """
        if argval.has_key(self):
          return argval[self]
        else:
          return self
 
    def __str__(self):
-       """returns a string representation of the symbol"""
+       """
+       Returns a string representation of the symbol.
+       """
        return self.__name
 
    def __add__(self,other):
-       """adds other to symbol self. if _testForZero(other) self is returned."""
+       """
+       Adds other to symbol self. if _testForZero(other) self is returned.
+       """
        if _testForZero(other):
           return self
        else:
@@ -137,34 +170,50 @@ class Symbol:
           return Add_Symbol(a[0],a[1])
 
    def __radd__(self,other):
-       """adds other to symbol self. if _testForZero(other) self is returned."""
+       """
+       Adds other to symbol self. if _testForZero(other) self is returned.
+       """
        return self+other
 
    def __neg__(self):
-       """returns -self."""
+       """
+       Returns -self.
+       """
        return self*(-1.)
 
    def __pos__(self):
-       """returns +self."""
+       """
+       Returns +self.
+       """
        return self
 
    def __abs__(self):
-       """returns absolute value"""
+       """
+       Returns absolute value.
+       """
        return Abs_Symbol(self)
 
    def __sub__(self,other):
-       """subtracts other from symbol self. if _testForZero(other) self is returned."""
+       """
+       Subtracts other from symbol self. 
+       
+       If _testForZero(other) self is returned.
+       """
        if _testForZero(other):
           return self
        else:
           return self+(-other)
 
    def __rsub__(self,other):
-       """subtracts symbol self from other."""
+       """
+       Subtracts symbol self from other.
+       """
        return -self+other
 
    def __div__(self,other):
-       """divides symbol self by other."""
+       """
+       Divides symbol self by other.
+       """
        if isinstance(other,Symbol):
           a=_matchShape([self,other])
           return Div_Symbol(a[0],a[1])
@@ -172,7 +221,9 @@ class Symbol:
           return self*(1./other)
 
    def __rdiv__(self,other):
-       """dived other by symbol self. if _testForZero(other) 0 is returned."""
+       """
+       Dived other by symbol self. if _testForZero(other) 0 is returned.
+       """
        if _testForZero(other):
           return 0
        else:
@@ -180,17 +231,23 @@ class Symbol:
           return Div_Symbol(a[0],a[1])
 
    def __pow__(self,other):
-       """raises symbol self to the power of other"""
+       """
+       Raises symbol self to the power of other.
+       """
        a=_matchShape([self,other])
        return Power_Symbol(a[0],a[1])
 
    def __rpow__(self,other):
-       """raises other to the symbol self"""
+       """
+       Raises other to the symbol self.
+       """
        a=_matchShape([self,other])
        return Power_Symbol(a[1],a[0])
 
    def __mul__(self,other):
-       """multiplies other by symbol self. if _testForZero(other) 0 is returned."""
+       """
+       Multiplies other by symbol self. if _testForZero(other) 0 is returned.
+       """
        if _testForZero(other):
           return 0
        else:
@@ -198,20 +255,26 @@ class Symbol:
           return Mult_Symbol(a[0],a[1])
 
    def __rmul__(self,other):
-       """multiplies other by symbol self. if _testSForZero(other) 0 is returned."""
+       """
+       Multiplies other by symbol self. if _testSForZero(other) 0 is returned.
+       """
        return self*other
 
    def __getitem__(self,sl):
           print sl
 
-def Float_Symbol(Symbol):
+class Float_Symbol(Symbol):
     def __init__(self,name="symbol",shape=(),args=[]):
         Symbol.__init__(self,dim=0,name="symbol",shape=(),args=[])
 
 class ScalarSymbol(Symbol):
-   """a scalar symbol"""
+   """
+   A scalar symbol.
+   """
    def __init__(self,dim=3,name="scalar"):
-      """creates a scalar symbol of spatial dimension dim"""
+      """
+      Creates a scalar symbol of spatial dimension dim.
+      """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
       else:    
@@ -219,9 +282,13 @@ class ScalarSymbol(Symbol):
       Symbol.__init__(self,shape=(),dim=d,name=name)
 
 class VectorSymbol(Symbol):
-   """a vector symbol"""
+   """
+   A vector symbol.
+   """
    def __init__(self,dim=3,name="vector"):
-      """creates a vector symbol of spatial dimension dim"""
+      """
+      Creates a vector symbol of spatial dimension dim.
+      """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
       else:    
@@ -229,9 +296,13 @@ class VectorSymbol(Symbol):
       Symbol.__init__(self,shape=(d,),dim=d,name=name)
 
 class TensorSymbol(Symbol):
-   """a tensor symbol""" 
+   """
+   A tensor symbol.
+   """ 
    def __init__(self,dim=3,name="tensor"):
-      """creates a tensor symbol of spatial dimension dim"""
+      """
+      Creates a tensor symbol of spatial dimension dim.
+      """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
       else:    
@@ -239,9 +310,13 @@ class TensorSymbol(Symbol):
       Symbol.__init__(self,shape=(d,d),dim=d,name=name)
 
 class Tensor3Symbol(Symbol):
-   """a tensor order 3 symbol"""
+   """
+   A tensor order 3 symbol.
+   """
    def __init__(self,dim=3,name="tensor3"):
-      """creates a tensor order 3 symbol of spatial dimension dim"""
+      """
+      Creates a tensor order 3 symbol of spatial dimension dim.
+      """
       if hasattr(dim,"getDim"):
            d=dim.getDim()
       else:    
@@ -249,9 +324,13 @@ class Tensor3Symbol(Symbol):
       Symbol.__init__(self,shape=(d,d,d),dim=d,name=name)
 
 class Tensor4Symbol(Symbol):
-   """a tensor order 4 symbol"""
+   """
+   A tensor order 4 symbol.
+   """
    def __init__(self,dim=3,name="tensor4"):
-      """creates a tensor order 4 symbol of spatial dimension dim"""    
+      """
+      Creates a tensor order 4 symbol of spatial dimension dim.
+      """ 
       if hasattr(dim,"getDim"):
            d=dim.getDim()
       else:    
@@ -259,7 +338,9 @@ class Tensor4Symbol(Symbol):
       Symbol.__init__(self,shape=(d,d,d,d),dim=d,name=name)
 
 class Add_Symbol(Symbol):
-   """symbol representing the sum of two arguments"""
+   """
+   Symbol representing the sum of two arguments.
+   """
    def __init__(self,arg0,arg1):
        a=[arg0,arg1]
        Symbol.__init__(self,dim=_extractDim(a),shape=_extractShape(a),args=a)
@@ -273,7 +354,9 @@ class Add_Symbol(Symbol):
        return a[0]+a[1]
 
 class Mult_Symbol(Symbol):
-   """symbol representing the product of two arguments"""
+   """
+   Symbol representing the product of two arguments.
+   """
    def __init__(self,arg0,arg1):
        a=[arg0,arg1]
        Symbol.__init__(self,dim=_extractDim(a),shape=_extractShape(a),args=a)
@@ -287,7 +370,9 @@ class Mult_Symbol(Symbol):
        return self.getArgument(1)*a[0]+self.getArgument(0)*a[1]
 
 class Div_Symbol(Symbol):
-   """symbol representing the quotient of two arguments"""
+   """
+   Symbol representing the quotient of two arguments.
+   """
    def __init__(self,arg0,arg1):
        a=[arg0,arg1]
        Symbol.__init__(self,dim=_extractDim(a),shape=_extractShape(a),args=a)
@@ -302,7 +387,10 @@ class Div_Symbol(Symbol):
                           (self.getArgument(1)*self.getArgument(1))
 
 class Power_Symbol(Symbol):
-   """symbol representing the power of the first argument to the power of the second argument"""
+   """
+   Symbol representing the power of the first argument to the power of the
+   second argument.
+   """
    def __init__(self,arg0,arg1):
        a=[arg0,arg1]
        Symbol.__init__(self,dim=_extractDim(a),shape=_extractShape(a),args=a)
@@ -316,7 +404,9 @@ class Power_Symbol(Symbol):
        return self*(a[1]*log(self.getArgument(0))+self.getArgument(1)/self.getArgument(0)*a[0])
 
 class Abs_Symbol(Symbol):
-   """symbol representing absolute value of its argument"""
+   """
+   Symbol representing absolute value of its argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -330,7 +420,9 @@ class Abs_Symbol(Symbol):
 #   some little helpers
 #=========================================================
 def _testForZero(arg):
-   """returns True is arg is considered of being zero"""
+   """
+   Returns True is arg is considered to be zero.
+   """
    if isinstance(arg,int):
       return not arg>0
    elif isinstance(arg,float):
@@ -356,7 +448,9 @@ def _extractDim(args):
     return dim
 
 def _identifyShape(arg):
-   """identifies the shape of arg."""
+   """
+   Identifies the shape of arg.
+   """
    if hasattr(arg,"getShape"):
        arg_shape=arg.getShape()
    elif hasattr(arg,"shape"):
@@ -370,7 +464,9 @@ def _identifyShape(arg):
    return arg_shape
 
 def _extractShape(args):
-    """extracts the common shape of the list of arguments args"""
+    """
+    Extracts the common shape of the list of arguments args.
+    """
     shape=None
     for a in args:
        a_shape=_identifyShape(a)
@@ -381,8 +477,12 @@ def _extractShape(args):
     return shape
 
 def _matchShape(args,shape=None):
-    """returns the list of arguments args as object which have all the specified shape.
-       if shape is not given the shape "largest" shape of args is used."""
+    """
+    Returns the list of arguments args as object which have all the 
+    specified shape.
+
+    If shape is not given the shape "largest" shape of args is used.
+    """
     # identify the list of shapes:
     arg_shapes=[]
     for a in args: arg_shapes.append(_identifyShape(a))
@@ -407,8 +507,11 @@ def _matchShape(args,shape=None):
 #   wrappers for various mathematical functions:
 #=========================================================
 def diff(arg,dep):
-    """returns the derivative of arg with respect to dep. If arg is not Symbol object
-       0 is returned"""
+    """
+    Returns the derivative of arg with respect to dep. 
+    
+    If arg is not Symbol object 0 is returned.
+    """
     if isinstance(arg,Symbol):
        return arg.diff(dep)
     elif hasattr(arg,"shape"):
@@ -421,8 +524,9 @@ def diff(arg,dep):
 
 def exp(arg):
     """
-    @brief applies the exponential function to arg
-    @param arg (input): argument 
+    Applies the exponential function to arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Exp_Symbol(arg)
@@ -432,7 +536,10 @@ def exp(arg):
        return numarray.exp(arg)
 
 class Exp_Symbol(Symbol):
-   """symbol representing the power of the first argument to the power of the second argument"""
+   """
+   Symbol representing the power of the first argument to the power of the
+   second argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -444,8 +551,9 @@ class Exp_Symbol(Symbol):
 
 def sqrt(arg):
     """
-    @brief applies the squre root function to arg
-    @param arg (input): argument 
+    Applies the squre root function to arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Sqrt_Symbol(arg)
@@ -455,7 +563,9 @@ def sqrt(arg):
        return numarray.sqrt(arg)       
 
 class Sqrt_Symbol(Symbol):
-   """symbol representing square root of argument"""
+   """
+   Symbol representing square root of argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -467,8 +577,9 @@ class Sqrt_Symbol(Symbol):
 
 def log(arg):
     """
-    @brief applies the logarithmic function bases exp(1.) to arg
-    @param arg (input): argument 
+    Applies the logarithmic function bases exp(1.) to arg
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Log_Symbol(arg)
@@ -478,7 +589,9 @@ def log(arg):
        return numarray.log(arg)
 
 class Log_Symbol(Symbol):
-   """symbol representing logarithm of the argument"""
+   """
+   Symbol representing logarithm of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -490,8 +603,9 @@ class Log_Symbol(Symbol):
 
 def ln(arg):
     """
-    @brief applies the natural logarithmic function to arg
-    @param arg (input): argument 
+    Applies the natural logarithmic function to arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Ln_Symbol(arg)
@@ -501,7 +615,9 @@ def ln(arg):
        return numarray.log(arg)
 
 class Ln_Symbol(Symbol):
-   """symbol representing natural logarithm of the argument"""
+   """
+   Symbol representing natural logarithm of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -513,8 +629,9 @@ class Ln_Symbol(Symbol):
 
 def sin(arg):
     """
-    @brief applies the sin function to arg
-    @param arg (input): argument 
+    Applies the sin function to arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Sin_Symbol(arg)
@@ -524,7 +641,9 @@ def sin(arg):
        return numarray.sin(arg)
 
 class Sin_Symbol(Symbol):
-   """symbol representing sin of the argument"""
+   """
+   Symbol representing sin of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -536,8 +655,9 @@ class Sin_Symbol(Symbol):
 
 def cos(arg):
     """
-    @brief applies the cos function to arg
-    @param arg (input): argument 
+    Applies the cos function to arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Cos_Symbol(arg)
@@ -547,7 +667,9 @@ def cos(arg):
        return numarray.cos(arg)
 
 class Cos_Symbol(Symbol):
-   """symbol representing cos of the argument"""
+   """
+   Symbol representing cos of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -559,8 +681,9 @@ class Cos_Symbol(Symbol):
 
 def tan(arg):
     """
-    @brief applies the tan function to arg
-    @param arg (input): argument 
+    Applies the tan function to arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Tan_Symbol(arg)
@@ -570,7 +693,9 @@ def tan(arg):
        return numarray.tan(arg)
 
 class Tan_Symbol(Symbol):
-   """symbol representing tan of the argument"""
+   """
+   Symbol representing tan of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -583,8 +708,9 @@ class Tan_Symbol(Symbol):
 
 def sign(arg):
     """
-    @brief applies the sign function to arg
-    @param arg (input): argument 
+    Applies the sign function to arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Sign_Symbol(arg)
@@ -595,7 +721,9 @@ def sign(arg):
               numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))
 
 class Sign_Symbol(Symbol):
-   """symbol representing the sign of the argument"""
+   """
+   Symbol representing the sign of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -605,8 +733,9 @@ class Sign_Symbol(Symbol):
 
 def maxval(arg):
     """
-    @brief returns the maximum value of argument arg""
-    @param arg (input): argument 
+    Returns the maximum value of argument arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Max_Symbol(arg)
@@ -618,7 +747,9 @@ def maxval(arg):
        return arg
 
 class Max_Symbol(Symbol):
-   """symbol representing the maximum value of the argument"""
+   """
+   Symbol representing the maximum value of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -628,8 +759,9 @@ class Max_Symbol(Symbol):
 
 def minval(arg):
     """
-    @brief returns the minimum value of argument arg""
-    @param arg (input): argument 
+    Returns the minimum value of argument arg.
+
+    @param arg: argument 
     """
     if isinstance(arg,Symbol):
        return Min_Symbol(arg)
@@ -641,7 +773,9 @@ def minval(arg):
        return arg
 
 class Min_Symbol(Symbol):
-   """symbol representing the minimum value of the argument"""
+   """
+   Symbol representing the minimum value of the argument.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -651,8 +785,9 @@ class Min_Symbol(Symbol):
 
 def wherePositive(arg):
     """
-    @brief returns the positive values of argument arg""
-    @param arg (input): argument 
+    Returns the positive values of argument arg.
+
+    @param arg: argument 
     """
     if _testForZero(arg):
       return 0
@@ -669,7 +804,9 @@ def wherePositive(arg):
           return 0.
 
 class WherePositive_Symbol(Symbol):
-   """symbol representing the wherePositive function"""
+   """
+   Symbol representing the wherePositive function.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -679,8 +816,9 @@ class WherePositive_Symbol(Symbol):
 
 def whereNegative(arg):
     """
-    @brief returns the negative values of argument arg""
-    @param arg (input): argument 
+    Returns the negative values of argument arg.
+
+    @param arg: argument 
     """
     if _testForZero(arg):
       return 0
@@ -697,7 +835,9 @@ def whereNegative(arg):
           return 0.
 
 class WhereNegative_Symbol(Symbol):
-   """symbol representing the whereNegative function"""
+   """
+   Symbol representing the whereNegative function.
+   """
    def __init__(self,arg):
        Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])
    def __str__(self):
@@ -706,12 +846,16 @@ class WhereNegative_Symbol(Symbol):
        return whereNegative(self.getEvaluatedArguments(argval)[0])
 
 def maximum(arg0,arg1):
-    """return arg1 where arg1 is bigger then arg0 otherwise arg0 is returned"""
+    """
+    Return arg1 where arg1 is bigger then arg0 otherwise arg0 is returned.
+    """
     m=whereNegative(arg0-arg1)
     return m*arg1+(1.-m)*arg0
    
 def minimum(arg0,arg1):
-    """return arg0 where arg1 is bigger then arg0 otherwise arg1 is returned"""
+    """
+    Return arg0 where arg1 is bigger then arg0 otherwise arg1 is returned.
+    """
     m=whereNegative(arg0-arg1)
     return m*arg0+(1.-m)*arg1
    
@@ -736,7 +880,9 @@ def outer(arg0,arg1):
           raise ValueError,"outer is not fully implemented yet."
 
 class Outer_Symbol(Symbol):
-   """symbol representing the outer product of its two arguments"""
+   """
+   Symbol representing the outer product of its two arguments.
+   """
    def __init__(self,arg0,arg1):
        a=[arg0,arg1]
        s=tuple(list(_identifyShape(arg0))+list(_identifyShape(arg1)))
@@ -752,10 +898,10 @@ class Outer_Symbol(Symbol):
 
 def interpolate(arg,where):
     """
-    @brief interpolates the function into the FunctionSpace where.
+    Interpolates the function into the FunctionSpace where.
 
-    @param arg    interpolant 
-    @param where  FunctionSpace to interpolate to
+    @param arg:    interpolant 
+    @param where:  FunctionSpace to interpolate to
     """
     if _testForZero(arg):
       return 0
@@ -764,8 +910,10 @@ def interpolate(arg,where):
     else:
        return escript.Data(arg,where)
 
-def Interpolated_Symbol(Symbol):
-   """symbol representing the integral of the argument"""
+class Interpolated_Symbol(Symbol):
+   """
+   Symbol representing the integral of the argument.
+   """
    def __init__(self,arg,where):
         Symbol.__init__(self,shape=_extractShape(arg),dim=_extractDim([arg]),args=[arg,where])
    def __str__(self):
@@ -779,21 +927,34 @@ def Interpolated_Symbol(Symbol):
 
 def div(arg,where=None):
     """
-    @brief returns the divergence of arg at where.
+    Returns the divergence of arg at where.
 
-    @param arg:   Data object representing the function which gradient to be calculated.
-    @param where: FunctionSpace in which the gradient will be calculated. If not present or
-                  None an appropriate default is used. 
+    @param arg:   Data object representing the function which gradient to 
+                  be calculated.
+    @param where: FunctionSpace in which the gradient will be calculated. 
+                  If not present or C{None} an appropriate default is used. 
     """
     return trace(grad(arg,where))
 
+def jump(arg):
+    """
+    Returns the jump of arg across a continuity.
+
+    @param arg:   Data object representing the function which gradient 
+                  to be calculated.
+    """
+    d=arg.getDomain()
+    return arg.interpolate(escript.FunctionOnContactOne())-arg.interpolate(escript.FunctionOnContactZero())
+   
+
 def grad(arg,where=None):
     """
-    @brief returns the spatial gradient of arg at where.
+    Returns the spatial gradient of arg at where.
 
-    @param arg:   Data object representing the function which gradient to be calculated.
-    @param where: FunctionSpace in which the gradient will be calculated. If not present or
-                  None an appropriate default is used. 
+    @param arg:   Data object representing the function which gradient 
+                  to be calculated.
+    @param where: FunctionSpace in which the gradient will be calculated. 
+                  If not present or C{None} an appropriate default is used. 
     """
     if _testForZero(arg):
       return 0
@@ -807,8 +968,10 @@ def grad(arg,where=None):
     else:
        return arg*0.
 
-def Grad_Symbol(Symbol):
-   """symbol representing the gradient of the argument"""
+class Grad_Symbol(Symbol):
+   """
+   Symbol representing the gradient of the argument.
+   """
    def __init__(self,arg,where=None):
        d=_extractDim([arg])
        s=tuple(list(_identifyShape([arg])).append(d))
@@ -824,11 +987,12 @@ def Grad_Symbol(Symbol):
 
 def integrate(arg,where=None):
     """
-    @brief return the integral if the function represented by Data object arg over its domain.
+    Return the integral if the function represented by Data object arg over 
+    its domain.
 
     @param arg:   Data object representing the function which is integrated.
-    @param where: FunctionSpace in which the integral is calculated. If not present or
-                  None an appropriate default is used.
+    @param where: FunctionSpace in which the integral is calculated. 
+                  If not present or C{None} an appropriate default is used.
     """
     if _testForZero(arg):
       return 0
@@ -841,8 +1005,10 @@ def integrate(arg,where=None):
        else:
          return arg.integrate()
 
-def Integral_Symbol(Float_Symbol):
-   """symbol representing the integral of the argument"""
+class Integral_Symbol(Float_Symbol):
+   """
+   Symbol representing the integral of the argument.
+   """
    def __init__(self,arg,where=None):
        Float_Symbol.__init__(self,shape=_identifyShape([arg]),args=[arg,where])
    def __str__(self):
@@ -867,9 +1033,9 @@ def Integral_Symbol(Float_Symbol):
 
 def transpose(arg,axis=None):
     """
-    @brief returns the transpose of the Data object arg. 
+    Returns the transpose of the Data object arg. 
 
-    @param arg
+    @param arg:
     """
     if axis==None:
        r=0
@@ -895,9 +1061,9 @@ def transpose(arg,axis=None):
 
 def trace(arg,axis0=0,axis1=1):
     """
-    @brief return 
+    Return 
 
-    @param arg
+    @param arg:
     """
     if isinstance(arg,Symbol):
        s=list(arg.getShape())        
@@ -921,9 +1087,8 @@ def Trace_Symbol(Symbol):
 
 def length(arg):
     """
-    @brief
 
-    @param arg
+    @param arg:
     """
     if isinstance(arg,escript.Data):
        if arg.isEmpty(): return escript.Data()
@@ -965,9 +1130,7 @@ def length(arg):
 
 def deviator(arg):
     """
-    @brief
-
-    @param arg0
+    @param arg:
     """
     if isinstance(arg,escript.Data):
         shape=arg.getShape()
@@ -981,9 +1144,8 @@ def deviator(arg):
 
 def inner(arg0,arg1):
     """
-    @brief
-
-    @param arg0, arg1
+    @param arg0:
+    @param arg1:
     """
     if isinstance(arg0,escript.Data):
        arg=arg0
@@ -1019,6 +1181,10 @@ def inner(arg0,arg1):
           raise SystemError,"inner is not been implemented yet"
     return out
 
+def tensormult(arg0,arg1):
+    # check LinearPDE!!!!
+    raise SystemError,"tensormult is not implemented yet!"
+
 def matrixmult(arg0,arg1):
 
     if isinstance(arg1,numarray.NumArray) and isinstance(arg0,numarray.NumArray):
@@ -1046,17 +1212,13 @@ def matrixmult(arg0,arg1):
 #=========================================================
 def sum(arg):
     """
-    @brief
-
-    @param arg
+    @param arg:
     """
     return arg.sum()
 
 def sup(arg):
     """
-    @brief
-
-    @param arg
+    @param arg:
     """
     if isinstance(arg,escript.Data):
        return arg.sup()
@@ -1067,9 +1229,7 @@ def sup(arg):
 
 def inf(arg):
     """
-    @brief
-
-    @param arg
+    @param arg:
     """
     if isinstance(arg,escript.Data):
        return arg.inf()
@@ -1080,9 +1240,9 @@ def inf(arg):
 
 def L2(arg):
     """
-    @brief returns the L2-norm of the 
+    Returns the L2-norm of the argument
 
-    @param arg
+    @param arg:
     """
     if isinstance(arg,escript.Data):
        return arg.L2()
@@ -1093,22 +1253,19 @@ def L2(arg):
 
 def Lsup(arg):
     """
-    @brief
-
-    @param arg
+    @param arg:
     """
     if isinstance(arg,escript.Data):
        return arg.Lsup()
     elif isinstance(arg,float) or isinstance(arg,int):
        return abs(arg)
     else:
-       return max(numarray.abs(arg))
+       return numarray.abs(arg).max()
 
 def dot(arg0,arg1):
     """
-    @brief
-
-    @param arg
+    @param arg0:
+    @param arg1:
     """
     if isinstance(arg0,escript.Data):
        return arg0.dot(arg1)
@@ -1125,9 +1282,10 @@ def kronecker(d):
 
 def unit(i,d):
    """
-   @brief return a unit vector of dimension d with nonzero index i
-   @param d dimension
-   @param i index
+   Return a unit vector of dimension d with nonzero index i.
+
+   @param d: dimension
+   @param i: index
    """
    e = numarray.zeros((d,),numarray.Float)
    e[i] = 1.0
@@ -1187,11 +1345,29 @@ if __name__=="__main__":
 
 #
 # $Log$
+# Revision 1.17  2005/09/01 03:31:28  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-01
+#
 # Revision 1.16  2005/08/23 01:24:28  jgs
 # Merge of development branch dev-02 back to main trunk on 2005-08-23
 #
 # Revision 1.15  2005/08/12 01:45:36  jgs
 # erge of development branch dev-02 back to main trunk on 2005-08-12
+#
+# Revision 1.14.2.8  2005/08/26 05:06:37  cochrane
+# Corrected errors in docstrings.  Improved output formatting of docstrings.
+# Other minor improvements to code and docs (eg spelling etc).
+#
+# Revision 1.14.2.7  2005/08/26 04:45:40  cochrane
+# Fixed and tidied markup and docstrings.  Some *Symbol classes were defined
+# as functions, so changed them to classes (hopefully this was the right thing
+# to do).
+#
+# Revision 1.14.2.6  2005/08/26 04:30:13  gross
+# gneric unit testing for linearPDE
+#
+# Revision 1.14.2.5  2005/08/24 02:02:52  gross
+# jump function added
 #
 # Revision 1.14.2.4  2005/08/18 04:39:32  gross
 # the constants have been removed from util.py as they not needed anymore. PDE related constants are accessed through LinearPDE attributes now
@@ -1296,3 +1472,5 @@ if __name__=="__main__":
 # Bug in Assemble_NodeCoordinates fixed
 #
 #
+
+# vim: expandtab shiftwidth=4:

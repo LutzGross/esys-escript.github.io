@@ -97,10 +97,6 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,bool_t verbose
         out->n=n;
         out->n_block=n_block;
         out->n_F=Finley_Util_cumsum(n,counter);
-        if (verbose) {
-           printf("ILU: number of vertices to be eliminated = %d\n",out->n_F);
-           printf("ILU: number of vertices in coarse level  = %d\n",n-out->n_F);
-        }
         out->mask_F=MEMALLOC(n,index_t);
         out->rows_in_F=MEMALLOC(out->n_F,index_t);
         out->inv_A_FF=MEMALLOC(n_block*n_block*out->n_F,double);
@@ -270,11 +266,12 @@ Finley_Solver_ILU* Finley_Solver_getILU(Finley_SystemMatrix * A_p,bool_t verbose
   TMPMEMFREE(counter);
   if (Finley_ErrorCode==NO_ERROR) {
       if (verbose) {
-         /* if (out->n_C>0) {
-            printf("timing: ILU: reordering : %e\n",time0);
-            printf("timing: ILU: elemination : %e\n",time1);
+         printf("ILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
+         if (out->n_C>0) {
+            printf("timing: ILU: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
+         } else {
+            printf("timing: ILU: MIS: %e\n",time2); 
          }
-         printf("timing: ILU: mis %e\n",time2); */
      }
      return out;
   } else  {
@@ -365,6 +362,12 @@ void Finley_Solver_solveILU(Finley_Solver_ILU * ilu, double * x, double * b) {
 }
 /*
  * $Log$
+ * Revision 1.5  2005/09/01 03:31:37  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
+ * Revision 1.4.2.1  2005/08/29 22:34:18  gross
+ * memory leak in ILU fixed.
+ *
  * Revision 1.4  2005/07/08 04:08:00  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

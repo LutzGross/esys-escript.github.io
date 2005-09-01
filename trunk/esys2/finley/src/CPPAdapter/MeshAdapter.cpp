@@ -28,6 +28,7 @@ extern "C" {
 #include "escript/Data/DataArrayView.h"
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/DataFactory.h"
+
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -36,8 +37,9 @@ using namespace std;
 using namespace escript;
 
 namespace finley {
+
 //
-// define the statics
+// define the static constants
 MeshAdapter::FunctionSpaceNamesMapType MeshAdapter::m_functionSpaceTypeNames;
 const int MeshAdapter::DegreesOfFreedom=FINLEY_DEGREES_OF_FREEDOM;
 const int MeshAdapter::ReducedDegreesOfFreedom=FINLEY_REDUCED_DEGREES_OF_FREEDOM;
@@ -56,6 +58,7 @@ MeshAdapter::MeshAdapter(Finley_Mesh* finleyMesh)
   // for us.
   m_finleyMesh.reset(finleyMesh,null_deleter());
 }
+
 //
 // The copy constructor should just increment the use count
 MeshAdapter::MeshAdapter(const MeshAdapter& in):
@@ -142,18 +145,22 @@ int MeshAdapter::getContinuousFunctionCode() const
 {
   return Nodes;
 }
+
 int MeshAdapter::getFunctionCode() const
 {
   return Elements;
 }
+
 int MeshAdapter::getFunctionOnBoundaryCode() const
 {
   return FaceElements;
 }
+
 int MeshAdapter::getFunctionOnContactZeroCode() const
 {
   return ContactElementsZero;
 }
+
 int MeshAdapter::getFunctionOnContactOneCode() const
 {
   return ContactElementsOne;
@@ -163,14 +170,17 @@ int MeshAdapter::getSolutionCode() const
 {
   return DegreesOfFreedom;
 }
+
 int MeshAdapter::getReducedSolutionCode() const
 {
   return ReducedDegreesOfFreedom;
 }
+
 int MeshAdapter::getDiracDeltaFunctionCode() const
 {
   return Points;
 }
+
 //
 // returns a pointer to the tag list of samples of functionSpaceType
 //
@@ -243,6 +253,7 @@ void MeshAdapter::getTagList(int functionSpaceType, int** tagList,
   }
   return;
 }
+
 //
 // returns a pointer to the reference no list of samples of functionSpaceType
 //
@@ -325,6 +336,7 @@ int MeshAdapter::getDim() const
   checkFinleyError();
   return numDim;
 }
+
 //
 // return the number of data points per sample and the number of samples
 // needed to represent data on a parts of the mesh.
@@ -390,6 +402,7 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
       }
       return pair<int,int>(numDataPointsPerSample,numSamples);
 }
+
 //
 // adds linear PDE of second order into a given stiffness matrix and right hand side:
 //
@@ -417,6 +430,7 @@ void MeshAdapter::addPDEToSystem(
                                   Finley_Assemble_handelShapeMissMatch_Step_out);
    checkFinleyError();
 }
+
 //
 // adds linear PDE of second order into the right hand side only
 //
@@ -437,6 +451,7 @@ void MeshAdapter::addPDEToRHS( Data& rhs,
    // Finley_Assemble_RobinCondition_RHS(mesh->Nodes,mesh->ContactElements,&(rhs.getDataC()),&(y_contact.getDataC()),Finley_Assemble_handelShapeMissMatch_Step_out); 
    checkFinleyError();
 }
+
 //
 // interpolates data between different function spaces:
 //
@@ -600,6 +615,7 @@ void MeshAdapter::setToX(Data& arg) const
   }
   checkFinleyError();
 }
+
 //
 // return the normal vectors at the location of data points as a Data object:
 //
@@ -644,6 +660,7 @@ void MeshAdapter::setToNormal(Data& normal) const
   }
   checkFinleyError();
 }
+
 //
 // interpolates data to other domain:
 //
@@ -657,6 +674,7 @@ void MeshAdapter::interpolateACross(Data& target,const Data& source) const
   sprintf(Finley_ErrorMsg,"Finley does not allow interpolation across domains yet.");
   checkFinleyError();
 }
+
 //
 // calculates the integral of a function defined of arg:
 //
@@ -703,6 +721,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const Data& arg)
   }
   checkFinleyError();
 }
+
 //
 // calculates the gradient of arg:
 //
@@ -752,6 +771,7 @@ void MeshAdapter::setToGradient(Data& grad,const Data& arg) const
   }
   checkFinleyError();
 }
+
 //
 // returns the size of elements:
 //
@@ -793,6 +813,7 @@ void MeshAdapter::setToSize(Data& size) const
   }
   checkFinleyError();
 }
+
 // sets the location of nodes:
 void MeshAdapter::setNewX(const Data& new_x)
 {
@@ -803,18 +824,21 @@ void MeshAdapter::setNewX(const Data& new_x)
   Finley_NodeFile_setCoordinates(mesh->Nodes,&(new_x.getDataC()));
   checkFinleyError();
 }
+
 // saves a data array in openDX format:
 void MeshAdapter::saveDX(const std::string& filename,const Data& arg) const
 { 
   Finley_Mesh_saveDX(filename.c_str(),m_finleyMesh.get(),&(arg.getDataC()));
   checkFinleyError();
 }
+
 // saves a data array in openVTK format:
 void MeshAdapter::saveVTK(const std::string& filename,const Data& arg) const
 { 
   Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),&(arg.getDataC()));
   checkFinleyError();
 }
+
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros:
 SystemMatrixAdapter MeshAdapter::newSystemMatrix(
                       const int row_blocksize,
@@ -856,10 +880,12 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
     Finley_SystemMatrixPattern_dealloc(fsystemMatrixPattern);
     return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
+
 //
 // vtkObject MeshAdapter::createVtkObject() const
 // TODO:
 //
+
 //
 // returns true if data at the atom_type is considered as being cell centered:
 bool MeshAdapter::isCellOriented(int functionSpaceCode) const
@@ -885,6 +911,7 @@ bool MeshAdapter::isCellOriented(int functionSpaceCode) const
   checkFinleyError();
   return false;
 }
+
 bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
 {
   switch(functionSpaceType_source) {
@@ -970,6 +997,7 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
   checkFinleyError();
   return false;
 }
+
 bool MeshAdapter::probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
 {
     return false;
@@ -996,14 +1024,17 @@ int MeshAdapter::getSystemMatrixTypeId(const int solver, const bool symmetry) co
    checkFinleyError();
    return out;
 }
+
 Data MeshAdapter::getX() const
 {
   return continuousFunction(asAbstractContinuousDomain()).getX();
 }
+
 Data MeshAdapter::getNormal() const
 {
   return functionOnBoundary(asAbstractContinuousDomain()).getNormal();
 }
+
 Data MeshAdapter::getSize() const
 {
   return function(asAbstractContinuousDomain()).getSize();

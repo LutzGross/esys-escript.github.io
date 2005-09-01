@@ -14,12 +14,9 @@
 
 """
 
-# from esys.escript import *
-# from esys.linearPDEs import *
-# import esys.finley as pdelib
-from escript.escript import *
-from escript.linearPDEs import *
-import finley.finley as pdelib
+from esys.escript import *
+from esys.linearPDEs import *
+import esys.finley as pdelib
 from time import time
 
 from numarray import *
@@ -89,7 +86,7 @@ def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
 
     # Solve for Approximate Solution
     tm=time()
-    u_approx = mypde.getSolution(preconditioner=prec_id,iter_max=10000)
+    u_approx = mypde.getSolution(verbose=True,preconditioner=prec_id,iter_max=10000)
     tm=time()-tm
 
     # Report Results
@@ -149,7 +146,7 @@ def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
 
     # Solve for Approximate Solution
     tm=time()
-    u_approx = mypde.getSolution(preconditioner=prec_id,iter_max=10000)
+    u_approx = mypde.getSolution(verbose=True,preconditioner=prec_id,iter_max=10000)
     tm=time()-tm
 
     # Report Results

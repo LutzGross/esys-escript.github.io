@@ -1,9 +1,9 @@
 # $Id$
 """tests a variety of functions in connection with contact elements"""
-from escript.escript import *
-from escript.linearPDEs import LinearPDE
-from escript.pdetools import Projector
-from finley import finley
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.escript.pdetools import Projector
+from esys import finley
 
 numElements=4
 numEquations=2

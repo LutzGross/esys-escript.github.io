@@ -60,7 +60,8 @@ class AbstractContinuousDomain : public AbstractDomain {
      Describe any exceptions thrown
   */
   AbstractContinuousDomain();
- /**
+
+  /**
      \brief
      Destructor for AbstractContinuousDomain
 
@@ -74,63 +75,76 @@ class AbstractContinuousDomain : public AbstractDomain {
      Describe any exceptions thrown
   */
   virtual ~AbstractContinuousDomain();
+
   /**
      \brief
      Returns true if the given integer is a valid function space type
      for this domain.
   */
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
+
   /**
      \brief
      Return a description for this domain
   */
   virtual std::string getDescription() const;
+
   /**
      \brief
      Return a continuous FunctionSpace code
   */
   virtual int getContinuousFunctionCode() const;
+
   /**
      \brief
      Return a functon FunctionSpace code
   */
   virtual int getFunctionCode() const;
+
   /**
      \brief
      Return a function on boundary FunctionSpace code
   */
   virtual int getFunctionOnBoundaryCode() const;
+
   /**
      \brief
      Return a FunctionOnContactZero code
   */
   virtual int getFunctionOnContactZeroCode() const;
+
   /**
      \brief
      Return a FunctionOnContactOne code
   */
   virtual int getFunctionOnContactOneCode() const;
+
   /**
      \brief
      Return a Solution code
   */
   virtual int getSolutionCode() const;
+
   /**
      \brief
      Return a ReducedSolution code
   */
   virtual int getReducedSolutionCode() const;
+
   /**
      \brief
      Return a DiracDeltaFunction code
   */
   virtual int getDiracDeltaFunctionCode() const;
+
   /**
      \brief
-     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, preconditioner 
+     return the identifier of the matrix type to be used for the global
+     stiffness matrix when a particular solver, preconditioner 
      and symmetric matrix is used.
   */
   virtual int getSystemMatrixTypeId(const int solver, const bool symmetry) const;
+
   /**
      \brief
      copies the integrals of the function defined by arg into integrals.
@@ -138,6 +152,7 @@ class AbstractContinuousDomain : public AbstractDomain {
      has to be implemented by the Domain Adapter.
   */
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
+
   /**
      \brief
      Return the domain as const AbstractContinuousDomain&

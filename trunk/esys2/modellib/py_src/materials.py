@@ -1,17 +1,17 @@
 # $Id$
 
-from escript.modelframe import Model,ParameterSet
-from escript.util import exp
+from esys.escript.modelframe import Model,ParameterSet
+from esys.escript.util import exp
 import numarray
 
 class GravityForce(ParameterSet):
-       """@brief sets a gravity force of given direction in given domain:
+       """
+       Sets a gravity force of given direction in given domain:
 
-              @param domain (in) - domain of interest
-              @param density (in) - density
-              @param direction (in) - density
-              @param gravity_force(out)  - gravity force
-
+       @ivar domain (in): domain of interest
+       @ivar density (in): density
+       @ivar direction (in): density
+       @ivar gravity_force(out): gravity force
        """
        def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
@@ -30,14 +30,14 @@ class GravityForce(ParameterSet):
 
     
 class MaterialTable(ParameterSet):
-       """@brief a simple matrial table which allows setting physical parameters of a model
+       """
+       A simple matrial table which allows setting physical ivar of a model
 
-              @param density (in/out) - density
-              @param heat_capacity (in/out)  - heat_capacity
-              @param thermal_permabilty (in/out) - permabilty
-              @param viscosity (in/out)  - viscosity
-              @param radiation_coefficient (in/out) -
-
+       @ivar density (in/out): density
+       @ivar heat_capacity (in/out):  heat_capacity
+       @ivar thermal_permabilty (in/out): permabilty
+       @ivar viscosity (in/out): viscosity
+       @ivar radiation_coefficient (in/out):
        """
        def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
@@ -48,23 +48,23 @@ class MaterialTable(ParameterSet):
                                  radiation_coefficient=0.)
 
 class SimpleEarthModel(ParameterSet):
-       """@brief a simple matrial table run convection models:
+       """
+       B simple matrial table run convection models::
 
-              density=density0*(1-rayleigh_number*(temperature-reference_temperature))
-              viscocity=viscocity0*(exp(alpha*(1/reference_temperature - 1/temperature))
+           density=density0*(1-rayleigh_number*(temperature-reference_temperature))
+           viscocity=viscocity0*(exp(alpha*(1/reference_temperature - 1/temperature))
 
-              @param gravity  (in) - gravity constants (9.81)
-              @param reference_temperature  (in) - reference temperature
-              @param density0  (in) - density at reference temperature
-              @param viscosity0  (in) - viscosity0 at reference temperature
-              @param alpha  (in) - viscosity contrast
-              @param rayleigh_number (in)  - Raleigh number
-              @param heat_capacity (in)  - heat capacity
-              @param thermal_permabilty (in) - permabilty
-              @param temperature (in) - temperature
-              @param viscosity (out)  - viscosity
-              @param density (out)  - density
-
+       @ivar gravity (in): gravity constants (9.81)
+       @ivar reference_temperature (in): reference temperature
+       @ivar density0 (in): density at reference temperature
+       @ivar viscosity0 (in): viscosity0 at reference temperature
+       @ivar alpha (in): viscosity contrast
+       @ivar rayleigh_number (in): Raleigh number
+       @ivar heat_capacity (in): heat capacity
+       @ivar thermal_permabilty (in): permabilty
+       @ivar temperature (in): temperature
+       @ivar viscosity (out): viscosity
+       @ivar density (out): density
        """
        def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
@@ -84,14 +84,15 @@ class SimpleEarthModel(ParameterSet):
            return self.viscosity0*exp(self.alpha*(1/self.reference_temperature - 1/(self.temperature+1.e-15)))
 
 class SimpleSolidMaterial(MaterialTable):
-       """@brief a simple matrial table which allows setting physical parameters of a model
+       """
+       A simple matrial table which allows setting physical parameters of 
+       a model.
 
-              @param density (in/out) - density
-              @param heat_capacity (in/out)  - heat_capacity
-              @param thermal_permabilty (in/out) - permabilty
-              @param viscosity (in/out)  - viscosity
-              @param radiation_coefficient (in/out) -
-
+       @ivar density (in/out): density
+       @ivar heat_capacity (in/out): heat_capacity
+       @ivar thermal_permabilty (in/out): permabilty
+       @ivar viscosity (in/out): viscosity
+       @ivar radiation_coefficient (in/out):
        """
        def __init__(self,debug=False):
            MaterialTable.__init__(self,debug=debug)
@@ -99,17 +100,18 @@ class SimpleSolidMaterial(MaterialTable):
                                  lame_my=1.)
 
 class SimpleFluidMaterial(MaterialTable):
-       """@brief a simple matrial table which allows setting physical parameters of a model
+       """
+       A simple matrial table which allows setting physical ivar of a model.
 
-              @param density (in/out) - density
-              @param heat_capacity (in/out)  - heat_capacity
-              @param thermal_permabilty (in/out) - permabilty
-              @param viscosity (in/out)  - viscosity
-              @param radiation_coefficient (in/out) -
-
+       @ivar density (in/out): density
+       @ivar heat_capacity (in/out): heat_capacity
+       @ivar thermal_permabilty (in/out): permabilty
+       @ivar viscosity (in/out): viscosity
+       @ivar radiation_coefficient (in/out):
        """
        def __init__(self,debug=False):
            MaterialTable.__init__(self,debug=debug)
            self.declareParameter(viscosity=1., \
                                  hydraulic_conductivity=1.e-4)
 
+# vim: expandtab shiftwidth=4:

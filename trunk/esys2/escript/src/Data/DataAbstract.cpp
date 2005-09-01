@@ -91,6 +91,13 @@ DataAbstract::setTaggedValue(int tagKey,
     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
 }
 
+int
+DataAbstract::getTagNumber(int dpno)
+{
+    throw DataException("Error - DataAbstract::getTagNumber: Data type cannot be accessed by tag values.");
+    return (0);
+}
+
 void
 DataAbstract::setRefValue(int ref,
                           const DataArray& value)

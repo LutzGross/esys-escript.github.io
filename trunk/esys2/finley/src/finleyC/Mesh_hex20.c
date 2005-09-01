@@ -505,7 +505,9 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,double* Length,bool
   /* prepare mesh for further calculatuions:*/
   Finley_Mesh_prepare(out) ;
 
+  #ifdef Finley_TRACE
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
+  #endif
 
   if (Finley_ErrorCode!=NO_ERROR) {
       Finley_Mesh_dealloc(out);
@@ -516,6 +518,12 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,double* Length,bool
 
 /*
 * $Log$
+* Revision 1.3  2005/09/01 03:31:35  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-01
+*
+* Revision 1.2.2.1  2005/08/24 02:02:18  gross
+* timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
+*
 * Revision 1.2  2005/07/08 04:07:52  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

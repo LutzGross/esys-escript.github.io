@@ -15,9 +15,12 @@ from xml.dom import minidom
 
 def dataNode(document, tagName, data):
     """
-    dataNodes are the building blocks of the xml documents constructed in
-    this module. document is the current xml document, tagName is the
-    associated xml tag, and data is the values in the tag.
+    C{dataNode}s are the building blocks of the xml documents constructed in
+    this module.  
+    
+    @param document: the current xml document
+    @param tagName: the associated xml tag
+    @param data: the values in the tag
     """
     t = document.createTextNode(str(data))
     n = document.createElement(tagName)
@@ -57,7 +60,7 @@ def registerLink(obj_id, l):
 
 def parse(xml):
     """
-    Generic parse method for EsysXML. Without this, Links don't work.
+    Generic parse method for EsysXML.  Without this, Links don't work.
     """
     global LinkRegistry, LinkableObjectRegistry
     LinkRegistry = []
@@ -97,7 +100,8 @@ def getComponent(doc):
 
 class Link:
     """
-    a Link makes an attribute of an object callable: 
+    A Link makes an attribute of an object callable:: 
+
           o.object()
           o.a=8
           l=Link(o,"a")
@@ -106,7 +110,7 @@ class Link:
     
     def __init__(self,target,attribute=None):
         """
-        creates a link to the object target. If attribute is given, the link is
+        Creates a link to the object target. If attribute is given, the link is
         establised to this attribute of the target.  Otherwise the attribute is
         undefined.
         """
@@ -116,7 +120,7 @@ class Link:
     
     def setAttributeName(self,attribute):
         """
-        set a new attribute name to be collected from the target object. The
+        Set a new attribute name to be collected from the target object. The
         target object must have the attribute with name attribute.
         """
         if attribute and self.target:
@@ -130,13 +134,13 @@ class Link:
     
     def hasDefinedAttributeName(self):
         """
-        returns true if an attribute name is set
+        Returns true if an attribute name is set.
         """
         return self.attribute != None
     
     def __repr__(self):
         """
-        returns a string representation of the link
+        Returns a string representation of the link.
         """
         if self.hasDefinedAttributeName():
             return "<Link to attribute %s of %s>" % (self.attribute, self.target)
@@ -145,7 +149,7 @@ class Link:
     
     def __call__(self,name=None):
         """
-        returns the value of the attribute of the target object. If the
+        Returns the value of the attribute of the target object. If the
         atrribute is callable then the return value of the call is returned.
         """
         if name:
@@ -160,8 +164,8 @@ class Link:
 
     def toDom(self, document, node):
         """
-        toDom method of Link. Creates a Link node and appends it to the current XML 
-        document 
+        C{toDom} method of Link. Creates a Link node and appends it to the
+	current XML document.
         """
         link = document.createElement('Link')
         assert (self.target != None), ("Target was none, name was %r" % self.attribute)
@@ -183,7 +187,7 @@ class Link:
     
     def writeXML(self,ostream=stdout):
         """
-        writes an XML representation of self to the output stream ostream.
+        Writes an XML representation of self to the output stream ostream.
         If ostream is nor present the standart output stream is used.  If
         esysheader==True the esys XML header is written
         """
@@ -196,37 +200,44 @@ class Link:
 class LinkableObject(object):
     """
     An object that allows to link its attributes to attributes of other objects
-    via a Link object. For instance
+    via a Link object. For instance::
            
            p = LinkableObject()
            p.x = Link(o,"name")
            print p.x
     
-    links attribute x of p to the attribute name of object o. 
+    links attribute C{x} of C{p} to the attribute name of object C{o}. 
 
-    p.x will contain the current value of attribute name of object o.  
+    C{p.x} will contain the current value of attribute C{name} of object
+    C{o}.  
 
-    If the value of getattr(o, "name") is callable, p.x will rturn the return
-    value of the call. 
+    If the value of C{getattr(o, "name")} is callable, C{p.x} will return 
+    the return value of the call. 
     """
    
     number_sequence = itertools.count(100)
     
     def __init__(self, debug=False):
-        """ initializes LinkableObject so that we can operate on Links """
+        """
+	Initializes LinkableObject so that we can operate on Links 
+	"""
         self.debug = debug
         self.__linked_attributes={}
         self.id = self.number_sequence.next()
+        registerLinkableObject(self.id, self)
 
     def trace(self, msg):
-        """ If debugging is on, print the message, otherwise do nothing
+        """
+	If debugging is on, print the message, otherwise do nothing
         """
         if self.debug:
             print "%s: %s"%(str(self),msg)
     
     def __getattr__(self,name):
-        """returns the value of attribute name. If the value is a Link object the
-        object is called and the return value is returned."""
+        """
+	Returns the value of attribute name. If the value is a Link object the
+        object is called and the return value is returned.
+	"""
         out = self.getAttributeObject(name)
         if isinstance(out,Link):
             return out()
@@ -234,7 +245,9 @@ class LinkableObject(object):
             return out
     
     def getAttributeObject(self,name):
-        """return the object stored for attribute name."""
+        """
+	Return the object stored for attribute name.
+	"""
 
         if self.__dict__.has_key(name):
             return self.__dict__[name]
@@ -248,13 +261,16 @@ class LinkableObject(object):
         raise AttributeError,"No attribute %s."%name
     
     def hasAttribute(self,name):
-        """returns True if self as attribute name"""
+        """
+	Returns True if self as attribute name.
+	"""
         return self.__dict__.has_key(name) or self.__linked_attributes.has_key(name) or  self.__class__.__dict__.has_key(name)
 
     def __setattr__(self,name,value):
-        """sets the value for attribute name. If value is a Link the target
-        attribute is set to name if no attribute has been specified."""
-
+        """
+	Sets the value for attribute name. If value is a Link the target
+        attribute is set to name if no attribute has been specified.
+	"""
 
         if self.__dict__.has_key(name): 
             del self.__dict__[name]
@@ -269,7 +285,9 @@ class LinkableObject(object):
             self.__dict__[name] = value
     
     def __delattr__(self,name):
-        """removes the attribute name."""
+        """
+	Removes the attribute name.
+	"""
 
         if self.__linked_attributes.has_key[name]:
             del self.__linked_attributes[name]
@@ -292,40 +310,42 @@ class _ParameterIterator:
         return self
 
 class ParameterSet(LinkableObject):
-    """a class which allows to emphazise attributes to be written and read to XML
+    """
+    A class which allows to emphazise attributes to be written and read to XML
        
-       Leaves of  an ESySParameters objects can be 
+    Leaves of an ESySParameters object can be:
     
-            a real number
-            a integer number
-            a string
-            a boolean value
-            a ParameterSet object 
-            a Simulation object
-            a Model object 
-            any other object (not considered by writeESySXML and writeXML)
+	 - a real number
+	 - a integer number
+	 - a string
+	 - a boolean value
+	 - a ParameterSet object 
+	 - a Simulation object
+	 - a Model object 
+	 - any other object (not considered by writeESySXML and writeXML)
     
-           Example how to create an ESySParameters object:
+    Example how to create an ESySParameters object::
     
-                 p11=ParameterSet(gamma1=1.,gamma2=2.,gamma3=3.)
-                 p1=ParameterSet(dim=2,tol_v=0.001,output_file="/tmp/u.%3.3d.dx",runFlag=True,parm11=p11) 
-                 parm=ParameterSet(parm1=p1,parm2=ParameterSet(alpha=Link(p11,"gamma1")))
+        p11=ParameterSet(gamma1=1.,gamma2=2.,gamma3=3.)
+        p1=ParameterSet(dim=2,tol_v=0.001,output_file="/tmp/u.%3.3d.dx",runFlag=True,parm11=p11) 
+        parm=ParameterSet(parm1=p1,parm2=ParameterSet(alpha=Link(p11,"gamma1")))
     
-           This can be accessed as 
+    This can be accessed as::
     
-                 parm.parm1.gamma=0.
-                 parm.parm1.dim=2
-                 parm.parm1.tol_v=0.001
-                 parm.parm1.output_file="/tmp/u.%3.3d.dx"
-                 parm.parm1.runFlag=True
-                 parm.parm1.parm11.gamma1=1.
-                 parm.parm1.parm11.gamma2=2.
-                 parm.parm1.parm11.gamma3=3.
-                 parm.parm2.alpha=1. (value of parm.parm1.parm11.gamma1)
-             
+	parm.parm1.gamma=0.
+        parm.parm1.dim=2
+        parm.parm1.tol_v=0.001
+        parm.parm1.output_file="/tmp/u.%3.3d.dx"
+        parm.parm1.runFlag=True
+        parm.parm1.parm11.gamma1=1.
+        parm.parm1.parm11.gamma2=2.
+        parm.parm1.parm11.gamma3=3.
+        parm.parm2.alpha=1. (value of parm.parm1.parm11.gamma1)
     """
     def __init__(self, parameters=[], **kwargs):
-        """creates a ParameterSet with parameters parameters"""
+        """
+	Creates a ParameterSet with parameters parameters.
+	"""
         LinkableObject.__init__(self, **kwargs)
         self.parameters = set()
         self.declareParameters(parameters)
@@ -335,11 +355,16 @@ class ParameterSet(LinkableObject):
                             [(p, getattr(self, p, None)) for p in self.parameters])
     
     def declareParameter(self,**parameters):
-        """declares a new parameter(s) and its (their) inital value."""
+        """
+	Declares a new parameter(s) and its (their) initial value.
+	"""
         self.declareParameters(parameters)
     
     def declareParameters(self,parameters):
-        """declares a set of parameters. parameters can be a list, a dictonary or a ParameterSet."""
+        """
+	Declares a set of parameters. parameters can be a list, a dictionary 
+	or a ParameterSet.
+	"""
         if isinstance(parameters,ListType):
             parameters = zip(parameters, itertools.repeat(None))
         if isinstance(parameters,DictType):
@@ -352,17 +377,23 @@ class ParameterSet(LinkableObject):
             self.trace("parameter %s has been declared."%prm)
 
     def releaseParameters(self,name):
-        """removes parameter name from the paramameters"""
+        """
+	Removes parameter name from the paramameters.
+	"""
         if self.isParameter(name): 
             self.parameters.remove(name)
             self.trace("parameter %s has been removed."%name)
     
     def __iter__(self):
-        """creates an iterator over the parameter and their values"""
+        """
+	Creates an iterator over the parameter and their values.
+	"""
         return _ParameterIterator(self)
     
     def showParameters(self):
-        """returns a descrition of the parameters"""        
+        """
+	Returns a descrition of the parameters.
+	"""        
         out="{"
         notfirst=False
         for i,v in self:
@@ -375,7 +406,9 @@ class ParameterSet(LinkableObject):
         return out+"}"
     
     def __delattr__(self,name):
-        """removes the attribute name."""
+        """
+	Removes the attribute name.
+	"""
         LinkableObject.__delattr__(self,name)
         try:
             self.releaseParameter(name) 
@@ -383,7 +416,9 @@ class ParameterSet(LinkableObject):
             pass
 
     def toDom(self, document, node):
-        """ toDom method of ParameterSet class """
+        """
+	C{toDom} method of ParameterSet class.
+	"""
         pset = document.createElement('ParameterSet')
         node.appendChild(pset)
         self._parametersToDom(document, pset)
@@ -416,7 +451,7 @@ class ParameterSet(LinkableObject):
         # Define a host of helper functions to assist us.
         def _children(node):
             """
-            Remove the empty nodes from the children of this node
+            Remove the empty nodes from the children of this node.
             """
             return [x for x in node.childNodes 
                     if not isinstance(x, minidom.Text) or x.nodeValue.strip()]
@@ -471,7 +506,9 @@ class ParameterSet(LinkableObject):
     fromDom = classmethod(fromDom)
     
     def writeXML(self,ostream=stdout):
-        """writes the object as an XML object into an output stream"""
+        """
+	Writes the object as an XML object into an output stream.
+	"""
         # ParameterSet(d) with d[Name]=Value
         document, node = esysDoc()
         self.toDom(document, node)
@@ -479,11 +516,10 @@ class ParameterSet(LinkableObject):
 
 class Model(ParameterSet):
     """
-
-    A Model object represents a processess marching over time
-    until a finalizing condition is fullfilled. At each time step an iterative
-    process can be performed and the time step size can be controlled. A Model has
-    the following work flow:
+    A Model object represents a processess marching over time until a
+    finalizing condition is fullfilled. At each time step an iterative
+    process can be performed and the time step size can be controlled. A
+    Model has the following work flow::
 
           doInitialization()
           while not finalize():
@@ -493,18 +529,20 @@ class Model(ParameterSet):
                doStepPostprocessing(dt)
           doFinalization()
 
-          where doInitialization,finalize, getSafeTimeStepSize, doStepPreprocessing, terminateIteration, doStepPostprocessing, doFinalization
-          are methods of the particular instance of a Model. The default implementations of these methods have to be overwritten by 
-          the subclass implementinf a Model.
-
+    where C{doInitialization}, C{finalize}, C{getSafeTimeStepSize},
+    C{doStepPreprocessing}, C{terminateIteration}, C{doStepPostprocessing},
+    C{doFinalization} are methods of the particular instance of a Model. The
+    default implementations of these methods have to be overwritten by the
+    subclass implementing a Model.
     """
 
     UNDEF_DT=1.e300
 
     def __init__(self,parameters=[],**kwarg):
-        """creates a model
+        """
+	Creates a model.
 
-            Just calls the parent constructor.
+        Just calls the parent constructor.
         """
         ParameterSet.__init__(self, parameters=parameters,**kwarg)
 
@@ -512,49 +550,80 @@ class Model(ParameterSet):
        return "<%s %d>"%(self.__class__,id(self))
 
     def toDom(self, document, node):
-        """ toDom method of Model class """
+        """
+	C{toDom} method of Model class
+	"""
         pset = document.createElement('Model')
         pset.setAttribute('type', self.__class__.__name__)
         node.appendChild(pset)
         self._parametersToDom(document, pset)
 
     def doInitialization(self):
-        """initializes the time stepping scheme. This function may be overwritten."""
+        """
+	Initializes the time stepping scheme.  
+	
+	This function may be overwritten.
+	"""
         pass
     
     def getSafeTimeStepSize(self,dt):
-        """returns a time step size which can safely be used. 
-           dt gives the previously used step size.
-           This function may be overwritten."""
+        """
+	Returns a time step size which can safely be used. 
+
+        C{dt} gives the previously used step size.
+
+        This function may be overwritten.
+	"""
         return self.UNDEF_DT
     
     def finalize(self):
-        """returns False if the time stepping is finalized. This function may be
-        overwritten."""
+        """
+	Returns False if the time stepping is finalized. 
+	
+	This function may be overwritten.
+	"""
         return False
        
     def doFinalization(self):
-        """finalizes the time stepping. This function may be overwritten."""
+        """
+	Finalizes the time stepping. 
+	
+	This function may be overwritten.
+	"""
         pass
     
     def doStepPreprocessing(self,dt):
-        """sets up a time step of step size dt. This function may be overwritten."""
+        """
+	Sets up a time step of step size dt. 
+	
+	This function may be overwritten.
+	"""
         pass
     
     def doStep(self,dt):
-        """executes an iteration step at a time step. 
-           dt is the currently used time step size.
-           This function may be overwritten."""
+        """
+	Executes an iteration step at a time step. 
+
+        C{dt} is the currently used time step size.
+
+        This function may be overwritten.
+	"""
         pass
     
     def terminateIteration(self):
-        """returns True if iteration on a time step is terminated."""
+        """
+	Returns True if iteration on a time step is terminated.
+	"""
         return True
        
     def doStepPostprocessing(self,dt):
-        """finalalizes the time step.
-           dt is the currently used time step size.
-           This function may be overwritten."""
+        """
+	Finalalizes the time step.
+
+        dt is the currently used time step size.
+
+        This function may be overwritten.
+	"""
         pass
     
     def writeXML(self, ostream=stdout):
@@ -562,62 +631,75 @@ class Model(ParameterSet):
         self.toDom(document, node)
         ostream.write(document.toprettyxml())
     
-    
 
 class Simulation(Model): 
     """
-          A Simulation object is special Model which runs a sequence of Models. 
+    A Simulation object is special Model which runs a sequence of Models. 
 
-          The methods doInitialization,finalize, getSafeTimeStepSize, doStepPreprocessing,
-          terminateIteration, doStepPostprocessing, doFinalization
-          are executing the corresponding methods of the models in the simulation.
-           
+    The methods C{doInitialization}, C{finalize}, C{getSafeTimeStepSize},
+    C{doStepPreprocessing}, C{terminateIteration}, C{doStepPostprocessing},
+    C{doFinalization} are executing the corresponding methods of the models in
+    the simulation.
     """
     
     FAILED_TIME_STEPS_MAX=20
     MAX_ITER_STEPS=50
     
     def __init__(self, models=[], **kwargs):
-        """initiates a simulation from a list of models. """
+        """
+	Initiates a simulation from a list of models.
+	"""
         Model.__init__(self, **kwargs)
         self.__models=[]
-
+        
         for i in range(len(models)): 
             self[i] = models[i]
+            
 
     def __repr__(self):
         """
-        returns a string representation of the Simulation
+        Returns a string representation of the Simulation.
         """
         return "<Simulation %r>" % self.__models
 
     def __str__(self):
         """
-        returning Simulation as a string
+        Returning Simulation as a string.
         """
         return "<Simulation %d>"%id(self)
     
     def iterModels(self):
-        """returns an iterator over the models"""
+        """
+	Returns an iterator over the models.
+	"""
         return self.__models
     
     def __getitem__(self,i):
-        """returns the i-th model"""
+        """
+	Returns the i-th model.
+	"""
         return self.__models[i]
     
     def __setitem__(self,i,value):
-        """sets the i-th model"""
+        """
+	Sets the i-th model.
+	"""
         if not isinstance(value,Model):
             raise ValueError("assigned value is not a Model")
-        for j in range(max(i-len(self.__models)+1,0)): self.__models.append(None)
+        for j in range(max(i-len(self.__models)+1,0)): 
+            self.__models.append(None)
         self.__models[i]=value
     
     def __len__(self):
-        """returns the number of models"""
+        """
+	Returns the number of models.
+	"""
         return len(self.__models)
 
     def toDom(self, document, node):
-        """ toDom method of Simulation class """
+        """
+	C{toDom} method of Simulation class.
+	"""
         simulation = document.createElement('Simulation')
         simulation.setAttribute('type', self.__class__.__name__)
 
@@ -632,46 +714,68 @@ class Simulation(Model):
         node.appendChild(simulation)
 
     def writeXML(self,ostream=stdout):
-        """writes the object as an XML object into an output stream"""
+        """
+	Writes the object as an XML object into an output stream.
+	"""
         document, rootnode = esysDoc()
         self.toDom(document, rootnode)
+        targetsList = document.getElementsByTagName('Target')
+        for i in targetsList:
+            targetId = int(i.firstChild.nodeValue.strip())
+            targetObj = LinkableObjectRegistry[targetId]
+            targetObj.toDom(document, rootnode)
         ostream.write(document.toprettyxml())
     
     def getSafeTimeStepSize(self,dt):
-        """returns a time step size which can safely be used by all models.
-           This is the minimum over the time step sizes of all models."""
+        """
+	Returns a time step size which can safely be used by all models.
+
+        This is the minimum over the time step sizes of all models.
+	"""
         out=min([o.getSafeTimeStepSize(dt) for o in self.iterModels()])
         print "%s: safe step size is %e."%(str(self),out)
         return out
     
     def doInitialization(self):
-        """initializes all models """
+        """
+	Initializes all models.
+	"""
         self.n=0
         self.tn=0.
         for o in self.iterModels(): 
             o.doInitialization()
     
     def finalize(self):
-        """returns True if any of the models is to be finalized"""
+        """
+	Returns True if any of the models is to be finalized.
+	"""
         return any([o.finalize() for o in self.iterModels()])
        
     def doFinalization(self):
-        """finalalizes the time stepping for all models."""
+        """
+	Finalalizes the time stepping for all models.
+	"""
         for i in self.iterModels(): i.doFinalization()
         self.trace("end of time integation.")
     
     def doStepPreprocessing(self,dt):
-        """initializes the time step for all models."""
+        """
+	Initializes the time step for all models.
+	"""
         for o in self.iterModels(): 
             o.doStepPreprocessing(dt)
     
     def terminateIteration(self):
-        """returns True if all iterations for all models are terminated."""
+        """
+	Returns True if all iterations for all models are terminated.
+	"""
         out=all([o.terminateIteration() for o in self.iterModels()])
         return out
        
     def doStepPostprocessing(self,dt):
-        """finalalizes the iteration process for all models."""
+        """
+	Finalalizes the iteration process for all models.
+	"""
         for o in self.iterModels(): 
             o.doStepPostprocessing(dt)
         self.n+=1
@@ -679,12 +783,13 @@ class Simulation(Model):
     
     def doStep(self,dt):
         """
-             executes the iteration step at a time step for all model:
+	Executes the iteration step at a time step for all model::
  
-                  self.doStepPreprocessing(dt)
-                  while not self.terminateIteration(): for all models: self.doStep(dt)
-                  self.doStepPostprocessing(dt)
-
+            self.doStepPreprocessing(dt)
+            while not self.terminateIteration(): 
+	        for all models: 
+		    self.doStep(dt)
+                self.doStepPostprocessing(dt)
         """
         self.iter=0
         while not self.terminateIteration(): 
@@ -697,26 +802,25 @@ class Simulation(Model):
 
     def run(self,check_point=None):
         """
-
-           run the simulation by performing essentially 
+	Run the simulation by performing essentially::
     
-               self.doInitialization()
-               while not self.finalize():
-                  dt=self.getSafeTimeStepSize()
-                  self.doStep(dt)
-                  if n%check_point==0: self.writeXML() 
-               self.doFinalization()
+	    self.doInitialization()
+	    while not self.finalize():
+	        dt=self.getSafeTimeStepSize()
+	        self.doStep(dt)
+	        if n%check_point==0: 
+		    self.writeXML() 
+	    self.doFinalization()
 
-           If one of the models in throws a FailedTimeStepError exception a new time step size is 
-           computed through getSafeTimeStepSize() and the time step is repeated.
+        If one of the models in throws a C{FailedTimeStepError} exception a 
+	new time step size is computed through getSafeTimeStepSize() and the 
+	time step is repeated.
    
-           If one of the models in throws a IterationDivergenceError exception the time step size 
-           is halved and the time step is repeated.
+        If one of the models in throws a C{IterationDivergenceError} 
+	exception the time step size is halved and the time step is repeated.
 
-           In both cases the time integration is given up after Simulation.FAILED_TIME_STEPS_MAX
-           attempts.
-
-    
+        In both cases the time integration is given up after
+	C{Simulation.FAILED_TIME_STEPS_MAX} attempts.
         """
         dt=self.UNDEF_DT
         self.doInitialization()
@@ -770,20 +874,31 @@ class Simulation(Model):
 
 class IterationDivergenceError(Exception):
     """
-       excpetion which is thrown if there is no convergence of the iteration process at a time step 
-       but there is a chance taht a smaller step could help to reach convergence.
+    Exception which is thrown if there is no convergence of the iteration 
+    process at a time step.
 
+    But there is a chance that a smaller step could help to reach convergence.
     """
     pass
 
 class FailedTimeStepError(Exception):
-    """excpetion which is thrown if the time step fails because of a step size that have been choosen to be too large"""
+    """
+    Exception which is thrown if the time step fails because of a step 
+    size that have been choosen to be too large.
+    """
     pass
 
 class SimulationBreakDownError(Exception):
-    """excpetion which is thrown if the simulation does not manage to progress in time."""
+    """
+    Exception which is thrown if the simulation does not manage to 
+    progress in time.
+    """
     pass
 
 class NonPositiveStepSizeError(Exception):
-    """excpetion which is thrown if the step size is not positive"""
+    """
+    Exception which is thrown if the step size is not positive.
+    """
     pass
+
+# vim: expandtab shiftwidth=4:

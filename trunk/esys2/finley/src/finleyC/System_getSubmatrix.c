@@ -57,15 +57,20 @@ Finley_SystemMatrix* Finley_SystemMatrix_getSubmatrix(Finley_SystemMatrix* A,int
                         }
                      }
                  }
-            } else {
-               Finley_SystemMatrixPattern_dealloc(sub_pattern);
             }
          }
+         Finley_SystemMatrixPattern_dealloc(sub_pattern);
       }
       return out;
 }
 /*
  * $Log$
+ * Revision 1.5  2005/09/01 03:31:36  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
+ * Revision 1.4.2.1  2005/08/29 22:34:18  gross
+ * memory leak in ILU fixed.
+ *
  * Revision 1.4  2005/07/08 04:07:58  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

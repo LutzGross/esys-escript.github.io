@@ -27,7 +27,7 @@ double* Finley_SystemMatrix_borrowNormalization(Finley_SystemMatrix* A) {
       switch(A->type) {
         case CSR:
           irow_failed=-1;
-          #pragma omp parallel for private(ir,irow,fac,iptr,icb) schedule(static)
+          #pragma omp parallel for private(ir,irb,irow,fac,iptr,icb) schedule(static)
           for (ir=0;ir< A->pattern->n_ptr;ir++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*ir;
@@ -83,8 +83,14 @@ double* Finley_SystemMatrix_borrowNormalization(Finley_SystemMatrix* A) {
 }
 /*
  * $Log$
+ * Revision 1.3  2005/09/01 03:31:36  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
  * Revision 1.2  2005/08/23 01:24:30  jgs
  * Merge of development branch dev-02 back to main trunk on 2005-08-23
+ *
+ * Revision 1.1.2.2  2005/08/24 02:10:47  gross
+ * bug for parallel runs fixed
  *
  * Revision 1.1.2.1  2005/08/19 07:37:23  gross
  * missing System_borrowNormalization.c

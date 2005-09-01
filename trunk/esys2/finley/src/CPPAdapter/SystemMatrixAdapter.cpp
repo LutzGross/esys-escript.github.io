@@ -117,19 +117,12 @@ void SystemMatrixAdapter::saveHB(const std::string& fileName) const
     checkFinleyError();
 }
 
-void SystemMatrixAdapter::setValue(const double value) const
+void SystemMatrixAdapter::resetValues() const
 {
    Finley_SystemMatrix* system_matrix_ptr = getFinley_SystemMatrix();
-   Finley_SystemMatrix_setValues(system_matrix_ptr,value);
-   checkFinleyError();
-}
-
-void SystemMatrixAdapter::resetSolver() const
-{
-   Finley_SystemMatrix* system_matrix_ptr = getFinley_SystemMatrix();
+   Finley_SystemMatrix_setValues(system_matrix_ptr,0.);
    Finley_SystemMatrix_solve_free(system_matrix_ptr);
    checkFinleyError();
 }
-                                                                                                                                                     
 
 }  // end of namespace

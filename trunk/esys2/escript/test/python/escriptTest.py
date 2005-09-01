@@ -4,8 +4,8 @@ import sys
 import unittest
 import os
 
-from escript.escript import *
-from finley import finley
+from esys.escript import *
+from esys import finley
 
 import numarray
 

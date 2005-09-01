@@ -124,10 +124,35 @@ class Taipan {
   */
   long
   num_elements();
+
+  /**
+     \brief
+     Print out statistics on the memory under management.
+  */
+  void
+  dump_stats();
+
+  /**
+     \brief
+     Clear record of statistics on the memory under management.
+  */
+  void
+  clear_stats();
  
  protected:
 
  private:
+
+  typedef struct Taipan_StatTable {
+    int allocs;
+    int deallocs;
+    int arrays;
+    int dearrays;
+    long elements;
+    long deelements;
+  } Taipan_StatTable;
+
+  Taipan_StatTable* statTable;
 
   typedef struct Taipan_MemTable {
     double* array;

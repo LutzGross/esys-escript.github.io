@@ -105,16 +105,9 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
   virtual void saveHB(const std::string& fileName) const;
 
   /**
-     \brief sets the matrix entries to value
+     \brief sets the matrix entries to zero
   */
-  virtual void setValue(const double value) const;
-
-  /**
-     \brief cleans any setting and allocations by the solver.
-  */
-
-  virtual void resetSolver() const;
-
+  virtual void resetValues() const;
 
  protected:
 

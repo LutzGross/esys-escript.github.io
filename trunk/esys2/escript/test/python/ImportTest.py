@@ -3,9 +3,9 @@
 import os
 import sys
 
-from escript.escript import *
-from escript.linearPDEs import *
-from escript.pdetools import *
+from esys.escript import *
+from esys.escript.linearPDEs import *
+from esys.escript.pdetools import *
 
 """
 

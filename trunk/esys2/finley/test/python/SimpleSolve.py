@@ -4,9 +4,9 @@ import sys
 import os
 import unittest
 
-from escript.escript import *
-from escript.linearPDEs import *
-from finley import finley
+from esys.escript import *
+from esys.escript.linearPDEs import *
+from esys import finley
 
 print "\nSimpleSolve.py"
 print "--------------"
@@ -20,6 +20,7 @@ error_tol=1.e-5
 # mydomain=finley.Rectangle(140,140)
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
+# mydomain=finley.Rectangle(10,10,1)
 mydomain=finley.Rectangle(190,190,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
@@ -61,12 +62,11 @@ print "mypde.checkSymmetry()"
 print mypde.checkSymmetry()
 
 print "\nIterative Solver (1)=>"
-# u_i=mypde.getSolution(preconditioner=ILU0,iter_max=3000)
-u_i=mypde.getSolution(iter_max=3000)
+u_i=mypde.getSolution(verbose=True,iter_max=3000,preconditioner=mypde.ILU0)
 
 print "\nDirect Solver (1)=>"
 mypde.setSolverMethod(mypde.DIRECT)
-u_d=mypde.getSolution()
+u_d=mypde.getSolution(verbose=True)
 
 print "\n***************************************************************"
 error=u_ex-u_d
@@ -114,13 +114,13 @@ mypde.setTolerance(1.e-13)
 
 # mypde.setSymmetryOn() : is not woking yet!
 mypde.setSolverMethod(mypde.DIRECT)
-u_d=mypde.getSolution()
+u_d=mypde.getSolution(verbose=True)
 
 print "\nIterative Solver (2)=>"
 
 mypde.setSymmetryOn() 
 mypde.setSolverMethod(mypde.DEFAULT_METHOD)
-u_i=mypde.getSolution(iter_max=3000)
+u_i=mypde.getSolution(verbose=True,iter_max=3000)
 
 print "\n******************************************************************"
 error=u_ex-u_d

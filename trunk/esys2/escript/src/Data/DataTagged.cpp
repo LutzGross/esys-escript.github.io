@@ -191,6 +191,36 @@ DataTagged::setSlice(const DataAbstract* value,
   }
 }
 
+int
+DataTagged::getTagNumber(int dpno)
+{
+  //
+  // Get the number of samples and data-points per sample
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  int numDataPoints = numSamples * numDataPointsPerSample;
+
+  if (numDataPointsPerSample==0) {
+    throw DataException("DataTagged::getTagNumber error: no data-points associated with this object.");
+  }
+
+  if (dpno<0 || dpno>numDataPoints) {
+    throw DataException("DataTagged::getTagNumber error: invalid data-point number supplied.");
+  }
+
+  //
+  // Determine the sample number which corresponds to this data-point number
+  int sampleNo = dpno / numDataPointsPerSample;
+
+  //
+  // Determine the tag number which corresponds to this sample number
+  int tagNo = getFunctionSpace().getTagFromSampleNo(sampleNo);
+
+  //
+  // return the tag number
+  return(tagNo);
+}
+
 void
 DataTagged::setTaggedValue(int tagKey,
                            const DataArrayView& value)

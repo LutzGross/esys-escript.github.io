@@ -246,35 +246,10 @@ void DataConstantTestCase::testAll() {
   assert(dataView.getShape()[1]==2);
   assert(dataView.getShape()[2]==4);
 
-  //cout << "\tTest slice setting (2)." << endl;
-
-  //DataArrayView::RegionType region5;
-  //region5.push_back(DataArrayView::RegionType::value_type(1,2));
-  //region5.push_back(DataArrayView::RegionType::value_type(1,3));
-  //region5.push_back(DataArrayView::RegionType::value_type(14,18));
-
-  //DataAbstract* testData7=testData3->getSlice(region);
-
-  //testData5->setSlice(testData7,region5);
-
-  //for (int k=0;k<4;k++) {
-  //  for (int j=0;j<2;j++) {
-  //    for (int i=0;i<1;i++) {
-  //      assert(testData5->getPointDataView()(i,j,k)==pointData());
-  //    }
-  //  }
-  // }
-
-  //assert(testData5->getLength()==8);
-
-  //cout << "\tVerify data point attributes." << endl;
-  //dataView=testData5->getPointDataView();
-  //assert(dataView.getRank()==3);
-  //assert(dataView.noValues()==8);
-  //assert(dataView.getShape()[0]==1);
-  //assert(dataView.getShape()[1]==2);
-  //assert(dataView.getShape()[2]==4);
-
+  delete testData3;
+  delete testData4;
+  delete testData5;
+  delete testData6;
 }
 
 TestSuite* DataConstantTestCase::suite ()

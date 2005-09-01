@@ -1,8 +1,8 @@
 # $Id$
 
-from escript.escript import *
-from escript.linearPDEs import *
-from finley import finley
+from esys.escript import *
+from esys.escript.linearPDEs import *
+from esys import finley
 
 g=9.81 * 1e-3 # km/sec
 C=2*1e25           # sqrt(km)/sec

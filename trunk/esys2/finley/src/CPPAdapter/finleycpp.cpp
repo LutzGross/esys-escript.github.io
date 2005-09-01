@@ -146,8 +146,7 @@ BOOST_PYTHON_MODULE(finleycpp)
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter",no_init)
       .def("nullifyRowsAndCols",&finley::SystemMatrixAdapter::nullifyRowsAndCols)
-      .def("setValue",&finley::SystemMatrixAdapter::setValue)
-      .def("resetSolver",&finley::SystemMatrixAdapter::resetSolver)
+      .def("resetValues",&finley::SystemMatrixAdapter::resetValues)
       .def("saveMM",&finley::SystemMatrixAdapter::saveMM)
       .def("saveHB",&finley::SystemMatrixAdapter::saveHB);
 
