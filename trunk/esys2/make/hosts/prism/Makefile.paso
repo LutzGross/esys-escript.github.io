@@ -1,0 +1,22 @@
+# $Id$
+
+# paso
+
+PKG_CC_INC_DIRS  += $(ESYS_ROOT)/paso/inc
+PKG_CPP_INC_DIRS += $(ESYS_ROOT)/paso/inc
+
+PKG_LD_LIB_DIRS += $(ESYS_ROOT)/paso/lib
+
+PKG_LD_LIBS += paso
+
+# $Log$
+# Revision 1.2  2005/09/15 03:44:36  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-15
+#
+# Revision 1.1.2.1  2005/09/15 01:07:11  jgs
+# added host specific makefiles and environment setup scripts for the prism
+#
+# Revision 1.1.2.1  2005/09/07 06:26:24  gross
+# the solver from finley are put into the standalone package paso now
+#
+#

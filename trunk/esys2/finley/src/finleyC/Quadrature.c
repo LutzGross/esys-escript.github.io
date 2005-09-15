@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,14 +18,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003 */
 /*   Author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
-#include "Finley.h"
 #include "Quadrature.h"
 
 #define QUADNODES(_K_,_I_) quadNodes[INDEX2(_K_,_I_,DIM)]
@@ -40,7 +49,7 @@ void Finley_Quad_getNodesTri(int numQuadNodes,double* quadNodes,double* quadWeig
     /*  get scheme on [0.1]^2 */
     
     Finley_Quad_getNodesRec(numQuadNodes,quadNodes,quadWeights);
-    if (Finley_ErrorCode!=NO_ERROR) return;
+    if (! Finley_noError()) return;
     
     /*  squeeze it: */
     
@@ -77,7 +86,7 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
     /*  get scheme on [0.1]^3 */
     
     Finley_Quad_getNodesHex(numQuadNodes,quadNodes,quadWeights);
-    if (Finley_ErrorCode!=NO_ERROR) return;
+    if (! Finley_noError()) return;
     
     /*  squeeze it: */
     
@@ -111,6 +120,7 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
 /*   as a X-product of a 1D scheme. */
 
 void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeights) {
+  char error_msg[LenErrorMsg_MAX];
   int numQuadNodes1d,i,j,l;
   double quadNodes1d[numQuadNodes],quadWeights1d[numQuadNodes];
   #define DIM 2
@@ -126,7 +136,7 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
       
       /*  make 2D scheme: */
       
-      if (Finley_ErrorCode==NO_ERROR) {
+      if (Finley_noError()) {
         l=0;
         for (i=0;i<numQuadNodes1d;i++) {
           for (j=0;j<numQuadNodes1d;j++) {
@@ -140,8 +150,8 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
       return;
     }
   }
-  Finley_ErrorCode=VALUE_ERROR;
-  sprintf(Finley_ErrorMsg,"Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+  sprintf(error_msg,"__FILE__: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+  Finley_setError(VALUE_ERROR,error_msg);
   #undef DIM
 }
 
@@ -151,6 +161,7 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
 /*   as a X-product of a 1D scheme. */
 
 void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeights) {
+  char error_msg[LenErrorMsg_MAX];
   int numQuadNodes1d,i,j,k,l;
   double quadNodes1d[numQuadNodes],quadWeights1d[numQuadNodes];
   #define DIM 3
@@ -166,7 +177,7 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
       
       /*  make 3D scheme: */
       
-      if (Finley_ErrorCode==NO_ERROR) {
+      if (Finley_noError()) {
         l=0;
         for (i=0;i<numQuadNodes1d;i++) {
           for (j=0;j<numQuadNodes1d;j++) {
@@ -184,8 +195,8 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
       return;
     }
   }
-  Finley_ErrorCode=VALUE_ERROR;
-  sprintf(Finley_ErrorMsg,"Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+  sprintf(error_msg,"__FILE__: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+  Finley_setError(VALUE_ERROR,error_msg);
   #undef DIM
 }
 
@@ -197,8 +208,7 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
 
 void Finley_Quad_getNodesPoint(int numQuadNodes,double* quadNodes,double* quadWeights) {
   if (numQuadNodes!=0) {
-       Finley_ErrorCode=VALUE_ERROR;
-       sprintf(Finley_ErrorMsg,"There is no quadrature scheme on points.");
+       Finley_setError(VALUE_ERROR,"__FILE__: There is no quadrature scheme on points.");
   }
 }
 
@@ -350,8 +360,7 @@ void Finley_Quad_getNodesLine(int numQuadNodes,double* quadNodes,double* quadWei
         break;
 
       default:
-        Finley_ErrorCode=VALUE_ERROR;
-        sprintf(Finley_ErrorMsg,"Negative intergration order.");
+        Finley_setError(VALUE_ERROR,"__FILE__: Negative intergration order.");
         break;
   }
 }
@@ -382,7 +391,7 @@ void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,dou
 
     #define DIM dim
     getFaceNodes(numQuadNodes,quadNodesOnFace,quadWeights);
-    if (Finley_ErrorCode!=NO_ERROR) return;
+    if (! Finley_noError()) return;
     
     for (q=0;q<numQuadNodes;q++) {
        for (i=0;i<dim-1;i++) QUADNODES(i,q)=quadNodesOnFace[INDEX2(i,q,dim-1)];
@@ -400,8 +409,7 @@ void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,dou
 
 int Finley_Quad_getNumNodesPoint(int order) {
   if (order <0 ) {
-    Finley_ErrorCode=VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,"Negative intergration order.");
+    Finley_setError(VALUE_ERROR,"__FILE__: Negative intergration order.");
     return -1;
   } else { 
     return 0;
@@ -409,18 +417,18 @@ int Finley_Quad_getNumNodesPoint(int order) {
 }
 
 int Finley_Quad_getNumNodesLine(int order) {
+  char error_msg[LenErrorMsg_MAX];
   if (order <0 ) {
-    Finley_ErrorCode=VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,"Negative intergration order.");
+    Finley_setError(VALUE_ERROR,"__FILE__: Negative intergration order.");
     return -1;
   } else { 
     if (order > 2*MAX_numQuadNodesLine-1) {
-      Finley_ErrorCode=VALUE_ERROR;
-      sprintf(Finley_ErrorMsg,"requested integration order %d on line is too large (>%d).",
+      sprintf(error_msg,"__FILE__: requested integration order %d on line is too large (>%d).",
                                                            order,2*MAX_numQuadNodesLine-1);
+      Finley_setError(VALUE_ERROR,error_msg);
       return -1;
     } else { 
-       Finley_ErrorCode=NO_ERROR;
+       Finley_resetError();
        return order/2+1;
     }
   }
@@ -432,7 +440,7 @@ int Finley_Quad_getNumNodesTri(int order) {
       return 1;
   } else {
       numQuadNodesLine=Finley_Quad_getNumNodesLine(order+1);
-      if (Finley_ErrorCode==NO_ERROR) {
+      if (Finley_noError()) {
          return numQuadNodesLine*numQuadNodesLine;
       } else {
          return -1;
@@ -443,7 +451,7 @@ int Finley_Quad_getNumNodesTri(int order) {
 int Finley_Quad_getNumNodesRec(int order) {
   int numQuadNodesLine;
   numQuadNodesLine=Finley_Quad_getNumNodesLine(order);
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
       return numQuadNodesLine*numQuadNodesLine;
   } else {
       return -1;
@@ -453,7 +461,7 @@ int Finley_Quad_getNumNodesRec(int order) {
 int Finley_Quad_getNumNodesTet(int order) {
   int numQuadNodesLine;
   numQuadNodesLine=Finley_Quad_getNumNodesLine(order+2);
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
       return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
   } else {
       return -1;
@@ -463,7 +471,7 @@ int Finley_Quad_getNumNodesTet(int order) {
 int Finley_Quad_getNumNodesHex(int order) {
   int numQuadNodesLine;
   numQuadNodesLine=Finley_Quad_getNumNodesLine(order);
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
       return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
   } else {
       return -1;
@@ -471,8 +479,14 @@ int Finley_Quad_getNumNodesHex(int order) {
 }
 /* 
 * $Log$
-* Revision 1.1  2004/10/26 06:53:57  jgs
-* Initial revision
+* Revision 1.2  2005/09/15 03:44:23  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.1.1.1.6.1  2005/09/07 06:26:20  gross
+* the solver from finley are put into the standalone package paso now
+*
+* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
+* initial import of project esys2
 *
 * Revision 1.2  2004/08/03 04:49:06  gross
 * bug in Quadrature.c fixed

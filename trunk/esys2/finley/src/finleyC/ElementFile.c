@@ -1,4 +1,17 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: ElementFile */
@@ -8,13 +21,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
 /*   Author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "ElementFile.h"
 
 /**************************************************************/
@@ -28,7 +39,7 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order){
   
   if (order<0) order=2*Finley_RefElement_InfoList[id].numOrder;
   NQ= Finley_RefElement_InfoList[id].getNumQuadNodes(order);
-  if (Finley_ErrorCode!=NO_ERROR) return NULL;
+  if (! Finley_noError()) return NULL;
   
   /*  allocate the return value */
   
@@ -48,12 +59,12 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order){
   /*  allocate the reference element: */
   
   out->ReferenceElement=Finley_RefElement_alloc(id,NQ);
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
      Finley_ElementFile_dealloc(out);
      return NULL;
   }
   out->LinearReferenceElement=Finley_RefElement_alloc(Finley_RefElement_InfoList[id].LinearTypeId,NQ);
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
      Finley_ElementFile_dealloc(out);
      return NULL;
   }
@@ -75,6 +86,12 @@ void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
 }
 /* 
 * $Log$
+* Revision 1.6  2005/09/15 03:44:21  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.5.2.1  2005/09/07 06:26:18  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.5  2005/07/08 04:07:48  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

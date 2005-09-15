@@ -5,11 +5,11 @@
 #
 #   p=(x0+x1)*t
 #
-from escript.modelframe import Link,Simulation
-from modellib.geometry import RectangularDomain,VectorConstrainer
-from modellib.input import Sequencer
-from modellib.probe import Probe,EvaluateExpression
-from modellib.flow import SteadyIncompressibleFlow
+from esys.escript.modelframe import Link,Simulation
+from esys.modellib.geometry import RectangularDomain,VectorConstrainer
+from esys.modellib.input import Sequencer
+from esys.modellib.probe import Probe,EvaluateExpression
+from esys.modellib.flow import SteadyIncompressibleFlow
 
 dom=RectangularDomain()
 dom.order=2

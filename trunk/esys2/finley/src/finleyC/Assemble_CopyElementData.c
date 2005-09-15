@@ -1,22 +1,29 @@
-/* $Id$ */
-
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 /**************************************************************/
 
 /*    assemblage routines: copies data between elements       */
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
 /*   author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
-#include "Util.h"
-#include "Finley.h"
 #include "Assemble.h"
-#include "ElementFile.h"
+#include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -30,25 +37,22 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
     dim_t numQuad=elements->ReferenceElement->numQuadNodes;
     dim_t numComps=getDataPointSize(out);
     double *in_array,*out_array;
+    Finley_resetError();
 
     /* check out and in */
     if (numComps!=getDataPointSize(in)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"number of components of input and output Data do not match.");
+       Finley_setError(TYPE_ERROR,"__FILE__: number of components of input and output Data do not match.");
     } else if (!numSamplesEqual(in,numQuad,numElements)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of input Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
     } else if (!numSamplesEqual(out,numQuad,numElements)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of output Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
     } else if (!isExpanded(out)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"expanded Data object is expected for output data.");
+       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for output data.");
     }
 
     /* now we can start */
 
-    if (Finley_ErrorCode==NO_ERROR) {
+    if (Finley_noError()) {
          if (isExpanded(in)) {
              # pragma omp parallel for private(n) schedule(static)
              for (n=0;n<numElements;n++) 
@@ -66,8 +70,14 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
 }
 /*
  * $Log$
+ * Revision 1.4  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
  * Revision 1.3  2005/08/12 01:45:42  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.2.2.2  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.2.2.1  2005/08/02 05:29:11  gross
  * bug in finley/src/Assemble_CopyElementData fixed

@@ -14,6 +14,7 @@
 */
 
 #include "bruce/Bruce/Bruce.h"
+#include "bruce/Bruce/BruceFactory.h"
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
@@ -45,6 +46,20 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(brucecpp)
 {
+
+  //
+  // NOTE: The return_value_policy is necessary for functions that
+  // return pointers.
+
+  def ("Brick",bruce::brick,
+      (arg("n0")=1,arg("n1")=1,arg("n2")=1,
+      arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0),
+      return_value_policy<manage_new_object>());
+
+  def ("Rectangle",bruce::rectangle,
+      (arg("n0")=1,arg("n1")=1,
+      arg("l0")=1.0,arg("l1")=1.0),
+      return_value_policy<manage_new_object>());
 
   class_<bruce::Bruce, bases<escript::AbstractContinuousDomain> >("Bruce",init<>())
       .def(init<const bruce::Bruce&>())

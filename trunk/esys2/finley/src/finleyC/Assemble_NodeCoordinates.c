@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,17 +18,13 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
-/*   author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Copyrights by ACcESS Australia 2003,2004,2005 */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
 #include "Util.h"
-#include "Finley.h"
 #include "Assemble.h"
-#include "NodeFile.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -24,20 +32,19 @@
 /**************************************************************/
 
 void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
+  char error_msg[LenErrorMsg_MAX];
   dim_t n;
+  Finley_resetError();
   if (nodes==NULL) return;
   if (! numSamplesEqual(x,1,nodes->numNodes)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of Data object");
   } else if (getFunctionSpaceType(x)!=FINLEY_NODES) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"Data object is not defined on nodes.");
+       Finley_setError(TYPE_ERROR,"__FILE__: Data object is not defined on nodes.");
   } else if (! isExpanded(x)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"expanded Data object expected");
+       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object expected");
   } else if (! isDataPointShapeEqual(x,1, &(nodes->numDim))) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"Data object of shape (%d,) expected",nodes->numDim);
+       sprintf(error_msg,"__FILE__: Data object of shape (%d,) expected",nodes->numDim);
+       Finley_setError(TYPE_ERROR,error_msg);
   } else {
        #pragma omp parallel for private(n)
        for (n=0;n<nodes->numNodes;n++) 
@@ -46,6 +53,12 @@ void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
 }
 /*
  * $Log$
+ * Revision 1.3  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.2.2.1  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.2  2005/07/08 04:07:45  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

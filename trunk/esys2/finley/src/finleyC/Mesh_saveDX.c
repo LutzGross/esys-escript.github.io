@@ -1,4 +1,17 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 
 /**************************************************************/
 
@@ -6,17 +19,17 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS, Australia 2004 */
 /*   Author: Lutz Gross, gross@access.edu.au */
+/*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
-#include "Common.h"
 #include "Mesh.h"
-#include "escript/Data/DataC.h"
+
+/**************************************************************/
 
 void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDataC* data_p) {
+  char error_msg[LenErrorMsg_MAX];
   /* if there is no mesh we just return */
   if (mesh_p==NULL) return;
   /* some tables needed for reordering */
@@ -35,8 +48,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
   /* open the file  and check handel */
   FILE * fileHandle_p = fopen(filename_p, "w");
   if (fileHandle_p==NULL) {
-         Finley_ErrorCode=IO_ERROR;
-         sprintf(Finley_ErrorMsg,"File %s could not be opened for writing.",filename_p);
+         sprintf(error_msg,"File %s could not be opened for writing.",filename_p);
+         Finley_setError(IO_ERROR,error_msg);
          return;
   }
   /* positions */
@@ -63,8 +76,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
        case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
           nodetype=FINLEY_REDUCED_DEGREES_OF_FREEDOM;
           isCellCentered=FALSE;
-          break;
           elements=mesh_p->Elements;
+          break;
        case(FINLEY_NODES):
           nodetype=FINLEY_NODES;
           isCellCentered=FALSE;
@@ -88,8 +101,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
           elements=mesh_p->ContactElements;
           break;
        default:
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Finley does not know anything about function space type %d",getFunctionSpaceType(data_p));
+          sprintf(error_msg,"saveDX:Finley does not know anything about function space type %d",getFunctionSpaceType(data_p));
+          Finley_setError(TYPE_ERROR,error_msg);
           return;
      }
   }
@@ -117,8 +130,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
           resortIndex=resort[4];
           strcpy(elemTypeStr, "cubes");
         } else {
-          Finley_ErrorCode=VALUE_ERROR;
-          sprintf(Finley_ErrorMsg, "Element type %s is not supported by DX",elements->ReferenceElement->Type->Name);
+          sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->ReferenceElement->Type->Name);
+          Finley_setError(VALUE_ERROR,error_msg);
           return;
         } 
         int NN=elements->ReferenceElement->Type->numNodes;
@@ -194,6 +207,18 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, escriptDat
 
 /*
  * $Log$
+ * Revision 1.5  2005/09/15 03:44:23  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.4.2.3  2005/09/09 08:15:17  gross
+ * bugs in vtk and dx writer fixed
+ *
+ * Revision 1.4.2.2  2005/09/08 08:28:39  gross
+ * some cleanup in savevtk
+ *
+ * Revision 1.4.2.1  2005/09/07 06:26:20  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.4  2005/07/08 04:07:55  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

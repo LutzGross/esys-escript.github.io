@@ -1,4 +1,17 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 
 /**************************************************************/
 
@@ -6,107 +19,115 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS, Australia 2004 */
 /*   Author: Paul Cochrane, cochrane@esscc.uq.edu.au */
+/*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
-#include "Common.h"
 #include "Mesh.h"
-#include "escript/Data/DataC.h"
 #include "vtkCellType.h"  /* copied from vtk source directory !!! */
 
+/**************************************************************/
+
 void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDataC* data_p) {
+  char error_msg[LenErrorMsg_MAX];
   /* if there is no mesh we just return */
   if (mesh_p==NULL) return;
   Finley_ElementFile* elements=NULL;
   char elemTypeStr[32];
   int i, j, k, numVTKNodesPerElement, isCellCentered=FALSE, nodetype=FINLEY_DEGREES_OF_FREEDOM;
+  index_t j2;
   double* values, rtmp;
   int nDim = mesh_p->Nodes->numDim;
-
+  int numPoints=0;
+  
+  if (nDim==1) {
+      Finley_setError(VALUE_ERROR,"saveVTK: 1-dimensional domains are not supported.");
+      return;
+  }
   /* get a pointer to the relevant mesh component */
   if (isEmpty(data_p)) {
+    numPoints = mesh_p->Nodes->numNodes;
     elements=mesh_p->Elements;
   } else {
     switch(getFunctionSpaceType(data_p)) {
     case(FINLEY_DEGREES_OF_FREEDOM):
+      numPoints = mesh_p->Nodes->numNodes;
       nodetype = FINLEY_DEGREES_OF_FREEDOM;
       isCellCentered = FALSE;
       elements = mesh_p->Elements;
       break;
     case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
-      Finley_ErrorCode=VALUE_ERROR;
-      sprintf(Finley_ErrorMsg,
-	      "Reduced degrees of freedom is not yet "
-	      "implemented for saving vtk files\n");
-      return;
+      numPoints = mesh_p->Nodes->reducedNumNodes;
+      nodetype =FINLEY_REDUCED_DEGREES_OF_FREEDOM;
+      isCellCentered = FALSE;
+      elements = mesh_p->Elements;
+      break;
     case(FINLEY_NODES):
+      numPoints = mesh_p->Nodes->numNodes;
       nodetype=FINLEY_NODES;
       isCellCentered=FALSE;
       elements=mesh_p->Elements;
       break;
     case(FINLEY_ELEMENTS):
+      numPoints = mesh_p->Nodes->numNodes;
+      nodetype=FINLEY_NODES;
       isCellCentered=TRUE;
       elements=mesh_p->Elements;
       break;
     case(FINLEY_FACE_ELEMENTS):
+      numPoints = mesh_p->Nodes->numNodes;
+      nodetype=FINLEY_NODES;
       isCellCentered=TRUE;
       elements=mesh_p->FaceElements;
       break;
     case(FINLEY_POINTS):
+      numPoints = mesh_p->Nodes->numNodes;
+      nodetype=FINLEY_NODES;
       isCellCentered=TRUE;
       elements=mesh_p->Points;
       break;
     case(FINLEY_CONTACT_ELEMENTS_1):
     case(FINLEY_CONTACT_ELEMENTS_2):
+      numPoints = mesh_p->Nodes->numNodes;
+      nodetype=FINLEY_NODES;
       isCellCentered=TRUE;
       elements=mesh_p->ContactElements;
       break;
     default:
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,
-	      "Finley does not know anything about function space type %d",
-	      getFunctionSpaceType(data_p));
+      sprintf(error_msg,"saveVTK: Finley does not know anything about function space type %d",getFunctionSpaceType(data_p));
+      Finley_setError(TYPE_ERROR,error_msg);
       return;
     }
   }
 
   /* the number of points */
-  int numPoints = mesh_p->Nodes->numNodes;
 
   /* the number of cells */
   if (elements == NULL) {
-    Finley_ErrorCode = VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,
-	    "elements object is NULL; cannot proceed");
+    Finley_setError(VALUE_ERROR,"saveVTK: elements object is NULL; cannot proceed");
     return;
   }
   int numCells = elements->numElements;   
-  
   /* open the file and check handle */
   FILE * fileHandle_p = fopen(filename_p, "w");
   if (fileHandle_p==NULL) {
-    Finley_ErrorCode=IO_ERROR;
-    sprintf(Finley_ErrorMsg,
-	    "File %s could not be opened for writing.", filename_p);
+    sprintf(error_msg, "saveVTK: File %s could not be opened for writing.", filename_p);
+    Finley_setError(IO_ERROR,error_msg);
     return;
   }
   /* xml header */
   fprintf(fileHandle_p, "<?xml version=\"1.0\"?>\n");
-  fprintf(fileHandle_p, 
-	  "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n");
+  fprintf(fileHandle_p, "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n");
 
   /* finley uses an unstructured mesh, so UnstructuredGrid *should* work */
   fprintf(fileHandle_p, "<UnstructuredGrid>\n");
 
   /* is there only one "piece" to the data?? */
   fprintf(fileHandle_p, "<Piece "
-	  "NumberOfPoints=\"%d\" "
-	  "NumberOfCells=\"%d\">\n",
-	  numPoints, numCells);
-
+	      "NumberOfPoints=\"%d\" "
+	      "NumberOfCells=\"%d\">\n",
+	      numPoints, numCells);
   /* now for the points; equivalent to positions section in saveDX() */
   /* "The points element explicitly defines coordinates for each point
    * individually.  It contains one DataArray element describing an array
@@ -129,26 +150,29 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	    "format=\"ascii\">\n", 
 	    nDim);
   }
-  for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
-    fprintf(fileHandle_p, 
-	    "%e", mesh_p->Nodes->Coordinates[INDEX2(0, i, nDim)]);
-    for (j = 1; j < nDim; j++) {
-      fprintf(fileHandle_p, 
-	      " %f",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
-      /* vtk/mayavi doesn't like 2D data, it likes 3D data with a degenerate
-       * third dimension to handle 2D data (like a sheet of paper).  So, if
-       * nDim is 2, we have to append zeros to the array to get this third
-       * dimension, and keep the visualisers happy.
-       * Indeed, if nDim is less than 3, must pad all empty dimensions, so
-       * that the total number of dims is 3.
-       */
-      if (nDim < 3) {
-	for (k=0; k<3-nDim; k++) {
-	  fprintf(fileHandle_p, " 0");
-	}
-      }
-    }
-    fprintf(fileHandle_p, "\n");
+  /* vtk/mayavi doesn't like 2D data, it likes 3D data with a degenerate
+     * third dimension to handle 2D data (like a sheet of paper).  So, if
+     * nDim is 2, we have to append zeros to the array to get this third
+     * dimension, and keep the visualisers happy.
+     * Indeed, if nDim is less than 3, must pad all empty dimensions, so
+     * that the total number of dims is 3.
+  */
+  if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+     for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
+       if (mesh_p->Nodes->toReduced[i]>=0) {
+          for (j = 0; j < nDim; j++) 
+            fprintf(fileHandle_p, " %e",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
+          for (k=0; k<3-nDim; k++) fprintf(fileHandle_p, " %e",0.);
+          fprintf(fileHandle_p, "\n");
+       }
+     } 
+  } else {
+     for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
+       for (j = 0; j < nDim; j++) 
+         fprintf(fileHandle_p, " %e",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
+       for (k=0; k<3-nDim; k++) fprintf(fileHandle_p, " %e",0.);
+       fprintf(fileHandle_p, "\n");
+     }
   } 
   fprintf(fileHandle_p, "</DataArray>\n");
   fprintf(fileHandle_p, "</Points>\n");
@@ -163,10 +187,16 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
    * specifies the type of each cell.
    */
   /* if no element table is present jump over the connection table */
-  int cellType;
   if (elements!=NULL) {
-    fprintf(fileHandle_p, "<Cells>\n");
-    ElementTypeId TypeId = elements->ReferenceElement->Type->TypeId;
+    int cellType;
+    ElementTypeId TypeId;
+
+    if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+      TypeId = elements->LinearReferenceElement->Type->TypeId;
+    } else {
+      TypeId = elements->ReferenceElement->Type->TypeId;
+    }
+
     switch(TypeId) {
     case Point1:
       cellType = VTK_VERTEX;
@@ -226,7 +256,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
       cellType = VTK_QUADRATIC_TRIANGLE;
       break;
     case Hex8Face:
-      cellType = VTK_QUADRATIC_QUAD;
+      cellType = VTK_QUAD;
       break;
     case Hex20Face:
       cellType = VTK_QUADRATIC_QUAD;
@@ -241,7 +271,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
       cellType = VTK_QUADRATIC_EDGE;
       break;
     case Tri3_Contact:
-      cellType = VTK_TRIANGLE;
+      cellType = VTK_LINE;
       break;
     case Tri6_Contact:
       cellType = VTK_QUADRATIC_TRIANGLE;
@@ -283,10 +313,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
       cellType = VTK_QUADRATIC_QUAD;
       break;
     default: 
-      Finley_ErrorCode=VALUE_ERROR;
-      sprintf(Finley_ErrorMsg, 
-	      "Element type %s is not supported by VTK",
-	      elements->ReferenceElement->Type->Name);
+      sprintf(error_msg, "saveVTK: Element type %s is not supported by VTK",elements->ReferenceElement->Type->Name);
+      Finley_setError(VALUE_ERROR,error_msg);
       return;
     } 
 
@@ -336,50 +364,64 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
       strcpy(elemTypeStr, "VTK_QUADRATIC_HEXAHEDRON");
       break;
     default:
-      Finley_ErrorCode = VALUE_ERROR;
-      sprintf(Finley_ErrorMsg,
-	      "Cell type %d is not supported by VTK", cellType);
+      sprintf(error_msg,"saveVTK: Cell type %d is not supported by VTK", cellType);
+      Finley_setError(VALUE_ERROR,error_msg);
       return;
     }
 
     /* write out the DataArray element for the connectivity */
+    int NN = elements->ReferenceElement->Type->numNodes;
+    fprintf(fileHandle_p, "<Cells>\n");
     fprintf(fileHandle_p, "<DataArray "
 	    "Name=\"connectivity\" "
 	    "type=\"Int32\" "
 	    "format=\"ascii\">\n");
-    int NN = elements->ReferenceElement->Type->numNodes;
-    if (VTK_QUADRATIC_HEXAHEDRON==cellType) {
+    if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
        for (i = 0; i < numCells; i++) {
-         fprintf(fileHandle_p,"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
-                            mesh_p->Elements->Nodes[INDEX2(0, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(1, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(2, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(3, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(4, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(5, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(6, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(7, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(8, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(9, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(10, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(11, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(16, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(17, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(18, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(19, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(12, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(13, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(14, i, NN)],
-                            mesh_p->Elements->Nodes[INDEX2(15, i, NN)]);
-         fprintf(fileHandle_p, "\n");
+          for (j = 0; j < numVTKNodesPerElement; j++) {
+               j2=elements->ReferenceElement->Type->linearNodes[j];
+               fprintf(fileHandle_p,"%d ",mesh_p->Nodes->toReduced[elements->Nodes[INDEX2(j2, i, NN)]]); 
+          }
+          fprintf(fileHandle_p, "\n");
        }
-    } else {
-       for (i = 0; i < numCells; i++) {
-         for (j = 0; j < numVTKNodesPerElement; j++) fprintf(fileHandle_p,"%d ", mesh_p->Elements->Nodes[INDEX2(j, i, NN)]);
-         fprintf(fileHandle_p, "\n");
-       }
-    } 
-    fprintf(fileHandle_p, "\n");
+    } else if (VTK_QUADRATIC_HEXAHEDRON==cellType) {
+          for (i = 0; i < numCells; i++) {
+            fprintf(fileHandle_p,"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", 
+                               elements->Nodes[INDEX2(0, i, NN)],
+                               elements->Nodes[INDEX2(1, i, NN)],
+                               elements->Nodes[INDEX2(2, i, NN)],
+                               elements->Nodes[INDEX2(3, i, NN)],
+                               elements->Nodes[INDEX2(4, i, NN)],
+                               elements->Nodes[INDEX2(5, i, NN)],
+                               elements->Nodes[INDEX2(6, i, NN)],
+                               elements->Nodes[INDEX2(7, i, NN)],
+                               elements->Nodes[INDEX2(8, i, NN)],
+                               elements->Nodes[INDEX2(9, i, NN)],
+                               elements->Nodes[INDEX2(10, i, NN)],
+                               elements->Nodes[INDEX2(11, i, NN)],
+                               elements->Nodes[INDEX2(16, i, NN)],
+                               elements->Nodes[INDEX2(17, i, NN)],
+                               elements->Nodes[INDEX2(18, i, NN)],
+                               elements->Nodes[INDEX2(19, i, NN)],
+                               elements->Nodes[INDEX2(12, i, NN)],
+                               elements->Nodes[INDEX2(13, i, NN)],
+                               elements->Nodes[INDEX2(14, i, NN)],
+                               elements->Nodes[INDEX2(15, i, NN)]);
+          }
+     } else if (numVTKNodesPerElement!=NN) {
+          for (i = 0; i < numCells; i++) {
+            for (j = 0; j < numVTKNodesPerElement; j++) {
+                 j2=elements->ReferenceElement->Type->geoNodes[j];
+                 fprintf(fileHandle_p,"%d ", elements->Nodes[INDEX2(j2, i, NN)]);
+            }
+            fprintf(fileHandle_p, "\n");
+          }
+     } else {
+          for (i = 0; i < numCells; i++) {
+            for (j = 0; j < numVTKNodesPerElement; j++) fprintf(fileHandle_p,"%d ", elements->Nodes[INDEX2(j, i, NN)]);
+            fprintf(fileHandle_p, "\n");
+          }
+     } 
     fprintf(fileHandle_p, "</DataArray>\n");
 
     /* write out the DataArray element for the offsets */
@@ -387,37 +429,17 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	    "Name=\"offsets\" "
 	    "type=\"Int32\" "
 	    "format=\"ascii\">\n");
-    int counter = 0;  /* counter for the number of offsets written to file */
-    for (i=numVTKNodesPerElement; i<=numCells*numVTKNodesPerElement; i+=numVTKNodesPerElement) {
-      fprintf(fileHandle_p, "%d ", i);
-      counter++;
-      /* if the counter gets too big (i.e. the line gets too long), 
-       * then add a newline and reset */
-      if (counter > 19) {
-	  counter = 0;
-	  fprintf(fileHandle_p, "\n");
-      }
-    }
-    fprintf(fileHandle_p, "\n");
+    for (i=numVTKNodesPerElement; i<=numCells*numVTKNodesPerElement; i+=numVTKNodesPerElement) 
+        fprintf(fileHandle_p, "%d\n", i);
     fprintf(fileHandle_p, "</DataArray>\n");
 
     /* write out the DataArray element for the types */
-    counter = 0; /* counter for the number of types written to file */
     fprintf(fileHandle_p, "<DataArray "
 	    "Name=\"types\" "
 	    "type=\"UInt8\" "
 	    "format=\"ascii\">\n");
-    for (i=0; i<numCells; i++) { 
-      fprintf(fileHandle_p, "%d ", cellType);
-      counter++;
-      /* if the counter gets too big (i.e. the line gets too long), 
-       * then add a newline and reset */
-      if (counter > 30) {
-	  counter = 0;
-	  fprintf(fileHandle_p, "\n");
-      }
-    }
-    fprintf(fileHandle_p, "\n");
+    for (i=0; i<numCells; i++) 
+        fprintf(fileHandle_p, "%d\n", cellType);
     fprintf(fileHandle_p, "</DataArray>\n");
 
     /* finish off the <Cells> element */
@@ -430,10 +452,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
     int nComp = getDataPointSize(data_p);
     /* barf if rank is greater than two */
     if (rank > 2) {
-      Finley_ErrorCode = VALUE_ERROR;
-      sprintf(Finley_ErrorMsg, 
-	      "Vtk can't handle objects with rank greater than 2\n"
-	      "object rank = %d\n", rank);
+      sprintf(error_msg, "saveVTK: Vtk can't handle objects with rank greater than 2. object rank = %d\n", rank);
+      Finley_setError(VALUE_ERROR,error_msg);
       return;
     }
     /* if the rank == 0:   --> scalar data
@@ -443,17 +463,17 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
     char dataNameStr[31], dataTypeStr[63];
     int nCompReqd=1;   /* the number of components required by vtk */
     if (rank == 0) {
-      strcpy(dataNameStr, "escript_scalar_data");
+      strcpy(dataNameStr, "scalar");
       sprintf(dataTypeStr, "Scalars=\"%s\"", dataNameStr);
       nCompReqd = 1;
     }
     else if (rank == 1) {
-      strcpy(dataNameStr, "escript_vector_data");
+      strcpy(dataNameStr, "vector");
       sprintf(dataTypeStr, "Vectors=\"%s\"", dataNameStr);
       nCompReqd = 3;
     }
     else if (rank == 2) {
-      strcpy(dataNameStr, "escript_tensor_data");
+      strcpy(dataNameStr, "tensor");
       sprintf(dataTypeStr, "Tensors=\"%s\"", dataNameStr);
       nCompReqd = 9;
     }
@@ -472,62 +492,53 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	      dataNameStr, nCompReqd);
       int numPointsPerSample = elements->ReferenceElement->numQuadNodes;
       if (numPointsPerSample) {
+	int shape = getDataPointShape(data_p, 0);
+	if (shape > 3) {
+	    sprintf(error_msg,"saveVTK: shape should be 1, 2, or 3; I got %d\n", shape);
+            Finley_setError(VALUE_ERROR,error_msg);
+	    return;
+	}
 	for (i=0; i<numCells; i++) {
 	  values = getSampleData(data_p, i);
 	  double sampleAvg[nComp];
 	  for (k=0; k<nComp; k++) {
 	    /* averaging over the number of points in the sample */
 	    rtmp = 0.;
-	    for (j=0; j<numPointsPerSample; j++) {
+	    for (j=0; j<numPointsPerSample; j++) 
 	      rtmp += values[INDEX2(k,j,nComp)];
-	    }
 	    sampleAvg[k] = rtmp/numPointsPerSample;
 	  }
 	  /* if the number of required components is more than the number
 	   * of actual components, pad with zeros
 	   */
 	  /* probably only need to get shape of first element */
-	  int shape = getDataPointShape(data_p, 0);
-	  if (shape > 3) {
-	    Finley_ErrorCode = VALUE_ERROR;
-	    sprintf(Finley_ErrorMsg, 
-		    "shape should be 1, 2, or 3; I got %d\n", shape);
-	    return;
-	  }
 	  /* write the data different ways for scalar, vector and tensor */
 	  if (nCompReqd == 1) {
-	    fprintf(fileHandle_p, " %f", sampleAvg[0]);
-	  }
-	  else if (nCompReqd == 3) {
-	    int shape = getDataPointShape(data_p, 0);
+	    fprintf(fileHandle_p, " %e", sampleAvg[0]);
+	  } else if (nCompReqd == 3) {
 	    /* write out the data */
 	    for (int m=0; m<shape; m++) {
-	      fprintf(fileHandle_p, " %f", sampleAvg[m]);
+	      fprintf(fileHandle_p, " %e", sampleAvg[m]);
 	    }
 	    /* pad with zeros */
-	    for (int m=0; m<nCompReqd-shape; m++) {
-	      fprintf(fileHandle_p, " 0");
-	    }
-	  }
-	  else if (nCompReqd == 9) { 
+	    for (int m=0; m<nCompReqd-shape; m++) 
+	      fprintf(fileHandle_p, " %e", 0.);
+	  } else if (nCompReqd == 9) { 
 	    /* tensor data, so have a 3x3 matrix to output as a row 
 	     * of 9 data points */
 	    int count = 0;
-	    int elems = 0;
 	    for (int m=0; m<shape; m++) {
 	      for (int n=0; n<shape; n++) {
-		fprintf(fileHandle_p, " %f", sampleAvg[count]);
+		fprintf(fileHandle_p, " %e", sampleAvg[count]);
 		count++;
-		elems++;
 	      }
-	      for (int n=0; n<3-shape; n++) {
-		fprintf(fileHandle_p, " 0");
-		elems++;
-	      }
+	      for (int n=0; n<3-shape; n++) 
+	        fprintf(fileHandle_p, " %e", 0.);
 	    }
-	    for (int m=0; m<nCompReqd-elems; m++) {
-	      fprintf(fileHandle_p, " 0");
-	    }
+	    for (int m=0; m<3-shape; m++) {
+	        for (int n=0; n<3; n++) 
+	           fprintf(fileHandle_p, " %e", 0.);
+            }
 	  }
 	  fprintf(fileHandle_p, "\n");
 	}
@@ -543,70 +554,66 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 	      "NumberOfComponents=\"%d\" "
 	      "format=\"ascii\">\n",
 	      dataNameStr, nCompReqd);
+	/* write out the data */
+	/* if the number of required components is more than the number
+	 * of actual components, pad with zeros
+       */
+      bool_t do_write=TRUE;
+      int shape = getDataPointShape(data_p, 0);
+      if (shape > 3) {
+	  sprintf(error_msg,"shape should be 1, 2, or 3; I got %d\n", shape);
+          Finley_setError(VALUE_ERROR,error_msg);
+	  return;
+      }
       for (i=0; i<mesh_p->Nodes->numNodes; i++) {
 	switch (nodetype) {
-	case(FINLEY_DEGREES_OF_FREEDOM):
-	  values = getSampleData(data_p,
-				 mesh_p->Nodes->degreeOfFreedom[i]);
+	case(FINLEY_DEGREES_OF_FREEDOM): 
+	  values = getSampleData(data_p,mesh_p->Nodes->degreeOfFreedom[i]);
 	  break;
 	case(FINLEY_REDUCED_DEGREES_OF_FREEDOM):
 	  if (mesh_p->Nodes->toReduced[i]>=0) {
-	    values = getSampleData(data_p,
-				   mesh_p->Nodes->reducedDegreeOfFreedom[i]);
-	  }
+            do_write=TRUE;
+	    values = getSampleData(data_p,mesh_p->Nodes->reducedDegreeOfFreedom[i]);
+	  } else {
+            do_write=FALSE;
+          }
 	  break;
 	case(FINLEY_NODES):
 	  values = getSampleData(data_p,i);
 	  break;
 	}
-	/* write out the data */
-	/* if the number of required components is more than the number
-	 * of actual components, pad with zeros
-	 */
-	/* probably only need to get shape of first element */
-	int shape = getDataPointShape(data_p, 0);
-	if (shape > 3) {
-	  Finley_ErrorCode = VALUE_ERROR;
-	  sprintf(Finley_ErrorMsg, 
-		  "shape should be 1, 2, or 3; I got %d\n", shape);
-	  return;
-	}
 	/* write the data different ways for scalar, vector and tensor */
-	if (nCompReqd == 1) {
-	  fprintf(fileHandle_p, " %f", values[0]);
-	}
-	else if (nCompReqd == 3) {
-	  int shape = getDataPointShape(data_p, 0);
-	  /* write out the data */
-	  for (int m=0; m<shape; m++) {
-	    fprintf(fileHandle_p, " %f", values[m]);
-	  }
-	  /* pad with zeros */
-	  for (int m=0; m<nCompReqd-shape; m++) {
-	    fprintf(fileHandle_p, " 0");
-	  }
-	}
-	else if (nCompReqd == 9) { 
-	  /* tensor data, so have a 3x3 matrix to output as a row 
-	   * of 9 data points */
-	  int count = 0;
-	  int elems = 0;
-	  for (int m=0; m<shape; m++) {
-	    for (int n=0; n<shape; n++) {
-	      fprintf(fileHandle_p, " %f", values[count]);
-	      count++;
-	      elems++;
+        if (do_write) {
+	    if (nCompReqd == 1) {
+	      fprintf(fileHandle_p, " %e", values[0]);
 	    }
-	    for (int n=0; n<3-shape; n++) {
-	      fprintf(fileHandle_p, " 0");
-	      elems++;
+	    else if (nCompReqd == 3) {
+	      /* write out the data */
+	      for (int m=0; m<shape; m++) 
+	        fprintf(fileHandle_p, " %e", values[m]);
+	      /* pad with zeros */
+	      for (int m=0; m<nCompReqd-shape; m++) 
+	          fprintf(fileHandle_p, " %e", 0.);
 	    }
-	  }
-	  for (int m=0; m<nCompReqd-elems; m++) {
-	    fprintf(fileHandle_p, " 0");
-	  }
-	}
-	fprintf(fileHandle_p, "\n");
+	    else if (nCompReqd == 9) { 
+	      /* tensor data, so have a 3x3 matrix to output as a row 
+	       * of 9 data points */
+	      int count = 0;
+	      for (int m=0; m<shape; m++) {
+	        for (int n=0; n<shape; n++) {
+	          fprintf(fileHandle_p, " %e", values[count]);
+	          count++;
+	        }
+	        for (int n=0; n<3-shape; n++) 
+	          fprintf(fileHandle_p, " %e", 0.);
+	      }
+	      for (int m=0; m<3-shape; m++)  {
+	          for (int n=0; n<3; n++) 
+	              fprintf(fileHandle_p, " %e", 0.);
+              }
+	    }
+	    fprintf(fileHandle_p, "\n");
+         }
       }
       fprintf(fileHandle_p, "</DataArray>\n");
       fprintf(fileHandle_p, "</PointData>\n");
@@ -625,9 +632,17 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, escriptDa
 }
 
 /*
- * $Log$
  * Revision 1.6  2005/08/12 01:45:43  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.5.2.4  2005/09/09 08:15:17  gross
+ * bugs in vtk and dx writer fixed
+ *
+ * Revision 1.5.2.3  2005/09/08 08:28:39  gross
+ * some cleanup in savevtk
+ *
+ * Revision 1.5.2.2  2005/09/07 06:26:20  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.5.2.1  2005/08/10 06:14:37  gross
  * QUADRATIC HEXAHEDRON elements fixed

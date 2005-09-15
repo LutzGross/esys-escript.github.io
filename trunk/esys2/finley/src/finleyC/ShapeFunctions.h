@@ -1,7 +1,16 @@
-/* $Id$ */
-
-#ifndef INC_FINLEY_SHAPEFUNCTIONS
-#define INC_FINLEY_SHAPEFUNCTIONS
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -9,13 +18,17 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003 */
 /*   Author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
+#ifndef INC_FINLEY_SHAPEFUNCTIONS
+#define INC_FINLEY_SHAPEFUNCTIONS
+
+/**************************************************************/
+
+#include "Finley.h"
 
 /**************************************************************/
 
@@ -23,7 +36,6 @@
 #define DSDV_INDEX(_J_,_K_,_I_,_NUMNODES_,_DIM_)   INDEX3(_J_,_K_,_I_,_NUMNODES_,_DIM_)
 
 /**************************************************************/
-
 /*   Interfaces: */
 
 typedef void (Finley_Shape_Function) (dim_t,double*,double*,double*);
@@ -52,6 +64,12 @@ Finley_Shape_Function Finley_Shape_Hex32;
 
 /*
  * $Log$
+ * Revision 1.3  2005/09/15 03:44:23  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.2.2.1  2005/09/07 06:26:21  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.2  2005/07/08 04:07:56  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

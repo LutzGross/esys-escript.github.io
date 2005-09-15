@@ -210,6 +210,82 @@ class ModeltoDomTestCase(unittest.TestCase):
     
     def testModelhasID(self):
         assert int(self._dom().getElementsByTagName("Model")[0].getAttribute("id"))>99
+
+class ModeltoDomTestCase(unittest.TestCase):
+    def _xml(self, modulename, modelname):
+        # returns a modelframe class, generated from the xml
+        return '''<?xml version="1.0" ?>
+<ESys> <Simulation type="Simulation"> <Component rank="0"> 
+
+    <Model id="127" module="%s" type="%s"> 
+
+<Parameter type="float"> <Name> a </Name> <Value> 0.9 </Value> </Parameter>
+<Parameter type="Link"> <Name> f </Name> <Value> <Link> <Target> 128 </Target>
+<Attribute> u </Attribute> </Link> </Value> </Parameter> <Parameter
+type="float"> <Name> tend </Name> <Value>
+1.0 </Value> </Parameter> <Parameter type="int"> <Name> u </Name> <Value> 10
+  </Value> </Parameter> <Parameter type="float"> <Name> tol </Name> <Value>
+  1e-08 </Value> </Parameter> <Parameter type="float"> <Name> dt </Name>
+  <Value>
+0.01 </Value> </Parameter> <Parameter type="str"> <Name> message </Name>
+  <Value> current error = 9.516258e-01 </Value> </Parameter> </Model>
+  </Component> <Component rank="1"> <Model id="128" type="ODETEST"> <Parameter
+  type="float"> <Name> a </Name> <Value>
+0.9 </Value> </Parameter> <Parameter type="Link"> <Name> f </Name> <Value>
+  <Link> <Target> 127 </Target> <Attribute> u </Attribute> </Link> </Value>
+  </Parameter> <Parameter type="float"> <Name> tend </Name> <Value>
+1.0 </Value> </Parameter> <Parameter type="float"> <Name> u </Name> <Value>
+  -10.0 </Value> </Parameter> <Parameter type="float"> <Name> tol </Name>
+  <Value> 1e-08 </Value> </Parameter> <Parameter type="float"> <Name> dt
+  </Name> <Value>
+0.1 </Value> </Parameter> <Parameter type="str"> <Name> message </Name> <Value>
+  current error = 1.904837e+01 </Value> </Parameter> </Model> </Component>
+  <Component rank="2"> <Model id="129" type="Messenger"> <Parameter
+  type="Link"> <Name> message </Name> <Value> <Link> <Target> 127 </Target>
+  <Attribute> message </Attribute> </Link> </Value> </Parameter> </Model>
+  </Component> </Simulation> <Model id="128" type="ODETEST"> <Parameter
+  type="float"> <Name> a </Name> <Value>
+0.9 </Value> </Parameter> <Parameter type="Link"> <Name> f </Name> <Value>
+  <Link> <Target> 127 </Target> <Attribute> u </Attribute> </Link> </Value>
+  </Parameter> <Parameter type="float"> <Name> tend </Name> <Value>
+1.0 </Value> </Parameter> <Parameter type="float"> <Name> u </Name> <Value>
+  -10.0 </Value> </Parameter> <Parameter type="float"> <Name> tol </Name>
+  <Value> 1e-08 </Value> </Parameter> <Parameter type="float"> <Name> dt
+  </Name> <Value>
+0.1 </Value> </Parameter> <Parameter type="str"> <Name> message </Name> <Value>
+  current error = 1.904837e+01 </Value> </Parameter> </Model> <Model id="127"
+  type="ODETEST"> <Parameter type="float"> <Name> a </Name> <Value>
+0.9 </Value> </Parameter> <Parameter type="Link"> <Name> f </Name> <Value>
+  <Link> <Target> 128 </Target> <Attribute> u </Attribute> </Link> </Value>
+  </Parameter> <Parameter type="float"> <Name> tend </Name> <Value>
+1.0 </Value> </Parameter> <Parameter type="int"> <Name> u </Name> <Value> 10
+  </Value> </Parameter> <Parameter type="float"> <Name> tol </Name> <Value>
+  1e-08 </Value> </Parameter> <Parameter type="float"> <Name> dt </Name>
+  <Value>
+0.01 </Value> </Parameter> <Parameter type="str"> <Name> message </Name>
+  <Value> current error = 9.516258e-01 </Value> </Parameter> </Model> <Model
+  id="127" type="ODETEST"> <Parameter type="float"> <Name> a </Name> <Value>
+0.9 </Value> </Parameter> <Parameter type="Link"> <Name> f </Name> <Value>
+  <Link> <Target> 128 </Target> <Attribute> u </Attribute> </Link> </Value>
+  </Parameter> <Parameter type="float"> <Name> tend </Name> <Value>
+1.0 </Value> </Parameter> <Parameter type="int"> <Name> u </Name> <Value> 10
+  </Value> </Parameter> <Parameter type="float"> <Name> tol </Name> <Value>
+  1e-08 </Value> </Parameter> <Parameter type="float"> <Name> dt </Name>
+  <Value>
+0.01 </Value> </Parameter> <Parameter type="str"> <Name> message </Name>
+  <Value> current error = 9.516258e-01 </Value> </Parameter> </Model> </ESys>
+''' % (modulename, modelname)
+
+    def testModuleAttribute(self):
+        modeldoc = parse(self._xml('test_xml', 'ODETEST'))
+
+    def testModuleAttributeFails(self):
+        try:
+            modeldoc = parse(self._xml('a', 'b'))
+        except ImportError:
+            return # correct
+
+        assert False, "This test should have resulted in an ImportError"
         
 class Messenger(Model):
     def __init__(self, *args, **kwargs):
@@ -283,7 +359,9 @@ class ODETEST(Model):
     def finalize(self):
         return self.__tn>=self.tend
 
+
     
 if __name__ == "__main__":
-            unittest.main()
+    from test_xml import Messenger, ODETEST
+    unittest.main()
 

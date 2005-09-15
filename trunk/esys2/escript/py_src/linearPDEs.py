@@ -62,6 +62,7 @@ class PDECoefficient:
     @cvar BOUNDARY: indicator that coefficient is defined on the boundary of the PDE domain
     @cvar CONTACT: indicator that coefficient is defined on the contact region within the PDE domain
     @cvar SOLUTION: indicator that coefficient is defined trough a solution of the PDE
+    @cvar REDUCED: indicator that coefficient is defined trough a reduced solution of the PDE
     @cvar BY_EQUATION: indicator that the dimension of the coefficient shape is defined by the number PDE equations
     @cvar BY_SOLUTION: indicator that the dimension of the coefficient shape is defined by the number PDE solutions
     @cvar BY_DIM: indicator that the dimension of the coefficient shape is defined by the spatial dimension
@@ -74,6 +75,7 @@ class PDECoefficient:
     BOUNDARY=1
     CONTACT=2
     SOLUTION=3
+    REDUCED=4
     BY_EQUATION=5
     BY_SOLUTION=6
     BY_DIM=7
@@ -86,7 +88,7 @@ class PDECoefficient:
        Initialise a PDE Coefficient type
        
        @param where: describes where the coefficient lives
-       @type where: one of L{INTERIOR}, L{BOUNDARY}, L{CONTACT}, L{SOLUTION}
+       @type where: one of L{INTERIOR}, L{BOUNDARY}, L{CONTACT}, L{SOLUTION}, L{REDUCED}
        @param pattern: describes the shape of the coefficient and how the shape is build for a given 
               spatial dimension and numbers of equation and solution in then PDE. For instance,
               (L{BY_EQUATION},L{BY_SOLUTION},L{BY_DIM}) descrbes a rank 3 coefficient which
@@ -134,6 +136,11 @@ class PDECoefficient:
                 return escript.ReducedSolution(domain)
             else:
                 return escript.Solution(domain)
+       elif self.what==self.REDUCED: 
+            if reducedEquationOrder and reducedSolutionOrder:
+                return escript.ReducedSolution(domain)
+            else:
+                return escript.ReducedSolution(domain)
 
     def getValue(self):
        """
@@ -392,8 +399,7 @@ class LinearPDE:
    In this case the the coefficient M{d_contact} and M{y_contact} are eaach scalar
    both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
 
- 
-   @cvar DEFAULT_METHOD: The default method used to solve the system of linear equations
+   @cvar DEFAULT: The default method used to solve the system of linear equations
    @cvar DIRECT: The direct solver based on LDU factorization
    @cvar CHOLEVSKY: The direct solver based on LDLt factorization (can only be applied for symmetric PDEs)
    @cvar PCG: The preconditioned conjugate gradient method (can only be applied for symmetric PDEs)
@@ -410,26 +416,38 @@ class LinearPDE:
    @cvar NO_REORDERING: No matrix reordering allowed
    @cvar MINIMUM_FILL_IN: Reorder matrix to reduce fill-in during factorization
    @cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
+   @cvar PASO: PASO solver package
+   @cvar SCSL: SGI SCSL solver library
+   @cvar MKL: Intel's MKL solver library
+   @cvar UMFPACK: the UMFPACK library 
+   @cvar ITERATIVE: The default iterative solver
 
    """
-   DEFAULT_METHOD=0
-   DIRECT=1
-   CHOLEVSKY=2
-   PCG=3
-   CR=4
-   CGS=5
-   BICGSTAB=6
-   SSOR=7
-   ILU0=8
-   ILUT=9
-   JACOBI=10
-   GMRES=11
-   PRES20=12
-   LUMPING=13
-   NO_REORDERING=0
-   MINIMUM_FILL_IN=1
-   NESTED_DISSECTION=2
+   DEFAULT= 0
+   DIRECT= 1
+   CHOLEVSKY= 2
+   PCG= 3
+   CR= 4
+   CGS= 5
+   BICGSTAB= 6
+   SSOR= 7
+   ILU0= 8
+   ILUT= 9
+   JACOBI= 10
+   GMRES= 11
+   PRES20= 12
+   LUMPING= 13
+   NO_REORDERING= 17
+   MINIMUM_FILL_IN= 18
+   NESTED_DISSECTION= 19
+   SCSL= 14
+   MKL= 15
+   UMFPACK= 16
+   ITERATIVE= 20
+   PASO= 21
+
    __TOL=1.e-13
+   __PACKAGE_KEY="package"
    __METHOD_KEY="method"
    __SYMMETRY_KEY="symmetric"
    __TOLERANCE_KEY="tolerance"
@@ -479,8 +497,9 @@ class LinearPDE:
      self.__reduce_equation_order=False
      self.__reduce_solution_order=False
      self.__tolerance=1.e-8
-     self.__solver_method=self.DEFAULT_METHOD
-     self.__matrix_type=self.__domain.getSystemMatrixTypeId(self.DEFAULT_METHOD,False)
+     self.__solver_method=self.DEFAULT
+     self.__solver_package=self.DEFAULT
+     self.__matrix_type=self.__domain.getSystemMatrixTypeId(self.DEFAULT,self.DEFAULT,False)
      self.__sym=False
 
      self.resetCoefficients()
@@ -769,6 +788,7 @@ class LinearPDE:
           else:
              options[self.__TOLERANCE_KEY]=self.getTolerance()
              options[self.__METHOD_KEY]=self.getSolverMethod()
+             options[self.__PACKAGE_KEY]=self.getSolverPackage()
              options[self.__SYMMETRY_KEY]=self.isSymmetric()
              self.trace("PDE is resolved.")
              self.trace("solver options: %s"%str(options))
@@ -801,10 +821,9 @@ class LinearPDE:
        sets a new solver
 
        @param solver: sets a new solver method.
-       @type solver: one of L{DEFAULT_METHOD}, L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{PRES20}, L{LUMPING}.
-
+       @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{PRES20}, L{LUMPING}.
        """
-       if solver==None: solve=self.DEFAULT_METHOD
+       if solver==None: solve=self.DEFAULT
        if not solver==self.getSolverMethod():
            self.__solver_method=solver
            self.__checkMatrixType()
@@ -819,18 +838,27 @@ class LinearPDE:
        """
 
        m=self.getSolverMethod()
-       if m==self.DEFAULT_METHOD: return "DEFAULT_METHOD"
-       elif m==self.DIRECT: return "DIRECT"
-       elif m==self.CHOLEVSKY: return "CHOLEVSKY"
-       elif m==self.PCG: return "PCG"
-       elif m==self.CR: return "CR"
-       elif m==self.CGS: return "CGS"
-       elif m==self.BICGSTAB: return "BICGSTAB"
-       elif m==self.SSOR: return "SSOR"
-       elif m==self.GMRES: return "GMRES"
-       elif m==self.PRES20: return "PRES20"
-       elif m==self.LUMPING: return "LUMPING"
-       return None
+       p=self.getSolverPackage()
+       if m==self.DEFAULT: method="DEFAULT"
+       elif m==self.DIRECT: method= "DIRECT"
+       elif m==self.ITERATIVE: method= "ITERATIVE"
+       elif m==self.CHOLEVSKY: method= "CHOLEVSKY"
+       elif m==self.PCG: method= "PCG"
+       elif m==self.CR: method= "CR"
+       elif m==self.CGS: method= "CGS"
+       elif m==self.BICGSTAB: method= "BICGSTAB"
+       elif m==self.SSOR: method= "SSOR"
+       elif m==self.GMRES: method= "GMRES"
+       elif m==self.PRES20: method= "PRES20"
+       elif m==self.LUMPING: method= "LUMPING"
+       else : method="unknown"
+       if p==self.DEFAULT: package="DEFAULT"
+       elif p==self.PASO: package= "PASO"
+       elif p==self.MKL: package= "MKL"
+       elif p==self.SCSL: package= "SCSL"
+       elif p==self.UMFPACK: package= "UMFPACK"
+       else : method="unknown"
+       return "%s solver of %s package"%(method,package)
 
 
    def getSolverMethod(self):
@@ -841,6 +869,28 @@ class LinearPDE:
        @rtype: C{int}
        """
        return self.__solver_method
+
+   def setSolverPackage(self,package=None):
+       """
+       sets a new solver package
+
+       @param solver: sets a new solver method.
+       @type solver: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMLPACK}
+       """
+       if package==None: package=self.DEFAULT
+       if not package==self.getSolverPackage():
+           self.__solver_method=solver
+           self.__checkMatrixType()
+           self.trace("New solver is %s"%self.getSolverMethodName())
+
+   def getSolverPackage(self):
+       """
+       returns the package of the solver
+
+       @return: the solver package currently being used. 
+       @rtype: C{int}
+       """
+       return self.__solver_package
 
    def isUsingLumping(self):
       """
@@ -1042,7 +1092,7 @@ class LinearPDE:
      """
      reassess the matrix type and, if a new matrix is needed, resets the system.
      """
-     new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod(),self.isSymmetric())
+     new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod(),self.getSolverPackage(),self.isSymmetric())
      if not new_matrix_type==self.__matrix_type:
          self.trace("Matrix type is now %d."%new_matrix_type)
          self.__matrix_type=new_matrix_type
@@ -2169,6 +2219,9 @@ class AdvectivePDE(LinearPDE):
 
 
 # $Log$
+# Revision 1.13  2005/09/15 03:44:19  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-15
+#
 # Revision 1.12  2005/09/01 03:31:28  jgs
 # Merge of development branch dev-02 back to main trunk on 2005-09-01
 #
@@ -2177,6 +2230,12 @@ class AdvectivePDE(LinearPDE):
 #
 # Revision 1.10  2005/08/12 01:45:36  jgs
 # erge of development branch dev-02 back to main trunk on 2005-08-12
+#
+# Revision 1.9.2.15  2005/09/14 08:09:18  matt
+# Added "REDUCED" solution PDECoefficient descriptors for LinearPDEs.
+#
+# Revision 1.9.2.14  2005/09/07 06:26:16  gross
+# the solver from finley are put into the standalone package paso now
 #
 # Revision 1.9.2.13  2005/08/31 08:45:03  gross
 # in the case of lumping no new system is allocated if the constraint is changed.

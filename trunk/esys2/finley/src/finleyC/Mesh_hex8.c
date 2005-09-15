@@ -1,3 +1,17 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: generates rectangular meshes */
@@ -8,15 +22,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
-#include "Finley.h"
-#include "Mesh.h"
 #include "RectangularMesh.h"
 
 /**************************************************************/
@@ -58,7 +68,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   
   sprintf(name,"Rectangular %d x %d x %d mesh",N0,N1,N2);
   out=Finley_Mesh_alloc(name,3,order);
-  if (Finley_ErrorCode!=NO_ERROR) return NULL;
+  if (! Finley_noError()) return NULL;
 
   out->Elements=Finley_ElementFile_alloc(Hex8,out->order);
   if (useElementsOnFace) {
@@ -69,7 +79,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
      out->ContactElements=Finley_ElementFile_alloc(Rec4_Contact,out->order);
   }
   out->Points=Finley_ElementFile_alloc(Point1,out->order);
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
   }
@@ -80,7 +90,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   Finley_NodeFile_allocTable(out->Nodes,N0*N1*N2);
   Finley_ElementFile_allocTable(out->Elements,NE0*NE1*NE2);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
   }
@@ -380,7 +390,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
   #endif
 
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
   }
@@ -388,9 +398,11 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
 }
 
 /*
-* $Log$
 * Revision 1.3  2005/09/01 03:31:35  jgs
 * Merge of development branch dev-02 back to main trunk on 2005-09-01
+*
+* Revision 1.2.2.2  2005/09/07 06:26:19  gross
+* the solver from finley are put into the standalone package paso now
 *
 * Revision 1.2.2.1  2005/08/24 02:02:18  gross
 * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.

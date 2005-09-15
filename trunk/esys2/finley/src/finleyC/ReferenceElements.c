@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,13 +18,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003 */
 /*   Author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "ReferenceElements.h"
 
 /**************************************************************/
@@ -400,7 +410,7 @@ Finley_RefElement* Finley_RefElement_alloc(ElementTypeId id,int numQuadNodes) {
   /*  set the quadrature nodes: */
   
   Finley_RefElement_InfoList[id].getQuadNodes(numQuadNodes,out->QuadNodes,out->QuadWeights);
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
          Finley_RefElement_dealloc(out);
          return NULL;
   } 
@@ -408,7 +418,7 @@ Finley_RefElement* Finley_RefElement_alloc(ElementTypeId id,int numQuadNodes) {
   /*  eval shape functions on quadrature node: */
   
   Finley_RefElement_InfoList[id].getValues(numQuadNodes,out->QuadNodes,out->S,out->dSdv);
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
          Finley_RefElement_dealloc(out);
          return NULL;
   } 
@@ -449,6 +459,12 @@ ElementTypeId Finley_RefElement_getTypeId(char* element_type) {
 }
 /* 
 * $Log$
+* Revision 1.5  2005/09/15 03:44:23  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.4.2.1  2005/09/07 06:26:21  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
 *

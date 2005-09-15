@@ -6,8 +6,8 @@
 # set flags
 CC_INC_DIR_FLAGS := ${patsubst %, ${CC_INC_DIR_FLAG}%, ${L_SRC_DIR} ${L_INC_DIR} ${PKG_CC_INC_DIRS} ${L_EXT_INC_DIRS} ${CC_SYS_INC_DIRS}}
 CPP_INC_DIR_FLAGS := ${patsubst %, ${CPP_INC_DIR_FLAG}%, ${L_SRC_DIR} ${L_INC_DIR} ${PKG_CPP_INC_DIRS} ${L_EXT_INC_DIRS} ${CPP_SYS_INC_DIRS}}
-CC_DEF_FLAGS := ${patsubst %, ${CC_DEF_FLAG}%, ${L_DEFS}}
-CPP_DEF_FLAGS := ${patsubst %, ${CPP_DEF_FLAG}%, ${L_DEFS}}
+CC_DEF_FLAGS := ${patsubst %, ${CC_DEF_FLAG}%, ${L_DEFS} ${PKG_CC_DEFS}}
+CPP_DEF_FLAGS := ${patsubst %, ${CPP_DEF_FLAG}%, ${L_DEFS} ${PKG_CPP_DEFS}}
 LD_LIB_DIR_FLAGS := ${patsubst %, ${LD_LIB_DIR_FLAG}%, ${L_EXT_LIB_DIRS} ${PKG_LD_LIB_DIRS} ${LD_SYS_LIB_DIRS}}
 LD_LIB_FLAGS := ${patsubst %, ${LD_LIB_FLAG}%, ${L_EXT_LIBS} ${PKG_LD_LIBS} ${LD_SYS_LIBS}}
 
@@ -89,6 +89,15 @@ LD_FLAGS := ${LD_DIAG_FLAGS} ${LD_LIB_DIR_FLAGS} ${LD_LIB_FLAGS}
 	@echo Compiled \"$@: $<\".
 
 # $Log$
+# Revision 1.3  2005/09/15 03:44:32  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-15
+#
+# Revision 1.2.2.2  2005/09/08 03:10:17  jgs
+# minor, but interesting, typo was causing CPP_FLAGS to be undefined
+#
+# Revision 1.2.2.1  2005/09/07 06:26:23  gross
+# the solver from finley are put into the standalone package paso now
+#
 # Revision 1.2  2005/06/09 05:38:02  jgs
 # Merge of development branch back to main trunk on 2005-06-09
 #

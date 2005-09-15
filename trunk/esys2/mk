@@ -10,13 +10,13 @@
 #**********************************************************************
 
 # the modules to make
-MODULES="tools/CppUnitTest tools/mmio esysUtils escript finley bruce modellib"
+MODULES="tools/CppUnitTest tools/mmio esysUtils escript paso finley bruce modellib"
 
 # the modules to test
 TESTS="escript finley bruce"
 
 # the python tests to run
-FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py"
+FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py"
 ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py escriptTest.py DataVariableTests.py test_xml.py pdetoolsTest.py"
 BRUCE_PYTESTS="ImportTest.py"
 
@@ -41,6 +41,7 @@ fi
 (cd esysUtils/inc; if [ ! -h esysUtils ]; then ln -s ../src esysUtils; fi)
 (cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
 (cd finley/inc; if [ ! -h finley ]; then ln -s ../src finley; fi)
+(cd paso/inc; if [ ! -h paso ]; then ln -s ../src paso; fi)
 (cd bruce/inc; if [ ! -h bruce ]; then ln -s ../src bruce; fi)
 
 (cd tools/mmio; if [ ! -h Makefile ]; then ln -s ./mmio.mk Makefile; fi)
@@ -48,6 +49,7 @@ fi
 (cd esysUtils; if [ ! -h Makefile ]; then ln -s ./esysUtils.mk Makefile; fi)
 (cd escript; if [ ! -h Makefile ]; then ln -s ./escript.mk Makefile; fi)
 (cd finley; if [ ! -h Makefile ]; then ln -s ./finley.mk Makefile; fi)
+(cd paso; if [ ! -h Makefile ]; then ln -s ./paso.mk Makefile; fi)
 (cd bruce; if [ ! -h Makefile ]; then ln -s ./bruce.mk Makefile; fi)
 (cd modellib; if [ ! -h Makefile ]; then ln -s ./modellib.mk Makefile; fi)
 
@@ -107,7 +109,7 @@ then
                   echo Python Testing FAILED for $pytest in module $module
                   exit 1
                 fi
-            done
+            done 
 	elif [ "$module" == "escript" ]
 	then
             for pytest in $ESCRIPT_PYTESTS

@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -21,17 +33,12 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
 /*   author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
 #include "Assemble.h"
-#include "NodeFile.h"
-#include "ElementFile.h"
-#include "Finley.h"
 #include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -39,19 +46,21 @@
 
 /**************************************************************/
 
-void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* elements,Finley_SystemMatrix* S, escriptDataC* F, escriptDataC* d, escriptDataC* y, Finley_Assemble_handelShapeMissMatch handelShapeMissMatchForEM) {
+void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, escriptDataC* F, escriptDataC* d, escriptDataC* y, Finley_Assemble_handelShapeMissMatch handelShapeMissMatchForEM) {
+  char error_msg[LenErrorMsg_MAX];
   double *EM_S=NULL,*EM_F=NULL,*V=NULL,*dVdv=NULL,*dSdV=NULL,*Area=NULL;
   double time0;
   Assemble_Parameters p;
   index_t *index_row=NULL,*index_col=NULL,color;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK],e,q;
+  Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
   if (S==NULL && isEmpty(F)) return;
 
   /* set all parameters in p*/
   Assemble_getAssembleParameters(nodes,elements,S,F,&p);
-  if (Finley_ErrorCode!=NO_ERROR) return;
+  if (! Finley_noError()) return;
 
   /*  get a functionspace */
   type_t funcspace=UNKNOWN;
@@ -62,24 +71,22 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
   /* check if all function spaces are the same */
 
   if (! functionSpaceTypeEqual(funcspace,d) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient d");
+        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient d");
   }
   if (! functionSpaceTypeEqual(funcspace,y) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient y");
+        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient y");
   }
 
   /* check if all function spaces are the same */
 
   if (! numSamplesEqual(d,p.numQuad,elements->numElements) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"sample points of coefficient d don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"__FILE__: sample points of coefficient d don't match (%d,%d)",p.numQuad,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
   }
 
   if (! numSamplesEqual(y,p.numQuad,elements->numElements) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"sample points of coefficient y don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"__FILE__: sample points of coefficient y don't match (%d,%d)",p.numQuad,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
   }
 
   
@@ -88,14 +95,12 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
   if (p.numEqu==1 && p.numComp==1) {
     if (!isEmpty(d)) {
       if (! isDataPointShapeEqual(d,0,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient d, rank 0 expected.");
+          Finley_setError(TYPE_ERROR,"__FILE__: coefficient d, rank 0 expected.");
       }
     }
     if (!isEmpty(y)) {
       if (! isDataPointShapeEqual(y,0,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient y, rank 0 expected.");
+          Finley_setError(TYPE_ERROR,"__FILE__: coefficient y, rank 0 expected.");
       }
     }
   } else {
@@ -103,20 +108,20 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
       dimensions[0]=p.numEqu;
       dimensions[1]=p.numComp;
       if (! isDataPointShapeEqual(d,2,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient d, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          sprintf(error_msg,"__FILE__: coefficient d, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          Finley_setError(TYPE_ERROR,error_msg);
       }
     }
     if (!isEmpty(y)) {
       dimensions[0]=p.numEqu;
       if (! isDataPointShapeEqual(y,1,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient y, expected shape (%d,)",dimensions[0]);
+          sprintf(error_msg,"__FILE__: coefficient y, expected shape (%d,)",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
       }
     }
   }
   
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
      time0=Finley_timer();
      #pragma omp parallel private(index_row,index_col,EM_S,EM_F,V,dVdv,dSdV,Area,color)
      {
@@ -179,7 +184,7 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
                      */
                        /* add  */
                        for (q=0;q<p.NN_col;q++) index_col[q]=p.label_col[elements->Nodes[INDEX2(p.col_node[q],e,p.NN)]];
-                       Finley_SystemMatrix_add(S,p.NN_row,index_row,p.numEqu,p.NN_col,index_col,p.numComp,EM_S);
+                       Finley_Assemble_addToSystemMatrix(S,p.NN_row,index_row,p.numEqu,p.NN_col,index_col,p.numComp,EM_S);
                    }
                    if (!isEmpty(F)) {
                      for (q=0;q<p.NN_row*p.numEqu;q++) EM_F[q]=0;
@@ -225,11 +230,17 @@ void Finley_Assemble_RobinCondition(Finley_NodeFile* nodes,Finley_ElementFile* e
 }
 /*
  * $Log$
+ * Revision 1.8  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
  * Revision 1.7  2005/09/01 03:31:35  jgs
  * Merge of development branch dev-02 back to main trunk on 2005-09-01
  *
  * Revision 1.6  2005/08/12 01:45:43  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.5.2.4  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.5.2.3  2005/08/24 02:02:18  gross
  * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.

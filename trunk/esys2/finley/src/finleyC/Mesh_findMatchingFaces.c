@@ -1,3 +1,17 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: Mesh */
@@ -6,14 +20,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$
 
 /**************************************************************/
 
-#include "Common.h"
-#include "Finley.h"
 #include "Util.h"
 #include "Mesh.h"
 
@@ -53,6 +64,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
               (_i1_)=i; \
              }
 
+    char error_msg[LenErrorMsg_MAX];
     double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;
     dim_t NN=faces->ReferenceElement->Type->numNodes;
     dim_t numDim=nodes->numDim;
@@ -92,7 +104,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
        /* find elements with matching center */
        *numPairs=0;
        /* OMP */
-       for (e=0;e<faces->numElements-1 && Finley_ErrorCode==NO_ERROR;e++) {
+       for (e=0;e<faces->numElements-1 && Finley_noError();e++) {
           if (Finley_Mesh_findMatchingFaces_compar((void*) &(center[e]),(void*) &(center[e+1]))==0) {
               e_0=center[e].refId;
               e_1=center[e+1].refId;
@@ -102,7 +114,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
               perm=a1;
               perm_tmp=a2;
               for (i=0;i<NN;i++) perm[i]=i;
-              while (Finley_ErrorCode==NO_ERROR) {
+              while (Finley_noError()) {
                  /* if node 0 and perm[0] are the same we are ready */
                  getDist(dist,e_0,0,e_1,perm[0]);
                  if (dist<=h*tolerance) break;
@@ -113,46 +125,46 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                  }
                  /* if the permutation is back at the identity, ie. perm[0]=0, the faces don't match: */
                  if (perm[0]==0) {
-                       Finley_ErrorCode=VALUE_ERROR;
-                       sprintf(Finley_ErrorMsg,"couldn't match first node of element %d to touching element %d",e_0,e_1);
+                       sprintf(error_msg,"__FILE__:couldn't match first node of element %d to touching element %d",e_0,e_1);
+                       Finley_setError(VALUE_ERROR,error_msg);
                  }
               }
               /* now we check if the second nodes match */
-              if (Finley_ErrorCode==NO_ERROR) {
+              if (Finley_noError()) {
                  if (faces->ReferenceElement->Type->numNodesOnFace>1) {
                     getDist(dist,e_0,1,e_1,perm[faces->ReferenceElement->Type->faceNode[1]]);
                     /* if the second node does not match we reverse the direction of the nodes */
                     if (dist>h*tolerance) {
                           /* rotate the nodes */
                           if (faces->ReferenceElement->Type->reverseNodes[0]<0) {
-                             Finley_ErrorCode=VALUE_ERROR;
-                             sprintf(Finley_ErrorMsg,"couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                             sprintf(error_msg,"__FILE__:couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                             Finley_setError(VALUE_ERROR,error_msg);
                           } else {
                              for (i=0;i<NN;i++) perm_tmp[i]=perm[faces->ReferenceElement->Type->reverseNodes[i]];
                              SWAP(perm,perm_tmp);
                              getDist(dist,e_0,1,e_1,perm[faces->ReferenceElement->Type->faceNode[1]]);
                              if (dist>h*tolerance) {
-                                 Finley_ErrorCode=VALUE_ERROR;
-                                 sprintf(Finley_ErrorMsg,"couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                                 sprintf(error_msg,"__FILE__:couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                                 Finley_setError(VALUE_ERROR,error_msg);
                              }
                           }
                     }
                  }
               }
               /* we check if the rest of the face nodes match: */
-              if (Finley_ErrorCode==NO_ERROR) {
+              if (Finley_noError()) {
                  for (i=2;i<faces->ReferenceElement->Type->numNodesOnFace;i++) {
                     n=faces->ReferenceElement->Type->faceNode[i];
                     getDist(dist,e_0,n,e_1,perm[n]);
                     if (dist>h*tolerance) {
-                       Finley_ErrorCode=VALUE_ERROR;
-                       sprintf(Finley_ErrorMsg,"couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);
+                       sprintf(error_msg,"__FILE__:couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);
+                       Finley_setError(VALUE_ERROR,error_msg);
                        break;
                     }
                  }
               }
               /* copy over the permuted nodes of e_1 into matching_nodes_in_elem1 */
-              if (Finley_ErrorCode==NO_ERROR) {
+              if (Finley_noError()) {
                  for (i=0;i<NN;i++)  matching_nodes_in_elem1[INDEX2(i,*numPairs,NN)]=faces->Nodes[INDEX2(perm[i],e_1,NN)];
               }
               (*numPairs)++;
@@ -172,6 +184,12 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
 
 /*
 * $Log$
+* Revision 1.6  2005/09/15 03:44:22  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.5.2.1  2005/09/07 06:26:19  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.5  2005/07/08 04:07:51  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

@@ -25,11 +25,7 @@
    solver options, they have to be consistent with LinearPDE.py settings 
 
 */
-#define ESCRIPT_UNKNOWN -1
-#define ESCRIPT_NO_REORDERING 0
-#define ESCRIPT_MINIMUM_FILL_IN 1
-#define ESCRIPT_NESTED_DISSECTION 2
-#define ESCRIPT_DEFAULT_METHOD 0
+#define ESCRIPT_DEFAULT 0
 #define ESCRIPT_DIRECT 1
 #define ESCRIPT_CHOLEVSKY 2
 #define ESCRIPT_PCG 3
@@ -43,10 +39,19 @@
 #define ESCRIPT_GMRES 11
 #define ESCRIPT_PRES20 12
 #define ESCRIPT_LUMPING 13
+#define ESCRIPT_NO_REORDERING 17
+#define ESCRIPT_MINIMUM_FILL_IN 18
+#define ESCRIPT_NESTED_DISSECTION 19
+#define ESCRIPT_SCSL 14
+#define ESCRIPT_MKL 15
+#define ESCRIPT_UMFPACK 16
+#define ESCRIPT_ITERATIVE 20
+#define ESCRIPT_PASO 21
 
 /* keyword in solver options relevant for lineraPDE class */
 #define ESCRIPT_TOLERANCE_KEY "tolerance"
 #define ESCRIPT_METHOD_KEY "method"
 #define ESCRIPT_SYMMETRY_KEY "symmetric"
+#define ESCRIPT_PACKAGE_KEY "package"
 
 #endif

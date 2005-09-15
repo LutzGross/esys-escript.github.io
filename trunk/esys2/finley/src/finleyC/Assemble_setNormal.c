@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,17 +18,12 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
-/*   author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
-#include "Finley.h"
 #include "Assemble.h"
-#include "NodeFile.h"
-#include "ElementFile.h"
 #include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -35,6 +42,7 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
   dim_t numDim=nodes->numDim;
   dim_t numQuad=elements->ReferenceElement->numQuadNodes;
   dim_t numDim_local=elements->ReferenceElement->Type->numDim;
+  Finley_resetError();
 
   /* set some parameter */
 
@@ -47,24 +55,19 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
   }
   /* check the dimensions of normal */
   if (! (numDim==numDim_local || numDim-1==numDim_local)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"Cannot calculate normal vector");
+       Finley_setError(TYPE_ERROR,"__FILE__: Cannot calculate normal vector");
   } else if (! isDataPointShapeEqual(normal,1,&(numDim))) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of normal Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of normal Data object");
   } else if (! numSamplesEqual(normal,numQuad,elements->numElements)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of normal Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of normal Data object");
   } else if (! isDataPointShapeEqual(normal,1,&(numDim))) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal point data shape of normal Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal point data shape of normal Data object");
   }  else if (!isExpanded(normal)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"expanded Data object is expected for normal.");
+       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for normal.");
   }
    
   /* now we can start */
-    if (Finley_ErrorCode==NO_ERROR) {
+    if (Finley_noError()) {
           #pragma omp parallel private(local_X,dVdv)
           {
              local_X=dVdv=NULL;
@@ -92,6 +95,12 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
 }
 /*
  * $Log$
+ * Revision 1.6  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.5.2.1  2005/09/07 06:26:18  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.5  2005/07/08 04:07:48  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

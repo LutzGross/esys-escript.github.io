@@ -74,7 +74,8 @@ if format != "pnm":
 	front = r.findall(fname)
 	front = front[0]
 	# make the conversion string to pass to 'convert'
-	convString = "convert %s%s %spnm" % (front, format, front)
+	convString = "convert %s/%s%s %s/%spnm" % \
+		(dirname, front, format, dirname, front)
 	retVal = os.system(convString)
 	if retVal != 0:
 	    raise SystemError, "Conversion of %s%s failed" % (front, format)

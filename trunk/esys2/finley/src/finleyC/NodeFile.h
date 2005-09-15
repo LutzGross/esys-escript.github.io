@@ -1,11 +1,25 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
+/* Version: $Id$ */
 
 #ifndef INC_FINLEY_NODEFILE
 #define INC_FINLEY_NODEFILE
 
 #define MAX_numDim 3
 
-#include "Common.h"
+#include "Finley.h"
 #include "escript/Data/DataC.h"
 
 struct Finley_NodeFile {
@@ -52,6 +66,12 @@ void Finley_NodeFile_deallocTable(Finley_NodeFile*);
 
 /*
  * $Log$
+ * Revision 1.3  2005/09/15 03:44:23  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.2.2.1  2005/09/07 06:26:20  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.2  2005/07/08 04:07:55  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

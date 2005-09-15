@@ -22,6 +22,7 @@
 #include "escript/Data/Data.h"
 
 #include <string>
+#include <vector>
 
 namespace bruce {
 
@@ -41,8 +42,26 @@ class Bruce : public escript::AbstractContinuousDomain {
 
   //
   // Codes for function space types supported
-  static const int Nodes;
-  static const int Elements;
+  static const int ContinuousFunction;
+  static const int Function;
+
+  //
+  // Type of FunctionSpaceNamesMap
+  typedef std::map<int, std::string> FunctionSpaceNamesMapType;
+
+  //
+  // Types for the dimension vectors
+  typedef std::vector<double> DimVec;
+
+  /**
+     \brief
+     Default constructor for Bruce.
+
+     Description:
+     Default constructor for Bruce.
+     Creates a null Bruce object.
+  */
+  Bruce();
 
   /**
      \brief
@@ -50,8 +69,23 @@ class Bruce : public escript::AbstractContinuousDomain {
 
      Description:
      Constructor for Bruce.
+
+     The point "origin" specifies the location of the origin
+     of the domain specified by this object. The dimensionality of this
+     point determines the dimensionality of the space the domain occupies.
+
+     The vectors v0,v1,v2 specify the axis in
+     of the domain of this Bruce object. If v2 is an empty vector, this
+     object is a two dimensional domain. If v1 is also an empty vector,
+     this object is a one dimensional domain. If v0 is also an empty
+     vector, this is a point domain.
+
+     The integers n0,n1,n2 specify the dumber of data-points along each
+     axis in the domain.
   */
-  Bruce();
+  Bruce(DimVec v0, DimVec v1, DimVec v2,
+        int n0, int n1, int n2,
+        DimVec origin);
 
   /**
      \brief
@@ -73,7 +107,7 @@ class Bruce : public escript::AbstractContinuousDomain {
   const AbstractContinuousDomain&
   asAbstractContinuousDomain() const 
   {
-     return *(static_cast<const AbstractContinuousDomain*>(this));
+    return *(static_cast<const AbstractContinuousDomain*>(this));
   }
 
   /**
@@ -84,8 +118,16 @@ class Bruce : public escript::AbstractContinuousDomain {
   const AbstractDomain&
   asAbstractDomain() const 
   {
-     return *(static_cast<const AbstractDomain*>(this));
+    return *(static_cast<const AbstractDomain*>(this));
   }
+
+  /**
+     \brief
+     Return a description for this domain.
+  */
+  virtual
+  std::string
+  getDescription() const;
 
   /**
      \brief
@@ -94,7 +136,31 @@ class Bruce : public escript::AbstractContinuousDomain {
   */
   virtual
   bool
-  isValidFunctionSpaceType(int functionSpaceType) const;
+  isValidFunctionSpaceType(int functionSpaceCode) const;
+
+  /**
+     \brief
+     Return a description for the given function space type code.
+  */
+  virtual
+  std::string
+  functionSpaceTypeAsString(int functionSpaceCode) const;
+
+  /**
+     \brief
+     Return a continuous FunctionSpace code.
+  */
+  virtual
+  int
+  getContinuousFunctionCode() const;
+
+  /**
+     \brief
+     Return a function FunctionSpace code.
+  */
+  virtual
+  int
+  getFunctionCode() const;
 
   /**
      \brief
@@ -123,11 +189,27 @@ class Bruce : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Copies the location of data points on the domain into out.
+  */
+  virtual
+  void
+  setToX(escript::Data& out) const;
+
+  /**
+     \brief
      Returns the element size.
   */
   virtual
   escript::Data
   getSize() const;
+
+  /**
+     \brief
+     Copies the size of samples into out.
+  */
+  virtual
+  void
+  setToSize(escript::Data& out) const;
 
   /**
      \brief
@@ -138,7 +220,44 @@ class Bruce : public escript::AbstractContinuousDomain {
 
  protected:
 
+  /**
+     \brief
+     Build the table of function space type names.
+  */
+  void
+  setFunctionSpaceTypeNames();
+
+  /**
+     \brief
+     Ensure the parameters supplied to the constructor are valid.
+  */
+  bool
+  checkParameters();
+
+  /**
+     \brief
+     Check if all components of vector are zero.
+  */
+  bool
+  isZero(DimVec vec) const;
+
  private:
+
+  //
+  // vectors describing axis of the domain
+  DimVec m_v0, m_v1, m_v2;
+
+  //
+  // number of data points in each axial direction of the domain
+  int m_n0, m_n1, m_n2;
+
+  //
+  // the coordinates of the origin of the domain
+  DimVec m_origin;
+
+  //
+  // map from FunctionSpace codes to names
+  static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
 };
 

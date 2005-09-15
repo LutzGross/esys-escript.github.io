@@ -32,8 +32,15 @@ class BruceTestCase : public CppUnitTest::TestCase
 
   //
   // A test method must return void and have no arguments
-  // Bruce class
-  void testAll();
+  void testConstructorException();
+  void testNull();
+  void testZero();
+  void test1d();
+  void test2d();
+  void test3d();
+  void testBig();
+  void testSetToX();
+  void testSetToSize();
 
   BruceTestCase (std::string name) : TestCase (name) {}
   ~BruceTestCase() {}

@@ -1,3 +1,17 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: Mesh */
@@ -6,33 +20,30 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003 */
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
-#include "Finley.h"
 #include "Mesh.h"
 
 /**************************************************************/
 
 void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance) {
 
+   char error_msg[LenErrorMsg_MAX];
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
    dim_t e,i,numPairs;
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
-     Finley_ErrorCode=TYPE_ERROR;
-     sprintf(Finley_ErrorMsg,"joining faces cannot be applied to face elements of type %s",self->FaceElements->ReferenceElement->Type->Name);
+     sprintf(error_msg,"__FILE__:joining faces cannot be applied to face elements of type %s",self->FaceElements->ReferenceElement->Type->Name);
+     Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
    if (self->ContactElements==NULL) {
-     Finley_ErrorCode=TYPE_ERROR;
-     sprintf(Finley_ErrorMsg,"no contact element file present.");
+     Finley_setError(TYPE_ERROR,"__FILE__: no contact element file present.");
      return;
    }
 
@@ -40,9 +51,9 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    int NN_Contact=self->ContactElements->ReferenceElement->Type->numNodes;
 
    if (2*NN!=NN_Contact) {
-     Finley_ErrorCode=TYPE_ERROR;
-     sprintf(Finley_ErrorMsg,"contact element file for %s cannot hold elements created from face elements %s",
+     sprintf(error_msg,"__FILE__:contact element file for %s cannot hold elements created from face elements %s",
            self->ContactElements->ReferenceElement->Type->Name,self->FaceElements->ReferenceElement->Type->Name);
+     Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
 
@@ -55,7 +66,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(matching_nodes_in_elem1)))  {
       /* find the matching face elements */
       Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
-      if (Finley_ErrorCode==NO_ERROR) {
+      if (Finley_noError()) {
          /* get a list of the face elements to be kept */
          #pragma omp parallel for private(e) schedule(static)
          for(e=0;e<self->FaceElements->numElements;e++) elem_mask[e]=1;
@@ -74,12 +85,12 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
          /*  allocate new face element and Contact element files */
          newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->ReferenceElement->Type->TypeId,self->ContactElements->order);
          newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order);
-         if (Finley_ErrorCode==NO_ERROR) {
+         if (Finley_noError()) {
                Finley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
                Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
          }
          /* copy the old elements over */
-         if (Finley_ErrorCode==NO_ERROR) {
+         if (Finley_noError()) {
             /* get the face elements which are still in use:*/
             Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
             /* get the Contact elements which are still in use:*/
@@ -100,7 +111,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
             newContactElementsFile->maxColor=numPairs-1;
          } 
          /* set new face and Contact elements */
-         if (Finley_ErrorCode==NO_ERROR) {
+         if (Finley_noError()) {
 
             Finley_ElementFile_dealloc(self->FaceElements);
             self->FaceElements=newFaceElementsFile;
@@ -126,6 +137,12 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
 
 /*
 * $Log$
+* Revision 1.6  2005/09/15 03:44:22  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.5.2.1  2005/09/07 06:26:19  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.5  2005/07/08 04:07:52  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

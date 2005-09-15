@@ -1,4 +1,18 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+/* Version: $Id$ */
+
 
 #ifndef INC_FINLEY_MESH
 #define INC_FINLEY_MESH
@@ -44,9 +58,10 @@
 
 /**************************************************************/
 
+#include "Finley.h"
 #include "NodeFile.h"
 #include "ElementFile.h"
-#include "SystemPattern.h"
+#include "paso/SystemMatrixPattern.h"
 #include "escript/Data/DataC.h"
 
 /**************************************************************/
@@ -65,10 +80,10 @@ struct Finley_Mesh {
 
   /* pointer to the sparse matrix pattern */
 
-  Finley_SystemMatrixPattern *FullFullPattern;
-  Finley_SystemMatrixPattern *FullReducedPattern;
-  Finley_SystemMatrixPattern *ReducedFullPattern;
-  Finley_SystemMatrixPattern *ReducedReducedPattern;
+  Paso_SystemMatrixPattern *FullFullPattern;
+  Paso_SystemMatrixPattern *FullReducedPattern;
+  Paso_SystemMatrixPattern *ReducedFullPattern;
+  Paso_SystemMatrixPattern *ReducedReducedPattern;
 };
 
 typedef struct Finley_Mesh Finley_Mesh;
@@ -92,8 +107,8 @@ dim_t Finley_Mesh_getDim(Finley_Mesh*);
 dim_t Finley_Mesh_getNumNodes(Finley_Mesh*);
 dim_t Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh*);
 dim_t Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh*);
-Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
-Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
+Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
+Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 void Finley_Mesh_write(Finley_Mesh*,char*);
 Finley_Mesh* Finley_Mesh_read(char*,index_t);
 
@@ -120,6 +135,12 @@ void Finley_Mesh_saveVTK(const char *, Finley_Mesh *, escriptDataC*);
 
 /*
  * $Log$
+ * Revision 1.7  2005/09/15 03:44:22  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.6.2.1  2005/09/07 06:26:19  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.6  2005/07/08 04:07:51  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *
