@@ -422,6 +422,42 @@ void DataTestCase::testOperations() {
   result.copy(base.tan());
   assert(true);
 
+  cout << "\tTest Data::asin." << endl;
+  result.copy(base.asin());
+  assert(true);
+
+  cout << "\tTest Data::acos." << endl;
+  result.copy(base.acos());
+  assert(true);
+
+  cout << "\tTest Data::atan." << endl;
+  result.copy(base.atan());
+  assert(true);
+
+  cout << "\tTest Data::sinh." << endl;
+  result.copy(base.sinh());
+  assert(true);
+
+  cout << "\tTest Data::cosh." << endl;
+  result.copy(base.cosh());
+  assert(true);
+
+  cout << "\tTest Data::tanh." << endl;
+  result.copy(base.tanh());
+  assert(true);
+
+  cout << "\tTest Data::asinh." << endl;
+  result.copy(base.asinh());
+  assert(true);
+
+  cout << "\tTest Data::acosh." << endl;
+  result.copy(base.acosh());
+  assert(true);
+
+  cout << "\tTest Data::atanh." << endl;
+  result.copy(base.atanh());
+  assert(true);
+
   cout << "\tTest Data::log." << endl;
   result.copy(base.log());
   assert(true);

@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,23 +18,21 @@
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2003, 2004 */
-/* Author: gross@access.edu.au */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
-#include "IndexList.h"
-#include "System.h"
 #include "Mesh.h"
+#include "IndexList.h"
 
 /**************************************************************/
 
 /* returns a reference to the matrix pattern                  */
 
-Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
-   Finley_SystemMatrixPattern *out=NULL;
-   Finley_ErrorCode=NO_ERROR;
+Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
+   Paso_SystemMatrixPattern *out=NULL;
+   Finley_resetError();
    /* make sure that the requested pattern is available */
    if (reduce_row_order) {
       if (reduce_col_order) {
@@ -37,29 +47,29 @@ Finley_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_ro
          if (mesh->FullFullPattern==NULL) mesh->FullFullPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
       }
    }
-   if (Finley_ErrorCode==NO_ERROR) {
+   if (Finley_noError()) {
       if (reduce_row_order) {
          if (reduce_col_order) {
-            out=Finley_SystemMatrixPattern_reference(mesh->ReducedReducedPattern);
+            out=Paso_SystemMatrixPattern_reference(mesh->ReducedReducedPattern);
          } else {
-            out=Finley_SystemMatrixPattern_reference(mesh->ReducedFullPattern);
+            out=Paso_SystemMatrixPattern_reference(mesh->ReducedFullPattern);
          }
       } else {
          if (reduce_col_order) {
-            out=Finley_SystemMatrixPattern_reference(mesh->FullReducedPattern);
+            out=Paso_SystemMatrixPattern_reference(mesh->FullReducedPattern);
          } else {
-            out=Finley_SystemMatrixPattern_reference(mesh->FullFullPattern);
+            out=Paso_SystemMatrixPattern_reference(mesh->FullFullPattern);
          }
       }
    }  
    return out;
 }
-Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
+Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
   double time0;
   dim_t i,n;
   index_t s,itmp,*rowLabel=NULL,*colLabel=NULL, *ptr=NULL, *index=NULL;
   Finley_IndexList* index_list=NULL;
-  Finley_ErrorCode=NO_ERROR;
+  Finley_resetError();
   
   time0=Finley_timer();
   if (reduce_col_order) {
@@ -133,18 +143,24 @@ Finley_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_r
   #ifdef Finley_TRACE
   printf("timing: mesh to matrix pattern: %.4e sec\n",Finley_timer()-time0);
   #endif
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
     MEMFREE(ptr);
     MEMFREE(index);
     return NULL;
   } else {
-    return Finley_SystemMatrixPattern_alloc(n,ptr,index);
+    return Paso_SystemMatrixPattern_alloc(n,ptr,index);
   }
 }
 /*
  * $Log$
+ * Revision 1.5  2005/09/15 03:44:22  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
  * Revision 1.4  2005/09/01 03:31:35  jgs
  * Merge of development branch dev-02 back to main trunk on 2005-09-01
+ *
+ * Revision 1.3.2.2  2005/09/07 06:26:19  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.3.2.1  2005/08/24 02:02:18  gross
  * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.

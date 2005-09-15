@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,13 +18,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003 */
 /*   author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
 #include "Finley.h"
 #include "Util.h"
 #ifdef _OPENMP
@@ -124,8 +134,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                D=1./D;
                invA[q]=D;
             } else {
-               Finley_ErrorCode=ZERO_DIVISION_ERROR;
-               sprintf(Finley_ErrorMsg,"Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
                return;
             }
          }
@@ -147,8 +156,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(0,1,q,2,2)]=-A12*D;
                invA[INDEX3(1,1,q,2,2)]= A11*D;
             } else {
-               Finley_ErrorCode=ZERO_DIVISION_ERROR;
-               sprintf(Finley_ErrorMsg,"Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
                return;
             }
          }
@@ -180,8 +188,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)*D;
                invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)*D;
             } else {
-               Finley_ErrorCode=ZERO_DIVISION_ERROR;
-               sprintf(Finley_ErrorMsg,"Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
                return;
             }
          }
@@ -251,8 +258,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             A21=A[INDEX3(1,0,q,2,dim1)];
             length = sqrt(A11*A11+A21*A21);
             if (! length>0) {
-               Finley_ErrorCode=ZERO_DIVISION_ERROR;
-               sprintf(Finley_ErrorMsg,"area equals zero.");
+               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
                return;
             } else {
                invlength=1./length;
@@ -274,8 +280,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             CO_A33=A11*A22-A21*A12;
             length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
             if (! length>0) {
-               Finley_ErrorCode=ZERO_DIVISION_ERROR;
-               sprintf(Finley_ErrorMsg,"area equals zero.");
+               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
                return;
             } else {
                invlength=1./length;
@@ -473,9 +478,11 @@ void Finley_copyDouble(dim_t n,double* source, double* target) {
 }
 
 /*
- * $Log$
  * Revision 1.8  2005/08/12 01:45:43  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.7.2.2  2005/09/07 06:26:22  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.7.2.1  2005/08/04 22:41:11  gross
  * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)

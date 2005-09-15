@@ -892,6 +892,69 @@ Data::tan() const
 }
 
 Data
+Data::asin() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asin);
+}
+
+Data
+Data::acos() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acos);
+}
+
+Data
+Data::atan() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atan);
+}
+
+Data
+Data::sinh() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sinh);
+}
+
+Data
+Data::cosh() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cosh);
+}
+
+Data
+Data::tanh() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tanh);
+}
+
+Data
+Data::asinh() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
+}
+
+Data
+Data::acosh() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
+}
+
+Data
+Data::atanh() const
+{
+  profData->unary++;
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
+}
+
+Data
 Data::log() const
 {
   profData->unary++;

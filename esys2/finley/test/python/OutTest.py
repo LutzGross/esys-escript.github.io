@@ -10,7 +10,7 @@ from esys.finley import Rectangle,Brick
 
 
 ne=1
-work_dir="/home/gross/tmp"
+work_dir="."
 
 def  writeInFormat(fs,format,filetype):
         d=fs.getDim()
@@ -19,7 +19,7 @@ def  writeInFormat(fs,format,filetype):
         filename="%s/scalar.%s.%s"%(work_dir,filetype,format)
         print "file ",filename," is generated"
         try:
-           eval("x.save%s(\"%s\")"%(format,filename))
+           eval("x.save%s(\"%s\")"%(format.upper(),filename))
         except StandardError, msg:
            print "%% failed because of ",msg
         # generate vector data:
@@ -30,7 +30,7 @@ def  writeInFormat(fs,format,filetype):
         else:
            m=[1.,2.,3.]
         try:
-           eval("(x*m).save%s(\"%s\")"%(format,filename))
+           eval("(x*m).save%s(\"%s\")"%(format.upper(),filename))
         except StandardError, msg:
            print "%% failed because of ",msg
         # generate tensor data:
@@ -41,18 +41,18 @@ def  writeInFormat(fs,format,filetype):
         else:
            m=[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]]
         try:
-           eval("(x*m).save%s(\"%s\")"%(format,filename))
+           eval("(x*m).save%s(\"%s\")"%(format.upper(),filename))
         except StandardError, msg:
            print "%% failed because of ",msg
 
-for format in ["VTK","DX"]:
+for format in ["vtk","dx"]:
    for d in [2,3]:
       for order in [1,2]:
         if (d == 2):
             mesh = Rectangle(ne, ne,order,l0=order*ne,l1=order*ne)
         elif (d == 3):
             mesh = Brick(ne,ne,ne,order,l0=order*ne,l1=order*ne,l2=order*ne)
-        for fs in ["ContinuousFunction","Function","FunctionOnBoundary","Solution","ReducedSolution"]:
+        for fs in ["ContinuousFunction","Function","FunctionOnBoundary","Solution","ReducedSolution","FunctionOnContact"]:
               filetype="%s.o%d.d%d"%(fs,order,d)
               writeInFormat(eval("%s(mesh)"%fs),format,filetype)
 

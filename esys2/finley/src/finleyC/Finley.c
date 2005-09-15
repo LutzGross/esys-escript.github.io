@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,50 +18,66 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003 */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
 #include "Finley.h"
-#ifdef _OPENMP 
-#include <omp.h>
-#else 
-#include <time.h>
-#endif
 
 
+/* This function returns a time mark */
+double Finley_timer(void) {
+   return Paso_timer();
+}
 
 /* This function checks if the pointer ptr has a target. If not an
    error is raised and TRUE is returned. */
-
-bool_t Finley_checkPtr(void* ptr) {
-   if (ptr==NULL) {
-      Finley_ErrorCode=MEMORY_ERROR;
-      sprintf(Finley_ErrorMsg,"Out of memory.");
-      return TRUE;
-   } else {
-      return FALSE;
-   }
-} 
-
-/* This function returns a timer */
-double Finley_timer(void) {
-  double out;
-  #ifdef _OPENMP 
-  out=omp_get_wtime();
-  #else
-  out=((double) clock())/CLOCKS_PER_SEC;
-  #endif
-  return out;
+bool_t Finley_checkPtr(void* arg) {
+   return Paso_checkPtr(arg);
 }
+
+/* reset the error to NO_ERROR */
+void Finley_resetError(void) {
+  Paso_resetError();
+}
+
+/* sets an error */
+void Finley_setError(Finley_ErrorCodeType err,char* msg) {
+  Paso_setError(err,msg);
+}
+
+/* checks if there is no error */
+bool_t Finley_noError(void) {
+   return Paso_noError();
+}
+
+/* return the error code */
+Finley_ErrorCodeType Finley_getErrorType(void) {
+    return Paso_getErrorType();
+}
+
+/* return the error message */
+char* Finley_getErrorMessage(void) {
+  return Paso_getErrorMessage();
+}
+/* return the error message */
+void Finley_convertPasoError(void) {
+  /* nothing has to be done here */
+}
+
 
 /**************************************************************/
 
 
 /*
  * $Log$
+ * Revision 1.3  2005/09/15 03:44:22  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.2.2.1  2005/09/07 06:26:18  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.2  2005/07/08 04:07:50  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

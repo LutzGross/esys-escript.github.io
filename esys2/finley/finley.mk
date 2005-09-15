@@ -19,23 +19,15 @@ INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/finley.pyc
 
 INSTALL_LIB := ./lib/libfinleycpp.so
 
-PACKAGES := escript mmio esysUtils python boost scsl141pre
+PACKAGES := escript esysUtils python boost paso scsl mkl umfpack mmio
 
-L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL ./src/CPPAdapter ./py_src
+L_SRC_DIR := ./src/finleyC ./src/CPPAdapter ./py_src
 
 # determine solver packages to use
 ifeq ($(strip $(USE_GCC)),)
    HOSTNAME := ${shell hostname | sed -e 's/\..*//'}
 else
    HOSTNAME := gcc
-endif
-
-ifeq ($(strip $(HOSTNAME)),ess)
-   L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=SGI_SCSL
-endif
-
-ifeq ($(strip $(HOSTNAME)),gcc)
-   L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
 endif
 
 include $(ESYS_ROOT)/make/Makefile.default

@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -10,17 +22,13 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
+/*   Copyrights by ACcESS Australia, 2003,2004,2005 */
 /*   author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*   version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
-#include "Finley.h"
 #include "Assemble.h"
-#include "NodeFile.h"
-#include "ElementFile.h"
 #include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -33,6 +41,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   dim_t e,n0,n1,q,i;
   index_t node_offset;
   double d,diff,min_diff;
+  Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
   dim_t NVertices=elements->ReferenceElement->Type->numVertices;
@@ -52,21 +61,17 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   /* check the dimensions of element_size */
 
   if (numDim!=elements->ReferenceElement->Type->numDim) {
-     Finley_ErrorCode=TYPE_ERROR;
-     sprintf(Finley_ErrorMsg,"Gradient: Spatial and element dimension must match.");
+     Finley_setError(TYPE_ERROR,"__FILE__: Gradient: Spatial and element dimension must match.");
   } else if (! numSamplesEqual(element_size,numQuad,elements->numElements)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of element size Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of element size Data object");
   } else if (! isDataPointShapeEqual(element_size,0,&(numDim))) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal data point shape of element size Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal data point shape of element size Data object");
   }  else if (!isExpanded(element_size)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"expanded Data object is expected for element size.");
+       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for element size.");
   }
   /* now we can start: */
 
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
         #pragma omp parallel private(local_X)
         {
 	   /* allocation of work arrays */
@@ -106,6 +111,12 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
 }
 /*
  * $Log$
+ * Revision 1.7  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.6.2.1  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.6  2005/07/08 04:07:47  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

@@ -313,12 +313,12 @@ class MeshAdapter:public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, preconditioner
+     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package
      and symmetric matrix is used.
      \param solver 
      \param symmetry 
   */
-  virtual int getSystemMatrixTypeId(const int solver, const bool symmetry) const;
+  virtual int getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const;
 
   /**
      \brief

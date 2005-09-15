@@ -1,4 +1,17 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 /*                                                             */
 /*   Finley: Mesh : NodeFile */
@@ -7,13 +20,11 @@
 /*                                                             */
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
 /*   Author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "NodeFile.h"
 
 /**************************************************************/
@@ -55,6 +66,12 @@ void Finley_NodeFile_dealloc(Finley_NodeFile* in) {
 }
 /* 
 * $Log$
+* Revision 1.5  2005/09/15 03:44:23  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.4.2.1  2005/09/07 06:26:20  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.4  2004/12/15 07:08:33  jgs
 * *** empty log message ***
 *

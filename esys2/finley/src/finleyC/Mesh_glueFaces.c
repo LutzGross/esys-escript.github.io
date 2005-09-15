@@ -1,3 +1,17 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: Mesh */
@@ -6,20 +20,18 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$
 
 /**************************************************************/
 
-#include "Common.h"
-#include "Finley.h"
 #include "Mesh.h"
 
 /**************************************************************/
 
 
 void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance) { 
+   char error_msg[LenErrorMsg_MAX];
    Finley_NodeFile *newNodeFile=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL;
    dim_t numPairs,e,i,n;
@@ -28,8 +40,8 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
-     Finley_ErrorCode=TYPE_ERROR;
-     sprintf(Finley_ErrorMsg,"glueing faces cannot be applied to face elements pf type %s",self->FaceElements->ReferenceElement->Type->Name);
+     sprintf(error_msg,"__FILE__:glueing faces cannot be applied to face elements pf type %s",self->FaceElements->ReferenceElement->Type->Name);
+     Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
 
@@ -47,7 +59,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(new_node_label) || Finley_checkPtr(new_node_list) || Finley_checkPtr(new_node_mask) || Finley_checkPtr(matching_nodes_in_elem1)) ) {
       /* find the matching face elements */
       Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
-      if (Finley_ErrorCode==NO_ERROR) {
+      if (Finley_noError()) {
          for(e=0;e<self->FaceElements->numElements;e++) elem_mask[e]=0;
          for(n=0;n<self->Nodes->numNodes;n++) new_node_label[n]=n;
          /* remove mark imatching face elements to be removed */
@@ -81,16 +93,16 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          for (n=0;n<self->Nodes->numNodes;n++) new_node_label[n]=new_node_mask[new_node_label[n]];
          /* allocate new node and element files */
          newNodeFile=Finley_NodeFile_alloc(numDim); 
-         if (Finley_ErrorCode==NO_ERROR) {
+         if (Finley_noError()) {
              Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
-             if (Finley_ErrorCode==NO_ERROR) {
+             if (Finley_noError()) {
                 newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order);
-                if (Finley_ErrorCode==NO_ERROR) {
+                if (Finley_noError()) {
                    Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
                  }
               }
          }
-         if (Finley_ErrorCode==NO_ERROR) {
+         if (Finley_noError()) {
             /* get the new nodes :*/
             Finley_NodeFile_gather(new_node_list,self->Nodes,newNodeFile);
             /* they are the new nodes*/
@@ -121,6 +133,12 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
 
 /*
 * $Log$
+* Revision 1.6  2005/09/15 03:44:22  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.5.2.1  2005/09/07 06:26:19  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.5  2005/07/08 04:07:52  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

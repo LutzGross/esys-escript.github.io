@@ -1,4 +1,4 @@
-//$Id$
+/* $Id$ */
 /*
  ******************************************************************************
  *                                                                            *
@@ -95,7 +95,7 @@ void AbstractContinuousDomain::setToIntegrals(std::vector<double>& integrals,con
   return;
 }
 
-int AbstractContinuousDomain::getSystemMatrixTypeId(const int solver, const bool symmetry) const 
+int AbstractContinuousDomain::getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const 
 {
    return 0;
 }

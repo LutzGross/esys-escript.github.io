@@ -17,7 +17,7 @@ extern "C" {
 #include "finley/finleyC/Assemble.h"
 #include "finley/finleyC/Mesh.h"
 #include "finley/finleyC/Finley.h"
-#include "finley/finleyC/System.h"
+#include "paso/SystemMatrix.h"
 }
 #include "finley/CPPAdapter/SystemMatrixAdapter.h"
 #include "finley/CPPAdapter/MeshAdapter.h"
@@ -241,8 +241,7 @@ void MeshAdapter::getTagList(int functionSpaceType, int** tagList,
     break;
   default:
     stringstream temp;
-    temp << "Error - Invalid function space type: "
-	 << functionSpaceType << " for domain: " << getDescription();
+    temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
     throw FinleyAdapterException(temp.str());
     break;
   }
@@ -314,8 +313,7 @@ void MeshAdapter::getReferenceNoList(int functionSpaceType, int** referenceNoLis
     break;
   default:
     stringstream temp;
-    temp << "Error - Invalid function space type: "
-	 << functionSpaceType << " for domain: " << getDescription();
+    temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
     throw FinleyAdapterException(temp.str());
     break;
   }
@@ -395,8 +393,7 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
            break;
       default:
         stringstream temp;
-        temp << "Error - Invalid function space type: "
-	     << functionSpaceCode << " for domain: " << getDescription();
+        temp << "Error - Invalid function space type: " << functionSpaceCode << " for domain: " << getDescription();
         throw FinleyAdapterException(temp.str());
         break;
       }
@@ -413,17 +410,17 @@ void MeshAdapter::addPDEToSystem(
                      const Data& d_contact,const Data& y_contact) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
-   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getFinley_SystemMatrix(),&(rhs.getDataC()),
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getPaso_SystemMatrix(),&(rhs.getDataC()),
                        &(A.getDataC()),&(B.getDataC()),&(C.getDataC()),&(D.getDataC()),&(X.getDataC()),&(Y.getDataC()));
    checkFinleyError();
    Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,
-				  mat.getFinley_SystemMatrix(),
+				  mat.getPaso_SystemMatrix(),
 				  &(rhs.getDataC()),
                                   &(d.getDataC()),&(y.getDataC()),
                                   Finley_Assemble_handelShapeMissMatch_Mean_out);
    checkFinleyError();
    Finley_Assemble_RobinCondition(mesh->Nodes,mesh->ContactElements,
-				  mat.getFinley_SystemMatrix(),
+				  mat.getPaso_SystemMatrix(),
 				  &(rhs.getDataC()),
                                   &(d_contact.getDataC()),
 				  &(y_contact.getDataC()),
@@ -489,8 +486,9 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
                Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&(in.getDataC()),&(target.getDataC()));
                break;
            default:
-               Finley_ErrorCode=TYPE_ERROR;
-               sprintf(Finley_ErrorMsg,"Interpolation on Domain: Finley does not know anything about function space type %d",target.getFunctionSpace().getTypeCode());
+               stringstream temp;
+               temp << "Error - Interpolation on Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
+               throw FinleyAdapterException(temp.str());
                break;
         }
         break;
@@ -498,24 +496,21 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
         if (target.getFunctionSpace().getTypeCode()==Elements) {
            Finley_Assemble_CopyElementData(mesh->Elements,&(target.getDataC()),&(in.getDataC()));
         } else {
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"No interpolation with data on elements possible.");
+           throw FinleyAdapterException("Error - No interpolation with data on elements possible.");
         }
         break;
      case(FaceElements):
         if (target.getFunctionSpace().getTypeCode()==FaceElements) {
            Finley_Assemble_CopyElementData(mesh->FaceElements,&(target.getDataC()),&(in.getDataC()));
         } else {
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"No interpolation with data on face elements possible.");
+           throw FinleyAdapterException("Error - No interpolation with data on face elements possible.");
            break;
        }
      case(Points):
         if (target.getFunctionSpace().getTypeCode()==Points) {
            Finley_Assemble_CopyElementData(mesh->Points,&(target.getDataC()),&(in.getDataC()));
         } else {
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"No interpolation with data on points possible.");
+           throw FinleyAdapterException("Error - No interpolation with data on points possible.");
            break;
         }
         break;
@@ -524,8 +519,7 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
         if (target.getFunctionSpace().getTypeCode()==ContactElementsZero || target.getFunctionSpace().getTypeCode()==ContactElementsOne) {
            Finley_Assemble_CopyElementData(mesh->ContactElements,&(target.getDataC()),&(in.getDataC()));
         } else {
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"No interpolation with data on contact elements possible.");
+           throw FinleyAdapterException("Error - No interpolation with data on contact elements possible.");
            break;
         }
         break;
@@ -550,8 +544,9 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
               Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&(in.getDataC()),&(target.getDataC()));
              break;
            default:
-             Finley_ErrorCode=TYPE_ERROR;
-             sprintf(Finley_ErrorMsg,"Interpolation On Domain: Finley does not know anything about function space type %d",target.getFunctionSpace().getTypeCode());
+             stringstream temp;
+             temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
+             throw FinleyAdapterException(temp.str());
              break;
         }
         break;
@@ -574,22 +569,22 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
              Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&(in.getDataC()),&(target.getDataC()));
              break;
           case(Nodes):
-             Finley_ErrorCode=TYPE_ERROR;
-             sprintf(Finley_ErrorMsg,"Finley does not support interpolation from reduced degrees of freedom to mesh nodes.");
+             throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to mesh nodes.");
              break;
           case(DegreesOfFreedom):
-             Finley_ErrorCode=TYPE_ERROR;
-             sprintf(Finley_ErrorMsg,"Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
+             throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
              break;
           default:
-             Finley_ErrorCode=TYPE_ERROR;
-             sprintf(Finley_ErrorMsg,"Interpolation On Domain: Finley does not know anything about function space type %d",target.getFunctionSpace().getTypeCode());
+             stringstream temp;
+             temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
+             throw FinleyAdapterException(temp.str());
              break;
        }
        break;
      default:
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"Interpolation On Domain: Finley does not know anything about function space type %d",in.getFunctionSpace().getTypeCode());
+        stringstream temp;
+        temp << "Error - Interpolation On Domain: Finley does not know anything about function space type %d" << in.getFunctionSpace().getTypeCode();
+        throw FinleyAdapterException(temp.str());
         break;
   }
   checkFinleyError();
@@ -627,35 +622,31 @@ void MeshAdapter::setToNormal(Data& normal) const
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch(normal.getFunctionSpace().getTypeCode()) {
     case(Nodes):
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for nodes");
+      throw FinleyAdapterException("Error - Finley does not support surface normal vectors for nodes");
       break;
     case(Elements):
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for elements");
+      throw FinleyAdapterException("Error - Finley does not support surface normal vectors for elements");
       break;
     case (FaceElements):
       Finley_Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&(normal.getDataC()));
       break;
     case(Points):
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for point elements");
+      throw FinleyAdapterException("Error - Finley does not support surface normal vectors for point elements");
       break;
     case (ContactElementsOne):
     case (ContactElementsZero):
       Finley_Assemble_setNormal(mesh->Nodes,mesh->ContactElements,&(normal.getDataC()));
       break;
     case(DegreesOfFreedom):
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for degrees of freedom.");
+      throw FinleyAdapterException("Error - Finley does not support surface normal vectors for degrees of freedom.");
       break;
     case(ReducedDegreesOfFreedom):
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Finley does not support surface normal vectors for reduced degrees of freedom.");
+      throw FinleyAdapterException("Error - Finley does not support surface normal vectors for reduced degrees of freedom.");
       break;
     default:
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Normal Vectors: Finley does not know anything about function space type %d",normal.getFunctionSpace().getTypeCode());
+      stringstream temp;
+      temp << "Error - Normal Vectors: Finley does not know anything about function space type " << normal.getFunctionSpace().getTypeCode();
+      throw FinleyAdapterException(temp.str());
       break;
   }
   checkFinleyError();
@@ -670,9 +661,7 @@ void MeshAdapter::interpolateACross(Data& target,const Data& source) const
   if (targetDomain!=*this) 
      throw FinleyAdapterException("Error - Illegal domain of interpolation target");
 
-  Finley_ErrorCode=SYSTEM_ERROR;
-  sprintf(Finley_ErrorMsg,"Finley does not allow interpolation across domains yet.");
-  checkFinleyError();
+  throw FinleyAdapterException("Error - Finley does not allow interpolation across domains yet.");
 }
 
 //
@@ -687,8 +676,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const Data& arg)
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch(arg.getFunctionSpace().getTypeCode()) {
      case(Nodes):
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"Integral of data on nodes is not supported.");
+        throw FinleyAdapterException("Error - Integral of data on nodes is not supported.");
         break;
      case(Elements):
         Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&(arg.getDataC()),&integrals[0]);
@@ -697,8 +685,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const Data& arg)
         Finley_Assemble_integrate(mesh->Nodes,mesh->FaceElements,&(arg.getDataC()),&integrals[0]);
         break;
      case(Points):
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"Integral of data on points is not supported.");
+        throw FinleyAdapterException("Error - Integral of data on points is not supported.");
         break;
      case(ContactElementsZero):
         Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&(arg.getDataC()),&integrals[0]);
@@ -707,16 +694,15 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const Data& arg)
         Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&(arg.getDataC()),&integrals[0]);
         break;
      case(DegreesOfFreedom):
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"Integral of data on degrees of freedom is not supported.");
+        throw FinleyAdapterException("Error - Integral of data on degrees of freedom is not supported.");
         break;
      case(ReducedDegreesOfFreedom):
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"Integral of data on reduced degrees of freedom is not supported.");
+        throw FinleyAdapterException("Error - Integral of data on reduced degrees of freedom is not supported.");
         break;
      default:
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"Integrals: Finley does not know anything about function space type %d",arg.getFunctionSpace().getTypeCode());
+        stringstream temp;
+        temp << "Error - Integrals: Finley does not know anything about function space type " << arg.getFunctionSpace().getTypeCode();
+        throw FinleyAdapterException(temp.str());
         break;
   }
   checkFinleyError();
@@ -737,8 +723,7 @@ void MeshAdapter::setToGradient(Data& grad,const Data& arg) const
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch(grad.getFunctionSpace().getTypeCode()) {
        case(Nodes):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Gradient at nodes is not supported.");
+          throw FinleyAdapterException("Error - Gradient at nodes is not supported.");
           break;
        case(Elements):
           Finley_Assemble_gradient(mesh->Nodes,mesh->Elements,&(grad.getDataC()),&(arg.getDataC()));
@@ -747,8 +732,7 @@ void MeshAdapter::setToGradient(Data& grad,const Data& arg) const
           Finley_Assemble_gradient(mesh->Nodes,mesh->FaceElements,&(grad.getDataC()),&(arg.getDataC()));
           break;
        case(Points):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Gradient at points is not supported.");
+          throw FinleyAdapterException("Error - Gradient at points is not supported.");
           break;
        case(ContactElementsZero):
           Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&(grad.getDataC()),&(arg.getDataC()));
@@ -757,16 +741,15 @@ void MeshAdapter::setToGradient(Data& grad,const Data& arg) const
           Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&(grad.getDataC()),&(arg.getDataC()));
           break;
        case(DegreesOfFreedom):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Gradient at degrees of freedom is not supported.");
+          throw FinleyAdapterException("Error - Gradient at degrees of freedom is not supported.");
           break;
        case(ReducedDegreesOfFreedom):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Gradient at reduced degrees of freedom is not supported.");
+          throw FinleyAdapterException("Error - Gradient at reduced degrees of freedom is not supported.");
           break;
        default:
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Gradient: Finley does not know anything about function space type %d",arg.getFunctionSpace().getTypeCode());
+          stringstream temp;
+          temp << "Error - Gradient: Finley does not know anything about function space type " << arg.getFunctionSpace().getTypeCode();
+          throw FinleyAdapterException(temp.str());
           break;
   }
   checkFinleyError();
@@ -781,8 +764,7 @@ void MeshAdapter::setToSize(Data& size) const
   escriptDataC tmp=size.getDataC();
   switch(size.getFunctionSpace().getTypeCode()) {
        case(Nodes):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Size of nodes is not supported.");
+          throw FinleyAdapterException("Error - Size of nodes is not supported.");
           break;
        case(Elements):
           Finley_Assemble_getSize(mesh->Nodes,mesh->Elements,&tmp);
@@ -791,24 +773,22 @@ void MeshAdapter::setToSize(Data& size) const
           Finley_Assemble_getSize(mesh->Nodes,mesh->FaceElements,&tmp);
           break;
        case(Points):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Size of point elements is not supported.");
+          throw FinleyAdapterException("Error - Size of point elements is not supported.");
           break;
        case(ContactElementsZero):
        case(ContactElementsOne):
           Finley_Assemble_getSize(mesh->Nodes,mesh->ContactElements,&tmp);
           break;
        case(DegreesOfFreedom):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Size of degrees of freedom is not supported.");
+          throw FinleyAdapterException("Error - Size of degrees of freedom is not supported.");
           break;
        case(ReducedDegreesOfFreedom):
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Size of reduced degrees of freedom is not supported.");
+          throw FinleyAdapterException("Error - Size of reduced degrees of freedom is not supported.");
           break;
        default:
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Element size: Finley does not know anything about function space type %d",size.getFunctionSpace().getTypeCode());
+          stringstream temp;
+          temp << "Error - Element size: Finley does not know anything about function space type " << size.getFunctionSpace().getTypeCode();
+          throw FinleyAdapterException(temp.str());
           break;
   }
   checkFinleyError();
@@ -873,11 +853,11 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
     }
     // generate matrix:
     
-    Finley_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceRowOrder,reduceColOrder);
+    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceRowOrder,reduceColOrder);
     checkFinleyError();
-    Finley_SystemMatrix* fsystemMatrix=Finley_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
-    checkFinleyError();
-    Finley_SystemMatrixPattern_dealloc(fsystemMatrixPattern);
+    Paso_SystemMatrix* fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
+    checkPasoError();
+    Paso_SystemMatrixPattern_dealloc(fsystemMatrixPattern);
     return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
 
@@ -904,8 +884,9 @@ bool MeshAdapter::isCellOriented(int functionSpaceCode) const
           return true;
           break;
        default:
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Cell: Finley does not know anything about function space type %d",functionSpaceCode);
+          stringstream temp;
+          temp << "Error - Cell: Finley does not know anything about function space type " << functionSpaceCode;
+          throw FinleyAdapterException(temp.str());
           break;
   }
   checkFinleyError();
@@ -927,8 +908,9 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
            case(ContactElementsOne):
                return true;
            default:
-               Finley_ErrorCode=TYPE_ERROR;
-               sprintf(Finley_ErrorMsg,"Interpolation On Domain: Finley does not know anything about function space type %d",functionSpaceType_target);
+               stringstream temp;
+               temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
+               throw FinleyAdapterException(temp.str());
         }
         break;
      case(Elements):
@@ -968,8 +950,9 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
            case(ContactElementsOne):
               return true;
            default:
-             Finley_ErrorCode=TYPE_ERROR;
-             sprintf(Finley_ErrorMsg,"Interpolation On Domain: Finley does not know anything about function space type %d",functionSpaceType_target);
+             stringstream temp;
+             temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
+             throw FinleyAdapterException(temp.str());
         }
         break;
      case(ReducedDegreesOfFreedom):
@@ -985,13 +968,15 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
           case(DegreesOfFreedom):
              return false;
           default:
-             Finley_ErrorCode=TYPE_ERROR;
-             sprintf(Finley_ErrorMsg,"Interpolation On Domain: Finley does not know anything about function space type %d",functionSpaceType_target);
+             stringstream temp;
+             temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_target;
+             throw FinleyAdapterException(temp.str());
        }
        break;
      default:
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"Interpolation On Domain: Finley does not know anything about function space type %d",functionSpaceType_source);
+        stringstream temp;
+        temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << functionSpaceType_source;
+        throw FinleyAdapterException(temp.str());
         break;
   }
   checkFinleyError();
@@ -1018,10 +1003,10 @@ bool MeshAdapter::operator!=(const AbstractDomain& other) const
   return !(operator==(other));
 }
 
-int MeshAdapter::getSystemMatrixTypeId(const int solver, const bool symmetry) const
+int MeshAdapter::getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const
 {
-   int out=Finley_SystemMatrix_getSystemMatrixTypeId(solver,symmetry?1:0);
-   checkFinleyError();
+   int out=Paso_SystemMatrix_getSystemMatrixTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0);
+   checkPasoError();
    return out;
 }
 

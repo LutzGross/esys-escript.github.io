@@ -9,10 +9,10 @@
 
 DEFAULT_TARGET := libfinleyC.a
 
-PACKAGES := escript mmio
+PACKAGES := escript mmio mkl umfpack scsl paso
 
-L_SRC_DIR := ./src/finleyC ./src/finleyC/Solvers ./src/finleyC/SCSL
+L_SRC_DIR := ./src/finleyC 
 
-L_DEFS := ITERATIVE_SOLVER=NO_LIB DIRECT_SOLVER=NO_LIB
+L_DEFS := ${NULL}
 
 include $(ESYS_ROOT)/make/Makefile.default

@@ -15,29 +15,39 @@
 #include "finley/CPPAdapter/FinleyError.h"
 #include "finley/CPPAdapter/FinleyAdapterException.h"
 extern "C" {
-#include "finley/finleyC/setFinleyError.h"
+#include "finley/finleyC/Finley.h"
 }
 
 namespace finley {
 
-  void setFinleyError(enum Finley_ErrorCodeType errorCode, 
+  void setFinleyError(Finley_ErrorCodeType errorCode, 
 		      const std::string& errMess) 
   {
-    char message[errMess.size()+1];
-    strcpy(message,errMess.c_str());
-    setFinleyError(errorCode,message,errMess.size());
+    Finley_setError(errorCode,(char*)(errMess.c_str()));
   }
 
   void checkFinleyError() 
   {
-    if (Finley_ErrorCode==NO_ERROR) {
+    if (Finley_noError()) {
       return;
     } else {
       //
       // reset the error code to no error otherwise the next call to
       // this function may resurrect a previous error
-      Finley_ErrorCode=NO_ERROR;
-      throw FinleyAdapterException(Finley_ErrorMsg);
+      Finley_resetError();
+      throw FinleyAdapterException(Finley_getErrorMessage());
+    }
+  }
+  void checkPasoError() 
+  {
+    if (Paso_noError()) {
+      return;
+    } else {
+      //
+      // reset the error code to no error otherwise the next call to
+      // this function may resurrect a previous error
+      Paso_resetError();
+      throw FinleyAdapterException(Paso_getErrorMessage());
     }
   }
 

@@ -176,6 +176,33 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "\ntan"
       print arg.tan()
 
+      print "\nasin"
+      print arg.asin()
+
+      print "\nacos"
+      print arg.acos()
+
+      print "\natan"
+      print arg.atan()
+
+      print "\nsinh"
+      print arg.sinh()
+
+      print "\ncosh"
+      print arg.cosh()
+
+      print "\ntanh"
+      print arg.tanh()
+
+      print "\nasinh"
+      print arg.asinh()
+
+      print "\nacosh"
+      print arg.acosh()
+
+      print "\natanh"
+      print arg.atanh()
+
       print "\nlog"
       print arg.log()
 

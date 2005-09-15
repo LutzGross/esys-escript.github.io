@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,18 +18,12 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
-/*   author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
-#include "escript/Data/DataC.h"
-#include "Finley.h"
 #include "Assemble.h"
-#include "NodeFile.h"
-#include "ElementFile.h"
 #include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -42,6 +48,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   dim_t numQuad=elements->ReferenceElement->numQuadNodes;
   index_t id[NN];
   for (i=0;i<NN;i++) id[i]=i;
+  Finley_resetError();
 
   /* set some parameter */
 
@@ -67,8 +74,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        S=elements->LinearReferenceElement->S;
        numNodes=nodes->reducedNumDegreesOfFreedom;
    } else {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"Cannot interpolate data");
+       Finley_setError(TYPE_ERROR,"__FILE__: Cannot interpolate data");
   }
 
   if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
@@ -80,22 +86,18 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   /* check the dimensions of interpolated_data and data */
 
   if (! numSamplesEqual(interpolated_data,numQuad,elements->numElements)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of output Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"illegal number of samples of input Data object");
+       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
   } else if (numComps!=getDataPointSize(interpolated_data)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"number of components of input and interpolated Data do not match.");
+       Finley_setError(TYPE_ERROR,"__FILE__: number of components of input and interpolated Data do not match.");
   }  else if (!isExpanded(interpolated_data)) {
-       Finley_ErrorCode=TYPE_ERROR;
-       sprintf(Finley_ErrorMsg,"expanded Data object is expected for output data.");
+       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for output data.");
   }
 
   /* now we can start */
 
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
        #pragma omp parallel private(local_data)
        {
           local_data=NULL; 
@@ -148,6 +150,12 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 }
 /*
  * $Log$
+ * Revision 1.6  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.5.2.1  2005/09/07 06:26:18  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.5  2005/07/08 04:07:48  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

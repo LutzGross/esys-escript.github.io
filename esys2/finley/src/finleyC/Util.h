@@ -1,7 +1,16 @@
-/* $Id$ */
-
-#ifndef INC_FINLEY_UTIL
-#define INC_FINLEY_UTIL
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -9,13 +18,15 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003 */
 /*   author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
+#ifndef INC_FINLEY_UTIL
+#define INC_FINLEY_UTIL
+
+#include "Finley.h"
 
 /**************************************************************/
 
@@ -54,9 +65,11 @@ int Finley_Util_ValueAndIndex_compar(const void *, const void *);
 #endif /* #ifndef INC_FINLEY_UTIL */
 
 /*
- * $Log$
  * Revision 1.8  2005/08/12 01:45:43  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.7.2.2  2005/09/07 06:26:22  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.7.2.1  2005/08/04 22:41:11  gross
  * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)

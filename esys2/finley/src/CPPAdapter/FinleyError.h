@@ -27,7 +27,7 @@ namespace finley {
      Provide a C++ interface to the finley C funcion of the same name.
      Needed because of constness problems.
   */
-  void setFinleyError(enum Finley_ErrorCodeType errorCode, 
+  void setFinleyError(Finley_ErrorCodeType errorCode, 
 		      const std::string& errMess);
  
   /**
@@ -35,5 +35,10 @@ namespace finley {
      Convert a C finley error into a C++ exception.
   */
   void checkFinleyError();
+  /**
+     \brief
+     Convert a C paso  error into a C++ exception.
+  */
+  void checkPasoError();
 } // end of namespace
 #endif

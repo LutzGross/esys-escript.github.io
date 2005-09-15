@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -19,17 +31,12 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004,2005 */
-/*   author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
-#include "Finley.h"
 #include "Assemble.h"
-#include "NodeFile.h"
-#include "ElementFile.h"
 #include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -40,29 +47,29 @@
 
 void Finley_Assemble_PDE_RHS(Finley_NodeFile* nodes,Finley_ElementFile* elements,escriptDataC* F,escriptDataC* X, escriptDataC* Y ) {
 
+  char error_msg[LenErrorMsg_MAX];
   double *EM_F=NULL,*V=NULL,*dVdv=NULL,*dSdV=NULL,*Vol=NULL,*dvdV=NULL;
   double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK],e,q;
   Assemble_Parameters p;
   index_t *index_row=NULL,color;
   bool_t assemble;
+  Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
   if (isEmpty(F) || (isEmpty(Y) && isEmpty(X)) ) return;
 
   /* set all parameters in p*/
   Assemble_getAssembleParameters(nodes,elements,NULL,F,&p);
-  if (Finley_ErrorCode!=NO_ERROR) return;
+  if (! Finley_noError()) return;
 
   /*  this function assumes NS=NN */
   if (p.NN!=p.NS) {
-    Finley_ErrorCode=SYSTEM_ERROR;
-    sprintf(Finley_ErrorMsg,"for Finley_Assemble_PDE numNodes and numShapes have to be identical.");
+    Finley_setError(SYSTEM_ERROR,"__FILE__: for Finley_Assemble_PDE numNodes and numShapes have to be identical.");
     return;
   } 
   if (p.numDim!=p.numElementDim) {
-    Finley_ErrorCode=SYSTEM_ERROR;
-    sprintf(Finley_ErrorMsg,"Finley_Assemble_PDE accepts volume elements only.");
+    Finley_setError(SYSTEM_ERROR,"__FILE__: Finley_Assemble_PDE accepts volume elements only.");
     return;
   }
   /*  get a functionspace */
@@ -74,24 +81,22 @@ void Finley_Assemble_PDE_RHS(Finley_NodeFile* nodes,Finley_ElementFile* elements
   /* check if all function spaces are the same */
 
   if (! functionSpaceTypeEqual(funcspace,X) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient X");
+        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient X");
   }
   if (! functionSpaceTypeEqual(funcspace,Y) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient Y");
+        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient Y");
   }
 
   /* check if all function spaces are the same */
 
   if (! numSamplesEqual(X,p.numQuad,elements->numElements) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"sample points of coefficient X don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"__FILE__: sample points of coefficient X don't match (%d,%d)",p.numQuad,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
   }
 
   if (! numSamplesEqual(Y,p.numQuad,elements->numElements) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"sample points of coefficient Y don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"__FILE__: sample points of coefficient Y don't match (%d,%d)",p.numQuad,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
   }
 
   /*  check the dimensions: */
@@ -100,14 +105,13 @@ void Finley_Assemble_PDE_RHS(Finley_NodeFile* nodes,Finley_ElementFile* elements
     if (!isEmpty(X)) {
        dimensions[0]=p.numDim;
        if (!isDataPointShapeEqual(X,1,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient X, expected shape (%d,",dimensions[0]);
+          sprintf(error_msg,"__FILE__: coefficient X, expected shape (%d,",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
        }
     }
     if (!isEmpty(Y)) {
        if (!isDataPointShapeEqual(Y,0,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient Y, rank 0 expected.");
+          Finley_setError(TYPE_ERROR,"__FILE__: coefficient Y, rank 0 expected.");
        }
     } 
   } else {
@@ -115,20 +119,20 @@ void Finley_Assemble_PDE_RHS(Finley_NodeFile* nodes,Finley_ElementFile* elements
       dimensions[0]=p.numEqu;
       dimensions[1]=p.numDim;
       if (!isDataPointShapeEqual(X,2,dimensions)) {
-           Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient X, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          sprintf(error_msg,"__FILE__: coefficient X, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          Finley_setError(TYPE_ERROR,error_msg);
       }
     }
     if (!isEmpty(Y)) {
       dimensions[0]=p.numEqu;
       if (!isDataPointShapeEqual(Y,1,dimensions)) {
-           Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient Y, expected shape (%d,)",dimensions[0]);
+          sprintf(error_msg,"__FILE__: coefficient Y, expected shape (%d,)",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
       }
     }
   }
 
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
      time0=Finley_timer();
      #pragma omp parallel private(index_row,EM_F,V,dVdv,dSdV,Vol,dvdV,color,q,assemble) 
      {
@@ -218,11 +222,17 @@ void Finley_Assemble_PDE_RHS(Finley_NodeFile* nodes,Finley_ElementFile* elements
 }
 /*
  * $Log$
+ * Revision 1.4  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
  * Revision 1.3  2005/09/01 03:31:35  jgs
  * Merge of development branch dev-02 back to main trunk on 2005-09-01
  *
  * Revision 1.2  2005/08/12 01:45:42  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.1.2.3  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.1.2.2  2005/08/24 02:02:18  gross
  * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.

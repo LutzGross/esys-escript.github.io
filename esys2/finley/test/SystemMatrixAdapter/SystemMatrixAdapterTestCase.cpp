@@ -70,7 +70,8 @@ void SystemMatrixAdapterTestCase::tearDown() {
   //
   // This is called after each test has been run
 
-  Finley_SystemMatrix_dealloc(system_matrix);
+  // this fails on gcc ...
+  //Finley_SystemMatrix_dealloc(system_matrix);
 
 }
 

@@ -1,3 +1,17 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: Mesh */
@@ -8,23 +22,22 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003 */
 /*   Author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "Mesh.h"
 #include "Util.h"
 
 /**************************************************************/
 
 void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
+  char error_msg[LenErrorMsg_MAX];
   dim_t k,len,numDim,newNumNodes,n;
   index_t min_id,max_id,min_id2,max_id2,*maskNodes=NULL,*maskElements=NULL,*index=NULL;
   Finley_NodeFile *newNodeFile=NULL;
-  Finley_ErrorCode=NO_ERROR;
+  Finley_resetError();
   numDim=Finley_Mesh_getDim(in);
   
   /*   find the minimum and maximum id used: */
@@ -33,8 +46,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   max_id=-INDEX_T_MAX;
   Finley_NodeFile_setIdRange(&min_id2,&max_id2,in->Nodes);
   if (min_id2==INDEX_T_MAX || max_id2==-INDEX_T_MAX) {
-    Finley_ErrorCode=VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,"Mesh has not been defined completely.");
+    Finley_setError(VALUE_ERROR,"__FILE__: Mesh has not been defined completely.");
     goto clean;
   }
 
@@ -60,7 +72,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   
   len=max_id-min_id+1;
   newNodeFile=Finley_NodeFile_alloc(numDim);
-  if (Finley_ErrorCode!=NO_ERROR) goto clean;
+  if (! Finley_noError()) goto clean;
 
   maskNodes=TMPMEMALLOC(len,index_t);
   if (Finley_checkPtr(maskNodes)) goto clean;
@@ -72,7 +84,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   if (Finley_checkPtr(maskElements)) goto clean;
 
   Finley_NodeFile_allocTable(newNodeFile,len);
-  if (Finley_ErrorCode!=NO_ERROR) goto clean;
+  if (! Finley_noError()) goto clean;
 
   #pragma omp parallel for private(n) schedule(static)
   for (n=0;n<in->Nodes->numNodes;n++) index[n]=-1;
@@ -96,12 +108,12 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   for (k=0;k<len;k++) {
      /* if a node is refered by an element is there a node defined ?*/
      if (maskElements[k]>=0 && maskNodes[k]<0) {
-       Finley_ErrorCode=VALUE_ERROR;
-       sprintf(Finley_ErrorMsg,"Node id %d is referenced by element but is not defined.",k+min_id);
+       sprintf(error_msg,"__FILE__:Node id %d is referenced by element but is not defined.",k+min_id);
+       Finley_setError(VALUE_ERROR,error_msg);
      }
   }
 
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
   
       /*  scatter the nodefile in->nodes into newNodeFile using index; */
       #pragma omp parallel for private(k) schedule(static)
@@ -117,7 +129,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
       /*  create a new table of nodes: */
       Finley_NodeFile_deallocTable(in->Nodes);
       Finley_NodeFile_allocTable(in->Nodes,newNumNodes);
-      if (Finley_ErrorCode!=NO_ERROR) goto clean;
+      if (! Finley_noError()) goto clean;
 
       /* gather the new nodefile into in->Nodes */
       Finley_NodeFile_gather(index,newNodeFile,in->Nodes);
@@ -138,6 +150,12 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
 
 /*
 * $Log$
+* Revision 1.6  2005/09/15 03:44:23  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.5.2.1  2005/09/07 06:26:20  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.5  2005/07/08 04:07:54  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

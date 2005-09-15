@@ -42,9 +42,7 @@ using namespace boost::python;
  *
  * - \ref finley
  *
- * - <a href=http://www.esscc.uq.edu.au/~cochrane/esys_python_doc/html/index.html>Python module documentation (doxygen generated)</a>
- *
- * - <a href=http://www.esscc.uq.edu.au/~cochrane/esys_python_doc/index.html>Python module documentation (epydoc generated)</a>
+ * - <a href=http://iservo.edu.au/esys/esys_python_doc/index.html>Python module documentation (epydoc generated)</a>
  *
  */
 
@@ -159,6 +157,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("sin",&escript::Data::sin)
     .def("cos",&escript::Data::cos)
     .def("tan",&escript::Data::tan)
+    .def("asin",&escript::Data::asin)
+    .def("acos",&escript::Data::acos)
+    .def("atan",&escript::Data::atan)
+    .def("sinh",&escript::Data::sinh)
+    .def("cosh",&escript::Data::cosh)
+    .def("tanh",&escript::Data::tanh)
+    .def("asinh",&escript::Data::asinh)
+    .def("acosh",&escript::Data::acosh)
+    .def("atanh",&escript::Data::atanh)
     .def("log",&escript::Data::log)
     .def("ln",&escript::Data::ln)
     .def("Lsup",&escript::Data::Lsup)

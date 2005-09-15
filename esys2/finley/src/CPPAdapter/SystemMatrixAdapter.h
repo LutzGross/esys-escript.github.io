@@ -20,7 +20,7 @@
 #include "escript/Data/AbstractSystemMatrix.h"
 #include "escript/Data/Data.h"
 extern "C" {
-#include "finley/finleyC/System.h"
+#include "paso/SystemMatrix.h"
 }
 #include <boost/python/dict.hpp>
 #include <boost/shared_ptr.hpp>
@@ -31,10 +31,10 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
 
 /**
    \brief
-   Wrapper for Finley_SystemMatrix. 
+   Wrapper for Paso_SystemMatrix. 
 
    Description:
-   Wrapper for Finley_SystemMatrix.
+   Wrapper for Paso_SystemMatrix.
 */
 
  public:
@@ -50,7 +50,7 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
      /brief
      Constructor for SystemMatrixAdapter.
   */
-  SystemMatrixAdapter(Finley_SystemMatrix* system_matrix,
+  SystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
@@ -68,7 +68,7 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
      \brief
      Returns the pointer to the system matrix.
   */
-  Finley_SystemMatrix* getFinley_SystemMatrix() const;
+  Paso_SystemMatrix* getPaso_SystemMatrix() const;
 
   /**
      \brief
@@ -90,7 +90,7 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
 
   /**
     \brief
-    nullifyRowsAndCols - calls Finley_SystemMatrix_nullifyRowsAndCols.
+    nullifyRowsAndCols - calls Paso_SystemMatrix_nullifyRowsAndCols.
   */
   void nullifyRowsAndCols(const escript::Data& row_q, const escript::Data& col_q, const double mdv) const;
 
@@ -108,6 +108,11 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
      \brief sets the matrix entries to zero
   */
   virtual void resetValues() const;
+
+  /**
+     \brief maps escript options onto Paso options:
+  */
+  static int mapOptionToPaso(const int option);
 
  protected:
 
@@ -128,7 +133,7 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
    //
    // pointer to the externally created finley mesh - system_matrix.
    //
-   boost::shared_ptr<Finley_SystemMatrix> m_system_matrix;
+   boost::shared_ptr<Paso_SystemMatrix> m_system_matrix;
 
 };
 
