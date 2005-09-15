@@ -1,4 +1,17 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: ElementFile                                                      */
@@ -8,13 +21,11 @@
                                                                                                                                                    
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "ElementFile.h"
 
 /****************************************************************************/
@@ -26,14 +37,12 @@ void Finley_ElementFile_copyTable(index_t offset,Finley_ElementFile* out,index_t
     if (in==NULL) return;
     /* check dimension and file size */
     if (out->ReferenceElement->Type->TypeId!=in->ReferenceElement->Type->TypeId) {
-        Finley_ErrorCode=TYPE_ERROR;
-        sprintf(Finley_ErrorMsg,"dimensions of element files don't match");
+        Finley_setError(TYPE_ERROR,"__FILE__: dimensions of element files don't match");
     }
     if (out->numElements<in->numElements+offset) {
-        Finley_ErrorCode=MEMORY_ERROR;
-        sprintf(Finley_ErrorMsg,"element table is too small.");
+        Finley_setError(MEMORY_ERROR,"__FILE__: element table is too small.");
     }
-    if (Finley_ErrorCode==NO_ERROR) {
+    if (Finley_noError()) {
        #pragma omp parallel for private(i,n) schedule(static)
        for(n=0;n<in->numElements;n++) {
           out->Id[offset+n]=in->Id[n]+idOffset;
@@ -47,6 +56,12 @@ void Finley_ElementFile_copyTable(index_t offset,Finley_ElementFile* out,index_t
 }
 /* 
 * $Log$
+* Revision 1.3  2005/09/15 03:44:22  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.2.2.1  2005/09/07 06:26:18  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.2  2005/07/08 04:07:49  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

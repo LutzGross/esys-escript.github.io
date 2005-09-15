@@ -1,0 +1,11 @@
+# $Id$
+
+# MKL direct solver library
+
+# PKG_CC_INC_DIRS += MKL
+PKG_CC_DEFS+= ${NULL}
+PKG_CC_INC_DIRS += ${NULL}	
+PKG_CPP_DEFS+= ${NULL}
+PKG_CPP_INC_DIRS += ${NULL}
+PKG_LD_LIB_DIRS += ${NULL}
+PKG_LD_LIBS += ${NULL}

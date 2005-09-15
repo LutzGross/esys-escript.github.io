@@ -73,6 +73,21 @@ def parse(xml):
 
     return sim
 
+def importName(modulename, name):
+    """ Import a named object from a module in the context of this function,
+        which means you should use fully qualified module paths.
+        
+        Return None on failure.
+
+        This function from: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52241
+    """
+    module = __import__(modulename, globals(), locals(), [name])
+        
+    try:
+        return vars(module)[name]
+    except KeyError:
+        raise ImportError("Could not import %s from %s" % (name, modulename))
+
 def getComponent(doc):
     """ 
     Used to get components of Simualtions, Models.
@@ -84,11 +99,16 @@ def getComponent(doc):
                 if node.getAttribute("type") == 'Simulation':
                     return Simulation.fromDom(node)
             if node.tagName == 'Model':
-                model_type = node.getAttribute("type")
-                model_subclasses = Model.__subclasses__()
-                for model in model_subclasses:
-                    if model_type == model.__name__:
-                        return Model.fromDom(node)
+                if (node.getAttribute("module")):
+                    model_module = node.getAttribute("module")
+                    model_type = node.getAttribute("type")
+                    return importName(model_module, model_type).fromDom(node)
+                else:
+                    model_type = node.getAttribute("type")
+                    model_subclasses = Model.__subclasses__()
+                    for model in model_subclasses:
+                        if model_type == model.__name__:
+                            return Model.fromDom(node)
             if node.tagName == 'ParameterSet':
                 parameter_type = node.getAttribute("type")
                 return ParameterSet.fromDom(node)
@@ -555,6 +575,8 @@ class Model(ParameterSet):
 	"""
         pset = document.createElement('Model')
         pset.setAttribute('type', self.__class__.__name__)
+        if not self.__class__.__module__.startswith('esys.escript'):
+            pset.setAttribute('module', self.__class__.__module__)
         node.appendChild(pset)
         self._parametersToDom(document, pset)
 
@@ -733,7 +755,7 @@ class Simulation(Model):
         This is the minimum over the time step sizes of all models.
 	"""
         out=min([o.getSafeTimeStepSize(dt) for o in self.iterModels()])
-        print "%s: safe step size is %e."%(str(self),out)
+        #print "%s: safe step size is %e."%(str(self),out)
         return out
     
     def doInitialization(self):

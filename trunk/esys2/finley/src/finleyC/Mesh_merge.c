@@ -1,3 +1,17 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: Mesh */
@@ -7,13 +21,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "Mesh.h"
 #include "Util.h"
 
@@ -26,8 +38,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   dim_t i;
   char newName[LenString_MAX];
   if (numMsh==0) {
-     Finley_ErrorCode=VALUE_ERROR;
-     sprintf(Finley_ErrorMsg,"Empty mesh list");
+     Finley_setError(VALUE_ERROR,"__FILE__: Empty mesh list");
   } else {
     index_t order=msh[0]->order;
     dim_t numDim=msh[0]->Nodes->numDim;
@@ -46,8 +57,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
        order=MAX(order,msh[i]->order);
        numNodes+=msh[i]->Nodes->numNodes;
        if (numDim!=msh[i]->Nodes->numDim) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"Spatial dimensions of meshes don't match.");
+          Finley_setError(TYPE_ERROR,"__FILE__: Spatial dimensions of meshes don't match.");
        }
 
        if (msh[i]->Elements!=NULL) {
@@ -56,8 +66,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              elementTypeId=msh[i]->Elements->ReferenceElement->Type->TypeId;
 	  } else {
              if (elementTypeId!=msh[i]->Elements->ReferenceElement->Type->TypeId ) {
-               Finley_ErrorCode=TYPE_ERROR;
-               sprintf(Finley_ErrorMsg,"element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"__FILE__: element types of meshes don't match.");
              }
           }
        }
@@ -68,8 +77,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              faceElementTypeId=msh[i]->FaceElements->ReferenceElement->Type->TypeId;
 	  } else {
              if (faceElementTypeId!=msh[i]->FaceElements->ReferenceElement->Type->TypeId ) {
-               Finley_ErrorCode=TYPE_ERROR;
-               sprintf(Finley_ErrorMsg,"face element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"__FILE__: face element types of meshes don't match.");
              }
           }
        }
@@ -80,8 +88,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              contactTypeId=msh[i]->ContactElements->ReferenceElement->Type->TypeId;
 	  } else {
              if (contactTypeId!=msh[i]->ContactElements->ReferenceElement->Type->TypeId ) {
-               Finley_ErrorCode=TYPE_ERROR;
-               sprintf(Finley_ErrorMsg,"contact element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"__FILE__: contact element types of meshes don't match.");
              }
           }
        }
@@ -92,8 +99,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              pointTypeId=msh[i]->Points->ReferenceElement->Type->TypeId;
 	  } else {
              if (pointTypeId!=msh[i]->Points->ReferenceElement->Type->TypeId ) {
-               Finley_ErrorCode=TYPE_ERROR;
-               sprintf(Finley_ErrorMsg,"point element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"__FILE__: point element types of meshes don't match.");
              }
           }
        }
@@ -104,7 +110,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
     /* allocate */
 
-    if (Finley_ErrorCode == NO_ERROR) out=Finley_Mesh_alloc(newName,numDim,order);
+    if (Finley_noError()) out=Finley_Mesh_alloc(newName,numDim,order);
 
     out->Elements=Finley_ElementFile_alloc(elementTypeId,out->order);
     out->FaceElements=Finley_ElementFile_alloc(faceElementTypeId,out->order);
@@ -113,7 +119,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
     /* allocate new tables */
 
-    if (Finley_ErrorCode == NO_ERROR) {
+    if (Finley_noError()) {
         Finley_NodeFile_allocTable(out->Nodes,numNodes);
         Finley_ElementFile_allocTable(out->Elements,numElements);
         Finley_ElementFile_allocTable(out->FaceElements,numFaceElements);
@@ -123,7 +129,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
     /* copy tables :*/
 
-    if (Finley_ErrorCode == NO_ERROR) {
+    if (Finley_noError()) {
 
         dim_t numNodes=0;
         dim_t numElements=0;
@@ -166,7 +172,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
     }
     /* all done  */
 
-    if (Finley_ErrorCode != NO_ERROR) {
+    if (! Finley_noError()) {
        Finley_Mesh_dealloc(out);
     } else {
        Finley_Mesh_prepare(out);
@@ -180,6 +186,12 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
 /*
 * $Log$
+* Revision 1.3  2005/09/15 03:44:22  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.2.2.1  2005/09/07 06:26:19  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.2  2005/07/08 04:07:53  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

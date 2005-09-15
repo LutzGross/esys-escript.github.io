@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -6,22 +18,19 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
+/*   Copyrights by ACcESS Australia, 2003,2004,2005 */
 /*   author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
-#include "Finley.h"
 #include "Assemble.h"
-#include "NodeFile.h"
-#include "ElementFile.h"
 
 /**************************************************************/
 
-void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* elements,Finley_SystemMatrix* S, 
+void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, 
                                         escriptDataC* F,Assemble_Parameters *parm) {
+  Finley_resetError();
   dim_t i;
   parm->NN=elements->ReferenceElement->Type->numNodes;
   for (i=0;i<parm->NN;i++) parm->id[i]=i;
@@ -32,21 +41,18 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   parm->numElementDim=parm->referenceElement->Type->numDim;
 
   if (!isEmpty(F) && !isExpanded(F) ) {
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"Right hand side is not expanded.");
+      Finley_setError(TYPE_ERROR,"__FILE__: Right hand side is not expanded.");
       return;
   }
   /*  check the dimensions of S and F */
   if (S!=NULL && !isEmpty(F)) {
     if ( getDataPointSize(F)!=S->logical_row_block_size) {
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"matrix row block size and number of components of right hand side don't match.");
+      Finley_setError(TYPE_ERROR,"__FILE__: matrix row block size and number of components of right hand side don't match.");
       return;
     }
 
     if (! numSamplesEqual(F,1,(S->num_rows*S->row_block_size)/S->logical_row_block_size)) {
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"number of rows of matrix and length of right hand side don't match.");
+      Finley_setError(TYPE_ERROR,"__FILE__: number of rows of matrix and length of right hand side don't match.");
       return;
     }
   }
@@ -75,8 +81,7 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
            parm->row_node=parm->referenceElement->Type->linearNodes;
            parm->referenceElement_row=elements->LinearReferenceElement;
       } else {
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"number of rows in matrix does not match the number of degrees of freedom in mesh");
+           Finley_setError(TYPE_ERROR,"__FILE__: number of rows in matrix does not match the number of degrees of freedom in mesh");
            return;
       }
       if (S->num_cols*S->col_block_size==parm->numComp*nodes->numDegreesOfFreedom) {
@@ -88,8 +93,7 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
            parm->col_node=parm->referenceElement->Type->linearNodes;
            parm->referenceElement_col=elements->LinearReferenceElement;
       } else {
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"number of columns in matrix does not match the number of degrees of freedom in mesh");
+           Finley_setError(TYPE_ERROR,"__FILE__: number of columns in matrix does not match the number of degrees of freedom in mesh");
            return;
       }
   }
@@ -103,8 +107,7 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
            parm->row_node=parm->referenceElement->Type->linearNodes;
            parm->referenceElement_row=elements->LinearReferenceElement;
       } else {
-           Finley_ErrorCode=TYPE_ERROR;
-           sprintf(Finley_ErrorMsg,"length of RHS vector does not match the number of degrees of freedom in mesh");
+           Finley_setError(TYPE_ERROR,"__FILE__: length of RHS vector does not match the number of degrees of freedom in mesh");
            return;
       }
       if (S==NULL) {
@@ -114,8 +117,7 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
       } 
   }
   if (parm->referenceElement_row!=parm->referenceElement_col) {
-      Finley_ErrorCode=TYPE_ERROR;
-      sprintf(Finley_ErrorMsg,"assemblage cannot handel different shape functions for rows and columns (yet).");
+      Finley_setError(TYPE_ERROR,"__FILE__: assemblage cannot handel different shape functions for rows and columns (yet).");
       return;
   }
   parm->NN_row=parm->referenceElement_row->Type->numNodes;
@@ -126,6 +128,12 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
 
 /*
  * $Log$
+ * Revision 1.6  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.5.2.1  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.5  2005/07/08 04:07:47  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

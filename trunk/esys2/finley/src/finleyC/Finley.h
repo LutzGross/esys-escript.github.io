@@ -1,4 +1,17 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 
 #ifndef INC_FINLEY
 #define INC_FINLEY
@@ -9,12 +22,11 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003 */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Common.h"
+#include "paso/Paso.h"
 
 /**************************************************************/
 
@@ -29,35 +41,30 @@
 
 /* error codes */
 
-enum Finley_ErrorCodeType {
-  NO_ERROR,
-  WARNING,
-  VALUE_ERROR,
-  TYPE_ERROR,
-  MEMORY_ERROR,
-  IO_ERROR,
-  ZERO_DIVISION_ERROR,
-  EOF_ERROR,
-  FLOATING_POINT_ERROR,
-  INDEX_ERROR,
-  OS_ERROR,
-  OVERFLOW_ERROR,
-  SYSTEM_ERROR
-};
+
+typedef Paso_ErrorCodeType Finley_ErrorCodeType;
 
 /* interfaces */
 
-extern enum Finley_ErrorCodeType Finley_ErrorCode;
-extern char Finley_ErrorMsg[LenErrorMsg_MAX];
-
-
 double Finley_timer(void);
 bool_t Finley_checkPtr(void*);
+void Finley_resetError(void);
+void Finley_setError(Finley_ErrorCodeType err,char* msg);
+bool_t Finley_noError(void);
+Finley_ErrorCodeType Finley_getErrorType(void);
+char* Finley_getErrorMessage(void);
+void Finley_convertPasoError(void);
 
 #endif /* #ifndef INC_FINLEY */
 
 /*
  * $Log$
+ * Revision 1.3  2005/09/15 03:44:22  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.2.2.1  2005/09/07 06:26:18  gross
+ * the solver from finley are put into the standalone package paso now
+ *
  * Revision 1.2  2005/07/08 04:07:51  jgs
  * Merge of development branch back to main trunk on 2005-07-08
  *

@@ -1,16 +1,28 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: read mesh */
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003/04 */
 /*   Author: gross@access.edu.au */
 /*   Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "Mesh.h"
 
 /**************************************************************/
@@ -20,28 +32,30 @@
 Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   dim_t numNodes, numDim, numEle, i0, i1;
-  char name[LenString_MAX],element_type[LenString_MAX];
+  char name[LenString_MAX],element_type[LenString_MAX],frm[20];
+  char error_msg[LenErrorMsg_MAX];
   Finley_NodeFile *nodes_p=NULL;
   double time0=Finley_timer();
+  Finley_resetError();
 
   /* get file handle */
   FILE * fileHandle_p = fopen(fname, "r");
   if (fileHandle_p==NULL) {
-    Finley_ErrorCode=IO_ERROR;
-    sprintf(Finley_ErrorMsg,"Opening file %s for reading failed.",fname);
+    sprintf(error_msg,"%s: Opening file %s for reading failed.",__FILE__,fname);
+    Finley_setError(IO_ERROR,error_msg);
     return NULL;
   }
 
   /* read header */
-  fscanf(fileHandle_p, "%63[^\n]", name);
-
+  sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
+  fscanf(fileHandle_p, frm, name);
   /* get the nodes */
 
   fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
   nodes_p=Finley_NodeFile_alloc(numDim);
-  if (Finley_ErrorCode!=NO_ERROR) return NULL;
+  if (! Finley_noError()) return NULL;
   Finley_NodeFile_allocTable(nodes_p, numNodes);
-  if (Finley_ErrorCode!=NO_ERROR) return NULL;
+  if (! Finley_noError()) return NULL;
 
   if (1 == numDim) {
       for (i0 = 0; i0 < numNodes; i0++)
@@ -68,15 +82,15 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
   ElementTypeId typeID=Finley_RefElement_getTypeId(element_type);
   if (typeID==NoType) {
-    Finley_ErrorCode=VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,"Unidentified element type %s",element_type);
+    sprintf(error_msg,"%s :Unidentified element type %s",__FILE__,element_type);
+    Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
 
   /* allocate mesh */
 
   Finley_Mesh * mesh_p =Finley_Mesh_alloc(name,numDim,order);
-  if (Finley_ErrorCode!=NO_ERROR) return NULL;
+  if (! Finley_noError()) return NULL;
   mesh_p->Nodes=nodes_p;
 
   /* read the elements */
@@ -98,8 +112,8 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
   ElementTypeId faceTypeID=Finley_RefElement_getTypeId(element_type);
   if (faceTypeID==NoType) {
-    Finley_ErrorCode=VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,"Unidentified element type %s for face elements",element_type);
+    sprintf(error_msg,"%s :Unidentified element type %s for face elements",__FILE__,element_type);
+    Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
   mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order);
@@ -120,8 +134,8 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
   ElementTypeId contactTypeID=Finley_RefElement_getTypeId(element_type);
   if (contactTypeID==NoType) {
-    Finley_ErrorCode=VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,"Unidentified element type %s for contact elements",element_type);
+    sprintf(error_msg,"%s: Unidentified element type %s for contact elements",__FILE__,element_type);
+    Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
   mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order);
@@ -142,8 +156,8 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
   ElementTypeId pointTypeID=Finley_RefElement_getTypeId(element_type);
   if (pointTypeID==NoType) {
-    Finley_ErrorCode=VALUE_ERROR;
-    sprintf(Finley_ErrorMsg,"Unidentified element type %s for points",element_type);
+    sprintf(error_msg,"%s: Unidentified element type %s for points",__FILE__,element_type);
+    Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
   mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order);
@@ -173,19 +187,27 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   /* rearrange elements: */
 
   Finley_Mesh_prepare(mesh_p);
-  printf ("nodes read!\n");
 
   /* that's it */
   #ifdef Finley_TRACE
   printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
   #endif
-  if (Finley_ErrorCode!=NO_ERROR) Finley_Mesh_dealloc(mesh_p);
+  if (! Finley_noError()) Finley_Mesh_dealloc(mesh_p);
   return mesh_p;
 }
 /*
 * $Log$
+* Revision 1.5  2005/09/15 03:44:22  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
 * Revision 1.4  2005/09/01 03:31:36  jgs
 * Merge of development branch dev-02 back to main trunk on 2005-09-01
+*
+* Revision 1.3.2.3  2005/09/08 08:28:39  gross
+* some cleanup in savevtk
+*
+* Revision 1.3.2.2  2005/09/07 06:26:19  gross
+* the solver from finley are put into the standalone package paso now
 *
 * Revision 1.3.2.1  2005/08/24 02:02:18  gross
 * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.

@@ -232,6 +232,86 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       numarray.cos(arrays1[2]), \
                       wh)
 
+      # tan:
+      ref=checkResult("tan("+ex1+")", \
+                      arg1.tan(), \
+                      numarray.tan(arrays1[0]), \
+                      numarray.tan(arrays1[1]), \
+                      numarray.tan(arrays1[2]), \
+                      wh)
+
+      # asin:
+      #ref=checkResult("asin("+ex1+")", \
+      #                arg1.asin(), \
+      #                numarray.asin(arrays1[0]), \
+      #                numarray.asin(arrays1[1]), \
+      #                numarray.asin(arrays1[2]), \
+      #                wh)
+
+      # acos:
+      #ref=checkResult("acos("+ex1+")", \
+      #                arg1.acos(), \
+      #                numarray.acos(arrays1[0]), \
+      #                numarray.acos(arrays1[1]), \
+      #                numarray.acos(arrays1[2]), \
+      #                wh)
+
+      # atan:
+      #ref=checkResult("atan("+ex1+")", \
+      #                arg1.atan(), \
+      #                numarray.atan(arrays1[0]), \
+      #                numarray.atan(arrays1[1]), \
+      #                numarray.atan(arrays1[2]), \
+      #                wh)
+
+      # sinh:
+      ref=checkResult("sinh("+ex1+")", \
+                      arg1.sinh(), \
+                      numarray.sinh(arrays1[0]), \
+                      numarray.sinh(arrays1[1]), \
+                      numarray.sinh(arrays1[2]), \
+                      wh)
+
+      # cosh:
+      ref=checkResult("cosh("+ex1+")", \
+                      arg1.cosh(), \
+                      numarray.cosh(arrays1[0]), \
+                      numarray.cosh(arrays1[1]), \
+                      numarray.cosh(arrays1[2]), \
+                      wh)
+
+      # tanh:
+      ref=checkResult("tanh("+ex1+")", \
+                      arg1.tanh(), \
+                      numarray.tanh(arrays1[0]), \
+                      numarray.tanh(arrays1[1]), \
+                      numarray.tanh(arrays1[2]), \
+                      wh)
+
+      # asinh:
+      #ref=checkResult("asinh("+ex1+")", \
+      #                arg1.asinh(), \
+      #                numarray.asinh(arrays1[0]), \
+      #                numarray.asinh(arrays1[1]), \
+      #                numarray.asinh(arrays1[2]), \
+      #                wh)
+
+      # acosh:
+      #ref=checkResult("acosh("+ex1+")", \
+      #                arg1.acosh(), \
+      #                numarray.acosh(arrays1[0]), \
+      #                numarray.acosh(arrays1[1]), \
+      #                numarray.acosh(arrays1[2]), \
+      #                wh)
+
+      # atanh:
+      #ref=checkResult("atanh("+ex1+")", \
+      #                arg1.atanh(), \
+      #                numarray.atanh(arrays1[0]), \
+      #                numarray.atanh(arrays1[1]), \
+      #                numarray.atanh(arrays1[2]), \
+      #                wh)
+
       # get the maximum value at each data point
       #ref=checkResult("maxval("+ex1+")", \
       #                arg1.maxval(), \

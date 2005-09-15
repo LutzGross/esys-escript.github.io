@@ -1,4 +1,16 @@
-/* $Id$ */
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -17,17 +29,12 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004,2005 */
-/*   author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "escript/Data/DataC.h"
 #include "Assemble.h"
-#include "NodeFile.h"
-#include "ElementFile.h"
-#include "Finley.h"
 #include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -36,19 +43,21 @@
 /**************************************************************/
 
 void Finley_Assemble_RobinCondition_RHS(Finley_NodeFile* nodes,Finley_ElementFile* elements,escriptDataC* F, escriptDataC* y, Finley_Assemble_handelShapeMissMatch handelShapeMissMatchForEM) {
+  char error_msg[LenErrorMsg_MAX];
   double *EM_F=NULL,*V=NULL,*dVdv=NULL,*dSdV=NULL,*Area=NULL;
   double time0;
   Assemble_Parameters p;
   index_t *index_row=NULL,color;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK],e,q;
   bool_t assemble;
+  Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
   if (isEmpty(F) || isEmpty(y) ) return;
 
   /* set all parameters in p*/
   Assemble_getAssembleParameters(nodes,elements,NULL,F,&p);
-  if (Finley_ErrorCode!=NO_ERROR) return;
+  if (! Finley_noError()) return;
 
   /*  get a functionspace */
   type_t funcspace=UNKNOWN;
@@ -58,15 +67,14 @@ void Finley_Assemble_RobinCondition_RHS(Finley_NodeFile* nodes,Finley_ElementFil
   /* check if all function spaces are the same */
 
   if (! functionSpaceTypeEqual(funcspace,y) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"unexpected function space type for coefficient y");
+        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient y");
   }
 
   /* check if all function spaces are the same */
 
   if (! numSamplesEqual(y,p.numQuad,elements->numElements) ) {
-        Finley_ErrorCode=TYPE_ERROR; 
-        sprintf(Finley_ErrorMsg,"sample points of coefficient y don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"__FILE__:sample points of coefficient y don't match (%d,%d)",p.numQuad,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
   }
 
   
@@ -75,21 +83,20 @@ void Finley_Assemble_RobinCondition_RHS(Finley_NodeFile* nodes,Finley_ElementFil
   if (p.numEqu==1 && p.numComp==1) {
     if (!isEmpty(y)) {
       if (! isDataPointShapeEqual(y,0,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient y, rank 0 expected.");
+          Finley_setError(TYPE_ERROR,"__FILE__: coefficient y, rank 0 expected.");
       }
     }
   } else {
     if (!isEmpty(y)) {
       dimensions[0]=p.numEqu;
       if (! isDataPointShapeEqual(y,1,dimensions)) {
-          Finley_ErrorCode=TYPE_ERROR;
-          sprintf(Finley_ErrorMsg,"coefficient y, expected shape (%d,)",dimensions[0]);
+          sprintf(error_msg,"__FILE__:coefficient y, expected shape (%d,)",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
       }
     }
   }
   
-  if (Finley_ErrorCode==NO_ERROR) {
+  if (Finley_noError()) {
      time0=Finley_timer();
      #pragma omp parallel private(assemble,index_row,EM_F,V,dVdv,dSdV,Area,color)
      {
@@ -160,11 +167,17 @@ void Finley_Assemble_RobinCondition_RHS(Finley_NodeFile* nodes,Finley_ElementFil
 }
 /*
  * $Log$
+ * Revision 1.4  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
  * Revision 1.3  2005/09/01 03:31:35  jgs
  * Merge of development branch dev-02 back to main trunk on 2005-09-01
  *
  * Revision 1.2  2005/08/12 01:45:43  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.1.2.3  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.1.2.2  2005/08/24 02:02:18  gross
  * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.

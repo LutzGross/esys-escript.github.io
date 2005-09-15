@@ -761,6 +761,78 @@ class Data {
 
   /**
      \brief
+     Return the asin of each data point of this Data object.
+     *
+  */
+  Data
+  asin() const;
+
+  /**
+     \brief
+     Return the acos of each data point of this Data object.
+     *
+  */
+  Data
+  acos() const;
+
+  /**
+     \brief
+     Return the atan of each data point of this Data object.
+     *
+  */
+  Data
+  atan() const;
+
+  /**
+     \brief
+     Return the sinh of each data point of this Data object.
+     *
+  */
+  Data
+  sinh() const;
+
+  /**
+     \brief
+     Return the cosh of each data point of this Data object.
+     *
+  */
+  Data
+  cosh() const;
+
+  /**
+     \brief
+     Return the tanh of each data point of this Data object.
+     *
+  */
+  Data
+  tanh() const;
+
+  /**
+     \brief
+     Return the asinh of each data point of this Data object.
+     *
+  */
+  Data
+  asinh() const;
+
+  /**
+     \brief
+     Return the acosh of each data point of this Data object.
+     *
+  */
+  Data
+  acosh() const;
+
+  /**
+     \brief
+     Return the atanh of each data point of this Data object.
+     *
+  */
+  Data
+  atanh() const;
+
+  /**
+     \brief
      Return the log to base 10 of each data point of this Data object.
      *
   */

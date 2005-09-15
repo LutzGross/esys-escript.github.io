@@ -1,7 +1,16 @@
-/* $Id$ */
-
-#ifndef INC_FINLEY_ASSEMBLE
-#define INC_FINLEY_ASSEMBLE
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
 
 /**************************************************************/
 
@@ -9,16 +18,23 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia, 2003,2004 */
-/*   author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Copyrights by ACcESS Australia 2003,2004,2005 */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
+
+#ifndef INC_FINLEY_ASSEMBLE
+#define INC_FINLEY_ASSEMBLE
+
+/**************************************************************/
+
 #include "ReferenceElements.h"
-#include "System.h"
+#include "Finley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
 #include "escript/Data/DataC.h"
+#include "paso/SystemMatrix.h"
 
 struct Assemble_Parameters {
    dim_t numQuad;
@@ -51,13 +67,13 @@ typedef struct Assemble_Parameters Assemble_Parameters;
 
 typedef void (Finley_Assemble_handelShapeMissMatch) (dim_t, dim_t,dim_t, double*,dim_t, dim_t);
 
-void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Finley_SystemMatrix*,escriptDataC*,
+void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;
 void Finley_Assemble_PDE_RHS(Finley_NodeFile*,Finley_ElementFile*,escriptDataC*,escriptDataC*,escriptDataC*) ;
-void Finley_Assemble_RobinCondition(Finley_NodeFile*,Finley_ElementFile*,Finley_SystemMatrix*,escriptDataC*,
+void Finley_Assemble_RobinCondition(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                     escriptDataC*,escriptDataC*,Finley_Assemble_handelShapeMissMatch) ;
 void Finley_Assemble_RobinCondition_RHS(Finley_NodeFile*,Finley_ElementFile*,escriptDataC*,escriptDataC*,Finley_Assemble_handelShapeMissMatch);
-/* void Finley_Assemble_Points(Finley_Mesh*,Finley_SystemMatrix*,escriptDataC*,escriptDataC*,escriptDataC*) ;*/
+/* void Finley_Assemble_Points(Finley_Mesh*,Paso_SystemMatrix*,escriptDataC*,escriptDataC*,escriptDataC*) ;*/
 void Finley_Assemble_NodeCoordinates(Finley_NodeFile*,escriptDataC*);
 void Finley_Assemble_setNormal(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*);
 void Finley_Assemble_interpolate(Finley_NodeFile*,Finley_ElementFile*,escriptDataC*, escriptDataC*);
@@ -72,18 +88,25 @@ void Finley_Assemble_RHSMatrix_System(dim_t,dim_t,dim_t,dim_t,double*,double*,do
 void Finley_Assemble_RHSMatrix_Single(dim_t,dim_t,dim_t,double*,double*,double*,dim_t, double*,double*,dim_t,double*,dim_t);
 
 
-void Assemble_getAssembleParameters(Finley_NodeFile*,Finley_ElementFile*,Finley_SystemMatrix*,escriptDataC*,Assemble_Parameters*);
+void Assemble_getAssembleParameters(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,Assemble_Parameters*);
 Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Step_out;
 Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Step_in;
 Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_out;
 Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_in;
+void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 
 #endif /* #ifndef INC_FINLEY_ASSEMBLE */
 
 /*
  * $Log$
+ * Revision 1.4  2005/09/15 03:44:21  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
  * Revision 1.3  2005/08/12 01:45:42  jgs
  * erge of development branch dev-02 back to main trunk on 2005-08-12
+ *
+ * Revision 1.2.2.2  2005/09/07 06:26:17  gross
+ * the solver from finley are put into the standalone package paso now
  *
  * Revision 1.2.2.1  2005/08/04 22:41:11  gross
  * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)

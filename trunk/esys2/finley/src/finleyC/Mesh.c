@@ -1,16 +1,28 @@
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2003,2004,2005 -  All Rights Reserved              *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+*/
+
 /**************************************************************/
 
 /*   Finley: Mesh */
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003,04 */
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
-#include "Finley.h"
 #include "Mesh.h"
 
 /**************************************************************/
@@ -52,7 +64,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order) {
   /*   allocate node table: */
   
   out->Nodes=Finley_NodeFile_alloc(numDim);
-  if (Finley_ErrorCode!=NO_ERROR) {
+  if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
   }
@@ -91,10 +103,10 @@ void Finley_Mesh_dealloc(Finley_Mesh* in) {
        Finley_ElementFile_dealloc(in->FaceElements);
        Finley_ElementFile_dealloc(in->ContactElements);
        Finley_ElementFile_dealloc(in->Points);
-       Finley_SystemMatrixPattern_dealloc(in->FullFullPattern);
-       Finley_SystemMatrixPattern_dealloc(in->FullReducedPattern);
-       Finley_SystemMatrixPattern_dealloc(in->ReducedFullPattern);
-       Finley_SystemMatrixPattern_dealloc(in->ReducedReducedPattern);
+       Paso_SystemMatrixPattern_dealloc(in->FullFullPattern);
+       Paso_SystemMatrixPattern_dealloc(in->FullReducedPattern);
+       Paso_SystemMatrixPattern_dealloc(in->ReducedFullPattern);
+       Paso_SystemMatrixPattern_dealloc(in->ReducedReducedPattern);
        MEMFREE(in);      
      }
   }
@@ -131,6 +143,12 @@ dim_t Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh *in) {
 }
 /* 
 * $Log$
+* Revision 1.6  2005/09/15 03:44:22  jgs
+* Merge of development branch dev-02 back to main trunk on 2005-09-15
+*
+* Revision 1.5.2.1  2005/09/07 06:26:19  gross
+* the solver from finley are put into the standalone package paso now
+*
 * Revision 1.5  2005/07/08 04:07:51  jgs
 * Merge of development branch back to main trunk on 2005-07-08
 *

@@ -1,6 +1,6 @@
 # $Id$
 
-from esys.escript.escript import *
+from esys.escript import *
 from esys.escript.modelframe import Model,IterationDivergenceError
 from esys.escript.linearPDEs import AdvectivePDE,LinearPDE
 import numarray
@@ -39,7 +39,7 @@ class TemperatureAdvection(Model):
            self.__pde=LinearPDE(self.domain)
            self.__pde.setSymmetryOn()
            # self.__pde.setReducedOrderOn()
-           # self.__pde.setLumpingOn()
+           self.__pde.setSolverMethod(self.__pde.LUMPING)
            self.__pde.setValue(D=self.heat_capacity*self.density)
 
        def getSafeTimeStepSize(self,dt):
