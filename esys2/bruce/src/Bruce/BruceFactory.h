@@ -12,7 +12,7 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined bruce_BruceFactory_20050901_H
 #define bruce_BruceFactory_20050901_H
 
@@ -32,24 +32,24 @@ namespace bruce {
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
-     [0,l0] x [0,l1] x [0,l2].
+     [l0,0,0] x [0,l1,0] x [0,0,l2].
 
      \param n0,n1,n2 Input - number of elements in each dimension
      \param l0,l1,l2 Input - length of each side of brick
   */
-  escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,
-		                           double l0=1.0,double l1=1.0,double l2=1.0);
+  escript::AbstractContinuousDomain* brick(int n0=1, int n1=1, int n2=1,
+		                           double l0=1.0, double l1=1.0, double l2=1.0);
 
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 elements over the rectangle
-     [0,l0] x [0,l1].
+     [l0,0] x [0,l1].
 
      \param n0,n1 Input - number of elements in each dimension
      \param l0,l1 Input - length of each side of brick
   */
-  escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,
-				      double l0=1.0, double l1=1.0);
+  escript::AbstractContinuousDomain* rectangle(int n0=1, int n1=1,
+				               double l0=1.0, double l1=1.0);
  
 } // end of namespace
 

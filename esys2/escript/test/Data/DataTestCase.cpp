@@ -600,6 +600,34 @@ void DataTestCase::testRefValue() {
 
 }
 
+void DataTestCase::testMemAlloc() {
+
+  //
+  // Simple little sanity check for the memory allocator
+
+  cout << endl;
+
+  Data *testData;
+  for (int i=0; i<1000; i++) {
+    testData = new Data(0.0, DataArrayView::ShapeType(), FunctionSpace(), true);
+    delete testData;
+  }
+
+  DataArrayView::ShapeType viewShape;
+  viewShape.push_back(10);
+  viewShape.push_back(10);
+  viewShape.push_back(10);
+
+  Data *testData2;
+  Data *testData3 = new Data(0.0, viewShape, FunctionSpace(), true);
+  for (int i=0; i<1000; i++) {
+    testData2 = new Data(0.0, viewShape, FunctionSpace(), true);
+    delete testData2;
+  }
+  delete testData3;
+
+}
+
 TestSuite* DataTestCase::suite ()
 {
   //
@@ -615,6 +643,7 @@ TestSuite* DataTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTestCase>("testSlicing",&DataTestCase::testSlicing));
   testSuite->addTest (new TestCaller< DataTestCase>("testOperations",&DataTestCase::testOperations));
   //testSuite->addTest (new TestCaller< DataTestCase>("testRefValue",&DataTestCase::testRefValue));
+  testSuite->addTest (new TestCaller< DataTestCase>("testMemAlloc",&DataTestCase::testMemAlloc));
 
   return testSuite;
 }

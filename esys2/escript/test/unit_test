@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 # $Id$
 # simple script to run all escript unit tests
 

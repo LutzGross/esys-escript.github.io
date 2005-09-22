@@ -13,12 +13,6 @@ from esys.modellib.temperature import TemperatureAdvection
 from esys.modellib.materials import SimpleEarthModel,GravityForce
 from esys.modellib.visualization import WriteVTK
 
-# from esys.modelframe.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
-# from esys.modelframe.input import Sequencer,InterpolateOverBox
-# from esys.modelframe.flow import SteadyIncompressibleFlow
-# from esys.modelframe.temperature import TemperatureAdvection
-# from esys.modelframe.materials import SimpleEarthModel,GravityForce
-
 dom=RectangularDomain()
 dom.order=2
 

@@ -2,7 +2,7 @@
 
 #
 #      COPYRIGHT ACcESS 2004 -  All Rights Reserved
-# 
+#
 #   This software is the property of ACcESS.  No part of this code
 #   may be copied in any form or by any means without the expressed written
 #   consent of ACcESS.  Copying, use or modification of this software
@@ -10,9 +10,9 @@
 #   person has a software license agreement with ACcESS.
 #
 """
-The module provides an interface to define and solve linear partial 
-differential equations (PDEs) within L{escript}. L{linearPDEs} does not provide any 
-solver capabilities in itself but hands the PDE over to 
+The module provides an interface to define and solve linear partial
+differential equations (PDEs) within L{escript}. L{linearPDEs} does not provide any
+solver capabilities in itself but hands the PDE over to
 the PDE solver library defined through the L{Domain<escript.Domain>} of the PDE.
 The general interface is provided through the L{LinearPDE} class. The
 L{AdvectivePDE} which is derived from the L{LinearPDE} class
@@ -54,7 +54,7 @@ class UndefinedPDEError(ValueError):
    raised if a PDE is not fully defined yet.
    """
 
-class PDECoefficient:
+class PDECoefficient(object):
     """
     A class for describing a PDE coefficient
 
@@ -86,10 +86,10 @@ class PDECoefficient:
     def __init__(self,where,pattern,altering):
        """
        Initialise a PDE Coefficient type
-       
+
        @param where: describes where the coefficient lives
        @type where: one of L{INTERIOR}, L{BOUNDARY}, L{CONTACT}, L{SOLUTION}, L{REDUCED}
-       @param pattern: describes the shape of the coefficient and how the shape is build for a given 
+       @param pattern: describes the shape of the coefficient and how the shape is build for a given
               spatial dimension and numbers of equation and solution in then PDE. For instance,
               (L{BY_EQUATION},L{BY_SOLUTION},L{BY_DIM}) descrbes a rank 3 coefficient which
               is instanciated as shape (3,2,2) in case of a three equations and two solution components
@@ -101,6 +101,7 @@ class PDECoefficient:
        @type altering: one of L{OPERATOR}, L{RIGHTHANDSIDE}, L{BOTH}
 
        """
+       super(PDECoefficient, self).__init__()
        self.what=where
        self.pattern=pattern
        self.altering=altering
@@ -125,22 +126,19 @@ class PDECoefficient:
        @return:  L{FunctionSpace<escript.FunctionSpace>} of the coefficient
        @rtype:  L{FunctionSpace<escript.FunctionSpace>}
        """
-       if self.what==self.INTERIOR: 
+       if self.what==self.INTERIOR:
             return escript.Function(domain)
-       elif self.what==self.BOUNDARY: 
+       elif self.what==self.BOUNDARY:
             return escript.FunctionOnBoundary(domain)
-       elif self.what==self.CONTACT: 
+       elif self.what==self.CONTACT:
             return escript.FunctionOnContactZero(domain)
-       elif self.what==self.SOLUTION: 
+       elif self.what==self.SOLUTION:
             if reducedEquationOrder and reducedSolutionOrder:
                 return escript.ReducedSolution(domain)
             else:
                 return escript.Solution(domain)
-       elif self.what==self.REDUCED: 
-            if reducedEquationOrder and reducedSolutionOrder:
-                return escript.ReducedSolution(domain)
-            else:
-                return escript.ReducedSolution(domain)
+       elif self.what==self.REDUCED:
+            return escript.ReducedSolution(domain)
 
     def getValue(self):
        """
@@ -313,28 +311,28 @@ class PDECoefficient:
                 s=s+(dim,)
        return s
 
-class LinearPDE:
+class LinearPDE(object):
    """
    This class is used to define a general linear, steady, second order PDE
    for an unknown function M{u} on a given domain defined through a L{Domain<escript.Domain>} object.
 
    For a single PDE with a solution with a single component the linear PDE is defined in the following form:
-   
+
    M{-grad(A[j,l]*grad(u)[l]+B[j]u)[j]+C[l]*grad(u)[l]+D*u =-grad(X)[j,j]+Y}
 
-   where M{grad(F)} denotes the spatial derivative of M{F}. Einstein's summation convention, 
-   ie. summation over indexes appearing twice in a term of a sum is performed, is used. 
-   The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified through L{Data<escript.Data>} objects in the 
-   L{Function<escript.Function>} on the PDE or objects that can be converted into such L{Data<escript.Data>} objects. 
-   M{A} is a rank two, M{B}, M{C} and M{X} are rank one and M{D} and M{Y} are scalar. 
+   where M{grad(F)} denotes the spatial derivative of M{F}. Einstein's summation convention,
+   ie. summation over indexes appearing twice in a term of a sum is performed, is used.
+   The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified through L{Data<escript.Data>} objects in the
+   L{Function<escript.Function>} on the PDE or objects that can be converted into such L{Data<escript.Data>} objects.
+   M{A} is a rank two, M{B}, M{C} and M{X} are rank one and M{D} and M{Y} are scalar.
 
    The following natural boundary conditions are considered:
 
    M{n[j]*(A[i,j]*grad(u)[l]+B[j]*u)+d*u=n[j]*X[j]+y}
 
    where M{n} is the outer normal field calculated by L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
-   Notice that the coefficients M{A}, M{B} and M{X} are defined in the PDE. The coefficients M{d} and M{y} are  
-   each a scalar in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}.  
+   Notice that the coefficients M{A}, M{B} and M{X} are defined in the PDE. The coefficients M{d} and M{y} are
+   each a scalar in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
 
 
    Constraints for the solution prescribing the value of the solution at certain locations in the domain. They have the form
@@ -343,16 +341,16 @@ class LinearPDE:
 
    M{r} and M{q} are each scalar where M{q} is the characteristic function defining where the constraint is applied.
    The constraints override any other condition set by the PDE or the boundary condition.
-   
+
    The PDE is symmetrical if
- 
+
    M{A[i,j]=A[j,i]}  and M{B[j]=C[j]}
 
    For a system of PDEs and a solution with several components the PDE has the form
 
    M{-grad(A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]*u[k])[j]+C[i,k,l]*grad(u[k])[l]+D[i,k]*u[k] =-grad(X[i,j])[j]+Y[i] }
 
-   M{A} is a ramk four, M{B} and M{C} are each a rank three, M{D} and M{X} are each a rank two and M{Y} is a rank one. 
+   M{A} is a ramk four, M{B} and M{C} are each a rank three, M{D} and M{X} are each a rank two and M{Y} is a rank one.
    The natural boundary conditions take the form:
 
    M{n[j]*(A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]*u[k])+d[i,k]*u[k]=n[j]*X[i,j]+y[i]}
@@ -363,7 +361,7 @@ class LinearPDE:
 
    M{u[i]=r[i]}  where  M{q[i]>0}
 
-   M{r} and M{q} are each rank one. Notice that at some locations not necessarily all components must have a constraint. 
+   M{r} and M{q} are each rank one. Notice that at some locations not necessarily all components must have a constraint.
 
    The system of PDEs is symmetrical if
 
@@ -372,9 +370,9 @@ class LinearPDE:
         - M{D[i,k]=D[i,k]}
         - M{d[i,k]=d[k,i]}
 
-   L{LinearPDE} also supports solution discontinuities over a contact region in the domain. To specify the conditions across the 
+   L{LinearPDE} also supports solution discontinuities over a contact region in the domain. To specify the conditions across the
    discontinuity we are using the generalised flux M{J} which is in the case of a systems of PDEs and several components of the solution
-   defined as 
+   defined as
 
    M{J[i,j]=A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]*u[k]-X[i,j]}
 
@@ -387,9 +385,9 @@ class LinearPDE:
    the contact condition takes the form
 
    M{n[j]*J0[i,j]=n[j]*J1[i,j]=y_contact[i]- d_contact[i,k]*jump(u)[k]}
-   
+
    where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the discontinuity, respectively. M{jump(u)}, which is the difference
-   of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calcualted by 
+   of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calcualted by
    L{jump<util.jump>}.
    The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
    In case of a single PDE and a single component solution the contact condition takes the form
@@ -403,7 +401,7 @@ class LinearPDE:
    @cvar DIRECT: The direct solver based on LDU factorization
    @cvar CHOLEVSKY: The direct solver based on LDLt factorization (can only be applied for symmetric PDEs)
    @cvar PCG: The preconditioned conjugate gradient method (can only be applied for symmetric PDEs)
-   @cvar CR: The conjugate residual method 
+   @cvar CR: The conjugate residual method
    @cvar CGS: The conjugate gardient square method
    @cvar BICGSTAB: The stabilized BiConjugate Gradient method.
    @cvar SSOR: The symmetric overrealaxtion method
@@ -419,7 +417,7 @@ class LinearPDE:
    @cvar PASO: PASO solver package
    @cvar SCSL: SGI SCSL solver library
    @cvar MKL: Intel's MKL solver library
-   @cvar UMFPACK: the UMFPACK library 
+   @cvar UMFPACK: the UMFPACK library
    @cvar ITERATIVE: The default iterative solver
 
    """
@@ -466,6 +464,7 @@ class LinearPDE:
      @param debug: if True debug informations are printed.
 
      """
+     super(LinearPDE, self).__init__()
      #
      #   the coefficients of the general PDE:
      #
@@ -602,7 +601,7 @@ class LinearPDE:
      @rtype: L{bool}
      """
      return self.__reduce_solution_order
- 
+
    def getFunctionSpaceForEquation(self):
      """
      returns the L{FunctionSpace<escript.FunctionSpace>} used to discretize the equation
@@ -802,7 +801,7 @@ class LinearPDE:
 
      M{J[i,j]=A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]u[k]-X[i,j]}
 
-     or 
+     or
 
      M{J[j]=A[i,j]*grad(u)[l]+B[j]u-X[j]}
 
@@ -865,7 +864,7 @@ class LinearPDE:
        """
        returns the solver method
 
-       @return: the solver method currently be used. 
+       @return: the solver method currently be used.
        @rtype: C{int}
        """
        return self.__solver_method
@@ -887,7 +886,7 @@ class LinearPDE:
        """
        returns the package of the solver
 
-       @return: the solver package currently being used. 
+       @return: the solver package currently being used.
        @rtype: C{int}
        """
        return self.__solver_package
@@ -1614,7 +1613,7 @@ class Poisson(LinearPDE):
      @param debug: if True debug informations are printed.
 
      """
-     LinearPDE.__init__(self,domain,1,1,debug)
+     super(Poisson, self).__init__(domain,1,1,debug)
      self.COEFFICIENTS={"f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
                           "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
      self.setSymmetryOn()
@@ -1631,7 +1630,7 @@ class Poisson(LinearPDE):
                depending of reduced order is used for the representation of the equation.
      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
      """
-     LinearPDE.setValue(self,**coefficients)
+     super(Poisson, self).setValue(**coefficients)
 
    def getCoefficientOfGeneralPDE(self,name):
      """
@@ -1696,7 +1695,7 @@ class Helmholtz(LinearPDE):
      @param debug: if True debug informations are printed.
 
      """
-     LinearPDE.__init__(self,domain,1,1,debug)
+     super(Helmholtz, self).__init__(domain,1,1,debug)
      self.COEFFICIENTS={"omega": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
                         "k": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
                         "f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
@@ -1729,7 +1728,7 @@ class Helmholtz(LinearPDE):
                depending of reduced order is used for the representation of the equation.
      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
      """
-     LinearPDE.setValue(self,**coefficients)
+     super(Helmholtz, self).setValue(**coefficients)
 
    def getCoefficientOfGeneralPDE(self,name):
      """
@@ -1787,15 +1786,16 @@ class LameEquation(LinearPDE):
    """
 
    def __init__(self,domain,debug=False):
-       LinearPDE.__init__(self,domain,domain.getDim(),domain.getDim(),debug)
-       self.COEFFICIENTS={ "lame_lambda"  : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
+      super(LameEquation, self).__init__(domain,\
+                                         domain.getDim(),domain.getDim(),debug)
+      self.COEFFICIENTS={ "lame_lambda"  : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
                           "lame_mu"      : PDECoefficient(PDECoefficient.INTERIOR,(),PDECoefficient.OPERATOR),
                           "F"            : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
                           "sigma"        : PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM),PDECoefficient.RIGHTHANDSIDE),
                           "f"            : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
                           "r"            : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH),
                           "q"            : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
-       self.setSymmetryOn()
+      self.setSymmetryOn()
 
    def setValue(self,**coefficients):
      """
@@ -1820,7 +1820,7 @@ class LameEquation(LinearPDE):
                depending of reduced order is used for the representation of the equation.
      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
      """
-     LinearPDE.setValue(self,**coefficients)
+     super(LameEquation, self).setValue(**coefficients)
 
    def getCoefficientOfGeneralPDE(self,name):
      """
@@ -1876,16 +1876,16 @@ class AdvectivePDE(LinearPDE):
 
    M{Z[j]=C[j]-B[j]}
 
-   or 
+   or
 
    M{Z[i,k,l]=C[i,k,l]-B[i,l,k]}
 
-   To measure the dominance of the advective terms over the diffusive term M{A} the 
+   To measure the dominance of the advective terms over the diffusive term M{A} the
    X{Pelclet number} M{P} is used. It is defined as
- 
+
    M{P=h|Z|/(2|A|)}
 
-   where M{|.|} denotes the L{length<util.length>} of the arument and M{h} is the local cell size 
+   where M{|.|} denotes the L{length<util.length>} of the arument and M{h} is the local cell size
    from L{getSize<escript.Domain.getSize>}. Where M{|A|==0} M{P} is M{S{infinity}}.
 
    From the X{Pelclet number} the stabilization parameters M{S{Xi}} and M{S{Xi}} are calculated:
@@ -1913,7 +1913,7 @@ class AdvectivePDE(LinearPDE):
    """
    def __init__(self,domain,numEquations=None,numSolutions=None,xi=None,debug=False):
       """
-      creates a linear, steady, second order PDE on a L{Domain<escript.Domain>} 
+      creates a linear, steady, second order PDE on a L{Domain<escript.Domain>}
 
       @param domain: domain of the PDE
       @type domain: L{Domain<escript.Domain>}
@@ -1921,20 +1921,20 @@ class AdvectivePDE(LinearPDE):
                            is exracted from the PDE coefficients.
       @param numSolutions: number of solution components. If  numSolutions==None the number of solution components
                            is exracted from the PDE coefficients.
-      @param xi: defines a function which returns for any given Preclet number as L{Scalar<escript.Scalar>} object the 
+      @param xi: defines a function which returns for any given Preclet number as L{Scalar<escript.Scalar>} object the
                  M{S{xi}}-value used to define the stabilization parameters. If equal to None, L{ELMAN_RAMAGE} is used.
       @type xi: callable object which returns a L{Scalar<escript.Scalar>} object.
       @param debug: if True debug informations are printed.
       """
-
-      LinearPDE.__init__(self,domain,numEquations,numSolutions,debug)
+      super(AdvectivePDE, self).__init__(domain,\
+                                         numEquations,numSolutions,debug)
       if xi==None:
          self.__xi=AdvectivePDE.ELMAN_RAMAGE
       else:
          self.__xi=xi
       self.__Xi=escript.Data()
 
-   def setValue(self,**coefficients):
+   def setValue(**coefficients):
       """
       sets new values to coefficients
 
@@ -1971,51 +1971,51 @@ class AdvectivePDE(LinearPDE):
 
       """
       if "A" in coefficients.keys()   or "B" in coefficients.keys() or "C" in coefficients.keys(): self.__Xi=escript.Data()
-      LinearPDE.setValue(self,**coefficients)
+      super(AdvectivePDE, self).setValue(**coefficients)
 
    def ELMAN_RAMAGE(self,P):
-     """ 
-     Predefined function to set a values for M{S{xi}} from a Preclet number M{P}. 
+     """
+     Predefined function to set a values for M{S{xi}} from a Preclet number M{P}.
      This function uses the method suggested by H.C. Elman and A. Ramage, I{SIAM J. Numer. Anal.}, B{40} (2002)
           - M{S{xi}(P)=0} for M{P<1}
           - M{S{xi}(P)=(1-1/P)/2} otherwise
 
-     @param P: Preclet number 
+     @param P: Preclet number
      @type P: L{Scalar<escript.Scalar>}
      @return: up-wind weightimg factor
      @rtype: L{Scalar<escript.Scalar>}
-     """ 
+     """
      return (P-1.).wherePositive()*0.5*(1.-1./(P+1.e-15))
 
    def SIMPLIFIED_BROOK_HUGHES(self,P):
-     """ 
-     Predefined function to set a values for M{S{xi}} from a Preclet number M{P}. 
+     """
+     Predefined function to set a values for M{S{xi}} from a Preclet number M{P}.
      The original methods is
-     
+
      M{S{xi}(P)=coth(P)-1/P}
 
      As the evaluation of M{coth} is expensive we are using the approximation:
-     
+
          - M{S{xi}(P)=P/3} where M{P<3}
          - M{S{xi}(P)=1/2} otherwise
 
-     @param P: Preclet number 
+     @param P: Preclet number
      @type P: L{Scalar<escript.Scalar>}
      @return: up-wind weightimg factor
      @rtype: L{Scalar<escript.Scalar>}
-     """ 
+     """
      c=(P-3.).whereNegative()
      return P/6.*c+1./2.*(1.-c)
 
    def HALF(self,P):
-     """ 
-     Predefined function to set value M{1/2} for M{S{xi}} 
- 
-     @param P: Preclet number 
+     """
+     Predefined function to set value M{1/2} for M{S{xi}}
+
+     @param P: Preclet number
      @type P: L{Scalar<escript.Scalar>}
      @return: up-wind weightimg factor
      @rtype: L{Scalar<escript.Scalar>}
-     """ 
+     """
      return escript.Scalar(0.5,P.getFunctionSpace())
 
    def __calculateXi(self,peclet_factor,Z,h):
@@ -2219,6 +2219,9 @@ class AdvectivePDE(LinearPDE):
 
 
 # $Log$
+# Revision 1.14  2005/09/22 01:54:57  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-22
+#
 # Revision 1.13  2005/09/15 03:44:19  jgs
 # Merge of development branch dev-02 back to main trunk on 2005-09-15
 #
@@ -2230,6 +2233,15 @@ class AdvectivePDE(LinearPDE):
 #
 # Revision 1.10  2005/08/12 01:45:36  jgs
 # erge of development branch dev-02 back to main trunk on 2005-08-12
+#
+# Revision 1.9.2.17  2005/09/21 07:03:33  matt
+# PDECoefficient and LinearPDE are now new style classes (introduced in Python
+# 2.2). Classes Poisson, Helmholtz, LameEquation and AdvectivePDE have been
+# modified to instead use portable/cooperative "super" calls to extend base
+# class methods.
+#
+# Revision 1.9.2.16  2005/09/16 01:54:37  matt
+# Removed redundant if-loop.
 #
 # Revision 1.9.2.15  2005/09/14 08:09:18  matt
 # Added "REDUCED" solution PDECoefficient descriptors for LinearPDEs.

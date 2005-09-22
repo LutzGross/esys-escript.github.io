@@ -34,7 +34,7 @@ CPP_ARCH_FLAGS := -tpp2
 ifeq ($(strip $(DODEBUG)),YES)
   CPP_OPT_FLAGS := -O0 -openmp -openmp_report0
   DEBUG_FILE_EXT := ${NULL}
-  L_DEFS := ${L_DEFS} DOASSERT
+  L_DEFS := ${L_DEFS} DOASSERT DOPROF
 else
   CPP_OPT_FLAGS := -O3 -openmp -openmp_report0 -mp1
   DEBUG_FILE_EXT := ${NULL}
@@ -71,8 +71,15 @@ PYTHON_DIAG_FLAGS := -Wall
 PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'
 
 # $Log$
+# Revision 1.10  2005/09/22 01:54:59  jgs
+# Merge of development branch dev-02 back to main trunk on 2005-09-22
+#
 # Revision 1.9  2005/09/01 03:31:38  jgs
 # Merge of development branch dev-02 back to main trunk on 2005-09-01
+#
+# Revision 1.8.2.4  2005/09/17 02:58:30  jgs
+# DOPROF is now defined for DEBUG builds only - enabling profiling
+# data collection
 #
 # Revision 1.8.2.3  2005/08/26 03:19:07  jgs
 # turned down level of openmp reporting

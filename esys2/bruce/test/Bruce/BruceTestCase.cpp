@@ -41,11 +41,15 @@ void BruceTestCase::testConstructorException() {
 
   cout << endl;
 
+  //
+  // test constructor throws an exception for invalid arguments
+
   Bruce::DimVec v0;
   Bruce::DimVec v1;
   Bruce::DimVec v2;
   Bruce::DimVec origin;
 
+  // a 4d origin is illegal
   origin.push_back(0);
   origin.push_back(0);
   origin.push_back(0);
@@ -479,14 +483,14 @@ void BruceTestCase::testBig() {
 
 }
 
-void BruceTestCase::testSetToX() {
+void BruceTestCase::testSetToXcon() {
 
   cout << endl;
 
   //
-  // test getX method
+  // test setToX method on continuousFunction domains
 
-  cout << "\tTest Bruce::setToX" << endl;
+  cout << "\tTest Bruce::setToX for continuousFunctions" << endl;
 
   Bruce::DimVec v0;
   Bruce::DimVec v1;
@@ -495,10 +499,135 @@ void BruceTestCase::testSetToX() {
 
   DataArrayView::ShapeType shape;
 
-  cout << "\t3d Bruce" << endl;
+  int sampleNo;
+  DataAbstract::ValueType::value_type* sampleData;
+
+  origin.clear();
+
+  cout << "\t0d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  cout << "\t\t0d domain" << endl;
+
+  Bruce testbruce1(v0, v1, v2, 0, 0, 0, origin);
+  shape.clear();
+  Data data1(0.0,shape,continuousFunction(testbruce1.asAbstractContinuousDomain()));
+  testbruce1.setToX(data1);
+
+  sampleNo=0;
+  sampleData = data1.getSampleData(sampleNo);
+  assert(sampleData[0]==0);
+  sampleNo++;
+
+  cout << "\t1d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
 
   origin.push_back(0);
+
+  cout << "\t\t0d domain" << endl;
+
+  Bruce testbruce2(v0, v1, v2, 0, 0, 0, origin);
+  shape.clear();
+  shape.push_back(1);
+  Data data2(0.0,shape,continuousFunction(testbruce2.asAbstractContinuousDomain()),true);
+  testbruce2.setToX(data2);
+
+  sampleNo=0;
+  sampleData = data2.getSampleData(sampleNo);
+  assert(sampleData[0]==0);
+  sampleNo++;
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+
+  Bruce testbruce3(v0, v1, v2, 10, 0, 0, origin);
+  shape.clear();
+  shape.push_back(1);
+  Data data3(0.0,shape,continuousFunction(testbruce3.asAbstractContinuousDomain()),true);
+  testbruce3.setToX(data3);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data3.getSampleData(sampleNo);
+    assert(sampleData[0]==i);
+    sampleNo++;
+  }
+
+  cout << "\t2d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
   origin.push_back(0);
+
+  cout << "\t\t0d domain" << endl;
+
+  Bruce testbruce4(v0, v1, v2, 0, 0, 0, origin);
+  shape.clear();
+  shape.push_back(2);
+  Data data4(0.0,shape,continuousFunction(testbruce4.asAbstractContinuousDomain()),true);
+  testbruce4.setToX(data4);
+
+  sampleNo=0;
+  sampleData = data4.getSampleData(sampleNo);
+  assert(sampleData[0]==0);
+  assert(sampleData[1]==0);
+  sampleNo++;
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+  v0.push_back(0);
+
+  Bruce testbruce5(v0, v1, v2, 10, 0, 0, origin);
+  shape.clear();
+  shape.push_back(2);
+  Data data5(0.0,shape,continuousFunction(testbruce5.asAbstractContinuousDomain()),true);
+  testbruce5.setToX(data5);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data5.getSampleData(sampleNo);
+    assert(sampleData[0]==i);
+    assert(sampleData[1]==0);
+    sampleNo++;
+  }
+
+  cout << "\t\t2d domain" << endl;
+
+  v1.push_back(0);
+  v1.push_back(1);
+
+  Bruce testbruce6(v0, v1, v2, 10, 10, 0, origin);
+  shape.clear();
+  shape.push_back(2);
+  Data data6(0.0,shape,continuousFunction(testbruce6.asAbstractContinuousDomain()),true);
+  testbruce6.setToX(data6);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    for (int j=0; j<10; j++) {
+      DataAbstract::ValueType::value_type* sampleData = data6.getSampleData(sampleNo);
+      assert(sampleData[0]==i);
+      assert(sampleData[1]==j);
+      sampleNo++;
+    }
+  }
+
+  cout << "\t3d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
   origin.push_back(0);
 
   cout << "\t\t0d domain" << endl;
@@ -509,8 +638,8 @@ void BruceTestCase::testSetToX() {
   Data data7(0.0,shape,continuousFunction(testbruce7.asAbstractContinuousDomain()),true);
   testbruce7.setToX(data7);
 
-  int sampleNo=0;
-  DataAbstract::ValueType::value_type* sampleData = data7.getSampleData(sampleNo);
+  sampleNo=0;
+  sampleData = data7.getSampleData(sampleNo);
   assert(sampleData[0]==0);
   assert(sampleData[1]==0);
   assert(sampleData[2]==0);
@@ -587,39 +716,536 @@ void BruceTestCase::testSetToX() {
 
 }
 
-void BruceTestCase::testSetToSize() {
+void BruceTestCase::testSetToXfun() {
 
   cout << endl;
 
   //
-  // test getSize method
+  // test setToX method on Function domains
 
-  cout << "\tTest Bruce::setToSize" << endl;
+  cout << "\tTest Bruce::setToX for functions" << endl;
 
   Bruce::DimVec v0;
   Bruce::DimVec v1;
   Bruce::DimVec v2;
   Bruce::DimVec origin;
 
+  DataArrayView::ShapeType shape;
+
+  int sampleNo;
+  DataAbstract::ValueType::value_type* sampleData;
+
+  origin.clear();
+
+  cout << "\t1d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
   origin.push_back(0);
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+
+  Bruce testbruce3(v0, v1, v2, 10, 0, 0, origin);
+  shape.clear();
+  shape.push_back(1);
+  Data data3(0.0,shape,function(testbruce3.asAbstractContinuousDomain()),true);
+  testbruce3.setToX(data3);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data3.getSampleData(sampleNo);
+    assert(sampleData[0]==i+0.5);
+    sampleNo++;
+  }
+
+  cout << "\t2d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
   origin.push_back(0);
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+  v0.push_back(0);
+
+  Bruce testbruce5(v0, v1, v2, 10, 0, 0, origin);
+  shape.clear();
+  shape.push_back(2);
+  Data data5(0.0,shape,function(testbruce5.asAbstractContinuousDomain()),true);
+  testbruce5.setToX(data5);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data5.getSampleData(sampleNo);
+    assert(sampleData[0]==i+0.5);
+    assert(sampleData[1]==0);
+    sampleNo++;
+  }
+
+  cout << "\t\t2d domain" << endl;
+
+  v1.push_back(0);
+  v1.push_back(1);
+
+  Bruce testbruce6(v0, v1, v2, 10, 10, 0, origin);
+  shape.clear();
+  shape.push_back(2);
+  Data data6(0.0,shape,function(testbruce6.asAbstractContinuousDomain()),true);
+  testbruce6.setToX(data6);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    for (int j=0; j<9; j++) {
+      DataAbstract::ValueType::value_type* sampleData = data6.getSampleData(sampleNo);
+      assert(sampleData[0]==i+0.5);
+      assert(sampleData[1]==j+0.5);
+      sampleNo++;
+    }
+  }
+
+  cout << "\t3d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
   origin.push_back(0);
+
+  cout << "\t\t1d domain" << endl;
 
   v0.push_back(1);
   v0.push_back(0);
   v0.push_back(0);
 
+  Bruce testbruce8(v0, v1, v2, 10, 0, 0, origin);
+  shape.clear();
+  shape.push_back(3);
+  Data data8(0.0,shape,function(testbruce8.asAbstractContinuousDomain()),true);
+  testbruce8.setToX(data8);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data8.getSampleData(sampleNo);
+    assert(sampleData[0]==i+0.5);
+    assert(sampleData[1]==0);
+    assert(sampleData[2]==0);
+    sampleNo++;
+  }
+
+  cout << "\t\t2d domain" << endl;
+
   v1.push_back(0);
   v1.push_back(1);
   v1.push_back(0);
+
+  Bruce testbruce9(v0, v1, v2, 10, 10, 0, origin);
+  shape.clear();
+  shape.push_back(3);
+  Data data9(0.0,shape,function(testbruce9.asAbstractContinuousDomain()),true);
+  testbruce9.setToX(data9);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    for (int j=0; j<9; j++) {
+      DataAbstract::ValueType::value_type* sampleData = data9.getSampleData(sampleNo);
+      assert(sampleData[0]==i+0.5);
+      assert(sampleData[1]==j+0.5);
+      assert(sampleData[2]==0);
+      sampleNo++;
+    }
+  }
+
+  cout << "\t\t3d domain" << endl;
 
   v2.push_back(0);
   v2.push_back(0);
   v2.push_back(1);
 
-  Bruce testbruce(v0, v1, v2, 10, 10, 10, origin);
+  Bruce testbruce10(v0, v1, v2, 10, 10, 10, origin);
+  shape.clear();
+  shape.push_back(3);
+  Data data10(0.0,shape,function(testbruce10.asAbstractContinuousDomain()),true);
+  testbruce10.setToX(data10);
 
-  testbruce.getSize();
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    for (int j=0; j<9; j++) {
+      for (int k=0; k<9; k++) {
+        DataAbstract::ValueType::value_type* sampleData = data10.getSampleData(sampleNo);
+        assert(sampleData[0]==i+0.5);
+        assert(sampleData[1]==j+0.5);
+        assert(sampleData[2]==k+0.5);
+        sampleNo++;
+      }
+    }
+  }
+
+}
+
+void BruceTestCase::testSetToSizecon() {
+
+  cout << endl;
+
+  //
+  // test setToSize method on continuousFunction domains
+
+  cout << "\tTest Bruce::setToSize for continuousFunctions" << endl;
+
+  Bruce::DimVec v0;
+  Bruce::DimVec v1;
+  Bruce::DimVec v2;
+  Bruce::DimVec origin;
+
+  DataArrayView::ShapeType shape;
+  shape.clear();
+  shape.push_back(1);
+
+  int sampleNo;
+  DataAbstract::ValueType::value_type* sampleData;
+
+  origin.clear();
+
+  cout << "\t0d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  cout << "\t\t0d domain" << endl;
+
+  Bruce testbruce1(v0, v1, v2, 0, 0, 0, origin);
+  Data data1(0.0,shape,continuousFunction(testbruce1.asAbstractContinuousDomain()));
+  testbruce1.setToSize(data1);
+
+  sampleNo=0;
+  sampleData = data1.getSampleData(sampleNo);
+  assert(sampleData[0]==0);
+  sampleNo++;
+
+  cout << "\t1d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  origin.push_back(0);
+
+  cout << "\t\t0d domain" << endl;
+
+  Bruce testbruce2(v0, v1, v2, 0, 0, 0, origin);
+  Data data2(0.0,shape,continuousFunction(testbruce2.asAbstractContinuousDomain()),true);
+  testbruce2.setToSize(data2);
+
+  sampleNo=0;
+  sampleData = data2.getSampleData(sampleNo);
+  assert(sampleData[0]==0);
+  sampleNo++;
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+
+  Bruce testbruce3(v0, v1, v2, 10, 0, 0, origin);
+  Data data3(0.0,shape,continuousFunction(testbruce3.asAbstractContinuousDomain()),true);
+  testbruce3.setToSize(data3);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data3.getSampleData(sampleNo);
+    assert(sampleData[0]==1);
+    sampleNo++;
+  }
+
+  cout << "\t2d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  origin.push_back(0);
+
+  cout << "\t\t0d domain" << endl;
+
+  Bruce testbruce4(v0, v1, v2, 0, 0, 0, origin);
+  Data data4(0.0,shape,continuousFunction(testbruce4.asAbstractContinuousDomain()),true);
+  testbruce4.setToSize(data4);
+
+  sampleNo=0;
+  sampleData = data4.getSampleData(sampleNo);
+  assert(sampleData[0]==0);
+  sampleNo++;
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+  v0.push_back(0);
+
+  Bruce testbruce5(v0, v1, v2, 10, 0, 0, origin);
+  Data data5(0.0,shape,continuousFunction(testbruce5.asAbstractContinuousDomain()),true);
+  testbruce5.setToSize(data5);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data5.getSampleData(sampleNo);
+    assert(sampleData[0]==1);
+    sampleNo++;
+  }
+
+  cout << "\t\t2d domain" << endl;
+
+  v1.push_back(0);
+  v1.push_back(1);
+
+  Bruce testbruce6(v0, v1, v2, 10, 10, 0, origin);
+  Data data6(0.0,shape,continuousFunction(testbruce6.asAbstractContinuousDomain()),true);
+  testbruce6.setToSize(data6);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    for (int j=0; j<10; j++) {
+      DataAbstract::ValueType::value_type* sampleData = data6.getSampleData(sampleNo);
+      assert(sampleData[0]==std::sqrt(2.0));
+      sampleNo++;
+    }
+  }
+
+  cout << "\t3d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  origin.push_back(0);
+
+  cout << "\t\t0d domain" << endl;
+
+  Bruce testbruce7(v0, v1, v2, 0, 0, 0, origin);
+  Data data7(0.0,shape,continuousFunction(testbruce7.asAbstractContinuousDomain()),true);
+  testbruce7.setToSize(data7);
+
+  sampleNo=0;
+  sampleData = data7.getSampleData(sampleNo);
+  assert(sampleData[0]==0);
+  sampleNo++;
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+  v0.push_back(0);
+  v0.push_back(0);
+
+  Bruce testbruce8(v0, v1, v2, 10, 0, 0, origin);
+  Data data8(0.0,shape,continuousFunction(testbruce8.asAbstractContinuousDomain()),true);
+  testbruce8.setToSize(data8);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data8.getSampleData(sampleNo);
+    assert(sampleData[0]==1);
+    sampleNo++;
+  }
+
+  cout << "\t\t2d domain" << endl;
+
+  v1.push_back(0);
+  v1.push_back(1);
+  v1.push_back(0);
+
+  Bruce testbruce9(v0, v1, v2, 10, 10, 0, origin);
+  Data data9(0.0,shape,continuousFunction(testbruce9.asAbstractContinuousDomain()),true);
+  testbruce9.setToSize(data9);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    for (int j=0; j<10; j++) {
+      DataAbstract::ValueType::value_type* sampleData = data9.getSampleData(sampleNo);
+      assert(sampleData[0]==std::sqrt(2.0));
+      sampleNo++;
+    }
+  }
+
+  cout << "\t\t3d domain" << endl;
+
+  v2.push_back(0);
+  v2.push_back(0);
+  v2.push_back(1);
+
+  Bruce testbruce10(v0, v1, v2, 10, 10, 10, origin);
+  Data data10(0.0,shape,continuousFunction(testbruce10.asAbstractContinuousDomain()),true);
+  testbruce10.setToSize(data10);
+
+  sampleNo=0;
+  for (int i=0; i<10; i++) {
+    for (int j=0; j<10; j++) {
+      for (int k=0; k<10; k++) {
+        DataAbstract::ValueType::value_type* sampleData = data10.getSampleData(sampleNo);
+        assert(sampleData[0]==std::sqrt(3.0));
+        sampleNo++;
+      }
+    }
+  }
+
+}
+
+void BruceTestCase::testSetToSizefun() {
+
+  cout << endl;
+
+  //
+  // test setToSize method on Function domains
+
+  cout << "\tTest Bruce::setToSize for functions" << endl;
+
+  Bruce::DimVec v0;
+  Bruce::DimVec v1;
+  Bruce::DimVec v2;
+  Bruce::DimVec origin;
+
+  DataArrayView::ShapeType shape;
+  shape.clear();
+  shape.push_back(1);
+
+  int sampleNo;
+  DataAbstract::ValueType::value_type* sampleData;
+
+  origin.clear();
+
+  cout << "\t1d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  origin.push_back(0);
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+
+  Bruce testbruce3(v0, v1, v2, 10, 0, 0, origin);
+  Data data3(0.0,shape,function(testbruce3.asAbstractContinuousDomain()),true);
+  testbruce3.setToSize(data3);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data3.getSampleData(sampleNo);
+    assert(sampleData[0]==1);
+    sampleNo++;
+  }
+
+  cout << "\t2d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  origin.push_back(0);
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+  v0.push_back(0);
+
+  Bruce testbruce5(v0, v1, v2, 10, 0, 0, origin);
+  Data data5(0.0,shape,function(testbruce5.asAbstractContinuousDomain()),true);
+  testbruce5.setToSize(data5);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data5.getSampleData(sampleNo);
+    assert(sampleData[0]==1);
+    sampleNo++;
+  }
+
+  cout << "\t\t2d domain" << endl;
+
+  v1.push_back(0);
+  v1.push_back(1);
+
+  Bruce testbruce6(v0, v1, v2, 10, 10, 0, origin);
+  Data data6(0.0,shape,function(testbruce6.asAbstractContinuousDomain()),true);
+  testbruce6.setToSize(data6);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    for (int j=0; j<9; j++) {
+      DataAbstract::ValueType::value_type* sampleData = data6.getSampleData(sampleNo);
+      assert(sampleData[0]==std::sqrt(2.0));
+      sampleNo++;
+    }
+  }
+
+  cout << "\t3d Bruce" << endl;
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  origin.push_back(0);
+
+  cout << "\t\t1d domain" << endl;
+
+  v0.push_back(1);
+  v0.push_back(0);
+  v0.push_back(0);
+
+  Bruce testbruce8(v0, v1, v2, 10, 0, 0, origin);
+  Data data8(0.0,shape,function(testbruce8.asAbstractContinuousDomain()),true);
+  testbruce8.setToSize(data8);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    DataAbstract::ValueType::value_type* sampleData = data8.getSampleData(sampleNo);
+    assert(sampleData[0]==1);
+    sampleNo++;
+  }
+
+  cout << "\t\t2d domain" << endl;
+
+  v1.push_back(0);
+  v1.push_back(1);
+  v1.push_back(0);
+
+  Bruce testbruce9(v0, v1, v2, 10, 10, 0, origin);
+  Data data9(0.0,shape,function(testbruce9.asAbstractContinuousDomain()),true);
+  testbruce9.setToSize(data9);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    for (int j=0; j<9; j++) {
+      DataAbstract::ValueType::value_type* sampleData = data9.getSampleData(sampleNo);
+      assert(sampleData[0]==std::sqrt(2.0));
+      sampleNo++;
+    }
+  }
+
+  cout << "\t\t3d domain" << endl;
+
+  v2.push_back(0);
+  v2.push_back(0);
+  v2.push_back(1);
+
+  Bruce testbruce10(v0, v1, v2, 10, 10, 10, origin);
+  Data data10(0.0,shape,function(testbruce10.asAbstractContinuousDomain()),true);
+  testbruce10.setToSize(data10);
+
+  sampleNo=0;
+  for (int i=0; i<9; i++) {
+    for (int j=0; j<9; j++) {
+      for (int k=0; k<9; k++) {
+        DataAbstract::ValueType::value_type* sampleData = data10.getSampleData(sampleNo);
+        assert(sampleData[0]==std::sqrt(3.0));
+        sampleNo++;
+      }
+    }
+  }
 
 }
 
@@ -636,7 +1262,9 @@ TestSuite* BruceTestCase::suite ()
   testSuite->addTest (new TestCaller< BruceTestCase>("test2d",&BruceTestCase::test2d));
   testSuite->addTest (new TestCaller< BruceTestCase>("test3d",&BruceTestCase::test3d));
   testSuite->addTest (new TestCaller< BruceTestCase>("testBig",&BruceTestCase::testBig));
-  testSuite->addTest (new TestCaller< BruceTestCase>("testSetToX",&BruceTestCase::testSetToX));
-  //testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSize",&BruceTestCase::testSetToSize));
+  testSuite->addTest (new TestCaller< BruceTestCase>("testSetToXcon",&BruceTestCase::testSetToXcon));
+  testSuite->addTest (new TestCaller< BruceTestCase>("testSetToXfun",&BruceTestCase::testSetToXfun));
+  testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSizecon",&BruceTestCase::testSetToSizecon));
+  testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSizefun",&BruceTestCase::testSetToSizefun));
   return testSuite;
 }

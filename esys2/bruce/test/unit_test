@@ -1,8 +1,9 @@
-#!/bin/env bash
+#!/bin/bash
 # $Id$
 # simple script to run all bruce unit tests
 
-MODULES="Bruce BruceFactory"
+#MODULES="Bruce BruceFactory"
+MODULES="Bruce"
 
 for module in $MODULES ; do
   echo Testing: $module

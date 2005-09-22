@@ -72,7 +72,8 @@ DataConstant::DataConstant(const DataConstant& other,
   DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
   //
   // allocate space for this new DataConstant's data
-  m_data.resize(DataArrayView::noValues(shape));
+  int len = DataArrayView::noValues(shape);
+  m_data.resize(len,0.,len);
   //
   // create a view of the data with the correct shape
   DataArrayView tempView(m_data,shape);
@@ -170,7 +171,8 @@ DataConstant::reshapeDataPoint(const DataArrayView::ShapeType& shape)
          << "This Data has data points with rank: " << getPointDataView().getRank();
     throw DataException(temp.str());
   }
-  m_data.resize(DataArrayView::noValues(shape),getPointDataView()());
+  int len = DataArrayView::noValues(shape);
+  m_data.resize(len,getPointDataView()(),len);
   DataArrayView newView(m_data,shape);
   setPointDataView(newView);
 }

@@ -36,43 +36,23 @@ void TaipanTestCase::tearDown() {
  
 }
 
-void TaipanTestCase::testAll() {
-  //
-  // The test code may be entered here
-  // There is nothing special about the function name, it may be renamed to
-  // something more suitable. 
-  // As many test methods as desired may be added.
+void TaipanTestCase::testN1() {
+
+  // Arrays with N=1 are handled differently by the Taipan memory manager, these
+  // are never disposed of to maximise reusability, so they are tested seperately.
 
   cout << endl;
 
-  const int dim = 1;
-
   Taipan t;
 
-  cout << "\tTest empty Taipan memTable." << endl;
+  const int dim = 1;
 
-  assert(t.num_arrays() == 0);
-  assert(t.num_elements() == 0);
-
-  cout << "\tTest Taipan memTable with one array of size 0 under management." << endl;
-
-  double* array = t.new_array(dim,0);
-
-  assert(t.num_arrays() == 1);
-  assert(t.num_arrays(0) == 1);
-  assert(t.num_free(0) == 0);
-  assert(t.num_elements() == 0);
-
-  t.delete_array(array);
-
-  assert(t.num_arrays() == 0);
-  assert(t.num_elements() == 0);
+  double* array;
+  double* arraY[10];
 
   cout << "\tTest Taipan memTable with one array of size 1 under management." << endl;
 
   array = t.new_array(dim,1);
-
-  //array[0] = 0;
 
   assert(array[0] == 0.0);
 
@@ -83,85 +63,8 @@ void TaipanTestCase::testAll() {
 
   t.delete_array(array);
 
-  assert(t.num_arrays() == 0);
-  assert(t.num_elements() == 0);
-
-  cout << "\tTest Taipan memTable with one array of size 10 under management." << endl;
-
-  array = t.new_array(dim,10);
-
-  for (int i=0; i<10; i++) {
-    assert(array[i] == 0.0);
-  }
-
-  for (int i=0; i<10; i++) {
-    array[i] = i;
-  }
-  for (int i=0; i<10; i++) {
-    assert(array[i] == i);
-  }
-
   assert(t.num_arrays() == 1);
-  assert(t.num_arrays(10) == 1);
-  assert(t.num_free(10) == 0);
-  assert(t.num_elements() == 10);
-
-  t.delete_array(array);
-
-  assert(t.num_arrays() == 0);
-  assert(t.num_elements() == 0);
- 
-  cout << "\tTest Taipan memTable with ten arrays of size 0 under management." << endl;
-
-  // allocate all ten arrays
-  // the number of arrays under management will increase with each allocation
-  double* arraY[10];
-  for (int i=0; i<10; i++) {
-    arraY[i] = t.new_array(dim,0);
-    assert(t.num_arrays() == i+1);
-    assert(t.num_arrays(0) == i+1);
-    assert(t.num_free(0) == 0);
-    assert(t.num_elements() == 0);
-  }
-
-  // delete all but the last array under management
-  // the number of arrays under management does not change
-  // but the number of free arrays will increase with each deallocation
-  for (int i=0; i<9; i++) {
-    t.delete_array(arraY[i]);
-    assert(t.num_arrays() == 10);
-    assert(t.num_arrays(0) == 10);
-    assert(t.num_free(0) == i+1);
-    assert(t.num_elements() == 0);
-  }
-
-  // now reallocate the 9 free arrays
-  // the preserved arrays will be reused
-  // and the number of free arrays will decrease with each allocation
-  for (int i=0; i<9; i++) {
-    arraY[i] = t.new_array(dim,0);
-    assert(t.num_arrays() == 10);
-    assert(t.num_arrays(0) == 10);
-    assert(t.num_free(0) == 8-i);
-    assert(t.num_elements() == 0);
-  }
-
-  // delete all but the last array under management
-  // the number of arrays under management does not change
-  // but the number of free arrays will increase with each deallocation
-  for (int i=0; i<9; i++) {
-    t.delete_array(arraY[i]);
-    assert(t.num_arrays() == 10);
-    assert(t.num_arrays(0) == 10);
-    assert(t.num_free(0) == i+1);
-    assert(t.num_elements() == 0);
-  }
-
-  // finally delete the last array
-  // all arrays under management are deleted
-  t.delete_array(arraY[9]);
-  assert(t.num_arrays() == 0);
-  assert(t.num_elements() == 0);
+  assert(t.num_elements() == 1);
 
   cout << "\tTest Taipan memTable with ten arrays of size 1 under management." << endl;
 
@@ -222,11 +125,131 @@ void TaipanTestCase::testAll() {
   assert(arraY[9][0] == 9);
 
   // finally delete the last array
-  // all arrays under management are deleted
   t.delete_array(arraY[9]);
+  assert(t.num_arrays() == 10);
+  assert(t.num_elements() == 10);
+}
+
+void TaipanTestCase::testN0() {
+
+  // Arrays with N=0 are handled differently by the Taipan memory manager, these
+  // are never disposed of to maximise reusability, so they are tested seperately.
+
+  cout << endl;
+
+  Taipan t;
+
+  const int dim = 1;
+
+  double* array;
+  double* arraY[10];
+
+  cout << "\tTest Taipan memTable with one array of size 0 under management." << endl;
+
+  array = t.new_array(dim,0);
+
+  assert(t.num_arrays() == 1);
+  assert(t.num_arrays(0) == 1);
+  assert(t.num_free(0) == 0);
+  assert(t.num_elements() == 0);
+
+  t.delete_array(array);
+
+  assert(t.num_arrays() == 1);
+  assert(t.num_elements() == 0);
+
+  cout << "\tTest Taipan memTable with ten arrays of size 0 under management." << endl;
+
+  // allocate all ten arrays
+  // the number of arrays under management will increase with each allocation
+  for (int i=0; i<10; i++) {
+    arraY[i] = t.new_array(dim,0);
+    assert(t.num_arrays() == i+1);
+    assert(t.num_arrays(0) == i+1);
+    assert(t.num_free(0) == 0);
+    assert(t.num_elements() == 0);
+  }
+
+  // delete all but the last array under management
+  // the number of arrays under management does not change
+  // but the number of free arrays will increase with each deallocation
+  for (int i=0; i<9; i++) {
+    t.delete_array(arraY[i]);
+    assert(t.num_arrays() == 10);
+    assert(t.num_arrays(0) == 10);
+    assert(t.num_free(0) == i+1);
+    assert(t.num_elements() == 0);
+  }
+
+  // now reallocate the 9 free arrays
+  // the preserved arrays will be reused
+  // and the number of free arrays will decrease with each allocation
+  for (int i=0; i<9; i++) {
+    arraY[i] = t.new_array(dim,0);
+    assert(t.num_arrays() == 10);
+    assert(t.num_arrays(0) == 10);
+    assert(t.num_free(0) == 8-i);
+    assert(t.num_elements() == 0);
+  }
+
+  // delete all but the last array under management
+  // the number of arrays under management does not change
+  // but the number of free arrays will increase with each deallocation
+  for (int i=0; i<9; i++) {
+    t.delete_array(arraY[i]);
+    assert(t.num_arrays() == 10);
+    assert(t.num_arrays(0) == 10);
+    assert(t.num_free(0) == i+1);
+    assert(t.num_elements() == 0);
+  }
+
+  // finally delete the last array
+  t.delete_array(arraY[9]);
+  assert(t.num_arrays() == 10);
+  assert(t.num_elements() == 0);
+}
+
+void TaipanTestCase::testAll() {
+
+  cout << endl;
+
+  Taipan t;
+
+  double* array;
+  double* arraY[10];
+
+  const int dim = 1;
+
+  cout << "\tTest empty Taipan memTable." << endl;
+
   assert(t.num_arrays() == 0);
   assert(t.num_elements() == 0);
 
+  cout << "\tTest Taipan memTable with one array of size 10 under management." << endl;
+
+  array = t.new_array(dim,10);
+
+  for (int i=0; i<10; i++) {
+    assert(array[i] == 0.0);
+  }
+
+  for (int i=0; i<10; i++) {
+    array[i] = i;
+  }
+  for (int i=0; i<10; i++) {
+    assert(array[i] == i);
+  }
+
+  assert(t.num_arrays() == 1);
+  assert(t.num_arrays(10) == 1);
+  assert(t.num_free(10) == 0);
+  assert(t.num_elements() == 10);
+
+  t.delete_array(array);
+
+  assert(t.num_arrays() == 0);
+  assert(t.num_elements() == 0);
+ 
   cout << "\tTest Taipan memTable with ten arrays of size 10 under management." << endl;
 
   // allocate all ten arrays
@@ -315,9 +338,9 @@ void TaipanTestCase::testAll() {
 
   // allocate all ten arrays
   // the number of arrays under management will increase with each allocation
-  arraY[0] = t.new_array(dim,0);
-  arraY[1] = t.new_array(dim,1);
-  arraY[2] = t.new_array(dim,1);
+  arraY[0] = t.new_array(dim,2);
+  arraY[1] = t.new_array(dim,2);
+  arraY[2] = t.new_array(dim,2);
   arraY[3] = t.new_array(dim,10);
   arraY[4] = t.new_array(dim,10);
   arraY[5] = t.new_array(dim,10);
@@ -327,19 +350,18 @@ void TaipanTestCase::testAll() {
   arraY[9] = t.new_array(dim,100);
 
   assert(t.num_arrays() == 10);
-  assert(t.num_arrays(0) == 1);
-  assert(t.num_arrays(1) == 2);
+  assert(t.num_arrays(2) == 3);
   assert(t.num_arrays(10) == 3);
   assert(t.num_arrays(100) == 4);
-  assert(t.num_free(0) == 0);
-  assert(t.num_free(1) == 0);
+  assert(t.num_free(2) == 0);
   assert(t.num_free(10) == 0);
   assert(t.num_free(100) == 0);
-  assert(t.num_elements() == 432);
+  assert(t.num_elements() == 436);
 
-  // delete all but the last array of each size under management
+  // delete all but the first array of each size under management
   // the number of arrays under management does not change
   // but the number of free arrays will increase with each deallocation
+  t.delete_array(arraY[1]);
   t.delete_array(arraY[2]);
   t.delete_array(arraY[4]);
   t.delete_array(arraY[5]);
@@ -348,20 +370,19 @@ void TaipanTestCase::testAll() {
   t.delete_array(arraY[9]);
 
   assert(t.num_arrays() == 10);
-  assert(t.num_arrays(0) == 1);
-  assert(t.num_arrays(1) == 2);
+  assert(t.num_arrays(2) == 3);
   assert(t.num_arrays(10) == 3);
   assert(t.num_arrays(100) == 4);
-  assert(t.num_free(0) == 0);
-  assert(t.num_free(1) == 1);
+  assert(t.num_free(2) == 2);
   assert(t.num_free(10) == 2);
   assert(t.num_free(100) == 3);
-  assert(t.num_elements() == 432);
+  assert(t.num_elements() == 436);
 
   // now reallocate the free arrays
   // the preserved arrays will be reused
   // and the number of free arrays will decrease with each allocation
-  arraY[2] = t.new_array(dim,1);
+  arraY[1] = t.new_array(dim,2);
+  arraY[2] = t.new_array(dim,2);
   arraY[4] = t.new_array(dim,10);
   arraY[5] = t.new_array(dim,10);
   arraY[7] = t.new_array(dim,100);
@@ -369,19 +390,18 @@ void TaipanTestCase::testAll() {
   arraY[9] = t.new_array(dim,100);
 
   assert(t.num_arrays() == 10);
-  assert(t.num_arrays(0) == 1);
-  assert(t.num_arrays(1) == 2);
+  assert(t.num_arrays(2) == 3);
   assert(t.num_arrays(10) == 3);
   assert(t.num_arrays(100) == 4);
-  assert(t.num_free(0) == 0);
-  assert(t.num_free(1) == 0);
+  assert(t.num_free(2) == 0);
   assert(t.num_free(10) == 0);
   assert(t.num_free(100) == 0);
-  assert(t.num_elements() == 432);
+  assert(t.num_elements() == 436);
 
   // delete all but the last array of each size under management
   // the number of arrays under management does not change
   // but the number of free arrays will increase with each deallocation
+  t.delete_array(arraY[1]);
   t.delete_array(arraY[2]);
   t.delete_array(arraY[4]);
   t.delete_array(arraY[5]);
@@ -390,19 +410,16 @@ void TaipanTestCase::testAll() {
   t.delete_array(arraY[9]);
 
   assert(t.num_arrays() == 10);
-  assert(t.num_arrays(0) == 1);
-  assert(t.num_arrays(1) == 2);
+  assert(t.num_arrays(2) == 3);
   assert(t.num_arrays(10) == 3);
   assert(t.num_arrays(100) == 4);
-  assert(t.num_free(0) == 0);
-  assert(t.num_free(1) == 1);
+  assert(t.num_free(2) == 2);
   assert(t.num_free(10) == 2);
   assert(t.num_free(100) == 3);
-  assert(t.num_elements() == 432);
+  assert(t.num_elements() == 436);
 
   // deallocate the last of the arrays
   t.delete_array(arraY[0]);
-  t.delete_array(arraY[1]);
   t.delete_array(arraY[3]);
   t.delete_array(arraY[6]);
 
@@ -417,5 +434,7 @@ TestSuite* TaipanTestCase::suite ()
   TestSuite *testSuite = new TestSuite ("TaipanTestCase");
 
   testSuite->addTest (new TestCaller< TaipanTestCase>("testAll",&TaipanTestCase::testAll));
+  testSuite->addTest (new TestCaller< TaipanTestCase>("testN1",&TaipanTestCase::testN1));
+  testSuite->addTest (new TestCaller< TaipanTestCase>("testN0",&TaipanTestCase::testN0));
   return testSuite;
 }

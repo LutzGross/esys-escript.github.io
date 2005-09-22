@@ -45,9 +45,11 @@ using namespace boost::python;
 using namespace boost;
 using namespace escript;
 
+#if defined DOPROF
 //
 // global table of profiling data for all Data objects
 DataProf dataProfTable;
+#endif
 
 Data::Data()
 {
@@ -56,8 +58,10 @@ Data::Data()
   DataAbstract* temp=new DataEmpty();
   shared_ptr<DataAbstract> temp_data(temp);
   m_data=temp_data;
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(double value,
@@ -71,8 +75,10 @@ Data::Data(double value,
   }
   DataArray temp(dataPointShape,value);
   initialise(temp.getView(),what,expanded);
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(double value,
@@ -83,15 +89,19 @@ Data::Data(double value,
   DataArray temp(dataPointShape,value);
   pair<int,int> dataShape=what.getDataShape();
   initialise(temp.getView(),what,expanded);
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const Data& inData)
 {
   m_data=inData.m_data;
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const Data& inData,
@@ -102,8 +112,10 @@ Data::Data(const Data& inData,
   DataAbstract* tmp = inData.m_data->getSlice(region);
   shared_ptr<DataAbstract> temp_data(tmp);
   m_data=temp_data;
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const Data& inData,
@@ -125,8 +137,10 @@ Data::Data(const Data& inData,
     }
     m_data=tmp.m_data;
   }
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const DataTagged::TagListType& tagKeys,
@@ -141,8 +155,10 @@ Data::Data(const DataTagged::TagListType& tagKeys,
   if (expanded) {
     expand();
   }
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const numeric::array& value,
@@ -150,8 +166,10 @@ Data::Data(const numeric::array& value,
            bool expanded)
 {
   initialise(value,what,expanded);
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const DataArrayView& value,
@@ -159,8 +177,10 @@ Data::Data(const DataArrayView& value,
            bool expanded)
 {
   initialise(value,what,expanded);
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const object& value,
@@ -169,8 +189,10 @@ Data::Data(const object& value,
 {
   numeric::array asNumArray(value);
   initialise(asNumArray,what,expanded);
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
 }
 
 Data::Data(const object& value,
@@ -191,8 +213,15 @@ Data::Data(const object& value,
     // Create a DataConstant with the same sample shape as other
     initialise(temp.getView(),other.getFunctionSpace(),false);
   }
+#if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
+#endif
+}
+
+Data::~Data()
+{
+
 }
 
 escriptDataC
@@ -379,49 +408,63 @@ Data::reshapeDataPoint(const DataArrayView::ShapeType& shape)
 Data
 Data::wherePositive() const
 {
+#if defined DOPROF
   profData->where++;
+#endif
   return escript::unaryOp(*this,bind2nd(greater<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
+#if defined DOPROF
   profData->where++;
+#endif
   return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
+#if defined DOPROF
   profData->where++;
+#endif
   return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
+#if defined DOPROF
   profData->where++;
+#endif
   return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0));
 }
 
 Data
 Data::whereZero() const
 {
+#if defined DOPROF
   profData->where++;
+#endif
   return escript::unaryOp(*this,bind2nd(equal_to<double>(),0.0));
 }
 
 Data
 Data::whereNonZero() const
 {
+#if defined DOPROF
   profData->where++;
+#endif
   return escript::unaryOp(*this,bind2nd(not_equal_to<double>(),0.0));
 }
 
 Data
 Data::interpolate(const FunctionSpace& functionspace) const
 {
+#if defined DOPROF
   profData->interpolate++;
+#endif
   return Data(*this,functionspace);
 }
 
@@ -443,7 +486,9 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
+#if defined DOPROF
   profData->grad++;
+#endif
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
   DataArrayView::ShapeType grad_shape=getPointDataView().getShape();
@@ -808,7 +853,9 @@ Data::integrate() const
   int rank = getDataPointRank();
   DataArrayView::ShapeType shape = getDataPointShape();
 
+#if defined DOPROF
   profData->integrate++;
+#endif
 
   //
   // calculate the integral values
@@ -873,126 +920,162 @@ Data::integrate() const
 Data
 Data::sin() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sin);
 }
 
 Data
 Data::cos() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cos);
 }
 
 Data
 Data::tan() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tan);
 }
 
 Data
 Data::asin() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asin);
 }
 
 Data
 Data::acos() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acos);
 }
 
 Data
 Data::atan() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atan);
 }
 
 Data
 Data::sinh() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sinh);
 }
 
 Data
 Data::cosh() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cosh);
 }
 
 Data
 Data::tanh() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tanh);
 }
 
 Data
 Data::asinh() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
 }
 
 Data
 Data::acosh() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
 }
 
 Data
 Data::atanh() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
 }
 
 Data
 Data::log() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log10);
 }
 
 Data
 Data::ln() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log);
 }
 
 Data
 Data::sign() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,escript::fsign);
 }
 
 Data
 Data::abs() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::fabs);
 }
 
 Data
 Data::neg() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,negate<double>());
 }
 
 Data
 Data::pos() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   Data result;
   // perform a deep copy
   result.copy(*this);
@@ -1002,21 +1085,27 @@ Data::pos() const
 Data
 Data::exp() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::exp);
 }
 
 Data
 Data::sqrt() const
 {
+#if defined DOPROF
   profData->unary++;
+#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sqrt);
 }
 
 double
 Data::Lsup() const
 {
+#if defined DOPROF
   profData->reduction1++;
+#endif
   //
   // set the initial absolute maximum value to zero
   AbsMax abs_max_func;
@@ -1026,7 +1115,9 @@ Data::Lsup() const
 double
 Data::Linf() const
 {
+#if defined DOPROF
   profData->reduction1++;
+#endif
   //
   // set the initial absolute minimum value to max double
   AbsMin abs_min_func;
@@ -1036,7 +1127,9 @@ Data::Linf() const
 double
 Data::sup() const
 {
+#if defined DOPROF
   profData->reduction1++;
+#endif
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
@@ -1046,7 +1139,9 @@ Data::sup() const
 double
 Data::inf() const
 {
+#if defined DOPROF
   profData->reduction1++;
+#endif
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
@@ -1056,7 +1151,9 @@ Data::inf() const
 Data
 Data::maxval() const
 {
+#if defined DOPROF
   profData->reduction2++;
+#endif
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
@@ -1066,7 +1163,9 @@ Data::maxval() const
 Data
 Data::minval() const
 {
+#if defined DOPROF
   profData->reduction2++;
+#endif
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
@@ -1076,7 +1175,9 @@ Data::minval() const
 Data
 Data::length() const
 {
+#if defined DOPROF
   profData->reduction2++;
+#endif
   Length len_func;
   return dp_algorithm(len_func,0);
 }
@@ -1084,7 +1185,9 @@ Data::length() const
 Data
 Data::trace() const
 {
+#if defined DOPROF
   profData->reduction2++;
+#endif
   Trace trace_func;
   return dp_algorithm(trace_func,0);
 }
@@ -1092,7 +1195,9 @@ Data::trace() const
 Data
 Data::transpose(int axis) const
 {
+#if defined DOPROF
   profData->reduction2++;
+#endif
   // not implemented
   throw DataException("Error - Data::transpose not implemented yet.");
   return Data();
@@ -1172,7 +1277,9 @@ Data::saveVTK(std::string fileName) const
 Data&
 Data::operator+=(const Data& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,plus<double>());
   return (*this);
 }
@@ -1180,7 +1287,9 @@ Data::operator+=(const Data& right)
 Data&
 Data::operator+=(const boost::python::object& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,plus<double>());
   return (*this);
 }
@@ -1188,7 +1297,9 @@ Data::operator+=(const boost::python::object& right)
 Data&
 Data::operator-=(const Data& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,minus<double>());
   return (*this);
 }
@@ -1196,7 +1307,9 @@ Data::operator-=(const Data& right)
 Data&
 Data::operator-=(const boost::python::object& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,minus<double>());
   return (*this);
 }
@@ -1204,7 +1317,9 @@ Data::operator-=(const boost::python::object& right)
 Data&
 Data::operator*=(const Data& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,multiplies<double>());
   return (*this);
 }
@@ -1212,7 +1327,9 @@ Data::operator*=(const Data& right)
 Data&
 Data::operator*=(const boost::python::object& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,multiplies<double>());
   return (*this);
 }
@@ -1220,7 +1337,9 @@ Data::operator*=(const boost::python::object& right)
 Data&
 Data::operator/=(const Data& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,divides<double>());
   return (*this);
 }
@@ -1228,7 +1347,9 @@ Data::operator/=(const Data& right)
 Data&
 Data::operator/=(const boost::python::object& right)
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   binaryOp(right,divides<double>());
   return (*this);
 }
@@ -1236,7 +1357,9 @@ Data::operator/=(const boost::python::object& right)
 Data
 Data::powO(const boost::python::object& right) const
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   Data result;
   result.copy(*this);
   result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
@@ -1246,7 +1369,9 @@ Data::powO(const boost::python::object& right) const
 Data
 Data::powD(const Data& right) const
 {
+#if defined DOPROF
   profData->binary++;
+#endif
   Data result;
   result.copy(*this);
   result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
@@ -1483,7 +1608,9 @@ Data::getItem(const boost::python::object& key) const
 Data
 Data::getSlice(const DataArrayView::RegionType& region) const
 {
+#if defined DOPROF
   profData->slicing++;
+#endif
   return Data(*this,region);
 }
 
@@ -1516,7 +1643,9 @@ void
 Data::setSlice(const Data& value,
                const DataArrayView::RegionType& region)
 {
+#if defined DOPROF
   profData->slicing++;
+#endif
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
