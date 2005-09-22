@@ -38,7 +38,7 @@ class TemperatureAdvection(Model):
        def doInitialization(self):
            self.__pde=LinearPDE(self.domain)
            self.__pde.setSymmetryOn()
-           # self.__pde.setReducedOrderOn()
+           self.__pde.setReducedOrderOn()
            self.__pde.setSolverMethod(self.__pde.LUMPING)
            self.__pde.setValue(D=self.heat_capacity*self.density)
 

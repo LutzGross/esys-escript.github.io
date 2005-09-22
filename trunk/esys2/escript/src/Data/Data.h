@@ -206,6 +206,11 @@ class Data {
        const boost::python::tuple& shape=boost::python::make_tuple(), 
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
+  /**
+     \brief
+     Destructor
+  */
+  ~Data();
 
   /**
      \brief

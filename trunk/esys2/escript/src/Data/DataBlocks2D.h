@@ -48,7 +48,7 @@ class DataBlocks2D {
 
      Description:
      Default constructor for DataBlocks2D.
-     Creates a 0 * 0 array of data points with 0 values.
+     Creates an empty DataBlocks2D object.
   */
   DataBlocks2D();
 
@@ -68,9 +68,11 @@ class DataBlocks2D {
      Description:
      Constructor for DataBlocks2D.
 
-     \param numRows - Input - Number of rows.
-     \param numCols - Input - Number of columns.
-     \param blockSize - Input - Number of elements per block.
+     \param numRows - Input - Number of rows(samples).
+     \param numCols - Input - Number of columns(data-points per sample).
+     \param blockSize - Input - Number of elements per block(per data-point).
+
+     All parameters must be >0, else an exception will be thrown.
   */
   DataBlocks2D(int numRows, int numCols, int blockSize);
 
@@ -124,6 +126,8 @@ class DataBlocks2D {
      \param numRows - Input - Number of rows.
      \param numCols - Input - Number of columns.
      \param blockSize - Input - Number of elements per block.
+
+     All parameters must be >0, else an exception will be thrown.
   */
   void
   resize(int numRows, int numCols, int blockSize);
@@ -191,8 +195,7 @@ class DataBlocks2D {
   getData();
 
   inline
-  const
-  ValueType&
+  const ValueType&
   getData() const;
 
   /**
@@ -229,13 +232,13 @@ class DataBlocks2D {
   ValueType m_data;
 
   //
-  // The number of values per data point.
-  ValueType::size_type m_blockSize;
-
-  //
   // The dimensions of the 2D array of data points.
   ValueType::size_type m_numRows;
   ValueType::size_type m_numCols; 
+
+  //
+  // The number of values per data point.
+  ValueType::size_type m_blockSize;
 
 };
 
@@ -243,34 +246,39 @@ inline
 DataBlocks2D::ValueType::size_type
 DataBlocks2D::size() const
 {
-  return m_data.size();
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
+    return m_data.size();
 }
 
 inline
 DataBlocks2D::ValueType::size_type
 DataBlocks2D::getNumRows() const
 {
-  return m_numRows;
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
+    return m_numRows;
 }
 
 inline
 DataBlocks2D::ValueType::size_type
 DataBlocks2D::getNumCols() const
 {
-  return m_numCols;
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
+    return m_numCols;
 }
 
 inline
 DataBlocks2D::ValueType::size_type
 DataBlocks2D::getBlockSize() const
 {
-  return m_blockSize;
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
+    return m_blockSize;
 }
 
 inline
 DataBlocks2D::ValueType::size_type
 DataBlocks2D::index(int row, int col) const
 {
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
     EsysAssert(((row >= 0) && (col >= 0) && (m_data.size() > 0)), "(DataBlocks2D) Index value out of range.");
     ValueType::size_type temp=(row*m_numCols+col)*m_blockSize;
     EsysAssert((temp <= (m_data.size()-m_blockSize)), "(DataBlocks2D) Index value out of range.");
@@ -281,6 +289,7 @@ inline
 DataBlocks2D::ValueType::reference
 DataBlocks2D::operator[](DataBlocks2D::ValueType::size_type i)
 {
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
     return m_data[i];
 }
 
@@ -288,6 +297,7 @@ inline
 DataBlocks2D::ValueType::const_reference
 DataBlocks2D::operator[](DataBlocks2D::ValueType::size_type i) const
 {
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
     return m_data[i];
 }
 
@@ -295,6 +305,7 @@ inline
 DataBlocks2D::ValueType::reference
 DataBlocks2D::operator()(int row, int col)
 {
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
     return m_data[index(row,col)];
 }
 
@@ -302,6 +313,7 @@ inline
 DataBlocks2D::ValueType::const_reference
 DataBlocks2D::operator()(int row, int col) const
 {
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
     return m_data[index(row,col)];
 }
 
@@ -309,6 +321,7 @@ inline
 DataBlocks2D::ValueType&
 DataBlocks2D::getData()
 {
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
     return m_data;
 }
 
@@ -316,6 +329,7 @@ inline
 const DataBlocks2D::ValueType&
 DataBlocks2D::getData() const
 {
+    EsysAssert(((m_numRows >= 0) && (m_numCols >= 0) && (m_blockSize >= 0)), "(DataBlocks2D) Invalid object.");
     return m_data;
 }
 

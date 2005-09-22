@@ -1,6 +1,7 @@
 # $Id$
 
 from esys.escript.modelframe import Model
+from esys.escript import saveVTK
 import os
 
 class Visualization(Model):

@@ -29,7 +29,7 @@ DataTagged::DataTagged()
   : DataAbstract(FunctionSpace())
 {
   // create a scalar default value
-  m_data.resize(1);
+  m_data.resize(1,0.,1);
   DataArrayView temp(m_data,DataArrayView::ShapeType());
   setPointDataView(temp);
 }
@@ -42,7 +42,8 @@ DataTagged::DataTagged(const TagListType& tagKeys,
 {
   // initialise the array of data values
   // the default value is always the first item in the values list
-  m_data.resize(defaultValue.noValues());
+  int len = defaultValue.noValues();
+  m_data.resize(len,0.,len);
   for (int i=0; i<defaultValue.noValues(); i++) {
     m_data[i]=defaultValue.getData(i);
   }
@@ -89,7 +90,8 @@ DataTagged::DataTagged(const DataConstant& other)
 {
   // fill the default value with the constant value item from "other"
   const DataArrayView& value=other.getPointDataView();
-  m_data.resize(value.noValues());
+  int len = value.noValues();
+  m_data.resize(len,0.,len);
   for (int i=0; i<value.noValues(); i++) {
     m_data[i]=value.getData(i);
   }
@@ -108,7 +110,8 @@ DataTagged::DataTagged(const DataTagged& other,
   DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
 
   // allocate enough space for all values
-  m_data.resize(DataArrayView::noValues(shape)*(other.m_offsetLookup.size()+1));
+  int len = DataArrayView::noValues(shape)*(other.m_offsetLookup.size()+1);
+  m_data.resize(len,0.,len);
 
   // create the data view
   DataArrayView temp(m_data,shape);
@@ -263,7 +266,7 @@ DataTagged::addTaggedValue(int tagKey,
     ValueType m_data_temp(m_data);
     int oldSize=m_data.size();
     int newSize=m_data.size()+value.noValues();
-    m_data.resize(newSize);
+    m_data.resize(newSize,0.,newSize);
     for (int i=0;i<oldSize;i++) {
       m_data[i]=m_data_temp[i];
     }

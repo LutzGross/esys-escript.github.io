@@ -267,12 +267,6 @@ Bruce::checkParameters()
   return true;
 }
 
-std::string
-Bruce::getDescription() const
-{
-  return "Bruce";
-}
-
 bool
 Bruce::isValidFunctionSpaceType(int functionSpaceCode) const
 {
@@ -293,24 +287,6 @@ Bruce::functionSpaceTypeAsString(int functionSpaceCode) const
   } else {
     return loc->second;
   }
-}
-
-int
-Bruce::getContinuousFunctionCode() const
-{
-  return ContinuousFunction;
-}
-
-int
-Bruce::getFunctionCode() const
-{
-  return Function;
-}
-
-int
-Bruce::getDim() const
-{
-  return m_origin.size();
 }
 
 pair<int,int>
@@ -420,7 +396,11 @@ Bruce::setToX(escript::Data& out) const
   // shape needed to store the coordinates of each data-point in this
   // Bruce domain
   std::vector<int> dataShape = out.getDataPointShape();
-  if (dataShape.size()!=1 || dataShape[0]!=dim) {
+  if (dim>0 && (dataShape.size()!=1 || dataShape[0]!=dim)) {
+    stringstream temp;
+    temp << "Error - Incompatible shape Data object supplied to Bruce::setToX";
+    throw BruceException(temp.str());
+  } else if (dim==0 && dataShape.size()!=0) {
     stringstream temp;
     temp << "Error - Incompatible shape Data object supplied to Bruce::setToX";
     throw BruceException(temp.str());
@@ -438,7 +418,6 @@ Bruce::setToX(escript::Data& out) const
 
       int sampleNo=0;
       DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
-      //sampleData[0] = m_origin[0];
       sampleNo++;
       if (sampleNo!=numSamples) {
         stringstream temp;
@@ -512,11 +491,126 @@ Bruce::setToX(escript::Data& out) const
     // calculate the spatial coordinates of data-points 
     // located on the cell centres of this Bruce domain
 
-    for (int i=0; i<numSamples; i++) {
-      DataAbstract::ValueType::value_type* sampleData = out.getSampleData(i);
-      for (int j=0; j<dim; j++) {
-        //cout << "====> " << sampleData[j] << endl;
+    if (dim==0) {
+
+      // Bruce domains in 0d space
+
+      stringstream temp;
+      temp << "Error - Invalid function space type: "
+           << functionSpaceCode << " for Bruce::setToX";
+      throw BruceException(temp.str());
+
+    } else if (dim==1) {
+
+      // Bruce domains in 1d space
+
+      int n0max=m_n0-1;
+      int sampleNo=0;
+      if (isZero(m_v0)) {
+        stringstream temp;
+        temp << "Error - Invalid function space type: "
+             << functionSpaceCode << " for Bruce::setToX";
+        throw BruceException(temp.str());
+      } else {
+        for (int i=0; i<n0max; i++) {
+          DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+          sampleData[0] = m_origin[0] + m_v0[0]*(i + 0.5);
+          sampleNo++;
+        }
       }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
+    } else if (dim==2) {
+
+      // Bruce domains in 2d space
+
+      int n0max=m_n0-1;
+      int n1max=m_n1-1;
+      int sampleNo=0;
+      if (isZero(m_v0)) {
+        stringstream temp;
+        temp << "Error - Invalid function space type: "
+             << functionSpaceCode << " for Bruce::setToX";
+        throw BruceException(temp.str());
+      } else if (isZero(m_v1)) {
+        for (int i=0; i<n0max; i++) {
+          DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+          for (int d=0; d<dim; d++) {
+            sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5);
+          }
+          sampleNo++;
+        }
+      } else {
+        for (int i=0; i<n0max; i++) {
+          for (int j=0; j<n1max; j++) {
+            DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+            for (int d=0; d<dim; d++) {
+              sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5) + m_v1[d]*(j + 0.5);
+            }
+            sampleNo++;
+          }
+        }
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
+    } else if (dim==3) {
+
+      // Bruce domains in 3d space
+
+      int n0max=m_n0-1;
+      int n1max=m_n1-1;
+      int n2max=m_n2-1;
+      int sampleNo=0;
+      if (isZero(m_v0)) {
+        stringstream temp;
+        temp << "Error - Invalid function space type: "
+             << functionSpaceCode << " for Bruce::setToX";
+        throw BruceException(temp.str());
+      } else if (isZero(m_v1)) {
+        for (int i=0; i<n0max; i++) {
+          DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+          for (int d=0; d<dim; d++) {
+            sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5);
+          }
+          sampleNo++;
+        }
+      } else if (isZero(m_v2)) {
+        for (int i=0; i<n0max; i++) {
+          for (int j=0; j<n1max; j++) {
+            DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+            for (int d=0; d<dim; d++) {
+              sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5) + m_v1[d]*(j + 0.5);
+            }
+            sampleNo++;
+          }
+        }
+      } else {
+        for (int i=0; i<n0max; i++) {
+          for (int j=0; j<n1max; j++) {
+            for (int k=0; k<n2max; k++) {
+              DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+              for (int d=0; d<dim; d++) {
+                sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5) + m_v1[d]*(j + 0.5) + m_v2[d]*(k + 0.5);
+              }
+              sampleNo++;
+            }
+          }
+        }
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
     }
 
   } else {
@@ -539,41 +633,252 @@ void
 Bruce::setToSize(escript::Data& out) const
 {
 
+  //
+  // determine functionSpace type expected by supplied Data object
   int functionSpaceCode = out.getFunctionSpace().getTypeCode();
 
+  //
+  // ensure supplied Data object has a matching number of data-points
+  // for this Bruce domain object
   std::pair<int,int> domainShape = getDataShape(functionSpaceCode);
   if(domainShape.first!=out.getNumDataPointsPerSample() ||
      domainShape.second!=out.getNumSamples()) {
     stringstream temp;
-    temp << "Error - Incompatible Data object supplied to Bruce::setToX";
+    temp << "Error - Incompatible number of data-points Data object supplied to Bruce::setToSize";
     throw BruceException(temp.str());
   }
 
-  std::vector<int> dataShape = out.getDataPointShape();
-  if (dataShape.size()!=0) {
-    stringstream temp;
-    temp << "Error - Incompatible Data object supplied to Bruce::setToSize";
-    throw BruceException(temp.str());
-  }
-
+  int dim = getDim();
   int numSamples = domainShape.second;
+
+  //
+  // ensure shape of data-points in supplied Data object matches the
+  // shape needed to store the size of each data-point in this Bruce domain
+  std::vector<int> dataShape = out.getDataPointShape();
+  if (dataShape.size()!=1 || dataShape[0]!=1) {
+    stringstream temp;
+    temp << "Error - Incompatible shape Data object supplied to Bruce::setToSize";
+    throw BruceException(temp.str());
+  }
+
+  double dp_size;
 
   if (functionSpaceCode==ContinuousFunction) {
 
-    cout << "ContinuousFunction" << endl;
+    //
+    // calculate the size of data-points 
+    // located on the nodes of this Bruce domain
 
-    for (int i=0; i<numSamples; i++) {
-      DataAbstract::ValueType::value_type* sampleData = out.getSampleData(i);
-      //cout << "====> " << sampleData[0] << endl;
+    if (dim==0) {
+
+      // Bruce domains in 0d space
+
+      dp_size = 0.0;
+
+      int sampleNo=0;
+      DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+      sampleData[0] = dp_size;
+      sampleNo++;
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
+    } else if (dim==1) {
+
+      // Bruce domains in 1d space
+
+      dp_size = m_v0[0];
+
+      int sampleNo=0;
+      for (int i=0; i<m_n0; i++) {
+        DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+        sampleData[0] = dp_size;
+        sampleNo++;
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
+    } else if (dim==2) {
+
+      // Bruce domains in 2d space
+
+      double x = m_v0[0] + m_v1[0];
+      double y = m_v0[1] + m_v1[1];
+      dp_size = sqrt(pow(x,2)+pow(y,2));
+
+      int sampleNo=0;
+      for (int i=0; i<m_n0; i++) {
+        for (int j=0; j<m_n1; j++) {
+          DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+          sampleData[0] = dp_size;
+          sampleNo++;
+        }
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
+    } else if (dim==3) {
+
+      // Bruce domains in 3d space
+
+      double x = m_v0[0] + m_v1[0] + m_v2[0];
+      double y = m_v0[1] + m_v1[1] + m_v2[1];
+      double z = m_v0[2] + m_v1[2] + m_v2[2];
+      dp_size = sqrt(pow(x,2)+pow(y,2)+pow(z,2));
+
+      int sampleNo=0;
+      for (int i=0; i<m_n0; i++) {
+        for (int j=0; j<m_n1; j++) {
+          for (int k=0; k<m_n2; k++) {
+            DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+            sampleData[0] = dp_size;
+            sampleNo++;
+          }
+        }
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
     }
 
   } else if (functionSpaceCode==Function) {
 
-    cout << "Function" << endl;
+    //
+    // calculate the sizes of data-points 
+    // located on the cell centres of this Bruce domain
 
-    for (int i=0; i<numSamples; i++) {
-      DataAbstract::ValueType::value_type* sampleData = out.getSampleData(i);
-      //cout << "====> " << sampleData[0] << endl;
+    if (dim==0) {
+
+      // Bruce domains in 0d space
+
+      stringstream temp;
+      temp << "Error - Invalid function space type: "
+           << functionSpaceCode << " for Bruce::setToSize";
+      throw BruceException(temp.str());
+
+    } else if (dim==1) {
+
+      // Bruce domains in 1d space
+
+      dp_size = m_v0[0];
+
+      int n0max=m_n0-1;
+      int sampleNo=0;
+      if (isZero(m_v0)) {
+        stringstream temp;
+        temp << "Error - Invalid function space type: "
+             << functionSpaceCode << " for Bruce::setToSize";
+        throw BruceException(temp.str());
+      } else {
+        for (int i=0; i<n0max; i++) {
+          DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+          sampleData[0] = dp_size;
+          sampleNo++;
+        }
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
+    } else if (dim==2) {
+
+      // Bruce domains in 2d space
+
+      double x = m_v0[0] + m_v1[0];
+      double y = m_v0[1] + m_v1[1];
+      dp_size = sqrt(pow(x,2)+pow(y,2));
+
+      int n0max=m_n0-1;
+      int n1max=m_n1-1;
+      int sampleNo=0;
+      if (isZero(m_v0)) {
+        stringstream temp;
+        temp << "Error - Invalid function space type: "
+             << functionSpaceCode << " for Bruce::setToSize";
+        throw BruceException(temp.str());
+      } else if (isZero(m_v1)) {
+        for (int i=0; i<n0max; i++) {
+          DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+          sampleData[0] = dp_size;
+          sampleNo++;
+        }
+      } else {
+        for (int i=0; i<n0max; i++) {
+          for (int j=0; j<n1max; j++) {
+            DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+            sampleData[0] = dp_size;
+            sampleNo++;
+          }
+        }
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
+    } else if (dim==3) {
+
+      // Bruce domains in 3d space
+
+      double x = m_v0[0] + m_v1[0] + m_v2[0];
+      double y = m_v0[1] + m_v1[1] + m_v2[1];
+      double z = m_v0[2] + m_v1[2] + m_v2[2];
+      dp_size = sqrt(pow(x,2)+pow(y,2)+pow(z,2));
+
+      int n0max=m_n0-1;
+      int n1max=m_n1-1;
+      int n2max=m_n2-1;
+      int sampleNo=0;
+      if (isZero(m_v0)) {
+        stringstream temp;
+        temp << "Error - Invalid function space type: "
+             << functionSpaceCode << " for Bruce::setToSize";
+        throw BruceException(temp.str());
+      } else if (isZero(m_v1)) {
+        for (int i=0; i<n0max; i++) {
+          DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+          sampleData[0] = dp_size;
+          sampleNo++;
+        }
+      } else if (isZero(m_v2)) {
+        for (int i=0; i<n0max; i++) {
+          for (int j=0; j<n1max; j++) {
+            DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+            sampleData[0] = dp_size;
+            sampleNo++;
+          }
+        }
+      } else {
+        for (int i=0; i<n0max; i++) {
+          for (int j=0; j<n1max; j++) {
+            for (int k=0; k<n2max; k++) {
+              DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
+              sampleData[0] = dp_size;
+              sampleNo++;
+            }
+          }
+        }
+      }
+      if (sampleNo!=numSamples) {
+        stringstream temp;
+        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
+        throw BruceException(temp.str());
+      }
+
     }
 
   } else {
@@ -612,7 +917,7 @@ Bruce::operator!=(const AbstractDomain& other) const
 }
 
 bool
-Bruce::isZero(DimVec vec) const
+Bruce::isZero(DimVec vec)
 {
   for (int i=0; i<vec.size(); i++) {
     if (vec[i] != 0) {
