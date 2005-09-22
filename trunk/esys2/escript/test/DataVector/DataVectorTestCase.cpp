@@ -61,7 +61,7 @@ void DataVectorTestCase::testAll() {
     vec.resize(0,0,1);
     assert(vec.size() == 0);
   }
- 
+
   {
     cout << "\tCreate and check DataVector objects of various sizes." << endl;
 
@@ -96,7 +96,7 @@ void DataVectorTestCase::testAll() {
       assert(vec[i] == i/1000);
     }
   }
- 
+
   {
     cout << "\tCheck DataVector copy constructor." << endl;
 

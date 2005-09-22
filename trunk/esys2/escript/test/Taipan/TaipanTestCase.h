@@ -33,6 +33,8 @@ class TaipanTestCase : public CppUnitTest::TestCase
   // A test method must return void and have no arguments
   // Taipan class
   void testAll();
+  void testN1();
+  void testN0();
 
   TaipanTestCase (std::string name) : TestCase (name) {}
   ~TaipanTestCase() {}

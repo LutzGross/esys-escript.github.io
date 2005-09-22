@@ -62,7 +62,9 @@ DataVector::DataVector(const DataVector::size_type size,
 DataVector::~DataVector()
 {
   // dispose of data array
-  arrayManager.delete_array(m_array_data);
+  if (m_array_data!=0) {
+    arrayManager.delete_array(m_array_data);
+  }
 
   // clear data members
   m_size = -1;
@@ -78,11 +80,17 @@ DataVector::resize(const DataVector::size_type newSize,
 {
   assert(m_size >= 0);
 
+  if ( newBlockSize == 0) {
+    throw DataException("DataVector: invalid blockSize specified");
+  }
+
   if ( (newSize % newBlockSize) != 0) {
     throw DataException("DataVector: invalid blockSize specified");
   }
 
-  arrayManager.delete_array(m_array_data);
+  if (m_array_data!=0) {
+    arrayManager.delete_array(m_array_data);
+  }
 
   m_size = newSize;
   m_dim = newBlockSize;
@@ -101,7 +109,9 @@ DataVector::operator=(const DataVector& other)
 {
   assert(m_size >= 0);
 
-  arrayManager.delete_array(m_array_data);
+  if (m_array_data!=0) {
+    arrayManager.delete_array(m_array_data);
+  }
 
   m_size = other.m_size;
   m_dim = other.m_dim;

@@ -24,7 +24,7 @@ namespace escript {
 
 DataArray::DataArray(double value)
 {
-    m_data.resize(1,value);
+    m_data.resize(1,value,1);
     // create a view with an empty shape, a scalar.
     m_dataView.reset(new DataArrayView(m_data,DataArrayView::ShapeType()));
 }
@@ -32,7 +32,8 @@ DataArray::DataArray(double value)
 DataArray::DataArray(const DataArrayView::ShapeType& shape,
                      double value)
 {
-    m_data.resize(DataArrayView::noValues(shape),value);
+    int len = DataArrayView::noValues(shape);
+    m_data.resize(len,value,len);
     m_dataView.reset(new DataArrayView(m_data,shape));
 }
 
@@ -69,7 +70,8 @@ DataArray::initialise(const boost::python::numeric::array& value)
       tempShape.push_back(extract<int>(value.getshape()[i]));
     }
     // allocate the space for the data vector
-    m_data.resize(DataArrayView::noValues(tempShape));
+    int len = DataArrayView::noValues(tempShape);
+    m_data.resize(len,0.,len);
     // create a view with the same shape
     m_dataView.reset(new DataArrayView(m_data,tempShape));
     // fill the data vector with the values from the numarray

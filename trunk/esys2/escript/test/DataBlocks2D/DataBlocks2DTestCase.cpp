@@ -118,27 +118,45 @@ void DataBlocks2DTestCase::testAll() {
   }
 
   {
-    cout << "\tTest DataBlocks2D for blockSize = 0." << endl;
-    //
-    // every attempted access for a 0 size block should cause an exception
+    cout << "\tTest DataBlocks2D exception for numRows = 0." << endl;
+    int numRows=0;
+    int numCols=8;
+    int blockSize=10;
+    try {
+        DataBlocks2D myData(numRows,numCols,blockSize);
+        assert(false);
+    }
+    catch(EsysException& e) {
+        assert(true);
+    }
+  }
+
+  {
+    cout << "\tTest DataBlocks2D exception for numCols = 0." << endl;
+    int numRows=10;
+    int numCols=0;
+    int blockSize=10;
+    try {
+        DataBlocks2D myData(numRows,numCols,blockSize);
+        assert(false);
+    }
+    catch(EsysException& e) {
+        assert(true);
+    }
+  }
+
+  {
+    cout << "\tTest DataBlocks2D exception for blockSize = 0." << endl;
     int numRows=10;
     int numCols=8;
     int blockSize=0;
-    int exceptionCount=0;
-    DataBlocks2D myData(numRows,numCols,blockSize);
-    for (int i=0;i<numRows;i++) {
-      for (int j=0;j<numCols;j++) {
-	try {
-	  myData[myData.index(i,j)];
-          assert(false);
-	}
-	catch(EsysException& e) {
-	  ++exceptionCount;
-          assert(true);
-	}
-      }
+    try {
+        DataBlocks2D myData(numRows,numCols,blockSize);
+        assert(false);
     }
-    assert(exceptionCount == numRows*numCols);
+    catch(EsysException& e) {
+        assert(true);
+    }
   }
 
   {

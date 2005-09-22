@@ -83,6 +83,11 @@ class DataVector {
      \param val - Input - Initial value for all elements in the vector. Default is 0.0.
      \param blockSize - Input - size of blocks within the vector, overall vector
                 size must be a precise multiple of the block size. Default is 1.
+
+     In escript::Data, blocksize corresponds to the number of elements required to hold all
+     the data-points for a sample, ie: the product of the dimensions of a data-point and the
+     number of data-points per sample. Size is the total number of elements required to hold
+     all elements for all data-points in the given object, ie: number of samples * blocksize.
   */
   DataVector(const size_type size,
              const value_type val=0.0,

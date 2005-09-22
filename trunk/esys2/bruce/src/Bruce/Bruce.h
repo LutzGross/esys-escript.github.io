@@ -12,7 +12,7 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined bruce_Bruce_20050829_H
 #define bruce_Bruce_20050829_H
 
@@ -28,12 +28,10 @@ namespace bruce {
 
 /**
    \brief
-   Bruce implements the AbstractContinuousDomain
-   interface for the Bruce library.
+   Bruce implements a structured AbstractContinuousDomain.
 
    Description:
-   Bruce implements the AbstractContinuousDomain
-   interface for the Bruce library.
+   Bruce implements a structured AbstractContinuousDomain.
 */
 
 class Bruce : public escript::AbstractContinuousDomain {
@@ -126,8 +124,12 @@ class Bruce : public escript::AbstractContinuousDomain {
      Return a description for this domain.
   */
   virtual
+  inline
   std::string
-  getDescription() const;
+  getDescription() const
+  {
+    return "Bruce";
+  }
 
   /**
      \brief
@@ -151,24 +153,36 @@ class Bruce : public escript::AbstractContinuousDomain {
      Return a continuous FunctionSpace code.
   */
   virtual
+  inline
   int
-  getContinuousFunctionCode() const;
+  getContinuousFunctionCode() const
+  {
+    return ContinuousFunction;
+  }
 
   /**
      \brief
      Return a function FunctionSpace code.
   */
   virtual
+  inline
   int
-  getFunctionCode() const;
+  getFunctionCode() const
+  {
+    return Function;
+  }
 
   /**
      \brief
      Return the spatial dimension of the mesh.
   */
   virtual
+  inline
   int
-  getDim() const;
+  getDim() const
+  {
+    return m_origin.size();
+  }
 
   /**
      \brief
@@ -238,8 +252,9 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Check if all components of vector are zero.
   */
+  static
   bool
-  isZero(DimVec vec) const;
+  isZero(DimVec vec);
 
  private:
 

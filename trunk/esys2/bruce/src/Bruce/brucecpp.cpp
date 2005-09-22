@@ -63,8 +63,20 @@ BOOST_PYTHON_MODULE(brucecpp)
 
   class_<bruce::Bruce, bases<escript::AbstractContinuousDomain> >("Bruce",init<>())
       .def(init<const bruce::Bruce&>())
+      .def("getDescription",&bruce::Bruce::getDescription)
+      .def("isValidFunctionSpaceType",&bruce::Bruce::isValidFunctionSpaceType)
+      .def("functionSpaceTypeAsString",&bruce::Bruce::functionSpaceTypeAsString)
+      .def("getContinuousFunctionCode",&bruce::Bruce::getContinuousFunctionCode)
+      .def("getFunctionCode",&bruce::Bruce::getFunctionCode)
       .def("getDim",&bruce::Bruce::getDim)
+      .def("getDataShape",&bruce::Bruce::getDataShape)
       .def("getX",&bruce::Bruce::getX)
-      .def("getSize",&bruce::Bruce::getSize);
+      .def("setToX",&bruce::Bruce::setToX)
+      .def("getSize",&bruce::Bruce::getSize)
+      .def("setToSize",&bruce::Bruce::setToSize)
+      .def(self == other<object>())
+      .def(self == self)
+      .def(self != other<object>())
+      .def(self != self);
 
 }

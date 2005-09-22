@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <cassert>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -35,6 +36,7 @@ Taipan::Taipan() :
 
 Taipan::~Taipan() {
 
+  long len=0;
   Taipan_MemTable *tab;
   Taipan_MemTable *tab_next;
 
@@ -48,15 +50,19 @@ Taipan::~Taipan() {
   tab = memTable_Root;
   while (tab != 0) {
     tab_next = tab->next;
+    len = tab->dim * tab->N;
+    totalElements -= len;
     delete[] tab->array;
     delete tab;
     tab = tab_next;
   }
 
+  assert(totalElements == 0);
+
   // clear the MemTable root node
   memTable_Root = 0;
 
-  // clear the totalElements counter
+  // reset totalElements counter
   totalElements = -1;
 }
 
@@ -76,10 +82,8 @@ Taipan::new_array(int dim, int N) {
   Taipan_MemTable *new_tab;
   Taipan_MemTable *tab_prev;
 
-  // increment count of alloc opperations called
-  statTable->allocs++;
-
-  // numThreads = omp_get_max_threads();
+  // increment count of alloc operations called
+  statTable->requests++;
 
   // is a suitable array already available?
   if (memTable_Root != 0) {
@@ -97,7 +101,6 @@ Taipan::new_array(int dim, int N) {
     }
   }
 
-  //
   // otherwise a new array must be allocated
 
   // create the corresponding memTable entry
@@ -117,19 +120,27 @@ Taipan::new_array(int dim, int N) {
   // allocate and initialise the new array
   new_tab->array = new double[len];
   int i,j;
-  #pragma omp parallel for private(i,j) schedule(static)
-  for (i=0; i<N; i++) {
-    for (j=0; j<dim; j++) {
-      new_tab->array[j+dim*i]=0.0;
+  if (N==1) {
+    for (j=0; j<dim; j++) 
+      new_tab->array[j]=0.0;
+  } else if (N>1) {
+    #pragma omp parallel for private(i,j) schedule(static)
+    for (i=0; i<N; i++) {
+      for (j=0; j<dim; j++) 
+        new_tab->array[j+dim*i]=0.0;
     }
   }
+
   totalElements += len;
 
+  // update maximum table size
+  statTable->max_tab_size = (statTable->max_tab_size < totalElements) ? totalElements : statTable->max_tab_size;
+
   // increment count of arrays allocated
-  statTable->arrays++;
+  statTable->allocations++;
 
   // increment count of elements allocated
-  statTable->elements+=len;
+  statTable->allocated_elements += len;
 
   return new_tab->array;
 }
@@ -146,6 +157,14 @@ Taipan::delete_array(double* array) {
   Taipan_MemTable *tab;
   Taipan_MemTable *tab_next;
   Taipan_MemTable *tab_prev = 0;
+
+  // increment count of free operations called
+  statTable->frees++;
+
+  if (array == 0) {
+    // have been given an empty array, so quit now
+    return;
+  }
 
   if (memTable_Root != 0) {
 
@@ -165,15 +184,16 @@ Taipan::delete_array(double* array) {
       return;
     }
 
-    // increment count of dealloc opperations called
-    statTable->deallocs++;
+    if (N<=1) {
+      // we never deallocate arrays with N<=1, so quit now
+      return;
+    }
 
     // are there any N block arrays still in use?
     tab = memTable_Root;
     while (tab != 0) {
-      if (tab->N==N && !tab->free) {
+      if (tab->N==N && !tab->free) 
         return;
-      }
       tab = tab->next;
     }
 
@@ -191,17 +211,17 @@ Taipan::delete_array(double* array) {
         }
         delete tab;
         // increment count of arrays dealloced
-        statTable->dearrays++;
+        statTable->deallocations++;
       } else {
         tab_prev = tab;
       }
       tab = tab_next;
     }
-
+   
     totalElements -= len;
 
-    // increment count of elements dealloced
-    statTable->deelements+=len;
+    // increment count of elements deallocated
+    statTable->deallocated_elements += len;
 
   } else {
     // what to do if no arrays under management?
@@ -267,40 +287,51 @@ Taipan::num_free(int N) {
     }
     tab = tab->next;
   }
-
   return num_free;
 }
 
 long
 Taipan::num_elements() {
+
   assert(totalElements >= 0);
+
   return totalElements;
 }
 
 void
 Taipan::dump_stats() {
-  float elMb=statTable->elements*8.0/1048576;
-  float deelMb=statTable->deelements*8.0/1048576;
-  cout << "========== Mem Stats ==================" << endl;
-  cout << "Total Num allocs:     " << statTable->allocs << endl;
-  cout << "Total Num deallocs:   " << statTable->deallocs << endl;
-  cout << "Total Num arrays:     " << statTable->arrays << endl;
-  cout << "Total Num dearrays:   " << statTable->dearrays << endl;
-  cout << "Total Num elements:   " << statTable->elements << " (" << elMb << " Mb)" << endl;
-  cout << "Total Num deelements: " << statTable->deelements << " (" << deelMb << " Mb)" << endl;
-  cout << "Curr  Num arrays:     " << num_arrays() << endl;
-  cout << "Curr  Num elements:   " << num_elements() << endl;
-  cout << "=======================================" << endl;
+
+  assert(totalElements >= 0);
+
+  float elMb=statTable->allocated_elements*8.0/1048576;
+  float deelMb=statTable->deallocated_elements*8.0/1048576;
+  float tszMb=statTable->max_tab_size*8.0/1048576;
+
+  cout << "========== Mem Stats =============================" << endl;
+  cout << "Total Num requests:             " << statTable->requests << endl;
+  cout << "Total Num releases:             " << statTable->frees << endl;
+  cout << "Total Num allocated arrays:     " << statTable->allocations << endl;
+  cout << "Total Num deallocated arrays:   " << statTable->deallocations << endl;
+  cout << "Total Num allocated elements:   " << statTable->allocated_elements << " (" << elMb << " Mb)" << endl;
+  cout << "Total Num deallocated elements: " << statTable->deallocated_elements << " (" << deelMb << " Mb)" << endl;
+  cout << "Maximum memory buffer size:     " << statTable->max_tab_size << " (" << tszMb << " Mb)" << endl;
+  cout << "Curr Num arrays:                " << num_arrays() << endl;
+  cout << "Curr Num elements in buffer:    " << num_elements() << endl;
+  cout << "==================================================" << endl;
 }
 
 void
 Taipan::clear_stats() {
-  statTable->allocs=0;
-  statTable->deallocs=0;
-  statTable->arrays=0;
-  statTable->dearrays=0;
-  statTable->elements=0;
-  statTable->deelements=0;
+
+  assert(totalElements >= 0);
+
+  statTable->requests=0;
+  statTable->frees=0;
+  statTable->allocations=0;
+  statTable->deallocations=0;
+  statTable->allocated_elements=0;
+  statTable->deallocated_elements=0;
+  statTable->max_tab_size=0;
 }
 
 }  // end of namespace
