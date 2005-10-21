@@ -82,7 +82,8 @@ void DataExpandedTestCase::testAll() {
   data[0]=0.0;
   data[1]=1.0;
   data[2]=2.0;
-  DataExpanded testData1(FunctionSpace(),shape,data);
+  FunctionSpace tmp_fns;
+  DataExpanded testData1(tmp_fns,shape,data);
 
   cout << "\tTest getLength." << endl;
   assert(testData1.getLength()==pointData.noValues());
