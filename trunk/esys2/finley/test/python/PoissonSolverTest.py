@@ -13,7 +13,7 @@ def getDomain(dim,ne,height):
 
     if dim==2:
      ne1=int(ne*height+0.5)
-     mydomain=finley.Rectangle(n0=ne,n1=ne1,l1=height,order=2)
+     mydomain=finley.Rectangle(n0=ne,n1=ne1,l1=height,order=1)
      totne=ne1*ne
     else:
      ne2=int(ne*height+0.5)
@@ -92,19 +92,34 @@ def Solve2(mydomain,height):
     return error
 
 
-error=0
-for ne in ne_list:
-   for dim in [2,3]:
-   # for dim in [2]:
-      for height in height_list:
-         print "***************************************************************"
-         mydomain= getDomain(dim,ne,height)
-         print "---------------------------------------------------------------"
-         error=max(error,Solve1(mydomain,height))
-         print "---------------------------------------------------------------"
-         error=max(error,Solve2(mydomain,height))
-         print "***************************************************************"
+def main() :
+    error=0
+    for ne in ne_list:
+       for dim in [2,3]:
+       # for dim in [2]:
+          for height in height_list:
+             print "***************************************************************"
+             mydomain= getDomain(dim,ne,height)
+             print "---------------------------------------------------------------"
+             error=max(error,Solve1(mydomain,height))
+             print "---------------------------------------------------------------"
+             error=max(error,Solve2(mydomain,height))
+             print "***************************************************************"
 
-print "***************************************************************"
-print "maximum error: ",error
-print "***************************************************************"
+    print "***************************************************************"
+    print "maximum error: ",error
+    print "***************************************************************"
+
+
+
+import profile as Pr, pstats as Ps
+
+
+if __name__ == "__main__":
+    pr = Pr.Profile()
+    pr.calibrate(10000)
+    Pr.run('main()','eos_stats')
+    stats = Ps.Stats('eos_stats')
+    stats.strip_dirs()
+    stats.sort_stats('time')
+    stats.print_stats()

@@ -62,7 +62,7 @@ void DataConstantTestCase::testAll() {
   shape.push_back(3);
   shape.push_back(21);
   testData.reshapeDataPoint(shape);
-  assert(testData.getPointDataView().getRank()==shape.size());
+  assert((unsigned int)testData.getPointDataView().getRank()==shape.size());
 
   cout << "\tTest getPointDataView." << endl;
   for (int k=0;k<shape[2];k++) {
@@ -93,7 +93,11 @@ void DataConstantTestCase::testAll() {
 
   cout << "\tTesting alternative constructor." << endl;
   DataArrayView::ValueType data1(DataArrayView::noValues(shape),1.0);
-  DataConstant testData1(FunctionSpace(), shape, data1);
+  // do not call the FunctionSpace constructor directly
+  // in the argument of DataConstant
+  // GCC chokes on it.
+  FunctionSpace tmp_fns;
+  DataConstant testData1(tmp_fns, shape, data1);
 
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
