@@ -43,6 +43,8 @@ class BruceTestCase : public CppUnitTest::TestCase
   void testSetToXfun();
   void testSetToSizecon();
   void testSetToSizefun();
+  void testSetToXException();
+  void testSetToSizeException();
 
   BruceTestCase (std::string name) : TestCase (name) {}
   ~BruceTestCase() {}

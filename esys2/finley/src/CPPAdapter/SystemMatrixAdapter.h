@@ -92,7 +92,7 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
     \brief
     nullifyRowsAndCols - calls Paso_SystemMatrix_nullifyRowsAndCols.
   */
-  void nullifyRowsAndCols(const escript::Data& row_q, const escript::Data& col_q, const double mdv) const;
+  void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, const double mdv) const;
 
   /**
      \brief writes the matrix to a file using the Matrix Market file format
@@ -122,13 +122,13 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
       \brief
       solves the linear system this*out=in
    */
-   virtual void setToSolution(escript::Data& out, const escript::Data& in, const boost::python::dict& options) const;
+   virtual void setToSolution(escript::Data& out, escript::Data& in, const boost::python::dict& options) const;
 
    /**
        \brief
        performs y+=this*x
    */
-   virtual void ypAx(escript::Data& y, const escript::Data& x) const;
+   virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
    //
    // pointer to the externally created finley mesh - system_matrix.

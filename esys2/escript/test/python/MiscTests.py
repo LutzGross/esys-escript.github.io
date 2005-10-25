@@ -3,7 +3,7 @@ import unittest
 import os
 
 from esys.escript import *
-from esys import finley
+from esys import bruce
 
 import numarray
 from numarray import array,Float64,ones,greater
@@ -78,7 +78,7 @@ def isScalar(arg):
 
 print "\n\n"
 
-msh=finley.Rectangle(1,1,1)
+msh=bruce.Rectangle()
 
 for wh in [ContinuousFunction(msh),Function(msh)]:
 

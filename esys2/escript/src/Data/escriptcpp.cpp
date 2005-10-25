@@ -76,6 +76,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getX",&escript::AbstractDomain::getX)
      .def("getNormal",&escript::AbstractDomain::getNormal)
      .def("getSize",&escript::AbstractDomain::getSize)
+     .def("saveVTK",&escript::AbstractDomain::saveVTK)
+     .def("saveDX",&escript::AbstractDomain::saveDX)
      .def(self == self)
      .def(self != self);
 
@@ -90,6 +92,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   class_<escript::FunctionSpace>("FunctionSpace",init<>())
      .def("getDim",&escript::FunctionSpace::getDim)
+     .def("getDomain",&escript::FunctionSpace::getDomain,return_internal_reference<>())
      .def("getX",&escript::FunctionSpace::getX)
      .def("getNormal",&escript::FunctionSpace::getNormal)
      .def("getSize",&escript::FunctionSpace::getSize)

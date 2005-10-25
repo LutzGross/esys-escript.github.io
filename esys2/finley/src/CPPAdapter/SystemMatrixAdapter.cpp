@@ -63,15 +63,11 @@ Paso_SystemMatrix* SystemMatrixAdapter::getPaso_SystemMatrix() const
    return m_system_matrix.get();
 }
 
-void SystemMatrixAdapter::ypAx(escript::Data& y, const escript::Data& x) const 
+void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const 
 {
    Paso_SystemMatrix* mat=getPaso_SystemMatrix();
 
-  if (!x.isExpanded()) {
-   throw FinleyAdapterException("matrix vector product : input Data object has to be expanded");
-  } else if (!y.isExpanded()) {
-   throw FinleyAdapterException("matrix vector product : output Data object has to be expanded");
-  } else if ( x.getDataPointSize()  != getColumnBlockSize()) {
+  if ( x.getDataPointSize()  != getColumnBlockSize()) {
    throw FinleyAdapterException("matrix vector product : column block size does not match the number of components in input.");
   } else if (y.getDataPointSize() != getRowBlockSize()) {
    throw FinleyAdapterException("matrix vector product : row block size does not match the number of components in output.");
@@ -80,7 +76,9 @@ void SystemMatrixAdapter::ypAx(escript::Data& y, const escript::Data& x) const
   } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
    throw FinleyAdapterException("matrix vector product : row function space and function space of output don't match.");
   }
-  double* x_dp=((escript::Data)x).getSampleData(0);
+  x.expand();
+  y.expand();
+  double* x_dp=x.getSampleData(0);
   double* y_dp=y.getSampleData(0);
   Paso_SystemMatrix_MatrixVector(1., mat,x_dp, 1.,y_dp);
   checkPasoError();
@@ -139,7 +137,7 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
     }
 }
 
-void SystemMatrixAdapter::setToSolution(escript::Data& out, const escript::Data& in, const boost::python::dict& options) const
+void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, const boost::python::dict& options) const
 {
     Paso_SystemMatrix* mat=getPaso_SystemMatrix();
     Paso_Options paso_options;
@@ -161,11 +159,7 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out, const escript::Data&
     EXTRACT("restart",restart,double);
     #undef EXTRACT
     #undef EXTRACT_OPTION
-    if (! out.isExpanded()) {
-     throw FinleyAdapterException("solve : result Data object has to be expanded");
-    } else if (!in.isExpanded()) {
-     throw FinleyAdapterException("solve : right hand side Data object has to be expanded");
-    } else if ( out.getDataPointSize()  != getColumnBlockSize()) {
+    if ( out.getDataPointSize()  != getColumnBlockSize()) {
      throw FinleyAdapterException("solve : column block size does not match the number of components of solution.");
     } else if ( in.getDataPointSize() != getRowBlockSize()) {
      throw FinleyAdapterException("solve : row block size does not match the number of components of  right hand side.");
@@ -174,20 +168,18 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out, const escript::Data&
     } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
      throw FinleyAdapterException("solve : row function space and function space of right hand side don't match.");
     }
+    out.expand();
+    in.expand();
     double* out_dp=out.getSampleData(0);
-    double* in_dp=((escript::Data) in).getSampleData(0);
+    double* in_dp=in.getSampleData(0);
     Paso_solve(mat,out_dp,in_dp,&paso_options);
     checkPasoError();
 }
 
-void SystemMatrixAdapter::nullifyRowsAndCols(const escript::Data& row_q, const escript::Data& col_q, const double mdv) const
+void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data& col_q, const double mdv) const
 {
     Paso_SystemMatrix* mat = getPaso_SystemMatrix();
-    if (! col_q.isExpanded()) {
-     throw FinleyAdapterException("nullifyRowsAndCols : column mask has to be expanded");
-    } else if (!row_q.isExpanded()) {
-     throw FinleyAdapterException("nullifyRowsAndCols : row mask has to be expanded");
-    } else if ( col_q.getDataPointSize()  != getColumnBlockSize()) {
+    if ( col_q.getDataPointSize()  != getColumnBlockSize()) {
      throw FinleyAdapterException("nullifyRowsAndCols : column block size does not match the number of components of column mask.");
     } else if ( row_q.getDataPointSize() != getRowBlockSize()) {
      throw FinleyAdapterException("nullifyRowsAndCols : row block size does not match the number of components of row mask.");
@@ -196,8 +188,10 @@ void SystemMatrixAdapter::nullifyRowsAndCols(const escript::Data& row_q, const e
     } else if (row_q.getFunctionSpace() != getRowFunctionSpace()) {
      throw FinleyAdapterException("nullifyRowsAndCols : row function space and function space of row mask don't match.");
     }
-    double* row_q_dp=((escript::Data) row_q).getSampleData(0);
-    double* col_q_dp=((escript::Data) col_q).getSampleData(0);
+    row_q.expand();
+    col_q.expand();
+    double* row_q_dp=row_q.getSampleData(0);
+    double* col_q_dp=col_q.getSampleData(0);
     Paso_SystemMatrix_nullifyRowsAndCols(mat,row_q_dp,col_q_dp, mdv);
     checkPasoError();
 }

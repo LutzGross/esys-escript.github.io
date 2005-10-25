@@ -152,13 +152,13 @@ void AbstractDomain::setToGradient(escript::Data& grad, const escript::Data& arg
   return;
 }
 
-void AbstractDomain::saveDX(const std::string& filename,const escript::Data& arg) const
+void AbstractDomain::saveDX(const std::string& filename,const boost::python::dict& arg) const 
 {
   throwStandardException("AbstractDomain::saveDX");
   return;
 }
 
-void AbstractDomain::saveVTK(const std::string& filename,const escript::Data& arg) const
+void AbstractDomain::saveVTK(const std::string& filename,const boost::python::dict& arg) const 
 {
   throwStandardException("AbstractDomain::saveVTK");
   return;

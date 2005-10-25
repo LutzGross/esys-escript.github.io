@@ -61,8 +61,8 @@
 25
 </DataArray>
 </Cells>
-<PointData Scalars="scalar">
-<DataArray Name="scalar" type="Float32" NumberOfComponents="1" format="ascii">
+<PointData Scalars="data">
+<DataArray Name="data" type="Float32" NumberOfComponents="1" format="ascii">
  0.000000e+00
  5.000000e-01
  1.000000e+00

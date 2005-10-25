@@ -10,6 +10,7 @@ by Lutz Gross, ACcESS, University of Queensland, Australia, 2003.
 import sys
 import os
 import unittest
+import time
 
 from esys.escript import *
 from esys.escript.linearPDEs import *
@@ -17,6 +18,8 @@ from esys import finley
 
 from math import *
 from numarray import array
+
+starttime = time.clock()
 
 numElements=10
 max_error=0.
@@ -238,6 +241,10 @@ print "\n\n"
 print "******************************************************************************************************************"
 print "maximal error:", max_error_text
 print "******************************************************************************************************************"
+
+stoptime = time.clock()
+elapsed = stoptime - starttime
+print "\nElapsed time: ", elapsed, "\n"
 
 if max_error > error_tol:
   print "max error exceeds tolerance"

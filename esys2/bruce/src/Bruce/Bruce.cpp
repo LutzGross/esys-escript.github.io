@@ -91,6 +91,8 @@ Bruce::checkParameters()
     m_n2=1;
   }
 
+  // reorder vectors and point counts according to point counts
+
   //
   // domains in 3d space
   if (m_origin.size()==3) {
@@ -418,69 +420,45 @@ Bruce::setToX(escript::Data& out) const
 
       int sampleNo=0;
       DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
-      sampleNo++;
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
-      }
 
     } else if (dim==1) {
 
       // Bruce domains in 1d space
 
-      int sampleNo=0;
       for (int i=0; i<m_n0; i++) {
+        int sampleNo=i;
         DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
         sampleData[0] = m_origin[0] + m_v0[0]*i;
-        sampleNo++;
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==2) {
 
       // Bruce domains in 2d space
 
-      int sampleNo=0;
       for (int i=0; i<m_n0; i++) {
         for (int j=0; j<m_n1; j++) {
+          int sampleNo=(m_n1*i)+j;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           for (int d=0; d<dim; d++) {
             sampleData[d] = m_origin[d] + m_v0[d]*i + m_v1[d]*j;
           }
-          sampleNo++;
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==3) {
 
       // Bruce domains in 3d space
 
-      int sampleNo=0;
       for (int i=0; i<m_n0; i++) {
         for (int j=0; j<m_n1; j++) {
           for (int k=0; k<m_n2; k++) {
+            int sampleNo=(m_n1*m_n2*i)+(m_n2*j)+k;
             DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
             for (int d=0; d<dim; d++) {
               sampleData[d] = m_origin[d] + m_v0[d]*i + m_v1[d]*j + m_v2[d]*k;
             }
-            sampleNo++;
           }
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     }
@@ -505,7 +483,6 @@ Bruce::setToX(escript::Data& out) const
       // Bruce domains in 1d space
 
       int n0max=m_n0-1;
-      int sampleNo=0;
       if (isZero(m_v0)) {
         stringstream temp;
         temp << "Error - Invalid function space type: "
@@ -513,15 +490,10 @@ Bruce::setToX(escript::Data& out) const
         throw BruceException(temp.str());
       } else {
         for (int i=0; i<n0max; i++) {
+          int sampleNo=i;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           sampleData[0] = m_origin[0] + m_v0[0]*(i + 0.5);
-          sampleNo++;
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==2) {
@@ -530,7 +502,6 @@ Bruce::setToX(escript::Data& out) const
 
       int n0max=m_n0-1;
       int n1max=m_n1-1;
-      int sampleNo=0;
       if (isZero(m_v0)) {
         stringstream temp;
         temp << "Error - Invalid function space type: "
@@ -538,27 +509,22 @@ Bruce::setToX(escript::Data& out) const
         throw BruceException(temp.str());
       } else if (isZero(m_v1)) {
         for (int i=0; i<n0max; i++) {
+          int sampleNo=i;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           for (int d=0; d<dim; d++) {
             sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5);
           }
-          sampleNo++;
         }
       } else {
         for (int i=0; i<n0max; i++) {
           for (int j=0; j<n1max; j++) {
+            int sampleNo=(n1max*i)+j;
             DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
             for (int d=0; d<dim; d++) {
               sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5) + m_v1[d]*(j + 0.5);
             }
-            sampleNo++;
           }
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==3) {
@@ -568,7 +534,6 @@ Bruce::setToX(escript::Data& out) const
       int n0max=m_n0-1;
       int n1max=m_n1-1;
       int n2max=m_n2-1;
-      int sampleNo=0;
       if (isZero(m_v0)) {
         stringstream temp;
         temp << "Error - Invalid function space type: "
@@ -576,39 +541,34 @@ Bruce::setToX(escript::Data& out) const
         throw BruceException(temp.str());
       } else if (isZero(m_v1)) {
         for (int i=0; i<n0max; i++) {
+          int sampleNo=i;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           for (int d=0; d<dim; d++) {
             sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5);
           }
-          sampleNo++;
         }
       } else if (isZero(m_v2)) {
         for (int i=0; i<n0max; i++) {
           for (int j=0; j<n1max; j++) {
+            int sampleNo=(n1max*i)+j;
             DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
             for (int d=0; d<dim; d++) {
               sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5) + m_v1[d]*(j + 0.5);
             }
-            sampleNo++;
           }
         }
       } else {
         for (int i=0; i<n0max; i++) {
           for (int j=0; j<n1max; j++) {
             for (int k=0; k<n2max; k++) {
+              int sampleNo=(n1max*n2max*i)+(n2max*j)+k;
               DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
               for (int d=0; d<dim; d++) {
                 sampleData[d] = m_origin[d] + m_v0[d]*(i + 0.5) + m_v1[d]*(j + 0.5) + m_v2[d]*(k + 0.5);
               }
-              sampleNo++;
             }
           }
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToX: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     }
@@ -655,11 +615,16 @@ Bruce::setToSize(escript::Data& out) const
   // ensure shape of data-points in supplied Data object matches the
   // shape needed to store the size of each data-point in this Bruce domain
   std::vector<int> dataShape = out.getDataPointShape();
+  // this check should be satisfied by Data objects passed to setToSize, but
+  // FunctionSpace::getSize() seems to create an object which is larger than
+  // this... either way, this method can deal with this
+/*
   if (dataShape.size()!=1 || dataShape[0]!=1) {
     stringstream temp;
     temp << "Error - Incompatible shape Data object supplied to Bruce::setToSize";
     throw BruceException(temp.str());
   }
+*/
 
   double dp_size;
 
@@ -678,12 +643,6 @@ Bruce::setToSize(escript::Data& out) const
       int sampleNo=0;
       DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
       sampleData[0] = dp_size;
-      sampleNo++;
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
-      }
 
     } else if (dim==1) {
 
@@ -691,16 +650,10 @@ Bruce::setToSize(escript::Data& out) const
 
       dp_size = m_v0[0];
 
-      int sampleNo=0;
       for (int i=0; i<m_n0; i++) {
+        int sampleNo=i;
         DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
         sampleData[0] = dp_size;
-        sampleNo++;
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==2) {
@@ -711,18 +664,12 @@ Bruce::setToSize(escript::Data& out) const
       double y = m_v0[1] + m_v1[1];
       dp_size = sqrt(pow(x,2)+pow(y,2));
 
-      int sampleNo=0;
       for (int i=0; i<m_n0; i++) {
         for (int j=0; j<m_n1; j++) {
+          int sampleNo=(m_n1*i)+j;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           sampleData[0] = dp_size;
-          sampleNo++;
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==3) {
@@ -734,20 +681,14 @@ Bruce::setToSize(escript::Data& out) const
       double z = m_v0[2] + m_v1[2] + m_v2[2];
       dp_size = sqrt(pow(x,2)+pow(y,2)+pow(z,2));
 
-      int sampleNo=0;
       for (int i=0; i<m_n0; i++) {
         for (int j=0; j<m_n1; j++) {
           for (int k=0; k<m_n2; k++) {
+            int sampleNo=(m_n1*m_n2*i)+(m_n2*j)+k;
             DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
             sampleData[0] = dp_size;
-            sampleNo++;
           }
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     }
@@ -774,7 +715,6 @@ Bruce::setToSize(escript::Data& out) const
       dp_size = m_v0[0];
 
       int n0max=m_n0-1;
-      int sampleNo=0;
       if (isZero(m_v0)) {
         stringstream temp;
         temp << "Error - Invalid function space type: "
@@ -782,15 +722,10 @@ Bruce::setToSize(escript::Data& out) const
         throw BruceException(temp.str());
       } else {
         for (int i=0; i<n0max; i++) {
+          int sampleNo=i;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           sampleData[0] = dp_size;
-          sampleNo++;
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==2) {
@@ -803,7 +738,6 @@ Bruce::setToSize(escript::Data& out) const
 
       int n0max=m_n0-1;
       int n1max=m_n1-1;
-      int sampleNo=0;
       if (isZero(m_v0)) {
         stringstream temp;
         temp << "Error - Invalid function space type: "
@@ -811,23 +745,18 @@ Bruce::setToSize(escript::Data& out) const
         throw BruceException(temp.str());
       } else if (isZero(m_v1)) {
         for (int i=0; i<n0max; i++) {
+          int sampleNo=i;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           sampleData[0] = dp_size;
-          sampleNo++;
         }
       } else {
         for (int i=0; i<n0max; i++) {
           for (int j=0; j<n1max; j++) {
+            int sampleNo=(n1max*i)+j;
             DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
             sampleData[0] = dp_size;
-            sampleNo++;
           }
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     } else if (dim==3) {
@@ -842,7 +771,6 @@ Bruce::setToSize(escript::Data& out) const
       int n0max=m_n0-1;
       int n1max=m_n1-1;
       int n2max=m_n2-1;
-      int sampleNo=0;
       if (isZero(m_v0)) {
         stringstream temp;
         temp << "Error - Invalid function space type: "
@@ -850,33 +778,28 @@ Bruce::setToSize(escript::Data& out) const
         throw BruceException(temp.str());
       } else if (isZero(m_v1)) {
         for (int i=0; i<n0max; i++) {
+          int sampleNo=i;
           DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
           sampleData[0] = dp_size;
-          sampleNo++;
         }
       } else if (isZero(m_v2)) {
         for (int i=0; i<n0max; i++) {
           for (int j=0; j<n1max; j++) {
+            int sampleNo=(n1max*i)+j;
             DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
             sampleData[0] = dp_size;
-            sampleNo++;
           }
         }
       } else {
         for (int i=0; i<n0max; i++) {
           for (int j=0; j<n1max; j++) {
             for (int k=0; k<n2max; k++) {
+              int sampleNo=(n2max*n1max*i)+(n1max*j)+k;
               DataAbstract::ValueType::value_type* sampleData = out.getSampleData(sampleNo);
               sampleData[0] = dp_size;
-              sampleNo++;
             }
           }
         }
-      }
-      if (sampleNo!=numSamples) {
-        stringstream temp;
-        temp << "Bruce::setToSize: Didn't iterate across correct number of samples.";
-        throw BruceException(temp.str());
       }
 
     }
@@ -914,6 +837,18 @@ bool
 Bruce::operator!=(const AbstractDomain& other) const
 {
   return !(operator==(other));
+}
+
+int
+Bruce::getTagFromSampleNo(int functionSpaceCode, int sampleNo) const
+{
+  return 0;
+}
+
+int
+Bruce::getReferenceNoFromSampleNo(int functionSpaceCode, int sampleNo) const
+{
+  return 0;
 }
 
 bool

@@ -31,6 +31,7 @@ import unittest
 
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6
+    SOLVER_TOL=1.e-10
     DEBUG=False
     VERBOSE=False
     def check(self,arg,ref_arg,tol=None):
@@ -516,7 +517,8 @@ class Test_LinearPDE(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.GMRES)
-        u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0,truncation=10,restart=20)
+        mypde.setTolerance(1.e-12)
+        u=mypde.getSolution(verbose=self.VERBOSE or True,preconditioner=mypde.ILU0,truncation=10,restart=20)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_Lumping_attemptToSetA(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)

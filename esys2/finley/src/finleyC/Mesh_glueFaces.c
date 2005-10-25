@@ -40,7 +40,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
-     sprintf(error_msg,"__FILE__:glueing faces cannot be applied to face elements pf type %s",self->FaceElements->ReferenceElement->Type->Name);
+     sprintf(error_msg,"Finley_Mesh_glueFaces:glueing faces cannot be applied to face elements of type %s",self->FaceElements->ReferenceElement->Type->Name);
      Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
@@ -116,6 +116,8 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
             
             /* assign new node ids to elements */
             Finley_Mesh_relableElementNodes(new_node_label,0,self);
+
+            Finley_Mesh_prepare(self);
          } else {
             Finley_NodeFile_dealloc(newNodeFile);
             Finley_ElementFile_dealloc(newFaceElementsFile);
@@ -130,27 +132,3 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    TMPMEMFREE(new_node_mask);
    TMPMEMFREE(matching_nodes_in_elem1);
 }
-
-/*
-* $Log$
-* Revision 1.6  2005/09/15 03:44:22  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.5.2.1  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.5  2005/07/08 04:07:52  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.4  2004/12/15 07:08:33  jgs
-* *** empty log message ***
-* Revision 1.1.1.1.2.2  2005/06/29 02:34:51  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
-*
-*
-*
-*/
-

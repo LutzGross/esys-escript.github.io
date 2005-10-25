@@ -36,7 +36,7 @@ ifeq ($(strip $(DODEBUG)),YES)
   DEBUG_FILE_EXT := ${NULL}
   L_DEFS := ${L_DEFS} DOASSERT DOPROF
 else
-  CPP_OPT_FLAGS := -O3 -openmp -openmp_report0 -mp1
+  CPP_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1
   DEBUG_FILE_EXT := ${NULL}
 endif
 CPP_OUTPUT_FLAG := -o
@@ -48,7 +48,7 @@ LD_SYS_LIBS := guide irc
 LD_LIB_DIR_FLAG := -L
 LD_LIB_FLAG := -l
 LD_DIAG_FLAGS := ${NULL}
-LD_SHARE_FLAG := -shared
+LD_SHARE_FLAG := -ftz -shared
 LD_OUTPUT_FLAG := -o
 
 # Archiver Settings
@@ -69,97 +69,3 @@ PYTHON_CMD_FLAG := -c
 PYTHON_OPT_FLAGS := -O
 PYTHON_DIAG_FLAGS := -Wall
 PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'
-
-# $Log$
-# Revision 1.10  2005/09/22 01:54:59  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-09-22
-#
-# Revision 1.9  2005/09/01 03:31:38  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-09-01
-#
-# Revision 1.8.2.4  2005/09/17 02:58:30  jgs
-# DOPROF is now defined for DEBUG builds only - enabling profiling
-# data collection
-#
-# Revision 1.8.2.3  2005/08/26 03:19:07  jgs
-# turned down level of openmp reporting
-#
-# Revision 1.8.2.2  2005/08/26 00:37:31  jgs
-# ensure LDEFS is appended to, not overwritten
-#
-# Revision 1.8.2.1  2005/08/24 02:06:33  gross
-# -0 -O reduced to -O to be able to run epydoc. performance shouldn't change
-#
-# Revision 1.8  2005/06/09 05:38:03  jgs
-# Merge of development branch back to main trunk on 2005-06-09
-#
-# Revision 1.1.1.1.2.10  2005/05/18 07:02:47  jgs
-# all python code now compiled to .pyc files with "-O -O" options
-#
-# Revision 1.1.1.1.2.9  2005/05/18 06:07:52  jgs
-# DOASSERT now only defined for CPP builds where DODEBUG=YES
-#
-# Revision 1.1.1.1.2.8  2005/05/17 00:24:08  jgs
-# add correct settings for finley solver: ITERATIVE_SOLVER, DIRECT_SOLVER
-#
-# Revision 1.1.1.1.2.7  2005/05/09 04:09:38  jgs
-# turn off -g CC flag for standard builds
-#
-# Revision 1.1.1.1.2.6  2005/04/05 00:30:56  jgs
-# change optimisation to -00 on C debug builds
-#
-# Revision 1.1.1.1.2.5  2005/04/04 06:02:02  jgs
-# Implement a DODEBUG option to allow compiles with optimisation turned
-# off and debugs turned on. Also removed "-ansi" option from C builds as
-# this would seem to clash with the -c99 option.
-#
-# Revision 1.1.1.1.2.4  2005/02/28 04:16:49  jgs
-# turned off -Wall on default builds - icc produces way too many messages!
-#
-# Revision 1.1.1.1.2.3  2005/02/17 03:20:17  imran
-# header addition w/ minor change to allow successful build
-#
-# Revision 1.1.1.1.2.2  2005/01/12 01:24:50  matt
-# Remove hardcoded icc path. Developers requested to use appropriate intel
-# compiler module instead.
-#
-# Revision 1.1.1.1.2.1  2004/11/24 01:50:22  gross
-# Finley solves 4M unknowns now
-#
-# Revision 1.1.1.1  2004/10/26 06:53:58  jgs
-# initial import of project esys2
-#
-# Revision 1.2.2.5  2004/10/12 00:24:30  jgs
-# turned on debugging options for DODEBUG=YES makes
-#
-# Revision 1.2.2.4  2004/10/07 01:48:35  jgs
-# *** empty log message ***
-#
-# Revision 1.2.2.3  2004/09/28 07:03:14  jgs
-# *** empty log message ***
-#
-# Revision 1.2.2.2  2004/09/27 06:37:54  jgs
-# restructured make files
-#
-# Revision 1.2.2.1  2004/09/24 01:17:08  jgs
-# changed python settings to use python 2.3
-#
-# Revision 1.2  2004/09/23 01:49:06  jgs
-# *** empty log message ***
-#
-# Revision 1.1.1.1  2004/06/24 04:00:39  johng
-# Initial version of eys using boost-python.
-#
-# Revision 1.4  2003/10/20 00:20:15  davies
-# Added OMP parallelisation of BiCGStab.
-#
-# Revision 1.3  2003/09/30 02:55:06  davies
-# Added local makefile macro settings to replace hardcoded header files.
-#
-# Revision 1.2  2003/09/29 02:44:02  gross
-# bug in Taipan.DataArray.matmult fixed.
-#
-# Revision 1.1.1.1  2003/08/21 00:58:20  davies
-# Imported sources from Lutz Gross.
-#
-

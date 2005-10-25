@@ -128,48 +128,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
 int Finley_Mesh_findMatchingFaces_compar(const void*,const void*);
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
 void Finley_Mesh_print(Finley_Mesh *in);
-void Finley_Mesh_saveDX(const char *, Finley_Mesh *, escriptDataC*);
-void Finley_Mesh_saveVTK(const char *, Finley_Mesh *, escriptDataC*);
+void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
+void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
 
 #endif /* #ifndef INC_FINLEY_MESH */
 
-/*
- * $Log$
- * Revision 1.7  2005/09/15 03:44:22  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.6.2.1  2005/09/07 06:26:19  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.6  2005/07/08 04:07:51  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.3  2005/06/29 02:34:51  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1.2.2  2005/02/09 06:53:59  cochrane
- * Added Finley_Mesh_saveVTK.
- *
- * Revision 1.1.1.1.2.1  2004/11/12 06:58:18  gross
- * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.5  2004/07/27 08:26:45  gross
- * Finley: saveDX added: now it is possible to write data on boundary and contact elements
- *
- * Revision 1.4  2004/07/26 04:27:15  gross
- * it allmost compiles now
- *
- * Revision 1.3  2004/07/02 04:21:13  gross
- * Finley C code has been included
- *
- * Revision 1.2  2004/07/02 00:03:29  gross
- * interface for saveDX added
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
- *
- *
- */

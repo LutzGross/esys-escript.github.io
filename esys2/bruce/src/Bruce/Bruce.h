@@ -232,6 +232,23 @@ class Bruce : public escript::AbstractContinuousDomain {
   virtual bool operator==(const AbstractDomain& other) const;
   virtual bool operator!=(const AbstractDomain& other) const;
 
+  /*
+     \brief
+     Return the tag key for the given sample number.
+  */
+  virtual
+  int
+  getTagFromSampleNo(int functionSpaceCode, int sampleNo) const;
+
+  /**
+     \brief
+     Return the reference number of the given sample number.
+  */
+  virtual
+  int
+  getReferenceNoFromSampleNo(int functionSpaceCode, int sampleNo) const;
+
+
  protected:
 
   /**

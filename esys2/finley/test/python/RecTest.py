@@ -1,4 +1,5 @@
 # $Id$
+
 import sys
 import os
 import unittest
@@ -8,13 +9,15 @@ from esys.escript.linearPDEs import *
 from esys import finley
 
 import numarray
+
 Pi=numarray.pi
+numElements=15
+sml=0.1
 
 #
 # this test the assemblage of problems with periodic boundary conditions:
 # 
-numElements=15
-sml=0.1
+
 #
 #    test solution is u_ex=sin(2*Pi*n*x0)*...*sin(2*Pi*n*x_dim)
 #
@@ -47,11 +50,9 @@ for onElements in [False,True]:
        redtext=""
     for dim in [2,3]:
         if dim==2:
-          # for i0 in [True,False]:
-          #  for i1 in [True,False]:
           for i0 in [True,True]:
             for i1 in [True,True]:
-              msh=Rectangle(numElements,numElements,order,periodic0=i0,periodic1=i1,useElementsOnFace=onElements)
+              msh=finley.Rectangle(numElements,numElements,order,periodic0=i0,periodic1=i1,useElementsOnFace=onElements)
               n=ContinuousFunction(msh)
               x=n.getX()
               c=Scalar(0,what=n) 
@@ -69,7 +70,7 @@ for onElements in [False,True]:
           for i0 in [True,False]:
             for i1 in [True,False]:
               for i2 in [True,False]:
-                msh=Brick(numElements,numElements,numElements,order,periodic0=i0,periodic1=i1,periodic2=i2,useElementsOnFace=onElements)
+                msh=finley.Brick(numElements,numElements,numElements,order,periodic0=i0,periodic1=i1,periodic2=i2,useElementsOnFace=onElements)
                 n=ContinuousFunction(msh)
                 x=n.getX()
                 c=Scalar(0,what=n)
