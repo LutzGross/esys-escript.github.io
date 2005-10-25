@@ -9,7 +9,7 @@ import os
 import time
 
 from esys.escript import *
-from esys import finley
+from esys import bruce
 
 #
 # ================== data values to test with =========================
@@ -41,8 +41,7 @@ testlist = [
 "Lsup",
 "Linf",
 "sup",
-"inf",
-"wherePositive"
+"inf"
 ]
 
 #
@@ -62,27 +61,29 @@ def getStartTime():
 def calcElapsedTime(starttime):
     stoptime = time.clock()
     elapsed = stoptime - starttime
-    print elapsed
+    print "\t\t", elapsed
 
 def runTest(arg,test):
-    print "\n", test
+    print "\t\t", test,
     result = arg.__getattribute__(test)()
     del result
 
 #
 # ===================== main ==============================
 
-msh=finley.Rectangle(1000,1000,1)
+msh=bruce.Rectangle(1000,1000)
 
-for wh in [Function(msh)]:
+for wh in [Function(msh),ContinuousFunction(msh)]:
 
-  print wh
+  print "\n", wh, ":"
 
   for ex in ["Expanded"]:
 
     for a in arglist:
 
-      print "\n", ex, a, "==>"
+      print "\n\t", ex, a, "==>"
+      print "\n\t\tFunction\tElapsed time"
+      print "\t\t--------\t------------"
 
       arg=prepareArg(a,ex,wh)
 

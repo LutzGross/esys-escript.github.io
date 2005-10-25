@@ -25,6 +25,7 @@
 #include <functional>
 #include <math.h>
 
+#include <boost/python/dict.hpp>
 #include <boost/python/str.hpp>
 #include <boost/python/extract.hpp>
 #include <boost/python/long.hpp>
@@ -1263,14 +1264,18 @@ Data::calc_mindp(int& SampleNo,
 void
 Data::saveDX(std::string fileName) const
 {
-  getDomain().saveDX(fileName,*this);
+  boost::python::dict args;
+  args["data"]=boost::python::object(this);
+  getDomain().saveDX(fileName,args);
   return;
 }
 
 void
 Data::saveVTK(std::string fileName) const
 {
-  getDomain().saveVTK(fileName,*this);
+  boost::python::dict args;
+  args["data"]=boost::python::object(this);
+  getDomain().saveVTK(fileName,args);
   return;
 }
 

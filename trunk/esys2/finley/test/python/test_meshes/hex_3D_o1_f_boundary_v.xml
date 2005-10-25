@@ -61,8 +61,8 @@
 9
 </DataArray>
 </Cells>
-<CellData Vectors="vector">
-<DataArray Name="vector" type="Float32" NumberOfComponents="3" format="ascii">
+<CellData Vectors="data">
+<DataArray Name="data" type="Float32" NumberOfComponents="3" format="ascii">
  5.000000e-01 1.000000e+00 1.500000e+00
  0.000000e+00 0.000000e+00 0.000000e+00
  1.000000e+00 2.000000e+00 3.000000e+00

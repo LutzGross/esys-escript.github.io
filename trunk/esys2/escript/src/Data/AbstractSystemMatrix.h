@@ -67,7 +67,7 @@ class AbstractSystemMatrix {
     \brief
     matrix*vector multiplication
   */
-  Data vectorMultiply(const Data& right) const;
+  Data vectorMultiply(Data& right) const;
 
   /**
     \brief
@@ -123,7 +123,7 @@ class AbstractSystemMatrix {
      \brief
      returns the solution u of the linear system this*u=in
   */
-  Data solve(const Data& in,const boost::python::dict& options) const;
+  Data solve(Data& in,const boost::python::dict& options) const;
 
   /**
      \brief writes the matrix to a file using the Matrix Market file format
@@ -148,13 +148,13 @@ class AbstractSystemMatrix {
      \brief
      solves the linear system this*out=in
   */
-  virtual void setToSolution(Data& out,const Data& in,const boost::python::dict& options) const;
+  virtual void setToSolution(Data& out,Data& in,const boost::python::dict& options) const;
 
   /**
      \brief
      performs y+=this*x
   */
-  virtual void ypAx(Data& y,const Data& x) const;
+  virtual void ypAx(Data& y,Data& x) const;
 
   int m_empty;
   int m_column_blocksize;
@@ -164,7 +164,7 @@ class AbstractSystemMatrix {
 
 };
 
-Data operator*(const AbstractSystemMatrix& left, const Data& right) ;
+Data operator*(const AbstractSystemMatrix& left,const Data& right) ;
 
 
 

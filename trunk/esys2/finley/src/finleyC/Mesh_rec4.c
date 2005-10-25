@@ -32,7 +32,7 @@
 /**************************************************************/
 
 Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_t* periodic, index_t order,bool_t useElementsOnFace) {
-  dim_t N0,N1,NE0,NE1,i0,i1,totalNECount,faceNECount,NDOF0,NDOF1,NFaceElements,NUMNODES;
+  dim_t N0,N1,NE0,NE1,i0,i1,totalNECount,faceNECount,NDOF0,NDOF1,NFaceElements,NUMNODES,M0,M1;
   index_t k,node0;
   Finley_Mesh* out;
   char name[50];
@@ -41,6 +41,14 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   NE1=MAX(1,numElements[1]);
   N0=NE0+1;
   N1=NE1+1;
+
+  if (N0<=N1) {
+     M0=1;
+     M1=N0;
+  } else {
+     M0=N1;
+     M1=1;
+  }
 
   NFaceElements=0;
   if (!periodic[0]) {
@@ -85,34 +93,33 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
       Finley_Mesh_dealloc(out);
       return NULL;
   }
-  
   /*  set nodes: */
-  
-  #pragma omp parallel for private(i0,i1,k) 
+                                                                                                                                                                                                     
+  #pragma omp parallel for private(i0,i1,k)
   for (i1=0;i1<N1;i1++) {
     for (i0=0;i0<N0;i0++) {
-      k=i0+N0*i1;
+      k=M0*i0+M1*i1;
       out->Nodes->Coordinates[INDEX2(0,k,2)]=DBLE(i0)/DBLE(N0-1)*Length[0];
       out->Nodes->Coordinates[INDEX2(1,k,2)]=DBLE(i1)/DBLE(N1-1)*Length[1];
-      out->Nodes->Id[k]=k;
+      out->Nodes->Id[k]=i0+N0*i1;
       out->Nodes->Tag[k]=0;
-      out->Nodes->degreeOfFreedom[k]=(i0%NDOF0) +N0*(i1%NDOF1);
+      out->Nodes->degreeOfFreedom[k]=M0*(i0%NDOF0) +M1*(i1%NDOF1);
     }
   }
   /* tags for the faces: */
   if (!periodic[1]) {
     for (i0=0;i0<N0;i0++) {
-        out->Nodes->Tag[i0+N0*0]+=10;
-        out->Nodes->Tag[i0+N0*(N1-1)]+=20;
+      out->Nodes->Tag[M0*i0+M1*0]+=10;
+      out->Nodes->Tag[M0*i0+M1*(N1-1)]+=20;
     }
   }
   if (!periodic[0]) {
     for (i1=0;i1<N1;i1++) {
-      out->Nodes->Tag[0+N0*i1]+=1;
-      out->Nodes->Tag[(N0-1)+N0*i1]+=2;
+      out->Nodes->Tag[M0*0+M1*i1]+=1;
+      out->Nodes->Tag[M0*(N0-1)+M1*i1]+=2;
     }
   }
-  
+
   /*   set the elements: */
   
   #pragma omp parallel for private(i0,i1,k,node0) 
@@ -265,28 +272,3 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   }
   return out;
 }
-
-/*
-* Merge of development branch dev-02 back to main trunk on 2005-09-01
-*
-* Revision 1.2.2.2  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.2.2.1  2005/08/24 02:02:18  gross
-* timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
-*
-* Revision 1.2  2005/07/08 04:07:54  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.1.1.1.2.1  2005/06/29 02:34:53  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
-

@@ -49,12 +49,13 @@ int AbstractSystemMatrix::isEmpty() const {
    return m_empty;
 }
 
-Data operator*(const AbstractSystemMatrix& left, const Data& right)
+Data operator*(const AbstractSystemMatrix& left,const Data& right)
 {
-      return left.vectorMultiply(right);
+      Data tmp=(Data) right;
+      return left.vectorMultiply(tmp);
 }
 
-Data AbstractSystemMatrix::vectorMultiply(const Data& right) const
+Data AbstractSystemMatrix::vectorMultiply(Data& right) const
 {
      if (isEmpty())
           throw SystemMatrixException("Error - Matrix is empty.");
@@ -64,16 +65,17 @@ Data AbstractSystemMatrix::vectorMultiply(const Data& right) const
      if (getRowBlockSize()>1) shape.push_back(getRowBlockSize());
 
      Data out=Data(0.,shape,getRowFunctionSpace(),true);
-     ypAx(out,Data(right,getColumnFunctionSpace()));
+     Data in=Data(right,getColumnFunctionSpace());
+     ypAx(out,in);
      return out;
 }
 
-void AbstractSystemMatrix::ypAx(Data& y,const Data& x) const
+void AbstractSystemMatrix::ypAx(Data& y,Data& x) const
 {
     throw SystemMatrixException("Error - ypAx not available");
 }
 
-Data AbstractSystemMatrix::solve(const Data& in,const boost::python::dict& options) const
+Data AbstractSystemMatrix::solve(Data& in,const boost::python::dict& options) const
 {
      if (isEmpty())
           throw SystemMatrixException("Error - Matrix is empty.");
@@ -87,7 +89,7 @@ Data AbstractSystemMatrix::solve(const Data& in,const boost::python::dict& optio
      setToSolution(out,in,options);
      return out;
 }
-void AbstractSystemMatrix::setToSolution(Data& out,const Data& in,const boost::python::dict& options) const
+void AbstractSystemMatrix::setToSolution(Data& out,Data& in,const boost::python::dict& options) const
 {
     throw SystemMatrixException("Error - setToSolution not available");
 }

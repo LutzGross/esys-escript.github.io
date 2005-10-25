@@ -15,7 +15,7 @@
 """
 
 from esys.escript import *
-from esys.linearPDEs import *
+from esys.escript.linearPDEs import *
 import esys.finley as pdelib
 from time import time
 

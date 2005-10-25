@@ -18,6 +18,7 @@
 
 #include <string>
 #include <utility>
+#include <boost/python/dict.hpp>
 
 namespace escript {
 
@@ -233,24 +234,21 @@ class AbstractDomain {
      This has to be implemented by the actual Domain adapter.
   */
   virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
-
   /**
      \brief
-     Saves data arg to an OpenDX input file.
-     considered as cell centered data.
+     Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier
 
      This has to be implemented by the actual Domain adapter.
   */
-  virtual void saveDX(const std::string& filename,const escript::Data& arg) const;
+  virtual void saveDX(const std::string& filename,const boost::python::dict& arg) const;
 
   /**
      \brief
-     saves data arg to a VTK input file.
-     considered as cell centered data.
+     Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier
 
      This has to be implemented by the actual Domain adapter.
   */
-  virtual void saveVTK(const std::string& filename,const escript::Data& arg) const;
+  virtual void saveVTK(const std::string& filename,const boost::python::dict& arg) const;
 
   /**
      \brief

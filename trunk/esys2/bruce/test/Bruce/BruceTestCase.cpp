@@ -141,9 +141,9 @@ void BruceTestCase::testZero() {
   AbstractContinuousDomain testbruce0_asAbstractContinuousDomain = testbruce0.asAbstractContinuousDomain();
   AbstractDomain testbruce0_asAbstractDomain = testbruce0.asAbstractDomain();
 
-  cout << "\tTest copy constructor" << endl;
-
   Bruce testbruce1(testbruce0);
+
+  assert(testbruce0==testbruce1);
 
   assert(testbruce1.getDim()==0);
 
@@ -159,6 +159,11 @@ void BruceTestCase::testZero() {
   dataShape = testbruce1.getDataShape(1);
   assert(dataShape.first==1);
   assert(dataShape.second==0);
+
+  Bruce testbruce2(v0, v1, v2, 0, 0, 0, origin);
+
+  assert(testbruce0==testbruce2);
+  assert(!(testbruce0!=testbruce2));
 
 }
 
@@ -203,9 +208,9 @@ void BruceTestCase::test1d() {
   AbstractContinuousDomain testbruce1_asAbstractContinuousDomain = testbruce1.asAbstractContinuousDomain();
   AbstractDomain testbruce1_asAbstractDomain = testbruce1.asAbstractDomain();
 
-  cout << "\tTest copy constructor" << endl;
-
   Bruce testbruce2(testbruce1);
+
+  assert(testbruce2==testbruce1);
 
   assert(testbruce2.getDim()==1);
 
@@ -243,7 +248,7 @@ void BruceTestCase::test2d() {
   origin.push_back(0);
   origin.push_back(0);
 
-  Bruce testbruce0(v0, v1, v2, 1, 1, 0, origin);
+  Bruce testbruce0(v0, v1, v2, 1, 0, 0, origin);
 
   assert(testbruce0.getDim()==2);
 
@@ -260,7 +265,7 @@ void BruceTestCase::test2d() {
   v0.push_back(1);
   v0.push_back(0);
 
-  Bruce testbruce1(v0, v1, v2, 2, 2, 0, origin);
+  Bruce testbruce1(v0, v1, v2, 2, 0, 0, origin);
 
   assert(testbruce1.getDim()==2);
 
@@ -284,9 +289,9 @@ void BruceTestCase::test2d() {
   AbstractContinuousDomain testbruce2_asAbstractContinuousDomain = testbruce2.asAbstractContinuousDomain();
   AbstractDomain testbruce2_asAbstractDomain = testbruce2.asAbstractDomain();
 
-  cout << "\tTest copy constructor" << endl;
-
   Bruce testbruce3(testbruce2);
+
+  assert(testbruce2==testbruce3);
 
   assert(testbruce3.getDim()==2);
 
@@ -325,7 +330,7 @@ void BruceTestCase::test3d() {
   origin.push_back(0);
   origin.push_back(0);
 
-  Bruce testbruce0(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce0(v0, v1, v2, 1, 0, 0, origin);
 
   assert(testbruce0.getDim()==3);
 
@@ -386,9 +391,9 @@ void BruceTestCase::test3d() {
   AbstractContinuousDomain testbruce3_asAbstractContinuousDomain = testbruce3.asAbstractContinuousDomain();
   AbstractDomain testbruce3_asAbstractDomain = testbruce3.asAbstractDomain();
 
-  cout << "\tTest copy constructor" << endl;
-
   Bruce testbruce4(testbruce3);
+
+  assert(testbruce4==testbruce3);
 
   assert(testbruce4.getDim()==3);
 
@@ -512,7 +517,7 @@ void BruceTestCase::testSetToXcon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce1(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce1(v0, v1, v2, 1, 0, 0, origin);
   shape.clear();
   Data data1(0.0,shape,continuousFunction(testbruce1.asAbstractContinuousDomain()));
   testbruce1.setToX(data1);
@@ -532,7 +537,7 @@ void BruceTestCase::testSetToXcon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce2(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce2(v0, v1, v2, 1, 0, 0, origin);
   shape.clear();
   shape.push_back(1);
   Data data2(0.0,shape,continuousFunction(testbruce2.asAbstractContinuousDomain()),true);
@@ -570,7 +575,7 @@ void BruceTestCase::testSetToXcon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce4(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce4(v0, v1, v2, 1, 0, 0, origin);
   shape.clear();
   shape.push_back(2);
   Data data4(0.0,shape,continuousFunction(testbruce4.asAbstractContinuousDomain()),true);
@@ -632,7 +637,7 @@ void BruceTestCase::testSetToXcon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce7(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce7(v0, v1, v2, 1, 0, 0, origin);
   shape.clear();
   shape.push_back(3);
   Data data7(0.0,shape,continuousFunction(testbruce7.asAbstractContinuousDomain()),true);
@@ -920,7 +925,7 @@ void BruceTestCase::testSetToSizecon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce1(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce1(v0, v1, v2, 1, 0, 0, origin);
   Data data1(0.0,shape,continuousFunction(testbruce1.asAbstractContinuousDomain()));
   testbruce1.setToSize(data1);
 
@@ -939,7 +944,7 @@ void BruceTestCase::testSetToSizecon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce2(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce2(v0, v1, v2, 1, 0, 0, origin);
   Data data2(0.0,shape,continuousFunction(testbruce2.asAbstractContinuousDomain()),true);
   testbruce2.setToSize(data2);
 
@@ -973,7 +978,7 @@ void BruceTestCase::testSetToSizecon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce4(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce4(v0, v1, v2, 1, 0, 0, origin);
   Data data4(0.0,shape,continuousFunction(testbruce4.asAbstractContinuousDomain()),true);
   testbruce4.setToSize(data4);
 
@@ -1026,7 +1031,7 @@ void BruceTestCase::testSetToSizecon() {
 
   cout << "\t\t0d domain" << endl;
 
-  Bruce testbruce7(v0, v1, v2, 0, 0, 0, origin);
+  Bruce testbruce7(v0, v1, v2, 1, 0, 0, origin);
   Data data7(0.0,shape,continuousFunction(testbruce7.asAbstractContinuousDomain()),true);
   testbruce7.setToSize(data7);
 
@@ -1249,6 +1254,76 @@ void BruceTestCase::testSetToSizefun() {
 
 }
 
+void BruceTestCase::testSetToXException() {
+
+  cout << endl;
+
+  //
+  // test setToX method exception on function domains
+
+  Bruce::DimVec v0;
+  Bruce::DimVec v1;
+  Bruce::DimVec v2;
+  Bruce::DimVec origin;
+
+  DataArrayView::ShapeType shape;
+  shape.clear();
+  shape.push_back(1);
+
+  origin.clear();
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  Bruce testbruce1(v0, v1, v2, 1, 0, 0, origin);
+  Data data1(0.0,shape,function(testbruce1.asAbstractContinuousDomain()));
+
+  try {
+  testbruce1.setToX(data1);
+    assert(false);
+  }
+  catch (EsysException& e) {
+    assert(true);
+  }
+
+}
+
+void BruceTestCase::testSetToSizeException() {
+
+  cout << endl;
+
+  //
+  // test setToSize method exception on function domains
+
+  Bruce::DimVec v0;
+  Bruce::DimVec v1;
+  Bruce::DimVec v2;
+  Bruce::DimVec origin;
+
+  DataArrayView::ShapeType shape;
+  shape.clear();
+  shape.push_back(1);
+
+  origin.clear();
+
+  v0.clear();
+  v1.clear();
+  v2.clear();
+
+  Bruce testbruce1(v0, v1, v2, 1, 0, 0, origin);
+  Data data1(0.0,shape,function(testbruce1.asAbstractContinuousDomain()));
+
+  try {
+  testbruce1.setToSize(data1);
+    assert(false);
+  }
+  catch (EsysException& e) {
+    assert(true);
+  }
+
+}
+
 TestSuite* BruceTestCase::suite ()
 {
   //
@@ -1266,5 +1341,7 @@ TestSuite* BruceTestCase::suite ()
   testSuite->addTest (new TestCaller< BruceTestCase>("testSetToXfun",&BruceTestCase::testSetToXfun));
   testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSizecon",&BruceTestCase::testSetToSizecon));
   testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSizefun",&BruceTestCase::testSetToSizefun));
+  testSuite->addTest (new TestCaller< BruceTestCase>("testSetToXException",&BruceTestCase::testSetToXException));
+  testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSizeException",&BruceTestCase::testSetToSizeException));
   return testSuite;
 }

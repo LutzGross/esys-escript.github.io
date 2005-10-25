@@ -141,7 +141,10 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("setX",&finley::MeshAdapter::setNewX)
       .def("getX",&finley::MeshAdapter::getX)
       .def("getNormal",&finley::MeshAdapter::getNormal)
-      .def("getSize",&finley::MeshAdapter::getSize);
+      .def("getSize",&finley::MeshAdapter::getSize)
+      .def("saveDX",&finley::MeshAdapter::saveDX)
+      .def("saveVTK",&finley::MeshAdapter::saveVTK);
+
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter",no_init)

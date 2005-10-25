@@ -15,5 +15,3 @@ L_SRC_DIR := .
 
 include $(ESYS_ROOT)/make/Makefile.default
 
-
-

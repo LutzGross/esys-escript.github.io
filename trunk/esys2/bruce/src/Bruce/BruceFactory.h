@@ -37,7 +37,7 @@ namespace bruce {
      \param n0,n1,n2 Input - number of elements in each dimension
      \param l0,l1,l2 Input - length of each side of brick
   */
-  escript::AbstractContinuousDomain* brick(int n0=1, int n1=1, int n2=1,
+  escript::AbstractContinuousDomain* brick(int n0=2, int n1=2, int n2=2,
 		                           double l0=1.0, double l1=1.0, double l2=1.0);
 
   /**
@@ -46,9 +46,9 @@ namespace bruce {
      [l0,0] x [0,l1].
 
      \param n0,n1 Input - number of elements in each dimension
-     \param l0,l1 Input - length of each side of brick
+     \param l0,l1 Input - length of each side of rectangle
   */
-  escript::AbstractContinuousDomain* rectangle(int n0=1, int n1=1,
+  escript::AbstractContinuousDomain* rectangle(int n0=2, int n1=2,
 				               double l0=1.0, double l1=1.0);
  
 } // end of namespace

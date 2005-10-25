@@ -37,8 +37,8 @@
 12
 </DataArray>
 </Cells>
-<PointData Vectors="vector">
-<DataArray Name="vector" type="Float32" NumberOfComponents="3" format="ascii">
+<PointData Vectors="data">
+<DataArray Name="data" type="Float32" NumberOfComponents="3" format="ascii">
  0.000000e+00 0.000000e+00 0.000000e+00
  1.000000e+00 2.000000e+00 3.000000e+00
  0.000000e+00 0.000000e+00 0.000000e+00

@@ -3,7 +3,12 @@
 # $Id$
 # An explicit testing script for esys
 
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au"
+# list of users to email test results to
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
+
+# define compiler executable and library locations
+export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
+export LD_LIBRARY_PATH=/opt/intel/cmplrs/80.058/intel_cc_80/lib
 
 echo cd $1
 cd $1
@@ -15,8 +20,6 @@ then
 fi
 
 echo loading esys setup
-. /home/jgs/raid2/setModuleEnv
-module load intel_cc.80.058
 . ~/bin/esys_setup
 if [ $? != 0 ]
 then

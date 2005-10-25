@@ -3,7 +3,7 @@ import unittest
 import os
 
 from esys.escript import *
-from esys import finley
+from esys import bruce
 
 import numarray
 
@@ -84,7 +84,7 @@ def isScalar(arg):
 
 print "\n\n"
 
-msh=finley.Rectangle(2,3,1)
+msh=bruce.Rectangle(2,3)
 
 print "\n\nTests of DataVariable"
 

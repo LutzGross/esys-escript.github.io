@@ -23,7 +23,7 @@ object 3 class array type float rank 1 shape 2 items 8 data follows
  0 0
  1 2
 attribute "dep" string "positions"
-object 4 class field
+object "data" class field
 component "positions" value 1
 component "connections" value 2
 component "data" value 3
