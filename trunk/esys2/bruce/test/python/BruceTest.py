@@ -25,16 +25,18 @@ assert (b.getFunctionCode()==1)
 
 assert (b.getDim()==0)
 
-brick = Brick()
+brick = Brick(11,11,11,10,10,10)
 
 assert (brick.getDim()==3)
 
 brick.getX()
+brick.getSize()
 
-rectangle = Rectangle()
+rectangle = Rectangle(11,11,10,10)
 
 assert (rectangle.getDim()==2)
 
 rectangle.getX()
+rectangle.getSize()
 
 sys.exit(0)

@@ -32,7 +32,7 @@
 /**************************************************************/
 
 Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_t* periodic, index_t order,bool_t useElementsOnFace) {
-  dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,totalNECount,faceNECount,NDOF0,NDOF1,NDOF2,NFaceElements,NUMNODES;
+  dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,totalNECount,faceNECount,NDOF0,NDOF1,NDOF2,NFaceElements,NUMNODES,M0,M1,M2;
   index_t node0;
   Finley_Mesh* out;
   char name[50];
@@ -43,6 +43,39 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   N0=NE0+1;
   N1=NE1+1;
   N2=NE2+1;
+
+  if (N0<=MIN(N1,N2)) {
+     if (N1 <= N2) {
+        M0=1;
+        M1=N0;
+        M2=N0*N1;
+     } else {
+        M0=1;
+        M2=N0;
+        M1=N0*N2;
+     }
+  } else if (N1<=MIN(N2,N0)) {
+     if (N2 <= N0) {
+        M1=1;
+        M2=N1;
+        M0=N2*N1;
+     } else {
+        M1=1;
+        M0=N1;
+        M2=N1*N0;
+     }
+  } else {
+     if (N0 <= N1) {
+        M2=1;
+        M0=N2;
+        M1=N2*N0;
+     } else {
+        M2=1;
+        M1=N2;
+        M0=N1*N2;
+     }
+  }
+
 
   NFaceElements=0;
   if (!periodic[0]) {
@@ -96,47 +129,48 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   }
   
   /*  set nodes: */
-  
-  #pragma omp parallel for private(i0,i1,i2,k) 
+
+  #pragma omp parallel for private(i0,i1,i2,k)
   for (i2=0;i2<N2;i2++) {
     for (i1=0;i1<N1;i1++) {
       for (i0=0;i0<N0;i0++) {
-        k=i0+N0*i1+N0*N1*i2;
+        k=M0*i0+M1*i1+M2*i2;
         out->Nodes->Coordinates[INDEX2(0,k,3)]=DBLE(i0)/DBLE(N0-1)*Length[0];
         out->Nodes->Coordinates[INDEX2(1,k,3)]=DBLE(i1)/DBLE(N1-1)*Length[1];
         out->Nodes->Coordinates[INDEX2(2,k,3)]=DBLE(i2)/DBLE(N2-1)*Length[2];
-        out->Nodes->Id[k]=k;
+        out->Nodes->Id[k]=i0+N0*i1+N0*N1*i2;
         out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=(i0%NDOF0) +N0*(i1%NDOF1) +N0*N1*(i2%NDOF2);
+        out->Nodes->degreeOfFreedom[k]=M0*(i0%NDOF0) +M1*(i1%NDOF1) +M2*(i2%NDOF2);
       }
     }
   }
   /* tags for the faces: */
+  /* tags for the faces: */
   if (!periodic[2]) {
-    for (i1=0;i1<N1;i1++) {
-      for (i0=0;i0<N0;i0++) {
-        out->Nodes->Tag[i0+N0*i1+N0*N1*0]+=100;
-        out->Nodes->Tag[i0+N0*i1+N0*N1*(N2-1)]+=200;
-      }
-    }
+     for (i1=0;i1<N1;i1++) {
+       for (i0=0;i0<N0;i0++) {
+         out->Nodes->Tag[M0*i0+M1*i1+M2*0]+=100;
+         out->Nodes->Tag[M0*i0+M1*i1+M2*(N2-1)]+=200;
+       }
+     }
   }
   if (!periodic[1]) {
     for (i2=0;i2<N2;i2++) {
       for (i0=0;i0<N0;i0++) {
-         out->Nodes->Tag[i0+N0*0+N0*N1*i2]+=10;
-         out->Nodes->Tag[i0+N0*(N1-1)+N0*N1*i2]+=20;
+         out->Nodes->Tag[M0*i0+M1*0+M2*i2]+=10;
+         out->Nodes->Tag[M0*i0+M1*(N1-1)+M2*i2]+=20;
       }
     }
   }
   if (!periodic[0]) {
     for (i2=0;i2<N2;i2++) {
       for (i1=0;i1<N1;i1++) {
-        out->Nodes->Tag[0+N0*i1+N0*N1*i2]+=1;
-        out->Nodes->Tag[(N0-1)+N0*i1+N0*N1*i2]+=2;
+        out->Nodes->Tag[M0*0+M1*i1+M2*i2]+=1;
+        out->Nodes->Tag[M0*(N0-1)+M1*i1+M2*i2]+=2;
       }
     }
   }
-  
+
   /*   set the elements: */
   
   #pragma omp parallel for private(i0,i1,i2,k,node0) 
@@ -396,29 +430,3 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   }
   return out;
 }
-
-/*
-* Revision 1.3  2005/09/01 03:31:35  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-01
-*
-* Revision 1.2.2.2  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.2.2.1  2005/08/24 02:02:18  gross
-* timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
-*
-* Revision 1.2  2005/07/08 04:07:52  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.1.1.1.2.1  2005/06/29 02:34:52  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
-

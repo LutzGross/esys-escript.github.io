@@ -13,7 +13,7 @@ import os
 import time
 
 from esys.escript import *
-from esys import finley
+from esys import bruce
 
 # ==============================================================
 
@@ -62,7 +62,7 @@ for x0 in [1, 10, 100]:
   for x1 in [1, 10, 100]:
 
     print "#### x0:", x0, "#### x1:", x1, "####"
-    msh=finley.Rectangle(x0,x1)
+    msh=bruce.Rectangle(x0,x1)
 
     for wh in [ContinuousFunction(msh),Function(msh)]:
 

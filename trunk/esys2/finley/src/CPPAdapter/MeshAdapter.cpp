@@ -28,9 +28,9 @@ extern "C" {
 #include "escript/Data/DataArrayView.h"
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/DataFactory.h"
+#include <boost/python/extract.hpp>
 
 #include <iostream>
-#include <vector>
 #include <sstream>
 
 using namespace std;
@@ -806,19 +806,68 @@ void MeshAdapter::setNewX(const Data& new_x)
 }
 
 // saves a data array in openDX format:
-void MeshAdapter::saveDX(const std::string& filename,const Data& arg) const
-{ 
-  Finley_Mesh_saveDX(filename.c_str(),m_finleyMesh.get(),&(arg.getDataC()));
-  checkFinleyError();
+void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& arg) const
+{
+    int MAX_namelength=256;
+    const int num_data=boost::python::extract<int>(arg.attr("__len__")());
+    char names[num_data][MAX_namelength];
+    char* c_names[num_data];
+    escriptDataC data[num_data];
+    escriptDataC* ptr_data[num_data];
+
+    boost::python::list keys=arg.keys();
+    for (int i=0;i<num_data;++i) {
+         Data& d=boost::python::extract<Data&>(arg[keys[i]]);
+         if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
+             throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
+         data[i]=d.getDataC();
+         ptr_data[i]=&(data[i]);
+         std::string n=boost::python::extract<std::string>(keys[i]);
+         c_names[i]=&(names[i][0]);
+         if (n.length()>MAX_namelength-1) {
+            strncpy(c_names[i],n.c_str(),MAX_namelength-1);
+            c_names[i][MAX_namelength-1]='\0';
+         } else {
+            strcpy(c_names[i],n.c_str());
+         }
+    }
+    Finley_Mesh_saveDX(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
+    checkFinleyError();
+    return;
 }
 
 // saves a data array in openVTK format:
-void MeshAdapter::saveVTK(const std::string& filename,const Data& arg) const
-{ 
-  Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),&(arg.getDataC()));
-  checkFinleyError();
-}
+void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict& arg) const
+{
+    int MAX_namelength=256;
+    const int num_data=boost::python::extract<int>(arg.attr("__len__")());
+    char names[num_data][MAX_namelength];
+    char* c_names[num_data];
+    escriptDataC data[num_data];
+    escriptDataC* ptr_data[num_data];
 
+    boost::python::list keys=arg.keys();
+    for (int i=0;i<num_data;++i) {
+         Data& d=boost::python::extract<Data&>(arg[keys[i]]);
+         if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
+             throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
+         data[i]=d.getDataC();
+         ptr_data[i]=&(data[i]);
+         std::string n=boost::python::extract<std::string>(keys[i]);
+         c_names[i]=&(names[i][0]);
+         if (n.length()>MAX_namelength-1) {
+            strncpy(c_names[i],n.c_str(),MAX_namelength-1);
+            c_names[i][MAX_namelength-1]='\0';
+         } else {
+            strcpy(c_names[i],n.c_str());
+         }
+    }
+    Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
+    checkFinleyError();
+    return;
+}
+                                                                                                                                                                        
+                                                                                                                                                                        
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros:
 SystemMatrixAdapter MeshAdapter::newSystemMatrix(
                       const int row_blocksize,

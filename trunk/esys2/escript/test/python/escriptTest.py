@@ -5,7 +5,7 @@ import unittest
 import os
 
 from esys.escript import *
-from esys import finley
+from esys import bruce
 
 import numarray
 
@@ -20,7 +20,7 @@ class escriptTestCase(unittest.TestCase):
 
   def testFunctionSpace(self):
     """Test the creation of FunctionSpace objects."""
-    mesh=finley.Brick(1,1,1,1,1.,1.,1.,1,1,1,1,1)
+    mesh=bruce.Brick(1,1,1)
     cFunc=escript.ContinuousFunction(mesh)
 
   def testDataOperations(self):

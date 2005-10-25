@@ -3,7 +3,7 @@
 from os import getenv
 from time import time
 from esys.escript import *
-from esys.finley import Brick
+from esys.bruce import Brick
 from numarray import ones
 
 cache_size=3 # Mbytes
@@ -17,7 +17,7 @@ print "nthreads, num. terms, num. comp, volume[Mbytes], cache usage, Gflops/thre
 for var in [True,False]:
 
      n=int(ne**(1./3.))
-     dom=Brick(n,n,n)
+     dom=Brick(n,n)
      l=(n+1)**3
      sx=dom.getX()[0]+dom.getX()[1]+dom.getX()[2]
 

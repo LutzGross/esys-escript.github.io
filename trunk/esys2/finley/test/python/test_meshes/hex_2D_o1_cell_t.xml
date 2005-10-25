@@ -29,8 +29,8 @@
 9
 </DataArray>
 </Cells>
-<CellData Tensors="tensor">
-<DataArray Name="tensor" type="Float32" NumberOfComponents="9" format="ascii">
+<CellData Tensors="data">
+<DataArray Name="data" type="Float32" NumberOfComponents="9" format="ascii">
  5.500000e+00 1.050000e+01 0.000000e+00 6.000000e+00 1.100000e+01 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00
  5.500000e+00 1.050000e+01 0.000000e+00 6.000000e+00 1.100000e+01 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00
 </DataArray>

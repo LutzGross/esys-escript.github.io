@@ -4,7 +4,6 @@ import unittest
 import numarray
 
 from esys.escript import *
-from esys import finley
 
 class DataTestCase(unittest.TestCase):
 

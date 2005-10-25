@@ -41,33 +41,61 @@ def _testForZero(arg):
       return False
 
 #=========================================================
-def saveVTK(filename,**data):
+def saveVTK(filename,domain=None,**data):
     """
-    writes arg into files in the vtk file format
+    writes a L{Data} objects into a files using the the VTK XML file format.
 
-           saveVTK(<filename>,<data name 1>=<data object 1>,...,<data name n>=<data object n>)  
+    Example:
 
-      This will create VTK files of the name <dir name>+<data name i>+"."+<extension> where <filename>=<dir name>+<extension>
+       tmp=Scalar(..)
+       v=Vector(..)
+       saveVTK("solution.xml",temperature=tmp,velovity=v)
 
+    tmp and v are written into "solution.dx" where tmp is named "temperature" and v is named "velovity"
+
+    @param filename: file name of the output file
+    @type filename: C(str}
+    @param domain: domain of the L{Data} object. If not specified, the domain of the given L{Data} objects is used.
+    @type domain: L{escript.Domain}
+    @keyword <name>: writes the assigned value to the VTK file using <name> as identifier.
+    @type <name>: L{Data} object.
+    @note: The data objects have to be defined on the same domain. They may not be in the same L{FunctionSpace} but one cannot expect that all L{FunctionSpace} can be mixed. Typically, data on the boundary and data on the interior cannot be mixed.
     """
-    ex=os.path.split(filename)
-    for i in data.keys():
-       data[i].saveVTK(os.path.join(ex[0],i+"."+ex[1]))
-
+    if domain==None:
+       for i in data.keys():
+          if not data[i].isEmpty(): domain=data[i].getFunctionSpace().getDomain()
+    if domain==None:
+        raise ValueError,"no domain detected."
+    else:
+        domain.saveVTK(filename,data)
 #=========================================================
-def saveDX(filename,**data):
+def saveDX(filename,domain=None,**data):
     """
-    writes arg into file in the openDX file format
+    writes a L{Data} objects into a files using the the DX file format.
 
-           saveDX(<filename>,<data name 1>=<data object 1>,...,<data name n>=<data object n>)  
+    Example:
 
-      This will create DX files of the name <dir name>+<data name i>+"."+<extension> where <filename>=<dir name>+<extension>
+       tmp=Scalar(..)
+       v=Vector(..)
+       saveDX("solution.dx",temperature=tmp,velovity=v)
 
+    tmp and v are written into "solution.dx" where tmp is named "temperature" and v is named "velovity". 
+
+    @param filename: file name of the output file
+    @type filename: C(str}
+    @param domain: domain of the L{Data} object. If not specified, the domain of the given L{Data} objects is used.
+    @type domain: L{escript.Domain}
+    @keyword <name>: writes the assigned value to the DX file using <name> as identifier. The identifier can be used to select the data set when data are imported into DX.
+    @type <name>: L{Data} object.
+    @note: The data objects have to be defined on the same domain. They may not be in the same L{FunctionSpace} but one cannot expect that all L{FunctionSpace} can be mixed. Typically, data on the boundary and data on the interior cannot be mixed.
     """
-    ex=os.path.split(filename)
-    for i in data.keys():
-       data[i].saveDX(os.path.join(ex[0],i+"."+ex[1]))
-
+    if domain==None:
+       for i in data.keys():
+          if not data[i].isEmpty(): domain=data[i].getFunctionSpace().getDomain()
+    if domain==None:
+        raise ValueError,"no domain detected."
+    else:
+        domain.saveDX(filename,data)
 #=========================================================
 
 def exp(arg):
@@ -98,7 +126,7 @@ def sqrt(arg):
 
 def log(arg):
     """
-    Applies the logarithmic function bases exp(1.) to arg
+    Applies the logarithmic function base 10 to arg.
 
     @param arg: argument 
     """
@@ -107,7 +135,7 @@ def log(arg):
     elif hasattr(arg,"log"):
        return arg.log()
     else:
-       return numarray.log(arg)
+       return numarray.log10(arg)
 
 def ln(arg):
     """
@@ -118,7 +146,7 @@ def ln(arg):
     if isinstance(arg,symbols.Symbol):
        return symbols.Ln_Symbol(arg)
     elif hasattr(arg,"ln"):
-       return arg.log()
+       return arg.ln()
     else:
        return numarray.log(arg)
 
@@ -740,153 +768,3 @@ def unit(i,d):
    e = numarray.zeros((d,),numarray.Float)
    e[i] = 1.0
    return e
-#
-# $Log$
-# Revision 1.18  2005/09/15 03:44:19  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-09-15
-#
-# Revision 1.17  2005/09/01 03:31:28  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-09-01
-#
-# Revision 1.16  2005/08/23 01:24:28  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-08-23
-#
-# Revision 1.15  2005/08/12 01:45:36  jgs
-# erge of development branch dev-02 back to main trunk on 2005-08-12
-#
-# Revision 1.14.2.13  2005/09/12 03:32:14  gross
-# test_visualiztion has been aded to mk
-#
-# Revision 1.14.2.12  2005/09/09 01:56:24  jgs
-# added implementations of acos asin atan sinh cosh tanh asinh acosh atanh
-# and some associated testing
-#
-# Revision 1.14.2.11  2005/09/08 08:28:39  gross
-# some cleanup in savevtk
-#
-# Revision 1.14.2.10  2005/09/08 00:25:32  gross
-# test for finley mesh generators added
-#
-# Revision 1.14.2.9  2005/09/07 10:32:05  gross
-# Symbols removed from util and put into symmbols.py.
-#
-# Revision 1.14.2.8  2005/08/26 05:06:37  cochrane
-# Corrected errors in docstrings.  Improved output formatting of docstrings.
-# Other minor improvements to code and docs (eg spelling etc).
-#
-# Revision 1.14.2.7  2005/08/26 04:45:40  cochrane
-# Fixed and tidied markup and docstrings.  Some *Symbol classes were defined
-# as functions, so changed them to classes (hopefully this was the right thing
-# to do).
-#
-# Revision 1.14.2.6  2005/08/26 04:30:13  gross
-# gneric unit testing for linearPDE
-#
-# Revision 1.14.2.5  2005/08/24 02:02:52  gross
-# jump function added
-#
-# Revision 1.14.2.4  2005/08/18 04:39:32  gross
-# the constants have been removed from util.py as they not needed anymore. PDE related constants are accessed through LinearPDE attributes now
-#
-# Revision 1.14.2.3  2005/08/03 09:55:33  gross
-# ContactTest is passing now./mk install!
-#
-# Revision 1.14.2.2  2005/08/02 03:15:14  gross
-# bug inb trace fixed!
-#
-# Revision 1.14.2.1  2005/07/29 07:10:28  gross
-# new functions in util and a new pde type in linearPDEs
-#
-# Revision 1.2.2.21  2005/07/28 04:19:23  gross
-# new functions maximum and minimum introduced.
-#
-# Revision 1.2.2.20  2005/07/25 01:26:27  gross
-# bug in inner fixed
-#
-# Revision 1.2.2.19  2005/07/21 04:01:28  jgs
-# minor comment fixes
-#
-# Revision 1.2.2.18  2005/07/21 01:02:43  jgs
-# commit ln() updates to development branch version
-#
-# Revision 1.12  2005/07/20 06:14:58  jgs
-# added ln(data) style wrapper for data.ln() - also added corresponding
-# implementation of Ln_Symbol class (not sure if this is right though)
-#
-# Revision 1.11  2005/07/08 04:07:35  jgs
-# Merge of development branch back to main trunk on 2005-07-08
-#
-# Revision 1.10  2005/06/09 05:37:59  jgs
-# Merge of development branch back to main trunk on 2005-06-09
-#
-# Revision 1.2.2.17  2005/07/07 07:28:58  gross
-# some stuff added to util.py to improve functionality
-#
-# Revision 1.2.2.16  2005/06/30 01:53:55  gross
-# a bug in coloring fixed
-#
-# Revision 1.2.2.15  2005/06/29 02:36:43  gross
-# Symbols have been introduced and some function clarified. needs much more work
-#
-# Revision 1.2.2.14  2005/05/20 04:05:23  gross
-# some work on a darcy flow started
-#
-# Revision 1.2.2.13  2005/03/16 05:17:58  matt
-# Implemented unit(idx, dim) to create cartesian unit basis vectors to
-# complement kronecker(dim) function.
-#
-# Revision 1.2.2.12  2005/03/10 08:14:37  matt
-# Added non-member Linf utility function to complement Data::Linf().
-#
-# Revision 1.2.2.11  2005/02/17 05:53:25  gross
-# some bug in saveDX fixed: in fact the bug was in
-# DataC/getDataPointShape
-#
-# Revision 1.2.2.10  2005/01/11 04:59:36  gross
-# automatic interpolation in integrate switched off
-#
-# Revision 1.2.2.9  2005/01/11 03:38:13  gross
-# Bug in Data.integrate() fixed for the case of rank 0. The problem is not totallly resolved as the method should return a scalar rather than a numarray object in the case of rank 0. This problem is fixed by the util.integrate wrapper.
-#
-# Revision 1.2.2.8  2005/01/05 04:21:41  gross
-# FunctionSpace checking/matchig in slicing added
-#
-# Revision 1.2.2.7  2004/12/29 05:29:59  gross
-# AdvectivePDE successfully tested for Peclet number 1000000. there is still a problem with setValue and Data()
-#
-# Revision 1.2.2.6  2004/12/24 06:05:41  gross
-# some changes in linearPDEs to add AdevectivePDE
-#
-# Revision 1.2.2.5  2004/12/17 00:06:53  gross
-# mk sets ESYS_ROOT is undefined
-#
-# Revision 1.2.2.4  2004/12/07 03:19:51  gross
-# options for GMRES and PRES20 added
-#
-# Revision 1.2.2.3  2004/12/06 04:55:18  gross
-# function wraper extended
-#
-# Revision 1.2.2.2  2004/11/22 05:44:07  gross
-# a few more unitary functions have been added but not implemented in Data yet
-#
-# Revision 1.2.2.1  2004/11/12 06:58:15  gross
-# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
-#
-# Revision 1.2  2004/10/27 00:23:36  jgs
-# fixed minor syntax error
-#
-# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
-# initial import of project esys2
-#
-# Revision 1.1.2.3  2004/10/26 06:43:48  jgs
-# committing Lutz's and Paul's changes to brach jgs
-#
-# Revision 1.1.4.1  2004/10/20 05:32:51  cochrane
-# Added incomplete Doxygen comments to files, or merely put the docstrings that already exist into Doxygen form.
-#
-# Revision 1.1  2004/08/05 03:58:27  gross
-# Bug in Assemble_NodeCoordinates fixed
-#
-#
-
-# vim: expandtab shiftwidth=4:

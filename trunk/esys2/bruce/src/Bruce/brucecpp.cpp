@@ -52,12 +52,12 @@ BOOST_PYTHON_MODULE(brucecpp)
   // return pointers.
 
   def ("Brick",bruce::brick,
-      (arg("n0")=1,arg("n1")=1,arg("n2")=1,
+      (arg("n0")=2,arg("n1")=2,arg("n2")=2,
       arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0),
       return_value_policy<manage_new_object>());
 
   def ("Rectangle",bruce::rectangle,
-      (arg("n0")=1,arg("n1")=1,
+      (arg("n0")=2,arg("n1")=2,
       arg("l0")=1.0,arg("l1")=1.0),
       return_value_policy<manage_new_object>());
 

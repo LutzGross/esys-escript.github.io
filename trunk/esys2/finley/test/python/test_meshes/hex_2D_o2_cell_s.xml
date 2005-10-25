@@ -37,8 +37,8 @@
 23
 </DataArray>
 </Cells>
-<CellData Scalars="scalar">
-<DataArray Name="scalar" type="Float32" NumberOfComponents="1" format="ascii">
+<CellData Scalars="data">
+<DataArray Name="data" type="Float32" NumberOfComponents="1" format="ascii">
  5.000000e-01
  5.000000e-01
 </DataArray>

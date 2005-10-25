@@ -187,19 +187,24 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options)
                         finalizeIteration = FALSE;
       	          } else if (errorCode==SOLVER_MAXITER_REACHED) {
                          Paso_setError(WARNING,"maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
+                         if (options->verbose) printf("Maximum number of iterations reached.!\n");
                   } else if (errorCode == SOLVER_INPUT_ERROR ) {
                          Paso_setError(SYSTEM_ERROR,"illegal dimension in iterative solver.");
+                         if (options->verbose) printf("Internal error!\n");
                   } else if ( errorCode == SOLVER_BREAKDOWN ) {
          	      if (cntIter <= 1) {
                            Paso_setError(ZERO_DIVISION_ERROR, "fatal break down in iterative solver.");
+                           if (options->verbose) printf("Uncurable break down!\n");
                       } else {
          	          if (options->verbose) printf("Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
                           finalizeIteration = FALSE;
                       }
                   } else if (errorCode == SOLVER_MEMORY_ERROR) {
-         	           Paso_setError(MEMORY_ERROR,"memory allocation failed.");
+         	       Paso_setError(MEMORY_ERROR,"memory allocation failed.");
+                       if (options->verbose) printf("Memory allocation failed!\n");
                   } else if (errorCode !=SOLVER_NO_ERROR ) {
-         	           Paso_setError(SYSTEM_ERROR,"unidentified error in iterative solver.");
+         	       Paso_setError(SYSTEM_ERROR,"unidentified error in iterative solver.");
+                       if (options->verbose) printf("Unidentified error!\n");
                   }
              } else {
                 if (options->verbose) printf(". convergence! \n");
@@ -215,19 +220,3 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options)
         }
    }
 }
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.2  2005/09/07 00:59:09  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:49  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

@@ -2,8 +2,7 @@
 # $Id$
 # simple script to run all bruce unit tests
 
-#MODULES="Bruce BruceFactory"
-MODULES="Bruce"
+MODULES="Bruce BruceFactory"
 
 for module in $MODULES ; do
   echo Testing: $module

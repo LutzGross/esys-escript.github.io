@@ -3,10 +3,13 @@
 import sys
 import os
 import unittest
+import time
 
 from esys.escript import *
 from esys.escript.linearPDEs import *
 from esys import finley
+
+starttime = time.clock()
 
 print "\nSimpleSolve.py"
 print "--------------"
@@ -20,7 +23,7 @@ error_tol=1.e-5
 # mydomain=finley.Rectangle(140,140)
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
-mydomain=finley.Rectangle(10,10,1)
+mydomain=finley.Rectangle(150,10,1)
 # mydomain=finley.Rectangle(190,190,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
@@ -141,5 +144,9 @@ print "******************************************************************"
 print "\n-----"
 print "Done."
 print "-----"
+
+stoptime = time.clock()
+elapsed = stoptime - starttime
+print "\nElapsed time: ", elapsed, "\n"
 
 sys.exit(0)
