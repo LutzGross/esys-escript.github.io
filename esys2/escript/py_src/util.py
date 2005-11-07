@@ -68,6 +68,7 @@ def saveVTK(filename,domain=None,**data):
         raise ValueError,"no domain detected."
     else:
         domain.saveVTK(filename,data)
+
 #=========================================================
 def saveDX(filename,domain=None,**data):
     """
@@ -96,6 +97,7 @@ def saveDX(filename,domain=None,**data):
         raise ValueError,"no domain detected."
     else:
         domain.saveDX(filename,data)
+
 #=========================================================
 
 def exp(arg):
@@ -565,7 +567,6 @@ def trace(arg,axis0=0,axis1=1):
 
 def length(arg):
     """
-
     @param arg:
     """
     if isinstance(arg,escript.Data):

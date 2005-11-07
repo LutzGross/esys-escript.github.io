@@ -47,7 +47,7 @@ inline void binaryOp(DataTagged& left, const DataArrayView& right,
 		     BinaryFunction operation)
 {
   //
-  // perform the operation on each tagged value including the default
+  // perform the operation on each tagged value
   const DataTagged::DataMapType& lookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
@@ -77,10 +77,12 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
   DataTagged::DataMapType::const_iterator rightLookupEnd=rightLookup.end();
   for (i=rightLookup.begin();i!=rightLookupEnd;i++) {
     //
-    // Add the right hand tag to the left hand tag list and assign
-    // the rights default value. If the tag already exists the 
-    // attempt to add it again will be ignored.
-    left.addTaggedValue(i->first,right.getDefaultValue());
+    // If the left does not already have a value assigned to this tag,
+    // add the right hand tag to the left hand tag list and assign
+    // the right's default value.
+    if (!left.isCurrentTag(i->first)) {
+      left.addTaggedValue(i->first,right.getDefaultValue());
+    }
   }
   //
   // Perform the operation. Any tags originally in the left which don't exist for 

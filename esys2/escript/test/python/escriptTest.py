@@ -6,8 +6,21 @@ import os
 
 from esys.escript import *
 from esys import bruce
+from esys.escript.test_symbols import Test_symbols
+from esys.escript.test_util import Test_util
 
 import numarray
+
+class Test_symbols_OnBruce(Test_symbols):
+    def setUp(self):
+        self.domain = bruce.Brick(5,15,8)
+        self.functionspace=escript.ContinuousFunction(self.domain)
+
+class Test_util_OnBruce(Test_util):
+    def setUp(self):
+        self.domain = bruce.Brick(5,15,8)
+        self.functionspace=escript.ContinuousFunction(self.domain)
+
 
 class escriptTestCase(unittest.TestCase):
 
@@ -51,20 +64,12 @@ class escriptTestCase(unittest.TestCase):
     print myData9
     print myData9.wherePositive()
     print myData9.whereNegative()
-#
-#   Lsup test for DataExpanded
-    assert (myData.Lsup()==4)
-    assert (myData.inf()==1)
-    assert (myData.Lsup()==myData.sup())
-    assert ((myData*-1).sup()!=(myData*-1).Lsup())
-#
-#   Lsup test for DataConstant
-    myData10=escript.Data(myVector,myFuncSpac,False)
-    myData11=-1.0*myData10
-    assert(myData10.Lsup()==myData11.Lsup())
     
-suite=unittest.TestSuite()
+suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(escriptTestCase))
-unittest.TextTestRunner(verbosity=2).run(suite)
-
-sys.exit(0)
+suite.addTest(unittest.makeSuite(Test_symbols_OnBruce))
+suite.addTest(unittest.makeSuite(Test_util_OnBruce))
+if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
+  sys.exit(0)
+else:
+  sys.exit(1)

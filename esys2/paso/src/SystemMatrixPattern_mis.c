@@ -62,7 +62,7 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
                  }
            }
            /* update the seed */
-           Paso_SystemMatrixPattern_mis_seed=fmod(sqrt(Paso_SystemMatrixPattern_mis_seed*(n+1)),1.);
+           /* Paso_SystemMatrixPattern_mis_seed=fmod(sqrt(Paso_SystemMatrixPattern_mis_seed*(n+1)),1.); */
            /* detect independent vertices as those vertices that have a value less than all values of its naigbours */
            #pragma omp parallel for private(naib,i,iptr,flag) schedule(static) 
            for (i=0;i<n;++i) {
@@ -100,16 +100,3 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
 #undef IS_IN_MIS_NOW 
 #undef IS_IN_MIS 
 #undef IS_CONNECTED_TO_MIS 
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:47  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

@@ -40,8 +40,8 @@ class Bruce : public escript::AbstractContinuousDomain {
 
   //
   // Codes for function space types supported
-  static const int ContinuousFunction;
-  static const int Function;
+  static const int ContinuousFunction;  // data is on the nodes
+  static const int Function;            // data is on the cell centres
 
   //
   // Type of FunctionSpaceNamesMap
@@ -195,6 +195,26 @@ class Bruce : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Return the number of samples
+     needed to represent data on parts of the mesh.
+  */
+  int
+  getNumSamples(int functionSpaceCode) const;
+
+  /**
+     \brief
+     Return the number of data-points per sample
+     needed to represent data on parts of the mesh.
+  */
+  inline
+  int
+  getNumDataPointsPerSample(int functionSpaceCode) const
+  {
+    return 1;
+  }
+
+  /**
+     \brief
      Returns the locations in the domain of the FEM nodes.
   */
   virtual
@@ -227,6 +247,16 @@ class Bruce : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Copies the gradient of arg into grad. The actual function space to be considered
+     for the gradient is defined by grad. arg and grad have to be defined on this.
+  */
+  virtual
+  void
+  setToGradient(escript::Data& grad,
+                const escript::Data& arg) const;
+
+  /**
+     \brief
      Comparison operators.
   */
   virtual bool operator==(const AbstractDomain& other) const;
@@ -235,10 +265,16 @@ class Bruce : public escript::AbstractContinuousDomain {
   /*
      \brief
      Return the tag key for the given sample number.
+     NB: tags are not implemented on Bruce, so this method always returns 0.
   */
   virtual
+  inline
   int
-  getTagFromSampleNo(int functionSpaceCode, int sampleNo) const;
+  getTagFromSampleNo(int functionSpaceCode,
+                     int sampleNo) const
+  {
+    return 0;
+  }
 
   /**
      \brief
@@ -246,8 +282,50 @@ class Bruce : public escript::AbstractContinuousDomain {
   */
   virtual
   int
-  getReferenceNoFromSampleNo(int functionSpaceCode, int sampleNo) const;
+  getReferenceNoFromSampleNo(int functionSpaceCode,
+                             int sampleNo) const;
 
+  /**
+     \brief
+     Saves a dictionary of Data objects to a VTK XML input file.
+     The dictionary consists of pairs of Data objects plus a name
+     for each. Each Data object must be defined on this domain.
+  */
+  virtual
+  void
+  saveVTK(const std::string& filename,
+          const boost::python::dict& dataDict) const;
+
+  /**
+     \brief
+     Interpolates data given on source onto target where source and target
+     have to be given on the same domain.
+  */
+  virtual
+  void
+  interpolateOnDomain(escript::Data& target,
+                      const escript::Data& source) const;
+
+  virtual
+  bool
+  probeInterpolationOnDomain(int functionSpaceType_source,
+                             int functionSpaceType_target) const;
+
+  /**
+     \brief
+     Interpolates data given on source onto target where source and target
+     are given on different domains.
+  */
+  virtual
+  void
+  interpolateACross(escript::Data& target,
+                    const escript::Data& source) const;
+
+  virtual
+  bool
+  probeInterpolationACross(int functionSpaceType_source,
+                           const AbstractDomain& targetDomain,
+                           int functionSpaceType_target) const;
 
  protected:
 

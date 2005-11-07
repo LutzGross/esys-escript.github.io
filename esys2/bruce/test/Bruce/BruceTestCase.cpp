@@ -1324,6 +1324,59 @@ void BruceTestCase::testSetToSizeException() {
 
 }
 
+void BruceTestCase::testGetReferenceNoFromSampleNo() {
+
+  cout << endl;
+
+  //
+  // test getReferenceNoFromSampleNo method
+
+  Bruce::DimVec v0;
+  Bruce::DimVec v1;
+  Bruce::DimVec v2;
+  Bruce::DimVec origin;
+
+  std::pair<int,int> dataShape;
+  int numSamples;
+
+  v0.push_back(1);
+  v0.push_back(0);
+  v0.push_back(0);
+
+  v1.push_back(0);
+  v1.push_back(1);
+  v1.push_back(0);
+
+  v2.push_back(0);
+  v2.push_back(0);
+  v2.push_back(1);
+
+  origin.push_back(0);
+  origin.push_back(0);
+  origin.push_back(0);
+
+  Bruce testbruce(v0, v1, v2, 10, 10, 10, origin);
+
+  cout << "\tTest Bruce::getReferenceNoFromSampleNo for functions" << endl;
+
+  dataShape = testbruce.getDataShape(0);
+  numSamples=dataShape.second;
+
+  for (int i=0; i<numSamples; i++) {
+    assert(testbruce.getReferenceNoFromSampleNo(0,i)==i);
+  }
+
+  cout << "\tTest Bruce::getReferenceNoFromSampleNo for continuousFunctions" << endl;
+
+  dataShape = testbruce.getDataShape(1);
+  numSamples=dataShape.second;
+
+  for (int i=0; i<numSamples; i++) {
+    assert(testbruce.getReferenceNoFromSampleNo(1,i)==i);
+  }
+
+}
+
 TestSuite* BruceTestCase::suite ()
 {
   //
@@ -1343,5 +1396,6 @@ TestSuite* BruceTestCase::suite ()
   testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSizefun",&BruceTestCase::testSetToSizefun));
   testSuite->addTest (new TestCaller< BruceTestCase>("testSetToXException",&BruceTestCase::testSetToXException));
   testSuite->addTest (new TestCaller< BruceTestCase>("testSetToSizeException",&BruceTestCase::testSetToSizeException));
+  testSuite->addTest (new TestCaller< BruceTestCase>("testGetReferenceNoFromSampleNo();",&BruceTestCase::testGetReferenceNoFromSampleNo));
   return testSuite;
 }
