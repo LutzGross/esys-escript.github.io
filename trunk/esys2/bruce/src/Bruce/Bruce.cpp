@@ -16,6 +16,9 @@
 #include "bruce/Bruce/Bruce.h"
 #include "bruce/Bruce/BruceException.h"
 
+#include "vtkCellType.h"
+#include <boost/python/extract.hpp>
+
 using namespace std;
 using namespace escript;
 
@@ -362,6 +365,13 @@ Bruce::getDataShape(int functionSpaceCode) const
   }
 
   return pair<int,int>(numDataPointsPerSample,numSamples);
+}
+
+int
+Bruce::getNumSamples(int functionSpaceCode) const
+{
+  std::pair<int,int> domainShape = getDataShape(functionSpaceCode);
+  return domainShape.second;
 }
 
 Data
@@ -813,6 +823,17 @@ Bruce::setToSize(escript::Data& out) const
 
 }
 
+void
+Bruce::setToGradient(escript::Data& grad,
+                     const escript::Data& arg) const
+{
+  // pre-conditions: arg must be rank 0->3 only, rank 4 cannot be accomodated
+  //                 grad will be rank of arg, +1
+  // grad is calculated by, for each data-point in this Bruce domain, retrieving
+  // the associated value from arg, calculating the grad, and loading this value
+  // into the corresponding data-point in grad
+}
+
 bool
 Bruce::operator==(const AbstractDomain& other) const
 {
@@ -840,15 +861,488 @@ Bruce::operator!=(const AbstractDomain& other) const
 }
 
 int
-Bruce::getTagFromSampleNo(int functionSpaceCode, int sampleNo) const
+Bruce::getReferenceNoFromSampleNo(int functionSpaceCode,
+                                  int sampleNo) const
 {
-  return 0;
+  // ensure supplied sampleNo is valid
+  std::pair<int,int> domainShape = getDataShape(functionSpaceCode);
+  int numSamples = domainShape.second;
+  if ( (sampleNo>=numSamples) || (sampleNo < 0)) {
+    stringstream temp;
+    temp << "Bruce::getReferenceNoFromSampleNo: Error - invalid sampleNo supplied";
+    throw BruceException(temp.str());
+  }
+  // we just set the reference number to be the sample number for all samples
+  return sampleNo;
 }
 
-int
-Bruce::getReferenceNoFromSampleNo(int functionSpaceCode, int sampleNo) const
+void
+Bruce::saveVTK(const std::string& filename,
+               const boost::python::dict& dataDict) const
 {
-  return 0;
+
+  //
+  // extract Data objects and associated names from dictionary object
+  const int num_data=boost::python::extract<int>(dataDict.attr("__len__")());
+
+  int MAX_namelength=256;
+  char names[num_data][MAX_namelength];
+  char* c_names[num_data];
+
+  escriptDataC data[num_data];
+  escriptDataC* ptr_data[num_data];
+
+  boost::python::list keys=dataDict.keys();
+  for (int i=0; i<num_data; i++) {
+    Data& d=boost::python::extract<Data&>(dataDict[keys[i]]);
+    if (dynamic_cast<const Bruce&>(d.getFunctionSpace().getDomain()) != *this) {
+      throw BruceException("Error: Bruce::saveVTK: Data must be defined on same Domain");
+    }
+    data[i]=d.getDataC();
+    ptr_data[i]=&(data[i]);
+    std::string n=boost::python::extract<std::string>(keys[i]);
+    c_names[i]=&(names[i][0]);
+    if (n.length()>MAX_namelength-1) {
+      strncpy(c_names[i],n.c_str(),MAX_namelength-1);
+      c_names[i][MAX_namelength-1]='\0';
+    } else {
+      strcpy(c_names[i],n.c_str());
+    }
+  }
+
+  //
+  // open archive file
+  ofstream archiveFile;
+  archiveFile.open(filename.data(), ios::out);
+  if (!archiveFile.good()) {
+      throw BruceException("Error in Bruce::saveVTK: File could not be opened for writing");
+  }
+
+  //
+  // determine mesh type to be written
+  bool isCellCentered[num_data], write_celldata=false, write_pointdata=false;
+  for (int i_data=0; i_data<num_data; i_data++) {
+    if (!isEmpty(ptr_data[i_data])) {
+      switch(getFunctionSpaceType(ptr_data[i_data])) {
+        case ContinuousFunction:
+          isCellCentered[i_data]=false;
+          break;
+        case Function:
+          isCellCentered[i_data]=true;
+          break;
+      }
+      if (isCellCentered[i_data]) {
+        write_celldata=true;
+      } else {
+        write_pointdata=true;
+      }
+    }
+  }
+
+  //
+  // determine number of points and cells
+  int numPoints=getDataShape(ContinuousFunction).second;
+  int numCells=getDataShape(Function).second;
+
+  //
+  // determine VTK element type
+  int cellType;
+  char elemTypeStr[32];
+  int numVTKNodesPerElement;
+
+  int nDim = getDim();
+  switch (nDim) {
+
+    case 0:
+      cellType = VTK_VERTEX;
+      numVTKNodesPerElement = 1;
+      strcpy(elemTypeStr, "VTK_VERTEX");
+      break;
+
+    case 1:
+      cellType = VTK_LINE;
+      numVTKNodesPerElement = 2;
+      strcpy(elemTypeStr, "VTK_LINE");
+      break;
+
+    case 2:
+      cellType = VTK_QUAD;
+      numVTKNodesPerElement = 4;
+      strcpy(elemTypeStr, "VTK_QUAD");
+      break;
+
+    case 3:
+      cellType = VTK_HEXAHEDRON;
+      numVTKNodesPerElement = 8;
+      strcpy(elemTypeStr, "VTK_HEXAHEDRON");
+      break;
+
+  }
+
+  //
+  // write xml header
+  archiveFile << "<?xml version=\"1.0\"?>" << endl;
+
+  //
+  // determine grid extent
+
+  // ??
+
+  //
+  // write grid type and extent
+  archiveFile << "\t<VTKFile type=\"StructuredGrid\" version=\"0.1\">" << endl;
+  archiveFile << "\t\t<StructuredGrid WholeExtent=\"x1 x2 y1 y2 z1 z2\">" << endl;
+  archiveFile << "\t\t\t<Piece Extent=\"x1 x2 y1 y2 z1 z2\">" << endl;
+
+  //
+  // start to write out point definitions
+  archiveFile << "\t\t\t\t<Points>" << endl;
+
+  //
+  // determine grid cooordinates
+
+  // ??
+
+  // vtk/mayavi doesn't like 2D data, it likes 3D data with
+  // a degenerate third dimension to handle 2D data.
+  // So if nDim is less than 3, must pad all empty dimensions,
+  // so that the total number of dims is 3.
+
+  archiveFile << "\t\t\t\t\t<DataArray NumberOfComponents=" << max(3,nDim) << " type=\"Float32\" format=\"ascii\">" << endl;
+/*
+  for (int i=0; i<numPoints; i++) {
+    for (int j=0; j<nDim; j++)
+      archiveFile << "%e "; //mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)])
+    for (int k=0; !(k>=3-nDim); k++)
+      archiveFile << "0. ";
+    archiveFile << endl;
+  }
+*/
+  archiveFile << "\t\t\t\t\t</DataArray>" << endl;
+  archiveFile << "\t\t\t\t</Points>" << endl;
+
+  //
+  // cell data
+  if (write_celldata) {
+
+    //
+    // mark the active cell-data data arrays
+    bool set_scalar=false, set_vector=false, set_tensor=false;
+    archiveFile << "\t\t\t\t<CellData";
+    for (int i_data=0; i_data<num_data; i_data++) {
+      if (!isEmpty(ptr_data[i_data]) && isCellCentered[i_data]) {
+
+        switch(getDataPointRank(ptr_data[i_data])) {
+
+          case 0:
+            if (!set_scalar) {
+              archiveFile << " Scalars=" << names[i_data];
+              set_scalar=true;
+            }
+            break;
+
+          case 1:
+            if (!set_vector) {
+              archiveFile << " Vectors=" << names[i_data];
+              set_vector=true;
+            }
+            break;
+
+          case 2:
+            if (!set_tensor) {
+              archiveFile << " Tensors=" << names[i_data];
+              set_tensor=true;
+            }
+            break;
+
+          default:
+            archiveFile.close();
+            throw BruceException("saveVTK: VTK can't handle objects with rank greater than 2.");
+
+        }
+      }
+    }
+    archiveFile << ">" << endl;
+
+    //
+    // write the cell-data data arrays
+    for (int i_data=0; i_data<num_data; i_data++) {
+      if (!isEmpty(ptr_data[i_data]) && isCellCentered[i_data]) {
+
+        int numPointsPerSample=1;
+        int rank=getDataPointRank(ptr_data[i_data]);
+        int nComp=getDataPointSize(ptr_data[i_data]);
+        int nCompReqd; // the number of components required by vtk
+        int shape=0;
+
+        switch (rank) {
+
+          case 0:
+            nCompReqd=1;
+            break;
+
+          case 1:
+            shape=getDataPointShape(ptr_data[i_data], 0);
+            if (shape>3) {
+              archiveFile.close();
+              throw BruceException("saveVTK: rank 1 object must have less than 4 components");
+            }
+            nCompReqd=3;
+            break;
+
+          case 2:
+            shape=getDataPointShape(ptr_data[i_data], 0);
+            if (shape>3 || shape!=getDataPointShape(ptr_data[i_data], 1)) {
+              archiveFile.close();
+              throw BruceException("saveVTK: rank 2 object must have less than 4x4 components and must have a square shape");
+            }
+            nCompReqd=9;
+            break;
+
+        }
+
+        archiveFile << "\t\t\t\t\t<DataArray Name=" << names[i_data] << " type=\"Float32\" NumberOfComponents=" << nCompReqd << " format=\"ascii\">" << endl;
+
+/*
+        //
+        // write out the cell data
+
+        // if the number of required components is more than the number
+        // of actual components, pad with zeros
+        // probably only need to get shape of first element
+        // write the data different ways for scalar, vector and tensor
+
+        for (int i=0; i<numCells; i++) {
+
+          double *values=getSampleData(ptr_data[i_data], i);
+          double sampleAvg[nComp];
+
+          // average over the number of points in the sample (ie: 1)
+          for (int k=0; k<nComp; k++) {
+            sampleAvg[k] = values[INDEX2(k,0,nComp)];
+          }
+
+          if (nCompReqd == 1) {
+
+            archiveFile << sampleAvg[0] << endl;
+
+          } else if (nCompReqd == 3) {
+
+            for (int m=0; m<shape; m++) {
+              archiveFile << sampleAvg[m] << endl;
+            }
+            for (int m=0; m<nCompReqd-shape; m++) {
+              archiveFile << "0." << endl;
+            }
+
+          } else if (nCompReqd == 9) {
+
+            int count=0;
+            for (int m=0; m<shape; m++) {
+              for (int n=0; n<shape; n++) {
+                archiveFile << sampleAvg[count] << endl;
+                count++;
+              }
+              for (int n=0; n<3-shape; n++) {
+                archiveFile << "0." << endl;
+              }
+            }
+            for (int m=0; m<3-shape; m++) {
+              for (int n=0; n<3; n++) {
+                archiveFile << "0." << endl;
+              }
+            }
+
+          }
+        }
+*/
+        archiveFile << "\t\t\t\t\t</DataArray>" << endl;
+
+      }
+    }
+
+    archiveFile << "\t\t\t\t</CellData>" << endl;
+  }
+
+  //
+  // point data
+  if (write_pointdata) {
+
+    //
+    // mark the active point-data data arrays 
+    bool set_scalar=false, set_vector=false, set_tensor=false;
+    archiveFile << "\t\t\t\t<PointData";
+    for (int i_data=0; i_data<num_data; i_data++) {
+      if (!isEmpty(ptr_data[i_data]) && !isCellCentered[i_data]) {
+
+        switch(getDataPointRank(ptr_data[i_data])) {
+
+          case 0:
+            if (!set_scalar) {
+              archiveFile << " Scalars=" << names[i_data];
+              set_scalar=true;
+            }
+            break;
+
+          case 1:
+            if (!set_vector) {
+              archiveFile << " Vectors=" << names[i_data];
+              set_vector=true;
+            }
+            break;
+
+          case 2:
+            if (!set_tensor) {
+              archiveFile << " Tensors=" << names[i_data];
+              set_tensor=true;
+            }
+            break;
+
+          default:
+            archiveFile.close();
+            throw BruceException("saveVTK: Vtk can't handle objects with rank greater than 2");
+        }
+
+      }
+    }
+    archiveFile << ">" << endl;
+
+    //
+    // write the point-data data arrays
+    for (int i_data=0; i_data<num_data; i_data++) {
+      if (!isEmpty(ptr_data[i_data]) && !isCellCentered[i_data]) {
+
+        int numPointsPerSample=1;
+        int rank=getDataPointRank(ptr_data[i_data]);
+        int nComp=getDataPointSize(ptr_data[i_data]);
+        int nCompReqd; // the number of components required by vtk
+        int shape=0;
+
+        switch (rank) {
+
+        case 0:
+          nCompReqd=1;
+
+        case 1:
+          shape=getDataPointShape(ptr_data[i_data], 0);
+          if (shape>3) {
+            archiveFile.close();
+            throw BruceException("saveVTK: rank 1 object must have less than 4 components");
+          }
+          nCompReqd=3;
+
+        case 2:
+          shape=getDataPointShape(ptr_data[i_data], 0);
+          if (shape>3 || shape!=getDataPointShape(ptr_data[i_data], 1)) {
+            archiveFile.close();
+            throw BruceException("saveVTK: rank 2 object must have less than 4x4 components and must have a square shape");
+          }
+          nCompReqd=9;
+
+        }
+
+        archiveFile << "\t\t\t\t\t<DataArray Name=" << names[i_data] << " type=\"Float32\" NumberOfComponents=" << nCompReqd << " format=\"ascii\">" << endl;
+
+/*
+        //
+        // write out the point data
+
+        // if the number of required components is more than
+        // the number of actual components, pad with zeros
+        // write the data different ways for scalar, vector and tensor
+
+        for (int i=0; i<numNodes; i++) {
+
+          values=getSampleData(data[i_data], i);
+
+          if (nCompReqd==1) {
+
+            archiveFile << values[0];
+
+          } else if (nCompReqd==3) {
+
+            for (int m=0; m<shape; m++) {
+              archiveFile << values[m];
+            }
+            for (int m=0; m<nCompReqd-shape; m++) {
+              archiveFile << "0.";
+            }
+
+          } else if (nCompReqd==9) {
+
+             int count=0;
+             for (int m=0; m<shape; m++) {
+               for (int n=0; n<shape; n++) {
+                 archiveFile << values[count];
+                 count++;
+               }
+               for (int n=0; n<3-shape; n++) {
+                 archiveFile << "0.";
+               }
+             }
+             for (int m=0; m<3-shape; m++) {
+               for (int n=0; n<3; n++) {
+                 archiveFile << "0.";
+               }
+             }
+
+          }
+
+          archiveFile << endl;
+        }
+*/
+
+        archiveFile << "\t\t\t\t\t</DataArray>" << endl;
+      }
+    }
+
+    archiveFile << "\t\t\t\t</PointData>" << endl;
+  }
+
+  //
+  // finish off the grid definition
+  archiveFile << "\t\t\t</Piece>" << endl;
+  archiveFile << "\t\t</StructuredGrid>" << endl;
+
+  //
+  // write the xml footer
+  archiveFile << "\t</VTKFile>" << endl;
+
+  //
+  // Close archive file
+  archiveFile.close();
+
+  if (!archiveFile.good()) {
+    throw BruceException("Error in Bruce::saveVTK: problem closing file");
+  }
+
+}
+
+void
+Bruce::interpolateOnDomain(escript::Data& target,
+                           const escript::Data& source) const
+{
+}
+
+bool
+Bruce::probeInterpolationOnDomain(int functionSpaceType_source,
+                                  int functionSpaceType_target) const
+{
+  return true;
+}
+
+void
+Bruce::interpolateACross(escript::Data& target,
+                         const escript::Data& source) const
+{
+}
+
+bool
+Bruce::probeInterpolationACross(int functionSpaceType_source,
+                                const AbstractDomain& targetDomain,
+                                int functionSpaceType_target) const
+{
+  return true;
 }
 
 bool

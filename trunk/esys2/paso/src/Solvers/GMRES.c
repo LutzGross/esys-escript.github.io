@@ -14,10 +14,10 @@
 *  Arguments
 *  =========
 *
-*  r       (input/output) double array, dimension n_row.
+*  r       (input/output) double array, dimension n.
 *          On entry, residual of inital guess X
 *
-*  x       (input/output) double array, dimension n_col.
+*  x       (input/output) double array, dimension n.
 *          On input, the initial guess.
 *
 *  iter    (input/output) int
@@ -29,17 +29,17 @@
 *          norm( b - A*x )
 *          On output, the final value of this measure.
 *
-*  length_of_recursion (input) gives the number of residual to be kept in orthogonalization process
+*  Length_of_recursion (input) gives the number of residual to be kept in orthogonalization process
 *
 *  restart (input) If restart>0, iteration is resterted a after restart steps.
 *
 *  INFO    (output) int
 *
 *         =SOLVER_NO_ERROR: Successful exit. num_iterated approximate solution returned.
-*         =SOLVER_MAXNUM_ITEr_REACHED
+*         =SOLVER_MAXNUM_ITER_REACHED
 *         =SOLVER_INPUT_ERROR Illegal parameter:
-*         =SOLVER_BREAKDOWN: If parameters RHO or OMEGA become smaller
-*         =SOLVER_MEMORY_ERROR : If parameters RHO or OMEGA become smaller
+*         =SOLVER_BREAKDOWN: bad luck!
+*         =SOLVER_MEMORY_ERROR : no memory available
 *
 *  ==============================================================
 */
@@ -56,445 +56,459 @@ err_t Paso_Solver_GMRES(
     double * r,
     double * x,
     dim_t *iter,
-    double * tolerance,dim_t length_of_recursion,dim_t restart) {
+    double * tolerance,dim_t Length_of_recursion,dim_t restart) {
 
   /* Local variables */
 
-  double *x_PRES,*r_PRES,*P,*AP,*x_PRES_MEM[MAX(length_of_recursion,0)],*r_PRES_MEM[MAX(length_of_recursion,0)];
-  double r_PRES_MEMdotAP[MAX(length_of_recursion,0)],L2_r_PRES_MEM[MAX(length_of_recursion,0)],BREAKF_MEM[MAX(length_of_recursion,0)];
-  double r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4,L2_r_PRES,r_PRES_MEMdotAP5;
-  double *tmp,tol,BREAKF,factor,GAMMA,SC1,SC2,norm_of_residual,diff,L2_R,norm_of_residual_global;
-  dim_t maxit,num_iter_global,num_iter_restart,num_iter;
-  dim_t i,z,OLDEST,ORDER;
+  double *AP,*X_PRES[MAX(Length_of_recursion,0)+1],*R_PRES[MAX(Length_of_recursion,0)+1],*P_PRES[MAX(Length_of_recursion,0)+1];
+  double P_PRES_dot_AP[MAX(Length_of_recursion,0)],R_PRES_dot_P_PRES[MAX(Length_of_recursion,0)+1],BREAKF[MAX(Length_of_recursion,0)+1],ALPHA[MAX(Length_of_recursion,0)];
+  double P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,abs_RP,breakf0;
+  double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual,diff,L2_R,Norm_of_residual_global;
+  double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
+  dim_t maxit,Num_iter_global,num_iter_restart,num_iter;
+  dim_t i,z,order;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
-  err_t status=SOLVER_NO_ERROR;
+  err_t Status=SOLVER_NO_ERROR;
 
   /* adapt original routine parameters */
 
-  dim_t n_col=A->num_cols * A-> col_block_size;
-  dim_t n_row=A->num_rows * A-> row_block_size;
+  dim_t n=A->num_cols * A-> col_block_size;
+  dim_t Length_of_mem=MAX(Length_of_recursion,0)+1;
 
   /*     Test the input parameters. */
-  if (restart>0) restart=MAX(length_of_recursion,restart);
-  if (n_col < 0 || n_row<0 || length_of_recursion<=0) {
+  if (restart>0) restart=MAX(Length_of_recursion,restart);
+  if (n < 0 || Length_of_recursion<=0) {
     return SOLVER_INPUT_ERROR;
   }
 
   /*     allocate memory: */
 
-  x_PRES=TMPMEMALLOC(n_col,double);
-  r_PRES=TMPMEMALLOC(n_row,double);
-  P=TMPMEMALLOC(n_col,double);
-  AP=TMPMEMALLOC(n_row,double);
-  if (x_PRES==NULL || r_PRES==NULL || P==NULL || AP==NULL) status=SOLVER_MEMORY_ERROR;
-  for (i=0;i<length_of_recursion;i++) {
-    x_PRES_MEM[i]=TMPMEMALLOC(n_col,double);
-    r_PRES_MEM[i]=TMPMEMALLOC(n_row,double);
-    if (x_PRES_MEM[i]==NULL || r_PRES_MEM[i]==NULL) status=SOLVER_MEMORY_ERROR;
+  AP=TMPMEMALLOC(n,double);
+  if (AP==NULL) Status=SOLVER_MEMORY_ERROR;
+  for (i=0;i<Length_of_mem;i++) {
+    X_PRES[i]=TMPMEMALLOC(n,double);
+    R_PRES[i]=TMPMEMALLOC(n,double);
+    P_PRES[i]=TMPMEMALLOC(n,double);
+    if (X_PRES[i]==NULL || R_PRES[i]==NULL ||  P_PRES[i]==NULL) Status=SOLVER_MEMORY_ERROR;
   }
-  if ( status ==SOLVER_NO_ERROR ) {
+  if ( Status ==SOLVER_NO_ERROR ) {
 
     /* now PRES starts : */
     maxit=*iter;
     tol=*tolerance;
-    norm_of_residual=tol;
 
-    #pragma omp parallel firstprivate(maxit,tol) \
-       private(num_iter,i,num_iter_restart,ORDER,OLDEST,BREAKF,factor,GAMMA,restartFlag,convergeFlag,maxIterFlag,breakFlag) 
+    #pragma omp parallel firstprivate(maxit,tol,convergeFlag,maxIterFlag,breakFlag) \
+       private(num_iter,i,num_iter_restart,order,sum_BREAKF,gamma,restartFlag,norm_of_residual,abs_RP,breakf0,\
+               save_XPRES,save_P_PRES,save_R_PRES,save_R_PRES_dot_P_PRES)
     {
       /* initialization */
 
       restartFlag=TRUE;
       num_iter=0;
       #pragma omp for private(z) schedule(static) nowait
-      for (z=0; z < n_row; ++z) AP[z]=0;
-      #pragma omp for private(z) schedule(static) nowait
-      for (z=0; z < n_col; ++z) P[z]=0;
-      for(i=0;i<length_of_recursion;++i) {
+      for (z=0; z < n; ++z) AP[z]=0;
+      for(i=0;i<Length_of_mem;++i) {
         #pragma omp for private(z) schedule(static) nowait
-        for (z=0; z < n_row; ++z) r_PRES_MEM[i][z]=0;
-        #pragma omp for private(z) schedule(static) nowait
-        for (z=0; z < n_col; ++z) x_PRES_MEM[i][z]=0;
+        for (z=0; z < n; ++z) {
+                   P_PRES[i][z]=0;
+                   R_PRES[i][z]=0;
+                   X_PRES[i][z]=0;
+        }
       }
 
-      next:
+      while (! (convergeFlag || maxIterFlag || breakFlag))  {
          #pragma omp barrier
          if (restartFlag) {
+             #pragma omp master
+             BREAKF[0]=ONE;
              #pragma omp for private(z) schedule(static) nowait
-             for (z=0; z < n_row; ++z) r_PRES[z]=r[z];
-             #pragma omp for private(z) schedule(static) nowait
-             for (z=0; z < n_col; ++z) x_PRES[z]=x[z];
+             for (z=0; z < n; ++z) {
+                R_PRES[0][z]=r[z];
+                X_PRES[0][z]=x[z];
+             }
              num_iter_restart=0;
-             OLDEST=length_of_recursion-1;
-             BREAKF=ONE;
              restartFlag=FALSE;
          }
          ++num_iter;
          ++num_iter_restart;
-         /* ORDER is the dimension of the space on which the residual is minimized: */
-         ORDER=MIN(num_iter_restart-1,length_of_recursion);
-         /* OLDEST points to the oldest r_PRES and x_PRES in memory :*/
-         OLDEST=(OLDEST==length_of_recursion-1) ? 0 : OLDEST+1;
-
+         /* order is the dimension of the space on which the residual is minimized: */
+         order=MIN(num_iter_restart,Length_of_recursion);
          /***                                                                 
-         *** calculate new search direction P from r_PRES
+         *** calculate new search direction P from R_PRES
          ***/
-         Paso_Solver_solvePreconditioner(A,&P[0], &r_PRES[0]);
+         Paso_Solver_solvePreconditioner(A,&P_PRES[0][0], &R_PRES[0][0]);
          /***                                                                 
          *** apply A to P to get AP 
          ***/
-	 Paso_SystemMatrix_MatrixVector(ONE, A, &P[0],ZERO, &AP[0]);
+	 Paso_SystemMatrix_MatrixVector(ONE, A, &P_PRES[0][0],ZERO, &AP[0]);
          /***                                                                 
          ***** calculation of the norm of R and the scalar products of       
          ***   the residuals and A*P:                                        
          ***/
-         if (ORDER==0) {
+         if (order==0) {
+            #pragma omp master
+            R_PRES_dot_P=ZERO;
+            #pragma omp barrier
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P) schedule(static)
+            for (z=0;z<n;++z) 
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+            #pragma omp master
+            R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
+         } else if (order==1) {
             #pragma omp master
             {
-               L2_r_PRES=ZERO;
-               r_PRESdotAP=ZERO;
+               R_PRES_dot_P=ZERO;
+               P_PRES_dot_AP0=ZERO;
             }
             #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0) schedule(static)
+            for (z=0;z<n;++z) {
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
             }
-         } else if (ORDER==1) {
             #pragma omp master
             {
-              L2_r_PRES=ZERO;
-              r_PRESdotAP=ZERO;
-              r_PRES_MEMdotAP0=ZERO;
+              P_PRES_dot_AP[0]=P_PRES_dot_AP0;
+              R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
+            }
+         } else if (order==2) {
+            #pragma omp master
+            {
+              R_PRES_dot_P=ZERO;
+              P_PRES_dot_AP0=ZERO;
+              P_PRES_dot_AP1=ZERO;
             }
             #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
-                r_PRES_MEMdotAP0+=r_PRES_MEM[0][z]*AP[z];
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1) schedule(static)
+            for (z=0;z<n;++z) {
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
             }
             #pragma omp master
             {
-              r_PRES_MEMdotAP[0]=r_PRES_MEMdotAP0;
+              P_PRES_dot_AP[0]=P_PRES_dot_AP0;
+              P_PRES_dot_AP[1]=P_PRES_dot_AP1;
+              R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
             }
-   
-         } else if (ORDER==2) {
+         } else if (order==3) {
             #pragma omp master
             {
-               L2_r_PRES=ZERO;
-               r_PRESdotAP=ZERO;
-               r_PRES_MEMdotAP0=ZERO;
-               r_PRES_MEMdotAP1=ZERO;
+               R_PRES_dot_P=ZERO;
+               P_PRES_dot_AP0=ZERO;
+               P_PRES_dot_AP1=ZERO;
+               P_PRES_dot_AP2=ZERO;
             }
             #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
-                r_PRES_MEMdotAP0+=r_PRES_MEM[0][z]*AP[z];
-                r_PRES_MEMdotAP1+=r_PRES_MEM[1][z]*AP[z];
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2) schedule(static)
+            for (z=0;z<n;++z) {
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
             }
             #pragma omp master
             {
-              r_PRES_MEMdotAP[0]=r_PRES_MEMdotAP0;
-              r_PRES_MEMdotAP[1]=r_PRES_MEMdotAP1;
+              P_PRES_dot_AP[0]=P_PRES_dot_AP0;
+              P_PRES_dot_AP[1]=P_PRES_dot_AP1;
+              P_PRES_dot_AP[2]=P_PRES_dot_AP2;
+              R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
             }
+         } else if (order==4) {
+            #pragma omp master
+            {
+              R_PRES_dot_P=ZERO;
+              P_PRES_dot_AP0=ZERO;
+              P_PRES_dot_AP1=ZERO;
+              P_PRES_dot_AP2=ZERO;
+              P_PRES_dot_AP3=ZERO;
+            }
+            #pragma omp barrier
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3) schedule(static)
+            for (z=0;z<n;++z) {
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+            }
+            #pragma omp master
+            {
+              P_PRES_dot_AP[0]=P_PRES_dot_AP0;
+              P_PRES_dot_AP[1]=P_PRES_dot_AP1;
+              P_PRES_dot_AP[2]=P_PRES_dot_AP2;
+              P_PRES_dot_AP[3]=P_PRES_dot_AP3;
+              R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
+            }
+         } else if (order==5) {
+            #pragma omp master
+            {
+              R_PRES_dot_P=ZERO;
+              P_PRES_dot_AP0=ZERO;
+              P_PRES_dot_AP1=ZERO;
+              P_PRES_dot_AP2=ZERO;
+              P_PRES_dot_AP3=ZERO;
+              P_PRES_dot_AP4=ZERO;
+            }
+            #pragma omp barrier
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4) schedule(static)
+            for (z=0;z<n;++z) {
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+            }
+            #pragma omp master
+            {
+              P_PRES_dot_AP[0]=P_PRES_dot_AP0;
+              P_PRES_dot_AP[1]=P_PRES_dot_AP1;
+              P_PRES_dot_AP[2]=P_PRES_dot_AP2;
+              P_PRES_dot_AP[3]=P_PRES_dot_AP3;
+              P_PRES_dot_AP[4]=P_PRES_dot_AP4;
+              R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
+            }
+         } else if (order==6) {
+            #pragma omp master
+            {
+              R_PRES_dot_P=ZERO;
+              P_PRES_dot_AP0=ZERO;
+              P_PRES_dot_AP1=ZERO;
+              P_PRES_dot_AP2=ZERO;
+              P_PRES_dot_AP3=ZERO;
+              P_PRES_dot_AP4=ZERO;
+              P_PRES_dot_AP5=ZERO;
+            }
+            #pragma omp barrier
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5) schedule(static)
+            for (z=0;z<n;++z) {
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
+             }
+            #pragma omp master
+            {
+              P_PRES_dot_AP[0]=P_PRES_dot_AP0;
+              P_PRES_dot_AP[1]=P_PRES_dot_AP1;
+              P_PRES_dot_AP[2]=P_PRES_dot_AP2;
+              P_PRES_dot_AP[3]=P_PRES_dot_AP3;
+              P_PRES_dot_AP[4]=P_PRES_dot_AP4;
+              P_PRES_dot_AP[5]=P_PRES_dot_AP5;
+              R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
+            }
+         } else if (order>6) {
+            #pragma omp master
+            {
+              R_PRES_dot_P=ZERO;
+              P_PRES_dot_AP0=ZERO;
+              P_PRES_dot_AP1=ZERO;
+              P_PRES_dot_AP2=ZERO;
+              P_PRES_dot_AP3=ZERO;
+              P_PRES_dot_AP4=ZERO;
+              P_PRES_dot_AP5=ZERO;
+              P_PRES_dot_AP6=ZERO;
+            }
+            #pragma omp barrier
+            #pragma omp for private(z) reduction(+:R_PRES_dot_P,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6) schedule(static)
+            for (z=0;z<n;++z) {
+                R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
+                P_PRES_dot_AP6+=P_PRES[6][z]*AP[z];
+             }
+            #pragma omp master
+            {
+              P_PRES_dot_AP[0]=P_PRES_dot_AP0;
+              P_PRES_dot_AP[1]=P_PRES_dot_AP1;
+              P_PRES_dot_AP[2]=P_PRES_dot_AP2;
+              P_PRES_dot_AP[3]=P_PRES_dot_AP3;
+              P_PRES_dot_AP[4]=P_PRES_dot_AP4;
+              P_PRES_dot_AP[5]=P_PRES_dot_AP5;
+              P_PRES_dot_AP[6]=P_PRES_dot_AP6;
+              R_PRES_dot_P_PRES[0]=R_PRES_dot_P;
 
-         } else if (ORDER==3) {
-            #pragma omp master
-            {
-              L2_r_PRES=ZERO;
-              r_PRESdotAP=ZERO;
-              r_PRES_MEMdotAP0=ZERO;
-              r_PRES_MEMdotAP1=ZERO;
-              r_PRES_MEMdotAP2=ZERO;
+              P_PRES_dot_AP0=ZERO;
             }
-            #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
-                r_PRES_MEMdotAP0+=r_PRES_MEM[0][z]*AP[z];
-                r_PRES_MEMdotAP1+=r_PRES_MEM[1][z]*AP[z];
-                r_PRES_MEMdotAP2+=r_PRES_MEM[2][z]*AP[z];
-            }
-            #pragma omp master
-            {
-              r_PRES_MEMdotAP[0]=r_PRES_MEMdotAP0;
-              r_PRES_MEMdotAP[1]=r_PRES_MEMdotAP1;
-              r_PRES_MEMdotAP[2]=r_PRES_MEMdotAP2;
-            }
-         } else if (ORDER==4) {
-            #pragma omp master
-            {
-              L2_r_PRES=ZERO;
-              r_PRESdotAP=ZERO;
-              r_PRES_MEMdotAP0=ZERO;
-              r_PRES_MEMdotAP1=ZERO;
-              r_PRES_MEMdotAP2=ZERO;
-              r_PRES_MEMdotAP3=ZERO;
-            }
-            #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
-                r_PRES_MEMdotAP0+=r_PRES_MEM[0][z]*AP[z];
-                r_PRES_MEMdotAP1+=r_PRES_MEM[1][z]*AP[z];
-                r_PRES_MEMdotAP2+=r_PRES_MEM[2][z]*AP[z];
-                r_PRES_MEMdotAP3+=r_PRES_MEM[3][z]*AP[z];
-            }
-            #pragma omp master
-            {
-              r_PRES_MEMdotAP[0]=r_PRES_MEMdotAP0;
-              r_PRES_MEMdotAP[1]=r_PRES_MEMdotAP1;
-              r_PRES_MEMdotAP[2]=r_PRES_MEMdotAP2;
-              r_PRES_MEMdotAP[3]=r_PRES_MEMdotAP3;
-            }
-         } else if (ORDER==5) {
-            #pragma omp master
-            {
-              L2_r_PRES=ZERO;
-              r_PRESdotAP=ZERO;
-              r_PRES_MEMdotAP0=ZERO;
-              r_PRES_MEMdotAP1=ZERO;
-              r_PRES_MEMdotAP2=ZERO;
-              r_PRES_MEMdotAP3=ZERO;
-              r_PRES_MEMdotAP4=ZERO;
-            }
-            #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
-                r_PRES_MEMdotAP0+=r_PRES_MEM[0][z]*AP[z];
-                r_PRES_MEMdotAP1+=r_PRES_MEM[1][z]*AP[z];
-                r_PRES_MEMdotAP2+=r_PRES_MEM[2][z]*AP[z];
-                r_PRES_MEMdotAP3+=r_PRES_MEM[3][z]*AP[z];
-                r_PRES_MEMdotAP4+=r_PRES_MEM[4][z]*AP[z];
-             }
-            #pragma omp master
-            {
-              r_PRES_MEMdotAP[0]=r_PRES_MEMdotAP0;
-              r_PRES_MEMdotAP[1]=r_PRES_MEMdotAP1;
-              r_PRES_MEMdotAP[2]=r_PRES_MEMdotAP2;
-              r_PRES_MEMdotAP[3]=r_PRES_MEMdotAP3;
-              r_PRES_MEMdotAP[4]=r_PRES_MEMdotAP4;
-            }
-         } else if (ORDER==6) {
-            #pragma omp master
-            {
-              L2_r_PRES=ZERO;
-              r_PRESdotAP=ZERO;
-              r_PRES_MEMdotAP0=ZERO;
-              r_PRES_MEMdotAP1=ZERO;
-              r_PRES_MEMdotAP2=ZERO;
-              r_PRES_MEMdotAP3=ZERO;
-              r_PRES_MEMdotAP4=ZERO;
-              r_PRES_MEMdotAP5=ZERO;
-            }
-            #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP,r_PRES_MEMdotAP0,r_PRES_MEMdotAP1,r_PRES_MEMdotAP2,r_PRES_MEMdotAP3,r_PRES_MEMdotAP4,r_PRES_MEMdotAP5) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
-                r_PRES_MEMdotAP0+=r_PRES_MEM[0][z]*AP[z];
-                r_PRES_MEMdotAP1+=r_PRES_MEM[1][z]*AP[z];
-                r_PRES_MEMdotAP2+=r_PRES_MEM[2][z]*AP[z];
-                r_PRES_MEMdotAP3+=r_PRES_MEM[3][z]*AP[z];
-                r_PRES_MEMdotAP4+=r_PRES_MEM[4][z]*AP[z];
-                r_PRES_MEMdotAP5+=r_PRES_MEM[5][z]*AP[z];
-             }
-            #pragma omp master
-            {
-              r_PRES_MEMdotAP[0]=r_PRES_MEMdotAP0;
-              r_PRES_MEMdotAP[1]=r_PRES_MEMdotAP1;
-              r_PRES_MEMdotAP[2]=r_PRES_MEMdotAP2;
-              r_PRES_MEMdotAP[3]=r_PRES_MEMdotAP3;
-              r_PRES_MEMdotAP[4]=r_PRES_MEMdotAP4;
-              r_PRES_MEMdotAP[5]=r_PRES_MEMdotAP5;
-            }
-         } else {
-            #pragma omp master
-            {
-              L2_r_PRES=ZERO;
-              r_PRESdotAP=ZERO;
-              r_PRES_MEMdotAP0=ZERO;
-            }
-            #pragma omp barrier
-            #pragma omp for private(z) reduction(+:L2_r_PRES,r_PRESdotAP) schedule(static)
-            for (z=0;z<n_row;++z) {
-                L2_r_PRES+=r_PRES[z]*r_PRES[z];
-                r_PRESdotAP+=r_PRES[z]*AP[z];
-            }
-            for (i=0;i<ORDER;++i) {
-                #pragma omp for private(z) reduction(+:r_PRES_MEMdotAP0) schedule(static)
-                for (z=0;z<n_row;++z) r_PRES_MEMdotAP0+=r_PRES_MEM[i][z]*AP[z];
+            for (i=7;i<order;++i) {
+                #pragma omp barrier
+                #pragma omp for private(z) reduction(+:P_PRES_dot_AP0) schedule(static)
+                for (z=0;z<n;++z) P_PRES_dot_AP0+=P_PRES[i][z]*AP[z];
                 #pragma omp master
                 {
-                  r_PRES_MEMdotAP[i]=r_PRES_MEMdotAP0;
-                  r_PRES_MEMdotAP0=ZERO;
+                  P_PRES_dot_AP[i]=P_PRES_dot_AP0;
+                  P_PRES_dot_AP0=ZERO;
                 }
-                #pragma omp barrier
             }
          }
-         /* if L2_r_PRES=0 there is a fatal breakdown */
-         if (L2_r_PRES<=ZERO) {
-            breakFlag=TRUE;
-         } else {
-            /***                                                                 
-            ***** calculation of the weights for the update of X:               
-            */                                                               
-            #pragma omp master 
+         /* this fixes a problem with the intel compiler */
+         #pragma omp master
+         P_PRES_dot_AP0=R_PRES_dot_P_PRES[0];
+         #pragma omp barrier
+         /***   if sum_BREAKF is equal to zero a breakdown occurs.
+          ***   iteration procedure can be continued but R_PRES is not the
+          ***   residual of X_PRES approximation.
+          ***/
+         sum_BREAKF=0.;
+         for (i=0;i<order;++i) sum_BREAKF +=BREAKF[i];
+         breakFlag=!((ABS(P_PRES_dot_AP0) > ZERO) &&  (sum_BREAKF >ZERO));
+         if (!breakFlag) {
+            breakFlag=FALSE;
+            /***
+            ***** X_PRES and R_PRES are moved to memory:
+            ***/
+            #pragma omp master
             {
-               r_PRESdotAP*= -ONE/L2_r_PRES;
-               for (i=0;i<ORDER;++i) r_PRES_MEMdotAP[i]*=-ONE/L2_r_PRES_MEM[i];
+               Factor=0.;
+               for (i=0;i<order;++i) {
+                   ALPHA[i]=-P_PRES_dot_AP[i]/R_PRES_dot_P_PRES[i];
+                   Factor+=BREAKF[i]*ALPHA[i];
+               }
+
+               save_R_PRES_dot_P_PRES=R_PRES_dot_P_PRES[Length_of_mem-1];
+               save_R_PRES=R_PRES[Length_of_mem-1];
+               save_XPRES=X_PRES[Length_of_mem-1];
+               save_P_PRES=P_PRES[Length_of_mem-1];
+               for (i=Length_of_mem-1;i>0;--i) {
+                   BREAKF[i]=BREAKF[i-1];
+                   R_PRES_dot_P_PRES[i]=R_PRES_dot_P_PRES[i-1];
+                   R_PRES[i]=R_PRES[i-1];
+                   X_PRES[i]=X_PRES[i-1];
+                   P_PRES[i]=P_PRES[i-1];
+               }
+               R_PRES_dot_P_PRES[0]=save_R_PRES_dot_P_PRES;
+               R_PRES[0]=save_R_PRES;
+               X_PRES[0]=save_XPRES;
+               P_PRES[0]=save_P_PRES;
+
+               if (ABS(Factor)<=ZERO) {
+                  Factor=1.;
+                  BREAKF[0]=ZERO;
+               } else {
+                  Factor=1./Factor;
+                  BREAKF[0]=ONE;
+               }
+               for (i=0;i<order;++i) ALPHA[i]*=Factor;
             }
             /*                                                                 
-            ***** update of solution x_PRES and its residual r_PRES:            
+            ***** update of solution X_PRES and its residual R_PRES:            
             ***                                                               
             ***   P is used to accumulate X and AP to accumulate R. X and R     
             ***   are still needed until they are put into the X and R memory   
-            ***   r_PRES_MEM and x_PRES_MEM                                     
+            ***   R_PRES and X_PRES                                     
             ***                                                                 
             **/
             #pragma omp barrier
-            if (ORDER==0) {
+            breakf0=BREAKF[0];
+            if (order==0) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                  AP[z]+=r_PRESdotAP*r_PRES[z];
+              for (z=0;z<n;++z) {
+                  R_PRES[0][z]= Factor*       AP[z];
+                  X_PRES[0][z]=-Factor*P_PRES[1][z];
+              }
+            } else if (order==1) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                  P[z]=-P[z]+r_PRESdotAP*x_PRES[z];
-            } else if (ORDER==1) {
+              for (z=0;z<n;++z) {
+                  R_PRES[0][z]= Factor*       AP[z]+ALPHA[0]*R_PRES[1][z];
+                  X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z];
+              }
+            } else if (order==2) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                 AP[z]+=r_PRESdotAP*r_PRES[z]+r_PRES_MEMdotAP[0]*r_PRES_MEM[0][z];
+              for (z=0;z<n;++z) {
+                 R_PRES[0][z]= Factor*       AP[z]+ALPHA[0]*R_PRES[1][z]
+                                                  +ALPHA[1]*R_PRES[2][z];
+                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                  +ALPHA[1]*X_PRES[2][z];
+              }
+            } else if (order==3) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                P[z]=-P[z]+r_PRESdotAP*x_PRES[z]+r_PRES_MEMdotAP[0]*x_PRES_MEM[0][z];
-            } else if (ORDER==2) {
+              for (z=0;z<n;++z) {
+                 R_PRES[0][z]= Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                           +ALPHA[1]*R_PRES[2][z]
+                                           +ALPHA[2]*R_PRES[3][z];
+                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                  +ALPHA[1]*X_PRES[2][z]
+                                                  +ALPHA[2]*X_PRES[3][z];
+              }
+            } else if (order==4) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                 AP[z]+=r_PRESdotAP*r_PRES[z]+r_PRES_MEMdotAP[0]*r_PRES_MEM[0][z]
-                                             +r_PRES_MEMdotAP[1]*r_PRES_MEM[1][z];
+              for (z=0;z<n;++z) {
+                 R_PRES[0][z]= Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                           +ALPHA[1]*R_PRES[2][z]
+                                           +ALPHA[2]*R_PRES[3][z]
+                                           +ALPHA[3]*R_PRES[4][z];
+                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                  +ALPHA[1]*X_PRES[2][z]
+                                                  +ALPHA[2]*X_PRES[3][z]
+                                                  +ALPHA[3]*X_PRES[4][z];
+              }
+            } else if (order==5) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                 P[z]=-P[z]+r_PRESdotAP*x_PRES[z]+r_PRES_MEMdotAP[0]*x_PRES_MEM[0][z]
-                                            +r_PRES_MEMdotAP[1]*x_PRES_MEM[1][z];
-            } else if (ORDER==3) {
+              for (z=0;z<n;++z) {
+                 R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                          +ALPHA[1]*R_PRES[2][z]
+                                          +ALPHA[2]*R_PRES[3][z]
+                                          +ALPHA[3]*R_PRES[4][z]
+                                          +ALPHA[4]*R_PRES[5][z];
+                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                  +ALPHA[1]*X_PRES[2][z]
+                                                  +ALPHA[2]*X_PRES[3][z]
+                                                  +ALPHA[3]*X_PRES[4][z]
+                                                  +ALPHA[4]*X_PRES[5][z];
+              }
+            } else if (order==6) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                 AP[z]+=r_PRESdotAP*r_PRES[z]+r_PRES_MEMdotAP[0]*r_PRES_MEM[0][z]
-                                             +r_PRES_MEMdotAP[1]*r_PRES_MEM[1][z]
-                                             +r_PRES_MEMdotAP[2]*r_PRES_MEM[2][z];
+              for (z=0;z<n;++z) {
+                 R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                          +ALPHA[1]*R_PRES[2][z]
+                                          +ALPHA[2]*R_PRES[3][z]
+                                          +ALPHA[3]*R_PRES[4][z]
+                                          +ALPHA[4]*R_PRES[5][z]
+                                          +ALPHA[5]*R_PRES[6][z];
+                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                  +ALPHA[1]*X_PRES[2][z]
+                                                  +ALPHA[2]*X_PRES[3][z]
+                                                  +ALPHA[3]*X_PRES[4][z]
+                                                  +ALPHA[4]*X_PRES[5][z]
+                                                  +ALPHA[5]*X_PRES[6][z];
+              }
+            } else if (order>6) {
               #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                 P[z]=-P[z]+r_PRESdotAP*x_PRES[z]+r_PRES_MEMdotAP[0]*x_PRES_MEM[0][z]
-                                            +r_PRES_MEMdotAP[1]*x_PRES_MEM[1][z]
-                                            +r_PRES_MEMdotAP[2]*x_PRES_MEM[2][z];
-            } else if (ORDER==4) {
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                 AP[z]+=r_PRESdotAP*r_PRES[z]+r_PRES_MEMdotAP[0]*r_PRES_MEM[0][z]
-                                             +r_PRES_MEMdotAP[1]*r_PRES_MEM[1][z]
-                                             +r_PRES_MEMdotAP[2]*r_PRES_MEM[2][z]
-                                             +r_PRES_MEMdotAP[3]*r_PRES_MEM[3][z];
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                 P[z]=-P[z]+r_PRESdotAP*x_PRES[z]+r_PRES_MEMdotAP[0]*x_PRES_MEM[0][z]
-                                            +r_PRES_MEMdotAP[1]*x_PRES_MEM[1][z]
-                                            +r_PRES_MEMdotAP[2]*x_PRES_MEM[2][z]
-                                            +r_PRES_MEMdotAP[3]*x_PRES_MEM[3][z];
-            } else if (ORDER==5) {
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                 AP[z]+=r_PRESdotAP*r_PRES[z]+r_PRES_MEMdotAP[0]*r_PRES_MEM[0][z]
-                                             +r_PRES_MEMdotAP[1]*r_PRES_MEM[1][z]
-                                             +r_PRES_MEMdotAP[2]*r_PRES_MEM[2][z]
-                                             +r_PRES_MEMdotAP[3]*r_PRES_MEM[3][z]
-                                             +r_PRES_MEMdotAP[4]*r_PRES_MEM[4][z];
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                 P[z]=-P[z]+r_PRESdotAP*x_PRES[z]+r_PRES_MEMdotAP[0]*x_PRES_MEM[0][z]
-                                            +r_PRES_MEMdotAP[1]*x_PRES_MEM[1][z]
-                                            +r_PRES_MEMdotAP[2]*x_PRES_MEM[2][z]
-                                            +r_PRES_MEMdotAP[3]*x_PRES_MEM[3][z]
-                                            +r_PRES_MEMdotAP[4]*x_PRES_MEM[4][z];
-            } else if (ORDER==6) {
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                 AP[z]+=r_PRESdotAP*r_PRES[z]+r_PRES_MEMdotAP[0]*r_PRES_MEM[0][z]
-                                             +r_PRES_MEMdotAP[1]*r_PRES_MEM[1][z]
-                                             +r_PRES_MEMdotAP[2]*r_PRES_MEM[2][z]
-                                             +r_PRES_MEMdotAP[3]*r_PRES_MEM[3][z]
-                                             +r_PRES_MEMdotAP[4]*r_PRES_MEM[4][z]
-                                             +r_PRES_MEMdotAP[5]*r_PRES_MEM[5][z];
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                 P[z]=-P[z]+r_PRESdotAP*x_PRES[z]+r_PRES_MEMdotAP[0]*x_PRES_MEM[0][z]
-                                            +r_PRES_MEMdotAP[1]*x_PRES_MEM[1][z]
-                                            +r_PRES_MEMdotAP[2]*x_PRES_MEM[2][z]
-                                            +r_PRES_MEMdotAP[3]*x_PRES_MEM[3][z]
-                                            +r_PRES_MEMdotAP[4]*x_PRES_MEM[4][z]
-                                            +r_PRES_MEMdotAP[5]*x_PRES_MEM[5][z];
-            } else {
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_row;++z)
-                AP[z]+=r_PRESdotAP*r_PRES[z];
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z)
-                P[z]=-P[z]+r_PRESdotAP*x_PRES[z];
-
-              for (i=0;i<ORDER;++i) {
+              for (z=0;z<n;++z) {
+                 R_PRES[0][z]=Factor*AP[z]+ALPHA[0]*R_PRES[1][z]
+                                          +ALPHA[1]*R_PRES[2][z]
+                                          +ALPHA[2]*R_PRES[3][z]
+                                          +ALPHA[3]*R_PRES[4][z]
+                                          +ALPHA[4]*R_PRES[5][z]
+                                          +ALPHA[5]*R_PRES[6][z]
+                                          +ALPHA[6]*R_PRES[7][z];
+                 X_PRES[0][z]=-Factor*P_PRES[1][z]+ALPHA[0]*X_PRES[1][z]
+                                                  +ALPHA[1]*X_PRES[2][z]
+                                                  +ALPHA[2]*X_PRES[3][z]
+                                                  +ALPHA[3]*X_PRES[4][z]
+                                                  +ALPHA[4]*X_PRES[5][z]
+                                                  +ALPHA[5]*X_PRES[6][z]
+                                                  +ALPHA[6]*X_PRES[7][z];
+              }
+              for (i=7;i<order;++i) {
                 #pragma omp for private(z) schedule(static)
-                for (z=0;z<n_row;++z)
-                    AP[z]+=r_PRES_MEMdotAP[i]*r_PRES_MEM[i][z];
-                #pragma omp for private(z) schedule(static)
-                for (z=0;z<n_col;++z)
-                    P[z]+=r_PRES_MEMdotAP[i]*x_PRES_MEM[i][z];
+                for (z=0;z<n;++z) {
+                    R_PRES[0][z]+=ALPHA[i]*R_PRES[i+1][z];
+                    X_PRES[0][z]+=ALPHA[i]*X_PRES[i+1][z];
+                }
               }
             }
-            /***  factor scales AP and P to make it a residual and
-            ***   as solution approximation
-            ***
-            ***   if factor is equal to zero a breakdown occurs. the
-            ***   iteration procedure can be continued but r_PRES is not the
-            ***   residual of x_PRES approximation.
-            ***/
-            factor=BREAKF*r_PRESdotAP;
-            for (i=0;i<ORDER;++i) factor +=BREAKF_MEM[i]*r_PRES_MEMdotAP[i];
-            /***
-            ***** x_PRES and r_PRES are moved to memory:
-            ***/
-            #pragma omp master
-            {
-               L2_r_PRES_MEM[OLDEST]=L2_r_PRES;
-               BREAKF_MEM[OLDEST]=BREAKF;
-               tmp=x_PRES; x_PRES=x_PRES_MEM[OLDEST];x_PRES_MEM[OLDEST]=tmp;
-               tmp=r_PRES; r_PRES=r_PRES_MEM[OLDEST];r_PRES_MEM[OLDEST]=tmp;
-            }
-            if (ABS(factor)<=ZERO) {
-                /* in case of a break down: */
-                BREAKF=ZERO;
-                #pragma omp for private(z) schedule(static)
-                for (z=0;z<n_row;++z) r_PRES[z]=AP[z];
-                #pragma omp for private(z) schedule(static)
-                for (z=0;z<n_col;++z) x_PRES[z]=P[z];
-                /* is there any progress */
-                breakFlag=TRUE;
-                #pragma omp barrier
-                for (i=0;i<ORDER;++i) if (BREAKF_MEM[i]>ZERO) breakFlag=FALSE;
-                convergeFlag = FALSE;
-                maxIterFlag = FALSE;
-            } else {
-              BREAKF=ONE;
-              breakFlag=FALSE;
+            if (breakf0>0.) {
               /***
-              *** rescale P an AP and apply smooting:
-              ***
-              ***** calculate GAMMA from min_(GAMMA){|R+GAMMA*(r_PRES-R)|_2}:
+              ***** calculate gamma from min_(gamma){|R+gamma*(R_PRES-R)|_2}:
               ***/
               #pragma omp master
               {
@@ -502,71 +516,51 @@ err_t Paso_Solver_GMRES(
                  SC2=ZERO;
                  L2_R=ZERO;
               }
-              factor=ONE/factor;
               #pragma omp barrier
               #pragma omp for private(z,diff) reduction(+:SC1,SC2) schedule(static)
-              for (z=0;z<n_row;++z) {
-                r_PRES[z]=factor*AP[z];
-                diff=r_PRES[z]-r[z];
+              for (z=0;z<n;++z) {
+                diff=R_PRES[0][z]-r[z];
                 SC1+=diff*diff;
                 SC2+=diff*r[z];
               }
-              GAMMA=(SC1<=ZERO) ? ZERO : -SC2/SC1;
-              #pragma omp for private(z) schedule(static)
-              for (z=0;z<n_col;++z) {
-                 x_PRES[z]=factor* P[z];
-                 x[z]+=GAMMA*(x_PRES[z]-x[z]);
-              }
+              gamma=(SC1<=ZERO) ? ZERO : -SC2/SC1;
               #pragma omp for private(z) reduction(+:L2_R) schedule(static)
-              for (z=0;z<n_row;++z) {
-                 r[z]+=GAMMA*(r_PRES[z]-r[z]);
+              for (z=0;z<n;++z) {
+                 x[z]+=gamma*(X_PRES[0][z]-x[z]);
+                 r[z]+=gamma*(R_PRES[0][z]-r[z]);
                  L2_R+=r[z]*r[z];
               }
               norm_of_residual=sqrt(L2_R);
               convergeFlag = (norm_of_residual <= tol);
-              maxIterFlag = (num_iter >= maxit);
+              if (restart>0) restartFlag=(num_iter_restart >= restart);
+            } else { 
+              convergeFlag=FALSE;
+              restartFlag=FALSE;
             }
-         } 
-         if (restart>0) restartFlag=(num_iter_restart >= restart);
-         if (! (convergeFlag || maxIterFlag || breakFlag))  goto next;
-         /* end of iteration */
-         #pragma omp master 
-         {
-           norm_of_residual_global=norm_of_residual;
-	   num_iter_global=num_iter;
+            maxIterFlag = (num_iter >= maxit);
+         }
+        }
+        /* end of iteration */
+        #pragma omp master 
+        {
+           Norm_of_residual_global=norm_of_residual;
+	   Num_iter_global=num_iter;
 	   if (maxIterFlag) { 
-	       status = SOLVER_MAXITER_REACHED;
+	       Status = SOLVER_MAXITER_REACHED;
 	   } else if (breakFlag) {
-	       status = SOLVER_BREAKDOWN;
-	   }
+	       Status = SOLVER_BREAKDOWN;
+	  }
         }
     }  /* end of parallel region */
-    TMPMEMFREE(x_PRES);
-    TMPMEMFREE(r_PRES);
-    TMPMEMFREE(P);
     TMPMEMFREE(AP);
-    for (i=0;i<length_of_recursion;i++) {
-       TMPMEMFREE(x_PRES_MEM[i]);
-       TMPMEMFREE(r_PRES_MEM[i]);
+    for (i=0;i<Length_of_recursion;i++) {
+       TMPMEMFREE(X_PRES[i]);
+       TMPMEMFREE(R_PRES[i]);
+       TMPMEMFREE(P_PRES[i]);
     }
-    *iter=num_iter_global;
-    *tolerance=norm_of_residual_global;
+    *iter=Num_iter_global;
+    *tolerance=Norm_of_residual_global;
   }
-  return status;
+  return Status;
 }
 
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:49  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */
-
-  

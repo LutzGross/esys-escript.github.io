@@ -39,7 +39,8 @@ void Paso_setError(Paso_ErrorCodeType err,char* msg) {
 /* checks if there is no error */
 bool_t Paso_noError(void) {
    Paso_ErrorCodeType err=Paso_getErrorType();
-   return (err==NO_ERROR ||  err==WARNING);
+   /* return (err==NO_ERROR ||  err==WARNING);*/
+   return (err==NO_ERROR);
 }
 /* This function checks if the pointer ptr has a target. If not an
    error is raised and TRUE is returned. */
@@ -73,42 +74,5 @@ Paso_ErrorCodeType Paso_getErrorType(void) {
 char* Paso_getErrorMessage(void) {
    return Paso_ErrorMsg_;
 }
-                                                                                                                                                                                                     
-
 
 /**************************************************************/
-
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.3  2005/09/08 08:28:39  gross
- * some cleanup in savevtk
- *
- * Revision 1.1.2.2  2005/09/07 00:59:08  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:47  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- * Revision 1.2  2005/07/08 04:07:50  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.1  2005/06/29 02:34:50  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.2  2004/07/02 04:21:13  gross
- * Paso C code has been included
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
- *
- *
- */

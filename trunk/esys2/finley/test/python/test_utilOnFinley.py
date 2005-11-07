@@ -1,12 +1,12 @@
 # $Id$
 
 import unittest
-from esys.escript.test_util import Test_Util
+from esys.escript.test_util import Test_util_with_tagged_Data
 from esys.escript import FunctionOnBoundary
 from esys.finley import Rectangle
 import sys
 
-class Test_UtilOnFinley(Test_Util):
+class Test_UtilOnFinley(Test_util_with_tagged_Data):
    def setUp(self):
        self.__dom =Rectangle(10,10,2)
        self.functionspace = FunctionOnBoundary(self.__dom) # due to a bug in escript python needs to hold a reference to the domain

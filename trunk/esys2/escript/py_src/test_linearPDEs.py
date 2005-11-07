@@ -341,15 +341,18 @@ class Test_LinearPDE(Test_linearPDEs):
 
     def test_resetCoefficient_InHomogeneousConstraint(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setSymmetryOn()
         x=self.domain.getX()
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.,r=1,q=x[0].whereZero())
-        u1=mypde.getSolution()
+        u1=mypde.getSolution(verbose=self.VERBOSE)
         mypde.setValue(Y=2.,D=2)
-        u2=mypde.getSolution()
-        self.failUnless(self.check(u2,u1),'solution is wrong.')
+        u2=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u2,u1),'first solution is wrong.')
+        u2=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u2,u1),'first solution is wrong.')
         mypde.setValue(r=2,Y=4.)
-        u2=mypde.getSolution()
-        self.failUnless(self.check(u2,2*u1),'solution is wrong.')
+        u2=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u2,2*u1),'second solution is wrong.')
 
     def test_symmetryCheckTrue_System(self):
         d=self.domain.getDim()
@@ -457,7 +460,7 @@ class Test_LinearPDE(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.setSolverMethod(mypde.DIRECT)
-        u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0)
+        u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -487,12 +490,14 @@ class Test_LinearPDE(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.GMRES)
+        # u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.JACOBI,truncation=5)
         u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.JACOBI)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.GMRES)
+        # u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0,truncation=5)
         u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_GMRES_JACOBI(self):
@@ -517,8 +522,7 @@ class Test_LinearPDE(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
 	mypde.setSolverMethod(mypde.GMRES)
-        mypde.setTolerance(1.e-12)
-        u=mypde.getSolution(verbose=self.VERBOSE or True,preconditioner=mypde.ILU0,truncation=10,restart=20)
+        u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0,truncation=10,restart=20)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_Lumping_attemptToSetA(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)

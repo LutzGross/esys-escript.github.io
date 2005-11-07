@@ -13,9 +13,9 @@
 #define SOLVER_MEMORY_ERROR -9
 #define SOLVER_BREAKDOWN -10
 
-static double ONE=1;
-static double ZERO=0;
-static double TOLERANCE_FOR_SCALARS=0;
+static double ONE=1.;
+static double ZERO=0.;
+static double TOLERANCE_FOR_SCALARS=0.;
 
 /* ILU preconditioner */
 struct Paso_Solver_ILU {
@@ -76,22 +76,4 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p);
 void Paso_Solver_solveJacobi(Paso_Solver_Jacobi * prec, double * x, double * b);
 void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in);
 
-
-
 #endif /* #ifndef INC_SOLVER */
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.2  2005/09/07 00:59:09  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

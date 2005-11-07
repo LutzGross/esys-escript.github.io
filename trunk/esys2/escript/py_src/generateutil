@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # $Id$
 
 """
@@ -15,6 +16,7 @@ import random
 import numarray
 import math
 finc=1.e-6
+
 
 def makeArray(shape,rng):
    l=rng[1]-rng[0]
@@ -124,6 +126,271 @@ def makeResult(val,f):
    else:
        raise SystemError,"rank is restricted to 4"
    return out         
+
+
+def mkText(case,name,a,a1=None):
+         t_out=""
+         if case in ["float","array" ]:
+           if isinstance(a,float):
+                t_out+="      %s=%s\n"%(name,a)
+           elif len(a)==1:
+                t_out+="      %s=%s\n"%(name,a)
+           else:
+                t_out+="      %s=numarray.array(%s)\n"%(name,a.tolist())
+         elif case=="constData":
+           if isinstance(a,float):
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+           elif len(a)==1:
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+           else:
+              t_out+="      %s=Data(numarray.array(%s),self.functionspace)\n"%(name,a.tolist())
+         elif case=="taggedData":
+           if isinstance(a,float):
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+              t_out+="      %s.setTaggedValue(1,%s)\n"%(name,a1)
+           elif len(a)==1:
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+              t_out+="      %s.setTaggedValue(1,%s)\n"%(name,a1)
+           else:
+              t_out+="      %s=Data(numarray.array(%s),self.functionspace)\n"%(name,a.tolist())
+              t_out+="      %s.setTaggedValue(1,%s)\n"%(name,a1.tolist())
+         elif case=="expandedData":
+           t_out+="      msk_%s=whereNegative(self.functionspace.getX()[0]-0.5)\n"%name
+           if isinstance(a,float):
+              t_out+="      %s=msk_%s*%s+(1.-msk_%s)*%s\n"%(name,name,a,name,a1)
+           elif len(a)==1:
+              t_out+="      %s=msk_%s*%s+(1.-msk_%s)*%s\n"%(name,name,a,name,a1)
+           else:
+              t_out+="      %s=msk_%s*%s+(1.-msk_%s)*%s\n"%(name,name,a.tolist(),name,a1.tolist())
+         elif case=="Symbol":
+           if isinstance(a,float):
+              t_out+="      %s=Symbol(shape=())\n"%(name)
+           elif len(a)==1:
+              t_out+="      %s=Symbol(shape=())\n"%(name)
+           else:
+              t_out+="      %s=Symbol(shape=%s)\n"%(name,str(a.shape))
+
+         return t_out
+#==================
+case="inner"
+for arg0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+   for arg1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
+     for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+        sh1=sh0
+        if (len(sh0)==0 or not arg0=="float") and (len(sh1)==0 or not arg1=="float"):  
+          tname="test_%s_%s_rank%s_%s_rank%s"%(case,arg0,len(sh0),arg1,len(sh1))
+          t_prog+="   def %s(self):\n"%tname
+          a0=makeArray(sh0,[-1,1])
+          a0_1=makeArray(sh0,[-1,1])
+          a1=makeArray(sh1,[-1,1])
+          a1_1=makeArray(sh1,[-1,1])
+          t_prog+=mkText(arg0,"arg0",a0,a0_1)
+          t_prog+=mkText(arg1,"arg1",a1,a1_1)
+          t_prog+="      res=%s(arg0,arg1)\n"%case
+
+print t_prog             
+1/0
+
+#==================
+cases=["Scalar","Vector","Tensor", "Tensor3","Tensor4"]
+
+for case in range(len(cases)):
+  for d in [ None , "d", 1, 2 , 3]:
+         if not d==None or cases[case]=="Scalar":
+            t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+            tname="test_Symbol_%s_d%s"%(cases[case],d)
+            t_prog+="   def %s(self):\n"%tname
+            if d=="d":
+               t_prog+="      s=%sSymbol(dim=self.functionspace)\n"%(cases[case])
+               t_prog+="      d=self.functionspace.getDim()\n"
+               sh="("
+               for i in range(case): 
+                 if i==0:
+                  sh+=d
+                 else: 
+                  sh+=","+d               
+               sh+=")"
+            else:
+               t_prog+="      s=%sSymbol(dim=%s)\n"%(cases[case],d)
+               sh=()
+               for i in range(case): sh=sh+(d,)
+            t_prog+="      self.failUnlessEqual(s.getRank(),%s,\"wrong rank.\")\n"%case
+            t_prog+="      self.failUnlessEqual(s.getShape(),%s,\"wrong shape.\")\n"%str(sh)
+            t_prog+="      self.failUnlessEqual(s.getDim(),%s,\"wrong spatial dimension.\")\n"%d
+            t_prog+="      self.failUnlessEqual(s.getArgument(),[],\"wrong arguments.\")\n"
+         
+print t_prog             
+1/0
+for sh in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+  for d in [ None , "domain", 1, 2 , 3]:
+    for args in [ [], ["s2"], [1,-1.] ]:
+         t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_Symbol_rank%s_d%s_nargs%s"%(len(sh),d,len(args))
+         t_prog+="   %s(self):\n"%tname
+         t_prog+="      s2=ScalarSymbol()\n"
+         if args==["s2"]:
+            a="[s2]"
+         else:
+            a=str(args)
+         if d=="domain":
+            t_prog+="      s=Symbol(shape=%s,dim=self.functionspace.getDim(),args=%s)\n"%(str(sh),a)
+            d2="self.functionspace.getDim()"
+         else:
+            t_prog+="      s=Symbol(shape=%s,dim=%s,args=%s)\n"%(sh,d,a)
+            d2=str(d)
+       
+         t_prog+="      self.failUnlessEqual(s.getRank(),%s,\"wrong rank.\")\n"%len(sh)
+         t_prog+="      self.failUnlessEqual(s.getShape(),%s,\"wrong shape.\")\n"%str(sh)
+         t_prog+="      self.failUnlessEqual(s.getDim(),%s,\"wrong spatial dimension.\")\n"%d2
+         t_prog+="      self.failUnlessEqual(s.getArgument(),%s,\"wrong arguments.\")\n\n"%a
+         t_prog+="      ss=s.substitute({s:numarray.zeros(%s)})\n"%str(sh)
+         t_prog+="      self.failUnless(isinstance(ss,numarray.NumArray),\"value after substitution is not numarray.\")\n"
+         t_prog+="      self.failUnlessEqual(ss.shape,%s,\"value after substitution has not expected shape\")\n"%str(sh)
+
+         t_prog+="      try:\n        s.substitute({s:numarray.zeros((5,))})\n        fail(\"illegal substition was successful\")\n"
+         t_prog+="      except TypeError:\n        pass\n\n"
+         
+         ###
+         for sh2 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+             if len(sh+sh2)<5:
+                 t_prog+="      dsdarg=s.diff(Symbol(shape=%s))\n"%str(sh2)
+                 if  len(sh+sh2)==0:
+                    t_prog+="      self.failUnless(isinstance(dsdarg,float),\"ds/ds() has wrong type.\")\n"
+                 else:        
+                    t_prog+="      self.failUnless(isinstance(dsdarg,numarray.NumArray),\"ds/ds%s has wrong type.\")\n"%str(sh2)
+                   
+                    t_prog+="      self.failUnlessEqual(dsdarg.shape,%s,\"ds/ds%s has wrong shape.\")\n"%(str(sh+sh2),str(sh2))
+                 t_prog+="      self.failIf(Lsup(dsdarg)>0.,\"ds/ds%s has wrong value.\")\n"%str(sh2)
+         if len(sh)<3:
+            t_prog+="\n      dsds=s.diff(s)\n"
+            if  len(sh)==0:
+               t_prog+="      self.failUnless(isinstance(dsds,float),\"ds/ds has wrong type.\")\n"
+               t_prog+="      self.failUnlessEqual(dsds,1.,\"ds/ds has wrong value.\")\n"
+            else:        
+               t_prog+="      self.failUnless(isinstance(dsds,numarray.NumArray),\"ds/ds has wrong type.\")\n" 
+               t_prog+="      self.failUnlessEqual(dsds.shape,%s,\"ds/ds has wrong shape.\")\n"%str(sh+sh)
+               if len(sh)==1:
+                   for i0 in range(sh[0]):
+                         for i2 in range(sh[0]):
+                               if i0==i2:
+                                    v=1.
+                               else:
+                                    v=0.
+                               t_prog+="      self.failUnlessEqual(dsds[%s,%s],%s,\"ds/ds has wrong value at (%s,%s).\")\n"%(i0,i2,v,i0,i2)
+               else:
+                   for i0 in range(sh[0]):
+                      for i1 in range(sh[1]):
+                         for i2 in range(sh[0]):
+                            for i3 in range(sh[1]):
+                               if i0==i2 and i1==i3:
+                                    v=1.
+                               else:
+                                    v=0.
+                               t_prog+="      self.failUnlessEqual(dsds[%s,%s,%s,%s],%s,\"ds/ds has wrong value at (%s,%s,%s,%s).\")\n"%(i0,i1,i2,i3,v,i0,i1,i2,i3)
+             
+         ###    
+         t_prog+="\n"     
+         for i in range(len(args)):
+             t_prog+="      self.failUnlessEqual(s.getArgument(%s),%s,\"wrong argument %s.\")\n"%(i,str(args[i]),i)
+         t_prog+="      sa=s.getSubstitutedArguments({s2:-10})\n"
+         t_prog+="      self.failUnlessEqual(len(sa),%s,\"wrong number of substituted arguments\")\n"%len(args)
+         if args==["s2"]:
+                t_prog+="      self.failUnlessEqual(sa[0],-10,\"wrongly substituted argument 0.\")\n"
+         else:
+             for i in range(len(args)):
+                t_prog+="      self.failUnlessEqual(sa[%s],%s,\"wrongly substituted argument %s.\")\n"%(i,str(args[i]),i)
+         
+         t_prog+="\n"
+         for arg in ["10.", "10", "SymbolMatch", "SymbolMisMatch", \
+                                       "DataMatch","DataMisMatch", "NumArrayMatch", "NumArrayMisMatch"]:
+             if arg in ["10.", "10"]:
+                a=str(arg)
+                if len(sh)==0:
+                   t_prog+="      self.failUnless(s.isAppropriateValue(%s),\"%s is appropriate substitute\")\n"%(a,arg)
+                else:
+                   t_prog+="      self.failIf(s.isAppropriateValue(%s),\" %s is not appropriate substitute\")\n"%(a,arg)
+             elif arg in ["SymbolMatch", "SymbolMisMatch"]:
+                  if arg=="SymbolMatch":
+                   t_prog+="      self.failUnless(s.isAppropriateValue(Symbol(shape=%s,dim=%s)),\"Symbol is appropriate substitute\")\n"%(str(sh),d)
+                  else:
+                   if isinstance(d,int):
+                      t_prog+="      self.failIf(s.isAppropriateValue(Symbol(shape=%s,dim=%s)),\"Symbol is not appropriate substitute (dim)\")\n"%(str(sh),d+1)
+                   else:
+                      t_prog+="      self.failIf(s.isAppropriateValue(Symbol(shape=%s)),\"Symbol is not appropriate substitute (shape)\")\n"%((5,))
+
+             elif arg in ["DataMatch","DataMisMatch"]:
+                  if arg=="DataMatch" and d=="domain":
+                   t_prog+="      self.failUnless(s.isAppropriateValue(escript.Data(0.,%s,self.functionspace)),\"Data is appropriate substitute\")\n"%str(sh)
+                  elif arg=="DataMisMatch":
+                      t_prog+="      self.failIf(s.isAppropriateValue(escript.Data(0.,%s,self.functionspace)),\"Data is not appropriate substitute (shape)\")\n"%(str((5,)))
+             else:
+                  if arg=="NumArrayMatch":
+                   t_prog+="      self.failUnless(s.isAppropriateValue(numarray.zeros(%s)),\"NumArray is appropriate substitute\")\n"%str(sh)
+                  else:
+                      t_prog+="      self.failIf(s.isAppropriateValue(numarray.zeros(%s)),\"NumArray is not appropriate substitute (shape)\")\n"%(str((5,)))
+print t_prog
+1/0
+
+
+for case in ["Lsup", "sup", "inf"]:
+   for args in ["float","array","constData","taggedData","expandedData"]: 
+     for sh in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+       if not args=="float" or len(sh)==0:
+         t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_%s_%s_rank%s"%(case,args,len(sh))
+         t_prog+="   %s(self):\n"%tname
+         if args in ["float","array" ]:
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           if len(sh)==0:
+              t_prog+="      arg=%s\n"%a
+           else:
+              t_prog+="      arg=numarray.array(%s)\n"%a.tolist()
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      res=%s(arg)\n"%case
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+         elif args== "constData":
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           if len(sh)==0:
+              t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+           else:
+              t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      res=%s(arg)\n"%case
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+         elif args in [ "taggedData","expandedData"]:
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           a1=makeArray(sh,[-1,1])
+           r1=makeResult2(a1,case)
+           if case in ["Lsup","sup"]:
+               r=max(r,r1)
+           else:
+               r=min(r,r1)
+           if len(sh)==0:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(%s,self.functionspace,True)\n"%(a)
+              else:
+                 t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a
+           else:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace,True)\n"%(a.tolist())
+              else:
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a1.tolist()
+           t_prog+="      res=%s(arg)\n"%case
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+
+print t_prog
+
+1/0
+
     	
 for case in ["Lsup", "sup", "inf"]:
    for args in ["float","array","constData","taggedData","expandedData"]: 
@@ -190,8 +457,8 @@ for f in func:
    u_prog+="   \"\"\"\n"
    u_prog+="   returns %s of argument arg\n\n"%f[0]
    u_prog+="   @param arg: argument\n"
-   u_prog+="   @type arg: C{float}, L{escript.Data}, L{escript.Symbol}, L{numarray.NumArray}.\n"
-   u_prog+="   @rtype:C{float}, L{escript.Data}, L{escript.Symbol}, L{numarray.NumArray} depending on the type of arg.\n"
+   u_prog+="   @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.\n"
+   u_prog+="   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.\n"
    u_prog+="   @raises TypeError: if the type of the argument is not expected.\n"
    u_prog+="   \"\"\"\n"
    u_prog+="   if isinstance(arg,numarray.NumArray):\n"
@@ -206,7 +473,7 @@ for f in func:
    u_prog+="       return Symbol_%s(arg)\n"%f[0]
    u_prog+="   else:\n"
    u_prog+="       raise TypeError,\"%s: Unknown argument type.\"\n"%f[0]
-   u_prog+="class Symbol_%s(Symbol):\n"%f[0]
+   u_prog+="class Symbol_%s(DependendSymbol):\n"%f[0]
    u_prog+="   \"\"\"\n"
    u_prog+="   Symbol of the result of the %s function\n"%f[0]
    u_prog+="   \"\"\"\n"
@@ -216,7 +483,7 @@ for f in func:
    u_prog+="      @param arg: argument of function\n"
    u_prog+="      @type arg: L{Symbol}.\n"
    u_prog+="      \"\"\"\n"
-   u_prog+="      Symbol.__init__(self,shape=arg.getShape(),dim=arg.getDim(),args=[arg])\n"
+   u_prog+="      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())\n"
    u_prog+="   def __str__(self):\n"
    u_prog+="      \"\"\"\n"
    u_prog+="      string representation of the object\n"
@@ -240,13 +507,29 @@ for f in func:
    u_prog+="      else:\n"
    u_prog+="         arg=self.getSubstitutedArguments(argvals)[0]\n"
    u_prog+="         return %s(arg)\n"%f[0]
+   u_prog+="   def getMyCode(self,argstrs,format=\"escript\"):\n"
+   u_prog+="       \"\"\"\n"
+   u_prog+="       returns a program code that can be used to evaluate the symbol.\n"
+   u_prog+="\n"
+   u_prog+="       @param argstrs: gives for each argument a string representing of the argument for the evaluation.\n"
+   u_prog+="       @type argstrs: C{list} of C{str}.\n"
+   u_prog+="       @param format: specifies the format to be used. At the moment only \"escript\" is supported.\n"
+   u_prog+="       @type format: C{str}\n"
+   u_prog+="       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.\n"
+   u_prog+="       @rtype: C{str}\n"
+   u_prog+="       @raises NotImplementedError: if no implementation for the given format is available\n"
+   u_prog+="       \"\"\"\n"
+   u_prog+="       if format==\"escript\":\n"
+   u_prog+="          return %s(%%s)%argstrs[0]\"\n"%f[0]
+   u_prog+="       else:\n"
+   u_prog+="          raise NotImplementedError,\"%s does not provide program code for format %%s.\"%format\n"%f[0]
+
    u_prog+="   def diff(self,arg):\n"
    u_prog+="      \"\"\"\n"
-   u_prog+="      returns the derivative of the symbol with respect to L{Symbol} arg\n"
-
-   u_prog+="      @param arg: the derivative is calculated with respect to arg\n"
-   u_prog+="      @type arg: typically L{escript.Symbol} but can also be C{float}, L{escript.Data}, L{numarray.NumArray} depending the involved functions and data.\n"
-   u_prog+="      @raise NotImplementedError: derivative not available.\n"
+   u_prog+="      returns the derivative of the symbol with respect to a symbol\n"
+   u_prog+="      @param arg: argument for derivation\n"
+   u_prog+="      @type arg: L{Symbol}.\n"
+   u_prog+="      @raises NotImplementedError: derivative not available.\n"
    u_prog+="      \"\"\"\n"
    u_prog+="      if arg==self: \n"
    u_prog+="         return identity(self.getShape())\n"
@@ -257,7 +540,7 @@ for f in func:
    u_prog+="        return dself.matchShape(darg)*darg\n"
 
 
-   for args in ["float","array","constData","taggedData","expandedData","symbol"]: 
+   for args in ["float","array","constData","taggedData","expandedData","Symbol"]: 
      for sh in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
        if not args=="float" or len(sh)==0:
          t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
@@ -316,7 +599,7 @@ for f in func:
            t_prog+="      res=%s(arg)\n"%f[0]
            t_prog+="      self.failUnlessEqual(res.getShape(),%s,\"wrong shape of result.\")\n"%str(sh)
            t_prog+="      self.failUnless(Lsup(res-ref)<=self.tol*Lsup(ref),\"wrong result\")\n"
-         elif args=="symbol":
+         elif args=="Symbol":
            t_prog+="      arg=Symbol(shape=%s)\n"%str(sh)
            t_prog+="      v=%s(arg)\n"%f[0]
            t_prog+="      self.failUnlessRaises(ValueError,v.substitute,Symbol(shape=(1,1)),\"illegal shape of substitute not identified.\")\n"
