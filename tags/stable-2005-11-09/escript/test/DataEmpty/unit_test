@@ -1,0 +1,14 @@
+#!/bin/bash
+# $Id$
+if [ ! -e Makefile ]; then ln -s ./DataEmptyTest.mk Makefile; fi
+make -f ./Makefile clean
+make -f ./Makefile DODEBUG=YES
+./DataEmptyTest.exe
+if [ $? != 0 ]
+then
+  make -f ./Makefile clean
+  exit 1
+else
+  make -f ./Makefile clean
+  exit 0
+fi
