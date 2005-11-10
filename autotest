@@ -4,7 +4,8 @@
 # An explicit testing script for esys
 
 # list of users to email test results to
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
+#MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
 
 # define compiler executable and library locations
 export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
@@ -20,7 +21,7 @@ then
 fi
 
 echo loading esys setup
-. ~/bin/esys_setup
+. ~jgs/bin/esys_setup
 if [ $? != 0 ]
 then
   echo couldnt load esys setup
@@ -28,12 +29,12 @@ then
   exit 2
 fi
 
-echo running cvs update
-cvs update -P -d
+echo running svn update
+svn update
 if [ $? != 0 ]
 then
-  echo cvs update failed
-  echo "cvs update failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo svn update failed
+  echo "svn update failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 3
 fi
 
@@ -46,22 +47,13 @@ then
   exit 4
 fi
 
-echo running mk clean
-./mk clean
-if [ $? != 0 ]
-then
-  echo ./mk clean failed
-  echo "./mk clean failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
-  exit 5
-fi
-
 echo running mk install
 ./mk install DEBUG
 if [ $? != 0 ]
 then
   echo ./mk install failed
   echo "./mk install failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
-  exit 6
+  exit 5
 fi
 
 echo running mk unit_test
@@ -70,7 +62,7 @@ if [ $? != 0 ]
 then
   echo ./mk unit_test failed
   echo "./mk unit_test failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
-  exit 7
+  exit 6
 fi
 
 echo running mk py_test
@@ -79,7 +71,7 @@ if [ $? != 0 ]
 then
   echo ./mk py_test failed
   echo "./mk py_test failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
-  exit 8
+  exit 7
 fi
 
 echo "success" | mail -s "esys autotest results" $MAIL_RECIPIENTS
