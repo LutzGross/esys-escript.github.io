@@ -31,6 +31,21 @@ mshList=(bruce.Rectangle(),
 
 for msh in mshList:
 
+  print "\nX -- Continuous:"
+  archDataX = msh.getX()
+  archDataX.archiveData("data-archiveX")
+  exDataX=Data()
+  exDataX.extractData("data-archiveX",ContinuousFunction(msh))
+
+  diff = archDataX - exDataX
+  (infdiff, supdiff) = (inf(diff), sup(diff))
+  if infdiff != 0 or supdiff != 0:
+    print "*** ERROR: Data value discrepancies %f < X < %f" \
+          % (infdiff, supdiff)
+    sys.exit(1)
+
+  exDataX.archiveData("data-archive2X");
+
   print "\nDataExpanded:"
   archDataE=Data([[1.00001],[2.00001]],Function(msh),True)
   archDataE.archiveData("data-archiveE")
