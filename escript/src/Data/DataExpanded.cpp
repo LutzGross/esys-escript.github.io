@@ -148,12 +148,11 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
   : DataAbstract(what)
 {
   //
+  // create the view of the data
+  initialise(shape,what.getNumSamples(),what.getNumDPPSample());
+  //
   // copy the data in the correct format
   m_data.getData()=data;
-  //
-  // create the view of the data
-  DataArrayView tempView(m_data.getData(),shape);
-  setPointDataView(tempView);
 }
 
 DataExpanded::~DataExpanded()
