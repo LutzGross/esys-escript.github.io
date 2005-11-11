@@ -4,8 +4,7 @@
 # An explicit testing script for esys
 
 # list of users to email test results to
-#MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
 
 # define compiler executable and library locations
 export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
@@ -52,7 +51,7 @@ echo running mk install
 if [ $? != 0 ]
 then
   echo ./mk install failed
-  echo "./mk install failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "./mk install failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 5
 fi
 
@@ -61,7 +60,7 @@ echo running mk unit_test
 if [ $? != 0 ]
 then
   echo ./mk unit_test failed
-  echo "./mk unit_test failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "./mk unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 6
 fi
 
@@ -70,7 +69,7 @@ echo running mk py_test
 if [ $? != 0 ]
 then
   echo ./mk py_test failed
-  echo "./mk py_test failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "./mk py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 7
 fi
 
