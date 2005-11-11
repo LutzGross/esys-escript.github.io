@@ -9,6 +9,8 @@
 # to this script back into the repository - talk to Jon first
 #**********************************************************************
 
+# test commit
+
 # the modules to make
 MODULES="tools/CppUnitTest tools/mmio esysUtils escript paso finley bruce modellib"
 
