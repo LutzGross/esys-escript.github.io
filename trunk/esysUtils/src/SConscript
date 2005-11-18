@@ -1,0 +1,22 @@
+Import('*')
+
+import os
+
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+
+cpp_path = ['#../esysUtils/inc',
+            '/raid2/tools/python-2.3.4/include/python2.3',
+            '/raid2/tools/boost/include/boost-1_31']
+
+lib = 'esysUtils'
+sources = ['EsysException.cpp',
+           'esysExceptionTranslator.cpp']
+
+utils_env = Environment(ENV = os.environ)
+
+utils_env.Replace(CXX = 'icc')
+utils_env.Replace(CXXFLAGS = cxx_flags)
+utils_env.Replace(CPPPATH = cpp_path)
+
+utils_lib = utils_env.StaticLibrary(lib, sources)
+utils_env.Install(libdir, utils_lib)
