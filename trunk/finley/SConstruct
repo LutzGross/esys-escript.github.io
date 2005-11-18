@@ -1,0 +1,5 @@
+libdir = Dir('#lib')
+Export(["libdir"])
+
+#SConscript('src/CPPAdapter/SConscript', src_dir='src/CPPAdapter', build_dir='obj', duplicate=0)
+SConscript('src/finleyC/SConscript', src_dir='src/finleyC', build_dir='obj', duplicate=0)
