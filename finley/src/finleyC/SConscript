@@ -1,0 +1,88 @@
+Import('*')
+
+import os
+
+cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+
+cpp_path = ['#../escript/inc',
+            '#../esysUtils/inc',
+            '#../finley/inc',
+            '#../paso/inc',
+            '/raid2/tools/python-2.3.4/include/python2.3',
+            '/raid2/tools/boost/include/boost-1_31']
+
+lib = 'finleyC'
+sources = ['Assemble_addToSystemMatrix.c',
+           'Assemble_CopyElementData.c',
+           'Assemble_CopyNodalData.c',
+           'Assemble_getAssembleParameters.c',
+           'Assemble_getSize.c',
+           'Assemble_gradient.c',
+           'Assemble_handelShapeMissMatch.c',
+           'Assemble_integrate.c',
+           'Assemble_interpolate.c',
+           'Assemble_NodeCoordinates.c',
+           'Assemble_PDE.c',
+           'Assemble_PDEMatrix_Single2.c',
+           'Assemble_PDEMatrix_System2.c',
+           'Assemble_PDE_RHS.c',
+           'Assemble_RHSMatrix_Single.c',
+           'Assemble_RHSMatrix_System.c',
+           'Assemble_RobinCondition.c',
+           'Assemble_RobinCondition_RHS.c',
+           'Assemble_setNormal.c',
+           'ElementFile_allocTable.c',
+           'ElementFile.c',
+           'ElementFile_copyTable.c',
+           'ElementFile_gather.c',
+           'ElementFile_improveColoring.c',
+           'ElementFile_markNodes.c',
+           'ElementFile_optimizeDistribution.c',
+           'ElementFile_prepare.c',
+           'ElementFile_relableNodes.c',
+           'ElementFile_scatter.c',
+           'ElementFile_setNodeRange.c',
+           'Finley.c',
+           'IndexList.c',
+           'Mesh.c',
+           'Mesh_findMatchingFaces.c',
+           'Mesh_getPattern.c',
+           'Mesh_glueFaces.c',
+           'Mesh_hex20.c',
+           'Mesh_hex8.c',
+           'Mesh_joinFaces.c',
+           'Mesh_line2.c',
+           'Mesh_line3.c',
+           'Mesh_markNodes.c',
+           'Mesh_merge.c',
+           'Mesh_prepare.c',
+           'Mesh_prepareNodes.c',
+           'Mesh_print.c',
+           'Mesh_read.c',
+           'Mesh_rec4.c',
+           'Mesh_rec8.c',
+           'Mesh_relabelElementNodes.c',
+           'Mesh_resolveNodeIds.c',
+           'Mesh_saveDX.c',
+           'Mesh_saveVTK.c',
+           'Mesh_write.c',
+           'NodeFile_allocTable.c',
+           'NodeFile.c',
+           'NodeFile_copyTable.c',
+           'NodeFile_gatter.c',
+           'NodeFile_scatter.c',
+           'NodeFile_setCoordinates.c',
+           'NodeFile_setIdRange.c',
+           'Quadrature.c',
+           'ReferenceElements.c',
+           'ShapeFunctions.c',
+           'Util.c']
+
+finleyC_env = Environment(ENV = os.environ)
+
+finleyC_env.Replace(CC = 'icc')
+finleyC_env.Replace(CCFLAGS = cc_flags)
+finleyC_env.Replace(CPPPATH = cpp_path)
+
+finleyC_lib = finleyC_env.StaticLibrary(lib, sources)
+finleyC_env.Install(libdir, finleyC_lib)
