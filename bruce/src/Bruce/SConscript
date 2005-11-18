@@ -3,10 +3,16 @@ Import('*')
 import os
 
 cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
-cpp_path = ['#../bruce/inc', '#../escript/inc', '#../esysUtils/inc','/raid2/tools/python-2.3.4/include/python2.3', '/raid2/tools/boost/include/boost-1_31']
+
+cpp_path = ['#../bruce/inc', '#../escript/inc',
+            '#../esysUtils/inc',
+            '/raid2/tools/python-2.3.4/include/python2.3',
+            '/raid2/tools/boost/include/boost-1_31']
 
 lib = 'brucecpp'
-sources = ['Bruce.cpp', 'BruceFactory.cpp', 'brucecpp.cpp']
+sources = ['Bruce.cpp',
+           'BruceFactory.cpp',
+           'brucecpp.cpp']
 
 bruce_env = Environment(ENV = os.environ)
 
