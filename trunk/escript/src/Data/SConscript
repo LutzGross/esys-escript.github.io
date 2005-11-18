@@ -1,0 +1,45 @@
+Import('*')
+
+import os
+
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+
+cpp_path = ['#../escript/inc',
+            '#../esysUtils/inc',
+            '/raid2/tools/python-2.3.4/include/python2.3',
+            '/raid2/tools/boost/include/boost-1_31']
+
+lib = 'escriptcpp'
+sources = ['AbstractContinuousDomain.cpp',
+           'AbstractDomain.cpp',
+           'AbstractSystemMatrix.cpp',
+           'DataAbstract.cpp',
+           'DataArray.cpp',
+           'DataArrayView.cpp',
+           'DataBlocks2D.cpp',
+           'DataCached.cpp',
+           'DataC.cpp',
+           'DataConstant.cpp',
+           'Data.cpp',
+           'DataEmpty.cpp',
+           'DataExpanded.cpp',
+           'DataFactory.cpp',
+           'DataProf.cpp',
+           'DataTagged.cpp',
+           'DataVariable.cpp',
+           'DataVector.cpp',
+           'FunctionSpace.cpp',
+           'FunctionSpaceFactory.cpp',
+           'NullDomain.cpp',
+           'Taipan.cpp',
+           'escriptcpp.cpp']
+
+escript_env = Environment(ENV = os.environ)
+
+escript_env.Replace(CXX = 'icc')
+escript_env.Replace(SHOBJSUFFIX = '.lo')
+escript_env.Replace(CXXFLAGS = cxx_flags)
+escript_env.Replace(CPPPATH = cpp_path)
+
+escript_lib = escript_env.SharedLibrary(lib, sources)
+escript_env.Install(libdir, escript_lib)
