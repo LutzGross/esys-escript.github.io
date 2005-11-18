@@ -139,9 +139,9 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       # + identity:
       ref=checkResult("+"+ex1, \
                       +arg1, \
-                      +arrays1[0], \
-                      +arrays1[1], \
-                      +arrays1[2], \
+                      arrays1[0], \
+                      arrays1[1], \
+                      arrays1[2], \
                       wh)
 
       # - negation:
