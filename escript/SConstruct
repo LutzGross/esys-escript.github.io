@@ -1,0 +1,4 @@
+libdir = Dir('#lib')
+Export(["libdir"])
+
+SConscript('src/Data/SConscript', src_dir='src/Data', build_dir='obj', duplicate=0)
