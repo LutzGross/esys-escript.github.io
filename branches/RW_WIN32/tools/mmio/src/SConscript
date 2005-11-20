@@ -1,0 +1,19 @@
+Import('*')
+
+import os
+
+cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+
+cpp_path = ['#inc']
+
+lib = 'mmio'
+sources = ['mmio.c']
+
+mmio_env = Environment(ENV = os.environ)
+
+mmio_env.Replace(CC = 'icc')
+mmio_env.Replace(CCFLAGS = cc_flags)
+mmio_env.Replace(CPPPATH = cpp_path)
+
+mmio_lib = mmio_env.StaticLibrary(lib, sources)
+mmio_env.Install(libdir, mmio_lib)

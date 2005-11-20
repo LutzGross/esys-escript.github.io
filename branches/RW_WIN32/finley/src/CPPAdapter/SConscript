@@ -1,0 +1,29 @@
+Import('*')
+
+import os
+
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+
+cpp_path = ['#../finley/inc',
+            '#../esysUtils/inc',
+            '#../escript/inc',
+            '#../paso/inc',
+            '/raid2/tools/python-2.3.4/include/python2.3',
+            '/raid2/tools/boost/include/boost-1_31']
+
+lib = 'finleycpp'
+sources = ['FinleyError.cpp',
+           'MeshAdapter.cpp',
+           'MeshAdapterFactory.cpp',
+           'SystemMatrixAdapter.cpp',
+           'finleycpp.cpp']
+
+finleycpp_env = Environment(ENV = os.environ)
+
+finleycpp_env.Replace(CXX = 'icc')
+finleycpp_env.Replace(SHOBJSUFFIX = '.lo')
+finleycpp_env.Replace(CXXFLAGS = cxx_flags)
+finleycpp_env.Replace(CPPPATH = cpp_path)
+
+finleycpp_lib = finleycpp_env.SharedLibrary(lib, sources)
+finleycpp_env.Install(libdir, finleycpp_lib)

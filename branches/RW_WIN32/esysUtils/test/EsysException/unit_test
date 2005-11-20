@@ -1,0 +1,4 @@
+#!/bin/bash
+if [ ! -e Makefile ]; then ln -s ./EsysExceptionTest.mk Makefile; fi
+make -f ./Makefile
+./EsysExceptionTest.exe

@@ -1,0 +1,5 @@
+
+# boost - include directories only
+
+PKG_CC_INC_DIRS  += /usr/include
+PKG_CPP_INC_DIRS += /usr/include

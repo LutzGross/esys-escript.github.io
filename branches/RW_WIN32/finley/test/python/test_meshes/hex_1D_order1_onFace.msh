@@ -1,0 +1,11 @@
+$Id$
+1D-Nodes 2
+0 0 1 0.000000000000000e+00
+1 1 2 1.000000000000000e+00
+Line2 1
+0 0 0 1
+Line2Face 2
+1 1 0 1
+2 2 1 0
+Line2Face_Contact 0
+Point1 0

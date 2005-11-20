@@ -1,0 +1,10 @@
+# $Id$
+
+# MKL direct solver library
+
+# PKG_CC_DEFS += MKL
+PKG_CC_INC_DIRS += ${NULL}	# standard directory
+# PKG_CPP_DEFS += MKL
+PKG_CPP_INC_DIRS += ${NULL}	# standard directory
+PKG_LD_LIB_DIRS += ${NULL}	# standard directory
+# PKG_LD_LIBS += mkl_solver mkl_lapack mkl_ipf guide pthread
