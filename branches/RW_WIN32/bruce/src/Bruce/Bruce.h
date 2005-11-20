@@ -15,6 +15,15 @@
 
 #if !defined bruce_Bruce_20050829_H
 #define bruce_Bruce_20050829_H
+#ifdef MSVC
+#ifdef BRUCE_EXPORTS
+#define BRUCE_DLL __declspec(dllexport)
+#else
+#define BRUCE_DLL __declspec(dllimport)
+#endif
+#else
+#define BRUCE_DLL
+#endif
 
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "escript/Data/FunctionSpaceFactory.h"
@@ -34,7 +43,7 @@ namespace bruce {
    Bruce implements a structured AbstractContinuousDomain.
 */
 
-class Bruce : public escript::AbstractContinuousDomain {
+class BRUCE_DLL Bruce : public escript::AbstractContinuousDomain {
 
  public:
 

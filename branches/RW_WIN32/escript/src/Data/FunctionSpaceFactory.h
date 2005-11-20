@@ -14,7 +14,15 @@
                                                                            
 #if !defined  escript_FunctionSpaceFactory_20040604_H
 #define escript_FunctionSpaceFactory_20040604_H
-
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 #include "escript/Data/AbstractDomain.h"
 #include "escript/Data/FunctionSpace.h"
 
@@ -27,49 +35,50 @@ namespace escript {
      Description:
      Create function space objects.
 
+	 TODO: Should be a class using the Factory Pattern in order to allow extension
   */
 
   /**
      \brief
      Return a continuous FunctionSpace
   */
-  FunctionSpace continuousFunction(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace continuousFunction(const AbstractDomain& domain);
 
   /**
      \brief
      Return a functon FunctionSpace
   */
-  FunctionSpace function(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace function(const AbstractDomain& domain);
   /**
      \brief
      Return a function on boundary FunctionSpace
   */
-  FunctionSpace functionOnBoundary(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace functionOnBoundary(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace functionOnContactZero(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace functionOnContactZero(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace functionOnContactOne(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace functionOnContactOne(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace solution(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace solution(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace reducedSolution(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace reducedSolution(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace diracDeltaFunction(const AbstractDomain& domain);
+  ESCRIPT_DLL FunctionSpace diracDeltaFunction(const AbstractDomain& domain);
 
 } // end of namespace
 #endif

@@ -198,20 +198,26 @@ void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data&
 
 void SystemMatrixAdapter::saveMM(const std::string& fileName) const
 {
-    char fName[fileName.size()+1];
-    strcpy(fName,fileName.c_str());
+	char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
+	
+	strcpy(fName,fileName.c_str());
     Paso_SystemMatrix* mat = getPaso_SystemMatrix();
     Paso_SystemMatrix_saveMM(mat,fName);
     checkPasoError();
+	TMPMEMFREE(fName);
+
 }
 
 void SystemMatrixAdapter::saveHB(const std::string& fileName) const
 {
-    char fName[fileName.size()+1];
+	char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
+
     strcpy(fName,fileName.c_str());
     Paso_SystemMatrix* mat = getPaso_SystemMatrix();
     Paso_SystemMatrix_saveHB(mat,fName);
     checkPasoError();
+	TMPMEMFREE(fName);
+
 }
 
 void SystemMatrixAdapter::resetValues() const

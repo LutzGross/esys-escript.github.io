@@ -16,7 +16,15 @@
 
 #if !defined escript_DataTagged_20040615_H
 #define escript_DataTagged_20040615_H
-
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 #include "escript/Data/DataAbstract.h"
 #include "escript/Data/DataArray.h"
 #include "escript/Data/DataArrayView.h"
@@ -41,7 +49,7 @@ class DataConstant;
    dataPointNo values.
 */
 
-class DataTagged : public DataAbstract {
+class ESCRIPT_DLL DataTagged : public DataAbstract {
 
  public:
 

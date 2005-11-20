@@ -27,6 +27,9 @@
 /**************************************************************/
 
 #include "paso/Paso.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -55,6 +58,10 @@ bool_t Finley_noError(void);
 Finley_ErrorCodeType Finley_getErrorType(void);
 char* Finley_getErrorMessage(void);
 void Finley_convertPasoError(void);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* #ifndef INC_FINLEY */
 

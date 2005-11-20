@@ -59,7 +59,7 @@ FunctionSpace::getDataShape() const
 int
 FunctionSpace::getTypeCode() const 
 {
-  return  m_functionSpaceType;
+  return  m_functionSpaceType; // TODO: Should this be an enum? If yes then boost wrapper should use the enum_<> wrapper
 }
 
 const

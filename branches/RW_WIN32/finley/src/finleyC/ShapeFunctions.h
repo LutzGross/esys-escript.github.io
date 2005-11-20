@@ -29,6 +29,9 @@
 /**************************************************************/
 
 #include "Finley.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -59,6 +62,11 @@ Finley_Shape_Function Finley_Shape_Tet16;
 Finley_Shape_Function Finley_Shape_Hex8;
 Finley_Shape_Function Finley_Shape_Hex20;
 Finley_Shape_Function Finley_Shape_Hex32;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif /* #ifndef INC_FINLEY_SHAPEFUNCTIONS */
 

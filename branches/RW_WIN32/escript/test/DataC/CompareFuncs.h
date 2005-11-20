@@ -1,5 +1,9 @@
 #include "escript/Data/DataC.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 /**
    \brief
    Compare the result obtained with the C interface to the given value.
@@ -11,3 +15,7 @@ int compareIsEmpty(struct escriptDataC* data, int empty);
 /*int comparePointShape(struct escriptDataC* data, int rank, int* dimensions);*/
 /*int compareSampleDataWrite(struct escriptDataC* data, int sampleNo, double* sampleData);*/
 /*int compareSampleDataRead(struct escriptDataC* data, int tag, double* sampleData);*/
+
+#ifdef __cplusplus
+}
+#endif 

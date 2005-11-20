@@ -82,7 +82,7 @@ void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *
 
 	if( integer )
 	{
-		dim_t *data = ptr;
+		dim_t *data = (dim_t *)ptr;
 		for( int i=0; i<nval; i++ )
 		{
 			fprintf( fp, fmt, data[i]+adjust );
@@ -98,7 +98,7 @@ void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *
 	}
 	else
 	{
-		double *data = ptr;
+		double *data = (double*)ptr;
 		for( int i=0; i<nval; i++ )
 		{
 			fprintf( fp, fmt, data[i] );

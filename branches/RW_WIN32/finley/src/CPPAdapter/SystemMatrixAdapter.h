@@ -16,6 +16,15 @@
 #if !defined  finley_SystemMatrixAdapter_20040610_H
 #define finley_SystemMatrixAdapter_20040610_H
 
+#ifdef MSVC
+#ifdef FINLEY_EXPORTS
+#define FINLEY_DLL __declspec(dllexport)
+#else
+#define FINLEY_DLL __declspec(dllimport)
+#endif
+#else
+#define FINLEY_DLL
+#endif
 #include "finley/CPPAdapter/SystemMatrixAdapter.h"
 #include "escript/Data/AbstractSystemMatrix.h"
 #include "escript/Data/Data.h"
@@ -27,7 +36,7 @@ extern "C" {
 
 namespace finley {
 
-class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
+class FINLEY_DLL SystemMatrixAdapter:public escript::AbstractSystemMatrix {
 
 /**
    \brief

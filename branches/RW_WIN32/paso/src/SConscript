@@ -1,0 +1,55 @@
+Import('*')
+
+paso_env=env
+
+sources= Split("""Options_getPackage.c
+                  Options_getSolver.c
+                  Options_setDefaults.c
+                  Paso.c
+                  SystemMatrix.c
+                  SystemMatrixPattern.c
+                  SystemMatrixPattern_getSubpattern.c
+                  SystemMatrixPattern_mis.c
+                  SystemMatrixPattern_unrollBlocks.c
+                  SystemMatrix_MatrixVector.c
+                  SystemMatrix_borrowNormalization.c
+                  SystemMatrix_copy.c
+                  SystemMatrix_getSubmatrix.c
+                  SystemMatrix_getSystemMatrixTypeId.c
+                  SystemMatrix_loadMM.c
+                  SystemMatrix_nullifyRowsAndCols.c
+                  SystemMatrix_saveHB.c
+                  SystemMatrix_saveMM.c
+                  SystemMatrix_setValues.c
+                  Util.c
+                  solve.c
+                  Solvers/BiCGStab.c
+                  Solvers/GMRES.c
+                  Solvers/PCG.c
+                  Solvers/Solver.c
+                  Solvers/Solver_ILU.c
+                  Solvers/Solver_SchurComplement.c
+                  Solvers/Solver_applyBlockDiagonalMatrix.c
+                  Solvers/Solver_jacobi.c
+                  Solvers/Solver_preconditioner.c""")
+headers= Split("""Common.h
+                  Options.h
+                  Paso.h
+                  SystemMatrix.h
+                  SystemMatrixPattern.h
+                  Util.h
+                  Solvers/Solver.h""")      
+
+# TODO: if building with SCSL then the appropriate sources need to be appended to the above.                         
+                         
+if env['PLATFORM'] == "win32":
+   paso_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'PASO_EXPORTS'])
+   paso_env.Append(LIBS='mmio')
+   paso_env['PDB'] = 'paso.pdb'
+
+paso_lib = paso_env.SharedLibrary( 'paso', sources)
+
+include = Dir('paso', esys_inc)
+
+paso_env.Install( include, headers)
+paso_env.Install( esys_lib, paso_lib)

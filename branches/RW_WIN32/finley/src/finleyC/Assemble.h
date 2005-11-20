@@ -36,6 +36,11 @@
 #include "escript/Data/DataC.h"
 #include "paso/SystemMatrix.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct Assemble_Parameters {
    dim_t numQuad;
    dim_t numDim;
@@ -94,6 +99,10 @@ Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Step_i
 Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_out;
 Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_in;
 void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* #ifndef INC_FINLEY_ASSEMBLE */
 

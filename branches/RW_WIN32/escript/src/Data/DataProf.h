@@ -14,6 +14,15 @@
 
 #if !defined escript_DataProf_20050620_H
 #define escript_DataProf_20050620_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 using namespace std;
 
@@ -42,7 +51,7 @@ typedef struct profDataEntry {
    For templates describe any conditions that the parameters used in the
    template must satisfy
 */
-class DataProf {
+class ESCRIPT_DLL DataProf {
 
  public:
 

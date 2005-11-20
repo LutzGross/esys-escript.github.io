@@ -154,7 +154,7 @@ DataConstant::setSlice(const DataAbstract* value,
   if (getPointDataView().getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
-  if (tempDataConst->getPointDataView().getRank()>0 and !value->getPointDataView().checkShape(shape)) {
+  if (tempDataConst->getPointDataView().getRank()>0 && !value->getPointDataView().checkShape(shape)) {
     throw DataException (value->getPointDataView().createShapeErrorMessage(
                 "Error - Couldn't copy slice due to shape mismatch.",shape));
   }

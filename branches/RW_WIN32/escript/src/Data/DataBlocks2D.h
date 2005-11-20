@@ -14,6 +14,15 @@
 
 #if !defined escript_DataBlocks2D_20040405_H
 #define escript_DataBlocks2D_20040405_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include <vector>
 #include "escript/Data/DataVector.h"
@@ -31,7 +40,7 @@ namespace escript {
    the DataExpanded class.
 */
 
-class DataBlocks2D {
+	class ESCRIPT_DLL DataBlocks2D {
 
  public:
 

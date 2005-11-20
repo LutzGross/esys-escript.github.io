@@ -27,6 +27,9 @@
 #define INC_FINLEY_UTIL
 
 #include "Finley.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -61,6 +64,10 @@ typedef struct Finley_Util_ValueAndIndex Finley_Util_ValueAndIndex;
 
 void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array);
 int Finley_Util_ValueAndIndex_compar(const void *, const void *);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif /* #ifndef INC_FINLEY_UTIL */
 

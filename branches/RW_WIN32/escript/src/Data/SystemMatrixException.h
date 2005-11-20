@@ -15,6 +15,15 @@
 #if !defined  escript_SystemMatrixException_20040608_H
 #define escript_SystemMatrixException_20040608_H
 
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 #include "esysUtils/EsysException.h"
 #include <string>
 
@@ -28,7 +37,7 @@ namespace escript {
    SystemMatrixException exception class.
    The class provides a public function returning the exception name
 */
-class SystemMatrixException:public esysUtils::EsysException {
+	class ESCRIPT_DLL SystemMatrixException:public esysUtils::EsysException {
 
  public:
   /**

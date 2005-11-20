@@ -14,6 +14,15 @@
        
 #ifndef ESYSEXCEPTION_H
 #define ESYSEXCEPTION_H
+#ifdef MSVC
+#ifdef ESYSUTILS_EXPORTS
+#define ESYSUTILS_DLL __declspec(dllexport)
+#else
+#define ESYSUTILS_DLL __declspec(dllimport)
+#endif
+#else
+#define ESYSUTILS_DLL
+#endif
 
 #include <string>
 #include <sstream>
@@ -39,7 +48,7 @@ namespace esysUtils {
    None
 
 */
-class EsysException:public std::exception {
+class ESYSUTILS_DLL EsysException:public std::exception {
   public:
   /**
      \brief

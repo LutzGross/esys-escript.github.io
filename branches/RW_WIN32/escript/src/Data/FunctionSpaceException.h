@@ -14,6 +14,15 @@
                                                                            
 #if !defined  escript_FunctionSpaceException_20040602_H
 #define escript_FunctionSpaceException_20040602_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "esysUtils/EsysException.h"
 #include <string>
@@ -28,7 +37,7 @@ namespace escript {
    FunctionSpaceException exception class.
    The class provides a public function returning the exception name
 */
-class FunctionSpaceException:public esysUtils::EsysException {
+	class ESCRIPT_DLL FunctionSpaceException:public esysUtils::EsysException {
 
  public:
   /**

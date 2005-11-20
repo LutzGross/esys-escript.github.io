@@ -16,6 +16,15 @@
 #if !defined escript_AbstractContinuousDomain_20040528_H
 #define escript_AbstractContinuousDomain_20040528_H
 
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 #include "escript/Data/AbstractDomain.h"
 #include "escript/Data/AbstractSystemMatrix.h"
 #include "escript/Data/Data.h"
@@ -42,7 +51,7 @@ class FunctionSpace;
    NOTE: Most of the virtual functions would be pure virtual except
    boost.python requires a non abstract base class.
 */
-class AbstractContinuousDomain : public AbstractDomain {
+class ESCRIPT_DLL AbstractContinuousDomain : public AbstractDomain {
 
  public:
 

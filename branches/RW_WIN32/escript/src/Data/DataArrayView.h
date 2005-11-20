@@ -17,7 +17,18 @@
 #if !defined escript_DataArrayView_20040323_H
 #define escript_DataArrayView_20040323_H
 
-#include "esysUtils/EsysAssert.h"
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
+
+
+
 
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>
@@ -48,11 +59,16 @@ namespace escript {
    offsets specified, in order to provide views of other data-points in
    the underlying data array.
 */
+// Win32 Refactor - the operator functions need to be declared prior to being declared as friends for Win32 platform to prevent linking problems
+class DataArrayView;
+ESCRIPT_DLL bool operator==(const DataArrayView& left, const DataArrayView& right);
+ESCRIPT_DLL bool operator!=(const DataArrayView& left, const DataArrayView& right);
 
-class DataArrayView {
 
-  friend bool operator==(const DataArrayView& left, const DataArrayView& right);
-  friend bool operator!=(const DataArrayView& left, const DataArrayView& right);
+class ESCRIPT_DLL DataArrayView {
+
+  ESCRIPT_DLL friend bool operator==(const DataArrayView& left, const DataArrayView& right);
+  ESCRIPT_DLL friend bool operator!=(const DataArrayView& left, const DataArrayView& right);
 
  public:
 
@@ -834,8 +850,6 @@ class DataArrayView {
 
 };
 
-bool operator==(const DataArrayView& left, const DataArrayView& right);
-bool operator!=(const DataArrayView& left, const DataArrayView& right);
 
 /**
   \brief

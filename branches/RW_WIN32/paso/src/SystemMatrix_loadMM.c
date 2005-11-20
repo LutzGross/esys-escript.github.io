@@ -12,7 +12,7 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "mmio.h"
+#include "mmio/mmio.h"
 #include "SystemMatrix.h"
 
 static void swap( index_t*, index_t*, double*, int, int );

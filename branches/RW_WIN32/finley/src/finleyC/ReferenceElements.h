@@ -32,6 +32,9 @@
 #include "Finley.h"
 #include "ShapeFunctions.h"
 #include "Quadrature.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -161,6 +164,10 @@ typedef struct Finley_RefElement {
 Finley_RefElement* Finley_RefElement_alloc(ElementTypeId,int);
 void Finley_RefElement_dealloc(Finley_RefElement*);
 ElementTypeId Finley_RefElement_getTypeId(char*);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif /* #ifndef INC_FINLEY_REFERENCEELEMENTS */
 

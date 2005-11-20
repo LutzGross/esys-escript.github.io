@@ -44,8 +44,8 @@
 *  ==============================================================
 */
 
-#include "Common.h"
-#include "SystemMatrix.h"
+#include "Paso/Common.h"
+#include "Paso/SystemMatrix.h"
 #include "Solver.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -58,19 +58,7 @@ err_t Paso_Solver_GMRES(
     dim_t *iter,
     double * tolerance,dim_t Length_of_recursion,dim_t restart) {
 
-  /* Local variables */
-
-  double *AP,*X_PRES[MAX(Length_of_recursion,0)+1],*R_PRES[MAX(Length_of_recursion,0)+1],*P_PRES[MAX(Length_of_recursion,0)+1];
-  double P_PRES_dot_AP[MAX(Length_of_recursion,0)],R_PRES_dot_P_PRES[MAX(Length_of_recursion,0)+1],BREAKF[MAX(Length_of_recursion,0)+1],ALPHA[MAX(Length_of_recursion,0)];
-  double P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,abs_RP,breakf0;
-  double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual,diff,L2_R,Norm_of_residual_global;
-  double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
-  dim_t maxit,Num_iter_global,num_iter_restart,num_iter;
-  dim_t i,z,order;
-  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
-  err_t Status=SOLVER_NO_ERROR;
-
-  /* adapt original routine parameters */
+/* adapt original routine parameters */
 
   dim_t n=A->num_cols * A-> col_block_size;
   dim_t Length_of_mem=MAX(Length_of_recursion,0)+1;
@@ -81,6 +69,40 @@ err_t Paso_Solver_GMRES(
     return SOLVER_INPUT_ERROR;
   }
 
+  /* Local variables */
+  /* MSVC Refactor note:
+     
+	 This syntax is illegal in MSVC -
+	 double *X_PRES[MAX(Length_of_recursion,0)+1];
+
+	 This is equivalent -
+     double **X_PRES = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion+1,double*) : (double**)NULL;
+	 ...
+	 TMPMEMFREE(X_PRES);
+
+	 Note: The test of input parameters section has been moved above the local variable declarations so the new
+	       mallocs aren't performed unnecessarily
+
+
+  */
+  double **X_PRES = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion+1,double*) : (double**)NULL;
+  double **R_PRES = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion+1,double*) : (double**)NULL;
+  double **P_PRES = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion+1,double*) : (double**)NULL;
+  double *AP;
+  double *P_PRES_dot_AP = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion,double) : (double*)NULL;
+  double *R_PRES_dot_P_PRES = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion+1,double) : (double*)NULL;
+  double *BREAKF = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion+1,double) : (double*)NULL;
+  double *ALPHA = (Length_of_recursion>0) ? TMPMEMALLOC(Length_of_recursion,double) : (double*)NULL;
+
+  double P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,abs_RP,breakf0;
+  double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual,diff,L2_R,Norm_of_residual_global;
+  double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
+  dim_t maxit,Num_iter_global,num_iter_restart,num_iter;
+  dim_t i,z,order;
+  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
+  err_t Status=SOLVER_NO_ERROR;
+
+  
   /*     allocate memory: */
 
   AP=TMPMEMALLOC(n,double);
@@ -552,15 +574,24 @@ err_t Paso_Solver_GMRES(
 	  }
         }
     }  /* end of parallel region */
-    TMPMEMFREE(AP);
-    for (i=0;i<Length_of_recursion;i++) {
-       TMPMEMFREE(X_PRES[i]);
-       TMPMEMFREE(R_PRES[i]);
-       TMPMEMFREE(P_PRES[i]);
-    }
     *iter=Num_iter_global;
     *tolerance=Norm_of_residual_global;
   }
+  TMPMEMFREE(AP);
+  for (i=0;i<Length_of_recursion;i++) {
+    TMPMEMFREE(X_PRES[i]);
+    TMPMEMFREE(R_PRES[i]);
+    TMPMEMFREE(P_PRES[i]);
+  }
+
+  TMPMEMFREE(X_PRES);
+  TMPMEMFREE(R_PRES);
+  TMPMEMFREE(P_PRES);
+  TMPMEMFREE(P_PRES_dot_AP);
+  TMPMEMFREE(R_PRES_dot_P_PRES);
+  TMPMEMFREE(BREAKF);
+  TMPMEMFREE(ALPHA);
+
   return Status;
 }
 

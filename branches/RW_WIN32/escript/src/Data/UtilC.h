@@ -15,6 +15,15 @@
                                                                            
 #if !defined  escript_UtilC_20040611_H
 #define escript_UtilC_20040611_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #define ESCRIPT_MAX_DATA_RANK 4
 /**

@@ -12,7 +12,7 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "mmio.h"
+#include "mmio/mmio.h"
 #include "SystemMatrix.h"
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {

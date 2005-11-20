@@ -16,6 +16,15 @@
 #if !defined finley_MeshAdapter_20040526_H
 #define finley_MeshAdapter_20040526_H
 
+#ifdef MSVC
+#ifdef FINLEY_EXPORTS
+#define FINLEY_DLL __declspec(dllexport)
+#else
+#define FINLEY_DLL __declspec(dllimport)
+#endif
+#else
+#define FINLEY_DLL
+#endif
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "escript/Data/Data.h"
 #include "escript/Data/FunctionSpace.h"
@@ -51,7 +60,7 @@ struct null_deleter
    interface for the Finley library.
 */
 
-class MeshAdapter:public escript::AbstractContinuousDomain {
+class FINLEY_DLL MeshAdapter:public escript::AbstractContinuousDomain {
 
  public:
 

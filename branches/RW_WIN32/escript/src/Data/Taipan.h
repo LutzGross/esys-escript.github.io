@@ -14,6 +14,15 @@
 
 #if !defined escript_Taipan_20050427_H
 #define escript_Taipan_20050427_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 namespace escript {
 
@@ -36,7 +45,7 @@ namespace escript {
    arrays are never deallocated, but are kept for possible reuse.
 */
 
-class Taipan {
+	class ESCRIPT_DLL Taipan {
 
  public:
 

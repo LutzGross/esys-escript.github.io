@@ -13,10 +13,24 @@
 
 #ifndef INC_PASO_SYSTEM
 #define INC_PASO_SYSTEM
+#ifdef MSVC
+#ifdef PASO_EXPORTS
+#define PASO_DLL __declspec(dllexport)
+#else
+#define PASO_DLL __declspec(dllimport)
+#endif
+#else
+#define PASO_DLL
+#endif
 
 #include "Common.h"
 #include "SystemMatrixPattern.h"
 #include "Options.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /**************************************************************/
 
@@ -64,23 +78,29 @@ typedef struct Paso_SystemMatrix {
 
 /*  interfaces: */
 
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t);
-Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix*);
-void Paso_SystemMatrix_dealloc(Paso_SystemMatrix*);
+PASO_DLL Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t);
+PASO_DLL Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix*);
+PASO_DLL void Paso_SystemMatrix_dealloc(Paso_SystemMatrix*);
 
-void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
-void Paso_SystemMatrix_copy(Paso_SystemMatrix*,double*);
-void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
-void Paso_SystemMatrix_MatrixVector(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+PASO_DLL void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
+PASO_DLL void Paso_SystemMatrix_copy(Paso_SystemMatrix*,double*);
+PASO_DLL void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
+PASO_DLL void Paso_SystemMatrix_MatrixVector(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
 
-void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
-void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
-Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
-void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-void Paso_SystemMatrix_setDefaults(Paso_Options*);
-int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, bool_t symmetry);
-Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,dim_t,index_t*,index_t*);
-double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
+PASO_DLL void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
+PASO_DLL void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
+PASO_DLL Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
+PASO_DLL void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+PASO_DLL void Paso_SystemMatrix_setDefaults(Paso_Options*);
+PASO_DLL int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, bool_t symmetry);
+PASO_DLL Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,dim_t,index_t*,index_t*);
+PASO_DLL double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+
 
 #endif /* #ifndef INC_PASO_SYSTEM */
 

@@ -49,7 +49,7 @@ int AbstractSystemMatrix::isEmpty() const {
    return m_empty;
 }
 
-Data operator*(const AbstractSystemMatrix& left,const Data& right)
+ESCRIPT_DLL Data operator*(const AbstractSystemMatrix& left,const Data& right)
 {
       Data tmp=(Data) right;
       return left.vectorMultiply(tmp);

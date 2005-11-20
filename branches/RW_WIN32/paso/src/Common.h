@@ -60,8 +60,20 @@ typedef int err_t;
 
 /*    memory allocation:                                      */
 
+//============================================================
+//
+// Pyton needs special treatment for memory
+// this should applied to objects that are returned to Python
+//
+#ifdef MSVC
+#include <boost/python/detail/wrap_python.hpp>
+#define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) PyMem_Malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
+#define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { PyMem_Free(_PTR_); (_PTR_) = NULL; }
+#else
 #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
 #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
+#endif
+
 #ifdef __ECC
   #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
   #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
@@ -73,8 +85,8 @@ typedef int err_t;
      #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
   #endif
 #else
-  #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-  #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
+  #define MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
+  #define MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
   #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
   #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
 #endif

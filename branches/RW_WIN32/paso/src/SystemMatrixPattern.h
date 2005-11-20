@@ -14,7 +14,22 @@
 #ifndef INC_PASO_SYSTEMMATRIXPATTERN
 #define INC_PASO_SYSTEMMATRIXPATTERN
 
+#ifdef MSVC
+#ifdef PASO_EXPORTS
+#define PASO_DLL __declspec(dllexport)
+#else
+#define PASO_DLL __declspec(dllimport)
+#endif
+#else
+#define PASO_DLL
+#endif
+
+
 #include "Common.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -37,13 +52,17 @@ typedef struct Paso_SystemMatrixPattern {
 
 /*  interfaces: */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(dim_t, index_t*,index_t*);
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_reference(Paso_SystemMatrixPattern*);
-void Paso_SystemMatrixPattern_dealloc(Paso_SystemMatrixPattern*);
-int Paso_comparIndex(const void *,const void *);
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatrixPattern*,dim_t,index_t*,index_t*);
-void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* mis_marker);
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern*, dim_t,dim_t);
+PASO_DLL Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(dim_t, index_t*,index_t*);
+PASO_DLL Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_reference(Paso_SystemMatrixPattern*);
+PASO_DLL void Paso_SystemMatrixPattern_dealloc(Paso_SystemMatrixPattern*);
+PASO_DLL int Paso_comparIndex(const void *,const void *);
+PASO_DLL Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatrixPattern*,dim_t,index_t*,index_t*);
+PASO_DLL void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* mis_marker);
+PASO_DLL Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern*, dim_t,dim_t);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */
 

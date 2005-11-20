@@ -1,0 +1,7 @@
+Import('*')
+
+if env['PLATFORM'] == "win32":
+   win32_utils_env = env
+   win32_utils_lib = win32_utils_env.StaticLibrary('ext_math', 'ext_math.c')
+   win32_utils_env.Install( esys_lib, win32_utils_lib)
+   win32_utils_env.Install( esys_inc, 'ext_math.h')

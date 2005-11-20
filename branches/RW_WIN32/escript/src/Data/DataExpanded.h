@@ -15,6 +15,15 @@
                                                                            
 #if !defined escript_DataExpanded_20040323_H
 #define escript_DataExpanded_20040323_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "DataAbstract.h"
 #include "DataBlocks2D.h"
@@ -43,7 +52,7 @@ class DataTagged;
    template must satisfy.
 */
 
-class DataExpanded : public DataAbstract {
+class ESCRIPT_DLL DataExpanded : public DataAbstract {
 
  public:
 

@@ -85,10 +85,11 @@ Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
 
 void MeshAdapter::write(const std::string& fileName) const
 {
-  char fName[fileName.size()+1];
+  char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
   strcpy(fName,fileName.c_str());
   Finley_Mesh_write(m_finleyMesh.get(),fName);
   checkFinleyError();
+  TMPMEMFREE(fName);
 }
 
 // void MeshAdapter::getTagList(int functionSpaceType,

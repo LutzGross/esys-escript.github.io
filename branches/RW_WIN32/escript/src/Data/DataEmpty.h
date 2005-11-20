@@ -15,6 +15,15 @@
 
 #if !defined escript_DataEmpty_20040726_H
 #define escript_DataEmpty_20040726_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "DataAbstract.h"
 
@@ -28,7 +37,7 @@ namespace escript {
    Implements the DataAbstract interface for an empty Data object.
 */
 
-class DataEmpty : public DataAbstract {
+	class ESCRIPT_DLL DataEmpty : public DataAbstract {
 
  public:
 

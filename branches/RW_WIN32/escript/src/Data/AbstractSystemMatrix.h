@@ -15,6 +15,15 @@
                                                                            
 #if !defined  escript_AbstractSystemMatrix_20040628_H
 #define escript_AbstractSystemMatrix_20040628_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/SystemMatrixException.h"
@@ -34,7 +43,7 @@ namespace escript {
    For templates describe any conditions that the parameters used in the
    template must satisfy
 */
-class AbstractSystemMatrix {
+class ESCRIPT_DLL AbstractSystemMatrix {
 
  public:
 
@@ -164,7 +173,7 @@ class AbstractSystemMatrix {
 
 };
 
-Data operator*(const AbstractSystemMatrix& left,const Data& right) ;
+ESCRIPT_DLL Data operator*(const AbstractSystemMatrix& left,const Data& right) ;
 
 
 

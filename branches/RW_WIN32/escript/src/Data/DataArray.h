@@ -14,6 +14,15 @@
 
 #if !defined escript_DataArray_20040421_H
 #define escript_DataArray_20040421_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "DataArrayView.h"
 
@@ -35,7 +44,7 @@ namespace escript {
 
 */
 
-class DataArray {
+class ESCRIPT_DLL DataArray {
 
  public:
 
