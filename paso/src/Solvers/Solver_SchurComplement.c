@@ -13,8 +13,8 @@
 
 /**************************************************************/
 
-#include "Paso.h"
-#include "SystemMatrix.h"
+#include "Paso/Paso.h"
+#include "Paso/SystemMatrix.h"
 #include "Solver.h"
 
 /**************************************************************/

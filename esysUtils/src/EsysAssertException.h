@@ -31,6 +31,7 @@ namespace esysUtils {
    EsysAssertException exception class.
    The class provides a public function returning the exception name.
 */
+// Note the following class is totally inline so win32 doesn't not require dllexport decoration
 class EsysAssertException:public EsysException {
 
  public:

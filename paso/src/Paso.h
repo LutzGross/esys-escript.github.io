@@ -14,9 +14,23 @@
 #ifndef INC_PASO
 #define INC_PASO
 
+#ifdef MSVC
+#ifdef PASO_EXPORTS
+#define PASO_DLL __declspec(dllexport)
+#else
+#define PASO_DLL __declspec(dllimport)
+#endif
+#else
+#define PASO_DLL
+#endif
+
 #include "Common.h"
 #include "Options.h"
 #include "SystemMatrix.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -40,15 +54,20 @@ typedef enum Paso_ErrorCodeType Paso_ErrorCodeType;
 
 /* interfaces */
 
-double Paso_timer(void);
-bool_t Paso_checkPtr(void*);
-void Paso_resetError(void);
-void Paso_setError(Paso_ErrorCodeType err,char* msg);
-bool_t Paso_noError(void);
-Paso_ErrorCodeType Paso_getErrorType(void);
-char* Paso_getErrorMessage(void);
-void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
-void Paso_solve_free(Paso_SystemMatrix* in);
+PASO_DLL double Paso_timer(void);
+PASO_DLL bool_t Paso_checkPtr(void*);
+PASO_DLL void Paso_resetError(void);
+PASO_DLL void Paso_setError(Paso_ErrorCodeType err,char* msg);
+PASO_DLL bool_t Paso_noError(void);
+PASO_DLL Paso_ErrorCodeType Paso_getErrorType(void);
+PASO_DLL char* Paso_getErrorMessage(void);
+PASO_DLL void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+PASO_DLL void Paso_solve_free(Paso_SystemMatrix* in);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif /* #ifndef INC_PASO */
 

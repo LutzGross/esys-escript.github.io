@@ -406,7 +406,7 @@ void DataTestCase::testOperations() {
   Data result(base.powD(power));
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      assert(result.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
+      assert(result.getPointDataView()(i,j) == pow((double)dataView.index(i,j),3.0));
     }
   }
 

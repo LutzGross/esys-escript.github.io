@@ -14,6 +14,15 @@
 
 #if !defined escript_DataVector_20050324_H
 #define escript_DataVector_20050324_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include <vector>
 
@@ -33,7 +42,7 @@ namespace escript {
    client classes.
 */
 
-class DataVector {
+	class ESCRIPT_DLL DataVector {
 
  public:
 

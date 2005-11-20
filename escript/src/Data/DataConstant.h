@@ -15,6 +15,15 @@
                                                                            
 #if !defined escript_DataConstant_20040323_H
 #define escript_DataConstant_20040323_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "escript/Data/DataAbstract.h"
 #include "escript/Data/DataArray.h"
@@ -33,7 +42,7 @@ namespace escript {
    DataConstant stores a single data point which represents the entire
    function space.
 */
-class DataConstant : public DataAbstract  {
+	class ESCRIPT_DLL DataConstant : public DataAbstract  {
 
  public:
 

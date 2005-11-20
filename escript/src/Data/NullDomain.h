@@ -14,7 +14,15 @@
 
 #if !defined escript_NullDomain_20040604_H
 #define escript_NullDomain_20040604_H
-
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 #include "escript/Data/AbstractDomain.h"
 
 #include <string>
@@ -32,7 +40,7 @@ namespace escript {
    methods.
 */
 
-class NullDomain : public AbstractDomain {
+	class ESCRIPT_DLL NullDomain : public AbstractDomain {
 
  public:
 

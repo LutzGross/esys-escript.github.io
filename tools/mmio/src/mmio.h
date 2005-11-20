@@ -9,6 +9,17 @@
 
 #ifndef MM_IO_H
 #define MM_IO_H
+/* TODO: Move win32 to Static library for MMIO
+#ifdef MSVC
+#ifdef MMIO_EXPORTS
+#define MMIO_DLL __declspec(dllexport)
+#else
+#define MMIO_DLL __declspec(dllimport)
+#endif
+#else
+*/
+#define MMIO_DLL
+//#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,15 +31,15 @@ extern "C" {
 
 typedef char MM_typecode[4];
 
-char *mm_typecode_to_str(MM_typecode matcode);
+MMIO_DLL char  *mm_typecode_to_str(MM_typecode matcode);
 
-int mm_read_banner(FILE *f, MM_typecode *matcode);
-int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz);
-int mm_read_mtx_array_size(FILE *f, int *M, int *N);
+MMIO_DLL int  mm_read_banner(FILE *f, MM_typecode *matcode);
+MMIO_DLL int  mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz);
+MMIO_DLL int  mm_read_mtx_array_size(FILE *f, int *M, int *N);
 
-int mm_write_banner(FILE *f, MM_typecode matcode);
-int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz);
-int mm_write_mtx_array_size(FILE *f, int M, int N);
+MMIO_DLL int  mm_write_banner(FILE *f, MM_typecode matcode);
+MMIO_DLL int  mm_write_mtx_crd_size(FILE *f, int M, int N, int nz);
+MMIO_DLL int  mm_write_mtx_array_size(FILE *f, int M, int N);
 
 
 /********************* MM_typecode query fucntions ***************************/
@@ -50,7 +61,7 @@ int mm_write_mtx_array_size(FILE *f, int M, int N);
 #define mm_is_skew(typecode)	((typecode)[3]=='K')
 #define mm_is_hermitian(typecode)((typecode)[3]=='H')
 
-int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
+MMIO_DLL int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
 
 /********************* MM_typecode modify fucntions ***************************/
@@ -123,14 +134,14 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
 /*  high level routines */
 
-int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I[], int J[],
+MMIO_DLL int  mm_write_mtx_crd(char fname[], int M, int N, int nz, int I[], int J[],
 		 double val[], MM_typecode matcode);
-int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
+MMIO_DLL int  mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
 		double val[], MM_typecode matcode);
-int mm_read_mtx_crd_entry(FILE *f, int *I, int *J, double *real, double *img,
+MMIO_DLL int  mm_read_mtx_crd_entry(FILE *f, int *I, int *J, double *real, double *img,
 			MM_typecode matcode);
 
-int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
+MMIO_DLL int  mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
                 double **val_, int **I_, int **J_);
 
 #ifdef __cplusplus

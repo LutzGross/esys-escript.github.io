@@ -15,6 +15,15 @@
 
 #if !defined escript_AbstractDomain_20040609_H
 #define escript_AbstractDomain_20040609_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include <string>
 #include <utility>
@@ -36,7 +45,7 @@ class FunctionSpace;
    Base class for all escript domains.
 */
 
-class AbstractDomain {
+class ESCRIPT_DLL AbstractDomain {
 
  public:
 

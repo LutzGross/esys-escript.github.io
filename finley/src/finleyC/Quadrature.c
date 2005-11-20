@@ -122,9 +122,11 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
 void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeights) {
   char error_msg[LenErrorMsg_MAX];
   int numQuadNodes1d,i,j,l;
-  double quadNodes1d[numQuadNodes],quadWeights1d[numQuadNodes];
   #define DIM 2
-  
+  /* Win32 Refactor */
+  double *quadNodes1d = (numQuadNodes>0) ? TMPMEMALLOC(numQuadNodes,double) : (double*)NULL;
+  double *quadWeights1d = (numQuadNodes>0) ? TMPMEMALLOC(numQuadNodes,double) : (double*)NULL;
+
   /*  find numQuadNodes1d with numQuadNodes1d**2==numQuadNodes: */
   
   for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
@@ -147,11 +149,18 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
           }
         }
       }
+	  /* Win32 Refactor */
+	  TMPMEMFREE(quadNodes1d);
+	  TMPMEMFREE(quadWeights1d);
       return;
     }
   }
   sprintf(error_msg,"__FILE__: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
   Finley_setError(VALUE_ERROR,error_msg);
+
+  /* Win32 Refactor */
+  TMPMEMFREE(quadNodes1d);
+  TMPMEMFREE(quadWeights1d);
   #undef DIM
 }
 
@@ -163,9 +172,11 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
 void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeights) {
   char error_msg[LenErrorMsg_MAX];
   int numQuadNodes1d,i,j,k,l;
-  double quadNodes1d[numQuadNodes],quadWeights1d[numQuadNodes];
   #define DIM 3
-  
+  /* Win32 Refactor */
+  double *quadNodes1d = (numQuadNodes>0) ? TMPMEMALLOC(numQuadNodes,double) : (double*)NULL;
+  double *quadWeights1d = (numQuadNodes>0) ? TMPMEMALLOC(numQuadNodes,double) : (double*)NULL;
+
   /*  find numQuadNodes1d with numQuadNodes1d**3==numQuadNodes: */
   
   for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
@@ -191,12 +202,19 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
           }
         }
       }
-      
+	  /* Win32 Refactor */
+	  TMPMEMFREE(quadNodes1d);
+	  TMPMEMFREE(quadWeights1d);
+
       return;
     }
   }
   sprintf(error_msg,"__FILE__: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
   Finley_setError(VALUE_ERROR,error_msg);
+  /* Win32 Refactor */
+  TMPMEMFREE(quadNodes1d);
+  TMPMEMFREE(quadWeights1d);
+
   #undef DIM
 }
 
@@ -387,7 +405,8 @@ void Finley_Quad_getNodesPointOnFace(int numQuadNodes,double* quadNodes,double* 
 
 void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,double* quadWeights, Finley_Quad_getNodes getFaceNodes) {
     int q,i;
-    double quadNodesOnFace[numQuadNodes*(dim-1)];
+	/* Win32 Refactor */
+	double *quadNodesOnFace = (numQuadNodes*(dim-1)>0) ? TMPMEMALLOC(numQuadNodes*(dim-1),double) : (double*)NULL;
 
     #define DIM dim
     getFaceNodes(numQuadNodes,quadNodesOnFace,quadWeights);
@@ -398,6 +417,7 @@ void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,dou
        QUADNODES(dim-1,q)=0;
     }
     #undef DIM
+	TMPMEMFREE(quadNodesOnFace);
 }
 
 /**************************************************************/

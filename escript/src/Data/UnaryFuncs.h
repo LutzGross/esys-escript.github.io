@@ -15,6 +15,15 @@
                                                                            
 #if !defined escript_UnaryFuncs_20041124_H
 #define escript_UnaryFuncs_20041124_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 namespace escript {
 

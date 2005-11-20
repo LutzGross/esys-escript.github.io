@@ -39,6 +39,7 @@ namespace escript {
    rolling result in m_currentValue - which can be accessed or reset by getResult
    and resetResult respectively.
 */
+// MSVC: Note the following class is totally inline so win32 doesn't not require dllexport decoration
 template <class BinaryFunction>
 class DataAlgorithmAdapter {
   public:

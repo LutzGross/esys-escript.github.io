@@ -13,6 +13,22 @@
 
 #ifndef INC_PASO_OPTIONS
 #define INC_PASO_OPTIONS
+#ifdef MSVC
+#ifdef PASO_EXPORTS
+#define PASO_DLL __declspec(dllexport)
+#else
+#define PASO_DLL __declspec(dllimport)
+#endif
+#else
+#define PASO_DLL
+#endif
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* solver options */
 
@@ -62,9 +78,14 @@ typedef struct {
 
 /*  interfaces: */
 
-void Paso_Options_setDefaults(Paso_Options* in);
-index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry);
-index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry);
+PASO_DLL void Paso_Options_setDefaults(Paso_Options* in);
+PASO_DLL index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry);
+PASO_DLL index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 
 #endif /* #ifndef INC_PASO_OPTIONS */

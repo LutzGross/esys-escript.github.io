@@ -46,8 +46,8 @@
 #include <sstream>
 
 namespace esysUtils {
-
-  class ErrStream
+// Note the following class is totally inline so win32 doesn't not require dllexport decoration
+class ErrStream
   {
     public:
     template <typename Tmpl>

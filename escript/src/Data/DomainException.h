@@ -14,6 +14,15 @@
                                                                            
 #if !defined  escript_DomainException_20040608_H
 #define escript_DomainException_20040608_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "esysUtils/EsysException.h"
 #include <string>
@@ -28,7 +37,7 @@ namespace escript {
    DomainException exception class.
    The class provides a public function returning the exception name
 */
-class DomainException:public esysUtils::EsysException {
+	class ESCRIPT_DLL DomainException:public esysUtils::EsysException {
 
  public:
   /**

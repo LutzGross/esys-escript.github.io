@@ -14,7 +14,15 @@
 
 #if !defined escript_FunctionSpace_20040323_H
 #define escript_FunctionSpace_20040323_H
-
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 #include "escript/Data/AbstractDomain.h"
 #include "escript/Data/NullDomain.h"
 
@@ -38,7 +46,7 @@ class Data;
    template must satisfy.
 */
 
-class FunctionSpace {
+class ESCRIPT_DLL FunctionSpace {
 
  public:
   /**

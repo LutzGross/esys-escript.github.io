@@ -15,6 +15,15 @@
                                                                            
 #if !defined escript_DataAbstract_20040315_H
 #define escript_DataAbstract_20040315_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "escript/Data/DataException.h"
 #include "escript/Data/DataArrayView.h"
@@ -43,7 +52,7 @@ namespace escript {
    doubles of rank 0-4.
 */
 
-class DataAbstract {
+class ESCRIPT_DLL DataAbstract {
 
  public:
 

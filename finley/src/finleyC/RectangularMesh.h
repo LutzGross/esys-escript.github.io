@@ -27,6 +27,9 @@
 #define INC_FINLEY_RECTANGULARMESH
 
 #include "Mesh.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -38,6 +41,10 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t*,double*,bool_t*,dim_t,dim_t);
 Finley_Mesh* Finley_RectangularMesh_Line2(dim_t*,double*,bool_t*,dim_t,dim_t);
 
 #define COLOR_MOD(_I_) ((_I_%2)+((_I_==0) ? 2 : 0))
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif /* #ifndef INC_FINLEY_RECTANGULARMESH */
 

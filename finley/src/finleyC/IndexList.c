@@ -38,7 +38,9 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
 
   if (elements!=NULL) {
     dim_t NN=elements->ReferenceElement->Type->numNodes;
-    index_t id[NN],*row_node,*col_node;
+    index_t *row_node,*col_node;
+    /* win32 refactor */
+	index_t *id = (NN>0) ? TMPMEMALLOC(NN,index_t) : (index_t*)NULL;
     for (i=0;i<NN;i++) id[i]=i;
     if (reduce_col_order) {
        col_node=elements->ReferenceElement->Type->linearNodes;
@@ -68,6 +70,8 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
             }
         }
       }
+	/* win32 refactor */
+	TMPMEMFREE(id);
   }
   return;
 }

@@ -28,6 +28,9 @@
 
 #include "Finley.h"
 #include "ElementFile.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* structure to build system matrix */
 
@@ -44,6 +47,10 @@ void Finley_IndexList_insertIndex(Finley_IndexList*, index_t);
 void Finley_IndexList_toArray(Finley_IndexList*, index_t*);
 dim_t Finley_IndexList_count(Finley_IndexList*);
 void Finley_IndexList_free(Finley_IndexList*);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif /* #ifndef INC_FINLEY_INDEXLIST */
 

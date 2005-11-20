@@ -11,8 +11,8 @@
 
 /**************************************************************/
 
-#include "Paso.h"
-#include "SystemMatrix.h"
+#include "Paso/Paso.h"
+#include "Paso/SystemMatrix.h"
 #include "Solver.h"
 
 #if PTR_OFFSET !=0 || INDEX_OFFSET!=0
@@ -25,7 +25,7 @@
 /*  free space */
 
 void Paso_Solver_free(Paso_SystemMatrix* A) {
-    Paso_Preconditioner_free(A->iterative);
+    Paso_Preconditioner_free((Paso_Solver_Preconditioner*)A->iterative);
     A->iterative=NULL;
 }
 /*  call the iterative solver: */

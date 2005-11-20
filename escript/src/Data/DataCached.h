@@ -16,6 +16,15 @@
 
 #if !defined escript_DataCached_20050414_H
 #define escript_DataCached_20050414_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "DataAbstract.h"
 
@@ -29,7 +38,7 @@ namespace escript {
    Implements the DataAbstract interface for a cached Data object.
 */
 
-class DataCached : public DataAbstract {
+	class ESCRIPT_DLL DataCached : public DataAbstract {
 
  public:
 

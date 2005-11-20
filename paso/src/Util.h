@@ -3,6 +3,16 @@
 #ifndef INC_PASO_UTIL
 #define INC_PASO_UTIL
 
+#ifdef MSVC
+#ifdef PASO_EXPORTS
+#define PASO_DLL __declspec(dllexport)
+#else
+#define PASO_DLL __declspec(dllimport)
+#endif
+#else
+#define PASO_DLL
+#endif
+
 /**************************************************************/
 
 /*   Some utility routines: */
@@ -16,11 +26,21 @@
 
 #include "Common.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**************************************************************/
 
-index_t Paso_Util_cumsum(dim_t,index_t*);
-void Paso_copyDouble(dim_t n,double* source, double* target);
-bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value);
+PASO_DLL index_t Paso_Util_cumsum(dim_t,index_t*);
+PASO_DLL void Paso_copyDouble(dim_t n,double* source, double* target);
+PASO_DLL bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+
 
 #endif /* #ifndef INC_PASO_UTIL */
 

@@ -29,6 +29,9 @@
 /**************************************************************/
 
 #include "Finley.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**************************************************************/
 
@@ -59,6 +62,11 @@ Finley_Quad_getNumNodes Finley_Quad_getNumNodesTet;
 Finley_Quad_getNumNodes Finley_Quad_getNumNodesHex;
 
 void Finley_Quad_makeNodesOnFace(dim_t, dim_t,double*,double*, Finley_Quad_getNodes);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif /* #ifndef INC_FINLEY_QUADRATURE */
 

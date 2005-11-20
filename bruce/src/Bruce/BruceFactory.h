@@ -15,7 +15,15 @@
 
 #if !defined bruce_BruceFactory_20050901_H
 #define bruce_BruceFactory_20050901_H
-
+#ifdef MSVC
+#ifdef BRUCE_EXPORTS
+#define BRUCE_DLL __declspec(dllexport)
+#else
+#define BRUCE_DLL __declspec(dllimport)
+#endif
+#else
+#define BRUCE_DLL
+#endif
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "bruce/Bruce/Bruce.h"
 
@@ -37,7 +45,7 @@ namespace bruce {
      \param n0,n1,n2 Input - number of elements in each dimension
      \param l0,l1,l2 Input - length of each side of brick
   */
-  escript::AbstractContinuousDomain* brick(int n0=2, int n1=2, int n2=2,
+  BRUCE_DLL escript::AbstractContinuousDomain* brick(int n0=2, int n1=2, int n2=2,
 		                           double l0=1.0, double l1=1.0, double l2=1.0);
 
   /**
@@ -48,7 +56,7 @@ namespace bruce {
      \param n0,n1 Input - number of elements in each dimension
      \param l0,l1 Input - length of each side of rectangle
   */
-  escript::AbstractContinuousDomain* rectangle(int n0=2, int n1=2,
+  BRUCE_DLL escript::AbstractContinuousDomain* rectangle(int n0=2, int n1=2,
 				               double l0=1.0, double l1=1.0);
  
 } // end of namespace

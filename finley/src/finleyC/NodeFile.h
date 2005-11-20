@@ -21,6 +21,9 @@
 
 #include "Finley.h"
 #include "escript/Data/DataC.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Finley_NodeFile {
   dim_t numNodes;                      /* number of nodes */
@@ -61,6 +64,10 @@ void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);
 void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
 void Finley_NodeFile_allocTable(Finley_NodeFile*,dim_t);
 void Finley_NodeFile_deallocTable(Finley_NodeFile*);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #endif
 

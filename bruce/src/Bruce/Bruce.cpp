@@ -31,6 +31,13 @@ Bruce::FunctionSpaceNamesMapType Bruce::m_functionSpaceTypeNames;
 
 Bruce::Bruce()
 {
+#ifdef MSVC
+  // TODO: Initialise the member variable to see if this fixes the bruce test failure. Check with Lutz
+
+  m_n0 = 1;
+  m_n1 = 1;
+  m_n2 = 1;
+#endif
   setFunctionSpaceTypeNames();
 }
 

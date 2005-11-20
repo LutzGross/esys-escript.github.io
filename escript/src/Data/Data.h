@@ -17,6 +17,15 @@
 
 #ifndef DATA_H
 #define DATA_H
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 
 #include "escript/Data/DataAbstract.h"
 #include "escript/Data/DataTagged.h"
@@ -62,7 +71,7 @@ class DataExpanded;
    The type of Data object referred to may change during the lifetime of
    the Data object.
 */
-class Data {
+class ESCRIPT_DLL Data {
 
   public:
 
@@ -1196,28 +1205,28 @@ Data::initialise(const IValueType& value,
   Operator+
   Takes two Data objects.
 */
-Data operator+(const Data& left, const Data& right);
+ESCRIPT_DLL Data operator+(const Data& left, const Data& right);
 
 /**
   \brief
   Operator-
   Takes two Data objects.
 */
-Data operator-(const Data& left, const Data& right);
+ESCRIPT_DLL Data operator-(const Data& left, const Data& right);
 
 /**
   \brief
   Operator*
   Takes two Data objects.
 */
-Data operator*(const Data& left, const Data& right);
+ESCRIPT_DLL Data operator*(const Data& left, const Data& right);
 
 /**
   \brief
   Operator/
   Takes two Data objects.
 */
-Data operator/(const Data& left, const Data& right);
+ESCRIPT_DLL Data operator/(const Data& left, const Data& right);
 
 /**
   \brief
@@ -1225,7 +1234,7 @@ Data operator/(const Data& left, const Data& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator+(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL Data operator+(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1233,7 +1242,7 @@ Data operator+(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator-(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL Data operator-(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1241,7 +1250,7 @@ Data operator-(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator*(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL Data operator*(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1249,7 +1258,7 @@ Data operator*(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator/(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL Data operator/(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1257,7 +1266,7 @@ Data operator/(const Data& left, const boost::python::object& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator+(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL Data operator+(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -1265,7 +1274,7 @@ Data operator+(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator-(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL Data operator-(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -1273,7 +1282,7 @@ Data operator-(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator*(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL Data operator*(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -1281,13 +1290,13 @@ Data operator*(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator/(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL Data operator/(const boost::python::object& left, const Data& right);
 
 /**
   \brief
   Output operator
 */
-std::ostream& operator<<(std::ostream& o, const Data& data);
+ESCRIPT_DLL std::ostream& operator<<(std::ostream& o, const Data& data);
 
 /**
   \brief

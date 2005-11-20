@@ -14,7 +14,15 @@
 
 #if !defined escript_DataVariable_20050422_H
 #define escript_DataVariable_20050422_H
-
+#ifdef MSVC
+#ifdef ESCRIPT_EXPORTS
+#define ESCRIPT_DLL __declspec(dllexport)
+#else
+#define ESCRIPT_DLL __declspec(dllimport)
+#endif
+#else
+#define ESCRIPT_DLL
+#endif
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/DataException.h"
 #include "escript/Data/DataArrayView.h"
@@ -36,7 +44,7 @@ namespace escript {
    template must satisfy
 */
 
-class DataVariable {
+	class ESCRIPT_DLL DataVariable {
 
  public:
 

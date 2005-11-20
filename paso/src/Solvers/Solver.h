@@ -3,7 +3,7 @@
 #ifndef INC_SOLVER
 #define INC_SOLVER
 
-#include "SystemMatrix.h"
+#include "Paso/SystemMatrix.h"
 
 #define FINLEY_SOLVER_TRACE
 /* error codes used in the solver */
