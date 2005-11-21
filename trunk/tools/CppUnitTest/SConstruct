@@ -9,4 +9,8 @@ Export(["esysroot"])
 libdir = Dir(str(esysroot) + '/tools/CppUnitTest/lib')
 Export(["libdir"])
 
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
+
+Export(["cxx_flags"])
+
 SConscript('src/SConscript', src_dir='src', build_dir='obj', duplicate=0)

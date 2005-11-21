@@ -3,8 +3,6 @@ Import('*')
 import os
 import string
 
-cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
-
 mmio_path = str(esysroot) + '/tools/mmio/inc'
 
 cpp_path = [mmio_path]
