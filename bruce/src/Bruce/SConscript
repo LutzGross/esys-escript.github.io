@@ -2,7 +2,7 @@ Import('*')
 
 import os
 
-cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
 
 cpp_path = ['#../bruce/inc', '#../escript/inc',
             '#../esysUtils/inc',

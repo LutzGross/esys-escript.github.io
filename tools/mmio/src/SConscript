@@ -2,7 +2,7 @@ Import('*')
 
 import os
 
-cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
 
 cpp_path = ['#inc']
 
