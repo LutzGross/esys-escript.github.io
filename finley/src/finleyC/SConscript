@@ -3,14 +3,10 @@ Import('*')
 import os
 import string
 
-cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
-
-finley_path = str(esysroot) + '/finley/inc'
-paso_path = str(esysroot) + '/paso/inc'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
-python_path = '/raid2/tools/python-2.3.4/include/python2.3'
-boost_path = '/raid2/tools/boost/include/boost-1_31'
+finley_path = str(esysroot) + '/finley/inc'
+paso_path = str(esysroot) + '/paso/inc'
 
 cpp_path = [escript_path,
             esysUtils_path,

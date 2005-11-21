@@ -9,4 +9,14 @@ Export(["esysroot"])
 libdir = Dir(str(esysroot) + '/paso/lib')
 Export(["libdir"])
 
+python_path = '/raid2/tools/python-2.3.4/include/python2.3'
+boost_path = '/raid2/tools/boost/include/boost-1_31'
+
+Export(["python_path"])
+Export(["boost_path"])
+
+cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -c -fpic -w1'
+
+Export(["cc_flags"])
+
 SConscript('src/SConscript', src_dir='src', build_dir='obj', duplicate=0)
