@@ -1,0 +1,56 @@
+Import('*')
+
+import os
+
+cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -c -fpic -w1'
+
+cpp_path = ['#../paso/src',
+            '#../paso/src/SCSL',
+            '#../paso/src/Solvers',
+            '#../tools/mmio/inc',
+            '/raid2/tools/python-2.3.4/include/python2.3',
+            '/raid2/tools/boost/include/boost-1_31']
+
+lib = 'paso'
+sources = ['Options_getPackage.c',
+           'Options_getSolver.c',
+           'Options_setDefaults.c',
+           'Paso.c',
+           'solve.c',
+           'SystemMatrix_borrowNormalization.c',
+           'SystemMatrix.c',
+           'SystemMatrix_copy.c',
+           'SystemMatrix_getSubmatrix.c',
+           'SystemMatrix_getSystemMatrixTypeId.c',
+           'SystemMatrix_loadMM.c',
+           'SystemMatrix_MatrixVector.c',
+           'SystemMatrix_nullifyRowsAndCols.c',
+           'SystemMatrixPattern.c',
+           'SystemMatrixPattern_getSubpattern.c',
+           'SystemMatrixPattern_mis.c',
+           'SystemMatrixPattern_unrollBlocks.c',
+           'SystemMatrix_saveHB.c',
+           'SystemMatrix_saveMM.c',
+           'SystemMatrix_setValues.c',
+           'Util.c',
+           'SCSL/SCSL.c',
+           'SCSL/SCSL_direct.c',
+           'SCSL/SCSL_iterative.c',
+           'Solvers/BiCGStab.c',
+           'Solvers/GMRES.c',
+           'Solvers/PCG.c',
+           'Solvers/Solver_applyBlockDiagonalMatrix.c',
+           'Solvers/Solver.c',
+           'Solvers/Solver_ILU.c',
+           'Solvers/Solver_jacobi.c',
+           'Solvers/Solver_preconditioner.c',
+           'Solvers/Solver_SchurComplement.c']
+
+paso_env = Environment(ENV = os.environ)
+
+paso_env.Replace(CC = 'icc')
+paso_env.Replace(CCFLAGS = cc_flags)
+paso_env.Replace(CPPPATH = cpp_path)
+
+paso_lib = paso_env.StaticLibrary(lib, sources)
+paso_env.Install(libdir, paso_lib)
