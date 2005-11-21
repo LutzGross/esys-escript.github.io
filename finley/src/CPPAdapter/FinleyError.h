@@ -25,7 +25,6 @@
 #define FINLEY_DLL
 #endif
 #include "finley/finleyC/Finley.h"
-}
 
 #include <string>
 
