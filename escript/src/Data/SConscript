@@ -1,3 +1,5 @@
+libinstall = None
+
 Import('*')
 
 import os
@@ -45,3 +47,6 @@ escript_env.Replace(CPPPATH = cpp_path)
 
 escript_lib = escript_env.SharedLibrary(lib, sources)
 escript_env.Install(libdir, escript_lib)
+
+if libinstall != None:
+  escript_env.Install(libinstall, escript_lib)
