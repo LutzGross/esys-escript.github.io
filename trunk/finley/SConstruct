@@ -1,4 +1,12 @@
-libdir = Dir('#lib')
+esysroot = None
+
+Import('*')
+
+if esysroot == None:
+  esysroot = Dir('#..')
+Export(["esysroot"])
+
+libdir = Dir(str(esysroot) + '/finley/lib')
 Export(["libdir"])
 
 SConscript(['src/finleyC/SConscript','src/CPPAdapter/SConscript'], duplicate=0)

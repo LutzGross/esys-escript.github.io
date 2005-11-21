@@ -1,10 +1,13 @@
 Import('*')
 
 import os
+import string
 
 cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
 
-cpp_path = ['#../CppUnitTest/inc']
+CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
+
+cpp_path = [CppUnitTest_path]
 
 lib = 'CppUnitTest'
 sources = ['TestCase.cpp',

@@ -1,4 +1,12 @@
-libdir = Dir('#lib')
+esysroot = None
+
+Import('*')
+
+if esysroot == None:
+  esysroot = Dir('#../..')
+Export(["esysroot"])
+
+libdir = Dir(str(esysroot) + '/tools/CppUnitTest/lib')
 Export(["libdir"])
 
 SConscript('src/SConscript', src_dir='src', build_dir='obj', duplicate=0)
