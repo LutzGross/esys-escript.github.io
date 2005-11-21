@@ -1,15 +1,23 @@
 Import('*')
 
 import os
+import string
 
 cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -c -fpic -w1'
 
-cpp_path = ['#../paso/src',
-            '#../paso/src/SCSL',
-            '#../paso/src/Solvers',
-            '#../tools/mmio/inc',
-            '/raid2/tools/python-2.3.4/include/python2.3',
-            '/raid2/tools/boost/include/boost-1_31']
+paso_path = str(esysroot) + '/paso/src'
+scsl_path = str(esysroot) + '/paso/src/SCSL'
+solvers_path = str(esysroot) + '/paso/src/Solvers'
+mmio_path = str(esysroot) + '/tools/mmio/inc'
+python_path = '/raid2/tools/python-2.3.4/include/python2.3'
+boost_path = '/raid2/tools/boost/include/boost-1_31'
+
+cpp_path = [paso_path,
+            scsl_path,
+            solvers_path,
+            mmio_path,
+            python_path,
+            boost_path]
 
 lib = 'paso'
 sources = ['Options_getPackage.c',
