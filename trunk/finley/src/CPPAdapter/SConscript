@@ -1,3 +1,5 @@
+libinstall = None
+
 Import('*')
 
 import os
@@ -31,3 +33,6 @@ finleycpp_env.Replace(CPPPATH = cpp_path)
 
 finleycpp_lib = finleycpp_env.SharedLibrary(lib, sources)
 finleycpp_env.Install(libdir, finleycpp_lib)
+
+if libinstall != None:
+  finleycpp_env.Install(libinstall, finleycpp_lib)

@@ -1,10 +1,13 @@
 esysroot = None
+libinstall = None
 
 Import('*')
 
 if esysroot == None:
   esysroot = Dir('#..')
 Export(["esysroot"])
+
+Export(["libinstall"])
 
 libdir = Dir(str(esysroot) + '/finley/lib')
 Export(["libdir"])
