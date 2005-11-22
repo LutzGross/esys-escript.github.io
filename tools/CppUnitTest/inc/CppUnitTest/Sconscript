@@ -1,0 +1,17 @@
+Import('*')
+
+headers= Split("""CppUnitException.h
+                  CppUnitTestNamespace.h
+                  Guards.h
+                  Test.h
+                  TestCaller.h
+                  TestCase.h
+                  TestFailure.h
+                  TestResult.h
+                  TestRunner.h
+                  TestSuite.h
+                  TextTestResult.h
+                  estring.h""")
+
+include = Dir('CppUnitTest', esys_inc)
+env.Install( include, headers )

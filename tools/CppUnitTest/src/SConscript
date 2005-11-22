@@ -1,24 +1,29 @@
 Import('*')
 
-import os
+lib_name = 'CppUnitTest'
+sources = Split("""TestCase.cpp
+                   TestFailure.cpp
+                   TestRunner.cpp
+                   TestSuite.cpp
+                   TestResult.cpp
+                   TextTestResult.cpp""")
 
-cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+cppunit_env=env.Copy()
+cppunit_env.SConscript(dirs = ['#tools/CppUnitTest/inc/CppUnitTest'], duplicate=0)
 
-cpp_path = ['#../CppUnitTest/inc']
-
-lib = 'CppUnitTest'
-sources = ['TestCase.cpp',
-           'TestFailure.cpp',
-           'TestRunner.cpp',
-           'TestSuite.cpp',
-           'TestResult.cpp',
-           'TextTestResult.cpp']
-
-cppunit_env = Environment(ENV = os.environ)
-
-cppunit_env.Replace(CXX = 'icc')
-cppunit_env.Replace(CXXFLAGS = cxx_flags)
-cppunit_env.Replace(CPPPATH = cpp_path)
-
-cppunit_lib = cppunit_env.StaticLibrary(lib, sources)
-cppunit_env.Install(libdir, cppunit_lib)
+if env['PLATFORM'] <> "win32":
+   import os
+   
+   cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+   
+   cpp_path = ['#../CppUnitTest/inc']
+   
+   cppunit_env = Environment(ENV = os.environ)
+   
+   cppunit_env.Replace(CXX = 'icc')
+   cppunit_env.Replace(CXXFLAGS = cxx_flags)
+   cppunit_env.Replace(CPPPATH = cpp_path)
+   esys_lib = libdir
+   
+cppunit_lib = cppunit_env.StaticLibrary(lib_name, sources)
+cppunit_env.Install( esys_lib, cppunit_lib)
