@@ -1,6 +1,6 @@
 Import('*')
 
-paso_env=env
+paso_env=env.Copy()
 
 sources= Split("""Options_getPackage.c
                   Options_getSolver.c
