@@ -1,0 +1,68 @@
+esysroot = None
+
+Import('*')
+
+import os
+import string
+
+if esysroot == None:
+  esysroot = Dir('#../../..')
+
+##### these will enventually be loaded from an external config file ########
+
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
+
+python_path = '/raid2/tools/python-2.3.4/include/python2.3'
+boost_path = '/raid2/tools/boost/include/boost-1_31'
+
+python_lib_path = '/raid2/tools/python-2.3.4/lib'
+boost_lib_path = '/raid2/tools/boost/lib'
+
+############################################################################
+
+datacached_test_path = str(esysroot) + '/escript/test/DataCached'
+escript_path = str(esysroot) + '/escript/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/inc'
+CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
+
+esys_lib_path = str(esysroot) + '/lib'
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
+
+cpp_path = [datacached_test_path,
+            escript_path,
+            esysUtils_path,
+            CppUnitTest_path,
+            python_path,
+            boost_path]
+
+lib_path = [esys_lib_path,
+            esysUtils_lib_path,
+            CppUnitTest_lib_path,
+            python_lib_path,
+            boost_lib_path]
+
+libs = ['escriptcpp',
+        'esysUtils',
+        'CppUnitTest',
+        'python2.3',
+        'boost_python-intel-d-1_31',
+        'dl',
+        'util',
+        'guide',
+        'irc']
+
+sources = ['DataCachedTestCase.cpp',
+           'DataCachedTest.cpp']
+
+target = 'DataCachedTest.exe'
+
+datacached_env = Environment(ENV = os.environ)
+
+datacached_env.Replace(CXX = 'icc')
+datacached_env.Replace(CXXFLAGS = cxx_flags)
+datacached_env.Replace(CPPPATH = cpp_path)
+datacached_env.Replace(LIBPATH = lib_path)
+datacached_env.Replace(LIBS = libs)
+
+datacached_test_exe = datacached_env.Program(target, sources)
