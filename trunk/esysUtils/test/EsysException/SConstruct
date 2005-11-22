@@ -1,0 +1,51 @@
+esysroot = None
+
+Import('*')
+
+import os
+import string
+
+if esysroot == None:
+  esysroot = Dir('#../../..')
+
+##### these will enventually be loaded from an external config file ########
+
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
+
+############################################################################
+
+esysexception_test_path = str(esysroot) + '/esysUtils/test/EsysException'
+esysUtils_path = str(esysroot) + '/esysUtils/inc'
+CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
+
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
+
+cpp_path = [esysexception_test_path,
+            esysUtils_path,
+            CppUnitTest_path]
+
+lib_path = [esysUtils_lib_path,
+            CppUnitTest_lib_path]
+
+libs = ['esysUtils',
+        'CppUnitTest',
+        'guide',
+        'irc']
+
+sources = ['EsysExceptionTestCase.cpp',
+           'EsysExceptionTest.cpp']
+
+target = 'EsysExceptionTest.exe'
+
+esysexception_env = Environment(ENV = os.environ)
+
+esysexception_env.Replace(CXX = 'icc')
+esysexception_env.Replace(CC = 'icc')
+esysexception_env.Replace(CXXFLAGS = cxx_flags)
+esysexception_env.Replace(CCFLAGS = cxx_flags)
+esysexception_env.Replace(CPPPATH = cpp_path)
+esysexception_env.Replace(LIBPATH = lib_path)
+esysexception_env.Replace(LIBS = libs)
+
+esysexception_test_exe = esysexception_env.Program(target, sources)
