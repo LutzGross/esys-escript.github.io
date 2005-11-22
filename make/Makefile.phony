@@ -35,6 +35,7 @@ uninstall:
 	@rm -rf ${L_PYTH_DIR}/*.pyo
 	@echo Uninstalled ${L_PYTH_DIR}.
 	@rm -rf ${L_INSTLIB_DIR}/*.so
+	@rm -rf ${L_INSTLIB_DIR}/*.a
 	@echo Uninstalled ${L_INSTLIB_DIR}.
 	@echo ----------------------------------------------------------------------------
 
