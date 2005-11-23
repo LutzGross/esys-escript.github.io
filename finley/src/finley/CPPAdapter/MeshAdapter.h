@@ -20,9 +20,9 @@
 #include "escript/Data/Data.h"
 #include "escript/Data/FunctionSpace.h"
 extern "C" {
-#include "finley/finleyC/Mesh.h"
+#include "Mesh.h"
 }
-#include "finley/CPPAdapter/SystemMatrixAdapter.h"
+#include "SystemMatrixAdapter.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>

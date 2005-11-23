@@ -12,10 +12,10 @@
  ******************************************************************************
 */
 
-#include "finley/CPPAdapter/FinleyError.h"
-#include "finley/CPPAdapter/FinleyAdapterException.h"
+#include "FinleyError.h"
+#include "FinleyAdapterException.h"
 extern "C" {
-#include "finley/finleyC/Finley.h"
+#include "Finley.h"
 }
 
 namespace finley {

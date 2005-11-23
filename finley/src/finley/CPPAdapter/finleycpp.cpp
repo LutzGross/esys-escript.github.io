@@ -15,11 +15,11 @@
 ******************************************************************************/
 
 extern "C" {
-#include "finley/finleyC/Finley.h"
+#include "Finley.h"
 }
-#include "finley/CPPAdapter/MeshAdapter.h"
-#include "finley/CPPAdapter/MeshAdapterFactory.h"
-#include "finley/CPPAdapter/SystemMatrixAdapter.h"
+#include "MeshAdapter.h"
+#include "MeshAdapterFactory.h"
+#include "SystemMatrixAdapter.h"
 
 #include "esysUtils/EsysException.h"
 #include "esysUtils/esysExceptionTranslator.h"

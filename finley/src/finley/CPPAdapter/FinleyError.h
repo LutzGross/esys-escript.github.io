@@ -16,7 +16,7 @@
 #define finley_FinleyError_20040528_H
 
 extern "C" {
-#include "finley/finleyC/Finley.h"
+#include "Finley.h"
 }
 
 #include <string>

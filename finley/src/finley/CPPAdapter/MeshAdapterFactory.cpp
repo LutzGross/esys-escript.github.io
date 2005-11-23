@@ -14,12 +14,12 @@
 */
 
 extern "C" {
-#include "finley/finleyC/Finley.h"
-#include "finley/finleyC/Mesh.h"
-#include "finley/finleyC/RectangularMesh.h"
+#include "Finley.h"
+#include "Mesh.h"
+#include "RectangularMesh.h"
 }
-#include "finley/CPPAdapter/FinleyError.h"
-#include "finley/CPPAdapter/MeshAdapterFactory.h"
+#include "FinleyError.h"
+#include "MeshAdapterFactory.h"
 
 #include <iostream>
 #include <sstream>

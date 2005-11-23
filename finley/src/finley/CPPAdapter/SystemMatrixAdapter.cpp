@@ -18,9 +18,9 @@ extern "C" {
 }
 #include "escript/Data/Data.h"
 #include "escript/Data/UtilC.h"
-#include "finley/CPPAdapter/SystemMatrixAdapter.h" 
-#include "finley/CPPAdapter/FinleyAdapterException.h" 
-#include "finley/CPPAdapter/FinleyError.h"
+#include "SystemMatrixAdapter.h" 
+#include "FinleyAdapterException.h" 
+#include "FinleyError.h"
 #include <boost/python/extract.hpp>
 
 using namespace std;
