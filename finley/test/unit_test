@@ -2,7 +2,7 @@
 # $Id$
 # simple script to run all finley unit tests
 
-MODULES="MeshAdapter"
+MODULES=""
 
 for module in $MODULES ; do
   echo Testing: $module
