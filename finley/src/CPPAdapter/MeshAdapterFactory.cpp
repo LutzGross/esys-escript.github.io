@@ -36,11 +36,16 @@ namespace finley {
     //
     // create a copy of the filename to overcome the non-constness of call
     // to Finley_Mesh_read
-    char fName[fileName.size()+1];
+    // Win32 refactor
+    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
     strcpy(fName,fileName.c_str());
     Finley_Mesh* fMesh=Finley_Mesh_read(fName,integrationOrder);
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
+    
+    /* win32 refactor */
+    TMPMEMFREE(fName);
+    
     return temp;
   }
 

@@ -49,7 +49,9 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   /* find the mesh type to be written */
   int nodetype=FINLEY_DEGREES_OF_FREEDOM;
   int elementtype=FINLEY_UNKNOWN;
-  bool_t isCellCentered[num_data],write_celldata=FALSE,write_pointdata=FALSE;
+  /* win32 refactor */
+  bool_t *isCellCentered = (num_data>0) ? TMPMEMALLOC(num_data,bool_t) : (bool_t*)NULL;
+  bool_t write_celldata=FALSE,write_pointdata=FALSE;
   for (i_data=0;i_data<num_data;++i_data) {
      if (! isEmpty(data_pp[i_data])) {
         switch(getFunctionSpaceType(data_pp[i_data])) {
@@ -60,6 +62,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=FALSE;
@@ -71,6 +75,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=FALSE;
@@ -82,6 +88,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=FALSE;
@@ -93,6 +101,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -104,6 +114,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -115,6 +127,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -126,6 +140,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -137,6 +153,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              } else {
                  Finley_setError(TYPE_ERROR,"saveVTK: cannot write given data in single file.");
                  fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                  return;
              } 
              isCellCentered[i_data]=TRUE;
@@ -145,6 +163,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
              sprintf(error_msg,"saveVTK: Finley does not know anything about function space type %d",getFunctionSpaceType(data_pp[i_data]));
              Finley_setError(TYPE_ERROR,error_msg);
              fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
              return;
         }
         if (isCellCentered[i_data]) {
@@ -180,6 +200,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   if (elements==NULL) {
      Finley_setError(SYSTEM_ERROR,"saveVTK: undefined element file");
      fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
      return;
   }
   /* map finley element type to VTK element type */
@@ -291,6 +313,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
       sprintf(error_msg, "saveVTK: Element type %s is not supported by VTK",elements->ReferenceElement->Type->Name);
       Finley_setError(VALUE_ERROR,error_msg);
       fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
       return;
   } 
   /* xml header */
@@ -435,6 +459,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
                        sprintf(error_msg, "saveVTK: data %s: Vtk can't handle objects with rank greater than 2.",names_p[i_data]);
                        Finley_setError(VALUE_ERROR,error_msg);
                        fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                        return;
                 }
             }
@@ -455,6 +481,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
                  if  (shape>3) {
                      Finley_setError(VALUE_ERROR, "saveVTK: rank 1 object must have less then 4 components");
                      fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                      return;
                  }
                  nCompReqd = 3;
@@ -463,13 +491,16 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
                  if  (shape>3 || shape != getDataPointShape(data_pp[i_data], 1)) {
                      Finley_setError(VALUE_ERROR, "saveVTK: rank 2 object must have less then 4x4 components and must have a square shape");
                      fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                      return;
                  }
                  nCompReqd = 9;
              }
              fprintf(fileHandle_p, "<DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
+  /* win32 refactor */
+  double *sampleAvg = (nComp>0) ? TMPMEMALLOC(nComp,double) : (double*)NULL;
    
-   	     double sampleAvg[nComp];
    	     for (i=0; i<numCells; i++) {
    	        values = getSampleData(data_pp[i_data], i);
    	        /* averaging over the number of points in the sample */
@@ -506,6 +537,9 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
    	          fprintf(fileHandle_p, "\n");
              }
              fprintf(fileHandle_p, "</DataArray>\n");
+                  /* win32 refactor */
+     TMPMEMFREE(sampleAvg);
+
          }
        }
        fprintf(fileHandle_p, "</CellData>\n");
@@ -544,6 +578,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
                        sprintf(error_msg, "saveVTK: data %s: Vtk can't handle objects with rank greater than 2.",names_p[i_data]);
                        Finley_setError(VALUE_ERROR,error_msg);
                        fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                        return;
                 }
             }
@@ -564,6 +600,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
                  if  (shape>3) {
                      Finley_setError(VALUE_ERROR, "saveVTK: rank 1 object must have less then 4 components");
                      fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                      return;
                  }
                  nCompReqd = 3;
@@ -572,6 +610,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
                  if  (shape>3 || shape != getDataPointShape(data_pp[i_data], 1)) {
                      Finley_setError(VALUE_ERROR, "saveVTK: rank 2 object must have less then 4x4 components and must have a square shape");
                      fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
                      return;
                  }
                  nCompReqd = 9;
@@ -648,5 +688,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   fprintf(fileHandle_p, "</VTKFile>\n");
   /* close the file */
   fclose(fileHandle_p);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
   return;
 }
