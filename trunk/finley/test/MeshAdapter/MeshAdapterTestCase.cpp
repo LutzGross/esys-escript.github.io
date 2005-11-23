@@ -12,8 +12,8 @@
  *****************************************************************************
 */
 
-#include "finley/CPPAdapter/MeshAdapter.h"
-#include "finley/CPPAdapter/MeshAdapterFactory.h"
+#include "MeshAdapter.h"
+#include "MeshAdapterFactory.h"
 #include "escript/Data/AbstractContinuousDomain.h"
 
 #include "MeshAdapterTestCase.h"
