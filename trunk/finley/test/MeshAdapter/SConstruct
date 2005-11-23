@@ -1,0 +1,82 @@
+esysroot = None
+
+Import('*')
+
+import os
+import string
+
+if esysroot == None:
+  esysroot = Dir('#../../..')
+
+##### these will enventually be loaded from an external config file ########
+
+cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -c -fpic -w1'
+
+python_path = '/raid2/tools/python-2.3.4/include/python2.3'
+boost_path = '/raid2/tools/boost/include/boost-1_31'
+
+python_lib_path = '/raid2/tools/python-2.3.4/lib'
+boost_lib_path = '/raid2/tools/boost/lib'
+
+############################################################################
+
+meshadapter_test_path = str(esysroot) + '/finley/test/MeshAdapter'
+escript_path = str(esysroot) + '/escript/inc'
+finley_path = str(esysroot) + '/finley/inc'
+paso_path = str(esysroot) + '/paso/inc'
+mmio_path = str(esysroot) + '/tools/mmio/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/inc'
+CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
+
+esys_lib_path = str(esysroot) + '/lib'
+finley_lib_path = str(esysroot) + '/finley/lib'
+mmio_lib_path = str(esysroot) + '/tools/mmio/lib'
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
+
+cpp_path = [meshadapter_test_path,
+            escript_path,
+            finley_path,
+            paso_path,
+            mmio_path,
+            esysUtils_path,
+            CppUnitTest_path,
+            python_path,
+            boost_path]
+
+lib_path = [esys_lib_path,
+            finley_lib_path,
+            mmio_lib_path,
+            esysUtils_lib_path,
+            CppUnitTest_lib_path,
+            python_lib_path,
+            boost_lib_path]
+
+libs = ['escriptcpp',
+        'esysUtils',
+        'finleyC',
+        'paso',
+        'mmio',
+        'CppUnitTest',
+        'python2.3',
+        'boost_python-intel-d-1_31',
+        'scs_mp',
+        'dl',
+        'util',
+        'guide',
+        'irc']
+
+sources = ['MeshAdapterTestCase.cpp',
+           'MeshAdapterTest.cpp']
+
+target = 'MeshAdapterTest.exe'
+
+meshadapter_env = Environment(ENV = os.environ)
+
+meshadapter_env.Replace(CXX = 'icc')
+meshadapter_env.Replace(CXXFLAGS = cxx_flags)
+meshadapter_env.Replace(CPPPATH = cpp_path)
+meshadapter_env.Replace(LIBPATH = lib_path)
+meshadapter_env.Replace(LIBS = libs)
+
+meshadapter_test_exe = meshadapter_env.Program(target, sources)
