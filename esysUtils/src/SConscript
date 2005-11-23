@@ -1,22 +1,34 @@
 Import('*')
 
+lib_name = 'esysUtils'
+                                    
+utils_env=env.Copy()
+src_dir = utils_env.Dir('.').srcnode().abspath
+
 import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
-cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
 
-cpp_path = ['#../esysUtils/inc',
-            '/raid2/tools/python-2.3.4/include/python2.3',
-            '/raid2/tools/boost/include/boost-1_31']
+include = Dir('esysUtils', esys_inc)
+utils_env.Install( include, headers )
 
-lib = 'esysUtils'
-sources = ['EsysException.cpp',
-           'esysExceptionTranslator.cpp']
-
-utils_env = Environment(ENV = os.environ)
-
-utils_env.Replace(CXX = 'icc')
-utils_env.Replace(CXXFLAGS = cxx_flags)
-utils_env.Replace(CPPPATH = cpp_path)
-
-utils_lib = utils_env.StaticLibrary(lib, sources)
-utils_env.Install(libdir, utils_lib)
+if env['PLATFORM'] <> "win32":
+    import os
+    
+    cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+    
+    cpp_path = ['#../esysUtils/inc',
+                '/raid2/tools/python-2.3.4/include/python2.3',
+                '/raid2/tools/boost/include/boost-1_31']
+    
+    
+    utils_env = Environment(ENV = os.environ)
+    
+    utils_env.Replace(CXX = 'icc')
+    utils_env.Replace(CXXFLAGS = cxx_flags)
+    utils_env.Replace(CPPPATH = cpp_path)
+    
+utils_lib = utils_env.StaticLibrary(lib_name, sources)
+utils_env.Install(esys_lib, utils_lib)

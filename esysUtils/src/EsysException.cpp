@@ -13,7 +13,7 @@
 */
 
 #include <algorithm>
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 using namespace std;
 using namespace esysUtils;

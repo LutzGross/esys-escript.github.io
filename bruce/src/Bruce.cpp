@@ -13,11 +13,15 @@
  ******************************************************************************
 */
 
-#include "bruce/Bruce/Bruce.h"
-#include "bruce/Bruce/BruceException.h"
+#include "Paso/Common.h"
+
+#include "Bruce.h"
+#include "BruceException.h"
 
 #include "vtkCellType.h"
 #include <boost/python/extract.hpp>
+#include <vector>
+#include <string>
 
 using namespace std;
 using namespace escript;
@@ -893,11 +897,11 @@ Bruce::saveVTK(const std::string& filename,
   const int num_data=boost::python::extract<int>(dataDict.attr("__len__")());
 
   int MAX_namelength=256;
-  char names[num_data][MAX_namelength];
-  char* c_names[num_data];
-
-  escriptDataC data[num_data];
-  escriptDataC* ptr_data[num_data];
+ 
+ // MSVC Refactor: MS VC++ Can't cope with C99 array allocations
+  std::vector<std::string> names(num_data); // refactored from char names[num_data][MAX_namelength];
+  std::vector<escriptDataC> data(num_data); //refactored from  escriptDataC data[num_data];
+  std::vector<escriptDataC*> ptr_data(num_data); // refactored from escriptDataC* ptr_data[num_data];
 
   boost::python::list keys=dataDict.keys();
   for (int i=0; i<num_data; i++) {
@@ -908,13 +912,7 @@ Bruce::saveVTK(const std::string& filename,
     data[i]=d.getDataC();
     ptr_data[i]=&(data[i]);
     std::string n=boost::python::extract<std::string>(keys[i]);
-    c_names[i]=&(names[i][0]);
-    if (n.length()>MAX_namelength-1) {
-      strncpy(c_names[i],n.c_str(),MAX_namelength-1);
-      c_names[i][MAX_namelength-1]='\0';
-    } else {
-      strcpy(c_names[i],n.c_str());
-    }
+    names[i]=n;
   }
 
   //
@@ -927,7 +925,8 @@ Bruce::saveVTK(const std::string& filename,
 
   //
   // determine mesh type to be written
-  bool isCellCentered[num_data], write_celldata=false, write_pointdata=false;
+  std::vector<bool> isCellCentered(num_data); // MSVC refactor of c99 array construct
+  bool write_celldata=false, write_pointdata=false;
   for (int i_data=0; i_data<num_data; i_data++) {
     if (!isEmpty(ptr_data[i_data])) {
       switch(getFunctionSpaceType(ptr_data[i_data])) {

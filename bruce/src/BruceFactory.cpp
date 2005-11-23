@@ -13,8 +13,8 @@
  ******************************************************************************
 */
 
-#include "bruce/Bruce/BruceFactory.h"
-#include "bruce/Bruce/BruceException.h"
+#include "BruceFactory.h"
+#include "BruceException.h"
 
 #include <iostream>
 #include <sstream>

@@ -15,6 +15,11 @@
 
 ******************************************************************************/
 
+#ifdef MSVC
+#include "ext_math.h"
+#include "Paso/Common.h"
+#endif
+
 #include "escript/Data/Data.h"
 
 #include <iostream>
@@ -1845,11 +1850,41 @@ Data::archiveData(const std::string fileName)
   int dataPointSize = getDataPointSize();
   int dataLength = getLength();
   DataArrayView::ShapeType dataPointShape = getDataPointShape();
+
+  /* MSVC Refactor note:
+
+  This syntax is illegal in MSVC -
+  double *x_PRES_MEM[MAX(length_of_recursion,0)];
+
+  This is equivalent -
+  double **x_PRES_MEM = (length_of_recursion>0) ? TMPMEMALLOC(length_of_recursion,double*) : (double*)NULL;
+  ...
+  TMPMEMFREE(x_PRES_MEM);
+
+  Note: The test of input parameters section has been moved above the local variable declarations so the new
+  mallocs aren't performed unnecessarily
+  */
+#ifdef MSVC
+/* MSVC Refactor
+MSVC can't cope with symbolic links (or shortcuts!)
+*/
+  int* referenceNumbers = (noSamples>0) ? TMPMEMALLOC(noSamples,int) : (int*)NULL;
+#else
   int referenceNumbers[noSamples];
+#endif
+  
+
   for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
     referenceNumbers[sampleNo] = getFunctionSpace().getReferenceNoFromSampleNo(sampleNo);
   }
+#ifdef MSVC
+  /* MSVC Refactor
+  MSVC can't cope with symbolic links (or shortcuts!)
+  */
+  int *tagNumbers = (noSamples>0) ? TMPMEMALLOC(noSamples,int) : (int*)NULL;
+#else
   int tagNumbers[noSamples];
+#endif
   if (isTagged()) {
     for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
       tagNumbers[sampleNo] = getFunctionSpace().getTagFromSampleNo(sampleNo);
@@ -1954,7 +1989,14 @@ Data::archiveData(const std::string fileName)
   if (!archiveFile.good()) {
     throw DataException("archiveData Error: problem closing archive file");
   }
-
+  #ifdef MSVC
+  /* MSVC Refactor
+  MSVC can't cope with symbolic links (or shortcuts!)
+  */
+  TMPMEMFREE(referenceNumbers);
+  TMPMEMFREE(tagNumbers);
+  #endif
+  
 }
 
 void
@@ -2003,11 +2045,27 @@ Data::extractData(const std::string fileName,
       dataPointShape.push_back(flatShape[dim]);
     }
   }
+#ifdef MSVC
+  /* MSVC Refactor
+  MSVC can't cope with symbolic links (or shortcuts!)
+
+  TODO: There appear to be a few exceptions thrown in here. Need to check for memory leaks
+  */
+  int *referenceNumbers = (noSamples>0) ? TMPMEMALLOC(noSamples,int) : (int*)NULL;
+#else
   int referenceNumbers[noSamples];
+#endif
   for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
     archiveFile.read(reinterpret_cast<char *>(&referenceNumbers[sampleNo]),sizeof(int));
   }
+#ifdef MSVC
+  /* MSVC Refactor
+  MSVC can't cope with symbolic links (or shortcuts!)
+  */
+  int *tagNumbers = (noSamples>0) ? TMPMEMALLOC(noSamples,int) : (int*)NULL;
+#else
   int tagNumbers[noSamples];
+#endif
   if (dataType==2) {
     for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
       archiveFile.read(reinterpret_cast<char *>(&tagNumbers[sampleNo]),sizeof(int));
@@ -2139,6 +2197,14 @@ Data::extractData(const std::string fileName,
   }
   shared_ptr<DataAbstract> temp_data(tempData);
   m_data=temp_data;
+
+#ifdef MSVC
+  /* MSVC Refactor
+  MSVC can't cope with symbolic links (or shortcuts!)
+  */
+  TMPMEMFREE(referenceNumbers);
+  TMPMEMFREE(tagNumbers);
+#endif
 }
 
 ostream& escript::operator<<(ostream& o, const Data& data)
