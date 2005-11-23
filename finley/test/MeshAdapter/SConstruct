@@ -22,7 +22,8 @@ boost_lib_path = '/raid2/tools/boost/lib'
 
 meshadapter_test_path = str(esysroot) + '/finley/test/MeshAdapter'
 escript_path = str(esysroot) + '/escript/inc'
-finley_path = str(esysroot) + '/finley/inc'
+finley_path = str(esysroot) + '/finley/src/finley'
+finley_cppadapter_path = str(esysroot) + '/finley/src/finley/CPPAdapter'
 paso_path = str(esysroot) + '/paso/inc'
 mmio_path = str(esysroot) + '/tools/mmio/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
@@ -37,6 +38,7 @@ CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 cpp_path = [meshadapter_test_path,
             escript_path,
             finley_path,
+            finley_cppadapter_path,
             paso_path,
             mmio_path,
             esysUtils_path,
@@ -54,7 +56,7 @@ lib_path = [esys_lib_path,
 
 libs = ['escriptcpp',
         'esysUtils',
-        'finleyC',
+        'finleycpp',
         'paso',
         'mmio',
         'CppUnitTest',
