@@ -25,7 +25,7 @@
 #define BRUCE_DLL
 #endif
 #include "escript/Data/AbstractContinuousDomain.h"
-#include "bruce/Bruce/Bruce.h"
+#include "Bruce/Bruce.h"
 
 namespace bruce {
 

@@ -2,43 +2,17 @@ Import('*')
 
 paso_env=env.Copy()
 
-sources= Split("""Options_getPackage.c
-                  Options_getSolver.c
-                  Options_setDefaults.c
-                  Paso.c
-                  SystemMatrix.c
-                  SystemMatrixPattern.c
-                  SystemMatrixPattern_getSubpattern.c
-                  SystemMatrixPattern_mis.c
-                  SystemMatrixPattern_unrollBlocks.c
-                  SystemMatrix_MatrixVector.c
-                  SystemMatrix_borrowNormalization.c
-                  SystemMatrix_copy.c
-                  SystemMatrix_getSubmatrix.c
-                  SystemMatrix_getSystemMatrixTypeId.c
-                  SystemMatrix_loadMM.c
-                  SystemMatrix_nullifyRowsAndCols.c
-                  SystemMatrix_saveHB.c
-                  SystemMatrix_saveMM.c
-                  SystemMatrix_setValues.c
-                  Util.c
-                  solve.c
-                  Solvers/BiCGStab.c
-                  Solvers/GMRES.c
-                  Solvers/PCG.c
-                  Solvers/Solver.c
-                  Solvers/Solver_ILU.c
-                  Solvers/Solver_SchurComplement.c
-                  Solvers/Solver_applyBlockDiagonalMatrix.c
-                  Solvers/Solver_jacobi.c
-                  Solvers/Solver_preconditioner.c""")
-headers= Split("""Common.h
-                  Options.h
-                  Paso.h
-                  SystemMatrix.h
-                  SystemMatrixPattern.h
-                  Util.h
-                  Solvers/Solver.h""")      
+src_dir = paso_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+
+# Paso has additional source in the Solvers sub-directory. Append these to the list
+solver_filenames = os.listdir(src_dir+'/Solvers');
+sources += ['Solvers/'+x for x in solver_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers += ['Solvers/'+x for x in solver_filenames if os.path.splitext(x)[1] in ['.h']]
 
 # TODO: if building with SCSL then the appropriate sources need to be appended to the above.                         
                          

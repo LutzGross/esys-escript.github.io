@@ -1,17 +1,10 @@
 Import('*')
 
-headers= Split("""CppUnitException.h
-                  CppUnitTestNamespace.h
-                  Guards.h
-                  Test.h
-                  TestCaller.h
-                  TestCase.h
-                  TestFailure.h
-                  TestResult.h
-                  TestRunner.h
-                  TestSuite.h
-                  TextTestResult.h
-                  estring.h""")
+src_dir = env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
 include = Dir('CppUnitTest', esys_inc)
 env.Install( include, headers )

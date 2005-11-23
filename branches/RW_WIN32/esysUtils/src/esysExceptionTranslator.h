@@ -14,17 +14,8 @@
                                                                            
 #if !defined  esysUtils_esysExceptionTranslator_20040419_H
 #define esysUtils_esysExceptionTranslator_20040419_H
-#ifdef MSVC
-#ifdef ESYSUTILS_EXPORTS
-#define ESYSUTILS_DLL __declspec(dllexport)
-#else
-#define ESYSUTILS_DLL __declspec(dllimport)
-#endif
-#else
-#define ESYSUTILS_DLL
-#endif
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 #include "boost/python/errors.hpp"
 
 namespace esysUtils {
@@ -32,6 +23,6 @@ namespace esysUtils {
      \brief
      Function which translates an EsysException into a python exception
   */
-	ESYSUTILS_DLL void esysExceptionTranslator(EsysException const& e);
+	void esysExceptionTranslator(EsysException const& e);
 } // end of namespace
 #endif

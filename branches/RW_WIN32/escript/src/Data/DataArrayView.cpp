@@ -372,9 +372,9 @@ getSliceRange(const boost::python::object& key,
   }
   if (s0 < 0) 
      throw DataException("Error - slice index out of range.");
-  if (s0 == s1 and s1 >= shape)
+  if (s0 == s1 && s1 >= shape)
      throw DataException("Error - slice index out of range.");
-  if (s0 != s1 and  s1>shape)
+  if (s0 != s1 &&  s1>shape)
      throw DataException("Error - slice index out of range.");
   if (s0 > s1) 
      throw DataException("Error - lower index must less or equal upper index.");

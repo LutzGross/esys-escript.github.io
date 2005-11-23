@@ -1,14 +1,14 @@
 Import('*')
 
 lib_name = 'CppUnitTest'
-sources = Split("""TestCase.cpp
-                   TestFailure.cpp
-                   TestRunner.cpp
-                   TestSuite.cpp
-                   TestResult.cpp
-                   TextTestResult.cpp""")
-
 cppunit_env=env.Copy()
+
+src_dir = cppunit_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+
 cppunit_env.SConscript(dirs = ['#tools/CppUnitTest/inc/CppUnitTest'], duplicate=0)
 
 if env['PLATFORM'] <> "win32":

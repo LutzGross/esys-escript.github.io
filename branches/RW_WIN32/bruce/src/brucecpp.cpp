@@ -13,8 +13,8 @@
  ******************************************************************************
 */
 
-#include "bruce/Bruce/Bruce.h"
-#include "bruce/Bruce/BruceFactory.h"
+#include "Bruce.h"
+#include "BruceFactory.h"
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
