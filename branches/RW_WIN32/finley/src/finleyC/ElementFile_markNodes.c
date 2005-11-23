@@ -34,7 +34,8 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFil
    dim_t i,NN,NN2,e;
    index_t color,*lin_node;
    if (in!=NULL) {
-     index_t id[in->ReferenceElement->Type->numNodes];
+     index_t *id = (in->ReferenceElement->Type->numNodes>0) ? TMPMEMALLOC(in->ReferenceElement->Type->numNodes,index_t) : (index_t*)NULL;
+
      for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
      if (useLinear) {
         NN=in->LinearReferenceElement->Type->numNodes;
@@ -63,6 +64,7 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFil
            for (i=0;i<NN;i++) mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
         }
       }
+    TMPMEMFREE(id);
    }
 }
 /* 

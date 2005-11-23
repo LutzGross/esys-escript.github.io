@@ -46,7 +46,10 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   dim_t numComps=getDataPointSize(data);
   type_t data_type=getFunctionSpaceType(data);
   dim_t numQuad=elements->ReferenceElement->numQuadNodes;
-  index_t id[NN];
+
+  /* win32 refactor */
+  index_t *id = (NN>0) ? TMPMEMALLOC(NN,index_t) : (index_t*)NULL;
+
   for (i=0;i<NN;i++) id[i]=i;
   Finley_resetError();
 
@@ -144,6 +147,9 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 	  THREAD_MEMFREE(local_data);
      } /* end of parallel region */
   }
+  /* win32 refactor */
+  TMPMEMFREE(id);
+
   #undef NODES 
   #undef DOF 
   #undef REDUCED_DOF 

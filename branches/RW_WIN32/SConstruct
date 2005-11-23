@@ -55,3 +55,5 @@ env.SConscript(dirs = ['esysUtils/src'], build_dir='win32/build/esysUtils', dupl
 env.SConscript(dirs = ['win32/win32_utils'], build_dir='win32/build/win32_utils', duplicate=0)
 env.SConscript(dirs = ['tools/mmio/src'], build_dir='win32/build/tools/mmio', duplicate=0)
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='win32/build/tools/CppUnitTest', duplicate=0)
+env.SConscript(dirs = ['finley/src/finleyC'], build_dir='win32/build/finleyC', duplicate=0)
+env.SConscript(dirs = ['finley/src/CPPAdapter'], build_dir='win32/build/CPPAdapter', duplicate=0)

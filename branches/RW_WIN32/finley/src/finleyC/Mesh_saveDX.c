@@ -53,7 +53,9 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   /* find the mesh type to be written */
   int nodetype=FINLEY_DEGREES_OF_FREEDOM;
   int elementtype=FINLEY_UNKNOWN;
-  bool_t isCellCentered[num_data];
+  /* win32 refactor */
+  bool_t *isCellCentered = (num_data>0) ? TMPMEMALLOC(num_data,bool_t) : (bool_t*)NULL;
+
   for (i_data=0;i_data<num_data;++i_data) {
      if (! isEmpty(data_pp[i_data])) {
         switch(getFunctionSpaceType(data_pp[i_data])) {
@@ -63,6 +65,9 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_ELEMENTS;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
+
                  return;
              }
              isCellCentered[i_data]=FALSE;
@@ -73,6 +78,9 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_ELEMENTS;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
+                 
                  return;
              }
              isCellCentered[i_data]=FALSE;
@@ -83,6 +91,9 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_ELEMENTS;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
+                 
                  return;
              }
              isCellCentered[i_data]=FALSE;
@@ -93,6 +104,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_ELEMENTS;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -103,6 +116,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_FACE_ELEMENTS;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -113,6 +128,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_POINTS;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -123,6 +140,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -133,6 +152,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
              } else {
                  Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
                  return;
              }
              isCellCentered[i_data]=TRUE;
@@ -140,6 +161,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
            default:
              sprintf(error_msg,"saveDX: Finley does not know anything about function space type %d",getFunctionSpaceType(data_pp[i_data]));
              Finley_setError(TYPE_ERROR,error_msg);
+                 /* win32 refactor */
+		 TMPMEMFREE(isCellCentered);
              return;
         }
      }
@@ -170,6 +193,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   }
   if (elements==NULL) {
      Finley_setError(SYSTEM_ERROR,"saveDX: undefined element file");
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
      return;
   }
 
@@ -202,6 +227,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
    } else {
      sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->ReferenceElement->Type->Name);
      Finley_setError(VALUE_ERROR,error_msg);
+     /* win32 refactor */
+     TMPMEMFREE(isCellCentered);
      return;
    } 
 
@@ -295,5 +322,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   fprintf(fileHandle_p, "end\n");
   /* close the file */
   fclose(fileHandle_p);
-  return;
+  /* win32 refactor */
+  TMPMEMFREE(isCellCentered);
+return;
 }

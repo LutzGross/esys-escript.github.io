@@ -13,10 +13,10 @@
  ******************************************************************************
 */
 
-#include "Paso/Common.h"
-
 #include "Bruce.h"
 #include "BruceException.h"
+
+#include "Paso/Common.h"
 
 #include "vtkCellType.h"
 #include <boost/python/extract.hpp>
@@ -897,11 +897,17 @@ Bruce::saveVTK(const std::string& filename,
   const int num_data=boost::python::extract<int>(dataDict.attr("__len__")());
 
   int MAX_namelength=256;
- 
- // MSVC Refactor: MS VC++ Can't cope with C99 array allocations
-  std::vector<std::string> names(num_data); // refactored from char names[num_data][MAX_namelength];
-  std::vector<escriptDataC> data(num_data); //refactored from  escriptDataC data[num_data];
-  std::vector<escriptDataC*> ptr_data(num_data); // refactored from escriptDataC* ptr_data[num_data];
+
+  /* win32 refactor */
+  char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
+  for(int i=0;i<num_data;i++)
+  {
+  	names[i] = (MAX_namelength>0) ? TMPMEMALLOC(MAX_namelength,char) : (char*)NULL;
+  }
+
+  char* *c_names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
+  escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
+  escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
 
   boost::python::list keys=dataDict.keys();
   for (int i=0; i<num_data; i++) {
@@ -912,7 +918,13 @@ Bruce::saveVTK(const std::string& filename,
     data[i]=d.getDataC();
     ptr_data[i]=&(data[i]);
     std::string n=boost::python::extract<std::string>(keys[i]);
-    names[i]=n;
+    c_names[i]=&(names[i][0]);
+    if (n.length()>MAX_namelength-1) {
+       strncpy(c_names[i],n.c_str(),MAX_namelength-1);
+       c_names[i][MAX_namelength-1]='\0';
+    } else {
+       strcpy(c_names[i],n.c_str());
+    }
   }
 
   //
@@ -1318,6 +1330,16 @@ Bruce::saveVTK(const std::string& filename,
   // Close archive file
   archiveFile.close();
 
+  /* win32 refactor */
+  TMPMEMFREE(c_names);
+  TMPMEMFREE(data);
+  TMPMEMFREE(ptr_data);
+  for(int i=0;i<num_data;i++)
+  {
+  	TMPMEMFREE(names[i]);
+  }
+  TMPMEMFREE(names);
+  
   if (!archiveFile.good()) {
     throw BruceException("Error in Bruce::saveVTK: problem closing file");
   }

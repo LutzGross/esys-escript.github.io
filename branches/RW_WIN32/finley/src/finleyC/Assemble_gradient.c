@@ -46,7 +46,9 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   if (nodes==NULL || elements==NULL) return;
   dim_t NN=elements->ReferenceElement->Type->numNodes;
   dim_t NS=elements->ReferenceElement->Type->numShapes;
-  index_t id[NN];
+  /* win32 refactor */
+  index_t *id = (NN>0) ? TMPMEMALLOC(NN,index_t) : (index_t*)NULL;
+
   dim_t numDim=nodes->numDim;
   type_t data_type=getFunctionSpaceType(data);
   dim_t numComps=getDataPointSize(data);
@@ -164,6 +166,9 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
    	      THREAD_MEMFREE(d_datadv);
       }
   }
+  /* win32 refactor */
+  TMPMEMFREE(id);
+
 }
 #undef NODES
 #undef DOF

@@ -1,29 +1,43 @@
 Import('*')
 
+lib_name = 'finleycpp'
+
+finleycpp_env=env.Copy()
+
+src_dir = finleycpp_env.Dir('.').srcnode().abspath
+
 import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
-cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+include = Dir('finley/CPPAdapter', esys_inc)
+finleycpp_env.Install( include, headers )
 
-cpp_path = ['#../finley/inc',
-            '#../esysUtils/inc',
-            '#../escript/inc',
-            '#../paso/inc',
-            '/raid2/tools/python-2.3.4/include/python2.3',
-            '/raid2/tools/boost/include/boost-1_31']
+finleycpp_env.Append(LIBS= [boost_lib_name, 'paso', 'escriptcpp', 'finleyC', 'esysUtils'])
 
-lib = 'finleycpp'
-sources = ['FinleyError.cpp',
-           'MeshAdapter.cpp',
-           'MeshAdapterFactory.cpp',
-           'SystemMatrixAdapter.cpp',
-           'finleycpp.cpp']
+if env['PLATFORM'] == "win32":
+   finleycpp_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'FINLEY_EXPORTS'])
+#   finleycpp_env.Append(LIBS= ['ext_math'])
+   finleycpp_env['PDB'] = lib_name + '.pdb'
+else:
+   import os
+   
+   cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+   
+   cpp_path = ['#../finley/inc',
+               '#../esysUtils/inc',
+               '#../escript/inc',
+               '#../paso/inc',
+               '/raid2/tools/python-2.3.4/include/python2.3',
+               '/raid2/tools/boost/include/boost-1_31']
+   
+   finleycpp_env = Environment(ENV = os.environ)
+   
+   finleycpp_env.Replace(CXX = 'icc')
+   finleycpp_env.Replace(SHOBJSUFFIX = '.lo')
+   finleycpp_env.Replace(CXXFLAGS = cxx_flags)
+   finleycpp_env.Replace(CPPPATH = cpp_path)
 
-finleycpp_env = Environment(ENV = os.environ)
-
-finleycpp_env.Replace(CXX = 'icc')
-finleycpp_env.Replace(SHOBJSUFFIX = '.lo')
-finleycpp_env.Replace(CXXFLAGS = cxx_flags)
-finleycpp_env.Replace(CPPPATH = cpp_path)
-
-finleycpp_lib = finleycpp_env.SharedLibrary(lib, sources)
-finleycpp_env.Install(libdir, finleycpp_lib)
+finleycpp_lib = finleycpp_env.SharedLibrary(lib_name, sources)
+finleycpp_env.Install(esys_lib, finleycpp_lib)
