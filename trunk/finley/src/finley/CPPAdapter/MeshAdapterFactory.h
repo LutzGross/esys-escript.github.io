@@ -16,7 +16,7 @@
 #if !defined  finley_MeshAdapterFactory_20040526_H
 #define finley_MeshAdapterFactory_20040526_H
 
-#include "finley/CPPAdapter/MeshAdapter.h"
+#include "MeshAdapter.h"
 
 #include "escript/Data/AbstractContinuousDomain.h"
 

@@ -13,16 +13,16 @@
  ******************************************************************************
 */
 extern "C" {
-#include "finley/finleyC/Finley.h"
-#include "finley/finleyC/Assemble.h"
-#include "finley/finleyC/Mesh.h"
-#include "finley/finleyC/Finley.h"
+#include "Finley.h"
+#include "Assemble.h"
+#include "Mesh.h"
+#include "Finley.h"
 #include "paso/SystemMatrix.h"
 }
-#include "finley/CPPAdapter/SystemMatrixAdapter.h"
-#include "finley/CPPAdapter/MeshAdapter.h"
-#include "finley/CPPAdapter/FinleyError.h"
-#include "finley/CPPAdapter/FinleyAdapterException.h"
+#include "SystemMatrixAdapter.h"
+#include "MeshAdapter.h"
+#include "FinleyError.h"
+#include "FinleyAdapterException.h"
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/Data.h"
 #include "escript/Data/DataArrayView.h"

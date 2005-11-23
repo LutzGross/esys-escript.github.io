@@ -16,7 +16,7 @@
 #if !defined  finley_SystemMatrixAdapter_20040610_H
 #define finley_SystemMatrixAdapter_20040610_H
 
-#include "finley/CPPAdapter/SystemMatrixAdapter.h"
+#include "SystemMatrixAdapter.h"
 #include "escript/Data/AbstractSystemMatrix.h"
 #include "escript/Data/Data.h"
 extern "C" {
