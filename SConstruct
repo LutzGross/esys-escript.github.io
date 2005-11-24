@@ -3,7 +3,18 @@ opts.AddOptions(
    BoolOption('RELEASE', 'Set to build for release', 0),
    PathOption('PYTHON_HOME','Path to python home','C:/python23')
 )
+
+
+# Extensions to Scons
+def build_py(target, source, env):
+   # Code to build .pyc from .py
+   import py_compile, sys;
+   py_compile.compile(str(source[0]), str(target[0]))
+   return None
+py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+
 env = Environment(tools = ['default'],options = opts)
+env.Append(BUILDERS = {'PyCompile' : py_builder});
 
 print "PLATFORM is:", env['PLATFORM']
 
@@ -48,7 +59,7 @@ if env['PLATFORM'] == "win32":
 
 Export(["env", "incdir", "esys_inc", "esys_lib", "boost_lib_name" ])
 
-# Libraries
+# C/C++ Libraries
 env.SConscript(dirs = ['paso/src'], build_dir='build/win32/paso', duplicate=0)
 env.SConscript(dirs = ['bruce/src'], build_dir='build/win32/bruce', duplicate=0)
 env.SConscript(dirs = ['escript/src/Data'], build_dir='build/win32/escript/Data', duplicate=0)
