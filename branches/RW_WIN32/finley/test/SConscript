@@ -1,0 +1,17 @@
+Import('*')
+local_env=env.Copy()
+
+program_name = 'finley_UnitTest'
+local_env.Append(LIBS=[boost_lib_name, 'brucecpp', 'escriptcpp', 'esysUtils', 'CppUnitTest'])
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+
+
+program = local_env.Program(program_name, sources)
+# TODO: Need to decide on how the library paths etc are going to be handled
+# TODO: For now just install the program to the same location as the libraries so things can run at least
+local_env.Install(esys_lib, program)
