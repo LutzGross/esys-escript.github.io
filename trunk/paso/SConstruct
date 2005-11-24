@@ -1,6 +1,7 @@
 # Scons configuration file for paso
 
 import os
+import sys
 
 #
 # ensure correct versions of python and scons
