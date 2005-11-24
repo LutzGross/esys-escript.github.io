@@ -12,7 +12,7 @@
  *****************************************************************************
 */
 
-#include "bruce/Bruce/Bruce.h"
+#include "Bruce/Bruce.h"
 #include "esysUtils/EsysException.h"
 
 #include "BruceTestCase.h"
@@ -104,7 +104,7 @@ void BruceTestCase::testNull() {
 
   dataShape = testbruce.getDataShape(0);
   assert(dataShape.first==1);
-  assert(dataShape.second==0);
+  assert(dataShape.second==1);
   dataShape = testbruce.getDataShape(1);
   assert(dataShape.first==1);
   assert(dataShape.second==0);

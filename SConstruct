@@ -48,12 +48,19 @@ if env['PLATFORM'] == "win32":
 
 Export(["env", "incdir", "esys_inc", "esys_lib", "boost_lib_name" ])
 
-env.SConscript(dirs = ['paso/src'], build_dir='win32/build/paso', duplicate=0)
-env.SConscript(dirs = ['bruce/src'], build_dir='win32/build/bruce', duplicate=0)
-env.SConscript(dirs = ['escript/src/Data'], build_dir='win32/build/escript/Data', duplicate=0)
-env.SConscript(dirs = ['esysUtils/src'], build_dir='win32/build/esysUtils', duplicate=0)
-env.SConscript(dirs = ['win32/win32_utils'], build_dir='win32/build/win32_utils', duplicate=0)
-env.SConscript(dirs = ['tools/mmio/src'], build_dir='win32/build/tools/mmio', duplicate=0)
-env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='win32/build/tools/CppUnitTest', duplicate=0)
-env.SConscript(dirs = ['finley/src/finleyC'], build_dir='win32/build/finleyC', duplicate=0)
-env.SConscript(dirs = ['finley/src/CPPAdapter'], build_dir='win32/build/CPPAdapter', duplicate=0)
+# Libraries
+env.SConscript(dirs = ['paso/src'], build_dir='build/win32/paso', duplicate=0)
+env.SConscript(dirs = ['bruce/src'], build_dir='build/win32/bruce', duplicate=0)
+env.SConscript(dirs = ['escript/src/Data'], build_dir='build/win32/escript/Data', duplicate=0)
+env.SConscript(dirs = ['esysUtils/src'], build_dir='build/win32/esysUtils', duplicate=0)
+env.SConscript(dirs = ['win32/win32_utils'], build_dir='build/win32/win32_utils', duplicate=0)
+env.SConscript(dirs = ['tools/mmio/src'], build_dir='build/win32/tools/mmio', duplicate=0)
+env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/win32/tools/CppUnitTest', duplicate=0)
+env.SConscript(dirs = ['finley/src/finleyC'], build_dir='build/win32/finleyC', duplicate=0)
+env.SConscript(dirs = ['finley/src/CPPAdapter'], build_dir='build/win32/CPPAdapter', duplicate=0)
+
+# Unit Tests
+env.SConscript(dirs = ['esysUtils/test/EsysException'], build_dir='build/win32/esysUtils/test/EsysException', duplicate=0)
+env.SConscript(dirs = ['escript/test'], build_dir='build/win32/escript/test', duplicate=0)
+env.SConscript(dirs = ['bruce/test'], build_dir='build/win32/bruce/test', duplicate=0)
+env.SConscript(dirs = ['finley/test'], build_dir='build/win32/finley/test', duplicate=0)

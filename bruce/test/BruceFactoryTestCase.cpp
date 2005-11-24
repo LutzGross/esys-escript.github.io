@@ -13,7 +13,7 @@
 */
 
 #include "escript/Data/AbstractContinuousDomain.h"
-#include "bruce/Bruce/BruceFactory.h"
+#include "Bruce/BruceFactory.h"
 #include "BruceFactoryTestCase.h"
 
 using namespace CppUnitTest;

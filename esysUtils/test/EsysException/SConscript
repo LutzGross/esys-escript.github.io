@@ -1,14 +1,17 @@
 Import('*')
+
+program_name = 'EsysExceptionTest'
+
 local_env=env.Copy()
 
-program_name = 'finley_UnitTest'
-local_env.Append(LIBS=[boost_lib_name, 'finleycpp', 'brucecpp', 'escriptcpp', 'esysUtils', 'CppUnitTest'])
+local_env.Append(LIBS=['esysUtils', 'CppUnitTest'])
 
 src_dir = local_env.Dir('.').srcnode().abspath
 
 import os
 filenames = os.listdir(src_dir)
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+
 
 if env['PLATFORM'] == "win32":
    local_env['PDB'] = program_name+'.pdb'
