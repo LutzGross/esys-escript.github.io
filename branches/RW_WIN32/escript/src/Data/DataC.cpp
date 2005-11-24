@@ -55,7 +55,7 @@ int numSamplesEqual(struct escriptDataC* data, int numDataPointsPerSample,
         int result=(numDataPointsPerSample==temp->getNumDataPointsPerSample());
         result=result && (numSamples==temp->getNumSamples());
         return result;
-     }
+     }//
   }
 }
 

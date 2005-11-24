@@ -14,7 +14,9 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 include = Dir('esysUtils', esys_inc)
 utils_env.Install( include, headers )
 
-if env['PLATFORM'] <> "win32":
+if env['PLATFORM'] == "win32":
+   utils_env['PDB'] = lib_name+'.pdb'
+else:
     import os
     
     cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'

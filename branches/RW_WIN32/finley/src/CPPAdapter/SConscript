@@ -18,7 +18,6 @@ finleycpp_env.Append(LIBS= [boost_lib_name, 'paso', 'escriptcpp', 'finleyC', 'es
 
 if env['PLATFORM'] == "win32":
    finleycpp_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'FINLEY_EXPORTS'])
-#   finleycpp_env.Append(LIBS= ['ext_math'])
    finleycpp_env['PDB'] = lib_name + '.pdb'
 else:
    import os
