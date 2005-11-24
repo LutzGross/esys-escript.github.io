@@ -1,0 +1,12 @@
+Import('*')
+
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
+
+pyc = local_env.PyCompile(python_src)
+local_env.Install(esys_lib+'/'+lib_name, pyc)

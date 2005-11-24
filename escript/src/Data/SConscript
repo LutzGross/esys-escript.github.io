@@ -2,9 +2,9 @@ Import('*')
 
 lib_name = 'escriptcpp'
 
-escript_env=env.Copy()
+local_env=env.Copy()
 
-src_dir = escript_env.Dir('.').srcnode().abspath
+src_dir = local_env.Dir('.').srcnode().abspath
 
 import os
 filenames = os.listdir(src_dir)
@@ -12,14 +12,14 @@ sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
 include = Dir('escript/Data', esys_inc)
-escript_env.Install( include, headers )
+local_env.Install( include, headers )
 
-escript_env.Append(LIBS= [boost_lib_name, 'esysUtils'])
+local_env.Append(LIBS= [boost_lib_name, 'esysUtils'])
 
-if env['PLATFORM'] == "win32" :
-    escript_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'ESCRIPT_EXPORTS'])
-    escript_env.Append(LIBS= ['ext_math'])
-    escript_env['PDB'] = lib_name + '.pdb'
+if env['PLATFORM'] == "win32":
+   local_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'ESCRIPT_EXPORTS'])
+   local_env.Append(LIBS= ['ext_math'])
+   local_env['PDB'] = lib_name + '.pdb'
 elif env['PLATFORM'] == "posix" :
     pass
 else:
@@ -32,12 +32,16 @@ else:
                '/raid2/tools/python-2.3.4/include/python2.3',
                '/raid2/tools/boost/include/boost-1_31']
    
-   escript_env = Environment(ENV = os.environ)
+   local_env = Environment(ENV = os.environ)
    
-   escript_env.Replace(CXX = 'icc')
-   escript_env.Replace(SHOBJSUFFIX = '.lo')
-   escript_env.Replace(CXXFLAGS = cxx_flags)
-   escript_env.Replace(CPPPATH = cpp_path)
+   local_env.Replace(CXX = 'icc')
+   local_env.Replace(SHOBJSUFFIX = '.lo')
+   local_env.Replace(CXXFLAGS = cxx_flags)
+   local_env.Replace(CPPPATH = cpp_path)
    
-escript_lib = escript_env.SharedLibrary(lib_name, sources)
-escript_env.Install(esys_lib, escript_lib)
+escript_lib = local_env.SharedLibrary(lib_name, sources)
+local_env.Install(esys_lib, escript_lib)
+
+# Python
+local_env.Export('lib_name')
+env.SConscript(dirs = ['#/escript/py_src'], build_dir='build/$PLATFORM/escript/py', duplicate=0)
