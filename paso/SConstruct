@@ -60,12 +60,13 @@ Export(["libdir"])
 #
 # load and export configuration settings
 
-python_path = '/raid2/tools/python-2.3.4/include/python2.3'
-boost_path = '/raid2/tools/boost/include/boost-1_31'
+options_dir = str(esysroot) + '/scons'
+sys.path.append(options_dir)
 
-cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -c -fpic -w1 -DSCSL'
+if dodebug==0 and hostname=='ess':
+  from ess_options import *
 
-ar_flags = 'crus'
+cc_flags = cc_flags + ' -DSCSL'
 
 Export(["python_path"])
 Export(["boost_path"])
