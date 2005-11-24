@@ -71,6 +71,7 @@ cc_flags = cc_flags + ' -DSCSL'
 
 Export(["python_path"])
 Export(["boost_path"])
+Export(["cc"])
 Export(["cc_flags"])
 Export(["ar_flags"])
 
@@ -81,6 +82,7 @@ print "############################################"
 print "Build configuration for module: paso"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
+print "              cc: ", cc
 print "        platform: ", platform
 print "        hostname: ", hostname
 print "      libinstall: ", libinstall

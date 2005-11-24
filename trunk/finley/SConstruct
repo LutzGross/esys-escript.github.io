@@ -72,6 +72,8 @@ cc_flags  = cc_flags + ' -DSCSL'
 
 Export(["python_path"])
 Export(["boost_path"])
+Export(["cxx"])
+Export(["cc"])
 Export(["cxx_flags"])
 Export(["cc_flags"])
 
@@ -82,6 +84,8 @@ print "############################################"
 print "Build configuration for module: finley"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
+print "              cc: ", cc
+print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
 print "      libinstall: ", libinstall

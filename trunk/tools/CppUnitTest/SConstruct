@@ -62,6 +62,7 @@ sys.path.append(options_dir)
 if dodebug==0 and hostname=='ess':
   from ess_options import *
 
+Export(["cxx"])
 Export(["cxx_flags"])
 
 #
@@ -71,6 +72,7 @@ print "############################################"
 print "Build configuration for module: CppUnitTest"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
+print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
 print "############################################"

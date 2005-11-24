@@ -40,7 +40,7 @@ sources = ['AbstractContinuousDomain.cpp',
 
 escript_env = Environment(ENV = os.environ)
 
-escript_env.Replace(CXX = 'icc')
+escript_env.Replace(CXX = cxx)
 escript_env.Replace(SHOBJSUFFIX = '.lo')
 escript_env.Replace(CXXFLAGS = cxx_flags)
 escript_env.Replace(CPPPATH = cpp_path)

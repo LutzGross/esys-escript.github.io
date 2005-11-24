@@ -17,7 +17,7 @@ sources = ['TestCase.cpp',
 
 cppunit_env = Environment(ENV = os.environ)
 
-cppunit_env.Replace(CXX = 'icc')
+cppunit_env.Replace(CXX = cxx)
 cppunit_env.Replace(CXXFLAGS = cxx_flags)
 cppunit_env.Replace(CPPPATH = cpp_path)
 
