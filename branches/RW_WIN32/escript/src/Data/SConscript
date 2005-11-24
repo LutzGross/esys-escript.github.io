@@ -16,10 +16,12 @@ escript_env.Install( include, headers )
 
 escript_env.Append(LIBS= [boost_lib_name, 'esysUtils'])
 
-if env['PLATFORM'] == "win32":
-   escript_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'ESCRIPT_EXPORTS'])
-   escript_env.Append(LIBS= ['ext_math'])
-   escript_env['PDB'] = lib_name + '.pdb'
+if env['PLATFORM'] == "win32" :
+    escript_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'ESCRIPT_EXPORTS'])
+    escript_env.Append(LIBS= ['ext_math'])
+    escript_env['PDB'] = lib_name + '.pdb'
+elif env['PLATFORM'] == "posix" :
+    pass
 else:
    import os
    

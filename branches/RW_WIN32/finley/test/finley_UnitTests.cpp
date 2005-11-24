@@ -2,7 +2,14 @@
 //
 
 #include <iostream>
+
+// TODO : Can't we just use int main(int, char* []) on all platforms?
+#ifdef MSVC
 #include <tchar.h>
+#else
+#define _TCHAR char
+#define _tmain main
+#endif
 
 #include "MeshAdapterTestCase.h"
 

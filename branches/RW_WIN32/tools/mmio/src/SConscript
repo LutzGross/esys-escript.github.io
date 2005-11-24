@@ -1,15 +1,23 @@
 Import('*')
 
-# TODO: These two sections can be unified once we know what the linux/irix build looks like
+lib_name = 'mmio'
+                                    
+mmio_env=env.Copy()
+src_dir = mmio_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+
+
+include = Dir(lib_name, esys_inc)
+mmio_env.Install( include, headers )
 
 if env['PLATFORM'] == "win32":
-   mmio_env=env.Copy()
-   
-   mmio_lib = mmio_env.StaticLibrary( 'mmio', 'mmio.c')
-   include = Dir('mmio', esys_inc)
-   
-   mmio_env.Install( include, 'mmio.h')
-   mmio_env.Install( esys_lib, mmio_lib)
+   mmio_env['PDB'] = lib_name+'.pdb'
+elif  env['PLATFORM'] == "posix":
+    pass
 else:
    import os
    
@@ -28,3 +36,6 @@ else:
    
    mmio_lib = mmio_env.StaticLibrary(lib, sources)
    mmio_env.Install(libdir, mmio_lib)
+
+mmio_lib = mmio_env.StaticLibrary(lib_name, sources)
+mmio_env.Install(esys_lib, mmio_lib)

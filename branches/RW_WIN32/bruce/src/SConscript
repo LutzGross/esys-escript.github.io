@@ -18,6 +18,8 @@ local_env.Append(LIBS=[boost_lib_name, 'esysUtils', 'escriptcpp'])
 if env['PLATFORM'] == "win32":
    local_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'BRUCE_EXPORTS'])
    local_env['PDB'] = 'brucecpp.pdb'
+elif env['PLATFORM'] == "posix":
+    pass
 else:
     import os
     
@@ -40,4 +42,7 @@ local_env.Install(esys_lib, bruce_lib)
 
 # Python
 local_env.Export('lib_name')
-env.SConscript(dirs = ['#/bruce/py_src'], build_dir='build/win32/bruce/py', duplicate=0)
+if env['PLATFORM'] == "win32":
+    env.SConscript(dirs = ['#/bruce/py_src'], build_dir='build/win32/bruce/py', duplicate=0)
+elif env['PLATFORM'] == "posix":
+    env.SConscript(dirs = ['bruce/py_src'], build_dir='py_src', duplicate=0)

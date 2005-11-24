@@ -11,7 +11,7 @@ sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
 cppunit_env.SConscript(dirs = ['#tools/CppUnitTest/inc/CppUnitTest'], duplicate=0)
 
-if env['PLATFORM'] <> "win32":
+if env['PLATFORM'] <> "win32" and  env['PLATFORM'] <> "posix" :
    import os
    
    cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'

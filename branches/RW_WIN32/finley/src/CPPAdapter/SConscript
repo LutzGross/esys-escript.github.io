@@ -16,7 +16,7 @@ finleycpp_env.Install( include, headers )
 
 finleycpp_env.Append(LIBS= [boost_lib_name, 'paso', 'escriptcpp', 'finleyC', 'esysUtils'])
 
-if env['PLATFORM'] == "win32":
+if env['PLATFORM'] == "win32" or env['PLATFORM'] == "posix" :
    finleycpp_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'FINLEY_EXPORTS'])
    finleycpp_env['PDB'] = lib_name + '.pdb'
 else:

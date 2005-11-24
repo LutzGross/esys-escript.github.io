@@ -61,7 +61,11 @@ PASO_DLL void Paso_setError(Paso_ErrorCodeType err,char* msg);
 PASO_DLL bool_t Paso_noError(void);
 PASO_DLL Paso_ErrorCodeType Paso_getErrorType(void);
 PASO_DLL char* Paso_getErrorMessage(void);
-PASO_DLL void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+PASO_DLL void Paso_solve(Paso_SystemMatrix* A, 
+                         double* out, 
+                         double* in, 
+                         Paso_Options* options);
+
 PASO_DLL void Paso_solve_free(Paso_SystemMatrix* in);
 
 #ifdef __cplusplus
