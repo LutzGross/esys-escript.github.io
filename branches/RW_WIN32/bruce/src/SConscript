@@ -37,3 +37,7 @@ else:
 
 bruce_lib = local_env.SharedLibrary(lib_name, sources)
 local_env.Install(esys_lib, bruce_lib)
+
+# Python
+local_env.Export('lib_name')
+env.SConscript(dirs = ['#/bruce/py_src'], build_dir='build/win32/bruce/py', duplicate=0)
