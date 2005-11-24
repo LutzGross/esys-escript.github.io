@@ -15,7 +15,7 @@ sources = ['EsysException.cpp',
 
 utils_env = Environment(ENV = os.environ)
 
-utils_env.Replace(CXX = 'icc')
+utils_env.Replace(CXX = cxx)
 utils_env.Replace(CXXFLAGS = cxx_flags)
 utils_env.Replace(CPPPATH = cpp_path)
 

@@ -22,7 +22,7 @@ sources = ['Bruce.cpp',
 
 bruce_env = Environment(ENV = os.environ)
 
-bruce_env.Replace(CXX = 'icc')
+bruce_env.Replace(CXX = cxx)
 bruce_env.Replace(SHOBJSUFFIX = '.lo')
 bruce_env.Replace(CXXFLAGS = cxx_flags)
 bruce_env.Replace(CPPPATH = cpp_path)

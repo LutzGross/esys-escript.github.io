@@ -12,7 +12,7 @@ sources = ['mmio.c']
 
 mmio_env = Environment(ENV = os.environ)
 
-mmio_env.Replace(CC = 'icc')
+mmio_env.Replace(CC = cc)
 mmio_env.Replace(CCFLAGS = cc_flags)
 mmio_env.Replace(CPPPATH = cpp_path)
 

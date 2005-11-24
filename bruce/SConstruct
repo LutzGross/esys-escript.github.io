@@ -69,6 +69,7 @@ if dodebug==0 and hostname=='ess':
 
 Export(["python_path"])
 Export(["boost_path"])
+Export(["cxx"])
 Export(["cxx_flags"])
 
 #
@@ -78,6 +79,7 @@ print "############################################"
 print "Build configuration for module: bruce"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
+print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
 print "      libinstall: ", libinstall

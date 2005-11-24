@@ -54,7 +54,7 @@ sources = ['Options_getPackage.c',
 
 paso_env = Environment(ENV = os.environ)
 
-paso_env.Replace(CC = 'icc')
+paso_env.Replace(CC = cc)
 paso_env.Replace(CCFLAGS = cc_flags)
 paso_env.Replace(ARFLAGS = ar_flags)
 paso_env.Replace(CPPPATH = cpp_path)

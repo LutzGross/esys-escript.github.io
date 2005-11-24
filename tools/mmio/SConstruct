@@ -62,6 +62,7 @@ sys.path.append(options_dir)
 if dodebug==0 and hostname=='ess':
   from ess_options import *
 
+Export(["cc"])
 Export(["cc_flags"])
 
 #
@@ -71,6 +72,7 @@ print "############################################"
 print "Build configuration for module: mmio"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
+print "              cc: ", cc
 print "        platform: ", platform
 print "        hostname: ", hostname
 print "############################################"

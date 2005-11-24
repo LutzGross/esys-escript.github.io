@@ -94,8 +94,8 @@ sources = ['Assemble_addToSystemMatrix.c',
 
 finley_env = Environment(ENV = os.environ)
 
-finley_env.Replace(CC = 'icc')
-finley_env.Replace(CXX = 'icc')
+finley_env.Replace(CC = cc)
+finley_env.Replace(CXX = cxx)
 finley_env.Replace(CCFLAGS = cc_flags)
 finley_env.Replace(CXXFLAGS = cxx_flags)
 finley_env.Replace(SHOBJSUFFIX = '.lo')
