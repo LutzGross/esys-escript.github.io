@@ -1,6 +1,7 @@
 # Scons configuration file for mmio
 
 import os
+import sys
 
 #
 # ensure correct versions of python and scons
