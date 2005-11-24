@@ -2,7 +2,7 @@ Import('*')
 local_env=env.Copy()
 
 program_name = 'finley_UnitTest'
-local_env.Append(LIBS=[boost_lib_name, 'finleycpp', 'brucecpp', 'escriptcpp', 'esysUtils', 'CppUnitTest'])
+local_env.Append(LIBS=[boost_lib_name, 'finleycpp', 'brucecpp', 'escriptcpp', 'esysUtils', 'CppUnitTest', 'paso', 'mmio'])
 
 src_dir = local_env.Dir('.').srcnode().abspath
 

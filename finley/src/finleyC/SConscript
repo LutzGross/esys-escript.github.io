@@ -13,7 +13,7 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 include = Dir('finley/finleyC', esys_inc)
 finleyC_env.Install( include, headers )
 
-if env['PLATFORM'] <> "win32":
+if env['PLATFORM'] != "win32" and env['PLATFORM'] != "posix" :
     import os
     
     cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'

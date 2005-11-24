@@ -16,6 +16,8 @@ utils_env.Install( include, headers )
 
 if env['PLATFORM'] == "win32":
    utils_env['PDB'] = lib_name+'.pdb'
+elif  env['PLATFORM'] == "posix":
+    pass
 else:
     import os
     
