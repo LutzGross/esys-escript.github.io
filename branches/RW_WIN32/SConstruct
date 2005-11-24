@@ -1,7 +1,8 @@
 opts = Options('custom.py')
 opts.AddOptions(
    BoolOption('RELEASE', 'Set to build for release', 0),
-   PathOption('PYTHON_HOME','Path to python home','/usr/lib/python2.3')
+   PathOption('PYTHON_HOME','Path to python home','/usr/lib/python2.3'),
+   PathOption('BOOST_HOME','Path to boost home','/usr/include/boost')
 )
 
 
@@ -24,7 +25,7 @@ EnsurePythonVersion(2,3)
 #TODO: Is there a more compact way of setting up the include paths? 
 
 # Third-Party libraries 
-boost_home = '/usr/include/boost'
+boost_home = env['BOOST_HOME']
 python_home = env['PYTHON_HOME'] 
 
 # Where to install (and find) esys includes and libraries
@@ -37,7 +38,7 @@ if env['PLATFORM'] == "win32":
    python_inc = python_home + '/include'
    python_lib = python_home + '/libs'
    boost_inc = boost_home
-   boost_lib = boost_home + '/usr/lib'
+   boost_lib = boost_home + '/windows_binary/lib'
 elif  env['PLATFORM'] == "posix":
    python_inc = '/usr/include/python2.3'
    python_lib = '/usr/lib'
