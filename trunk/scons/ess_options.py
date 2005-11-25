@@ -1,6 +1,9 @@
 python_path = '/raid2/tools/python-2.3.4/include/python2.3'
 boost_path = '/raid2/tools/boost/include/boost-1_31'
 
+python_lib_path = '/raid2/tools/python-2.3.4/lib'
+boost_lib_path = '/raid2/tools/boost/lib'
+
 cc = 'icc'
 cxx = 'icc'
 
