@@ -1,3 +1,5 @@
+import scons_ext
+
 opts = Options('custom.py')
 opts.AddOptions(
    BoolOption('RELEASE', 'Set to build for release', 0),
@@ -5,17 +7,19 @@ opts.AddOptions(
    PathOption('BOOST_HOME','Path to boost home','/usr/include/boost')
 )
 
-
-# Extensions to Scons
-def build_py(target, source, env):
-   # Code to build .pyc from .py
-   import py_compile, sys;
-   py_compile.compile(str(source[0]), str(target[0]))
-   return None
-py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
-
 env = Environment(tools = ['default'],options = opts)
+
+Help(opts.GenerateHelpText(env))
+
+py_builder = Builder(action = scons_ext.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
+
+if env['PLATFORM'] == "win32":
+   runUnitTest_builder = Builder(action = scons_ext.runUnitTest, suffix = '.passed', src_suffix='.exe', single_source=True)
+else:
+   runUnitTest_builder = Builder(action = scons_ext.runUnitTest, suffix = '.passed', single_source=True)
+env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
 
 print "PLATFORM is:", env['PLATFORM']
 
@@ -86,11 +90,16 @@ env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tool
 env.SConscript(dirs = ['finley/src/finleyC'], build_dir='build/$PLATFORM/finleyC', duplicate=0)
 env.SConscript(dirs = ['finley/src/CPPAdapter'], build_dir='build/$PLATFORM/CPPAdapter', duplicate=0)
 
+if env['PLATFORM'] == "win32":
+   env.SConscript(dirs = ['win32/win32_utils'], build_dir='build/$PLATFORM/win32_utils', duplicate=0)
+
 # Unit Tests
 env.SConscript(dirs = ['esysUtils/test/EsysException'], build_dir='build/$PLATFORM/esysUtils/test/EsysException', duplicate=0)
 env.SConscript(dirs = ['escript/test'], build_dir='build/$PLATFORM/escript/test', duplicate=0)
 env.SConscript(dirs = ['bruce/test'], build_dir='build/$PLATFORM/bruce/test', duplicate=0)
 env.SConscript(dirs = ['finley/test'], build_dir='build/$PLATFORM/finley/test', duplicate=0)
 
-if env['PLATFORM'] == "win32":
-   env.SConscript(dirs = ['win32/win32_utils'], build_dir='build/$PLATFORM/win32_utils', duplicate=0)
+# Python
+env.SConscript(dirs = ['esys/py_src'], build_dir='build/$PLATFORM/esys/py', duplicate=0)
+
+

@@ -9,4 +9,4 @@ filenames = os.listdir(src_dir)
 python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
 pyc = local_env.PyCompile(python_src)
-local_env.Install(esys_lib+'/'+lib_name, pyc)
+local_env.Install(esys_lib+'/esys/finley', pyc)
