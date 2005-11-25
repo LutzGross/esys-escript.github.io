@@ -21,3 +21,6 @@ program = local_env.Program(program_name, sources)
 # TODO: Need to decide on how the library paths etc are going to be handled
 # TODO: For now just install the program to the same location as the libraries so things can run at least
 local_env.Install(esys_lib, program)
+
+# run the tests
+local_env.RunUnitTest(program_name)

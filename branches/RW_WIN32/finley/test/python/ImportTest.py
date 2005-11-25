@@ -4,7 +4,7 @@ import os
 import sys
 
 from esys.escript import *
-from esys import finley
+from esys.finley import *
 
 """
 
