@@ -14,6 +14,7 @@ mmio_env = Environment(ENV = os.environ)
 
 mmio_env.Replace(CC = cc)
 mmio_env.Replace(CCFLAGS = cc_flags)
+mmio_env.Replace(ARFLAGS = ar_flags)
 mmio_env.Replace(CPPPATH = cpp_path)
 
 mmio_lib = mmio_env.StaticLibrary(lib, sources)

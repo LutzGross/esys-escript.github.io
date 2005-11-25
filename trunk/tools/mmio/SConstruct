@@ -67,6 +67,7 @@ if dodebug==1:
 
 Export(["cc"])
 Export(["cc_flags"])
+Export(["ar_flags"])
 
 #
 # print out build configuration for this module

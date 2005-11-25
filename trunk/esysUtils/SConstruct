@@ -69,6 +69,7 @@ Export(["python_path"])
 Export(["boost_path"])
 Export(["cxx"])
 Export(["cxx_flags"])
+Export(["ar_flags"])
 
 #
 # print out build configuration for this module
