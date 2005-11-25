@@ -44,4 +44,4 @@ local_env.Install(esys_lib, escript_lib)
 
 # Python
 local_env.Export('lib_name')
-env.SConscript(dirs = ['#/escript/py_src'], build_dir='build/$PLATFORM/escript/py', duplicate=0)
+env.SConscript(dirs = ['#/escript/py_src'], build_dir='#/build/$PLATFORM/escript/py', duplicate=0)
