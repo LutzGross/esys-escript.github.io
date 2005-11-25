@@ -1,0 +1,11 @@
+Import('*')
+
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
+
+local_env.RunPyUnitTest(python_src)

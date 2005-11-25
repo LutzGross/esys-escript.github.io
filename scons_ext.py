@@ -12,6 +12,14 @@ def runUnitTest(target, source, env):
       open(str(target[0]),'w').write("PASSED\n")
    return None
 
+def runPyUnitTest(target, source, env): 
+   import os
+   app = 'python '+str(source[0].abspath)
+   if not os.system(app):
+      open(str(target[0]),'w').write("PASSED\n")
+   return None
+
+
 #import fnmatch
 #import os
 

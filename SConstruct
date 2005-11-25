@@ -20,6 +20,9 @@ else:
    runUnitTest_builder = Builder(action = scons_ext.runUnitTest, suffix = '.passed', single_source=True)
 env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 
+runPyUnitTest_builder = Builder(action = scons_ext.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
+env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
+
 
 print "PLATFORM is:", env['PLATFORM']
 
