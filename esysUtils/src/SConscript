@@ -17,6 +17,7 @@ utils_env = Environment(ENV = os.environ)
 
 utils_env.Replace(CXX = cxx)
 utils_env.Replace(CXXFLAGS = cxx_flags)
+utils_env.Replace(ARFLAGS = ar_flags)
 utils_env.Replace(CPPPATH = cpp_path)
 
 utils_lib = utils_env.StaticLibrary(lib, sources)
