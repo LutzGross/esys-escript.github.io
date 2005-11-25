@@ -59,8 +59,11 @@ Export(["libdir"])
 options_dir = str(esysroot) + '/scons'
 sys.path.append(options_dir)
 
-if dodebug==0 and hostname=='ess':
+if hostname=='ess':
   from ess_options import *
+
+if dodebug==1:
+  cxx_flags=cxx_flags_debug
 
 Export(["python_path"])
 Export(["boost_path"])
