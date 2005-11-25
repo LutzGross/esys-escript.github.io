@@ -42,7 +42,4 @@ local_env.Install(esys_lib, bruce_lib)
 
 # Python
 local_env.Export('lib_name')
-if env['PLATFORM'] == "win32":
-    env.SConscript(dirs = ['#/bruce/py_src'], build_dir='build/$PLATFORM/bruce/py', duplicate=0)
-elif env['PLATFORM'] == "posix":
-    env.SConscript(dirs = ['bruce/py_src'], build_dir='py_src', duplicate=0)
+env.SConscript(dirs = ['#/bruce/py_src'], build_dir='#/build/$PLATFORM/bruce/py', duplicate=0)

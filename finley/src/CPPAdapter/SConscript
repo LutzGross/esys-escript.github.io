@@ -43,4 +43,4 @@ local_env.Install(esys_lib, finleycpp_lib)
 
 # Python
 local_env.Export('lib_name')
-env.SConscript(dirs = ['#/finley/py_src'], build_dir='build/$PLATFORM/finley/py', duplicate=0)
+env.SConscript(dirs = ['#/finley/py_src'], build_dir='#/build/$PLATFORM/finley/py', duplicate=0)
