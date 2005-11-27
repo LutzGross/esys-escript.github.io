@@ -4,8 +4,8 @@
    Crude modifications and translations for Paso by Matt Davies and Lutz Gross
 */
 
-#include "Paso/Paso.h"
-#include "Paso/SystemMatrix.h"
+#include "paso/Paso.h"
+#include "paso/SystemMatrix.h"
 #include "Solver.h"
 #ifdef _OPENMP
 #include <omp.h>
