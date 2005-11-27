@@ -23,7 +23,7 @@ if env['PLATFORM'] == "win32":
 
 paso_lib = paso_env.SharedLibrary( 'paso', sources)
 
-include = Dir('Paso', esys_inc)
+include = Dir('paso', esys_inc)
 
 paso_env.Install( include, headers)
 paso_env.Install( esys_lib, paso_lib)
