@@ -17,7 +17,7 @@
 
 #ifdef MSVC
 #include "ext_math.h"
-#include "Paso/Common.h"
+#include "paso/Common.h"
 #endif
 
 #include "escript/Data/Data.h"

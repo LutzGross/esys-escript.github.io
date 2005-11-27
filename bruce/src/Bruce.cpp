@@ -16,7 +16,7 @@
 #include "Bruce.h"
 #include "BruceException.h"
 
-#include "Paso/Common.h"
+#include "paso/Common.h"
 
 #include "vtkCellType.h"
 #include <boost/python/extract.hpp>

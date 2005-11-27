@@ -11,8 +11,8 @@
 
 /**************************************************************/
 
-#include "Paso/Paso.h"
-#include "Paso/SystemMatrix.h"
+#include "paso/Paso.h"
+#include "paso/SystemMatrix.h"
 #include "Solver.h"
 
 #if PTR_OFFSET !=0 || INDEX_OFFSET!=0

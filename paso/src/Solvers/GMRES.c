@@ -44,8 +44,8 @@
 *  ==============================================================
 */
 
-#include "Paso/Common.h"
-#include "Paso/SystemMatrix.h"
+#include "paso/Common.h"
+#include "paso/SystemMatrix.h"
 #include "Solver.h"
 #ifdef _OPENMP
 #include <omp.h>

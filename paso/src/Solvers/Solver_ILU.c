@@ -11,9 +11,9 @@
 
 /**************************************************************/
 
-#include "Paso/Paso.h"
+#include "paso/Paso.h"
 #include "Solver.h"
-#include "Paso/Util.h"
+#include "paso/Util.h"
 
 /**************************************************************/
 
