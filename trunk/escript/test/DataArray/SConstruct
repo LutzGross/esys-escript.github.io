@@ -1,24 +1,62 @@
-esysroot = None
-
-Import('*')
+# Scons configuration file for DataArray unit tests
 
 import os
-import string
+import sys
 
-if esysroot == None:
-  esysroot = Dir('#../../..')
+#
+# ensure correct versions of python and scons
 
-##### these will enventually be loaded from an external config file ########
+EnsurePythonVersion(2,3)
+EnsureSConsVersion(0,96)
 
-cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
+#
+# set appropriate defaults for configuration variables
 
-python_path = '/raid2/tools/python-2.3.4/include/python2.3'
-boost_path = '/raid2/tools/boost/include/boost-1_31'
+esysroot = Dir('#../../..')
+usegcc = 0
 
-python_lib_path = '/raid2/tools/python-2.3.4/lib'
-boost_lib_path = '/raid2/tools/boost/lib'
+#
+# retreive command-line arguments if any
 
-############################################################################
+if ARGUMENTS.get('usegcc',0):
+  usegcc = 1
+
+#
+# determine platform
+
+env = Environment(ENV = os.environ)
+platform = env['PLATFORM']
+
+#
+# determine hostname
+
+hostname = os.environ['HOSTNAME']
+
+#
+# load configuration settings
+
+options_dir = str(esysroot) + '/scons'
+sys.path.append(options_dir)
+
+if hostname=='ess':
+  from ess_options import *
+
+cxx_flags=cxx_flags_debug
+
+#
+# print out build configuration for this module
+
+print "####################################################"
+print "Build configuration for module: DataArray unit tests"
+print "         dodebug:  1"
+print "          usegcc: ", usegcc
+print "             cxx: ", cxx
+print "        platform: ", platform
+print "        hostname: ", hostname
+print "####################################################"
+
+#
+# do the actual build
 
 dataarray_test_path = str(esysroot) + '/escript/test/DataArray'
 escript_path = str(esysroot) + '/escript/inc'
@@ -59,7 +97,7 @@ target = 'DataArrayTest.exe'
 
 dataarray_env = Environment(ENV = os.environ)
 
-dataarray_env.Replace(CXX = 'icc')
+dataarray_env.Replace(CXX = cxx)
 dataarray_env.Replace(CXXFLAGS = cxx_flags)
 dataarray_env.Replace(CPPPATH = cpp_path)
 dataarray_env.Replace(LIBPATH = lib_path)
