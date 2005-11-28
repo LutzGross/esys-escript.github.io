@@ -1,4 +1,4 @@
-# Scons configuration file for bruce unit tests
+# Scons configuration file for Bruce unit tests
 
 import os
 import sys
