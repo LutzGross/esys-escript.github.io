@@ -23,4 +23,4 @@ local_env.Install(esys_lib, program)
 local_env.RunUnitTest(program_name)
 
 local_env.Export('program_name')
-local_env.SConscript(dirs = ['#/bruce/test/python'], build_dir='build/$PLATFORM/bruce/py', duplicate=0)
+local_env.SConscript(dirs = ['#/bruce/test/python'], build_dir='py', duplicate=0)
