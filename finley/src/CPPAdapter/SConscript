@@ -39,8 +39,9 @@ else:
    local_env.Replace(CPPPATH = cpp_path)
 
 finleycpp_lib = local_env.SharedLibrary(lib_name, sources)
+#Default(finleycpp_lib)
 local_env.Install(esys_lib, finleycpp_lib)
 
 # Python
 local_env.Export('lib_name')
-env.SConscript(dirs = ['#/finley/py_src'], build_dir='#/build/$PLATFORM/finley/py', duplicate=0)
+env.SConscript(dirs = ['#/finley/py_src'], build_dir='py', duplicate=0)

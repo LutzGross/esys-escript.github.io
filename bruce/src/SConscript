@@ -38,8 +38,9 @@ else:
     local_env.Replace(CPPPATH = cpp_path)
 
 bruce_lib = local_env.SharedLibrary(lib_name, sources)
+#Default(bruce_lib)
 local_env.Install(esys_lib, bruce_lib)
 
 # Python
 local_env.Export('lib_name')
-env.SConscript(dirs = ['#/bruce/py_src'], build_dir='#/build/$PLATFORM/bruce/py', duplicate=0)
+env.SConscript(dirs = ['#/bruce/py_src'], build_dir='py', duplicate=0)

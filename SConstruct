@@ -90,8 +90,8 @@ env.SConscript(dirs = ['escript/src/Data'], build_dir='build/$PLATFORM/escript/D
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['tools/mmio/src'], build_dir='build/$PLATFORM/tools/mmio', duplicate=0)
 env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-env.SConscript(dirs = ['finley/src/finleyC'], build_dir='build/$PLATFORM/finleyC', duplicate=0)
-env.SConscript(dirs = ['finley/src/CPPAdapter'], build_dir='build/$PLATFORM/CPPAdapter', duplicate=0)
+env.SConscript(dirs = ['finley/src/finleyC'], build_dir='build/$PLATFORM/finley/finleyC', duplicate=0)
+env.SConscript(dirs = ['finley/src/CPPAdapter'], build_dir='build/$PLATFORM/finley/CPPAdapter', duplicate=0)
 
 if env['PLATFORM'] == "win32":
    env.SConscript(dirs = ['win32/win32_utils'], build_dir='build/$PLATFORM/win32_utils', duplicate=0)
@@ -104,5 +104,3 @@ env.SConscript(dirs = ['finley/test'], build_dir='build/$PLATFORM/finley/test', 
 
 # Python
 env.SConscript(dirs = ['esys/py_src'], build_dir='build/$PLATFORM/esys/py', duplicate=0)
-
-
