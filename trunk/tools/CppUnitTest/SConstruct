@@ -62,6 +62,9 @@ sys.path.append(options_dir)
 if hostname=='ess':
   from ess_options import *
 
+if usegcc==1:
+  from gcc_options import *
+
 if dodebug==1:
   cxx_flags=cxx_flags_debug
 
