@@ -815,7 +815,7 @@ class TsunamiInDeepWater(Model):
                                  wave_velocity=0.,
                                  initial_time_step=None,
                                  bathymetry=1.,
-                                 safety_factor=0.1)
+                                 safety_factor=1.)
 
        def doInitialization(self):
            """
@@ -828,7 +828,7 @@ class TsunamiInDeepWater(Model):
            c_max=math.sqrt(Lsup(self.__c2))
            self.__dt=self.safety_factor*inf(self.domain.getSize()/(sqrt(self.__c2)+EPS*c_max))
            if self.initial_time_step==None: self.initial_time_step=self.__dt
-           self.trace("maximum wave velocity %s m/sec^2"%c_max)
+           self.trace("maximum wave velocity %s m/sec"%c_max)
            self.trace("Time step size is %s sec"%self.__dt)
 
 
@@ -851,7 +851,9 @@ class TsunamiInDeepWater(Model):
            @type dt: C{float}
            """
            self.__pde.setValue(X=-self.__c2*grad(self.wave_height))
+
            new_height=self.wave_height+dt*self.wave_velocity+dt*(self.initial_time_step+dt)/2*self.__pde.getSolution()
+
            self.wave_velocity=(new_height-self.wave_height)/dt
            self.wave_height=new_height
            self.initial_time_step=dt
@@ -976,5 +978,5 @@ if __name__=="__main__":
    sm.filename="movie.mpg"
    
    s=Simulation([sq,oc,b,oreg,src,ts,sm])
-   s.writeXML()
+   # s.writeXML()
    s.run()
