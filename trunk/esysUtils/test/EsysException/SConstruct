@@ -16,6 +16,12 @@ usegcc = 0
 options = None
 
 #
+# import configuration variables passed in from
+# calling SConscript (if any)
+
+Import('*')
+
+#
 # retreive command-line arguments if any
 
 if ARGUMENTS.get('usegcc',0):

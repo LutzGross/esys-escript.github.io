@@ -1,4 +1,4 @@
-# top-level Scons configuration file for all bruce unit tests
+# top-level Scons configuration file for all esysUtils unit tests
 
 import os
 
@@ -33,7 +33,6 @@ Export(["esysroot"])
 #
 # call appropriate SConscripts
 
-target_scripts = ['Bruce/SConstruct',
-                  'BruceFactory/SConstruct']
+target_scripts = ['EsysException/SConstruct']
 
 SConscript(target_scripts, duplicate=0)
