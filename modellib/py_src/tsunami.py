@@ -903,6 +903,8 @@ class SurfMovie(Model):
 
            self.firstFrame = True
 
+	   self.imageFiles = []
+
        def doInitialization(self):
           """
           Initializes the time integration scheme
@@ -1188,8 +1190,8 @@ class SurfMovie(Model):
              outWriter.SetFileName(imgFname)
              outWriter.Write()
              print "Wrote %s" % imgFname
-             os.system("display %s" % imgFname)
              self.paramsFileString += "%s\n" % imgFname
+	     self.imageFiles.append(imgFname)
 
              self.__next_t+=self.dt
 
@@ -1224,6 +1226,12 @@ class SurfMovie(Model):
           result = os.system(convertString)
           if result != 0:
               print "An error occurred in mpeg conversion"
+
+	  # now clean up the image files
+	  print "Removing temporary image files"
+	  os.unlink("%s.params" % self.filename)
+	  for fname in self.imageFiles:
+	      os.unlink(fname)
 
 if __name__=="__main__":
    from esys.escript.modelframe import Link,Simulation
