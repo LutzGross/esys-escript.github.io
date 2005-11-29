@@ -1,4 +1,4 @@
-# Scons configuration file for bruce factory unit tests
+# Scons configuration file for BruceFactory unit tests
 
 import os
 import sys
@@ -14,12 +14,16 @@ EnsureSConsVersion(0,96)
 
 esysroot = Dir('#../../..')
 usegcc = 0
+options = None
 
 #
 # retreive command-line arguments if any
 
 if ARGUMENTS.get('usegcc',0):
   usegcc = 1
+
+if ARGUMENTS.get('options',0):
+  options = ARGUMENTS.get('options',0)
 
 #
 # determine platform
@@ -43,6 +47,9 @@ if hostname=='ess':
 
 if usegcc==1:
   from gcc_options import *
+
+if options!=None:
+  exec "from " + options + " import *"
 
 cxx_flags=cxx_flags_debug
 

@@ -18,6 +18,12 @@ else:
   libinstall = Dir('#lib')
 Export(["libinstall"])
 
+if ARGUMENTS.get('options',0):
+  options = ARGUMENTS.get('options',0)
+else:
+  options = None
+Export(["options"])
+
 if ARGUMENTS.get('debug',0):
   dodebug = 1
 else:
