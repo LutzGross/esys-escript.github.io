@@ -1,5 +1,5 @@
 # locations of include files for python and boost
-python_path = '/usr/include'
+python_path = '/usr/include/python2.3'
 boost_path = '/usr/include'
 
 # locations of libraries for python and boost
@@ -15,12 +15,12 @@ cc = 'gcc'
 cxx = 'g++'
 
 # c flags to use
-cc_flags  = '-O3 -std=c99 -fpic -W -Wall -Wno-unknown-pragmas'
-cc_flags_debug  = '-g -O0 -std=c99 -fpic -W -Wall -Wno-unknown-pragmas'
+cc_flags  = '-O3 -std=c99 -fpic --no-warn -W -Wno-unknown-pragmas'
+cc_flags_debug  = '-g -O0 -std=c99 -fpic --no-warn -W -Wno-unknown-pragmas'
 
 # c++ flags to use
-cxx_flags  = '-O3 -ansi -fpic -W -Wall -Wno-unknown-pragmas'
-cxx_flags_debug  = '-g -O0 -ansi -fpic -W -Wall -Wno-unknown-pragmas -DDOASSERT -DDOPROF'
+cxx_flags  = '-O3 -ansi -fpic --no-warn -W -Wno-unknown-pragmas'
+cxx_flags_debug  = '-g -O0 -ansi -fpic --no-warn -W -Wno-unknown-pragmas -DDOASSERT -DDOPROF'
 
 # static library archiver flags to use
 ar_flags = 'crus'

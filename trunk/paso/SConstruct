@@ -80,9 +80,6 @@ if options!=None:
 if dodebug==1:
   cc_flags=cc_flags_debug
 
-# add solver flags
-cc_flags = cc_flags + ' -DSCSL'
-
 Export(["python_path"])
 Export(["boost_path"])
 Export(["cc"])
