@@ -16,6 +16,7 @@ esysroot = Dir('#..')
 libinstall = None
 dodebug = 0
 usegcc = 0
+options = None
 
 #
 # import configuration variables passed in from
@@ -35,6 +36,9 @@ if ARGUMENTS.get('debug',0):
 
 if ARGUMENTS.get('usegcc',0):
   usegcc = 1
+
+if ARGUMENTS.get('options',0):
+  options = ARGUMENTS.get('options',0)
 
 #
 # determine platform
@@ -69,6 +73,9 @@ if hostname=='ess':
 
 if usegcc==1:
   from gcc_options import *
+
+if options!=None:
+  exec "from " + options + " import *"
 
 if dodebug==1:
   cxx_flags=cxx_flags_debug

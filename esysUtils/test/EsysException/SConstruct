@@ -13,12 +13,16 @@ EnsureSConsVersion(0,96)
 
 esysroot = Dir('#../../..')
 usegcc = 0
+options = None
 
 #
 # retreive command-line arguments if any
 
 if ARGUMENTS.get('usegcc',0):
   usegcc = 1
+
+if ARGUMENTS.get('options',0):
+  options = ARGUMENTS.get('options',0)
 
 #
 # determine platform
@@ -43,14 +47,16 @@ if hostname=='ess':
 if usegcc==1:
   from gcc_options import *
 
+if options!=None:
+  exec "from " + options + " import *"
+
 cxx_flags=cxx_flags_debug
 
 #
 # print out build configuration for this module
 
 print "####################################################"
-print "Build configuration for module: Bruce unit tests"
-print "Build configuration for module: Bruce unit tests"
+print "Build configuration for module: EsysException unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
