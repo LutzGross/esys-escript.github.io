@@ -1,7 +1,9 @@
+#!/usr/bin/env python
+
 # $Id$
 
-
-import os
+import os, sys
+import vtk
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.modelframe import Model
@@ -881,9 +883,29 @@ class SurfMovie(Model):
                                  west=15.,
                                  filename="movie.mpg")
 
+           self.paramsFileString = "REFERENCE_FRAME DECODED\n"
+           self.paramsFileString += "FRAME_RATE 24\n"
+           self.paramsFileString += "OUTPUT %s\n" % self.filename
+           self.paramsFileString += "PATTERN IBBPBBPBB\n"
+           self.paramsFileString += "FORCE_ENCODE_LAST_FRAME\n"
+           self.paramsFileString += "GOP_SIZE 20\n"
+           self.paramsFileString += "BSEARCH_ALG CROSS2\n"
+           self.paramsFileString += "PSEARCH_ALG TWOLEVEL\n"
+           self.paramsFileString += "IQSCALE 10\n"
+           self.paramsFileString += "PQSCALE 11\n"
+           self.paramsFileString += "BQSCALE 16\n"
+           self.paramsFileString += "RANGE 8\n"
+           self.paramsFileString += "SLICES_PER_FRAME 1\n"
+           self.paramsFileString += "BASE_FILE_FORMAT PNM\n"
+           self.paramsFileString += "INPUT_DIR \n"
+           self.paramsFileString += "INPUT_CONVERT *\n"
+           self.paramsFileString += "INPUT\n"
+
+           self.firstFrame = True
+
        def doInitialization(self):
           """
-          Initializes the time integartion scheme
+          Initializes the time integration scheme
           """
           self.__fn=os.tempnam()+".xml"
           self.__frame_name=os.tempnam()
@@ -892,6 +914,200 @@ class SurfMovie(Model):
           # self.bathymetry.getVTK()
           # wndow(south,west,north,east)
 
+          # the bathymmetry colourmap
+	  data = []
+	  data.append([-8000, 0,   0,   0])
+	  data.append([-7000, 0,   5,   25])
+	  data.append([-6000, 0,   10,  50])
+	  data.append([-5000, 0,   80,  125])
+	  data.append([-4000, 0,   150, 200])
+	  data.append([-3000, 86,  197, 184])
+	  data.append([-2000, 172, 245, 168])
+	  data.append([-1000, 211, 250, 211])
+	  data.append([0,     16,  48,  16])
+	  data.append([300,   70,  150, 50])
+	  data.append([500,   146, 126, 60])
+	  data.append([1000,  198, 178, 80])
+	  data.append([1250,  250, 230, 100])
+	  data.append([1500,  250, 234, 126])
+	  data.append([1750,  252, 238, 152])
+	  data.append([2000,  252, 243, 177])
+	  data.append([2250,  253, 249, 216])
+	  data.append([2500,  255, 255, 255])
+
+	  # the amount to scale the data by
+          scale = 255.0
+          numColours = len(data)
+
+	  # convert the colourmap into something vtk is more happy with
+          height = numarray.zeros(numColours, numarray.Float)
+          red = numarray.zeros(numColours, numarray.Float)
+          green = numarray.zeros(numColours, numarray.Float)
+          blue = numarray.zeros(numColours, numarray.Float)
+          for i in range(numColours):
+              (h, r, g, b) = data[i]
+              height[i] = float(h)
+              red[i] = float(r)/scale
+              green[i] = float(g)/scale
+              blue[i] = float(b)/scale
+
+          print "Loading bathymmetry data..."
+          # grab the z data
+          bathZData = self.bathymetry.getData()
+
+          # get the origin
+          bathOrigin = self.bathymetry.getOrigin()
+          # get the delta_x and delta_y
+          bathSpacing = self.bathymetry.getSpacing()
+
+          # now construct the x and y data from the spacing and the origin
+          numXPoints = bathZData.shape[1]
+          numYPoints = bathZData.shape[0]
+          numPoints = numXPoints*numYPoints
+
+          bathXData = numarray.zeros(numXPoints, numarray.Float)
+          bathYData = numarray.zeros(numYPoints, numarray.Float)
+          for i in range(numXPoints):
+              bathXData[i] = bathOrigin[0] + i*bathSpacing[0]
+
+          for i in range(numYPoints):
+              bathYData[i] = bathOrigin[1] + i*bathSpacing[1]
+
+          # calculate the appropriate window size
+          dataWidth = max(bathXData) - min(bathXData)
+          dataHeight = max(bathYData) - min(bathYData)
+          winHeight = 600 
+          winWidth = int(dataWidth*float(winHeight)/dataHeight)
+
+          print "Done loading bathymmetry data"
+
+          ### now do the vtk stuff
+
+          # make sure rendering is offscreen
+          factGraphics = vtk.vtkGraphicsFactory()
+          factGraphics.SetUseMesaClasses(1)
+
+          factImage = vtk.vtkImagingFactory()
+          factImage.SetUseMesaClasses(1)
+
+          # make the bathymmetry colourmap
+          transFunc = vtk.vtkColorTransferFunction()
+          transFunc.SetColorSpaceToRGB()
+          for i in range(numColours):
+              transFunc.AddRGBPoint(height[i], red[i], green[i], blue[i])
+              h = height[i]
+              while i < numColours-1 and h < height[i+1]:
+                h += 1
+                transFunc.AddRGBPoint(h, red[i], green[i], blue[i])
+
+	  # set up the lookup table for the wave data
+	  refLut = vtk.vtkLookupTable()
+	  self.lutTrans = vtk.vtkLookupTable()
+	  refLut.Build()
+	  alpha = 0.4   # alpha channel value
+	  for i in range(256):
+	      (r,g,b,a) = refLut.GetTableValue(255-i)
+	      if g == 1.0 and b < 0.5 and r < 0.5:
+		  self.lutTrans.SetTableValue(i, r, g, b, 0.0)
+	      else:
+		  self.lutTrans.SetTableValue(i, r, g-0.2, b, alpha)
+
+          print "Generating the bathymmetry vtk object..."
+
+          # set up the renderer and the render window
+          self.ren = vtk.vtkRenderer()
+          self.renWin = vtk.vtkRenderWindow()
+          self.renWin.AddRenderer(self.ren)
+          self.renWin.SetSize(winWidth, winHeight)
+          self.renWin.OffScreenRenderingOn()
+
+          # make an unstructured grid
+          bathGrid = vtk.vtkUnstructuredGrid()
+
+          # make the points for the vtk data
+          bathPoints = vtk.vtkPoints()
+          bathPoints.SetNumberOfPoints(numPoints)
+
+          # make the vtk bathymmetry data set
+          bathData = vtk.vtkFloatArray()
+          bathData.SetNumberOfComponents(1)
+          bathData.SetNumberOfTuples(numPoints)
+
+          # add the points and data
+          count = 0
+          for i in range(numXPoints):
+              for j in range(numYPoints):
+                  bathPoints.InsertPoint(count, bathXData[i], bathYData[j], 0.0)
+                  bathData.InsertTuple1(count, bathZData[j,i])
+                  count += 1
+        
+          # set the data to the grid
+          bathGrid.SetPoints(bathPoints)
+          bathGrid.GetPointData().SetScalars(bathData)
+
+          # do a delaunay on the grid
+          bathDelaunay = vtk.vtkDelaunay2D()
+          bathDelaunay.SetInput(bathGrid)
+          bathDelaunay.SetTolerance(0.001)
+          bathDelaunay.SetAlpha(2.5)
+
+          # set up the mapper
+          bathMapper = vtk.vtkDataSetMapper()
+          bathMapper.SetInput(bathDelaunay.GetOutput())
+          bathMapper.SetLookupTable(transFunc)
+
+          # set up the actor
+          bathActor = vtk.vtkActor()
+          bathActor.SetMapper(bathMapper)
+
+          self.ren.AddActor(bathActor)
+
+	  ### now add the coastline
+          print "Loading the coastline data..."
+
+	  # make the coastline points
+	  coastPoints = vtk.vtkPoints()
+
+	  # make the coastline grid
+	  coastGrid = vtk.vtkUnstructuredGrid()
+
+	  # now point the points and lines into the grid
+	  totalCoastPoints = 0
+	  for polyline in self.coastline.polylines:
+	      numPoints = len(polyline)
+	      coastLine = vtk.vtkPolyLine()
+	      coastLine.GetPointIds().SetNumberOfIds(numPoints)
+	      j = 0
+	      for point in polyline:
+		  coastLine.GetPointIds().SetId(j, j+totalCoastPoints)
+		  coastPoints.InsertNextPoint(point.long, point.lat, 0.0)
+		  j += 1
+	      coastGrid.InsertNextCell(coastLine.GetCellType(),
+		      coastLine.GetPointIds())
+	      totalCoastPoints += numPoints
+
+	  coastGrid.SetPoints(coastPoints)
+
+	  # make the coast's mapper
+	  coastMapper = vtk.vtkDataSetMapper()
+	  coastMapper.SetInput(coastGrid)
+
+	  # make its actor
+	  coastActor = vtk.vtkActor()
+	  coastActor.SetMapper(coastMapper)
+	  coastActor.GetProperty().SetColor(0,0,0)
+
+	  # add the actor to the renderer
+	  self.ren.AddActor(coastActor)
+
+          # set up the actor for the wave
+          self.waveActor = vtk.vtkActor()
+
+          # add the actor to the renderer
+          self.ren.AddActor(self.waveActor)
+
+          print "Done loading the coastline data"
+          
        def doStepPostprocessing(self, dt):
         """
         Does any necessary postprocessing after each step
@@ -903,6 +1119,78 @@ class SurfMovie(Model):
              saveVTK(self.__fn,h=self.wave_height)
              # vtkobj=...
              # save(self.__frame_name)
+
+             # get the wave data
+             waveDomain = self.wave_height.getDomain().getX()
+             waveX = waveDomain[0].convertToNumArray()
+             waveY = waveDomain[1].convertToNumArray()
+             waveZ = self.wave_height.convertToNumArray()
+
+             numPoints = len(waveZ)
+
+             # make the points
+             wavePoints = vtk.vtkPoints()
+             wavePoints.SetNumberOfPoints(numPoints)
+
+             # make the vtk data array
+             waveData = vtk.vtkFloatArray()
+             waveData.SetNumberOfComponents(1)
+             waveData.SetNumberOfTuples(numPoints)
+             waveData.SetName("data")
+
+             # put the data into the points and array
+             for i in range(numPoints):
+                 wavePoints.InsertPoint(i, waveX[i], waveY[i], 0.0)
+                 waveData.InsertTuple1(i, waveZ[i])
+
+             # make the grid
+             waveGrid = vtk.vtkUnstructuredGrid()
+             waveGrid.SetPoints(wavePoints)
+             waveGrid.GetPointData().AddArray(waveData)
+             waveGrid.GetPointData().SetActiveScalars("data")
+
+             (zMin, zMax) = waveGrid.GetPointData().GetScalars().GetRange()
+             print "Wave height range %f - %f" % (zMin, zMax)
+
+	     # do a delaunay on the data
+	     waveDelaunay = vtk.vtkDelaunay2D()
+	     waveDelaunay.SetInput(waveGrid)
+	     waveDelaunay.SetTolerance(0.001)
+	     waveDelaunay.SetAlpha(2.5)
+
+             # make a mapper for the grid
+             waveMapper = vtk.vtkDataSetMapper()
+             waveMapper.SetInput(waveDelaunay.GetOutput())
+	     waveMapper.SetLookupTable(self.lutTrans)
+             waveMapper.SetScalarRange(zMin, zMax)
+
+             self.waveActor.SetMapper(waveMapper)
+
+             # do stuff here that can only be done on the first frame
+             if self.firstFrame:
+                 # zoom in a bit
+                 self.ren.GetActiveCamera().Zoom(2.0)
+                 self.firstFrame = False
+
+             # render the window
+             self.renWin.Render()
+
+             # convert the render window to an image
+             win2imgFilter = vtk.vtkWindowToImageFilter()
+             win2imgFilter.SetInput(self.renWin)
+
+             # the image name
+             imgFname = "%s%f.pnm" % (self.__frame_name, self.__next_t)
+   
+             # save the image to file
+             outWriter = vtk.vtkPNMWriter()
+             outWriter.SetInput(win2imgFilter.GetOutput())
+             outWriter.SetFileName(imgFname)
+             outWriter.Write()
+             print "Wrote %s" % imgFname
+             os.system("display %s" % imgFname)
+             self.paramsFileString += "%s\n" % imgFname
+
              self.__next_t+=self.dt
 
        def getSafeTimeStepSize(self,dt):
@@ -922,8 +1210,20 @@ class SurfMovie(Model):
           image files.
           """
           # make the movie into self.filename
-          pass
+          self.paramsFileString += "END_INPUT\n"
+          self.paramsFileString += "PIXEL HALF\n"
+          self.paramsFileString += "ASPECT_RATIO 1\n"
 
+          # write the params string to file
+          fp = open("%s.params" % self.filename, "w")
+          fp.write(self.paramsFileString + '\n')
+          fp.close()
+
+          print "Performing conversion to mpeg"
+          convertString = "ppmtompeg %s.params" % self.filename
+          result = os.system(convertString)
+          if result != 0:
+              print "An error occurred in mpeg conversion"
 
 if __name__=="__main__":
    from esys.escript.modelframe import Link,Simulation
@@ -980,3 +1280,5 @@ if __name__=="__main__":
    s=Simulation([sq,oc,b,oreg,src,ts,sm])
    # s.writeXML()
    s.run()
+
+# vim: expandtab shiftwidth=4:
