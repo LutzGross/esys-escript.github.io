@@ -27,3 +27,6 @@ ar_flags = 'crus'
 
 # system specific libraries to link with
 sys_libs = ['guide', 'irc']
+
+# solver libraries to link with
+sys_libs = ['scs_mp']
