@@ -15,7 +15,7 @@ endif
 
 L_PYTH_DIR := $(L_PYTH_DIR)/modellib
 
-INSTALL_PYTH := ./lib/py_src/darcy.pyc  ./lib/py_src/geometry.pyc  ./lib/py_src/input.pyc ./lib/py_src/probe.pyc ./lib/py_src/visualization.pyc ./lib/py_src/flow.pyc ./lib/py_src/__init__.pyc ./lib/py_src/materials.pyc ./lib/py_src/temperature.pyc
+INSTALL_PYTH := ./lib/py_src/darcy.pyc  ./lib/py_src/geometry.pyc  ./lib/py_src/input.pyc ./lib/py_src/probe.pyc ./lib/py_src/visualization.pyc ./lib/py_src/flow.pyc ./lib/py_src/__init__.pyc ./lib/py_src/materials.pyc ./lib/py_src/temperature.pyc ./lib/py_src/tsunami.pyc
 
 L_SRC_DIR:= ./py_src
 
