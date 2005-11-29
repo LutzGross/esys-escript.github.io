@@ -15,6 +15,7 @@ EnsureSConsVersion(0,96)
 esysroot = Dir('#../../..')
 usegcc = 0
 options = None
+sys_libs = []
 
 #
 # import configuration variables passed in from
@@ -118,9 +119,9 @@ libs = ['escriptcpp',
         str(boost_lib),
         'scs_mp',
         'dl',
-        'util',
-        'guide',
-        'irc']
+        'util']
+
+libs.extend(sys_libs)
 
 sources = ['MeshAdapterTestCase.cpp',
            'MeshAdapterTest.cpp']

@@ -24,3 +24,6 @@ cxx_flags_debug  = '-g -O0 -ansi -fpic -W -Wall -Wno-unknown-pragmas -DDOASSERT 
 
 # static library archiver flags to use
 ar_flags = 'crus'
+
+# system specific libraries to link with
+sys_libs = []
