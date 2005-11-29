@@ -22,7 +22,7 @@ def main():
     elif args:
         files = [(file(arg), arg) for arg in args]
     else:
-        parser.usage()
+        parser.usage
 
     for f, filename in files:
         
