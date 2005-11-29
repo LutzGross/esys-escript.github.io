@@ -15,12 +15,12 @@ cc = 'icc'
 cxx = 'icc'
 
 # c flags to use
-cc_flags  = '-O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -c99 -ansi_alias -no-gcc -fpic -w1'
-cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -fpic -w1'
+cc_flags  = '-O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -c99 -ansi_alias -no-gcc -fpic -w1 -DSCSL'
+cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -fpic -w1i -DSCSL'
 
 # c++ flags to use
-cxx_flags = '-O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1'
-cxx_flags_debug = '-g -O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1 -DDOASSERT -DDOPROF'
+cxx_flags = '-O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1 -DSCSL'
+cxx_flags_debug = '-g -O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1 -DDOASSERT -DDOPROF -DSCSL'
 
 # static library archiver flags to use
 ar_flags = 'crus'
