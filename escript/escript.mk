@@ -16,7 +16,7 @@ endif
 
 L_PYTH_DIR := $(L_PYTH_DIR)/escript
 
-INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/linearPDEs.pyc ./lib/py_src/pdetools.pyc ./lib/py_src/util.pyc ./lib/py_src/escript.pyc ./lib/py_src/modelframe.pyc ./lib/py_src/timeseries.pyc ./lib/py_src/esysXML.pyc ./lib/py_src/test_linearPDEs.pyc ./lib/py_src/test_util.pyc ./lib/py_src/symbols.pyc ./lib/py_src/test_symbols.pyc
+INSTALL_PYTH := ./lib/py_src/__init__.pyc ./lib/py_src/linearPDEs.pyc ./lib/py_src/pdetools.pyc ./lib/py_src/util.pyc ./lib/py_src/escript.pyc ./lib/py_src/modelframe.pyc ./lib/py_src/timeseries.pyc ./lib/py_src/esysXML.pyc ./lib/py_src/test_linearPDEs.pyc ./lib/py_src/test_util.pyc ./lib/py_src/symbols.pyc ./lib/py_src/test_symbols.pyc ./lib/py_src/runmodel.pyc
 
 INSTALL_LIB := ./lib/libescriptcpp.so
 
