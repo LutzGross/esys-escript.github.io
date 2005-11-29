@@ -1,4 +1,4 @@
-# $Id:$
+# $Id$
 
 
 import os
@@ -48,13 +48,13 @@ class GridData:
           i_dx=1
           i_dy=1
           for i in range(x_array.shape[0]):
-             x0=x_array[i,0]-ox
-             x1=x_array[i,1]-oy
-             j0=min(max(int(x0/dx),0),data_array.shape[1]-1-i_dy)
-             j1=min(max(int(x1/dy),0),data_array.shape[0]-1-i_dx)
-             f01=(x0-j0*dx)/dx
+             x_long=x_array[i,0]-ox
+             x_lat=x_array[i,1]-oy
+             j0=min(max(int(x_long/dx),0),data_array.shape[1]-1-i_dy)
+             j1=min(max(int(x_lat/dy),0),data_array.shape[0]-1-i_dx)
+             f01=(x_long-j0*dx)/dx
              f00=1.-f01
-             f11=(x1-j1*dy)/dy
+             f11=(x_lat-j1*dy)/dy
              f10=1.-f11
              H00=data_array[j1,j0]
              H01=data_array[j1,j0+i_dx]
@@ -76,25 +76,23 @@ class PointOnEarthSurface:
    """
    coordinates of a  point on the surface of the Earth
    """
-   def __init__(self,phi=0,theta=0):
-       self.phi=phi
-       self.theta=theta
+   def __init__(self,long=0,lat=0):
+       self.long=long
+       self.lat=lat
    def __str__(self):
-       return "(%s,%s)"%(self.phi,self.theta)
+       return "(%s,%s)"%(self.long,self.lat)
 
    def __sub__(self,other):
        return self.dist(other)
 
    def split(self,p,t):
-      phi=self.phi+t*(p.phi-self.phi)
-      theta=self.theta+t*(p.theta-self.theta)
-      return PointOnEarthSurface(phi,theta)
+      return PointOnEarthSurface(long=self.long+t*(p.long-self.long),lat=self.lat+t*(p.lat-self.lat))
 
    def midPoint(self,other):
-      return PointOnEarthSurface((self.phi+other.phi)/2,(self.theta+other.theta)/2)
+      return PointOnEarthSurface(long=(self.long+other.long)/2,lat=(self.lat+other.lat)/2)
 
    def dist(self,other):
-      return math.sqrt((self.phi-other.phi)**2+(self.theta-other.theta)**2)
+      return math.sqrt((self.long-other.long)**2+(self.lat-other.lat)**2)
 
 class RegionOnEarthSurface:
      """
@@ -106,36 +104,36 @@ class RegionOnEarthSurface:
      NORTH=1
      EAST=2
      SOUTH=3
-     def __init__(self,south_east=PointOnEarthSurface(0.,0.),north_west=PointOnEarthSurface(10.,10.),resolution=1.):
+     def __init__(self,west_south=PointOnEarthSurface(),east_north=PointOnEarthSurface(),resolution=1.):
           if resolution<=0:
               raise ValueError,"resolution must be positive"
-          if  south_east.phi>=north_west.phi:
-              raise ValueError,"east south corner must be further east than west north corner"
-          if  south_east.theta>=north_west.theta:
+          if  west_south.long>=east_north.long:
+              raise ValueError,"south west corner must be further east than west north corner"
+          if  west_south.lat>=east_north.lat:
               raise ValueError,"east south corner must be further down than west north corner"
-          if  north_west.theta-south_east.theta < resolution/2:
+          if  east_north.lat-west_south.lat < resolution/2:
               raise ValueError,"latitude length of region must be 2*bigger then resolution"
-          if  north_west.phi-south_east.phi < resolution/2:
+          if  east_north.long-west_south.long < resolution/2:
               raise ValueError,"longitude length of region must be 2*bigger then resolution"
 
-          self.south_east=south_east
-          self.north_west=north_west
+          self.west_south=west_south
+          self.east_north=east_north
           self.resolution=resolution
 
      def __str__(self):
-       return "RegionOnEarthSurface between %s and %s"%(str(self.south_east),str(self.north_west))
+       return "RegionOnEarthSurface between %s and %s"%(str(self.west_south),str(self.east_north))
 
      def isOnFace(self,p):
          return self.isOnThisFace(p,self.SOUTH) or self.isOnThisFace(p,self.NORTH) or self.isOnThisFace(p,self.WEST) or self.isOnThisFace(p,self.EAST)
      def isOnThisFace(self,p,face):
         if face==self.WEST:
-           return self.south_east.phi==p.phi
+           return self.west_south.long==p.long
         if face==self.EAST:
-         return p.phi==self.north_west.phi
+         return p.long==self.east_north.long
         if face==self.SOUTH:
-         return self.south_east.theta==p.theta
+         return self.west_south.lat==p.lat
         if face==self.NORTH:
-           return p.theta==self.north_west.theta
+           return p.lat==self.east_north.lat
 
      def isBoxVertex(self,p):
          return ( self.isOnThisFace(p,self.WEST) and  self.isOnThisFace(p,self.SOUTH) ) or \
@@ -146,10 +144,10 @@ class RegionOnEarthSurface:
 
      def getFace(self,p):
         # order is critical
-        if self.south_east.phi==p.phi: return self.WEST
-        if p.theta==self.north_west.theta: return self.NORTH
-        if p.phi==self.north_west.phi: return self.EAST
-        if self.south_east.theta==p.theta: return self.SOUTH
+        if self.west_south.long==p.long: return self.WEST
+        if p.lat==self.east_north.lat: return self.NORTH
+        if p.long==self.east_north.long: return self.EAST
+        if self.west_south.lat==p.lat: return self.SOUTH
 
      def comparePointsOnFace(self,p0,p1):
          f0=self.getFace(p0)
@@ -161,66 +159,66 @@ class RegionOnEarthSurface:
             return 1
          else:
             if f0 == self.WEST:
-                if p0.theta<p1.theta:
+                if p0.lat<p1.lat:
                    return -1
-                elif p0.theta>p1.theta:
+                elif p0.lat>p1.lat:
                    return 1
                 else:
                    return 0
             elif f0 == self.EAST:
-                if p0.theta<p1.theta:
+                if p0.lat<p1.lat:
                    return 1
-                elif p0.theta>p1.theta:
+                elif p0.lat>p1.lat:
                    return -1
                 else:
                    return 0
             elif f0 == self.NORTH:
-                if p0.phi<p1.phi:
+                if p0.long<p1.long:
                    return -1
-                elif p0.phi>p1.phi:
+                elif p0.long>p1.long:
                    return 1
                 else:
                    return 0
             else:
-                if p0.phi<p1.phi:
+                if p0.long<p1.long:
                    return 1
-                elif p0.phi>p1.phi:
+                elif p0.long>p1.long:
                    return -1
                 else:
                    return 0
 
 
      def isInRegion(self,p):
-         return  self.south_east.phi<=p.phi \
-             and p.phi<=self.north_west.phi \
-             and self.south_east.theta<=p.theta \
-             and p.theta<=self.north_west.theta
+         return  self.west_south.long<=p.long \
+             and p.long<=self.east_north.long \
+             and self.west_south.lat<=p.lat \
+             and p.lat<=self.east_north.lat
 
      def cutSegment(self,p0,p1):
             t=None
             p=None
-            tmp=self.interseptOfSegment(p0,p1,d=0,v=self.south_east.phi)
+            tmp=self.interseptOfSegment(p0,p1,d=0,v=self.west_south.long)
             if not tmp==None:
                 p_tmp=p0.split(p1,tmp)
                 if self.isInRegion(p_tmp) and t<tmp:
                    t=tmp
                    p=p_tmp
 
-            tmp=self.interseptOfSegment(p0,p1,d=0,v=self.north_west.phi)
+            tmp=self.interseptOfSegment(p0,p1,d=0,v=self.east_north.long)
             if not tmp==None:
                 p_tmp=p0.split(p1,tmp)
                 if self.isInRegion(p_tmp) and t<tmp:
                    t=tmp
                    p=p_tmp
 
-            tmp=self.interseptOfSegment(p0,p1,d=1,v=self.south_east.theta)
+            tmp=self.interseptOfSegment(p0,p1,d=1,v=self.west_south.lat)
             if not tmp==None:
                 p_tmp=p0.split(p1,tmp)
                 if self.isInRegion(p_tmp) and t<tmp:
                    t=tmp
                    p=p_tmp
 
-            tmp=self.interseptOfSegment(p0,p1,d=1,v=self.north_west.theta)
+            tmp=self.interseptOfSegment(p0,p1,d=1,v=self.east_north.lat)
             if not tmp==None:
                 p_tmp=p0.split(p1,tmp)
                 if self.isInRegion(p_tmp) and t<tmp:
@@ -233,11 +231,11 @@ class RegionOnEarthSurface:
          find t isn [0,1] such that p0+t*(p0-p1) cuts x[d]=v. if it does nit exist None is returned.
          """
          if d==0:
-           a=p0.phi
-           b=p1.phi
+           a=p0.long
+           b=p1.long
          else:
-           a=p0.theta
-           b=p1.theta
+           a=p0.lat
+           b=p1.lat
          if b==a:
            if a==v:
               t=0
@@ -321,7 +319,7 @@ class Polyline:
          for i in range(len(self.list_of_coordinates)-1):
              p0=self.list_of_coordinates[i]
              p1=self.list_of_coordinates[i+1]
-             integ+=(p1.theta-p0.theta)*(p1.phi+p0.phi)-(p1.phi-p0.phi)*(p1.theta+p0.theta)
+             integ+=(p1.lat-p0.lat)*(p1.long+p0.long)-(p1.long-p0.long)*(p1.lat+p0.lat)
          if integ>=0.:
             return 1.
          else:
@@ -343,7 +341,7 @@ class Coastline:
          for pl in self.polylines:
              out+="\n"+str(pl)
          return out
-     def makeTriangulation(self,south_east_is_water=True,south_west_is_water=True,north_west_is_water=True,north_east_is_water=True):
+     def makeTriangulation(self,west_south_is_water=True,east_south_is_water=True,west_north_is_water=True,east_north_is_water=True):
          self.clean()
          vertices=[]
          segments=[]
@@ -371,25 +369,25 @@ class Coastline:
                        vertices+=v_tmp
                        segments+=s_tmp
                        # find a point in the loop:
-                       d_phi=v_tmp[1].phi-v_tmp[0].phi
-                       d_theta=v_tmp[1].theta-v_tmp[0].theta
-                       l=math.sqrt(d_phi**2+d_theta**2)
+                       d_long=v_tmp[1].long-v_tmp[0].long
+                       d_lat=v_tmp[1].lat-v_tmp[0].lat
+                       l=math.sqrt(d_long**2+d_lat**2)
                        mid=v_tmp[0].midPoint(v_tmp[1])
-                       n_phi=-d_theta/l
-                       n_theta=d_phi/l
+                       n_long=-d_lat/l
+                       n_lat=d_long/l
                        s=self.region.resolution
                        for seg in s_tmp:
                          p0=vertices[seg[0]]
                          p1=vertices[seg[1]]
-                         a_phi=p1.phi-p0.phi
-                         a_theta=p1.theta-p0.theta
-                         d=a_theta*n_phi-a_phi*n_theta
+                         a_long=p1.long-p0.long
+                         a_lat=p1.lat-p0.lat
+                         d=a_lat*n_long-a_long*n_lat
                          if abs(d)>0.:
-                            t=((mid.theta-p0.theta)*n_phi-(mid.phi-p0.phi)*n_theta)/d
+                            t=((mid.lat-p0.lat)*n_long-(mid.long-p0.long)*n_lat)/d
                             if 0<=t and t<=1:
-                                s_tmp=((mid.theta-p0.theta)*a_phi-(mid.phi-p0.phi)*a_theta)/d
+                                s_tmp=((mid.lat-p0.lat)*a_long-(mid.long-p0.long)*a_lat)/d
                                 if s_tmp>EPS: s=min(s,s_tmp)
-                       h=PointOnEarthSurface(mid.phi+s/2*n_phi,mid.theta+s/2*n_theta)
+                       h=PointOnEarthSurface(long=mid.long+s/2*n_long,lat=mid.lat+s/2*n_lat)
                        holes.append(h)
                 else:
                    if len(short_pl)>1:
@@ -401,14 +399,14 @@ class Coastline:
                           vertices.append(short_pl[i])
          # put into the bounding box:
          new_vertices=[]
-         if south_east_is_water:
-            new_vertices.append(PointOnEarthSurface(self.region.south_east.phi,self.region.south_east.theta))
-         if north_east_is_water:
-            new_vertices.append(PointOnEarthSurface(self.region.south_east.phi,self.region.north_west.theta))
-         if north_west_is_water:
-            new_vertices.append(PointOnEarthSurface(self.region.north_west.phi,self.region.north_west.theta))
-         if south_west_is_water:
-            new_vertices.append(PointOnEarthSurface(self.region.north_west.phi,self.region.south_east.theta))
+         if west_south_is_water:
+            new_vertices.append(PointOnEarthSurface(long=self.region.west_south.long,lat=self.region.west_south.lat))
+         if east_south_is_water:
+            new_vertices.append(PointOnEarthSurface(long=self.region.east_north.long,lat=self.region.west_south.lat))
+         if west_north_is_water:
+            new_vertices.append(PointOnEarthSurface(long=self.region.west_south.long,lat=self.region.east_north.lat))
+         if east_north_is_water:
+            new_vertices.append(PointOnEarthSurface(long=self.region.east_north.long,lat=self.region.east_north.lat))
 
          # add new vertices if they don't exist yet
          for q in new_vertices:
@@ -421,7 +419,7 @@ class Coastline:
                 vertices_on_face.append(q)
          vertices_on_face.sort(self.region.comparePointsOnFace)
          index=0
-         walking_on_water=south_east_is_water
+         walking_on_water=west_south_is_water
          l=len(vertices_on_face)
          while index<l:
              p1=vertices_on_face[(index+1)%l]
@@ -553,11 +551,11 @@ class EarthTriangulation:
            poly_file=self.fn+".poly"
            f=open(poly_file,"w")
            f.writelines("%d %d %d %d\n"%(len(vertices),2,0,0))
-           for i in range(len(vertices)): f.writelines("%d %e %e\n"%(i,vertices[i].phi,vertices[i].theta))
+           for i in range(len(vertices)): f.writelines("%d %e %e\n"%(i,vertices[i].long,vertices[i].lat))
            f.writelines("%d %d\n"%(len(segments),0))
            for i in range(len(segments)): f.writelines("%d %d %d\n"%(i,segments[i][0],segments[i][1]))
            f.writelines("%d\n"%(len(holes)))
-           for i in range(len(holes)):  f.writelines("%d %e %e\n"%(i,holes[i].phi,holes[i].theta))
+           for i in range(len(holes)):  f.writelines("%d %e %e\n"%(i,holes[i].long,holes[i].lat))
            f.close()
            # start mesh generator:
            os.system(self.GENERATOR%(resolution**2,poly_file))
@@ -736,7 +734,7 @@ class OceanRegion(Model):
               line=line.strip()
               if line[:7]=="#region":
                  data=line[line.index("[")+1:line.index("]")].split(",")
-                 reg=RegionOnEarthSurface(PointOnEarthSurface(self.south,self.west),PointOnEarthSurface(self.north,self.east),self.resolution)
+                 reg=RegionOnEarthSurface(PointOnEarthSurface(lat=self.south,long=self.west),PointOnEarthSurface(lat=self.north,long=self.east),self.resolution)
                  self.trace(str(reg))
                  self.coastline=Coastline(region=reg,name=data_name)
               elif line.find("Shore Bin")>-1:
@@ -745,11 +743,11 @@ class OceanRegion(Model):
                    segs=[]
               if not (line=="" or line[0]=="#" or line[0]==">") :
                   x=line.split()
-                  segs.append(PointOnEarthSurface(float(x[0]),float(x[1])))
+                  segs.append(PointOnEarthSurface(long=float(x[0]),lat=float(x[1])))
               line=f.readline()
            self.coastline.append(Polyline(segs,name))
            d=self.bathymetry_data.interpolate([[self.east,self.south],[self.west,self.south],[self.east,self.north],[self.west,self.north]])
-           self.domain=self.coastline.makeTriangulation(south_east_is_water=d[0]<0,south_west_is_water=d[1]<0,north_east_is_water=d[2]<0,north_west_is_water=d[3]<0).getFinleyDomain()
+           self.domain=self.coastline.makeTriangulation(east_south_is_water=d[0]<=0,west_south_is_water=d[1]<=0,east_north_is_water=d[2]<=0,west_north_is_water=d[3]<=0).getFinleyDomain()
            self.bathymetry=maximum(-self.bathymetry_data.interpolate(Function(self.domain).getX()),0.)
 
 
@@ -776,23 +774,22 @@ class TsunamiSource(Model):
            """
            beta=math.sqrt(-math.log(self.GAMMA))/self.decay_zone
            x=self.domain.getX()
-           x0=x[0]
-           x1=x[1]
-           mid0=(self.start_long+self.end_long)/2
-           mid1=(self.start_lat+self.end_lat)/2
-           dist=math.sqrt((mid0-self.end_long)**2+(mid1-self.end_lat)**2)
-           a=(self.start_long-mid0)/dist
-           b=(self.end_long-mid1)/dist
+           x_long=x[0]
+           x_lat=x[1]
+           mid_long=(self.start_long+self.end_long)/2
+           mid_lat=(self.start_lat+self.end_lat)/2
+           dist=math.sqrt((mid_long-self.end_long)**2+(mid_lat-self.end_lat)**2)
+           a=(self.start_long-mid_long)/dist
+           b=(self.start_lat-mid_lat)/dist
            self.trace("source length = %s"%(dist*2.))
-
-           x0_hat= a*(x0-mid0)+b*(x1-mid1)
-           x1_hat=-b*(x0-mid0)+a*(x1-mid1)
-           # x1-direction
-           s=abs(x1_hat)-self.width
+           x_long_hat= a*(x_long-mid_long)+b*(x_lat-mid_lat)
+           x_lat_hat=-b*(x_long-mid_long)+a*(x_lat-mid_lat)
+           # x_lat-direction
+           s=abs(x_lat_hat)-self.width
            m=s.whereNegative()
            f1=(1.-m)*exp(-(s*beta)**2)+m
-           # x0-direction
-           s=abs(x0_hat)-dist
+           # x_long-direction
+           s=abs(x_long_hat)-dist
            m=s.whereNegative()
            f0=(1.-m)*exp(-(s*beta)**2)+m
            self.wave_height=f1*f0*self.amplitude
@@ -931,7 +928,7 @@ if __name__=="__main__":
    from esys.modellib.input import Sequencer
 
    oc=OceanRegionCollector()
-   oc.resolution=0.5
+   oc.resolution=2
    oc.south=-45.5
    oc.north=-5.4
    oc.east=161.1
@@ -954,8 +951,8 @@ if __name__=="__main__":
    src=TsunamiSource()
    src.domain=Link(oreg,"domain")
    src.start_lat=-10.
-   src.start_long=110.
    src.end_lat=-12.
+   src.start_long=110.
    src.end_long=120.
    src.width=0.1
    src.decay_zone=0.01
@@ -968,14 +965,14 @@ if __name__=="__main__":
    ts.bathymetry=Link(oreg,"bathymetry")
 
    sq=Sequencer()
-   sq.t_end=1000.
+   sq.t_end=100000.
 
    sm=SurfMovie()
    sm.bathymetry=Link(b,"bathymetry")
    sm.wave_height=Link(ts,"wave_height")
    sm.coastline=Link(oreg,"coastline")
    sm.t=Link(sq,"t")
-   sm.dt=100.
+   sm.dt=5000.
    sm.filename="movie.mpg"
    
    s=Simulation([sq,oc,b,oreg,src,ts,sm])
