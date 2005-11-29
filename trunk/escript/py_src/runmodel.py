@@ -29,6 +29,7 @@ def main():
         simstring = f.read()
         sim = modelframe.parse(simstring)
         print sim
+        sim.modelframe.run()
 
 if __name__=='__main__':
     main()
