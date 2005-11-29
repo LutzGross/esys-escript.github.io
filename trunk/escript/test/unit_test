@@ -7,8 +7,7 @@ MODULES="DataEmpty DataConstant DataTagged DataExpanded DataFactory DataArray Da
 for module in $MODULES ; do
   echo Testing: $module
   cd $module
-  scons
-  scons -c
+  ./unit_test
   if [ $? != 0 ]
   then
     echo Unit Testing FAILED for module: $module
