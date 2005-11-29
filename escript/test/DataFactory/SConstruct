@@ -15,6 +15,7 @@ EnsureSConsVersion(0,96)
 esysroot = Dir('#../../..')
 usegcc = 0
 options = None
+sys_libs = []
 
 #
 # import configuration variables passed in from
@@ -102,9 +103,9 @@ libs = ['escriptcpp',
         str(python_lib),
         str(boost_lib),
         'dl',
-        'util',
-        'guide',
-        'irc']
+        'util']
+
+libs.extend(sys_libs)
 
 sources = ['DataFactoryTestCase.cpp',
            'DataFactoryTest.cpp']

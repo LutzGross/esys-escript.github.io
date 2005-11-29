@@ -24,3 +24,6 @@ cxx_flags_debug = '-g -O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gc
 
 # static library archiver flags to use
 ar_flags = 'crus'
+
+# system specific libraries to link with
+sys_libs = ['guide', 'irc']

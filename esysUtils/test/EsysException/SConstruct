@@ -14,6 +14,7 @@ EnsureSConsVersion(0,96)
 esysroot = Dir('#../../..')
 usegcc = 0
 options = None
+sys_libs = []
 
 #
 # import configuration variables passed in from
@@ -88,9 +89,9 @@ lib_path = [esysUtils_lib_path,
             CppUnitTest_lib_path]
 
 libs = ['esysUtils',
-        'CppUnitTest',
-        'guide',
-        'irc']
+        'CppUnitTest']
+
+libs.extend(sys_libs)
 
 sources = ['EsysExceptionTestCase.cpp',
            'EsysExceptionTest.cpp']
