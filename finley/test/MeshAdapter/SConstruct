@@ -16,6 +16,7 @@ esysroot = Dir('#../../..')
 usegcc = 0
 options = None
 sys_libs = []
+solver_libs = []
 
 #
 # import configuration variables passed in from
@@ -117,11 +118,11 @@ libs = ['escriptcpp',
         'CppUnitTest',
         str(python_lib),
         str(boost_lib),
-        'scs_mp',
         'dl',
         'util']
 
 libs.extend(sys_libs)
+libs.extend(solver_libs)
 
 sources = ['MeshAdapterTestCase.cpp',
            'MeshAdapterTest.cpp']
