@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # $Id$
-import modelframe
+from esys.escript import modelframe
 
 #commandline utility to take an xml file, parse it, and run a simulation. 
 # invoke this by doing ./runmodel.py <filename.xml>
@@ -29,7 +29,7 @@ def main():
         simstring = f.read()
         sim = modelframe.parse(simstring)
         print sim
-        sim.modelframe.run()
+        sim.run()
 
 if __name__=='__main__':
     main()
