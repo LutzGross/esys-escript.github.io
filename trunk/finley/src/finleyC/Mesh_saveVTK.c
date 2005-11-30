@@ -324,15 +324,15 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
      for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
        if (mesh_p->Nodes->toReduced[i]>=0) {
-          for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %e",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
-          for (k=0; k<3-nDim; k++) fprintf(fileHandle_p, " %e",0.);
+          for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %e",(float) (mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]));
+          for (k=0; k<3-nDim; k++) fprintf(fileHandle_p, " %e",(float) 0.);
           fprintf(fileHandle_p, "\n");
        }
      } 
   } else {
      for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
-       for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %e",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
-       for (k=0; k<3-nDim; k++) fprintf(fileHandle_p, " %e",0.);
+       for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %e",(float) (mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]));
+       for (k=0; k<3-nDim; k++) fprintf(fileHandle_p, " %e",(float) 0.);
        fprintf(fileHandle_p, "\n");
      }
   } 
