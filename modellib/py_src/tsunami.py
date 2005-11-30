@@ -1122,47 +1122,21 @@ class SurfMovie(Model):
              # vtkobj=...
              # save(self.__frame_name)
 
-             # get the wave data
-             waveDomain = self.wave_height.getDomain().getX()
-             waveX = waveDomain[0].convertToNumArray()
-             waveY = waveDomain[1].convertToNumArray()
-             waveZ = self.wave_height.convertToNumArray()
-
-             numPoints = len(waveZ)
-
-             # make the points
-             wavePoints = vtk.vtkPoints()
-             wavePoints.SetNumberOfPoints(numPoints)
-
-             # make the vtk data array
-             waveData = vtk.vtkFloatArray()
-             waveData.SetNumberOfComponents(1)
-             waveData.SetNumberOfTuples(numPoints)
-             waveData.SetName("data")
-
-             # put the data into the points and array
-             for i in range(numPoints):
-                 wavePoints.InsertPoint(i, waveX[i], waveY[i], 0.0)
-                 waveData.InsertTuple1(i, waveZ[i])
+	     # make a reader for the data
+	     waveReader = vtk.vtkXMLUnstructuredGridReader()
+	     waveReader.SetFileName(self.__fn)
+	     waveReader.Update()
 
              # make the grid
-             waveGrid = vtk.vtkUnstructuredGrid()
-             waveGrid.SetPoints(wavePoints)
-             waveGrid.GetPointData().AddArray(waveData)
-             waveGrid.GetPointData().SetActiveScalars("data")
+             waveGrid = waveReader.GetOutput()
+	     waveGrid.Update()
 
              (zMin, zMax) = waveGrid.GetPointData().GetScalars().GetRange()
              print "Wave height range %f - %f" % (zMin, zMax)
 
-	     # do a delaunay on the data
-	     waveDelaunay = vtk.vtkDelaunay2D()
-	     waveDelaunay.SetInput(waveGrid)
-	     waveDelaunay.SetTolerance(0.001)
-	     waveDelaunay.SetAlpha(2.5)
-
              # make a mapper for the grid
              waveMapper = vtk.vtkDataSetMapper()
-             waveMapper.SetInput(waveDelaunay.GetOutput())
+             waveMapper.SetInput(waveGrid)
 	     waveMapper.SetLookupTable(self.lutTrans)
              waveMapper.SetScalarRange(zMin, zMax)
 
@@ -1190,6 +1164,10 @@ class SurfMovie(Model):
              outWriter.SetFileName(imgFname)
              outWriter.Write()
              print "Wrote %s" % imgFname
+
+	     # helpful for debugging:
+	     #os.system("display %s" % imgFname)
+
              self.paramsFileString += "%s\n" % imgFname
 	     self.imageFiles.append(imgFname)
 
@@ -1264,7 +1242,7 @@ if __name__=="__main__":
    src.end_lat=-12.
    src.start_long=110.
    src.end_long=120.
-   src.width=0.1
+   src.width=1.
    src.decay_zone=0.01
    src.amplitude=1.
 
