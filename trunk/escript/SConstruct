@@ -14,6 +14,7 @@ EnsureSConsVersion(0,96)
 
 esysroot = Dir('#..')
 libinstall = None
+pyinstall = None
 dodebug = 0
 usegcc = 0
 options = None
@@ -30,6 +31,12 @@ Import('*')
 if ARGUMENTS.get('libinstall',0):
   libinstall = ARGUMENTS.get('libinstall',0)
 Export(["libinstall"])
+
+if ARGUMENTS.get('pyinstall',0):
+  pyinstall = ARGUMENTS.get('pyinstall',0)
+else:
+  pyinstall = Dir(str(esysroot) + '/esys/escript')
+Export(["pyinstall"])
 
 if ARGUMENTS.get('debug',0):
   dodebug = 1
@@ -61,6 +68,12 @@ Export(["esysroot"])
 
 libdir = Dir(str(esysroot) + '/escript/lib')
 Export(["libdir"])
+
+#
+# set and export python directory
+
+pydir = Dir(str(esysroot) + '/escript/lib/py_src')
+Export(["pydir"])
 
 #
 # load and export configuration settings
@@ -96,9 +109,11 @@ print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
 print "      libinstall: ", libinstall
+print "       pyinstall: ", pyinstall
 print "############################################"
 
 #
 # call the SConscript to do the actual build
 
-SConscript('src/Data/SConscript', src_dir='src/Data', build_dir='obj', duplicate=0)
+SConscript(dirs=['src/Data'], build_dir='obj/Data', duplicate=0)
+SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)

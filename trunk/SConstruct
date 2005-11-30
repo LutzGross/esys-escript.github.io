@@ -51,6 +51,7 @@ target_scripts = ['tools/CppUnitTest/SConstruct',
                   'escript/SConstruct',
                   'bruce/SConstruct',
                   'paso/SConstruct',
-                  'finley/SConstruct']
+                  'finley/SConstruct',
+                  'modellib/SConstruct']
 
 SConscript(target_scripts, duplicate=0)
