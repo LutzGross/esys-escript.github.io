@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# $Id:$
+# $Id$
 
 """
 program generates parts of the util.py and the test_util.py script
