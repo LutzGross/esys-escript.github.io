@@ -499,8 +499,8 @@ class ParameterSet(LinkableObject):
                     "float":_floatfromValue,
                     "int":_intfromValue,
                     "str":_stringfromValue,
-                    "bool":_boolfromValue
-                    "NoneType":_nonefromValue,
+                    "bool":_boolfromValue,
+                    "NoneType":_nonefromValue
                     }
 
 #        print doc.toxml()
@@ -679,6 +679,7 @@ class Simulation(Model):
         self.__models=[]
         
         for i in range(len(models)): 
+            print "The model we got up to: ", i
             self[i] = models[i]
             
 
@@ -711,7 +712,7 @@ class Simulation(Model):
 	Sets the i-th model.
 	"""
         if not isinstance(value,Model):
-            raise ValueError("assigned value is not a Model")
+            raise ValueError("assigned value is not a Model, Model was:", i, " an instance of: ", value.__class__.__name__)
         for j in range(max(i-len(self.__models)+1,0)): 
             self.__models.append(None)
         self.__models[i]=value
