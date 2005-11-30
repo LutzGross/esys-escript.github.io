@@ -19,8 +19,8 @@ class Sequencer(Model):
 
         """
         Model.__init__(self,debug=debug)
-        self.declareParameter(t=t, \
-                              t_end=t_end,  \
+        self.declareParameter(t=t,
+                              t_end=t_end,
                               dt_max=dt_max)
 
     def doInitialization(self):
