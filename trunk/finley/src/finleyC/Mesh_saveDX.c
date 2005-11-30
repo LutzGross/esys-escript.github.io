@@ -209,7 +209,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   fprintf(fileHandle_p, "object 1 class array type float rank 1 shape %d items %d data follows\n",nDim, mesh_p->Nodes->reducedNumNodes);
   for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
     if (mesh_p->Nodes->toReduced[i]>=0) {
-       for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %g",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
+       for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %g",(float) (mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]));
        fprintf(fileHandle_p, "\n");
     }
   } 
@@ -245,7 +245,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                     for (k=0;k<nComp;k++) {
                         rtmp=0.;
                         for (j=0;j<numPointsPerSample;j++) rtmp+=values[INDEX2(k,j,nComp)];
-                        fprintf(fileHandle_p, " %g", rtmp/numPointsPerSample);
+                        fprintf(fileHandle_p, " %g", (float)(rtmp/numPointsPerSample));
                     }
 	            fprintf(fileHandle_p, "\n");
                 }
@@ -266,7 +266,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                           values=getSampleData(data_pp[i_data],i);
                           break;
                     }
-                    for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", values[k]);
+                    for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", (float)(values[k]));
 	            fprintf(fileHandle_p, "\n");
                  }
              }
