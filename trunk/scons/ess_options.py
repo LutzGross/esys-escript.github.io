@@ -16,7 +16,7 @@ cxx = 'icc'
 
 # c flags to use
 cc_flags  = '-O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -c99 -ansi_alias -no-gcc -fpic -w1 -DSCSL'
-cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -fpic -w1i -DSCSL'
+cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -no-gcc -fpic -w1 -DSCSL'
 
 # c++ flags to use
 cxx_flags = '-O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -ansi -ansi_alias -no-gcc -fpic -w1 -DSCSL'
