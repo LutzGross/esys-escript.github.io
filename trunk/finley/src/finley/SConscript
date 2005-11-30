@@ -5,11 +5,22 @@ Import('*')
 import os
 import string
 
+libname = 'finleycpp'
+
 finley_path = str(esysroot) + '/finley/src/finley'
 finley_cppadapter_path = str(esysroot) + '/finley/src/finley/CPPAdapter'
 paso_path = str(esysroot) + '/paso/inc'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
+
+esys_lib_path = str(esysroot) + '/lib'
+mmio_lib_path = str(esysroot) + '/tools/mmio/lib'
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+
+esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+paso_lib = str(esys_lib_path) + '/libpaso.a'
+mmio_lib = str(mmio_lib_path) + '/libmmio.a'
 
 cpp_path = [finley_path,
             finley_cppadapter_path,
@@ -18,8 +29,6 @@ cpp_path = [finley_path,
             esysUtils_path,
             python_path,
             boost_path]
-
-lib = 'finleycpp'
 
 sources = ['Assemble_addToSystemMatrix.c',
            'Assemble_CopyElementData.c',
@@ -92,6 +101,22 @@ sources = ['Assemble_addToSystemMatrix.c',
            'CPPAdapter/SystemMatrixAdapter.cpp',
            'CPPAdapter/finleycpp.cpp']
 
+lib_path = [esys_lib_path,
+            mmio_lib_path,
+            esysUtils_lib_path,
+            boost_lib_path]
+
+libs = ['escriptcpp',
+        'esysUtils',
+        'paso',
+        'mmio',
+        str(boost_lib),
+        'dl',
+        'util']
+
+libs.extend(sys_libs)
+libs.extend(solver_libs)
+
 finley_env = Environment(ENV = os.environ)
 
 finley_env.Replace(CC = cc)
@@ -100,9 +125,16 @@ finley_env.Replace(CCFLAGS = cc_flags)
 finley_env.Replace(CXXFLAGS = cxx_flags)
 finley_env.Replace(SHOBJSUFFIX = '.lo')
 finley_env.Replace(CPPPATH = cpp_path)
+finley_env.Replace(LIBPATH = lib_path)
+finley_env.Replace(LIBS = libs)
 
-finley_lib = finley_env.SharedLibrary(lib, sources)
+finley_lib = finley_env.SharedLibrary(libname, sources)
+
+Depends(finley_lib, esysUtils_lib)
+Depends(finley_lib, escript_lib)
+Depends(finley_lib, paso_lib)
+Depends(finley_lib, mmio_lib)
+
 finley_env.Install(libdir, finley_lib)
-
 if libinstall != None:
   finley_env.Install(libinstall, finley_lib)

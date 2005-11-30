@@ -5,9 +5,17 @@ Import('*')
 import os
 import string
 
+libname = 'brucecpp'
+
 bruce_path = str(esysroot) + '/bruce/inc'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
+
+esys_lib_path = str(esysroot) + '/lib'
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
 
 cpp_path = [bruce_path,
             escript_path,
@@ -15,10 +23,19 @@ cpp_path = [bruce_path,
             python_path,
             boost_path]
 
-lib = 'brucecpp'
 sources = ['Bruce.cpp',
            'BruceFactory.cpp',
            'brucecpp.cpp']
+
+lib_path = [esys_lib_path,
+            esysUtils_lib_path,
+            boost_lib_path]
+
+libs = ['esysUtils',
+        'escriptcpp',
+        str(boost_lib)]
+
+libs.extend(sys_libs)
 
 bruce_env = Environment(ENV = os.environ)
 
@@ -26,9 +43,14 @@ bruce_env.Replace(CXX = cxx)
 bruce_env.Replace(SHOBJSUFFIX = '.lo')
 bruce_env.Replace(CXXFLAGS = cxx_flags)
 bruce_env.Replace(CPPPATH = cpp_path)
+bruce_env.Replace(LIBPATH = lib_path)
+bruce_env.Replace(LIBS = libs)
 
-bruce_lib = bruce_env.SharedLibrary(lib, sources)
+bruce_lib = bruce_env.SharedLibrary(libname, sources)
+
+Depends(bruce_lib, esysUtils_lib)
+Depends(bruce_lib, escript_lib)
+
 bruce_env.Install(libdir, bruce_lib)
-
 if libinstall != None:
   bruce_env.Install(libinstall, bruce_lib)

@@ -97,6 +97,9 @@ Export(["python_path"])
 Export(["boost_path"])
 Export(["cxx"])
 Export(["cxx_flags"])
+Export(["boost_lib_path"])
+Export(["boost_lib"])
+Export(["sys_libs"])
 
 #
 # print out build configuration for this module

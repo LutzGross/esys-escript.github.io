@@ -100,6 +100,10 @@ Export(["cxx"])
 Export(["cc"])
 Export(["cxx_flags"])
 Export(["cc_flags"])
+Export(["boost_lib_path"])
+Export(["boost_lib"])
+Export(["sys_libs"])
+Export(["solver_libs"])
 
 #
 # print out build configuration for this module
