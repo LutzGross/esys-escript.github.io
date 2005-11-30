@@ -48,7 +48,7 @@ LD_SYS_LIBS := guide irc
 LD_LIB_DIR_FLAG := -L
 LD_LIB_FLAG := -l
 LD_DIAG_FLAGS := ${NULL}
-LD_SHARE_FLAG := -ftz -shared
+LD_SHARE_FLAG := -shared
 LD_OUTPUT_FLAG := -o
 
 # Archiver Settings
