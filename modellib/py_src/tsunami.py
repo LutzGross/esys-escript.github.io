@@ -881,6 +881,7 @@ class SurfMovie(Model):
                                  north=5.,
                                  east=3.,
                                  west=15.,
+                                 max_height=1.0,
                                  filename="movie.mpg")
 
            self.paramsFileString = "REFERENCE_FRAME DECODED\n"
@@ -903,7 +904,7 @@ class SurfMovie(Model):
 
            self.firstFrame = True
 
-	   self.imageFiles = []
+           self.imageFiles = []
 
        def doInitialization(self):
           """
@@ -917,31 +918,31 @@ class SurfMovie(Model):
           # wndow(south,west,north,east)
 
           # the bathymmetry colourmap
-	  data = []
-	  data.append([-8000, 0,   0,   0])
-	  data.append([-7000, 0,   5,   25])
-	  data.append([-6000, 0,   10,  50])
-	  data.append([-5000, 0,   80,  125])
-	  data.append([-4000, 0,   150, 200])
-	  data.append([-3000, 86,  197, 184])
-	  data.append([-2000, 172, 245, 168])
-	  data.append([-1000, 211, 250, 211])
-	  data.append([0,     16,  48,  16])
-	  data.append([300,   70,  150, 50])
-	  data.append([500,   146, 126, 60])
-	  data.append([1000,  198, 178, 80])
-	  data.append([1250,  250, 230, 100])
-	  data.append([1500,  250, 234, 126])
-	  data.append([1750,  252, 238, 152])
-	  data.append([2000,  252, 243, 177])
-	  data.append([2250,  253, 249, 216])
-	  data.append([2500,  255, 255, 255])
+          data = []
+          data.append([-8000, 0,   0,   0])
+          data.append([-7000, 0,   5,   25])
+          data.append([-6000, 0,   10,  50])
+          data.append([-5000, 0,   80,  125])
+          data.append([-4000, 0,   150, 200])
+          data.append([-3000, 86,  197, 184])
+          data.append([-2000, 172, 245, 168])
+          data.append([-1000, 211, 250, 211])
+          data.append([0,     16,  48,  16])
+          data.append([300,   70,  150, 50])
+          data.append([500,   146, 126, 60])
+          data.append([1000,  198, 178, 80])
+          data.append([1250,  250, 230, 100])
+          data.append([1500,  250, 234, 126])
+          data.append([1750,  252, 238, 152])
+          data.append([2000,  252, 243, 177])
+          data.append([2250,  253, 249, 216])
+          data.append([2500,  255, 255, 255])
 
-	  # the amount to scale the data by
+          # the amount to scale the data by
           scale = 255.0
           numColours = len(data)
 
-	  # convert the colourmap into something vtk is more happy with
+          # convert the colourmap into something vtk is more happy with
           height = numarray.zeros(numColours, numarray.Float)
           red = numarray.zeros(numColours, numarray.Float)
           green = numarray.zeros(numColours, numarray.Float)
@@ -1002,17 +1003,17 @@ class SurfMovie(Model):
                 h += 1
                 transFunc.AddRGBPoint(h, red[i], green[i], blue[i])
 
-	  # set up the lookup table for the wave data
-	  refLut = vtk.vtkLookupTable()
-	  self.lutTrans = vtk.vtkLookupTable()
-	  refLut.Build()
-	  alpha = 0.4   # alpha channel value
-	  for i in range(256):
-	      (r,g,b,a) = refLut.GetTableValue(255-i)
-	      if g == 1.0 and b < 0.5 and r < 0.5:
-		  self.lutTrans.SetTableValue(i, r, g, b, 0.0)
-	      else:
-		  self.lutTrans.SetTableValue(i, r, g-0.2, b, alpha)
+          # set up the lookup table for the wave data
+          refLut = vtk.vtkLookupTable()
+          self.lutTrans = vtk.vtkLookupTable()
+          refLut.Build()
+          alpha = 0.7   # alpha channel value
+          for i in range(256):
+              (r,g,b,a) = refLut.GetTableValue(255-i)
+              if g == 1.0 and b < 0.5 and r < 0.5:
+                  self.lutTrans.SetTableValue(i, r, g, b, 0.0)
+              else:
+                  self.lutTrans.SetTableValue(i, r, g-0.2, b, alpha)
 
           print "Generating the bathymmetry vtk object..."
 
@@ -1064,43 +1065,43 @@ class SurfMovie(Model):
 
           self.ren.AddActor(bathActor)
 
-	  ### now add the coastline
+          ### now add the coastline
           print "Loading the coastline data..."
 
-	  # make the coastline points
-	  coastPoints = vtk.vtkPoints()
+          # make the coastline points
+          coastPoints = vtk.vtkPoints()
 
-	  # make the coastline grid
-	  coastGrid = vtk.vtkUnstructuredGrid()
+          # make the coastline grid
+          coastGrid = vtk.vtkUnstructuredGrid()
 
-	  # now point the points and lines into the grid
-	  totalCoastPoints = 0
-	  for polyline in self.coastline.polylines:
-	      numPoints = len(polyline)
-	      coastLine = vtk.vtkPolyLine()
-	      coastLine.GetPointIds().SetNumberOfIds(numPoints)
-	      j = 0
-	      for point in polyline:
-		  coastLine.GetPointIds().SetId(j, j+totalCoastPoints)
-		  coastPoints.InsertNextPoint(point.long, point.lat, 0.0)
-		  j += 1
-	      coastGrid.InsertNextCell(coastLine.GetCellType(),
-		      coastLine.GetPointIds())
-	      totalCoastPoints += numPoints
+          # now point the points and lines into the grid
+          totalCoastPoints = 0
+          for polyline in self.coastline.polylines:
+              numPoints = len(polyline)
+              coastLine = vtk.vtkPolyLine()
+              coastLine.GetPointIds().SetNumberOfIds(numPoints)
+              j = 0
+              for point in polyline:
+                  coastLine.GetPointIds().SetId(j, j+totalCoastPoints)
+                  coastPoints.InsertNextPoint(point.long, point.lat, 0.0)
+                  j += 1
+              coastGrid.InsertNextCell(coastLine.GetCellType(),
+                      coastLine.GetPointIds())
+              totalCoastPoints += numPoints
 
-	  coastGrid.SetPoints(coastPoints)
+          coastGrid.SetPoints(coastPoints)
 
-	  # make the coast's mapper
-	  coastMapper = vtk.vtkDataSetMapper()
-	  coastMapper.SetInput(coastGrid)
+          # make the coast's mapper
+          coastMapper = vtk.vtkDataSetMapper()
+          coastMapper.SetInput(coastGrid)
 
-	  # make its actor
-	  coastActor = vtk.vtkActor()
-	  coastActor.SetMapper(coastMapper)
-	  coastActor.GetProperty().SetColor(0,0,0)
+          # make its actor
+          coastActor = vtk.vtkActor()
+          coastActor.SetMapper(coastMapper)
+          coastActor.GetProperty().SetColor(0,0,0)
 
-	  # add the actor to the renderer
-	  self.ren.AddActor(coastActor)
+          # add the actor to the renderer
+          self.ren.AddActor(coastActor)
 
           # set up the actor for the wave
           self.waveActor = vtk.vtkActor()
@@ -1122,14 +1123,14 @@ class SurfMovie(Model):
              # vtkobj=...
              # save(self.__frame_name)
 
-	     # make a reader for the data
-	     waveReader = vtk.vtkXMLUnstructuredGridReader()
-	     waveReader.SetFileName(self.__fn)
-	     waveReader.Update()
+             # make a reader for the data
+             waveReader = vtk.vtkXMLUnstructuredGridReader()
+             waveReader.SetFileName(self.__fn)
+             waveReader.Update()
 
              # make the grid
              waveGrid = waveReader.GetOutput()
-	     waveGrid.Update()
+             waveGrid.Update()
 
              (zMin, zMax) = waveGrid.GetPointData().GetScalars().GetRange()
              print "Wave height range %f - %f" % (zMin, zMax)
@@ -1137,8 +1138,8 @@ class SurfMovie(Model):
              # make a mapper for the grid
              waveMapper = vtk.vtkDataSetMapper()
              waveMapper.SetInput(waveGrid)
-	     waveMapper.SetLookupTable(self.lutTrans)
-             waveMapper.SetScalarRange(zMin, zMax)
+             waveMapper.SetLookupTable(self.lutTrans)
+             waveMapper.SetScalarRange(-self.max_height, self.max_height)
 
              self.waveActor.SetMapper(waveMapper)
 
@@ -1165,11 +1166,11 @@ class SurfMovie(Model):
              outWriter.Write()
              print "Wrote %s" % imgFname
 
-	     # helpful for debugging:
-	     #os.system("display %s" % imgFname)
+             # helpful for debugging:
+             #os.system("display %s" % imgFname)
 
              self.paramsFileString += "%s\n" % imgFname
-	     self.imageFiles.append(imgFname)
+             self.imageFiles.append(imgFname)
 
              self.__next_t+=self.dt
 
@@ -1205,11 +1206,11 @@ class SurfMovie(Model):
           if result != 0:
               print "An error occurred in mpeg conversion"
 
-	  # now clean up the image files
-	  print "Removing temporary image files"
-	  os.unlink("%s.params" % self.filename)
-	  for fname in self.imageFiles:
-	      os.unlink(fname)
+          # now clean up the image files
+          print "Removing temporary image files"
+          os.unlink("%s.params" % self.filename)
+          for fname in self.imageFiles:
+              os.unlink(fname)
 
 if __name__=="__main__":
    from esys.escript.modelframe import Link,Simulation
@@ -1262,6 +1263,7 @@ if __name__=="__main__":
    sm.t=Link(sq,"t")
    sm.dt=5000.
    sm.filename="movie.mpg"
+   sm.max_height=Link(src,"amplitude")
    
    s=Simulation([sq,oc,b,oreg,src,ts,sm])
    # s.writeXML()
