@@ -444,7 +444,8 @@ class ParameterSet(LinkableObject):
         self._parametersToDom(document, pset)
 
     def _parametersToDom(self, document, node):
-        node.setAttribute ('id', str(self.id))
+        node.setAttribute('id', str(self.id))
+        node.setIdAttribute("id")
         for name,value in self:
             param = document.createElement('Parameter')
             param.setAttribute('type', value.__class__.__name__)
@@ -679,7 +680,6 @@ class Simulation(Model):
         self.__models=[]
         
         for i in range(len(models)): 
-            print "The model we got up to: ", i
             self[i] = models[i]
             
 
@@ -747,8 +747,11 @@ class Simulation(Model):
         document, rootnode = esysDoc()
         self.toDom(document, rootnode)
         targetsList = document.getElementsByTagName('Target')
-        for i in targetsList:
-            targetId = int(i.firstChild.nodeValue.strip())
+        
+        for element in targetsList:
+            targetId = int(element.firstChild.nodeValue.strip())
+            if document.getElementById(str(targetId)):
+                continue
             targetObj = LinkableObjectRegistry[targetId]
             targetObj.toDom(document, rootnode)
         ostream.write(document.toprettyxml())
