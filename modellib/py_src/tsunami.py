@@ -9,7 +9,8 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.escript.modelframe import Model
 import numarray
 import math
-import urllib
+#import urllib
+import urllib2
 
 EPS=1.e-5
 
@@ -641,8 +642,8 @@ class OceanRegionCollector(Model):
            """
            c=self.__mergeParameters(self.coastline_source)
            b=self.__mergeParameters(self.bathymetry_source)
-           self.coastline_stream=urllib.urlopen(c)
-           self.bathymetry_stream=urllib.urlopen(b)
+           self.coastline_stream=urllib2.urlopen(c)
+           self.bathymetry_stream=urllib2.urlopen(b)
 
       def __mergeParameters(self,txt):
            return txt.replace("%%west%%",str(self.west))\
@@ -1212,7 +1213,7 @@ class SurfMovie(Model):
           for fname in self.imageFiles:
               os.unlink(fname)
 
-if __name__=="__main__":
+def main():
    from esys.escript.modelframe import Link,Simulation
    from esys.modellib.input import Sequencer
 
@@ -1266,7 +1267,11 @@ if __name__=="__main__":
    sm.max_height=Link(src,"amplitude")
    
    s=Simulation([sq,oc,b,oreg,src,ts,sm])
-   # s.writeXML()
+   s.writeXML()
    s.run()
+
+if __name__=="__main__":
+    from esys.modellib import tsunami
+    tsunami.main()
 
 # vim: expandtab shiftwidth=4:
