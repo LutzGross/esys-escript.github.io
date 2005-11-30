@@ -10,7 +10,8 @@
 #**********************************************************************
 
 # the modules to make
-MODULES="tools/CppUnitTest tools/mmio esysUtils escript paso finley bruce modellib"
+#MODULES="tools/CppUnitTest tools/mmio esysUtils escript paso finley bruce modellib"
+MODULES="escript"
 
 # the modules to test
 TESTS="escript bruce finley"

@@ -1,0 +1,35 @@
+pyinstall = None
+
+Import('*')
+
+import os
+import sys
+
+extensions_dir = str(esysroot) + '/scons'
+sys.path.append(extensions_dir)
+
+import scons_extensions
+
+escriptpy_env = Environment(ENV = os.environ)
+
+py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+escriptpy_env.Append(BUILDERS = {'PyCompile' : py_builder});
+
+python_src = ['__init__.py',
+              'escript.py',
+              'esysXML.py',
+              'linearPDEs.py',
+              'pdetools.py',
+              'runmodel.py',
+              'symbols.py',
+              'test_symbols.py',
+              'timeseries.py',
+              'test_linearPDEs.py',
+              'test_util.py',
+              'util.py']
+
+pyc = escriptpy_env.PyCompile(python_src)
+escriptpy_env.Install(pydir, pyc)
+
+if pyinstall != None:
+  escriptpy_env.Install(pyinstall, pyc)
