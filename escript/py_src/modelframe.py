@@ -487,6 +487,9 @@ class ParameterSet(LinkableObject):
 
         def _boolfromValue(doc):
             return bool(doc.nodeValue.strip())
+
+        def _nonefromValue(doc):
+            return None
        
         # Mapping from text types in the xml to methods used to process trees of that type
         ptypemap = {"Simulation": Simulation.fromDom,
@@ -497,6 +500,7 @@ class ParameterSet(LinkableObject):
                     "int":_intfromValue,
                     "str":_stringfromValue,
                     "bool":_boolfromValue
+                    "NoneType":_nonefromValue,
                     }
 
 #        print doc.toxml()
