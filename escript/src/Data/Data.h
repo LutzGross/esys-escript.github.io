@@ -706,15 +706,6 @@ class Data {
 
   /**
      \brief
-     Return the length of each data point of this Data object.
-     sqrt(sum(A[i,j,k,l]^2))
-     *
-  */
-  Data
-  length() const;
-
-  /**
-     \brief
      Return the sign of each data point of this Data object.
      -1 for negative values, zero for zero values, 1 for positive values.
      *
@@ -842,7 +833,7 @@ class Data {
      *
   */
   Data
-  log() const;
+  log10() const;
 
   /**
      \brief
@@ -850,7 +841,7 @@ class Data {
      *
   */
   Data
-  ln() const;
+  log() const;
 
   /**
      \brief
