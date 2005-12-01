@@ -1027,7 +1027,7 @@ Data::atanh() const
 }
 
 Data
-Data::log() const
+Data::log10() const
 {
 #if defined DOPROF
   profData->unary++;
@@ -1036,7 +1036,7 @@ Data::log() const
 }
 
 Data
-Data::ln() const
+Data::log() const
 {
 #if defined DOPROF
   profData->unary++;
@@ -1171,16 +1171,6 @@ Data::minval() const
   // set the initial minimum value to max possible double
   FMin fmin_func;
   return dp_algorithm(fmin_func,numeric_limits<double>::max());
-}
-
-Data
-Data::length() const
-{
-#if defined DOPROF
-  profData->reduction2++;
-#endif
-  Length len_func;
-  return dp_algorithm(len_func,0);
 }
 
 Data
