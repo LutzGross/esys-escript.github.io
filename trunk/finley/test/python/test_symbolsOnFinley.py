@@ -27,13 +27,24 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision$"
 __date__="$Date$"
 
-from test_symbols import Test_symbols
+
+from esys.escript.test_symbols import Test_symbols
+from esys.escript import FunctionOnBoundary
+from esys.finley import Rectangle
 import unittest
-suite = unittest.TestSuite()
-suite.addTest(unittest.makeSuite(Test_symbols))
-s=unittest.TextTestRunner(verbosity=2).run(suite)
-if s.wasSuccessful():
-   sys.exit(0)
-else:
-  sys.exit(1)
+import sys
+
+class Test_UtilOnBruce(Test_symbols):
+   def setUp(self):
+       self.__dom =Rectangle(10,10,2)
+       self.functionspace = FunctionOnBoundary(self.__dom)
+
+if __name__ == '__main__':
+   suite = unittest.TestSuite()
+   suite.addTest(unittest.makeSuite(Test_UtilOnBruce))
+   s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if s.wasSuccessful():
+     sys.exit(0)
+   else:
+     sys.exit(1)
 
