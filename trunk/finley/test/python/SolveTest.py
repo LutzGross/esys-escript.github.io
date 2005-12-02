@@ -62,7 +62,7 @@ def solveVector(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
     # Set Boundary Mask / pdelib Template "q" Parameter Vector
     bndryMask = Vector(value = 0, what = contfunc)
     for i in range(meshDim):
-        bndryMask += (x[i].whereZero() + (x[i]-recDim[i]).whereZero()) \
+        bndryMask += (whereZero(x[i]) + whereZero(x[i]-recDim[i])) \
                 * ones((numDim,))
 
     # Set True Solution / pdelib Template "r" Parameter Vector
@@ -132,7 +132,7 @@ def solveScalar(numDim, totalNumElem, len_x0, alpha, solver_method,prec):
     # Set Boundary Mask / pdelib Template "q" Parameter Vector
     bndryMask = Scalar(value = 0, what = contfunc)
     for i in range(meshDim):
-        bndryMask += (x[i].whereZero() + (x[i]-recDim[i]).whereZero()) * 1.0
+        bndryMask += (whereZero(x[i]) + whereZero(x[i]-recDim[i])) * 1.0
 
     # Set True Solution / pdelib Template "r" Parameter Vector
     u = Scalar(value = 0, what = contfunc)
