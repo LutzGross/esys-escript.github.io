@@ -3,8 +3,8 @@
 
 from esys.escript import *
 import esys.finley
-from esys.linearPDEs import LinearPDE
-from esys.linearPDEs import AdvectivePDE
+from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import AdvectivePDE
 import os
 
 def classical_lhs():
@@ -72,19 +72,15 @@ t_step = 1
 
 mesh = esys.finley.Rectangle(l0=4.0, l1=2.0, order=1, n0=60, n1=30)
 
-if os.path.exists("results/sylvain/dist_error.dat"):
-  os.unlink("results/sylvain/dist_error.dat")
-
 
 xx = mesh.getX()[0]
 yy = mesh.getX()[1]
 
 gauss = (160*(xx-0.25)**4 - 320*(xx-0.25)**3 + 160*(xx-0.25)**2 )*( 160*(yy-0.5)**4 - 320*(yy-0.5)**3 + 160*(yy-0.5)**2)
-mask_tronc = (xx-0.25).wherePositive()*(1.25-xx).wherePositive()*(yy-0.5).wherePositive()*(1.5-yy).wherePositive()
+mask_tronc = wherePositive(xx-0.25)*wherePositive(1.25-xx)*wherePositive(yy-0.5)*wherePositive(1.5-yy)
 gauss_tronc_new = gauss*mask_tronc
 
 reference = Lsup(gauss_tronc_new)
-gauss_tronc_new.saveDX("results/sylvain/gauss.%2.2i.dx" % 0)
 
 h = Lsup(mesh.getSize())
 
@@ -96,12 +92,11 @@ t_step_end = 2.0/(coeff*h)
 
 velocity = Vector(0.0, Function(mesh))
 velocity[0] = v_adim
-velocity.saveDX("results/sylvain/velocity_field.dx")
 
 
 taylor_galerkin_lhs()
 
-q = mesh.getX()[0].whereZero() + (4.0-mesh.getX()[0]).whereZero() + mesh.getX()[1].whereZero() + (2.0-mesh.getX()[1]).whereZero()
+q = whereZero(mesh.getX()[0]) + whereZero(4.0-mesh.getX()[0]) + whereZero(mesh.getX()[1]) + whereZero(2.0-mesh.getX()[1])
 surfacePDE.setValue(q=q)
 
 
@@ -113,13 +108,9 @@ while (t_step <= t_step_end):
   
   gauss_tronc_new = surfacePDE.getSolution()
 
-  gauss_tronc_old.saveDX("results/sylvain/gauss.%2.2i.dx" % t_step)
   print "integral of f", integrate(gauss_tronc_new*Scalar(1.0, Function(mesh)))
   
   dist = v_adim*dt*t_step
   
   error = 100*abs(Lsup(gauss_tronc_new)-reference)/reference
-  File1 = file("results/sylvain/dist_error.dat", "a", 1)
-  File1.write("%e %e\n" % (dist, error))
-  File1.close()
   t_step = t_step + 1
