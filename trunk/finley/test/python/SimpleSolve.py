@@ -50,8 +50,8 @@ u_ex=Scalar(1,n,True)
 print "x=e.getX():"
 x=e.getX()
 
-print "norm_u_ex=u_ex.Lsup():"
-norm_u_ex=u_ex.Lsup()
+print "norm_u_ex=Lsup(u_ex):"
+norm_u_ex=Lsup(u_ex)
 
 print "\nGenerate a test solution (1)"
 print "----------------------------"
@@ -74,13 +74,13 @@ u_d=mypde.getSolution(verbose=True)
 
 print "\n***************************************************************"
 error=u_ex-u_d
-error_norm=error.Lsup()/norm_u_ex
+error_norm=Lsup(error)/norm_u_ex
 print "norm of the error for direct solver is   : ",error_norm
 if error_norm > error_tol:
   print "### error norm exceeded maximum tolerance ###"
   sys.exit(1)
 error=u_ex-u_i
-error_norm=error.Lsup()/norm_u_ex
+error_norm=Lsup(error)/norm_u_ex
 print "norm of the error for iterative solver is: ",error_norm
 if error_norm > error_tol:
   print "### error norm exceeded maximum tolerance ###"
@@ -95,8 +95,8 @@ print "--------------------------------------"
 print "x=n.getX():"
 x=n.getX()
 
-print "msk=x[0].whereZero()+(x[0]-1.).whereZero()"
-msk=x[0].whereZero()+(x[0]-1.).whereZero()
+print " msk=whereZero(x[0])+whereZero(x[0]-1.)"
+msk=whereZero(x[0])+whereZero(x[0]-1.)
 
 print "mypde=LinearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)"
 mypde=LinearPDE(mydomain)
@@ -128,13 +128,13 @@ u_i=mypde.getSolution(verbose=True,iter_max=3000)
 
 print "\n******************************************************************"
 error=u_ex-u_d
-error_norm=error.Lsup()/norm_u_ex
+error_norm=Lsup(error)/norm_u_ex
 print "norm of the error for direct solver is   : ",error_norm
 if error_norm > error_tol:
   print "### error norm exceeded maximum tolerance ###"
   sys.exit(1)
 error=u_ex-u_i
-error_norm=error.Lsup()/norm_u_ex
+error_norm=Lsup(error)/norm_u_ex
 print "norm of the error for iterative solver is: ",error_norm
 if error_norm >  error_tol:
   print "### error norm exceeded maximum tolerance ###"
