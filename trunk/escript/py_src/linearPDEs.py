@@ -1985,7 +1985,7 @@ class AdvectivePDE(LinearPDE):
      @return: up-wind weightimg factor
      @rtype: L{Scalar<escript.Scalar>}
      """
-     return (P-1.).wherePositive()*0.5*(1.-1./(P+1.e-15))
+     return util.wherePositive(P-1.)*0.5*(1.-1./(P+1.e-15))
 
    def SIMPLIFIED_BROOK_HUGHES(self,P):
      """
@@ -2004,7 +2004,7 @@ class AdvectivePDE(LinearPDE):
      @return: up-wind weightimg factor
      @rtype: L{Scalar<escript.Scalar>}
      """
-     c=(P-3.).whereNegative()
+     c=util.whereNegative(P-3.)
      return P/6.*c+1./2.*(1.-c)
 
    def HALF(self,P):
