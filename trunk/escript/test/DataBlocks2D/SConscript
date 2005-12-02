@@ -1,4 +1,4 @@
-# Scons configuration file for DataC unit tests
+# Scons configuration file for DataBlocks2D unit tests
 
 import os
 import sys
@@ -58,17 +58,15 @@ if usegcc==1:
 if options!=None:
   exec "from " + options + " import *"
 
-cc_flags=cc_flags_debug
 cxx_flags=cxx_flags_debug
 
 #
 # print out build configuration for this module
 
 print "####################################################"
-print "Build configuration for module: DataC unit tests"
+print "Build configuration for module: DataBlocks2D unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
-print "              cc: ", cc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
@@ -77,7 +75,7 @@ print "####################################################"
 #
 # do the actual build
 
-datac_test_path = str(esysroot) + '/escript/test/DataC'
+datablocks2d_test_path = str(esysroot) + '/escript/test/DataBlocks2D'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -86,7 +84,11 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [datac_test_path,
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+
+install_dir = str(esysroot) + '/escript/test'
+
+cpp_path = [datablocks2d_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -109,21 +111,21 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['DataCTestCase.cpp',
-           'DataCTest.cpp',
-           'compareCCall.c',
-           'CompareFuncs.c']
+sources = ['DataBlocks2DTestCase.cpp',
+           'DataBlocks2DTest.cpp']
 
-target = 'DataCTest.exe'
+target = 'DataBlocks2DTest.exe'
 
-datac_env = Environment(ENV = os.environ)
+datablocks2d_env = Environment(ENV = os.environ)
 
-datac_env.Replace(CXX = cxx)
-datac_env.Replace(CC = cc)
-datac_env.Replace(CXXFLAGS = cxx_flags)
-datac_env.Replace(CCFLAGS = cc_flags)
-datac_env.Replace(CPPPATH = cpp_path)
-datac_env.Replace(LIBPATH = lib_path)
-datac_env.Replace(LIBS = libs)
+datablocks2d_env.Replace(CXX = cxx)
+datablocks2d_env.Replace(CXXFLAGS = cxx_flags)
+datablocks2d_env.Replace(CPPPATH = cpp_path)
+datablocks2d_env.Replace(LIBPATH = lib_path)
+datablocks2d_env.Replace(LIBS = libs)
 
-datac_test_exe = datac_env.Program(target, sources)
+datablocks2d_test_exe = datablocks2d_env.Program(target, sources)
+
+Depends(datablocks2d_test_exe, escript_lib)
+
+datablocks2d_env.Install(install_dir, datablocks2d_test_exe)

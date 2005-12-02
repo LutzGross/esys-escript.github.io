@@ -1,4 +1,4 @@
-# Scons configuration file for DataCached unit tests
+# Scons configuration file for DataAlgorithmAdapter unit tests
 
 import os
 import sys
@@ -63,19 +63,19 @@ cxx_flags=cxx_flags_debug
 #
 # print out build configuration for this module
 
-print "######################################################"
-print "Build configuration for module: DataCached unit tests"
+print "###################################################################"
+print "Build configuration for module: DataAlgorithmAdapter unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "######################################################"
+print "###################################################################"
 
 #
 # do the actual build
 
-datacached_test_path = str(esysroot) + '/escript/test/DataCached'
+dataalgorithmadapter_test_path = str(esysroot) + '/escript/test/DataAlgorithmAdapter'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -84,7 +84,11 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [datacached_test_path,
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+
+install_dir = str(esysroot) + '/escript/test'
+
+cpp_path = [dataalgorithmadapter_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -107,17 +111,21 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['DataCachedTestCase.cpp',
-           'DataCachedTest.cpp']
+sources = ['DataAlgorithmAdapterTestCase.cpp',
+           'DataAlgorithmAdapterTest.cpp']
 
-target = 'DataCachedTest.exe'
+target = 'DataAlgorithmAdapterTest.exe'
 
-datacached_env = Environment(ENV = os.environ)
+dataalgorithmadapter_env = Environment(ENV = os.environ)
 
-datacached_env.Replace(CXX = cxx)
-datacached_env.Replace(CXXFLAGS = cxx_flags)
-datacached_env.Replace(CPPPATH = cpp_path)
-datacached_env.Replace(LIBPATH = lib_path)
-datacached_env.Replace(LIBS = libs)
+dataalgorithmadapter_env.Replace(CXX = cxx)
+dataalgorithmadapter_env.Replace(CXXFLAGS = cxx_flags)
+dataalgorithmadapter_env.Replace(CPPPATH = cpp_path)
+dataalgorithmadapter_env.Replace(LIBPATH = lib_path)
+dataalgorithmadapter_env.Replace(LIBS = libs)
 
-datacached_test_exe = datacached_env.Program(target, sources)
+dataalgorithmadapter_test_exe = dataalgorithmadapter_env.Program(target, sources)
+
+Depends(dataalgorithmadapter_test_exe, escript_lib)
+
+dataalgorithmadapter_env.Install(install_dir, dataalgorithmadapter_test_exe)

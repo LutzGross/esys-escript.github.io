@@ -27,7 +27,8 @@ python_src = ['__init__.py',
               'visualization.py']
 
 pyc = modellibpy_env.PyCompile(python_src)
-modellibpy_env.Install(pydir, pyc)
 
+modellibpy_env.Install(pydir, pyc)
+modellibpy_env.Install(pydir2, pyc)
 if pyinstall != None:
   modellibpy_env.Install(pyinstall, pyc)

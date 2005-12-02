@@ -33,7 +33,7 @@ Export(["esysroot"])
 #
 # call appropriate SConscripts
 
-target_scripts = ['Bruce/SConstruct',
-                  'BruceFactory/SConstruct']
+target_scripts = ['Bruce/SConscript',
+                  'BruceFactory/SConscript']
 
 SConscript(target_scripts, duplicate=0)

@@ -57,10 +57,12 @@ hostname = os.environ['HOSTNAME']
 Export(["esysroot"])
 
 #
-# set and export library directory
+# set and export library directories
 
 libdir = Dir(str(esysroot) + '/paso/lib')
 Export(["libdir"])
+libdir2 = Dir(str(esysroot) + '/lib')
+Export(["libdir2"])
 
 #
 # load and export configuration settings

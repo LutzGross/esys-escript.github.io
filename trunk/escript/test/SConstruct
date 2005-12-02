@@ -33,22 +33,22 @@ Export(["esysroot"])
 #
 # call appropriate SConscripts
 
-target_scripts = ['Data/SConstruct',
-                  'DataAlgorithmAdapter/SConstruct',
-                  'DataArray/SConstruct',
-                  'DataArrayView/SConstruct',
-                  'DataBlocks2D/SConstruct',
-                  'DataC/SConstruct',
-                  'DataCached/SConstruct',
-                  'DataConstant/SConstruct',
-                  'DataEmpty/SConstruct',
-                  'DataExpanded/SConstruct',
-                  'DataFactory/SConstruct',
-                  'DataProf/SConstruct',
-                  'DataTagged/SConstruct',
-                  'DataVariable/SConstruct',
-                  'DataVector/SConstruct',
-                  'FunctionSpace/SConstruct',
-                  'Taipan/SConstruct']
+target_scripts = ['Data/SConscript',
+                  'DataAlgorithmAdapter/SConscript',
+                  'DataArray/SConscript',
+                  'DataArrayView/SConscript',
+                  'DataBlocks2D/SConscript',
+                  'DataC/SConscript',
+                  'DataCached/SConscript',
+                  'DataConstant/SConscript',
+                  'DataEmpty/SConscript',
+                  'DataExpanded/SConscript',
+                  'DataFactory/SConscript',
+                  'DataProf/SConscript',
+                  'DataTagged/SConscript',
+                  'DataVariable/SConscript',
+                  'DataVector/SConscript',
+                  'FunctionSpace/SConscript',
+                  'Taipan/SConscript']
 
 SConscript(target_scripts, duplicate=0)

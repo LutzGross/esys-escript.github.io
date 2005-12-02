@@ -1,4 +1,4 @@
-# Scons configuration file for DataArray unit tests
+# Scons configuration file for finley MeshAdapter unit tests
 
 import os
 import sys
@@ -16,6 +16,7 @@ esysroot = Dir('#../../..')
 usegcc = 0
 options = None
 sys_libs = []
+solver_libs = []
 
 #
 # import configuration variables passed in from
@@ -63,35 +64,51 @@ cxx_flags=cxx_flags_debug
 #
 # print out build configuration for this module
 
-print "####################################################"
-print "Build configuration for module: DataArray unit tests"
+print "######################################################"
+print "Build configuration for module: MeshAdapter unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "####################################################"
+print "######################################################"
 
 #
 # do the actual build
 
-dataarray_test_path = str(esysroot) + '/escript/test/DataArray'
+meshadapter_test_path = str(esysroot) + '/finley/test/MeshAdapter'
 escript_path = str(esysroot) + '/escript/inc'
+finley_path = str(esysroot) + '/finley/src/finley'
+finley_cppadapter_path = str(esysroot) + '/finley/src/finley/CPPAdapter'
+paso_path = str(esysroot) + '/paso/inc'
+mmio_path = str(esysroot) + '/tools/mmio/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
 
 esys_lib_path = str(esysroot) + '/lib'
+finley_lib_path = str(esysroot) + '/finley/lib'
+mmio_lib_path = str(esysroot) + '/tools/mmio/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [dataarray_test_path,
+finley_lib = str(esys_lib_path) + '/libfinleycpp.so'
+
+install_dir = str(esysroot) + '/finley/test'
+
+cpp_path = [meshadapter_test_path,
             escript_path,
+            finley_path,
+            finley_cppadapter_path,
+            paso_path,
+            mmio_path,
             esysUtils_path,
             CppUnitTest_path,
             python_path,
             boost_path]
 
 lib_path = [esys_lib_path,
+            finley_lib_path,
+            mmio_lib_path,
             esysUtils_lib_path,
             CppUnitTest_lib_path,
             python_lib_path,
@@ -99,6 +116,9 @@ lib_path = [esys_lib_path,
 
 libs = ['escriptcpp',
         'esysUtils',
+        'finleycpp',
+        'paso',
+        'mmio',
         'CppUnitTest',
         str(python_lib),
         str(boost_lib),
@@ -106,18 +126,23 @@ libs = ['escriptcpp',
         'util']
 
 libs.extend(sys_libs)
+libs.extend(solver_libs)
 
-sources = ['DataArrayTestCase.cpp',
-           'DataArrayTest.cpp']
+sources = ['MeshAdapterTestCase.cpp',
+           'MeshAdapterTest.cpp']
 
-target = 'DataArrayTest.exe'
+target = 'MeshAdapterTest.exe'
 
-dataarray_env = Environment(ENV = os.environ)
+meshadapter_env = Environment(ENV = os.environ)
 
-dataarray_env.Replace(CXX = cxx)
-dataarray_env.Replace(CXXFLAGS = cxx_flags)
-dataarray_env.Replace(CPPPATH = cpp_path)
-dataarray_env.Replace(LIBPATH = lib_path)
-dataarray_env.Replace(LIBS = libs)
+meshadapter_env.Replace(CXX = cxx)
+meshadapter_env.Replace(CXXFLAGS = cxx_flags)
+meshadapter_env.Replace(CPPPATH = cpp_path)
+meshadapter_env.Replace(LIBPATH = lib_path)
+meshadapter_env.Replace(LIBS = libs)
 
-dataarray_test_exe = dataarray_env.Program(target, sources)
+meshadapter_test_exe = meshadapter_env.Program(target, sources)
+
+Depends(meshadapter_test_exe, finley_lib)
+
+meshadapter_env.Install(install_dir, meshadapter_test_exe)

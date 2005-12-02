@@ -1,4 +1,4 @@
-# Scons configuration file for DataConstant unit tests
+# Scons configuration file for DataExpanded unit tests
 
 import os
 import sys
@@ -64,7 +64,7 @@ cxx_flags=cxx_flags_debug
 # print out build configuration for this module
 
 print "########################################################"
-print "Build configuration for module: DataConstant unit tests"
+print "Build configuration for module: DataExpanded unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
@@ -75,7 +75,7 @@ print "########################################################"
 #
 # do the actual build
 
-dataconstant_test_path = str(esysroot) + '/escript/test/DataConstant'
+dataexpanded_test_path = str(esysroot) + '/escript/test/DataExpanded'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -84,7 +84,11 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [dataconstant_test_path,
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+
+install_dir = str(esysroot) + '/escript/test'
+
+cpp_path = [dataexpanded_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -107,17 +111,21 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['DataConstantTestCase.cpp',
-           'DataConstantTest.cpp']
+sources = ['DataExpandedTestCase.cpp',
+           'DataExpandedTest.cpp']
 
-target = 'DataConstantTest.exe'
+target = 'DataExpandedTest.exe'
 
-dataconstant_env = Environment(ENV = os.environ)
+dataexpanded_env = Environment(ENV = os.environ)
 
-dataconstant_env.Replace(CXX = cxx)
-dataconstant_env.Replace(CXXFLAGS = cxx_flags)
-dataconstant_env.Replace(CPPPATH = cpp_path)
-dataconstant_env.Replace(LIBPATH = lib_path)
-dataconstant_env.Replace(LIBS = libs)
+dataexpanded_env.Replace(CXX = cxx)
+dataexpanded_env.Replace(CXXFLAGS = cxx_flags)
+dataexpanded_env.Replace(CPPPATH = cpp_path)
+dataexpanded_env.Replace(LIBPATH = lib_path)
+dataexpanded_env.Replace(LIBS = libs)
 
-dataconstant_test_exe = dataconstant_env.Program(target, sources)
+dataexpanded_test_exe = dataexpanded_env.Program(target, sources)
+
+Depends(dataexpanded_test_exe, escript_lib)
+
+dataexpanded_env.Install(install_dir, dataexpanded_test_exe)

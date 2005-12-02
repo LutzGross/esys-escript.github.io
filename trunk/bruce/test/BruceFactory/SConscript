@@ -1,4 +1,4 @@
-# Scons configuration file for DataVector unit tests
+# Scons configuration file for BruceFactory unit tests
 
 import os
 import sys
@@ -63,19 +63,20 @@ cxx_flags=cxx_flags_debug
 #
 # print out build configuration for this module
 
-print "######################################################"
-print "Build configuration for module: DataVector unit tests"
+print "########################################################"
+print "Build configuration for module: BruceFactory unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "######################################################"
+print "########################################################"
 
 #
 # do the actual build
 
-datavector_test_path = str(esysroot) + '/escript/test/DataVector'
+bruce_path = str(esysroot) + '/bruce/inc'
+brucefactory_test_path = str(esysroot) + '/bruce/test/BruceFactory'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -84,7 +85,12 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [datavector_test_path,
+bruce_lib = str(esys_lib_path) + '/libbrucecpp.so'
+
+install_dir = str(esysroot) + '/bruce/test'
+
+cpp_path = [bruce_path,
+            brucefactory_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -97,7 +103,8 @@ lib_path = [esys_lib_path,
             python_lib_path,
             boost_lib_path]
 
-libs = ['escriptcpp',
+libs = ['brucecpp',
+        'escriptcpp',
         'esysUtils',
         'CppUnitTest',
         str(python_lib),
@@ -107,17 +114,21 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['DataVectorTestCase.cpp',
-           'DataVectorTest.cpp']
+sources = ['BruceFactoryTestCase.cpp',
+           'BruceFactoryTest.cpp']
 
-target = 'DataVectorTest.exe'
+target = 'BruceFactoryTest.exe'
 
-datavector_env = Environment(ENV = os.environ)
+brucefactory_env = Environment(ENV = os.environ)
 
-datavector_env.Replace(CXX = cxx)
-datavector_env.Replace(CXXFLAGS = cxx_flags)
-datavector_env.Replace(CPPPATH = cpp_path)
-datavector_env.Replace(LIBPATH = lib_path)
-datavector_env.Replace(LIBS = libs)
+brucefactory_env.Replace(CXX = cxx)
+brucefactory_env.Replace(CXXFLAGS = cxx_flags)
+brucefactory_env.Replace(CPPPATH = cpp_path)
+brucefactory_env.Replace(LIBPATH = lib_path)
+brucefactory_env.Replace(LIBS = libs)
 
-datavector_test_exe = datavector_env.Program(target, sources)
+brucefactory_test_exe = brucefactory_env.Program(target, sources)
+
+Depends(brucefactory_test_exe, bruce_lib)
+
+brucefactory_env.Install(install_dir, brucefactory_test_exe)

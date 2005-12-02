@@ -1,4 +1,4 @@
-# Scons configuration file for FunctionSpace unit tests
+# Scons configuration file for Bruce unit tests
 
 import os
 import sys
@@ -63,19 +63,20 @@ cxx_flags=cxx_flags_debug
 #
 # print out build configuration for this module
 
-print "#########################################################"
-print "Build configuration for module: FunctionSpace unit tests"
+print "####################################################"
+print "Build configuration for module: Bruce unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "#########################################################"
+print "####################################################"
 
 #
 # do the actual build
 
-functionspace_test_path = str(esysroot) + '/escript/test/FunctionSpace'
+bruce_path = str(esysroot) + '/bruce/inc'
+bruce_test_path = str(esysroot) + '/bruce/test/Bruce'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -84,7 +85,12 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [functionspace_test_path,
+bruce_lib = str(esys_lib_path) + '/libbrucecpp.so'
+
+install_dir = str(esysroot) + '/bruce/test'
+
+cpp_path = [bruce_path,
+            bruce_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -97,7 +103,8 @@ lib_path = [esys_lib_path,
             python_lib_path,
             boost_lib_path]
 
-libs = ['escriptcpp',
+libs = ['brucecpp',
+        'escriptcpp',
         'esysUtils',
         'CppUnitTest',
         str(python_lib),
@@ -107,17 +114,21 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['FunctionSpaceTestCase.cpp',
-           'FunctionSpaceTest.cpp']
+sources = ['BruceTestCase.cpp',
+           'BruceTest.cpp']
 
-target = 'FunctionSpaceTest.exe'
+target = 'BruceTest.exe'
 
-functionspace_env = Environment(ENV = os.environ)
+bruce_env = Environment(ENV = os.environ)
 
-functionspace_env.Replace(CXX = cxx)
-functionspace_env.Replace(CXXFLAGS = cxx_flags)
-functionspace_env.Replace(CPPPATH = cpp_path)
-functionspace_env.Replace(LIBPATH = lib_path)
-functionspace_env.Replace(LIBS = libs)
+bruce_env.Replace(CXX = cxx)
+bruce_env.Replace(CXXFLAGS = cxx_flags)
+bruce_env.Replace(CPPPATH = cpp_path)
+bruce_env.Replace(LIBPATH = lib_path)
+bruce_env.Replace(LIBS = libs)
 
-functionspace_test_exe = functionspace_env.Program(target, sources)
+bruce_test_exe = bruce_env.Program(target, sources)
+
+Depends(bruce_test_exe, bruce_lib)
+
+bruce_env.Install(install_dir, bruce_test_exe)

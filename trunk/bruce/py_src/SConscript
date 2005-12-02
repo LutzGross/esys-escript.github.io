@@ -20,6 +20,7 @@ python_src = ['__init__.py',
 
 pyc = brucepy_env.PyCompile(python_src)
 brucepy_env.Install(pydir, pyc)
+brucepy_env.Install(pydir2, pyc)
 
 if pyinstall != None:
   brucepy_env.Install(pyinstall, pyc)
