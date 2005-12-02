@@ -29,10 +29,10 @@ def TheTest(msh,constraints,reduce):
     for i in range(msh.getDim()):
       u_ex*=sin(2*Pi*x[i])
     mypde=LinearPDE(msh)
-    mypde.setValue(A=numarray.identity(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
     mypde.setSymmetryOn()
     mypde.setDebugOn()
     mypde.setReducedOrderTo(reduce)
+    mypde.setValue(A=numarray.identity(msh.getDim()),D=sml,Y=(sml+4*Pi**2*msh.getDim())*u_ex,q=constraints,r=u_ex)
     return Lsup(mypde.getSolution()-u_ex)/Lsup(u_ex)
 
 max_error=0
@@ -57,9 +57,9 @@ for onElements in [False,True]:
               x=n.getX()
               c=Scalar(0,what=n) 
               if i0==False:
-                  c+=x[0].whereZero()+(x[0]-1.).whereZero()
+                  c+=whereZero(x[0])+whereZero(x[0]-1.)
               if i1==False:
-                  c+=x[1].whereZero()+(x[1]-1.).whereZero()
+                  c+=whereZero(x[1])+whereZero(x[1]-1.)
               error=TheTest(msh,c,reduce)
               text="Rectangle order = %d%s%s, periodic0= %d, periodic1= %d: error= %f"%(order,redtext,onElmtext,i0,i1,error)
               print "@@ ",text
@@ -75,11 +75,11 @@ for onElements in [False,True]:
                 x=n.getX()
                 c=Scalar(0,what=n)
                 if i0==False:
-                  c+=x[0].whereZero()+(x[0]-1.).whereZero()
+                  c+=whereZero(x[0])+whereZero(x[0]-1.)
                 if i1==False:
-                  c+=x[1].whereZero()+(x[1]-1.).whereZero()
+                  c+=whereZero(x[1])+whereZero(x[1]-1.)
                 if i2==False:
-                  c+=x[2].whereZero()+(x[2]-1.).whereZero()
+                  c+=whereZero(x[2])+whereZero(x[2]-1.)
                 error=TheTest(msh,c,reduce)
                 text="Brick order = %d%s%s, periodic0= %d, periodic1= %d, periodic2= %d: error= %f"%(order,redtext,onElmtext,i0,i1,i2,error)
                 print "@@ ",text
