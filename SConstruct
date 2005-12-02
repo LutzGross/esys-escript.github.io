@@ -15,7 +15,7 @@ EnsureSConsVersion(0,96)
 if ARGUMENTS.get('libinstall',0):
   libinstall = ARGUMENTS.get('libinstall',0)
 else:
-  libinstall = Dir('#lib')
+  libinstall = None
 Export(["libinstall"])
 
 if ARGUMENTS.get('options',0):

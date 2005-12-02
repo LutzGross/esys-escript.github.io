@@ -34,8 +34,6 @@ Export(["libinstall"])
 
 if ARGUMENTS.get('pyinstall',0):
   pyinstall = ARGUMENTS.get('pyinstall',0)
-else:
-  pyinstall = Dir(str(esysroot) + '/esys/finley')
 Export(["pyinstall"])
 
 if ARGUMENTS.get('debug',0):
@@ -68,12 +66,16 @@ Export(["esysroot"])
 
 libdir = Dir(str(esysroot) + '/finley/lib')
 Export(["libdir"])
+libdir2 = Dir(str(esysroot) + '/lib')
+Export(["libdir2"])
 
 #
-# set and export python directory
+# set and export python directories
 
 pydir = Dir(str(esysroot) + '/finley/lib/py_src')
 Export(["pydir"])
+pydir2 = Dir(str(esysroot) + '/esys/finley')
+Export(["pydir2"])
 
 #
 # load and export configuration settings
@@ -125,3 +127,4 @@ print "############################################"
 
 SConscript(dirs=['src/finley'], build_dir='obj/finley', duplicate=0)
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
+SConscript(dirs=['test/MeshAdapter'], build_dir='obj/test/MeshAdapter', duplicate=0)

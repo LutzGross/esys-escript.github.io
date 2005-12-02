@@ -26,8 +26,6 @@ Import('*')
 
 if ARGUMENTS.get('pyinstall',0):
   pyinstall = ARGUMENTS.get('pyinstall',0)
-else:
-  pyinstall = Dir(str(esysroot) + '/esys/modellib')
 Export(["pyinstall"])
 
 #
@@ -51,6 +49,8 @@ Export(["esysroot"])
 
 pydir = Dir(str(esysroot) + '/modellib/lib/py_src')
 Export(["pydir"])
+pydir2 = Dir(str(esysroot) + '/esys/modellib')
+Export(["pydir2"])
 
 #
 # print out build configuration for this module

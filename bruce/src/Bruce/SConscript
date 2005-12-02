@@ -52,5 +52,6 @@ Depends(bruce_lib, esysUtils_lib)
 Depends(bruce_lib, escript_lib)
 
 bruce_env.Install(libdir, bruce_lib)
+bruce_env.Install(libdir2, bruce_lib)
 if libinstall != None:
   bruce_env.Install(libinstall, bruce_lib)

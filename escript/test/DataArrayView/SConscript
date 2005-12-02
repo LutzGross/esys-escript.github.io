@@ -1,4 +1,4 @@
-# Scons configuration file for DataEmpty unit tests
+# Scons configuration file for DataArrayView unit tests
 
 import os
 import sys
@@ -63,19 +63,19 @@ cxx_flags=cxx_flags_debug
 #
 # print out build configuration for this module
 
-print "######################################################"
-print "Build configuration for module: DataEmpty unit tests"
+print "##########################################################"
+print "Build configuration for module: DataArrayView unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "######################################################"
+print "##########################################################"
 
 #
 # do the actual build
 
-dataempty_test_path = str(esysroot) + '/escript/test/DataEmpty'
+dataarrayview_test_path = str(esysroot) + '/escript/test/DataArrayView'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -84,7 +84,11 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [dataempty_test_path,
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+
+install_dir = str(esysroot) + '/escript/test'
+
+cpp_path = [dataarrayview_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -107,17 +111,21 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['DataEmptyTestCase.cpp',
-           'DataEmptyTest.cpp']
+sources = ['DataArrayViewTestCase.cpp',
+           'DataArrayViewTest.cpp']
 
-target = 'DataEmptyTest.exe'
+target = 'DataArrayViewTest.exe'
 
-dataempty_env = Environment(ENV = os.environ)
+dataarrayview_env = Environment(ENV = os.environ)
 
-dataempty_env.Replace(CXX = cxx)
-dataempty_env.Replace(CXXFLAGS = cxx_flags)
-dataempty_env.Replace(CPPPATH = cpp_path)
-dataempty_env.Replace(LIBPATH = lib_path)
-dataempty_env.Replace(LIBS = libs)
+dataarrayview_env.Replace(CXX = cxx)
+dataarrayview_env.Replace(CXXFLAGS = cxx_flags)
+dataarrayview_env.Replace(CPPPATH = cpp_path)
+dataarrayview_env.Replace(LIBPATH = lib_path)
+dataarrayview_env.Replace(LIBS = libs)
 
-dataempty_test_exe = dataempty_env.Program(target, sources)
+dataarrayview_test_exe = dataarrayview_env.Program(target, sources)
+
+Depends(dataarrayview_test_exe, escript_lib)
+
+dataarrayview_env.Install(install_dir, dataarrayview_test_exe)

@@ -136,5 +136,6 @@ Depends(finley_lib, paso_lib)
 Depends(finley_lib, mmio_lib)
 
 finley_env.Install(libdir, finley_lib)
+finley_env.Install(libdir2, finley_lib)
 if libinstall != None:
   finley_env.Install(libinstall, finley_lib)

@@ -33,6 +33,6 @@ Export(["esysroot"])
 #
 # call appropriate SConscripts
 
-target_scripts = ['MeshAdapter/SConstruct']
+target_scripts = ['MeshAdapter/SConscript']
 
 SConscript(target_scripts, duplicate=0)

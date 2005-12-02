@@ -1,4 +1,4 @@
-# Scons configuration file for Data unit tests
+# Scons configuration file for DataProf unit tests
 
 import os
 import sys
@@ -64,7 +64,7 @@ cxx_flags=cxx_flags_debug
 # print out build configuration for this module
 
 print "####################################################"
-print "Build configuration for module: Data unit tests"
+print "Build configuration for module: DataProf unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
@@ -75,7 +75,7 @@ print "####################################################"
 #
 # do the actual build
 
-data_test_path = str(esysroot) + '/escript/test/Data'
+dataprof_test_path = str(esysroot) + '/escript/test/DataProf'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -84,7 +84,11 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [data_test_path,
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+
+install_dir = str(esysroot) + '/escript/test'
+
+cpp_path = [dataprof_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -107,17 +111,21 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['DataTestCase.cpp',
-           'DataTest.cpp']
+sources = ['DataProfTestCase.cpp',
+           'DataProfTest.cpp']
 
-target = 'DataTest.exe'
+target = 'DataProfTest.exe'
 
-data_env = Environment(ENV = os.environ)
+dataprof_env = Environment(ENV = os.environ)
 
-data_env.Replace(CXX = cxx)
-data_env.Replace(CXXFLAGS = cxx_flags)
-data_env.Replace(CPPPATH = cpp_path)
-data_env.Replace(LIBPATH = lib_path)
-data_env.Replace(LIBS = libs)
+dataprof_env.Replace(CXX = cxx)
+dataprof_env.Replace(CXXFLAGS = cxx_flags)
+dataprof_env.Replace(CPPPATH = cpp_path)
+dataprof_env.Replace(LIBPATH = lib_path)
+dataprof_env.Replace(LIBS = libs)
 
-data_test_exe = data_env.Program(target, sources)
+dataprof_test_exe = dataprof_env.Program(target, sources)
+
+Depends(dataprof_test_exe, escript_lib)
+
+dataprof_env.Install(install_dir, dataprof_test_exe)

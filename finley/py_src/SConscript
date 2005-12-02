@@ -20,6 +20,7 @@ python_src = ['__init__.py',
 
 pyc = finleypy_env.PyCompile(python_src)
 finleypy_env.Install(pydir, pyc)
+finleypy_env.Install(pydir2, pyc)
 
 if pyinstall != None:
   finleypy_env.Install(pyinstall, pyc)

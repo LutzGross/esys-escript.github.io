@@ -1,4 +1,4 @@
-# Scons configuration file for DataFactory unit tests
+# Scons configuration file for DataC unit tests
 
 import os
 import sys
@@ -58,24 +58,26 @@ if usegcc==1:
 if options!=None:
   exec "from " + options + " import *"
 
+cc_flags=cc_flags_debug
 cxx_flags=cxx_flags_debug
 
 #
 # print out build configuration for this module
 
-print "#######################################################"
-print "Build configuration for module: DataFactory unit tests"
+print "####################################################"
+print "Build configuration for module: DataC unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
+print "              cc: ", cc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "#######################################################"
+print "####################################################"
 
 #
 # do the actual build
 
-datafactory_test_path = str(esysroot) + '/escript/test/DataFactory'
+datac_test_path = str(esysroot) + '/escript/test/DataC'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
@@ -84,7 +86,11 @@ esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
 
-cpp_path = [datafactory_test_path,
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+
+install_dir = str(esysroot) + '/escript/test'
+
+cpp_path = [datac_test_path,
             escript_path,
             esysUtils_path,
             CppUnitTest_path,
@@ -107,17 +113,25 @@ libs = ['escriptcpp',
 
 libs.extend(sys_libs)
 
-sources = ['DataFactoryTestCase.cpp',
-           'DataFactoryTest.cpp']
+sources = ['DataCTestCase.cpp',
+           'DataCTest.cpp',
+           'compareCCall.c',
+           'CompareFuncs.c']
 
-target = 'DataFactoryTest.exe'
+target = 'DataCTest.exe'
 
-datafactory_env = Environment(ENV = os.environ)
+datac_env = Environment(ENV = os.environ)
 
-datafactory_env.Replace(CXX = cxx)
-datafactory_env.Replace(CXXFLAGS = cxx_flags)
-datafactory_env.Replace(CPPPATH = cpp_path)
-datafactory_env.Replace(LIBPATH = lib_path)
-datafactory_env.Replace(LIBS = libs)
+datac_env.Replace(CXX = cxx)
+datac_env.Replace(CC = cc)
+datac_env.Replace(CXXFLAGS = cxx_flags)
+datac_env.Replace(CCFLAGS = cc_flags)
+datac_env.Replace(CPPPATH = cpp_path)
+datac_env.Replace(LIBPATH = lib_path)
+datac_env.Replace(LIBS = libs)
 
-datafactory_test_exe = datafactory_env.Program(target, sources)
+datac_test_exe = datac_env.Program(target, sources)
+
+Depends(datac_test_exe, escript_lib)
+
+datac_env.Install(install_dir, datac_test_exe)
