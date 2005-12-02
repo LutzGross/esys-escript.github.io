@@ -38,7 +38,7 @@ def Solve1(mydomain,height):
     #construct mask:
     msk=Scalar(0.,cf)
     for i in range(mydomain.getDim()):
-      msk+=x[i].whereZero()+(x[i]-l[i]).whereZero()
+      msk+=whereZero(x[i])+whereZero(x[i]-l[i])
     #construct right hand side 
     f=Scalar(0,cf)
     for i in range(mydomain.getDim()):
@@ -72,7 +72,7 @@ def Solve2(mydomain,height):
     #construct mask:
     msk=Scalar(0.,cf)
     for i in range(mydomain.getDim()):
-      msk+=x[i].whereZero()
+      msk+=whereZero(x[i])
     #construct right hand side 
     f=Scalar(0,cf)
     for i in range(mydomain.getDim()):
