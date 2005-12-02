@@ -23,7 +23,7 @@ __date__="$Date$"
 
 
 
-from esys.escript.util import Lsup,kronecker,interpolate
+from esys.escript.util import Lsup,kronecker,interpolate,whereZero
 from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar
 from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson
 import numarray
@@ -49,9 +49,9 @@ class Test_Poisson(Test_linearPDEs):
     def test_setCoefficient_q(self):
         mypde=Poisson(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
-        q_ref=interpolate(x[0].whereZero(),Solution(self.domain))
+        q_ref=interpolate(whereZero(x[0]),Solution(self.domain))
         A_ref=kronecker(self.domain)
-        mypde.setValue(q=x[0].whereZero())
+        mypde.setValue(q=whereZero(x[0]))
         self.failUnless(self.check(mypde.getCoefficientOfGeneralPDE("A"),A_ref),"A is not kronecker")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("B").isEmpty(),"B is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("C").isEmpty(),"C is not empty")
@@ -93,7 +93,7 @@ class Test_Poisson(Test_linearPDEs):
        #construct mask:
        msk=Scalar(0.,cf)
        for i in range(d):
-         msk+=x[i].whereZero()
+         msk+=whereZero(x[i])
        #construct right hand side
        f=Scalar(0,cf)
        for i in range(d):
@@ -333,7 +333,7 @@ class Test_LinearPDE(Test_linearPDEs):
     def test_resetCoefficient_HomogeneousConstraint(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
-        mypde.setValue(A=kronecker(self.domain),Y=1.,q=x[0].whereZero())
+        mypde.setValue(A=kronecker(self.domain),Y=1.,q=whereZero(x[0]))
         u1=mypde.getSolution()
         mypde.setValue(Y=2.)
         u2=mypde.getSolution()
@@ -343,7 +343,7 @@ class Test_LinearPDE(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setSymmetryOn()
         x=self.domain.getX()
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.,r=1,q=x[0].whereZero())
+        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.,r=1,q=whereZero(x[0]))
         u1=mypde.getSolution(verbose=self.VERBOSE)
         mypde.setValue(Y=2.,D=2)
         u2=mypde.getSolution(verbose=self.VERBOSE)
@@ -565,7 +565,7 @@ class Test_LinearPDE(Test_linearPDEs):
         x=self.domain.getX()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
 	mypde.setSolverMethod(mypde.LUMPING)
-        mypde.setValue(D=1.,Y=1.,q=x[0].whereZero(),r=1.)
+        mypde.setValue(D=1.,Y=1.,q=whereZero(x[0]),r=1.)
         u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0)
         self.failUnless(self.check(u,1.),'solution is wrong.')
     def test_Lumping_updateRHS(self):
@@ -575,7 +575,7 @@ class Test_LinearPDE(Test_linearPDEs):
         mypde.setValue(D=1.,Y=1.)
         u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0)
         self.failUnless(self.check(u,1.),'first solution is wrong.')
-        mypde.setValue(Y=2.,q=x[0].whereZero(),r=2.)
+        mypde.setValue(Y=2.,q=whereZero(x[0]),r=2.)
         u=mypde.getSolution(verbose=self.VERBOSE,preconditioner=mypde.ILU0)
         self.failUnless(self.check(u,2.),'second solution is wrong.')
     def test_Lumping_updateOperator(self):
