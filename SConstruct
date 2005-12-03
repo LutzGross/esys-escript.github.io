@@ -40,6 +40,9 @@ python_home = env['PYTHON_HOME']
 esys_inc = '#/include'
 esys_lib = '#/lib'
 
+env.Default(esys_lib)
+env.Alias('py_test')
+
 # Derived paths
 if env['PLATFORM'] == "win32":
    python_inc = python_home + '/include'
