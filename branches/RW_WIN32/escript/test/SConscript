@@ -22,4 +22,8 @@ local_env.Install(esys_lib, program)
 # run the tests
 local_env.RunUnitTest(program_name)
 
+#Add Unit Test to target alias
+test_targets = os.path.splitext(program_name)[0]+'.passed'
+env.Alias('escript_test', test_targets)
+
 local_env.SConscript(dirs = ['#/escript/test/python'], build_dir='py', duplicate=0)

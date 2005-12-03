@@ -9,3 +9,9 @@ filenames = os.listdir(src_dir)
 python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
 local_env.RunPyUnitTest(python_src)
+
+#Add Unit Test to target alias
+test_targets = [os.path.splitext(x)[0]+'.passed' for x in python_src]
+
+env.Alias('py_test',test_targets)
+env.Alias('escript_test', test_targets)
