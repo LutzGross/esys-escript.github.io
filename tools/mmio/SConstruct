@@ -63,6 +63,8 @@ Export(["libdir"])
 options_dir = str(esysroot) + '/scons'
 sys.path.append(options_dir)
 
+from default_options import *
+
 if hostname=='ess':
   from ess_options import *
 
@@ -82,14 +84,12 @@ Export(["ar_flags"])
 #
 # print out build configuration for this module
 
-print "############################################"
 print "Build configuration for module: mmio"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
 print "              cc: ", cc
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "############################################"
 
 #
 # call the SConscript to do the actual build

@@ -55,12 +55,10 @@ Export(["pydir2"])
 #
 # print out build configuration for this module
 
-print "############################################"
 print "Build configuration for module: modellib"
 print "        platform: ", platform
 print "        hostname: ", hostname
 print "       pyinstall: ", pyinstall
-print "############################################"
 
 #
 # call the SConscript to do the actual build

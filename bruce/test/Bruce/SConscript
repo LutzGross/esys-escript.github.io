@@ -49,6 +49,8 @@ hostname = os.environ['HOSTNAME']
 options_dir = str(esysroot) + '/scons'
 sys.path.append(options_dir)
 
+from default_options import *
+
 if hostname=='ess':
   from ess_options import *
 
@@ -63,14 +65,12 @@ cxx_flags=cxx_flags_debug
 #
 # print out build configuration for this module
 
-print "####################################################"
 print "Build configuration for module: Bruce unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "####################################################"
 
 #
 # do the actual build

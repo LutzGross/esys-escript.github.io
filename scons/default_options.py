@@ -15,11 +15,11 @@ cc = 'gcc'
 cxx = 'g++'
 
 # c flags to use 
-cc_flags  = '-O3 -std=c99 -fpic -W -Wall -Wno-unknown-pragmas'
+cc_flags  = '-O0 -std=c99 -fpic -W -Wall -Wno-unknown-pragmas'
 cc_flags_debug  = '-g -O0 -std=c99 -fpic -W -Wall -Wno-unknown-pragmas'
 
 # c++ flags to use 
-cxx_flags  = '-O3 -ansi -fpic -W -Wall -Wno-unknown-pragmas'
+cxx_flags  = '-O0 -ansi -fpic -W -Wall -Wno-unknown-pragmas'
 cxx_flags_debug  = '-g -O0 -ansi -fpic -W -Wall -Wno-unknown-pragmas -DDOASSERT -DDOPROF'
 
 # static library archiver flags to use

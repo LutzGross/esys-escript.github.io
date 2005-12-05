@@ -62,7 +62,7 @@ hostname = os.environ['HOSTNAME']
 Export(["esysroot"])
 
 #
-# set and export library directory
+# set and export library directories
 
 libdir = Dir(str(esysroot) + '/escript/lib')
 Export(["libdir"])
@@ -70,7 +70,7 @@ libdir2 = Dir(str(esysroot) + '/lib')
 Export(["libdir2"])
 
 #
-# set and export python directory
+# set and export python directories
 
 pydir = Dir(str(esysroot) + '/escript/lib/py_src')
 Export(["pydir"])
@@ -82,6 +82,8 @@ Export(["pydir2"])
 
 options_dir = str(esysroot) + '/scons'
 sys.path.append(options_dir)
+
+from default_options import *
 
 if hostname=='ess':
   from ess_options import *
@@ -106,7 +108,6 @@ Export(["sys_libs"])
 #
 # print out build configuration for this module
 
-print "############################################"
 print "Build configuration for module: escript"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
@@ -115,7 +116,6 @@ print "        platform: ", platform
 print "        hostname: ", hostname
 print "      libinstall: ", libinstall
 print "       pyinstall: ", pyinstall
-print "############################################"
 
 #
 # call the SConscript to do the actual build
