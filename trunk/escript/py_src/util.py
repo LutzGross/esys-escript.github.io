@@ -45,11 +45,9 @@ import os
 
 # def maximum(arg0,arg1):
 # def minimum(arg0,arg1):
-# def minval(arg0):
-# def maxval(arg0):
+
 # def transpose(arg,axis=None):
 # def trace(arg,axis0=0,axis1=1):
-# def length(arg):
 # def reorderComponents(arg,index):
 
 # def integrate(arg,where=None):
@@ -2679,6 +2677,163 @@ class Abs_Symbol(DependendSymbol):
          val=matchShape(sign(myarg),self.getDifferentiatedArguments(arg)[0])
          return val[0]*val[1]
 
+def minval(arg):
+   """
+   returns minimum value over all components of arg at each data point
+
+   @param arg: argument
+   @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
+   @rtype:C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
+   @raises TypeError: if the type of the argument is not expected.
+   """
+   if isinstance(arg,numarray.NumArray):
+      return arg.min()
+   elif isinstance(arg,escript.Data):
+      return arg._minval()
+   elif isinstance(arg,float):
+      return arg
+   elif isinstance(arg,int):
+      return float(arg)
+   elif isinstance(arg,Symbol):
+      return Minval_Symbol(arg)
+   else:
+      raise TypeError,"minval: Unknown argument type."
+
+class Minval_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the minimum value function
+   """
+   def __init__(self,arg):
+      """
+      initialization of minimum value L{Symbol} with argument arg
+      @param arg: argument of function
+      @type arg: typically L{Symbol}.
+      """
+      DependendSymbol.__init__(self,args=[arg],shape=(),dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if isinstance(argstrs,list):
+          argstrs=argstrs[0]
+      if format=="escript" or format=="str"  or format=="text":
+         return "minval(%s)"%argstrs
+      else:
+         raise NotImplementedError,"Minval_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)[0]
+         return minval(arg)
+
+def maxval(arg):
+   """
+   returns maximum value over all components of arg at each data point
+
+   @param arg: argument
+   @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
+   @rtype:C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
+   @raises TypeError: if the type of the argument is not expected.
+   """
+   if isinstance(arg,numarray.NumArray):
+      return arg.max()
+   elif isinstance(arg,escript.Data):
+      return arg._maxval()
+   elif isinstance(arg,float):
+      return arg
+   elif isinstance(arg,int):
+      return float(arg)
+   elif isinstance(arg,Symbol):
+      return Maxval_Symbol(arg)
+   else:
+      raise TypeError,"maxval: Unknown argument type."
+
+class Maxval_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the maximum value function
+   """
+   def __init__(self,arg):
+      """
+      initialization of maximum value L{Symbol} with argument arg
+      @param arg: argument of function
+      @type arg: typically L{Symbol}.
+      """
+      DependendSymbol.__init__(self,args=[arg],shape=(),dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if isinstance(argstrs,list):
+          argstrs=argstrs[0]
+      if format=="escript" or format=="str"  or format=="text":
+         return "maxval(%s)"%argstrs
+      else:
+         raise NotImplementedError,"Maxval_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)[0]
+         return maxval(arg)
+
+def length(arg):
+   """
+   returns length/Euclidean norm of argument arg at each data point
+
+   @param arg: argument
+   @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
+   @rtype:C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
+   """
+   return sqrt(inner(arg,arg))
 
 #=======================================================
 #  Binary operations:
@@ -3093,33 +3248,41 @@ class Power_Symbol(DependendSymbol):
          dargs=self.getDifferentiatedArguments(arg)
          return mult(self,add(mult(log(myargs[0]),dargs[1]),mult(quotient(myargs[1],myargs[0]),dargs[0])))
 
-def maximum(arg0,arg1):
+def maximum(*args):
     """
-    the maximum of the two arguments
+    the maximum over arguments args
  
-    @param arg0: first argument
-    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
-    @param arg1: second argument
-    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
-    @return: is on object which has the shape of arg0+arg1 and gives at each entry the maximum of the coresponding values of arg0 and arg1.
+    @param args: arguments
+    @type args: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
+    @return: is on object which gives at each entry the maximum of the coresponding values all args
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float} depending on the input
     """
-    m=whereNegative(arg0-arg1)
-    return m*arg1+(1.-m)*arg0
+    out=None
+    for a in args:
+       if out==None:
+          out=a
+       else:
+          m=whereNegative(out-a)
+          out=m*a+(1.-m)*out
+    return out
    
-def minimum(arg0,arg1):
+def minimum(*arg):
     """
-    the minumum of the two arguments
+    the minimum over arguments args
  
-    @param arg0: first argument
-    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
-    @param arg1: second argument
-    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
-    @return: is on object which has the shape of arg0+arg1 and gives at each entry the minimum of the coresponding values of arg0 and arg1.
+    @param args: arguments
+    @type args: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
+    @return: is on object which gives at each entry the minimum of the coresponding values all args
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float} depending on the input
     """
-    m=whereNegative(arg0-arg1)
-    return m*arg0+(1.-m)*arg1
+    out=None
+    for a in args:
+       if out==None:
+          out=a
+       else:
+          m=whereNegative(out-a)
+          out=m*out+(1.-m)*a
+    return out
    
 def inner(arg0,arg1):
     """
@@ -3266,19 +3429,19 @@ def generalTensorProduct(arg0,arg1,offset=0):
        else:
            if not arg0.shape[arg0.rank-offset:]==arg1.shape[:offset]:
                raise ValueError,"generalTensorProduct: dimensions of last %s components in left argument don't match the first %s components in the right argument."%(offset,offset) 
+           arg0_c=arg0.copy()
+           arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
            d0,d1,d01=1,1,1
            for i in sh0[:arg0.rank-offset]: d0*=i
            for i in sh1[offset:]: d1*=i
            for i in sh1[:offset]: d01*=i
-           arg0.resize((d0,d01))
-           arg1.resize((d01,d1))
+           arg0_c.resize((d0,d01))
+           arg1_c.resize((d01,d1))
            out=numarray.zeros((d0,d1),numarray.Float)
            for i0 in range(d0):
-                 for i1 in range(d1):
-                      out[i0,i1]=numarray.sum(arg0[i0,:]*arg1[:,i1])
-           arg0.resize(sh0)
-           arg1.resize(sh1)
+                    for i1 in range(d1):
+                         out[i0,i1]=numarray.sum(arg0_c[i0,:]*arg1_c[:,i1])
            out.resize(sh0[:arg0.rank-offset]+sh1[offset:])
            return out
     elif isinstance(arg0,escript.Data):
@@ -3353,7 +3516,7 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
          return generalTensorProduct(args[0],args[1],args[2])
 
 def escript_generalTensorProduct(arg0,arg1,offset): # this should be escript._generalTensorProduct
-    "arg0 and arg1 are both Data objects but not neccesrily on the same function space!!!"
+    "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
     # calculate the return shape:
     shape0=arg0.getShape()[:arg0.getRank()-offset]
     shape01=arg0.getShape()[arg0.getRank()-offset:]
@@ -3493,15 +3656,6 @@ def jump(arg):
 
 # functions involving the underlying Domain:
 
-
-# functions returning Data objects:
-
-def minval(arg):
-    return arg._minval()
-
-def maxval(arg):
-    return arg._maxval()
-
 def transpose(arg,axis=None):
     """
     Returns the transpose of the Data object arg. 
@@ -3553,48 +3707,6 @@ def trace(arg,axis0=0,axis1=1):
     else:
        return numarray.trace(arg,axis0=axis0,axis1=axis1)
 
-def length(arg):
-    """
-
-    @param arg:
-    """
-    if isinstance(arg,escript.Data):
-       if arg.isEmpty(): return escript.Data()
-       if arg.getRank()==0:
-          return abs(arg)
-       elif arg.getRank()==1:
-          out=escript.Scalar(0,arg.getFunctionSpace())
-          for i in range(arg.getShape()[0]):
-             out+=arg[i]**2
-          return sqrt(out)
-       elif arg.getRank()==2:
-          out=escript.Scalar(0,arg.getFunctionSpace())
-          for i in range(arg.getShape()[0]):
-             for j in range(arg.getShape()[1]):
-                out+=arg[i,j]**2
-          return sqrt(out)
-       elif arg.getRank()==3:
-          out=escript.Scalar(0,arg.getFunctionSpace())
-          for i in range(arg.getShape()[0]):
-             for j in range(arg.getShape()[1]):
-                for k in range(arg.getShape()[2]):
-                   out+=arg[i,j,k]**2
-          return sqrt(out)
-       elif arg.getRank()==4:
-          out=escript.Scalar(0,arg.getFunctionSpace())
-          for i in range(arg.getShape()[0]):
-             for j in range(arg.getShape()[1]):
-                for k in range(arg.getShape()[2]):
-                   for l in range(arg.getShape()[3]):
-                      out+=arg[i,j,k,l]**2
-          return sqrt(out)
-       else:
-          raise SystemError,"length is not been fully implemented yet"
-          # return arg.length()
-    elif isinstance(arg,float):
-       return abs(arg)
-    else:
-       return sqrt((arg**2).sum())
 
 def reorderComponents(arg,index):
     """
