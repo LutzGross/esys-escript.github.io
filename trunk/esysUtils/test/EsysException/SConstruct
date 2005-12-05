@@ -48,6 +48,8 @@ hostname = os.environ['HOSTNAME']
 options_dir = str(esysroot) + '/scons'
 sys.path.append(options_dir)
 
+from default_options import *
+
 if hostname=='ess':
   from ess_options import *
 
@@ -62,14 +64,12 @@ cxx_flags=cxx_flags_debug
 #
 # print out build configuration for this module
 
-print "####################################################"
 print "Build configuration for module: EsysException unit tests"
 print "         dodebug:  1"
 print "          usegcc: ", usegcc
 print "             cxx: ", cxx
 print "        platform: ", platform
 print "        hostname: ", hostname
-print "####################################################"
 
 #
 # do the actual build
@@ -80,6 +80,10 @@ CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
 
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
+
+esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
+
+install_dir = str(esysroot) + '/esysUtils/test'
 
 cpp_path = [esysexception_test_path,
             esysUtils_path,
@@ -107,3 +111,7 @@ esysexception_env.Replace(LIBPATH = lib_path)
 esysexception_env.Replace(LIBS = libs)
 
 esysexception_test_exe = esysexception_env.Program(target, sources)
+
+Depends(esysexception_test_exe, esysUtils_lib)
+
+esysexception_env.Install(install_dir, esysexception_test_exe)
