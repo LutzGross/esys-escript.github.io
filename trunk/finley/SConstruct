@@ -83,6 +83,8 @@ Export(["pydir2"])
 options_dir = str(esysroot) + '/scons'
 sys.path.append(options_dir)
 
+from default_options import *
+
 if hostname=='ess':
   from ess_options import *
 
@@ -110,7 +112,6 @@ Export(["solver_libs"])
 #
 # print out build configuration for this module
 
-print "############################################"
 print "Build configuration for module: finley"
 print "         dodebug: ", dodebug
 print "          usegcc: ", usegcc
@@ -120,7 +121,6 @@ print "        platform: ", platform
 print "        hostname: ", hostname
 print "      libinstall: ", libinstall
 print "       pyinstall: ", pyinstall
-print "############################################"
 
 #
 # call the SConscript to do the actual build
