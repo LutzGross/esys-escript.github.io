@@ -462,9 +462,9 @@ void DataTestCase::testOperations() {
   result.copy(base.log());
   assert(true);
 
-  cout << "\tTest Data::ln." << endl;
-  result.copy(base.ln());
-  assert(true);
+  //cout << "\tTest Data::ln." << endl;
+  //result.copy(base.ln());
+  //assert(true);
 
   cout << "\tTest Data::abs." << endl;
   result.copy(base.abs());
@@ -515,9 +515,9 @@ void DataTestCase::testOperations() {
   result.copy(base.maxval());
   assert(result.getPointDataView()() == 5);
 
-  cout << "\tTest Data::length." << endl;
-  result.copy(base.length());
-  assert(pow(result.getPointDataView()(),2.0) == 55);
+  //cout << "\tTest Data::length." << endl;
+  //result.copy(base.length());
+  //assert(pow(result.getPointDataView()(),2.0) == 55);
 
   cout << "\tTest Data::trace." << endl;
   result.copy(base.trace());
