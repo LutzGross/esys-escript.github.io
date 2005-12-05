@@ -33,6 +33,7 @@ def wherepos(arg):
    else: 
       return 0.
 
+
 class OPERATOR:
 	def __init__(self,nickname,rng=[-1000.,1000],test_expr="",math_expr=None,
 				numarray_expr="",symbol_expr=None,diff=None,name=""):
@@ -589,6 +590,78 @@ def testTensorMult(arg0,arg1,sh_s):
              for i3 in range(arg0.shape[3]):
                      out[i0,i1]+=arg0[i0,i1,i2,i3]*arg1[i2,i3]
         return out
+
+def testReduce(arg0,init_val,test_expr,post_expr):
+     out=init_val
+     if isinstance(arg0,float):
+          out=eval(test_expr.replace("%a1%","arg0"))
+     elif arg0.rank==0:
+          out=eval(test_expr.replace("%a1%","arg0"))
+     elif arg0.rank==1:
+        for i0 in range(arg0.shape[0]):
+               out=eval(test_expr.replace("%a1%","arg0[i0]"))
+     elif arg0.rank==2:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+               out=eval(test_expr.replace("%a1%","arg0[i0,i1]"))
+     elif arg0.rank==3:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+               out=eval(test_expr.replace("%a1%","arg0[i0,i1,i2]"))
+     elif arg0.rank==4:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+               out=eval(test_expr.replace("%a1%","arg0[i0,i1,i2,i3]"))          
+     return eval(post_expr)
+#=======================================================================================================
+# local reduction
+#=======================================================================================================
+for oper in [["length",0.,"out+%a1%**2","math.sqrt(out)"],
+             ["maxval",-1.e99,"max(out,%a1%)","out"],
+             ["minval",1.e99,"min(out,%a1%)","out"] ]:
+  for case in case_set: 
+     for sh in shape_set:
+       if not case=="float" or len(sh)==0:
+         text=""
+         text+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_%s_%s_rank%s"%(oper[0],case,len(sh))
+         text+="   %s(self):\n"%tname
+         a=makeArray(sh,[-1.,1.])             
+         a1=makeArray(sh,[-1.,1.])
+         r1=testReduce(a1,oper[1],oper[2],oper[3])
+         r=testReduce(a,oper[1],oper[2],oper[3])
+         
+         text+=mkText(case,"arg",a,a1)
+         text+="      res=%s(arg)\n"%oper[0]
+         if case=="Symbol":         
+             text+=mkText("array","s",a,a1)
+             text+="      sub=res.substitute({arg:s})\n"         
+             text+=mkText("array","ref",r,r1)
+             res="sub"
+         else:
+             text+=mkText(case,"ref",r,r1)
+             res="res"
+         if oper[0]=="length":              
+               text+=mkTypeAndShapeTest(case,(),"res")
+         else:             
+            if case=="float" or case=="array":         
+               text+=mkTypeAndShapeTest("float",(),"res")
+            else:          
+               text+=mkTypeAndShapeTest(case,(),"res")
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+         if case == "taggedData":
+           t_prog_with_tags+=text
+         else:
+           t_prog+=text
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+          
 #=======================================================================================================
 # tensor multiply
 #=======================================================================================================
