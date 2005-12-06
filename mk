@@ -16,10 +16,9 @@ MODULES="tools/CppUnitTest tools/mmio esysUtils escript paso finley bruce modell
 TESTS="escript bruce finley"
 
 # the python tests to run
-#FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py"
-FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py"
+FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
 ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py DataVariableTests.py test_xml.py"
-BRUCE_PYTESTS="ImportTest.py BruceTest.py"
+BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
 
 # use this setting for local developmental builds
 ENVVARS="DODEBUG=YES"
