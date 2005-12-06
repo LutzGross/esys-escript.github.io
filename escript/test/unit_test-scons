@@ -6,7 +6,7 @@ MODULES="DataEmptyTest.exe DataConstantTest.exe DataTaggedTest.exe DataExpandedT
 
 for module in $MODULES ; do
   echo Testing: $module
-  $module
+  ./$module
   if [ $? != 0 ]
   then
     echo Unit Testing FAILED for module: $module

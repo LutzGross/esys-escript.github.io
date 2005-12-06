@@ -4,7 +4,8 @@
 # An explicit testing script for esys using the scons build system
 
 # list of users to email test results to
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
+#MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
 
 # define compiler executable and library locations
 export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
@@ -28,56 +29,56 @@ then
   exit 2
 fi
 
-#echo running svn update
-#svn update
-#if [ $? != 0 ]
-#then
-#  echo svn update failed
-#  echo "svn update failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
-#  exit 3
-#fi
-##
-#echo running scons debug=1
-#scons debug=1
-#if [ $? != 0 ]
-#then
-#  echo scons failed
-#  echo "scons failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
-#  exit 5
-#fi
+echo running svn update
+svn update
+if [ $? != 0 ]
+then
+  echo svn update failed
+  echo "svn update failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  exit 3
+fi
+
+echo running scons debug=1
+scons debug=1
+if [ $? != 0 ]
+then
+  echo scons failed
+  echo "scons failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  exit 5
+fi
 
 echo running bruce unit_tests
 cd bruce/test
-./unit_test
+./unit_test-scons
 if [ $? != 0 ]
 then
   echo bruce unit_test failed
   echo "bruce unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 6
 fi
-cd ..
+cd ../..
 
 echo running escript unit_tests
 cd escript/test
-./unit_test
+./unit_test-scons
 if [ $? != 0 ]
 then
   echo escript unit_test failed
   echo "escript unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 6
 fi
-cd ..
+cd ../..
 
 echo running finley unit_tests
 cd finley/test
-./unit_test
+./unit_test-scons
 if [ $? != 0 ]
 then
   echo finley unit_test failed
   echo "finley unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
   exit 6
 fi
-cd ..
+cd ../..
 
 #echo running mk py_test
 #./mk py_test
