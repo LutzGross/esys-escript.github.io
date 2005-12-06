@@ -6,7 +6,7 @@ MODULES="MeshAdapterTest.exe"
 
 for module in $MODULES ; do
   echo Testing: $module
-  $module
+  ./$module
   if [ $? != 0 ]
   then
     echo Unit Testing FAILED for module: $module
