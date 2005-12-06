@@ -96,17 +96,17 @@ class ScalarConstrainer(ParameterSet):
              x=self.domain.getX()
              self._location_of_constraint=Scalar(0,x.getFunctionSpace())
              if self.domain.getDim()==3:
-                if self.left: self._location_of_constraint+=(x[0]-inf(x[0])).whereZero()
-                if self.right: self._location_of_constraint+=(x[0]-sup(x[0])).whereZero()
-                if self.front: self._location_of_constraint+=(x[1]-inf(x[1])).whereZero()
-                if self.back: self._location_of_constraint+=(x[1]-sup(x[1])).whereZero()
-                if self.bottom: self._location_of_constraint+=(x[2]-inf(x[2])).whereZero()
-                if self.top: self._location_of_constraint+=(x[2]-sup(x[2])).whereZero()
+                if self.left: self._location_of_constraint+=whereZero(x[0]-inf(x[0]))
+                if self.right: self._location_of_constraint+=whereZero(x[0]-sup(x[0]))
+                if self.front: self._location_of_constraint+=whereZero(x[1]-inf(x[1]))
+                if self.back: self._location_of_constraint+=whereZero(x[1]-sup(x[1]))
+                if self.bottom: self._location_of_constraint+=whereZero(x[2]-inf(x[2]))
+                if self.top: self._location_of_constraint+=whereZero(x[2]-sup(x[2]))
              else:
-                if self.left: self._location_of_constraint+=(x[0]-inf(x[0])).whereZero()
-                if self.right: self._location_of_constraint+=(x[0]-sup(x[0])).whereZero()
-                if self.bottom: self._location_of_constraint+=(x[1]-inf(x[1])).whereZero()
-                if self.top: self._location_of_constraint+=(x[1]-sup(x[1])).whereZero()
+                if self.left: self._location_of_constraint+=whereZero(x[0]-inf(x[0]))
+                if self.right: self._location_of_constraint+=whereZero(x[0]-sup(x[0]))
+                if self.bottom: self._location_of_constraint+=whereZero(x[1]-inf(x[1]))
+                if self.top: self._location_of_constraint+=whereZero(x[1]-sup(x[1]))
           return self._location_of_constraint
 
 class VectorConstrainer(ParameterSet):
@@ -162,41 +162,41 @@ class VectorConstrainer(ParameterSet):
              x=self.domain.getX()
              self._location_of_constraint=Vector(0,x.getFunctionSpace())
              if self.domain.getDim()==3:
-                left_mask=(x[0]-inf(x[0])).whereZero()
+                left_mask=whereZero(x[0]-inf(x[0]))
                 if self.left[0]: self._location_of_constraint+=left_mask*[1.,0.,0.]
                 if self.left[1]: self._location_of_constraint+=left_mask*[0.,1.,0.]
                 if self.left[2]: self._location_of_constraint+=left_mask*[0.,0.,1.]
-                right_mask=(x[0]-sup(x[0])).whereZero()
+                right_mask=whereZero(x[0]-sup(x[0]))
                 if self.right[0]: self._location_of_constraint+=right_mask*[1.,0.,0.]
                 if self.right[1]: self._location_of_constraint+=right_mask*[0.,1.,0.]
                 if self.right[2]: self._location_of_constraint+=right_mask*[0.,0.,1.]
-                front_mask=(x[1]-inf(x[1])).whereZero()
+                front_mask=whereZero(x[1]-inf(x[1]))
                 if self.front[0]: self._location_of_constraint+=front_mask*[1.,0.,0.]
                 if self.front[1]: self._location_of_constraint+=front_mask*[0.,1.,0.]
                 if self.front[2]: self._location_of_constraint+=front_mask*[0.,0.,1.]
-                back_mask=(x[1]-sup(x[1])).whereZero()
+                back_mask=whereZero(x[1]-sup(x[1]))
                 if self.back[0]: self._location_of_constraint+=back_mask*[1.,0.,0.]
                 if self.back[1]: self._location_of_constraint+=back_mask*[0.,1.,0.]
                 if self.back[2]: self._location_of_constraint+=back_mask*[0.,0.,1.]
-                bottom_mask=(x[2]-inf(x[2])).whereZero()
+                bottom_mask=whereZero(x[2]-inf(x[2]))
                 if self.bottom[0]: self._location_of_constraint+=bottom_mask*[1.,0.,0.]
                 if self.bottom[1]: self._location_of_constraint+=bottom_mask*[0.,1.,0.]
                 if self.bottom[2]: self._location_of_constraint+=bottom_mask*[0.,0.,1.]
-                top_mask=(x[2]-sup(x[2])).whereZero()
+                top_mask=whereZero(x[2]-sup(x[2]))
                 if self.top[0]: self._location_of_constraint+=top_mask*[1.,0.,0.]
                 if self.top[1]: self._location_of_constraint+=top_mask*[0.,1.,0.]
                 if self.top[2]: self._location_of_constraint+=top_mask*[0.,0.,1.]
              else:
-                left_mask=(x[0]-inf(x[0])).whereZero()
+                left_mask=whereZero(x[0]-inf(x[0]))
                 if self.left[0]: self._location_of_constraint+=left_mask*[1.,0.]
                 if self.left[1]: self._location_of_constraint+=left_mask*[0.,1.]
-                right_mask=(x[0]-sup(x[0])).whereZero()
+                right_mask=whereZero(x[0]-sup(x[0]))
                 if self.right[0]: self._location_of_constraint+=right_mask*[1.,0.]
                 if self.right[1]: self._location_of_constraint+=right_mask*[0.,1.]
-                bottom_mask=(x[1]-inf(x[1])).whereZero()
+                bottom_mask=whereZero(x[1]-inf(x[1]))
                 if self.bottom[0]: self._location_of_constraint+=bottom_mask*[1.,0.]
                 if self.bottom[1]: self._location_of_constraint+=bottom_mask*[0.,1.]
-                top_mask=(x[1]-sup(x[1])).whereZero()
+                top_mask=whereZero(x[1]-sup(x[1]))
                 if self.top[0]: self._location_of_constraint+=top_mask*[1.,0.]
                 if self.top[1]: self._location_of_constraint+=top_mask*[0.,1.]
           return self._location_of_constraint

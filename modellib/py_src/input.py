@@ -77,7 +77,7 @@ class GaussianProfile(ParameterSet):
         x = self.domain.getX()
         dim = self.domain.getDim()
         l = length(x-self.x_c[:dim])
-        m = (l-self.r).whereNegative()
+        m = whereNegative(l-self.r)
 
         return (m+(1.-m)*exp(-log(2.)*(l/self.width)**2))*self.A
 
