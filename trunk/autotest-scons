@@ -7,6 +7,15 @@
 #MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
 MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
 
+#modules to test
+TESTS="escript bruce finley"
+
+# the python tests to run
+FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py DataVariableTests.py test_xml.py"
+BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
+
+
 # define compiler executable and library locations
 export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
 export LD_LIBRARY_PATH=/opt/intel/cmplrs/80.058/intel_cc_80/lib
@@ -80,14 +89,49 @@ then
 fi
 cd ../..
 
-#echo running mk py_test
-#./mk py_test
-#if [ $? != 0 ]
-#then
-#  echo ./mk py_test failed
-#  echo "./mk py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
-#  exit 7
-#fi
+for module in $TESTS
+do
+    echo "running python tests for: $module"
+    cd $module/test/python
+    if [ "$module" == "finley" ]
+    then
+        for pytest in $FINLEY_PYTESTS
+        do
+            echo "Running python test: $pytest"
+            python $pytest
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for $pytest in module $module
+              exit 1
+            fi
+        done
+    elif [ "$module" == "escript" ]
+    then
+        for pytest in $ESCRIPT_PYTESTS
+        do
+            echo "Running python test: $pytest"
+            python $pytest
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for $pytest in module $module
+              exit 1
+            fi
+        done
+    elif [ "$module" == "bruce" ]
+    then
+        for pytest in $BRUCE_PYTESTS
+        do
+            echo "Running python test: $pytest"
+            python $pytest
+            if [ $? != 0 ]
+            then
+              echo Python Testing FAILED for $pytest in module $module
+              exit 1
+            fi
+        done
+    fi
+    cd ../..
+done
 
 echo "success" | mail -s "esys autotest results" $MAIL_RECIPIENTS
 exit 0
