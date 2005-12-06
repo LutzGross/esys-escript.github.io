@@ -39,13 +39,13 @@ def doTest(a,ex,wh):
 
   arg=prepareArg(a,ex,wh)
 
-  arg.wherePositive()
-  arg.whereZero()
-  arg.trace()
-  arg.log()
-  arg.Linf()
-  arg.maxval()
-  arg.sign()
+  arg._wherePositive()
+  arg._whereZero()
+  arg._trace()
+  arg._log()
+  arg._Lsup()
+  arg._maxval()
+  arg._sign()
 
   arg+=arg
   arg-=arg
