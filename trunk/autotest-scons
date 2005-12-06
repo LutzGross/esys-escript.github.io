@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# $Id: autotest 162 2005-11-11 00:09:59Z svn $
+# An explicit testing script for esys using the scons build system
+
+# list of users to email test results to
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
+
+# define compiler executable and library locations
+export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
+export LD_LIBRARY_PATH=/opt/intel/cmplrs/80.058/intel_cc_80/lib
+
+echo cd $1
+cd $1
+if [ $? != 0 ]
+then
+  echo couldnt cd $1
+  echo "couldnt cd $1" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  exit 1
+fi
+
+echo loading esys setup
+. ~jgs/bin/scons_setup
+if [ $? != 0 ]
+then
+  echo couldnt load scons setup
+  echo "couldnt load scons setup" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  exit 2
+fi
+
+echo running svn update
+svn update
+if [ $? != 0 ]
+then
+  echo svn update failed
+  echo "svn update failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  exit 3
+fi
+
+echo running scons debug=1
+scons debug=1
+if [ $? != 0 ]
+then
+  echo scons failed
+  echo "scons failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  exit 5
+fi
+
+#echo running mk unit_test
+#./mk unit_test
+#if [ $? != 0 ]
+#then
+#  echo ./mk unit_test failed
+#  echo "./mk unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+#  exit 6
+#fi
+
+#echo running mk py_test
+#./mk py_test
+#if [ $? != 0 ]
+#then
+#  echo ./mk py_test failed
+#  echo "./mk py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+#  exit 7
+#fi
+
+echo "success" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+exit 0
