@@ -12,7 +12,7 @@ import math
 #import urllib
 import urllib2
 
-EPS=1.e-5
+EPS=1.e-8
 
 #====================================================================================================================================================
 class GridData:
@@ -354,7 +354,7 @@ class Coastline:
              if pl.getDiameter()>self.region.resolution:
                 short_pl=[pl[0]]
                 for i in range(1,len(pl)):
-                      if pl[i]-short_pl[-1]>self.region.resolution/5:
+                      if pl[i]-short_pl[-1]>0*EPS+self.region.resolution/10:
                          short_pl.append(pl[i])
                       elif i==len(pl)-1:
                          short_pl[-1]=pl[i]
@@ -422,7 +422,7 @@ class Coastline:
                 vertices_on_face.append(q)
          vertices_on_face.sort(self.region.comparePointsOnFace)
          index=0
-         walking_on_water=west_south_is_water
+         walking_on_water=True
          l=len(vertices_on_face)
          while index<l:
              p1=vertices_on_face[(index+1)%l]
@@ -610,7 +610,7 @@ class EarthTriangulation:
            finley_file.close()
            # get the mesh
            out=ReadMesh("%s.msh"%self.fn)
-           # os.remove("%s.msh"%self.fn)
+           os.remove("%s.msh"%self.fn)
            return out
 
 
@@ -692,7 +692,7 @@ class Bathymetry(Model):
            dx=x_grd[1]-ox
            nx=1
            nx=1
-           while abs(x_grd[nx]-ox)>1.e-10*diam:
+           while abs(x_grd[nx]-ox)>EPS*diam:
                nx+=1
            dy=y_grd[nx]-oy
            ny=len(x_grd)/nx
@@ -789,11 +789,11 @@ class TsunamiSource(Model):
            x_lat_hat=-b*(x_long-mid_long)+a*(x_lat-mid_lat)
            # x_lat-direction
            s=abs(x_lat_hat)-self.width
-           m=s.whereNegative()
+           m=whereNegative(s)
            f1=(1.-m)*exp(-(s*beta)**2)+m
            # x_long-direction
            s=abs(x_long_hat)-dist
-           m=s.whereNegative()
+           m=whereNegative(s)
            f0=(1.-m)*exp(-(s*beta)**2)+m
            self.wave_height=f1*f0*self.amplitude
 
@@ -827,9 +827,10 @@ class TsunamiInDeepWater(Model):
            self.__pde=LinearPDE(self.domain)
            self.__pde.setSolverMethod(self.__pde.LUMPING)
            self.__pde.setValue(D=1.)
-           self.__c2=RegionOnEarthSurface.GRAVITY*self.bathymetry/RegionOnEarthSurface.RADIUS**2
+           self.__c2=RegionOnEarthSurface.GRAVITY*self.bathymetry/(RegionOnEarthSurface.RADIUS*2*numarray.pi/360.)**2
            c_max=math.sqrt(Lsup(self.__c2))
            self.__dt=self.safety_factor*inf(self.domain.getSize()/(sqrt(self.__c2)+EPS*c_max))
+           print c_max,inf(self.domain.getSize())
            if self.initial_time_step==None: self.initial_time_step=self.__dt
            self.trace("maximum wave velocity %s m/sec"%c_max)
            self.trace("Time step size is %s sec"%self.__dt)
@@ -1119,7 +1120,7 @@ class SurfMovie(Model):
         @param dt:
         """
         if self.t>=self.__next_t:
-             print self.t,"write ",Lsup(self.wave_height)
+             print self.t,"write ",Lsup(self.wave_height)," to ",self.__fn
              saveVTK(self.__fn,h=self.wave_height)
              # vtkobj=...
              # save(self.__frame_name)
@@ -1140,7 +1141,7 @@ class SurfMovie(Model):
              waveMapper = vtk.vtkDataSetMapper()
              waveMapper.SetInput(waveGrid)
              waveMapper.SetLookupTable(self.lutTrans)
-             waveMapper.SetScalarRange(-self.max_height, self.max_height)
+             waveMapper.SetScalarRange(-self.max_height*0.3, self.max_height*0.3)
 
              self.waveActor.SetMapper(waveMapper)
 
@@ -1218,12 +1219,12 @@ def main():
    from esys.modellib.input import Sequencer
 
    oc=OceanRegionCollector()
-   oc.resolution=2
-   oc.south=-45.5
-   oc.north=-5.4
-   oc.east=161.1
-   oc.west=108.2
-   oc.range360=True
+   oc.north= 26.7
+   oc.west= 102.9
+   oc.range360= True
+   oc.east= 232.6
+   oc.resolution= 1.
+   oc.south= -71.3
 
 
    b=Bathymetry()
@@ -1240,13 +1241,13 @@ def main():
 
    src=TsunamiSource()
    src.domain=Link(oreg,"domain")
-   src.start_lat=-10.
-   src.end_lat=-12.
-   src.start_long=110.
-   src.end_long=120.
-   src.width=1.
-   src.decay_zone=0.01
-   src.amplitude=1.
+   src.decay_zone= 0.01
+   src.end_long= 185.
+   src.end_lat= -37.
+   src.width=0.5
+   src.start_long= 174.
+   src.start_lat= -15.
+   src.amplitude= 3
 
    ts=TsunamiInDeepWater()
    ts.domain=Link(oreg,"domain")
@@ -1255,15 +1256,19 @@ def main():
    ts.bathymetry=Link(oreg,"bathymetry")
 
    sq=Sequencer()
-   sq.t_end=100000.
+   sq.t_end=15000.
 
    sm=SurfMovie()
    sm.bathymetry=Link(b,"bathymetry")
    sm.wave_height=Link(ts,"wave_height")
    sm.coastline=Link(oreg,"coastline")
    sm.t=Link(sq,"t")
-   sm.dt=5000.
    sm.filename="movie.mpg"
+   sm.north= 8.7
+   sm.west= 138.9
+   sm.dt= 50.
+   sm.east= 196.6
+   sm.south= -53.3
    sm.max_height=Link(src,"amplitude")
    
    s=Simulation([sq,oc,b,oreg,src,ts,sm])
