@@ -137,8 +137,8 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "\nmindp:"
       print arg.mindp()
 
-      print "\nabs:"
-      print arg._abs()
+      #print "\nabs:"
+      #print arg._abs()
 
       print "\nmaxval:"
       print arg._maxval()
@@ -161,11 +161,11 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "\nsqrt"
       print arg._sqrt()
 
-      print "\nneg"
-      print arg._neg()
+      #print "\nneg"
+      #print arg._neg()
 
-      print "\npos"
-      print arg._pos()
+      #print "\npos"
+      #print arg._pos()
 
       print "\nsin"
       print arg._sin()
@@ -211,9 +211,6 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       print "\nLsup"
       print arg._Lsup()
-
-      print "\nLinf"
-      print arg._Linf()
 
       print "\nsup"
       print arg._sup()
