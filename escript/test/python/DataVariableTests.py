@@ -105,7 +105,7 @@ dv1.sum(dv2)
 
 d5 = dv1.evaluate()
 
-print d5.toString()
+#print d5.toString()
 
 sys.exit(0)
 # end
