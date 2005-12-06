@@ -154,7 +154,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # where positive:
       ref=checkResult("where positive("+ex1+")", \
-                      (arg1-3).wherePositive(), \
+                      (arg1-3)._wherePositive(), \
                       numarray.greater(arrays1[0],3.), \
                       numarray.greater(arrays1[1],3.), \
                       numarray.greater(arrays1[2],3.), \
@@ -162,7 +162,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # where negative:
       ref=checkResult("where negative("+ex1+")", \
-                      (arg1-3).whereNegative(), \
+                      (arg1-3)._whereNegative(), \
                       numarray.greater(3.,arrays1[0]), \
                       numarray.greater(3.,arrays1[1]), \
                       numarray.greater(3.,arrays1[2]), \
@@ -170,7 +170,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # where non-negative:
       ref=checkResult("where nonnegative("+ex1+")", \
-                      (arg1-3).whereNonNegative(), \
+                      (arg1-3)._whereNonNegative(), \
                       numarray.greater_equal(arrays1[0],3.), \
                       numarray.greater_equal(arrays1[1],3.), \
                       numarray.greater_equal(arrays1[2],3.), \
@@ -178,7 +178,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # where non-positive:
       ref=checkResult("where nonpositive("+ex1+")", \
-                      (arg1-3).whereNonPositive(), \
+                      (arg1-3)._whereNonPositive(), \
                       numarray.greater_equal(3.,arrays1[0]), \
                       numarray.greater_equal(3.,arrays1[1]), \
                       numarray.greater_equal(3.,arrays1[2]), \
@@ -186,7 +186,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # where zero:
       ref=checkResult("where zero("+ex1+")", \
-                      (arg1-3).whereZero(), \
+                      (arg1-3)._whereZero(), \
                       numarray.less_equal(numarray.abs(arrays1[0]-3.),0.0), \
                       numarray.less_equal(numarray.abs(arrays1[1]-3.),0.0), \
                       numarray.less_equal(numarray.abs(arrays1[2]-3.),0.0), \
@@ -194,7 +194,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # where non-zero:
       ref=checkResult("where nonzero("+ex1+")", \
-                      (arg1-3).whereNonZero(), \
+                      (arg1-3)._whereNonZero(), \
                       numarray.greater(numarray.abs(arrays1[0]-3.),0.0), \
                       numarray.greater(numarray.abs(arrays1[1]-3.),0.0), \
                       numarray.greater(numarray.abs(arrays1[2]-3.),0.0), \
@@ -202,23 +202,23 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # exponential function:
       ref=checkResult("exp("+ex1+")", \
-                      arg1.exp(), \
+                      arg1._exp(), \
                       numarray.exp(arrays1[0]), \
                       numarray.exp(arrays1[1]), \
                       numarray.exp(arrays1[2]), \
                       wh)
 
       # sqrt
-      ref=checkResult("sqrt("+ex1+")", \
-                      arg1.abs().sqrt(), \
-                      numarray.sqrt(numarray.abs(arrays1[0])), \
-                      numarray.sqrt(numarray.abs(arrays1[1])), \
-                      numarray.sqrt(numarray.abs(arrays1[2])), \
-                      wh)
+      #ref=checkResult("sqrt("+ex1+")", \
+      #                arg1._abs()._sqrt(), \
+      #                numarray.sqrt(numarray.abs(arrays1[0])), \
+      #                numarray.sqrt(numarray.abs(arrays1[1])), \
+      #                numarray.sqrt(numarray.abs(arrays1[2])), \
+      #                wh)
 
       # sin:
       ref=checkResult("sin("+ex1+")", \
-                      arg1.sin(), \
+                      arg1._sin(), \
                       numarray.sin(arrays1[0]), \
                       numarray.sin(arrays1[1]), \
                       numarray.sin(arrays1[2]), \
@@ -226,7 +226,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # cos:
       ref=checkResult("cos("+ex1+")", \
-                      arg1.cos(), \
+                      arg1._cos(), \
                       numarray.cos(arrays1[0]), \
                       numarray.cos(arrays1[1]), \
                       numarray.cos(arrays1[2]), \
@@ -234,7 +234,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # tan:
       ref=checkResult("tan("+ex1+")", \
-                      arg1.tan(), \
+                      arg1._tan(), \
                       numarray.tan(arrays1[0]), \
                       numarray.tan(arrays1[1]), \
                       numarray.tan(arrays1[2]), \
@@ -266,7 +266,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # sinh:
       ref=checkResult("sinh("+ex1+")", \
-                      arg1.sinh(), \
+                      arg1._sinh(), \
                       numarray.sinh(arrays1[0]), \
                       numarray.sinh(arrays1[1]), \
                       numarray.sinh(arrays1[2]), \
@@ -274,7 +274,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # cosh:
       ref=checkResult("cosh("+ex1+")", \
-                      arg1.cosh(), \
+                      arg1._cosh(), \
                       numarray.cosh(arrays1[0]), \
                       numarray.cosh(arrays1[1]), \
                       numarray.cosh(arrays1[2]), \
@@ -282,7 +282,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # tanh:
       ref=checkResult("tanh("+ex1+")", \
-                      arg1.tanh(), \
+                      arg1._tanh(), \
                       numarray.tanh(arrays1[0]), \
                       numarray.tanh(arrays1[1]), \
                       numarray.tanh(arrays1[2]), \
@@ -355,7 +355,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # get the signs of the values:
       ref=checkResult("sign("+ex1+")", \
-                      arg1.sign(), \
+                      arg1._sign(), \
                       numarray.greater(arrays1[0],numarray.zeros(arrays1[0].shape)) \
                         -numarray.less(arrays1[0],numarray.zeros(arrays1[0].shape)),\
                       numarray.greater(arrays1[1],numarray.zeros(arrays1[1].shape)) \

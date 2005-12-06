@@ -138,88 +138,88 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print arg.mindp()
 
       print "\nabs:"
-      print arg.abs()
+      print arg._abs()
 
       print "\nmaxval:"
-      print arg.maxval()
+      print arg._maxval()
 
       print "\nminval:"
-      print arg.minval()
+      print arg._minval()
 
-      print "\nlength"
-      print arg.length()
+      #print "\nlength"
+      #print arg.length()
 
       print "\ntrace"
-      print arg.trace()
+      print arg._trace()
 
       print "\nsign"
-      print arg.sign()
+      print arg._sign()
 
       print "\nexp"
-      print arg.exp()
+      print arg._exp()
 
       print "\nsqrt"
-      print arg.sqrt()
+      print arg._sqrt()
 
       print "\nneg"
-      print arg.neg()
+      print arg._neg()
 
       print "\npos"
-      print arg.pos()
+      print arg._pos()
 
       print "\nsin"
-      print arg.sin()
+      print arg._sin()
 
       print "\ncos"
-      print arg.cos()
+      print arg._cos()
 
       print "\ntan"
-      print arg.tan()
+      print arg._tan()
 
       print "\nasin"
-      print arg.asin()
+      print arg._asin()
 
       print "\nacos"
-      print arg.acos()
+      print arg._acos()
 
       print "\natan"
-      print arg.atan()
+      print arg._atan()
 
       print "\nsinh"
-      print arg.sinh()
+      print arg._sinh()
 
       print "\ncosh"
-      print arg.cosh()
+      print arg._cosh()
 
       print "\ntanh"
-      print arg.tanh()
+      print arg._tanh()
 
       print "\nasinh"
-      print arg.asinh()
+      print arg._asinh()
 
       print "\nacosh"
-      print arg.acosh()
+      print arg._acosh()
 
       print "\natanh"
-      print arg.atanh()
+      print arg._atanh()
 
       print "\nlog"
-      print arg.log()
+      print arg._log()
 
-      print "\nln"
-      print arg.ln()
+      #print "\nln"
+      #print arg.ln()
 
       print "\nLsup"
-      print arg.Lsup()
+      print arg._Lsup()
 
       print "\nLinf"
-      print arg.Linf()
+      print arg._Linf()
 
       print "\nsup"
-      print arg.sup()
+      print arg._sup()
 
       print "\ninf"
-      print arg.inf()
+      print arg._inf()
 
 print "\n\nTests of archiveData and extractData:"
 
