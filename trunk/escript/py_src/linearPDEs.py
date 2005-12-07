@@ -1604,7 +1604,7 @@ class Poisson(LinearPDE):
 
    """
 
-   def __init__(self,domain,f=escript.Data(),q=escript.Data(),debug=False):
+   def __init__(self,domain,debug=False):
      """
      initializes a new Poisson equation
 
@@ -1644,7 +1644,7 @@ class Poisson(LinearPDE):
      @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
      """
      if name == "A" :
-         return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))
+         return escript.Data(util.kronecker(self.getDim()),escript.Function(self.getDomain()))
      elif name == "B" :
          return escript.Data()
      elif name == "C" :
@@ -2018,10 +2018,10 @@ class AdvectivePDE(LinearPDE):
      """
      return escript.Scalar(0.5,P.getFunctionSpace())
 
-   def __calculateXi(self,peclet_factor,Z,h):
-       Z_max=util.Lsup(Z)
-       if Z_max>0.:
-          return h*self.__xi(Z*peclet_factor)/(Z+Z_max*self.__TOL)
+   def __calculateXi(self,peclet_factor,flux,h):
+       flux=util.Lsup(flux)
+       if flux_max>0.:
+          return h*self.__xi(flux*peclet_factor)/(flux+flux_max*self.__TOL)
        else:
           return 0.
 
@@ -2034,38 +2034,46 @@ class AdvectivePDE(LinearPDE):
          self.__Xi=escript.Scalar(0.,self.getFunctionSpaceForCoefficient("A"))
          if not C.isEmpty() or not B.isEmpty():
             if not C.isEmpty() and not B.isEmpty():
-                Z2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
+                flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
                 if self.getNumEquations()>1:
                    if self.getNumSolutions()>1:
                       for i in range(self.getNumEquations()):
                          for k in range(self.getNumSolutions()):
-                            for l in range(self.getDim()): Z2+=(C[i,k,l]-B[i,l,k])**2
+                            for l in range(self.getDim()): flux2+=(C[i,k,l]-B[i,l,k])**2
+                      # flux=C-util.reorderComponents(B,[0,2,1])
                    else:
                       for i in range(self.getNumEquations()):
-                         for l in range(self.getDim()): Z2+=(C[i,l]-B[i,l])**2
+                         for l in range(self.getDim()): flux2+=(C[i,l]-B[i,l])**2
+                      # flux=C-B
                 else:
                    if self.getNumSolutions()>1:
                       for k in range(self.getNumSolutions()):
-                         for l in range(self.getDim()): Z2+=(C[k,l]-B[l,k])**2
+                         for l in range(self.getDim()): flux2+=(C[k,l]-B[l,k])**2
+                      # flux=C-util.reorderComponents(B,[1,0])
                    else:
-                      for l in range(self.getDim()): Z2+=(C[l]-B[l])**2
-                length_of_Z=util.sqrt(Z2)
+                      for l in range(self.getDim()): flux2+=(C[l]-B[l])**2
+                      #flux=C-B
+                length_of_flux=util.sqrt(flux2)
             elif C.isEmpty():
-              length_of_Z=util.length(B)
+              length_of_flux=util.length(B)
+              #flux=B
             else:
-              length_of_Z=util.length(C)
+              length_of_flux=util.length(C)
+              #flux=C
 
-            Z_max=util.Lsup(length_of_Z)
-            if Z_max>0.:
+            #length_of_flux=util.length(flux)
+            flux_max=util.Lsup(length_of_flux)
+            if flux_max>0.:
+               # length_of_A=util.inner(flux,util.tensormutiply(A,flux))
                length_of_A=util.length(A)
                A_max=util.Lsup(length_of_A)
                if A_max>0:
                     inv_A=1./(length_of_A+A_max*self.__TOL)
                else:
                     inv_A=1./self.__TOL
-               peclet_number=length_of_Z*h/2*inv_A
+               peclet_number=length_of_flux*h/2*inv_A
                xi=self.__xi(peclet_number)
-               self.__Xi=h*xi/(length_of_Z+Z_max*self.__TOL)
+               self.__Xi=h*xi/(length_of_flux+flux_max*self.__TOL)
                self.trace("preclet number = %e"%util.Lsup(peclet_number))
       return self.__Xi
 
@@ -2103,11 +2111,15 @@ class AdvectivePDE(LinearPDE):
                       for k in range(self.getNumSolutions()):
                          for l in range(self.getDim()):
                             if not C.isEmpty() and not B.isEmpty():
+                               # tmp=C-util.reorderComponents(B,[0,2,1])
+                               # Aout=Aout+Xi*util.generalTensorProduct(util.reorder(tmp,[1,2,0]),tmp,offset=1)
                                for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*(C[p,i,j]-B[p,j,i])*(C[p,k,l]-B[p,l,k])
                             elif C.isEmpty():
                                for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*B[p,j,i]*B[p,l,k]
+                               # Aout=Aout+Xi*util.generalTensorProduct(util.reorder(B,[2,1,0]),util.reorder(B,[0,2,1]),offset=1)
                             else:
                                for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*C[p,i,j]*C[p,k,l]
+                               # Aout=Aout+Xi*util.generalTensorProduct(util.reorder(C,[1,2,0]),C,offset=1)
             else:
                 for j in range(self.getDim()):
                    for l in range(self.getDim()):
@@ -2117,6 +2129,13 @@ class AdvectivePDE(LinearPDE):
                           Aout[j,l]+=Xi*B[j]*B[l]
                       else:
                           Aout[j,l]+=Xi*C[j]*C[l]
+                 # if not C.isEmpty() and not B.isEmpty():
+                 #    tmp=C-B
+                 #    Aout=Aout+Xi*util.outer(tmp,tmp)
+                 # elif C.isEmpty():
+                 #    Aout=Aout+Xi*util.outer(B,B)
+                 # else:
+                 # Aout=Aout+Xi*util.outer(C,C)
          return Aout
      elif name == "B" :
          B=self.getCoefficient("B")
@@ -2137,9 +2156,11 @@ class AdvectivePDE(LinearPDE):
                      for i in range(self.getNumEquations()):
                         for j in range(self.getDim()):
                            Bout[i,j,k]+=tmp*C[p,i,j]
+                           # Bout=Bout+Xi*util.generalTensorProduct(util.reorder(C,[1,2,0]),D,offset=1)
             else:
                tmp=Xi*D
                for j in range(self.getDim()): Bout[j]+=tmp*C[j]
+               # Bout=Bout+Xi*D*C
          return Bout
      elif name == "C" :
          B=self.getCoefficient("B")
@@ -2160,9 +2181,11 @@ class AdvectivePDE(LinearPDE):
                       for i in range(self.getNumEquations()):
                         for l in range(self.getDim()):
                                  Cout[i,k,l]+=tmp*B[p,l,i]
+                                 # Cout=Cout+Xi*B[p,l,i]*D[p,k]
             else:
                tmp=Xi*D
                for j in range(self.getDim()): Cout[j]+=tmp*B[j]
+               # Cout=Cout+tmp*D*B
          return Cout
      elif name == "D" :
          return self.getCoefficient("D")
@@ -2186,19 +2209,25 @@ class AdvectivePDE(LinearPDE):
                        for j in range(self.getDim()):
                           if not C.isEmpty() and not B.isEmpty():
                              Xout[i,j]+=tmp*(C[p,i,j]-B[p,j,i])
+                             # Xout=X_out+Xi*util.inner(Y,C-util.reorderComponents(B,[0,2,1]),offset=1)
                           elif C.isEmpty():
                              Xout[i,j]-=tmp*B[p,j,i]
+                             # Xout=X_out-Xi*util.inner(Y,util.reorderComponents(B,[0,2,1]),offset=1)
                           else:
                              Xout[i,j]+=tmp*C[p,i,j]
+                             # Xout=X_out+Xi*util.inner(Y,C,offset=1)
             else:
                  tmp=Xi*Y
                  for j in range(self.getDim()):
                     if not C.isEmpty() and not B.isEmpty():
                        Xout[j]+=tmp*(C[j]-B[j])
+                       # Xout=Xout+Xi*Y*(C-B)
                     elif C.isEmpty():
                        Xout[j]-=tmp*B[j]
+                       # Xout=Xout-Xi*Y*B
                     else:
                        Xout[j]+=tmp*C[j]
+                       # Xout=Xout+Xi*Y*C
          return Xout
      elif name == "Y" :
          return self.getCoefficient("Y")
