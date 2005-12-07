@@ -2587,7 +2587,7 @@ def sign(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return numarray.sign(arg)
+      return wherePositive(arg)-whereNegative(arg)
    elif isinstance(arg,escript.Data):
       return arg._sign()
    elif isinstance(arg,float):
