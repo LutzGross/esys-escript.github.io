@@ -5,5 +5,5 @@ BOOST_INC = '/usr/include'
 BOOST_LIB = '/usr/lib'
 
 
-CC_PATH = 'icc'
-CXX_PATH = 'icc'
+CC_PATH = '/opt/intel_cc/9.0.027/bin/icc'
+CXX_PATH = '/opt/intel_cc/9.0.027/bin/icc'
