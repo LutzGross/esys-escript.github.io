@@ -1,9 +1,8 @@
 # $Id$
 from esys.escript import *
-from esys.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
-from numarray import identity
-ne=10           # number of cells in x_0-direction
+ne=5           # number of cells in x_0-direction
 depth=10000.   # length in x_0-direction
 width=100000.  # length in x_1 and x_2 direction
 lam=3.462e9
@@ -21,10 +20,9 @@ def wavePropagation(domain,h,tend,lam,mu,rho,s_tt):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
-   mypde.setLumpingOn()
-   kronecker=identity(mypde.getDim())
-   mypde.setValue(D=kronecker*rho, \
-                  q=x[0].whereZero()*kronecker[1,:])
+   mypde.setSolverMethod(mypde.LUMPING)
+   mypde.setValue(D=kronecker(mypde.getDim())*rho, \
+                  q=whereZero(x[0])*kronecker(mypde.getDim())[1,:])
    # ... set initial values ....
    n=0
    u=Vector(0,ContinuousFunction(domain))
@@ -33,9 +31,9 @@ def wavePropagation(domain,h,tend,lam,mu,rho,s_tt):
    while t<tend:
      # ... get current stress ....
      g=grad(u)
-     stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
+     stress=lam*trace(g)*kronecker(mypde.getDim())+mu*(g+transpose(g))
      # ... get new acceleration ....
-     mypde.setValue(X=-stress,r=s_tt(t+h)*kronecker[1,:])
+     mypde.setValue(X=-stress,r=s_tt(t+h)*kronecker(mypde.getDim())[1,:])
      a=mypde.getSolution()
      # ... get new displacement ...
      u_new=2*u-u_last+h**2*a
@@ -48,9 +46,8 @@ def wavePropagation(domain,h,tend,lam,mu,rho,s_tt):
      print "a=",inf(a),sup(a)
      print "u=",inf(u),sup(u)
      # ... save current acceleration in units of gravity
-     if n%10==0: (length(a)/9.81).saveDX("u.%i.dx"%(n/10))
+     if n%10==0: saveVTK("u.%i.xml"%(n/10),a=length(a)/9.81)
 
-print int(width/depth)
 mydomain=Brick(ne,int(width/depth)*ne,int(width/depth)*ne,l0=depth,l1=width,l2=width)
 wavePropagation(mydomain,h,tend,lam,mu,rho,s_tt)
 

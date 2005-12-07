@@ -1,6 +1,6 @@
 # $Id$
 from mytools import Helmholtz
-from esys.escript import Lsup,length
+from esys.escript import Lsup,length,whereNegative,saveVTK
 from esys.finley import Rectangle
 #... set some parameters ...
 xc=[0.02,0.002]
@@ -21,7 +21,7 @@ mydomain = Rectangle(l0=0.05,l1=0.01,n0=250, n1=50)
 mypde=Helmholtz(mydomain)
 # ... set heat source: ....
 x=mydomain.getX()
-q=qc*(length(x-xc)-r).whereNegative()
+q=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 # ... start iteration:
@@ -31,4 +31,4 @@ while t<tend:
       print "time step :",t
       mypde.setValue(kappa=kappa,omega=rhocp/h,f=q+rhocp/h*T,eta=eta,g=eta*Tref)
       T=mypde.getSolution()
-      T.saveDX("T%d.dx"%i)
+      saveVTK("T%d.xml"%i,temp=T)
