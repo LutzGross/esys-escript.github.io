@@ -4,8 +4,7 @@
 # An explicit testing script for esys using the scons build system
 
 # list of users to email test results to
-#MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
 
 #modules to test
 TESTS="escript bruce finley"
@@ -108,6 +107,7 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
+              echo "finley py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
               exit 1
             fi
         done
@@ -120,6 +120,7 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
+              echo "escript py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
               exit 1
             fi
         done
@@ -132,6 +133,7 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
+              echo "bruce py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
               exit 1
             fi
         done
