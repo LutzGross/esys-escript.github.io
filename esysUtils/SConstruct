@@ -44,7 +44,8 @@ platform = env['PLATFORM']
 #
 # determine hostname
 
-hostname = os.environ['HOSTNAME']
+import socket
+hostname = socket.gethostname()
 
 #
 # export esysroot
