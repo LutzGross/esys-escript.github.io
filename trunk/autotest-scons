@@ -12,7 +12,8 @@ TESTS="escript bruce finley"
 
 # the python tests to run
 FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
-ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py DataVariableTests.py test_xml.py"
+#ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py DataVariableTests.py test_xml.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py DataVariableTests.py"
 BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
 
 
@@ -89,6 +90,11 @@ then
 fi
 cd ../..
 
+export LD_LIBRARY_PATH=/raid2/tools/python-2.3.4/lib:$LD_LIBRARY_PATH
+export PYTHON_INCLUDE=/raid2/tools/python-2.3.4/include/python2.3
+export PYTHON_LIB_PATH=/raid2/tools/python-2.3.4/lib
+export PATH=/raid2/tools/python-2.3.4/bin:$PATH
+
 for module in $TESTS
 do
     echo "running python tests for: $module"
@@ -130,7 +136,7 @@ do
             fi
         done
     fi
-    cd ../..
+    cd ../../..
 done
 
 echo "success" | mail -s "esys autotest results" $MAIL_RECIPIENTS
