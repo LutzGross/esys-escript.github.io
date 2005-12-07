@@ -886,28 +886,6 @@ class SurfMovie(Model):
                                  max_height=1.0,
                                  filename="movie.mpg")
 
-           self.paramsFileString = "REFERENCE_FRAME DECODED\n"
-           self.paramsFileString += "FRAME_RATE 24\n"
-           self.paramsFileString += "OUTPUT %s\n" % self.filename
-           self.paramsFileString += "PATTERN IBBPBBPBB\n"
-           self.paramsFileString += "FORCE_ENCODE_LAST_FRAME\n"
-           self.paramsFileString += "GOP_SIZE 20\n"
-           self.paramsFileString += "BSEARCH_ALG CROSS2\n"
-           self.paramsFileString += "PSEARCH_ALG TWOLEVEL\n"
-           self.paramsFileString += "IQSCALE 10\n"
-           self.paramsFileString += "PQSCALE 11\n"
-           self.paramsFileString += "BQSCALE 16\n"
-           self.paramsFileString += "RANGE 8\n"
-           self.paramsFileString += "SLICES_PER_FRAME 1\n"
-           self.paramsFileString += "BASE_FILE_FORMAT PNM\n"
-           self.paramsFileString += "INPUT_DIR \n"
-           self.paramsFileString += "INPUT_CONVERT *\n"
-           self.paramsFileString += "INPUT\n"
-
-           self.firstFrame = True
-
-           self.imageFiles = []
-
        def doInitialization(self):
           """
           Initializes the time integration scheme
@@ -918,6 +896,29 @@ class SurfMovie(Model):
           # self.coastline.getVTK()
           # self.bathymetry.getVTK()
           # wndow(south,west,north,east)
+
+          # set up the movie parameters
+          self.paramsFileString = "REFERENCE_FRAME DECODED\n"
+          self.paramsFileString += "FRAME_RATE 24\n"
+          self.paramsFileString += "OUTPUT %s\n" % self.filename
+          self.paramsFileString += "PATTERN IBBPBBPBB\n"
+          self.paramsFileString += "FORCE_ENCODE_LAST_FRAME\n"
+          self.paramsFileString += "GOP_SIZE 20\n"
+          self.paramsFileString += "BSEARCH_ALG CROSS2\n"
+          self.paramsFileString += "PSEARCH_ALG TWOLEVEL\n"
+          self.paramsFileString += "IQSCALE 10\n"
+          self.paramsFileString += "PQSCALE 11\n"
+          self.paramsFileString += "BQSCALE 16\n"
+          self.paramsFileString += "RANGE 8\n"
+          self.paramsFileString += "SLICES_PER_FRAME 1\n"
+          self.paramsFileString += "BASE_FILE_FORMAT PNM\n"
+          self.paramsFileString += "INPUT_DIR \n"
+          self.paramsFileString += "INPUT_CONVERT *\n"
+          self.paramsFileString += "INPUT\n"
+
+          self.firstFrame = True
+
+          self.imageFiles = []
 
           # the bathymmetry colourmap
           data = []
@@ -1209,10 +1210,11 @@ class SurfMovie(Model):
               print "An error occurred in mpeg conversion"
 
           # now clean up the image files
-          print "Removing temporary image files"
-          os.unlink("%s.params" % self.filename)
-          for fname in self.imageFiles:
-              os.unlink(fname)
+          if result == 0:
+              print "Removing temporary image files"
+              os.unlink("%s.params" % self.filename)
+              for fname in self.imageFiles:
+                  os.unlink(fname)
 
 def main():
    from esys.escript.modelframe import Link,Simulation
@@ -1263,7 +1265,7 @@ def main():
    sm.wave_height=Link(ts,"wave_height")
    sm.coastline=Link(oreg,"coastline")
    sm.t=Link(sq,"t")
-   sm.filename="movie.mpg"
+   sm.filename="mymovie.mpg"
    sm.north= 8.7
    sm.west= 138.9
    sm.dt= 50.
