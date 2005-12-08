@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# $Id: autotest 162 2005-11-11 00:09:59Z svn $
+# $Id: autotest-scons 162 2005-11-11 00:09:59Z svn $
 # An explicit testing script for esys using the scons build system
+
 
 # list of users to email test results to
 MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
 
-#modules to test
+# modules to test
 TESTS="escript bruce finley"
 
 # the python tests to run
@@ -25,7 +26,7 @@ cd $1
 if [ $? != 0 ]
 then
   echo couldnt cd $1
-  echo "couldnt cd $1" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "couldnt cd $1" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 1
 fi
 
@@ -34,7 +35,7 @@ echo loading esys setup
 if [ $? != 0 ]
 then
   echo couldnt load scons setup
-  echo "couldnt load scons setup" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "couldnt load scons setup" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 2
 fi
 
@@ -43,7 +44,7 @@ svn update
 if [ $? != 0 ]
 then
   echo svn update failed
-  echo "svn update failed" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "svn update failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 3
 fi
 
@@ -52,7 +53,7 @@ scons debug=1
 if [ $? != 0 ]
 then
   echo scons failed
-  echo "scons failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "scons failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 5
 fi
 
@@ -62,7 +63,7 @@ cd bruce/test
 if [ $? != 0 ]
 then
   echo bruce unit_test failed
-  echo "bruce unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "bruce unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 6
 fi
 cd ../..
@@ -73,7 +74,7 @@ cd escript/test
 if [ $? != 0 ]
 then
   echo escript unit_test failed
-  echo "escript unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "escript unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 6
 fi
 cd ../..
@@ -84,7 +85,18 @@ cd finley/test
 if [ $? != 0 ]
 then
   echo finley unit_test failed
-  echo "finley unit_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+  echo "finley unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 6
+fi
+cd ../..
+
+echo running esysUtils unit_tests
+cd esysUtils/test
+./unit_test-scons
+if [ $? != 0 ]
+then
+  echo esysUtils unit_test failed
+  echo "esysUtils unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 6
 fi
 cd ../..
@@ -107,7 +119,7 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
-              echo "finley py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+              echo "finley py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
               exit 1
             fi
         done
@@ -120,7 +132,7 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
-              echo "escript py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+              echo "escript py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
               exit 1
             fi
         done
@@ -133,7 +145,7 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
-              echo "bruce py_test failed - see autotest logfile" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+              echo "bruce py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
               exit 1
             fi
         done
@@ -141,5 +153,6 @@ do
     cd ../../..
 done
 
-echo "success" | mail -s "esys autotest results" $MAIL_RECIPIENTS
+echo success
+echo "success" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
 exit 0
