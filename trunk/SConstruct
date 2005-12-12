@@ -18,6 +18,12 @@ else:
   libinstall = None
 Export(["libinstall"])
 
+if ARGUMENTS.get('pyinstall',0):
+  pyinstall = ARGUMENTS.get('pyinstall',0)
+else:
+  pyinstall = None
+Export(["pyinstall"])
+
 if ARGUMENTS.get('options',0):
   options = ARGUMENTS.get('options',0)
 else:

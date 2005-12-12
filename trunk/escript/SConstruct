@@ -34,6 +34,7 @@ Export(["libinstall"])
 
 if ARGUMENTS.get('pyinstall',0):
   pyinstall = ARGUMENTS.get('pyinstall',0)
+  pyinstall = Dir(str(pyinstall) + '/escript')
 Export(["pyinstall"])
 
 if ARGUMENTS.get('debug',0):
