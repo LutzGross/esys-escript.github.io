@@ -1,0 +1,14 @@
+<!-- $Id: general_footer.part,v 1.1 2004/11/24 07:53:50 paultcochrane Exp $ -->
+<!-- this ends the validated and updated table -->
+</tr>
+</table>
+
+<!-- this ends the content part of the main div -->
+</td>
+</tr>
+</table>
+</div>
+
+</body>
+
+</html>

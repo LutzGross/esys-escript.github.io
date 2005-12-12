@@ -1,0 +1,49 @@
+% $Id: admin.tex,v 1.4 2005/06/24 00:27:34 paultcochrane Exp $
+
+\documentclass[12pt,a4paper]{article}
+
+\begin{document}
+
+\section{Epydoc}
+
+Epydoc is used to build the API documentation of pyvisi.  It strips out
+relevant information from the python code and the docstrings in the python
+code to generate a set of web pages documenting the different classes and
+functions defined.
+
+The command used to run epydoc is:
+\begin{verbatim}
+epydoc --html -o doc/api_epydoc -n pyvisi pyvisi
+\end{verbatim}
+
+\section{A-A-P}
+
+The tool, \texttt{aap} is used to build the website html files from their base
+(.part) files, and to publish them to the website.  To build or refresh the
+html source from the .part files, use:
+\begin{verbatim}
+aap
+\end{verbatim}
+To send the files to the website (known as ``publishing'' in aap parlance)
+use:
+\begin{verbatim}
+aap publish
+\end{verbatim}
+
+\section{Todo list}
+
+To add a new todo item, use the \texttt{devtodo} (\texttt{todo}) command.
+Then, to produce the TODO list, use \texttt{todo -T}, and commit the changes
+to the repository.
+
+\section{Pylint}
+
+Pylint is a handy tool to check the quality of the code.  It is like the old
+lint program for C, and gives a lot of checking and helpful output.  To
+generate html output from pylint use the following command from the pyvisi
+main directory:
+\begin{verbatim}
+pylint --html=y pyvisi > pylint.pyvisi.html
+\end{verbatim}
+
+\end{document}
