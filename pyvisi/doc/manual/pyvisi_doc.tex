@@ -1,0 +1,59 @@
+\documentclass[12pt,a4paper]{book}
+
+% $Id: pyvisi_doc.tex,v 1.3 2005/02/07 06:06:57 paultcochrane Exp $
+
+%\setcounter{secnumdepth}{4}
+%\setcounter{tocdepth}{4}
+
+\input{pyvisi_defs}
+\input{misc_defs}
+
+\begin{document}
+
+\frontmatter
+
+\include{titlepage}
+\include{abstract}
+\tableofcontents
+%\listoffigures
+%\listoftables
+
+\mainmatter
+
+\part{Tutorial}
+\label{part:tutorial}
+
+\include{tutFromScratch}
+
+\part{User Manual}
+\label{part:userManual}
+
+\include{install}
+\include{intro}
+\include{plottingExamples}
+
+\part{Reference Manual}
+\label{part:languageReference}
+
+\include{languageReference}
+
+\part{Developer Manual}
+\label{part:developerManual}
+
+\include{developerManual}
+
+\part{Appendix}
+\label{part:appendix}
+
+\appendix
+
+\include{gpl}
+
+\part{Bibliography and Index}
+\backmatter
+
+\bibliography{pyvisi_doc}
+%\printindex
+
+\end{document}
+
