@@ -11,9 +11,8 @@ MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu
 TESTS="escript bruce finley"
 
 # the python tests to run
-FINLEY_PYTESTS="ImportTest.py SimpleSolve.py GradTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
-#ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py DataVariableTests.py test_xml.py"
-ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py newEscriptTests.py DataVariableTests.py"
+FINLEY_PYTESTS="ImportTest.py finleyTest.py SimpleSolve.py GradTest.py RecTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py escriptTest.py newEscriptTests.py DataVariableTests.py test_xml.py"
 BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
 
 
@@ -64,7 +63,7 @@ if [ $? != 0 ]
 then
   echo bruce unit_test failed
   echo "bruce unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 6
+  #exit 6
 fi
 cd ../..
 
@@ -75,7 +74,7 @@ if [ $? != 0 ]
 then
   echo escript unit_test failed
   echo "escript unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 6
+  #exit 6
 fi
 cd ../..
 
@@ -86,7 +85,7 @@ if [ $? != 0 ]
 then
   echo finley unit_test failed
   echo "finley unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 6
+  #exit 6
 fi
 cd ../..
 
@@ -97,7 +96,7 @@ if [ $? != 0 ]
 then
   echo esysUtils unit_test failed
   echo "esysUtils unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 6
+  #exit 6
 fi
 cd ../..
 
@@ -120,7 +119,7 @@ do
             then
               echo Python Testing FAILED for $pytest in module $module
               echo "finley py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              exit 1
+              #exit 1
             fi
         done
     elif [ "$module" == "escript" ]
@@ -133,7 +132,7 @@ do
             then
               echo Python Testing FAILED for $pytest in module $module
               echo "escript py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              exit 1
+              #exit 1
             fi
         done
     elif [ "$module" == "bruce" ]
@@ -146,7 +145,7 @@ do
             then
               echo Python Testing FAILED for $pytest in module $module
               echo "bruce py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              exit 1
+              #exit 1
             fi
         done
     fi
