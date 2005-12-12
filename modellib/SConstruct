@@ -26,6 +26,7 @@ Import('*')
 
 if ARGUMENTS.get('pyinstall',0):
   pyinstall = ARGUMENTS.get('pyinstall',0)
+  pyinstall = Dir(str(pyinstall) + '/modellib')
 Export(["pyinstall"])
 
 #
