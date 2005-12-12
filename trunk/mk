@@ -38,11 +38,11 @@ fi
 #ENVVARS="$ENVVARS L_INSTLIB_DIR=/raid2/tools/esys/lib L_PYTH_DIR=/raid2/tools/esys/esys"
 
 # ensure required symlinks are setup first
-(cd esysUtils/inc; if [ ! -h esysUtils ]; then ln -s ../src esysUtils; fi)
-(cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
-(cd finley/inc; if [ ! -h finley ]; then ln -s ../src finley; fi)
-(cd paso/inc; if [ ! -h paso ]; then ln -s ../src paso; fi)
-(cd bruce/inc; if [ ! -h bruce ]; then ln -s ../src bruce; fi)
+#(cd esysUtils/inc; if [ ! -h esysUtils ]; then ln -s ../src esysUtils; fi)
+#(cd escript/inc; if [ ! -h escript ]; then ln -s ../src escript; fi)
+#(cd finley/inc; if [ ! -h finley ]; then ln -s ../src finley; fi)
+#(cd paso/inc; if [ ! -h paso ]; then ln -s ../src paso; fi)
+#(cd bruce/inc; if [ ! -h bruce ]; then ln -s ../src bruce; fi)
 
 (cd tools/mmio; if [ ! -h Makefile ]; then ln -s ./mmio.mk Makefile; fi)
 (cd tools/CppUnitTest; if [ ! -h Makefile ]; then ln -s ./CppUnitTest.mk Makefile; fi)
@@ -163,9 +163,9 @@ then
                   exit 1
                 fi
 	done
-        (cd esys; touch __init__.py)
-        (cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../../lib/libescriptcpp.so escriptcpp.so; fi)
-        (cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../../lib/libfinleycpp.so finleycpp.so; fi)
-        (cd esys/bruce; if [ ! -h brucecpp.so ]; then ln -s ../../lib/libbrucecpp.so brucecpp.so; fi)
+        #(cd esys; touch __init__.py)
+        #(cd esys/escript; if [ ! -h escriptcpp.so ]; then ln -s ../../lib/libescriptcpp.so escriptcpp.so; fi)
+        #(cd esys/finley; if [ ! -h finleycpp.so ]; then ln -s ../../lib/libfinleycpp.so finleycpp.so; fi)
+        #(cd esys/bruce; if [ ! -h brucecpp.so ]; then ln -s ../../lib/libbrucecpp.so brucecpp.so; fi)
         exit 0
 fi
