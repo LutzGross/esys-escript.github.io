@@ -24,7 +24,7 @@ Utility functions for escript
 __author__="Lutz Gross, l.gross@uq.edu.au"
 __licence__="contact: esys@access.uq.edu.au"
 __url__="http://www.iservo.edu.au/esys/escript"
-__version__="$Revision$"
+__version__="$Revision: 329 $"
 __date__="$Date$"
 
 
@@ -907,7 +907,13 @@ def wherePositive(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))
+      if arg.rank==0:
+         if arg>0:
+           return numarray.array(1.)
+         else:
+           return numarray.array(0.)
+      else:
+         return numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))
    elif isinstance(arg,escript.Data):
       return arg._wherePositive()
    elif isinstance(arg,float):
@@ -987,7 +993,13 @@ def whereNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))
+      if arg.rank==0:
+         if arg<0:
+           return numarray.array(1.)
+         else:
+           return numarray.array(0.)
+      else:
+         return numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))
    elif isinstance(arg,escript.Data):
       return arg._whereNegative()
    elif isinstance(arg,float):
@@ -1067,7 +1079,13 @@ def whereNonNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))
+      if arg.rank==0:
+         if arg<0:
+           return numarray.array(0.)
+         else:
+           return numarray.array(1.)
+      else:
+         return numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))
    elif isinstance(arg,escript.Data):
       return arg._whereNonNegative()
    elif isinstance(arg,float):
@@ -1095,7 +1113,13 @@ def whereNonPositive(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return numarray.less_equal(arg,numarray.zeros(arg.shape,numarray.Float))
+      if arg.rank==0:
+         if arg>0:
+           return numarray.array(0.)
+         else:
+           return numarray.array(1.)
+      else:
+         return numarray.less_equal(arg,numarray.zeros(arg.shape,numarray.Float))*1.
    elif isinstance(arg,escript.Data):
       return arg._whereNonPositive()
    elif isinstance(arg,float):
@@ -1125,7 +1149,13 @@ def whereZero(arg,tol=0.):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return numarray.less_equal(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))
+      if arg.rank==0:
+         if abs(arg)<=tol:
+           return numarray.array(1.)
+         else:
+           return numarray.array(0.)
+      else:
+         return numarray.less_equal(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
    elif isinstance(arg,escript.Data):
       if tol>0.:
          return whereNegative(abs(arg)-tol)
@@ -1206,7 +1236,13 @@ def whereNonZero(arg,tol=0.):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return numarray.greater(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))
+      if arg.rank==0:
+        if abs(arg)>tol:
+           return numarray.array(1.)
+        else:
+           return numarray.array(0.)
+      else:
+         return numarray.greater(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
    elif isinstance(arg,escript.Data):
       if tol>0.:
          return 1.-whereZero(arg,tol)
@@ -2687,7 +2723,10 @@ def minval(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return arg.min()
+      if arg.rank==0:
+         return float(arg)
+      else:
+         return arg.min()
    elif isinstance(arg,escript.Data):
       return arg._minval()
    elif isinstance(arg,float):
@@ -2761,7 +2800,10 @@ def maxval(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      return arg.max()
+      if arg.rank==0:
+         return float(arg)
+      else:
+         return arg.max()
    elif isinstance(arg,escript.Data):
       return arg._maxval()
    elif isinstance(arg,float):
