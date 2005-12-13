@@ -5,12 +5,85 @@ Provides some tools related to PDEs.
 
 Currently includes:
     - Projector - to project a discontinuous
+    - Locator - to trace values in data objects at a certain location
+    - TimeIntegrationManager - to handel extraplotion in time
 """
 
 import escript
 import linearPDEs
 import numarray
 import util
+
+class TimeIntegrationManager:
+  """
+  a simple mechanism to manage time dependend values. 
+
+  typical usage is:
+
+  dt=0.1 # time increment
+  tm=TimeIntegrationManager(inital_value,p=1)
+  while t<1.
+      v_guess=tm.extrapolate(dt) # extrapolate to t+dt
+      v=...
+      tm.checkin(dt,v)
+      t+=dt
+
+  @remark: currently only p=1 is supported.
+  """
+  def __init__(self,*inital_values,**kwargs):
+     """
+     sets up the value manager where inital_value is the initial value and p is order used for extrapolation
+     """
+     if kwargs.has_key("p"):
+            self.__p=kwargs["p"]
+     else:
+            self.__p=1
+     if kwargs.has_key("time"):
+            self.__t=kwargs["time"]
+     else:
+            self.__t=0.
+     self.__v_mem=[inital_values]
+     self.__order=0
+     self.__dt_mem=[]
+     self.__num_val=len(inital_values)
+
+  def getTime(self):
+      return self.__t
+
+  def checkin(self,dt,*values):
+      """
+      adds new values to the manager. the p+1 last value get lost
+      """
+      o=min(self.__order+1,self.__p)
+      self.__order=min(self.__order+1,self.__p)
+      v_mem_new=[values]
+      dt_mem_new=[dt]
+      for i in range(o-1):
+         v_mem_new.append(self.__v_mem[i])
+         dt_mem_new.append(self.__dt_mem[i])
+      v_mem_new.append(self.__v_mem[o-1])
+      self.__order=o
+      self.__v_mem=v_mem_new
+      self.__dt_mem=dt_mem_new
+      self.__t+=dt
+
+  def extrapolate(self,dt):
+      """
+      extrapolates to dt forward in time.
+      """
+      if self.__order==0:
+         out=self.__v_mem[0]
+      else:
+        out=[]
+        for i in range(self.__num_val):
+           out.append((1.+dt/self.__dt_mem[0])*self.__v_mem[0][i]-dt/self.__dt_mem[0]*self.__v_mem[1][i])
+
+      if len(out)==0:
+         return None
+      elif len(out)==1:
+         return out[0]
+      else:
+         return out
 
 class Projector:
   """
