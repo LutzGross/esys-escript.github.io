@@ -1,9 +1,31 @@
 # $Id$
 
 from esys.escript import *
-from esys.escript.pdetools import Locator,Projector
+from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager
 from esys.finley import Rectangle
 
+def testTimeIntegrationManager():
+   t=0.
+   dt=0.1
+   tm=TimeIntegrationManager(0.,p=1)
+   while t<1.:
+      t+=dt
+      tm.checkin(dt,t)
+   v_guess=tm.extrapolate(dt)
+   e=abs(v_guess-(tm.getTime()+dt))
+   error_max,error_text=e,"testTimeIntegrationManager: scalar"
+
+   t=0.
+   dt=0.3
+   tm=TimeIntegrationManager(0.,0.,p=1)
+   while t<1.:
+      t+=dt
+      tm.checkin(dt,t,3*t)
+   v_guess=tm.extrapolate(dt)
+   e=max(abs(v_guess[0]-(tm.getTime()+dt)),abs(v_guess[1]-(tm.getTime()+dt)*3.))
+   if e>error_max: error_max,error_text=e,"testTimeIntegrationManager: vector"
+
+   return error_max,error_text
 def testLocator(domain):
       """runs a few test of the Locator"""
 
@@ -69,5 +91,4 @@ print "test Locator: ",txt
 txt=testProjector(Rectangle(56,61))
 print "test Projector: ",txt
 
-
-
+print testTimeIntegrationManager()
