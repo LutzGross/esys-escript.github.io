@@ -3,7 +3,6 @@
 # $Id: autotest-scons 162 2005-11-11 00:09:59Z svn $
 # An explicit testing script for esys using the scons build system
 
-
 # list of users to email test results to
 MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
 
@@ -15,10 +14,25 @@ FINLEY_PYTESTS="ImportTest.py finleyTest.py SimpleSolve.py GradTest.py RecTest.p
 ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py escriptTest.py newEscriptTests.py DataVariableTests.py test_xml.py"
 BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
 
+PWD=`pwd`
+echo working in: $PWD
 
 # define compiler executable and library locations
 export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
 export LD_LIBRARY_PATH=/opt/intel/cmplrs/80.058/intel_cc_80/lib
+
+# define python location
+export PATH=/raid2/tools/python-2.3.4/bin:$PATH
+
+# set library and openmp settings
+export LD_LIBRARY_PATH=$PWD/lib:/raid2/tools/boost/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$PWD
+export OMP_SCHEDULE="dynamic"
+export OMP_NUM_THREADS=4
+export OMP_DYNAMIC=TRUE
+export OMP_NESTED=FALSE
+
+FAIL=0
 
 echo cd $1
 cd $1
@@ -29,22 +43,13 @@ then
   exit 1
 fi
 
-echo loading esys setup
-. ~jgs/bin/scons_setup
-if [ $? != 0 ]
-then
-  echo couldnt load scons setup
-  echo "couldnt load scons setup" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 2
-fi
-
 echo running svn update
 svn update
 if [ $? != 0 ]
 then
   echo svn update failed
   echo "svn update failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 3
+  exit 2
 fi
 
 echo running scons debug=1
@@ -53,7 +58,7 @@ if [ $? != 0 ]
 then
   echo scons failed
   echo "scons failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 5
+  exit 3
 fi
 
 echo running bruce unit_tests
@@ -63,7 +68,7 @@ if [ $? != 0 ]
 then
   echo bruce unit_test failed
   echo "bruce unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  #exit 6
+  FAIL=1
 fi
 cd ../..
 
@@ -74,7 +79,7 @@ if [ $? != 0 ]
 then
   echo escript unit_test failed
   echo "escript unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  #exit 6
+  FAIL=1
 fi
 cd ../..
 
@@ -85,7 +90,7 @@ if [ $? != 0 ]
 then
   echo finley unit_test failed
   echo "finley unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  #exit 6
+  FAIL=1
 fi
 cd ../..
 
@@ -96,14 +101,9 @@ if [ $? != 0 ]
 then
   echo esysUtils unit_test failed
   echo "esysUtils unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  #exit 6
+  FAIL=1
 fi
 cd ../..
-
-export LD_LIBRARY_PATH=/raid2/tools/python-2.3.4/lib:$LD_LIBRARY_PATH
-export PYTHON_INCLUDE=/raid2/tools/python-2.3.4/include/python2.3
-export PYTHON_LIB_PATH=/raid2/tools/python-2.3.4/lib
-export PATH=/raid2/tools/python-2.3.4/bin:$PATH
 
 for module in $TESTS
 do
@@ -118,8 +118,8 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
-              echo "finley py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              #exit 1
+              echo "finley py_test: $pytest failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+              FAIL=1
             fi
         done
     elif [ "$module" == "escript" ]
@@ -131,8 +131,8 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
-              echo "escript py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              #exit 1
+              echo "escript py_test: $pytest failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+              FAIL=1
             fi
         done
     elif [ "$module" == "bruce" ]
@@ -144,14 +144,17 @@ do
             if [ $? != 0 ]
             then
               echo Python Testing FAILED for $pytest in module $module
-              echo "bruce py_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              #exit 1
+              echo "bruce py_test: $pytest failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+              FAIL=1
             fi
         done
     fi
     cd ../../..
 done
 
-echo success
-echo "success" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+if [ $FAIL == 0 ]
+then
+    echo success
+    echo "success" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+fi
 exit 0
