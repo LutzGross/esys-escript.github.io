@@ -2250,7 +2250,7 @@ class AdvectionDiffusion(LinearPDE):
    """
    Class to define PDE equation of the unisotropic advection-diffusion problem, which is genear L{LinearPDE} of the form
 
-   M{S{omega}*u + inner(v,grad(u))- grad(matrixmult(k,grad(u))[j])[j] = f}
+   M{S{omega}*u + inner(v,grad(u))- grad(matrixmult(k_bar,grad(u))[j])[j] = f}
 
    with natural boundary conditons
 
@@ -2260,7 +2260,9 @@ class AdvectionDiffusion(LinearPDE):
 
    M{u=r} where M{q>0}
 
-   @remark: no upwinding is applied yet.
+   and
+
+   M{k_bar[i,j]=k[i,j]+upwind[i]*upwind[j]}
 
    """
 
@@ -2278,6 +2280,7 @@ class AdvectionDiffusion(LinearPDE):
                         "k": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
                         "f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
                         "v": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,),PDECoefficient.OPERATOR),
+                        "upwind": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,),PDECoefficient.OPERATOR),
                         "alpha": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
                         "g": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
                         "r": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH),
@@ -2294,6 +2297,8 @@ class AdvectionDiffusion(LinearPDE):
      @type k: any type that can be casted to L{Tensor<escript.Tensor>} object on L{Function<escript.Function>}.
      @keyword v: value for coefficient M{v}
      @type v: any type that can be casted to L{Vector<escript.Vector>} object on L{Function<escript.Function>}.
+     @keyword upwind: value for upwind term M{upwind}
+     @type upwind: any type that can be casted to L{Vector<escript.Vector>} object on L{Function<escript.Function>}.
      @keyword f: value for right hand side M{f}
      @type f: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Function<escript.Function>}.
      @keyword alpha: value for right hand side M{S{alpha}}
@@ -2323,7 +2328,7 @@ class AdvectionDiffusion(LinearPDE):
      @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
      """
      if name == "A" :
-         return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
+         return self.getCoefficient("k")+outer(self.getCoefficient("upwind"),self.getCoefficient("upwind"))
      elif name == "B" :
          return escript.Data()
      elif name == "C" :
