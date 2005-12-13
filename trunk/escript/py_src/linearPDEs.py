@@ -17,7 +17,7 @@ the PDE solver library defined through the L{Domain<escript.Domain>} of the PDE.
 The general interface is provided through the L{LinearPDE} class. The
 L{AdvectivePDE} which is derived from the L{LinearPDE} class
 provides an interface to PDE dominated by its advective terms. The L{Poisson},
-L{Helmholtz}, L{LameEquation}
+L{Helmholtz}, L{LameEquation}, L{AdvectionDiffusion}
 classs which are also derived form the L{LinearPDE} class should be used
 to define of solve these sepecial PDEs.
 
@@ -2239,6 +2239,109 @@ class AdvectivePDE(LinearPDE):
          return self.getCoefficient("d_contact")
      elif name == "y_contact" :
          return self.getCoefficient("y_contact")
+     elif name == "r" :
+         return self.getCoefficient("r")
+     elif name == "q" :
+         return self.getCoefficient("q")
+     else:
+        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+
+class AdvectionDiffusion(LinearPDE):
+   """
+   Class to define PDE equation of the unisotropic advection-diffusion problem, which is genear L{LinearPDE} of the form
+
+   M{S{omega}*u + inner(v,grad(u))- grad(matrixmult(k,grad(u))[j])[j] = f}
+
+   with natural boundary conditons
+
+   M{n[j]*matrixmult(k,grad(u))[j] = g- S{alpha}u }
+
+   and constraints:
+
+   M{u=r} where M{q>0}
+
+   @remark: no upwinding is applied yet.
+
+   """
+
+   def __init__(self,domain,debug=False):
+     """
+     initializes a new Poisson equation
+
+     @param domain: domain of the PDE
+     @type domain: L{Domain<escript.Domain>}
+     @param debug: if True debug informations are printed.
+
+     """
+     super(Helmholtz, self).__init__(domain,1,1,debug)
+     self.COEFFICIENTS={"omega": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
+                        "k": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
+                        "f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+                        "v": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,),PDECoefficient.OPERATOR),
+                        "alpha": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
+                        "g": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+                        "r": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH),
+                        "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
+
+   def setValue(self,**coefficients):
+     """
+     sets new values to coefficients
+
+     @param coefficients: new values assigned to coefficients
+     @keyword omega: value for coefficient M{S{omega}}
+     @type omega: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Function<escript.Function>}.
+     @keyword k: value for coefficient M{k}
+     @type k: any type that can be casted to L{Tensor<escript.Tensor>} object on L{Function<escript.Function>}.
+     @keyword v: value for coefficient M{v}
+     @type v: any type that can be casted to L{Vector<escript.Vector>} object on L{Function<escript.Function>}.
+     @keyword f: value for right hand side M{f}
+     @type f: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Function<escript.Function>}.
+     @keyword alpha: value for right hand side M{S{alpha}}
+     @type alpha: any type that can be casted to L{Scalar<escript.Scalar>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
+     @keyword g: value for right hand side M{g}
+     @type g: any type that can be casted to L{Scalar<escript.Scalar>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
+     @keyword r: prescribed values M{r} for the solution in constraints.
+     @type r: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+               depending of reduced order is used for the representation of the equation.
+     @keyword q: mask for location of constraints
+     @type q: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
+               depending of reduced order is used for the representation of the equation.
+     @raise IllegalCoefficient: if an unknown coefficient keyword is used.
+     """
+     super(Helmholtz, self).setValue(**coefficients)
+
+   def getCoefficientOfGeneralPDE(self,name):
+     """
+     return the value of the coefficient name of the general PDE
+
+     @param name: name of the coefficient requested.
+     @type name: C{string}
+     @return: the value of the coefficient  name
+     @rtype: L{Data<escript.Data>}
+     @raise IllegalCoefficient: if name is not one of coefficients
+                  "A", M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
+     @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
+     """
+     if name == "A" :
+         return escript.Data(numarray.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
+     elif name == "B" :
+         return escript.Data()
+     elif name == "C" :
+         return escript.getCoefficient("v")
+     elif name == "D" :
+         return self.getCoefficient("omega")
+     elif name == "X" :
+         return escript.Data()
+     elif name == "Y" :
+         return self.getCoefficient("f")
+     elif name == "d" :
+         return self.getCoefficient("alpha")
+     elif name == "y" :
+         return self.getCoefficient("g")
+     elif name == "d_contact" :
+         return escript.Data()
+     elif name == "y_contact" :
+         return escript.Data()
      elif name == "r" :
          return self.getCoefficient("r")
      elif name == "q" :
