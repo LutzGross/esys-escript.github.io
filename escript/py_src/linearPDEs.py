@@ -2275,7 +2275,7 @@ class AdvectionDiffusion(LinearPDE):
      @param debug: if True debug informations are printed.
 
      """
-     super(Helmholtz, self).__init__(domain,1,1,debug)
+     super(AdvectionDiffusion, self).__init__(domain,1,1,debug)
      self.COEFFICIENTS={"omega": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
                         "k": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
                         "f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
@@ -2313,7 +2313,7 @@ class AdvectionDiffusion(LinearPDE):
                depending of reduced order is used for the representation of the equation.
      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
      """
-     super(Helmholtz, self).setValue(**coefficients)
+     super(AdvectionDiffusion, self).setValue(**coefficients)
 
    def getCoefficientOfGeneralPDE(self,name):
      """
