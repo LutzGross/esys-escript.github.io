@@ -17,7 +17,6 @@ Version $Id$
 
 from numarray import array,Float64,ones,greater
 
-
 #  list of arguments: a list item has the form [a0,a1,a2]
 #  what a0 is the default value and a1 is used for tag Tag1
 #  and a2 for tag2. a0,a1,a2 are converted into numarrays.
@@ -82,11 +81,9 @@ def isScalar(arg):
 #
 # ==============================================================
 
-print "\n\n"
+print "\nTests of DataVariable"
 
 msh=bruce.Rectangle(2,3)
-
-print "\n\nTests of DataVariable"
 
 d1 = Data(1.0,Function(msh),True)
 d2 = Data(2.0,Function(msh),True)
