@@ -129,4 +129,4 @@ dataempty_test_exe = dataempty_env.Program(target, sources)
 
 Depends(dataempty_test_exe, escript_lib)
 
-dataempty_env.Install(install_dir, dataempty_test_exe)
+Alias("build_tests", dataempty_env.Install(install_dir, dataempty_test_exe))
