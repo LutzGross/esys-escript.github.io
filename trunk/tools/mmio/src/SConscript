@@ -18,4 +18,5 @@ mmio_env.Replace(ARFLAGS = ar_flags)
 mmio_env.Replace(CPPPATH = cpp_path)
 
 mmio_lib = mmio_env.StaticLibrary(lib, sources)
-mmio_env.Install(libdir, mmio_lib)
+
+Default(mmio_env.Install(libdir, mmio_lib))

@@ -64,7 +64,7 @@ escript_lib = escript_env.SharedLibrary(libname, sources)
 
 Depends(escript_lib, esysUtils_lib)
 
-escript_env.Install(libdir, escript_lib)
-escript_env.Install(libdir2, escript_lib)
+Default(escript_env.Install(libdir, escript_lib))
+Default(escript_env.Install(libdir2, escript_lib))
 if libinstall != None:
-  escript_env.Install(libinstall, escript_lib)
+  Default(escript_env.Install(libinstall, escript_lib))

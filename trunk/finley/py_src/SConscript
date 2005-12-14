@@ -19,8 +19,8 @@ python_src = ['__init__.py',
               'finley.py']
 
 pyc = finleypy_env.PyCompile(python_src)
-finleypy_env.Install(pydir, pyc)
-finleypy_env.Install(pydir2, pyc)
 
+Default(finleypy_env.Install(pydir, pyc))
+Default(finleypy_env.Install(pydir2, pyc))
 if pyinstall != None:
-  finleypy_env.Install(pyinstall, pyc)
+  Default(finleypy_env.Install(pyinstall, pyc))
