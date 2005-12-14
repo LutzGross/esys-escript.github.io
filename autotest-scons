@@ -55,6 +55,7 @@ fi
 
 echo running scons debug=1
 scons debug=1
+scons debug=1 build_tests
 if [ $? != 0 ]
 then
   echo scons failed
