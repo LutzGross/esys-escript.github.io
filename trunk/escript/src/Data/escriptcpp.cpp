@@ -43,7 +43,7 @@ using namespace boost::python;
  *
  * - \ref finley
  *
- * - <a href=http://iservo.edu.au/esys/esys_python_doc/index.html>Python module documentation (epydoc generated)</a>
+ * - <a href=http://iservo.edu.au/esys/epydoc/index.html>Python module documentation (epydoc generated)</a>
  *
  */
 
