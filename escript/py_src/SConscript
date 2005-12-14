@@ -30,8 +30,8 @@ python_src = ['__init__.py',
               'util.py']
 
 pyc = escriptpy_env.PyCompile(python_src)
-escriptpy_env.Install(pydir, pyc)
-escriptpy_env.Install(pydir2, pyc)
 
+Default(escriptpy_env.Install(pydir, pyc))
+Default(escriptpy_env.Install(pydir2, pyc))
 if pyinstall != None:
-  escriptpy_env.Install(pyinstall, pyc)
+  Default(escriptpy_env.Install(pyinstall, pyc))

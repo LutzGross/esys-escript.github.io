@@ -21,4 +21,5 @@ utils_env.Replace(ARFLAGS = ar_flags)
 utils_env.Replace(CPPPATH = cpp_path)
 
 utils_lib = utils_env.StaticLibrary(lib, sources)
-utils_env.Install(libdir, utils_lib)
+
+Default(utils_env.Install(libdir, utils_lib))

@@ -23,4 +23,5 @@ cppunit_env.Replace(ARFLAGS = ar_flags)
 cppunit_env.Replace(CPPPATH = cpp_path)
 
 cppunit_lib = cppunit_env.StaticLibrary(lib, sources)
-cppunit_env.Install(libdir, cppunit_lib)
+
+Default(cppunit_env.Install(libdir, cppunit_lib))

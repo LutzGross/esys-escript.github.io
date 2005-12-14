@@ -61,7 +61,7 @@ paso_env.Replace(CPPPATH = cpp_path)
 
 paso_lib = paso_env.StaticLibrary(lib, sources)
 
-paso_env.Install(libdir, paso_lib)
-paso_env.Install(libdir2, paso_lib)
+Default(paso_env.Install(libdir, paso_lib))
+Default(paso_env.Install(libdir2, paso_lib))
 if libinstall != None:
-  paso_env.Install(libinstall, paso_lib)
+  Default(paso_env.Install(libinstall, paso_lib))
