@@ -24,7 +24,7 @@ Utility functions for escript
 __author__="Lutz Gross, l.gross@uq.edu.au"
 __licence__="contact: esys@access.uq.edu.au"
 __url__="http://www.iservo.edu.au/esys/escript"
-__version__="$Revision: 329 $"
+__version__="$Revision$"
 __date__="$Date$"
 
 
@@ -3661,9 +3661,7 @@ def interpolate(arg,where):
     @param arg:    interpolant 
     @param where:  FunctionSpace to interpolate to
     """
-    if testForZero(arg):
-      return 0
-    elif isinstance(arg,Symbol):
+    if isinstance(arg,Symbol):
        return Interpolated_Symbol(arg,where)
     else:
        return escript.Data(arg,where)
@@ -3688,7 +3686,7 @@ def jump(arg):
                   to be calculated.
     """
     d=arg.getDomain()
-    return arg.interpolate(escript.FunctionOnContactOne())-arg.interpolate(escript.FunctionOnContactZero())
+    return arg.interpolate(escript.FunctionOnContactOne(d))-arg.interpolate(escript.FunctionOnContactZero(d))
 
 #=============================
 #
