@@ -129,4 +129,4 @@ datacached_test_exe = datacached_env.Program(target, sources)
 
 Depends(datacached_test_exe, escript_lib)
 
-datacached_env.Install(install_dir, datacached_test_exe)
+Alias("build_tests", datacached_env.Install(install_dir, datacached_test_exe))
