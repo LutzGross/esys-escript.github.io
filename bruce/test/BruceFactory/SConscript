@@ -137,4 +137,5 @@ Alias("build_tests", brucefactory_env.Install(install_dir, brucefactory_test_exe
 import scons_extensions
 runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
 brucefactory_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
-#brucefactory_env.RunUnitTest(target)
+
+Alias("run_tests", brucefactory_env.RunUnitTest(target))
