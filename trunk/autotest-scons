@@ -4,12 +4,11 @@
 # An explicit testing script for esys using the scons build system
 
 # list of users to email test results to
-#MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
 
 # the python tests to run
 BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
-ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py escriptTest.py newEscriptTests.py DataVariableTests.py test_xml.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py newEscriptTests.py DataVariableTests.py test_xml.py"
 FINLEY_PYTESTS="ImportTest.py finleyTest.py SimpleSolve.py GradTest.py RecTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
 
 echo "===> cd $1"
@@ -77,11 +76,10 @@ then
   FAIL=1
 fi
 
-echo "===> running python tests for escript"
 cd escript/test/python
 for pytest in $ESCRIPT_PYTESTS
 do
-  echo "running python test: $pytest"
+  echo "===>running escript python test: $pytest"
   python $pytest
   if [ $? != 0 ]
   then
@@ -92,11 +90,10 @@ do
 done
 cd ../../..
 
-echo "===> running python tests for finley"
 cd finley/test/python
 for pytest in $FINLEY_PYTESTS
 do
-  echo "running python test: $pytest"
+  echo "running finley python test: $pytest"
   python $pytest
   if [ $? != 0 ]
   then
@@ -107,11 +104,10 @@ do
 done
 cd ../../..
 
-echo "===> running python tests for bruce"
 cd bruce/test/python
 for pytest in $BRUCE_PYTESTS
 do
-  echo "running python test: $pytest"
+  echo "running bruce python test: $pytest"
   python $pytest
   if [ $? != 0 ]
   then
