@@ -4,28 +4,25 @@
 # An explicit testing script for esys using the scons build system
 
 # list of users to email test results to
-MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
-#MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
-
-# modules to test
-TESTS="escript bruce finley"
+#MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au cochrane@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au"
+MAIL_RECIPIENTS="jgs@esscc.uq.edu.au"
 
 # the python tests to run
-FINLEY_PYTESTS="ImportTest.py finleyTest.py SimpleSolve.py GradTest.py RecTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
-ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py escriptTest.py newEscriptTests.py DataVariableTests.py test_xml.py"
 BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py escriptTest.py newEscriptTests.py DataVariableTests.py test_xml.py"
+FINLEY_PYTESTS="ImportTest.py finleyTest.py SimpleSolve.py GradTest.py RecTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
 
-echo cd $1
+echo "===> cd $1"
 cd $1
 if [ $? != 0 ]
 then
-  echo couldnt cd $1
+  echo "couldnt cd $1"
   echo "couldnt cd $1" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 1
 fi
 
 PWD=`pwd`
-echo working in: $PWD
+echo "===> working in: $PWD"
 
 # define compiler executable and library locations
 export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
@@ -42,90 +39,88 @@ export OMP_NUM_THREADS=4
 export OMP_DYNAMIC=TRUE
 export OMP_NESTED=FALSE
 
-FAIL=0
-
-echo svn update
+echo "===> svn update"
 svn update
 if [ $? != 0 ]
 then
-  echo svn update failed
+  echo "svn update failed"
   echo "svn update failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 2
 fi
 
-echo building scons debug=1
+echo "===> scons building esys"
 scons debug=1
 if [ $? != 0 ]
 then
-  echo scons build failed
-  echo "scons build failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  echo "scons build failed"
+  echo "scons build failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 3
 fi
 
-echo building unit_tests
+echo "===> building unit_tests"
 scons debug=1 build_tests
 if [ $? != 0 ]
 then
-  echo  unit_test build failed
-  echo "unit_test build failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  echo "unit_test build failed"
+  echo "unit_test build failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 3
 fi
 
-echo running unit_tests
+FAIL=0
+
+echo "===> running unit_tests"
 scons debug=1 run_tests
 if [ $? != 0 ]
 then
-  echo unit_testing failed
-  echo "unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  echo "unit_testing failed"
+  echo "unit_test failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   FAIL=1
 fi
 
-for module in $TESTS
+echo "===> running python tests for escript"
+cd escript/test/python
+for pytest in $ESCRIPT_PYTESTS
 do
-    echo "running python tests for: $module"
-    cd $module/test/python
-    if [ "$module" == "finley" ]
-    then
-        for pytest in $FINLEY_PYTESTS
-        do
-            echo "Running python test: $pytest"
-            python $pytest
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for $pytest in module $module
-              echo "finley py_test: $pytest failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              FAIL=1
-            fi
-        done
-    elif [ "$module" == "escript" ]
-    then
-        for pytest in $ESCRIPT_PYTESTS
-        do
-            echo "Running python test: $pytest"
-            python $pytest
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for $pytest in module $module
-              echo "escript py_test: $pytest failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              FAIL=1
-            fi
-        done
-    elif [ "$module" == "bruce" ]
-    then
-        for pytest in $BRUCE_PYTESTS
-        do
-            echo "Running python test: $pytest"
-            python $pytest
-            if [ $? != 0 ]
-            then
-              echo Python Testing FAILED for $pytest in module $module
-              echo "bruce py_test: $pytest failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-              FAIL=1
-            fi
-        done
-    fi
-    cd ../../..
+  echo "running python test: $pytest"
+  python $pytest
+  if [ $? != 0 ]
+  then
+    echo "python testing failed for $pytest in module $module"
+    echo "escript py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+    FAIL=1
+  fi
 done
+cd ../../..
+
+echo "===> running python tests for finley"
+cd finley/test/python
+for pytest in $FINLEY_PYTESTS
+do
+  echo "running python test: $pytest"
+  python $pytest
+  if [ $? != 0 ]
+  then
+    echo "python testing failed for $pytest in module $module"
+    echo "finley py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+    FAIL=1
+  fi
+done
+cd ../../..
+
+echo "===> running python tests for bruce"
+cd bruce/test/python
+for pytest in $BRUCE_PYTESTS
+do
+  echo "running python test: $pytest"
+  python $pytest
+  if [ $? != 0 ]
+  then
+    echo "python testing failed for $pytest in module $module"
+    echo "bruce py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+    FAIL=1
+  fi
+done
+cd ../../..
 
 if [ $FAIL == 0 ]
 then
