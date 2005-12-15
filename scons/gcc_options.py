@@ -2,8 +2,6 @@
 # find valid python version:
 import sys,os
 python_path="/usr/include/python%s.%s"%(sys.version_info[0],sys.version_info[1])
-if not os.access(python_path,os.F_OK): python_path="/usr/include"
-
 boost_path = '/usr/include'
 
 # locations of libraries for python and boost
@@ -11,7 +9,7 @@ python_lib_path = '/usr/lib'
 boost_lib_path = '/usr/lib'
 
 # names of libraries for python and boost
-python_lib = 'python2.3'
+python_lib = "python%s.%s"%(sys.version_info[0],sys.version_info[1])
 boost_lib = 'boost_python'
 
 # names of c and c++ compilers to use
