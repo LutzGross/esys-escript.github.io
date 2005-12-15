@@ -130,3 +130,9 @@ data_test_exe = data_env.Program(target, sources)
 Depends(data_test_exe, escript_lib)
 
 Alias("build_tests", data_env.Install(install_dir, data_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+data_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", data_env.RunUnitTest(target))

@@ -136,3 +136,9 @@ datac_test_exe = datac_env.Program(target, sources)
 Depends(datac_test_exe, escript_lib)
 
 Alias("build_tests", datac_env.Install(install_dir, datac_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+datac_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", datac_env.RunUnitTest(target))

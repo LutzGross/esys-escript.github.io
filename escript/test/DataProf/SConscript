@@ -130,3 +130,9 @@ dataprof_test_exe = dataprof_env.Program(target, sources)
 Depends(dataprof_test_exe, escript_lib)
 
 Alias("build_tests", dataprof_env.Install(install_dir, dataprof_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+dataprof_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", dataprof_env.RunUnitTest(target))

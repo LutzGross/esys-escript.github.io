@@ -116,3 +116,9 @@ esysexception_test_exe = esysexception_env.Program(target, sources)
 Depends(esysexception_test_exe, esysUtils_lib)
 
 Alias("build_tests", esysexception_env.Install(install_dir, esysexception_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+esysexception_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", esysexception_env.RunUnitTest(target))

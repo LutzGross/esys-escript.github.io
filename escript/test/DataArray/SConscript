@@ -130,3 +130,9 @@ dataarray_test_exe = dataarray_env.Program(target, sources)
 Depends(dataarray_test_exe, escript_lib)
 
 Alias("build_tests", dataarray_env.Install(install_dir, dataarray_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+dataarray_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", dataarray_env.RunUnitTest(target))

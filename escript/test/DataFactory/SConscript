@@ -130,3 +130,9 @@ datafactory_test_exe = datafactory_env.Program(target, sources)
 Depends(datafactory_test_exe, escript_lib)
 
 Alias("build_tests", datafactory_env.Install(install_dir, datafactory_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+datafactory_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", datafactory_env.RunUnitTest(target))
