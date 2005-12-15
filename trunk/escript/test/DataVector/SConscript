@@ -130,3 +130,9 @@ datavector_test_exe = datavector_env.Program(target, sources)
 Depends(datavector_test_exe, escript_lib)
 
 Alias("build_tests", datavector_env.Install(install_dir, datavector_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+datavector_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", datavector_env.RunUnitTest(target))

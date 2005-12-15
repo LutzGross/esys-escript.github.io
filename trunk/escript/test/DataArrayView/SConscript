@@ -130,3 +130,9 @@ dataarrayview_test_exe = dataarrayview_env.Program(target, sources)
 Depends(dataarrayview_test_exe, escript_lib)
 
 Alias("build_tests", dataarrayview_env.Install(install_dir, dataarrayview_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+dataarrayview_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", dataarrayview_env.RunUnitTest(target))

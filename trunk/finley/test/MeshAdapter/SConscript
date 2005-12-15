@@ -147,3 +147,9 @@ meshadapter_test_exe = meshadapter_env.Program(target, sources)
 Depends(meshadapter_test_exe, finley_lib)
 
 Alias("build_tests", meshadapter_env.Install(install_dir, meshadapter_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+meshadapter_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", meshadapter_env.RunUnitTest(target))

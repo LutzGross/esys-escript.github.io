@@ -15,6 +15,5 @@ def runUnitTest(target, source, env):
   if not os.system(app):
     open(str(target[0]),'w').write("PASSED\n")
   else:
-    open(str(target[0]),'w').write("FAILED\n")
     return 1
   return None

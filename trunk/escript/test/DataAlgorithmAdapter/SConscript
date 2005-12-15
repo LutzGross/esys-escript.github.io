@@ -130,3 +130,9 @@ dataalgorithmadapter_test_exe = dataalgorithmadapter_env.Program(target, sources
 Depends(dataalgorithmadapter_test_exe, escript_lib)
 
 Alias("build_tests", dataalgorithmadapter_env.Install(install_dir, dataalgorithmadapter_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+dataalgorithmadapter_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", dataalgorithmadapter_env.RunUnitTest(target))
