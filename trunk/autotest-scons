@@ -44,7 +44,7 @@ export OMP_NESTED=FALSE
 
 FAIL=0
 
-echo running svn update
+echo svn update
 svn update
 if [ $? != 0 ]
 then
@@ -53,59 +53,32 @@ then
   exit 2
 fi
 
-echo running scons debug=1
+echo building scons debug=1
 scons debug=1
-scons debug=1 build_tests
 if [ $? != 0 ]
 then
-  echo scons failed
-  echo "scons failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  echo scons build failed
+  echo "scons build failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 3
 fi
 
-echo running bruce unit_tests
-cd bruce/test
-./unit_test-scons
+echo building unit_tests
+scons debug=1 build_tests
 if [ $? != 0 ]
 then
-  echo bruce unit_test failed
-  echo "bruce unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  FAIL=1
+  echo  unit_test build failed
+  echo "unit_test build failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 3
 fi
-cd ../..
 
-echo running escript unit_tests
-cd escript/test
-./unit_test-scons
+echo running unit_tests
+scons debug=1 run_tests
 if [ $? != 0 ]
 then
-  echo escript unit_test failed
-  echo "escript unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  echo unit_testing failed
+  echo "unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   FAIL=1
 fi
-cd ../..
-
-echo running finley unit_tests
-cd finley/test
-./unit_test-scons
-if [ $? != 0 ]
-then
-  echo finley unit_test failed
-  echo "finley unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  FAIL=1
-fi
-cd ../..
-
-echo running esysUtils unit_tests
-cd esysUtils/test
-./unit_test-scons
-if [ $? != 0 ]
-then
-  echo esysUtils unit_test failed
-  echo "esysUtils unit_test failed - see autotest-scons logfile" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  FAIL=1
-fi
-cd ../..
 
 for module in $TESTS
 do
