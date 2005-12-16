@@ -22,26 +22,29 @@ arglist = [ \
 ]
 
 testlist = [
-"abs",
-"maxval",
-"minval",
-"mindp",
-"length",
-"trace",
-"sign",
-"exp",
-"sqrt",
-"neg",
-"pos",
-"sin",
-"cos",
-"tan",
-"log",
-"ln",
-"Lsup",
-"Linf",
-"sup",
-"inf"
+"_maxval",
+"_minval",
+"_trace",
+"_sign",
+"_exp",
+"_sqrt",
+"_sin",
+"_cos",
+"_tan",
+"_asin",
+"_acos",
+"_atan",
+"_sinh",
+"_cosh",
+"_tanh",
+"_asinh",
+"_acosh",
+"_atanh",
+"_log10",
+"_log",
+"_Lsup",
+"_sup",
+"_inf"
 ]
 
 #
@@ -82,8 +85,8 @@ for wh in [Function(msh),ContinuousFunction(msh)]:
     for a in arglist:
 
       print "\n\t", ex, a, "==>"
-      print "\n\t\tFunction\tElapsed time"
-      print "\t\t--------\t------------"
+      print "\n\t\tFunction\t\tElapsed time"
+      print "\t\t--------\t\t------------"
 
       arg=prepareArg(a,ex,wh)
 
