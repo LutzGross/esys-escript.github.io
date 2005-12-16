@@ -45,6 +45,7 @@ import os
 
 # def maximum(arg0,arg1):
 # def minimum(arg0,arg1):
+# def clip(arg,minval,maxval)
 
 # def transpose(arg,axis=None):
 # def trace(arg,axis0=0,axis1=1):
@@ -3325,6 +3326,25 @@ def minimum(*arg):
           m=whereNegative(out-a)
           out=m*out+(1.-m)*a
     return out
+
+def clip(arg,minval=0.,maxval=1.):
+    """
+    cuts the values of arg between minval and maxval
+ 
+    @param arg: argument
+    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
+    @param minval: lower range 
+    @type arg: C{float}
+    @param maxval: uper range 
+    @type arg: C{float}
+    @return: is on object with all its value between minval and maxval. value of the argument that greater then minval and
+             less then maxval are unchanged.
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float} depending on the input
+    """
+    if minval>maxval:
+       raise ValueError,"minval = %s must be less then maxval %s"%(minval,maxval)
+    return minimum(maximum(minval,arg),maxval)
+
    
 def inner(arg0,arg1):
     """
