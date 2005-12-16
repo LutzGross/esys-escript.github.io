@@ -29,7 +29,8 @@ const int Bruce::Function=1;
 
 Bruce::FunctionSpaceNamesMapType Bruce::m_functionSpaceTypeNames;
 
-Bruce::Bruce()
+Bruce::Bruce():
+  m_n0(0), m_n1(0), m_n2(0)
 {
   setFunctionSpaceTypeNames();
 }
