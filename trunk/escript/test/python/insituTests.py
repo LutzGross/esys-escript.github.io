@@ -40,13 +40,13 @@ class escriptTestCase(unittest.TestCase):
 
   def testAlina1(self):
     P1 = 10.0
-    assert log(P1) == math.log10(10.0)
-    assert ln(P1) == math.log(10.0,math.e)
+    assert log10(P1) == math.log10(10.0)
+    assert log(P1) == math.log(10.0,math.e)
 
   def testAlina2(self):
     P = 10.0*Scalar(1.0, ContinuousFunction(self.msh))
-    assert log(P).convertToNumArray()[0] == math.log10(10.0)
-    assert ln(P).convertToNumArray()[0] == math.log(10.0,math.e)
+    assert log10(P).convertToNumArray()[0] == math.log10(10.0)
+    assert log(P).convertToNumArray()[0] == math.log(10.0,math.e)
 
   def testLog(self):
     for wh in [ContinuousFunction(self.msh),Function(self.msh)]:
@@ -55,7 +55,7 @@ class escriptTestCase(unittest.TestCase):
           #print "\n", ex, a, "==>"
           arg=self.prepareArg(a,ex,wh)
           #print "\nlog"
-          result = arg.log()
+          result = arg._log10()
 
   def testLn(self):
     for wh in [ContinuousFunction(self.msh),Function(self.msh)]:
@@ -64,7 +64,7 @@ class escriptTestCase(unittest.TestCase):
           #print "\n", ex, a, "==>"
           arg=self.prepareArg(a,ex,wh)
           #print "\nln"
-          result = arg.ln()
+          result = arg._log()
 
 if __name__ == '__main__':
   suite=unittest.TestSuite()
