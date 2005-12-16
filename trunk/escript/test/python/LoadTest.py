@@ -58,8 +58,8 @@ testNum = 0
 
 totalTime = 0
 
-for x0 in [1, 10, 100]:
-  for x1 in [1, 10, 100]:
+for x0 in [10, 100]:
+  for x1 in [10, 100]:
 
     print "#### x0:", x0, "#### x1:", x1, "####"
     msh=bruce.Rectangle(x0,x1)
@@ -72,6 +72,7 @@ for x0 in [1, 10, 100]:
 
           testNum+=1
           print testNum, ": ----------------------------------------------"
+          print a, ex, wh
 
           testElapsed = 0
 
