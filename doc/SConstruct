@@ -1,0 +1,34 @@
+# top-level Scons configuration file for all documentation building
+
+import os
+
+#
+# ensure correct versions of python and scons
+
+EnsurePythonVersion(2,3)
+EnsureSConsVersion(0,96)
+
+#
+# retreive command-line arguments if any
+# these are passed through to SConscripts
+
+#
+# set and export esysroot
+
+esysroot = Dir('#../')
+
+Import('*')
+
+Export(["esysroot"])
+
+#
+# call appropriate SConscripts
+
+target_scripts = ['doxygen/SConscript',
+                  'epydoc/SConscript',
+                  'user/SConscript']
+
+target_scripts = ['doxygen/SConscript',
+                  'epydoc/SConscript']
+
+SConscript(target_scripts, duplicate=0)
