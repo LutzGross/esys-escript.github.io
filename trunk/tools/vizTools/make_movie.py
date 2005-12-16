@@ -10,8 +10,9 @@ import os, sys, re
 import getopt
 
 (opts, args) = getopt.getopt(sys.argv[1:], 
-	"s:d:o:f:p:h", 
-	["framestem=", "dirname=", "output=", "format=", "pad=", "help"],
+	"s:d:o:f:p:t:h", 
+	["framestem=", "dirname=", "output=", "format=", "pad=", "pattern=",
+	"help"],
 	)
 
 def usage():
@@ -23,12 +24,14 @@ def usage():
     print "    -o/--output: Output mpeg filename (optional)"
     print "    -f/--format: Input frame image format (optional)"
     print "    -p/--pad: How many frames to pad the movie (optional)"
+    print "    -h/--help: Display this information (optional)"
 
 dirname = "./"
 mpegName = None
 fnameStem = None
 format = "pnm"  # if format not specified assume pnm
 pad = 1
+pattern = "IBBPBBPBB"
 
 for option, arg in opts:
     if option in ('-s', '--stem'):
@@ -41,6 +44,8 @@ for option, arg in opts:
 	format = arg
     elif option in ('-p', '--pad'):
 	pad = int(arg)
+    elif option in ('-t', '--pattern'):
+	pattern = arg
     elif option in ('-h', '--help'):
 	usage()
 	sys.exit(0)
@@ -92,7 +97,7 @@ print "Generating params file..."
 paramsFileString = """REFERENCE_FRAME DECODED
 FRAME_RATE 24
 OUTPUT %s
-PATTERN IBBPBBPBB
+PATTERN %s
 FORCE_ENCODE_LAST_FRAME
 GOP_SIZE 20
 BSEARCH_ALG CROSS2
@@ -106,7 +111,7 @@ BASE_FILE_FORMAT PNM
 INPUT_DIR .
 INPUT_CONVERT *
 INPUT
-""" % (mpegName)
+""" % (mpegName, pattern)
 
 # need to determine the first number and last number of the list of files
 # sort the files first just in case
