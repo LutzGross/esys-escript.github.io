@@ -1,0 +1,6 @@
+#!/bin/bash
+
+. /opt/modules/default/init/bash
+export MODULEPATH=$MODULEPATH:/raid2/tools/modulefiles/:/data/raid2/toolspp4/modulefiles/gcc-3.3.6
+module load doxygen
+doxygen doxygen/doxygen_esys > doxygen/doxygen_msgs.txt 2>&1
