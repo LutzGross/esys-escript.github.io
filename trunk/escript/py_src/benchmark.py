@@ -1,4 +1,4 @@
-# $Id:$
+filter# $Id:$
 
 #
 #      COPYRIGHT ACcESS 2004 -  All Rights Reserved
@@ -95,11 +95,13 @@ class BenchmarkSuite(object):
        @type scale: C{int} or C{list} of C{int}s. 
        """
        self.__scale=scale       
-       for i in range(len(self)): self[i].run(scale)
-   def getHTML(self,level=1):
+       for i in range(len(self)): self[i].run(scale=scale)
+   def getHTML(self,filter,level=1):
        """
        returns the results of the last benchmark run in HTML format.
 
+       @param filter: filter to be applied to the results
+       @type filter: L{BenchmarkFilter}
        @param level: level used in header <H?> tags 
        @type level: C{int}
        @return: HTML document
@@ -116,7 +118,7 @@ class BenchmarkSuite(object):
            out+="<p>platform: %s%s</p>\n"%(socket.gethostname(),m)
        for i in range(len(self)):
            out+="<p>\n"
-           out+=self[i].getHTML(min(level+1,self.MAX_LEVEL))
+           out+=self[i].getHTML(filter=filter,level=min(level+1,self.MAX_LEVEL))
            out+="<p>\n"
        if level==1:
            out+="<hr><p align=\"center\">by %s at %s</p>\n"%(os.getlogin(),time.strftime('%X %x %Z'))
@@ -189,6 +191,7 @@ class Benchmark(object):
        if isinstance(scale,list):
            if len(scale)<len(self.__problems):
               raise ValueError,"scale list is too small. must be greater or equal to the number of problems in the benchmark"
+       self.__filter=filter
        self.__scale=scale
        self.__results=[]
        c=0
@@ -203,10 +206,12 @@ class Benchmark(object):
               row.append(r.run(p))
           self.__results.append(row)
           c+=1
-   def getHTML(self,level=1):
+   def getHTML(self,filter,level=1):
        """
        returns the results of the last benchmark run in HTML format.
 
+       @param filter: filter to be applied to the results
+       @type filter: L{BenchmarkFilter}
        @param level: level used in header <H?> tags 
        @type level: C{int}
        @return: HTML document
@@ -225,7 +230,7 @@ class Benchmark(object):
        if len(self.__problems)>0:
           out+="<TABLE ALIGN=\"center\" BORDER=3 CELLPADDING=5 CELLSPACING=1>\n"
           h1_seg=""
-          rn=self.__problems[0].getResultNames()
+          rn=filter.getResultNames()
           if len(rn)==0:
              h1_seg+="<TD></TD>"
           else:
@@ -247,8 +252,9 @@ class Benchmark(object):
           for r in range(len(self.__results)):
              out+="<TR><TH ALIGN=\"right\">%s</TH>"%str(self.__problems[r])
              if isinstance(self.__scale,list): out+="<TD ALIGN=\"right\">%s</TD>"%self.__scale[c] 
-             for col in self.__results[r]: 
-                   for e in col: out+="<TD ALIGN=\"right\">%s</TD>"%str(e)
+             filtered_results=filter(self.__results[r])
+             for col in filtered_results: 
+                   for e in col: out+="<TD ALIGN=\"right\">%s</TD>"%e
              out+="</TR>\n"
           out+="</TABLE>"
           c+=1
@@ -274,16 +280,6 @@ class BenchmarkProblem(object):
        else:
           self.__name=name
 
-   def getResultNames(self):
-       """
-       return the names of the results produced when run() is called.
-       
-       @return: names the list of the names to be used when the results of the run() call are printed
-       @rtype: C{list} of C{str}
-       @remark: this function has to overwritten by a particular problem
-       """
-       raise NotImplementedError
-       return []
        
    def __str__(self):
        """
@@ -302,13 +298,50 @@ class BenchmarkProblem(object):
        @param options: the options that are used for the run. Note that the number of OpenMP threads is controlled 
                        by the L{Benchmark} the problem is run in.
        @type options: L{Options}
-       @return: list of run characteristics
-       @rtype: C{list}
+       @return: run characteristics
+       @rtype: any type that can be read by the L{BenchmarkFilter} applied to it.
        @remark: this function has to overwritten by a particular problem
        """
        raise NotImplementedError
        return []
     
+class BenchmarkFilter(object):
+   """
+   object to filter the characteristcs returned by Bechmark runs.
+   
+   """
+   def __init__(self):
+       """
+       sets up a filter
+       """
+       pass
+ 
+
+   def getResultNames(self):
+       """
+       return the names of the results produced when run() is called.
+       
+       @return: names the list of the names to be used when the results of the run() call are printed
+       @rtype: C{list} of C{str}
+       @remark: this function has to overwritten by a particular problem
+       """
+       raise NotImplementedError
+       return []
+
+   def __call__(self,result):
+       """
+       filters out values results returned as characteristcs of a problem run
+       
+       @param result: values to be filtered
+       @type result: any type that is produced by the L{BenchmarkProblem} it is applied to
+       @return: a list of strings selected from result
+       @rtype: C{list} of C{str}
+       @remark: this function has to overwritten by a particular problem
+       """
+       raise NotImplementedError
+       return []
+
+
 class Options(object):
     """
     defines a set of options to be used to run a L{BenchmarkProblem} 
@@ -341,25 +374,25 @@ if __name__=="__main__":
     class OptionsTest2(Options):
         pass
 
-    class BenchmarkProblemTest(BenchmarkProblem):
-       def __init__(self,name=None):
-           super(BenchmarkProblemTest,self).__init__(name)
-       def getResultNames(self):
-            return ["r0","r1"]  
-
-    class BenchmarkProblemTest1(BenchmarkProblemTest):
+    class BenchmarkProblemTest1(BenchmarkProblem):
        def __init__(self):
            super(BenchmarkProblemTest1,self).__init__(name="TEST1")
        def run(self,options=None):
            import time
            return time.time(),"A"
 
-    class BenchmarkProblemTest2(BenchmarkProblemTest):
+    class BenchmarkProblemTest2(BenchmarkProblem):
        def __init__(self):
            super(BenchmarkProblemTest2,self).__init__(name="TEST2")
        def run(self,options=None):
            import time
            return -time.time(),"B"
+
+    class SimpleFilter(BenchmarkFilter):
+       def getResultNames(self):
+            return ["r0","r1"]  
+       def __call__(self,result):
+            return [str(result[0]),str(result[1])]
 
     bm=Benchmark("Example")
     bm.addProblem(BenchmarkProblemTest1())
@@ -371,10 +404,10 @@ if __name__=="__main__":
     bms.addBenchmark(bm)
 
     bms.run()
-    print bms.getHTML()
+    print bms.getHTML(filter=SimpleFilter())
     
     bms.run(scale=4)
-    print bms.getHTML()
+    print bms.getHTML(filter=SimpleFilter())
 
     bms.run(scale=[1,2])
-    print bms.getHTML()
+    print bms.getHTML(filter=SimpleFilter())
