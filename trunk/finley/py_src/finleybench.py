@@ -31,9 +31,10 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
 
+from esys.escript import Lsup,whereZero,kronecker
 from esys.escript.benchmark import BenchmarkProblem, Options, BenchmarkFilter
-from esys.escript import Lsup
 import esys.finley 
+from esys.escript.linearPDEs import LinearPDE
 import os
 
 class FinleyFilter(BenchmarkFilter):
@@ -77,7 +78,65 @@ class FinleyFilter(BenchmarkFilter):
        for a in self.__args:
          out.append(result[a])
        return out
-       
+
+class FinleyOptions(Options):
+   """
+   finley solver options to be handed over to paso
+
+   """
+   def __init__(self,solver_method=None,
+                     preconditioner=None,
+                     package=None,
+                     tolerance=None,
+                     verbose=False):
+       self.strmap={
+                      LinearPDE.DIRECT : "DIRECT",
+                      LinearPDE.PCG:  "PCG",
+                      LinearPDE.CR:  "CR",
+                      LinearPDE.CGS: "CGS",
+                      LinearPDE.BICGSTAB: "BICGSTAB",
+                      LinearPDE.SSOR: "SSOR",
+                      LinearPDE.ILU0: "ILU0",
+                      LinearPDE.ILUT: "ILUT",
+                      LinearPDE.JACOBI: "JACOBI",
+                      LinearPDE.GMRES:  "GMRES",
+                      LinearPDE.PRES20:  "PRES20",
+                      LinearPDE.LUMPING:  "LUMPIMG",
+                      LinearPDE.NO_REORDERING:  "NO_REORDERING",
+                      LinearPDE.MINIMUM_FILL_IN:  "MINIMUM_FILL_IN",
+                      LinearPDE.NESTED_DISSECTION: "NESTED_DISSECTION",
+                      LinearPDE.SCSL:  "SCSL",
+                      LinearPDE.MKL:  "MKL",
+                      LinearPDE.UMFPACK: "UMFPACK",
+                      LinearPDE.PASO:  "PASO"
+                  }
+       name=""
+       if solver_method==None: 
+             solver_method==LinearPDE.PRES20
+       else:
+             name+=self.strmap[solver_method]
+       if preconditioner==None: 
+             preconditioner==LinearPDE.JACOBI
+       else:
+             if not name=="": name+="+"
+             name+=self.strmap[preconditioner]
+       if package==None: 
+             package==LinearPDE.PASO
+       else:
+             if not name=="": name+=" with "
+             name+=self.strmap[package]
+       if tolerance==None: 
+             tolerance=1.e-8
+       else:
+             if not name=="": name+=", "
+             name+="tol = %s"%tolerance
+       self.solver_method=solver_method
+       self.preconditioner=preconditioner
+       self.tolerance=tolerance
+       self.package=package
+       self.verbose=verbose
+       super(FinleyOptions,self).__init__(name=name)
+
 
 
 class FinleyProblem(BenchmarkProblem):
@@ -96,17 +155,17 @@ class FinleyProblem(BenchmarkProblem):
        """
        domain=self.getDomain()
        pde,u=self.getTestProblem(domain)
-       pde.setTolerance(options.getTolerance())
-       pde.setSolverMethod(options.getSolverMethod())
-       pde.setSolverPackage(options.getSolverPackage())
+       pde.setTolerance(options.tolerance)
+       pde.setSolverMethod(options.solver_method,options.preconditioner)
+       pde.setSolverPackage(options.package)
        a=os.times()[4]
-       u_h=pde.getSolution(options.getPasoOptions())
+       uh=pde.getSolution(verbose=options.verbose)
        a=os.times()[4]-a
        if u==None:
-          return {FinleyFilter.TIME : a ,FinleyFilter.TIME : None }
+          return {FinleyFilter.TIME : a , FinleyFilter.ERROR : None }
        else:
           error=Lsup(u-uh)/Lsup(u)
-          return {FinleyFilter.TIME : a ,FinleyFilter.TIME : error }
+          return {FinleyFilter.TIME : a , FinleyFilter.ERROR : error }
 
    def getTestProblem(self,domain):
        """
@@ -157,10 +216,10 @@ class RegularFinleyProblem(FinleyProblem):
        @return: a domain
        @rtype: L{escript.Domain}
        """
-       if dim==2:
-          domain=esys.finley.Rectangle(n0=self.__n,n1=self.__n,order=order)
+       if self.__dim==2:
+          domain=esys.finley.Rectangle(n0=self.__n,n1=self.__n,order=self.__order)
        else:
-          domain=esys.finley.Brick(n0=self.__n,n1=self.__n,n2=self.__n,order=order)
+          domain=esys.finley.Brick(n0=self.__n,n1=self.__n,n2=self.__n,order=self.__order)
        return domain
 
 class LaplaceProblem(RegularFinleyProblem):
@@ -182,9 +241,9 @@ class LaplaceProblem(RegularFinleyProblem):
          for i in range(1,domain.getDim()):
             msk+=whereZero(x[i])+whereZero(x[i]-1.)
             u*=(x[i]-i)
-         pde=LinearPDE(mydomain)
+         pde=LinearPDE(domain)
          pde.setSymmetryOn() 
-         pde.setValue(A=kronnecker,q=msk,r=u)
+         pde.setValue(A=kronecker(domain),q=msk,r=u)
          return pde,u
 
 class Laplace2DOrder1_30k(LaplaceProblem): 
