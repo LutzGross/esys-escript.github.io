@@ -27,6 +27,7 @@ python_src = ['__init__.py',
               'timeseries.py',
               'test_linearPDEs.py',
               'test_util.py',
+              'benchmark.py',
               'util.py']
 
 pyc = escriptpy_env.PyCompile(python_src)
