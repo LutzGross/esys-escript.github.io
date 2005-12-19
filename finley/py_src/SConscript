@@ -16,7 +16,8 @@ py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_su
 finleypy_env.Append(BUILDERS = {'PyCompile' : py_builder});
 
 python_src = ['__init__.py',
-              'finley.py']
+              'finley.py',
+              'finleybench.py']
 
 pyc = finleypy_env.PyCompile(python_src)
 
