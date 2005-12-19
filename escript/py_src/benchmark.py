@@ -202,7 +202,7 @@ class Benchmark(object):
              s=scale
           row=[]
           for p in self.__options:
-              os.putenv("OMP_NUM_TREADS",str(s))
+              os.environ['OMP_NUM_TREADS']=str(s)
               row.append(r.run(p))
           self.__results.append(row)
           c+=1
@@ -252,12 +252,11 @@ class Benchmark(object):
           for r in range(len(self.__results)):
              out+="<TR><TH ALIGN=\"right\">%s</TH>"%str(self.__problems[r])
              if isinstance(self.__scale,list): out+="<TD ALIGN=\"right\">%s</TD>"%self.__scale[c] 
-             filtered_results=filter(self.__results[r])
-             for col in filtered_results: 
-                   for e in col: out+="<TD ALIGN=\"right\">%s</TD>"%e
+             for col in self.__results[r]:
+                   for e in filter(col): out+="<TD ALIGN=\"right\">%s</TD>"%e
              out+="</TR>\n"
+             c+=1
           out+="</TABLE>"
-          c+=1
        if level==1:
           out+="<hr><p align=\"center\">by %s at %s</p>\n"%(os.getlogin(),time.strftime('%X %x %Z'))
           out+="</BODY></HTML>\n"
@@ -355,7 +354,7 @@ class Options(object):
        """
        super(Options,self).__init__()
        if name==None:
-           self.__name=self.__class__.__name__
+          self.__name=self.__class__.__name__
        else:
           self.__name=name
     def __str__(self):
