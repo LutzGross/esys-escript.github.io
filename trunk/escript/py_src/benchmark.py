@@ -90,8 +90,7 @@ class BenchmarkSuite(object):
 
        @param scale: defines the number of (OpenMP) threads to be used. If scale is a scalar all benchmarks 
                      are run with scale number of threads. If scale is a C{list}, the p-th problem in each of the benchmarks
-                     in the suite is run with scale[p] threads. In the case, len(scale) has to be less or equal to the 
-                     largest benchmark in the suite.
+                     in the suite is run with scale[p] threads.
        @type scale: C{int} or C{list} of C{int}s. 
        """
        self.__scale=scale       
@@ -184,18 +183,18 @@ class Benchmark(object):
 
        @param scale: defines the number of (OpenMP) threads to be used. If scale is a scalar all benchmarks 
                      are run with scale number of threads. If scale is a C{list}, the p-th problem in each of the benchmarks
-                     in the suite is run with scale[p] threads. In the case, len(scale) has to be less or equal to the 
-                     largest benchmark in the suite.
+                     in the suite is run with scale[p] threads. 
        @type scale: C{int} or C{list} of C{int}s. 
        """
        if isinstance(scale,list):
-           if len(scale)<len(self.__problems):
-              raise ValueError,"scale list is too small. must be greater or equal to the number of problems in the benchmark"
+           c_max=min(len(scale),len(self.__problems))
+       else:
+           c_max=len(self.__problems)
        self.__filter=filter
        self.__scale=scale
        self.__results=[]
-       c=0
-       for r in self.__problems:
+       for c in range(c_max):
+          r=self.__problems[c]
           if isinstance(scale,list):
              s=scale[c]
           else:
@@ -205,7 +204,6 @@ class Benchmark(object):
               os.environ['OMP_NUM_TREADS']=str(s)
               row.append(r.run(p))
           self.__results.append(row)
-          c+=1
    def getHTML(self,filter,level=1):
        """
        returns the results of the last benchmark run in HTML format.
