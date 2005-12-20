@@ -14,6 +14,8 @@
 some benchmarks for tetsing the finley solver. The idea is to develop a set of standart benchmarks
 
   * Laplace2Dorder1_?k
+  * Laplace2Dorder2_?k
+  * Laplace3Dorder1_?k
   * Laplace3Dorder2_?k
 
 where ? is approximatively the number of unknowns in 1000.
@@ -246,39 +248,139 @@ class LaplaceProblem(RegularFinleyProblem):
          pde.setValue(A=kronecker(domain),q=msk,r=u)
          return pde,u
 
-class Laplace2DOrder1_30k(LaplaceProblem): 
-    def __init__(self):
-         super(Laplace2DOrder1_30k,self).__init__(n=176,order=1,dim=2)
-class Laplace2DOrder2_30k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder2_30k,self).__init__(n=88,order=2,dim=2)
+class Laplace2DOrder1_30k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder1_30k,self).__init__(n=172,order=1,dim=2)
 class Laplace2DOrder1_60k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder1_60k,self).__init__(n=248,order=1,dim=2)
-class Laplace2DOrder2_60k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder2_60k,self).__init__(n=124,order=2,dim=2)
+   def __init__(self):
+      super(Laplace2DOrder1_60k,self).__init__(n=244,order=1,dim=2)
 class Laplace2DOrder1_120k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder1_120k,self).__init__(n=349,order=1,dim=2)
-class Laplace2DOrder2_120k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder2_120k,self).__init__(n=175,order=2,dim=2)
+   def __init__(self):
+      super(Laplace2DOrder1_120k,self).__init__(n=345,order=1,dim=2)
 class Laplace2DOrder1_240k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder1_240k,self).__init__(n=492,order=1,dim=2)
-class Laplace2DOrder2_240k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder2_240k,self).__init__(n=246,order=2,dim=2)
+   def __init__(self):
+      super(Laplace2DOrder1_240k,self).__init__(n=489,order=1,dim=2)
 class Laplace2DOrder1_480k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder1_480k,self).__init__(n=694,order=1,dim=2)
-class Laplace2DOrder2_480k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder2_480k,self).__init__(n=347,order=2,dim=2)
+   def __init__(self):
+      super(Laplace2DOrder1_480k,self).__init__(n=692,order=1,dim=2)
 class Laplace2DOrder1_960k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder1_960k,self).__init__(n=978,order=1,dim=2)
+   def __init__(self):
+      super(Laplace2DOrder1_960k,self).__init__(n=979,order=1,dim=2)
+class Laplace2DOrder1_1920k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder1_1920k,self).__init__(n=1385,order=1,dim=2)
+class Laplace2DOrder1_3840k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder1_3840k,self).__init__(n=1959,order=1,dim=2)
+class Laplace2DOrder1_7680k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder1_7680k,self).__init__(n=2770,order=1,dim=2)
+class Laplace2DOrder1_15360k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder1_15360k,self).__init__(n=3918,order=1,dim=2)
+class Laplace2DOrder2_30k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_30k,self).__init__(n=86,order=2,dim=2)
+class Laplace2DOrder2_60k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_60k,self).__init__(n=122,order=2,dim=2)
+class Laplace2DOrder2_120k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_120k,self).__init__(n=173,order=2,dim=2)
+class Laplace2DOrder2_240k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_240k,self).__init__(n=244,order=2,dim=2)
+class Laplace2DOrder2_480k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_480k,self).__init__(n=346,order=2,dim=2)
 class Laplace2DOrder2_960k(LaplaceProblem):
-    def __init__(self):
-         super(Laplace2DOrder2_960k,self).__init__(n=489,order=2,dim=2)
+   def __init__(self):
+      super(Laplace2DOrder2_960k,self).__init__(n=489,order=2,dim=2)
+class Laplace2DOrder2_1920k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_1920k,self).__init__(n=692,order=2,dim=2)
+class Laplace2DOrder2_3840k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_3840k,self).__init__(n=979,order=2,dim=2)
+class Laplace2DOrder2_7680k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_7680k,self).__init__(n=1385,order=2,dim=2)
+class Laplace2DOrder2_15360k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace2DOrder2_15360k,self).__init__(n=1959,order=2,dim=2)
+class Laplace3DOrder1_30k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_30k,self).__init__(n=30,order=1,dim=3)
+class Laplace3DOrder1_60k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_60k,self).__init__(n=38,order=1,dim=3)
+class Laplace3DOrder1_120k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_120k,self).__init__(n=48,order=1,dim=3)
+class Laplace3DOrder1_240k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_240k,self).__init__(n=61,order=1,dim=3)
+class Laplace3DOrder1_480k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_480k,self).__init__(n=77,order=1,dim=3)
+class Laplace3DOrder1_960k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_960k,self).__init__(n=98,order=1,dim=3)
+class Laplace3DOrder1_1920k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_1920k,self).__init__(n=123,order=1,dim=3)
+class Laplace3DOrder1_3840k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_3840k,self).__init__(n=156,order=1,dim=3)
+class Laplace3DOrder1_7680k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_7680k,self).__init__(n=196,order=1,dim=3)
+class Laplace3DOrder1_15360k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder1_15360k,self).__init__(n=248,order=1,dim=3)
+class Laplace3DOrder2_30k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_30k,self).__init__(n=15,order=2,dim=3)
+class Laplace3DOrder2_60k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_60k,self).__init__(n=19,order=2,dim=3)
+class Laplace3DOrder2_120k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_120k,self).__init__(n=24,order=2,dim=3)
+class Laplace3DOrder2_240k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_240k,self).__init__(n=31,order=2,dim=3)
+class Laplace3DOrder2_480k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_480k,self).__init__(n=39,order=2,dim=3)
+class Laplace3DOrder2_960k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_960k,self).__init__(n=49,order=2,dim=3)
+class Laplace3DOrder2_1920k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_1920k,self).__init__(n=62,order=2,dim=3)
+class Laplace3DOrder2_3840k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_3840k,self).__init__(n=78,order=2,dim=3)
+class Laplace3DOrder2_7680k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_7680k,self).__init__(n=98,order=2,dim=3)
+class Laplace3DOrder2_15360k(LaplaceProblem):
+   def __init__(self):
+      super(Laplace3DOrder2_15360k,self).__init__(n=124,order=2,dim=3)
+
+if __name__=="__main__":
+   test=""
+   n0=30000
+   for d in [2,3]:
+     for o in [1,2]:
+        for i in range(10):
+             dofs=n0*2**i
+             n=int((float(dofs)**(1./float(d))-1)/o+0.5)
+             name="Laplace%sDOrder%s_%sk"%(d,o,dofs/1000)
+             print "class %s(LaplaceProblem):"%name
+             print "   def __init__(self):"
+             print "      super(%s,self).__init__(n=%s,order=%s,dim=%s)"%(name,n,o,d)
+             test+="addProblem(%s())\n"%name
+   print test
+
