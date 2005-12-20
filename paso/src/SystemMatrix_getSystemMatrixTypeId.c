@@ -28,7 +28,8 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, 
        break;
 
      case PASO_SCSL:
-       out= symmetry ? CSC_BLK1_SYM : CSC_BLK1;
+       /* out= symmetry ? CSC_BLK1_SYM : CSC_BLK1; */
+       out=CSC_BLK1;
        break;
 /*
      case PASO_MKL:
