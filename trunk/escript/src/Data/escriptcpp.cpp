@@ -22,6 +22,7 @@
 #include "escript/Data/DataFactory.h"
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "escript/Data/AbstractDomain.h"
+#include "escript/Data/Utils.h"
 #include "esysUtils/esysExceptionTranslator.h"
 
 #include <boost/python.hpp>
@@ -69,6 +70,8 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(escriptcpp)
 {
+  def("setNumberOfThreads",escript::setNumberOfThreads);
+  def("getNumberOfThreads",escript::getNumberOfThreads);
 
   //
   // Interface for AbstractDomain
