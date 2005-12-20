@@ -41,6 +41,7 @@ sources = ['AbstractContinuousDomain.cpp',
            'FunctionSpaceFactory.cpp',
            'NullDomain.cpp',
            'Taipan.cpp',
+           'Utils.cpp',
            'escriptcpp.cpp']
 
 lib_path = [esysUtils_lib_path,
