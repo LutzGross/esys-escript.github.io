@@ -120,7 +120,12 @@ class BenchmarkSuite(object):
            out+=self[i].getHTML(filter=filter,level=min(level+1,self.MAX_LEVEL))
            out+="<p>\n"
        if level==1:
-           out+="<hr><p align=\"center\">by %s at %s</p>\n"%(os.getlogin(),time.strftime('%X %x %Z'))
+           try: 
+               name=os.getlogin()
+               out+="<hr><p align=\"center\">by %s at %s</p>\n"%(name,time.strftime('%X %x %Z'))
+           except OSError:
+               out+="<hr><p align=\"center\">%s</p>\n"%(time.strftime('%X %x %Z'))
+              
            out+="</BODY></HTML>\n"
        return out
 
