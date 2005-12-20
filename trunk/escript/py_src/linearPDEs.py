@@ -449,6 +449,7 @@ class LinearPDE(object):
    __METHOD_KEY="method"
    __SYMMETRY_KEY="symmetric"
    __TOLERANCE_KEY="tolerance"
+   __PRECONDITIONER_KEY="preconditioner"
 
 
    def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
@@ -498,6 +499,7 @@ class LinearPDE(object):
      self.__tolerance=1.e-8
      self.__solver_method=self.DEFAULT
      self.__solver_package=self.DEFAULT
+     self.__preconditioner=self.DEFAULT
      self.__matrix_type=self.__domain.getSystemMatrixTypeId(self.DEFAULT,self.DEFAULT,False)
      self.__sym=False
 
@@ -772,8 +774,6 @@ class LinearPDE(object):
        @type verbose: C{bool}
        @keyword reordering: reordering scheme to be used during elimination. Allowed values are
                             L{NO_REORDERING}, L{MINIMUM_FILL_IN}, L{NESTED_DISSECTION}
-       @keyword preconditioner: preconditioner method to be used. Allowed values are
-                                L{SSOR}, L{ILU0}, L{ILUT}, L{JACOBI}
        @keyword iter_max: maximum number of iteration steps allowed.
        @keyword drop_tolerance: threshold for drupping in L{ILUT}
        @keyword drop_storage: maximum of allowed memory in L{ILUT}
@@ -786,7 +786,8 @@ class LinearPDE(object):
              self.__solution=self.copyConstraint(f*mat)
           else:
              options[self.__TOLERANCE_KEY]=self.getTolerance()
-             options[self.__METHOD_KEY]=self.getSolverMethod()
+             options[self.__METHOD_KEY]=self.getSolverMethod()[0]
+             options[self.__PRECONDITIONER_KEY]=self.getSolverMethod()[1]
              options[self.__PACKAGE_KEY]=self.getSolverPackage()
              options[self.__SYMMETRY_KEY]=self.isSymmetric()
              self.trace("PDE is resolved.")
@@ -815,16 +816,20 @@ class LinearPDE(object):
    # =============================================================================
    #   solver settings:
    # =============================================================================
-   def setSolverMethod(self,solver=None):
+   def setSolverMethod(self,solver=None,preconditioner=None):
        """
        sets a new solver
 
        @param solver: sets a new solver method.
        @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{PRES20}, L{LUMPING}.
+       @param preconditioner: sets a new solver method.
+       @type solver: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}
        """
        if solver==None: solve=self.DEFAULT
-       if not solver==self.getSolverMethod():
+       if preconditioner==None: preconditioner=self.DEFAULT
+       if not (solver,preconditioner)==self.getSolverMethod():
            self.__solver_method=solver
+           self.__preconditioner=preconditioner
            self.__checkMatrixType()
            self.trace("New solver is %s"%self.getSolverMethodName())
 
@@ -838,19 +843,25 @@ class LinearPDE(object):
 
        m=self.getSolverMethod()
        p=self.getSolverPackage()
-       if m==self.DEFAULT: method="DEFAULT"
-       elif m==self.DIRECT: method= "DIRECT"
-       elif m==self.ITERATIVE: method= "ITERATIVE"
-       elif m==self.CHOLEVSKY: method= "CHOLEVSKY"
-       elif m==self.PCG: method= "PCG"
-       elif m==self.CR: method= "CR"
-       elif m==self.CGS: method= "CGS"
-       elif m==self.BICGSTAB: method= "BICGSTAB"
-       elif m==self.SSOR: method= "SSOR"
-       elif m==self.GMRES: method= "GMRES"
-       elif m==self.PRES20: method= "PRES20"
-       elif m==self.LUMPING: method= "LUMPING"
+       if m[0]==self.DEFAULT: method="DEFAULT"
+       elif m[0]==self.DIRECT: method= "DIRECT"
+       elif m[0]==self.ITERATIVE: method= "ITERATIVE"
+       elif m[0]==self.CHOLEVSKY: method= "CHOLEVSKY"
+       elif m[0]==self.PCG: method= "PCG"
+       elif m[0]==self.CR: method= "CR"
+       elif m[0]==self.CGS: method= "CGS"
+       elif m[0]==self.BICGSTAB: method= "BICGSTAB"
+       elif m[0]==self.SSOR: method= "SSOR"
+       elif m[0]==self.GMRES: method= "GMRES"
+       elif m[0]==self.PRES20: method= "PRES20"
+       elif m[0]==self.LUMPING: method= "LUMPING"
        else : method="unknown"
+       if m[1]==self.DEFAULT: method+="DEFAULT"
+       elif m[1]==self.JACOBI: method+= "JACOBI"
+       elif m[1]==self.ILU0: method+= "ILU0"
+       elif m[1]==self.ILUT: method+= "ILUT"
+       elif m[1]==self.SSOR: method+= "SSOR"
+       else : method+="unknown"
        if p==self.DEFAULT: package="DEFAULT"
        elif p==self.PASO: package= "PASO"
        elif p==self.MKL: package= "MKL"
@@ -867,7 +878,7 @@ class LinearPDE(object):
        @return: the solver method currently be used.
        @rtype: C{int}
        """
-       return self.__solver_method
+       return self.__solver_method,self.__preconditioner
 
    def setSolverPackage(self,package=None):
        """
@@ -898,7 +909,7 @@ class LinearPDE(object):
       @return: True is lumping is currently used a solver method.
       @rtype: C{bool}
       """
-      return self.getSolverMethod()==self.LUMPING
+      return self.getSolverMethod()[0]==self.LUMPING
 
    def setTolerance(self,tol=1.e-8):
        """
@@ -1091,7 +1102,7 @@ class LinearPDE(object):
      """
      reassess the matrix type and, if a new matrix is needed, resets the system.
      """
-     new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod(),self.getSolverPackage(),self.isSymmetric())
+     new_matrix_type=self.getDomain().getSystemMatrixTypeId(self.getSolverMethod()[0],self.getSolverPackage(),self.isSymmetric())
      if not new_matrix_type==self.__matrix_type:
          self.trace("Matrix type is now %d."%new_matrix_type)
          self.__matrix_type=new_matrix_type
