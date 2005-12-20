@@ -90,7 +90,7 @@ class BenchmarkSuite(object):
 
        @param scale: defines the number of (OpenMP) threads to be used. If scale is a scalar all benchmarks 
                      are run with scale number of threads. If scale is a C{list}, the p-th problem in each of the benchmarks
-                     in the suite is run with scale[p] threads.
+                     in the suite is run with scale[p] threads. If scale[p]<1 teh p-th problem is omitted.
        @type scale: C{int} or C{list} of C{int}s. 
        """
        self.__scale=scale       
@@ -183,7 +183,7 @@ class Benchmark(object):
 
        @param scale: defines the number of (OpenMP) threads to be used. If scale is a scalar all benchmarks 
                      are run with scale number of threads. If scale is a C{list}, the p-th problem in each of the benchmarks
-                     in the suite is run with scale[p] threads. 
+                     in the suite is run with scale[p] threads. If scale[p]<1 teh p-th problem is omitted.
        @type scale: C{int} or C{list} of C{int}s. 
        """
        if isinstance(scale,list):
@@ -200,9 +200,10 @@ class Benchmark(object):
           else:
              s=scale
           row=[]
-          for p in self.__options:
-              os.environ['OMP_NUM_TREADS']=str(s)
-              row.append(r.run(p))
+          if s>0:
+              for p in self.__options:
+                  os.environ['OMP_NUM_THREADS']=str(s)
+                  row.append(r.run(p))
           self.__results.append(row)
    def getHTML(self,filter,level=1):
        """
