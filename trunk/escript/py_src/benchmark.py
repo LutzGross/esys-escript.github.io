@@ -27,6 +27,7 @@ __version__="$Revision:$"
 __date__="$Date:$"
 
 import os,socket,time,sys
+from esys.escript import setNumberOfThreads
 
 class BenchmarkSuite(object):
    """
@@ -207,7 +208,7 @@ class Benchmark(object):
           row=[]
           if s>0:
               for p in self.__options:
-                  os.environ['OMP_NUM_THREADS']=str(s)
+                  setNumberOfThreads(s)
                   row.append(r.run(p))
           self.__results.append(row)
    def getHTML(self,filter,level=1):
