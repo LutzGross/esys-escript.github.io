@@ -5,7 +5,27 @@ from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
 from esys import finley
 
-class RectangularDomain(Model):
+class FinleyReader(ParameterSet):
+       """
+       Generates a mesh over a rectangular domain finley.
+
+       @ivar filename:
+       @ivar intergrationOrder
+       @ivar domain: 
+       """
+       def __init__(self,debug=False):
+           Model.__init__(self,debug=debug)
+           self.declareParameter(source="none",\
+                                 integrationOrder=-1)
+           self._domain=None
+
+       def domain(self):
+          if self._domain==None:
+              self._domain=finley.ReadMesh(self.source,integrationOrder) 
+              self.trace("mesh read from %s"%self.source)           
+          return self.domain
+                       
+class RectangularDomain(ParameterSet):
        """
        Generates a mesh over a rectangular domain finley.
 
@@ -15,7 +35,7 @@ class RectangularDomain(Model):
        @ivar order:
        @ivar periodic:
        @ivar intergration order:
-       @ivar domain (callable):
+       @ivar domain: 
        """
        def __init__(self,debug=False):
            Model.__init__(self,debug=debug)
