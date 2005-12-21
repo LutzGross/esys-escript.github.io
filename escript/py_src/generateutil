@@ -616,6 +616,260 @@ def testReduce(arg0,init_val,test_expr,post_expr):
              for i3 in range(arg0.shape[3]):
                out=eval(test_expr.replace("%a1%","arg0[i0,i1,i2,i3]"))          
      return eval(post_expr)
+     
+def clipTEST(arg0,mn,mx):
+     if isinstance(arg0,float):
+          return max(min(arg0,mx),mn)
+     out=numarray.zeros(arg0.shape,numarray.Float64)
+     if arg0.rank==1:
+        for i0 in range(arg0.shape[0]):
+            out[i0]=max(min(arg0[i0],mx),mn)
+     elif arg0.rank==2:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+            out[i0,i1]=max(min(arg0[i0,i1],mx),mn)
+     elif arg0.rank==3:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+              out[i0,i1,i2]=max(min(arg0[i0,i1,i2],mx),mn)
+     elif arg0.rank==4:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+                out[i0,i1,i2,i3]=max(min(arg0[i0,i1,i2,i3],mx),mn)
+     return out
+def minimumTEST(arg0,arg1):
+     if isinstance(arg0,float):
+       if isinstance(arg1,float):
+          if arg0>arg1:
+              return arg1
+          else:
+              return arg0
+       else:
+          arg0=numarray.ones(arg1.shape)*arg0
+     else:
+       if isinstance(arg1,float):
+          arg1=numarray.ones(arg0.shape)*arg1
+     out=numarray.zeros(arg0.shape,numarray.Float64)
+     if arg0.rank==0:
+          if arg0>arg1:
+              out=arg1
+          else:
+              out=arg0
+     elif arg0.rank==1:
+        for i0 in range(arg0.shape[0]):
+          if arg0[i0]>arg1[i0]:
+              out[i0]=arg1[i0]
+          else:
+              out[i0]=arg0[i0]
+     elif arg0.rank==2:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+          if arg0[i0,i1]>arg1[i0,i1]:
+              out[i0,i1]=arg1[i0,i1]
+          else:
+              out[i0,i1]=arg0[i0,i1]
+     elif arg0.rank==3:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             if arg0[i0,i1,i2]>arg1[i0,i1,i2]:
+              out[i0,i1,i2]=arg1[i0,i1,i2]
+             else:
+              out[i0,i1,i2]=arg0[i0,i1,i2]
+     elif arg0.rank==4:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              if arg0[i0,i1,i2,i3]>arg1[i0,i1,i2,i3]:
+               out[i0,i1,i2,i3]=arg1[i0,i1,i2,i3]
+              else:
+               out[i0,i1,i2,i3]=arg0[i0,i1,i2,i3]
+     return out
+
+
+#=======================================================================================================
+# clip
+#=======================================================================================================
+oper_L=[["clip",clipTEST]]
+for oper in oper_L:
+ for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+        if len(sh0)==0 or not case0=="float":
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s"%(oper[0],case0,len(sh0))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+              else:
+                  a1_0=a_0
+
+              r=oper[1](a_0,-0.3,0.5)
+              r1=oper[1](a1_0,-0.3,0.5)
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg,-0.3,0.5)\n"%oper[0]
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case0,sh0,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+#=======================================================================================================
+# maximum, minimum, clipping
+#=======================================================================================================
+oper_L=[ ["maximum",maximumTEST],
+         ["minimum",minimumTEST]]
+for oper in oper_L:
+ for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh1 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+   for case1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
+     for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+        if (len(sh0)==0 or not case0=="float") and (len(sh1)==0 or not case1=="float") \
+           and (sh0==sh1 or len(sh0)==0 or len(sh1)==0) :
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh1,[-1.,1])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh1,[-1.,1])
+              else:
+                  a1_1=a_1
+              r=oper[1](a_0,a_1)
+              r1=oper[1](a1_0,a1_1)
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+="      res=%s(arg0,arg1)\n"%oper[0]
+              case=getResultCaseForBin(case0,case1)              
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              if len(sh0)>len(sh1):
+                  text+=mkTypeAndShapeTest(case,sh0,"res")
+              else:
+                  text+=mkTypeAndShapeTest(case,sh1,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" or case1 == "taggedData":
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+
+#=======================================================================================================
+# outer inner
+#=======================================================================================================
+oper=["outer",outerTEST]
+# oper=["inner",innerTEST]
+for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh1 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+   for case1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
+     for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+        if (len(sh0)==0 or not case0=="float") and (len(sh1)==0 or not case1=="float") \
+           and len(sh0+sh1)<5:  
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh1,[-1.,1])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh1,[-1.,1])
+              else:
+                  a1_1=a_1
+              r=oper[1](a_0,a_1)
+              r1=oper[1](a1_0,a1_1)
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+="      res=%s(arg0,arg1)\n"%oper[0]
+              case=getResultCaseForBin(case0,case1)              
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case,sh0+sh1,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" or case1 == "taggedData":
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
 #=======================================================================================================
 # local reduction
 #=======================================================================================================
@@ -730,71 +984,6 @@ for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]:
                   t_prog_with_tags+=text
               else:              
                   t_prog+=text
-print test_header
-# print t_prog
-print t_prog_with_tags
-print test_tail           
-1/0
-#=======================================================================================================
-# outer/inner
-#=======================================================================================================
-oper=["inner",innerTEST]
-# oper=["outer",outerTEST]
-for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
-  for sh1 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
-   for case1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
-     for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
-        if (len(sh0)==0 or not case0=="float") and (len(sh1)==0 or not case1=="float") \
-           and len(sh0+sh1)<5:  
-              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
-
-              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-              tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
-              text+="   def %s(self):\n"%tname
-              a_0=makeArray(sh0,[-1.,1])
-              if case0 in ["taggedData", "expandedData"]:
-                  a1_0=makeArray(sh0,[-1.,1])
-              else:
-                  a1_0=a_0
-
-              a_1=makeArray(sh1,[-1.,1])
-              if case1 in ["taggedData", "expandedData"]:
-                  a1_1=makeArray(sh1,[-1.,1])
-              else:
-                  a1_1=a_1
-              r=oper[1](a_0,a_1)
-              r1=oper[1](a1_0,a1_1)
-              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
-              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
-              text+="      res=%s(arg0,arg1)\n"%oper[0]
-              case=getResultCaseForBin(case0,case1)              
-              if case=="Symbol":
-                 c0_res,c1_res=case0,case1
-                 subs="{"
-                 if case0=="Symbol":         
-                    text+=mkText("array","s0",a_0,a1_0)
-                    subs+="arg0:s0"
-                    c0_res="array"
-                 if case1=="Symbol":         
-                    text+=mkText("array","s1",a_1,a1_1)
-                    if not subs.endswith("{"): subs+="," 
-                    subs+="arg1:s1"
-                    c1_res="array"
-                 subs+="}"  
-                 text+="      sub=res.substitute(%s)\n"%subs
-                 res="sub"
-                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
-              else:
-                 res="res"
-                 text+=mkText(case,"ref",r,r1)
-              text+=mkTypeAndShapeTest(case,sh0+sh1,"res")
-              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
-              
-              if case0 == "taggedData" or case1 == "taggedData":
-                  t_prog_with_tags+=text
-              else:              
-                  t_prog+=text
-
 print test_header
 # print t_prog
 print t_prog_with_tags

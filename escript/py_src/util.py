@@ -364,9 +364,17 @@ def testForZero(arg):
     @return : True if the argument is identical to zero.
     @rtype : C{bool}
     """
-    try:
+    if isinstance(arg,numarray.NumArray):
        return not Lsup(arg)>0.
-    except TypeError:
+    elif isinstance(arg,escript.Data):
+       return False
+    elif isinstance(arg,float):
+       return not Lsup(arg)>0.
+    elif isinstance(arg,int):
+       return not Lsup(arg)>0.
+    elif isinstance(arg,Symbol):
+       return False
+    else:
        return False
 
 def matchType(arg0=0.,arg1=0.):
@@ -908,13 +916,9 @@ def wherePositive(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      if arg.rank==0:
-         if arg>0:
-           return numarray.array(1.)
-         else:
-           return numarray.array(0.)
-      else:
-         return numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))
+      out=numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))
+      if isinstance(out,float): out=numarray.array(out)
+      return out
    elif isinstance(arg,escript.Data):
       return arg._wherePositive()
    elif isinstance(arg,float):
@@ -994,13 +998,9 @@ def whereNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      if arg.rank==0:
-         if arg<0:
-           return numarray.array(1.)
-         else:
-           return numarray.array(0.)
-      else:
-         return numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))
+      out=numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))
+      if isinstance(out,float): out=numarray.array(out)
+      return out
    elif isinstance(arg,escript.Data):
       return arg._whereNegative()
    elif isinstance(arg,float):
@@ -1080,13 +1080,9 @@ def whereNonNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      if arg.rank==0:
-         if arg<0:
-           return numarray.array(0.)
-         else:
-           return numarray.array(1.)
-      else:
-         return numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))
+      out=numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))
+      if isinstance(out,float): out=numarray.array(out)
+      return out
    elif isinstance(arg,escript.Data):
       return arg._whereNonNegative()
    elif isinstance(arg,float):
@@ -1114,13 +1110,9 @@ def whereNonPositive(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      if arg.rank==0:
-         if arg>0:
-           return numarray.array(0.)
-         else:
-           return numarray.array(1.)
-      else:
-         return numarray.less_equal(arg,numarray.zeros(arg.shape,numarray.Float))*1.
+      out=numarray.less_equal(arg,numarray.zeros(arg.shape,numarray.Float))*1.
+      if isinstance(out,float): out=numarray.array(out)
+      return out
    elif isinstance(arg,escript.Data):
       return arg._whereNonPositive()
    elif isinstance(arg,float):
@@ -1150,13 +1142,9 @@ def whereZero(arg,tol=0.):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      if arg.rank==0:
-         if abs(arg)<=tol:
-           return numarray.array(1.)
-         else:
-           return numarray.array(0.)
-      else:
-         return numarray.less_equal(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
+      out=numarray.less_equal(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
+      if isinstance(out,float): out=numarray.array(out)
+      return out
    elif isinstance(arg,escript.Data):
       if tol>0.:
          return whereNegative(abs(arg)-tol)
@@ -1237,13 +1225,9 @@ def whereNonZero(arg,tol=0.):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      if arg.rank==0:
-        if abs(arg)>tol:
-           return numarray.array(1.)
-        else:
-           return numarray.array(0.)
-      else:
-         return numarray.greater(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
+      out=numarray.greater(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
+      if isinstance(out,float): out=numarray.array(out)
+      return out
    elif isinstance(arg,escript.Data):
       if tol>0.:
          return 1.-whereZero(arg,tol)
@@ -3305,11 +3289,11 @@ def maximum(*args):
        if out==None:
           out=a
        else:
-          m=whereNegative(out-a)
-          out=m*a+(1.-m)*out
+          diff=add(a,-out)
+          out=add(out,mult(wherePositive(diff),diff))
     return out
    
-def minimum(*arg):
+def minimum(*args):
     """
     the minimum over arguments args
  
@@ -3323,8 +3307,8 @@ def minimum(*arg):
        if out==None:
           out=a
        else:
-          m=whereNegative(out-a)
-          out=m*out+(1.-m)*a
+          diff=add(a,-out)
+          out=add(out,mult(whereNegative(diff),diff))
     return out
 
 def clip(arg,minval=0.,maxval=1.):
