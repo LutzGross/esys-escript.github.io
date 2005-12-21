@@ -225,9 +225,10 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       arg=numarray.array(-15.0739210922)
       res=wherePositive(arg)
       ref=numarray.array(0.0)
-      if not isinstance(res,float):
-         self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      if isinstance(res,numarray.NumArray):
          self.failUnlessEqual(res.shape,(),"wrong shape of result.")
+      else:
+         self.failUnless(isinstance(res,float),"wrong type of result.")
       self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_wherePositive_array_rank1(self):
