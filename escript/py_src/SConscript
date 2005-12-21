@@ -26,9 +26,18 @@ python_src = ['__init__.py',
               'test_symbols.py',
               'timeseries.py',
               'test_linearPDEs.py',
+              'util.py',
               'test_util.py',
-              'benchmark.py',
-              'util.py']
+              'test_util_base.py',
+              'test_util_overloaded_binary_no_tagged_data.py',
+              'test_util_reduction_with_tagged_data.py',
+              'test_util_binary_no_tagged_data.py',
+              'test_util_overloaded_binary_with_tagged_data.py',
+              'test_util_unary_no_tagged_data.py',
+              'test_util_binary_with_tagged_data.py',
+              'test_util_reduction_no_tagged_data.py',
+              'test_util_unary_with_tagged_data.py',
+              'benchmark.py']
 
 pyc = escriptpy_env.PyCompile(python_src)
 
