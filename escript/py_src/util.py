@@ -912,7 +912,7 @@ def wherePositive(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))
+      out=numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))*1.
       if isinstance(out,float): out=numarray.array(out)
       return out
    elif isinstance(arg,escript.Data):
@@ -994,7 +994,7 @@ def whereNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))
+      out=numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))*1.
       if isinstance(out,float): out=numarray.array(out)
       return out
    elif isinstance(arg,escript.Data):
@@ -1076,7 +1076,7 @@ def whereNonNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))
+      out=numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))*1.
       if isinstance(out,float): out=numarray.array(out)
       return out
    elif isinstance(arg,escript.Data):
