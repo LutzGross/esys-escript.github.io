@@ -43,10 +43,6 @@ import os
 # def matchType(arg0=0.,arg1=0.):
 # def matchShape(arg0,arg1):
 
-# def maximum(arg0,arg1):
-# def minimum(arg0,arg1):
-# def clip(arg,minval,maxval)
-
 # def transpose(arg,axis=None):
 # def trace(arg,axis0=0,axis1=1):
 # def reorderComponents(arg,index):
@@ -3319,11 +3315,12 @@ def clip(arg,minval=0.,maxval=1.):
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
     @param minval: lower range 
     @type arg: C{float}
-    @param maxval: uper range 
+    @param maxval: upper range 
     @type arg: C{float}
     @return: is on object with all its value between minval and maxval. value of the argument that greater then minval and
              less then maxval are unchanged.
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float} depending on the input
+    @raise ValueError: if minval>maxval
     """
     if minval>maxval:
        raise ValueError,"minval = %s must be less then maxval %s"%(minval,maxval)
