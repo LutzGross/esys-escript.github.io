@@ -49,7 +49,8 @@ class TimeIntegrationManager:
 
   def getTime(self):
       return self.__t
-
+  def getValue(self):
+      return self.__v_mem[0]
   def checkin(self,dt,*values):
       """
       adds new values to the manager. the p+1 last value get lost
@@ -84,6 +85,7 @@ class TimeIntegrationManager:
          return out[0]
       else:
          return out
+ 
 
 class Projector:
   """
