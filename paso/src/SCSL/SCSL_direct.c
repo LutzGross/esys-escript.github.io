@@ -51,21 +51,21 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
   long long non_zeros;
   double ops;
 
-  if (options->symmetric) {
+  if (A->type!=CSC_SYM) {
       method=PASO_CHOLEVSKY;
   } else {
       method=PASO_DIRECT;
   }
   if (A->col_block_size!=1) {
-      Paso_setError(TYPE_ERROR,"__FILE__: linear solver can only be applied to block size 1.");
+      Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: linear solver can only be applied to block size 1.");
   }
   if (method==PASO_CHOLEVSKY) {
       if (A->type!=CSC_SYM) {
-          Paso_setError(TYPE_ERROR,"__FILE__: direct solver for symmetric matrices can only be applied to symmetric CSC format.");
+          Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: direct solver for symmetric matrices can only be applied to symmetric CSC format.");
       }
   } else {
       if (A->type!=CSC) {
-          Paso_setError(TYPE_ERROR,"__FILE__: direct solver can only be applied to CSC format.");
+          Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: direct solver can only be applied to CSC format.");
       }
   }
   method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
@@ -76,7 +76,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
         /* find the next available token */
        for(token=0;token<l && TokenList[token]!=0;token++);
         if (token==l) {
-            Paso_setError(TYPE_ERROR,"__FILE__: limit of number of matrices reached.");
+            Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: limit of number of matrices reached.");
         } else {
           TokenList[token] = 1;
           TokenSym[token]=(method==PASO_CHOLEVSKY);
@@ -120,7 +120,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
      if (options->verbose) printf("timing SCSL: solve: %.4e sec (token = %d)\n",Paso_timer()-time0,token);
    }
 #else
-    Paso_setError(SYSTEM_ERROR,"__FILE__:SCSL is not avialble.");
+    Paso_setError(SYSTEM_ERROR,"Paso_SCSL_direct:SCSL is not avialble.");
 #endif
 }
 /*
