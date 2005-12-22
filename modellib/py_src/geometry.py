@@ -73,6 +73,49 @@ class RectangularDomain(ParameterSet):
 
           return self._domain
 
+class ConstrainValue(Model):
+       """
+       selects values for a given distribution to be used as a constrain. the location of the
+       constrain are he faces of a rectangular domain. This Model is typically used in 
+       time dependend problems to fix the values in a given initial condition.
+       """
+       def __init__(self,debug=False):
+           Model.__init__(self,debug=debug)
+           self.declareParameter(domain=None, \
+                                 value=0,  \
+                                 top=True,  \
+                                 bottom=True,\
+                                 front=False, \
+                                 back=False,\
+                                 left=False,\
+                                 right=False,\
+                                 constrain_value = None,  \
+                                 location_constrained_value=None)
+       def doInitialization(self):
+           """
+           initialize time stepping
+           """
+           x=self.domain.getX()
+           d=self.domain.getDim()
+           self.location_constrained_value=0
+           x0=x[0]
+           if self.left: 
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-inf(x0))
+           if self.right: 
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))
+           x0=x[d-1]
+           if self.buttom: 
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-inf(x0))
+           if self.top: 
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))
+           if d>2:
+              x0=x[1]
+              if self.front: 
+                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-inf(x0))
+              if self.back: 
+                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))           
+           self.constrain_value=self.value*self.location_constrained_value
+           
 class ScalarConstrainer(ParameterSet):
      """
      Creates a characteristic function for the location of constraints 
