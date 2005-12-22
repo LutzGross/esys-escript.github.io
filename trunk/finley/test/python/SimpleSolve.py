@@ -113,7 +113,7 @@ print "----------------------------"
 
 print "\nDirect Solver (2)=>"
 
-#mypde.setSymmetryOn() 
+mypde.setSymmetryOn() 
 mypde.setTolerance(1.e-13)
 
 # mypde.setSymmetryOn() : is not woking yet!
@@ -122,7 +122,6 @@ u_d=mypde.getSolution(verbose=True)
 
 print "\nIterative Solver (2)=>"
 
-mypde.setSymmetryOn() 
 mypde.setSolverMethod(mypde.ITERATIVE)
 u_i=mypde.getSolution(verbose=True,iter_max=3000)
 
