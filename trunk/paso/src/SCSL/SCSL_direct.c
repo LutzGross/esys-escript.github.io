@@ -51,7 +51,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
   long long non_zeros;
   double ops;
 
-  if (A->type!=CSC_SYM) {
+  if (A->type==CSC_SYM) {
       method=PASO_CHOLEVSKY;
   } else {
       method=PASO_DIRECT;
