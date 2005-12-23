@@ -105,7 +105,7 @@ class ConstrainValue(Model):
            if self.right: 
                self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))
            x0=x[d-1]
-           if self.buttom: 
+           if self.bottom: 
                self.location_constrained_value=self.location_constrained_value+whereZero(x0-inf(x0))
            if self.top: 
                self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))
