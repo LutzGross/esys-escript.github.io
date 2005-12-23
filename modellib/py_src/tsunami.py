@@ -1126,6 +1126,10 @@ class SurfMovie(Model):
              # vtkobj=...
              # save(self.__frame_name)
 
+	     # check that the file actually exists
+	     if not os.path.exists(self.__fn):
+		 raise IOError, "File not found: %s" % self.__fn
+
              # make a reader for the data
              waveReader = vtk.vtkXMLUnstructuredGridReader()
              waveReader.SetFileName(self.__fn)
