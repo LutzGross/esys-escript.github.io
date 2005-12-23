@@ -14,16 +14,17 @@ class FinleyReader(ParameterSet):
        @ivar domain: 
        """
        def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+           super(FinleyReader,self).__init__(debug=debug)
+           ParameterSet.__init__(self,debug=debug)
            self.declareParameter(source="none",\
                                  integrationOrder=-1)
            self._domain=None
 
        def domain(self):
           if self._domain==None:
-              self._domain=finley.ReadMesh(self.source,integrationOrder) 
+              self._domain=finley.ReadMesh(self.source,self.integrationOrder) 
               self.trace("mesh read from %s"%self.source)           
-          return self.domain
+          return self._domain
                        
 class RectangularDomain(ParameterSet):
        """
@@ -38,7 +39,7 @@ class RectangularDomain(ParameterSet):
        @ivar domain: 
        """
        def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+           super(RectangularDomain,self).__init__(debug=debug)
            self.declareParameter(dim=2,\
                                  l=[1.,1.,1.],\
                                  n=[10,10,10], \
