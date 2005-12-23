@@ -50,7 +50,12 @@ class TimeIntegrationManager:
   def getTime(self):
       return self.__t
   def getValue(self):
-      return self.__v_mem[0]
+      out=self.__v_mem[0]
+      if len(out)==1:
+          return out[0]
+      else:
+          return out
+
   def checkin(self,dt,*values):
       """
       adds new values to the manager. the p+1 last value get lost
