@@ -2339,11 +2339,11 @@ class AdvectionDiffusion(LinearPDE):
      @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
      """
      if name == "A" :
-         return self.getCoefficient("k")+outer(self.getCoefficient("upwind"),self.getCoefficient("upwind"))
+         return self.getCoefficient("k")+util.outer(self.getCoefficient("upwind"),self.getCoefficient("upwind"))
      elif name == "B" :
          return escript.Data()
      elif name == "C" :
-         return escript.getCoefficient("v")
+         return self.getCoefficient("v")
      elif name == "D" :
          return self.getCoefficient("omega")
      elif name == "X" :
