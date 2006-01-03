@@ -15,15 +15,15 @@
 #include "Solvers/Solver.h"
 
 #ifdef SCSL
-#include "SCSL/SCSL.h"
+#include "SCSL.h"
 #endif
 
 #ifdef MKL
-#include "MKL/MKL.h"
+#include "MKL.h"
 #endif
 
 #ifdef UMFPACK
-#include "UFMPACK/UMFPACK.h"
+#include "UMFPACK.h"
 #endif
 
 /**************************************************************/
