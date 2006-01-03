@@ -6,12 +6,10 @@ import os
 import string
 
 paso_path = str(esysroot) + '/paso/src'
-scsl_path = str(esysroot) + '/paso/src/SCSL'
 solvers_path = str(esysroot) + '/paso/src/Solvers'
 mmio_path = str(esysroot) + '/tools/mmio/inc'
 
 cpp_path = [paso_path,
-            scsl_path,
             solvers_path,
             mmio_path,
             python_path,
@@ -39,9 +37,9 @@ sources = ['Options_getPackage.c',
            'SystemMatrix_saveMM.c',
            'SystemMatrix_setValues.c',
            'Util.c',
-           'SCSL/SCSL.c',
-           'SCSL/SCSL_direct.c',
-           'SCSL/SCSL_iterative.c',
+           'SCSL.c',
+           'SCSL_direct.c',
+           'SCSL_iterative.c',
            'Solvers/BiCGStab.c',
            'Solvers/GMRES.c',
            'Solvers/PCG.c',
