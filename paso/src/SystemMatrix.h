@@ -6,7 +6,7 @@
 
 /**************************************************************/
 
-/*   Copyrights by ACcESS Australia 2003,2004,2005 */
+/*   Copyrights by ACcESS Australia 2003,2004,2005,2006 */
 /*   Author: gross@access.edu.au */
 
 /**************************************************************/
@@ -22,16 +22,21 @@
 
 /*  this struct holds a stiffness matrix: */
 
+#define FORMAT_CSR 1
+#define FORMAT_SYM 2
+#define FORMAT_BLK1 4
+#define FORMAT_INDEX1 8
+
 /* matrix type */
 #define  CSC 0
-#define  CSR 1
+#define  CSR FORMAT_CSR
 /* these formats are used in the SCSL context */
-#define  CSC_SYM 2
-#define  CSR_SYM 3
-#define  CSC_BLK1 4
-#define  CSR_BLK1 5
-#define  CSC_BLK1_SYM 6
-#define  CSR_BLK1_SYM 7
+#define  CSC_SYM FORMAT_SYM
+#define  CSR_SYM (FORMAT_CSR+FORMAT_SYM)
+#define  CSC_BLK1 FORMAT_BLK1
+#define  CSR_BLK1 (FORMAT_CSR+FORMAT_BLK1)
+#define  CSC_BLK1_SYM (FORMAT_BLK1+FORMAT_SYM)
+#define  CSR_BLK1_SYM (FORMAT_CSR+FORMAT_BLK1+FORMAT_SYM)
 
 typedef int Paso_SystemMatrixType;
 
