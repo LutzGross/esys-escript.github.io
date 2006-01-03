@@ -3568,8 +3568,10 @@ def escript_generalTensorProduct(arg0,arg1,offset): # this should be escript._ge
     if not shape01==shape10:
         raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(offset,offset) 
 
+    # whatr function space should be used? (this here is not good!)
+    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionspace()
     # create return value:
-    out=escript.Data(0.,tuple(shape0+shape1),arg0.getFunctionSpace())
+    out=escript.Data(0.,tuple(shape0+shape1),fs)
     # 
     s0=[[]]
     for k in shape0: 
@@ -3592,7 +3594,7 @@ def escript_generalTensorProduct(arg0,arg1,offset): # this should be escript._ge
 
     for i0 in s0:
        for i1 in s1:
-         s=escript.Scalar(0.,arg0.getFunctionSpace())
+         s=escript.Scalar(0.,fs)
          for i01 in s01:
             s+=arg0.__getitem__(tuple(i0+i01))*arg1.__getitem__(tuple(i01+i1))
          out.__setitem__(tuple(i0+i1),s)
