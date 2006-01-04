@@ -18,6 +18,8 @@ some benchmarks for tetsing the finley solver. The idea is to develop a set of s
   * Laplace3Dorder1_?k
   * Laplace3Dorder2_?k
 
+
+
 where ? is approximatively the number of unknowns in 1000.
 
 @var __author__: name of author
@@ -248,6 +250,47 @@ class LaplaceProblem(RegularFinleyProblem):
          pde.setValue(A=kronecker(domain),q=msk,r=u)
          return pde,u
 
+class AnisotropicProblem(RegularFinleyProblem):
+    """
+    base class for the Anisotropic scalar problem on a rectangular mesh
+    """
+    def __init__(self,n,order,dim,gamma,c):
+        self.c=c
+        self.gamma=gamma
+        super(AnisotropicProblem,self).__init__(n,order,dim)
+
+
+    def getTestProblem(self,domain):
+         """
+         returns a PDE and a test solution on the given domain
+     
+         @param doamin: a domain
+         @type domain: L{escript.Domain}
+         @return: the Laplace equation and a test solution
+         @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         """
+         x=domain.getX()
+         msk=whereZero(x[0])+whereZero(x[0]-1.)
+         u=x[0]
+         for i in range(1,domain.getDim()):
+            msk+=whereZero(x[i])+whereZero(x[i]-1.)
+            u*=(x[i]-i)
+
+         gamma_rad=self.gamma/360.*8*math.atan(1.)
+         cg=maths.cos(self.gamma_rad)
+         sg=maths.sin(self.gamma_rad)
+         C=kronecker(domain)
+         C[0,0]=cg**2+self.c*sg**2
+         C[1,0]=(self.c-1.)*cg*sg
+         C[0,1]=C[0,1]
+         C[1,1]=sg**2+self.c*cg**2
+         F=2*(1.-self.c)*cg*sg
+         if domain.getDim()==3: F*=x[2]-2.
+         pde=LinearPDE(domain)
+         pde.setSymmetryOn() 
+         pde.setValue(A=C,Y=F,q=msk,r=u)
+         return pde,u
+
 class Laplace2DOrder1_30k(LaplaceProblem):
    def __init__(self):
       super(Laplace2DOrder1_30k,self).__init__(n=172,order=1,dim=2)
@@ -369,18 +412,260 @@ class Laplace3DOrder2_15360k(LaplaceProblem):
    def __init__(self):
       super(Laplace3DOrder2_15360k,self).__init__(n=124,order=2,dim=3)
 
+class Anisotropic2DOrder1Gamma30_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_30k,self).__init__(n=172,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_60k,self).__init__(n=244,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_120k,self).__init__(n=345,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_240k,self).__init__(n=489,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_480k,self).__init__(n=692,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_960k,self).__init__(n=979,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_1920k,self).__init__(n=1385,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_3840k,self).__init__(n=1959,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_7680k,self).__init__(n=2770,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma30_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma30_15360k,self).__init__(n=3918,order=1,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder1Gamma45_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_30k,self).__init__(n=172,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_60k,self).__init__(n=244,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_120k,self).__init__(n=345,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_240k,self).__init__(n=489,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_480k,self).__init__(n=692,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_960k,self).__init__(n=979,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_1920k,self).__init__(n=1385,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_3840k,self).__init__(n=1959,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_7680k,self).__init__(n=2770,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder1Gamma45_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder1Gamma45_15360k,self).__init__(n=3918,order=1,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma30_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_30k,self).__init__(n=86,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_60k,self).__init__(n=122,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_120k,self).__init__(n=173,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_240k,self).__init__(n=244,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_480k,self).__init__(n=346,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_960k,self).__init__(n=489,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_1920k,self).__init__(n=692,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_3840k,self).__init__(n=979,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_7680k,self).__init__(n=1385,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma30_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma30_15360k,self).__init__(n=1959,order=2,dim=2,gamma=30,c=0.001)
+class Anisotropic2DOrder2Gamma45_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_30k,self).__init__(n=86,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_60k,self).__init__(n=122,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_120k,self).__init__(n=173,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_240k,self).__init__(n=244,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_480k,self).__init__(n=346,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_960k,self).__init__(n=489,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_1920k,self).__init__(n=692,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_3840k,self).__init__(n=979,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_7680k,self).__init__(n=1385,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic2DOrder2Gamma45_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic2DOrder2Gamma45_15360k,self).__init__(n=1959,order=2,dim=2,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma30_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_30k,self).__init__(n=30,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_60k,self).__init__(n=38,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_120k,self).__init__(n=48,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_240k,self).__init__(n=61,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_480k,self).__init__(n=77,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_960k,self).__init__(n=98,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_1920k,self).__init__(n=123,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_3840k,self).__init__(n=156,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_7680k,self).__init__(n=196,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma30_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma30_15360k,self).__init__(n=248,order=1,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder1Gamma45_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_30k,self).__init__(n=30,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_60k,self).__init__(n=38,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_120k,self).__init__(n=48,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_240k,self).__init__(n=61,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_480k,self).__init__(n=77,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_960k,self).__init__(n=98,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_1920k,self).__init__(n=123,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_3840k,self).__init__(n=156,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_7680k,self).__init__(n=196,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder1Gamma45_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder1Gamma45_15360k,self).__init__(n=248,order=1,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma30_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_30k,self).__init__(n=15,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_60k,self).__init__(n=19,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_120k,self).__init__(n=24,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_240k,self).__init__(n=31,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_480k,self).__init__(n=39,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_960k,self).__init__(n=49,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_1920k,self).__init__(n=62,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_3840k,self).__init__(n=78,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_7680k,self).__init__(n=98,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma30_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma30_15360k,self).__init__(n=124,order=2,dim=3,gamma=30,c=0.001)
+class Anisotropic3DOrder2Gamma45_30k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_30k,self).__init__(n=15,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_60k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_60k,self).__init__(n=19,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_120k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_120k,self).__init__(n=24,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_240k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_240k,self).__init__(n=31,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_480k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_480k,self).__init__(n=39,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_960k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_960k,self).__init__(n=49,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_1920k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_1920k,self).__init__(n=62,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_3840k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_3840k,self).__init__(n=78,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_7680k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_7680k,self).__init__(n=98,order=2,dim=3,gamma=45,c=0.001)
+class Anisotropic3DOrder2Gamma45_15360k(AnisotropicProblem):
+   def __init__(self):
+      super(Anisotropic3DOrder2Gamma45_15360k,self).__init__(n=124,order=2,dim=3,gamma=45,c=0.001)
+
 if __name__=="__main__":
    test=""
    n0=30000
    for d in [2,3]:
-     for o in [1,2]:
+    for o in [1,2]:
+      for g in [30,45]:
         for i in range(10):
              dofs=n0*2**i
              n=int((float(dofs)**(1./float(d))-1)/o+0.5)
-             name="Laplace%sDOrder%s_%sk"%(d,o,dofs/1000)
-             print "class %s(LaplaceProblem):"%name
+             name="Anisotropic%sDOrder%sGamma%s_%sk"%(d,o,g,dofs/1000)
+             print "class %s(AnisotropicProblem):"%name
              print "   def __init__(self):"
-             print "      super(%s,self).__init__(n=%s,order=%s,dim=%s)"%(name,n,o,d)
+             print "      super(%s,self).__init__(n=%s,order=%s,dim=%s,gamma=%s,c=0.001)"%(name,n,o,d,g)
              test+="addProblem(%s())\n"%name
    print test
 

@@ -24,6 +24,7 @@ error_tol=1.e-5
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
 mydomain=finley.Rectangle(150,10,1)
+mydomain=finley.Rectangle(250,250,1)
 # mydomain=finley.Rectangle(190,190,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
