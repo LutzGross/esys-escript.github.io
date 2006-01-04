@@ -63,7 +63,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
               out->values[i]=1.;
               /* find main diagonal */
               for (iPtr = A_p->pattern->ptr[i]; iPtr < A_p->pattern->ptr[i + 1]; iPtr++) {
-                  if (A_p->pattern->index[iPtr]==i+INDEX_OFFSET) {
+                  if (A_p->pattern->index[iPtr]==i) {
                       if (ABS(A_p->val[iPtr])>0.) out->values[i]=1./A_p->val[iPtr];
                       break;
                   }
@@ -78,7 +78,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
               out->values[i*4+3]= 1.;
               /* find main diagonal */
               for (iPtr = A_p->pattern->ptr[i]; iPtr < A_p->pattern->ptr[i + 1]; iPtr++) {
-                  if (A_p->pattern->index[iPtr]==i+INDEX_OFFSET) {
+                  if (A_p->pattern->index[iPtr]==i) {
                      A11=A_p->val[iPtr*4];
                      A12=A_p->val[iPtr*4+2];
                      A21=A_p->val[iPtr*4+1];
@@ -109,7 +109,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
               out->values[i*9+8]=1.;
               /* find main diagonal */
               for (iPtr = A_p->pattern->ptr[i]; iPtr < A_p->pattern->ptr[i + 1]; iPtr++) {
-                  if (A_p->pattern->index[iPtr]==i+INDEX_OFFSET) {
+                  if (A_p->pattern->index[iPtr]==i) {
                       A11=A_p->val[iPtr*9  ];
                       A21=A_p->val[iPtr*9+1];
                       A31=A_p->val[iPtr*9+2];

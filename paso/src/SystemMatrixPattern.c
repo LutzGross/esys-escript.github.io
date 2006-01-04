@@ -18,42 +18,47 @@
 
 /* allocates a SystemMatrixPattern  */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int n_ptr, index_t* ptr,index_t* index) {
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, index_t* ptr,index_t* index) {
   Paso_SystemMatrixPattern*out;
-  index_t loc_min_index,loc_max_index,min_index=INDEX_OFFSET,max_index=INDEX_OFFSET-1;
+  index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
   dim_t i;
   Paso_resetError();
 
-
-  #pragma omp parallel private(loc_min_index,loc_max_index,i)
-  {
-     loc_min_index=INDEX_OFFSET;
-     loc_max_index=INDEX_OFFSET-1;
-     #if PTR_OFFSET>0
-        #pragma omp for schedule(static)
-        for (i=0;i<n_ptr+1;++i) ptr[i]+=PTR_OFFSET;
-     #endif
-     #if INDEX_OFFSET>0
-        #pragma omp for schedule(static) 
-        for (i=0;i<n_ptr;++i) 
-             for (k=ptr[i];k<ptr[i+1];++k) index[k]+=INDEX_OFFSET;
-     #endif
-        
-     #pragma omp for schedule(static) 
-     for (i=0;i<n_ptr;++i) {
-         if (ptr[i]<ptr[i+1]) {
-           qsort(&(index[ptr[i]-PTR_OFFSET]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-           loc_min_index=MIN(loc_min_index,index[ptr[i]]);
-           loc_max_index=MAX(loc_max_index,index[ptr[i+1]-1]);
-         }
-     }
-     #pragma omp critical
-     {
-        min_index=MIN(loc_min_index,min_index);
-        max_index=MAX(loc_max_index,max_index);
-     }
+  if (type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"symmetric matrix pattern is not supported yet");
+    return NULL;
   }
-  if (min_index<INDEX_OFFSET) {
+  #pragma omp parallel private(loc_min_index,loc_max_index,i)
+   {
+      loc_min_index=index_offset;
+      loc_max_index=index_offset-1;
+      if (type & PATTERN_FORMAT_OFFSET1) {
+         #pragma omp for schedule(static) 
+         for (i=0;i<n_ptr;++i) {
+             if (ptr[i]<ptr[i+1]) {
+               qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
+               loc_min_index=MIN(loc_min_index,index[ptr[i]-1]);
+               loc_max_index=MAX(loc_max_index,index[ptr[i+1]]);
+             }
+         }
+      } else {
+         #pragma omp for schedule(static) 
+         for (i=0;i<n_ptr;++i) {
+             if (ptr[i]<ptr[i+1]) {
+               qsort(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
+               loc_min_index=MIN(loc_min_index,index[ptr[i]]);
+               loc_max_index=MAX(loc_max_index,index[ptr[i+1]-1]);
+             }
+         }
+      }
+      #pragma omp critical
+      {
+         min_index=MIN(loc_min_index,min_index);
+         max_index=MAX(loc_max_index,max_index);
+      }
+  }
+  if (min_index<index_offset) {
     Paso_setError(TYPE_ERROR,"Matrix pattern index out of range.");
     return NULL;
   }
@@ -61,11 +66,12 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int n_ptr, index_t* ptr
   out=MEMALLOC(1,Paso_SystemMatrixPattern);
   if (Paso_checkPtr(out)) return NULL;
   out->n_ptr=n_ptr;
-  out->n_index=max_index+1-INDEX_OFFSET;
+  out->n_index=max_index+1-index_offset;
   out->ptr=ptr;
   out->index=index;
   out->len=out->ptr[out->n_ptr];
   out->reference_counter=1;
+  out->type=type;
   #ifdef Paso_TRACE
   printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been allocated.\n");
   #endif

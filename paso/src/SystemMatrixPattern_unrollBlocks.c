@@ -19,7 +19,14 @@
 /* creates SystemMatrixPattern  */
 
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern, \
-                                           dim_t row_block_size,dim_t col_block_size) {
+                                           int type, dim_t row_block_size,dim_t col_block_size) {
+  index_t index_offset_in=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  
+  if ((pattern->type & PATTERN_FORMAT_SYM) != (type & PATTERN_FORMAT_SYM)) {
+      Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_unrollBlocks: conversion between symmetric and non-symmetric is not implemented yet");
+      return NULL;
+  }
   Paso_SystemMatrixPattern*out=NULL;
   index_t *ptr=NULL,*index=NULL,iPtr;
   dim_t i,j,k,l;
@@ -36,32 +43,32 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
      #pragma omp parallel
      {
         #pragma omp for private(i) schedule(static)
-        for (i=0;i<new_n_ptr+1;++i) ptr[i]=0;
+        for (i=0;i<new_n_ptr+1;++i) ptr[i]=index_offset_out;
 
         #pragma omp master
-        ptr[new_n_ptr]=new_len;
+        ptr[new_n_ptr]=new_len+index_offset_out;
 
         #pragma omp for private(i,k) schedule(static) 
         for (i=0;i<pattern->n_ptr;++i) 
-            for (k=0;k<row_block_size;++k) ptr[i*row_block_size+k]=(pattern->ptr[i]-PTR_OFFSET)*block_size+(pattern->ptr[i+1]-pattern->ptr[i])*col_block_size*k;
+            for (k=0;k<row_block_size;++k) ptr[i*row_block_size+k]=(pattern->ptr[i]-index_offset_in)*block_size+(pattern->ptr[i+1]-pattern->ptr[i])*col_block_size*k+index_offset_out;
           
         #pragma omp for private(i,iPtr) schedule(static) 
         for (i=0;i<new_n_ptr;++i) 
-            for (iPtr=ptr[i];iPtr<ptr[i+1];++iPtr) index[iPtr]=0;
+            for (iPtr=ptr[i];iPtr<ptr[i+1];++iPtr) index[iPtr]=index_offset_out;
 
         #pragma omp for private(i,j,iPtr,k) schedule(static) 
         for (i=0;i<pattern->n_ptr;++i) {
-           for (iPtr=pattern->ptr[i];iPtr<pattern->ptr[i+1];++iPtr)  {
+           for (iPtr=pattern->ptr[i]-index_offset_in;iPtr<pattern->ptr[i+1]-index_offset_in;++iPtr)  {
               for (k=0;k<row_block_size;++k) {
                  for (j=0;j<col_block_size;++j) {
-                    index[ptr[i*row_block_size+k]+(iPtr-pattern->ptr[i])*col_block_size+j]=(pattern->index[iPtr]-INDEX_OFFSET)*col_block_size+j;
+                    index[ptr[i*row_block_size+k]-index_offset_out+(iPtr-pattern->ptr[i]-index_offset_in)*col_block_size+j]=(pattern->index[iPtr]-index_offset_in)*col_block_size+j+index_offset_out;
                  }
               }
            }
         }
      }
      /* create return value */
-     out=Paso_SystemMatrixPattern_alloc(new_n_ptr,ptr,index);
+     out=Paso_SystemMatrixPattern_alloc(type,new_n_ptr,ptr,index);
   }  
   if (! Paso_noError()) {
      MEMFREE(index);

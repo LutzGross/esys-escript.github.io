@@ -24,15 +24,16 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
    index_t iptr,icol_failed,irow_failed;
    double fac;
    if (!A->normalizer_is_valid) {
-      switch(A->type) {
-        case CSR:
+      if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_SYM) || (A->type & MATRIX_FORMAT_OFFSET1)) {
+        Paso_setError(TYPE_ERROR,"No normalization available for compressed sparse column, symmetric storage scheme or index offset 1.");
+      } else {
           irow_failed=-1;
           #pragma omp parallel for private(ir,irb,irow,fac,iptr,icb) schedule(static)
           for (ir=0;ir< A->pattern->n_ptr;ir++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*ir;
               fac=0.;
-	      for (iptr=A->pattern->ptr[ir]-PTR_OFFSET;iptr<A->pattern->ptr[ir+1]-PTR_OFFSET; iptr++) {
+	      for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
 	          for (icb=0;icb< A->col_block_size;icb++) 
                     fac+=ABS(A->val[iptr*A->block_size+irb+A->row_block_size*icb]);
               }
@@ -44,37 +45,10 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
               }
             }
           }
-          if (irow_failed>=0) {
+          if (irow_failed>=0) 
              Paso_setError(ZERO_DIVISION_ERROR,"There is a row containing zero entries only.");
-          }
-          break;
-        case CSC:
-          icol_failed=-1;
-          #pragma omp parallel for private(ic,icb,icol,fac,iptr,irb) schedule(static)
-          for (ic=0;ic< A->pattern->n_ptr;ic++) {
-    	     for (icb=0;icb< A->col_block_size;icb++) {
-	       icol=icb+A->col_block_size*ic;
-               fac=0.;
-	       for (iptr=A->pattern->ptr[ic]-PTR_OFFSET;iptr<A->pattern->ptr[ic+1]-PTR_OFFSET; iptr++) {
-	          for (irb=0;irb< A->row_block_size;irb++) 
-                     fac+=ABS(A->val[iptr*A->block_size+irb+A->row_block_size*icb]);
-               }
-               if (fac>0) {
-                  A->normalizer[icol]=1./fac;
-               } else {
-                  A->normalizer[icol]=1.;
-                  icol_failed=icol;
-               }
-             }
-           }
-           if (icol_failed>=0) {
-              Paso_setError(ZERO_DIVISION_ERROR,"There is a column containing zero entries only.");
-           }
-           break;
-      default:
-        Paso_setError(TYPE_ERROR,"No normalization available for this matrix type.");
-      } /* switch A->type */
-      A->normalizer_is_valid=TRUE;
+          A->normalizer_is_valid=TRUE;
+      }
    }
    return A->normalizer;
 }

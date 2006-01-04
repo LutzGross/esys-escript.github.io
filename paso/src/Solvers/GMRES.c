@@ -140,7 +140,7 @@ err_t Paso_Solver_GMRES(
          /***                                                                 
          *** apply A to P to get AP 
          ***/
-	 Paso_SystemMatrix_MatrixVector(ONE, A, &P_PRES[0][0],ZERO, &AP[0]);
+	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &P_PRES[0][0],ZERO, &AP[0]);
          /***                                                                 
          ***** calculation of the norm of R and the scalar products of       
          ***   the residuals and A*P:                                        

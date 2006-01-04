@@ -36,19 +36,17 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
     int iters,  method,precond,storage,maxiters;
     double drop_tolerance,drop_storage,finalres,convtol,time0;
     if (A->col_block_size!=1) {
-      Paso_setError(TYPE_ERROR,"__FILE__: block size 1 is required.");
+      Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: linear solver can only be applied to block size 1.");
     }
-    switch(A->type) {
-    case CSR:
-      storage=0;
-      break;
-    case CSC:
+    if (A->type & MATRIX_FORMAT_CSC) {
       storage=1;
-      break;
-    default:
-      Paso_setError(TYPE_ERROR,"__FILE__:Matrix type is not supported.");
-      return;
-    } /* switch A->type */
+       if (! (A->type & (MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1)) )
+           Paso_setError(TYPE_ERROR,"Paso_SCSL_iterative: iterative solver in compressed sparse column requires a nonsymmetric storage scheme, block size 1 and index offset 0.");
+    } else {
+       storage=0;
+       if (! (A->type & MATRIX_FORMAT_BLK1) )
+           Paso_setError(TYPE_ERROR,"Paso_SCSL_iterative: iterative solver in compressed sparse row requires a nonsymmetric storage scheme, block size 1 and index offset 0.");
+    } 
 
     method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
     if (Paso_noError()) {
@@ -96,6 +94,7 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
        drop_storage=options->drop_storage;
        DIterative_DropStorage(drop_storage);
 
+       /* this stuff does not work */
        if (options->verbose) {
          setenv("ITERATIVE_VERBOSE","1",1);
        } else {
@@ -108,6 +107,7 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
        }
        setenv("ITERATIVE_RCM",text2,1);
        setenv("ITERATIVE_COPY","1",1);
+       /* oend of this stuff does not work */
 
        time0=Paso_timer();
        DIterative(A->num_rows,A->pattern->ptr,A->pattern->index,A->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
@@ -120,7 +120,7 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
        }
     }
 #else
-    Paso_setError(SYSTEM_ERROR,"__FILE__: SCSL not available.");
+    Paso_setError(SYSTEM_ERROR,"Paso_SCSL_iterative: SCSL not available.");
 #endif
 }
 

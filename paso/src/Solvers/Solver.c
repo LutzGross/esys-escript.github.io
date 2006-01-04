@@ -15,11 +15,6 @@
 #include "SystemMatrix.h"
 #include "Solver.h"
 
-#if PTR_OFFSET !=0 || INDEX_OFFSET!=0
-#error Paso library usage requires PTR_OFFSET=0 and INDEX_OFFSET=0
-#endif
-
-
 /***********************************************************************************/
 
 /*  free space */
@@ -34,25 +29,25 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options)
     double norm2_of_b,tol,tolerance,time_iter,time_prec,*r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b,
            norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local,norm_max_of_residual_local,norm_max_of_residual,
            last_norm_max_of_residual,*scaling;
-    dim_t i,totIter,cntIter,method;
-    bool_t finalizeIteration;
-    err_t errorCode;
-    dim_t n_col = A->num_cols * A-> col_block_size;
-    dim_t n_row = A->num_rows * A-> row_block_size;
-
-    tolerance=MAX(options->tolerance,EPSILON);
-    Paso_resetError();
-    method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
-    /* check matrix type */
-    if (A->type!=CSR) {
-      Paso_setError(TYPE_ERROR,"Iterative solver requires CSR format.");
-    }
-    if (A->col_block_size != A->row_block_size) {
-       Paso_setError(TYPE_ERROR,"Iterative solver requires row and column block sizes to be equal.");
+     dim_t i,totIter,cntIter,method;
+     bool_t finalizeIteration;
+     err_t errorCode;
+     dim_t n_col = A->num_cols * A-> col_block_size;
+     dim_t n_row = A->num_rows * A-> row_block_size;
+ 
+     tolerance=MAX(options->tolerance,EPSILON);
+     Paso_resetError();
+     method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
+     /* check matrix type */
+     if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) || (A->type & MATRIX_FORMAT_SYM) ) {
+       Paso_setError(TYPE_ERROR,"Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
+     }
+     if (A->col_block_size != A->row_block_size) {
+        Paso_setError(TYPE_ERROR,"Iterative solver requires row and column block sizes to be equal.");
      }
      if (A->num_cols != A->num_rows) {
-       Paso_setError(TYPE_ERROR,"Iterative solver requires requires a square matrix.");
-       return;
+        Paso_setError(TYPE_ERROR,"Iterative solver requires requires a square matrix.");
+        return;
      }
      if (Paso_noError()) {
         /* get normalization */
@@ -137,7 +132,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options)
               #pragma omp for private(i) schedule(static)
               for (i = 0; i < n_row; i++) r[i]=b[i];
     
-              Paso_SystemMatrix_MatrixVector(DBLE(-1), A, x, DBLE(1), r);
+              Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
     
               norm2_of_residual_local = 0;
               norm_max_of_residual_local = 0;

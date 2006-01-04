@@ -22,21 +22,11 @@
 
 /*  this struct holds a stiffness matrix: */
 
-#define FORMAT_CSR 1
-#define FORMAT_SYM 2
-#define FORMAT_BLK1 4
-#define FORMAT_INDEX1 8
-
-/* matrix type */
-#define  CSC 0
-#define  CSR FORMAT_CSR
-/* these formats are used in the SCSL context */
-#define  CSC_SYM FORMAT_SYM
-#define  CSR_SYM (FORMAT_CSR+FORMAT_SYM)
-#define  CSC_BLK1 FORMAT_BLK1
-#define  CSR_BLK1 (FORMAT_CSR+FORMAT_BLK1)
-#define  CSC_BLK1_SYM (FORMAT_BLK1+FORMAT_SYM)
-#define  CSR_BLK1_SYM (FORMAT_CSR+FORMAT_BLK1+FORMAT_SYM)
+#define MATRIX_FORMAT_DEFAULT 0
+#define MATRIX_FORMAT_CSC 1
+#define MATRIX_FORMAT_SYM 2
+#define MATRIX_FORMAT_BLK1 4
+#define MATRIX_FORMAT_OFFSET1 8
 
 typedef int Paso_SystemMatrixType;
 
@@ -77,6 +67,10 @@ void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
 void Paso_SystemMatrix_copy(Paso_SystemMatrix*,double*);
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 void Paso_SystemMatrix_MatrixVector(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
 void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);

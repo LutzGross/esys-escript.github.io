@@ -18,30 +18,27 @@
 /**************************************************************/
 
 index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, bool_t symmetry) {
-  index_t out=CSR;
+  index_t out=MATRIX_FORMAT_DEFAULT;
   package=Paso_Options_getPackage(solver,package,symmetry);
 
   switch(package)  {
 
      case PASO_PASO:
-       out=CSR;
+       out=MATRIX_FORMAT_DEFAULT;
        break;
 
      case PASO_SCSL:
-       /* out= symmetry ? CSC_BLK1_SYM : CSC_BLK1; */
-       out=CSC_BLK1;
+       out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
+       /* if out= symmetry ? out+=MATRIX_FORMAT_SYM; */
        break;
-/*
-     case PASO_MKL:
-       out= CSR_BLK1;
-       break;
-*/
 
-/*
+     case PASO_MKL:
+       out=MATRIX_FORMAT_BLK1;
+       break;
+
      case PASO_UMFPACK:
-       out= CSR_BLK1;
+       out=MATRIX_FORMAT_BLK1;
       break;
-*/
 
      default:
         Paso_setError(VALUE_ERROR,"unknown package code");

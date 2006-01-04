@@ -51,7 +51,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
   long long non_zeros;
   double ops;
 
-  if (A->type==CSC_SYM) {
+  if (A->type & MATRIX_FORMAT_SYM) {
       method=PASO_CHOLEVSKY;
   } else {
       method=PASO_DIRECT;
@@ -60,13 +60,11 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
       Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: linear solver can only be applied to block size 1.");
   }
   if (method==PASO_CHOLEVSKY) {
-      if (A->type!=CSC_SYM) {
-          Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: direct solver for symmetric matrices can only be applied to symmetric CSC format.");
-      }
+      if (! (A->type & (MATRIX_FORMAT_CSC + MATRIX_FORMAT_SYM + MATRIX_FORMAT_BLK1)) )
+          Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: direct solver for symmetric matrices can only be applied to symmetric CSC format with block size 1 and index offset 0.");
   } else {
-      if (A->type!=CSC) {
-          Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: direct solver can only be applied to CSC format.");
-      }
+      if (! (A->type & (MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1)) )
+          Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: direct solver can only be applied to CSC format with block size 1 and index offset 0.");
   }
   method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
   if (Paso_noError()) {

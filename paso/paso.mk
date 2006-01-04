@@ -8,6 +8,6 @@ INSTALL_LIB := ./lib/libpaso.a
 
 PACKAGES := mmio scsl mkl umfpack
 
-L_SRC_DIR := ./src ./src/Solvers ./src/SCSL 
+L_SRC_DIR := ./src ./src/Solvers 
 
 include $(ESYS_ROOT)/make/Makefile.default
