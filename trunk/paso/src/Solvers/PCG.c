@@ -126,7 +126,7 @@ err_t Paso_Solver_PCG(
                for (i0=0;i0<n;i0++) p[i0]=v[i0]+beta*p[i0];
            }
            /* v=A*p */
-	   Paso_SystemMatrix_MatrixVector(ONE, A, p,ZERO,v);
+	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
            /* delta=p*v */
            #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
            for (i0=0;i0<n;i0++) sum_2+=v[i0]*p[i0];

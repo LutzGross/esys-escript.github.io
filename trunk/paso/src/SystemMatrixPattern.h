@@ -18,13 +18,12 @@
 
 /**************************************************************/
 
-/* Typically INDEX_OFFSET and PTR_OFFSET are 1 if the matrix is
-   handed over to a library written in FORTRAN. */
-
-#define INDEX_OFFSET 0
-#define PTR_OFFSET 0
+#define PATTERN_FORMAT_DEFAULT 0
+#define PATTERN_FORMAT_SYM 1
+#define PATTERN_FORMAT_OFFSET1 2
 
 typedef struct Paso_SystemMatrixPattern {
+  int type;
   dim_t n_ptr;
   dim_t n_index;
   index_t* ptr;
@@ -37,13 +36,13 @@ typedef struct Paso_SystemMatrixPattern {
 
 /*  interfaces: */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(dim_t, index_t*,index_t*);
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int ,dim_t, index_t*,index_t*);
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_reference(Paso_SystemMatrixPattern*);
 void Paso_SystemMatrixPattern_dealloc(Paso_SystemMatrixPattern*);
 int Paso_comparIndex(const void *,const void *);
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatrixPattern*,dim_t,index_t*,index_t*);
 void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* mis_marker);
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern*, dim_t,dim_t);
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern*,int, dim_t,dim_t);
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */
 

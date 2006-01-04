@@ -166,6 +166,7 @@ void generate_HB( FILE *fp, dim_t *col_ptr, dim_t *row_ind, double *val )
 
 void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 {
+        index_t index_offset=(A_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
 	/* open the file */
 	FILE *fileHandle_p = fopen( filename_p, "w" );
 	if( fileHandle_p == NULL )
@@ -174,12 +175,11 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 		return;
 	}
 
+        
 	/* check the internal storage type
 	 * currently ONLY support for CSC
 	 */
-	switch( A_p->type )
-	{
-		case CSC:
+	if ( A_p->type & MATRIX_FORMAT_CSC) {
 				if( A_p->row_block_size == 1 && A_p->col_block_size == 1 )
 				{
 					M = A_p->num_rows;
@@ -203,10 +203,10 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 					i = 0;
 					for( iCol=0; iCol<A_p->pattern->n_ptr; iCol++ )
 						for( ic=0; ic<A_p->col_block_size; ic++)
-							for( iPtr=A_p->pattern->ptr[iCol]-PTR_OFFSET; iPtr<A_p->pattern->ptr[iCol+1]-PTR_OFFSET; iPtr++)
+							for( iPtr=A_p->pattern->ptr[iCol]-index_offset; iPtr<A_p->pattern->ptr[iCol+1]-index_offset; iPtr++)
 								for( ir=0; ir<A_p->row_block_size; ir++ )
 								{
-									row_ind[i] = (A_p->pattern->index[iPtr]-INDEX_OFFSET)*A_p->row_block_size+ir+1;
+									row_ind[i] = (A_p->pattern->index[iPtr]-index_offset)*A_p->row_block_size+ir+1;
 									col_ind[i] = iCol*A_p->col_block_size+ic+1;
 									i++;
 								}
@@ -231,11 +231,8 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 					MEMFREE( col_ind );
 					MEMFREE( row_ind );
 				}
-				break;
-		case CSR:
-// 				fprintf( fileHandle_p, "bleh CSR found,,\n" );
-		default:
-				Paso_setError(TYPE_ERROR,"__FILE__: only CSC is currently supported.\n");
+        } else {
+				Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveHB: only CSC is currently supported.\n");
 	}
 
 	/* close the file */

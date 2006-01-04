@@ -93,27 +93,27 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	double *val = NULL;
 
 	Paso_SystemMatrixPattern *loc_pattern = NULL;
-	Paso_SystemMatrixType type = UNKNOWN;
 	Paso_SystemMatrix *out = NULL;
 
 	/* open the file */
 	FILE *fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR, "__FILE__: Cannot read file for reading.");
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Cannot read file for reading.");
 		return NULL;
 	}
 
 	/* process banner */
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
-		Paso_setError(IO_ERROR, "__FILE__: Error processing MM banner.");
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Error processing MM banner.");
 		fclose( fileHandle_p );
 		return NULL;
 	}
 	if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
 	{
-		Paso_setError(TYPE_ERROR,"__FILE__: found Matrix Market type is not supported.");
+
+		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -121,7 +121,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(IO_ERROR, "__FILE__: Could not parse matrix size");
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not parse matrix size");
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -135,7 +135,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 
 	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	{
-		Paso_setError(MEMORY_ERROR, "__FILE__: Could not allocate memory" );
+		Paso_setError(MEMORY_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not allocate memory" );
 
 		fclose( fileHandle_p );
 		return NULL;
@@ -164,12 +164,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	row_ptr[M] = nz;
 
 	/* create F_SMP and F_SM */
-	loc_pattern = Paso_SystemMatrixPattern_alloc( M, row_ptr, col_ind );
+	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind );
 	if(! Paso_noError() )
 		return NULL;
 
-	type = CSR;
- 	out = Paso_SystemMatrix_alloc( type, loc_pattern, 1, 1 );
+ 	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1 );
  	if(! Paso_noError() )
  		return NULL;
 
@@ -197,7 +196,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	double *val = NULL;
 
 	Paso_SystemMatrixPattern *loc_pattern = NULL;
-	Paso_SystemMatrixType type = UNKNOWN;
 	Paso_SystemMatrix *out = NULL;
 
 	Paso_resetError();
@@ -206,20 +204,20 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	FILE *fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR,"__FILE__: File could not be opened for reading");
+		Paso_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: File could not be opened for reading");
 		return NULL;
 	}
 
 	/* process banner */
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
-		Paso_setError(IO_ERROR,"__FILE__: Error processing MM banner");
+		Paso_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: Error processing MM banner");
 		fclose( fileHandle_p );
 		return NULL;
 	}
 	if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
 	{
-		Paso_setError(TYPE_ERROR,"__FILE__: found Matrix Market type is not supported.");
+		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -227,7 +225,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(TYPE_ERROR,"__FILE__: found Matrix Market type is not supported.");
+		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -278,14 +276,13 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	col_ptr[N] = nz;
 
 	/* create F_SMP and F_SM */
-//	loc_pattern = Paso_SystemMatrixPattern_alloc( M, row_ptr, col_ind );
-	loc_pattern = Paso_SystemMatrixPattern_alloc( N, col_ptr, row_ind );
+//	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind );
+	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, N, col_ptr, row_ind );
 	if(! Paso_noError() )
 		return NULL;
 
-//	type = CSR;
-	type = CSC;
- 	out = Paso_SystemMatrix_alloc( type, loc_pattern, 1, 1 );
+//      out = Paso_SystemMatrix_alloc( MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1 );
+ 	out = Paso_SystemMatrix_alloc(  MATRIX_FORMAT_CSC, loc_pattern, 1, 1 );
  	if(! Paso_noError() )
  		return NULL;
 

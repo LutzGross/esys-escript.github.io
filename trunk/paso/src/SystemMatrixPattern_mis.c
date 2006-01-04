@@ -34,10 +34,15 @@ static double Paso_SystemMatrixPattern_mis_seed=.4142135623730951;
 
 void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* mis_marker) {
 
+  index_t index_offset=(pattern_p->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i;
   index_t naib,iptr;
   bool_t flag;
   dim_t n=pattern_p->n_ptr;
+  if (pattern_p->type & PATTERN_FORMAT_SYM) {
+    Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_mis: symmetric matrix pattern is not supported yet");
+    return;
+  }
   double *value=TMPMEMALLOC(n,double);
   if (!Paso_checkPtr(value)) {
      #pragma omp parallel for private(i) schedule(static)
@@ -68,8 +73,8 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
            for (i=0;i<n;++i) {
               if (mis_marker[i]==IS_AVAILABLE) {
                  flag=IS_IN_MIS_NOW;
-                 for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; ++iptr) {
-                     naib=pattern_p->index[iptr];
+                 for (iptr=pattern_p->ptr[i]-index_offset;iptr<pattern_p->ptr[i+1]-index_offset; ++iptr) {
+                     naib=pattern_p->index[iptr]-index_offset;
                      if (naib!=i && value[naib]<=value[i]) {
                         flag=IS_AVAILABLE;
                         break;
@@ -82,8 +87,8 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
            #pragma omp parallel for private(naib,i,iptr) schedule(static)
            for (i=0;i<n;i++) {
               if (mis_marker[i]==IS_IN_MIS_NOW) {
-                 for (iptr=pattern_p->ptr[i];iptr<pattern_p->ptr[i+1]; ++iptr) {
-                     naib=pattern_p->index[iptr];
+                 for (iptr=pattern_p->ptr[i]-index_offset;iptr<pattern_p->ptr[i+1]-index_offset; ++iptr) {
+                     naib=pattern_p->index[iptr]-index_offset;
                      if (naib!=i) mis_marker[naib]=IS_CONNECTED_TO_MIS;
                  }
                  mis_marker[i]=IS_IN_MIS;

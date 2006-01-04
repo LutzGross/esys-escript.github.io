@@ -35,7 +35,7 @@ void Paso_solve(Paso_SystemMatrix* A,
 
   Paso_resetError();
   if (A->num_rows!=A->num_cols || A->col_block_size!=A->row_block_size) {
-       Paso_setError(VALUE_ERROR,"__FILE__: matrix has to be a square matrix.");
+       Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
   index_t package=Paso_Options_getPackage(options->method,options->package,options->symmetric);
@@ -65,7 +65,7 @@ void Paso_solve(Paso_SystemMatrix* A,
 */
 
         default:
-           Paso_setError(VALUE_ERROR,"__FILE__: unknown package code");
+           Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
            return;
      }
   }

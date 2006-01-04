@@ -35,71 +35,65 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->iterative=NULL;
      out->val=NULL;  
      out->reference_counter=1;
-     /* check the matrix type */
-     switch(type) {
-        case CSC:
-          out->type=CSC;
-          if (row_block_size!=col_block_size || col_block_size>3) {
-             out->row_block_size=1;
-             out->col_block_size=1;
-             out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,col_block_size,row_block_size);
-          } else {
-             out->pattern=Paso_SystemMatrixPattern_reference(pattern);
-             out->row_block_size=row_block_size;
-             out->col_block_size=col_block_size;
-          }
-          break;
-        case CSR:
-           out->type=CSR;
-           if (row_block_size!=col_block_size || col_block_size>3) {
+     out->type=type;
+
+
+     if (type & MATRIX_FORMAT_CSC) {
+        if (type & MATRIX_FORMAT_SYM) {
+           Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSC is not implemented yet.");
+           return NULL;
+        } else {
+           if ((type & MATRIX_FORMAT_BLK1) && (row_block_size!=col_block_size || col_block_size>3) ) {
+              if (type & MATRIX_FORMAT_OFFSET1) {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,PATTERN_FORMAT_OFFSET1,col_block_size,row_block_size);
+              } else {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,PATTERN_FORMAT_DEFAULT,col_block_size,row_block_size);
+              }
               out->row_block_size=1;
               out->col_block_size=1;
-              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,row_block_size,col_block_size);
-           } else { 
-              out->pattern=Paso_SystemMatrixPattern_reference(pattern);
+           } else {
+              if ( (type & MATRIX_FORMAT_OFFSET1) ==(pattern->type & PATTERN_FORMAT_OFFSET1)) {
+                  out->pattern=Paso_SystemMatrixPattern_reference(pattern);
+              } else {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,(type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT,1,1);
+              }
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
-          }
-          break;
-        case CSC_BLK1:
-          out->type=CSC;
-          out->row_block_size=1;
-          out->col_block_size=1;
-          if (row_block_size==1 && col_block_size==1) {
-              out->pattern=Paso_SystemMatrixPattern_reference(pattern);
-          } else {
-             out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,col_block_size,row_block_size);
-          }
-          break;
-        case CSR_BLK1:
-          out->type=CSR;
-          out->row_block_size=1;
-          out->col_block_size=1;
-          if (row_block_size==1 && col_block_size==1) {
-              out->pattern=Paso_SystemMatrixPattern_reference(pattern);
-          } else {
-             out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,row_block_size,col_block_size);
-          }
-          break;
-        case CSC_SYM:
-        case CSC_BLK1_SYM:
-          out->type=CSC_SYM;
-          Paso_setError(TYPE_ERROR,"convertion of matrix pattern for symmetric CSC is not implemented yet.");
-          return NULL;
-        default:
-          Paso_setError(TYPE_ERROR,"unknown matrix type identifier.");
-          return NULL;
-     }
-     if (out->type==CSC || out->type==CSC_SYM ) {
-         out->num_rows=out->pattern->n_index;
-         out->num_cols=out->pattern->n_ptr;
-         n_norm = out->num_cols * out->col_block_size;
-
+           }
+        }
+        out->num_rows=out->pattern->n_index;
+        out->num_cols=out->pattern->n_ptr;
+        n_norm = out->num_cols * out->col_block_size;
      } else {
-         out->num_rows=out->pattern->n_ptr;
-         out->num_cols=out->pattern->n_index;
-         n_norm = out->num_rows * out->row_block_size;
-     } 
+        if (type & MATRIX_FORMAT_SYM) {
+           Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSR is not implemented yet.");
+           return NULL;
+        } else {
+           if ((type & MATRIX_FORMAT_BLK1) && (row_block_size!=col_block_size || col_block_size>3) ) {
+              if (type & MATRIX_FORMAT_OFFSET1) {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,PATTERN_FORMAT_OFFSET1,row_block_size,col_block_size);
+              } else {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,PATTERN_FORMAT_DEFAULT,row_block_size,col_block_size);
+              }
+              out->row_block_size=1;
+              out->col_block_size=1;
+           } else {
+              if ((type & MATRIX_FORMAT_OFFSET1)==(pattern->type & PATTERN_FORMAT_OFFSET1)) {
+                  out->pattern=Paso_SystemMatrixPattern_reference(pattern);
+              } else {
+                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,(type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT,1,1);
+              }
+              out->row_block_size=row_block_size;
+              out->col_block_size=col_block_size;
+           }
+        }
+        out->num_rows=out->pattern->n_index;
+        out->num_cols=out->pattern->n_ptr;
+        n_norm = out->num_cols * out->col_block_size;
+        out->num_rows=out->pattern->n_ptr;
+        out->num_cols=out->pattern->n_index;
+        n_norm = out->num_rows * out->row_block_size;
+     }
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
      out->logical_block_size=out->logical_row_block_size*out->logical_block_size;

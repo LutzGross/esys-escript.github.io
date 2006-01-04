@@ -326,11 +326,11 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(n_block,ilu->n_F,ilu->inv_A_FF,ilu->A_FF_pivot,ilu->x_F,ilu->b_F);
         /* b_C=b_C-A_CF*x_F */
-        Paso_SystemMatrix_MatrixVector(-1.,ilu->A_CF,ilu->x_F,1.,ilu->b_C);
+        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,ilu->A_CF,ilu->x_F,1.,ilu->b_C);
         /* x_C=ILU(b_C)     */
         Paso_Solver_solveILU(ilu->ILU_of_Schur,ilu->x_C,ilu->b_C);
         /* b_F=b_F-A_FC*x_C */
-        Paso_SystemMatrix_MatrixVector(-1.,ilu->A_FC,ilu->x_C,1.,ilu->b_F);
+        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,ilu->A_FC,ilu->x_C,1.,ilu->b_F);
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(n_block,ilu->n_F,ilu->inv_A_FF,ilu->A_FF_pivot,ilu->x_F,ilu->b_F);
         /* x<-[x_F,x_C]     */

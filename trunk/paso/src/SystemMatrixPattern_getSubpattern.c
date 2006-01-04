@@ -21,6 +21,7 @@
 
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatrixPattern* pattern, \
                                            int new_n_rows, index_t* row_list,index_t* new_col_index) {
+  index_t index_offset=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   Paso_SystemMatrixPattern*out=NULL;
   index_t *ptr=NULL,*index=NULL,k,j,subpattern_row,tmp;
   dim_t i;
@@ -38,8 +39,8 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
         for (i=0;i<new_n_rows;++i) {
             j=0;
             subpattern_row=row_list[i];
-            for (k=pattern->ptr[subpattern_row]-PTR_OFFSET;k<pattern->ptr[subpattern_row+1]-PTR_OFFSET;++k) 
-               if (new_col_index[pattern->index[k]-INDEX_OFFSET]>-1) j++;
+            for (k=pattern->ptr[subpattern_row]-index_offset;k<pattern->ptr[subpattern_row+1]-index_offset;++k) 
+               if (new_col_index[pattern->index[k]-index_offset]>-1) j++;
             ptr[i]=j;
         }
      }
@@ -54,8 +55,8 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
         for (i=0;i<new_n_rows;++i) {
              j=ptr[i];
              subpattern_row=row_list[i];
-             for (k=pattern->ptr[subpattern_row]-PTR_OFFSET;k<pattern->ptr[subpattern_row+1]-PTR_OFFSET;++k) {
-                tmp=new_col_index[pattern->index[k]-INDEX_OFFSET];
+             for (k=pattern->ptr[subpattern_row]-index_offset;k<pattern->ptr[subpattern_row+1]-index_offset;++k) {
+                tmp=new_col_index[pattern->index[k]-index_offset];
                 if (tmp>-1) {
                     index[j]=tmp;
                     ++j;
@@ -63,7 +64,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
              }
         }
         /* create return value */
-        out=Paso_SystemMatrixPattern_alloc(new_n_rows,ptr,index);
+        out=Paso_SystemMatrixPattern_alloc(pattern->type,new_n_rows,ptr,index);
         if (! Paso_noError()) {
           MEMFREE(index);
           MEMFREE(ptr);

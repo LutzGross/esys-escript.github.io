@@ -18,11 +18,13 @@
 /**************************************************************/
 
 void  Paso_SystemMatrix_setValues(Paso_SystemMatrix* in,double value) {
+
+  index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   dim_t i,j;
   index_t iptr;
   #pragma omp parallel for private(i,iptr,j) schedule(static)
   for (i=0;i< in->pattern->n_ptr;++i) {
-     for (iptr=(in->pattern->ptr[i])-PTR_OFFSET;iptr<(in->pattern->ptr[i+1])-PTR_OFFSET;++iptr) {
+     for (iptr=(in->pattern->ptr[i])-index_offset;iptr<(in->pattern->ptr[i+1])-index_offset;++iptr) {
          for (j=0;j<(in->block_size);++j) in->val[iptr*(in->block_size)+j]=value;
      }
   }

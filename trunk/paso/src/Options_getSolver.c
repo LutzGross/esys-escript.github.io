@@ -73,10 +73,10 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
      }
   /* MKL */
   } else if (package==PASO_MKL) {
-      out=PASO_DEFAULT;
+      out=PASO_DIRECT;
   /* UMFPACK */
   } else if (package==PASO_UMFPACK) {
-      out=PASO_DEFAULT;
+      out=PASO_DIRECT;
   } else {
       Paso_setError(VALUE_ERROR,"Unidentified package.");
   }
