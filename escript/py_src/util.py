@@ -3569,7 +3569,7 @@ def escript_generalTensorProduct(arg0,arg1,offset): # this should be escript._ge
         raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(offset,offset) 
 
     # whatr function space should be used? (this here is not good!)
-    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionspace()
+    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
     # create return value:
     out=escript.Data(0.,tuple(shape0+shape1),fs)
     # 
