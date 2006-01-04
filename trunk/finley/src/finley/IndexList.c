@@ -112,7 +112,7 @@ dim_t Finley_IndexList_count(Finley_IndexList* in) {
 void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array) {
   dim_t i;
   if (in!=NULL) {
-    for (i=0;i<in->n;i++) array[i]=in->index[i]+INDEX_OFFSET;
+    for (i=0;i<in->n;i++) array[i]=in->index[i];
     Finley_IndexList_toArray(in->extension,&(array[in->n]));
   }
 }

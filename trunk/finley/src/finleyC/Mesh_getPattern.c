@@ -148,7 +148,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
     MEMFREE(index);
     return NULL;
   } else {
-    return Paso_SystemMatrixPattern_alloc(n,ptr,index);
+    return Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,n,ptr,index);
   }
 }
 /*
