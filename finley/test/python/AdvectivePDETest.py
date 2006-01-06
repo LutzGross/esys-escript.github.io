@@ -26,7 +26,7 @@
 #
 
 from esys.escript import *
-from esys.linearPDEs import AdvectivePDE,LinearPDE
+from esys.escript.linearPDEs import AdvectivePDE,LinearPDE
 from esys import finley
 from random import random
 
@@ -67,11 +67,11 @@ for d in [3]:
    if d==2:
      mydomain=finley.Rectangle(ne,ne,1)
      x=mydomain.getX()
-     msk=x[0].whereZero()+(x[0]-1.).whereZero()+x[1].whereZero()+(x[1]-1.).whereZero()
+     msk=whereZero(x[0])+whereZero(x[0]-1.)+whereZero(x[1])+whereZero(x[1]-1.)
    else:
      mydomain=finley.Brick(ne,ne,ne,1)
      x=mydomain.getX()
-     msk=x[0].whereZero()+(x[0]-1.).whereZero()+x[1].whereZero()+(x[1]-1.).whereZero()+x[2].whereZero()+(x[2]-1.).whereZero()
+     msk=whereZero(x[0])+whereZero(x[0]-1.)+whereZero(x[1])+whereZero(x[1]-1.)+whereZero(x[2])+whereZero(x[2]-1.)
    print "@ generated %d-dimension mesh with %d elements in each direction"%(d,ne)
    # for ncomp in [1,2]:
    for ncomp in [2]:
@@ -113,7 +113,10 @@ for d in [3]:
         # create domain:
         mypde=AdvectivePDE(mydomain)
         # mypde.setSolverMethod(mypde.DIRECT)
-        mypde.setValue(q=msk*maskf,A=K)
+        print K
+        mypde.setValue(q=msk*maskf)
+        mypde.setValue(A=K)
+        mypde.setValue(A=K,q=msk*maskf)
         mypde.checkSymmetry()
         # run Peclet
         for Pe in [0.001,1.,1.,10.,100,1000.,10000.,100000.,1000000.,10000000.]:
