@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# $Id: isosurface_plot.py,v 1.1 2005/11/30 03:07:18 paultcochrane Exp $
+# $Id: isosurface_plot.py,v 1.2 2006/01/03 08:22:11 paultcochrane Exp $
 
 """
 Class and functions associated with a pyvisi IsosurfacePlot objects
@@ -29,7 +29,7 @@ import copy
 # module specific imports
 from pyvisi.renderers.vtk.plot import Plot
 
-__revision__ = '$Revision: 1.1 $'
+__revision__ = '$Revision: 1.2 $'
 
 class IsosurfacePlot(Plot):
     """
@@ -170,14 +170,89 @@ class IsosurfacePlot(Plot):
 			% len(dataList)
 		raise ValueError, errorString
 
-	    ####!!!! now process the data properly so that I can plot it
-	    print "escriptZ.shape() = %s" % escriptZ.shape()
-            print "escriptX.shape() = %s" % escriptX.shape()
+	    # convert the data to numarrays
+	    fieldData = escriptZ.convertToNumArray()
+	    domainData = escriptX.convertToNumArray()
+
+	    xData = domainData[:,0]
+	    yData = domainData[:,1]
+	    zData = domainData[:,2]
 
 	    # now check the dimensionality of the data and the grid; make
 	    # sure everything looks right before doing anything more
+	    if len(xData.shape) != 1:
+		raise ValueError, "xData not 1D.  I got %d dims" % \
+			len(xData.shape)
 
-	    raise ImplementationError, "Can't process escript Data yet"
+	    if len(yData.shape) != 1:
+		raise ValueError, "yData not 1D.  I got %d dims" % \
+			len(yData.shape)
+
+	    if len(zData.shape) != 1:
+		raise ValueError, "zData not 1D.  I got %d dims" % \
+			len(zData.shape)
+
+	    if len(fieldData.shape) != 1:
+		raise ValueError, "fieldData not 1D.  I got %d dims" % \
+			len(fieldData.shape)
+
+	    # now check that the length of the various vectors is correct
+	    dataLen = fieldData.shape[0]
+	    if xData.shape[0] != dataLen:
+		raise ValueError, \
+			"xData length doesn't agree with fieldData length"
+
+	    if yData.shape[0] != dataLen:
+		raise ValueError, \
+			"yData length doesn't agree with fieldData length"
+
+	    if zData.shape[0] != dataLen:
+		raise ValueError, \
+			"zData length doesn't agree with fieldData length"
+
+	    # it looks like everything is ok...  share the data around
+            ### the x data
+            self.renderer.renderDict['_x'] = copy.deepcopy(xData)
+
+            ### the y data
+            self.renderer.renderDict['_y'] = copy.deepcopy(yData)
+
+            ### the z data
+            self.renderer.renderDict['_z'] = copy.deepcopy(zData)
+
+	    ### the field data
+	    self.renderer.renderDict['_field'] = copy.deepcopy(fieldData)
+
+	    ### construct the grid, data and points arrays
+
+	    # first the points array
+	    evalString = "_points = vtk.vtkPoints()\n"
+	    evalString += "_points.SetNumberOfPoints(%d)\n" % dataLen
+	    evalString += "for _i in range(%d):\n" % dataLen
+	    evalString += "   _points.SetPoint(_i, _x[_i], _y[_i], _z[_i])\n" 
+	    self.renderer.runString(evalString)
+
+	    # now the data array
+	    evalString = "_data = vtk.vtkFloatArray()\n"
+	    evalString += "_data.SetNumberOfValues(%d)\n" % dataLen
+	    evalString += "_data.SetNumberOfTuples(1)\n"
+	    evalString += "for _i in range(%d):\n" % dataLen
+	    evalString += "    _data.SetTuple1(_i, _field[_i])\n"
+	    self.renderer.runString(evalString)
+
+	    # now make the grid
+	    evalString = "_grid = vtk.vtkUnstructuredGrid()\n"
+	    evalString += "_grid.SetPoints(_points)\n"
+	    evalString += "_grid.GetPointData().SetScalars(_data)\n"
+	    self.renderer.runString(evalString)
+
+	    # do the delaunay 3D to get proper isosurfaces
+	    evalString = "_del3D = vtk.vtkDelaunay3D()\n"
+	    evalString += "_del3D.SetInput(_grid)\n"
+	    evalString += "_del3D.SetOffset(2.5)\n"
+	    evalString += "_del3D.SetTolerance(0.001)\n"
+	    evalString += "_del3D.SetAlpha(0.0)\n"
+	    self.renderer.runString(evalString)
 
 	elif self.otherData:
 
@@ -201,21 +276,55 @@ class IsosurfacePlot(Plot):
 		raise ValueError, "Unknown format.  I got %s" % format
 
 	    evalString += "_reader.SetFileName(\"%s\")\n" % fname
-	    evalString += "_reader.Update()"
+	    evalString += "_reader.Update()\n"
+	    evalString += "_grid = _reader.GetOutput()\n"
 	    self.renderer.runString(evalString)
 
 	    # need to do a delaunay 3D here to get decent looking isosurfaces
 	    evalString = "_del3D = vtk.vtkDelaunay3D()\n"
-	    evalString += "_del3D.SetInput(_reader.GetOutput())\n"
+	    evalString += "_del3D.SetInput(_grid)\n"
 	    evalString += "_del3D.SetOffset(2.5)\n"
 	    evalString += "_del3D.SetTolerance(0.001)\n"
 	    evalString += "_del3D.SetAlpha(0.0)"
 	    self.renderer.runString(evalString)
 
-	    # get the model centre and bounds
-	    evalString = "_centre = _reader.GetOutput().GetCenter()\n"
-	    evalString += "_bounds = _reader.GetOutput().GetBounds()"
-	    self.renderer.runString(evalString)
+	# get the model centre and bounds
+	evalString = "_centre = _grid.GetCenter()\n"
+	evalString += "_bounds = _grid.GetBounds()\n"
+	self.renderer.runString(evalString)
+
+	# set up a contour filter
+	evalString = "_cont = vtk.vtkContourGrid()\n"
+	evalString += "_cont.SetInput(_del3D.GetOutput())\n"
+
+	# if contMin and contMax are or aren't set then handle the different
+	# situations
+	if self.contMin is not None and self.contMax is not None:
+	    evalString += "_cont.GenerateValues(%d, %f, %f)\n" % \
+		    (self.numContours, self.contMin, self.contMax)
+	elif self.contMin is not None and self.contMax is None:
+	    evalString += "(_contMin, _contMax) = _grid."
+	    evalString += "GetPointData().GetScalars().GetRange()\n"
+	    evalString += "_cont.GenerateValues(%d, %f, _contMax)\n" % \
+		    (self.numContours, self.contMin)
+	elif self.contMin is None and self.contMax is not None:
+	    evalString += "(_contMin, _contMax) = _grid."
+	    evalString += "GetPointData().GetScalars().GetRange()\n"
+	    evalString += "_cont.GenerateValues(%d, _contMin, %f)\n" % \
+		    (self.numContours, self.contMax)
+	elif self.contMin is None and self.contMax is None:
+	    evalString += "(_contMin, _contMax) = _grid."
+	    evalString += "GetPointData().GetScalars().GetRange()\n"
+	    evalString += "_cont.GenerateValues(%d, _contMin, _contMax)\n" % \
+		    (self.numContours)
+	else:
+	    # barf, really shouldn't have got here
+	    raise ValueError, \
+		    "Major problems in IsosurfacePlot: contMin and contMax"
+
+	evalString += "_cont.GenerateValues(5, 0.25, 0.75)\n"
+	evalString += "_cont.ComputeScalarsOn()"
+	self.renderer.runString(evalString)
 
     def render(self):
         """
@@ -224,39 +333,6 @@ class IsosurfacePlot(Plot):
         debugMsg("Called IsosurfacePlot.render()")
 
         self.renderer.runString("# IsosurfacePlot.render()")
-
-        # set up a contour filter
-        evalString = "_cont = vtk.vtkContourGrid()\n"
-        evalString += "_cont.SetInput(_del3D.GetOutput())\n"
-
-        # if contMin and contMax are or aren't set then handle the different
-        # situations
-        if self.contMin is not None and self.contMax is not None:
-            evalString += "_cont.GenerateValues(%d, %f, %f)\n" % \
-                    (self.numContours, self.contMin, self.contMax)
-        elif self.contMin is not None and self.contMax is None:
-            evalString += "(_contMin, _contMax) = _reader.GetOutput()."
-            evalString += "GetPointData().GetScalars().GetRange()\n"
-            evalString += "_cont.GenerateValues(%d, %f, _contMax)\n" % \
-                    (self.numContours, self.contMin)
-        elif self.contMin is None and self.contMax is not None:
-            evalString += "(_contMin, _contMax) = _reader.GetOutput()."
-            evalString += "GetPointData().GetScalars().GetRange()\n"
-            evalString += "_cont.GenerateValues(%d, _contMin, %f)\n" % \
-                    (self.numContours, self.contMax)
-        elif self.contMin is None and self.contMax is None:
-            evalString += "(_contMin, _contMax) = _reader.GetOutput()."
-            evalString += "GetPointData().GetScalars().GetRange()\n"
-            evalString += "_cont.GenerateValues(%d, _contMin, _contMax)\n" % \
-                    (self.numContours)
-        else:
-            # barf, really shouldn't have got here
-            raise ValueError, \
-                    "Major problems in IsosurfacePlot: contMin and contMax"
-
-        evalString += "_cont.GenerateValues(5, 0.25, 0.75)\n"
-        evalString += "_cont.ComputeScalarsOn()"
-        self.renderer.runString(evalString)
 
         # set up the mapper
         evalString = "_mapper = vtk.vtkDataSetMapper()\n"
@@ -340,7 +416,7 @@ class IsosurfacePlot(Plot):
 
         # add some axes
         evalString = "_axes = vtk.vtkCubeAxesActor2D()\n"
-        evalString += "_axes.SetInput(_reader.GetOutput())\n"
+        evalString += "_axes.SetInput(_grid)\n"
         evalString += "_axes.SetCamera(_renderer.GetActiveCamera())\n"
         evalString += "_axes.SetLabelFormat(\"%6.4g\")\n"
         evalString += "_axes.SetFlyModeToOuterEdges()\n"

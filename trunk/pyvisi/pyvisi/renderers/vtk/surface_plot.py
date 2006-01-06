@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# $Id: surface_plot.py,v 1.1 2005/11/30 03:07:18 paultcochrane Exp $
+# $Id: surface_plot.py,v 1.2 2005/12/23 01:28:29 paultcochrane Exp $
 
 """
 Class and functions associated with a pyvisi SurfacePlot objects
@@ -29,7 +29,7 @@ import copy
 # module specific imports
 from pyvisi.renderers.vtk.plot import Plot
 
-__revision__ = '$Revision: 1.1 $'
+__revision__ = '$Revision: 1.2 $'
 
 class SurfacePlot(Plot):
     """
@@ -499,7 +499,7 @@ class SurfacePlot(Plot):
 	if self.zlabel is not None:
 	    evalString += "_axes.SetZLabel(\"%s\")\n" % self.zlabel
 	else:
-	    evalString += "_axes.SetZlabel(\"\")\n"
+	    evalString += "_axes.SetZLabel(\"\")\n"
 
         # add the axes to the scene
         evalString += "_renderer.AddProp(_axes)"

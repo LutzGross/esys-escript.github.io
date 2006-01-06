@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# $Id: arrow_plot.py,v 1.1 2005/11/30 03:07:18 paultcochrane Exp $
+# $Id: arrow_plot.py,v 1.2 2006/01/05 01:51:53 paultcochrane Exp $
 
 """
 Class and functions associated with a pyvisi ArrowPlot objects
@@ -29,7 +29,7 @@ import copy
 # module specific imports
 from pyvisi.renderers.vtk.plot import Plot
 
-__revision__ = '$Revision: 1.1 $'
+__revision__ = '$Revision: 1.2 $'
 
 class ArrowPlot(Plot):
     """
@@ -154,16 +154,79 @@ class ArrowPlot(Plot):
 			% len(dataList)
 		raise ValueError, errorString
 
-	    #####!!!! now process the data properly so that I can plot it.
-	    print "escriptZ.shape() = %s" % escriptZ.shape()
-	    print "escriptX.shape() = %s" % escriptX.shape()
+	    domainData = escriptX.convertToNumArray()
+	    fieldData = escriptZ.convertToNumArray()
 
-	    # need to check the length of the vector data...  If it has
-	    # z-elements, print a warning and say they are being set to
-	    # zero.  Also need to check the grid; it should be just a plane
-	    # not a block of data.
+	    # now check the shapes
+	    if len(domainData.shape) != 2:
+		raise ValueError, \
+			"domainData shape is not 2D.  I got %d dims" % \
+			len(domainData.shape)
 
-	    raise ImplementationError, "Can't process escript Data yet"
+	    if len(fieldData.shape) != 2:
+		raise ValueError, \
+			"fieldData shape is not 2D.  I got %d dims" % \
+			len(fieldData.shape)
+
+	    # we expect only 2D vectors, so make sure that the second
+	    # dimension of the array is equal to 2
+	    if fieldData.shape[1] != 2:
+		raise ValueError, \
+			"fieldData vectors not 2D.  I got %d dims" % \
+			fieldData.shape[1]
+
+	    # make sure the lengths agree
+	    if domainData.shape[0] != fieldData.shape[0]:
+		raise ValueError, \
+			"domainData and fieldData lengths don't agree"
+
+	    # split the domainData and fieldData up into x and y parts
+	    xData = domainData[:,0]
+	    yData = domainData[:,1]
+
+	    dxData = fieldData[:,0]
+	    dyData = fieldData[:,1]
+
+	    # now pass the data to the render dictionary so that the render code
+	    # knows what it's supposed to plot
+	    # x data
+	    self.renderer.renderDict['_x'] = copy.deepcopy(xData)
+	
+	    # y data
+	    self.renderer.renderDict['_y'] = copy.deepcopy(yData)
+	
+	    # dx data
+	    self.renderer.renderDict['_dx'] = copy.deepcopy(dxData)
+	
+	    # dy data
+	    self.renderer.renderDict['_dy'] = copy.deepcopy(dyData)
+	
+	    # keep the number of points for future reference
+	    numPoints = len(xData)
+
+	    # construct the points data
+	    evalString = "_points = vtk.vtkPoints()\n"
+	    evalString += "_points.SetNumberOfPoints(%d)\n" % numPoints
+	    evalString += "for _j in range(%d):\n" % numPoints
+	    evalString += "    _points.InsertPoint(_j, _x[_j], _y[_j], 0.0)\n"
+	    self.renderer.runString(evalString)
+
+	    # construct the vectors
+	    evalString = "_vectors = vtk.vtkFloatArray()\n"
+	    evalString += "_vectors.SetNumberOfComponents(3)\n"
+	    evalString += "_vectors.SetNumberOfTuples(%d)\n" % numPoints
+	    evalString += "_vectors.SetName(\"vectors\")\n"
+	    evalString += "for _j in range(%d):\n" % numPoints
+	    evalString += \
+		    "    _vectors.InsertTuple3(_j, _dx[_j], _dy[_j], 0.0)\n"
+	    self.renderer.runString(evalString)
+
+	    # construct the grid
+	    evalString = "_grid = vtk.vtkUnstructuredGrid()\n"
+	    evalString += "_grid.SetPoints(_points)\n"
+	    evalString += "_grid.GetPointData().AddArray(_vectors)\n"
+	    evalString += "_grid.GetPointData().SetActiveVectors(\"vectors\")"
+	    self.renderer.runString(evalString)
 
 	elif self.otherData:
 
@@ -334,11 +397,12 @@ class ArrowPlot(Plot):
         evalString += "_textProp.ItalicOff()\n"
         evalString += "_textProp.ShadowOff()\n"
         evalString += "_textProp.SetColor(0,0,0)\n"
+	self.renderer.runString(evalString)
 
         # set the title if set
         if self.title is not None:
             # add a title
-            evalString += "_titleMapper = vtk.vtkTextMapper()\n"
+            evalString = "_titleMapper = vtk.vtkTextMapper()\n"
             evalString += "_titleMapper.SetInput(\"%s\")\n" % self.title
             
             evalString += "_titleProp = _titleMapper.GetTextProperty()\n"
