@@ -7,7 +7,7 @@ class Sequencer(Model):
     """
     Runs through time until t_end is reached.
     """
-    def __init__(self,t=0.,t_end=Model.UNDEF_DT,dt_max=Model.UNDEF_DT,debug=False):
+    def __init__(self,debug=False):
         """
         @param t_end: - model is terminated when t_end is passed  
                    (exposed in writeXML)
@@ -18,10 +18,10 @@ class Sequencer(Model):
         @type t: float
 
         """
-        Model.__init__(self,debug=debug)
-        self.declareParameter(t=t,
-                              t_end=t_end,
-                              dt_max=dt_max)
+        super(Sequencer,self).__init__(debug=debug)
+        self.declareParameter(t=0.,
+                              t_end=1.,
+                              dt_max=Model.UNDEF_DT)
 
     def doInitialization(self):
         """ 

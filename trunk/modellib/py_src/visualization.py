@@ -10,11 +10,12 @@ class Visualization(Model):
     (not implemeted yet)
 
     @ivar t: current time
+    @ivar n: frame counter
     @ivar scalar: scalar data set
     @ivar vector: vector data set
     @ivar tensor: tensor data set
-    @ivar stride: visulaization is done every strides time step
-    @ivar filename: name of the movie file
+    @ivar dt: increment for output 
+    @ivar filename: name of the output file
     """
 
     def __init__(self, debug=False):
@@ -23,43 +24,111 @@ class Visualization(Model):
 
         @param debug: Debugging flag
         """
-        Model.__init__(self, debug=debug)
+        super(Visualization,self).__init__(debug=debug)
         self.declareParameter(t=0.,
-                scalar=None, vector=None, tensor=None,
-                stride=1, movie="movie.mpg", counter=0)
+                              n=0,
+                              scalar=None,
+                              vector=None,
+                              tensor=None,
+                              dt=1,
+                              filename="movie.mpg")
 
     def doInitialization(self):
         """
         Does some kind of initialisation
         """
-        self.__n = 0
-        self.__scene = None
+        self.__last_t=self.t
+
+    def writeFrame(self):
+       out=self.t>=self.__last_t+self.dt
+       if out: 
+            self.__last_t+=self.dt
+            self.n+=1
+       return out
+
+    def getFrameCounter(self):
+        return self.n-1
+
+    def getSafeTimeStepSize(self,dt):
+           """
+           returns new step size
+
+           @param dt: last time step size used
+           @type dt: C{float}
+           @return: time step size that can savely be used
+           @rtype: C{float}
+           """
+           return self.__last_t+self.dt-self.t
+
 
     def doStepPostprocessing(self, dt):
         """
-        Does any necessary postprocessing after each step
+        renders the scene
+
+        @note: to be overwritten
+        """
+        if self.writeFrame():
+            self.trace("%s-th frame at time %s"%(self.getFrameCounter(),self.t))
+            if not self.scalar==None:
+               self.trace("scalar data: (min,max) =(%s,%s)"%(inf(self.scalar),sup(self.scalar)))
+            if not self.vector==None:
+               self.trace("vector data: (min,max) =(%s,%s)"%(inf(self.vector),sup(self.vector)))
+            if not self.tensor==None:
+               self.trace("tensor data: (min,max) =(%s,%s)"%(inf(self.tensor),sup(self.tensor)))
+           
+    def doFinalization(self):
+        """
+        Finalises the visualisation.  For instance, makes a movie of the image files.
+
+        @note: to be overwritten
+        """
+        pass
+
+class WriteVTK(Visualization):
+    """
+    Writes data into VTK files for further processing. 
+    """
+
+    def __init__(self, debug=False):
+        """
+        Initialisation of the WriteVTK object
+
+        @param debug: Debugging flag
+        """
+        super(WriteVTK,self).__init__(debug=debug)
+
+    def doInitialization(self):
+        """
+        Does some kind of initialisation
+        """
+        super(WriteVTK,self).doInitialization()
+        fnc=self.filename.split('.')
+        if len(fnc)==0:
+           self.__filename="data.%s.xml"
+        else:
+           n=fnc[0]
+           for i in range(1,len(fnc)-1):
+              n+="."+fnc[i]
+           if len(fnc)==1:
+              self.__filename=n+".%s"
+           else:
+              self.__filename=n+".%s."+fnc[-1]
+        self.trace("output filename is %s."%self.__filename)
+       
+
+    def doStepPostprocessing(self, dt):
+        """
+        Do any necessary postprocessing operations after a timestep.
 
         @param dt:
         """
-        self.__n += 1
-        if self.__n % self.stride:
-            data = self.scalar
-            if data != None:
-                pass
-            data = self.vector
-            if data != None:
-                pass
-            data = self.tensor
-            if data != None:
-                pass
-
-    def doFinalization(self):
-        """
-        Finalises the visualisation.  For instance, makes a movie of the
-        image files.
-        """
-        # make the movie into self.filename
-        pass
+        if self.writeFrame():
+            kwargs={}
+            if not self.scalar==None: kwargs["scalar"] = self.scalar
+            if not self.vector==None: kwargs["vector"] = self.vector
+            if not self.tensor==None: kwargs["tensor"] = self.tensor
+            saveVTK(self.__filename%self.getFrameCounter(),**kwargs)
+            self.trace("%s-th frame at time %s is writen to %s"%(self.getFrameCounter(),self.t,self.__filename%self.getFrameCounter()))
 
 class ShadePlot(Visualization):
     """
@@ -150,47 +219,5 @@ class EllipsoidPlot(Visualization):
         """
         Visualization.__init__(self, debug)
 
-
-class WriteVTK(Visualization):
-    """
-    Writes data into a VTK file for further processing. Currently data 
-    are written in several files for each data type. This may change 
-    in the future.
-
-    scalar: scalar data set
-    vector: vector data set
-    tensor: tensor data set
-    stride: file is written every stride-th time step
-    filename: name of the data files. use %s for indication of data type 
-    (s,v,t) and time step id.
-    """
-
-    def __init__(self, debug=False):
-        """
-        Initialisation of the WriteVTK object
-
-        @param debug: Debugging flag
-        """
-        Visualization.__init__(self, debug=debug)
-        self.declareParameter(filename="data.%s.xml")
-
-    def doStepPostprocessing(self, dt):
-        """
-        Do any necessary postprocessing operations after a timestep.
-
-        @param dt:
-        """
-        self.counter += 1
-        if self.counter % self.stride == 0:
-            n = self.counter/self.stride
-            data = self.scalar
-            if hasattr(data, "saveVTK"): 
-                data.saveVTK(self.filename % ("s.%d" % n))
-            data = self.vector
-            if hasattr(data, "saveVTK"): 
-                data.saveVTK(self.filename % ("v.%d" % n))
-            data = self.tensor
-            if hasattr(data, "saveVTK"): 
-                data.saveVTK(self.filename % ("t.%d" % n))
 
 # vim: expandtab shiftwidth=4:

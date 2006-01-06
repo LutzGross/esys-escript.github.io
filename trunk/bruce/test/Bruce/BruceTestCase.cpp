@@ -103,6 +103,7 @@ void BruceTestCase::testNull() {
   assert(testbruce.getFunctionCode()==1);
 
   dataShape = testbruce.getDataShape(0);
+  cout << dataShape.first << " " << dataShape.second << "\n";
   assert(dataShape.first==1);
   assert(dataShape.second==0);
   dataShape = testbruce.getDataShape(1);
