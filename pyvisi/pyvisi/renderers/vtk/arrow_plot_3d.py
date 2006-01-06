@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# $Id: arrow_plot_3d.py,v 1.1 2005/11/30 03:07:18 paultcochrane Exp $
+# $Id: arrow_plot_3d.py,v 1.2 2006/01/05 03:54:48 paultcochrane Exp $
 
 """
 Class and functions associated with a pyvisi ArrowPlot3D objects
@@ -25,11 +25,12 @@ from pyvisi.renderers.vtk.common import debugMsg
 import Numeric
 import os
 import copy
+import numarray
 
 # module specific imports
 from pyvisi.renderers.vtk.plot import Plot
 
-__revision__ = '$Revision: 1.1 $'
+__revision__ = '$Revision: 1.2 $'
 
 class ArrowPlot3D(Plot):
     """
@@ -158,15 +159,105 @@ class ArrowPlot3D(Plot):
 			% len(dataList)
 		raise ValueError, errorString
 
-	    ####!!!! now process the data properly so that I can plot it
-	    print "escriptZ.shape() = %s" % escriptZ.shape()
-	    print "escriptX.shape() = %s" % escriptX.shape()
+	    # convert to numarray
+	    domainData = escriptX.convertToNumArray()
+	    fieldData = escriptZ.convertToNumArray()
 
-	    # need to check the length of the vector data and the shape of
-	    # the mesh to make sure is appropriate for an ArrowPlot3D
-	    # object.
+	    # check the shapes
+	    if len(domainData.shape) != 2:
+		raise ValueError, \
+			"domainData shape is not 2D.  I got %d dims" % \
+			len(domainData.shape)
 
-	    raise ImplementationError, "Can't process escript Data yet"
+	    if len(fieldData.shape) != 2:
+		raise ValueError, \
+			"fieldData shape is not 2D.  I got %d dims" % \
+			len(fieldData.shape)
+
+	    if domainData.shape[1] != 2 and domainData.shape[1] != 3:
+		raise ValueError, \
+			"domainData array not 2D or 3D.  I got %d dims" % \
+			domainData.shape[1]
+
+	    # check the dimensions of the vectors
+	    if fieldData.shape[1] != 2 and fieldData.shape[1] != 3:
+		errorString = "Incorrect array dimensions.  Expected "
+		errorString += "either 2D or 3D.  I got %d dims" % \
+			fieldData.shape[1]
+		raise ValueError, errorString
+
+	    # check the length of the arrays
+	    if domainData.shape[0] != fieldData.shape[0]:
+		raise ValueError, \
+			"domainData and fieldData lengths are not equal"
+
+	    # get the x, y and z data
+	    xData = domainData[:,0]
+
+	    # keep the number of points for future reference
+	    numPoints = len(xData)
+
+	    yData = domainData[:,1]
+	    # handle the case that the domain data has only 2D vectors
+	    if domainData.shape[1] == 2:
+		zData = numarray.zeros(numPoints)
+	    else:
+		zData = domainData[:,2]
+
+	    # get the dx, dy and dz data
+	    dxData = fieldData[:,0]
+	    dyData = fieldData[:,1]
+	    # handle the case that the field data has only 2D vectors
+	    if fieldData.shape[1] == 2:
+		dzData = numarray.zeros(numPoints)
+	    else:
+		dzData = fieldData[:,2]
+
+            # now pass the data to the render dictionary so that the render
+            # code knows what it's supposed to plot
+
+            # x data
+            self.renderer.renderDict['_x'] = copy.deepcopy(xData)
+    
+            # y data
+            self.renderer.renderDict['_y'] = copy.deepcopy(yData)
+    
+            # z data
+            self.renderer.renderDict['_z'] = copy.deepcopy(zData)
+    
+            # dx data
+            self.renderer.renderDict['_dx'] = copy.deepcopy(dxData)
+    
+            # dy data
+            self.renderer.renderDict['_dy'] = copy.deepcopy(dyData)
+    
+            # dz data
+            self.renderer.renderDict['_dz'] = copy.deepcopy(dzData)
+    
+            # construct the points data
+            evalString = "_points = vtk.vtkPoints()\n"
+            evalString += "_points.SetNumberOfPoints(%d)\n" % numPoints
+            evalString += "for _j in range(%d):\n" % numPoints
+            evalString += \
+                    "    _points.InsertPoint(_j, _x[_j], _y[_j], _z[_j])\n"
+            self.renderer.runString(evalString)
+    
+            # construct the vectors
+            evalString = "_vectors = vtk.vtkFloatArray()\n"
+            evalString += "_vectors.SetNumberOfComponents(3)\n"
+            evalString += "_vectors.SetNumberOfTuples(%d)\n" % numPoints
+            evalString += "_vectors.SetName(\"vectors\")\n"
+            evalString += "for _j in range(%d):\n" % numPoints
+            evalString += \
+                    "    _vectors.InsertTuple3(_j, _dx[_j], _dy[_j], _dz[_j])\n"
+            self.renderer.runString(evalString)
+    
+            # construct the grid
+            evalString = "_grid = vtk.vtkUnstructuredGrid()\n"
+            evalString += "_grid.SetPoints(_points)\n"
+            evalString += "_grid.GetPointData().AddArray(_vectors)\n"
+            evalString += "_grid.GetPointData().SetActiveVectors(\"vectors\")"
+            self.renderer.runString(evalString)
 
 	elif self.otherData:
             # do some sanity checking on the data

@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# $Id: line_plot.py,v 1.1 2005/11/30 03:07:18 paultcochrane Exp $
+# $Id: line_plot.py,v 1.2 2005/12/22 07:08:13 paultcochrane Exp $
 
 """
 Class and functions associated with a pyvisi LinePlot objects
@@ -29,7 +29,7 @@ import copy
 # module specific imports
 from pyvisi.renderers.vtk.plot import Plot
 
-__revision__ = '$Revision: 1.1 $'
+__revision__ = '$Revision: 1.2 $'
 
 class LinePlot(Plot):
     """
@@ -173,14 +173,55 @@ class LinePlot(Plot):
 			% len(dataList)
 		raise ValueError, errorString
 
-	    ####!!!! now process the data properly so that I can plot it
-	    print "escriptX.shape() = %s" % escriptX.shape()
-	    print "escriptY.shape() = %s" % escriptY.shape()
+	    # convert the data to numarrays
+	    xData = escriptX[0].convertToNumArray()
+	    yData = escriptY.convertToNumArray()
 
-	    # need to check the length and shape of the data to make sure it
-	    # looks right for a LinePlot object
+	    # handle the x data
 
-	    raise ImplementationError, "Can't process escript Data yet"
+	    # check the shape of the xData
+	    if len(xData.shape) != 1:
+		errorString = "xData array needs to be 1D.  "  
+		errorString += "I got %d dimensions" % len(xData.shape)
+		raise ValueError, errorString
+
+	    xDataLen = xData.shape[0]
+
+	    # pass around the x data
+	    self.renderer.renderDict['_x'] = copy.deepcopy(xData)
+
+	    # set up the vtkDataArray object for the x data
+	    self.renderer.runString(
+		    "_xData = vtk.vtkDataArray.CreateDataArray(vtk.VTK_FLOAT)")
+	    self.renderer.runString(
+		    "_xData.SetNumberOfTuples(len(_x))")
+
+	    # now handle the y data
+
+	    # make sure that the shape of the yData is either 1D or 2D, if
+	    # it is 2D then split up the dims into different _y data objects
+	    if len(yData.shape) < 1 or len(yData.shape) > 2:
+		errorString = "yData array needs to be 1D or 2D.  "
+		errorString += "I got %d dimensions" % len(yData.shape)
+		raise ValueError, errorString
+
+	    # share around the y data
+	    for i in range(len(yData.shape)):
+		if len(yData.shape) == 1:
+		    if len(yData) != xDataLen:
+			errorString = "yData array length not compatible with "
+			errorString += "xData array length"
+			raise ValueError, errorString
+		    yDataVar = "_y%d" % i
+		    self.renderer.renderDict[yDataVar] = copy.deepcopy(yData)
+		else:
+		    if len(yData[i]) != xDataLen:
+			errorString = "yData array length not compatible with "
+			errorString += "xData array length"
+			raise ValueError, errorString
+		    yDataVar = "_y%d" % i
+		    self.renderer.renderDict[yDataVar] = \
+			    copy.deepcopy(yData[i])
 
 	elif self.otherData:
 	    # do some sanity checking on the data
@@ -214,8 +255,7 @@ class LinePlot(Plot):
 
 	    ## now to handle the y data
 
-	    # now to add my dodgy hack until I have a decent way of sharing data
-	    # objects around properly
+	    # share around the y data
 	    for i in range(len(dataList)):
 		# check that the data here is a 1-D array
 		if len(dataList[i].shape) != 1:

@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# $Id: ellipsoid_plot.py,v 1.1 2005/11/30 03:07:18 paultcochrane Exp $
+# $Id: ellipsoid_plot.py,v 1.2 2006/01/05 05:05:13 paultcochrane Exp $
 
 """
 Class and functions associated with a pyvisi EllipsoidPlot objects
@@ -25,11 +25,12 @@ from pyvisi.renderers.vtk.common import debugMsg
 import Numeric
 import os
 import copy
+import numarray
 
 # module specific imports
 from pyvisi.renderers.vtk.plot import Plot
 
-__revision__ = '$Revision: 1.1 $'
+__revision__ = '$Revision: 1.2 $'
 
 class EllipsoidPlot(Plot):
     """
@@ -106,10 +107,6 @@ class EllipsoidPlot(Plot):
 	else:
 	    tensors = None
 
-        # do a quick sanity check on the inputs
-        if fname is None or format is None:
-            raise ValueError, "You must supply an input file and its format"
-
         # we want to pass this info around
         self.fname = fname
         self.format = format
@@ -168,15 +165,132 @@ class EllipsoidPlot(Plot):
 			% len(dataList)
 		raise ValueError, errorString
 
+	    # convert the Data objects to numarrays
+	    domainData = escriptX.convertToNumArray()
+	    fieldData = escriptZ.convertToNumArray()
+
+	    # make sure that the shapes are correct
+	    if len(domainData.shape) != 2:
+		raise ValueError, \
+			"domainData shape not 2D.  I got %d dims" % \
+			len(domainData.shape)
+
+	    if len(fieldData.shape) != 3:
+		raise ValueError, \
+			"fieldData shape not 3D.  I got %d dims" % \
+			len(fieldData.shape)
+
+	    # check the array lengths
+	    if domainData.shape[0] != fieldData.shape[0]:
+		raise ValueError, \
+			"domainData and fieldData array lengths don't agree"
+
+	    # check the array dimensions
+	    if domainData.shape[1] != 2 and domainData.shape[1] != 3:
+		raise ValueError, \
+			"domainData array not 2D or 3D.  I got %d dims" % \
+			domainData.shape[1]
+
+	    if fieldData.shape[1] != 2 and fieldData.shape[1] != 3:
+		raise ValueError, \
+			"fieldData first array not 2D or 3D.  I got %d dims" \
+			% fieldData.shape[1]
+
+	    if fieldData.shape[2] != 2 and fieldData.shape[2] != 3:
+		raise ValueError, \
+			"fieldData second array not 2D or 3D.  I got %d dims" \
+			% fieldData.shape[2]
+
+	    # check that the fieldData arrays are square
+	    if fieldData.shape[1] != fieldData.shape[2]:
+		errorString = "fieldData arrays not square.  "
+		errorString += "First dim: %d.  " % fieldData.shape[1]
+		errorString += "Second dim %d." % fieldData.shape[2]
+		raise ValueError, errorString
+
+	    # get the x, y and z data from the domain
+	    xData = domainData[:,0]
+	    numPoints = len(xData)  # handy number to keep hanging around
+	    yData = domainData[:,1]
+	    # handle the case where no zData is specified
+	    if domainData.shape[1] == 2:
+		zData = numarray.zeros(numPoints)
+	    else:
+		zData = domainData[:,2]
+
 	    ####!!!! now process the data properly so that I can plot it
-	    print "escriptZ.shape() = %s" % escriptZ.shape()
-	    print "escriptX.shape() = %s" % escriptX.shape()
+	    print "domainData.shape = %s" % str(domainData.shape)
+	    print "fieldData.shape = %s" % str(fieldData.shape)
 
-	    # need to check the dimensionality of the data, i.e. is it 2x2
-	    # or 3x3 or what?  This will determine the code that gets
-	    # generated.
+            # now pass the data to the render dictionary so that the render
+            # code knows what it's supposed to plot
 
-	    raise ImplementationError, "Can't process escript Data yet"
+            # x data
+            self.renderer.renderDict['_x'] = copy.deepcopy(xData)
+    
+            # y data
+            self.renderer.renderDict['_y'] = copy.deepcopy(yData)
+    
+            # z data
+            self.renderer.renderDict['_z'] = copy.deepcopy(zData)
+    
+	    # field data
+	    self.renderer.renderDict['_data'] = copy.deepcopy(fieldData)
+
+	    # make the points for the grid
+	    evalString = "_points = vtk.vtkPoints()\n"
+	    evalString += "_points.SetNumberOfPoints(%d)\n" % numPoints
+            evalString += "for _j in range(%d):\n" % numPoints
+            evalString += \
+                    "    _points.InsertPoint(_j, _x[_j], _y[_j], _z[_j])\n"
+            self.renderer.runString(evalString)
+
+	    # make the array of data
+	    evalString = "_tensors = vtk.vtkFloatArray()\n"
+	    evalString += "_tensors.SetNumberOfComponents(9)\n"
+	    evalString += "_tensors.SetNumberOfTuples(%d)\n" % numPoints
+	    evalString += "_tensors.SetName(\"tensors\")\n"
+	    evalString += "for _j in range(%d):\n" % numPoints
+	    if fieldData.shape[1] == 2:
+		evalString += "    _tensors.InsertTuple9(_j, "
+		evalString += "_data[_j][0][0], _data[_j][0][1], 0.0, "
+		evalString += "_data[_j][1][0], _data[_j][1][1], 0.0, "
+		evalString += "0.0, 0.0, 0.0)\n"
+	    elif fieldData.shape[1] == 3:
+		evalString += "    _tensors.InsertTuple9(_j, "
+		evalString += \
+			"_data[_j][0][0], _data[_j][0][1], _data[_j][0][2], "
+		evalString += \
+			"_data[_j][1][0], _data[_j][1][1], _data[_j][1][2], "
+		evalString += \
+			"_data[_j][2][0], _data[_j][2][1], _data[_j][2][2])\n"
+	    else:
+		raise ValueError, "Incorrect fieldData shape.  I got %d" % \
+			fieldData.shape[1]
+	    self.renderer.runString(evalString)
+
+	    # make the grid
+	    evalString = "_grid = vtk.vtkUnstructuredGrid()\n"
+	    evalString += "_grid.SetPoints(_points)\n"
+	    evalString += "_grid.GetPointData().AddArray(_tensors)\n"
+	    evalString += \
+		    "_grid.GetPointData().SetActiveTensors(\"tensors\")\n"
+	    self.renderer.runString(evalString)
+ 
+	    # now extract the tensor components
+	    evalString = "_extract = vtk.vtkExtractTensorComponents()\n"
+	    evalString += "_extract.SetInput(_grid)\n"
+	    evalString += "_extract.SetScalarModeToEffectiveStress()\n"
+	    evalString += "_extract.ExtractScalarsOn()\n"
+	    evalString += "_extract.PassTensorsToOutputOn()\n"
+	    evalString += "_extract.ScalarIsEffectiveStress()\n"
+
+	    evalString += "_extractGrid = _extract.GetOutput()\n"
+	    evalString += "_extractGrid.Update()\n"
+	    evalString += "_extractScalarRange = "
+	    evalString += \
+		    "_extractGrid.GetPointData().GetScalars().GetRange()\n"
+	    self.renderer.runString(evalString)
 
 	elif self.otherData:
 
