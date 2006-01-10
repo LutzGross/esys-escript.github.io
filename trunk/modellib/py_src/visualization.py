@@ -52,14 +52,13 @@ class Visualization(Model):
     def getSafeTimeStepSize(self,dt):
            """
            returns new step size
-
+                                                                                                                                                                                                    
            @param dt: last time step size used
            @type dt: C{float}
            @return: time step size that can savely be used
            @rtype: C{float}
            """
            return self.__last_t+self.dt-self.t
-
 
     def doStepPostprocessing(self, dt):
         """
