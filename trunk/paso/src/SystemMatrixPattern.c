@@ -39,7 +39,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, in
              if (ptr[i]<ptr[i+1]) {
                qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
                loc_min_index=MIN(loc_min_index,index[ptr[i]-1]);
-               loc_max_index=MAX(loc_max_index,index[ptr[i+1]]);
+               loc_max_index=MAX(loc_max_index,index[ptr[i+1]-2]);
              }
          }
       } else {
@@ -66,10 +66,10 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, in
   out=MEMALLOC(1,Paso_SystemMatrixPattern);
   if (Paso_checkPtr(out)) return NULL;
   out->n_ptr=n_ptr;
-  out->n_index=max_index+1-index_offset;
+  out->n_index=max_index-index_offset+1;
   out->ptr=ptr;
   out->index=index;
-  out->len=out->ptr[out->n_ptr];
+  out->len=out->ptr[out->n_ptr]-index_offset;
   out->reference_counter=1;
   out->type=type;
   #ifdef Paso_TRACE

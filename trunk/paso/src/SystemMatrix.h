@@ -52,8 +52,8 @@ typedef struct Paso_SystemMatrix {
 
   double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
   bool_t normalizer_is_valid;
-  void* direct;  /* pointer to data needed by the direct solver */
-  void* iterative; /* pointer to data needed by the iterative solver */
+  index_t solver_package;  /* package controling the solver pointer */
+  void* solver;  /* pointer to data needed by a solver */
 
 } Paso_SystemMatrix;
 

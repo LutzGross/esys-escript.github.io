@@ -843,6 +843,7 @@ class LinearPDE(object):
 
        m=self.getSolverMethod()
        p=self.getSolverPackage()
+       method=""
        if m[0]==self.DEFAULT: method="DEFAULT"
        elif m[0]==self.DIRECT: method= "DIRECT"
        elif m[0]==self.ITERATIVE: method= "ITERATIVE"
@@ -855,13 +856,11 @@ class LinearPDE(object):
        elif m[0]==self.GMRES: method= "GMRES"
        elif m[0]==self.PRES20: method= "PRES20"
        elif m[0]==self.LUMPING: method= "LUMPING"
-       else : method="unknown"
-       if m[1]==self.DEFAULT: method+="DEFAULT"
-       elif m[1]==self.JACOBI: method+= "JACOBI"
-       elif m[1]==self.ILU0: method+= "ILU0"
-       elif m[1]==self.ILUT: method+= "ILUT"
-       elif m[1]==self.SSOR: method+= "SSOR"
-       else : method+="unknown"
+       if m[1]==self.DEFAULT: method+="+DEFAULT"
+       elif m[1]==self.JACOBI: method+= "+JACOBI"
+       elif m[1]==self.ILU0: method+= "+ILU0"
+       elif m[1]==self.ILUT: method+= "+ILUT"
+       elif m[1]==self.SSOR: method+= "+SSOR"
        if p==self.DEFAULT: package="DEFAULT"
        elif p==self.PASO: package= "PASO"
        elif p==self.MKL: package= "MKL"
