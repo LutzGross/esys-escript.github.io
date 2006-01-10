@@ -31,8 +31,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
   out=MEMALLOC(1,Paso_SystemMatrix);
   if (! Paso_checkPtr(out)) {  
      out->pattern=NULL;  
-     out->direct=NULL;  
-     out->iterative=NULL;
+     out->solver_package=PASO_PASO;  
+     out->solver=NULL;  
      out->val=NULL;  
      out->reference_counter=1;
      out->type=type;
@@ -43,7 +43,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
            Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSC is not implemented yet.");
            return NULL;
         } else {
-           if ((type & MATRIX_FORMAT_BLK1) && (row_block_size!=col_block_size || col_block_size>3) ) {
+           if ((type & MATRIX_FORMAT_BLK1) || row_block_size!=col_block_size || col_block_size>3) {
               if (type & MATRIX_FORMAT_OFFSET1) {
                   out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,PATTERN_FORMAT_OFFSET1,col_block_size,row_block_size);
               } else {
@@ -69,7 +69,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
            Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSR is not implemented yet.");
            return NULL;
         } else {
-           if ((type & MATRIX_FORMAT_BLK1) && (row_block_size!=col_block_size || col_block_size>3) ) {
+           if ((type & MATRIX_FORMAT_BLK1) || row_block_size!=col_block_size || col_block_size>3)  {
               if (type & MATRIX_FORMAT_OFFSET1) {
                   out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,PATTERN_FORMAT_OFFSET1,row_block_size,col_block_size);
               } else {

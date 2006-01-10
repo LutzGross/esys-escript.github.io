@@ -1,77 +1,12 @@
 # Scons configuration file for DataCached unit tests
-
-import os
-import sys
-
-#
-# ensure correct versions of python and scons
-
-EnsurePythonVersion(2,3)
-EnsureSConsVersion(0,96)
-
-#
-# set appropriate defaults for configuration variables
-
-esysroot = Dir('#../../..')
-usegcc = 0
-options = None
-sys_libs = []
-
-#
-# import configuration variables passed in from
-# calling SConscript (if any)
-
-Import('*')
-
-#
-# retreive command-line arguments if any
-
-if ARGUMENTS.get('usegcc',0):
-  usegcc = 1
-
-if ARGUMENTS.get('options',0):
-  options = ARGUMENTS.get('options',0)
-
-#
-# determine platform
-
-env = Environment(ENV = os.environ)
-platform = env['PLATFORM']
-
-#
-# determine hostname
-
-import socket
-hostname = socket.gethostname()
-
-#
-# load configuration settings
-
-options_dir = str(esysroot) + '/scons'
-sys.path.append(options_dir)
-
-from default_options import *
-
-if hostname=='ess':
-  from ess_options import *
-
-if usegcc==1:
-  from gcc_options import *
-
-if options!=None:
-  exec "from " + options + " import *"
-
+esysroot=str(Dir('./../../../..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
+                                                                                                                                                                                                    
 cxx_flags=cxx_flags_debug
-
-#
-# print out build configuration for this module
-
+                                                                                                                                                                                                    
 print "Build configuration for module: DataCached unit tests"
-print "         dodebug:  1"
-print "          usegcc: ", usegcc
 print "             cxx: ", cxx
-print "        platform: ", platform
-print "        hostname: ", hostname
+print "       cxx_flags: ", cxx_flags
 
 #
 # do the actual build
@@ -117,6 +52,7 @@ sources = ['DataCachedTestCase.cpp',
 
 target = 'DataCachedTest.exe'
 
+import os
 datacached_env = Environment(ENV = os.environ)
 
 datacached_env.Replace(CXX = cxx)

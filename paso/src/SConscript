@@ -4,6 +4,7 @@ Import('*')
 
 import os
 import string
+paso_env = Environment(ENV = os.environ)
 
 paso_path = str(esysroot) + '/paso/src'
 solvers_path = str(esysroot) + '/paso/src/Solvers'
@@ -14,6 +15,17 @@ cpp_path = [paso_path,
             mmio_path,
             python_path,
             boost_path]
+
+paso_env.Replace(CC = cc)
+paso_env.Replace(CCFLAGS = cc_flags)
+if len(mkl_libs) >0: paso_env.Append(CCFLAGS=' -DMKL')
+if len(mkl_path) >0: cpp_path.append(mkl_path)
+if len(scsl_libs)>0 : paso_env.Append(CCFLAGS=' -DSCSL')
+if len(scsl_path)>0: cpp_path.append(scsl_path)
+if len(umfpack_libs)>0 : paso_env.Append(CCFLAGS=' -DUMFPACK')
+if len(umfpack_path)>0: cpp_path.append(umfpack_path)
+paso_env.Replace(CPPPATH = cpp_path)
+paso_env.Replace(ARFLAGS = ar_flags)
 
 lib = 'paso'
 sources = ['Options_getPackage.c',
@@ -37,6 +49,7 @@ sources = ['Options_getPackage.c',
            'SystemMatrix_saveMM.c',
            'SystemMatrix_setValues.c',
            'Util.c',
+           'MKL.c',
            'SCSL.c',
            'SCSL_direct.c',
            'SCSL_iterative.c',
@@ -50,12 +63,7 @@ sources = ['Options_getPackage.c',
            'Solvers/Solver_preconditioner.c',
            'Solvers/Solver_SchurComplement.c']
 
-paso_env = Environment(ENV = os.environ)
 
-paso_env.Replace(CC = cc)
-paso_env.Replace(CCFLAGS = cc_flags)
-paso_env.Replace(ARFLAGS = ar_flags)
-paso_env.Replace(CPPPATH = cpp_path)
 
 paso_lib = paso_env.StaticLibrary(lib, sources)
 

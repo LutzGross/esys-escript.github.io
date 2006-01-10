@@ -30,14 +30,14 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
 
 void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
     Paso_Solver_Preconditioner* prec=NULL;
-    if (A->iterative==NULL) {
+    if (A->solver==NULL) {
         /* allocate structure to hold preconditioner */
         prec=MEMALLOC(1,Paso_Solver_Preconditioner);
         if (Paso_checkPtr(prec)) return;
         prec->type=UNKNOWN;
         prec->ilu=NULL;
         prec->jacobi=NULL;
-        A->iterative=prec;
+        A->solver=prec;
         switch (options->preconditioner) {
            default:
            case PASO_JACOBI:
@@ -53,7 +53,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         }
         if (! Paso_noError()) {
            Paso_Preconditioner_free(prec);
-           A->iterative=NULL;
+           A->solver=NULL;
         }
     }
 }
@@ -62,7 +62,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
 /* has to be called within a parallel reqion */
 /* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
-    Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->iterative;
+    Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
     #pragma omp barrier
     switch (prec->type) {
         default:

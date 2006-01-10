@@ -63,6 +63,12 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
           out=PASO_BICGSTAB;
         }
         break;
+      case PASO_CHOLEVSKY:
+        out=PASO_CHOLEVSKY;
+        break;
+      case PASO_DIRECT:
+        out=PASO_DIRECT;
+        break;
       default:
         if (symmetry) {
           out=PASO_CHOLEVSKY;
@@ -73,7 +79,21 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
      }
   /* MKL */
   } else if (package==PASO_MKL) {
-      out=PASO_DIRECT;
+    switch (solver) {
+      case PASO_CHOLEVSKY:
+        out=PASO_CHOLEVSKY;
+        break;
+      case PASO_DIRECT:
+        out=PASO_DIRECT;
+        break;
+      default:
+        if (symmetry) {
+          out=PASO_CHOLEVSKY;
+        } else {
+          out=PASO_DIRECT;
+        }
+        break;
+    }
   /* UMFPACK */
   } else if (package==PASO_UMFPACK) {
       out=PASO_DIRECT;

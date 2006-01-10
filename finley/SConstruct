@@ -1,104 +1,14 @@
 # Scons configuration file for finley
+esysroot=str(Dir('./..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
 
-import os
-import sys
-
-#
-# ensure correct versions of python and scons
-
-EnsurePythonVersion(2,3)
-EnsureSConsVersion(0,96)
-
-#
-# set appropriate defaults for configuration variables
-
-esysroot = Dir('#..')
-libinstall = None
-pyinstall = None
-dodebug = 0
-usegcc = 0
-options = None
-
-#
-# import configuration variables passed in from
-# calling SConscript (if any)
-
-Import('*')
-
-#
-# retreive command-line arguments if any
-
-if ARGUMENTS.get('libinstall',0):
-  libinstall = ARGUMENTS.get('libinstall',0)
-Export(["libinstall"])
-
-if ARGUMENTS.get('pyinstall',0):
-  pyinstall = ARGUMENTS.get('pyinstall',0)
-  pyinstall = Dir(str(pyinstall) + '/finley')
-Export(["pyinstall"])
-
-if ARGUMENTS.get('debug',0):
-  dodebug = 1
-
-if ARGUMENTS.get('usegcc',0):
-  usegcc = 1
-
-if ARGUMENTS.get('options',0):
-  options = ARGUMENTS.get('options',0)
-
-#
-# determine platform
-
-env = Environment(ENV = os.environ)
-platform = env['PLATFORM']
-
-#
-# determine hostname
-
-import socket
-hostname = socket.gethostname()
-
-#
-# export esysroot
-
-Export(["esysroot"])
-
-#
-# set and export library directory
-
-libdir = Dir(str(esysroot) + '/finley/lib')
-Export(["libdir"])
-libdir2 = Dir(str(esysroot) + '/lib')
-Export(["libdir2"])
-
-#
-# set and export python directories
+solver_libs=mkl_libs+scsl_libs+umfpack_libs
+solver_lib_paths=[mkl_lib_path,scsl_lib_path,umfpack_lib_path]
 
 pydir = Dir(str(esysroot) + '/finley/lib/py_src')
 Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/finley')
 Export(["pydir2"])
-
-#
-# load and export configuration settings
-
-options_dir = str(esysroot) + '/scons'
-sys.path.append(options_dir)
-
-from default_options import *
-
-if hostname=='ess':
-  from ess_options import *
-
-if usegcc==1:
-  from gcc_options import *
-
-if options!=None:
-  exec "from " + options + " import *"
-
-if dodebug==1:
-  cxx_flags=cxx_flags_debug
-  cc_flags=cc_flags_debug
 
 Export(["python_path"])
 Export(["boost_path"])
@@ -110,19 +20,16 @@ Export(["boost_lib_path"])
 Export(["boost_lib"])
 Export(["sys_libs"])
 Export(["solver_libs"])
+Export(["solver_lib_paths"])
 
 #
 # print out build configuration for this module
 
 print "Build configuration for module: finley"
-print "         dodebug: ", dodebug
-print "          usegcc: ", usegcc
 print "              cc: ", cc
+print "        cc_flags: ", cc_flags
 print "             cxx: ", cxx
-print "        platform: ", platform
-print "        hostname: ", hostname
-print "      libinstall: ", libinstall
-print "       pyinstall: ", pyinstall
+print "       cxx_flags: ", cxx_flags
 
 #
 # call the SConscript to do the actual build

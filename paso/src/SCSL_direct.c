@@ -27,15 +27,15 @@
 
 void Paso_SCSL_direct_free(Paso_SystemMatrix* A) {
 #ifdef SCSL
-      if (A->direct!=NULL) {
-	int token=*(int*)(A->direct);
+      if (A->solver!=NULL) {
+	int token=*(int*)(A->solver);
         TokenList[token]=0;
         if (TokenSym[token]) {
             DPSLDLT_Destroy(token);
         } else {
             DPSLDU_Destroy(token);
         }
-        A->direct=NULL;
+        A->solver=NULL;
      }
 #endif
 }
@@ -70,7 +70,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
   if (Paso_noError()) {
 
      /* if no token has been assigned a free token must be found*/
-     if (A->direct==NULL) {
+     if (A->solver==NULL) {
         /* find the next available token */
        for(token=0;token<l && TokenList[token]!=0;token++);
         if (token==l) {
@@ -78,7 +78,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
         } else {
           TokenList[token] = 1;
           TokenSym[token]=(method==PASO_CHOLEVSKY);
-          A->direct=&Token[token];
+          A->solver=&Token[token];
           /* map the reordering method onto SCSL */
           switch (options->reordering) {
                 case PASO_NO_REORDERING:
@@ -109,7 +109,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
   time0=Paso_timer();
 
   if (Paso_noError())  {
-     token=*(int*)(A->direct);
+     token=*(int*)(A->solver);
      if (TokenSym[token]) {
         DPSLDLT_Solve(token,out,in);
      } else {

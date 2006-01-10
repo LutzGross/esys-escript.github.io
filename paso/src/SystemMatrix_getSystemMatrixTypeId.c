@@ -29,11 +29,12 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, 
 
      case PASO_SCSL:
        out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
-       /* if out= symmetry ? out+=MATRIX_FORMAT_SYM; */
+       /* if (solver == PASO_CHOLEVSKY) out+=MATRIX_FORMAT_SYM */
        break;
 
      case PASO_MKL:
-       out=MATRIX_FORMAT_BLK1;
+       out=MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1;
+       /* if (solver == PASO_CHOLEVSKY) out+=MATRIX_FORMAT_SYM */
        break;
 
      case PASO_UMFPACK:

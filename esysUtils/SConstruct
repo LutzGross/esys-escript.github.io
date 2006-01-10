@@ -1,82 +1,6 @@
 # Scons configuration file for esysUtils
-
-import os
-import sys
-
-#
-# ensure correct versions of python and scons
-
-EnsurePythonVersion(2,3)
-EnsureSConsVersion(0,96)
-
-#
-# set appropriate defaults for configuration variables
-
-esysroot = Dir('#..')
-dodebug = 0
-usegcc = 0
-options = None
-
-#
-# import configuration variables passed in from
-# calling SConscript (if any)
-
-Import('*')
-
-#
-# retreive command-line arguments if any
-
-if ARGUMENTS.get('debug',0):
-  dodebug = 1
-
-if ARGUMENTS.get('usegcc',0):
-  usegcc = 1
-
-if ARGUMENTS.get('options',0):
-  options = ARGUMENTS.get('options',0)
-
-#
-# determine platform
-
-env = Environment(ENV = os.environ)
-platform = env['PLATFORM']
-
-#
-# determine hostname
-
-import socket
-hostname = socket.gethostname()
-
-#
-# export esysroot
-
-Export(["esysroot"])
-
-#
-# set and export library directory
-
-libdir = Dir(str(esysroot) + '/esysUtils/lib')
-Export(["libdir"])
-
-#
-# load and export configuration settings
-
-options_dir = str(esysroot) + '/scons'
-sys.path.append(options_dir)
-
-from default_options import *
-
-if hostname=='ess':
-  from ess_options import *
-
-if usegcc==1:
-  from gcc_options import *
-
-if options!=None:
-  exec "from " + options + " import *"
-
-if dodebug==1:
-  cxx_flags=cxx_flags_debug
+esysroot=str(Dir('./..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
 
 Export(["python_path"])
 Export(["boost_path"])
@@ -88,11 +12,13 @@ Export(["ar_flags"])
 # print out build configuration for this module
 
 print "Build configuration for module: esysUtils"
-print "         dodebug: ", dodebug
-print "          usegcc: ", usegcc
 print "             cxx: ", cxx
-print "        platform: ", platform
-print "        hostname: ", hostname
+print "       cxx_flags: ", cxx_flags
+
+
+# set and export library directory
+libdir = Dir(str(esysroot) + '/esysUtils/lib')
+Export(["libdir"])
 
 #
 # call the SConscript to do the actual build

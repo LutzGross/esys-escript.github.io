@@ -61,7 +61,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
            for (iPtr=pattern->ptr[i]-index_offset_in;iPtr<pattern->ptr[i+1]-index_offset_in;++iPtr)  {
               for (k=0;k<row_block_size;++k) {
                  for (j=0;j<col_block_size;++j) {
-                    index[ptr[i*row_block_size+k]-index_offset_out+(iPtr-pattern->ptr[i]-index_offset_in)*col_block_size+j]=(pattern->index[iPtr]-index_offset_in)*col_block_size+j+index_offset_out;
+                    index[ptr[i*row_block_size+k]-index_offset_out+(iPtr-(pattern->ptr[i]-index_offset_in))*col_block_size+j]=(pattern->index[iPtr]-index_offset_in)*col_block_size+j+index_offset_out;
                  }
               }
            }

@@ -104,7 +104,9 @@ sources = ['Assemble_addToSystemMatrix.c',
 lib_path = [esys_lib_path,
             mmio_lib_path,
             esysUtils_lib_path,
-            boost_lib_path]
+            boost_lib_path] \
+          + solver_lib_paths
+
 
 libs = ['escriptcpp',
         'esysUtils',
@@ -112,10 +114,9 @@ libs = ['escriptcpp',
         'mmio',
         str(boost_lib),
         'dl',
-        'util']
-
-libs.extend(sys_libs)
-libs.extend(solver_libs)
+        'util']     \
+       + sys_libs   \
+       + solver_libs
 
 finley_env = Environment(ENV = os.environ)
 

@@ -87,6 +87,9 @@ if error_norm > error_tol:
   print "### error norm exceeded maximum tolerance ###"
   sys.exit(1)
 print "***************************************************************"
+del mypde
+print "***************************************************************"
+
 
 # get handles to nodes and elements 2
 

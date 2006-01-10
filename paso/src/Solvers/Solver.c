@@ -20,8 +20,8 @@
 /*  free space */
 
 void Paso_Solver_free(Paso_SystemMatrix* A) {
-    Paso_Preconditioner_free(A->iterative);
-    A->iterative=NULL;
+    Paso_Preconditioner_free(A->solver);
+    A->solver=NULL;
 }
 /*  call the iterative solver: */
 
