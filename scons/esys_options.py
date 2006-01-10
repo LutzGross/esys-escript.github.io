@@ -1,3 +1,8 @@
+# this code should be called by all esys13 scons builder and testing scripts
+# it sets default values for relevant variables and overloads them with the 
+# standart gcc settings by importing gcc_options. If there is 
+# a <hostname>_options file it is imported to set platform specific settings
+
 # this is the general set up for the esys scons system:
 libinstall = None
 pyinstall = None
