@@ -96,7 +96,7 @@ if options!=None:
 # use debug options:
 if dodebug==1:
      cxx_flags=cxx_flags_debug
-     c_flags=c_flags_debug
+     cc_flags=cc_flags_debug
 #
 # export some stuff
 Export(["esysroot"])
