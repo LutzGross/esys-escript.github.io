@@ -22,6 +22,7 @@
 void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
     if (in!=NULL) {
       Paso_Solver_ILU_free(in->ilu);
+      Paso_Solver_RILU_free(in->rilu);
       Paso_Solver_Jacobi_free(in->jacobi);
       MEMFREE(in);
     }
@@ -35,6 +36,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         prec=MEMALLOC(1,Paso_Solver_Preconditioner);
         if (Paso_checkPtr(prec)) return;
         prec->type=UNKNOWN;
+        prec->rilu=NULL;
         prec->ilu=NULL;
         prec->jacobi=NULL;
         A->solver=prec;
@@ -49,6 +51,11 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               if (options->verbose) printf("ILU preconditioner is used.\n");
               prec->ilu=Paso_Solver_getILU(A,options->verbose);
               prec->type=PASO_ILU0;
+              break;
+           case PASO_RILU:
+              if (options->verbose) printf("RILU preconditioner is used.\n");
+              prec->ilu=Paso_Solver_getRILU(A,options->verbose);
+              prec->type=PASO_RILU;
               break;
         }
         if (! Paso_noError()) {
@@ -71,6 +78,9 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
            break;
         case PASO_ILU0:
            Paso_Solver_solveILU(prec->ilu,x,b);
+           break;
+        case PASO_RILU:
+           Paso_Solver_solveRILU(prec->rilu,x,b);
            break;
     }
 }

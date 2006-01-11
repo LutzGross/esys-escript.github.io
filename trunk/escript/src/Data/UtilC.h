@@ -47,6 +47,8 @@
 #define ESCRIPT_UMFPACK 16
 #define ESCRIPT_ITERATIVE 20
 #define ESCRIPT_PASO 21
+#define ESCRIPT_AMG 22
+#define ESCRIPT_RILU 23
 
 /* keyword in solver options relevant for lineraPDE class */
 #define ESCRIPT_TOLERANCE_KEY "tolerance"

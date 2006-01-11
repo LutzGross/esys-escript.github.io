@@ -59,6 +59,7 @@ sources = ['Options_getPackage.c',
            'Solvers/Solver_applyBlockDiagonalMatrix.c',
            'Solvers/Solver.c',
            'Solvers/Solver_ILU.c',
+           'Solvers/Solver_RILU.c',
            'Solvers/Solver_jacobi.c',
            'Solvers/Solver_preconditioner.c',
            'Solvers/Solver_SchurComplement.c']

@@ -38,6 +38,8 @@
 #define PASO_NESTED_DISSECTION 19
 #define PASO_ITERATIVE 20
 #define PASO_PASO 21
+#define PASO_RILU 22
+#define PASO_AMG 23
 
 
 typedef struct {
