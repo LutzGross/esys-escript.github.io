@@ -85,7 +85,7 @@ for dim in [2,3]:
 
        test="error gradient in interior (degrees of freedom)"
 
-       x=n.getX()[0:2].interpolate(d)
+       x=interpolate(n.getX()[0:2],d)
        g=grad(x**order+x[1]*[1,0])
        ref=order*x[0]**(order-1)*m00+m01+order*x[1]**(order-1)*m11
        error_norm=Lsup(ref-g)/Lsup(ref)
@@ -103,7 +103,7 @@ for dim in [2,3]:
 
        test="error gradient in interior (reduced degrees of freedom)"
 
-       x=n.getX()[0:2].interpolate(r)
+       x=interpolate(n.getX()[0:2],r)
        g=grad(x+x[1]*[1,0])
        ref=Scalar(1,what=r)*m00+m01+Scalar(1,what=r)*m11
        error_norm=Lsup(ref-g)/Lsup(ref)
@@ -159,7 +159,7 @@ for dim in [2,3]:
 
           test="error gradient on boundary (degrees of freedom)"
 
-          x=n.getX()[0:2].interpolate(d)
+          x=interpolate(n.getX()[0:2],d)
           g=grad(x**order+x[1]*[1,0],where=f)
           x=f.getX()[0:2]
           ref=order*x[0]**(order-1)*m00+m01+order*x[1]**(order-1)*m11
@@ -178,7 +178,7 @@ for dim in [2,3]:
 
           test="error gradient on boundary (reduced degrees of freedom)"
 
-          x=n.getX()[0:2].interpolate(r)
+          x=interpolate(n.getX()[0:2],r)
           g=grad(x+x[1]*[1,0],where=f)
           ref=Scalar(1,what=r)*m00+m01+Scalar(1,what=r)*m11
           error_norm=Lsup(ref-g)/Lsup(ref)
