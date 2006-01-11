@@ -419,6 +419,8 @@ class LinearPDE(object):
    @cvar MKL: Intel's MKL solver library
    @cvar UMFPACK: the UMFPACK library
    @cvar ITERATIVE: The default iterative solver
+   @cvar AMG: algebraic multi grid
+   @cvar RILU: recursive ILU
 
    """
    DEFAULT= 0
@@ -443,6 +445,8 @@ class LinearPDE(object):
    UMFPACK= 16
    ITERATIVE= 20
    PASO= 21
+   AMG= 22
+   RILU = 23
 
    __TOL=1.e-13
    __PACKAGE_KEY="package"

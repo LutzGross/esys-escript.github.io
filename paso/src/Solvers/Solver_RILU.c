@@ -2,7 +2,7 @@
 
 /**************************************************************/
 
-/* Paso: ILU preconditioner with reordering                 */
+/* Paso: RILU preconditioner with reordering                 */
 
 /**************************************************************/
 
@@ -17,11 +17,11 @@
 
 /**************************************************************/
 
-/* free all memory used by ILU                                */
+/* free all memory used by RILU                                */
 
-void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
+void Paso_Solver_RILU_free(Paso_Solver_RILU * in) {
      if (in!=NULL) {
-        Paso_Solver_ILU_free(in->ILU_of_Schur);
+        Paso_Solver_RILU_free(in->RILU_of_Schur);
         MEMFREE(in->inv_A_FF);
         MEMFREE(in->A_FF_pivot);
         Paso_SystemMatrix_dealloc(in->A_FC);
@@ -54,11 +54,11 @@ to
 
    where S=A_FF-ACF*invA_FF*A_FC within the shape of S
 
-   then ILU is applied to S again until S becomes empty 
+   then RILU is applied to S again until S becomes empty 
 
 */
-Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
-  Paso_Solver_ILU* out=NULL;
+Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SystemMatrix * A_p,bool_t verbose) {
+  Paso_Solver_RILU* out=NULL;
   dim_t n=A_p->num_rows;
   dim_t n_block=A_p->row_block_size;
   index_t* mis_marker=NULL;  
@@ -72,8 +72,8 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
-  out=MEMALLOC(1,Paso_Solver_ILU);
-  out->ILU_of_Schur=NULL;
+  out=MEMALLOC(1,Paso_Solver_RILU);
+  out->RILU_of_Schur=NULL;
   out->inv_A_FF=NULL;
   out->A_FF_pivot=NULL;
   out->A_FC=NULL;
@@ -128,7 +128,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
                                         sizeof(index_t),
                                         Paso_comparIndex);
                 if (where_p==NULL) {
-                    Paso_setError(VALUE_ERROR, "Paso_Solver_getILU: main diagonal element missing.");
+                    Paso_setError(VALUE_ERROR, "Paso_Solver_getRILU: main diagonal element missing.");
                 } else {
                     iPtr+=(index_t)(where_p-index);
                     /* get inverse of A_FF block: */
@@ -136,7 +136,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
                        if (ABS(A_p->val[iPtr])>0.) {
                             out->inv_A_FF[i]=1./A_p->val[iPtr];
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: Break-down in ILU decomposition: non-regular main diagonal block.");
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                     } else if (n_block==2) {
                        A11=A_p->val[iPtr*4];
@@ -151,7 +151,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
                             out->inv_A_FF[i*4+2]=-A12*D;
                             out->inv_A_FF[i*4+3]= A11*D;
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU:Break-down in ILU decomposition: non-regular main diagonal block.");
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                     } else if (n_block==3) {
                        A11=A_p->val[iPtr*9  ];
@@ -176,7 +176,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
                             out->inv_A_FF[i*9+7]=(A13*A21-A11*A23)*D;
                             out->inv_A_FF[i*9+8]=(A11*A22-A12*A21)*D;
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU:Break-down in ILU decomposition: non-regular main diagonal block.");
+                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                    }
                 }
@@ -219,13 +219,13 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
                             time0=Paso_timer()-time0;
                             if (Paso_noError()) {
                                 time1=Paso_timer();
-                                /* update A_CC block to get Schur complement and then apply ILU to it */
+                                /* update A_CC block to get Schur complement and then apply RILU to it */
                                 Paso_Solver_updateIncompleteSchurComplement(schur,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
                                 time1=Paso_timer()-time1;
-                                out->ILU_of_Schur=Paso_Solver_getILU(schur,verbose);
+                                out->RILU_of_Schur=Paso_Solver_getRILU(schur,verbose);
                                 Paso_SystemMatrix_dealloc(schur);
                             }
-                            /* allocate work arrays for ILU application */
+                            /* allocate work arrays for RILU application */
                             if (Paso_noError()) {
                               out->x_F=MEMALLOC(n_block*out->n_F,double);
                               out->b_F=MEMALLOC(n_block*out->n_F,double);
@@ -263,23 +263,23 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
   TMPMEMFREE(counter);
   if (Paso_noError()) {
       if (verbose) {
-         printf("ILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
+         printf("RILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
          if (out->n_C>0) {
-            printf("timing: ILU: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
+            printf("timing: RILU: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
          } else {
-            printf("timing: ILU: MIS: %e\n",time2); 
+            printf("timing: RILU: MIS: %e\n",time2); 
          }
      }
      return out;
   } else  {
-     Paso_Solver_ILU_free(out);
+     Paso_Solver_RILU_free(out);
      return NULL;
   }
 }
 
 /**************************************************************/
 
-/* apply ILU precondition b-> x                               
+/* apply RILU precondition b-> x                               
 
      in fact it solves 
 
@@ -291,7 +291,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
    b->[b_F,b_C] 
    x_F=invA_FF*b_F
    b_C=b_C-A_CF*x_F
-   x_C=ILU(b_C)
+   x_C=RILU(b_C)
    b_F=b_F-A_FC*x_C
    x_F=invA_FF*b_F
    x<-[x_F,x_C]
@@ -301,55 +301,55 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose) {
 
 */
 
-void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
+void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
      dim_t i,k;
-     dim_t n_block=ilu->n_block;
+     dim_t n_block=rilu->n_block;
      
-     if (ilu->n_C==0) {
+     if (rilu->n_C==0) {
         /* x=invA_FF*b  */
-        Paso_Solver_applyBlockDiagonalMatrix(n_block,ilu->n_F,ilu->inv_A_FF,ilu->A_FF_pivot,x,b);
+        Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,x,b);
      } else {
         /* b->[b_F,b_C]     */
         if (n_block==1) {
            #pragma omp for private(i) schedule(static)
-           for (i=0;i<ilu->n_F;++i) ilu->b_F[i]=b[ilu->rows_in_F[i]];
+           for (i=0;i<rilu->n_F;++i) rilu->b_F[i]=b[rilu->rows_in_F[i]];
            #pragma omp for private(i) schedule(static)
-           for (i=0;i<ilu->n_C;++i) ilu->b_C[i]=b[ilu->rows_in_C[i]];
+           for (i=0;i<rilu->n_C;++i) rilu->b_C[i]=b[rilu->rows_in_C[i]];
         } else {
            #pragma omp for private(i,k) schedule(static)
-           for (i=0;i<ilu->n_F;++i) 
-                 for (k=0;k<n_block;k++) ilu->b_F[ilu->n_block*i+k]=b[n_block*ilu->rows_in_F[i]+k];
+           for (i=0;i<rilu->n_F;++i) 
+                 for (k=0;k<n_block;k++) rilu->b_F[rilu->n_block*i+k]=b[n_block*rilu->rows_in_F[i]+k];
            #pragma omp for private(i,k) schedule(static)
-           for (i=0;i<ilu->n_C;++i) 
-                 for (k=0;k<n_block;k++) ilu->b_C[ilu->n_block*i+k]=b[n_block*ilu->rows_in_C[i]+k];
+           for (i=0;i<rilu->n_C;++i) 
+                 for (k=0;k<n_block;k++) rilu->b_C[rilu->n_block*i+k]=b[n_block*rilu->rows_in_C[i]+k];
         }
         /* x_F=invA_FF*b_F  */
-        Paso_Solver_applyBlockDiagonalMatrix(n_block,ilu->n_F,ilu->inv_A_FF,ilu->A_FF_pivot,ilu->x_F,ilu->b_F);
+        Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
         /* b_C=b_C-A_CF*x_F */
-        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,ilu->A_CF,ilu->x_F,1.,ilu->b_C);
-        /* x_C=ILU(b_C)     */
-        Paso_Solver_solveILU(ilu->ILU_of_Schur,ilu->x_C,ilu->b_C);
+        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_CF,rilu->x_F,1.,rilu->b_C);
+        /* x_C=RILU(b_C)     */
+        Paso_Solver_solveRILU(rilu->RILU_of_Schur,rilu->x_C,rilu->b_C);
         /* b_F=b_F-A_FC*x_C */
-        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,ilu->A_FC,ilu->x_C,1.,ilu->b_F);
+        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_FC,rilu->x_C,1.,rilu->b_F);
         /* x_F=invA_FF*b_F  */
-        Paso_Solver_applyBlockDiagonalMatrix(n_block,ilu->n_F,ilu->inv_A_FF,ilu->A_FF_pivot,ilu->x_F,ilu->b_F);
+        Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
         /* x<-[x_F,x_C]     */
         if (n_block==1) {
            #pragma omp for private(i) schedule(static)
-           for (i=0;i<ilu->n;++i) {
-              if (ilu->mask_C[i]>-1) {
-                  x[i]=ilu->x_C[ilu->mask_C[i]];
+           for (i=0;i<rilu->n;++i) {
+              if (rilu->mask_C[i]>-1) {
+                  x[i]=rilu->x_C[rilu->mask_C[i]];
               } else {
-                  x[i]=ilu->x_F[ilu->mask_F[i]];
+                  x[i]=rilu->x_F[rilu->mask_F[i]];
               }
            }
         } else {
            #pragma omp for private(i,k) schedule(static)
-           for (i=0;i<ilu->n;++i) {
-                 if (ilu->mask_C[i]>-1) {
-                     for (k=0;k<n_block;k++) x[n_block*i+k]=ilu->x_C[n_block*ilu->mask_C[i]+k];
+           for (i=0;i<rilu->n;++i) {
+                 if (rilu->mask_C[i]>-1) {
+                     for (k=0;k<n_block;k++) x[n_block*i+k]=rilu->x_C[n_block*rilu->mask_C[i]+k];
                  } else {
-                     for (k=0;k<n_block;k++) x[n_block*i+k]=ilu->x_F[n_block*ilu->mask_F[i]+k];
+                     for (k=0;k<n_block;k++) x[n_block*i+k]=rilu->x_F[n_block*rilu->mask_F[i]+k];
                  }
            }
         }
@@ -360,13 +360,5 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
 
 /*
  * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
  *
  */

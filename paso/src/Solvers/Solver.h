@@ -39,6 +39,28 @@ struct Paso_Solver_ILU {
 };
 typedef struct Paso_Solver_ILU Paso_Solver_ILU;
 
+/* RILU preconditioner */
+struct Paso_Solver_RILU {
+  dim_t n;
+  dim_t n_block;
+  dim_t n_F;
+  dim_t n_C;
+  double* inv_A_FF;
+  index_t* A_FF_pivot;
+  Paso_SystemMatrix * A_FC;
+  Paso_SystemMatrix * A_CF;
+  index_t* rows_in_F;
+  index_t* rows_in_C;
+  index_t* mask_F;
+  index_t* mask_C;
+  double* x_F;
+  double* b_F;
+  double* x_C;
+  double* b_C;
+  struct Paso_Solver_RILU * RILU_of_Schur;
+};
+typedef struct Paso_Solver_RILU Paso_Solver_RILU;
+
 
 /* jacobi  preconditioner */
 
@@ -57,6 +79,8 @@ typedef struct Paso_Solver_Preconditioner {
   Paso_Solver_Jacobi* jacobi;
   /* ilu preconditioner */
   Paso_Solver_ILU* ilu;
+  /* ilu preconditioner */
+  Paso_Solver_RILU* rilu;
 } Paso_Solver_Preconditioner;
 
 void Paso_Solver(Paso_SystemMatrix*,double*,double*,Paso_Options*);

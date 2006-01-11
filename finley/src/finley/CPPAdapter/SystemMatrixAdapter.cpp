@@ -130,6 +130,10 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_PASO;
        case  ESCRIPT_LUMPING:
           return PASO_LUMPING;
+       case  ESCRIPT_AMG:
+          return PASO_AMG;
+       case  ESCRIPT_RILU:
+          return PASO_RILU;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
