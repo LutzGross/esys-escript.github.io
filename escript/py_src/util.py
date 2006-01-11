@@ -2858,6 +2858,161 @@ def length(arg):
    """
    return sqrt(inner(arg,arg))
 
+def trace(arg,axis_offset=0):
+   """
+   returns the trace of arg which the sum of arg[k,k] over k. 
+
+   @param arg: argument
+   @type arg: L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
+   @param axis_offset: axis_offset to components to sum over. C{axis_offset} must be non-negative and less than the rank of arg +1. The dimensions on component
+                  axis_offset and axis_offset+1 must be equal.
+   @type axis_offset: C{int}
+   @return: trace of arg. The rank of the returned object is minus 2 of the rank of arg.
+   @rtype: L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   """
+   if isinstance(arg,numarray.NumArray):
+      sh=arg.shape
+      if len(sh)<2: 
+        raise ValueError,"trace: rank of argument must be greater than 1"
+      if axis_offset<0 or axis_offset>len(sh)-2:
+        raise ValueError,"trace: axis_offset must be between 0 and %s"%len(sh)-2
+      s1=1
+      for i in range(axis_offset): s1*=sh[i]
+      s2=1
+      for i in range(axis_offset+2,len(sh)): s2*=sh[i]
+      if not sh[axis_offset] == sh[axis_offset+1]:
+        raise ValueError,"trace: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+      arg_reshaped=numarray.reshape(arg,(s1,sh[axis_offset],sh[axis_offset],s2))
+      out=numarray.zeros([s1,s2],numarray.Float)
+      for i1 in range(s1):
+        for i2 in range(s2):
+            for j in range(sh[axis_offset]): out[i1,i2]+=arg_reshaped[i1,j,j,i2]
+      out.resize(sh[:axis_offset]+sh[axis_offset+2:])
+      return out
+   elif isinstance(arg,escript.Data):
+      return escript_trace(arg,axis_offset)
+   elif isinstance(arg,float):
+      raise TypeError,"trace: illegal argument type float."
+   elif isinstance(arg,int):
+      raise TypeError,"trace: illegal argument type int."
+   elif isinstance(arg,Symbol):
+      return Trace_Symbol(arg,axis_offset)
+   else:
+      raise TypeError,"trace: Unknown argument type."
+
+def escript_trace(arg,axis_offset): # this should be escript._trace
+      "arg si a Data objects!!!"
+      if arg.getRank()<2: 
+        raise ValueError,"escript_trace: rank of argument must be greater than 1"
+      if axis_offset<0 or axis_offset>arg.getRank()-2:
+        raise ValueError,"escript_trace: axis_offset must be between 0 and %s"%arg.getRank()-2
+      s=list(arg.getShape())        
+      if not s[axis_offset] == s[axis_offset+1]:
+        raise ValueError,"escript_trace: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+      out=escript.Data(0.,tuple(s[0:axis_offset]+s[axis_offset+2:]),arg.getFunctionSpace())
+      if arg.getRank()==2:
+         for i0 in range(s[0]):
+            out+=arg[i0,i0]
+      elif arg.getRank()==3:
+         if axis_offset==0:
+            for i0 in range(s[0]):
+                  for i2 in range(s[2]):
+                         out[i2]+=arg[i0,i0,i2]
+         elif axis_offset==1:
+            for i0 in range(s[0]):
+               for i1 in range(s[1]):
+                         out[i0]+=arg[i0,i1,i1]
+      elif arg.getRank()==4:
+         if axis_offset==0:
+            for i0 in range(s[0]):
+                  for i2 in range(s[2]):
+                     for i3 in range(s[3]):
+                         out[i2,i3]+=arg[i0,i0,i2,i3]
+         elif axis_offset==1:
+            for i0 in range(s[0]):
+               for i1 in range(s[1]):
+                     for i3 in range(s[3]):
+                         out[i0,i3]+=arg[i0,i1,i1,i3]
+         elif axis_offset==2:
+            for i0 in range(s[0]):
+               for i1 in range(s[1]):
+                  for i2 in range(s[2]):
+                         out[i0,i1]+=arg[i0,i1,i2,i2]
+      return out
+class Trace_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the trace function
+   """
+   def __init__(self,arg,axis_offset=0):
+      """
+      initialization of trace L{Symbol} with argument arg
+      @param arg: argument of function
+      @type arg: L{Symbol}.
+      @param axis_offset: axis_offset to components to sum over. C{axis_offset} must be non-negative and less than the rank of arg +1. The dimensions on component
+                  axis_offset and axis_offset+1 must be equal.
+      @type axis_offset: C{int}
+      """
+      if arg.getRank()<2: 
+        raise ValueError,"Trace_Symbol: rank of argument must be greater than 1"
+      if axis_offset<0 or axis_offset>arg.getRank()-2:
+        raise ValueError,"Trace_Symbol: axis_offset must be between 0 and %s"%arg.getRank()-2
+      s=list(arg.getShape())        
+      if not s[axis_offset] == s[axis_offset+1]:
+        raise ValueError,"Trace_Symbol: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+      super(Trace_Symbol,self).__init__(args=[arg,axis_offset],shape=tuple(s[0:axis_offset]+s[axis_offset+2:]),dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "trace(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
+      else:
+         raise NotImplementedError,"Trace_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)
+         return trace(arg[0],axis_offset=arg[1])
+
+   def diff(self,arg):
+      """
+      differential of this object
+
+      @param arg: the derivative is calculated with respect to arg
+      @type arg: L{escript.Symbol}
+      @return: derivative with respect to C{arg}
+      @rtype: typically L{Symbol} but other types such as C{float}, L{escript.Data}, L{numarray.NumArray}  are possible.
+      """
+      if arg==self:
+         return identity(self.getShape())
+      else:
+         return trace(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
+
 #=======================================================
 #  Binary operations:
 #=======================================================
@@ -3349,7 +3504,7 @@ def inner(arg0,arg1):
     sh1=pokeShape(arg1)
     if not sh0==sh1:
         raise ValueError,"inner: shape of arguments does not match"
-    return generalTensorProduct(arg0,arg1,offset=len(sh0))
+    return generalTensorProduct(arg0,arg1,axis_offset=len(sh0))
 
 def matrixmult(arg0,arg1):
     """
@@ -3377,7 +3532,7 @@ def matrixmult(arg0,arg1):
         raise ValueError,"first argument must have rank 2"
     if not len(sh1)==2 and not len(sh1)==1:
         raise ValueError,"second argument must have rank 1 or 2"
-    return generalTensorProduct(arg0,arg1,offset=1)
+    return generalTensorProduct(arg0,arg1,axis_offset=1)
 
 def outer(arg0,arg1):
     """
@@ -3395,7 +3550,7 @@ def outer(arg0,arg1):
     @return: the outer product of arg0 and arg1 at each data point
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     """
-    return generalTensorProduct(arg0,arg1,offset=0)
+    return generalTensorProduct(arg0,arg1,axis_offset=0)
 
 
 def tensormult(arg0,arg1):
@@ -3437,21 +3592,21 @@ def tensormult(arg0,arg1):
     sh0=pokeShape(arg0)
     sh1=pokeShape(arg1)
     if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
-       return generalTensorProduct(arg0,arg1,offset=1)
+       return generalTensorProduct(arg0,arg1,axis_offset=1)
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
-       return generalTensorProduct(arg0,arg1,offset=2)
+       return generalTensorProduct(arg0,arg1,axis_offset=2)
     else:
         raise ValueError,"tensormult: first argument must have rank 2 or 4"
 
-def generalTensorProduct(arg0,arg1,offset=0):
+def generalTensorProduct(arg0,arg1,axis_offset=0):
     """
     generalized tensor product 
 
     out[s,t]=S{Sigma}_r arg0[s,r]*arg1[r,t]
 
-    where s runs through arg0.Shape[:arg0.Rank-offset]
-          r runs trough arg0.Shape[:offset]
-          t runs through arg1.Shape[offset:]
+    where s runs through arg0.Shape[:arg0.Rank-axis_offset]
+          r runs trough arg0.Shape[:axis_offset]
+          t runs through arg1.Shape[axis_offset:]
 
     In the first case the the second dimension of arg0 and the length of arg1 must match and  
     in the second case the two last dimensions of arg0 must match the shape of arg1.
@@ -3468,38 +3623,38 @@ def generalTensorProduct(arg0,arg1,offset=0):
     # at this stage arg0 and arg0 are both numarray.NumArray or escript.Data or Symbols
     if isinstance(arg0,numarray.NumArray):
        if isinstance(arg1,Symbol):
-           return GeneralTensorProduct_Symbol(arg0,arg1,offset)
+           return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
        else:
-           if not arg0.shape[arg0.rank-offset:]==arg1.shape[:offset]:
-               raise ValueError,"generalTensorProduct: dimensions of last %s components in left argument don't match the first %s components in the right argument."%(offset,offset) 
+           if not arg0.shape[arg0.rank-axis_offset:]==arg1.shape[:axis_offset]:
+               raise ValueError,"generalTensorProduct: dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
            arg0_c=arg0.copy()
            arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
            d0,d1,d01=1,1,1
-           for i in sh0[:arg0.rank-offset]: d0*=i
-           for i in sh1[offset:]: d1*=i
-           for i in sh1[:offset]: d01*=i
+           for i in sh0[:arg0.rank-axis_offset]: d0*=i
+           for i in sh1[axis_offset:]: d1*=i
+           for i in sh1[:axis_offset]: d01*=i
            arg0_c.resize((d0,d01))
            arg1_c.resize((d01,d1))
            out=numarray.zeros((d0,d1),numarray.Float)
            for i0 in range(d0):
                     for i1 in range(d1):
                          out[i0,i1]=numarray.sum(arg0_c[i0,:]*arg1_c[:,i1])
-           out.resize(sh0[:arg0.rank-offset]+sh1[offset:])
+           out.resize(sh0[:arg0.rank-axis_offset]+sh1[axis_offset:])
            return out
     elif isinstance(arg0,escript.Data):
        if isinstance(arg1,Symbol):
-           return GeneralTensorProduct_Symbol(arg0,arg1,offset)
+           return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
        else:
-           return escript_generalTensorProduct(arg0,arg1,offset) # this calls has to be replaced by escript._generalTensorProduct(arg0,arg1,offset)
+           return escript_generalTensorProduct(arg0,arg1,axis_offset) # this calls has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
     else:       
-       return GeneralTensorProduct_Symbol(arg0,arg1,offset)
+       return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
                  
 class GeneralTensorProduct_Symbol(DependendSymbol):
    """
    Symbol representing the quotient of two arguments.
    """
-   def __init__(self,arg0,arg1,offset=0):
+   def __init__(self,arg0,arg1,axis_offset=0):
        """
        initialization of L{Symbol} representing the quotient of two arguments 
 
@@ -3512,13 +3667,13 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
        """
        sh_arg0=pokeShape(arg0)
        sh_arg1=pokeShape(arg1)
-       sh0=sh_arg0[:len(sh_arg0)-offset]
-       sh01=sh_arg0[len(sh_arg0)-offset:]
-       sh10=sh_arg1[:offset]
-       sh1=sh_arg1[offset:]
+       sh0=sh_arg0[:len(sh_arg0)-axis_offset]
+       sh01=sh_arg0[len(sh_arg0)-axis_offset:]
+       sh10=sh_arg1[:axis_offset]
+       sh1=sh_arg1[axis_offset:]
        if not sh01==sh10:
-           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(offset,offset)
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,offset])
+           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
 
    def getMyCode(self,argstrs,format="escript"):
       """
@@ -3533,7 +3688,7 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
       @raise: NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str" or format=="text":
-         return "generalTensorProduct(%s,%s,offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
+         return "generalTensorProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
       else:
          raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
 
@@ -3558,15 +3713,15 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
          args=self.getSubstitutedArguments(argvals)
          return generalTensorProduct(args[0],args[1],args[2])
 
-def escript_generalTensorProduct(arg0,arg1,offset): # this should be escript._generalTensorProduct
+def escript_generalTensorProduct(arg0,arg1,axis_offset): # this should be escript._generalTensorProduct
     "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
     # calculate the return shape:
-    shape0=arg0.getShape()[:arg0.getRank()-offset]
-    shape01=arg0.getShape()[arg0.getRank()-offset:]
-    shape10=arg1.getShape()[:offset]
-    shape1=arg1.getShape()[offset:]
+    shape0=arg0.getShape()[:arg0.getRank()-axis_offset]
+    shape01=arg0.getShape()[arg0.getRank()-axis_offset:]
+    shape10=arg1.getShape()[:axis_offset]
+    shape1=arg1.getShape()[axis_offset:]
     if not shape01==shape10:
-        raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(offset,offset) 
+        raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
 
     # whatr function space should be used? (this here is not good!)
     fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
@@ -3600,17 +3755,28 @@ def escript_generalTensorProduct(arg0,arg1,offset): # this should be escript._ge
          out.__setitem__(tuple(i0+i1),s)
     return out
 
+
 #=========================================================
-#   some little helpers
+#  functions dealing with spatial dependency
 #=========================================================
 def grad(arg,where=None):
     """
-    Returns the spatial gradient of arg at where.
+    Returns the spatial gradient of arg at where. 
 
-    @param arg:   Data object representing the function which gradient 
-                  to be calculated.
+    If C{g} is the returned object, then 
+
+      - if C{arg} is rank 0 C{g[s]} is the derivative of C{arg} with respect to the C{s}-th spatial dimension.
+      - if C{arg} is rank 1 C{g[i,s]} is the derivative of C{arg[i]} with respect to the C{s}-th spatial dimension.
+      - if C{arg} is rank 2 C{g[i,j,s]} is the derivative of C{arg[i,j]} with respect to the C{s}-th spatial dimension.
+      - if C{arg} is rank 3 C{g[i,j,k,s]} is the derivative of C{arg[i,j,k]} with respect to the C{s}-th spatial dimension.
+
+    @param arg: function which gradient to be calculated. Its rank has to be less than 3.
+    @type arg: L{escript.Data} or L{Symbol}
     @param where: FunctionSpace in which the gradient will be calculated. 
                   If not present or C{None} an appropriate default is used. 
+    @type where: C{None} or L{escript.FunctionSpace} 
+    @return: gradient of arg. 
+    @rtype:  L{escript.Data} or L{Symbol}
     """
     if isinstance(arg,Symbol):
        return Grad_Symbol(arg,where)
@@ -3620,33 +3786,92 @@ def grad(arg,where=None):
        else:
           return arg._grad(where)
     else:
-      raise TypeError,"grad: Unknown argument type."
+       raise TypeError,"grad: Unknown argument type."
+
+class Grad_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the gradient operator
+   """
+   def __init__(self,arg,where=None):
+      """
+      initialization of gradient L{Symbol} with argument arg
+      @param arg: argument of function
+      @type arg: L{Symbol}.
+      @param where: FunctionSpace in which the gradient will be calculated. 
+                  If not present or C{None} an appropriate default is used. 
+      @type where: C{None} or L{escript.FunctionSpace} 
+      """
+      d=arg.getDim()
+      if d==None:
+         raise ValueError,"argument must have a spatial dimension"
+      super(Grad_Symbol,self).__init__(args=[arg,where],shape=tuple(list(arg.getShape()).extend(d)),dim=d)
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "grad(%s,where=%s)"%(argstrs[0],argstrs[1])
+      else:
+         raise NotImplementedError,"Trace_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)
+         return grad(arg[0],where=arg[1])
+
+   def diff(self,arg):
+      """
+      differential of this object
+
+      @param arg: the derivative is calculated with respect to arg
+      @type arg: L{escript.Symbol}
+      @return: derivative with respect to C{arg}
+      @rtype: typically L{Symbol} but other types such as C{float}, L{escript.Data}, L{numarray.NumArray}  are possible.
+      """
+      if arg==self:
+         return identity(self.getShape())
+      else:
+         return grad(self.getDifferentiatedArguments(arg)[0],where=self.getArgument()[1])
 
 def integrate(arg,where=None):
     """
-    Return the integral if the function represented by Data object arg over 
-    its domain.
+    Return the integral of the function C{arg} over its domain. If C{where} is present C{arg} is interpolated to C{where} 
+    before integration.
 
-    @param arg:   Data object representing the function which is integrated.
+    @param arg:   the function which is integrated.
+    @type arg: L{escript.Data} or L{Symbol}
     @param where: FunctionSpace in which the integral is calculated. 
                   If not present or C{None} an appropriate default is used.
+    @type where: C{None} or L{escript.FunctionSpace} 
+    @return: integral of arg. 
+    @rtype:  C{float}, C{numarray.NumArray} or L{Symbol}
     """
-    if isinstance(arg,numarray.NumArray):
-        if checkForZero(arg):
-           return arg
-        else:
-           raise TypeError,"integrate: cannot intergrate argument"
-    elif isinstance(arg,float):
-        if checkForZero(arg):
-           return arg
-        else:
-           raise TypeError,"integrate: cannot intergrate argument"
-    elif isinstance(arg,int):
-        if checkForZero(arg):
-           return float(arg)
-        else:
-           raise TypeError,"integrate: cannot intergrate argument"
-    elif isinstance(arg,Symbol):
+    if isinstance(arg,Symbol):
        return Integrate_Symbol(arg,where)
     elif isinstance(arg,escript.Data):
        if not where==None: arg=escript.Data(arg,where)
@@ -3657,40 +3882,187 @@ def integrate(arg,where=None):
     else:
       raise TypeError,"integrate: Unknown argument type."
 
+class Integrate_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the spatial integration operator
+   """
+   def __init__(self,arg,where=None):
+      """
+      initialization of integration L{Symbol} with argument arg
+      @param arg: argument of the integration
+      @type arg: L{Symbol}.
+      @param where: FunctionSpace in which the integration will be calculated. 
+                  If not present or C{None} an appropriate default is used. 
+      @type where: C{None} or L{escript.FunctionSpace} 
+      """
+      super(Integrate_Symbol,self).__init__(args=[arg,where],shape=arg.getShape(),dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "integrate(%s,where=%s)"%(argstrs[0],argstrs[1])
+      else:
+         raise NotImplementedError,"Trace_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)
+         return integrate(arg[0],where=arg[1])
+
+   def diff(self,arg):
+      """
+      differential of this object
+
+      @param arg: the derivative is calculated with respect to arg
+      @type arg: L{escript.Symbol}
+      @return: derivative with respect to C{arg}
+      @rtype: typically L{Symbol} but other types such as C{float}, L{escript.Data}, L{numarray.NumArray}  are possible.
+      """
+      if arg==self:
+         return identity(self.getShape())
+      else:
+         return integrate(self.getDifferentiatedArguments(arg)[0],where=self.getArgument()[1])
+
+
 def interpolate(arg,where):
     """
-    Interpolates the function into the FunctionSpace where.
+    interpolates the function into the FunctionSpace where.
 
-    @param arg:    interpolant 
-    @param where:  FunctionSpace to interpolate to
+    @param arg: interpolant
+    @type arg: L{escript.Data} or L{Symbol}
+    @param where: FunctionSpace to be interpolated to
+    @type where: L{escript.FunctionSpace} 
+    @return: interpolated argument
+    @rtype:  C{escript.Data} or L{Symbol}
     """
     if isinstance(arg,Symbol):
-       return Interpolated_Symbol(arg,where)
+       return Interpolate_Symbol(arg,where)
     else:
        return escript.Data(arg,where)
 
+class Interpolate_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the interpolation operator
+   """
+   def __init__(self,arg,where):
+      """
+      initialization of interpolation L{Symbol} with argument arg
+      @param arg: argument of the interpolation
+      @type arg: L{Symbol}.
+      @param where: FunctionSpace into which the argument is interpolated.
+      @type where: L{escript.FunctionSpace} 
+      """
+      super(Interpolate_Symbol,self).__init__(args=[arg,where],shape=arg.getShape(),dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "interpolate(%s,where=%s)"%(argstrs[0],argstrs[1])
+      else:
+         raise NotImplementedError,"Trace_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)
+         return interpolate(arg[0],where=arg[1])
+
+   def diff(self,arg):
+      """
+      differential of this object
+
+      @param arg: the derivative is calculated with respect to arg
+      @type arg: L{escript.Symbol}
+      @return: derivative with respect to C{arg}
+      @rtype: L{Symbol} but other types such as L{escript.Data}, L{numarray.NumArray}  are possible.
+      """
+      if arg==self:
+         return identity(self.getShape())
+      else:
+         return interpolate(self.getDifferentiatedArguments(arg)[0],where=self.getArgument()[1])
+
+
 def div(arg,where=None):
     """
-    Returns the divergence of arg at where.
+    returns the divergence of arg at where.
 
-    @param arg:   Data object representing the function which gradient to 
-                  be calculated.
-    @param where: FunctionSpace in which the gradient will be calculated. 
+    @param arg: function which divergence to be calculated. Its shape has to be (d,) where d is the spatial dimension.
+    @type arg: L{escript.Data} or L{Symbol}
+    @param where: FunctionSpace in which the divergence will be calculated. 
                   If not present or C{None} an appropriate default is used. 
+    @type where: C{None} or L{escript.FunctionSpace} 
+    @return: divergence of arg. 
+    @rtype:  L{escript.Data} or L{Symbol}
     """
-    g=grad(arg,where)
-    return trace(g,axis0=g.getRank()-2,axis1=g.getRank()-1)
+    if not arg.getShape()==(arg.getDim(),):
+      raise ValueError,"div: expected shape is (%s,)"%arg.getDim()
+    return trace(grad(arg,where))
 
-def jump(arg):
+def jump(arg,domain=None):
     """
-    Returns the jump of arg across a continuity.
+    returns the jump of arg across the continuity of the domain
 
-    @param arg:   Data object representing the function which gradient 
-                  to be calculated.
+    @param arg: argument
+    @type arg: L{escript.Data} or L{Symbol}
+    @param domain: the domain where the discontinuity is located. If domain is not present or equal to C{None}
+                   the domain of arg is used. If arg is a L{Symbol} the domain must be present.
+    @type domain: C{None} or L{escript.Domain} 
+    @return: jump of arg 
+    @rtype:  L{escript.Data} or L{Symbol}
     """
-    d=arg.getDomain()
-    return arg.interpolate(escript.FunctionOnContactOne(d))-arg.interpolate(escript.FunctionOnContactZero(d))
-
+    if domain==None: domain=arg.getDomain()
+    return interpolate(arg,escript.FunctionOnContactOne(domain))-interpolate(arg,escript.FunctionOnContactZero(domain))
 #=============================
 #
 # wrapper for various functions: if the argument has attribute the function name
@@ -3727,28 +4099,6 @@ def transpose(arg,axis=None):
     else:
        return numarray.transpose(arg,axis=axis)
 
-def trace(arg,axis0=0,axis1=1):
-    """
-    Return 
-
-    @param arg:
-    """
-    if isinstance(arg,Symbol):
-       s=list(arg.getShape())        
-       s=tuple(s[0:axis0]+s[axis0+1:axis1]+s[axis1+1:])
-       return Trace_Symbol(arg,axis0=axis0,axis1=axis1)
-    elif isinstance(arg,escript.Data):
-       # hack for trace 
-       s=arg.getShape()
-       if s[axis0]!=s[axis1]:
-           raise ValueError,"illegal axis in trace"
-       out=escript.Scalar(0.,arg.getFunctionSpace())
-       for i in range(s[axis0]):
-          out+=arg[i,i]
-       return out
-       # end hack for trace
-    else:
-       return numarray.trace(arg,axis0=axis0,axis1=axis1)
 
 
 def reorderComponents(arg,index):

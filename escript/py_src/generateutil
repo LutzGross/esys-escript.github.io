@@ -689,7 +689,65 @@ def minimumTEST(arg0,arg1):
               else:
                out[i0,i1,i2,i3]=arg0[i0,i1,i2,i3]
      return out
+#=======================================================================================================
+# trace
+#=======================================================================================================
+def traceTest(r,offset):
+    sh=r.shape
+    r1=1
+    for i in range(offset): r1*=sh[i]
+    r2=1
+    for i in range(offset+2,len(sh)): r2*=sh[i]
+    r_s=numarray.reshape(r,(r1,sh[offset],sh[offset],r2))
+    s=numarray.zeros([r1,r2],numarray.Float)
+    for i1 in range(r1):
+        for i2 in range(r2):
+            for j in range(sh[offset]): s[i1,i2]+=r_s[i1,j,j,i2]
+    return s.resize(sh[:offset]+sh[offset+2:])
+name,tt="trace",traceTest
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (4,5), (6,2,2),(3,2,3,4)]:
+    for offset in range(len(sh0)-1):
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_offset%s"%(name,case0,len(sh0),offset)
+              text+="   def %s(self):\n"%tname
+              sh_t=list(sh0)
+              sh_t[offset+1]=sh_t[offset]
+              sh_t=tuple(sh_t)
+              sh_r=[]
+              for i in range(offset): sh_r.append(sh0[i])
+              for i in range(offset+2,len(sh0)): sh_r.append(sh0[i])              
+              sh_r=tuple(sh_r)
+              a_0=makeArray(sh_t,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh_t,[-1.,1])
+              else:
+                  a1_0=a_0
+              r=tt(a_0,offset)
+              r1=tt(a1_0,offset)
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg,%s)\n"%(name,offset)
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case0,sh_r,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
 
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
 
 #=======================================================================================================
 # clip
@@ -733,6 +791,7 @@ print test_header
 print t_prog_with_tags
 print test_tail           
 1/0
+
 #=======================================================================================================
 # maximum, minimum, clipping
 #=======================================================================================================
