@@ -1813,7 +1813,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank0_Symbol_rank0(self):
+   def test_quotient_overloaded_constData_rank0_Symbol_rank0(self):
       arg0=Data(3.43231999068,self.functionspace)
       arg1=Symbol(shape=())
       res=arg0/arg1
@@ -1824,7 +1824,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank0_Symbol_rank1(self):
+   def test_quotient_overloaded_constData_rank0_Symbol_rank1(self):
       arg0=Data(-1.99888672106,self.functionspace)
       arg1=Symbol(shape=(2,))
       res=arg0/arg1
@@ -1835,7 +1835,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank0_Symbol_rank2(self):
+   def test_quotient_overloaded_constData_rank0_Symbol_rank2(self):
       arg0=Data(1.75603219348,self.functionspace)
       arg1=Symbol(shape=(4, 5))
       res=arg0/arg1
@@ -1846,7 +1846,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank0_Symbol_rank3(self):
+   def test_quotient_overloaded_constData_rank0_Symbol_rank3(self):
       arg0=Data(2.14054149252,self.functionspace)
       arg1=Symbol(shape=(6, 2, 2))
       res=arg0/arg1
@@ -1857,7 +1857,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank0_Symbol_rank4(self):
+   def test_quotient_overloaded_constData_rank0_Symbol_rank4(self):
       arg0=Data(-3.54974920415,self.functionspace)
       arg1=Symbol(shape=(3, 2, 3, 4))
       res=arg0/arg1
@@ -1868,7 +1868,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank1_Symbol_rank0(self):
+   def test_quotient_overloaded_constData_rank1_Symbol_rank0(self):
       arg0=Data(numarray.array([3.9883962094707375, 1.3750251611114059]),self.functionspace)
       arg1=Symbol(shape=())
       res=arg0/arg1
@@ -1879,7 +1879,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank1_Symbol_rank1(self):
+   def test_quotient_overloaded_constData_rank1_Symbol_rank1(self):
       arg0=Data(numarray.array([-1.2334048137186624, 1.377686460692952]),self.functionspace)
       arg1=Symbol(shape=(2,))
       res=arg0/arg1
@@ -1890,7 +1890,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank2_Symbol_rank0(self):
+   def test_quotient_overloaded_constData_rank2_Symbol_rank0(self):
       arg0=Data(numarray.array([[-2.2020384928131884, -4.3740172257969014, 3.3041701150346512, -2.2405366435075358, 4.0852398702255694], [0.83572753098331365, -1.3774478891852282, -3.7695866211336106, 3.7407792775265367, -3.8975656101620961], [3.4429597608670139, -4.1953097446124099, -3.4659921023383311, -1.6700250836404607, 1.8624190364059556], [1.5519146057464788, -3.9581877480458152, 1.023175615935096, 0.66728877091972283, -2.159854941490873]]),self.functionspace)
       arg1=Symbol(shape=())
       res=arg0/arg1
@@ -1901,7 +1901,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank2_Symbol_rank2(self):
+   def test_quotient_overloaded_constData_rank2_Symbol_rank2(self):
       arg0=Data(numarray.array([[3.5835048539727268, 3.8571075798310233, 3.9190114681880495, 2.1261827038253269, 3.3617327213332029], [0.75329476297362508, 4.5554315239695242, -4.0352341285409521, -0.2623106802883246, 1.1321991848119719], [3.601642681322538, 0.35254643689157916, 4.411383875853911, -4.8746220027908125, -2.380461998817911], [3.3624236591334427, 3.869796930431475, -3.0974921018602899, 3.9594635826095743, -2.2054920280196821]]),self.functionspace)
       arg1=Symbol(shape=(4, 5))
       res=arg0/arg1
@@ -1912,7 +1912,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank3_Symbol_rank0(self):
+   def test_quotient_overloaded_constData_rank3_Symbol_rank0(self):
       arg0=Data(numarray.array([[[4.0802610727283497, -2.8024539989346686], [1.8071267457266043, -0.13841814957606147]], [[-1.7988661169618148, 0.027850264656436252], [-0.50642743316112071, 1.8452982570747869]], [[2.7405547448954763, -3.706784288688544], [-3.7888483700042452, -0.58588961440206511]], [[0.7192047060638771, 3.626558913441384], [-3.4305483052647547, 0.32455136413554975]], [[-4.74732548737156, -3.237460084387326], [3.9516124747522348, 2.0449010242900272]], [[2.5313399910511016, -4.0403085459172958], [0.34682792129693585, 4.8072404359213934]]]),self.functionspace)
       arg1=Symbol(shape=())
       res=arg0/arg1
@@ -1923,7 +1923,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank3_Symbol_rank3(self):
+   def test_quotient_overloaded_constData_rank3_Symbol_rank3(self):
       arg0=Data(numarray.array([[[1.1578386437899475, 4.996126396500328], [-0.91635300388975871, -1.4064554437689711]], [[1.9840437948610754, -4.7599852474548303], [3.8573711058777711, 3.2212451543838636]], [[-0.7067030968790311, -1.8450312080991926], [-3.4904314203564146, 4.1106376595074803]], [[-1.5537756306237585, -3.2824613533646483], [4.7975800514366824, -2.7680700289656945]], [[1.2578485281438132, 3.6884342068649723], [0.30686143258336962, -0.1053444702926134]], [[2.8155471322537089, 3.9876357168096845], [-1.6272658547215357, -4.1924212908247949]]]),self.functionspace)
       arg1=Symbol(shape=(6, 2, 2))
       res=arg0/arg1
@@ -1934,7 +1934,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank4_Symbol_rank0(self):
+   def test_quotient_overloaded_constData_rank4_Symbol_rank0(self):
       arg0=Data(numarray.array([[[[0.572941583844365, -2.332247190999662, 1.4999835530459045, 1.5952831694610961], [3.2104897575397366, -4.9371677957474267, 2.2024000914918265, 1.4710857974423694], [-0.87463651673330123, 0.53658487579484948, -1.7854982541271172, 3.5567809651315283]], [[1.0317521940803989, -0.36264412704591908, -3.5507235577725971, 1.3909848991573099], [1.5627242518273841, -3.3326845915707382, -4.9229613174667284, -4.9895568338934826], [4.1835909015322699, 1.6315284699855113, 0.71636527590831811, -4.6681291758637924]]], [[[-0.51377242935229006, -1.8235520070656133, -2.0006476650985006, 0.44472827017699412], [3.9164591306406944, -1.6610530974168092, 4.9476376200326353, -1.3836826771010848], [1.4986466482116088, -3.8631080673395788, -1.8710856814872723, -1.4352468456143597]], [[1.9960625823999054, -4.210241298814994, 2.6483546110070852, -0.86544321226839926], [-0.93317484961197739, -0.44349168612483147, -2.5628503186817273, -3.8695270931809622], [-4.9604568128480784, 2.1396464175683629, 1.7039271741506079, -3.8283222528970318]]], [[[-1.441363355020906, -3.3811365967582629, -3.351110695562276, 3.7482593597594853], [-2.3746596093071446, -2.8131334479206336, -1.2166137380924189, 0.66777797821446239], [-1.3602489200986803, 1.2310997543301729, 4.3550327489506273, 2.8106898161846896]], [[0.0025102013600246664, -4.1702593487397666, -0.76776964329102171, 1.6998502005468374], [-1.2721136787178864, 0.48196474656392496, 3.8101051719028369, 3.2695331075470051], [2.8814364694283192, 1.768178124165547, 2.7195217125632869, 1.3866661750201548]]]]),self.functionspace)
       arg1=Symbol(shape=())
       res=arg0/arg1
@@ -1945,7 +1945,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_constData_rank4_Symbol_rank4(self):
+   def test_quotient_overloaded_constData_rank4_Symbol_rank4(self):
       arg0=Data(numarray.array([[[[-0.16841036162188416, -2.6003560333643625, 3.5545184910572907, 1.5139147914100795], [-0.94587340061535929, 0.16930195740283693, 2.4177976471661742, 2.0737743000066882], [4.6768686667116981, -3.6339789866072092, 2.5135388182835854, -3.8110207055172829]], [[-3.2003418240897084, 4.104104479479858, 3.4425399383215289, 0.8930435704987314], [-1.2104858360688286, -0.54602956579953776, 0.96613869262303176, -1.1447665449499578], [-0.73618243678854167, -0.75634063494127179, -3.4905332722260507, -1.9294737289274213]]], [[[-1.7695622917331444, -4.4618511183236436, 1.8912341467374274, -4.274667165997097], [1.0133441322095447, 2.2698437785116283, -1.3999716834553122, -0.82282963781866947], [-1.8934325312597222, -1.8347274000416256, 2.4812263519307525, -0.32095149255687971]], [[1.2294222774888874, -4.7301199904748072, -2.4933570004059069, 1.739157374421735], [-4.4527415960373729, -0.24978137738396544, -3.5733206736544734, -2.6055729246625714], [4.2634437530410096, 0.63371633316309506, 0.35411662272234246, -2.3278320513076158]]], [[[0.57519577741460104, -4.1358797158873672, -1.3160752022537814, 3.3667114590653], [4.242351859563227, -4.1169328622744894, -1.1012574518657403, -0.017794823889186517], [0.56080815754529567, -0.32077975391617564, 0.1045421322530995, -4.5192026724964922]], [[3.7259353163717144, -0.29314631925237755, 0.96174008183977833, 4.8927047445339618], [0.19844208500697569, -3.4269276368232626, -1.2296494241640721, 0.74453382811172109], [0.95832215119780528, -1.2319028512539818, 1.7600259249758201, 0.51820978084550617]]]]),self.functionspace)
       arg1=Symbol(shape=(3, 2, 3, 4))
       res=arg0/arg1
@@ -1956,7 +1956,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank0_Symbol_rank0(self):
+   def test_quotient_overloaded_taggedData_rank0_Symbol_rank0(self):
       arg0=Data(4.14743871401,self.functionspace)
       arg0.setTaggedValue(1,-1.21319155942)
       arg1=Symbol(shape=())
@@ -1969,7 +1969,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank0_Symbol_rank1(self):
+   def test_quotient_overloaded_taggedData_rank0_Symbol_rank1(self):
       arg0=Data(4.5956316483,self.functionspace)
       arg0.setTaggedValue(1,-2.78021827332)
       arg1=Symbol(shape=(2,))
@@ -1982,7 +1982,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank0_Symbol_rank2(self):
+   def test_quotient_overloaded_taggedData_rank0_Symbol_rank2(self):
       arg0=Data(0.921054948699,self.functionspace)
       arg0.setTaggedValue(1,0.0394823576247)
       arg1=Symbol(shape=(4, 5))
@@ -1995,7 +1995,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank0_Symbol_rank3(self):
+   def test_quotient_overloaded_taggedData_rank0_Symbol_rank3(self):
       arg0=Data(4.34795846919,self.functionspace)
       arg0.setTaggedValue(1,-3.37152427446)
       arg1=Symbol(shape=(6, 2, 2))
@@ -2008,7 +2008,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank0_Symbol_rank4(self):
+   def test_quotient_overloaded_taggedData_rank0_Symbol_rank4(self):
       arg0=Data(3.7553962803,self.functionspace)
       arg0.setTaggedValue(1,-2.45958468224)
       arg1=Symbol(shape=(3, 2, 3, 4))
@@ -2021,7 +2021,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank1_Symbol_rank0(self):
+   def test_quotient_overloaded_taggedData_rank1_Symbol_rank0(self):
       arg0=Data(numarray.array([-0.24327728711711405, -3.6056280310023405]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([1.2730035138874616, -4.9781403275646703]))
       arg1=Symbol(shape=())
@@ -2034,7 +2034,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank1_Symbol_rank1(self):
+   def test_quotient_overloaded_taggedData_rank1_Symbol_rank1(self):
       arg0=Data(numarray.array([-0.60463512658968011, -0.5520360523301111]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([0.11065887825991361, 3.0681695057704825]))
       arg1=Symbol(shape=(2,))
@@ -2047,7 +2047,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank2_Symbol_rank0(self):
+   def test_quotient_overloaded_taggedData_rank2_Symbol_rank0(self):
       arg0=Data(numarray.array([[4.6512814709921759, 2.098614110043922, 1.895016528010288, 2.6977915277647391, 3.6655404112999896], [-0.48363850300250633, 2.3419850697805096, 2.1662412645385327, -1.9056051572421295, 2.497215246339004], [4.0815840480205914, -1.2641264348648407, 4.6318841341169641, -3.2591414662330562, 3.1161047733410481], [1.1685908100777258, -3.1575041951677232, -3.924192536790263, 3.2452072591922736, -2.7913771333657267]]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([[1.6044809956172026, -0.70199805786625014, 2.4770184375160351, 0.12526292043311571, 2.8453902277172185], [-2.6270109040291056, -2.5010942322759599, 4.1068958534289663, -2.6324008007168609, -0.32418555844239805], [3.1579467104423316, 1.086387193462234, 2.7518638232041726, 1.2174922150915348, -2.6071828689039336], [2.8178725134119729, 2.8056937296183913, 3.6699288938229007, 3.6037027182613244, 0.085370105743285407]]))
       arg1=Symbol(shape=())
@@ -2060,7 +2060,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank2_Symbol_rank2(self):
+   def test_quotient_overloaded_taggedData_rank2_Symbol_rank2(self):
       arg0=Data(numarray.array([[-4.6443072321046044, 0.38417837617679673, 3.4279882680004921, 0.40710770023483178, 2.8688000401894911], [-0.63862918185682371, -1.0613480573447367, 2.5252641176738813, -2.3743507769422569, 2.2710813572310951], [2.0244163796382626, -0.45931604591878106, -4.2337337609916501, -3.5735365306689681, 1.5100285975528873], [1.9953319494326704, -1.458603065344283, -2.6914617917833263, 2.8267445415419745, -2.1176995723917171]]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([[2.558345522140046, 3.8739768438957185, -2.5523095986149191, -1.1599373064608165, -1.9295185061392859], [2.6353186995223199, -3.9407961905622004, 3.7986447608802525, 3.1282445710581239, 0.37606431107885818], [4.6848458369965034, -2.5423454969446944, -0.10041273851269938, 0.39611652325263069, 2.5670890012870329], [2.034125316253621, -4.3475018844119351, -0.69889862294772787, -4.8039063806121574, 3.7327807333050149]]))
       arg1=Symbol(shape=(4, 5))
@@ -2073,7 +2073,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank3_Symbol_rank0(self):
+   def test_quotient_overloaded_taggedData_rank3_Symbol_rank0(self):
       arg0=Data(numarray.array([[[2.6594060153757653, 3.0985169336341105], [3.3661217116389821, -0.59504905070450942]], [[-3.9749579000522637, -4.7342067957921277], [1.1895841648424295, 0.56731685724203196]], [[0.20933515875849551, -0.47657164361986748], [3.6005053961204521, -2.7248219369010487]], [[-4.5417601893012947, 4.6881992583085577], [0.95219997618841479, 0.045100875229370452]], [[1.6875122232100468, 0.83285808001415162], [-0.98095523355696734, 1.3721074229557644]], [[1.7539561105027381, -0.13330491004776146], [-3.3240848531330958, 3.9526032719641933]]]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([[[4.6963315268174881, 1.5142976851258796], [4.5399300108016529, 4.2558918208130496]], [[-3.5130795594275552, -2.2965838545821149], [3.5486672192586823, -0.16210635982120003]], [[1.2552491212091041, -0.47844908361541538], [4.446197400169801, 1.9447260435327358]], [[-4.5600746555661678, -1.6955914419145826], [-2.0546718268066022, 4.4738577557187309]], [[1.0326084184938722, -1.7805867888057159], [2.4947632536764397, 0.81887034400060177]], [[3.2736611846490149, 3.9295086162843287], [-0.83952910002973979, -0.69339229981178008]]]))
       arg1=Symbol(shape=())
@@ -2086,7 +2086,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank3_Symbol_rank3(self):
+   def test_quotient_overloaded_taggedData_rank3_Symbol_rank3(self):
       arg0=Data(numarray.array([[[0.37903407908351117, 4.7562512290710508], [-2.0567133710230481, -2.0597757209890579]], [[3.1071466326239037, 3.7378759300098636], [-2.2870602196502565, -3.6754721739328113]], [[3.300935107148554, 2.1910214216355826], [-2.2941648800534375, -2.0181827356997148]], [[-3.5358995232538684, 0.077598647462692405], [1.0254061925828246, 1.3424636637528886]], [[-2.5177374705422064, 3.3774425425435926], [3.7215367528674541, -2.5394983441996635]], [[4.9947523199127613, 0.074465686539016751], [1.6903291082153435, -1.548003996221603]]]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([[[-4.1180675764846963, -3.2588333429017147], [2.3910605684413362, -2.5464559979058099]], [[-0.47366800112006935, -2.9943461140704954], [0.68865869503993338, 3.872833966837911]], [[2.8476798086608648, -3.2531482133842138], [-2.5572122994418356, 2.4221777629945427]], [[4.3150298961939555, 3.6112269569743987], [0.73197953589044573, -3.7189842913799733]], [[-2.7850398483841654, -1.3377438559149857], [-1.4556441129183781, 3.6956035182385243]], [[2.2019800882262039, 3.8700529933760066], [1.7561308799879001, -3.6205253465229568]]]))
       arg1=Symbol(shape=(6, 2, 2))
@@ -2099,7 +2099,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank4_Symbol_rank0(self):
+   def test_quotient_overloaded_taggedData_rank4_Symbol_rank0(self):
       arg0=Data(numarray.array([[[[-0.18987391835747758, 4.5085269431466148, 2.3332490022782091, 3.5140443207840626], [-3.8071577551437374, 4.4720793176524474, 1.5612407831467943, -3.8104362786352852], [-4.0532150845521837, -0.57280649274337314, -0.56128092769382665, 1.5156021557578434]], [[1.7447218212497937, -2.3056218481816462, -3.1637924745560939, -0.30131377200161236], [-2.7752874159121497, 2.6013067905592049, -3.746096460635143, -2.9734953480155388], [-3.6161482942867931, 1.9377292214084427, -4.7468533933334172, 3.2118802123097385]]], [[[-4.4843124086103083, 2.3827156971613297, 2.1743800991624589, 4.4296694534725685], [-3.4871548142175457, 2.955544818380722, 3.0587638749887915, -0.51089762690949225], [3.650413980256328, -3.6682136669452814, -0.46817705349461569, -0.82910345294884724]], [[1.588186425815735, 1.5765955566881908, -4.3427217875858659, -2.0163319014518422], [-1.0220958643238132, 1.9727101787163654, -0.065010798608873266, 1.73315365618957], [2.738465567903118, 1.9645854229284678, -2.7935410540423575, 3.0569496206524445]]], [[[-0.21196663843321328, -3.1770386067640386, 3.7992231608336073, -4.5172564500621428], [0.98964989530832703, -2.4738974761647881, 0.0114065763112281, -3.1306195317462948], [-1.7022084431469064, -4.8835685460571892, 3.3149881663472325, -1.8527394999613223]], [[-4.688839386407393, -2.2094627892488683, -1.6723044389697153, 3.4908352481955269], [-2.4719833755226062, -2.3617449879099341, -4.2339862392091119, 3.802095592491435], [-4.4231212186316329, -1.5324562390597976, 3.2464993080986027, 4.0812450056830585]]]]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([[[[0.34365977550907534, 3.4152342295544518, -1.2774419454539219, -0.072154050581789697], [-3.2136192243029962, -4.3100480205097416, 0.92063187364718946, 0.65983261161884776], [1.836360802359561, 4.7090663804834136, 3.6687227420314681, 0.14984304098941781]], [[1.3240710521065289, 4.8518181175906356, 4.2513462649612741, 2.7178860490952372], [3.6396852376664448, 3.5569808409457586, 3.2627252762282897, 2.4127574016450257], [4.0085015954616114, 0.70935755386425026, -1.9722472564280968, -4.9450465085805737]]], [[[4.6143116204743464, -1.5718311397775753, -2.8294250621955639, 0.95996522458350686], [2.3480451792784409, 2.218190909075064, -4.7734664792996711, 0.0048653152667395005], [4.094925294988629, 0.098020816683218825, 4.9363224824892118, -2.7422959820113979]], [[1.9859137713910258, -2.1627818319757597, -4.0065126947434919, 1.1169402196268106], [0.60687417854650949, 4.7896845328736148, -1.0372629333665175, -3.4736146138727317], [-0.77834611882985527, 3.7473488660222962, 4.4949031076591055, 1.1504392368842806]]], [[[3.9105694358071688, 0.85300656236961014, -4.4195308596302096, -1.6714210722352862], [-1.7040870582658831, 4.4180235769979337, 1.0471725443882738, 1.0499359823818599], [-1.2249935138047685, 1.3155129039735147, 2.6341447922360262, -4.9309444752348908]], [[-4.8684443672971778, -2.2231549054199862, 2.0972135466603978, 2.2253917338571325], [4.4575262452243205, -1.0296343337965821, 2.3085756197272289, 3.1003426493793196], [2.1929744355036931, -1.4027552428126278, -0.58004112631573967, 2.9911401359981511]]]]))
       arg1=Symbol(shape=())
@@ -2112,7 +2112,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_taggedData_rank4_Symbol_rank4(self):
+   def test_quotient_overloaded_taggedData_rank4_Symbol_rank4(self):
       arg0=Data(numarray.array([[[[3.1087373682977262, 1.7288468484290664, -4.7350025546766474, -1.2462687606986202], [1.1147661257221184, 1.4226862562785945, -4.8699002989410065, -0.88238981212800027], [-2.5253953718962063, -2.7446236822447503, -0.3879205662380496, -3.5863352294770778]], [[-3.8709898597864569, -4.5958808941745852, -0.69941717063653019, -4.1924685416353791], [-3.532941685164098, 3.0050044088519066, -0.43457496025027353, 3.7774083718666578], [-3.4471087299766379, 1.6436932375732649, 2.6583331263073102, 1.6377907641557758]]], [[[4.7414386788893221, -3.2160736850371494, 0.96698243106325243, -0.82828848269705979], [3.5200044289955326, 4.9118207264463223, -4.3585332820909706, -0.77115446561512169], [0.16582160103948596, -0.65994126459526647, 2.6619397454888905, -2.3437138040847803]], [[1.2215261759413565, -1.7584557798190015, -1.1089650453761957, -1.5641210633931846], [2.7598302729800022, 1.8875202967455316, -3.630936106223853, 1.2007447478800914], [2.6512287695864964, 1.7707580266874441, 0.1953947241778895, 4.503435455349651]]], [[[4.2589981026451031, -3.9277495689426001, -2.8473369657351677, 1.4040000652368345], [0.26972497738921852, 0.60147023681782397, -4.4745745609656007, 1.9306805685522557], [3.6376896663673826, 2.8396270545178259, -2.6836138158505385, 2.9279825131423012]], [[-0.3090571730995233, -0.57453652295428181, -1.6271798513695179, -4.4696813085601139], [-2.6653810514006215, -2.3768146409366411, -1.3128180331345818, 4.581635378865748], [0.50247688944640778, 4.9532451154747754, -2.7018392025036428, 2.1300845231681196]]]]),self.functionspace)
       arg0.setTaggedValue(1,numarray.array([[[[-3.4505138582863983, 1.4248257487998686, -3.9524119923215526, 0.81504856520297952], [-4.3718698276484877, -0.94288708981653535, 4.8282582970579551, -4.6722816105251033], [3.6647072271001377, 4.7114077690304565, 0.092514361474126616, -3.8124864196234185]], [[4.165582354632777, 0.34102300070869251, 0.98343269313930293, -2.6743082425014606], [4.1326181041099233, -0.23439200672333627, -1.5849546480857146, -2.0736002379586758], [1.6002261433791851, -1.9446791096418647, -3.7570143378185583, 1.076047727904327]]], [[[1.2380177953892098, -3.1484579868063811, -0.76442488916600748, -2.1818057802025415], [-1.5383818327876098, -3.6057035623329137, 2.163451126002772, 2.188392374984657], [2.3709893728585962, 2.3471840573448759, -4.4074156468519838, 4.7188550456319831]], [[1.9267506253146127, -1.0414071109895739, 1.0685570204986226, 4.0226454234187585], [-3.2914506386974205, 0.15234686305474998, 4.7028886509160337, -0.054270133945801824], [-2.3311208759539328, 3.6661719497716891, -3.8474697136079583, 1.8341420305410185]]], [[[3.3674152480608264, 2.7014266389725128, -1.3030301583873838, -3.2387622104831584], [-4.0951687925040563, 4.7004938357073254, 4.1950637273295168, 2.0382289901206372], [1.7427744024426053, 1.1790502862054941, -2.2495124667079791, -3.0538048367909409]], [[-4.4962463676429856, 1.5822806162106859, -1.8235905534694785, -4.4062861037909364], [0.87041939490070597, -4.0113094886293554, -4.6982054748353583, 4.2373051220310582], [-0.84614829051970197, 3.3176111131043982, -2.6687460434287589, 4.6770431583761969]]]]))
       arg1=Symbol(shape=(3, 2, 3, 4))
@@ -2125,7 +2125,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank0_Symbol_rank0(self):
+   def test_quotient_overloaded_expandedData_rank0_Symbol_rank0(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*(-4.16921840294)+(1.-msk_arg0)*(4.13078960119)
       arg1=Symbol(shape=())
@@ -2138,7 +2138,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank0_Symbol_rank1(self):
+   def test_quotient_overloaded_expandedData_rank0_Symbol_rank1(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*(0.893893990136)+(1.-msk_arg0)*(0.567432073109)
       arg1=Symbol(shape=(2,))
@@ -2151,7 +2151,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank0_Symbol_rank2(self):
+   def test_quotient_overloaded_expandedData_rank0_Symbol_rank2(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*(4.73905345325)+(1.-msk_arg0)*(-4.15656795792)
       arg1=Symbol(shape=(4, 5))
@@ -2164,7 +2164,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank0_Symbol_rank3(self):
+   def test_quotient_overloaded_expandedData_rank0_Symbol_rank3(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*(4.78787757499)+(1.-msk_arg0)*(-3.28976848057)
       arg1=Symbol(shape=(6, 2, 2))
@@ -2177,7 +2177,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank0_Symbol_rank4(self):
+   def test_quotient_overloaded_expandedData_rank0_Symbol_rank4(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*(1.75692828977)+(1.-msk_arg0)*(-2.14899285708)
       arg1=Symbol(shape=(3, 2, 3, 4))
@@ -2190,7 +2190,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank1_Symbol_rank0(self):
+   def test_quotient_overloaded_expandedData_rank1_Symbol_rank0(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([2.013685465408555, -0.23558936453305712])+(1.-msk_arg0)*numarray.array([-3.5034214026844568, 1.5861853637787142])
       arg1=Symbol(shape=())
@@ -2203,7 +2203,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank1_Symbol_rank1(self):
+   def test_quotient_overloaded_expandedData_rank1_Symbol_rank1(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([-0.240783536656898, 2.4522207164515661])+(1.-msk_arg0)*numarray.array([-2.6143091000360554, -1.7209346138742179])
       arg1=Symbol(shape=(2,))
@@ -2216,7 +2216,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank2_Symbol_rank0(self):
+   def test_quotient_overloaded_expandedData_rank2_Symbol_rank0(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([[-3.5524341460375641, 4.7094831286696373, -0.18763500262553379, 0.92078587043782267, 1.5633164400186814], [-3.2160743627609065, -1.475450853387378, 0.4531551970811698, 1.5869072036359357, 2.2501989264199054], [-3.0047858395011962, 3.8668179864794041, 4.7640266575428676, -4.5168020830691402, -3.9906727379142404], [-4.1304645971682694, -0.88518480435952807, 1.012127262108268, -3.7146974028356574, -4.6313643928370212]])+(1.-msk_arg0)*numarray.array([[1.7591260079289945, 1.3879718313395273, 1.5326835858993135, 4.2409259796446257, 2.655307107561482], [-2.3814537086615495, 3.7333616202275053, 3.1621968222159325, 4.2220383652526721, 1.5144471593836695], [1.2444878229358283, -2.6197010314766853, -4.3618395583941041, -1.238746645541231, -1.9420904898415925], [2.9535211925786955, 0.085799908201006581, -3.3450696662897927, -4.0496886845617643, 0.2423218533090532]])
       arg1=Symbol(shape=())
@@ -2229,7 +2229,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank2_Symbol_rank2(self):
+   def test_quotient_overloaded_expandedData_rank2_Symbol_rank2(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([[4.32105107438462, -2.7938865728204942, -2.6480612891877806, 4.0962844399213747, -1.6936450259444391], [-4.5540373065810638, -3.4735704316216474, 4.0973336660426511, 3.5796783703777653, -1.2789555045275067], [1.590790512666854, -3.6030796222704065, -1.5358180525686507, 4.2468820159522522, -3.549813920750482], [-0.65580849674863462, -3.0765715955273709, -2.9627491908542303, 0.028934297810717879, -3.4006116351470137]])+(1.-msk_arg0)*numarray.array([[0.44461502386601914, 0.042731475461358137, 2.311229454922783, 4.1960944541714742, -3.5527610506036744], [-0.10889510534494828, 4.1596007072981003, -4.0240613332963262, 3.5788133245810574, -0.84296801766120399], [-3.6483106190723138, 3.5039136834827218, -1.4706155051518079, -2.1562609648378861, -4.3073932462182585], [0.23063830136591879, 4.1274722231354168, 0.13645071183945756, -4.5418134155752554, -1.7380106134837989]])
       arg1=Symbol(shape=(4, 5))
@@ -2242,7 +2242,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank3_Symbol_rank0(self):
+   def test_quotient_overloaded_expandedData_rank3_Symbol_rank0(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([[[3.4818338012749823, 3.4971998906886821], [-2.5239057976796686, 2.8945562475557409]], [[-0.41913812937298012, -4.1817511712950708], [-0.9293236620515497, 3.2965731483205314]], [[-3.6083495228355655, -2.1861278112872515], [3.5523423560955436, 4.571917845676408]], [[2.5235010801011963, -4.4530426867639079], [0.03134464425793837, -3.7225099091273051]], [[3.3642508251751551, -2.7962331811582333], [2.5944511937764982, -2.2330126770386505]], [[-1.3859482579701279, -1.4570666635369189], [1.8261086891132727, -1.5056570354979151]]])+(1.-msk_arg0)*numarray.array([[[-1.0522384302138366, 4.1034138371598559], [0.079522524263561323, -0.023108968432953958]], [[-0.026505249441055589, 1.932139350294455], [4.0042157822936666, 2.2762304926106802]], [[1.264288211638612, -1.9946271929128692], [4.2703916328307017, -1.1300899977876777]], [[4.2801783215727394, -0.096454065145835877], [4.4865658066576728, 3.9314784386307959]], [[3.1200236527004428, -2.7447976911193561], [-0.85723836157011135, -2.8199900333320906]], [[4.5366088574407808, -3.5698521752315759], [1.5597344890251819, -1.342225295850489]]])
       arg1=Symbol(shape=())
@@ -2255,7 +2255,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank3_Symbol_rank3(self):
+   def test_quotient_overloaded_expandedData_rank3_Symbol_rank3(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([[[4.3746388890042116, 0.93842526855136477], [1.8706383189312428, -3.9786565611021829]], [[-4.8975447110451586, -3.7180783682549334], [2.5316157131902353, -0.25911969310157357]], [[4.2345079212590129, 2.6909111977680222], [-4.6351551680329486, -1.6723804666364006]], [[-2.3891891985415548, 3.1344558904005719], [-4.5767190111429077, 2.4120357644515966]], [[-4.2232569151431667, -3.8926752844093224], [2.4150103819552253, -4.5535897724203158]], [[1.3100697627188289, -4.6842849101527513], [-1.1835626225415821, -1.6287129504016793]]])+(1.-msk_arg0)*numarray.array([[[-0.53174998140680607, -2.3053360747766796], [-4.7243487743326726, 4.6049518621447536]], [[-4.0675549321859457, 3.0884984319359248], [-2.3740277209818728, -4.6692510557804932]], [[3.1231828125619838, -3.946142358002116], [-3.2294647129609846, 0.76749287499934926]], [[-4.2013021907005701, 4.7778175384969011], [1.0778106376839505, -3.0244592978197171]], [[0.014195128518603717, -1.7862148338991855], [1.5856103610038801, 2.294853232961561]], [[0.84538744044394143, -0.1665108768840593], [4.9401260246627476, 2.6878593818409549]]])
       arg1=Symbol(shape=(6, 2, 2))
@@ -2268,7 +2268,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank4_Symbol_rank0(self):
+   def test_quotient_overloaded_expandedData_rank4_Symbol_rank0(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([[[[-0.44452618685267975, 3.0663649813827689, -2.1402320946883169, 0.26287923382873224], [-0.22292293247447503, -1.779872403236904, -0.83539558284346249, -4.8386253696649675], [-2.6909471943775531, 1.1035502397379968, 0.93405709802047099, -4.5133518823731986]], [[3.5925478528654295, 0.52351538108496953, -0.17314676004431107, 1.4384665038816946], [2.2650627980321367, -4.4386411147000606, 0.38967773187251886, 0.15837556447672352], [2.8076217348733392, 1.2019742108297082, 3.7488885553516198, 2.8100664184927595]]], [[[4.1664177934939932, -4.7550890791444989, -2.0711507140466989, -2.9208312198338993], [4.1895048918264681, -4.592776924342691, -0.74263699511176196, 0.12222597803184154], [-3.4946750822854025, -1.571892398029048, 2.6881024097725241, -0.45229879881073565]], [[0.60058700109640029, -4.2888213982767818, -2.2458451822005356, 0.91258303405033203], [3.3245528372575315, 2.6854365632371522, 1.3044064696261142, 3.5732020880561883], [2.7937275003598705, 0.85713829166626887, 0.71698412194859618, -0.043226853713563607]]], [[[4.2797940742559852, -0.57449215469944281, 3.5372782003910892, -4.8902142136425928], [3.4633055922696609, 2.2397500952615088, 0.92632497108839473, 1.611561401548693], [-3.7446826480686668, 0.059061052999116015, -1.973290483226485, 1.3807066282723524]], [[-2.2506401919494836, 2.807017817591114, -3.6668928425508698, 3.3357720442069549], [-2.317215173553099, -1.8521171123736782, 0.9170155613529376, -0.56660297630200507], [-2.599117417540401, -0.71112092316441, 3.5146676236929366, 2.9740235371521369]]]])+(1.-msk_arg0)*numarray.array([[[[1.1035419360879652, -4.9240459106615404, 0.57110407594141677, 2.5493425213144949], [1.2839073993293217, 2.064480694195943, 2.4864284511610704, -2.2797414911063751], [3.4328347507735355, -3.742525310292609, -4.4574196999473639, -2.784337348306626]], [[0.23082397702841462, -4.2835955276491635, -4.20264969709529, -4.7450278917265187], [4.3504991743194115, -1.9305238512009049, 3.4289768271375802, 1.6515283567503367], [0.65954658541804267, 2.0071119325399334, 3.8939804193697718, 1.7025613989899737]]], [[[-4.4747539140927985, 0.69576514550398461, -0.28643903065104048, -2.5385265745964647], [-0.043853132795085514, 2.9368925771712338, 1.7512112730662803, -2.5278476664471796], [-2.9694783445707151, 1.5583351617541137, -1.5856519335480899, -1.5853506441940759]], [[-2.8774784925906327, 0.18293932340222163, -1.4449105065783749, -2.1949936564433181], [1.3493715781295066, -4.2954572018618942, 0.98668403490899248, -4.4055318216701655], [-4.6821350103268777, 3.8610980860163053, -3.523887848809939, -3.546193394267144]]], [[[2.4380429784019544, 3.4521340144554973, -3.7692521052369967, 4.9812805548611685], [0.84523245498652244, 3.7857178447844362, -4.170487549201054, -0.54939171272889276], [-3.5433162653492811, -1.4054231603316514, 0.69989467178326947, 4.6415130978277084]], [[-0.28700657500147031, -0.19881123713218596, -1.6586432383015293, -3.4424186977029114], [-4.5813813287646896, 1.7385541775874067, -3.8853770583055702, 0.97367116411611665], [0.5470898075374242, -2.534993203695346, -4.9939695365786676, 4.0817080848471043]]]])
       arg1=Symbol(shape=())
@@ -2281,7 +2281,7 @@ class Test_util_overloaded_binary_still_failing(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_div_overloaded_expandedData_rank4_Symbol_rank4(self):
+   def test_quotient_overloaded_expandedData_rank4_Symbol_rank4(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
       arg0=msk_arg0*numarray.array([[[[0.13107029610522503, -0.47078445251855072, -4.2897888183577919, -1.9334992582613539], [0.63937604658959835, -3.33703556551216, 0.72789522858485256, -0.26278387324467101], [-3.9668440246732195, -3.671802989288131, 2.0999037661084587, -2.4149526975860147]], [[-4.7632015166069488, -0.32819100922220645, 3.9967626932273532, 1.2406587303878966], [1.749127295060128, -0.45247786055816697, 4.6204416104916426, -2.081666165987246], [-0.68418527302623922, -0.086844242543568484, 4.5968719860538609, -0.91155775353879243]]], [[[1.6437881369181344, -2.3806862133298736, -4.4788477060454488, -4.9712582040083095], [4.5521169671152215, 3.7737242105731958, 1.1068782587395374, -2.211728710301637], [0.082833519252822008, 3.0206978008416172, 4.357477209475304, 0.49732738761943907]], [[0.79602598196542029, -1.265855956484395, 4.8250166190599018, -4.2788131362835058], [-4.383003984209294, 2.5455905334955311, 4.8365355193769055, -1.9625703825210605], [-2.6627467883711997, 4.437603110973388, -3.5973501175563993, 0.65182523283167892]]], [[[3.0885957484528426, 3.1277669503591561, 1.6769138721837127, 0.98171782970485566], [4.192401912714864, -0.47522991390312086, 2.1118225327681861, 2.1921637678324597], [0.3811847761647158, -0.10326953777431402, -0.65807832498088992, 2.6865347217403768]], [[-3.1528015361925754, -3.2404126527988009, -1.0365916695998001, 3.8469436365391338], [-1.8197555129691056, -1.4900674698016427, 0.18151570218425128, -2.8062991438823612], [-4.8043393089791238, 3.6114859202585219, 4.5737474506226459, -4.6680289702448849]]]])+(1.-msk_arg0)*numarray.array([[[[-4.4610050641633041, -4.2116496086744872, -4.194177401285657, 4.6667981922187636], [-0.69217835042977516, -0.50405115463934003, 4.9237488959861206, 2.8925023711926752], [1.8515933082064082, 3.7230125484719974, -3.019629418821407, 3.8938117509466394]], [[1.4837641305474625, -4.8550584858736592, -1.7472809251385635, 3.2307178554322675], [-1.8988735029264605, 0.86622970071825556, -4.9469479387882034, 1.4686808631017545], [-4.359409091955369, -2.4483640826280038, -4.9126815838484248, 3.1077856574793419]]], [[[1.1758972510173491, 0.55388575745847213, 0.89146624927904305, 0.63400471395171998], [0.55786297685443831, -3.8299740887244482, -0.11367732885478077, 3.7677830690318999], [-3.5745169669757679, -2.4896945451989994, 2.6912852814721315, -3.0192095141877564]], [[-2.6866046448316161, 4.6338119217697056, 4.5795707054588188, 1.6240797284646193], [3.3889322076803658, 0.29273714098976189, -1.0820300702831531, 3.1517798425152321], [0.0057643443868427013, 1.3712665201039158, 3.3350408828391025, 4.3948199682885214]]], [[[-1.8319354596571156, -0.24146471255168933, 1.2551580386328345, -4.4733596377004439], [1.7721669868368117, -1.9145129599168875, -1.1223547031438805, 2.067367827980739], [1.8871564184207337, 1.2753354170198996, 4.2895243683672284, 3.3249111447243411]], [[1.1893790492598919, -3.0721981828360221, -4.0386799091272056, 2.7354976215990421], [3.5398142903243972, 3.4570995606739494, -1.4962799143431105, 1.3335418401314989], [1.2267226207454929, 3.271100819046973, -4.8430217828867974, 1.5873946155417196]]]])
       arg1=Symbol(shape=(3, 2, 3, 4))
