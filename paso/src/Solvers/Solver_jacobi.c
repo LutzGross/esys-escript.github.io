@@ -40,12 +40,12 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   /* check matrix is square */
   if (A_p->col_block_size !=A_p->row_block_size) {
-    Paso_setError(TYPE_ERROR, "__FILE__: Jacobi preconditioner square block size.");
+    Paso_setError(TYPE_ERROR, "Paso_Solver_getJacobi: Jacobi preconditioner square block size.");
     return NULL;
   }
   /* check matrix is square */
   if (n_block>3) {
-    Paso_setError(TYPE_ERROR, "__FILE__: Right now the Jacobi preconditioner supports block size less than 4 only");
+    Paso_setError(TYPE_ERROR, "Paso_Solver_getJacobi: Right now the Jacobi preconditioner supports block size less than 4 only");
     return NULL;
   }
   /* allocate vector to hold main diagonal entries: */

@@ -136,10 +136,12 @@ err_t Paso_Solver_GMRES(
          /***                                                                 
          *** calculate new search direction P from R_PRES
          ***/
+         #pragma omp barrier
          Paso_Solver_solvePreconditioner(A,&P_PRES[0][0], &R_PRES[0][0]);
          /***                                                                 
          *** apply A to P to get AP 
          ***/
+         #pragma omp barrier
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &P_PRES[0][0],ZERO, &AP[0]);
          /***                                                                 
          ***** calculation of the norm of R and the scalar products of       
@@ -352,11 +354,11 @@ err_t Paso_Solver_GMRES(
          /* this fixes a problem with the intel compiler */
          #pragma omp master
          P_PRES_dot_AP0=R_PRES_dot_P_PRES[0];
-         #pragma omp barrier
          /***   if sum_BREAKF is equal to zero a breakdown occurs.
           ***   iteration procedure can be continued but R_PRES is not the
           ***   residual of X_PRES approximation.
           ***/
+         #pragma omp barrier
          sum_BREAKF=0.;
          for (i=0;i<order;++i) sum_BREAKF +=BREAKF[i];
          breakFlag=!((ABS(P_PRES_dot_AP0) > ZERO) &&  (sum_BREAKF >ZERO));
@@ -563,4 +565,3 @@ err_t Paso_Solver_GMRES(
   }
   return Status;
 }
-

@@ -23,6 +23,7 @@
    Values are initialized by zero.  */
 
 Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_SystemMatrixPattern *pattern, int row_block_size, int col_block_size) {
+
   double time0;
   Paso_SystemMatrix*out=NULL;
   Paso_resetError();
@@ -36,8 +37,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->val=NULL;  
      out->reference_counter=1;
      out->type=type;
-
-
      if (type & MATRIX_FORMAT_CSC) {
         if (type & MATRIX_FORMAT_SYM) {
            Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSC is not implemented yet.");
