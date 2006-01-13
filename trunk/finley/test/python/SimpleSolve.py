@@ -23,9 +23,9 @@ error_tol=1.e-5
 # mydomain=finley.Rectangle(140,140)
 
 # print "\nGenerate mesh: finley.Rectangle(4,4,1)=>"
-mydomain=finley.Rectangle(150,10,1)
-mydomain=finley.Rectangle(250,250,1)
-# mydomain=finley.Rectangle(190,190,1)
+mydomain=finley.Rectangle(60,40,1)
+# mydomain=finley.Rectangle(250,250,1)
+mydomain=finley.Rectangle(100,100,1)
 
 print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
 # mydomain=finley.Rectangle(151,151,1)
@@ -60,13 +60,13 @@ print "----------------------------"
 print "mypde=LinearPDE( A=[[1.,0.8],[0.4,1.]], D=alpha, Y=alpha, domain=mydomain)"
 mypde=LinearPDE(mydomain)
 mypde.setDebugOn()
-mypde.setValue(A=[[1.,0.1],[0.04,1.]],D=alpha,Y=alpha)
+mypde.setValue(A=[[1.,-0.001],[-0.001,1.]],D=alpha,Y=alpha)
 
 print "mypde.checkSymmetry()"
 print mypde.checkSymmetry()
 
 print "\nIterative Solver (1)=>"
-mypde.setSolverMethod(mypde.BICGSTAB,preconditioner=mypde.ILU0)
+mypde.setSolverMethod(mypde.PRES20,preconditioner=mypde.ILU0)
 u_i=mypde.getSolution(verbose=True,iter_max=3000)
 
 print "\nDirect Solver (1)=>"
@@ -105,7 +105,7 @@ msk=whereZero(x[0])+whereZero(x[0]-1.)
 print "mypde=LinearPDE(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)"
 mypde=LinearPDE(mydomain)
 mypde.setDebugOn()
-mypde.setValue(A=[[1.,0.],[0.,1.]],q=msk,r=u_ex)
+mypde.setValue(A=[[1.,0.0],[0.0,1.]],q=msk,r=u_ex)
 
 print "mypde.checkSymmetry()"
 print mypde.checkSymmetry()

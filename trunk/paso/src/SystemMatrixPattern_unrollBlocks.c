@@ -54,7 +54,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
           
         #pragma omp for private(i,iPtr) schedule(static) 
         for (i=0;i<new_n_ptr;++i) 
-            for (iPtr=ptr[i];iPtr<ptr[i+1];++iPtr) index[iPtr]=index_offset_out;
+            for (iPtr=ptr[i]-index_offset_out;iPtr<ptr[i+1]-index_offset_out;++iPtr) index[iPtr]=index_offset_out;
 
         #pragma omp for private(i,j,iPtr,k) schedule(static) 
         for (i=0;i<pattern->n_ptr;++i) {
