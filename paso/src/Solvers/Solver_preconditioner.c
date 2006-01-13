@@ -54,7 +54,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               break;
            case PASO_RILU:
               if (options->verbose) printf("RILU preconditioner is used.\n");
-              prec->ilu=Paso_Solver_getRILU(A,options->verbose);
+              prec->rilu=Paso_Solver_getRILU(A,options->verbose);
               prec->type=PASO_RILU;
               break;
         }

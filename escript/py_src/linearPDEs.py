@@ -825,9 +825,9 @@ class LinearPDE(object):
        sets a new solver
 
        @param solver: sets a new solver method.
-       @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{PRES20}, L{LUMPING}.
+       @type solver: one of L{DEFAULT}, L{ITERATIVE} L{DIRECT}, L{CHOLEVSKY}, L{PCG}, L{CR}, L{CGS}, L{BICGSTAB}, L{SSOR}, L{GMRES}, L{PRES20}, L{LUMPING}, L{AMG}
        @param preconditioner: sets a new solver method.
-       @type solver: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}
+       @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU}
        """
        if solver==None: solve=self.DEFAULT
        if preconditioner==None: preconditioner=self.DEFAULT
@@ -860,11 +860,14 @@ class LinearPDE(object):
        elif m[0]==self.GMRES: method= "GMRES"
        elif m[0]==self.PRES20: method= "PRES20"
        elif m[0]==self.LUMPING: method= "LUMPING"
+       elif m[0]==self.AMG: method= "AMG"
        if m[1]==self.DEFAULT: method+="+DEFAULT"
        elif m[1]==self.JACOBI: method+= "+JACOBI"
        elif m[1]==self.ILU0: method+= "+ILU0"
        elif m[1]==self.ILUT: method+= "+ILUT"
        elif m[1]==self.SSOR: method+= "+SSOR"
+       elif m[1]==self.AMG: method+= "+AMG"
+       elif m[1]==self.RILU: method+= "+RILU"
        if p==self.DEFAULT: package="DEFAULT"
        elif p==self.PASO: package= "PASO"
        elif p==self.MKL: package= "MKL"

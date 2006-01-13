@@ -90,6 +90,8 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SystemMatrix * A_p,bool_t verbose) {
   if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) ) ) {
      /* identify independend set of rows/columns */
      time0=Paso_timer();
+     #pragma omp parallel for private(i) schedule(static)
+     for (i=0;i<n;++i) mis_marker[i]=-1;
      Paso_SystemMatrixPattern_mis(A_p->pattern,mis_marker);
      time2=Paso_timer()-time0;
      if (Paso_noError()) {
