@@ -19,23 +19,13 @@ static double TOLERANCE_FOR_SCALARS=0.;
 
 /* ILU preconditioner */
 struct Paso_Solver_ILU {
-  dim_t n;
   dim_t n_block;
-  dim_t n_F;
-  dim_t n_C;
-  double* inv_A_FF;
-  index_t* A_FF_pivot;
-  Paso_SystemMatrix * A_FC;
-  Paso_SystemMatrix * A_CF;
-  index_t* rows_in_F;
-  index_t* rows_in_C;
-  index_t* mask_F;
-  index_t* mask_C;
-  double* x_F;
-  double* b_F;
-  double* x_C;
-  double* b_C;
-  struct Paso_Solver_ILU * ILU_of_Schur;
+  dim_t n;
+  index_t num_colors;
+  index_t* colorOf;
+  index_t* main_iptr;
+  double* factors;
+  Paso_SystemMatrixPattern* pattern;
 };
 typedef struct Paso_Solver_ILU Paso_Solver_ILU;
 
@@ -92,10 +82,17 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner*);
 void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double*,double*);
 void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b);
+
 void Paso_Solver_ILU_free(Paso_Solver_ILU * in);
 Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b);
-void Paso_Solver_updateIncompleteSchurComplement(Paso_SystemMatrix* A_CC,Paso_SystemMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,Paso_SystemMatrix *A_FC);
+
+void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
+Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SystemMatrix * A_p,bool_t verbose);
+void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b);
+
+void Paso_Solver_updateIncompleteSchurComplement(Paso_SystemMatrix* A_CC,Paso_SystemMatrix *A_CF,double* 
+invA_FF,index_t* A_FF_pivot,Paso_SystemMatrix *A_FC);
 Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p);
 void Paso_Solver_solveJacobi(Paso_Solver_Jacobi * prec, double * x, double * b);
 void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in);

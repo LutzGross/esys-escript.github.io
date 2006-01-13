@@ -6,6 +6,7 @@
 
    searches for a maximal independent set MIS in the matrix pattern 
    vertices in the maximal independent set are marked in mis_marker
+   nodes to be considered are marked by -1 on the input in mis_marker
 
 */
 /**********************************************************************/
@@ -45,8 +46,7 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
   }
   double *value=TMPMEMALLOC(n,double);
   if (!Paso_checkPtr(value)) {
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<n;++i) mis_marker[i]=IS_AVAILABLE;
+
    
      /* is there any vertex available ?*/
      while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
