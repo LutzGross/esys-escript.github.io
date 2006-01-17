@@ -30,6 +30,7 @@ __date__="$Date$"
 
 import math
 import numarray
+import numarray.linear_algebra
 import escript
 import os
 
@@ -3013,6 +3014,148 @@ class Trace_Symbol(DependendSymbol):
       else:
          return trace(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
 
+def inverse(arg):
+    """
+    returns the inverse of the square matrix arg. 
+
+    @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal
+    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: inverse arg_inv of the argument. It will be matrixmul(inverse(arg),arg) almost equal to kronecker(arg.getShape()[0])
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    """
+    if isinstance(arg,numarray.NumArray):
+      return numarray.linear_algebra.inverse(arg)
+    elif isinstance(arg,escript.Data):
+      return escript_inverse(arg)
+    elif isinstance(arg,float):
+      return 1./arg
+    elif isinstance(arg,int):
+      return 1./float(arg)
+    elif isinstance(arg,Symbol):
+      return Inverse_Symbol(arg)
+    else:
+      raise TypeError,"inverse: Unknown argument type."
+
+def escript_inverse(arg): # this should be escript._inverse and use LAPACK
+      "arg is a Data objects!!!"
+      if not arg.getRank()==2: 
+        raise ValueError,"escript_inverse: argument must have rank 2"
+      s=arg.getShape()      
+      if not s[0] == s[1]:
+        raise ValueError,"escript_inverse: argument must be a square matrix."
+      out=escript.Data(0.,s,arg.getFunctionSpace())
+      if s[0]==1:
+          if inf(abs(arg[0,0]))==0: # in c this should be done point wise as abs(arg[0,0](i))<=0.
+              raise ZeroDivisionError,"escript_inverse: argument not invertible"
+          out[0,0]=1./arg[0,0]
+      elif s[0]==2:
+          A11=arg[0,0]
+          A12=arg[0,1]
+          A21=arg[1,0]
+          A22=arg[1,1]
+          D = A11*A22-A12*A21
+          if inf(abs(D))==0: # in c this should be done point wise as abs(D(i))<=0.
+              raise ZeroDivisionError,"escript_inverse: argument not invertible"
+          D=1./D
+          out[0,0]= A22*D
+          out[1,0]=-A21*D
+          out[0,1]=-A12*D
+          out[1,1]= A11*D
+      elif s[0]==3:
+          A11=arg[0,0]
+          A21=arg[1,0]
+          A31=arg[2,0]
+          A12=arg[0,1]
+          A22=arg[1,1]
+          A32=arg[2,1]
+          A13=arg[0,2]
+          A23=arg[1,2]
+          A33=arg[2,2]
+          D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22)
+          if inf(abs(D))==0: # in c this should be done point wise as abs(D(i))<=0.
+              raise ZeroDivisionError,"escript_inverse: argument not invertible"
+          D=1./D
+          out[0,0]=(A22*A33-A23*A32)*D
+          out[1,0]=(A31*A23-A21*A33)*D
+          out[2,0]=(A21*A32-A31*A22)*D
+          out[0,1]=(A13*A32-A12*A33)*D
+          out[1,1]=(A11*A33-A31*A13)*D
+          out[2,1]=(A12*A31-A11*A32)*D
+          out[0,2]=(A12*A23-A13*A22)*D
+          out[1,2]=(A13*A21-A11*A23)*D
+          out[2,2]=(A11*A22-A12*A21)*D
+      else:
+         raise TypeError,"escript_inverse: only matrix dimensions 1,2,3 are supported right now."
+      return out
+
+class Inverse_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the inverse function
+   """
+   def __init__(self,arg):
+      """
+      initialization of inverse L{Symbol} with argument arg
+      @param arg: argument of function
+      @type arg: L{Symbol}.
+      """
+      if not arg.getRank()==2: 
+        raise ValueError,"Inverse_Symbol:: argument must have rank 2"
+      s=arg.getShape()
+      if not s[0] == s[1]:
+        raise ValueError,"Inverse_Symbol:: argument must be a square matrix."
+      super(Inverse_Symbol,self).__init__(args=[arg],shape=s,dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "inverse(%s)"%argstrs[0]
+      else:
+         raise NotImplementedError,"Inverse_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)
+         return inverse(arg[0])
+
+   def diff(self,arg):
+      """
+      differential of this object
+
+      @param arg: the derivative is calculated with respect to arg
+      @type arg: L{escript.Symbol}
+      @return: derivative with respect to C{arg}
+      @rtype: typically L{Symbol} but other types such as C{float}, L{escript.Data}, L{numarray.NumArray}  are possible.
+      """
+      if arg==self:
+         return identity(self.getShape())
+      else:
+         return -matrixmult(matrixmult(self,self.getDifferentiatedArguments(arg)[0]),self)
 #=======================================================
 #  Binary operations:
 #=======================================================
@@ -4045,8 +4188,8 @@ def div(arg,where=None):
     @return: divergence of arg. 
     @rtype:  L{escript.Data} or L{Symbol}
     """
-    if not arg.getShape()==(arg.getDim(),):
-      raise ValueError,"div: expected shape is (%s,)"%arg.getDim()
+    if not arg.getShape()==(arg.getDomain().getDim(),):
+      raise ValueError,"div: expected shape is (%s,)"%arg.getDomain().getDim()
     return trace(grad(arg,where))
 
 def jump(arg,domain=None):
