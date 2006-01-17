@@ -5500,3 +5500,96 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(3, 2),"wrong shape of result.")
       self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_array_dim1(self):
+      arg=numarray.array([[1.3914367298126584]])
+      res=inverse(arg)
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(1, 1),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_array_dim2(self):
+      arg=numarray.array([[2.9418052544261108, 0.53874493129953072], [0.46782111529042547, 1.9101073069970917]])
+      res=inverse(arg)
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(2, 2),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_array_dim3(self):
+      arg=numarray.array([[1.6020395384987041, -0.87670859867007334, -0.98070275415465935], [-0.8409158097058016, 2.8045205591389903, 0.88187627481882669], [-0.45001235350647861, 0.11036032836309251, 1.8806880610894336]])
+      res=inverse(arg)
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_Symbol_dim1(self):
+      arg=Symbol(shape=(1, 1))
+      res=inverse(arg)
+      s=numarray.array([[1.1980314049676126]])
+      sub=res.substitute({arg:s})
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1, 1),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(sub,s)-kronecker(1))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_Symbol_dim2(self):
+      arg=Symbol(shape=(2, 2))
+      res=inverse(arg)
+      s=numarray.array([[2.0626000623432192, -0.19378103714358597], [-0.8695363129254492, 1.0318306215625603]])
+      sub=res.substitute({arg:s})
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(sub,s)-kronecker(2))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_Symbol_dim3(self):
+      arg=Symbol(shape=(3, 3))
+      res=inverse(arg)
+      s=numarray.array([[2.4910151385693204, -0.74351863162413956, -0.40708461900873694], [0.51617920870611744, 2.8802512977704158, 0.47057466972995687], [-0.42822503793816469, -0.50381354993207417, 1.3317844973101152]])
+      sub=res.substitute({arg:s})
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(sub,s)-kronecker(3))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_constData_dim1(self):
+      arg=Data(numarray.array([[1.4764835684284772]]),self.functionspace)
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1, 1),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_constData_dim2(self):
+      arg=Data(numarray.array([[1.571080150835487, -0.082524281281854961], [-0.9371994394566685, 2.5886052290160944]]),self.functionspace)
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_constData_dim3(self):
+      arg=Data(numarray.array([[2.7386874118759605, 0.24320192932450824, -0.98551433885644957], [-0.47237322912611623, 2.0770157618999936, -0.70532850079694409], [-0.55077067435537064, -0.72886734893974148, 1.8532894898622749]]),self.functionspace)
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_expandedData_dim1(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[2.7459817071296375]])+(1.-msk_arg)*numarray.array([[2.708920165934452]])
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1, 1),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_expandedData_dim2(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[1.940002512105073, 0.029227206714448339], [-0.16699889152420955, 1.7415408052680506]])+(1.-msk_arg)*numarray.array([[3.6647888118613525, -0.79263077445508201], [-0.12552062258114849, 3.8289111523004937]])
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_expandedData_dim3(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[2.2418112382624198, 0.81650662903581805, -0.094756021110331989], [-0.79442369492917742, 1.9995946283413137, 0.99436683143019566], [0.20497870840231047, 0.56858349778979589, 1.7344833021084756]])+(1.-msk_arg)*numarray.array([[2.3428233100558398, 0.5902214559572323, 0.7775760520103312], [0.30856300288555638, 2.8439402341090472, 0.60593451605418513], [0.99714433866199181, -0.38410207533093699, 3.2417070638990513]])
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")

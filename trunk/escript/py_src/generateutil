@@ -690,6 +690,47 @@ def minimumTEST(arg0,arg1):
                out[i0,i1,i2,i3]=arg0[i0,i1,i2,i3]
      return out
 #=======================================================================================================
+# inverse
+#=======================================================================================================
+name="inverse"
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (1,1), (2,2), (3,3)]:
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_dim%s"%(name,case0,sh0[0])
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              for i in range(sh0[0]): a_0[i,i]+=2
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+                  for i in range(sh0[0]): a1_0[i,i]+=3
+              else:
+                  a1_0=a_0
+                  
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg)\n"%name
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 ref="s"
+              else:
+                 ref="arg"
+                 res="res"
+              text+=mkTypeAndShapeTest(case0,sh0,"res")
+              text+="      self.failUnless(Lsup(matrixmult(%s,%s)-kronecker(%s))<=self.RES_TOL,\"wrong result\")\n"%(res,ref,sh0[0])
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
 # trace
 #=======================================================================================================
 def traceTest(r,offset):

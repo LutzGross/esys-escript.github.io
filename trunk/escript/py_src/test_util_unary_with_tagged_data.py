@@ -1485,3 +1485,27 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(3, 2),"wrong shape of result.")
       self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_taggedData_dim1(self):
+      arg=Data(numarray.array([[2.9250662348343939]]),self.functionspace)
+      arg.setTaggedValue(1,numarray.array([[3.9569115924392309]]))
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1, 1),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_taggedData_dim2(self):
+      arg=Data(numarray.array([[2.1762682607002422, -0.78050782824831111], [-0.83510184055361858, 2.604492189120557]]),self.functionspace)
+      arg.setTaggedValue(1,numarray.array([[3.6893612252828687, 0.18096456487937673], [0.89569960507470925, 3.3056638034950092]]))
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_taggedData_dim3(self):
+      arg=Data(numarray.array([[1.0566731035132446, -0.23529223422203982, -0.73657527200271922], [-0.90461086237095145, 2.3942152365412581, -0.0078023115760492701], [-0.32951652966235834, 0.5634604257647613, 1.716379935670141]]),self.functionspace)
+      arg.setTaggedValue(1,numarray.array([[2.047257820397296, -0.099359655049029438, 0.2857664656803518], [0.87552190129350227, 3.9293973128822133, 0.1331903761748936], [-0.63398198479164769, -0.49699750938550524, 2.0757292701325061]]))
+      res=inverse(arg)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
