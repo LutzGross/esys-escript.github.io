@@ -207,6 +207,7 @@ class Benchmark(object):
              s=scale
           row=[]
           if s>0:
+              print "run %s with %s threads"%(r.__class__,s)
               for p in self.__options:
                   setNumberOfThreads(s)
                   row.append(r.run(p))
