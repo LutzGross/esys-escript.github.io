@@ -112,7 +112,9 @@ class FinleyOptions(Options):
                       LinearPDE.SCSL:  "SCSL",
                       LinearPDE.MKL:  "MKL",
                       LinearPDE.UMFPACK: "UMFPACK",
-                      LinearPDE.PASO:  "PASO"
+                      LinearPDE.PASO:  "PASO",
+                      LinearPDE.RILU: "RILU",
+                      LinearPDE.AMG:  "AMG"
                   }
        name=""
        if solver_method==None: 

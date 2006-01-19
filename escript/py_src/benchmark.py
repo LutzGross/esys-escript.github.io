@@ -207,10 +207,13 @@ class Benchmark(object):
              s=scale
           row=[]
           if s>0:
-              print "run %s with %s threads"%(r.__class__,s)
+              t0=time.time()
+              print "%s with %s threads started."%(r.__class__,s)
               for p in self.__options:
                   setNumberOfThreads(s)
                   row.append(r.run(p))
+              t0=time.time()-t0
+              print "%s with %s threads finished (walltime =%s sec)."%(r.__class__,s,t0)
           self.__results.append(row)
    def getHTML(self,filter,level=1):
        """
