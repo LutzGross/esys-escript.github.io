@@ -29,6 +29,7 @@
 #include <boost/python/str.hpp>
 #include <boost/python/extract.hpp>
 #include <boost/python/long.hpp>
+#include <boost/python/tuple.hpp>
 
 #include "escript/Data/DataException.h"
 #include "escript/Data/DataExpanded.h"
@@ -880,13 +881,13 @@ Data::integrate() const
     }
   }
   if (rank==2) {
-    bp_array.resize(shape[0],shape[1]);
-    for (int i=0; i<shape[0]; i++) {
-      for (int j=0; j<shape[1]; j++) {
-        index = i + shape[0] * j;
-        bp_array[i,j] = integrals[index];
-      }
-    }
+       bp_array.resize(shape[0],shape[1]);
+       for (int i=0; i<shape[0]; i++) {
+         for (int j=0; j<shape[1]; j++) {
+           index = i + shape[0] * j;
+           bp_array[make_tuple(i,j)] = integrals[index];
+         }
+       }
   }
   if (rank==3) {
     bp_array.resize(shape[0],shape[1],shape[2]);
@@ -894,7 +895,7 @@ Data::integrate() const
       for (int j=0; j<shape[1]; j++) {
         for (int k=0; k<shape[2]; k++) {
           index = i + shape[0] * ( j + shape[1] * k );
-          bp_array[i,j,k] = integrals[index];
+          bp_array[make_tuple(i,j,k)] = integrals[index];
         }
       }
     }
@@ -906,7 +907,7 @@ Data::integrate() const
         for (int k=0; k<shape[2]; k++) {
           for (int l=0; l<shape[3]; l++) {
             index = i + shape[0] * ( j + shape[1] * ( k + shape[2] * l ) );
-            bp_array[i,j,k,l] = integrals[index];
+            bp_array[make_tuple(i,j,k,l)] = integrals[index];
           }
         }
       }
