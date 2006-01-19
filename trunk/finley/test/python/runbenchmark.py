@@ -30,16 +30,17 @@ __date__="$Date:$"
 from esys.finley.finleybench import *
 from esys.escript.benchmark import BenchmarkSuite,Benchmark
 
-thlist=[1,2,4,8,16]
-# thlist=[1,2,4,8,16,32]
+# thlist=[1,2,4,8,16]
+thlist=[1,2,4,8,16,32]
 # thlist=[1,2,4,8,16,32,64,128]
 # thlist=[1,2,4,8,16,32,64,128]
-show=False
+show=True
 ff=FinleyFilter()
 
 opt1=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.JACOBI,verbose=show)
 opt2=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.ILU0,verbose=show)
-opt3=FinleyOptions(solver_method=LinearPDE.DIRECT,verbose=show)
+opt3=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.RILU,verbose=show)
+# opt4=FinleyOptions(solver_method=LinearPDE.DIRECT,verbose=show)
 
 bm_L2Do1=Benchmark(name="Laplace 2D (order 1)")
 bm_L2Do1.addProblem(Laplace2DOrder1_30k())
@@ -112,6 +113,9 @@ bm_A2Do1g30.addProblem(Anisotropic2DOrder1Gamma30_1920k())
 bm_A2Do1g30.addProblem(Anisotropic2DOrder1Gamma30_3840k())
 bm_A2Do1g30.addProblem(Anisotropic2DOrder1Gamma30_7680k())
 bm_A2Do1g30.addProblem(Anisotropic2DOrder1Gamma30_15360k())
+bm_A2Do1g30.addOptions(opt1)
+bm_A2Do1g30.addOptions(opt2)
+bm_A2Do1g30.addOptions(opt3)
 
 bm_A2Do1g45=Benchmark("Anisotropic 2D (gamma=45, order=1)")
 bm_A2Do1g45.addProblem(Anisotropic2DOrder1Gamma45_30k())
@@ -124,6 +128,9 @@ bm_A2Do1g45.addProblem(Anisotropic2DOrder1Gamma45_1920k())
 bm_A2Do1g45.addProblem(Anisotropic2DOrder1Gamma45_3840k())
 bm_A2Do1g45.addProblem(Anisotropic2DOrder1Gamma45_7680k())
 bm_A2Do1g45.addProblem(Anisotropic2DOrder1Gamma45_15360k())
+bm_A2Do1g45.addOptions(opt1)
+bm_A2Do1g45.addOptions(opt2)
+bm_A2Do1g45.addOptions(opt3)
 
 bm_A2Do2g30=Benchmark("Anisotropic 2D (gamma=30, order=2)")
 bm_A2Do2g30.addProblem(Anisotropic2DOrder2Gamma30_30k())
@@ -136,6 +143,9 @@ bm_A2Do2g30.addProblem(Anisotropic2DOrder2Gamma30_1920k())
 bm_A2Do2g30.addProblem(Anisotropic2DOrder2Gamma30_3840k())
 bm_A2Do2g30.addProblem(Anisotropic2DOrder2Gamma30_7680k())
 bm_A2Do2g30.addProblem(Anisotropic2DOrder2Gamma30_15360k())
+bm_A2Do2g30.addOptions(opt1)
+bm_A2Do2g30.addOptions(opt2)
+bm_A2Do2g30.addOptions(opt3)
 
 
 bm_A2Do2g45=Benchmark("Anisotropic 2D (gamma=45, order=2)")
@@ -149,6 +159,9 @@ bm_A2Do2g45.addProblem(Anisotropic2DOrder2Gamma45_1920k())
 bm_A2Do2g45.addProblem(Anisotropic2DOrder2Gamma45_3840k())
 bm_A2Do2g45.addProblem(Anisotropic2DOrder2Gamma45_7680k())
 bm_A2Do2g45.addProblem(Anisotropic2DOrder2Gamma45_15360k())
+bm_A2Do2g45.addOptions(opt1)
+bm_A2Do2g45.addOptions(opt2)
+bm_A2Do2g45.addOptions(opt3)
 
 
 bm_A3Do1g30=Benchmark("Anisotropic 3D (gamma=30, order=1)")
@@ -162,6 +175,9 @@ bm_A3Do1g30.addProblem(Anisotropic3DOrder1Gamma30_1920k())
 bm_A3Do1g30.addProblem(Anisotropic3DOrder1Gamma30_3840k())
 bm_A3Do1g30.addProblem(Anisotropic3DOrder1Gamma30_7680k())
 bm_A3Do1g30.addProblem(Anisotropic3DOrder1Gamma30_15360k())
+bm_A3Do1g30.addOptions(opt1)
+bm_A3Do1g30.addOptions(opt2)
+bm_A3Do1g30.addOptions(opt3)
 
 bm_A3Do1g45=Benchmark("Anisotropic 3D (gamma=45, order=1)")
 bm_A3Do1g45.addProblem(Anisotropic3DOrder1Gamma45_30k())
@@ -174,6 +190,9 @@ bm_A3Do1g45.addProblem(Anisotropic3DOrder1Gamma45_1920k())
 bm_A3Do1g45.addProblem(Anisotropic3DOrder1Gamma45_3840k())
 bm_A3Do1g45.addProblem(Anisotropic3DOrder1Gamma45_7680k())
 bm_A3Do1g45.addProblem(Anisotropic3DOrder1Gamma45_15360k())
+bm_A3Do1g45.addOptions(opt1)
+bm_A3Do1g45.addOptions(opt2)
+bm_A3Do1g45.addOptions(opt3)
 
 bm_A3Do2g30=Benchmark("Anisotropic 3D (gamma=30, order=2)")
 bm_A3Do2g30.addProblem(Anisotropic3DOrder2Gamma30_30k())
@@ -186,6 +205,9 @@ bm_A3Do2g30.addProblem(Anisotropic3DOrder2Gamma30_1920k())
 bm_A3Do2g30.addProblem(Anisotropic3DOrder2Gamma30_3840k())
 bm_A3Do2g30.addProblem(Anisotropic3DOrder2Gamma30_7680k())
 bm_A3Do2g30.addProblem(Anisotropic3DOrder2Gamma30_15360k())
+bm_A3Do2g30.addOptions(opt1)
+bm_A3Do2g30.addOptions(opt2)
+bm_A3Do2g30.addOptions(opt3)
 
 bm_A3Do2g45=Benchmark("Anisotropic 3D (gamma=45, order=2)")
 bm_A3Do2g45.addProblem(Anisotropic3DOrder2Gamma45_30k())
@@ -198,6 +220,9 @@ bm_A3Do2g45.addProblem(Anisotropic3DOrder2Gamma45_1920k())
 bm_A3Do2g45.addProblem(Anisotropic3DOrder2Gamma45_3840k())
 bm_A3Do2g45.addProblem(Anisotropic3DOrder2Gamma45_7680k())
 bm_A3Do2g45.addProblem(Anisotropic3DOrder2Gamma45_15360k())
+bm_A3Do2g45.addOptions(opt1)
+bm_A3Do2g45.addOptions(opt2)
+bm_A3Do2g45.addOptions(opt3)
 
 
 bms=BenchmarkSuite("Paso/Finley")
@@ -205,14 +230,14 @@ bms.addBenchmark(bm_L2Do1)
 bms.addBenchmark(bm_L2Do2)
 bms.addBenchmark(bm_L3Do1)
 bms.addBenchmark(bm_L3Do2)
-# bms.addBenchmark(bm_A2Do1g30)
-# bms.addBenchmark(bm_A2Do1g45)
-# bms.addBenchmark(bm_A2Do2g30)
-# bms.addBenchmark(bm_A2Do2g45)
-# bms.addBenchmark(bm_A3Do1g30)
-# bms.addBenchmark(bm_A3Do1g45)
-# bms.addBenchmark(bm_A3Do2g30)
-# bms.addBenchmark(bm_A3Do2g45)
+bms.addBenchmark(bm_A2Do1g30)
+bms.addBenchmark(bm_A2Do1g45)
+bms.addBenchmark(bm_A2Do2g30)
+bms.addBenchmark(bm_A2Do2g45)
+bms.addBenchmark(bm_A3Do1g30)
+bms.addBenchmark(bm_A3Do1g45)
+bms.addBenchmark(bm_A3Do2g30)
+bms.addBenchmark(bm_A3Do2g45)
 bms.run(scale=thlist)
 out=bms.getHTML(filter=ff)
 print out
