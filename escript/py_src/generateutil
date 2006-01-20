@@ -696,6 +696,7 @@ def minimumTEST(arg0,arg1):
               else:
                out[i0,i1,i2,i3]=arg0[i0,i1,i2,i3]
      return out
+     
 def unrollLoops(a,b,o,arg,tap="",x="x"):
     out=""
     if a.rank==1:
@@ -798,9 +799,6 @@ def unrollLoopsOfGrad(a,b,o,arg,tap=""):
                  out+=tap+"%s[%s,%s,%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99],i99,b[i0,i1,i2,i99])
     return out
 def unrollLoopsOfDiv(a,b,o,arg,tap=""):
-
-
-    
     out=tap+arg+"="
     if o=="1":
        z=0.
@@ -935,6 +933,153 @@ def unrollLoopsOfInteriorIntegral(a,b,where,arg,tap=""):
                out+="+(%s)*0.5**o\n"%zop
 
     return out
+def unrollLoopsSimplified(b,arg,tap=""):
+    out=""
+    if isinstance(b,float) or b.rank==0:
+             out+=tap+"%s=(%s)*x[0]\n"%(arg,str(b))
+
+    elif b.rank==1:
+        for i0 in range(b.shape[0]):
+             out+=tap+"%s[%s]=(%s)*x[%s]\n"%(arg,i0,b[i0],i0)
+    elif b.rank==2:
+        for i0 in range(b.shape[0]):
+         for i1 in range(b.shape[1]):
+             out+=tap+"%s[%s,%s]=(%s)*x[%s]\n"%(arg,i0,i1,b[i0,i1],i1)
+    elif b.rank==3:
+        for i0 in range(b.shape[0]):
+         for i1 in range(b.shape[1]):
+           for i2 in range(b.shape[2]):
+             out+=tap+"%s[%s,%s,%s]=(%s)*x[%s]\n"%(arg,i0,i1,i2,b[i0,i1,i2],i2)
+    elif b.rank==4:
+        for i0 in range(b.shape[0]):
+         for i1 in range(b.shape[1]):
+           for i2 in range(b.shape[2]):
+            for i3 in range(b.shape[3]):
+             out+=tap+"%s[%s,%s,%s,%s]=(%s)*x[%s]\n"%(arg,i0,i1,i2,i3,b[i0,i1,i2,i3],i3)
+    return out
+
+def unrollLoopsOfL2(b,where,arg,tap=""):
+    out=""
+    z=[]
+    if isinstance(b,float) or b.rank==0:
+       z.append(b**2)
+    elif b.rank==1:
+        for i0 in range(b.shape[0]):
+             z.append(b[i0]**2)
+    elif b.rank==2:
+        for i1 in range(b.shape[1]):
+           s=0 
+           for i0 in range(b.shape[0]):
+              s+=b[i0,i1]**2
+           z.append(s)
+    elif b.rank==3:
+        for i2 in range(b.shape[2]):
+          s=0
+          for i0 in range(b.shape[0]):
+             for i1 in range(b.shape[1]):
+                s+=b[i0,i1,i2]**2
+          z.append(s)
+
+    elif b.rank==4:
+      for i3 in range(b.shape[3]):
+         s=0
+         for i0 in range(b.shape[0]):
+           for i1 in range(b.shape[1]):
+              for i2 in range(b.shape[2]):
+                 s+=b[i0,i1,i2,i3]**2
+         z.append(s)        
+    if where=="Function":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac_s=""
+       zo_fac_s=""
+       zo_fac=1./3.
+    elif where=="FunctionOnBoundary":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac_s="*dim"
+       zo_fac_s="*(2.*dim+1.)/3."
+       zo_fac=1.
+    elif where in ["FunctionOnContactZero","FunctionOnContactOne"]:
+       xfac_o=0.
+       xfac_op=1.
+       z_fac_s=""
+       zo_fac_s=""    
+       zo_fac=1./3.    
+    zo=0.
+    zop=0.
+    for i99 in range(len(z)):
+           if i99==0:
+               zo+=xfac_o*z[i99]
+               zop+=xfac_op*z[i99]
+           else:
+               zo+=z[i99]
+    out+=tap+"%s=sqrt((%s)%s"%(arg,zo*zo_fac,zo_fac_s)
+    if zop==0.:
+       out+=")\n"
+    else:
+       out+="+(%s))\n"%(zop*0.5**2)
+    return out
+
+#=======================================================================================================
+# L2
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+    for sh in [ (),(2,), (4,5), (6,2,2),(4,5,3,2)]:
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_L2_on%s_from%s_rank%s"%(where,data,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests L2-norm of %s on the %s\n\n"%(data,where)
+         text+="      assumptions: self.domain supports integration on %s\n"%where
+         text+="      \"\"\"\n"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w=%s(self.domain)\n"%where
+         text+="      x=w.getX()\n"
+         o="1"
+         if len(sh)>0:
+            sh_2=sh[:len(sh)-1]+(2,)
+            sh_3=sh[:len(sh)-1]+(3,)            
+            b_2=makeArray(sh[:len(sh)-1]+(2,),[-1.,1])
+            b_3=makeArray(sh[:len(sh)-1]+(3,),[-1.,1])
+         else:
+            sh_2=()
+            sh_3=()
+            b_2=makeArray(sh,[-1.,1])
+            b_3=makeArray(sh,[-1.,1])
+
+         if data=="Symbol":
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      if dim==2:\n"
+         if data=="Symbol":
+               text+="        arg=Symbol(shape=%s,dim=dim)\n"%str(sh_2)
+
+         text+="        %s=Data(0,%s,w)\n"%(val,sh_2)
+         text+=unrollLoopsSimplified(b_2,val,tap="        ")
+         text+=unrollLoopsOfL2(b_2,where,"ref",tap="        ")
+         text+="\n      else:\n"
+         if data=="Symbol":
+               text+="        arg=Symbol(shape=%s,dim=dim)\n"%str(sh_3)
+         text+="        %s=Data(0,%s,w)\n"%(val,sh_3)         
+         text+=unrollLoopsSimplified(b_3,val,tap="        ")
+         text+=unrollLoopsOfL2(b_3,where,"ref",tap="        ")
+         text+="\n      res=L2(arg)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+            text+="      self.failUnless(isinstance(res,Symbol),\"wrong type of result.\")\n"
+            text+="      self.failUnlessEqual(res.getShape(),(),\"wrong shape of result.\")\n"
+         else:
+            text+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+         text+="      self.failUnlessAlmostEqual(%s,ref,int(-log10(self.RES_TOL)),\"wrong result\")\n"%res
+         t_prog+=text
+print t_prog
+1/0
+
 #=======================================================================================================
 # div
 #=======================================================================================================
