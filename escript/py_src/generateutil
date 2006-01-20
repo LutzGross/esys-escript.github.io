@@ -796,7 +796,7 @@ def unrollLoopsOfGrad(a,b,o,arg,tap=""):
                  out+=tap+"%s[%s,%s,%s,%s]=(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99]+b[i0,i1,i2,i99])
                else:
                  out+=tap+"%s[%s,%s,%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99],i99,b[i0,i1,i2,i99])
-
+    return out
 def unrollLoopsOfInteriorIntegral(a,b,where,arg,tap=""):
     if where=="Function":
        xfac_o=1.
@@ -918,6 +918,66 @@ def unrollLoopsOfInteriorIntegral(a,b,where,arg,tap=""):
     return out
 
 
+#=======================================================================================================
+# grad
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+     for case in ["ContinuousFunction","Solution","ReducedSolution"]:
+       for sh in [ (),(2,), (4,5), (6,2,2)]:
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_grad_on%s_from%s_%s_rank%s"%(where,data,case,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests gradient for rank %s %s on the %s\n\n"%(len(sh),data,where)
+         text+="      assumptions: %s(self.domain) exists\n"%case
+         text+="                   self.domain supports gardient on %s\n"%where
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      x_ref=w_ref.getX()\n"
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray(sh+(2,),[-1.,1])
+         b_2=makeArray(sh+(2,),[-1.,1])
+         a_3=makeArray(sh+(3,),[-1.,1])
+         b_3=makeArray(sh+(3,),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=%s,dim=dim)\n"%str(sh)
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      %s=Data(0,%s,w)\n"%(val,str(sh))
+         text+="      ref=Data(0,%s+(dim,),w_ref)\n"%str(sh)
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoopsOfGrad(a_2,b_2,o,"ref",tap="        ")
+         text+="      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoopsOfGrad(a_3,b_3,o,"ref",tap="        ")
+         text+="      res=grad(arg,where=w_ref)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         text+="      self.failUnless(isinstance(res,%s),\"wrong type of result.\")\n"%data
+         text+="      self.failUnlessEqual(res.getShape(),%s+(dim,),\"wrong shape of result.\")\n"%str(sh)
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+
+         t_prog+=text
+print test_header
+print t_prog
+print test_tail           
+1/0
+
 
 #=======================================================================================================
 # integrate
@@ -992,66 +1052,6 @@ print test_header
 print t_prog
 print test_tail           
 1/0
-#=======================================================================================================
-# grad
-#=======================================================================================================
-for where in ["Function","FunctionOnBoundary"]: 
-  for data in ["Data","Symbol"]: 
-     for case in ["ContinuousFunction","Solution","ReducedSolution"]:
-       for sh in [ (),(2,), (4,5), (6,2,2)]:
-         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-         tname="test_grad_on%s_from%s_%s_rank%s"%(where,data,case,len(sh))
-         text+="   def %s(self):\n"%tname
-         text+="      \"\"\"\n"
-         text+="      tests gradient for rank %s %s on the %s\n\n"%(len(sh),data,where)
-         text+="      assumptions: %s(self.domain) exists\n"%where
-         if where=="FunctionOnBoundary": text+="                   self.domain supports gradient on the boundary\n"
-         text+="      \"\"\"\n"
-         if case=="ReducedSolution":
-            text+="      o=1\n"
-            o="1"
-         else: 
-            text+="      o=self.order\n"
-            o="o"
-         text+="      dim=self.domain.getDim()\n"
-         text+="      w_ref=%s(self.domain)\n"%where
-         text+="      x_ref=w_ref.getX()\n"
-         text+="      w=%s(self.domain)\n"%case
-         text+="      x=w.getX()\n"
-         a_2=makeArray(sh+(2,),[-1.,1])
-         b_2=makeArray(sh+(2,),[-1.,1])
-         a_3=makeArray(sh+(3,),[-1.,1])
-         b_3=makeArray(sh+(3,),[-1.,1])
-         if data=="Symbol":
-            text+="      arg=Symbol(shape=%s,dim=dim)\n"%str(sh)
-            val="s"
-            res="sub"
-         else:
-            val="arg"
-            res="res"
-         text+="      %s=Data(0,%s,w)\n"%(val,str(sh))
-         text+="      ref=Data(0,%s+(dim,),w_ref)\n"%str(sh)
-         text+="      if dim==2:\n"
-         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
-         text+=unrollLoopsOfGrad(a_2,b_2,o,"ref",tap="        ")
-         text+="      else:\n"
-         
-         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
-         text+=unrollLoopsOfGrad(a_3,b_3,o,"ref",tap="        ")
-         text+="      res=grad(arg,where=w_ref)\n"
-         if data=="Symbol":
-            text+="      sub=res.substitute({arg:s})\n"
-         text+="      self.failUnless(isinstance(res,%s),\"wrong type of result.\")\n"%data
-         text+="      self.failUnlessEqual(res.getShape(),%s+(dim,),\"wrong shape of result.\")\n"%str(sh)
-         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
-
-
-         t_prog+=text
-print test_header
-print t_prog
-print test_tail           
-1/0
-
 #=======================================================================================================
 # inverse
 #=======================================================================================================
