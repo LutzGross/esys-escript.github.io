@@ -797,6 +797,25 @@ def unrollLoopsOfGrad(a,b,o,arg,tap=""):
                else:
                  out+=tap+"%s[%s,%s,%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99],i99,b[i0,i1,i2,i99])
     return out
+def unrollLoopsOfDiv(a,b,o,arg,tap=""):
+
+
+    
+    out=tap+arg+"="
+    if o=="1":
+       z=0.
+       for i99 in range(a.shape[0]):
+            z+=b[i99,i99]+a[i99,i99]
+       out+="(%s)"%z     
+    else:
+       z=0.
+       for i99 in range(a.shape[0]):
+            z+=b[i99,i99]
+            if i99>0: out+="+"
+            out+="o*(%s)*x_ref[%s]**(o-1)"%(a[i99,i99],i99)
+       out+="+(%s)"%z     
+    return out
+
 def unrollLoopsOfInteriorIntegral(a,b,where,arg,tap=""):
     if where=="Function":
        xfac_o=1.
@@ -916,6 +935,62 @@ def unrollLoopsOfInteriorIntegral(a,b,where,arg,tap=""):
                out+="+(%s)*0.5**o\n"%zop
 
     return out
+#=======================================================================================================
+# div
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+     for case in ["ContinuousFunction","Solution","ReducedSolution"]:
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_div_on%s_from%s_%s"%(where,data,case)
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests divergence of %s on the %s\n\n"%(data,where)
+         text+="      assumptions: %s(self.domain) exists\n"%case
+         text+="                   self.domain supports div on %s\n"%where
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      x_ref=w_ref.getX()\n"
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray((2,2),[-1.,1])
+         b_2=makeArray((2,2),[-1.,1])
+         a_3=makeArray((3,3),[-1.,1])
+         b_3=makeArray((3,3),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=(dim,),dim=dim)\n"
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      %s=Vector(0,w)\n"%val
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoopsOfDiv(a_2,b_2,o,"ref",tap="        ")
+         text+="\n      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoopsOfDiv(a_3,b_3,o,"ref",tap="        ")
+         text+="\n      res=div(arg,where=w_ref)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         text+="      self.failUnless(isinstance(res,%s),\"wrong type of result.\")\n"%data
+         text+="      self.failUnlessEqual(res.getShape(),(),\"wrong shape of result.\")\n"
+         text+="      self.failUnlessEqual(%s.getFunctionSpace(),w_ref,\"wrong function space of result.\")\n"%res
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+
+         t_prog+=text
+print t_prog
+1/0
 
 #=======================================================================================================
 # interpolation

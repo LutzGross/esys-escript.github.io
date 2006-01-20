@@ -45,13 +45,7 @@ import os
 # def matchShape(arg0,arg1):
 
 # def transpose(arg,axis=None):
-# def trace(arg,axis0=0,axis1=1):
 # def reorderComponents(arg,index):
-
-# def integrate(arg,where=None):
-# def interpolate(arg,where):
-# def div(arg,where=None):
-# def grad(arg,where=None):
 
 #
 # slicing: get
@@ -4188,8 +4182,14 @@ def div(arg,where=None):
     @return: divergence of arg. 
     @rtype:  L{escript.Data} or L{Symbol}
     """
-    if not arg.getShape()==(arg.getDomain().getDim(),):
-      raise ValueError,"div: expected shape is (%s,)"%arg.getDomain().getDim()
+    if isinstance(arg,Symbol):
+        dim=arg.getDim()
+    elif isinstance(arg,escript.Data):
+        dim=arg.getDomain().getDim()
+    else:
+        raise TypeError,"div: argument type not supported"
+    if not arg.getShape()==(dim,):
+      raise ValueError,"div: expected shape is (%s,)"%dim
     return trace(grad(arg,where))
 
 def jump(arg,domain=None):
