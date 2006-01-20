@@ -45,6 +45,7 @@ from esys.escript.test_util_unary_no_tagged_data import Test_util_unary_no_tagge
 from esys.escript.test_util_unary_with_tagged_data import Test_util_unary_with_tagged_data
 from esys.escript.test_util_binary_no_tagged_data import Test_util_binary_no_tagged_data
 from esys.escript.test_util_binary_with_tagged_data import Test_util_binary_with_tagged_data
+from esys.escript.test_util_spatial_functions import Test_Util_SpatialFunctions
 
 class Test_util_reduction(Test_util_reduction_no_tagged_data,Test_util_reduction_with_tagged_data):
    """ test for reduction operation Lsup,sup,inf for all data types"""
