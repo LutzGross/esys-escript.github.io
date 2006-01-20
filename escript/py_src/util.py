@@ -117,10 +117,9 @@ def kronecker(d=3):
    return the kronecker S{delta}-symbol
 
    @param d: dimension or an object that has the C{getDim} method defining the dimension
-   @type d: C{int} or any object with a C{getDim} method
+   @type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
    @return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0} otherwise
-   @rtype d: L{numarray.NumArray} of rank 2.
-   @remark: the function is identical L{identity}
+   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 2.
    """
    return identityTensor(d)
 
@@ -139,7 +138,6 @@ def identity(shape=()):
       if len(shape)==1:
           for i0 in range(shape[0]):
              out[i0,i0]=1.
-
       elif len(shape)==2:
           for i0 in range(shape[0]):
              for i1 in range(shape[1]):
@@ -155,13 +153,16 @@ def identityTensor(d=3):
    return the dxd identity matrix
 
    @param d: dimension or an object that has the C{getDim} method defining the dimension
-   @type d: C{int} or any object with a C{getDim} method
+   @type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
    @return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0} otherwise
-   @rtype: L{numarray.NumArray} of rank 2.
+   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 2
    """
-   if hasattr(d,"getDim"):
-      d=d.getDim()
-   return identity(shape=(d,))
+   if isinstance(d,escript.FunctionSpace):
+       return escript.Data(identity((d.getDim(),)),d)
+   elif isinstance(d,escript.Domain):
+       return identity((d.getDim(),))
+   else:
+       return identity((d,))
 
 def identityTensor4(d=3):
    """
@@ -170,11 +171,14 @@ def identityTensor4(d=3):
    @param d: dimension or an object that has the C{getDim} method defining the dimension
    @type d: C{int} or any object with a C{getDim} method
    @return: the object u of rank 4 with M{u[i,j,k,l]=1} for M{i=k and j=l} and M{u[i,j,k,l]=0} otherwise
-   @rtype: L{numarray.NumArray} of rank 4.
+   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 4.
    """
-   if hasattr(d,"getDim"):
-      d=d.getDim()
-   return identity((d,d))
+   if isinstance(d,escript.FunctionSpace):
+       return escript.Data(identity((d.getDim(),d.getDim())),d)
+   elif isinstance(d,escript.Domain):
+       return identity((d.getDim(),d.getDim()))
+   else:
+       return identity((d,d))
 
 def unitVector(i=0,d=3):
    """
@@ -183,9 +187,9 @@ def unitVector(i=0,d=3):
    @param i: index 
    @type i: C{int} 
    @param d: dimension or an object that has the C{getDim} method defining the dimension
-   @type d: C{int} or any object with a C{getDim} method
+   @type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
    @return: the object u of rank 1 with M{u[j]=1} for M{j=i} and M{u[i]=0} otherwise
-   @rtype: L{numarray.NumArray} of rank 1.
+   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 1
    """
    return kronecker(d)[i]
 
