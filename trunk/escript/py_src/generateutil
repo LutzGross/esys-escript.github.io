@@ -173,8 +173,15 @@ def makeArray(shape,rng):
              for i2 in range(shape[2]):
                 for i3 in range(shape[3]):
                    out[i0,i1,i2,i3]=l*random.random()+rng[0]
+   elif len(shape)==5:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+             for i2 in range(shape[2]):
+                for i3 in range(shape[3]):
+                  for i4 in range(shape[4]):
+                   out[i0,i1,i2,i3,i4]=l*random.random()+rng[0]
    else:
-       raise SystemError,"rank is restricted to 4"
+       raise SystemError,"rank is restricted to 5"
    return out         
 
 
@@ -689,6 +696,362 @@ def minimumTEST(arg0,arg1):
               else:
                out[i0,i1,i2,i3]=arg0[i0,i1,i2,i3]
      return out
+def unrollLoops(a,b,o,arg,tap=""):
+    out=""
+    if a.rank==1:
+             z=""
+             for i99 in range(a.shape[0]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*x[%s]"%(a[i99]+b[i99],i99)
+               else:
+                  z+="(%s)*x[%s]**o+(%s)*x[%s]"%(a[i99],i99,b[i99],i99)
+
+             out+=tap+"%s=%s\n"%(arg,z)
+
+    elif a.rank==2:
+        for i0 in range(a.shape[0]):
+             z=""
+             for i99 in range(a.shape[1]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*x[%s]"%(a[i0,i99]+b[i0,i99],i99)
+               else:
+                  z+="(%s)*x[%s]**o+(%s)*x[%s]"%(a[i0,i99],i99,b[i0,i99],i99)
+
+             out+=tap+"%s[%s]=%s\n"%(arg,i0,z)
+    elif a.rank==3:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+             z=""
+             for i99 in range(a.shape[2]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*x[%s]"%(a[i0,i1,i99]+b[i0,i1,i99],i99)
+               else:
+                  z+="(%s)*x[%s]**o+(%s)*x[%s]"%(a[i0,i1,i99],i99,b[i0,i1,i99],i99)
+
+             out+=tap+"%s[%s,%s]=%s\n"%(arg,i0,i1,z)
+    elif a.rank==4:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+             z=""
+             for i99 in range(a.shape[3]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*x[%s]"%(a[i0,i1,i2,i99]+b[i0,i1,i2,i99],i99)
+               else:
+                  z+="(%s)*x[%s]**o+(%s)*x[%s]"%(a[i0,i1,i2,i99],i99,b[i0,i1,i2,i99],i99)
+
+             out+=tap+"%s[%s,%s,%s]=%s\n"%(arg,i0,i1,i2,z)
+    elif a.rank==5:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+            for i3 in range(a.shape[3]):
+             z=""
+             for i99 in range(a.shape[4]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*x[%s]"%(a[i0,i1,i2,i3,i99]+b[i0,i1,i2,i3,i99],i99)
+               else:
+                  z+="(%s)*x[%s]**o+(%s)*x[%s]"%(a[i0,i1,i2,i3,i99],i99,b[i0,i1,i2,i3,i99],i99)
+
+             out+=tap+"%s[%s,%s,%s,%s]=%s\n"%(arg,i0,i1,i2,i3,z)
+    return out
+
+def unrollLoopsOfGrad(a,b,o,arg,tap=""):
+    out=""
+    if a.rank==1:
+             for i99 in range(a.shape[0]):
+               if o=="1": 
+                  out+=tap+"%s[%s]=(%s)\n"%(arg,i99,a[i99]+b[i99])
+               else:
+                  out+=tap+"%s[%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i99,a[i99],i99,b[i99])
+
+    elif a.rank==2:
+        for i0 in range(a.shape[0]):
+             for i99 in range(a.shape[1]):
+               if o=="1":
+                  out+=tap+"%s[%s,%s]=(%s)\n"%(arg,i0,i99,a[i0,i99]+b[i0,i99])
+               else:
+                  out+=tap+"%s[%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i99,a[i0,i99],i99,b[i0,i99])
+
+    elif a.rank==3:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+             for i99 in range(a.shape[2]):
+               if o=="1":
+                  out+=tap+"%s[%s,%s,%s]=(%s)\n"%(arg,i0,i1,i99,a[i0,i1,i99]+b[i0,i1,i99])
+               else:
+                  out+=tap+"%s[%s,%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i1,i99,a[i0,i1,i99],i99,b[i0,i1,i99])
+
+    elif a.rank==4:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+             for i99 in range(a.shape[3]):
+               if o=="1":
+                 out+=tap+"%s[%s,%s,%s,%s]=(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99]+b[i0,i1,i2,i99])
+               else:
+                 out+=tap+"%s[%s,%s,%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99],i99,b[i0,i1,i2,i99])
+
+def unrollLoopsOfInteriorIntegral(a,b,where,arg,tap=""):
+    if where=="Function":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac=1./2.
+       z_fac_s=""
+       zo_fac_s="/(o+1.)"
+    elif where=="FunctionOnBoundary":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac=1.
+       z_fac_s="*dim"
+       zo_fac_s="*(1+2.*(dim-1.)/(o+1.))"
+    elif where in ["FunctionOnContactZero","FunctionOnContactOne"]:
+       xfac_o=0.
+       xfac_op=1.
+       z_fac=1./2.
+       z_fac_s=""
+       zo_fac_s="/(o+1.)"
+    out=""
+    if a.rank==1:
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[0]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i99]
+                    zop+=       xfac_op*a[i99]
+                  else:
+                    zo+=a[i99]
+                  z+=b[i99]
+
+             out+=tap+"%s=(%s)%s+(%s)%s"%(arg,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+    elif a.rank==2:
+        for i0 in range(a.shape[0]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[1]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i99]
+                    zop+=       xfac_op*a[i0,i99]
+                  else:
+                    zo+=a[i0,i99]
+                  z+=b[i0,i99]
+
+             out+=tap+"%s[%s]=(%s)%s+(%s)%s"%(arg,i0,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+    elif a.rank==3:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[2]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i1,i99]
+                    zop+=       xfac_op*a[i0,i1,i99]
+                  else:
+                    zo+=a[i0,i1,i99]
+                  z+=b[i0,i1,i99]
+
+             out+=tap+"%s[%s,%s]=(%s)%s+(%s)%s"%(arg,i0,i1,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+    elif a.rank==4:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[3]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i1,i2,i99]
+                    zop+=       xfac_op*a[i0,i1,i2,i99]
+
+                  else:
+                    zo+=a[i0,i1,i2,i99]
+                  z+=b[i0,i1,i2,i99]
+
+             out+=tap+"%s[%s,%s,%s]=(%s)%s+(%s)%s"%(arg,i0,i1,i2,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+
+    elif a.rank==5:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+            for i3 in range(a.shape[3]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[4]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i1,i2,i3,i99]
+                    zop+=       xfac_op*a[i0,i1,i2,i3,i99]
+
+                  else:
+                    zo+=a[i0,i1,i2,i3,i99]
+                  z+=b[i0,i1,i2,i3,i99]
+             out+=tap+"%s[%s,%s,%s,%s]=(%s)%s+(%s)%s"%(arg,i0,i1,i2,i3,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+
+    return out
+
+
+
+#=======================================================================================================
+# integrate
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+    for case in ["ContinuousFunction","Solution","ReducedSolution","Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]:
+      for sh in [ (),(2,), (4,5), (6,2,2),(4,5,3,2)]:
+        if (not case in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]) or where==case:   
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_integrate_on%s_from%s_%s_rank%s"%(where,data,case,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests integral of rank %s %s on the %s\n\n"%(len(sh),data,where)
+         text+="      assumptions: %s(self.domain) exists\n"%case
+         text+="                   self.domain supports integral on %s\n"%where
+
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray(sh+(2,),[-1.,1])
+         b_2=makeArray(sh+(2,),[-1.,1])
+         a_3=makeArray(sh+(3,),[-1.,1])
+         b_3=makeArray(sh+(3,),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=%s)\n"%str(sh)
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+            
+         text+="      %s=Data(0,%s,w)\n"%(val,str(sh))
+         if not len(sh)==0:
+            text+="      ref=numarray.zeros(%s,numarray.Float)\n"%str(sh)
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoopsOfInteriorIntegral(a_2,b_2,where,"ref",tap="        ")
+         text+="      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoopsOfInteriorIntegral(a_3,b_3,where,"ref",tap="        ")
+         if case in ["ContinuousFunction","Solution","ReducedSolution"]:
+             text+="      res=integrate(arg,where=w_ref)\n"
+         else:
+             text+="      res=integrate(arg)\n"
+
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         if len(sh)==0 and data=="Data":
+            text+="      self.failUnless(isinstance(%s,float),\"wrong type of result.\")\n"%res
+         else:
+            if data=="Symbol":
+               text+="      self.failUnless(isinstance(res,Symbol),\"wrong type of result.\")\n"
+               text+="      self.failUnlessEqual(res.getShape(),%s,\"wrong shape of result.\")\n"%str(sh)
+            else:
+               text+="      self.failUnless(isinstance(res,numarray.NumArray),\"wrong type of result.\")\n"
+               text+="      self.failUnlessEqual(res.shape,%s,\"wrong shape of result.\")\n"%str(sh)
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+
+         t_prog+=text
+print test_header
+print t_prog
+print test_tail           
+1/0
+#=======================================================================================================
+# grad
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary"]: 
+  for data in ["Data","Symbol"]: 
+     for case in ["ContinuousFunction","Solution","ReducedSolution"]:
+       for sh in [ (),(2,), (4,5), (6,2,2)]:
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_grad_on%s_from%s_%s_rank%s"%(where,data,case,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests gradient for rank %s %s on the %s\n\n"%(len(sh),data,where)
+         text+="      assumptions: %s(self.domain) exists\n"%where
+         if where=="FunctionOnBoundary": text+="                   self.domain supports gradient on the boundary\n"
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      x_ref=w_ref.getX()\n"
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray(sh+(2,),[-1.,1])
+         b_2=makeArray(sh+(2,),[-1.,1])
+         a_3=makeArray(sh+(3,),[-1.,1])
+         b_3=makeArray(sh+(3,),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=%s,dim=dim)\n"%str(sh)
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      %s=Data(0,%s,w)\n"%(val,str(sh))
+         text+="      ref=Data(0,%s+(dim,),w_ref)\n"%str(sh)
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoopsOfGrad(a_2,b_2,o,"ref",tap="        ")
+         text+="      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoopsOfGrad(a_3,b_3,o,"ref",tap="        ")
+         text+="      res=grad(arg,where=w_ref)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         text+="      self.failUnless(isinstance(res,%s),\"wrong type of result.\")\n"%data
+         text+="      self.failUnlessEqual(res.getShape(),%s+(dim,),\"wrong shape of result.\")\n"%str(sh)
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+
+         t_prog+=text
+print test_header
+print t_prog
+print test_tail           
+1/0
+
 #=======================================================================================================
 # inverse
 #=======================================================================================================

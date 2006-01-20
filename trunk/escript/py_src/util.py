@@ -3947,7 +3947,7 @@ class Grad_Symbol(DependendSymbol):
       d=arg.getDim()
       if d==None:
          raise ValueError,"argument must have a spatial dimension"
-      super(Grad_Symbol,self).__init__(args=[arg,where],shape=tuple(list(arg.getShape()).extend(d)),dim=d)
+      super(Grad_Symbol,self).__init__(args=[arg,where],shape=arg.getShape()+(d,),dim=d)
 
    def getMyCode(self,argstrs,format="escript"):
       """
