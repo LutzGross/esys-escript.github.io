@@ -4210,6 +4210,18 @@ def jump(arg,domain=None):
     """
     if domain==None: domain=arg.getDomain()
     return interpolate(arg,escript.FunctionOnContactOne(domain))-interpolate(arg,escript.FunctionOnContactZero(domain))
+
+def L2(arg):
+    """
+    returns the L2 norm of arg at where 
+    
+    @param arg: function which L2 to be calculated. 
+    @type arg: L{escript.Data} or L{Symbol}
+    @return: L2 norm of arg. 
+    @rtype:  L{float} or L{Symbol}
+    @note: L2(arg) is equivalent to sqrt(integrate(inner(arg,arg)))
+    """
+    return sqrt(integrate(inner(arg,arg)))
 #=============================
 #
 # wrapper for various functions: if the argument has attribute the function name
