@@ -8,8 +8,8 @@ import sys
 
 class Test_UtilOnBruce(Test_util):
    def setUp(self):
-       self.__dom =Rectangle(10,10,2)
-       self.functionspace = ContinuousFunction(self.__dom)
+       self.domain =Rectangle(10,10,2)
+       self.functionspace = ContinuousFunction(self.domain)
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
