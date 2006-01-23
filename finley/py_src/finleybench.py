@@ -40,6 +40,7 @@ from esys.escript.benchmark import BenchmarkProblem, Options, BenchmarkFilter
 import esys.finley 
 from esys.escript.linearPDEs import LinearPDE
 import os
+import math
 
 class FinleyFilter(BenchmarkFilter):
    """
@@ -279,8 +280,8 @@ class AnisotropicProblem(RegularFinleyProblem):
             u*=(x[i]-i)
 
          gamma_rad=self.gamma/360.*8*math.atan(1.)
-         cg=maths.cos(self.gamma_rad)
-         sg=maths.sin(self.gamma_rad)
+         cg=math.cos(self.gamma_rad)
+         sg=math.sin(self.gamma_rad)
          C=kronecker(domain)
          C[0,0]=cg**2+self.c*sg**2
          C[1,0]=(self.c-1.)*cg*sg
