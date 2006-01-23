@@ -166,7 +166,7 @@ class FinleyProblem(BenchmarkProblem):
        pde.setSolverMethod(options.solver_method,options.preconditioner)
        pde.setSolverPackage(options.package)
        a=os.times()[4]
-       uh=pde.getSolution(verbose=options.verbose)
+       uh=pde.getSolution(verbose=options.verbose,iter_max=6000)
        a=os.times()[4]-a
        if u==None:
           return {FinleyFilter.TIME : a , FinleyFilter.ERROR : None }
