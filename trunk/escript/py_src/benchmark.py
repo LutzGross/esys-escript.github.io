@@ -211,7 +211,10 @@ class Benchmark(object):
               print "%s with %s threads started."%(r.__class__,s)
               for p in self.__options:
                   setNumberOfThreads(s)
-                  row.append(r.run(p))
+                  try:
+                     row.append(r.run(p))
+                  except:
+                     row.append(None)
               t0=time.time()-t0
               print "%s with %s threads finished (walltime =%s sec)."%(r.__class__,s,t0)
           self.__results.append(row)
@@ -250,19 +253,26 @@ class Benchmark(object):
           for o in self.__options:
                  if len(rn)==0:
                      h0+="<TH ALIGN=\"center\">%s</TH>"%str(o)
+                     colspan=1
                  elif len(rn)==1:
                      h0+="<TH ALIGN=\"center\">%s</TH>"%str(o)
+                     colspan=1
                      empty_h1=False
                  else:
-                     h0+="<TH ALIGN=\"center\" COLSPAN=%s>%s</TH>"%(len(rn),str(o))
+                     colspan=len(rn)
+                     h0+="<TH ALIGN=\"center\" COLSPAN=%s>%s</TH>"%(colspan,str(o))
                  h1+=h1_seg
           out+=h0+"</TR>\n"+h1+"</TR>\n"
           c=0
           for r in range(len(self.__results)):
              out+="<TR><TH ALIGN=\"right\">%s</TH>"%str(self.__problems[r])
-             if isinstance(self.__scale,list): out+="<TD ALIGN=\"right\">%s</TD>"%self.__scale[c] 
+             if isinstance(self.__scale,list): 
+                 out+="<TD ALIGN=\"right\">%s</TD>"%self.__scale[c] 
              for col in self.__results[r]:
-                   for e in filter(col): out+="<TD ALIGN=\"right\">%s</TD>"%e
+                   if col==None:
+                      out+="<TD ALIGN=\"center\" COLSPAN=%s>failed.</TD>"%colspan
+                   else:
+                      for e in filter(col): out+="<TD ALIGN=\"right\">%s</TD>"%e
              out+="</TR>\n"
              c+=1
           out+="</TABLE>"
