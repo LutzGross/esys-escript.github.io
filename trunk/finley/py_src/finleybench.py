@@ -280,8 +280,8 @@ class AnisotropicProblem(RegularFinleyProblem):
             u*=(x[i]-i)
 
          gamma_rad=self.gamma/360.*8*math.atan(1.)
-         cg=math.cos(self.gamma_rad)
-         sg=math.sin(self.gamma_rad)
+         cg=math.cos(gamma_rad)
+         sg=math.sin(gamma_rad)
          C=kronecker(domain)
          C[0,0]=cg**2+self.c*sg**2
          C[1,0]=(self.c-1.)*cg*sg
