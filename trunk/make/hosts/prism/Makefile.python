@@ -1,6 +1,0 @@
-
-# Python - include files only
-
-PKG_CC_INC_DIRS  += /opt/tools/python-2.3.5-gcc3.4/include/python2.3
-PKG_CPP_INC_DIRS += /opt/tools/python-2.3.5-gcc3.4/include/python2.3
-
