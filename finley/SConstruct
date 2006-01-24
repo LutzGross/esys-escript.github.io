@@ -19,6 +19,7 @@ Export(["boost_lib"])
 Export(["sys_libs"])
 Export(["solver_libs"])
 Export(["solver_lib_paths"])
+Export(["libinstall"])
 
 #
 # set and export library directories
@@ -35,6 +36,9 @@ pydir = Dir(str(esysroot) + '/finley/lib/py_src')
 Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/finley')
 Export(["pydir2"])
+if pyinstall != None:
+  pyinstall = Dir(str(pyinstall) + '/finley')
+  Export(["pyinstall"])
 
 #
 # print out build configuration for this module

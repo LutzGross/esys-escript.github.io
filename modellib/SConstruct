@@ -9,6 +9,9 @@ pydir = Dir(str(esysroot) + '/modellib/lib/py_src')
 Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/modellib')
 Export(["pydir2"])
+if pyinstall != None:
+  pyinstall = Dir(str(pyinstall) + '/modellib')
+  Export(["pyinstall"])
 
 #
 # print out build configuration for this module

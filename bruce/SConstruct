@@ -13,6 +13,7 @@ Export(["cxx_flags"])
 Export(["boost_lib_path"])
 Export(["boost_lib"])
 Export(["sys_libs"])
+Export(["libinstall"])
 
 #
 # set and export library directories
@@ -29,6 +30,9 @@ pydir = Dir(str(esysroot) + '/bruce/lib/py_src')
 Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/bruce')
 Export(["pydir2"])
+if pyinstall != None:
+  pyinstall = Dir(str(pyinstall) + '/bruce')
+  Export(["pyinstall"])
 
 #
 # print out build configuration for this module

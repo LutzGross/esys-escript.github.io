@@ -103,3 +103,5 @@ if dodebug==1:
      cc_flags=cc_flags_debug
 
 Export(["esysroot"])
+Export(["libinstall"])
+Export(["pyinstall"])
