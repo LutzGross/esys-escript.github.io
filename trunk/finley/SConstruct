@@ -5,6 +5,17 @@ execfile(str(File(esysroot+"/scons/esys_options.py")))
 solver_libs=mkl_libs+scsl_libs+umfpack_libs
 solver_lib_paths=[mkl_lib_path,scsl_lib_path,umfpack_lib_path]
 
+#
+# set and export library directories
+
+libdir = Dir(str(esysroot) + '/finley/lib')
+Export(["libdir"])
+libdir2 = Dir(str(esysroot) + '/lib')
+Export(["libdir2"])
+
+#
+# set and export python directories
+
 pydir = Dir(str(esysroot) + '/finley/lib/py_src')
 Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/finley')
