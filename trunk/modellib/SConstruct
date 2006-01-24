@@ -1,4 +1,7 @@
 # Scons configuration file for modellib
+
+#
+# set appropriate configuration variable defaults
 esysroot=str(Dir('./..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
 
@@ -11,6 +14,7 @@ Export(["pydir2"])
 # print out build configuration for this module
 
 print "Build configuration for module: modellib"
+
 #
 # call the SConscript to do the actual build
 

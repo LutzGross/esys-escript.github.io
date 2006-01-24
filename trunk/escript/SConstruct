@@ -1,7 +1,22 @@
+# Scons configuration file for escript
+
 #
 # set appropriate defaults for configuration variables
 esysroot=str(Dir('./..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
+
+Export(["python_path"])
+Export(["boost_path"])
+Export(["cxx"])
+Export(["cxx_flags"])
+Export(["boost_lib_path"])
+Export(["boost_lib"])
+Export(["python_lib_path"])
+Export(["python_lib"])
+Export(["sys_libs"])
+Export(["pyinstall"])
+Export(["libinstall"])
+
 #
 # set and export library directories
 
@@ -18,21 +33,6 @@ Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/escript')
 Export(["pydir2"])
 
-
-if pyinstall: pyinstall = Dir(str(pyinstall) + '/escript')
-
-Export(["python_path"])
-Export(["boost_path"])
-Export(["cxx"])
-Export(["cxx_flags"])
-Export(["boost_lib_path"])
-Export(["boost_lib"])
-Export(["python_lib_path"])
-Export(["python_lib"])
-Export(["sys_libs"])
-Export(["pyinstall"])
-Export(["libinstall"])
-
 #
 # print out build configuration for this module
 
@@ -41,7 +41,7 @@ print "             cxx: ", cxx
 print "       cxx_flags: ", cxx_flags
 
 #
-# call the SConscript to do the actual build
+# call the SConscripts to do the actual build
 
 SConscript(dirs=['src/Data'], build_dir='obj/Data', duplicate=0)
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)

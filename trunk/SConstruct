@@ -1,6 +1,8 @@
 # top-level Scons configuration file for all esys13 modules
+
 #
 # set appropriate defaults for configuration variables
+
 esysroot=str(Dir('.').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
 

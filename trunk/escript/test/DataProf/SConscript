@@ -1,13 +1,16 @@
 # Scons configuration file for DataProf unit tests
+
+#
+# set appropriate defaults for configuration variables
+
 esysroot=str(Dir('./../../../..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
-                                                                                                                                                                                                    
+
 cxx_flags=cxx_flags_debug
-                                                                                                                                                                                                    
+
 print "Build configuration for module: DataProf unit tests"
 print "             cxx: ", cxx
 print "       cxx_flags: ", cxx_flags
-
 
 #
 # do the actual build
