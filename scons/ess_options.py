@@ -8,7 +8,6 @@ scsl_path = ''
 scsl_lib_path = ''
 scsl_libs = ['scs_mp']
 
-                                                                                                                                                                                                     
 # locations of libs etc used by UMFPACK
 umfpack_path = ''
 umfpack_lib_path = ''
@@ -19,13 +18,10 @@ python_path = '/raid2/tools/python-2.3.4/include/python2.3'
 python_lib_path = '/raid2/tools/python-2.3.4/lib'
 python_lib = 'python2.3'
 
-
 # locations of libraries for boost
 boost_path = '/raid2/tools/boost/include/boost-1_31'
 boost_lib_path = '/raid2/tools/boost/lib'
 boost_lib = 'boost_python-intel-d-1_31'
-
-# names of libraries for python and boost
 
 # names of c and c++ compilers to use
 cc = 'icc'

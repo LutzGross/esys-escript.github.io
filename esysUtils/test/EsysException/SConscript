@@ -1,9 +1,12 @@
 # Scons configuration file for esysUtils unit tests
+
+#
+# set appropriate defaults for configuration variables
+
 esysroot=str(Dir('./../../../..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
 
 cxx_flags=cxx_flags_debug
-cc_flags=cc_flags_debug
 
 #
 # print out build configuration for this module

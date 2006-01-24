@@ -1,4 +1,7 @@
 # Scons configuration file for DataArray unit tests
+
+#
+# set appropriate defaults for configuration variables
 esysroot=str(Dir('./../../../..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
 

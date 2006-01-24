@@ -1,9 +1,24 @@
 # Scons configuration file for finley
+
+#
+# set appropriate defaults for configuration variables
 esysroot=str(Dir('./..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
 
 solver_libs=mkl_libs+scsl_libs+umfpack_libs
 solver_lib_paths=[mkl_lib_path,scsl_lib_path,umfpack_lib_path]
+
+Export(["python_path"])
+Export(["boost_path"])
+Export(["cxx"])
+Export(["cc"])
+Export(["cxx_flags"])
+Export(["cc_flags"])
+Export(["boost_lib_path"])
+Export(["boost_lib"])
+Export(["sys_libs"])
+Export(["solver_libs"])
+Export(["solver_lib_paths"])
 
 #
 # set and export library directories
@@ -20,18 +35,6 @@ pydir = Dir(str(esysroot) + '/finley/lib/py_src')
 Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/finley')
 Export(["pydir2"])
-
-Export(["python_path"])
-Export(["boost_path"])
-Export(["cxx"])
-Export(["cc"])
-Export(["cxx_flags"])
-Export(["cc_flags"])
-Export(["boost_lib_path"])
-Export(["boost_lib"])
-Export(["sys_libs"])
-Export(["solver_libs"])
-Export(["solver_lib_paths"])
 
 #
 # print out build configuration for this module

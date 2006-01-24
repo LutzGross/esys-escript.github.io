@@ -1,5 +1,7 @@
 # Scons configuration file for DataAlgorithmAdapter unit tests
+
 #
+# set appropriate defaults for configuration variables
 esysroot=str(Dir('./../../../..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
 

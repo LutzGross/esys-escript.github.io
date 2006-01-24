@@ -1,7 +1,11 @@
 # Scons configuration file for BruceFactory unit tests
+
+#
+# set appropriate configuration variable defaults
+
 esysroot=str(Dir('./../../../..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
-                                                                                                                                                                                                    
+
 cxx_flags=cxx_flags_debug
 
 print "Build configuration for module: BruceFactory unit tests"
