@@ -1,25 +1,25 @@
 import sys
+
 # locations of libs etc used by mkl
 mkl_path = ''
 mkl_lib_path = ''
 mkl_libs = []
-                                                                                                                                                                                                     
+
 # locations of libs etc used by SCSL
 scsl_path = ''
 scsl_lib_path = ''
 scsl_libs = []
 
-                                                                                                                                                                                                     
 # locations of libs etc used by UMFPACK
 umfpack_path = ''
 umfpack_lib_path = ''
 umfpack_libs = []
-                                                                                                                                                                                                     
+
 # locations of include files for python
 python_path="/usr/include/python%s.%s"%(sys.version_info[0],sys.version_info[1])
 python_lib_path = '/usr/lib'
 python_lib = "python%s.%s"%(sys.version_info[0],sys.version_info[1])
-                                                                                                                                                                                                     
+
 # locations of libraries for boost
 boost_path = '/usr/include'
 boost_lib_path = '/usr/lib'
