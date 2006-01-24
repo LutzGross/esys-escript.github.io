@@ -294,6 +294,79 @@ class AnisotropicProblem(RegularFinleyProblem):
          pde.setValue(A=C,Y=F,q=msk,r=u)
          return pde,u
 
+class AnisotropicSystem(RegularFinleyProblem):
+    """
+    base class for the Anisotropic system problem on a rectangular mesh
+    with an anisotropic 
+
+       - (mu*(u_{i,j}+u_{j,i}))_j+lam*u_{k,k})_j=X_{ij,j}
+       
+        where u_i=x_i+1/d*\prod{i!=j} x_j
+              
+              mu(x) = 1      for inner(x,normal)<inner(1.,normal)/2.
+                      mu0    for inner(x,normal)>inner(1.,normal)/2.
+
+              lam(x)=max(1,mu0)*alpha (constant)
+
+        + constraints on the boundary
+    """
+    def __init__(self,n,order,dim,mu0,normal,alpha):
+        self.mu0=mu0
+        self.normal=normal
+        self.alpha=alpha
+        super(AnisotropicSystem,self).__init__(n,order,dim)
+
+
+    def getTestProblem(self,domain):
+         """
+         returns a PDE and a test solution on the given domain
+     
+         @param doamin: a domain
+         @type domain: L{escript.Domain}
+         @return: the Laplace equation and a test solution
+         @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
+         """
+         x=domain.getX()
+         d=domain.getDim()
+
+         msk=whereZero(x[0])+whereZero(x[0]-1.)
+         for i in range(1,d):
+            msk+=whereZero(x[i])+whereZero(x[i]-1.)
+         msk=msk*numarry.ones((d,),numarray.float)
+
+         u=x[:]
+         for i in range(d):
+            s=1.
+            for k in range(d):
+               if not i==k: s=s*x[k]
+            u[i]+=1./d*s
+
+         s=whereNegative(inner(x-numarry.ones((d,),numarray.float)/2,self.normal))
+         mu=s+mu0*(1.-s)
+         lam=max(1.,self.mu0)*self.alpha
+
+         F=Tensor(0.,Function(domain))
+         for i in range(d):
+            for j in range(d):
+                 if i==j:
+                    F[i,i]+=mu*d*lam
+                 else:
+                    s=1.
+                    for k in range(d): 
+                       if not i==k and not j==k:
+                          s*=x[k]
+                    F[i,j]+=mu/d*s
+         C=Tensor4(0.,Function(domain))
+         for i in range(w.getDim()):
+           for j in range(w.getDim()):
+                C[i,i,j,j]+=lam
+                C[j,i,j,i]+=mu
+                C[j,i,i,j]+=mu
+         pde=LinearPDE(domain)
+         pde.setSymmetryOn() 
+         pde.setValue(A=C,X=F,q=msk,r=u)
+         return pde,u
+
 class Laplace2DOrder1_30k(LaplaceProblem):
    def __init__(self):
       super(Laplace2DOrder1_30k,self).__init__(n=172,order=1,dim=2)
@@ -655,20 +728,1255 @@ class Anisotropic3DOrder2Gamma45_7680k(AnisotropicProblem):
 class Anisotropic3DOrder2Gamma45_15360k(AnisotropicProblem):
    def __init__(self):
       super(Anisotropic3DOrder2Gamma45_15360k,self).__init__(n=124,order=2,dim=3,gamma=45,c=0.001)
-
+class Lame2DOrder1_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder1Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder1Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder1Alpha100_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE2Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE2Alpha100_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder1JumpE6Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder1JumpE6Alpha100_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE2Normal45Alpha100_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder1JumpE6Normal45Alpha100_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class Lame2DOrder2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=1.0)
+class Lame2DOrder2Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class Lame2DOrder2Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame2DOrder2Alpha100_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE2Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE2Alpha100_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=1.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomgeneousLame2DOrder2JumpE6Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame2DOrder2JumpE6Alpha100_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE2Normal45Alpha100_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=1.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame2DOrder2JumpE6Normal45Alpha100_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=100.0)
+class Lame3DOrder1_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder1Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder1Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder1Alpha100_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE2Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE2Alpha100_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder1JumpE6Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder1JumpE6Alpha100_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE2Normal45Alpha100_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder1JumpE6Normal45Alpha100_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class Lame3DOrder2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=1.0)
+class Lame3DOrder2Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class Lame3DOrder2Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(Lame3DOrder2Alpha100_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE2Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE2Alpha100_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=1.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomgeneousLame3DOrder2JumpE6Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomgeneousLame3DOrder2JumpE6Alpha100_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE2Normal45Alpha100_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=1.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_30k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_60k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_120k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_240k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_480k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_960k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
 if __name__=="__main__":
    test=""
    n0=30000
    for d in [2,3]:
     for o in [1,2]:
-      for g in [30,45]:
-        for i in range(10):
-             dofs=n0*2**i
+      for g in [0,45]:
+       for jump in [0,2,6]:
+         for alpha in [1,100]:
+           for i in range(10):
+            if not jump==0 or g==0:
+             dofs=(n0*2**i)/float(d)
              n=int((float(dofs)**(1./float(d))-1)/o+0.5)
-             name="Anisotropic%sDOrder%sGamma%s_%sk"%(d,o,g,dofs/1000)
-             print "class %s(AnisotropicProblem):"%name
+             if jump==0:
+                if g==0:
+                   if alpha==1:
+                      name="Lame%sDOrder%s_%sk"%(d,o,int(d*dofs/1000))
+                   else:
+                      name="Lame%sDOrder%sAlpha%s_%sk"%(d,o,alpha,int(d*dofs/1000))
+                else:
+                   if alpha==1:
+                      name="InhomogeneousLame%sDOrder%sNormal%s_%sk"%(d,o,g,int(d*dofs/1000))
+                   else:
+                      name="InhomogeneousLame%sDOrder%sNormal%sAlpha%s_%sk"%(d,o,g,alpha,int(d*dofs/1000))
+             else:
+                if g==0:
+                   if alpha==1:
+                      name="InhomgeneousLame%sDOrder%sJumpE%s_%sk"%(d,o,jump,int(d*dofs/1000))
+                   else:
+                      name="InhomgeneousLame%sDOrder%sJumpE%sAlpha%s_%sk"%(d,o,jump,alpha,int(d*dofs/1000))
+                else:
+                   if alpha==1:
+                     name="InhomogeneousLame%sDOrder%sJumpE%sNormal%s_%sk"%(d,o,jump,g,int(d*dofs/1000))
+                   else:
+                     name="InhomogeneousLame%sDOrder%sJumpE%sNormal%sAlpha%s_%sk"%(d,o,jump,g,alpha,int(d*dofs/1000))
+
+             if g==45:
+                if d==2:
+                    normal="[1.,1.]"
+                else:
+                    normal="[1.,1.,1.]"
+             else:
+                if d==2:
+                    normal="[1.,0.]"
+                else:
+                    normal="[1.,0.,0.]"
+
+             print "class %s(AnisotropicSystem):"%name
              print "   def __init__(self):"
-             print "      super(%s,self).__init__(n=%s,order=%s,dim=%s,gamma=%s,c=0.001)"%(name,n,o,d,g)
+             print "      super(%s,self).__init__(n=%s,order=%s,dim=%s,mu0=%e,normal=%s,alpha=%s)"%(name,n,o,d,10.**jump,normal,float(alpha))
              test+="addProblem(%s())\n"%name
    print test
 
