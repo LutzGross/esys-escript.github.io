@@ -173,14 +173,14 @@ class Benchmark(object):
        """
        self.__problems.append(problem)
 
-   def addOptions(self,Options):
+   def addOptions(self,options):
        """
        adds a options to the benchmark
 
-       @param options: adds a new option to the bechmark
+       @param options: adds a new option to the bechmark. If options==None they are are ignored
        @type problem: L{Options}
        """
-       self.__options.append(Options)
+       if options!=None: self.__options.append(options)
 
    def run(self,scale=1):
        """
