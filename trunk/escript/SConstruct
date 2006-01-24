@@ -14,7 +14,6 @@ Export(["boost_lib"])
 Export(["python_lib_path"])
 Export(["python_lib"])
 Export(["sys_libs"])
-Export(["pyinstall"])
 Export(["libinstall"])
 
 #
@@ -32,6 +31,9 @@ pydir = Dir(str(esysroot) + '/escript/lib/py_src')
 Export(["pydir"])
 pydir2 = Dir(str(esysroot) + '/esys/escript')
 Export(["pydir2"])
+if pyinstall != None:
+  pyinstall = Dir(str(pyinstall) + '/escript')
+  Export(["pyinstall"])
 
 #
 # print out build configuration for this module
