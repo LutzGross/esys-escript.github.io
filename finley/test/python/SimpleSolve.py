@@ -66,7 +66,8 @@ print "mypde.checkSymmetry()"
 print mypde.checkSymmetry()
 
 print "\nIterative Solver (1)=>"
-mypde.setSolverMethod(mypde.PRES20,preconditioner=mypde.ILU0)
+# mypde.setSolverMethod(mypde.PRES20,preconditioner=mypde.ILU0)
+mypde.setSolverMethod(mypde.BICGSTAB,preconditioner=mypde.JACOBI)
 u_i=mypde.getSolution(verbose=True,iter_max=3000)
 
 print "\nDirect Solver (1)=>"
