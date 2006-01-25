@@ -34,7 +34,7 @@
 #include "ElementFile.h"
 #include "NodeFile.h"
 #include "escript/Data/DataC.h"
-#include "paso/SystemMatrix.h"
+#include "SystemMatrix.h"
 
 struct Assemble_Parameters {
    dim_t numQuad;

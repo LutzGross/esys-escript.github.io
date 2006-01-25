@@ -17,7 +17,7 @@ extern "C" {
 #include "Assemble.h"
 #include "Mesh.h"
 #include "Finley.h"
-#include "paso/SystemMatrix.h"
+#include "SystemMatrix.h"
 }
 #include "SystemMatrixAdapter.h"
 #include "MeshAdapter.h"

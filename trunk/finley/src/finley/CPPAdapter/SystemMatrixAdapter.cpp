@@ -13,8 +13,8 @@
  $Id$
 */
 extern "C" {
-#include "paso/SystemMatrix.h"
-#include "paso/Options.h"
+#include "SystemMatrix.h"
+#include "Options.h"
 }
 #include "escript/Data/Data.h"
 #include "escript/Data/UtilC.h"

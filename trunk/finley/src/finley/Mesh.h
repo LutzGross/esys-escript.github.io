@@ -61,7 +61,7 @@
 #include "Finley.h"
 #include "NodeFile.h"
 #include "ElementFile.h"
-#include "paso/SystemMatrixPattern.h"
+#include "SystemMatrixPattern.h"
 #include "escript/Data/DataC.h"
 
 /**************************************************************/
