@@ -35,12 +35,13 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from esys.escript import Lsup,whereZero,kronecker
+from esys.escript import *
 from esys.escript.benchmark import BenchmarkProblem, Options, BenchmarkFilter
 import esys.finley 
 from esys.escript.linearPDEs import LinearPDE
 import os
 import math
+import numarray
 
 class FinleyFilter(BenchmarkFilter):
    """
@@ -312,7 +313,7 @@ class AnisotropicSystem(RegularFinleyProblem):
     """
     def __init__(self,n,order,dim,mu0,normal,alpha):
         self.mu0=mu0
-        self.normal=normal
+        self.normal=numarray.array(normal)
         self.alpha=alpha
         super(AnisotropicSystem,self).__init__(n,order,dim)
 
@@ -332,7 +333,7 @@ class AnisotropicSystem(RegularFinleyProblem):
          msk=whereZero(x[0])+whereZero(x[0]-1.)
          for i in range(1,d):
             msk+=whereZero(x[i])+whereZero(x[i]-1.)
-         msk=msk*numarry.ones((d,),numarray.float)
+         msk=msk*numarray.ones((d,),numarray.Float)
 
          u=x[:]
          for i in range(d):
@@ -341,8 +342,8 @@ class AnisotropicSystem(RegularFinleyProblem):
                if not i==k: s=s*x[k]
             u[i]+=1./d*s
 
-         s=whereNegative(inner(x-numarry.ones((d,),numarray.float)/2,self.normal))
-         mu=s+mu0*(1.-s)
+         s=whereNegative(inner(x-numarray.ones((d,),numarray.Float)/2,self.normal))
+         mu=s+self.mu0*(1.-s)
          lam=max(1.,self.mu0)*self.alpha
 
          F=Tensor(0.,Function(domain))
@@ -357,8 +358,8 @@ class AnisotropicSystem(RegularFinleyProblem):
                           s*=x[k]
                     F[i,j]+=mu/d*s
          C=Tensor4(0.,Function(domain))
-         for i in range(w.getDim()):
-           for j in range(w.getDim()):
+         for i in range(domain.getDim()):
+           for j in range(domain.getDim()):
                 C[i,i,j,j]+=lam
                 C[j,i,j,i]+=mu
                 C[j,i,i,j]+=mu
