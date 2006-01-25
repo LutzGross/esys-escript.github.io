@@ -44,7 +44,7 @@ print "       cxx_flags: ", cxx_flags
 #
 # call the SConscript to do the actual build
 
-SConscript(dirs=['src/Bruce'], build_dir='obj/Bruce', duplicate=0)
+SConscript(dirs=['src'], build_dir='obj/src', duplicate=0)
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
 SConscript(dirs=['test/Bruce'], build_dir='obj/test/Bruce', duplicate=0)
 SConscript(dirs=['test/BruceFactory'], build_dir='obj/test/BruceFactory', duplicate=0)

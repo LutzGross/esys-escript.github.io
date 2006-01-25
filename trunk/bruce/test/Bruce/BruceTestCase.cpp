@@ -12,7 +12,8 @@
  *****************************************************************************
 */
 
-#include "bruce/Bruce/Bruce.h"
+#include "Bruce.h"
+
 #include "esysUtils/EsysException.h"
 
 #include "BruceTestCase.h"

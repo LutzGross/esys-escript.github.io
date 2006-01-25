@@ -13,12 +13,7 @@
  ******************************************************************************
 */
 
-#include "bruce/Bruce/BruceFactory.h"
-#include "bruce/Bruce/BruceException.h"
-
-#include <iostream>
-#include <sstream>
-#include <boost/python/extract.hpp>
+#include "BruceFactory.h"
 
 using namespace std;
 using namespace escript;
