@@ -17,7 +17,14 @@
 #define bruce_BruceFactory_20050901_H
 
 #include "escript/Data/AbstractContinuousDomain.h"
-#include "bruce/Bruce/Bruce.h"
+
+#include "Bruce.h"
+
+#include "BruceException.h"
+
+#include <iostream>
+#include <sstream>
+#include <boost/python/extract.hpp>
 
 namespace bruce {
 

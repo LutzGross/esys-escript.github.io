@@ -13,11 +13,7 @@
  ******************************************************************************
 */
 
-#include "bruce/Bruce/Bruce.h"
-#include "bruce/Bruce/BruceException.h"
-
-#include "vtkCellType.h"
-#include <boost/python/extract.hpp>
+#include "Bruce.h"
 
 using namespace std;
 using namespace escript;

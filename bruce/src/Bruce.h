@@ -21,6 +21,12 @@
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/Data.h"
 
+#include "BruceException.h"
+
+#include "vtkCellType.h"
+
+#include <boost/python/extract.hpp>
+
 #include <string>
 #include <vector>
 

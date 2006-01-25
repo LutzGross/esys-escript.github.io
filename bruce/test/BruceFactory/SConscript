@@ -15,7 +15,7 @@ print "       cxx_flags: ", cxx_flags
 #
 # do the actual build
 
-bruce_path = str(esysroot) + '/bruce/inc'
+bruce_path = str(esysroot) + '/bruce/src'
 brucefactory_test_path = str(esysroot) + '/bruce/test/BruceFactory'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'

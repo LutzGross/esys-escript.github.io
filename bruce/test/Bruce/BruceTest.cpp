@@ -13,6 +13,7 @@
 */
 
 #include "BruceTestCase.h"
+
 #include "CppUnitTest/TestRunner.h"
 
 using namespace CppUnitTest;
