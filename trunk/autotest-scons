@@ -48,7 +48,7 @@ then
 fi
 
 echo "===> scons building esys"
-scons debug=1
+scons
 if [ $? != 0 ]
 then
   echo "scons build failed"
@@ -57,7 +57,7 @@ then
 fi
 
 echo "===> building unit_tests"
-scons debug=1 build_tests
+scons build_tests
 if [ $? != 0 ]
 then
   echo "unit_test build failed"
@@ -68,7 +68,7 @@ fi
 FAIL=0
 
 echo "===> running unit_tests"
-scons debug=1 run_tests
+scons run_tests
 if [ $? != 0 ]
 then
   echo "unit_testing failed"
