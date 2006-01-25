@@ -26,7 +26,7 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-import os,socket,time,sys
+import os,socket,time,sys,traceback
 from esys.escript import setNumberOfThreads
 
 class BenchmarkSuite(object):
@@ -214,6 +214,7 @@ class Benchmark(object):
                   try:
                      row.append(r.run(p))
                   except:
+                     traceback.print_exc(file=sys.stdout)
                      row.append(None)
               t0=time.time()-t0
               print "%s with %s threads finished (walltime =%s sec)."%(r.__class__,s,t0)
