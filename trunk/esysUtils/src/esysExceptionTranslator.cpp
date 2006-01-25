@@ -12,9 +12,7 @@
  ******************************************************************************
 */
 
-#include "esysUtils/esysExceptionTranslator.h" 
-
-#include <iostream>
+#include "esysExceptionTranslator.h" 
 
 using namespace std;
 

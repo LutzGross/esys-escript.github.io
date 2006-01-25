@@ -16,7 +16,7 @@ print "       cxx_flags: ", cxx_flags
 
 datatagged_test_path = str(esysroot) + '/escript/test/DataTagged'
 escript_path = str(esysroot) + '/escript/inc'
-esysUtils_path = str(esysroot) + '/esysUtils/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
 
 esys_lib_path = str(esysroot) + '/lib'

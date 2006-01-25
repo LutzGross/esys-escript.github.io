@@ -12,7 +12,7 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 #include "escript/Data/Data.h"
 #include "escript/Data/FunctionSpace.h"
 

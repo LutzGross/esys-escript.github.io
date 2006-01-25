@@ -15,7 +15,7 @@
 #include "escript/Data/DataTagged.h"
 #include "escript/Data/BinaryOp.h"
 #include "escript/Data/UnaryOp.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include "escript/Data/FunctionSpaceFactory.h"
 #include "escript/Data/DataFactory.h"

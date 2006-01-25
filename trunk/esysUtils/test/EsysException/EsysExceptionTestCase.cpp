@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "EsysExceptionTestCase.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 using namespace std;
 using namespace CppUnitTest;

@@ -15,7 +15,7 @@
 #if !defined  escript_FunctionSpaceException_20040602_H
 #define escript_FunctionSpaceException_20040602_H
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 #include <string>
 
 namespace escript {

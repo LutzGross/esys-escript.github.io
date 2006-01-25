@@ -13,7 +13,7 @@
 */
 
 #include "escript/Data/Taipan.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include "TaipanTestCase.h"
 

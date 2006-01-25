@@ -34,7 +34,7 @@
 // part of the header is intentionally outside the single pass guard.
 //
 
-#undef  EsysAssert
+#undef EsysAssert
 
 #if defined DOASSERT
 

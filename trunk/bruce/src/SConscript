@@ -9,7 +9,7 @@ libname = 'brucecpp'
 
 bruce_path = str(esysroot) + '/bruce/src'
 escript_path = str(esysroot) + '/escript/inc'
-esysUtils_path = str(esysroot) + '/esysUtils/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
 
 esys_lib_path = str(esysroot) + '/lib'
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'

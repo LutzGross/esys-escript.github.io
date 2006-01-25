@@ -20,7 +20,7 @@ finley_path = str(esysroot) + '/finley/src/finley'
 finley_cppadapter_path = str(esysroot) + '/finley/src/finley/CPPAdapter'
 paso_path = str(esysroot) + '/paso/src'
 mmio_path = str(esysroot) + '/tools/mmio/inc'
-esysUtils_path = str(esysroot) + '/esysUtils/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
 
 esys_lib_path = str(esysroot) + '/lib'

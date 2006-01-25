@@ -15,7 +15,7 @@
 
 #include "escript/Data/DataConstant.h"
 #include "escript/Data/DataException.h"
-#include "esysUtils/EsysAssert.h"
+#include "EsysAssert.h"
 
 #include <iostream>
 #include <boost/python/extract.hpp>

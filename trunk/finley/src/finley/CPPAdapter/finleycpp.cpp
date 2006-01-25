@@ -21,8 +21,8 @@ extern "C" {
 #include "MeshAdapterFactory.h"
 #include "SystemMatrixAdapter.h"
 
-#include "esysUtils/EsysException.h"
-#include "esysUtils/esysExceptionTranslator.h"
+#include "EsysException.h"
+#include "esysExceptionTranslator.h"
 
 #include "escript/Data/AbstractContinuousDomain.h"
 

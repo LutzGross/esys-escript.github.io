@@ -15,7 +15,7 @@
 #if !defined  escript_DataException_20040324_H
 #define escript_DataException_20040324_H
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 #include <string>
 
 namespace escript {

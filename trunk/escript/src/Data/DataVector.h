@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "esysUtils/EsysAssert.h"
+#include "EsysAssert.h"
 
 namespace escript {
 

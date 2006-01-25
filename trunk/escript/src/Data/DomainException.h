@@ -15,7 +15,7 @@
 #if !defined  escript_DomainException_20040608_H
 #define escript_DomainException_20040608_H
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 #include <string>
 
 namespace escript {

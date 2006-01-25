@@ -11,7 +11,7 @@ finley_path = str(esysroot) + '/finley/src/finley'
 finley_cppadapter_path = str(esysroot) + '/finley/src/finley/CPPAdapter'
 paso_path = str(esysroot) + '/paso/src'
 escript_path = str(esysroot) + '/escript/inc'
-esysUtils_path = str(esysroot) + '/esysUtils/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
 
 esys_lib_path = str(esysroot) + '/lib'
 mmio_lib_path = str(esysroot) + '/tools/mmio/lib'

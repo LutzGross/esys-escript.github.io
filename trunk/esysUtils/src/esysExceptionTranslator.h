@@ -15,8 +15,11 @@
 #if !defined  esysUtils_esysExceptionTranslator_20040419_H
 #define esysUtils_esysExceptionTranslator_20040419_H
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
+
 #include "boost/python/errors.hpp"
+
+#include <iostream>
 
 namespace esysUtils {
   /**
@@ -25,4 +28,5 @@ namespace esysUtils {
   */
   void esysExceptionTranslator(EsysException const& e);
 } // end of namespace
+
 #endif

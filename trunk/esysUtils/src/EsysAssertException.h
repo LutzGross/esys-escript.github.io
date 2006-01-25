@@ -16,7 +16,7 @@
 #if !defined escript_EsysAssertException_20040330_H
 #define escript_EsysAssertException_20040330_H
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include <string>
 #include <sstream>
@@ -78,9 +78,9 @@ class EsysAssertException:public EsysException {
  
    throw EsysAssertException(message.str());
   }
- 
 
 };
 
 } // end of namespace
+ 
 #endif

@@ -3,13 +3,14 @@ Import('*')
 import os
 import string
 
-esysUtils_path = str(esysroot) + '/esysUtils/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
 
 cpp_path = [esysUtils_path,
             python_path,
             boost_path]
 
 lib = 'esysUtils'
+
 sources = ['EsysException.cpp',
            'esysExceptionTranslator.cpp']
 

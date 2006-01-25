@@ -12,7 +12,7 @@
  *****************************************************************************
 */
 #include "escript/Data/DataVector.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include "DataVectorTestCase.h"
 

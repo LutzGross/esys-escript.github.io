@@ -14,7 +14,7 @@
 */
 
 #include "escript/Data/DataBlocks2D.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include "DataBlocks2DTestCase.h"
 
