@@ -18,7 +18,7 @@
 #include <vector>
 #include "escript/Data/DataVector.h"
 
-#include "esysUtils/EsysAssert.h"
+#include "EsysAssert.h"
 
 namespace escript {
 

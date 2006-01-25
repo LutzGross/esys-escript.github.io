@@ -8,7 +8,7 @@ import string
 libname = 'escriptcpp'
 
 escript_path = str(esysroot) + '/escript/inc'
-esysUtils_path = str(esysroot) + '/esysUtils/inc'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
 
 esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
 

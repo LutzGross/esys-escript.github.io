@@ -18,6 +18,7 @@
 #include <string>
 #include <sstream>
 #include <exception>
+#include <algorithm>
 
 namespace esysUtils {
 /**
@@ -130,9 +131,3 @@ std::ostream &operator<<(std::ostream &output, EsysException &inException);
 }
 
 #endif
-
-
-
-
-
-

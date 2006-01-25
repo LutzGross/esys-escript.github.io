@@ -17,7 +17,7 @@
 #if !defined escript_DataArrayView_20040323_H
 #define escript_DataArrayView_20040323_H
 
-#include "esysUtils/EsysAssert.h"
+#include "EsysAssert.h"
 
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>

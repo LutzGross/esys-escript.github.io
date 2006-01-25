@@ -12,8 +12,7 @@
  ******************************************************************************
 */
 
-#include <algorithm>
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 using namespace std;
 using namespace esysUtils;
@@ -82,9 +81,3 @@ const char*  EsysException::what() const throw() {
   m_exceptionMessage=toString();
   return m_exceptionMessage.c_str();
 }
-
-
-
-
-
-

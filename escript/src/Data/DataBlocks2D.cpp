@@ -14,7 +14,7 @@
 
 #include "escript/Data/DataException.h"
 #include "escript/Data/DataBlocks2D.h" 
-#include "esysUtils/EsysAssert.h"
+#include "EsysAssert.h"
 
 #include <sstream>
 #include <iostream>

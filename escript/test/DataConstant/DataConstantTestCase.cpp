@@ -14,7 +14,7 @@
 */
 #include "escript/Data/DataConstant.h"
 #include "escript/Data/FunctionSpace.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include "DataConstantTestCase.h"
 

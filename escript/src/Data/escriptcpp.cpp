@@ -23,7 +23,7 @@
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "escript/Data/AbstractDomain.h"
 #include "escript/Data/Utils.h"
-#include "esysUtils/esysExceptionTranslator.h"
+#include "esysExceptionTranslator.h"
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>

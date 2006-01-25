@@ -18,7 +18,6 @@ print "Build configuration for module: esysUtils"
 print "             cxx: ", cxx
 print "       cxx_flags: ", cxx_flags
 
-
 # set and export library directory
 libdir = Dir(str(esysroot) + '/esysUtils/lib')
 Export(["libdir"])

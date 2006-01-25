@@ -14,7 +14,7 @@
 #include "escript/Data/DataArray.h"
 #include "escript/Data/DataArrayView.h"
 #include "escript/Data/DataAlgorithm.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include "DataArrayViewTestCase.h"
 

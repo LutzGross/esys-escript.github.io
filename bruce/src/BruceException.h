@@ -15,7 +15,7 @@
 #if !defined finley_BruceException_20050905_H
 #define finley_BruceException_20050905_H
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 #include <string>
 

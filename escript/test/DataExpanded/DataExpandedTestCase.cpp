@@ -14,7 +14,7 @@
 */
 #include "escript/Data/FunctionSpace.h"
 #include "escript/Data/DataExpanded.h"
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 #include "DataExpandedTestCase.h"
 
 #include <iostream>
