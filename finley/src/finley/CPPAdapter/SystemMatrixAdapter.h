@@ -20,7 +20,7 @@
 #include "escript/Data/AbstractSystemMatrix.h"
 #include "escript/Data/Data.h"
 extern "C" {
-#include "paso/SystemMatrix.h"
+#include "SystemMatrix.h"
 }
 #include <boost/python/dict.hpp>
 #include <boost/shared_ptr.hpp>

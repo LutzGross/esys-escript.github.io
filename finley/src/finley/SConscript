@@ -9,7 +9,7 @@ libname = 'finleycpp'
 
 finley_path = str(esysroot) + '/finley/src/finley'
 finley_cppadapter_path = str(esysroot) + '/finley/src/finley/CPPAdapter'
-paso_path = str(esysroot) + '/paso/inc'
+paso_path = str(esysroot) + '/paso/src'
 escript_path = str(esysroot) + '/escript/inc'
 esysUtils_path = str(esysroot) + '/esysUtils/inc'
 
