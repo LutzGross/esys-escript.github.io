@@ -286,7 +286,7 @@ class AnisotropicProblem(RegularFinleyProblem):
          C=kronecker(domain)
          C[0,0]=cg**2+self.c*sg**2
          C[1,0]=(self.c-1.)*cg*sg
-         C[0,1]=C[0,1]
+         C[0,1]=C[1,0]
          C[1,1]=sg**2+self.c*cg**2
          F=2*(1.-self.c)*cg*sg
          if domain.getDim()==3: F*=x[2]-2.
