@@ -64,8 +64,6 @@ sources = ['Options_getPackage.c',
            'Solvers/Solver_preconditioner.c',
            'Solvers/Solver_SchurComplement.c']
 
-
-
 paso_lib = paso_env.StaticLibrary(lib, sources)
 
 Default(paso_env.Install(libdir, paso_lib))
