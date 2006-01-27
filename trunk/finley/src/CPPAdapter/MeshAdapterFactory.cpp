@@ -13,17 +13,7 @@
  ******************************************************************************
 */
 
-extern "C" {
-#include "Finley.h"
-#include "Mesh.h"
-#include "RectangularMesh.h"
-}
-#include "FinleyError.h"
 #include "MeshAdapterFactory.h"
-
-#include <iostream>
-#include <sstream>
-#include <boost/python/extract.hpp>
 
 using namespace std;
 using namespace escript;

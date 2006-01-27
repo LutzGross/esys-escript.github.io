@@ -16,6 +16,7 @@
 #define finley_FinleyAdapterException_20040526_H
 
 #include "EsysException.h"
+
 #include <string>
 
 namespace finley {

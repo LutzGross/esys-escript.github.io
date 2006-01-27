@@ -12,26 +12,8 @@
  *                                                                            *
  ******************************************************************************
 */
-extern "C" {
-#include "Finley.h"
-#include "Assemble.h"
-#include "Mesh.h"
-#include "Finley.h"
-#include "SystemMatrix.h"
-}
-#include "SystemMatrixAdapter.h"
-#include "MeshAdapter.h"
-#include "FinleyError.h"
-#include "FinleyAdapterException.h"
-#include "escript/Data/FunctionSpaceFactory.h"
-#include "escript/Data/Data.h"
-#include "escript/Data/DataArrayView.h"
-#include "escript/Data/FunctionSpace.h"
-#include "escript/Data/DataFactory.h"
-#include <boost/python/extract.hpp>
 
-#include <iostream>
-#include <sstream>
+#include "MeshAdapter.h"
 
 using namespace std;
 using namespace escript;

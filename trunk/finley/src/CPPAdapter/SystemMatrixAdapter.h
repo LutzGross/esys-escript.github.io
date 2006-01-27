@@ -12,18 +12,25 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined  finley_SystemMatrixAdapter_20040610_H
 #define finley_SystemMatrixAdapter_20040610_H
 
-#include "SystemMatrixAdapter.h"
-#include "escript/Data/AbstractSystemMatrix.h"
-#include "escript/Data/Data.h"
 extern "C" {
 #include "SystemMatrix.h"
+#include "Options.h"
 }
+
+#include "FinleyAdapterException.h"
+#include "FinleyError.h"
+
+#include "escript/Data/AbstractSystemMatrix.h"
+#include "escript/Data/Data.h"
+#include "escript/Data/UtilC.h"
+
 #include <boost/python/dict.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/python/extract.hpp>
 
 namespace finley {
 
