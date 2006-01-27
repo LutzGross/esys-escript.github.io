@@ -52,6 +52,6 @@ print "       cxx_flags: ", cxx_flags
 #
 # call the SConscript to do the actual build
 
-SConscript(dirs=['src/finley'], build_dir='obj/finley', duplicate=0)
+SConscript(dirs=['src'], build_dir='obj', duplicate=0)
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
-SConscript(dirs=['test/MeshAdapter'], build_dir='obj/test/MeshAdapter', duplicate=0)
+#SConscript(dirs=['test/MeshAdapter'], build_dir='obj/test/MeshAdapter', duplicate=0)
