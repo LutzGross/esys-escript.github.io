@@ -13,10 +13,6 @@
 */
 
 #include "FinleyError.h"
-#include "FinleyAdapterException.h"
-extern "C" {
-#include "Finley.h"
-}
 
 namespace finley {
 

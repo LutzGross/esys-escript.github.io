@@ -19,6 +19,8 @@ extern "C" {
 #include "Finley.h"
 }
 
+#include "FinleyAdapterException.h"
+
 #include <string>
 
 namespace finley {

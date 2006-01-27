@@ -16,20 +16,35 @@
 #if !defined finley_MeshAdapter_20040526_H
 #define finley_MeshAdapter_20040526_H
 
+extern "C" {
+#include "Mesh.h"
+#include "Finley.h"
+#include "Assemble.h"
+#include "Finley.h"
+#include "SystemMatrix.h"
+}
+
+#include "SystemMatrixAdapter.h"
+#include "FinleyError.h"
+#include "FinleyAdapterException.h"
+
 #include "escript/Data/AbstractContinuousDomain.h"
 #include "escript/Data/Data.h"
 #include "escript/Data/FunctionSpace.h"
-extern "C" {
-#include "Mesh.h"
-}
-#include "SystemMatrixAdapter.h"
+#include "escript/Data/FunctionSpaceFactory.h"
+#include "escript/Data/DataArrayView.h"
+#include "escript/Data/DataFactory.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/dict.hpp>
+#include <boost/python/extract.hpp>
+
 #include <map>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <sstream>
 
 namespace finley {
 

@@ -12,15 +12,26 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined  finley_MeshAdapterFactory_20040526_H
 #define finley_MeshAdapterFactory_20040526_H
 
+extern "C" {
+#include "Finley.h"
+#include "Mesh.h"
+#include "RectangularMesh.h"
+}
+
 #include "MeshAdapter.h"
+#include "FinleyError.h"
 
 #include "escript/Data/AbstractContinuousDomain.h"
 
 #include <boost/python/list.hpp>
+#include <boost/python/extract.hpp>
+
+#include <iostream>
+#include <sstream>
 
 namespace finley {
   /**
