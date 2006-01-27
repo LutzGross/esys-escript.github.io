@@ -30,9 +30,11 @@ export LD_LIBRARY_PATH=/opt/intel/cmplrs/80.058/intel_cc_80/lib
 # define python location
 export PATH=/raid2/tools/python-2.3.4/bin:$PATH
 
-# set library and openmp settings
+# set library and python paths
 export LD_LIBRARY_PATH=$PWD/lib:/raid2/tools/boost/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$PWD
+
+# set openmp settings
 export OMP_SCHEDULE="dynamic"
 export OMP_NUM_THREADS=4
 export OMP_DYNAMIC=TRUE
