@@ -14,6 +14,13 @@
 
 #include "Taipan.h"
 
+#include <iostream>
+#include <cassert>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace std;
 
 namespace escript {

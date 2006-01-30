@@ -15,13 +15,6 @@
 #if !defined escript_Taipan_20050427_H
 #define escript_Taipan_20050427_H
 
-#include <iostream>
-#include <cassert>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 namespace escript {
 
 /**

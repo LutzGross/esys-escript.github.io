@@ -22,7 +22,6 @@
 
 #include <sstream>
 #include <iostream>
-#include <vector>
 
 namespace escript {
 
@@ -43,7 +42,6 @@ class DataBlocks2D {
   // The type of the underlying data array under management.
   // The multi-dimensional data points are flattened and stored
   // serially as a vector of doubles.
-  //typedef std::vector<double> ValueType;
   typedef DataVector ValueType;
 
   /**
