@@ -18,14 +18,6 @@
 
 #include "AbstractContinuousDomain.h"
 
-#include "Bruce.h"
-
-#include "BruceException.h"
-
-#include <iostream>
-#include <sstream>
-#include <boost/python/extract.hpp>
-
 namespace bruce {
 
   /**
