@@ -11,7 +11,7 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/DataVector.h"
+#include "DataVector.h"
 #include "EsysException.h"
 
 #include "DataVectorTestCase.h"

@@ -13,7 +13,7 @@
  *****************************************************************************
 */
 
-#include "escript/Data/DataBlocks2D.h"
+#include "DataBlocks2D.h"
 #include "EsysException.h"
 
 #include "DataBlocks2DTestCase.h"

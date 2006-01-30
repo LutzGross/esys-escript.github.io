@@ -12,8 +12,8 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/FunctionSpace.h"
-#include "escript/Data/DataExpanded.h"
+#include "FunctionSpace.h"
+#include "DataExpanded.h"
 #include "EsysException.h"
 #include "DataExpandedTestCase.h"
 

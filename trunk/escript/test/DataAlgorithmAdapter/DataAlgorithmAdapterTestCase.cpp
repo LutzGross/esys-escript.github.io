@@ -13,9 +13,9 @@
  *****************************************************************************
 */
 
-#include "escript/Data/DataExpanded.h"
-#include "escript/Data/DataArrayView.h"
-#include "escript/Data/DataAlgorithm.h"
+#include "DataExpanded.h"
+#include "DataArrayView.h"
+#include "DataAlgorithm.h"
 #include "DataAlgorithmAdapterTestCase.h"
 
 #include <iostream>

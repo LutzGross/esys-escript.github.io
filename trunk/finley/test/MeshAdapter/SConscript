@@ -15,7 +15,7 @@ print "       cxx_flags: ", cxx_flags
 # do the actual build
 
 meshadapter_test_path = str(esysroot) + '/finley/test/MeshAdapter'
-escript_path = str(esysroot) + '/escript/inc'
+escript_path = str(esysroot) + '/escript/src'
 finley_path = str(esysroot) + '/finley/src'
 finley_cppadapter_path = str(esysroot) + '/finley/src/CPPAdapter'
 paso_path = str(esysroot) + '/paso/src'

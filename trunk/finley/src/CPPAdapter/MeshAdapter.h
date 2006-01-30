@@ -28,12 +28,12 @@ extern "C" {
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
-#include "escript/Data/AbstractContinuousDomain.h"
-#include "escript/Data/Data.h"
-#include "escript/Data/FunctionSpace.h"
-#include "escript/Data/FunctionSpaceFactory.h"
-#include "escript/Data/DataArrayView.h"
-#include "escript/Data/DataFactory.h"
+#include "AbstractContinuousDomain.h"
+#include "Data.h"
+#include "FunctionSpace.h"
+#include "FunctionSpaceFactory.h"
+#include "DataArrayView.h"
+#include "DataFactory.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>

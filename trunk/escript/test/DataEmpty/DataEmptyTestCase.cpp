@@ -12,8 +12,8 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/DataEmpty.h"
-#include "escript/Data/FunctionSpace.h"
+#include "DataEmpty.h"
+#include "FunctionSpace.h"
 #include "EsysException.h"
 
 #include "DataEmptyTestCase.h"

@@ -12,13 +12,13 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/DataTagged.h"
-#include "escript/Data/BinaryOp.h"
-#include "escript/Data/UnaryOp.h"
+#include "DataTagged.h"
+#include "BinaryOp.h"
+#include "UnaryOp.h"
 #include "EsysException.h"
 
-#include "escript/Data/FunctionSpaceFactory.h"
-#include "escript/Data/DataFactory.h"
+#include "FunctionSpaceFactory.h"
+#include "DataFactory.h"
 
 #include "DataTaggedTestCase.h"
 

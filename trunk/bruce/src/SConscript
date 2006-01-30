@@ -8,7 +8,7 @@ import string
 libname = 'brucecpp'
 
 bruce_path = str(esysroot) + '/bruce/src'
-escript_path = str(esysroot) + '/escript/inc'
+escript_path = str(esysroot) + '/escript/src'
 esysUtils_path = str(esysroot) + '/esysUtils/src'
 
 esys_lib_path = str(esysroot) + '/lib'

@@ -1,4 +1,4 @@
-#include "escript/Data/DataC.h"
+#include "DataC.h"
 
 /**
    \brief

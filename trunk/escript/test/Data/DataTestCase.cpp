@@ -13,8 +13,8 @@
  *****************************************************************************
 */
 #include "EsysException.h"
-#include "escript/Data/Data.h"
-#include "escript/Data/FunctionSpace.h"
+#include "Data.h"
+#include "FunctionSpace.h"
 
 #include "DataTestCase.h"
 

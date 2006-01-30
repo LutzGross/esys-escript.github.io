@@ -15,7 +15,7 @@
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 
-#include "escript/Data/AbstractContinuousDomain.h"
+#include "AbstractContinuousDomain.h"
 
 #include "MeshAdapterTestCase.h"
 

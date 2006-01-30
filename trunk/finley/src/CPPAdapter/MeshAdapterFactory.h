@@ -25,7 +25,7 @@ extern "C" {
 #include "MeshAdapter.h"
 #include "FinleyError.h"
 
-#include "escript/Data/AbstractContinuousDomain.h"
+#include "AbstractContinuousDomain.h"
 
 #include <boost/python/list.hpp>
 #include <boost/python/extract.hpp>

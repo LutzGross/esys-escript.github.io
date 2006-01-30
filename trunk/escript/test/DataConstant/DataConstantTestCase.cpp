@@ -12,8 +12,8 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/DataConstant.h"
-#include "escript/Data/FunctionSpace.h"
+#include "DataConstant.h"
+#include "FunctionSpace.h"
 #include "EsysException.h"
 
 #include "DataConstantTestCase.h"

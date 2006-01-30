@@ -12,8 +12,8 @@
  *****************************************************************************
 */
 
-#include "escript/Data/FunctionSpace.h"
-#include "escript/Data/NullDomain.h"
+#include "FunctionSpace.h"
+#include "NullDomain.h"
 
 #include "FunctionSpaceTestCase.h"
 

@@ -62,7 +62,7 @@
 #include "NodeFile.h"
 #include "ElementFile.h"
 #include "SystemMatrixPattern.h"
-#include "escript/Data/DataC.h"
+#include "DataC.h"
 
 /**************************************************************/
 
