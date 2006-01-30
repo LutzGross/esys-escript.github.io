@@ -12,7 +12,7 @@
  *****************************************************************************
 */
 
-#include "escript/Data/DataVariable.h"
+#include "DataVariable.h"
 #include "EsysException.h"
 
 #include "DataVariableTestCase.h"

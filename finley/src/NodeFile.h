@@ -20,7 +20,7 @@
 #define MAX_numDim 3
 
 #include "Finley.h"
-#include "escript/Data/DataC.h"
+#include "DataC.h"
 
 struct Finley_NodeFile {
   dim_t numNodes;                      /* number of nodes */

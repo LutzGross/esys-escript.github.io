@@ -17,7 +17,7 @@ print "       cxx_flags: ", cxx_flags
 
 bruce_path = str(esysroot) + '/bruce/src'
 brucefactory_test_path = str(esysroot) + '/bruce/test/BruceFactory'
-escript_path = str(esysroot) + '/escript/inc'
+escript_path = str(esysroot) + '/escript/src'
 esysUtils_path = str(esysroot) + '/esysUtils/src'
 CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
 

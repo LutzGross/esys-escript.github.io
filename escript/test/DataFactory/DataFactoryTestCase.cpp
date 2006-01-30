@@ -12,8 +12,8 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/DataFactory.h"
-#include "escript/Data/Data.h"
+#include "DataFactory.h"
+#include "Data.h"
 
 #include "DataFactoryTestCase.h"
 

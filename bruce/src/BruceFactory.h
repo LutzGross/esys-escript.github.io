@@ -16,7 +16,7 @@
 #if !defined bruce_BruceFactory_20050901_H
 #define bruce_BruceFactory_20050901_H
 
-#include "escript/Data/AbstractContinuousDomain.h"
+#include "AbstractContinuousDomain.h"
 
 #include "Bruce.h"
 

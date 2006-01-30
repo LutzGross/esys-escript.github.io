@@ -33,7 +33,7 @@
 #include "Finley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
-#include "escript/Data/DataC.h"
+#include "DataC.h"
 #include "SystemMatrix.h"
 
 struct Assemble_Parameters {

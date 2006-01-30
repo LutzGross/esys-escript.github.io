@@ -12,7 +12,7 @@
  *****************************************************************************
 */
 
-#include "escript/Data/Taipan.h"
+#include "Taipan.h"
 #include "EsysException.h"
 
 #include "TaipanTestCase.h"

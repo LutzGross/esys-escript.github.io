@@ -16,10 +16,10 @@
 #if !defined bruce_Bruce_20050829_H
 #define bruce_Bruce_20050829_H
 
-#include "escript/Data/AbstractContinuousDomain.h"
-#include "escript/Data/FunctionSpaceFactory.h"
-#include "escript/Data/FunctionSpace.h"
-#include "escript/Data/Data.h"
+#include "AbstractContinuousDomain.h"
+#include "FunctionSpaceFactory.h"
+#include "FunctionSpace.h"
+#include "Data.h"
 
 #include "BruceException.h"
 

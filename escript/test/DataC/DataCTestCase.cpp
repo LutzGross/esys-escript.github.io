@@ -11,9 +11,9 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escript/Data/Data.h"
+#include "Data.h"
 extern "C" {
-#include "escript/Data/DataC.h"
+#include "DataC.h"
 #include "CompareFuncs.h"
 }
 #include "DataCTestCase.h"
