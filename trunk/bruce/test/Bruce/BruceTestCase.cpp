@@ -14,6 +14,8 @@
 
 #include "Bruce.h"
 
+#include "FunctionSpaceFactory.h"
+
 #include "EsysException.h"
 
 #include "BruceTestCase.h"
