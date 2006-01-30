@@ -15,6 +15,14 @@
 
 #include "Bruce.h"
 
+#include "BruceException.h"
+
+#include "FunctionSpaceFactory.h"
+
+#include <boost/python/extract.hpp>
+
+#include "vtkCellType.h"
+
 using namespace std;
 using namespace escript;
 

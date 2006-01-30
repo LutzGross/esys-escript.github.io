@@ -16,16 +16,10 @@
 #if !defined bruce_Bruce_20050829_H
 #define bruce_Bruce_20050829_H
 
+#include "AbstractDomain.h"
 #include "AbstractContinuousDomain.h"
-#include "FunctionSpaceFactory.h"
 #include "FunctionSpace.h"
 #include "Data.h"
-
-#include "BruceException.h"
-
-#include "vtkCellType.h"
-
-#include <boost/python/extract.hpp>
 
 #include <string>
 #include <vector>
