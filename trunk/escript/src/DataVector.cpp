@@ -14,6 +14,11 @@
 
 #include "DataVector.h"
 
+#include "Taipan.h"
+#include "DataException.h"
+
+#include <cassert>
+
 using namespace std;
 using namespace escript;
 

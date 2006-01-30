@@ -17,13 +17,9 @@
 
 #include "EsysAssert.h"
 
-#include "Taipan.h"
-#include "DataException.h"
-
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <cassert>
 
 namespace escript {
 
