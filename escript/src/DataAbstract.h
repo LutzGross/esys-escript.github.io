@@ -12,11 +12,10 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined escript_DataAbstract_20040315_H
 #define escript_DataAbstract_20040315_H
 
-#include "DataException.h"
 #include "DataArrayView.h"
 #include "DataArray.h"
 #include "FunctionSpace.h"
@@ -24,7 +23,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/scoped_ptr.hpp>
-#include <functional>
+#include <boost/python/numeric.hpp>
 #include <string>
 
 namespace escript {

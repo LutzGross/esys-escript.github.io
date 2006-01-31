@@ -15,12 +15,7 @@
 #if !defined escript_DataVariable_20050422_H
 #define escript_DataVariable_20050422_H
 
-#include "FunctionSpace.h"
-#include "DataException.h"
-#include "DataArrayView.h"
-#include "DataVector.h"
 #include "Data.h"
-#include "DataExpanded.h"
 
 namespace escript {
 

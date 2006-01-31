@@ -19,18 +19,12 @@
 
 #include "EsysAssert.h"
 
-#include "DataException.h"
 #include "DataVector.h"
 
-#include <boost/python/extract.hpp>
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>
-#include <boost/shared_ptr.hpp>
 
-#include <iostream>
-#include <sstream>
 #include <vector>
-#include <iostream>
 
 namespace escript {
 

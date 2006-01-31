@@ -14,6 +14,10 @@
 
 #include "Utils.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace escript {
 
 void setNumberOfThreads(const int num_threads) 

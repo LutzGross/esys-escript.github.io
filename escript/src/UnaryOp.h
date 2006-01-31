@@ -16,17 +16,10 @@
 #if !defined escript_UnaryOp_20040315_H
 #define escript_UnaryOp_20040315_H
 
-#include "DataException.h"
 #include "DataArrayView.h"
 #include "DataConstant.h"
-#include "DataExpanded.h"
 #include "DataTagged.h"
-
-#include <boost/scoped_ptr.hpp>
-
-#include <iostream>
-#include <functional>
-#include <string>
+#include "DataExpanded.h"
 
 namespace escript {
 

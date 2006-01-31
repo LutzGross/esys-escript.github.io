@@ -16,9 +16,6 @@
 #define escript_DataBlocks2D_20040405_H
 
 #include "DataVector.h"
-#include "DataException.h"
-
-#include "EsysAssert.h"
 
 #include <sstream>
 #include <iostream>

@@ -14,6 +14,9 @@
 
 #include "DataBlocks2D.h"
 
+#include "DataException.h"
+#include "EsysAssert.h"
+
 using namespace std;
 
 namespace escript {
