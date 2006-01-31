@@ -17,10 +17,9 @@
 
 #include "DataArrayView.h"
 
-#include <boost/scoped_ptr.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/numeric.hpp>
-#include <boost/python/extract.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace escript {
 

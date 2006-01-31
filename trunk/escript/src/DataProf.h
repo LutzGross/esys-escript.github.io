@@ -15,8 +15,6 @@
 #if !defined escript_DataProf_20050620_H
 #define escript_DataProf_20050620_H
 
-#include <iostream>
-#include <sstream>
 #include <string>
 
 using namespace std;

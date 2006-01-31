@@ -14,6 +14,8 @@
 
 #include "DataArray.h"
 
+#include <boost/python/extract.hpp>
+
 using namespace boost::python;
 using namespace std;
 

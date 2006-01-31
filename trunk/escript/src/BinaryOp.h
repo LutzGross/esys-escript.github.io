@@ -15,16 +15,10 @@
 #if !defined  escript_BinaryOp_20040315_H
 #define escript_BinaryOp_20040315_H
 
-#include "DataException.h"
 #include "DataArrayView.h"
 #include "DataConstant.h"
+#include "DataTagged.h"
 #include "DataExpanded.h"
-
-#include <boost/scoped_ptr.hpp>
-
-#include <iostream>
-#include <functional>
-#include <string>
 
 namespace escript {
 /**

@@ -16,16 +16,14 @@
 #if !defined escript_DataAlgorithm_20040714_H
 #define escript_DataAlgorithm_20040714_H
 
+#include "DataArrayView.h"
 #include "DataExpanded.h"
 #include "DataTagged.h"
 #include "DataConstant.h"
-#include "DataArrayView.h"
 
 #include <iostream>
 #include <algorithm>
 #include <math.h>
-#include <limits>
-#include <vector>
 
 namespace escript {
 

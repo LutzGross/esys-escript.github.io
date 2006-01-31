@@ -15,10 +15,6 @@
 #if !defined  escript_Utils_H
 #define escript_Utils_H
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 namespace escript {
 
   /**
