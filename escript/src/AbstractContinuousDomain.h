@@ -17,11 +17,6 @@
 #define escript_AbstractContinuousDomain_20040528_H
 
 #include "AbstractDomain.h"
-#include "AbstractSystemMatrix.h"
-#include "Data.h"
-
-#include <boost/python/tuple.hpp>
-#include <boost/python/object.hpp>
 
 #include <string>
 #include <vector>
@@ -30,7 +25,7 @@ namespace escript {
 
 //
 // Forward declaration
-class FunctionSpace;
+class Data;
 
 /**
    \brief

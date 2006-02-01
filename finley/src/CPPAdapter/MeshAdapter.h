@@ -24,27 +24,28 @@ extern "C" {
 #include "SystemMatrix.h"
 }
 
-#include "SystemMatrixAdapter.h"
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
+#include "SystemMatrixAdapter.h"
 #include "AbstractContinuousDomain.h"
-#include "Data.h"
 #include "FunctionSpace.h"
 #include "FunctionSpaceFactory.h"
-#include "DataArrayView.h"
-#include "DataFactory.h"
 
 #include <boost/shared_ptr.hpp>
-#include <boost/python/object.hpp>
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
 
 #include <map>
 #include <vector>
 #include <string>
-#include <iostream>
 #include <sstream>
+
+//
+// forward declarations
+class Data;
+
+//using namespace escript;
 
 namespace finley {
 
@@ -66,7 +67,7 @@ struct null_deleter
    interface for the Finley library.
 */
 
-class MeshAdapter:public escript::AbstractContinuousDomain {
+class MeshAdapter : public escript::AbstractContinuousDomain {
 
  public:
 

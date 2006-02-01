@@ -14,6 +14,11 @@
 */
 
 #include "MeshAdapterFactory.h"
+#include "FinleyError.h"
+
+#include <boost/python/extract.hpp>
+
+#include <sstream>
 
 using namespace std;
 using namespace escript;

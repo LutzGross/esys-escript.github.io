@@ -29,7 +29,7 @@ namespace escript {
    SystemMatrixException exception class.
    The class provides a public function returning the exception name
 */
-class SystemMatrixException:public esysUtils::EsysException {
+class SystemMatrixException : public esysUtils::EsysException {
 
  public:
   /**

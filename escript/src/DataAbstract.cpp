@@ -16,9 +16,6 @@
 #include "DataAbstract.h"
 #include "DataException.h"
 
-#include <iostream>
-#include <fstream>
-
 using namespace std;
 
 namespace escript {

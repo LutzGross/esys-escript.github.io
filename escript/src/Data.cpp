@@ -1,4 +1,5 @@
 // $Id$
+
 /*=============================================================================
 
  ******************************************************************************
@@ -17,30 +18,26 @@
 
 #include "Data.h"
 
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <vector>
-#include <exception>
-#include <functional>
-#include <math.h>
-
-#include <boost/python/dict.hpp>
-#include <boost/python/str.hpp>
-#include <boost/python/extract.hpp>
-#include <boost/python/long.hpp>
-#include <boost/python/tuple.hpp>
-
-#include "DataException.h"
 #include "DataExpanded.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataEmpty.h"
 #include "DataArray.h"
+#include "DataArrayView.h"
 #include "DataProf.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
+
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <functional>
+#include <math.h>
+
+#include <boost/python/dict.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/long.hpp>
 
 using namespace std;
 using namespace boost::python;

@@ -12,7 +12,7 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined escript_DataExpanded_20040323_H
 #define escript_DataExpanded_20040323_H
 
@@ -20,14 +20,12 @@
 #include "DataBlocks2D.h"
 #include "DataArrayView.h"
 
-#include <boost/scoped_ptr.hpp>
 #include <boost/python/numeric.hpp>
 
 namespace escript {
 
 //
 // Forward declarations of other Data types.
-class DataEmpty;
 class DataConstant;
 class DataTagged;
 

@@ -11,7 +11,7 @@
  *                                                                            *
  ******************************************************************************
 */
-#include "FunctionSpace.h"
+
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 

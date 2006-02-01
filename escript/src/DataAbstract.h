@@ -20,11 +20,11 @@
 #include "DataArray.h"
 #include "FunctionSpace.h"
 
-#include <iostream>
-#include <fstream>
 #include <boost/scoped_ptr.hpp>
 #include <boost/python/numeric.hpp>
+
 #include <string>
+#include <fstream>
 
 namespace escript {
 

@@ -13,15 +13,12 @@
  ******************************************************************************
 */
 
-#include "DataException.h"
 #include "DataExpanded.h"
+#include "DataException.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
-#include "DataArrayView.h"
 
 #include <boost/python/extract.hpp>
-
-#include <iostream>
 
 using namespace std;
 using namespace boost::python;

@@ -23,14 +23,11 @@ extern "C" {
 }
 
 #include "MeshAdapter.h"
-#include "FinleyError.h"
 
 #include "AbstractContinuousDomain.h"
 
 #include <boost/python/list.hpp>
-#include <boost/python/extract.hpp>
 
-#include <iostream>
 #include <sstream>
 
 namespace finley {

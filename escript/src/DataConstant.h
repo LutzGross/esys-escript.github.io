@@ -12,12 +12,11 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined escript_DataConstant_20040323_H
 #define escript_DataConstant_20040323_H
 
 #include "DataAbstract.h"
-#include "DataArray.h"
 #include "DataArrayView.h"
 
 #include <boost/python/numeric.hpp>

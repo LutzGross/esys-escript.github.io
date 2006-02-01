@@ -18,7 +18,6 @@
 #define escript_DataTagged_20040615_H
 
 #include "DataAbstract.h"
-#include "DataArray.h"
 #include "DataArrayView.h"
 
 #include <vector>
