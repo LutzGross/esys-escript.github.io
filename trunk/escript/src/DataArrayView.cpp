@@ -15,15 +15,11 @@
 */
 
 #include "DataArrayView.h"
-
 #include "DataException.h"
 
-#include <iostream>
 #include <sstream>
-#include <iostream>
 
 #include <boost/python/extract.hpp>
-#include <boost/shared_ptr.hpp>
 
 using namespace std;
 using namespace boost::python;

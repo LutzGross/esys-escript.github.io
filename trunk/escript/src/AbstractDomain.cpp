@@ -15,8 +15,10 @@
 
 #include "AbstractDomain.h" 
 #include "DomainException.h"
-#include "AbstractSystemMatrix.h"
-#include "FunctionSpace.h"
+//#include "AbstractSystemMatrix.h"
+//#include "FunctionSpace.h"
+
+#include "Data.h"
 
 using namespace std;
 

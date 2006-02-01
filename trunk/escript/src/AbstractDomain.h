@@ -17,7 +17,6 @@
 #define escript_AbstractDomain_20040609_H
 
 #include <string>
-#include <utility>
 #include <boost/python/dict.hpp>
 
 namespace escript {
@@ -25,8 +24,8 @@ namespace escript {
 //
 // forward declarations
 class Data;
-class AbstractSystemMatrix;
-class FunctionSpace;
+//class AbstractSystemMatrix;
+//class FunctionSpace;
 
 /**
    \brief

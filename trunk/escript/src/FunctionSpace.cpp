@@ -13,12 +13,10 @@
  ******************************************************************************
 */
 
-#include "AbstractContinuousDomain.h"
+#include "FunctionSpace.h" 
 #include "FunctionSpaceException.h"
 #include "Data.h" 
 #include "DataFactory.h" 
-
-#include "FunctionSpace.h" 
 
 #include <iostream>
 #include <sstream>

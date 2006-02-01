@@ -12,15 +12,18 @@
  *                                                                            *
  ******************************************************************************
 */
-                                                                           
+
 #if !defined  escript_AbstractSystemMatrix_20040628_H
 #define escript_AbstractSystemMatrix_20040628_H
 
 #include "FunctionSpace.h"
 #include "SystemMatrixException.h"
-#include "Data.h"
 
 #include <boost/python/dict.hpp>
+
+//
+// Forward declaration
+class Data;
 
 namespace escript {
 

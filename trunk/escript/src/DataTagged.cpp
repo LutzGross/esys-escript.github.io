@@ -16,10 +16,7 @@
 
 #include "DataTagged.h"
 #include "DataConstant.h"
-#include "DataExpanded.h"
 #include "DataException.h"
-
-#include <sstream>
 
 using namespace std;
 

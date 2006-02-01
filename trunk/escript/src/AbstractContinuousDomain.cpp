@@ -14,9 +14,7 @@
 */
 
 #include "AbstractContinuousDomain.h"
-
-#include <boost/python/object.hpp>
-#include <boost/python/tuple.hpp>
+#include "Data.h"
 
 using namespace boost::python;
 

@@ -19,7 +19,6 @@
 #define DATA_H
 
 #include "DataAbstract.h"
-#include "DataTagged.h"
 #include "DataAlgorithm.h"
 #include "FunctionSpace.h"
 #include "BinaryOp.h"
@@ -30,14 +29,11 @@ extern "C" {
 #include "DataC.h"
 }
 
-#include <iostream>
 #include <string>
-#include <memory>
 #include <algorithm>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
-#include <boost/python/list.hpp>
 #include <boost/python/tuple.hpp>
 #include <boost/python/numeric.hpp>
 
@@ -45,7 +41,6 @@ namespace escript {
 
 //
 // Forward declaration for various implementations of Data.
-class DataEmpty;
 class DataConstant;
 class DataTagged;
 class DataExpanded;

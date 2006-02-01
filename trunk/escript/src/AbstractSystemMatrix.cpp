@@ -14,9 +14,9 @@
 */
 
 #include "AbstractSystemMatrix.h" 
-#include "FunctionSpace.h" 
 #include "DataException.h"
 #include "DataArrayView.h"
+#include "Data.h"
 
 namespace escript {
 

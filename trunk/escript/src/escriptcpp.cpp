@@ -23,6 +23,7 @@
 #include "AbstractContinuousDomain.h"
 #include "AbstractDomain.h"
 #include "Utils.h"
+#include "AbstractSystemMatrix.h"
 
 #include "esysExceptionTranslator.h"
 

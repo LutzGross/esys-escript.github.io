@@ -28,7 +28,7 @@ namespace escript {
    FunctionSpaceException exception class.
    The class provides a public function returning the exception name
 */
-class FunctionSpaceException:public esysUtils::EsysException {
+class FunctionSpaceException : public esysUtils::EsysException {
 
  public:
   /**

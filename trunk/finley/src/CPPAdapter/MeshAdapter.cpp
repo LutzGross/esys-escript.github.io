@@ -15,6 +15,9 @@
 
 #include "MeshAdapter.h"
 
+#include "Data.h"
+#include "DataFactory.h"
+
 using namespace std;
 using namespace escript;
 
@@ -386,10 +389,10 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
 // adds linear PDE of second order into a given stiffness matrix and right hand side:
 //
 void MeshAdapter::addPDEToSystem(
-                     SystemMatrixAdapter& mat, Data& rhs,
-                     const Data& A, const Data& B, const Data& C,const  Data& D,const  Data& X,const  Data& Y,
-                     const Data& d, const Data& y, 
-                     const Data& d_contact,const Data& y_contact) const
+                     SystemMatrixAdapter& mat, escript::Data& rhs,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y, 
+                     const escript::Data& d_contact,const escript::Data& y_contact) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getPaso_SystemMatrix(),&(rhs.getDataC()),
@@ -413,8 +416,8 @@ void MeshAdapter::addPDEToSystem(
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( Data& rhs,
-                     const  Data& X,const  Data& Y, const Data& y, const Data& y_contact) const
+void MeshAdapter::addPDEToRHS( escript::Data& rhs,
+                     const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -434,7 +437,7 @@ void MeshAdapter::addPDEToRHS( Data& rhs,
 //
 // interpolates data between different function spaces:
 //
-void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
+void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data& in) const
 {
   const MeshAdapter& inDomain=dynamic_cast<const MeshAdapter&>(in.getFunctionSpace().getDomain());
   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(target.getFunctionSpace().getDomain());
@@ -575,7 +578,7 @@ void MeshAdapter::interpolateOnDomain(Data& target,const Data& in) const
 //
 // copies the locations of sample points into x:
 //
-void MeshAdapter::setToX(Data& arg) const
+void MeshAdapter::setToX(escript::Data& arg) const
 {
   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
   if (argDomain!=*this) 
@@ -585,7 +588,7 @@ void MeshAdapter::setToX(Data& arg) const
   if (arg.getFunctionSpace().getTypeCode()==Nodes) {
      Finley_Assemble_NodeCoordinates(mesh->Nodes,&(arg.getDataC()));
   } else {
-     Data tmp_data=Vector(0.0,continuousFunction(asAbstractContinuousDomain()),true);
+     escript::Data tmp_data=Vector(0.0,continuousFunction(asAbstractContinuousDomain()),true);
      Finley_Assemble_NodeCoordinates(mesh->Nodes,&(tmp_data.getDataC()));
      // this is then interpolated onto arg:
      interpolateOnDomain(arg,tmp_data);
@@ -596,7 +599,7 @@ void MeshAdapter::setToX(Data& arg) const
 //
 // return the normal vectors at the location of data points as a Data object:
 //
-void MeshAdapter::setToNormal(Data& normal) const
+void MeshAdapter::setToNormal(escript::Data& normal) const
 {
   const MeshAdapter& normalDomain=dynamic_cast<const MeshAdapter&>(normal.getFunctionSpace().getDomain());
   if (normalDomain!=*this) 
@@ -637,7 +640,7 @@ void MeshAdapter::setToNormal(Data& normal) const
 //
 // interpolates data to other domain:
 //
-void MeshAdapter::interpolateACross(Data& target,const Data& source) const
+void MeshAdapter::interpolateACross(escript::Data& target,const escript::Data& source) const
 {
   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(target.getFunctionSpace().getDomain());
   if (targetDomain!=*this) 
@@ -649,7 +652,7 @@ void MeshAdapter::interpolateACross(Data& target,const Data& source) const
 //
 // calculates the integral of a function defined of arg:
 //
-void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const Data& arg) const
+void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const
 {
   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
   if (argDomain!=*this) 
@@ -693,7 +696,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const Data& arg)
 //
 // calculates the gradient of arg:
 //
-void MeshAdapter::setToGradient(Data& grad,const Data& arg) const
+void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) const
 {
   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
   if (argDomain!=*this)
@@ -740,7 +743,7 @@ void MeshAdapter::setToGradient(Data& grad,const Data& arg) const
 //
 // returns the size of elements:
 //
-void MeshAdapter::setToSize(Data& size) const
+void MeshAdapter::setToSize(escript::Data& size) const
 {
   Finley_Mesh* mesh=m_finleyMesh.get();
   escriptDataC tmp=size.getDataC();
@@ -777,7 +780,7 @@ void MeshAdapter::setToSize(Data& size) const
 }
 
 // sets the location of nodes:
-void MeshAdapter::setNewX(const Data& new_x)
+void MeshAdapter::setNewX(const escript::Data& new_x)
 {
   Finley_Mesh* mesh=m_finleyMesh.get();
   const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(new_x.getFunctionSpace().getDomain());
@@ -799,7 +802,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
 
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
-         Data& d=boost::python::extract<Data&>(arg[keys[i]]);
+         escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
          if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
              throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
          data[i]=d.getDataC();
@@ -830,7 +833,7 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
 
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
-         Data& d=boost::python::extract<Data&>(arg[keys[i]]);
+         escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
          if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
              throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
          data[i]=d.getDataC();
@@ -1041,17 +1044,17 @@ int MeshAdapter::getSystemMatrixTypeId(const int solver, const int package, cons
    return out;
 }
 
-Data MeshAdapter::getX() const
+escript::Data MeshAdapter::getX() const
 {
   return continuousFunction(asAbstractContinuousDomain()).getX();
 }
 
-Data MeshAdapter::getNormal() const
+escript::Data MeshAdapter::getNormal() const
 {
   return functionOnBoundary(asAbstractContinuousDomain()).getNormal();
 }
 
-Data MeshAdapter::getSize() const
+escript::Data MeshAdapter::getSize() const
 {
   return function(asAbstractContinuousDomain()).getSize();
 }

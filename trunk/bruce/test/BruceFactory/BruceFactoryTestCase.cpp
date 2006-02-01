@@ -18,6 +18,8 @@
 
 #include "BruceFactoryTestCase.h"
 
+#include <iostream>
+
 using namespace CppUnitTest;
 
 using namespace escript;
