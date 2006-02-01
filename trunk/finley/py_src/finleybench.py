@@ -1929,6 +1929,608 @@ class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_7680k(AnisotropicSystem):
 class InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_15360k(AnisotropicSystem):
    def __init__(self):
       super(InhomogeneousLame3DOrder2JumpE6Normal45Alpha100_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=100.0)
+
+class CompressibleLame2DOrder1_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder1_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder1_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE2_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder1JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder1JumpE6_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE2Normal45_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_30k,self).__init__(n=121,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_60k,self).__init__(n=172,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_120k,self).__init__(n=244,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_240k,self).__init__(n=345,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_480k,self).__init__(n=489,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_960k,self).__init__(n=692,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_1920k,self).__init__(n=979,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_3840k,self).__init__(n=1385,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_7680k,self).__init__(n=1959,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder1JumpE6Normal45_15360k,self).__init__(n=2770,order=1,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleLame2DOrder2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleLame2DOrder2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame2DOrder2_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+00,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE2_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+02,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame2DOrder2JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame2DOrder2JumpE6_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+06,normal=[1.,0.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE2Normal45_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+02,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_30k,self).__init__(n=61,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_60k,self).__init__(n=86,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_120k,self).__init__(n=122,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_240k,self).__init__(n=173,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_480k,self).__init__(n=244,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_960k,self).__init__(n=346,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_1920k,self).__init__(n=489,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_3840k,self).__init__(n=692,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_7680k,self).__init__(n=979,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame2DOrder2JumpE6Normal45_15360k,self).__init__(n=1385,order=2,dim=2,mu0=1.000000e+06,normal=[1.,1.],alpha=0.0)
+class CompressibleLame3DOrder1_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder1_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder1_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE2_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder1JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder1JumpE6_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE2Normal45_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_30k,self).__init__(n=21,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_60k,self).__init__(n=26,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_120k,self).__init__(n=33,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_240k,self).__init__(n=42,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_480k,self).__init__(n=53,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_960k,self).__init__(n=67,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_1920k,self).__init__(n=85,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_3840k,self).__init__(n=108,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_7680k,self).__init__(n=136,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder1JumpE6Normal45_15360k,self).__init__(n=171,order=1,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleLame3DOrder2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleLame3DOrder2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleLame3DOrder2_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+00,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE2_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE2_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+02,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomgeneousLame3DOrder2JumpE6_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomgeneousLame3DOrder2JumpE6_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+06,normal=[1.,0.,0.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE2Normal45_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+02,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_30k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_30k,self).__init__(n=10,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_60k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_60k,self).__init__(n=13,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_120k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_120k,self).__init__(n=17,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_240k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_240k,self).__init__(n=21,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_480k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_480k,self).__init__(n=27,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_960k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_960k,self).__init__(n=34,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_1920k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_1920k,self).__init__(n=43,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_3840k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_3840k,self).__init__(n=54,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_7680k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_7680k,self).__init__(n=68,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+class CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_15360k(AnisotropicSystem):
+   def __init__(self):
+      super(CompressibleInhomogeneousLame3DOrder2JumpE6Normal45_15360k,self).__init__(n=86,order=2,dim=3,mu0=1.000000e+06,normal=[1.,1.,1.],alpha=0.0)
+
 if __name__=="__main__":
    test=""
    n0=30000
@@ -1936,7 +2538,7 @@ if __name__=="__main__":
     for o in [1,2]:
       for g in [0,45]:
        for jump in [0,2,6]:
-         for alpha in [1,100]:
+         for alpha in [0]:   # [1,100]:
            for i in range(10):
             if not jump==0 or g==0:
              dofs=(n0*2**i)/float(d)
@@ -1945,22 +2547,30 @@ if __name__=="__main__":
                 if g==0:
                    if alpha==1:
                       name="Lame%sDOrder%s_%sk"%(d,o,int(d*dofs/1000))
+                   elif alpha==0:
+                      name="CompressibleLame%sDOrder%s_%sk"%(d,o,int(d*dofs/1000))
                    else:
                       name="Lame%sDOrder%sAlpha%s_%sk"%(d,o,alpha,int(d*dofs/1000))
                 else:
                    if alpha==1:
                       name="InhomogeneousLame%sDOrder%sNormal%s_%sk"%(d,o,g,int(d*dofs/1000))
+                   elif alpha==0:
+                      name="ComressibleInhomogeneousLame%sDOrder%sNormal%s_%sk"%(d,o,g,int(d*dofs/1000))
                    else:
                       name="InhomogeneousLame%sDOrder%sNormal%sAlpha%s_%sk"%(d,o,g,alpha,int(d*dofs/1000))
              else:
                 if g==0:
                    if alpha==1:
                       name="InhomgeneousLame%sDOrder%sJumpE%s_%sk"%(d,o,jump,int(d*dofs/1000))
+                   elif alpha==0:
+                      name="CompressibleInhomgeneousLame%sDOrder%sJumpE%s_%sk"%(d,o,jump,int(d*dofs/1000))
                    else:
                       name="InhomgeneousLame%sDOrder%sJumpE%sAlpha%s_%sk"%(d,o,jump,alpha,int(d*dofs/1000))
                 else:
                    if alpha==1:
                      name="InhomogeneousLame%sDOrder%sJumpE%sNormal%s_%sk"%(d,o,jump,g,int(d*dofs/1000))
+                   elif alpha==0:
+                     name="CompressibleInhomogeneousLame%sDOrder%sJumpE%sNormal%s_%sk"%(d,o,jump,g,int(d*dofs/1000))
                    else:
                      name="InhomogeneousLame%sDOrder%sJumpE%sNormal%sAlpha%s_%sk"%(d,o,jump,g,alpha,int(d*dofs/1000))
 
