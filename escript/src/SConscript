@@ -1,4 +1,5 @@
 libinstall = None
+incinstall = None
 
 Import('*')
 
@@ -18,6 +19,8 @@ cpp_path = [escript_path,
             esysUtils_path,
             python_path,
             boost_path]
+
+incs = ['Data.h']
 
 sources = ['AbstractContinuousDomain.cpp',
            'AbstractDomain.cpp',
@@ -64,6 +67,11 @@ escript_env.Replace(LIBS = libs)
 escript_lib = escript_env.SharedLibrary(libname, sources)
 
 Depends(escript_lib, esysUtils_lib)
+
+Default(escript_env.Install(incdir, incs))
+Default(escript_env.Install(incdir2, incs))
+if incinstall != None:
+  Default(escript_env.Install(incinstall, incs))
 
 Default(escript_env.Install(libdir, escript_lib))
 Default(escript_env.Install(libdir2, escript_lib))

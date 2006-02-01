@@ -14,6 +14,8 @@ Export(["boost_lib_path"])
 Export(["boost_lib"])
 Export(["sys_libs"])
 Export(["libinstall"])
+Export(["pyinstall"])
+Export(["incinstall"])
 
 #
 # set and export library directories
@@ -33,6 +35,16 @@ Export(["pydir2"])
 if pyinstall != None:
   pyinstall = Dir(str(pyinstall) + '/bruce')
   Export(["pyinstall"])
+
+#
+# set and export include directories
+
+incdir = Dir(str(esysroot) + '/bruce/inc')
+Export(["incdir"])
+incdir2 = Dir(str(esysroot) + '/inc')
+Export(["incdir2"])
+if incinstall != None:
+  Export(["incinstall"])
 
 #
 # print out build configuration for this module

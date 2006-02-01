@@ -15,6 +15,8 @@ Export(["python_lib_path"])
 Export(["python_lib"])
 Export(["sys_libs"])
 Export(["libinstall"])
+Export(["pyinstall"])
+Export(["incinstall"])
 
 #
 # set and export library directories
@@ -34,6 +36,16 @@ Export(["pydir2"])
 if pyinstall != None:
   pyinstall = Dir(str(pyinstall) + '/escript')
   Export(["pyinstall"])
+
+#
+# set and export include directories
+
+incdir = Dir(str(esysroot) + '/escript/inc')
+Export(["incdir"])
+incdir2 = Dir(str(esysroot) + '/inc')
+Export(["incdir2"])
+if incinstall != None:
+  Export(["incinstall"])
 
 #
 # print out build configuration for this module

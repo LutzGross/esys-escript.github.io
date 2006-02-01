@@ -14,6 +14,8 @@ Export(["boost_path"])
 Export(["cc"])
 Export(["cc_flags"])
 Export(["ar_flags"])
+Export(["libinstall"])
+Export(["incinstall"])
 
 # set and export library directories
 
@@ -21,6 +23,16 @@ libdir = Dir(str(esysroot) + '/paso/lib')
 Export(["libdir"])
 libdir2 = Dir(str(esysroot) + '/lib')
 Export(["libdir2"])
+
+#
+# set and export include directories
+
+incdir = Dir(str(esysroot) + '/paso/inc')
+Export(["incdir"])
+incdir2 = Dir(str(esysroot) + '/inc')
+Export(["incdir2"])
+if incinstall != None:
+  Export(["incinstall"])
 
 #
 # print out build configuration for this module
