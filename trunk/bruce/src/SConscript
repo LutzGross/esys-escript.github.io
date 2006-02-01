@@ -1,4 +1,5 @@
 libinstall = None
+incinstall = None
 
 Import('*')
 
@@ -22,6 +23,11 @@ cpp_path = [bruce_path,
             esysUtils_path,
             python_path,
             boost_path]
+
+incs = ['BruceException.h',
+        'BruceFactory.h',
+        'Bruce.h',
+        'vtkCellType.h']
 
 sources = ['Bruce.cpp',
            'BruceFactory.cpp',
@@ -50,6 +56,11 @@ bruce_lib = bruce_env.SharedLibrary(libname, sources)
 
 Depends(bruce_lib, esysUtils_lib)
 Depends(bruce_lib, escript_lib)
+
+Default(bruce_env.Install(incdir, incs))
+Default(bruce_env.Install(incdir2, incs))
+if incinstall != None:
+  Default(bruce_env.Install(incinstall, incs))
 
 Default(bruce_env.Install(libdir, bruce_lib))
 Default(bruce_env.Install(libdir2, bruce_lib))

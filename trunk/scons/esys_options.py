@@ -6,6 +6,7 @@
 # this is the general set up for the esys scons system:
 libinstall = None
 pyinstall = None
+incinstall = None
 dodebug = 0
 
 # locations of libs etc used by mkl
@@ -70,6 +71,7 @@ usegcc = 0
 options = None
 if ARGUMENTS.get('libinstall',0): libinstall = ARGUMENTS.get('libinstall',0)
 if ARGUMENTS.get('pyinstall',0): pyinstall = ARGUMENTS.get('pyinstall',0)
+if ARGUMENTS.get('incinstall',0): pyinstall = ARGUMENTS.get('incinstall',0)
 if ARGUMENTS.get('debug',0): dodebug = 1
 if ARGUMENTS.get('options',0): options = ARGUMENTS.get('options',0)
 if ARGUMENTS.get('usegcc',0): usegcc = 1
@@ -102,6 +104,9 @@ if dodebug==1:
      cxx_flags=cxx_flags_debug
      cc_flags=cc_flags_debug
 
+#
+# export configuration variables
 Export(["esysroot"])
 Export(["libinstall"])
 Export(["pyinstall"])
+Export(["incinstall"])

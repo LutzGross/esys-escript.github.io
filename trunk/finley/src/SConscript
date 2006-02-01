@@ -1,4 +1,5 @@
 libinstall = None
+incinstall = None
 
 Import('*')
 
@@ -29,6 +30,8 @@ cpp_path = [finley_path,
             esysUtils_path,
             python_path,
             boost_path]
+
+incs = ['Finley.h']
 
 sources = ['Assemble_addToSystemMatrix.c',
            'Assemble_CopyElementData.c',
@@ -135,6 +138,11 @@ Depends(finley_lib, esysUtils_lib)
 Depends(finley_lib, escript_lib)
 Depends(finley_lib, paso_lib)
 Depends(finley_lib, mmio_lib)
+
+Default(finley_env.Install(incdir, incs))
+Default(finley_env.Install(incdir2, incs))
+if incinstall != None:
+  Default(finley_env.Install(incinstall, incs))
 
 Default(finley_env.Install(libdir, finley_lib))
 Default(finley_env.Install(libdir2, finley_lib))
