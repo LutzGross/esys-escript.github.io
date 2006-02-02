@@ -201,7 +201,7 @@ class RegularFinleyProblem(FinleyProblem):
     """
     base class for finley problem on a rectangular mesh
     """
-    def __init__(self,n=1,order=1,dim=2):
+    def __init__(self,n=1,order=1,dim=2,num_equations=1):
        """
        sets up a recangular mesh in finley on a unit cube/square
  
@@ -212,10 +212,11 @@ class RegularFinleyProblem(FinleyProblem):
        @param dim: spatial dimension
        @type n: 2 or 3
        """
-       super(RegularFinleyProblem,self).__init__(name=str((order*n+1)**dim))
+       super(RegularFinleyProblem,self).__init__(name=str(num_equations*(order*n+1)**dim))
        self.__n=n
        self.__order=order
        self.__dim=dim
+       self.__num_equations=num_equations
 
     def getDomain(self):
        """
@@ -315,7 +316,7 @@ class AnisotropicSystem(RegularFinleyProblem):
         self.mu0=mu0
         self.normal=numarray.array(normal)
         self.alpha=alpha
-        super(AnisotropicSystem,self).__init__(n,order,dim)
+        super(AnisotropicSystem,self).__init__(n,order,dim,dim)
 
 
     def getTestProblem(self,domain):
