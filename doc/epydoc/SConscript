@@ -8,10 +8,21 @@ import os
 esysroot=str(Dir('../..').abspath)
 execfile(str(File(esysroot+"/scons/esys_options.py")))
 
-import scons_extensions
+#
+# construct the script to run epydoc
+
+runepydoc_script = open(str(File(esysroot+"/doc/epydoc/runepydoc")), 'w')
+runepydoc_script.write(str("#!/bin/bash\n"))
+runepydoc_script.write(str("export PYTHONPATH="+epydoc_pythonpath+"\n"))
+runepydoc_script.write(str(epydoc_path+"/epydoc --html -o "+esysroot+"/doc/lib/html/epydoc -n esys esys > epydoc_msgs.txt 2>&1\n"))
+runepydoc_script.close()
+
+os.chmod(str(File(esysroot+"/doc/epydoc/runepydoc")), 0700)
 
 #
 # do the actual build
+
+import scons_extensions
 
 source = 'runepydoc'
 
