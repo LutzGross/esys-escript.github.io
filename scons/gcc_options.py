@@ -28,6 +28,7 @@ boost_lib = 'boost_python'
 # locations of doc building executables
 doxygen_path = '/usr/bin'
 epydoc_path = '/usr/bin'
+epydoc_pythonpath = ''
 
 # names of c and c++ compilers to use
 cc = 'gcc'
