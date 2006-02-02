@@ -35,8 +35,6 @@ def build_epydoc(target, source, env):
     # change into the relevant dir
     os.chdir(docdir)
 
-    # determine which epydoc executable to use
-
     # run the epydoc script
     if not os.system(runepydoc):
 	os.chdir(pwd)
@@ -61,8 +59,6 @@ def build_doxygen(target, source, env):
 
     # change into the relevant dir
     os.chdir(docdir)
-
-    # determine which doxygen executable to use
 
     # run the doxygen script
     if not os.system(rundoxygen):
