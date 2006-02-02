@@ -1,7 +1,0 @@
-#!/bin/bash
-
-. /opt/modules/default/init/bash
-export MODULEPATH=$MODULEPATH:/raid2/tools/modulefiles/:/data/raid2/toolspp4/modulefiles/gcc-3.3.6
-module load epydoc
-
-epydoc --html -o doc/lib/html/epydoc -n esys esys > doc/epydoc/epydoc_msgs.txt 2>&1
