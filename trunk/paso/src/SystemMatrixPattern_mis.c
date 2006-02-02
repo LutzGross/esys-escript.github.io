@@ -17,7 +17,7 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "Util.h"
+#include "PasoUtil.h"
 #include "SystemMatrixPattern.h"
 
 

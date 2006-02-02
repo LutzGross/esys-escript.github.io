@@ -13,7 +13,7 @@
 
 #include "Paso.h"
 #include "Solver.h"
-#include "Util.h"
+#include "PasoUtil.h"
 
 /**************************************************************/
 
