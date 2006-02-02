@@ -30,7 +30,15 @@ paso_env.Replace(ARFLAGS = ar_flags)
 
 lib = 'paso'
 
-incs = ['Paso.h']
+incs = ['Common.h',
+        'MKL.h',
+        'Options.h',
+        'Paso.h',
+        'SCSL.h',
+        'SystemMatrix.h',
+        'SystemMatrixPattern.h',
+        'PasoUtil.h',
+        'Solvers/Solver.h']
 
 sources = ['Options_getPackage.c',
            'Options_getSolver.c',
@@ -52,7 +60,7 @@ sources = ['Options_getPackage.c',
            'SystemMatrix_saveHB.c',
            'SystemMatrix_saveMM.c',
            'SystemMatrix_setValues.c',
-           'Util.c',
+           'PasoUtil.c',
            'MKL.c',
            'SCSL.c',
            'SCSL_direct.c',
