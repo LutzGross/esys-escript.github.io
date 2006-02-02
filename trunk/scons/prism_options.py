@@ -23,6 +23,10 @@ boost_path = '/opt/tools/boost_1_31-gcc3.4/include/boost-1_31'
 boost_lib_path = '/opt/tools/boost_1_31-gcc3.4/lib'
 boost_lib = 'boost_python-gcc-1_31'
 
+# locations of doc building executables
+doxygen_path = ''
+epydoc_path = ''
+
 # names of c and c++ compilers to use
 cc = 'gcc'
 cxx = 'g++'

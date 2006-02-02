@@ -23,6 +23,10 @@ boost_path = '/raid2/tools/boost/include/boost-1_31'
 boost_lib_path = '/raid2/tools/boost/lib'
 boost_lib = 'boost_python-intel-d-1_31'
 
+# locations of doc building executables
+doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
+epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
+
 # names of c and c++ compilers to use
 cc = 'icc'
 cxx = 'icc'

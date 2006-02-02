@@ -26,13 +26,17 @@ umfpack_libs = []
 
 # locations of include files for python
 python_path = Dir('/usr/include')
-python_lib_path =Dir('/usr/lib')
+python_lib_path = Dir('/usr/lib')
 python_lib = Library('python2.3')
 
 # locations of libraries for boost
-boost_path =Dir('/usr/include')
-boost_lib_path =Dir('/usr/lib')
+boost_path = Dir('/usr/include')
+boost_lib_path = Dir('/usr/lib')
 boost_lib = Library('boost_python')
+
+# locations of doc building executables
+doxygen_path = ''
+epydoc_path = ''
 
 # names of c and c++ compilers to use
 cc = 'gcc'
