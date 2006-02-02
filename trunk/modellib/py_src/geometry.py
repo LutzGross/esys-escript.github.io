@@ -96,25 +96,32 @@ class ConstrainValue(Model):
            """
            initialize time stepping
            """
+           tol=1.e-8
            x=self.domain.getX()
            d=self.domain.getDim()
            self.location_constrained_value=0
            x0=x[0]
+           mx=sup(x0)
+           mn=inf(x0)
            if self.left: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-inf(x0))
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mn,tol*(mx-mn))
            if self.right: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mx,tol*(mx-mn))
            x0=x[d-1]
+           mx=sup(x0)
+           mn=inf(x0)
            if self.bottom: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-inf(x0))
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mn,tol*(mx-mn))
            if self.top: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))
+               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mx,tol*(mx-mn))
            if d>2:
               x0=x[1]
+              mx=sup(x0)
+              mn=inf(x0)
               if self.front: 
-                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-inf(x0))
+                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-mn,tol*(mx-mn))
               if self.back: 
-                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-sup(x0))           
+                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-mx,tol*(mx-mn))           
            self.constrain_value=self.value*self.location_constrained_value
            
 class ScalarConstrainer(ParameterSet):
