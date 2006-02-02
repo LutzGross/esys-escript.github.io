@@ -13,7 +13,7 @@ execfile(str(File(esysroot+"/scons/esys_options.py")))
 
 rundoxygen_script = open(str(File(esysroot+"/doc/doxygen/rundoxygen")), 'w')
 rundoxygen_script.write(str("#!/bin/bash\n"))
-rundoxygen_script.write(str(doxygen_path+"/doxygen doxygen/doxygen_esys > doxygen_msgs.txt 2>&1\n"))
+rundoxygen_script.write(str(doxygen_path+"/doxygen doxygen/doxygen_esys > "+esysroot+"/doc/doxygen_msgs.txt 2>&1\n"))
 rundoxygen_script.close()
 
 os.chmod(str(File(esysroot+"/doc/doxygen/rundoxygen")), 0700)
