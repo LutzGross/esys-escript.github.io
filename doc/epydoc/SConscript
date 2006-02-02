@@ -14,7 +14,7 @@ execfile(str(File(esysroot+"/scons/esys_options.py")))
 runepydoc_script = open(str(File(esysroot+"/doc/epydoc/runepydoc")), 'w')
 runepydoc_script.write(str("#!/bin/bash\n"))
 runepydoc_script.write(str("export PYTHONPATH="+epydoc_pythonpath+"\n"))
-runepydoc_script.write(str(epydoc_path+"/epydoc --html -o "+esysroot+"/doc/lib/html/epydoc -n esys esys > epydoc_msgs.txt 2>&1\n"))
+runepydoc_script.write(str(epydoc_path+"/epydoc --html -o "+esysroot+"/doc/lib/html/epydoc -n esys esys > "+esysroot+"/doc/epydoc_msgs.txt 2>&1\n"))
 runepydoc_script.close()
 
 os.chmod(str(File(esysroot+"/doc/epydoc/runepydoc")), 0700)
