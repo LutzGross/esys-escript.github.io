@@ -1,30 +1,14 @@
 # Scons configuration file for epydoc docs
 
 import os
-import sys
-
-#
-# ensure correct versions of python and scons
-
-EnsurePythonVersion(2,3)
-EnsureSConsVersion(0,96)
 
 #
 # set appropriate defaults for configuration variables
 
-esysroot = Dir('#../..')
+esysroot=str(Dir('../..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
 
-#
-# import configuration variables passed in from
-# calling SConscript (if any)
-
-Import('*')
-
-#
-# load configuration settings
-
-options_dir = str(esysroot) + '/scons'
-sys.path.append(options_dir)
+import scons_extensions
 
 #
 # do the actual build
@@ -33,7 +17,6 @@ source = 'runepydoc'
 
 epydoc_env = Environment(ENV = os.environ)
 
-import scons_extensions
 runEpydoc_builder = Builder(action = scons_extensions.build_epydoc, suffix = ".run")
 epydoc_env.Append(BUILDERS = {'RunEpydoc' : runEpydoc_builder})
 
