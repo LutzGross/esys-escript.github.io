@@ -31,7 +31,24 @@ cpp_path = [finley_path,
             python_path,
             boost_path]
 
-incs = ['Finley.h']
+incs = ['Assemble.h',
+        'ElementFile.h',
+        'Finley.h',
+        'FinleyVersion.h',
+        'IndexList.h',
+        'Mesh.h',
+        'NodeFile.h',
+        'Quadrature.h',
+        'RectangularMesh.h',
+        'ReferenceElements.h',
+        'ShapeFunctions.h',
+        'Util.h',
+#        'vtkCellType.h',
+        'CPPAdapter/FinleyAdapterException.h',
+        'CPPAdapter/FinleyError.h',
+        'CPPAdapter/MeshAdapterFactory.h',
+        'CPPAdapter/MeshAdapter.h',
+        'CPPAdapter/SystemMatrixAdapter.h']
 
 sources = ['Assemble_addToSystemMatrix.c',
            'Assemble_CopyElementData.c',
