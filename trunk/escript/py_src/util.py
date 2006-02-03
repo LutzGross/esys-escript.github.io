@@ -44,7 +44,6 @@ import os
 # def matchType(arg0=0.,arg1=0.):
 # def matchShape(arg0,arg1):
 
-# def transpose(arg,axis=None):
 # def reorderComponents(arg,index):
 
 #
@@ -3012,6 +3011,174 @@ class Trace_Symbol(DependendSymbol):
       else:
          return trace(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
 
+def transpose(arg,axis_offset=None):
+   """
+   returns the transpose of arg by swaping the first axis_offset and the last rank-axis_offset components. 
+
+   @param arg: argument
+   @type arg: L{escript.Data}, L{Symbol}, L{numarray.NumArray}, C{float}, C{int}
+   @param axis_offset: the first axis_offset components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
+                       if axis_offset is not present C{int(r/2)} where r is the rank of arg is used.
+   @type axis_offset: C{int}
+   @return: transpose of arg
+   @rtype: L{escript.Data}, L{Symbol}, L{numarray.NumArray},C{float}, C{int} depending on the type of arg.
+   """
+   if isinstance(arg,numarray.NumArray):
+      if axis_offset==None: axis_offset=int(arg.rank/2)
+      return numarray.transpose(arg,axes=range(axis_offset,arg.rank)+range(0,axis_offset))
+   elif isinstance(arg,escript.Data):
+      if axis_offset==None: axis_offset=int(arg.getRank()/2)
+      return escript_transpose(arg,axis_offset)
+   elif isinstance(arg,float):
+      if not ( axis_offset==0 or axis_offset==None): 
+        raise ValueError,"transpose: axis_offset must be 0 for float argument"
+      return arg
+   elif isinstance(arg,int):
+      if not ( axis_offset==0 or axis_offset==None): 
+        raise ValueError,"transpose: axis_offset must be 0 for int argument"
+      return float(arg)
+   elif isinstance(arg,Symbol):
+      if axis_offset==None: axis_offset=int(arg.getRank()/2)
+      return Transpose_Symbol(arg,axis_offset)
+   else:
+      raise TypeError,"transpose: Unknown argument type."
+
+def escript_transpose(arg,axis_offset): # this should be escript._transpose
+      "arg si a Data objects!!!"
+      r=arg.getRank()
+      if axis_offset<0 or axis_offset>r:
+        raise ValueError,"escript_transpose: axis_offset must be between 0 and %s"%r
+      s=arg.getShape()
+      s_out=s[axis_offset:]+s[:axis_offset]
+      out=escript.Data(0.,s_out,arg.getFunctionSpace())
+      if r==4:
+         if axis_offset==1:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                  for i2 in range(s_out[2]):
+                     for i3 in range(s_out[3]):
+                         out[i0,i1,i2,i3]=arg[i3,i0,i1,i2]
+         elif axis_offset==2:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                  for i2 in range(s_out[2]):
+                     for i3 in range(s_out[3]):
+                         out[i0,i1,i2,i3]=arg[i2,i3,i0,i1]
+         elif axis_offset==3:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                  for i2 in range(s_out[2]):
+                     for i3 in range(s_out[3]):
+                         out[i0,i1,i2,i3]=arg[i1,i2,i3,i0]
+         else:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                  for i2 in range(s_out[2]):
+                     for i3 in range(s_out[3]):
+                         out[i0,i1,i2,i3]=arg[i0,i1,i2,i3]
+      elif r==3:
+         if axis_offset==1:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                  for i2 in range(s_out[2]):
+                         out[i0,i1,i2]=arg[i2,i0,i1]
+         elif axis_offset==2:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                  for i2 in range(s_out[2]):
+                         out[i0,i1,i2]=arg[i1,i2,i0]
+         else:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                  for i2 in range(s_out[2]):
+                         out[i0,i1,i2]=arg[i0,i1,i2]
+      elif r==2:
+         if axis_offset==1:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                         out[i0,i1]=arg[i1,i0]
+         else:
+            for i0 in range(s_out[0]):
+               for i1 in range(s_out[1]):
+                         out[i0,i1]=arg[i0,i1]
+      elif r==1:
+          for i0 in range(s_out[0]):
+               out[i0]=arg[i0]
+      elif r==0: 
+             out=arg+0.
+      return out
+class Transpose_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the transpose function
+   """
+   def __init__(self,arg,axis_offset=None):
+      """
+      initialization of transpose L{Symbol} with argument arg
+
+      @param arg: argument of function
+      @type arg: L{Symbol}.
+       @param axis_offset: the first axis_offset components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
+                       if axis_offset is not present C{int(r/2)} where r is the rank of arg is used.
+      @type axis_offset: C{int}
+      """
+      if axis_offset==None: axis_offset=int(arg.getRank()/2)
+      if axis_offset<0 or axis_offset>arg.getRank():
+        raise ValueError,"escript_transpose: axis_offset must be between 0 and %s"%r
+      s=arg.getShape()
+      super(Transpose_Symbol,self).__init__(args=[arg,axis_offset],shape=s[axis_offset:]+s[:axis_offset],dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "transpose(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
+      else:
+         raise NotImplementedError,"Transpose_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)
+         return transpose(arg[0],axis_offset=arg[1])
+
+   def diff(self,arg):
+      """
+      differential of this object
+
+      @param arg: the derivative is calculated with respect to arg
+      @type arg: L{escript.Symbol}
+      @return: derivative with respect to C{arg}
+      @rtype: typically L{Symbol} but other types such as C{float}, L{escript.Data}, L{numarray.NumArray}  are possible.
+      """
+      if arg==self:
+         return identity(self.getShape())
+      else:
+         return transpose(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
+
 def inverse(arg):
     """
     returns the inverse of the square matrix arg. 
@@ -4224,48 +4391,13 @@ def L2(arg):
     return sqrt(integrate(inner(arg,arg)))
 #=============================
 #
-# wrapper for various functions: if the argument has attribute the function name
-# as an argument it calls the corresponding methods. Otherwise the corresponding
-# numarray function is called.
-
-# functions involving the underlying Domain:
-
-def transpose(arg,axis=None):
-    """
-    Returns the transpose of the Data object arg. 
-
-    @param arg:
-    """
-    if axis==None:
-       r=0
-       if hasattr(arg,"getRank"): r=arg.getRank()
-       if hasattr(arg,"rank"): r=arg.rank
-       axis=r/2
-    if isinstance(arg,Symbol):
-       return Transpose_Symbol(arg,axis=r)
-    if isinstance(arg,escript.Data):
-       # hack for transpose 
-       r=arg.getRank()
-       if r!=2: raise ValueError,"Tranpose only avalaible for rank 2 objects"
-       s=arg.getShape()
-       out=escript.Data(0.,(s[1],s[0]),arg.getFunctionSpace())
-       for i in range(s[0]):
-          for j in range(s[1]):
-             out[j,i]=arg[i,j]
-       return out
-       # end hack for transpose 
-       return arg.transpose(axis)
-    else:
-       return numarray.transpose(arg,axis=axis)
-
-
 
 def reorderComponents(arg,index):
     """
     resorts the component of arg according to index
 
     """
-    pass
+    raise NotImplementedError
 #
 # $Log: util.py,v $
 # Revision 1.14.2.16  2005/10/19 06:09:57  gross
