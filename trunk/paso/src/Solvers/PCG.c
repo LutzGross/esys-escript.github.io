@@ -1,5 +1,6 @@
 /* $Id$ */
 
+
 /* PCG iterations */
 
 #include "SystemMatrix.h"
@@ -62,7 +63,8 @@ err_t Paso_Solver_PCG(
   dim_t n = A->num_cols * A-> col_block_size;
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
-  double d,norm_of_residual,norm_of_residual_global;
+  double norm_of_residual,norm_of_residual_global;
+  register double r_tmp,d,rs_tmp,x2_tmp,x_tmp;
 
 /*                                                                 */
 /*-----------------------------------------------------------------*/
@@ -93,6 +95,9 @@ err_t Paso_Solver_PCG(
        for (i0=0;i0<n;i0++) {
           rs[i0]=r[i0];
           x2[i0]=x[i0];
+       } 
+       #pragma omp for private(i0) schedule(static)
+       for (i0=0;i0<n;i0++) {
           p[i0]=0;
           v[i0]=0;
        } 
@@ -136,27 +141,29 @@ err_t Paso_Solver_PCG(
            if (! (breakFlag = (ABS(delta) <= TOLERANCE_FOR_SCALARS))) {
                alpha=tau/delta;
                /* smoother */
+               #pragma omp for private(i0) schedule(static)
+               for (i0=0;i0<n;i0++) r[i0]-=alpha*v[i0];
                #pragma omp for private(i0,d) reduction(+:sum_3,sum_4) schedule(static)
                for (i0=0;i0<n;i0++) {
-                     r[i0]-=alpha*v[i0];
                      d=r[i0]-rs[i0];
-                     sum_3=sum_3+d*d;
-                     sum_4=sum_4+d*rs[i0];
+                     sum_3+=d*d;
+                     sum_4+=d*rs[i0];
                 }
                 gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
                 gamma_2= ONE-gamma_1;
-                #pragma omp for private(i0) reduction(+:sum_5) schedule(static)
-                for (i0=0;i0<n;i0++) {
+                #pragma omp for private(i0,x2_tmp,x_tmp,rs_tmp) schedule(static)
+                for (i0=0;i0<n;++i0) {
+                  rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
                   x2[i0]+=alpha*p[i0];
                   x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
-                  rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
-                  sum_5+=rs[i0]*rs[i0];
-              }
-              norm_of_residual=sqrt(sum_5);
-              convergeFlag = norm_of_residual <= tol;
-              maxIterFlag = num_iter == maxit;
-              breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
-          }
+                }
+                #pragma omp for private(i0) reduction(+:sum_5) schedule(static)
+                for (i0=0;i0<n;++i0) sum_5+=rs[i0]*rs[i0];
+                norm_of_residual=sqrt(sum_5);
+                convergeFlag = norm_of_residual <= tol;
+                maxIterFlag = num_iter == maxit;
+                breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
+           }
        }
        /* end of iteration */
        #pragma omp master

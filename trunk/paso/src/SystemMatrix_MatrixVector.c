@@ -189,8 +189,8 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
     double beta,
     double* out) {
 
-  register index_t ir,icol,iptr,icb,irb,irow,ic;
-  register double reg,reg1,reg2,reg3;
+  register index_t ir,icol,iptr,icb,irb,irow,ic,Aiptr;
+  register double reg,reg1,reg2,reg3,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22;
   #pragma omp barrier
   if (ABS(beta)>0.) {
     #pragma omp for private(irow) schedule(static)
@@ -207,35 +207,58 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
         #pragma omp for private(irow,iptr,reg) schedule(static)
 	for (irow=0;irow< A->pattern->n_ptr;++irow) {
           reg=0.;
+          #pragma swp
 	  for (iptr=(A->pattern->ptr[irow]);iptr<(A->pattern->ptr[irow+1]); ++iptr) {
 	      reg += A->val[iptr] * in[A->pattern->index[iptr]];
 	  }
 	  out[irow] += alpha * reg;
 	}
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
-        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg1,reg2) schedule(static)
+        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg1,reg2,in1,in2,Aiptr,A00,A10,A01,A11) schedule(static)
 	for (ir=0;ir< A->pattern->n_ptr;ir++) {
           reg1=0.;
           reg2=0.;
+          #pragma swp
 	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
 	       ic=2*(A->pattern->index[iptr]);
-	       reg1 += A->val[iptr*4  ]*in[ic] + A->val[iptr*4+2]*in[1+ic];
-	       reg2 += A->val[iptr*4+1]*in[ic] + A->val[iptr*4+3]*in[1+ic];
+               Aiptr=iptr*4;
+               in1=in[ic];
+               in2=in[1+ic];
+               A00=A->val[Aiptr  ];
+               A10=A->val[Aiptr+1];
+               A01=A->val[Aiptr+2];
+               A11=A->val[Aiptr+3];
+	       reg1 += A00*in1 + A01*in2;
+	       reg2 += A10*in1 + A11*in2;
 	  }
 	  out[  2*ir] += alpha * reg1;
 	  out[1+2*ir] += alpha * reg2;
 	}
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
-        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg1,reg2,reg3) schedule(static)
+        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg1,reg2,reg3,in1,in2,in3,Aiptr,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
 	for (ir=0;ir< A->pattern->n_ptr;ir++) {
           reg1=0.;
           reg2=0.;
           reg3=0.;
+          #pragma swp
 	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
 	       ic=3*(A->pattern->index[iptr]);
-	       reg1 += A->val[iptr*9  ]*in[ic] + A->val[iptr*9+3]*in[1+ic] + A->val[iptr*9+6]*in[2+ic];
-	       reg2 += A->val[iptr*9+1]*in[ic] + A->val[iptr*9+4]*in[1+ic] + A->val[iptr*9+7]*in[2+ic];
-	       reg3 += A->val[iptr*9+2]*in[ic] + A->val[iptr*9+5]*in[1+ic] + A->val[iptr*9+8]*in[2+ic];
+               Aiptr=iptr*9;
+               in1=in[ic];
+               in2=in[1+ic];
+               in3=in[2+ic];
+               A00=A->val[Aiptr  ];
+               A10=A->val[Aiptr+1];
+               A20=A->val[Aiptr+2];
+               A01=A->val[Aiptr+3];
+               A11=A->val[Aiptr+4];
+               A21=A->val[Aiptr+5];
+               A02=A->val[Aiptr+6];
+               A12=A->val[Aiptr+7];
+               A22=A->val[Aiptr+8];
+	       reg1 += A00*in1 + A01*in2 + A02*in3;
+	       reg2 += A10*in1 + A11*in2 + A12*in3;
+	       reg3 += A20*in1 + A21*in2 + A22*in3;
 	  }
 	  out[  3*ir] += alpha * reg1;
 	  out[1+3*ir] += alpha * reg2;
