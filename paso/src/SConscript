@@ -38,11 +38,13 @@ incs = ['Common.h',
         'SystemMatrix.h',
         'SystemMatrixPattern.h',
         'PasoUtil.h',
+        'performance.h',
         'Solvers/Solver.h']
 
 sources = ['Options_getPackage.c',
            'Options_getSolver.c',
            'Options_setDefaults.c',
+           'performance.c',
            'Paso.c',
            'solve.c',
            'SystemMatrix_borrowNormalization.c',
