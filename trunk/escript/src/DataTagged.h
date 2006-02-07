@@ -29,13 +29,11 @@ class DataConstant;
 
 /**
    \brief
-   Creates the illusion of a full dataset accessible via sampleNo and dataPointNo. 
+   Simulates a full dataset accessible via sampleNo and dataPointNo. 
 
    Description:
-   Creates the illusion of a full dataset accessible via sampleNo and
-   dataPointNo. In reality a much smaller number of data-points is stored.
-   Each data-point has an associated key, thus a given key represents a specific
-   range of dataPointNo and sampleNo. Each key indexes a single data-point.
+   Each data-point has an associated tag number, and a given tag can represent a
+   range of dataPointNo and sampleNo. Each tag indexes only a single data-point.
    Thus only a single data-point needs to be stored for a range of sampleNo and
    dataPointNo values.
 */
@@ -45,13 +43,13 @@ class DataTagged : public DataAbstract {
  public:
 
   //
-  // Types for the lists of tags and values
+  // Types for the lists of tags and values.
   typedef std::vector<int>           TagListType;
   typedef std::vector<DataArrayView> ValueListType;
   typedef DataArrayView::ValueType   ValueType;
 
   //
-  // Map from the tag to an offset the the data array. 
+  // Map from a tag to an offset into the data array. 
   typedef std::map<int, int> DataMapType;
 
   /**
@@ -60,8 +58,8 @@ class DataTagged : public DataAbstract {
 
      Description:
      Default constructor for DataTagged. Creates a DataTagged object for which
-     the default data-point is a scalar data-point with value 0.0. Any given tag
-     will map to this data-point.
+     the only data-point is a scalar data-point with value 0.0. All tags
+     will map to this single data-point.
   */
   DataTagged();
 
@@ -73,11 +71,11 @@ class DataTagged : public DataAbstract {
      Constructor for DataTagged.
      \param tagKeys - Input - A vector of integer keys.
      \param values - Input - A vector of DataArrayViews. If this is empty
-                   all tag values will be assigned a value of zero. If 
-                   it contains one value all tag values will be assigned the 
-		   same value. Otherwise if there is a mismatch between 
-		   the number of keys and the number of values an exception 
-		   will be generated.
+                     all tag values will be assigned a value of zero. If 
+                     it contains one value all tag values will be assigned the 
+		     same value. Otherwise if there is a mismatch between 
+		     the number of keys and the number of values an exception 
+		     will be generated.
      \param defaultValue - Input - Value returned if a requested tag doesn't exist.
      \param what - Input - A description of what this data represents.
   */
@@ -88,14 +86,14 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
-     Alternative constructor for DataTagged objects.
+     Alternative Constructor for DataTagged.
 
      Description:
-     Alternative Constructor for DataTagged objects.
+     Alternative Constructor for DataTagged.
      \param what - Input - A description of what this data object represents.
-     \param shape - Input - the shape of each data-point.
-     \param tags - Input - array of tags, one for each sample number
-     \param data - the data values for each data-point.
+     \param shape - Input - The shape of each data-point.
+     \param tags - Input - An array of tags, one for each sample number.
+     \param data - The data values for each tag.
   */
   DataTagged(const FunctionSpace& what,
              const DataArrayView::ShapeType &shape,
@@ -104,28 +102,29 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
-     Slice constructor for DataTagged.
+     Slice Constructor for DataTagged.
 
      Description:
-     Slice constructor for DataTagged.
+     Slice Constructor for DataTagged.
      Copies a slice from another DataTagged object.
      \param other - Input - DataTagged object to copy from.
-     \param region - Input - region to copy.
+     \param region - Input - Region to copy.
   */
   DataTagged(const DataTagged& other, 
 	     const DataArrayView::RegionType& region);
 
   /**
      \brief
-     Copy constructorfor DataTagged.
+     Copy Constructor for DataTagged.
      Performs a deep copy from the given DataTagged object.
   */
   DataTagged(const DataTagged& other);
 
   /**
      \brief
+     Copy Constructor for DataTagged.
      Construct a tagged data from a DataConstant object.
-     The default data-point will be that held by the DataConstant object.
+     The default value will be that held by the DataConstant object.
   */
   DataTagged(const DataConstant& other);
 
@@ -134,9 +133,10 @@ class DataTagged : public DataAbstract {
      getSampleDataByTag
 
      Description:
-     Return the data-point for the given tag. All of the data for the entire
-     sample should be visable via the returned pointer. This provides an 
-     interface into the data suitable for legacy C code.
+     Return the data-point for the given tag. All of the data for the
+     sample will be visible via the returned pointer.
+
+     ** This provides an interface into the data suitable for legacy C code.
   */
   virtual
   double*
@@ -154,7 +154,8 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
-     Return the tag number associated with the given data-point number.
+     Return the tag number associated with the given data-point number
+     according to the associated function space.
   */
   virtual
   int
@@ -165,9 +166,8 @@ class DataTagged : public DataAbstract {
      getPointOffset
 
      Description:
-     Return the offset to the given data-point. This is somewhat artificial,
-     but returns the offset for the given point in the DataTagged object.
-     Only really necessary to avoid many DataArrayView objects.
+     Return the offset to the given data-point value in the underlying
+     data vector.
 
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data-point number.
@@ -260,8 +260,6 @@ class DataTagged : public DataAbstract {
      Description:
      Return a view into the data-point specified by the given sample
      and data-point numbers.
-     NOTE: Construction of the DataArrayView is a relatively expensive 
-     operation.
      \param sampleNo - Input.
      \param dataPointNo - Input.
   */
@@ -285,9 +283,10 @@ class DataTagged : public DataAbstract {
      isCurrentTag
 
      Description:
-     Return true if the given tag exists within the DataTagged tag keys.
-     NOTE: The DataTagged keys do not necessarily coincide with the tag
-     keys for the function space.
+     Return true if the given tag exists within the DataTagged tag map.
+
+     NOTE: The DataTagged tag map does not necessarily coincide with the tag
+     keys in the associated function space.
    */
   bool
   isCurrentTag(int tag) const;
@@ -298,7 +297,7 @@ class DataTagged : public DataAbstract {
 
      Description:
      Return the default value. This value is associated with any tag which
-     is not explicitly recorded in this DataTagged object.
+     is not explicitly recorded in this DataTagged object's tag map.
   */
   DataArrayView&
   getDefaultValue();
@@ -388,7 +387,7 @@ class DataTagged : public DataAbstract {
   DataMapType m_offsetLookup;
 
   //
-  // the default value offset
+  // the offset to the default value
   static const int m_defaultValueOffset = 0;
 
   //
@@ -419,6 +418,20 @@ DataTagged::getDefaultValue() const
 {
   // The default value is always the first value.
   return getPointDataView();
+}
+
+inline
+const DataTagged::DataMapType&
+DataTagged::getTagLookup() const
+{
+  return m_offsetLookup;
+}
+
+inline
+DataArrayView::ValueType::size_type
+DataTagged::getLength() const
+{
+  return m_data.size();
 }
 
 } // end of namespace
