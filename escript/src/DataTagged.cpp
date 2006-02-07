@@ -15,6 +15,7 @@
 */
 
 #include "DataTagged.h"
+
 #include "DataConstant.h"
 #include "DataException.h"
 
@@ -204,7 +205,7 @@ DataTagged::getTagNumber(int dpno)
     throw DataException("DataTagged::getTagNumber error: no data-points associated with this object.");
   }
 
-  if (dpno<0 || dpno>numDataPoints) {
+  if (dpno<0 || dpno>numDataPoints-1) {
     throw DataException("DataTagged::getTagNumber error: invalid data-point number supplied.");
   }
 
@@ -341,19 +342,6 @@ DataTagged::toString() const
   return temp.str();
 }
 
-DataArrayView
-DataTagged::getDataPointByTag(int tag) const
-{
-  DataMapType::const_iterator pos(m_offsetLookup.find(tag));
-  DataArrayView::ValueType::size_type offset=m_defaultValueOffset;
-  if (pos!=m_offsetLookup.end()) {
-    offset=pos->second;
-  }
-  DataArrayView temp(getPointDataView());
-  temp.setOffset(offset);
-  return temp;
-}
-
 DataArrayView::ValueType::size_type 
 DataTagged::getPointOffset(int sampleNo,
                            int dataPointNo) const
@@ -368,24 +356,25 @@ DataTagged::getPointOffset(int sampleNo,
 }
 
 DataArrayView
+DataTagged::getDataPointByTag(int tag) const
+{
+  DataMapType::const_iterator pos(m_offsetLookup.find(tag));
+  DataArrayView::ValueType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  DataArrayView temp(getPointDataView());
+  temp.setOffset(offset);
+  return temp;
+}
+
+DataArrayView
 DataTagged::getDataPoint(int sampleNo,
                          int dataPointNo)
 {
   EsysAssert(validSampleNo(sampleNo),"(getDataPoint) Invalid sampleNo: " << sampleNo);
   int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
   return getDataPointByTag(tagKey);
-}
-
-const DataTagged::DataMapType&
-DataTagged::getTagLookup() const
-{
-  return m_offsetLookup;
-}
-
-DataArrayView::ValueType::size_type
-DataTagged::getLength() const
-{
-  return m_data.size();
 }
 
 int
