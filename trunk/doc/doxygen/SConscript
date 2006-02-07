@@ -30,4 +30,5 @@ doxygen_env = Environment(ENV = os.environ)
 runDoxygen_builder = Builder(action = scons_extensions.build_doxygen, suffix = ".run", single_source = True)
 doxygen_env.Append(BUILDERS = {'RunDoxygen' : runDoxygen_builder})
 
-Default(doxygen_env.RunDoxygen(source))
+Alias("build_docs", doxygen_env.RunDoxygen(source))
+Default()
