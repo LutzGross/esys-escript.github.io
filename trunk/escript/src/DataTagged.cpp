@@ -57,7 +57,7 @@ DataTagged::DataTagged(const TagListType& tagKeys,
 DataTagged::DataTagged(const FunctionSpace& what,
                        const DataArrayView::ShapeType &shape,
                        const int tags[],
-                       const ValueType &data)
+                       const ValueType& data)
   : DataAbstract(what)
 {
   // copy the data

@@ -60,6 +60,7 @@ class DataTagged : public DataAbstract {
      Default constructor for DataTagged. Creates a DataTagged object for which
      the only data-point is a scalar data-point with value 0.0. All tags
      will map to this single data-point.
+     T
   */
   DataTagged();
 
@@ -78,6 +79,7 @@ class DataTagged : public DataAbstract {
 		     will be generated.
      \param defaultValue - Input - Value returned if a requested tag doesn't exist.
      \param what - Input - A description of what this data represents.
+     T
   */
   DataTagged(const TagListType& tagKeys,
              const ValueListType& values,
@@ -98,7 +100,7 @@ class DataTagged : public DataAbstract {
   DataTagged(const FunctionSpace& what,
              const DataArrayView::ShapeType &shape,
              const int tags[],
-             const ValueType &data);
+             const ValueType& data);
 
   /**
      \brief
@@ -147,6 +149,7 @@ class DataTagged : public DataAbstract {
      Write the data as a string.
      Writes out each tag, including the default, and the data-point which is
      associated with each tag.
+     T
   */
   virtual
   std::string
@@ -156,6 +159,7 @@ class DataTagged : public DataAbstract {
      \brief
      Return the tag number associated with the given data-point number
      according to the associated function space.
+     T
   */
   virtual
   int
@@ -171,6 +175,7 @@ class DataTagged : public DataAbstract {
 
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data-point number.
+     T
    */
   virtual
   ValueType::size_type
@@ -249,6 +254,7 @@ class DataTagged : public DataAbstract {
      Description:
      Return a view into the data-point associated with the given tag.
      \param tag - Input - Integer key.
+     T
   */
   DataArrayView
   getDataPointByTag(int tag) const;
@@ -262,6 +268,7 @@ class DataTagged : public DataAbstract {
      and data-point numbers.
      \param sampleNo - Input.
      \param dataPointNo - Input.
+     T
   */
   virtual
   DataArrayView
@@ -274,6 +281,7 @@ class DataTagged : public DataAbstract {
 
      Description:
      Return a reference to the tag offset lookup table.
+     T
   */
   const DataMapType&
   getTagLookup() const;
@@ -287,6 +295,7 @@ class DataTagged : public DataAbstract {
 
      NOTE: The DataTagged tag map does not necessarily coincide with the tag
      keys in the associated function space.
+     T
    */
   bool
   isCurrentTag(int tag) const;
@@ -298,6 +307,7 @@ class DataTagged : public DataAbstract {
      Description:
      Return the default value. This value is associated with any tag which
      is not explicitly recorded in this DataTagged object's tag map.
+     T
   */
   DataArrayView&
   getDefaultValue();
@@ -311,6 +321,7 @@ class DataTagged : public DataAbstract {
 
      Description:
      Return the number of doubles stored for the Data.
+     T
   */
   virtual
   ValueType::size_type
