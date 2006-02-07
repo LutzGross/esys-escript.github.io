@@ -31,4 +31,4 @@ epydoc_env = Environment(ENV = os.environ)
 runEpydoc_builder = Builder(action = scons_extensions.build_epydoc, suffix = ".run")
 epydoc_env.Append(BUILDERS = {'RunEpydoc' : runEpydoc_builder})
 
-Default(epydoc_env.RunEpydoc(source))
+Alias("build_docs", epydoc_env.RunEpydoc(source))
