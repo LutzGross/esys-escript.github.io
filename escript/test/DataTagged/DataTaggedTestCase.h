@@ -36,6 +36,7 @@ class DataTaggedTestCase : public CppUnitTest::TestCase
   void testAll();
   void testAddTaggedValues();
   void testSetTaggedValue();
+  void testCopyConstructors();
   void testReshape();
   void testOperations();
 
