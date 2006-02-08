@@ -114,6 +114,7 @@ void DataTaggedTestCase::testOperations() {
     assert(left.getDataPointByTag(1)==vZero.getView());
     assert(left.getDataPointByTag(2)==vZero.getView());
   }
+
   {
     DataArrayView::ShapeType viewShape;
     viewShape.push_back(3);
@@ -141,6 +142,7 @@ void DataTaggedTestCase::testOperations() {
       assert(left.getDefaultValue()(i)==-(i*mVal));
     }
   }
+
   {
     cout << "\tTest unaryOp(negate) on default DataTagged." << endl;
     DataTagged data;
@@ -152,6 +154,7 @@ void DataTaggedTestCase::testOperations() {
     unaryOp(data,negate<double>());
     assert(data.getDefaultValue()()==-1);
   }
+
   {
     cout << "\tTest unaryOp(negate) on DataTagged with 3 tags." << endl;
     DataArrayView::ShapeType vShape;
@@ -181,6 +184,1003 @@ void DataTaggedTestCase::testOperations() {
     assert(tData.getDataPointByTag(2)==tTwoView);
     assert(tData.getDataPointByTag(3)==tThreeView);
   }
+
+}
+
+void DataTaggedTestCase::testAddTaggedValues() {
+
+  cout << endl;
+
+  {
+
+    cout << "\tTest adding one key with empty value list to default DataTagged." << endl;
+    DataTagged myData;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+
+    DataTagged::ValueListType values;
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==1);
+
+    assert(myData.getLength()==2);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==1);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+  }
+
+  {
+
+    cout << "\tTest adding one key with one value to default DataTagged." << endl;
+    DataTagged myData;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    DataArrayView::ValueType viewData(1);
+    viewData[0]=1.0;
+    DataArrayView myView(viewData,viewShape);
+    values.push_back(myView);
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==1);
+
+    assert(myData.getLength()==2);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==1);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+  }
+
+  {
+
+    cout << "\tTest adding three keys with one value to default DataTagged." << endl;
+    DataTagged myData;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    DataArrayView::ValueType viewData(1);
+    viewData[0]=1.0;
+    DataArrayView myView(viewData,viewShape);
+    values.push_back(myView);
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+    assert(myData.isCurrentTag(3));
+
+    assert(myData.getTagLookup().size()==3);
+
+    assert(myData.getLength()==4);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==1);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDataPointByTag(2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==2);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDataPointByTag(3);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+  }
+
+  {
+
+    cout << "\tTest adding three keys with three values to default DataTagged." << endl;
+    DataTagged myData;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    DataArrayView::ValueType viewData1(1);
+    viewData1[0]=1.0;
+    DataArrayView::ValueType viewData2(1);
+    viewData2[0]=2.0;
+    DataArrayView::ValueType viewData3(1);
+    viewData3[0]=3.0;
+    DataArrayView myView1(viewData1,viewShape);
+    DataArrayView myView2(viewData2,viewShape);
+    DataArrayView myView3(viewData3,viewShape);
+    values.push_back(myView1);
+    values.push_back(myView2);
+    values.push_back(myView3);
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+    assert(myData.isCurrentTag(3));
+
+    assert(myData.getTagLookup().size()==3);
+
+    assert(myData.getLength()==4);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==1);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDataPointByTag(2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==2);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==2.0);
+
+    myDataView = myData.getDataPointByTag(3);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==3.0);
+
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+  }
+
+  {
+
+    cout << "\tTest adding one key with empty value list to DataTagged with default value only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.push_back(1);
+    values.clear();
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==1);
+
+    assert(myData.getLength()==6);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==3);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+    myDataView = myData.getDefaultValue();
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+  }
+
+  {
+
+    cout << "\tTest adding one key with one value to DataTagged with default value only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.push_back(1);
+
+    DataArrayView::ValueType viewData1(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData1[i]=i+1;
+    }
+    DataArrayView myView1(viewData1,viewShape);
+    values.push_back(myView1);
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==1);
+
+    assert(myData.getLength()==6);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==3);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDefaultValue();
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+  }
+
+  {
+
+    cout << "\tTest adding three keys with one value to DataTagged with default value only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataArrayView::ValueType viewData1(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData1[i]=i+1;
+    }
+    DataArrayView myView1(viewData1,viewShape);
+    values.push_back(myView1);
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+    assert(myData.isCurrentTag(3));
+
+    assert(myData.getTagLookup().size()==3);
+
+    assert(myData.getLength()==12);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==3);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDataPointByTag(2);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==6);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDataPointByTag(3);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==9);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDefaultValue();
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+  }
+
+  {
+
+    cout << "\tTest adding three keys with three values to DataTagged with default value only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataArrayView::ValueType viewData1(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData1[i]=i+1;
+    }
+    DataArrayView myView1(viewData1,viewShape);
+    values.push_back(myView1);
+
+    DataArrayView::ValueType viewData2(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData2[i]=i+2;
+    }
+    DataArrayView myView2(viewData2,viewShape);
+    values.push_back(myView2);
+
+    DataArrayView::ValueType viewData3(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData3[i]=i+3;
+    }
+    DataArrayView myView3(viewData3,viewShape);
+    values.push_back(myView3);
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+    assert(myData.isCurrentTag(3));
+
+    assert(myData.getTagLookup().size()==3);
+
+    assert(myData.getLength()==12);
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.getPointOffset(0,0)==3);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDataPointByTag(1);
+    assert(myDataView==myView1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myData.getDataPointByTag(2);
+    assert(myDataView==myView2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==6);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==2);
+    assert(myDataView(1)==3);
+    assert(myDataView(2)==4);
+
+    myDataView = myData.getDataPointByTag(3);
+    assert(myDataView==myView3);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==9);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==4);
+    assert(myDataView(2)==5);
+
+    myDataView = myData.getDefaultValue();
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+  }
+
+  {
+
+    cout << "\tTest adding one key with empty value list to DataTagged with three tags." << endl;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    // default value
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    for (int i=0;i<eOne.getView().getShape()[0];i++) {
+      eOne.getView()(i)=i+1.0;
+    }
+    values.push_back(eOne.getView());
+
+    // value for tag "2"
+    DataArray eTwo(myView);
+    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+      eTwo.getView()(i)=i+2.0;
+    }
+    values.push_back(eTwo.getView());
+
+    // value for tag "3"
+    DataArray eThree(myView);
+    for (int i=0;i<eThree.getView().getShape()[0];i++) {
+      eThree.getView()(i)=i+3.0;
+    }
+    values.push_back(eThree.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.clear();
+    keys.push_back(4);
+    values.clear();
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(4));
+
+    assert(myData.getTagLookup().size()==4);
+
+    assert(myData.getLength()==15);
+
+    DataArrayView myDataView = myData.getDataPointByTag(4);
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==12);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+  }
+
+  {
+
+    cout << "\tTest adding one key with one value to DataTagged with three tags." << endl;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    // default value
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    for (int i=0;i<eOne.getView().getShape()[0];i++) {
+      eOne.getView()(i)=i+1.0;
+    }
+    values.push_back(eOne.getView());
+
+    // value for tag "2"
+    DataArray eTwo(myView);
+    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+      eTwo.getView()(i)=i+2.0;
+    }
+    values.push_back(eTwo.getView());
+
+    // value for tag "3"
+    DataArray eThree(myView);
+    for (int i=0;i<eThree.getView().getShape()[0];i++) {
+      eThree.getView()(i)=i+3.0;
+    }
+    values.push_back(eThree.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.clear();
+    keys.push_back(4);
+
+    values.clear();
+    // value for tag "4"
+    DataArray eFour(myView);
+    for (int i=0;i<eFour.getView().getShape()[0];i++) {
+      eFour.getView()(i)=i+4.0;
+    }
+    values.push_back(eFour.getView());
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(4));
+
+    assert(myData.getTagLookup().size()==4);
+
+    assert(myData.getLength()==15);
+
+    DataArrayView myDataView = myData.getDataPointByTag(4);
+    assert(myDataView==eFour.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==12);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==4);
+    assert(myDataView(1)==5);
+    assert(myDataView(2)==6);
+
+  }
+
+  {
+
+    cout << "\tTest adding three keys with one value to DataTagged with three tags." << endl;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    // default value
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    for (int i=0;i<eOne.getView().getShape()[0];i++) {
+      eOne.getView()(i)=i+1.0;
+    }
+    values.push_back(eOne.getView());
+
+    // value for tag "2"
+    DataArray eTwo(myView);
+    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+      eTwo.getView()(i)=i+2.0;
+    }
+    values.push_back(eTwo.getView());
+
+    // value for tag "3"
+    DataArray eThree(myView);
+    for (int i=0;i<eThree.getView().getShape()[0];i++) {
+      eThree.getView()(i)=i+3.0;
+    }
+    values.push_back(eThree.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.clear();
+    keys.push_back(4);
+    keys.push_back(5);
+    keys.push_back(6);
+
+    values.clear();
+    // value for tags "4", "5" and "6"
+    DataArray eFour(myView);
+    for (int i=0;i<eFour.getView().getShape()[0];i++) {
+      eFour.getView()(i)=i+4.0;
+    }
+    values.push_back(eFour.getView());
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(4));
+    assert(myData.isCurrentTag(5));
+    assert(myData.isCurrentTag(6));
+
+    assert(myData.getTagLookup().size()==6);
+
+    assert(myData.getLength()==21);
+
+    DataArrayView myDataView = myData.getDataPointByTag(4);
+    assert(myDataView==eFour.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==12);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==4);
+    assert(myDataView(1)==5);
+    assert(myDataView(2)==6);
+
+    myDataView = myData.getDataPointByTag(5);
+    assert(myDataView==eFour.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==15);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==4);
+    assert(myDataView(1)==5);
+    assert(myDataView(2)==6);
+
+    myDataView = myData.getDataPointByTag(6);
+    assert(myDataView==eFour.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==18);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==4);
+    assert(myDataView(1)==5);
+    assert(myDataView(2)==6);
+
+  }
+
+  {
+
+    cout << "\tTest adding three keys with three values to DataTagged with three tags." << endl;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    // default value
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    for (int i=0;i<eOne.getView().getShape()[0];i++) {
+      eOne.getView()(i)=i+1.0;
+    }
+    values.push_back(eOne.getView());
+
+    // value for tag "2"
+    DataArray eTwo(myView);
+    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+      eTwo.getView()(i)=i+2.0;
+    }
+    values.push_back(eTwo.getView());
+
+    // value for tag "3"
+    DataArray eThree(myView);
+    for (int i=0;i<eThree.getView().getShape()[0];i++) {
+      eThree.getView()(i)=i+3.0;
+    }
+    values.push_back(eThree.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    keys.clear();
+    keys.push_back(4);
+    keys.push_back(5);
+    keys.push_back(6);
+
+    values.clear();
+
+    // value for tag "4"
+    DataArray eFour(myView);
+    for (int i=0;i<eFour.getView().getShape()[0];i++) {
+      eFour.getView()(i)=i+4.0;
+    }
+    values.push_back(eFour.getView());
+
+    // value for tag "5"
+    DataArray eFive(myView);
+    for (int i=0;i<eFive.getView().getShape()[0];i++) {
+      eFive.getView()(i)=i+5.0;
+    }
+    values.push_back(eFive.getView());
+
+    // value for tag "6"
+    DataArray eSix(myView);
+    for (int i=0;i<eSix.getView().getShape()[0];i++) {
+      eSix.getView()(i)=i+6.0;
+    }
+    values.push_back(eSix.getView());
+
+    myData.addTaggedValues(keys,values);
+
+    assert(myData.isCurrentTag(4));
+    assert(myData.isCurrentTag(5));
+    assert(myData.isCurrentTag(6));
+
+    assert(myData.getTagLookup().size()==6);
+
+    assert(myData.getLength()==21);
+
+    DataArrayView myDataView = myData.getDataPointByTag(4);
+    assert(myDataView==eFour.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==12);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==4);
+    assert(myDataView(1)==5);
+    assert(myDataView(2)==6);
+
+    myDataView = myData.getDataPointByTag(5);
+    assert(myDataView==eFive.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==15);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==5);
+    assert(myDataView(1)==6);
+    assert(myDataView(2)==7);
+
+    myDataView = myData.getDataPointByTag(6);
+    assert(myDataView==eSix.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==18);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==6);
+    assert(myDataView(1)==7);
+    assert(myDataView(2)==8);
+
+  }
+
 }
 
 void DataTaggedTestCase::testAll() {
@@ -202,6 +1202,7 @@ void DataTaggedTestCase::testAll() {
     assert(!myData.validSamplePointNo(1));
     assert(!myData.validSampleNo(1));
 
+    // data-point 0 has tag number 1 by default
     assert(myData.getTagNumber(0)==1);
 
     assert(!myData.isCurrentTag(1));
@@ -237,16 +1238,6 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
 
-    //cout << "\tTest adding two keys with empty value list." << endl;
-    //DataTagged::TagListType keys;
-    //DataTagged::ValueListType values;
-    //keys.push_back(1);
-    //keys.push_back(2);
-    //myData.addTaggedValues(keys,values);
-    //for (int i=0;i<keys.size();++i) {
-    //  assert(myData.getPointDataView()()==0);
-    //}
-
   }
 
   {
@@ -278,6 +1269,7 @@ void DataTaggedTestCase::testAll() {
     assert(!myData.validSamplePointNo(1));
     assert(!myData.validSampleNo(1));
 
+    // data-point 0 has tag number 1 by default
     assert(myData.getTagNumber(0)==1);
 
     assert(!myData.isCurrentTag(1));
@@ -322,33 +1314,6 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
 
-    //cout << "\tTest adding a single tag value." << endl;
-    //for (int i=0;i<myView.getShape()[0];++i) {
-    //  myView(i)=i;
-    //}
-    //values.push_back(myView);
-    //keys.push_back(1);
-    //myData.addTaggedValues(keys,values);
-    //assert(myData.getDataPointByTag(1)==myView);
-    //cout << "\tTest addition of further tags." << endl;
-    //keys.resize(0);
-    //keys.push_back(3);
-    //for (int i=0;i<myView.getShape()[0];++i) {
-    //  myView(i)=i+1.5;
-    //}
-    //myData.addTaggedValues(keys,values);
-    //assert(myData.getDataPointByTag(3)==myView);
-    //assert(myData.getDataPointByTag(1)!=myView);
-    //cout << "\tTrigger the size mismatch exception." << endl;
-    //try {
-    //  values.push_back(myView);
-    //  myData.addTaggedValues(keys,values);
-    //  assert(false);
-    //}
-    //catch (EsysException& e) {
-    // assert(true);
-    //}
-
   }
 
   {
@@ -391,6 +1356,7 @@ void DataTaggedTestCase::testAll() {
     assert(!myData.validSamplePointNo(1));
     assert(!myData.validSampleNo(1));
 
+    // data-point 0 has tag number 1 by default
     assert(myData.getTagNumber(0)==1);
 
     assert(!myData.isCurrentTag(0));
@@ -505,6 +1471,7 @@ void DataTaggedTestCase::testAll() {
     assert(!myData.validSamplePointNo(1));
     assert(!myData.validSampleNo(1));
 
+    // data-point 0 has tag number 1 by default
     assert(myData.getTagNumber(0)==1);
 
     assert(!myData.isCurrentTag(0));
@@ -586,48 +1553,6 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(1)==4);
     assert(myDataView(2)==5);
 
-    //cout << "\tTrigger bad shape in input values exception." << endl;
-    //viewShape.clear();
-    //viewShape.push_back(1);
-    //keys.clear();
-    //values.clear();
-    //viewData.resize(1,0.0);
-    //DataArrayView myView2(viewData,viewShape);
-    //try {
-    //  myData.addTaggedValue(5,myView2);
-    //  assert(false);
-    //}
-    //catch (EsysException& e) {
-    //  assert(true);
-    //}
-    //cout << "\tTest addTaggedValues." << endl;
-    //DataTagged myData2;
-    //myData2.reshapeDataPoint(myView.getShape());
-    //keys.clear();
-    //values.clear();
-    //keys.push_back(1);
-    //keys.push_back(2);
-    //keys.push_back(3);
-    //values.push_back(eOne.getView());
-    //values.push_back(eTwo.getView());
-    //values.push_back(eThree.getView());
-    //myData2.addTaggedValues(keys,values);
-    //assert(myData2.getDataPointByTag(1)==eOne.getView());
-    //assert(myData2.getDataPointByTag(2)==eTwo.getView());
-    //assert(myData2.getDataPointByTag(3)==eThree.getView());
-    //cout << "\tTest setTaggedValue." << endl;
-    //DataTagged myData3;
-    //myData3.reshapeDataPoint(myView.getShape());
-    //myData3.addTaggedValue(1,eThree.getView());
-    //myData3.addTaggedValue(2,eOne.getView());
-    //myData3.addTaggedValue(3,eTwo.getView());
-    //myData3.setTaggedValue(1,eOne.getView());
-    //myData3.setTaggedValue(2,eTwo.getView());
-    //myData3.setTaggedValue(3,eThree.getView());
-    //assert(myData3.getDataPointByTag(1)==eOne.getView());
-    //assert(myData3.getDataPointByTag(2)==eTwo.getView());
-    //assert(myData3.getDataPointByTag(3)==eThree.getView());
-
   }
 
 }
@@ -638,6 +1563,7 @@ TestSuite* DataTaggedTestCase::suite ()
   // create the suite of tests to perform.
   TestSuite *testSuite = new TestSuite ("DataTaggedTestCase");
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAll",&DataTaggedTestCase::testAll));
+  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAddTaggedValues",&DataTaggedTestCase::testAddTaggedValues));
 //  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
 //  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testReshape",&DataTaggedTestCase::testReshape));
   return testSuite;

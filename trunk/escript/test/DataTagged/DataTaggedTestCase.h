@@ -34,6 +34,7 @@ class DataTaggedTestCase : public CppUnitTest::TestCase
   // A test method must return void and have no arguments
   // DataTagged class
   void testAll();
+  void testAddTaggedValues();
   void testReshape();
   void testOperations();
 
