@@ -88,102 +88,262 @@ void DataTaggedTestCase::testOperations() {
   cout << endl;
 
   {
-    DataTagged left;
+    DataTagged myData;
     DataTagged right;
 
-    cout << "\tTest default DataTagged contains only a default value." << endl;
-    binaryOp(left,right,plus<double>());
-    assert(left.getPointDataView()()==0);
-    assert(right.getPointDataView()()==0);
+    cout << "\tTest addition of two default DataTagged objects." << endl;
 
-    cout << "\tTest binaryOp(plus)." << endl;
+    binaryOp(myData,right,plus<double>());
+
+    //cout << myData.toString() << endl;
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(!myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==0);
+
+    assert(myData.getLength()==1);
+
+    assert(myData.getPointOffset(0,0)==0);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // Test non-existent tag returns the default value.
+    myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+  }
+
+  {
+    DataTagged myData;
+    DataTagged right;
+
+    cout << "\tTest addition of two DataTagged objects with one identical tag each." << endl;
+
     DataArray vOne(1.0);
-    DataArray vTwo(2.0);
+    myData.addTaggedValue(1,vOne.getView());
     right.addTaggedValue(1,vOne.getView());
-    right.addTaggedValue(2,vTwo.getView());
-    binaryOp(left,right,plus<double>());
-    assert(left.getPointDataView()()==0);
-    assert(left.getDataPointByTag(1)==vOne.getView());
-    assert(left.getDataPointByTag(2)==vTwo.getView());
 
-    cout << "\tTest binaryOp(multiplies)." << endl;
-    DataArray vZero(0.0);
-    right.setTaggedValue(1,vZero.getView());
-    right.setTaggedValue(2,vZero.getView());
-    binaryOp(left,right,multiplies<double>());
-    assert(left.getPointDataView()()==0);
-    assert(left.getDataPointByTag(1)==vZero.getView());
-    assert(left.getDataPointByTag(2)==vZero.getView());
+    binaryOp(myData,right,plus<double>());
+
+    // check result value for tag "1"
+    DataArrayView myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==2.0);
+
+    // check result for default value
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
   }
 
   {
-    DataArrayView::ShapeType viewShape;
-    viewShape.push_back(3);
-    DataArrayView::ValueType viewData(3);
-    DataTagged::TagListType keys;
-    DataTagged::ValueListType values;
-    for (int i=0;i<viewShape[0];++i) {
-      viewData[i]=i;
-    }
-    DataArrayView myView(viewData,viewShape);
-    cout << "\tCreate tagged data with no tag values just a default." << endl;
-    DataTagged left(keys,values,myView,FunctionSpace());
-    DataTagged right(keys,values,myView,FunctionSpace());
-    binaryOp(left,right,minus<double>());
-    for (int i=0;i<viewShape[0];++i) {
-      assert(left.getDefaultValue()(i)==0);
-    }
-    double mVal=10.0;
-    for (int i=0;i<viewShape[0];++i) {
-      viewData[i]=i*mVal;
-    }
-    cout << "\tTest binaryOp(minus) with the right hand side as a view." << endl;
-    binaryOp(left,myView,minus<double>());
-    for (int i=0;i<viewShape[0];++i) {
-      assert(left.getDefaultValue()(i)==-(i*mVal));
-    }
+    DataTagged myData;
+    DataTagged right;
+
+    cout << "\tTest addition of two DataTagged objects with one different tag each." << endl;
+
+    DataArray vOne(1.0);
+    myData.addTaggedValue(1,vOne.getView());
+    right.addTaggedValue(2,vOne.getView());
+
+    binaryOp(myData,right,plus<double>());
+
+    // check result value for tag "1"
+    DataArrayView myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    // check result value for tag "2"
+    myDataView = myData.getDataPointByTag(2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==2);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    // check result for default value
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
   }
 
   {
-    cout << "\tTest unaryOp(negate) on default DataTagged." << endl;
-    DataTagged data;
-    unaryOp(data,negate<double>());
-    assert(data.getDefaultValue()()==0);
-    DataArray vOne(1);
-    binaryOp(data,vOne.getView(),plus<double>());
-    assert(data.getDefaultValue()()==1);
-    unaryOp(data,negate<double>());
-    assert(data.getDefaultValue()()==-1);
+    DataTagged myData;
+    DataTagged right;
+
+    cout << "\tTest addition of two DataTagged objects with overlapping tag sets." << endl;
+
+    DataArray vOne(1.0);
+    myData.addTaggedValue(1,vOne.getView());
+    myData.addTaggedValue(2,vOne.getView());
+    right.addTaggedValue(2,vOne.getView());
+    right.addTaggedValue(3,vOne.getView());
+
+    binaryOp(myData,right,plus<double>());
+
+    // check result value for tag "1"
+    DataArrayView myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    // check result value for tag "2"
+    myDataView = myData.getDataPointByTag(2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==2);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==2.0);
+
+    // check result value for tag "3"
+    myDataView = myData.getDataPointByTag(3);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    // check result for default value
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
   }
 
   {
-    cout << "\tTest unaryOp(negate) on DataTagged with 3 tags." << endl;
-    DataArrayView::ShapeType vShape;
-    vShape.push_back(3);
-    vShape.push_back(2);
-    vShape.push_back(1);
-    DataArray defData(vShape,0.0);
-    DataArrayView& defView=defData.getView();
-    DataArray tOneData(vShape,1.0);
-    DataArrayView& tOneView=tOneData.getView();
-    DataArray tTwoData(vShape,2.0);
-    DataArrayView& tTwoView=tTwoData.getView();
-    DataArray tThreeData(vShape,3.0);
-    DataArrayView& tThreeView=tThreeData.getView();
-    DataTagged::TagListType keys;
-    DataTagged::ValueListType values;
-    keys.push_back(1);
-    keys.push_back(2);
-    keys.push_back(3);
-    values.push_back(tOneView);
-    values.push_back(tTwoView);
-    values.push_back(tThreeView);
-    DataTagged tData(keys,values,defView,FunctionSpace());
-    unaryOp(tData,negate<double>());
-    unaryOp(tData,negate<double>());
-    assert(tData.getDataPointByTag(1)==tOneView);
-    assert(tData.getDataPointByTag(2)==tTwoView);
-    assert(tData.getDataPointByTag(3)==tThreeView);
+    //cout << "\tTest binaryOp(multiplies)." << endl;
+    //DataArray vZero(0.0);
+    //right.setTaggedValue(1,vZero.getView());
+    //right.setTaggedValue(2,vZero.getView());
+    //binaryOp(left,right,multiplies<double>());
+
+    //assert(left.getPointDataView()()==0);
+    //assert(left.getDataPointByTag(1)==vZero.getView());
+    //assert(left.getDataPointByTag(2)==vZero.getView());
+  }
+
+  {
+    //DataArrayView::ShapeType viewShape;
+    //viewShape.push_back(3);
+    //DataArrayView::ValueType viewData(3);
+    //DataTagged::TagListType keys;
+    //DataTagged::ValueListType values;
+    //for (int i=0;i<viewShape[0];++i) {
+    //  viewData[i]=i;
+    //}
+    //DataArrayView myView(viewData,viewShape);
+    //cout << "\tCreate tagged data with no tag values just a default." << endl;
+    //DataTagged left(keys,values,myView,FunctionSpace());
+    //DataTagged right(keys,values,myView,FunctionSpace());
+    //binaryOp(left,right,minus<double>());
+    //for (int i=0;i<viewShape[0];++i) {
+    //  assert(left.getDefaultValue()(i)==0);
+    //}
+    //double mVal=10.0;
+    //for (int i=0;i<viewShape[0];++i) {
+    //  viewData[i]=i*mVal;
+    //}
+    //cout << "\tTest binaryOp(minus) with the right hand side as a view." << endl;
+    //binaryOp(left,myView,minus<double>());
+    //for (int i=0;i<viewShape[0];++i) {
+    //  assert(left.getDefaultValue()(i)==-(i*mVal));
+    //}
+  }
+
+  {
+    //cout << "\tTest unaryOp(negate) on default DataTagged." << endl;
+    //DataTagged data;
+    //unaryOp(data,negate<double>());
+    //assert(data.getDefaultValue()()==0);
+    //DataArray vOne(1);
+    //binaryOp(data,vOne.getView(),plus<double>());
+    //assert(data.getDefaultValue()()==1);
+    //unaryOp(data,negate<double>());
+    //assert(data.getDefaultValue()()==-1);
+  }
+
+  {
+    //cout << "\tTest unaryOp(negate) on DataTagged with 3 tags." << endl;
+    //DataArrayView::ShapeType vShape;
+    //vShape.push_back(3);
+    //vShape.push_back(2);
+    //vShape.push_back(1);
+    //DataArray defData(vShape,0.0);
+    //DataArrayView& defView=defData.getView();
+    //DataArray tOneData(vShape,1.0);
+    //DataArrayView& tOneView=tOneData.getView();
+    //DataArray tTwoData(vShape,2.0);
+    //DataArrayView& tTwoView=tTwoData.getView();
+    //DataArray tThreeData(vShape,3.0);
+    //DataArrayView& tThreeView=tThreeData.getView();
+    //DataTagged::TagListType keys;
+    //DataTagged::ValueListType values;
+    //keys.push_back(1);
+    //keys.push_back(2);
+    //keys.push_back(3);
+    //values.push_back(tOneView);
+    //values.push_back(tTwoView);
+    //values.push_back(tThreeView);
+    //DataTagged tData(keys,values,defView,FunctionSpace());
+    //unaryOp(tData,negate<double>());
+    //unaryOp(tData,negate<double>());
+    //assert(tData.getDataPointByTag(1)==tOneView);
+    //assert(tData.getDataPointByTag(2)==tTwoView);
+    //assert(tData.getDataPointByTag(3)==tThreeView);
   }
 
 }
@@ -1853,7 +2013,7 @@ TestSuite* DataTaggedTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAddTaggedValues",&DataTaggedTestCase::testAddTaggedValues));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetTaggedValue",&DataTaggedTestCase::testSetTaggedValue));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testCopyConstructors",&DataTaggedTestCase::testCopyConstructors));
-//  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
+  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
 //  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testReshape",&DataTaggedTestCase::testReshape));
   return testSuite;
 }
