@@ -1183,6 +1183,82 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
 }
 
+void DataTaggedTestCase::testSetTaggedValue() {
+
+  cout << endl;
+
+  {
+
+    cout << "\tTest setting key in DataTagged with three tags." << endl;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    // default value
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    for (int i=0;i<eOne.getView().getShape()[0];i++) {
+      eOne.getView()(i)=i+1.0;
+    }
+    values.push_back(eOne.getView());
+
+    // value for tag "2"
+    DataArray eTwo(myView);
+    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+      eTwo.getView()(i)=i+2.0;
+    }
+    values.push_back(eTwo.getView());
+
+    // value for tag "3"
+    DataArray eThree(myView);
+    for (int i=0;i<eThree.getView().getShape()[0];i++) {
+      eThree.getView()(i)=i+3.0;
+    }
+    values.push_back(eThree.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    // new value for tag "2"
+    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+      eTwo.getView()(i)=i+5.0;
+    }
+
+    myData.setTaggedValue(2,eTwo.getView());
+
+    assert(myData.isCurrentTag(2));
+
+    assert(myData.getTagLookup().size()==3);
+
+    assert(myData.getLength()==12);
+
+    DataArrayView myDataView = myData.getDataPointByTag(2);
+    assert(myDataView==eTwo.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==6);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==5);
+    assert(myDataView(1)==6);
+    assert(myDataView(2)==7);
+
+  }
+
+}
+
 void DataTaggedTestCase::testAll() {
 
   cout << endl;
@@ -1564,6 +1640,7 @@ TestSuite* DataTaggedTestCase::suite ()
   TestSuite *testSuite = new TestSuite ("DataTaggedTestCase");
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAll",&DataTaggedTestCase::testAll));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAddTaggedValues",&DataTaggedTestCase::testAddTaggedValues));
+  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetTaggedValue",&DataTaggedTestCase::testSetTaggedValue));
 //  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
 //  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testReshape",&DataTaggedTestCase::testReshape));
   return testSuite;
