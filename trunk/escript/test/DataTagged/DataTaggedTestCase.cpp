@@ -16,6 +16,7 @@
 #include "EsysException.h"
 
 #include "DataTagged.h"
+#include "DataConstant.h"
 
 #include "DataTaggedTestCase.h"
 
@@ -1633,6 +1634,216 @@ void DataTaggedTestCase::testAll() {
 
 }
 
+void DataTaggedTestCase::testCopyConstructors() {
+
+  cout << endl;
+
+  {
+
+    cout << "\tTest DataTagged copy constructor for DataTagged with multiple tags." << endl;
+
+    // the one data-point has tag value "1"
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+    keys.push_back(2);
+    keys.push_back(3);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    // default value
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    for (int i=0;i<eOne.getView().getShape()[0];i++) {
+      eOne.getView()(i)=i+1.0;
+    }
+    values.push_back(eOne.getView());
+
+    // value for tag "2"
+    DataArray eTwo(myView);
+    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+      eTwo.getView()(i)=i+2.0;
+    }
+    values.push_back(eTwo.getView());
+
+    // value for tag "3"
+    DataArray eThree(myView);
+    for (int i=0;i<eThree.getView().getShape()[0];i++) {
+      eThree.getView()(i)=i+3.0;
+    }
+    values.push_back(eThree.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    DataTagged myDataCopy(myData);
+
+    //cout << myDataCopy.toString() << endl;
+
+    assert(myDataCopy.getNumSamples()==1);
+    assert(myDataCopy.getNumDPPSample()==1);
+
+    assert(myDataCopy.validSamplePointNo(0));
+    assert(myDataCopy.validSampleNo(0));
+    assert(!myDataCopy.validSamplePointNo(1));
+    assert(!myDataCopy.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myDataCopy.getTagNumber(0)==1);
+
+    assert(!myDataCopy.isCurrentTag(0));
+    assert(myDataCopy.isCurrentTag(1));
+    assert(myDataCopy.isCurrentTag(2));
+    assert(myDataCopy.isCurrentTag(3));
+
+    assert(myDataCopy.getTagLookup().size()==3);
+
+    assert(myDataCopy.getLength()==12);
+
+    assert(myDataCopy.getPointOffset(0,0)==3);
+
+    DataArrayView myDataView = myDataCopy.getDataPoint(0,0);
+    assert(myDataView==eOne.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    myDataView = myDataCopy.getDataPointByTag(1);
+    assert(myDataView==eOne.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==1);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==3);
+
+    // Test non-existent tag returns the default value.
+    myDataView = myDataCopy.getDataPointByTag(0);
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+    myDataView = myDataCopy.getDefaultValue();
+    assert(myDataView==myView);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+    // Test data-points held for remaining tags
+    myDataView = myDataCopy.getDataPointByTag(2);
+    assert(myDataView==eTwo.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==6);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==2);
+    assert(myDataView(1)==3);
+    assert(myDataView(2)==4);
+
+    myDataView = myDataCopy.getDataPointByTag(3);
+    assert(myDataView==eThree.getView());
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==9);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==4);
+    assert(myDataView(2)==5);
+
+  }
+
+  {
+
+    cout << "\tTest DataTagged copy constructor for DataConstant." << endl;
+
+    // Create a DataConstant
+    DataArrayView::ShapeType shape;
+    DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
+    DataArrayView pointData(data,shape);
+    pointData()=1.0;
+    DataConstant myConstantData(pointData, FunctionSpace());
+
+    // use this DataConstant to initialise a DataTagged
+    DataTagged myData(myConstantData);
+
+    //cout << myData.toString() << endl;
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(!myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==0);
+
+    assert(myData.getLength()==1);
+
+    assert(myData.getPointOffset(0,0)==0);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    // Test non-existent tag returns the default value.
+    myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1.0);
+
+  }
+
+}
+
 TestSuite* DataTaggedTestCase::suite ()
 {
   //
@@ -1641,6 +1852,7 @@ TestSuite* DataTaggedTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAll",&DataTaggedTestCase::testAll));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAddTaggedValues",&DataTaggedTestCase::testAddTaggedValues));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetTaggedValue",&DataTaggedTestCase::testSetTaggedValue));
+  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testCopyConstructors",&DataTaggedTestCase::testCopyConstructors));
 //  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
 //  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testReshape",&DataTaggedTestCase::testReshape));
   return testSuite;
