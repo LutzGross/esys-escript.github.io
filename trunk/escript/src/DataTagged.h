@@ -60,7 +60,7 @@ class DataTagged : public DataAbstract {
      Default constructor for DataTagged. Creates a DataTagged object for which
      the only data-point is a scalar data-point with value 0.0. All tags
      will map to this single data-point.
-     T
+    T
   */
   DataTagged();
 
@@ -79,7 +79,7 @@ class DataTagged : public DataAbstract {
 		     will be generated.
      \param defaultValue - Input - Value returned if a requested tag doesn't exist.
      \param what - Input - A description of what this data represents.
-     T
+    T
   */
   DataTagged(const TagListType& tagKeys,
              const ValueListType& values,
@@ -119,6 +119,7 @@ class DataTagged : public DataAbstract {
      \brief
      Copy Constructor for DataTagged.
      Performs a deep copy from the given DataTagged object.
+    T
   */
   DataTagged(const DataTagged& other);
 
@@ -127,6 +128,7 @@ class DataTagged : public DataAbstract {
      Copy Constructor for DataTagged.
      Construct a tagged data from a DataConstant object.
      The default value will be that held by the DataConstant object.
+    T
   */
   DataTagged(const DataConstant& other);
 
@@ -139,6 +141,8 @@ class DataTagged : public DataAbstract {
      sample will be visible via the returned pointer.
 
      ** This provides an interface into the data suitable for legacy C code.
+     ** NB: need to do array bounds checking when accessing returned value!
+    T
   */
   virtual
   double*
@@ -149,7 +153,7 @@ class DataTagged : public DataAbstract {
      Write the data as a string.
      Writes out each tag, including the default, and the data-point which is
      associated with each tag.
-     T
+    T
   */
   virtual
   std::string
@@ -159,7 +163,7 @@ class DataTagged : public DataAbstract {
      \brief
      Return the tag number associated with the given data-point number
      according to the associated function space.
-     T
+    T
   */
   virtual
   int
@@ -175,8 +179,8 @@ class DataTagged : public DataAbstract {
 
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data-point number.
-     T
-   */
+    T
+  */
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
@@ -189,12 +193,13 @@ class DataTagged : public DataAbstract {
      Description:
      Add the given tags and values to this DataTagged object, by repeatedly
      using addTaggedValue for each given tag/value pair.
-     \param tagKeys - Input - A vector of integer keys.
+     \param tagKeys - Input - A vector of integer tags.
      \param values - Input - A vector of DataArrayViews. If this is empty
                       then all given tags will be assigned a value of zero. If 
                       it contains one value all tags will be assigned the same value.
                       Otherwise if there is a mismatch between the number of tags and 
                       the number of values an exception will be generated.
+    T
   */
   void
   addTaggedValues(const TagListType& tagKeys,
@@ -209,6 +214,7 @@ class DataTagged : public DataAbstract {
      a value associated with it, setTaggedValue will be used to update this value.
      \param tagKey - Input - Integer key.
      \param value - Input - Single DataArrayView value to be assigned to the tag.
+    T
   */
   void
   addTaggedValue(int tagKey,
@@ -227,6 +233,7 @@ class DataTagged : public DataAbstract {
                       it contains one value all tag values will be assigned the same value.
                       Otherwise if there is a mismatch between the number of keys and 
                       the number of values an exception will be generated.
+    T
   */
   void
   setTaggedValues(const TagListType& tagKeys,
@@ -241,6 +248,7 @@ class DataTagged : public DataAbstract {
      associated with it, addTaggedValue will be used to add this tag/value pair.
      \param tagKey - Input - Integer key.
      \param value - Input - Single DataArrayView value to be assigned to the tag.
+    T
   */
   virtual
   void
@@ -254,7 +262,7 @@ class DataTagged : public DataAbstract {
      Description:
      Return a view into the data-point associated with the given tag.
      \param tag - Input - Integer key.
-     T
+    T
   */
   DataArrayView
   getDataPointByTag(int tag) const;
@@ -268,7 +276,7 @@ class DataTagged : public DataAbstract {
      and data-point numbers.
      \param sampleNo - Input.
      \param dataPointNo - Input.
-     T
+    T
   */
   virtual
   DataArrayView
@@ -281,7 +289,7 @@ class DataTagged : public DataAbstract {
 
      Description:
      Return a reference to the tag offset lookup table.
-     T
+    T
   */
   const DataMapType&
   getTagLookup() const;
@@ -295,8 +303,8 @@ class DataTagged : public DataAbstract {
 
      NOTE: The DataTagged tag map does not necessarily coincide with the tag
      keys in the associated function space.
-     T
-   */
+    T
+  */
   bool
   isCurrentTag(int tag) const;
 
@@ -307,7 +315,7 @@ class DataTagged : public DataAbstract {
      Description:
      Return the default value. This value is associated with any tag which
      is not explicitly recorded in this DataTagged object's tag map.
-     T
+    T
   */
   DataArrayView&
   getDefaultValue();
@@ -321,7 +329,7 @@ class DataTagged : public DataAbstract {
 
      Description:
      Return the number of doubles stored for the Data.
-     T
+    T
   */
   virtual
   ValueType::size_type
