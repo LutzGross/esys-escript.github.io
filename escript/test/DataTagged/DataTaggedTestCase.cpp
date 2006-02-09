@@ -88,10 +88,10 @@ void DataTaggedTestCase::testOperations() {
   cout << endl;
 
   {
+    cout << "\tTest binaryOp addition of two default DataTagged objects." << endl;
+
     DataTagged myData;
     DataTagged right;
-
-    cout << "\tTest addition of two default DataTagged objects." << endl;
 
     binaryOp(myData,right,plus<double>());
 
@@ -140,19 +140,107 @@ void DataTaggedTestCase::testOperations() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
+
   }
 
   {
+    cout << "\tTest binaryOp addition of two DataTagged objects with default values only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged right(keys,values,myView,FunctionSpace());
+
+    binaryOp(myData,right,plus<double>());
+
+    //cout << myData.toString() << endl;
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(!myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==0);
+
+    assert(myData.getLength()==3);
+
+    assert(myData.getPointOffset(0,0)==0);
+
+    DataArrayView myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==2);
+    assert(myDataView(2)==4);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i*2);
+    }
+
+  }
+
+  {
+    cout << "\tTest binaryOp addition of two DataTagged objects with one identical tag each." << endl;
+
     DataTagged myData;
     DataTagged right;
-
-    cout << "\tTest addition of two DataTagged objects with one identical tag each." << endl;
 
     DataArray vOne(1.0);
     myData.addTaggedValue(1,vOne.getView());
     right.addTaggedValue(1,vOne.getView());
 
     binaryOp(myData,right,plus<double>());
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==1);
+
+    assert(myData.getLength()==2);
+
+    assert(myData.getPointOffset(0,0)==1);
 
     // check result value for tag "1"
     DataArrayView myDataView = myData.getDataPointByTag(1);
@@ -171,19 +259,48 @@ void DataTaggedTestCase::testOperations() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i*2);
+    }
+
   }
 
   {
+    cout << "\tTest binaryOp addition of two DataTagged objects with one different tag each." << endl;
+
     DataTagged myData;
     DataTagged right;
 
-    cout << "\tTest addition of two DataTagged objects with one different tag each." << endl;
-
     DataArray vOne(1.0);
+    DataArray vTwo(2.0);
     myData.addTaggedValue(1,vOne.getView());
-    right.addTaggedValue(2,vOne.getView());
+    right.addTaggedValue(2,vTwo.getView());
 
     binaryOp(myData,right,plus<double>());
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+
+    assert(myData.getTagLookup().size()==2);
+
+    assert(myData.getLength()==3);
+
+    assert(myData.getPointOffset(0,0)==1);
 
     // check result value for tag "1"
     DataArrayView myDataView = myData.getDataPointByTag(1);
@@ -201,7 +318,7 @@ void DataTaggedTestCase::testOperations() {
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
-    assert(myDataView()==1.0);
+    assert(myDataView()==2.0);
 
     // check result for default value
     myDataView = myData.getDefaultValue();
@@ -211,13 +328,21 @@ void DataTaggedTestCase::testOperations() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
+
   }
 
   {
+    cout << "\tTest binaryOp addition of two DataTagged objects with overlapping tag sets." << endl;
+
     DataTagged myData;
     DataTagged right;
-
-    cout << "\tTest addition of two DataTagged objects with overlapping tag sets." << endl;
 
     DataArray vOne(1.0);
     myData.addTaggedValue(1,vOne.getView());
@@ -226,6 +351,27 @@ void DataTaggedTestCase::testOperations() {
     right.addTaggedValue(3,vOne.getView());
 
     binaryOp(myData,right,plus<double>());
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+    assert(myData.isCurrentTag(3));
+
+    assert(myData.getTagLookup().size()==3);
+
+    assert(myData.getLength()==4);
+
+    assert(myData.getPointOffset(0,0)==1);
 
     // check result value for tag "1"
     DataArrayView myDataView = myData.getDataPointByTag(1);
@@ -262,88 +408,355 @@ void DataTaggedTestCase::testOperations() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if (i>=3) {
+        assert(sampleData[i]==i-2);
+      }
+    }
+
   }
 
   {
-    //cout << "\tTest binaryOp(multiplies)." << endl;
-    //DataArray vZero(0.0);
-    //right.setTaggedValue(1,vZero.getView());
-    //right.setTaggedValue(2,vZero.getView());
-    //binaryOp(left,right,multiplies<double>());
+    cout << "\tTest binaryOp multiplication of two DataTagged objects with default values only." << endl;
 
-    //assert(left.getPointDataView()()==0);
-    //assert(left.getDataPointByTag(1)==vZero.getView());
-    //assert(left.getDataPointByTag(2)==vZero.getView());
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+    DataTagged right(keys,values,myView,FunctionSpace());
+
+    binaryOp(myData,right,multiplies<double>());
+
+    //cout << myData.toString() << endl;
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(!myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==0);
+
+    assert(myData.getLength()==3);
+
+    assert(myData.getPointOffset(0,0)==0);
+
+    DataArrayView myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==4);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i*i);
+    }
+
   }
 
   {
-    //DataArrayView::ShapeType viewShape;
-    //viewShape.push_back(3);
-    //DataArrayView::ValueType viewData(3);
-    //DataTagged::TagListType keys;
-    //DataTagged::ValueListType values;
-    //for (int i=0;i<viewShape[0];++i) {
-    //  viewData[i]=i;
-    //}
-    //DataArrayView myView(viewData,viewShape);
-    //cout << "\tCreate tagged data with no tag values just a default." << endl;
-    //DataTagged left(keys,values,myView,FunctionSpace());
-    //DataTagged right(keys,values,myView,FunctionSpace());
-    //binaryOp(left,right,minus<double>());
-    //for (int i=0;i<viewShape[0];++i) {
-    //  assert(left.getDefaultValue()(i)==0);
-    //}
-    //double mVal=10.0;
-    //for (int i=0;i<viewShape[0];++i) {
-    //  viewData[i]=i*mVal;
-    //}
-    //cout << "\tTest binaryOp(minus) with the right hand side as a view." << endl;
-    //binaryOp(left,myView,minus<double>());
-    //for (int i=0;i<viewShape[0];++i) {
-    //  assert(left.getDefaultValue()(i)==-(i*mVal));
-    //}
+    cout << "\tTest binaryOp multiplication of two DataTagged objects with overlapping tag sets." << endl;
+
+    DataTagged myData;
+    DataTagged right;
+
+    DataArray vOne(1.0);
+    DataArray vTwo(2.0);
+    myData.addTaggedValue(1,vOne.getView());
+    myData.addTaggedValue(2,vOne.getView());
+    right.addTaggedValue(2,vTwo.getView());
+    right.addTaggedValue(3,vTwo.getView());
+
+    binaryOp(myData,right,multiplies<double>());
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+    assert(myData.isCurrentTag(3));
+
+    assert(myData.getTagLookup().size()==3);
+
+    assert(myData.getLength()==4);
+
+    assert(myData.getPointOffset(0,0)==1);
+
+    // check result value for tag "1"
+    DataArrayView myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // check result value for tag "2"
+    myDataView = myData.getDataPointByTag(2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==2);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==2.0);
+
+    // check result value for tag "3"
+    myDataView = myData.getDataPointByTag(3);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // check result for default value
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i==2) {
+        assert(sampleData[i]==2);
+      } else {
+        assert(sampleData[i]==0);
+      }
+    }
+
   }
 
   {
-    //cout << "\tTest unaryOp(negate) on default DataTagged." << endl;
-    //DataTagged data;
-    //unaryOp(data,negate<double>());
-    //assert(data.getDefaultValue()()==0);
-    //DataArray vOne(1);
-    //binaryOp(data,vOne.getView(),plus<double>());
-    //assert(data.getDefaultValue()()==1);
-    //unaryOp(data,negate<double>());
-    //assert(data.getDefaultValue()()==-1);
+    cout << "\tTest unaryOp negate on default DataTagged object." << endl;
+
+    DataTagged myData;
+
+    unaryOp(myData,negate<double>());
+
+    //cout << myData.toString() << endl;
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(!myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==0);
+
+    assert(myData.getLength()==1);
+
+    assert(myData.getPointOffset(0,0)==0);
+
+    DataArrayView myDataView = myData.getDataPoint(0,0);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // Test non-existent tag returns the default value.
+    myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
+
   }
 
   {
-    //cout << "\tTest unaryOp(negate) on DataTagged with 3 tags." << endl;
-    //DataArrayView::ShapeType vShape;
-    //vShape.push_back(3);
-    //vShape.push_back(2);
-    //vShape.push_back(1);
-    //DataArray defData(vShape,0.0);
-    //DataArrayView& defView=defData.getView();
-    //DataArray tOneData(vShape,1.0);
-    //DataArrayView& tOneView=tOneData.getView();
-    //DataArray tTwoData(vShape,2.0);
-    //DataArrayView& tTwoView=tTwoData.getView();
-    //DataArray tThreeData(vShape,3.0);
-    //DataArrayView& tThreeView=tThreeData.getView();
-    //DataTagged::TagListType keys;
-    //DataTagged::ValueListType values;
-    //keys.push_back(1);
-    //keys.push_back(2);
-    //keys.push_back(3);
-    //values.push_back(tOneView);
-    //values.push_back(tTwoView);
-    //values.push_back(tThreeView);
-    //DataTagged tData(keys,values,defView,FunctionSpace());
-    //unaryOp(tData,negate<double>());
-    //unaryOp(tData,negate<double>());
-    //assert(tData.getDataPointByTag(1)==tOneView);
-    //assert(tData.getDataPointByTag(2)==tTwoView);
-    //assert(tData.getDataPointByTag(3)==tThreeView);
+    cout << "\tTest unaryOp negate on DataTagged object with default value only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    unaryOp(myData,negate<double>());
+
+    //cout << myData.toString() << endl;
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(!myData.isCurrentTag(1));
+
+    assert(myData.getTagLookup().size()==0);
+
+    assert(myData.getLength()==3);
+
+    assert(myData.getPointOffset(0,0)==0);
+
+    DataArrayView myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==-1);
+    assert(myDataView(2)==-2);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==0-i);
+    }
+
+  }
+
+  {
+    cout << "\tTest unaryOp negate on DataTagged object with two tags." << endl;
+
+    DataTagged myData;
+
+    DataArray vOne(1.0);
+    DataArray vTwo(2.0);
+    myData.addTaggedValue(1,vOne.getView());
+    myData.addTaggedValue(2,vTwo.getView());
+
+    unaryOp(myData,negate<double>());
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+
+    assert(myData.getTagLookup().size()==2);
+
+    assert(myData.getLength()==3);
+
+    assert(myData.getPointOffset(0,0)==1);
+
+    // check result value for tag "1"
+    DataArrayView myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==-1.0);
+
+    // check result value for tag "2"
+    myDataView = myData.getDataPointByTag(2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==2);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==-2.0);
+
+    // check result for default value
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==0-i);
+    }
+
   }
 
 }
@@ -399,6 +812,13 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
 
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==0);
+    }
+
   }
 
   {
@@ -453,6 +873,13 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
 
   }
 
@@ -528,6 +955,17 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i==0) {
+        assert(sampleData[i]==0);
+      } else {
+        assert(sampleData[i]==1);
+      }
+    }
 
   }
 
@@ -612,6 +1050,13 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
 
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
+
   }
 
   {
@@ -682,6 +1127,13 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
 
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i%3);
+    }
+
   }
 
   {
@@ -707,7 +1159,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataArrayView::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
-      viewData1[i]=i+1;
+      viewData1[i]=i+3;
     }
     DataArrayView myView1(viewData1,viewShape);
     values.push_back(myView1);
@@ -732,9 +1184,9 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==4);
+    assert(myDataView(2)==5);
 
     myDataView = myData.getDataPointByTag(1);
     assert(myDataView==myView1);
@@ -743,9 +1195,9 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
-    assert(myDataView(2)==3);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==4);
+    assert(myDataView(2)==5);
 
     myDataView = myData.getDefaultValue();
     assert(myDataView==myView);
@@ -757,6 +1209,13 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(0)==0);
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
 
   }
 
@@ -785,7 +1244,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataArrayView::ValueType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
-      viewData1[i]=i+1;
+      viewData1[i]=3;
     }
     DataArrayView myView1(viewData1,viewShape);
     values.push_back(myView1);
@@ -812,8 +1271,8 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==3);
     assert(myDataView(2)==3);
 
     myDataView = myData.getDataPointByTag(1);
@@ -823,8 +1282,8 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==3);
     assert(myDataView(2)==3);
 
     myDataView = myData.getDataPointByTag(2);
@@ -834,8 +1293,8 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==3);
     assert(myDataView(2)==3);
 
     myDataView = myData.getDataPointByTag(3);
@@ -845,8 +1304,8 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView.getRank()==1);
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
-    assert(myDataView(0)==1);
-    assert(myDataView(1)==2);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==3);
     assert(myDataView(2)==3);
 
     myDataView = myData.getDefaultValue();
@@ -859,6 +1318,17 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(0)==0);
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      } else {
+        assert(sampleData[i]==3);
+      }
+    }
 
   }
 
@@ -976,6 +1446,24 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
 
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-4);
+      }
+      if (i>=9) {
+        assert(sampleData[i]==i-6);
+      }
+    }
+
   }
 
   {
@@ -1044,6 +1532,27 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(0)==0);
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-4);
+      }
+      if ((i>=9) && (i<12)) {
+        assert(sampleData[i]==i-6);
+      }
+      if (i>=12) {
+        assert(sampleData[i]==i-12);
+      }
+    }
 
   }
 
@@ -1120,6 +1629,27 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(0)==4);
     assert(myDataView(1)==5);
     assert(myDataView(2)==6);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-4);
+      }
+      if ((i>=9) && (i<12)) {
+        assert(sampleData[i]==i-6);
+      }
+      if (i>=12) {
+        assert(sampleData[i]==i-8);
+      }
+    }
 
   }
 
@@ -1222,6 +1752,33 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(0)==4);
     assert(myDataView(1)==5);
     assert(myDataView(2)==6);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-4);
+      }
+      if ((i>=9) && (i<12)) {
+        assert(sampleData[i]==i-6);
+      }
+      if ((i>=12) && (i<15)) {
+        assert(sampleData[i]==i-8);
+      }
+      if ((i>=15) && (i<18)) {
+        assert(sampleData[i]==i-11);
+      }
+      if (i>=18) {
+        assert(sampleData[i]==i-14);
+      }
+    }
 
   }
 
@@ -1340,6 +1897,33 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(1)==7);
     assert(myDataView(2)==8);
 
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-4);
+      }
+      if ((i>=9) && (i<12)) {
+        assert(sampleData[i]==i-6);
+      }
+      if ((i>=12) && (i<15)) {
+        assert(sampleData[i]==i-8);
+      }
+      if ((i>=15) && (i<18)) {
+        assert(sampleData[i]==i-10);
+      }
+      if (i>=18) {
+        assert(sampleData[i]==i-12);
+      }
+    }
+
   }
 
 }
@@ -1416,6 +2000,24 @@ void DataTaggedTestCase::testSetTaggedValue() {
     assert(myDataView(1)==6);
     assert(myDataView(2)==7);
 
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-1);
+      }
+      if ((i>=9) && (i<12)) {
+        assert(sampleData[i]==i-6);
+      }
+    }
+
   }
 
 }
@@ -1474,6 +2076,13 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
 
   }
 
@@ -1550,6 +2159,13 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(0)==0);
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i);
+    }
 
   }
 
@@ -1649,6 +2265,18 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(0)==0);
     assert(myDataView(1)==1);
     assert(myDataView(2)==2);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if (i>=3) {
+        assert(sampleData[i]==i-2);
+      }
+    }
 
   }
 
@@ -1789,6 +2417,24 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(0)==3);
     assert(myDataView(1)==4);
     assert(myDataView(2)==5);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-4);
+      }
+      if (i>=9) {
+        assert(sampleData[i]==i-6);
+      }
+    }
 
   }
 
@@ -1938,6 +2584,24 @@ void DataTaggedTestCase::testCopyConstructors() {
     assert(myDataView(1)==4);
     assert(myDataView(2)==5);
 
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myDataCopy.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      if (i<3) {
+        assert(sampleData[i]==i);
+      }
+      if ((i>=3) && (i<6)) {
+        assert(sampleData[i]==i-2);
+      }
+      if ((i>=6) && (i<9)) {
+        assert(sampleData[i]==i-4);
+      }
+      if (i>=9) {
+        assert(sampleData[i]==i-6);
+      }
+    }
+
   }
 
   {
@@ -1999,6 +2663,13 @@ void DataTaggedTestCase::testCopyConstructors() {
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
     assert(myDataView()==1.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    for (int i=0; i<myData.getLength(); i++) {
+      assert(sampleData[i]==i+1);
+    }
 
   }
 
