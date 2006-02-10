@@ -58,8 +58,8 @@ class DataTagged : public DataAbstract {
 
      Description:
      Default constructor for DataTagged. Creates a DataTagged object for which
-     the only data-point is a scalar data-point with value 0.0. All tags
-     will map to this single data-point.
+     the default data-point is a scalar data-point with value 0.0, and no other
+     tag values are stored.
     T
   */
   DataTagged();
@@ -70,12 +70,13 @@ class DataTagged : public DataAbstract {
 
      Description:
      Constructor for DataTagged.
-     \param tagKeys - Input - A vector of integer keys.
+     \param tagKeys - Input - A vector of integer tags.
      \param values - Input - A vector of DataArrayViews. If this is empty
-                     all tag values will be assigned a value of zero. If 
-                     it contains one value all tag values will be assigned the 
-		     same value. Otherwise if there is a mismatch between 
-		     the number of keys and the number of values an exception 
+                     all tag values will be assigned a scalar data-point of value
+                     0. If it contains one value all tag values will be assigned
+		     this value. Otherwise consecutive tags will be assigned 
+                     consecutive values.  If there is a mismatch between  the
+		     number of keys and the number of values an exception 
 		     will be generated.
      \param defaultValue - Input - Value returned if a requested tag doesn't exist.
      \param what - Input - A description of what this data represents.
@@ -126,8 +127,8 @@ class DataTagged : public DataAbstract {
   /**
      \brief
      Copy Constructor for DataTagged.
-     Construct a tagged data from a DataConstant object.
-     The default value will be that held by the DataConstant object.
+     Construct a DataTagged object from a DataConstant object.
+     The default value will be the value of the DataConstant object.
     T
   */
   DataTagged(const DataConstant& other);
@@ -191,14 +192,15 @@ class DataTagged : public DataAbstract {
      addTaggedValues
 
      Description:
-     Add the given tags and values to this DataTagged object, by repeatedly
-     using addTaggedValue for each given tag/value pair.
+     Add the given tags and values to this DataTagged object.
      \param tagKeys - Input - A vector of integer tags.
      \param values - Input - A vector of DataArrayViews. If this is empty
-                      then all given tags will be assigned a value of zero. If 
-                      it contains one value all tags will be assigned the same value.
-                      Otherwise if there is a mismatch between the number of tags and 
-                      the number of values an exception will be generated.
+                     all tag values will be assigned a scalar data-point of value
+                     0. If it contains one value all tag values will be assigned
+		     this value. Otherwise consecutive tags will be assigned 
+                     consecutive values.  If there is a mismatch between  the
+		     number of keys and the number of values an exception 
+		     will be generated.
     T
   */
   void
@@ -212,7 +214,7 @@ class DataTagged : public DataAbstract {
      Description:
      Add a single tag and value to this DataTagged object. If this tag already has
      a value associated with it, setTaggedValue will be used to update this value.
-     \param tagKey - Input - Integer key.
+     \param tagKey - Input - Integer tag.
      \param value - Input - Single DataArrayView value to be assigned to the tag.
     T
   */
@@ -225,14 +227,15 @@ class DataTagged : public DataAbstract {
      setTaggedValues
 
      Description:
-     Set the given tags to the given values in this DataTagged object, by repeatedly
-     using setTaggedValue for each given tag/value pair.
-     \param tagKeys - Input - A vector of integer keys.
+     Set the given tags to the given values in this DataTagged object.
+     \param tagKeys - Input - A vector of integer tag.
      \param values - Input - A vector of DataArrayViews. If this is empty
-                      then all given tags will be assigned a value of zero. If 
-                      it contains one value all tag values will be assigned the same value.
-                      Otherwise if there is a mismatch between the number of keys and 
-                      the number of values an exception will be generated.
+                     all tag values will be assigned a scalar data-point of value
+                     0. If it contains one value all tag values will be assigned
+		     this value. Otherwise consecutive tags will be assigned 
+                     consecutive values.  If there is a mismatch between  the
+		     number of keys and the number of values an exception 
+		     will be generated.
     T
   */
   void
@@ -244,9 +247,8 @@ class DataTagged : public DataAbstract {
      setTaggedValue
 
      Description:
-     Assign the given value to the given tag. If this tag does not already have a value
-     associated with it, addTaggedValue will be used to add this tag/value pair.
-     \param tagKey - Input - Integer key.
+     Assign the given value to the given tag.
+     \param tagKey - Input - Integer tag.
      \param value - Input - Single DataArrayView value to be assigned to the tag.
     T
   */
@@ -260,7 +262,7 @@ class DataTagged : public DataAbstract {
      getDataPointByTag
 
      Description:
-     Return a view into the data-point associated with the given tag.
+     Return data-point associated with the given tag as a DataArrayView.
      \param tag - Input - Integer key.
     T
   */
@@ -272,8 +274,8 @@ class DataTagged : public DataAbstract {
      getDataPoint
 
      Description:
-     Return a view into the data-point specified by the given sample
-     and data-point numbers.
+     Return the data-point specified by the given sample and data-point
+     numbers as a DataArrayView.
      \param sampleNo - Input.
      \param dataPointNo - Input.
     T
@@ -301,7 +303,7 @@ class DataTagged : public DataAbstract {
      Description:
      Return true if the given tag exists within the DataTagged tag map.
 
-     NOTE: The DataTagged tag map does not necessarily coincide with the tag
+     *** NB: The DataTagged tag map does not necessarily coincide with the tag
      keys in the associated function space.
     T
   */
@@ -328,7 +330,7 @@ class DataTagged : public DataAbstract {
      getLength
 
      Description:
-     Return the number of doubles stored for the Data.
+     Return the total number of doubles stored for this DataTagged object.
     T
   */
   virtual
@@ -366,32 +368,34 @@ class DataTagged : public DataAbstract {
      reshapeDataPoint
 
      Description:
-     Reshape the data point only if the data-point is currently rank 0.
-     An exception is thrown if the data-point has rank other than 0.
-     The original data point value is used for all values of the new
-     data point.
+     Reshape each data-point in this object to the given shape, only
+     if current data-points are scalars. An exception is thrown if
+     the current data-points have rank other than 0.
+     The original values of the data-points are used for all values
+     of the new data-points.
+    T
   */
   void
   reshapeDataPoint(const DataArrayView::ShapeType& shape);
 
   /**
-    \brief
-    Archive the underlying data values to the file referenced
-    by ofstream. A count of the number of values expected to be written
-    is provided as a cross-check.
+     \brief
+     Archive the underlying data values to the file referenced
+     by ofstream. A count of the number of values expected to be written
+     is provided as a cross-check.
 
-    The return value indicates success (0) or otherwise (1).
+     The return value indicates success (0) or otherwise (1).
   */
   int
   archiveData(std::ofstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues) const;
 
   /**
-    \brief
-    Extract the number of values specified by noValues from the file
-    referenced by ifstream to the underlying data structure.
+     \brief
+     Extract the number of values specified by noValues from the file
+     referenced by ifstream to the underlying data structure.
 
-    The return value indicates success (0) or otherwise (1).
+     The return value indicates success (0) or otherwise (1).
   */
   int
   extractData(std::ifstream& archiveFile,

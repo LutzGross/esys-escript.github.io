@@ -26,6 +26,8 @@ namespace escript {
 DataTagged::DataTagged()
   : DataAbstract(FunctionSpace())
 {
+  // default constructor
+
   // create a scalar default value
   m_data.resize(1,0.,1);
   DataArrayView temp(m_data,DataArrayView::ShapeType());
@@ -38,6 +40,8 @@ DataTagged::DataTagged(const TagListType& tagKeys,
 		       const FunctionSpace& what)
   : DataAbstract(what)
 {
+  // constructor
+
   // initialise the array of data values
   // the default value is always the first item in the values list
   int len = defaultValue.noValues();
@@ -60,6 +64,9 @@ DataTagged::DataTagged(const FunctionSpace& what,
                        const ValueType& data)
   : DataAbstract(what)
 {
+  // alternative constructor
+  // not unit_tested tested yet
+
   // copy the data
   m_data=data;
 
@@ -78,6 +85,8 @@ DataTagged::DataTagged(const DataTagged& other)
   m_data(other.m_data),
   m_offsetLookup(other.m_offsetLookup)
 {
+  // copy constructor
+
   // create the data view
   DataArrayView temp(m_data,other.getPointDataView().getShape());
   setPointDataView(temp);
@@ -86,6 +95,8 @@ DataTagged::DataTagged(const DataTagged& other)
 DataTagged::DataTagged(const DataConstant& other)
   : DataAbstract(other.getFunctionSpace())
 {
+  // copy constructor
+
   // fill the default value with the constant value item from "other"
   const DataArrayView& value=other.getPointDataView();
   int len = value.noValues();
@@ -103,6 +114,8 @@ DataTagged::DataTagged(const DataTagged& other,
 		       const DataArrayView::RegionType& region)
   : DataAbstract(other.getFunctionSpace())
 {
+  // slice constructor
+
   // get the shape of the slice to copy from other
   DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
   DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
@@ -223,6 +236,13 @@ DataTagged::getTagNumber(int dpno)
 }
 
 void
+DataTagged::setTaggedValues(const TagListType& tagKeys,
+                            const ValueListType& values)
+{
+  addTaggedValues(tagKeys,values);
+}
+
+void
 DataTagged::setTaggedValue(int tagKey,
                            const DataArrayView& value)
 {
@@ -239,6 +259,37 @@ DataTagged::setTaggedValue(int tagKey,
     int offset=pos->second;
     for (int i=0; i<getPointDataView().noValues(); i++) {
       m_data[offset+i]=value.getData(i);
+    }
+  }
+}
+
+void
+DataTagged::addTaggedValues(const TagListType& tagKeys,
+                            const ValueListType& values)
+{
+  if (values.size()==0) {
+    // copy the current default value for each of the tags
+    TagListType::const_iterator iT;
+    for (iT=tagKeys.begin();iT!=tagKeys.end();iT++) {
+      // the point data view for DataTagged points at the default value
+      addTaggedValue(*iT,getPointDataView());
+    }
+  } else if (values.size()==1 && tagKeys.size()>1) {
+    // assume the one given value will be used for all tag values
+    TagListType::const_iterator iT;
+    for (iT=tagKeys.begin();iT!=tagKeys.end();iT++) {
+      addTaggedValue(*iT,values[0]);
+    }
+  } else {
+    if (tagKeys.size()!=values.size()) {
+      stringstream temp;
+      temp << "Error - (addTaggedValue) Number of tags: " << tagKeys.size()
+	   << " doesn't match number of values: " << values.size();
+      throw DataException(temp.str());
+    } else {
+      for (int i=0;i<tagKeys.size();i++) {
+        addTaggedValue(tagKeys[i],values[i]);
+      }
     }
   }
 }
@@ -270,44 +321,6 @@ DataTagged::addTaggedValue(int tagKey,
     }
     for (int i=0;i<value.noValues();i++) {
       m_data[oldSize+i]=value.getData(i);
-    }
-  }
-}
-
-void
-DataTagged::setTaggedValues(const TagListType& tagKeys,
-                            const ValueListType& values)
-{
-  addTaggedValues(tagKeys,values);
-}
-
-void
-DataTagged::addTaggedValues(const TagListType& tagKeys,
-                            const ValueListType& values)
-{
-  if (values.size()==0) {
-    // copy the default value for each of the tags
-    TagListType::const_iterator iT;
-    for (iT=tagKeys.begin();iT!=tagKeys.end();iT++) {
-      // the point data view for DataTagged points at the default value
-      addTaggedValue(*iT,getPointDataView());
-    }
-  } else if (values.size()==1 && tagKeys.size()>1) {
-    // assume the one value will be used for all tag values
-    TagListType::const_iterator iT;
-    for (iT=tagKeys.begin();iT!=tagKeys.end();iT++) {
-      addTaggedValue(*iT,values[0]);
-    }
-  } else {
-    if (tagKeys.size()!=values.size()) {
-      stringstream temp;
-      temp << "Error - (addTaggedValue) Number of tags: " << tagKeys.size()
-	   << " doesn't match the number of values: " << values.size();
-      throw DataException(temp.str());
-    } else {
-      for (int i=0;i<tagKeys.size();i++) {
-        addTaggedValue(tagKeys[i],values[i]);
-      }
     }
   }
 }
