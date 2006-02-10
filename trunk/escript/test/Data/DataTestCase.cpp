@@ -12,11 +12,12 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "EsysException.h"
-#include "Data.h"
-#include "FunctionSpace.h"
 
 #include "DataTestCase.h"
+
+#include "Data.h"
+#include "FunctionSpace.h"
+#include "EsysException.h"
 
 #include <iostream>
 #include <math.h>
@@ -301,7 +302,7 @@ void DataTestCase::testDataTaggedExceptions() {
 
   cout << endl;
 
-  cout << "\tTest DataTagged operations exceptions." << endl;
+  cout << "\tTest DataTagged exceptions." << endl;
 
   Data myData;
   DataArrayView myView;
@@ -315,16 +316,14 @@ void DataTestCase::testDataTaggedExceptions() {
       assert(true);
   }
 
-  /*
   try {
-      myData.setTaggedValue(0,myView);;
+      myData.setTaggedValueFromCPP(0,myView);;
       assert(false);
   }
   catch (EsysException& e) {
       //cout << e.what() << endl;
       assert(true);
   }
-  */
 
 }
 
@@ -332,29 +331,93 @@ void DataTestCase::testDataTagged() {
 
   cout << endl;
 
-  cout << "\tCreate a DataTagged object from a DataArrayView" << endl;
+  cout << "\tCreate a DataTagged object with a default value only." << endl;
+
+  // create tagged data with no tag values just a default
 
   DataTagged::TagListType keys;
+
   DataTagged::ValueListType values;
+
   DataArrayView::ShapeType viewShape;
   viewShape.push_back(3);
+
   DataArrayView::ValueType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
     viewData[i]=i;
   }
   DataArrayView myView(viewData,viewShape);
 
-  // create tagged data with no tag values just a default
   bool expanded=false;
 
   Data myData(keys,values,myView,FunctionSpace(),expanded);
+
+  // cout << myData.toString() << endl;
+
+  assert(!myData.isEmpty());
   assert(myData.isTagged());
+  assert(myData.getTagNumber(0)==1);
+  assert(myData.getDataPointRank()==1);
+  assert(myData.getLength()==3);
 
-  cout << "\tTest some basic operations" << endl;
+  DataArrayView myDataView = myData.getPointDataView();
+  assert(!myDataView.isEmpty());
+  assert(myDataView.getOffset()==0);
+  assert(myDataView.getRank()==1);
+  assert(myDataView.noValues()==3);
+  assert(myDataView.getShape().size()==1);
+  assert(myDataView(0)==0.0);
+  assert(myDataView(1)==1.0);
+  assert(myDataView(2)==2.0);
 
-  Data myDataCopy(myData);
-  myDataCopy.expand();
-  assert(myDataCopy.isExpanded());
+  myDataView = myData.getDataPoint(0,0);
+  assert(!myDataView.isEmpty());
+  assert(myDataView.getOffset()==0);
+  assert(myDataView.getRank()==1);
+  assert(myDataView.noValues()==3);
+  assert(myDataView.getShape().size()==1);
+  assert(myDataView(0)==0.0);
+  assert(myDataView(1)==1.0);
+  assert(myDataView(2)==2.0);
+
+  double* sampleData=myData.getSampleData(0);
+  for (int i=0; i<myDataView.noValues(); i++) {
+    assert(sampleData[i]==i);
+  }
+  // use a non-existent tag so we get a pointer to
+  // the first element of the data array
+  sampleData=myData.getSampleDataByTag(9);
+  for (int i=0; i<myData.getLength(); i++) {
+    assert(sampleData[i]==i);
+  }
+
+  cout << "\tTest setting of a tag and associated value." << endl;
+
+  // value for tag "1"
+  DataArray eTwo(myView);
+  for (int i=0;i<eTwo.getView().getShape()[0];i++) {
+    eTwo.getView()(i)=i+2.0;
+  }
+
+  myData.setTaggedValueFromCPP(1,eTwo.getView());
+
+  assert(myData.getLength()==6);
+
+  myDataView = myData.getDataPoint(0,0);
+  assert(myDataView==eTwo.getView());
+  assert(!myDataView.isEmpty());
+  assert(myDataView.getOffset()==3);
+  assert(myDataView.getRank()==1);
+  assert(myDataView.noValues()==3);
+  assert(myDataView.getShape().size()==1);
+  assert(myDataView(0)==2);
+  assert(myDataView(1)==3);
+  assert(myDataView(2)==4);
+
+  sampleData=myData.getSampleDataByTag(1);
+  for (int i=0; i<myDataView.noValues(); i++) {
+    assert(sampleData[i]==i+2);
+  }
 
 }
 
