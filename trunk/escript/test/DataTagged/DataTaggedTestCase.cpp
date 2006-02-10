@@ -2350,6 +2350,10 @@ void DataTaggedTestCase::testAll() {
     for (int i=0; i<myData.getLength(); i++) {
       assert(sampleData[i]==i);
     }
+    sampleData=myData.getSampleData(0);
+    for (int i=0; i<myDataView.noValues(); i++) {
+      assert(sampleData[i]==i);
+    }
 
   }
 
@@ -2433,6 +2437,10 @@ void DataTaggedTestCase::testAll() {
     for (int i=0; i<myData.getLength(); i++) {
       assert(sampleData[i]==i);
     }
+    sampleData=myData.getSampleDataByTag(0);
+    for (int i=0; i<myDataView.noValues(); i++) {
+      assert(sampleData[i]==i);
+    }
 
   }
 
@@ -2511,7 +2519,7 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(2)==3);
 
     // Test non-existent tag returns the default value.
-    myDataView = myData.getDataPointByTag(0);
+    myDataView = myData.getDataPointByTag(9);
     assert(myDataView==myView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==0);
@@ -2542,6 +2550,10 @@ void DataTaggedTestCase::testAll() {
       } else {
         assert(sampleData[i]==i-2);
       }
+    }
+    sampleData=myData.getSampleData(0);
+    for (int i=0; i<myDataView.noValues(); i++) {
+      assert(sampleData[i]==i+1);
     }
 
   }
@@ -2697,6 +2709,10 @@ void DataTaggedTestCase::testAll() {
       } else {
         assert(sampleData[i]==i-6);
       }
+    }
+    sampleData=myData.getSampleData(0);
+    for (int i=0; i<myDataView.noValues(); i++) {
+      assert(sampleData[i]==i+1);
     }
 
   }
