@@ -39,7 +39,8 @@ class DataTaggedTestCase : public CppUnitTest::TestCase
   void testCopyConstructors();
   void testReshape();
   void testOperations();
-  void testSlicing();
+  void testGetSlice();
+  void testSetSlice();
 
   DataTaggedTestCase (std::string name) : TestCase (name) {}
   ~DataTaggedTestCase() {}
