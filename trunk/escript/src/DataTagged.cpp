@@ -110,37 +110,6 @@ DataTagged::DataTagged(const DataConstant& other)
   setPointDataView(temp);
 }
 
-DataTagged::DataTagged(const DataTagged& other, 
-		       const DataArrayView::RegionType& region)
-  : DataAbstract(other.getFunctionSpace())
-{
-  // slice constructor
-
-  // get the shape of the slice to copy from other
-  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
-  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
-
-  // allocate enough space for all values
-  int len = DataArrayView::noValues(shape)*(other.m_offsetLookup.size()+1);
-  m_data.resize(len,0.,len);
-
-  // create the data view
-  DataArrayView temp(m_data,shape);
-  setPointDataView(temp);
-
-  // copy the default value
-  getDefaultValue().copySlice(other.getDefaultValue(),region_loop_range);
-
-  // loop through the tag values copying these
-  DataMapType::const_iterator pos;
-  DataArrayView::ValueType::size_type tagOffset=getPointDataView().noValues();
-  for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
-    getPointDataView().copySlice(tagOffset,other.getPointDataView(),pos->second,region_loop_range);
-    m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
-    tagOffset+=getPointDataView().noValues();
-  }
-}
-
 void
 DataTagged::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
 {
@@ -174,35 +143,77 @@ DataTagged::reshapeDataPoint(const DataArrayView::ShapeType& shape)
 DataAbstract*
 DataTagged::getSlice(const DataArrayView::RegionType& region) const 
 {
-  return new DataTagged(*this,region);
+  return new DataTagged(*this, region);
+}
+
+DataTagged::DataTagged(const DataTagged& other, 
+		       const DataArrayView::RegionType& region)
+  : DataAbstract(other.getFunctionSpace())
+{
+  // slice constructor
+
+  // get the shape of the slice to copy from other
+  DataArrayView::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
+  DataArrayView::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
+
+  // allocate enough space in this for all values
+  // (need to add one to allow for the default value)
+  int len = DataArrayView::noValues(regionShape)*(other.m_offsetLookup.size()+1);
+  m_data.resize(len,0.0,len);
+
+  // create the data view
+  DataArrayView temp(m_data,regionShape);
+  setPointDataView(temp);
+
+  // copy the default value from other to this
+  getDefaultValue().copySlice(other.getDefaultValue(), regionLoopRange);
+
+  // loop through the tag values copying these
+  DataMapType::const_iterator pos;
+  DataArrayView::ValueType::size_type tagOffset=getPointDataView().noValues();
+  for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
+    getPointDataView().copySlice(tagOffset,other.getPointDataView(),pos->second,regionLoopRange);
+    m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
+    tagOffset+=getPointDataView().noValues();
+  }
 }
 
 void
-DataTagged::setSlice(const DataAbstract* value,
-                     const DataArrayView::RegionType& region) 
+DataTagged::setSlice(const DataAbstract* other,
+                     const DataArrayView::RegionType& region)
 {
-  const DataTagged* tempDataTag=dynamic_cast<const DataTagged*>(value);
-  if (tempDataTag==0) {
+
+  // other must be another DataTagged object
+  // Data:setSlice implementation should ensure this
+  const DataTagged* otherTemp=dynamic_cast<const DataTagged*>(other);
+  if (otherTemp==0) {
     throw DataException("Programming error - casting to DataTagged.");
   }
 
-  DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
-  DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
+  // determine shape of the specified region
+  DataArrayView::ShapeType regionShape(DataArrayView::getResultSliceShape(region));
+
+  // modify region specification as needed to match rank of this object
+  DataArrayView::RegionLoopRangeType regionLoopRange=getSliceRegionLoopRange(region);
+
+  // ensure rank/shape of this object is compatible with specified region
   if (getPointDataView().getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
-  if (tempDataTag->getPointDataView().getRank()>0 && !value->getPointDataView().checkShape(shape)) {
-    throw DataException (value->getPointDataView().createShapeErrorMessage(
-                "Error - Couldn't copy slice due to shape mismatch.",shape));
+  if (otherTemp->getPointDataView().getRank()>0 && !other->getPointDataView().checkShape(regionShape)) {
+    throw DataException (other->getPointDataView().createShapeErrorMessage(
+                         "Error - Couldn't copy slice due to shape mismatch.",regionShape));
   }
 
-  getDefaultValue().copySliceFrom(tempDataTag->getDefaultValue(),region_loop_range);
+  // copy slice from other default value to this default value
+  getDefaultValue().copySliceFrom(otherTemp->getDefaultValue(), regionLoopRange);
 
-  // loop through the tag values
+  // loop through the tag values copying slices from other to this
   DataMapType::const_iterator pos;
   for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
-    getDataPointByTag(pos->first).copySliceFrom(tempDataTag->getDataPointByTag(pos->first),region_loop_range);
+    getDataPointByTag(pos->first).copySliceFrom(otherTemp->getDataPointByTag(pos->first), regionLoopRange);
   }
+
 }
 
 int
