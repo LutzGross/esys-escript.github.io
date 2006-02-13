@@ -105,19 +105,6 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
-     Slice Constructor for DataTagged.
-
-     Description:
-     Slice Constructor for DataTagged.
-     Copies a slice from another DataTagged object.
-     \param other - Input - DataTagged object to copy from.
-     \param region - Input - Region to copy.
-  */
-  DataTagged(const DataTagged& other, 
-	     const DataArrayView::RegionType& region);
-
-  /**
-     \brief
      Copy Constructor for DataTagged.
      Performs a deep copy from the given DataTagged object.
     T
@@ -342,8 +329,9 @@ class DataTagged : public DataAbstract {
      getSlice
 
      Description:
-     Factory method that returns a newly created DataTagged object.
-     The caller is reponsible for managing the object created.
+     Factory method that returns a newly created DataTagged object generated
+     by taking the specified slice from this DataTagged object.
+     The caller is reponsible for managing the returned object.
   */
   virtual
   DataAbstract*
@@ -351,16 +339,30 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
+     Slice Constructor for DataTagged.
+
+     Description:
+     Slice Constructor for DataTagged.
+     Creates a DataTagged object which is the specified slice
+     from another DataTagged object.
+     \param other - Input - DataTagged object to copy from.
+     \param region - Input - Region to copy.
+  */
+  DataTagged(const DataTagged& other, 
+	     const DataArrayView::RegionType& region);
+
+  /**
+     \brief
      setSlice
 
      Description:
-     Copy the specified region from the given value into this object.
-     \param value - Input - Data to copy from.
-     \param region - Input - Region to copy.
+     Copy the specified region from the given Data object into this object.
+     \param other - Input - Data object to copy from.
+     \param region - Input - Region to copy (NB: must have same shape as this!).
   */
   virtual
   void
-  setSlice(const DataAbstract* value,
+  setSlice(const DataAbstract* other,
            const DataArrayView::RegionType& region);
 
   /**
