@@ -2951,7 +2951,7 @@ void DataTaggedTestCase::testCopyConstructors() {
 
 }
 
-void DataTaggedTestCase::testSlicing() {
+void DataTaggedTestCase::testGetSlice() {
 
   cout << endl;
 
@@ -3164,6 +3164,176 @@ void DataTaggedTestCase::testSlicing() {
 
   }
 
+  {
+
+    cout << "\tTest slicing DataTagged with scalar values and one tag." << endl;
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+
+    // default value
+    DataArrayView::ValueType viewData(1);
+    viewData[0]=0.0;
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    eOne.getView()()=1.0;
+    values.push_back(eOne.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    //cout << myData.toString() << endl;
+
+    // full slice
+
+    DataArrayView::RegionType region;
+
+    DataAbstract* slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==1);
+
+    assert(myDataSliced->getLength()==2);
+
+    DataArrayView myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0);
+
+    myDataView = myDataSliced->getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1);
+
+  }
+
+  {
+
+    cout << "\tTest slicing DataTagged with rank 1 values and one tag." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+    keys.push_back(1);
+
+    DataTagged::ValueListType values;
+
+    // default value
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    // value for tag "1"
+    DataArray eOne(myView);
+    for (int i=0;i<eOne.getView().getShape()[0];i++) {
+      eOne.getView()(i)=i+3.0;
+    }
+    values.push_back(eOne.getView());
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    //cout << myData.toString() << endl;
+
+    // full slice
+
+    std::pair<int, int> region_element;
+    region_element.first=0;
+    region_element.second=3;
+    DataArrayView::RegionType region;
+    region.push_back(region_element);
+
+    DataAbstract* slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==1);
+
+    assert(myDataSliced->getLength()==6);
+
+    DataArrayView myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0);
+    assert(myDataView(1)==1);
+    assert(myDataView(2)==2);
+
+    myDataView = myDataSliced->getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==3);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==3);
+    assert(myDataView(1)==4);
+    assert(myDataView(2)==5);
+
+    // scalar slice
+
+    region_element.first=1;
+    region_element.second=1;
+    region.clear();
+    region.push_back(region_element);
+
+    slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==1);
+
+    assert(myDataSliced->getLength()==2);
+
+    myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==1);
+
+    myDataView = myDataSliced->getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==4);
+
+  }
+
+}
+
+void DataTaggedTestCase::testSetSlice() {
+
+  cout << endl;
+
+  {
+
+  }
+
 }
 
 TestSuite* DataTaggedTestCase::suite ()
@@ -3177,6 +3347,7 @@ TestSuite* DataTaggedTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testCopyConstructors",&DataTaggedTestCase::testCopyConstructors));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testReshape",&DataTaggedTestCase::testReshape));
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSlicing",&DataTaggedTestCase::testSlicing));
+  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testGetSlice",&DataTaggedTestCase::testGetSlice));
+  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetSlice",&DataTaggedTestCase::testSetSlice));
   return testSuite;
 }
