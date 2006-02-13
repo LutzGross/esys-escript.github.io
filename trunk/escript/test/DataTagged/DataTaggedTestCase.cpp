@@ -2951,6 +2951,221 @@ void DataTaggedTestCase::testCopyConstructors() {
 
 }
 
+void DataTaggedTestCase::testSlicing() {
+
+  cout << endl;
+
+  {
+
+    cout << "\tTest slicing default DataTagged." << endl;
+
+    DataTagged myData;
+
+    DataArrayView::RegionType region;
+
+    DataAbstract* slicedDefault = myData.getSlice(region);
+
+    // cout << slicedDefault->toString() << endl;
+
+    const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==0);
+
+    assert(myDataSliced->getLength()==1);
+
+    DataArrayView myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+  }
+
+  {
+
+    cout << "\tTest slicing DataTagged with rank 1 default value only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(3);
+    for (int i=0;i<viewShape[0];i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    // full slice
+
+    std::pair<int, int> region_element;
+    region_element.first=0;
+    region_element.second=3;
+    DataArrayView::RegionType region;
+    region.push_back(region_element);
+
+    DataAbstract* slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==0);
+
+    assert(myDataSliced->getLength()==3);
+
+    DataArrayView myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0.0);
+    assert(myDataView(1)==1.0);
+    assert(myDataView(2)==2.0);
+
+    // scalar slice
+
+    region.clear();
+    region_element.first=0;
+    region_element.second=0;
+    region.push_back(region_element);
+
+    slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==0);
+
+    assert(myDataSliced->getLength()==1);
+
+    myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+  }
+
+  {
+
+    cout << "\tTest slicing DataTagged with rank 3 default value only." << endl;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+    viewShape.push_back(3);
+    viewShape.push_back(3);
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ValueType viewData(27);
+    for (int i=0;i<viewData.size();i++) {
+      viewData[i]=i;
+    }
+    DataArrayView myView(viewData,viewShape);
+
+    DataTagged myData(keys,values,myView,FunctionSpace());
+
+    //cout << myData.toString() << endl;
+
+    // full slice
+
+    std::pair<int, int> region_element;
+    region_element.first=0;
+    region_element.second=3;
+    DataArrayView::RegionType region;
+    region.push_back(region_element);
+    region.push_back(region_element);
+    region.push_back(region_element);
+
+    DataAbstract* slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==0);
+
+    assert(myDataSliced->getLength()==27);
+
+    DataArrayView myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==3);
+    assert(myDataView.noValues()==27);
+    assert(myDataView.getShape().size()==3);
+
+    // rank 1 slice
+
+    region.clear();
+    region.push_back(region_element);
+    region_element.second=0;
+    region.push_back(region_element);
+    region.push_back(region_element);
+
+    slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==0);
+
+    assert(myDataSliced->getLength()==3);
+
+    myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==0.0);
+    assert(myDataView(1)==1.0);
+    assert(myDataView(2)==2.0);
+
+    // scalar slice
+
+    region.clear();
+    region_element.first=2;
+    region_element.second=2;
+    region.push_back(region_element);
+    region.push_back(region_element);
+    region.push_back(region_element);
+
+    slicedDefault = myData.getSlice(region);
+
+    //cout << slicedDefault->toString() << endl;
+
+    myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
+
+    assert(myDataSliced->getTagLookup().size()==0);
+
+    assert(myDataSliced->getLength()==1);
+
+    myDataView = myDataSliced->getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==26);
+
+  }
+
+}
+
 TestSuite* DataTaggedTestCase::suite ()
 {
   //
@@ -2962,5 +3177,6 @@ TestSuite* DataTaggedTestCase::suite ()
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testCopyConstructors",&DataTaggedTestCase::testCopyConstructors));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testReshape",&DataTaggedTestCase::testReshape));
+  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSlicing",&DataTaggedTestCase::testSlicing));
   return testSuite;
 }
