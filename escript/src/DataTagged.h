@@ -342,11 +342,10 @@ class DataTagged : public DataAbstract {
      Slice Constructor for DataTagged.
 
      Description:
-     Slice Constructor for DataTagged.
      Creates a DataTagged object which is the specified slice
-     from another DataTagged object.
-     \param other - Input - DataTagged object to copy from.
-     \param region - Input - Region to copy.
+     from the given DataTagged object.
+     \param other - Input - DataTagged object to slice from.
+     \param region - Input - Region to slice.
   */
   DataTagged(const DataTagged& other, 
 	     const DataArrayView::RegionType& region);
@@ -356,9 +355,9 @@ class DataTagged : public DataAbstract {
      setSlice
 
      Description:
-     Copy the specified region from the given Data object into this object.
+     Copy the given Data object into the specified region in this object.
      \param other - Input - Data object to copy from.
-     \param region - Input - Region to copy (NB: must have same shape as this!).
+     \param region - Input - Region to copy into (NB: must have same shape as other!).
   */
   virtual
   void
