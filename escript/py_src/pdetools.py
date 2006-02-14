@@ -122,7 +122,7 @@ class Projector:
 
     @param input_data: The input_data to be projected.
     """
-    out=escript.Data(0.,input_data.getShape(),what=escript.ContinuousFunction(self.__pde.getDomain()))
+    out=escript.Data(0.,input_data.getShape(),self.__pde.getFunctionSpaceForSolution())
     if input_data.getRank()==0:
         self.__pde.setValue(Y = input_data)
         out=self.__pde.getSolution()
@@ -150,7 +150,119 @@ class Projector:
                     out[i0,i1,i2,i3]=self.__pde.getSolution()
     return out
 
+class NoPDE:
+     """
+     solves the following problem for u:
 
+     M{kronecker[i,j]*D[j]*u[j]=Y[i]} 
+
+     with constraint
+
+     M{u[j]=r[j]}  where M{q[j]>0}
+
+     where D, Y, r and q are given functions of rank 1.
+
+     In the case of scalars this takes the form
+
+     M{D*u=Y} 
+
+     with constraint
+
+     M{u=r}  where M{q>0}
+
+     where D, Y, r and q are given scalar functions.
+
+     The constraint is overwriting any other condition.
+
+     @remark: This class is similar to the L{LinearPDE} class with A=B=C=X=0 but has the intention
+              that all input parameter are given in L{Solution} or L{ReducedSolution}. The whole
+              thing is a bit strange and I blame Robert.Woodcock@csiro.au for this.
+     """
+     def __init__(self,domain,D=None,Y=None,q=None,r=None):
+         """
+         initialize the problem
+
+         @param domain: domain of the PDE.
+         @type domain: L{Domain}
+         @param D: coefficient of the solution. 
+         @type D: C{float}, C{int}, L{NumArray}, L{Data}
+         @param Y: right hand side
+         @type Y: C{float}, C{int}, L{NumArray}, L{Data}
+         @param q: location of constraints
+         @type q: C{float}, C{int}, L{NumArray}, L{Data}
+         @param r: value of solution at locations of constraints
+         @type r: C{float}, C{int}, L{NumArray}, L{Data}
+         """
+         self.__domain=domain
+         self.__D=D
+         self.__Y=Y
+         self.__q=q
+         self.__r=r
+         self.__u=None
+         self.__function_space=escript.Solution(self.__domain)
+     def setReducedOn(self):
+         """
+         sets the L{FunctionSpace} of the solution to L{ReducedSolution}
+         """
+         self.__function_space=escript.ReducedSolution(self.__domain)
+         self.__u=None
+
+     def setReducedOff(self):
+         """
+         sets the L{FunctionSpace} of the solution to L{Solution}
+         """
+         self.__function_space=escript.Solution(self.__domain)
+         self.__u=None
+         
+     def setValue(self,D=None,Y=None,q=None,r=None):
+         """
+         assigns values to the parameters.
+
+         @param D: coefficient of the solution. 
+         @type D: C{float}, C{int}, L{NumArray}, L{Data}
+         @param Y: right hand side
+         @type Y: C{float}, C{int}, L{NumArray}, L{Data}
+         @param q: location of constraints
+         @type q: C{float}, C{int}, L{NumArray}, L{Data}
+         @param r: value of solution at locations of constraints
+         @type r: C{float}, C{int}, L{NumArray}, L{Data}
+         """
+         if not D==None:
+            self.__D=D
+            self.__u=None
+         if not Y==None:
+            self.__Y=Y
+            self.__u=None
+         if not q==None:
+            self.__q=q
+            self.__u=None
+         if not r==None:
+            self.__r=r
+            self.__u=None
+
+     def getSolution(self):
+         """
+         returns the solution
+        
+         @return: the solution of the problem
+         @rtype: L{Data} object in the L{FunctionSpace} L{Solution} or L{ReducedSolution}.
+         """
+         if self.__u==None:
+            if self.__D==None:
+               raise ValueError,"coefficient D is undefined"
+            D=escript.Data(self.__D,self.__function_space)
+            if D.getRank()>1:
+               raise ValueError,"coefficient D must have rank 0 or 1"
+            if self.__Y==None:
+               self.__u=escript.Data(0.,D.getShape(),self.__function_space)
+            else:
+               self.__u=util.quotient(self.__Y,D)
+            if not self.__q==None:
+                q=util.wherePositive(escript.Data(self.__q,self.__function_space))
+                self.__u*=(1.-q)
+                if not self.__r==None: self.__u+=q*self.__r
+         return self.__u
+             
 class Locator:
      """
      Locator provides access to the values of data objects at a given
@@ -171,7 +283,7 @@ class Locator:
           self.__function_space=where
        else:
           self.__function_space=escript.ContinuousFunction(where)
-       self.__id=util.length(x[:self.__function_space.getDim()]-self.__function_space.getX()).mindp()
+       self.__id=util.length(self.__function_space.getX()-x[:self.__function_space.getDim()]).mindp()
 
      def __str__(self):
        """
