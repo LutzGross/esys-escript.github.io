@@ -200,7 +200,7 @@ DataTagged::setSlice(const DataAbstract* other,
   if (getPointDataView().getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
-  if (otherTemp->getPointDataView().getRank()>0 && !other->getPointDataView().checkShape(regionShape)) {
+  if (otherTemp->getPointDataView().getRank()>0 and !other->getPointDataView().checkShape(regionShape)) {
     throw DataException (other->getPointDataView().createShapeErrorMessage(
                          "Error - Couldn't copy slice due to shape mismatch.",regionShape));
   }
