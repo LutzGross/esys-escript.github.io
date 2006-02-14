@@ -4003,27 +4003,37 @@ void DataTaggedTestCase::testSetSlice() {
 
     // rank 1 slice
 
-    //viewShape.clear();
-    //viewShape.push_back(1);
+    viewShape.clear();
+    viewShape.push_back(1);
 
-    //DataArrayView::ValueType viewData3(1);
-    //for (int i=0;i<viewShape[0];i++) {
-    //  viewData3[i]=0.0;
-    //}
-    //DataArrayView myView3(viewData3,viewShape);
+    DataArrayView::ValueType viewData3(1);
+    viewData3[0]=0.0;
+    DataArrayView myView3(viewData3,viewShape);
 
-    //DataTagged myData3(keys,values,myView3,FunctionSpace());
+    DataTagged myData3(keys,values,myView3,FunctionSpace());
 
-    //region.clear();
-    //region_element.first=0;
-    //region_element.second=1;
-    //region.push_back(region_element);
+    region.clear();
+    region_element.first=1;
+    region_element.second=2;
+    region.push_back(region_element);
 
-    //cout << myData3.toString() << endl;
+    myData1.setSlice(&myData3, region);
 
-    //myData3.setSlice(&myData2, region);
+    //cout << myData1.toString() << endl;
 
-    //cout << myData3.toString() << endl;
+    assert(myData1.getTagLookup().size()==0);
+
+    assert(myData1.getLength()==3);
+
+    myDataView = myData1.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==3.0);
+    assert(myDataView(1)==0.0);
+    assert(myDataView(2)==5.0);
 
     // scalar slice
 
