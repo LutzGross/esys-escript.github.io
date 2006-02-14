@@ -1,7 +1,7 @@
 # $Id$
 
 """
-Test suite for the linearPDE test on finley
+Test suite for the linearPDE iand pdetools test on finley
 
 @remark:
 
@@ -21,22 +21,23 @@ __date__="$Date$"
 
 import unittest
 from esys.escript.test_linearPDEs import Test_Poisson,Test_LinearPDE
+from esys.escript.test_pdetools import Test_pdetools
 from esys.finley import Rectangle,Brick
 import sys
 
-class Test_LinearPDEOnFinley2DOrder1(Test_LinearPDE):
+class Test_LinearPDEOnFinley2DOrder1(Test_LinearPDE,Test_pdetools):
     def setUp(self):
         self.domain = Rectangle(50,50,1)
 
-class Test_LinearPDEOnFinley2DOrder2(Test_LinearPDE):
+class Test_LinearPDEOnFinley2DOrder2(Test_LinearPDE,Test_pdetools):
     def setUp(self):
         self.domain = Rectangle(50,50,2)
 
-class Test_LinearPDEOnFinley3DOrder1(Test_LinearPDE):
+class Test_LinearPDEOnFinley3DOrder1(Test_LinearPDE,Test_pdetools):
     def setUp(self):
         self.domain = Brick(20,10,10,1)
 
-class Test_LinearPDEOnFinley3DOrder2(Test_LinearPDE):
+class Test_LinearPDEOnFinley3DOrder2(Test_LinearPDE,Test_pdetools):
     def setUp(self):
         self.domain = Brick(10,10,20,2)
 
