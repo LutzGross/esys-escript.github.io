@@ -828,6 +828,17 @@ class Symbol(object):
        """
        return power(other,self)
 
+   def __getitem__(self,index):
+       """
+       returns the slice defined by index
+
+       @param index: defines a 
+       @type index: C{slice} or C{int} or a C{tuple} of them
+       @return: a S{Symbol} representing the slice defined by index
+       @rtype: L{DependendSymbol}
+       """
+       return GetSlice_Symbol(self,index)
+
 class DependendSymbol(Symbol):
    """
    DependendSymbol extents L{Symbol} by modifying the == operator to allow two instances to be equal. 
@@ -878,6 +889,94 @@ class DependendSymbol(Symbol):
 #=========================================================
 #  Unary operations prserving the shape
 #========================================================
+class GetSlice_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing getting a slice for a L{Symbol}
+   """
+   def __init__(self,arg,index):
+      """
+      initialization of wherePositive L{Symbol} with argument arg
+      @param arg: argument 
+      @type arg: L{Symbol}.
+      @param index: defines index
+      @type index: C{slice} or C{int} or a C{tuple} of them
+      @raises IndexError: if length of index is larger than rank of arg or a index start or stop is out of range
+      @raises ValueError: if a step is given
+      """
+      if not isinstance(index,tuple): index=(index,)
+      if len(index)>arg.getRank():
+           raise IndexError,"GetSlice_Symbol: index out of range."
+      sh=()
+      index2=()
+      for i in range(len(index)):
+         ix=index[i]
+         if isinstance(ix,int):
+            if ix<0 or ix>=arg.getShape()[i]:
+               raise ValueError,"GetSlice_Symbol: index out of range."
+            index2=index2+(ix,)
+         else:
+           if not ix.step==None:
+             raise ValueError,"GetSlice_Symbol: steping is not supported."
+           if ix.start==None:
+              s=0
+           else:
+              s=ix.start
+           if ix.stop==None:
+              e=arg.getShape()[i]
+           else:
+              e=ix.stop
+              if e>arg.getShape()[i]:
+                 raise IndexError,"GetSlice_Symbol: index out of range."
+           index2=index2+(slice(s,e),)
+           if e>s:
+               sh=sh+(e-s,)
+           elif s>e:
+               raise IndexError,"GetSlice_Symbol: slice start must be less or equal slice end"
+      for i in range(len(index),arg.getRank()):
+          index2=index2+(slice(0,arg.getShape()[i]),)
+          sh=sh+(arg.getShape()[i],)
+      super(GetSlice_Symbol, self).__init__(args=[arg,index2],shape=sh,dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise: NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "%s.__getitem__(%s)"%(argstrs[0],argstrs[1])
+      else:
+         raise NotImplementedError,"GetItem_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         args=self.getSubstitutedArguments(argvals)
+         arg=args[0]
+         index=args[1]
+         return arg.__getitem__(index)
+
 def log10(arg):
    """
    returns base-10 logarithm of argument arg

@@ -46,6 +46,8 @@ from esys.escript.test_util_unary_with_tagged_data import Test_util_unary_with_t
 from esys.escript.test_util_binary_no_tagged_data import Test_util_binary_no_tagged_data
 from esys.escript.test_util_binary_with_tagged_data import Test_util_binary_with_tagged_data
 from esys.escript.test_util_spatial_functions import Test_Util_SpatialFunctions
+from esys.escript.test_util_slicing_no_tagged_data import Test_util_slicing_no_tagged_data
+from esys.escript.test_util_slicing_with_tagged_data import Test_util_slicing_with_tagged_data
 
 class Test_util_reduction(Test_util_reduction_no_tagged_data,Test_util_reduction_with_tagged_data):
    """ test for reduction operation Lsup,sup,inf for all data types"""
@@ -61,10 +63,10 @@ class Test_util_binary(Test_util_binary_no_tagged_data,Test_util_binary_with_tag
 class Test_util_overloaded_binary(Test_util_overloaded_binary_no_tagged_data,Test_util_overloaded_binary_with_tagged_data):
    """test for all overloaded operation"""
    pass
-class Test_util_with_tagged_data(Test_util_unary_with_tagged_data,Test_util_reduction_with_tagged_data,Test_util_binary_with_tagged_data,Test_util_overloaded_binary_with_tagged_data):
+class Test_util_with_tagged_data(Test_util_unary_with_tagged_data,Test_util_reduction_with_tagged_data,Test_util_binary_with_tagged_data,Test_util_overloaded_binary_with_tagged_data,Test_util_slicing_with_tagged_data):
    """test for all operations without tagged data"""
    pass
-class Test_util_no_tagged_data(Test_util_unary_no_tagged_data,Test_util_reduction_no_tagged_data,Test_util_binary_no_tagged_data,Test_util_overloaded_binary_no_tagged_data):
+class Test_util_no_tagged_data(Test_util_unary_no_tagged_data,Test_util_reduction_no_tagged_data,Test_util_binary_no_tagged_data,Test_util_overloaded_binary_no_tagged_data, Test_util_slicing_no_tagged_data):
    """all tests without tagged data"""
    pass
 

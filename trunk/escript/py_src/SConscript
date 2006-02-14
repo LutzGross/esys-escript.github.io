@@ -33,10 +33,12 @@ python_src = ['__init__.py',
               'test_util_reduction_with_tagged_data.py',
               'test_util_binary_no_tagged_data.py',
               'test_util_overloaded_binary_with_tagged_data.py',
+              'test_util_slicing_no_tagged_data.py',
               'test_util_unary_no_tagged_data.py',
               'test_util_binary_with_tagged_data.py',
               'test_util_reduction_no_tagged_data.py',
               'test_util_unary_with_tagged_data.py',
+              'test_util_slicing_with_tagged_data.py',
               'test_util_spatial_functions.py',
               'benchmark.py']
 
