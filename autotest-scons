@@ -8,7 +8,7 @@ MAIL_RECIPIENTS="jgs@esscc.uq.edu.au gross@esscc.uq.edu.au elspeth@esscc.uq.edu.
 
 # the python tests to run
 BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py test_symbolsOnBruce.py"
-ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py newEscriptTests.py DataVariableTests.py test_xml.py insituTests.py pdetoolsTest.py s2.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py newEscriptTests.py DataVariableTests.py test_xml.py insituTests.py s2.py"
 FINLEY_PYTESTS="ImportTest.py finleyTest.py SimpleSolve.py RecTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py test_symbolsOnFinley.py"
 
 echo "===> cd $1"
