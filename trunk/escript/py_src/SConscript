@@ -40,6 +40,7 @@ python_src = ['__init__.py',
               'test_util_unary_with_tagged_data.py',
               'test_util_slicing_with_tagged_data.py',
               'test_util_spatial_functions.py',
+              'test_pdetools.py',
               'benchmark.py']
 
 pyc = escriptpy_env.PyCompile(python_src)
