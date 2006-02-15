@@ -3931,6 +3931,8 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataArrayView::RegionType region;
 
+    myData2.getDefaultValue()()=1.0;
+
     myData1.setSlice(&myData2, region);
 
     //cout << myData1.toString() << endl;
@@ -3945,7 +3947,7 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myDataView.getRank()==0);
     assert(myDataView.noValues()==1);
     assert(myDataView.getShape().size()==0);
-    assert(myDataView()==0.0);
+    assert(myDataView()==1.0);
 
   }
 
@@ -3965,14 +3967,13 @@ void DataTaggedTestCase::testSetSlice() {
       viewData1[i]=i;
     }
     DataArrayView myView1(viewData1,viewShape);
+    DataTagged myData1(keys,values,myView1,FunctionSpace());
 
     DataArrayView::ValueType viewData2(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData2[i]=i+3;
     }
     DataArrayView myView2(viewData2,viewShape);
-
-    DataTagged myData1(keys,values,myView1,FunctionSpace());
     DataTagged myData2(keys,values,myView2,FunctionSpace());
 
     // full slice
@@ -4007,9 +4008,8 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.push_back(1);
 
     DataArrayView::ValueType viewData3(1);
-    viewData3[0]=0.0;
+    viewData3[0]=6.0;
     DataArrayView myView3(viewData3,viewShape);
-
     DataTagged myData3(keys,values,myView3,FunctionSpace());
 
     region.clear();
@@ -4032,33 +4032,155 @@ void DataTaggedTestCase::testSetSlice() {
     assert(myDataView.noValues()==3);
     assert(myDataView.getShape().size()==1);
     assert(myDataView(0)==3.0);
-    assert(myDataView(1)==0.0);
+    assert(myDataView(1)==6.0);
     assert(myDataView(2)==5.0);
 
     // scalar slice
 
-    //region.clear();
-    //region_element.first=0;
-    //region_element.second=0;
-    //region.push_back(region_element);
+    region.clear();
+    region_element.first=0;
+    region_element.second=0;
+    region.push_back(region_element);
+
+    DataTagged myData4;
+    myData4.getDefaultValue()()=7.0;
+
+    myData1.setSlice(&myData4, region);
 
     //cout << myData3.toString() << endl;
 
-    //myData3.setSlice(&myData2, region);
+    assert(myData1.getTagLookup().size()==0);
 
-    //cout << myData3.toString() << endl;
+    assert(myData1.getLength()==3);
 
-    //assert(myData3.getTagLookup().size()==0);
+    myDataView = myData1.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==1);
+    assert(myDataView.noValues()==3);
+    assert(myDataView.getShape().size()==1);
+    assert(myDataView(0)==7.0);
+    assert(myDataView(1)==6.0);
+    assert(myDataView(2)==5.0);
 
-    //assert(myData3.getLength()==1);
+  }
 
-    //myDataView = myData3.getDefaultValue();
-    //assert(!myDataView.isEmpty());
-    //assert(myDataView.getOffset()==0);
-    //assert(myDataView.getRank()==0);
-    //assert(myDataView.noValues()==1);
-    //assert(myDataView.getShape().size()==0);
-    //assert(myDataView()==3.0);
+  {
+
+    cout << "\tTest slicing DataTagged with rank 3 default value only." << endl;
+
+    DataTagged::TagListType keys;
+
+    DataTagged::ValueListType values;
+
+    DataArrayView::ShapeType viewShape;
+    viewShape.push_back(3);
+    viewShape.push_back(3);
+    viewShape.push_back(3);
+
+    DataArrayView::ValueType viewData1(27);
+    for (int i=0;i<viewData1.size();i++) {
+      viewData1[i]=i;
+    }
+    DataArrayView myView1(viewData1,viewShape);
+    DataTagged myData1(keys,values,myView1,FunctionSpace());
+
+    DataArrayView::ValueType viewData2(27);
+    for (int i=0;i<viewData2.size();i++) {
+      viewData2[i]=i+27;
+    }
+    DataArrayView myView2(viewData2,viewShape);
+    DataTagged myData2(keys,values,myView2,FunctionSpace());
+
+    // full slice
+
+    std::pair<int, int> region_element;
+    region_element.first=0;
+    region_element.second=3;
+    DataArrayView::RegionType region;
+    region.push_back(region_element);
+    region.push_back(region_element);
+    region.push_back(region_element);
+
+    myData1.setSlice(&myData2, region);
+
+    //cout << myData1.toString() << endl;
+
+    assert(myData1.getTagLookup().size()==0);
+
+    assert(myData1.getLength()==27);
+
+    DataArrayView myDataView = myData1.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==3);
+    assert(myDataView.noValues()==27);
+    assert(myDataView.getShape().size()==3);
+
+    // rank 1 slice
+
+    viewShape.clear();
+    viewShape.push_back(3);
+
+    DataArrayView::ValueType viewData3(3);
+    for (int i=0;i<viewData3.size();i++) {
+      viewData3[i]=i+60;
+    }
+    DataArrayView myView3(viewData3,viewShape);
+    DataTagged myData3(keys,values,myView3,FunctionSpace());
+
+    region.clear();
+    region.push_back(region_element);
+    region_element.first=0;
+    region_element.second=0;
+    region.push_back(region_element);
+    region.push_back(region_element);
+
+    myData1.setSlice(&myData3, region);
+
+    //cout << myData1.toString() << endl;
+
+    assert(myData1.getTagLookup().size()==0);
+
+    assert(myData1.getLength()==27);
+
+    myDataView = myData1.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==3);
+    assert(myDataView.noValues()==27);
+    assert(myDataView.getShape().size()==3);
+    assert(myDataView(0,0,0)==60.0);
+    assert(myDataView(1,0,0)==61.0);
+    assert(myDataView(2,0,0)==62.0);
+
+    // scalar slice
+
+    region.clear();
+    region_element.first=0;
+    region_element.second=0;
+    region.push_back(region_element);
+    region.push_back(region_element);
+    region.push_back(region_element);
+
+    DataTagged myData4;
+    myData4.getDefaultValue()()=70.0;
+
+    myData1.setSlice(&myData4, region);
+
+    //cout << myData1.toString() << endl;
+
+    assert(myData1.getTagLookup().size()==0);
+
+    assert(myData1.getLength()==27);
+
+    myDataView = myData1.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==3);
+    assert(myDataView.noValues()==27);
+    assert(myDataView.getShape().size()==3);
+    assert(myDataView(0,0,0)==70.0);
 
   }
 
