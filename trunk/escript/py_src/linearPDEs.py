@@ -1532,24 +1532,46 @@ class LinearPDE(object):
        if not self.__operator_is_Valid or not self.__righthandside_isValid:
           if self.isUsingLumping():
               if not self.__operator_is_Valid:
-                 if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution(): raise TypeError,"Lumped matrix requires same order for equations and unknowns"
-                 if not self.getCoefficientOfGeneralPDE("A").isEmpty(): raise Warning,"Using coefficient A in lumped matrix can produce wrong results"
-                 if not self.getCoefficientOfGeneralPDE("B").isEmpty(): raise Warning,"Using coefficient B in lumped matrix can produce wrong results"
-                 if not self.getCoefficientOfGeneralPDE("C").isEmpty(): raise Warning,"Using coefficient C in lumped matrix can produce wrong results"
-                 mat=self.__getNewOperator()
-                 self.getDomain().addPDEToSystem(mat,escript.Data(), \
-                           self.getCoefficientOfGeneralPDE("A"), \
-                           self.getCoefficientOfGeneralPDE("B"), \
-                           self.getCoefficientOfGeneralPDE("C"), \
-                           self.getCoefficientOfGeneralPDE("D"), \
-                           escript.Data(), \
-                           escript.Data(), \
-                           self.getCoefficientOfGeneralPDE("d"), \
-                           escript.Data(),\
-                           self.getCoefficientOfGeneralPDE("d_contact"), \
-                           escript.Data())
-                 self.__operator=1./(mat*escript.Data(1,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True))
-                 del mat
+                 if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution(): 
+                      raise TypeError,"Lumped matrix requires same order for equations and unknowns"
+                 if not self.getCoefficientOfGeneralPDE("A").isEmpty(): 
+                      raise ValueError,"coefficient A in lumped matrix may not be present."
+                 if not self.getCoefficientOfGeneralPDE("B").isEmpty():
+                      raise ValueError,"coefficient A in lumped matrix may not be present."
+                 if not self.getCoefficientOfGeneralPDE("C").isEmpty():
+                      raise ValueError,"coefficient A in lumped matrix may not be present."
+                 D=self.getCoefficientOfGeneralPDE("D")
+                 if not D.isEmpty():
+                     if self.getNumSolutions()>1:
+                        D_times_e=util.matrixmult(D,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        D_times_e=D
+                 else:
+                    D_times_e=escript.Data()
+                 d=self.getCoefficientOfGeneralPDE("d")
+                 if not d.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_times_e=util.matrixmult(d,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_times_e=d
+                 else:
+                    d_times_e=escript.Data()
+                 d_contact=self.getCoefficientOfGeneralPDE("d_contact")
+                 if not d_contact.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_contact_times_e=util.matrixmult(d_contact,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_contact_times_e=d_contact
+                 else:
+                    d_contact_times_e=escript.Data()
+    
+                 self.__operator=self.__getNewRightHandSide()
+                 self.getDomain().addPDEToRHS(self.__operator, \
+                                              escript.Data(), \
+                                              D_times_e, \
+                                              d_times_e,\
+                                              d_contact_times_e)
+                 self.__operator=1./self.__operator
                  self.trace("New lumped operator has been built.")
                  self.__operator_is_Valid=True
               if not self.__righthandside_isValid:

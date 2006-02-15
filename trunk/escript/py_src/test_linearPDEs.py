@@ -531,9 +531,9 @@ class Test_LinearPDE(Test_linearPDEs):
 	   mypde.setSolverMethod(mypde.LUMPING)
            mypde.setValue(A=kronecker(self.domain))
            u=mypde.getSolution(verbose=self.VERBOSE)
-        except Warning:
+        except ValueError:
            success=False
-        self.failUnless(not success,'warning should be issued')
+        self.failUnless(not success,'error should be issued')
     def test_Lumping_attemptToSetB(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
@@ -541,9 +541,9 @@ class Test_LinearPDE(Test_linearPDEs):
 	   mypde.setSolverMethod(mypde.LUMPING)
            mypde.setValue(B=kronecker(self.domain)[0])
            u=mypde.getSolution(verbose=self.VERBOSE)
-        except Warning:
+        except ValueError:
            success=False
-        self.failUnless(not success,'warning should be issued')
+        self.failUnless(not success,'error should be issued')
     def test_Lumping_attemptToSetC(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
@@ -551,9 +551,9 @@ class Test_LinearPDE(Test_linearPDEs):
 	   mypde.setSolverMethod(mypde.LUMPING)
            mypde.setValue(C=kronecker(self.domain)[0])
            u=mypde.getSolution(verbose=self.VERBOSE)
-        except Warning:
+        except ValueError:
            success=False
-        self.failUnless(not success,'warning should be issued')
+        self.failUnless(not success,'error should be issued')
         
     def test_Lumping(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -568,6 +568,22 @@ class Test_LinearPDE(Test_linearPDEs):
         mypde.setValue(D=1.,Y=1.,q=whereZero(x[0]),r=1.)
         u=mypde.getSolution(verbose=self.VERBOSE)
         self.failUnless(self.check(u,1.),'solution is wrong.')
+
+    def test_Lumping_System(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+	mypde.setSolverMethod(mypde.LUMPING)
+        mypde.setValue(D=numarray.array([[1.,0.],[0.,2.]]),Y=numarray.array([1.,2.]))
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,numarray.ones((2,))),'solution is wrong.')
+    def test_Constrained_Lumping_System(self):
+        x=self.domain.getX()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+	mypde.setSolverMethod(mypde.LUMPING)
+        mypde.setValue(D=numarray.array([[1.,0.],[0.,2.]]),Y=numarray.array([1.,2.]), \
+                       q=whereZero(x[0])*[0.,1],r=[0.,1.])
+        u=mypde.getSolution(verbose=self.VERBOSE)
+        self.failUnless(self.check(u,numarray.ones((2,))),'solution is wrong.')
+
     def test_Lumping_updateRHS(self):
         x=self.domain.getX()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
