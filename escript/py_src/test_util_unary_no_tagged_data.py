@@ -6133,3 +6133,111 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_array_dim1(self):
+      arg=numarray.array([[0.55998648196067324]])
+      res=eigenvalues(arg)
+      ref=numarray.array([0.55998648196067324])
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(1,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_array_dim2(self):
+      arg=numarray.array([[-0.82785169696846017, -0.13252097848511568], [-0.13252097848511568, -0.57337241477421497]])
+      res=eigenvalues(arg)
+      ref=numarray.array([-0.88432851132695822, -0.51689560041571692])
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(2,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_array_dim3(self):
+      arg=numarray.array([[-0.23017631173237429, 0.34683253477098563, 0.40039067825733443], [0.34683253477098563, 0.053901712034509108, -0.14974270647987487], [0.40039067825733443, -0.14974270647987487, -0.81268542047574677]])
+      res=eigenvalues(arg)
+      ref=numarray.array([-1.0939000322647103, -0.19276192412377424, 0.29770193621487262])
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(3,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_Symbol_dim1(self):
+      arg=Symbol(shape=(1, 1))
+      res=eigenvalues(arg)
+      s=numarray.array([[-0.88333892054593477]])
+      sub=res.substitute({arg:s})
+      ref=numarray.array([-0.88333892054593477])
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1,),"wrong shape of result.")
+      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_Symbol_dim2(self):
+      arg=Symbol(shape=(2, 2))
+      res=eigenvalues(arg)
+      s=numarray.array([[-0.19774975364468905, 0.72605762053517053], [0.72605762053517053, -0.17702492646411461]])
+      sub=res.substitute({arg:s})
+      ref=numarray.array([-0.91351890385851708, 0.53874422374971342])
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_Symbol_dim3(self):
+      arg=Symbol(shape=(3, 3))
+      res=eigenvalues(arg)
+      s=numarray.array([[-0.39666022712158422, 0.043213499565241786, -0.2718619768786924], [0.043213499565241786, 0.61677493984107223, 0.57159082148513496], [-0.2718619768786924, 0.57159082148513496, 0.3652453545986567]])
+      sub=res.substitute({arg:s})
+      ref=numarray.array([-0.53716021759378285, 0.033257939187142031, 1.0892623457247856])
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
+      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_constData_dim1(self):
+      arg=Data(numarray.array([[0.18644177194421618]]),self.functionspace)
+      res=eigenvalues(arg)
+      ref=Data(numarray.array([0.18644177194421618]),self.functionspace)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_constData_dim2(self):
+      arg=Data(numarray.array([[-0.81762199211802677, 0.45850501297427182], [0.45850501297427182, -0.47124343125083223]]),self.functionspace)
+      res=eigenvalues(arg)
+      ref=Data(numarray.array([-1.1345565468318792, -0.15430887653697989]),self.functionspace)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_constData_dim3(self):
+      arg=Data(numarray.array([[0.94061304998883721, 0.26537839728361134, 0.23504527017785981], [0.26537839728361134, -0.5459884098403629, 0.2630475033998162], [0.23504527017785981, 0.2630475033998162, -0.17078741356007954]]),self.functionspace)
+      res=eigenvalues(arg)
+      ref=Data(numarray.array([-0.69269722708749937, -0.13414705681961808, 1.0506815104955125]),self.functionspace)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_expandedData_dim1(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[-0.23193456556887959]])+(1.-msk_arg)*numarray.array([[-0.96174181563514316]])
+      res=eigenvalues(arg)
+      msk_ref=whereNegative(self.functionspace.getX()[0]-0.5)
+      ref=msk_ref*numarray.array([-0.23193456556887959])+(1.-msk_ref)*numarray.array([-0.96174181563514316])
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_expandedData_dim2(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[0.50169800187705049, -0.25726673908249542], [-0.25726673908249542, 0.31046458149750822]])+(1.-msk_arg)*numarray.array([[-0.20084507113079897, 0.043607881117532221], [0.043607881117532221, -0.26818550790921791]])
+      res=eigenvalues(arg)
+      msk_ref=whereNegative(self.functionspace.getX()[0]-0.5)
+      ref=msk_ref*numarray.array([0.13162049247242708, 0.68054209090213169])+(1.-msk_ref)*numarray.array([-0.28960912676100919, -0.17942145227900769])
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_expandedData_dim3(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[0.77521278873012034, -0.068861371980342923, -0.17496467817334527], [-0.068861371980342923, 0.51501928025302446, 0.17204057959868801], [-0.17496467817334527, 0.17204057959868801, -0.87053006022942903]])+(1.-msk_arg)*numarray.array([[-0.76245139703149523, -0.32739735199553155, -0.40491609402756901], [-0.32739735199553155, 0.031612520130607225, 0.027781414946789096], [-0.40491609402756901, 0.027781414946789096, -0.80918893919540325]])
+      res=eigenvalues(arg)
+      msk_ref=whereNegative(self.functionspace.getX()[0]-0.5)
+      ref=msk_ref*numarray.array([-0.90786283754763031, 0.50806128358627256, 0.81950356271507419])+(1.-msk_ref)*numarray.array([-1.2268520410033508, -0.49329882636432321, 0.18012305127138231])
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")

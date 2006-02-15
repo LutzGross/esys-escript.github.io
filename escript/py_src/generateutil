@@ -549,6 +549,50 @@ def mkCode(txt,args=[],intend=""):
     for r in args:
       out=out.replace("%%a%s%%"%c,r)
     return out   
+#=======================================================================================================
+# eigenvalues
+#=======================================================================================================
+import numarray.linear_algebra
+name="eigenvalues"
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (1,1), (2,2), (3,3)]:
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_dim%s"%(name,case0,sh0[0])
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              a_0=(a_0+numarray.transpose(a_0))/2.
+              ev=numarray.linear_algebra.eigenvalues(a_0)
+              ev.sort()
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+                  a1_0=(a1_0+numarray.transpose(a1_0))/2.
+                  ev1=numarray.linear_algebra.eigenvalues(a1_0)
+                  ev1.sort()
+              else:
+                  a1_0=a_0                  
+                  ev1=ev
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg)\n"%name
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",ev,ev1)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",ev,ev1)   
+              text+=mkTypeAndShapeTest(case0,(sh0[0],),"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
 
 #=======================================================================================================
 # slicing
