@@ -1659,3 +1659,34 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_taggedData_dim1(self):
+      arg=Data(numarray.array([[0.33279823386330953]]),self.functionspace)
+      arg.setTaggedValue(1,numarray.array([[-0.061115457896394387]]))
+      res=eigenvalues(arg)
+      ref=Data(numarray.array([0.33279823386330953]),self.functionspace)
+      ref.setTaggedValue(1,numarray.array([-0.061115457896394387]))
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(1,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_taggedData_dim2(self):
+      arg=Data(numarray.array([[0.37760109486480786, -0.51481765042925676], [-0.51481765042925676, 0.21659975727086356]]),self.functionspace)
+      arg.setTaggedValue(1,numarray.array([[0.28147586793302382, 0.037445875768483461], [0.037445875768483461, -0.33641245775790529]]))
+      res=eigenvalues(arg)
+      ref=Data(numarray.array([-0.22397305327098097, 0.81817390540665236]),self.functionspace)
+      ref.setTaggedValue(1,numarray.array([-0.33867351557615905, 0.28373692575127757]))
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_taggedData_dim3(self):
+      arg=Data(numarray.array([[-0.028453927582187344, -0.18993093160318897, -0.029996204504947221], [-0.18993093160318897, 0.29025386050771895, 0.280540188445356], [-0.029996204504947221, 0.280540188445356, 0.032061143754492427]]),self.functionspace)
+      arg.setTaggedValue(1,numarray.array([[-0.79529168437596365, 0.31141143092319046, -0.58740338304921114], [0.31141143092319046, -0.68455733117851869, 0.038573037937184806], [-0.58740338304921114, 0.038573037937184806, 0.92511227852485911]]))
+      res=eigenvalues(arg)
+      ref=Data(numarray.array([-0.19664234688324986, -0.036237618759115353, 0.5267410423223895]),self.functionspace)
+      ref.setTaggedValue(1,numarray.array([-1.1727418425501348, -0.49026809359761531, 1.1082731991181265]))
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
