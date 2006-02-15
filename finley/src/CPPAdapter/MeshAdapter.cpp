@@ -786,7 +786,7 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
   const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(new_x.getFunctionSpace().getDomain());
   if (newDomain!=*this) 
      throw FinleyAdapterException("Error - Illegal domain of new point locations");
-  Finley_NodeFile_setCoordinates(mesh->Nodes,&(new_x.getDataC()));
+  Finley_Mesh_setCoordinates(mesh,&(new_x.getDataC()));
   checkFinleyError();
 }
 

@@ -75,11 +75,11 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
 
   /*  this function assumes NS=NN */
   if (p.NN!=p.NS) {
-    Finley_setError(SYSTEM_ERROR,"__FILE__: for Finley_Assemble_PDE numNodes and numShapes have to be identical.");
+    Finley_setError(SYSTEM_ERROR,"Finley_Assemble_PDE: for Finley_Assemble_PDE numNodes and numShapes have to be identical.");
     return;
   } 
   if (p.numDim!=p.numElementDim) {
-    Finley_setError(SYSTEM_ERROR,"__FILE__: Finley_Assemble_PDE accepts volume elements only.");
+    Finley_setError(SYSTEM_ERROR,"Finley_Assemble_PDE: Finley_Assemble_PDE accepts volume elements only.");
     return;
   }
   /*  get a functionspace */
@@ -95,53 +95,53 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   /* check if all function spaces are the same */
 
   if (! functionSpaceTypeEqual(funcspace,A) ) {
-        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient A");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient A");
   }
   if (! functionSpaceTypeEqual(funcspace,B) ) {
-        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient B");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient B");
   }
   if (! functionSpaceTypeEqual(funcspace,C) ) {
-        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient C");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient C");
   }
   if (! functionSpaceTypeEqual(funcspace,D) ) {
-        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient D");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient D");
   }
   if (! functionSpaceTypeEqual(funcspace,X) ) {
-        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient X");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient X");
   }
   if (! functionSpaceTypeEqual(funcspace,Y) ) {
-        Finley_setError(TYPE_ERROR,"__FILE__: unexpected function space type for coefficient Y");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient Y");
   }
 
   /* check if all function spaces are the same */
 
   if (! numSamplesEqual(A,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"__FILE__: sample points of coefficient A don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)",p.numQuad,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
   if (! numSamplesEqual(B,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"__FILE__: sample points of coefficient B don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient B don't match (%d,%d)",p.numQuad,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
   if (! numSamplesEqual(C,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"__FILE__: sample points of coefficient C don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient C don't match (%d,%d)",p.numQuad,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
   if (! numSamplesEqual(D,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"__FILE__: sample points of coefficient D don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient D don't match (%d,%d)",p.numQuad,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
   if (! numSamplesEqual(X,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"__FILE__: sample points of coefficient X don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient X don't match (%d,%d)",p.numQuad,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
   if (! numSamplesEqual(Y,p.numQuad,elements->numElements) ) {
-        sprintf(error_msg,"__FILE__: sample points of coefficient Y don't match (%d,%d)",p.numQuad,elements->numElements);
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient Y don't match (%d,%d)",p.numQuad,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
@@ -152,39 +152,39 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
       dimensions[0]=p.numDim;
       dimensions[1]=p.numDim;
       if (!isDataPointShapeEqual(A,2,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient A: illegal shape, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient A: illegal shape, expected shape (%d,%d)",dimensions[0],dimensions[1]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }
     if (!isEmpty(B)) {
        dimensions[0]=p.numDim;
        if (!isDataPointShapeEqual(B,1,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient B: illegal shape (%d,)",dimensions[0]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient B: illegal shape (%d,)",dimensions[0]);
           Finley_setError(TYPE_ERROR,error_msg);
        }
     }
     if (!isEmpty(C)) {
        dimensions[0]=p.numDim;
        if (!isDataPointShapeEqual(C,1,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient C, expected shape (%d,)",dimensions[0]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient C, expected shape (%d,)",dimensions[0]);
           Finley_setError(TYPE_ERROR,error_msg);
        }
     }
     if (!isEmpty(D)) {
        if (!isDataPointShapeEqual(D,0,dimensions)) {
-          Finley_setError(TYPE_ERROR,"__FILE__: coefficient D, rank 0 expected.");
+          Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: coefficient D, rank 0 expected.");
        }
     }
     if (!isEmpty(X)) {
        dimensions[0]=p.numDim;
        if (!isDataPointShapeEqual(X,1,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient X, expected shape (%d,",dimensions[0]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient X, expected shape (%d,",dimensions[0]);
           Finley_setError(TYPE_ERROR,error_msg);
        }
     }
     if (!isEmpty(Y)) {
        if (!isDataPointShapeEqual(Y,0,dimensions)) {
-          Finley_setError(TYPE_ERROR,"__FILE__: coefficient Y, rank 0 expected.");
+          Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: coefficient Y, rank 0 expected.");
        }
     } 
   } else {
@@ -194,7 +194,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
       dimensions[2]=p.numComp;
       dimensions[3]=p.numDim;
       if (!isDataPointShapeEqual(A,4,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient A, expected shape (%d,%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2],dimensions[3]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient A, expected shape (%d,%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2],dimensions[3]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }
@@ -203,7 +203,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
       dimensions[1]=p.numDim;
       dimensions[2]=p.numComp;
       if (!isDataPointShapeEqual(B,3,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient B, expected shape (%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient B, expected shape (%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }
@@ -212,7 +212,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
       dimensions[1]=p.numComp;
       dimensions[2]=p.numDim;
       if (!isDataPointShapeEqual(C,3,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient C, expected shape (%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient C, expected shape (%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }
@@ -220,7 +220,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
       dimensions[0]=p.numEqu;
       dimensions[1]=p.numComp;
       if (!isDataPointShapeEqual(D,2,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient D, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient D, expected shape (%d,%d)",dimensions[0],dimensions[1]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }
@@ -228,14 +228,14 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
       dimensions[0]=p.numEqu;
       dimensions[1]=p.numDim;
       if (!isDataPointShapeEqual(X,2,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient X, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient X, expected shape (%d,%d)",dimensions[0],dimensions[1]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }
     if (!isEmpty(Y)) {
       dimensions[0]=p.numEqu;
       if (!isDataPointShapeEqual(Y,1,dimensions)) {
-          sprintf(error_msg,"__FILE__: coefficient Y, expected shape (%d,)",dimensions[0]);
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient Y, expected shape (%d,)",dimensions[0]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }
@@ -270,6 +270,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
               #pragma omp for private(e) schedule(static) 
               for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
+//============================
                   for (q=0;q<p.NN_row;q++) index_row[q]=p.label_row[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
                   /* gather V-coordinates of nodes into V: */
 		  Finley_Util_Gather_double(p.NN,&(elements->Nodes[INDEX2(0,e,p.NN)]),p.numDim,nodes->Coordinates,V);
@@ -281,6 +282,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
 		  Finley_Util_SmallMatSetMult(p.numQuad,p.NS_row,p.numDim,dSdV,p.numDim,p.referenceElement_row->dSdv,dvdV);
                   /*  scale volume: */
 		  for (q=0;q<p.numQuad;q++) Vol[q]=ABS(Vol[q]*p.referenceElement->QuadWeights[q]);
+//============================
     
                    /*   integration for the stiffness matrix: */
                    /*   in order to optimze the number of operations the case of constants coefficience needs a bit more work */

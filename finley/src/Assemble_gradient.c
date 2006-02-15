@@ -78,7 +78,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
        gradS=elements->LinearReferenceElement->dSdv;
        numNodes=nodes->reducedNumDegreesOfFreedom;
    } else {
-       Finley_setError(TYPE_ERROR,"__FILE__: Cannot calculate gradient of data");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculate gradient of data");
   }
   if (getFunctionSpaceType(grad_data)==FINLEY_CONTACT_ELEMENTS_2) {
        node_offset=NN-NS;
@@ -91,15 +91,15 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   /* check the dimensions of interpolated_data and data */
 
   if (numDim!=elements->ReferenceElement->Type->numDim) {
-     Finley_setError(TYPE_ERROR,"__FILE__: Spatial and element dimension must match.");
+     Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Spatial and element dimension must match.");
   } else if (! numSamplesEqual(grad_data,numQuad,elements->numElements)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples in gradient Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples in gradient Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples of input Data object");
   } else if (numDim*numComps!=getDataPointSize(grad_data)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of components in gradient data object.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of components in gradient data object.");
   }  else if (!isExpanded(grad_data)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for output data.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: expanded Data object is expected for output data.");
   }
   
   /* now we can start */
@@ -150,9 +150,12 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                         }
                         break;
                   }
+   	          /*  calculate grad_data(l,i,q)=local_data(l,n)* DSDV(n,i,q) */
+   	          // Finley_Util_SmallMatMult(numQuad,numComps,numQuad*numDim,getSampleData(grad_data,e),NS_DOF,local_data,dSdV);
+
    	          /*  calculate d_datadv(l,i,q)=local_data(l,n)*DSDv(n,i,q) */
    	          Finley_Util_SmallMatMult(numComps,numDim*numQuad,d_datadv,NS_DOF,local_data,gradS);
-   	          /*  calculate grad_data(l,i)=d_datadv(l,i,q)*dvdV(i,k,q) */
+   	          /*  calculate grad_data(l,i,q)=d_datadv(l,k,q)*dvdV(k,i,q) */
    	          Finley_Util_SmallMatSetMult(numQuad,numComps,numDim,getSampleData(grad_data,e),numDim,d_datadv,dvdV);
    	        } /* for */
    	      }
