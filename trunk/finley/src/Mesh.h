@@ -111,6 +111,7 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 void Finley_Mesh_write(Finley_Mesh*,char*);
 Finley_Mesh* Finley_Mesh_read(char*,index_t);
+void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 
 void Finley_Mesh_prepare(Finley_Mesh* in);
 void Finley_Mesh_prepareNodes(Finley_Mesh* in);

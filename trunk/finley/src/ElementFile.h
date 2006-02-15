@@ -19,6 +19,7 @@
 
 #include "Finley.h"
 #include "ReferenceElements.h"
+#include "DataC.h"
 
 struct Finley_ElementFile {
 
@@ -59,17 +60,28 @@ struct Finley_ElementFile {
 						    mesh. */
   index_t minColor;                           /* minimum color */
   index_t maxColor;                           /* maximum color */
-  index_t *Color;                              /* assigns each element a color. elements with the same color     */
-						 /* are don't share a node so they can be processed simultaneously */
-                                                 /* at anytime Color must provide a valid value. In any case one can set  */
-                                                 /* Color[e]=e  for all e */
-  index_t order;					 /* order of the element */
+  index_t *Color;                             /* assigns each element a color. elements with the same color     */
+				              /* are don't share a node so they can be processed simultaneously */
+                                              /* at anytime Color must provide a valid value. In any case one can set  */
+                                              /* Color[e]=e  for all e */
+  index_t order;			       /* order of the element */
+
+  bool_t volume_is_valid;    /* true if volume and DvDV are valid */
+  double* volume;               /* local volume */
+  double* DvDV;                 /* inverse jacobean of element parametrization at quadrature points*/
+  bool_t DSDV_is_valid;         /* true is DSDV is valid */
+  double* DSDV;                 /* derivatives of shape functions in global coordinates at quadrature points*/
+  bool_t DSLinearDV_is_valid;   /* true if DSLinearDV is valid */
+  double* DSLinearDV;           /* derivatives of linear shape functions in gloabl coordinates at quadrature points*/
+  bool_t X_is_valid;            /* true if X is valid */
+  double* X;                    /* global coordniates of quadrature points */
 };
 
 typedef struct Finley_ElementFile Finley_ElementFile;
 
 Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId,dim_t);
 void Finley_ElementFile_dealloc(Finley_ElementFile*);
+void Finley_ElementFile_setCoordinates(Finley_ElementFile*,escriptDataC*);
 void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
 void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in);
 void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
