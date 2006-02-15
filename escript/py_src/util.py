@@ -3282,10 +3282,11 @@ def inverse(arg):
     """
     returns the inverse of the square matrix arg. 
 
-    @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal
+    @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal.
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
     @return: inverse arg_inv of the argument. It will be matrixmul(inverse(arg),arg) almost equal to kronecker(arg.getShape()[0])
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    @remark: for L{escript.Data} objects the dimension is restricted to 3.
     """
     if isinstance(arg,numarray.NumArray):
       return numarray.linear_algebra.inverse(arg)
@@ -3420,6 +3421,72 @@ class Inverse_Symbol(DependendSymbol):
          return identity(self.getShape())
       else:
          return -matrixmult(matrixmult(self,self.getDifferentiatedArguments(arg)[0]),self)
+
+def eigenvalues(arg):
+    """
+    returns the eigenvalues of the square matrix arg. 
+
+    @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal.
+                arg must be symmetric, ie. transpose(arg)==arg (this is not checked).
+    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol},L {float} or L{int}
+    @return: the list of the eigenvalues in increasing order.
+    @rtype: C{list} of L{float}, L{escript.Data}, L{Symbol} depending on the input.
+    @remark: for L{escript.Data} and L{Symbol} objects the dimension is restricted to 3.
+    """
+    if isinstance(arg,numarray.NumArray):
+      if not arg.rank==2: 
+        raise ValueError,"eigenvalues: argument must have rank 2"
+      s=arg.shape      
+      if not s[0] == s[1]:
+        raise ValueError,"eigenvalues: argument must be a square matrix."
+      out=numarray.linear_algebra.eigenvalues((arg+numarray.transpose(arg))/2.)
+      out.sort()
+      return numarray.array2list(out)
+    elif isinstance(arg,escript.Data) or isinstance(arg,Symbol):
+      if not arg.getRank()==2: 
+        raise ValueError,"eigenvalues: argument must have rank 2"
+      s=arg.getShape()      
+      if not s[0] == s[1]:
+        raise ValueError,"eigenvalues: argument must be a square matrix."
+      if s[0]==1:
+          return [arg[0,0]]
+      elif s[0]==2:
+          A11=arg[0,0]
+          A12=arg[0,1]
+          A22=arg[1,1]
+          trA=(A11+A22)/2.
+          A11-=trA
+          A22-=trA
+          s=sqrt(A12**2-A11*A22)
+          return [trA-s,trA+s]
+      elif s[0]==3:
+          A11=arg[0,0]
+          A12=arg[0,1]
+          A22=arg[1,1]
+          A13=arg[0,2]
+          A23=arg[1,2]
+          A33=arg[2,2]
+          trA=(A11+A22+A22)/3.
+          A11-=trA
+          A22-=trA
+          A33-=trA
+          A13_2=A13**2
+          A23_2=A23**2
+          A12_2=A12**2
+          p=A13_2+A_23_2+A12_2+(A11**2+A22**2+A33**2)/2.
+          q=A13_2*A22+A_23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
+          sq_p=sqrt(p/3.)
+          alpha_3=acos(-q/sq_p**(1./3.)/2.)/3.
+          sq_p*=2.
+          return [trA+sq_p*cos(alpha_3),trA-sq_p*cos(alpha_3+numarray.pi/3.),trA-sq_p*cos(alpha_3-numarray.pi/3.)]
+      else:
+         raise TypeError,"eigenvalues: only matrix dimensions 1,2,3 are supported right now."
+    elif isinstance(arg,float):
+      return [arg]
+    elif isinstance(arg,int):
+      return [float(arg)]
+    else:
+      raise TypeError,"eigenvalues: Unknown argument type."
 #=======================================================
 #  Binary operations:
 #=======================================================
