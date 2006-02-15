@@ -3428,9 +3428,9 @@ def eigenvalues(arg):
 
     @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal.
                 arg must be symmetric, ie. transpose(arg)==arg (this is not checked).
-    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol},L {float} or L{int}
-    @return: the list of the eigenvalues in increasing order.
-    @rtype: C{list} of L{float}, L{escript.Data}, L{Symbol} depending on the input.
+    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: the eigenvalues in increasing order.
+    @rtype: L{numarray.NumArray},L{escript.Data}, L{Symbol} depending on the input.
     @remark: for L{escript.Data} and L{Symbol} objects the dimension is restricted to 3.
     """
     if isinstance(arg,numarray.NumArray):
@@ -3441,7 +3441,7 @@ def eigenvalues(arg):
         raise ValueError,"eigenvalues: argument must be a square matrix."
       out=numarray.linear_algebra.eigenvalues((arg+numarray.transpose(arg))/2.)
       out.sort()
-      return numarray.array2list(out)
+      return out
     elif isinstance(arg,escript.Data) or isinstance(arg,Symbol):
       if not arg.getRank()==2: 
         raise ValueError,"eigenvalues: argument must have rank 2"
@@ -3449,7 +3449,7 @@ def eigenvalues(arg):
       if not s[0] == s[1]:
         raise ValueError,"eigenvalues: argument must be a square matrix."
       if s[0]==1:
-          return [arg[0,0]]
+          return arg[0]
       elif s[0]==2:
           A11=arg[0,0]
           A12=arg[0,1]
@@ -3458,7 +3458,7 @@ def eigenvalues(arg):
           A11-=trA
           A22-=trA
           s=sqrt(A12**2-A11*A22)
-          return [trA-s,trA+s]
+          return trA+s*numarray.array([-1.,1.])
       elif s[0]==3:
           A11=arg[0,0]
           A12=arg[0,1]
@@ -3473,18 +3473,21 @@ def eigenvalues(arg):
           A13_2=A13**2
           A23_2=A23**2
           A12_2=A12**2
-          p=A13_2+A_23_2+A12_2+(A11**2+A22**2+A33**2)/2.
-          q=A13_2*A22+A_23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
+          p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
+          q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
           sq_p=sqrt(p/3.)
           alpha_3=acos(-q/sq_p**(1./3.)/2.)/3.
           sq_p*=2.
-          return [trA+sq_p*cos(alpha_3),trA-sq_p*cos(alpha_3+numarray.pi/3.),trA-sq_p*cos(alpha_3-numarray.pi/3.)]
+          f=cos(alpha_3)               *numarray.array([1.,0.,0.]) \
+           -cos(alpha_3+numarray.pi/3.)*numarray.array([0.,1.,0.]) \
+           -cos(alpha_3-numarray.pi/3.)*numarray.array([0.,0.,1.])
+          return trA+sq_p*f
       else:
          raise TypeError,"eigenvalues: only matrix dimensions 1,2,3 are supported right now."
     elif isinstance(arg,float):
-      return [arg]
+      return arg
     elif isinstance(arg,int):
-      return [float(arg)]
+      return float(arg)
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
 #=======================================================
