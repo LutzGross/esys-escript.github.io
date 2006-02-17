@@ -550,6 +550,49 @@ def mkCode(txt,args=[],intend=""):
       out=out.replace("%%a%s%%"%c,r)
     return out   
 #=======================================================================================================
+# nonsymmetric part
+#=======================================================================================================
+from esys.escript import *
+for name in ["symmetric", "nonsymmetric"]:
+ f=1.
+ if name=="nonsymmetric": f=-1
+ for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (3,3), (2,3,2,3)]:
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s"%(name,case0,len(sh0))
+              text+="   def %s(self):\n"%tname
+              a_0=makeNumberedArray(sh0,s=1.)
+              r_0=(a_0+f*transpose(a_0))/2.
+              if case0 in ["taggedData", "expandedData"]:
+                 a1_0=makeNumberedArray(sh0,s=-1.)
+                 r1_0=(a1_0+f*transpose(a1_0))/2.
+              else:
+                  a1_0=a_0                  
+                  r1_0=r_0
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg)\n"%name
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",r_0,r1_0)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",r_0,r1_0)   
+              text+=mkTypeAndShapeTest(case0,sh0,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+print test_header
+print t_prog
+# print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
 # eigenvalues
 #=======================================================================================================
 import numarray.linear_algebra
