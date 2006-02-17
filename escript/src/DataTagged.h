@@ -97,6 +97,7 @@ class DataTagged : public DataAbstract {
      \param shape - Input - The shape of each data-point.
      \param tags - Input - An array of tags, one for each sample number.
      \param data - The data values for each tag.
+    NB: no unit testing yet
   */
   DataTagged(const FunctionSpace& what,
              const DataArrayView::ShapeType &shape,
@@ -332,6 +333,7 @@ class DataTagged : public DataAbstract {
      Factory method that returns a newly created DataTagged object generated
      by taking the specified slice from this DataTagged object.
      The caller is reponsible for managing the returned object.
+    T
   */
   virtual
   DataAbstract*
@@ -346,6 +348,7 @@ class DataTagged : public DataAbstract {
      from the given DataTagged object.
      \param other - Input - DataTagged object to slice from.
      \param region - Input - Region to slice.
+    T
   */
   DataTagged(const DataTagged& other, 
 	     const DataArrayView::RegionType& region);
@@ -358,6 +361,7 @@ class DataTagged : public DataAbstract {
      Copy the given Data object into the specified region in this object.
      \param other - Input - Data object to copy from.
      \param region - Input - Region to copy into (NB: must have same shape as other!).
+    T
   */
   virtual
   void
