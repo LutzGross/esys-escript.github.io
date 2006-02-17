@@ -3277,6 +3277,27 @@ class Transpose_Symbol(DependendSymbol):
          return identity(self.getShape())
       else:
          return transpose(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
+def symmetric(arg):
+    """
+    returns the symmetric part of the square matrix arg. This is (arg+transpose(arg))/2
+
+    @param arg: square matrix. Must have rank 2 or 4 and be square.
+    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: symmetric part of arg
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    """
+    return (arg+transpose(arg))/2
+
+def nonsymmetric(arg):
+    """
+    returns the nonsymmetric part of the square matrix arg. This is (arg-transpose(arg))/2
+
+    @param arg: square matrix. Must have rank 2 or 4 and be square.
+    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: symmetric part of arg
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    """
+    return (arg-transpose(arg))/2
 
 def inverse(arg):
     """

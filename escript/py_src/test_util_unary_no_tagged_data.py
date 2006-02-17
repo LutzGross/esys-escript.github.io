@@ -6241,3 +6241,147 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
       self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_array_rank2(self):
+      arg=numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])
+      res=symmetric(arg)
+      ref=numarray.array([[0.0, 2.0, 4.0], [2.0, 4.0, 6.0], [4.0, 6.0, 8.0]])
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_array_rank4(self):
+      arg=numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]])
+      res=symmetric(arg)
+      ref=numarray.array([[[[0.0, 3.5, 7.0], [10.5, 14.0, 17.5]], [[3.5, 7.0, 10.5], [14.0, 17.5, 21.0]], [[7.0, 10.5, 14.0], [17.5, 21.0, 24.5]]], [[[10.5, 14.0, 17.5], [21.0, 24.5, 28.0]], [[14.0, 17.5, 21.0], [24.5, 28.0, 31.5]], [[17.5, 21.0, 24.5], [28.0, 31.5, 35.0]]]])
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_Symbol_rank2(self):
+      arg=Symbol(shape=(3, 3))
+      res=symmetric(arg)
+      s=numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])
+      sub=res.substitute({arg:s})
+      ref=numarray.array([[0.0, 2.0, 4.0], [2.0, 4.0, 6.0], [4.0, 6.0, 8.0]])
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_Symbol_rank4(self):
+      arg=Symbol(shape=(2, 3, 2, 3))
+      res=symmetric(arg)
+      s=numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]])
+      sub=res.substitute({arg:s})
+      ref=numarray.array([[[[0.0, 3.5, 7.0], [10.5, 14.0, 17.5]], [[3.5, 7.0, 10.5], [14.0, 17.5, 21.0]], [[7.0, 10.5, 14.0], [17.5, 21.0, 24.5]]], [[[10.5, 14.0, 17.5], [21.0, 24.5, 28.0]], [[14.0, 17.5, 21.0], [24.5, 28.0, 31.5]], [[17.5, 21.0, 24.5], [28.0, 31.5, 35.0]]]])
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_constData_rank2(self):
+      arg=Data(numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]]),self.functionspace)
+      res=symmetric(arg)
+      ref=Data(numarray.array([[0.0, 2.0, 4.0], [2.0, 4.0, 6.0], [4.0, 6.0, 8.0]]),self.functionspace)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_constData_rank4(self):
+      arg=Data(numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]]),self.functionspace)
+      res=symmetric(arg)
+      ref=Data(numarray.array([[[[0.0, 3.5, 7.0], [10.5, 14.0, 17.5]], [[3.5, 7.0, 10.5], [14.0, 17.5, 21.0]], [[7.0, 10.5, 14.0], [17.5, 21.0, 24.5]]], [[[10.5, 14.0, 17.5], [21.0, 24.5, 28.0]], [[14.0, 17.5, 21.0], [24.5, 28.0, 31.5]], [[17.5, 21.0, 24.5], [28.0, 31.5, 35.0]]]]),self.functionspace)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_expandedData_rank2(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])+(1.-msk_arg)*numarray.array([[-0.0, -1.0, -2.0], [-3.0, -4.0, -5.0], [-6.0, -7.0, -8.0]])
+      res=symmetric(arg)
+      msk_ref=whereNegative(self.functionspace.getX()[0]-0.5)
+      ref=msk_ref*numarray.array([[0.0, 2.0, 4.0], [2.0, 4.0, 6.0], [4.0, 6.0, 8.0]])+(1.-msk_ref)*numarray.array([[-0.0, -2.0, -4.0], [-2.0, -4.0, -6.0], [-4.0, -6.0, -8.0]])
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_expandedData_rank4(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]])+(1.-msk_arg)*numarray.array([[[[-0.0, -1.0, -2.0], [-3.0, -4.0, -5.0]], [[-6.0, -7.0, -8.0], [-9.0, -10.0, -11.0]], [[-12.0, -13.0, -14.0], [-15.0, -16.0, -17.0]]], [[[-18.0, -19.0, -20.0], [-21.0, -22.0, -23.0]], [[-24.0, -25.0, -26.0], [-27.0, -28.0, -29.0]], [[-30.0, -31.0, -32.0], [-33.0, -34.0, -35.0]]]])
+      res=symmetric(arg)
+      msk_ref=whereNegative(self.functionspace.getX()[0]-0.5)
+      ref=msk_ref*numarray.array([[[[0.0, 3.5, 7.0], [10.5, 14.0, 17.5]], [[3.5, 7.0, 10.5], [14.0, 17.5, 21.0]], [[7.0, 10.5, 14.0], [17.5, 21.0, 24.5]]], [[[10.5, 14.0, 17.5], [21.0, 24.5, 28.0]], [[14.0, 17.5, 21.0], [24.5, 28.0, 31.5]], [[17.5, 21.0, 24.5], [28.0, 31.5, 35.0]]]])+(1.-msk_ref)*numarray.array([[[[-0.0, -3.5, -7.0], [-10.5, -14.0, -17.5]], [[-3.5, -7.0, -10.5], [-14.0, -17.5, -21.0]], [[-7.0, -10.5, -14.0], [-17.5, -21.0, -24.5]]], [[[-10.5, -14.0, -17.5], [-21.0, -24.5, -28.0]], [[-14.0, -17.5, -21.0], [-24.5, -28.0, -31.5]], [[-17.5, -21.0, -24.5], [-28.0, -31.5, -35.0]]]])
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_array_rank2(self):
+      arg=numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])
+      res=nonsymmetric(arg)
+      ref=numarray.array([[0.0, -1.0, -2.0], [1.0, 0.0, -1.0], [2.0, 1.0, 0.0]])
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_array_rank4(self):
+      arg=numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]])
+      res=nonsymmetric(arg)
+      ref=numarray.array([[[[0.0, -2.5, -5.0], [-7.5, -10.0, -12.5]], [[2.5, 0.0, -2.5], [-5.0, -7.5, -10.0]], [[5.0, 2.5, 0.0], [-2.5, -5.0, -7.5]]], [[[7.5, 5.0, 2.5], [0.0, -2.5, -5.0]], [[10.0, 7.5, 5.0], [2.5, 0.0, -2.5]], [[12.5, 10.0, 7.5], [5.0, 2.5, 0.0]]]])
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_Symbol_rank2(self):
+      arg=Symbol(shape=(3, 3))
+      res=nonsymmetric(arg)
+      s=numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])
+      sub=res.substitute({arg:s})
+      ref=numarray.array([[0.0, -1.0, -2.0], [1.0, 0.0, -1.0], [2.0, 1.0, 0.0]])
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_Symbol_rank4(self):
+      arg=Symbol(shape=(2, 3, 2, 3))
+      res=nonsymmetric(arg)
+      s=numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]])
+      sub=res.substitute({arg:s})
+      ref=numarray.array([[[[0.0, -2.5, -5.0], [-7.5, -10.0, -12.5]], [[2.5, 0.0, -2.5], [-5.0, -7.5, -10.0]], [[5.0, 2.5, 0.0], [-2.5, -5.0, -7.5]]], [[[7.5, 5.0, 2.5], [0.0, -2.5, -5.0]], [[10.0, 7.5, 5.0], [2.5, 0.0, -2.5]], [[12.5, 10.0, 7.5], [5.0, 2.5, 0.0]]]])
+      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_constData_rank2(self):
+      arg=Data(numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]]),self.functionspace)
+      res=nonsymmetric(arg)
+      ref=Data(numarray.array([[0.0, -1.0, -2.0], [1.0, 0.0, -1.0], [2.0, 1.0, 0.0]]),self.functionspace)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_constData_rank4(self):
+      arg=Data(numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]]),self.functionspace)
+      res=nonsymmetric(arg)
+      ref=Data(numarray.array([[[[0.0, -2.5, -5.0], [-7.5, -10.0, -12.5]], [[2.5, 0.0, -2.5], [-5.0, -7.5, -10.0]], [[5.0, 2.5, 0.0], [-2.5, -5.0, -7.5]]], [[[7.5, 5.0, 2.5], [0.0, -2.5, -5.0]], [[10.0, 7.5, 5.0], [2.5, 0.0, -2.5]], [[12.5, 10.0, 7.5], [5.0, 2.5, 0.0]]]]),self.functionspace)
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_expandedData_rank2(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])+(1.-msk_arg)*numarray.array([[-0.0, -1.0, -2.0], [-3.0, -4.0, -5.0], [-6.0, -7.0, -8.0]])
+      res=nonsymmetric(arg)
+      msk_ref=whereNegative(self.functionspace.getX()[0]-0.5)
+      ref=msk_ref*numarray.array([[0.0, -1.0, -2.0], [1.0, 0.0, -1.0], [2.0, 1.0, 0.0]])+(1.-msk_ref)*numarray.array([[0.0, 1.0, 2.0], [-1.0, 0.0, 1.0], [-2.0, -1.0, 0.0]])
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_nonsymmetric_expandedData_rank4(self):
+      msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
+      arg=msk_arg*numarray.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]])+(1.-msk_arg)*numarray.array([[[[-0.0, -1.0, -2.0], [-3.0, -4.0, -5.0]], [[-6.0, -7.0, -8.0], [-9.0, -10.0, -11.0]], [[-12.0, -13.0, -14.0], [-15.0, -16.0, -17.0]]], [[[-18.0, -19.0, -20.0], [-21.0, -22.0, -23.0]], [[-24.0, -25.0, -26.0], [-27.0, -28.0, -29.0]], [[-30.0, -31.0, -32.0], [-33.0, -34.0, -35.0]]]])
+      res=nonsymmetric(arg)
+      msk_ref=whereNegative(self.functionspace.getX()[0]-0.5)
+      ref=msk_ref*numarray.array([[[[0.0, -2.5, -5.0], [-7.5, -10.0, -12.5]], [[2.5, 0.0, -2.5], [-5.0, -7.5, -10.0]], [[5.0, 2.5, 0.0], [-2.5, -5.0, -7.5]]], [[[7.5, 5.0, 2.5], [0.0, -2.5, -5.0]], [[10.0, 7.5, 5.0], [2.5, 0.0, -2.5]], [[12.5, 10.0, 7.5], [5.0, 2.5, 0.0]]]])+(1.-msk_ref)*numarray.array([[[[0.0, 2.5, 5.0], [7.5, 10.0, 12.5]], [[-2.5, 0.0, 2.5], [5.0, 7.5, 10.0]], [[-5.0, -2.5, 0.0], [2.5, 5.0, 7.5]]], [[[-7.5, -5.0, -2.5], [0.0, 2.5, 5.0]], [[-10.0, -7.5, -5.0], [-2.5, 0.0, 2.5]], [[-12.5, -10.0, -7.5], [-5.0, -2.5, 0.0]]]])
+      self.failUnless(isinstance(res,Data),"wrong type of result.")
+      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
