@@ -208,8 +208,15 @@ DataTagged::setSlice(const DataAbstract* other,
   // copy slice from other default value to this default value
   getDefaultValue().copySliceFrom(otherTemp->getDefaultValue(), regionLoopRange);
 
-  // loop through the tag values copying slices from other to this
+  // loop through tag values in other, adding any which aren't in this, using default value
   DataMapType::const_iterator pos;
+  for (pos=otherTemp->m_offsetLookup.begin();pos!=otherTemp->m_offsetLookup.end();pos++) {
+    if (!isCurrentTag(pos->first)) {
+      addTaggedValue(pos->first,getDefaultValue());
+    }
+  }
+
+  // loop through the tag values copying slices from other to this
   for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
     getDataPointByTag(pos->first).copySliceFrom(otherTemp->getDataPointByTag(pos->first), regionLoopRange);
   }
