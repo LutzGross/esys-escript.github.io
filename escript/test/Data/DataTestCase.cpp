@@ -354,6 +354,35 @@ void DataTestCase::testSlicing() {
 
 }
 
+void DataTestCase::testAll() {
+
+  cout << endl;
+
+  cout << "\tCreate a Data object from a DataArrayView" << endl;
+
+  DataArrayView::ShapeType viewShape;
+  viewShape.push_back(3);
+  DataArrayView::ValueType viewData(3);
+  for (int i=0;i<viewShape[0];++i) {
+    viewData[i]=i;
+  }
+  DataArrayView myView(viewData,viewShape);
+
+  bool expanded=true;
+  Data exData(myView,FunctionSpace(),expanded);
+  Data cData(myView);
+  Data result;
+
+  assert(exData.isExpanded());
+  assert(cData.isConstant());
+  assert(result.isEmpty());
+
+  cout << "\tTest some basic operations" << endl;
+  result=exData*cData;
+  assert(result.isExpanded());
+
+}
+
 void DataTestCase::testMore() {
 
   cout << endl;
@@ -398,36 +427,6 @@ void DataTestCase::testMore() {
 
 }
 
-void DataTestCase::testAll() {
-
-  cout << endl;
-
-  cout << "\tCreate a Data object from a DataArrayView" << endl;
-
-  DataArrayView::ShapeType viewShape;
-  viewShape.push_back(3);
-  DataArrayView::ValueType viewData(3);
-  for (int i=0;i<viewShape[0];++i) {
-    viewData[i]=i;
-  }
-  DataArrayView myView(viewData,viewShape);
-
-  bool expanded=true;
-
-  Data exData(myView,FunctionSpace(),expanded);
-  Data cData(myView);
-  Data result;
-
-  assert(exData.isExpanded());
-  assert(cData.isConstant());
-  assert(result.isEmpty());
-
-  cout << "\tTest some basic operations" << endl;
-  result=exData*cData;
-  assert(result.isExpanded());
-
-}
-
 void DataTestCase::testDataConstant() {
 
   cout << endl;
@@ -467,42 +466,11 @@ void DataTestCase::testDataConstant() {
 
 }
 
-void DataTestCase::testDataTaggedExceptions() {
-
-  cout << endl;
-
-  cout << "\tTest DataTagged exceptions." << endl;
-
-  Data myData;
-  DataArrayView myView;
-
-  try {
-      myData.getSampleDataByTag(0);;
-      assert(false);
-  }
-  catch (EsysException& e) {
-      //cout << e.what() << endl;
-      assert(true);
-  }
-
-  try {
-      myData.setTaggedValueFromCPP(0,myView);;
-      assert(false);
-  }
-  catch (EsysException& e) {
-      //cout << e.what() << endl;
-      assert(true);
-  }
-
-}
-
 void DataTestCase::testDataTagged() {
 
   cout << endl;
 
   cout << "\tCreate a DataTagged object with a default value only." << endl;
-
-  // create tagged data with no tag values just a default
 
   DataTagged::TagListType keys;
 
@@ -512,14 +480,14 @@ void DataTestCase::testDataTagged() {
   viewShape.push_back(3);
 
   DataArrayView::ValueType viewData(3);
-  for (int i=0;i<viewShape[0];++i) {
+  for (int i=0;i<viewShape[0];i++) {
     viewData[i]=i;
   }
-  DataArrayView myView(viewData,viewShape);
+  DataArrayView defaultValue(viewData,viewShape);
 
   bool expanded=false;
 
-  Data myData(keys,values,myView,FunctionSpace(),expanded);
+  Data myData(keys,values,defaultValue,FunctionSpace(),expanded);
 
   // cout << myData.toString() << endl;
 
@@ -563,7 +531,7 @@ void DataTestCase::testDataTagged() {
   cout << "\tTest setting of a tag and associated value." << endl;
 
   // value for tag "1"
-  DataArray eTwo(myView);
+  DataArray eTwo(defaultValue);
   for (int i=0;i<eTwo.getView().getShape()[0];i++) {
     eTwo.getView()(i)=i+2.0;
   }
@@ -586,6 +554,35 @@ void DataTestCase::testDataTagged() {
   sampleData=myData.getSampleDataByTag(1);
   for (int i=0; i<myDataView.noValues(); i++) {
     assert(sampleData[i]==i+2);
+  }
+
+}
+
+void DataTestCase::testDataTaggedExceptions() {
+
+  cout << endl;
+
+  cout << "\tTest DataTagged exceptions." << endl;
+
+  Data myData;
+  DataArrayView myView;
+
+  try {
+      myData.getSampleDataByTag(0);;
+      assert(false);
+  }
+  catch (EsysException& e) {
+      //cout << e.what() << endl;
+      assert(true);
+  }
+
+  try {
+      myData.setTaggedValueFromCPP(0,myView);;
+      assert(false);
+  }
+  catch (EsysException& e) {
+      //cout << e.what() << endl;
+      assert(true);
   }
 
 }
