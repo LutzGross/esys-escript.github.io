@@ -76,13 +76,6 @@ void MeshAdapter::write(const std::string& fileName) const
   checkFinleyError();
 }
 
-// void MeshAdapter::getTagList(int functionSpaceType,
-// 				    int* numTags) const
-// {
-//   Finley_Mesh_tagList(m_finleyMesh.get(),functionSpaceType,tagList,numTags);
-//   return;
-// }
-
 string MeshAdapter::getDescription() const
 {
   return "FinleyMesh";
@@ -164,150 +157,6 @@ int MeshAdapter::getReducedSolutionCode() const
 int MeshAdapter::getDiracDeltaFunctionCode() const
 {
   return Points;
-}
-
-//
-// returns a pointer to the tag list of samples of functionSpaceType
-//
-void MeshAdapter::getTagList(int functionSpaceType, int** tagList,
-			     int* numTags) const
-{
-  *tagList=NULL;
-  *numTags=0;
-  Finley_Mesh* mesh=m_finleyMesh.get();
-  switch (functionSpaceType) {
-  case(Nodes):
-    if (mesh->Nodes!=NULL) {
-      *tagList=mesh->Nodes->Tag;
-      *numTags=mesh->Nodes->numNodes;
-    }
-    break;
-  case(Elements):
-    if (mesh->Elements!=NULL) {
-      *tagList=mesh->Elements->Tag;
-      *numTags=mesh->Elements->numElements;
-    }
-    break;
-  case(FaceElements):
-    if (mesh->FaceElements!=NULL) {
-      *tagList=mesh->FaceElements->Tag;
-      *numTags=mesh->FaceElements->numElements;
-    }
-    break;
-  case(Points):
-    if (mesh->Points!=NULL) {
-      *tagList=mesh->Points->Tag;
-      *numTags=mesh->Points->numElements;
-    }
-    break;
-  case(ContactElementsZero):
-    if (mesh->ContactElements!=NULL) {
-      *tagList=mesh->ContactElements->Tag;
-      *numTags=mesh->ContactElements->numElements;
-    }
-    break;
-  case(ContactElementsOne):
-    if (mesh->ContactElements!=NULL) {
-      *tagList=mesh->ContactElements->Tag;
-      *numTags=mesh->ContactElements->numElements;
-    }
-    break;
-  case(DegreesOfFreedom):
-    if (mesh->Nodes!=NULL) {
-      *tagList=NULL;
-      *numTags=0;
-    }
-    break;
-  case(ReducedDegreesOfFreedom):
-    if (mesh->Nodes!=NULL) {
-      *tagList=NULL;
-      *numTags=0;
-    }
-    break;
-  default:
-    stringstream temp;
-    temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
-    throw FinleyAdapterException(temp.str());
-    break;
-  }
-  if (*tagList==NULL) {
-    stringstream temp;
-    temp << "Error - no tags available for " << functionSpaceType << " for domain: " << getDescription();
-    throw FinleyAdapterException(temp.str());
-  }
-  return;
-}
-
-//
-// returns a pointer to the reference no list of samples of functionSpaceType
-//
-void MeshAdapter::getReferenceNoList(int functionSpaceType, int** referenceNoList,
-			     int* numReferenceNo) const
-{
-  *referenceNoList=NULL;
-  *numReferenceNo=0;
-  Finley_Mesh* mesh=m_finleyMesh.get();
-  switch (functionSpaceType) {
-  case(Nodes):
-    if (mesh->Nodes!=NULL) {
-      *referenceNoList=mesh->Nodes->Id;
-      *numReferenceNo=mesh->Nodes->numNodes;
-    }
-    break;
-  case(Elements):
-    if (mesh->Elements!=NULL) {
-      *referenceNoList=mesh->Elements->Id;
-      *numReferenceNo=mesh->Elements->numElements;
-    }
-    break;
-  case(FaceElements):
-    if (mesh->FaceElements!=NULL) {
-      *referenceNoList=mesh->FaceElements->Id;
-      *numReferenceNo=mesh->FaceElements->numElements;
-    }
-    break;
-  case(Points):
-    if (mesh->Points!=NULL) {
-      *referenceNoList=mesh->Points->Id;
-      *numReferenceNo=mesh->Points->numElements;
-    }
-    break;
-  case(ContactElementsZero):
-    if (mesh->ContactElements!=NULL) {
-      *referenceNoList=mesh->ContactElements->Id;
-      *numReferenceNo=mesh->ContactElements->numElements;
-    }
-    break;
-  case(ContactElementsOne):
-    if (mesh->ContactElements!=NULL) {
-      *referenceNoList=mesh->ContactElements->Id;
-      *numReferenceNo=mesh->ContactElements->numElements;
-    }
-    break;
-  case(DegreesOfFreedom):
-    if (mesh->Nodes!=NULL) {
-      *referenceNoList=NULL;
-      *numReferenceNo=0;
-    }
-    break;
-  case(ReducedDegreesOfFreedom):
-    if (mesh->Nodes!=NULL) {
-      *referenceNoList=NULL;
-      *numReferenceNo=0;
-    }
-    break;
-  default:
-    stringstream temp;
-    temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
-    throw FinleyAdapterException(temp.str());
-    break;
-  }
-  if (*referenceNoList==NULL) {
-    stringstream temp;
-    temp << "Error - reference number list available for " << functionSpaceType << " for domain: " << getDescription();
-    throw FinleyAdapterException(temp.str());
-  }
-  return;
 }
 
 //
@@ -1061,18 +910,87 @@ escript::Data MeshAdapter::getSize() const
 
 int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 {
-  int* tagList;
-  int numTags;
-  getTagList(functionSpaceType, &tagList, &numTags);
-  return tagList[sampleNo];
+  int out=0;
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  switch (functionSpaceType) {
+  case(Nodes):
+    out=mesh->Nodes->Tag[sampleNo];
+    break;
+  case(Elements):
+    out=mesh->Elements->Tag[sampleNo];
+    break;
+  case(FaceElements):
+    out=mesh->FaceElements->Tag[sampleNo];
+    break;
+  case(Points):
+    out=mesh->Points->Tag[sampleNo];
+    break;
+  case(ContactElementsZero):
+    out=mesh->ContactElements->Tag[sampleNo];
+    break;
+  case(ContactElementsOne):
+    out=mesh->ContactElements->Tag[sampleNo];
+    break;
+  case(DegreesOfFreedom):
+    break;
+  case(ReducedDegreesOfFreedom):
+    break;
+  default:
+    stringstream temp;
+    temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
+    throw FinleyAdapterException(temp.str());
+    break;
+  }
+  return out;
 }
-
 int MeshAdapter::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const
 {
-  int* referenceNoList;
-  int numReferenceNo;
-  getReferenceNoList(functionSpaceType, &referenceNoList, &numReferenceNo);
-  return referenceNoList[sampleNo];
+  int out=0,i;
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  switch (functionSpaceType) {
+  case(Nodes):
+    if (mesh->Nodes!=NULL) {
+      out=mesh->Nodes->Id[sampleNo];
+      break;
+    }
+  case(Elements):
+    out=mesh->Elements->Id[sampleNo];
+    break;
+  case(FaceElements):
+    out=mesh->FaceElements->Id[sampleNo];
+    break;
+  case(Points):
+    out=mesh->Points->Id[sampleNo];
+    break;
+  case(ContactElementsZero):
+    out=mesh->ContactElements->Id[sampleNo];
+    break;
+  case(ContactElementsOne):
+    out=mesh->ContactElements->Id[sampleNo];
+    break;
+  case(DegreesOfFreedom):
+    for (i=0;i<mesh->Nodes->numNodes; ++i) {
+       if (mesh->Nodes->degreeOfFreedom[i]==sampleNo) { 
+          out=mesh->Nodes->Id[i];
+          break;
+       }
+    }
+    break;
+  case(ReducedDegreesOfFreedom):
+    for (i=0;i<mesh->Nodes->numNodes; ++i) {
+       if (mesh->Nodes->reducedDegreeOfFreedom[i]==sampleNo) { 
+          out=mesh->Nodes->Id[i];
+          break;
+       }
+    }
+    break;
+  default:
+    stringstream temp;
+    temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
+    throw FinleyAdapterException(temp.str());
+    break;
+  }
+  return out;
 }
 
 }  // end of namespace

@@ -147,25 +147,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   Finley_Mesh* getFinley_Mesh() const;
 
-  /**
-     \brief
-     Return the tag list indexed by sampleNo. 
-     \param functionSpaceType Input
-     \param tagList Output
-     \param numTags Output
-  */
-  void getTagList(int functionSpaceType, int** tagList, 
-			       int* numTags) const;
-  /**
-     \brief
-     Return the reference number list indexed by sampleNo. 
-     \param functionSpaceType Input
-     \param referenceNoList Output
-     \param numReferenceNo Output
-  */
-  void getReferenceNoList(int functionSpaceType, int** referenceNoList, 
-			       int* numReferenceNo) const;
-
    /**
      \brief
      Return the tag key for the given sample number.
