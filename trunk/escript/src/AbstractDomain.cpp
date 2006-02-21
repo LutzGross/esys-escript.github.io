@@ -65,18 +65,6 @@ void AbstractDomain::write(const std::string& filename) const
   return;
 }
 
-void AbstractDomain::getTagList(int functionSpaceType, int** tagList, int* numTags) const
-{
-  throwStandardException("AbstractDomain::getTagList");
-  return;
-}
-
-void AbstractDomain::getReferenceNoList(int functionSpaceType, int** referenceNoList, int* numReferenceNo) const
-{
-  throwStandardException("AbstractDomain::getTagList");
-  return;
-}
-
 std::pair<int,int> AbstractDomain::getDataShape(int functionSpaceCode) const
 {
   throwStandardException("AbstractDomain::getDataShape");

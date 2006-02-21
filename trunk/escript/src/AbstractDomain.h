@@ -114,18 +114,6 @@ class AbstractDomain {
 
   /**
      \brief
-     Sets the tagList pointer and length of tag list numTags.
-  */
-  virtual void getTagList(int functionSpaceType, int** tagList, int* numTags) const;
-
-  /**
-     \brief
-     Sets the referenceNoList pointer and length of tag list numReferenceNo.
-  */
-  virtual void getReferenceNoList(int functionSpaceType, int** referenceNoList, int* numReferenceNo) const;
-
-  /**
-     \brief
      Return the number of data points per sample, and the number of samples as a pair.
 
      This has to be implemented by the actual Domain adapter.
