@@ -74,9 +74,9 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
     //
     // If the left does not already have a value assigned to this tag,
     // add the right hand tag to the left hand tag list and assign
-    // the right's default value.
+    // the left's default value.
     if (!left.isCurrentTag(i->first)) {
-      left.addTaggedValue(i->first,right.getDefaultValue());
+      left.addTaggedValue(i->first,left.getDefaultValue());
     }
   }
   //
