@@ -80,8 +80,7 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
     }
   }
   //
-  // Perform the operation. Any tags originally in the left which don't exist for 
-  // the right hand side will use the right's default value as the right operand
+  // Perform the operation.
   const DataTagged::DataMapType& leftLookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator leftLookupEnd=leftLookup.end();
   for (i=leftLookup.begin();i!=leftLookupEnd;i++) {

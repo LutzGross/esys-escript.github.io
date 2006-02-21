@@ -145,6 +145,7 @@ class Data {
      \param what - Input - A description of what this data represents.
      \param expanded - Input - Flag, if true fill the entire container with
                        the appropriate values.
+    ==>*
   */
   Data(const DataTagged::TagListType& tagKeys,
        const DataTagged::ValueListType& values,
@@ -307,6 +308,7 @@ class Data {
      If possible convert this Data to DataTagged. This will only allow
      Constant data to be converted to tagged. An attempt to convert
      Expanded data to tagged will throw an exception.
+    ==>*
   */
   void
   tag();
@@ -525,6 +527,7 @@ class Data {
      cannot be converted to a DataTagged object.
      \param tagKey - Input - Integer key.
      \param value - Input - Value to associate with given key.
+    ==>*
   */
   void
   setTaggedValue(int tagKey,
@@ -537,6 +540,7 @@ class Data {
      cannot be converted to a DataTagged object.
      \param tagKey - Input - Integer key.
      \param value - Input - Value to associate with given key.
+    ==>*
   */
   void
   setTaggedValueFromCPP(int tagKey,
