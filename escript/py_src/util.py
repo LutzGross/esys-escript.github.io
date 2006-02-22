@@ -3286,7 +3286,55 @@ def symmetric(arg):
     @return: symmetric part of arg
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     """
-    return (arg+transpose(arg))/2
+    if isinstance(arg,numarray.NumArray):
+      if arg.rank==2:
+        if not (arg.shape[0]==arg.shape[1]):
+           raise ValueError,"symmetric: argument must be square."
+      elif arg.rank==4:
+        if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
+           raise ValueError,"symmetric: argument must be square."
+      else:
+        raise ValueError,"symmetric: rank 2 or 4 is required."
+      return (arg+transpose(arg))/2
+    elif isinstance(arg,escript.Data):
+      return escript_symmetric(arg)
+    elif isinstance(arg,float):
+      return arg
+    elif isinstance(arg,int):
+      return float(arg)
+    elif isinstance(arg,Symbol):
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError,"symmetric: argument must be square."
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError,"symmetric: argument must be square."
+      else:
+        raise ValueError,"symmetric: rank 2 or 4 is required."
+      return (arg+transpose(arg))/2
+    else:
+      raise TypeError,"symmetric: Unknown argument type."
+
+def escript_symmetric(arg): # this should be implemented in c++
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError,"escript_symmetric: argument must be square."
+        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
+        for i0 in range(arg.getShape()[0]):
+           for i1 in range(arg.getShape()[1]):
+              out[i0,i1]=(arg[i0,i1]+arg[i1,i0])/2.
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError,"escript_symmetric: argument must be square."
+        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
+        for i0 in range(arg.getShape()[0]):
+           for i1 in range(arg.getShape()[1]):
+              for i2 in range(arg.getShape()[2]):
+                 for i3 in range(arg.getShape()[3]):
+                     out[i0,i1,i2,i3]=(arg[i0,i1,i2,i3]+arg[i2,i3,i0,i1])/2.
+      else:
+        raise ValueError,"escript_symmetric: rank 2 or 4 is required."
+      return out
 
 def nonsymmetric(arg):
     """
@@ -3294,10 +3342,59 @@ def nonsymmetric(arg):
 
     @param arg: square matrix. Must have rank 2 or 4 and be square.
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
-    @return: symmetric part of arg
+    @return: nonsymmetric part of arg
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     """
-    return (arg-transpose(arg))/2
+    if isinstance(arg,numarray.NumArray):
+      if arg.rank==2:
+        if not (arg.shape[0]==arg.shape[1]):
+           raise ValueError,"nonsymmetric: argument must be square."
+      elif arg.rank==4:
+        if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
+           raise ValueError,"nonsymmetric: argument must be square."
+      else:
+        raise ValueError,"nonsymmetric: rank 2 or 4 is required."
+      return (arg-transpose(arg))/2
+    elif isinstance(arg,escript.Data):
+      return escript_nonsymmetric(arg)
+    elif isinstance(arg,float):
+      return arg
+    elif isinstance(arg,int):
+      return float(arg)
+    elif isinstance(arg,Symbol):
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError,"nonsymmetric: argument must be square."
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError,"nonsymmetric: argument must be square."
+      else:
+        raise ValueError,"nonsymmetric: rank 2 or 4 is required."
+      return (arg-transpose(arg))/2
+    else:
+      raise TypeError,"nonsymmetric: Unknown argument type."
+
+def escript_nonsymmetric(arg): # this should be implemented in c++
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError,"escript_nonsymmetric: argument must be square."
+        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
+        for i0 in range(arg.getShape()[0]):
+           for i1 in range(arg.getShape()[1]):
+              out[i0,i1]=(arg[i0,i1]-arg[i1,i0])/2.
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError,"escript_nonsymmetric: argument must be square."
+        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
+        for i0 in range(arg.getShape()[0]):
+           for i1 in range(arg.getShape()[1]):
+              for i2 in range(arg.getShape()[2]):
+                 for i3 in range(arg.getShape()[3]):
+                     out[i0,i1,i2,i3]=(arg[i0,i1,i2,i3]-arg[i2,i3,i0,i1])/2.
+      else:
+        raise ValueError,"escript_nonsymmetric: rank 2 or 4 is required."
+      return out
+
 
 def inverse(arg):
     """
