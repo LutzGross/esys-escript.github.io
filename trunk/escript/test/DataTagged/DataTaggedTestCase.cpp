@@ -800,6 +800,83 @@ void DataTaggedTestCase::testOperations() {
   }
 
   {
+
+    cout << "\tTest binaryOp multiplication of DataTagged object with a scalar." << endl;
+
+    DataTagged myData;
+
+    DataArray vOne(1.0);
+    DataArray vTwo(2.0);
+    myData.addTaggedValue(1,vOne.getView());
+    myData.addTaggedValue(2,vTwo.getView());
+
+    DataArray vThree(3.0);
+    DataArrayView right=vThree.getView();
+
+    //cout << myData.toString() << endl;
+    //cout << right.toString() << endl;
+
+    binaryOp(myData,right,multiplies<double>());
+
+    //cout << myData.toString() << endl;
+
+    assert(myData.getNumSamples()==1);
+    assert(myData.getNumDPPSample()==1);
+
+    assert(myData.validSamplePointNo(0));
+    assert(myData.validSampleNo(0));
+    assert(!myData.validSamplePointNo(1));
+    assert(!myData.validSampleNo(1));
+
+    // data-point 0 has tag number 1 by default
+    assert(myData.getTagNumber(0)==1);
+
+    assert(myData.isCurrentTag(1));
+    assert(myData.isCurrentTag(2));
+
+    assert(myData.getTagLookup().size()==2);
+
+    assert(myData.getLength()==3);
+
+    assert(myData.getPointOffset(0,0)==1);
+
+    // check result value for tag "1"
+    DataArrayView myDataView = myData.getDataPointByTag(1);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==1);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==3.0);
+
+    // check result value for tag "2"
+    myDataView = myData.getDataPointByTag(2);
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==2);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==6.0);
+
+    // check result for default value
+    myDataView = myData.getDefaultValue();
+    assert(!myDataView.isEmpty());
+    assert(myDataView.getOffset()==0);
+    assert(myDataView.getRank()==0);
+    assert(myDataView.noValues()==1);
+    assert(myDataView.getShape().size()==0);
+    assert(myDataView()==0.0);
+
+    // use a non-existent tag so we get a pointer to
+    // the first element of the data array
+    double* sampleData=myData.getSampleDataByTag(9);
+    assert(sampleData[0]==0);
+    assert(sampleData[1]==3);
+    assert(sampleData[2]==6);
+
+  }
+
+  {
     cout << "\tTest binaryOp multiplication of two DataTagged objects with overlapping tag sets." << endl;
 
     DataTagged myData;
