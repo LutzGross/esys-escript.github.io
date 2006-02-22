@@ -179,7 +179,7 @@ def makeArray(shape,rng):
              for i2 in range(shape[2]):
                 for i3 in range(shape[3]):
                   for i4 in range(shape[4]):
-                   out[i0,i1,i2,i3,i4]=l*random.random()+rng[0]
+                   out[i0,i1,i2,i3,i4]=l*ranm.random()+rng[0]
    else:
        raise SystemError,"rank is restricted to 5"
    return out         
@@ -190,22 +190,22 @@ def makeNumberedArray(shape,s=1.):
        out=s*1.
    elif len(shape)==1:
        for i0 in range(shape[0]):
-                   out[i0]=s*i0
+                   out[i0]=s*int(8*random.random()+1)
    elif len(shape)==2:
        for i0 in range(shape[0]):
           for i1 in range(shape[1]):
-                   out[i0,i1]=s*(i1+shape[1]*i0)
+                   out[i0,i1]=s*int(8*random.random()+1)
    elif len(shape)==3:
        for i0 in range(shape[0]):
           for i1 in range(shape[1]):
              for i2 in range(shape[2]):
-                   out[i0,i1,i2]=s*(i2+shape[2]*i1+shape[2]*shape[1]*i0)
+                   out[i0,i1,i2]=s*int(8*random.random()+1)
    elif len(shape)==4:
        for i0 in range(shape[0]):
           for i1 in range(shape[1]):
              for i2 in range(shape[2]):
                 for i3 in range(shape[3]):
-                   out[i0,i1,i2,i3]=s*(i3+shape[3]*i2+shape[3]*shape[2]*i1+shape[3]*shape[2]*shape[1]*i0)
+                   out[i0,i1,i2,i3]=s*int(8*random.random()+1)
    else:
        raise SystemError,"rank is restricted to 4"
    return out         
@@ -505,9 +505,9 @@ def mkText(case,name,a,a1=None,use_tagging_for_expanded_data=False):
                  t_out+="      %s.setTaggedValue(1,numarray.array(%s))\n"%(name,a1.tolist())
               t_out+="      %s.expand()\n"%name           
            else: 
-              t_out+="      msk_%s=whereNegative(self.functionspace.getX()[0]-0.5)\n"%name
+              t_out+="      msk_%s=whereZero(self.functionspace.getX()[0],1.e-8)\n"%name
               if isinstance(a,float):
-                   t_out+="      %s=msk_%s*(%s)+(1.-msk_%s)*(%s)\n"%(name,name,a,name,a1)
+                   t_out+="      %s=(1.-msk_%s)*(%s)+msk_%s*(%s)\n"%(name,name,a,name,a1)
               elif a.rank==0:
                    t_out+="      %s=msk_%s*numarray.array(%s)+(1.-msk_%s)*numarray.array(%s)\n"%(name,name,a,name,a1)
               else:
@@ -550,7 +550,155 @@ def mkCode(txt,args=[],intend=""):
       out=out.replace("%%a%s%%"%c,r)
     return out   
 #=======================================================================================================
-# nonsymmetric part
+# get slices
+#=======================================================================================================
+from esys.escript import *
+for case0 in ["constData","taggedData","expandedData"]: 
+   for sh0 in [ (3,), (3,4), (3,4,3) ,(4,3,3,3)]:
+    # get perm:
+    if len(sh0)==2:
+        check=[[1,0]]
+    elif len(sh0)==3:
+        check=[[1,0,2],
+               [1,2,0],
+               [2,1,0],
+               [2,0,2],
+               [0,2,1]]
+    elif len(sh0)==4:
+        check=[[0,1,3,2],
+               [0,2,1,3],
+               [0,2,3,1],
+               [0,3,2,1],
+               [0,3,1,2] ,          
+               [1,0,2,3],
+               [1,0,3,2],
+               [1,2,0,3],
+               [1,2,3,0],
+               [1,3,2,0],
+               [1,3,0,2],
+               [2,0,1,3],
+               [2,0,3,1],
+               [2,1,0,3],
+               [2,1,3,0],
+               [2,3,1,0],
+               [2,3,0,1],
+               [3,0,1,2],
+               [3,0,2,1],
+               [3,1,0,2],
+               [3,1,2,0],
+               [3,2,1,0],
+               [3,2,0,1]]
+    else:
+         check=[]
+    
+    # create the test cases:
+    processed=[]
+    l=["R","U","L","P","C","N"]
+    c=[""]
+    for i in range(len(sh0)):
+       tmp=[]
+       for ci in c:
+          tmp+=[ci+li for li in l]
+       c=tmp
+    # SHUFFLE
+    c2=[]
+    while len(c)>0:
+        i=int(random.random()*len(c))
+        c2.append(c[i])
+        del c[i]
+    c=c2
+    for ci in c:
+      t=""
+      sh=()
+      sl=()
+      for i in range(len(ci)):
+          if ci[i]=="R":
+             s="%s:%s"%(1,sh0[i]-1)
+             sl=sl+(slice(1,sh0[i]-1),)
+             sh=sh+(sh0[i]-2,)             
+          if ci[i]=="U":
+              s=":%s"%(sh0[i]-1)
+              sh=sh+(sh0[i]-1,)
+              sl=sl+(slice(0,sh0[i]-1),)             
+          if ci[i]=="L":
+              s="2:"
+              sh=sh+(sh0[i]-2,)             
+              sl=sl+(slice(2,sh0[i]),)             
+          if ci[i]=="P":
+              s="%s"%(int(sh0[i]/2))
+              sl=sl+(int(sh0[i]/2),)             
+          if ci[i]=="C":
+              s=":"
+              sh=sh+(sh0[i],)             
+              sl=sl+(slice(0,sh0[i]),)             
+          if ci[i]=="N":
+              s=""
+              sh=sh+(sh0[i],)
+          if len(s)>0:
+             if not t=="": t+=","
+             t+=s
+      if len(sl)==1: sl=sl[0]
+      N_found=False
+      noN_found=False
+      process=len(t)>0
+      for i in ci:
+         if i=="N":
+            if not noN_found and N_found: process=False
+            N_found=True
+         else:
+           if N_found: process=False
+           noNfound=True
+      # is there a similar one processed allready
+      if process and ci.find("N")==-1:
+         for ci2 in processed:
+           for chi in check:
+               is_perm=True
+               for i in range(len(chi)): 
+                   if not ci[i]==ci2[chi[i]]: is_perm=False
+               if is_perm: process=False
+      # if not process: print ci," rejected" 
+      if process:
+       processed.append(ci)
+       for case1 in ["array","constData","taggedData","expandedData"]: 
+          text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+          tname="test_setslice_%s_rank%s_%s_%s"%(case0,len(sh0),case1,ci)
+          text+="   def %s(self):\n"%tname
+          a_0=makeNumberedArray(sh0)
+          if case0 in ["taggedData", "expandedData"]:
+              a1_0=makeNumberedArray(sh0)
+          else:
+              a1_0=a_0*1.
+
+          a_1=makeNumberedArray(sh)
+          if case1 in ["taggedData", "expandedData"]:
+              a1_1=makeNumberedArray(sh)
+          else:
+              a1_1=a_1*1.
+
+          text+=mkText(case0,"arg",a_0,a1_0)                                  
+          text+=mkText(case1,"val",a_1,a1_1)                                  
+          text+="      arg[%s]=val\n"%t
+          a_0.__setitem__(sl,a_1)
+          a1_0.__setitem__(sl,a1_1)
+          if Lsup(a_0-a1_0)==0.:
+             text+=mkText("constData","ref",a_0,a1_0)
+          else:
+             text+=mkText("expandedData","ref",a_0,a1_0)
+          text+="      self.failUnless(Lsup(arg-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"
+              
+          if case0 == "taggedData" or case1 == "taggedData":
+            t_prog_with_tags+=text
+          else:              
+            t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# (non)symmetric part
 #=======================================================================================================
 from esys.escript import *
 for name in ["symmetric", "nonsymmetric"]:
@@ -638,7 +786,7 @@ print test_tail
 1/0
 
 #=======================================================================================================
-# slicing
+# get slices
 #=======================================================================================================
 for case0 in ["constData","taggedData","expandedData","Symbol"]: 
   for sh0 in [ (3,), (3,4), (3,4,3) ,(4,3,5,3)]:

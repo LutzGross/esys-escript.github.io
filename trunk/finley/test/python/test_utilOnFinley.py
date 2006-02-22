@@ -2,6 +2,7 @@
 
 import unittest
 from esys.escript.test_util import Test_util_no_tagged_data as Test_util
+# from esys.escript.test_util import Test_util as Test_util
 from esys.escript.test_util import Test_Util_SpatialFunctions
 from esys.escript.test_symbols import Test_symbols
 

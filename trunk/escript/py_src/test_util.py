@@ -16,9 +16,10 @@ to run the use:
    unittest.TextTestRunner(verbosity=2).run(suite)
 
 For function spaces which support tagging there is the extended test case Test_util_with_tagged_data available.
-This test assumes that the functionspace has samples with tags equal to 1 and different from 1.
+This test assumes that samples with x_0 coordinate 0 are tagged with 1 and all samples tagged with 1 have x_0
+coordinate 0.
 
-@note: at this stage thsi test will not pass as it tests for functionlity that has not been implemented yet. It also does not test the full functionalitu of util.py yet.
+@note: at this stage this test will not pass as it tests for functionlity that has not been implemented yet. It also does not test the full functionalitu of util.py yet.
 
 @var __author__: name of author
 @var __licence__: licence agreement

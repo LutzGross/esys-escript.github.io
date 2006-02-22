@@ -92,7 +92,7 @@ except ImportError:
 # try to import <hostname>_options
 if usegcc==0:
    import socket
-   hostname = socket.gethostname()
+   hostname = socket.gethostname().split('.')[0]
    try: 
       exec "from "+hostname+"_options import *"
    except ImportError:
