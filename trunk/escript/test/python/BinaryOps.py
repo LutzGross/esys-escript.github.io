@@ -26,7 +26,7 @@ tol=1.E-15
 #  list of arguments: a list item has the form [a0,a1,a2]
 #  what a0 is the default value and a1 is used for tag Tag1
 #  and a2 for tag2. a0,a1,a2 are converted into numarrays.
-#  
+#
 #  binary operations are tested on all pairs from arglist
 #
 #  each item in the arglist are used to construct the following 5 argument
@@ -41,7 +41,7 @@ tol=1.E-15
 #
 #  i.e for a single binary arithmetic operation (len(arglist)*5)**2
 #  test are performed. 
-#  
+#
 
 arglist = [ \
 [ [3,4], [-5,6.], [2,3] ], \
@@ -125,11 +125,9 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
   print wh
 
-  #for ex1 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
-  for ex1 in ["Constant","Expanded","Tagged1","Tagged2"]:
+  for ex1 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
 
-    #for ex2 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
-    for ex2 in ["Constant","Expanded","Tagged1","Tagged2"]:
+    for ex2 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
 
       if ex1=="Array" and ex2=="Array":
         continue
@@ -154,7 +152,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
           else:
              t2=""
 
-          # the shape must match or at least one argument is sclar:
+          # the shape must match or at least one argument is scalar:
           if (getRank(arg1)==getRank(arg2)) or isScalar(arg1) or isScalar(arg2):
 
             # sum 
