@@ -219,23 +219,23 @@ void DataTestCase::testSlicing() {
     cout << "\tTest set-slicing DataTagged" << endl;
 
     //
-    // create a DataTagged with a scalar default value only
+    // create a source DataTagged with a scalar default value only
 
     DataArrayView::ShapeType viewShape;
     Data source(10.0,viewShape,FunctionSpace(),false);
     source.tag();
 
-    //cout << source.toString() << endl;
+    //cout << "source:\n" << source.toString() << endl;
 
     //
-    // create a DataTagged with a rank 2 default value only
+    // create a target DataTagged with a rank 2 default value only
 
     viewShape.push_back(2);
     viewShape.push_back(3);
     Data target(1.3,viewShape,FunctionSpace(),false);
     target.tag();
 
-    //cout << target.toString() << endl;
+    //cout << "target:\n" << target.toString() << endl;
 
     //
     // set a slice in target from source
@@ -246,7 +246,7 @@ void DataTestCase::testSlicing() {
 
     target.setSlice(source,region);
 
-    //cout << target.toString() << endl;
+    //cout << "target:\n" << target.toString() << endl;
 
     assert(target.isTagged());
     assert(target.getDataPointRank()==2);
@@ -258,7 +258,7 @@ void DataTestCase::testSlicing() {
     assert(target.getDataPoint(0,0)(1,2)==1.3);
 
     //
-    // add a value for tag "1"
+    // add a value for tag "1" to target
 
     DataArrayView::ValueType viewData(6);
     for (int i=0;i<viewData.size();i++) {
@@ -267,6 +267,8 @@ void DataTestCase::testSlicing() {
     DataArrayView dataView(viewData,viewShape);
 
     target.setTaggedValueFromCPP(1, dataView);
+
+    //cout << "target:\n" << target.toString() << endl;
 
     //
     // set a slice in target from source
@@ -277,7 +279,7 @@ void DataTestCase::testSlicing() {
 
     target.setSlice(source,region);
 
-    //cout << target.toString() << endl;
+    //cout << "target:\n" << target.toString() << endl;
 
     assert(target.isTagged());
     assert(target.getDataPointRank()==2);
@@ -287,6 +289,57 @@ void DataTestCase::testSlicing() {
     assert(target.getDataPoint(0,0)(1,0)==1);
     assert(target.getDataPoint(0,0)(1,1)==3);
     assert(target.getDataPoint(0,0)(1,2)==5);
+
+    //
+    // add a value for tag "2" to source
+
+    DataArrayView::ShapeType viewShape2;
+    DataArrayView::ValueType viewData2(1);
+    viewData2[0]=6;
+    DataArrayView dataView2(viewData2,viewShape2);
+
+    source.setTaggedValueFromCPP(2, dataView2);
+
+    //cout << "source:\n" << source.toString() << endl;
+
+    //
+    // set a slice in target from source
+
+    region.clear();
+    region.push_back(DataArrayView::RegionType::value_type(0,0));
+    region.push_back(DataArrayView::RegionType::value_type(1,1));
+
+    target.setSlice(source,region);
+
+    //cout << "target:\n" << target.toString() << endl;
+
+    assert(target.isTagged());
+    assert(target.getDataPointRank()==2);
+
+    // use a non-existant tag so we get a pointer to the default value
+    // ie: the first element in the data array
+    DataAbstract::ValueType::value_type* targetData=target.getSampleDataByTag(9);
+    for (int i=0; i<target.getLength(); i++) {
+      assert(targetData[i]>=0);
+    }
+    assert(targetData[0]==1.3);
+    assert(targetData[1]==1.3);
+    assert(targetData[2]==10);
+    assert(targetData[3]==10);
+    assert(targetData[4]==1.3);
+    assert(targetData[5]==1.3);
+    assert(targetData[6]==0);
+    assert(targetData[7]==1);
+    assert(targetData[8]==10);
+    assert(targetData[9]==3);
+    assert(targetData[10]==4);
+    assert(targetData[11]==5);
+    assert(targetData[12]==1.3);
+    assert(targetData[13]==1.3);
+    assert(targetData[14]==6);
+    assert(targetData[15]==10);
+    assert(targetData[16]==1.3);
+    assert(targetData[17]==1.3);
 
   }
 
