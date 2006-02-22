@@ -32,8 +32,6 @@ template <class BinaryFunction>
 inline void binaryOp(DataTagged& left, const DataConstant& right, 
 		     BinaryFunction operation)
 {
-  //
-  // perform the operation on each tagged value including the default
   binaryOp(left,right.getPointDataView(),operation);
 }
 
@@ -58,7 +56,11 @@ inline void binaryOp(DataTagged& left, const DataArrayView& right,
   }
   //
   // finally perform the operation on the default value
-  left.getDefaultValue().binaryOp(right,operation);
+  if (right.getRank()==0) {
+    left.getDefaultValue().binaryOp(0,right(),operation);
+  } else {
+    left.getDefaultValue().binaryOp(right,operation);
+  }
 }
 
 template <class BinaryFunction>
