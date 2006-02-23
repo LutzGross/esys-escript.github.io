@@ -192,13 +192,11 @@ algorithm(DataTagged& data,
           BinaryFunction operation,
 	  double initial_value)
 {
-  const DataTagged::DataMapType& lookup=data.getTagLookup();
-  DataTagged::DataMapType::const_iterator i;
-  DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataArrayView& dataView=data.getPointDataView();
   double current_value=initial_value;
   // perform the operation on each tagged value
-  for (i=lookup.begin();i!=lookupEnd;i++) {
+  DataArrayView& dataView=data.getPointDataView();
+  const DataTagged::DataMapType& lookup=data.getTagLookup();
+  for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
     current_value=operation(current_value,dataView.reductionOp(i->second,operation,initial_value));
   }
   // perform the operation on the default value
@@ -259,20 +257,16 @@ dp_algorithm(DataTagged& data,
              BinaryFunction operation,
 	     double initial_value)
 {
-  const DataTagged::DataMapType& lookup=data.getTagLookup();
-  DataTagged::DataMapType::const_iterator i;
-  DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataArrayView dataView=data.getPointDataView();
-  DataArrayView resultView=result.getPointDataView();
-  // perform the operation on each tagged data value
+  // perform the operation on each tagged value in data
   // and assign this to the corresponding element in result
-  for (i=lookup.begin();i!=lookupEnd;i++) {
-    resultView.getData(i->second) =
-      dataView.reductionOp(i->second,operation,initial_value);
+  const DataTagged::DataMapType& lookup=data.getTagLookup();
+  for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
+    result.getDataPointByTag(i->first).getData(0) =
+      data.getDataPointByTag(i->first).reductionOp(operation,initial_value);
   }
   // perform the operation on the default data value
   // and assign this to the default element in result
-  resultView.getData(0) =
+  result.getDefaultValue().getData(0) =
     data.getDefaultValue().reductionOp(operation,initial_value);
 }
 

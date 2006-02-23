@@ -1482,27 +1482,44 @@ inline
 Data
 Data::dp_algorithm(BinaryFunction operation, double initial_value) const
 {
-  Data result(0,DataArrayView::ShapeType(),getFunctionSpace(),isExpanded());
   if (isExpanded()) {
+    Data result(0,DataArrayView::ShapeType(),getFunctionSpace(),isExpanded());
     DataExpanded* dataE=dynamic_cast<DataExpanded*>(m_data.get());
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
     EsysAssert((dataE!=0), "Programming error - casting data to DataExpanded.");
     EsysAssert((resultE!=0), "Programming error - casting result to DataExpanded.");
     escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
+    return result;
   } else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
+    DataTagged::TagListType keys;
+    DataTagged::DataMapType::const_iterator i;
+    for (i=dataT->getTagLookup().begin();i!=dataT->getTagLookup().end();i++) {
+      keys.push_back(i->first);
+    }
+    DataArrayView::ShapeType viewShape;
+    DataArrayView::ValueType viewData(1);
+    viewData[0]=0;
+    DataArrayView defaultValue(viewData,viewShape);
+    DataTagged::ValueListType values;
+    values.push_back(defaultValue);
+    Data result(keys,values,defaultValue,getFunctionSpace());
     DataTagged* resultT=dynamic_cast<DataTagged*>(result.m_data.get());
     EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
     EsysAssert((resultT!=0), "Programming error - casting result to DataTagged.");
     escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
+    return result;
   } else if (isConstant()) {
+    Data result(0,DataArrayView::ShapeType(),getFunctionSpace(),isExpanded());
     DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
     EsysAssert((dataC!=0), "Programming error - casting data to DataConstant.");
     EsysAssert((resultC!=0), "Programming error - casting result to DataConstant.");
     escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
+    return result;
   }
-  return result;
+  Data falseRetVal; // to keep compiler quiet
+  return falseRetVal;
 }
 
 }
