@@ -25,7 +25,7 @@ tol=1.E-15
 #
 #  list of arguments: a list item has the form [a0,a1,a2]
 #  what a0 is the default value and a1 is used for tag Tag1
-#  and a2 for tag2. a0,a1,a2 are converted into numarrays.
+#  and a2 for Tag2.
 #  
 
 arglist = [ \
@@ -33,7 +33,7 @@ arglist = [ \
 [ [[1,2],[3,4]], [[5,6],[7,8]], [[-5,-6],[7,8]] ], \
 [ [[15,8],[12,8]], [[-9,9],[13,8]], [[7,34],[19,7]] ], \
 [ [[[15,8],[12,8]],[[-9,9],[13,8]]], [[[3,4],[-9,4]],[[1,-9],[7,4]]], [[[5,2],[6,2]],[[-6,4],[7,5]]] ], \
-[ 3.0, 6.0, 3 ] \
+[ [3.0], [6.0], [3] ] \
 ]
 
 def prepareArg(val,ex,wh):
@@ -141,51 +141,51 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # where positive:
       ref=checkResult("where positive("+ex1+")", \
-                      arg1._wherePositive(), \
-                      numarray.greater(arrays1[0],0.), \
-                      numarray.greater(arrays1[1],0.), \
-                      numarray.greater(arrays1[2],0.), \
+                      (arg1-3)._wherePositive(), \
+                      numarray.greater(arrays1[0],3.), \
+                      numarray.greater(arrays1[1],3.), \
+                      numarray.greater(arrays1[2],3.), \
                       wh)
 
       # where negative:
-      #ref=checkResult("where negative("+ex1+")", \
-      #                (arg1-3)._whereNegative(), \
-      #                numarray.greater(3.,arrays1[0]), \
-      #                numarray.greater(3.,arrays1[1]), \
-      #                numarray.greater(3.,arrays1[2]), \
-      #                wh)
+      ref=checkResult("where negative("+ex1+")", \
+                      (arg1-3)._whereNegative(), \
+                      numarray.greater(3.,arrays1[0]), \
+                      numarray.greater(3.,arrays1[1]), \
+                      numarray.greater(3.,arrays1[2]), \
+                      wh)
 
       # where non-negative:
-      #ref=checkResult("where nonnegative("+ex1+")", \
-      #                (arg1-3)._whereNonNegative(), \
-      #                numarray.greater_equal(arrays1[0],3.), \
-      #                numarray.greater_equal(arrays1[1],3.), \
-      #                numarray.greater_equal(arrays1[2],3.), \
-      #                wh)
+      ref=checkResult("where nonnegative("+ex1+")", \
+                      (arg1-3)._whereNonNegative(), \
+                      numarray.greater_equal(arrays1[0],3.), \
+                      numarray.greater_equal(arrays1[1],3.), \
+                      numarray.greater_equal(arrays1[2],3.), \
+                      wh)
 
       # where non-positive:
-      #ref=checkResult("where nonpositive("+ex1+")", \
-      #                (arg1-3)._whereNonPositive(), \
-      #                numarray.greater_equal(3.,arrays1[0]), \
-      #                numarray.greater_equal(3.,arrays1[1]), \
-      #                numarray.greater_equal(3.,arrays1[2]), \
-      #                wh)
+      ref=checkResult("where nonpositive("+ex1+")", \
+                      (arg1-3)._whereNonPositive(), \
+                      numarray.greater_equal(3.,arrays1[0]), \
+                      numarray.greater_equal(3.,arrays1[1]), \
+                      numarray.greater_equal(3.,arrays1[2]), \
+                      wh)
 
       # where zero:
-      #ref=checkResult("where zero("+ex1+")", \
-      #                (arg1-3)._whereZero(), \
-      #                numarray.less_equal(numarray.abs(arrays1[0]-3.),0.0), \
-      #                numarray.less_equal(numarray.abs(arrays1[1]-3.),0.0), \
-      #                numarray.less_equal(numarray.abs(arrays1[2]-3.),0.0), \
-      #                wh)
+      ref=checkResult("where zero("+ex1+")", \
+                      (arg1-3)._whereZero(), \
+                      numarray.less_equal(numarray.abs(arrays1[0]-3.),0.0), \
+                      numarray.less_equal(numarray.abs(arrays1[1]-3.),0.0), \
+                      numarray.less_equal(numarray.abs(arrays1[2]-3.),0.0), \
+                      wh)
 
       # where non-zero:
-      #ref=checkResult("where nonzero("+ex1+")", \
-      #                (arg1-3)._whereNonZero(), \
-      #                numarray.greater(numarray.abs(arrays1[0]-3.),0.0), \
-      #                numarray.greater(numarray.abs(arrays1[1]-3.),0.0), \
-      #                numarray.greater(numarray.abs(arrays1[2]-3.),0.0), \
-      #                wh)
+      ref=checkResult("where nonzero("+ex1+")", \
+                      (arg1-3)._whereNonZero(), \
+                      numarray.greater(numarray.abs(arrays1[0]-3.),0.0), \
+                      numarray.greater(numarray.abs(arrays1[1]-3.),0.0), \
+                      numarray.greater(numarray.abs(arrays1[2]-3.),0.0), \
+                      wh)
 
       # exponential function:
       ref=checkResult("exp("+ex1+")", \
@@ -196,12 +196,12 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       wh)
 
       # sqrt
-      #ref=checkResult("sqrt("+ex1+")", \
-      #                arg1._abs()._sqrt(), \
-      #                numarray.sqrt(numarray.abs(arrays1[0])), \
-      #                numarray.sqrt(numarray.abs(arrays1[1])), \
-      #                numarray.sqrt(numarray.abs(arrays1[2])), \
-      #                wh)
+      ref=checkResult("sqrt("+ex1+")", \
+                      arg1._sqrt(), \
+                      numarray.sqrt(numarray.abs(arrays1[0])), \
+                      numarray.sqrt(numarray.abs(arrays1[1])), \
+                      numarray.sqrt(numarray.abs(arrays1[2])), \
+                      wh)
 
       # sin:
       ref=checkResult("sin("+ex1+")", \
@@ -227,9 +227,11 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       numarray.tan(arrays1[2]), \
                       wh)
 
+      # numarray has no asin/acos/atan funcs
+
       # asin:
       #ref=checkResult("asin("+ex1+")", \
-      #                arg1.asin(), \
+      #                arg1._asin(), \
       #                numarray.asin(arrays1[0]), \
       #                numarray.asin(arrays1[1]), \
       #                numarray.asin(arrays1[2]), \
@@ -237,7 +239,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # acos:
       #ref=checkResult("acos("+ex1+")", \
-      #                arg1.acos(), \
+      #                arg1._acos(), \
       #                numarray.acos(arrays1[0]), \
       #                numarray.acos(arrays1[1]), \
       #                numarray.acos(arrays1[2]), \
@@ -245,7 +247,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # atan:
       #ref=checkResult("atan("+ex1+")", \
-      #                arg1.atan(), \
+      #                arg1._atan(), \
       #                numarray.atan(arrays1[0]), \
       #                numarray.atan(arrays1[1]), \
       #                numarray.atan(arrays1[2]), \
@@ -275,9 +277,11 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
                       numarray.tanh(arrays1[2]), \
                       wh)
 
+      # numarray has no asinh/acosh/atanh funcs
+
       # asinh:
       #ref=checkResult("asinh("+ex1+")", \
-      #                arg1.asinh(), \
+      #                arg1._asinh(), \
       #                numarray.asinh(arrays1[0]), \
       #                numarray.asinh(arrays1[1]), \
       #                numarray.asinh(arrays1[2]), \
@@ -285,7 +289,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # acosh:
       #ref=checkResult("acosh("+ex1+")", \
-      #                arg1.acosh(), \
+      #                arg1._acosh(), \
       #                numarray.acosh(arrays1[0]), \
       #                numarray.acosh(arrays1[1]), \
       #                numarray.acosh(arrays1[2]), \
@@ -293,31 +297,33 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # atanh:
       #ref=checkResult("atanh("+ex1+")", \
-      #                arg1.atanh(), \
+      #                arg1._atanh(), \
       #                numarray.atanh(arrays1[0]), \
       #                numarray.atanh(arrays1[1]), \
       #                numarray.atanh(arrays1[2]), \
       #                wh)
 
       # get the maximum value at each data point
-      #ref=checkResult("maxval("+ex1+")", \
-      #                arg1.maxval(), \
-      #                arrays1[0].max(), \
-      #                arrays1[1].max(), \
-      #                arrays1[2].max(), \
-      #                wh)
+      ref=checkResult("maxval("+ex1+")", \
+                      arg1._maxval(), \
+                      arrays1[0].max(), \
+                      arrays1[1].max(), \
+                      arrays1[2].max(), \
+                      wh)
 
       # get the minimum value at each data point
-      #ref=checkResult("minval("+ex1+")", \
-      #                arg1.minval(), \
-      #                arrays1[0].min(), \
-      #                arrays1[1].min(), \
-      #                arrays1[2].min(), \
-      #                wh)
+      ref=checkResult("minval("+ex1+")", \
+                      arg1._minval(), \
+                      arrays1[0].min(), \
+                      arrays1[1].min(), \
+                      arrays1[2].min(), \
+                      wh)
+
+      # length/trace/transpose not yet implemented for Data
 
       # get the length at each data point = sqrt(sum_{i,j,k,l} A[i,j,k,l]^2)
       #ref=checkResult("length("+ex1+")", \
-      #                arg1.length(), \
+      #                arg1._length(), \
       #                numarray.sqrt((arrays1[0]**2).sum()), \
       #                numarray.sqrt((arrays1[1]**2).sum()), \
       #                numarray.sqrt((arrays1[2]**2).sum()), \
@@ -325,7 +331,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
       # trace:
       #ref=checkResult("trace("+ex1+")", \
-      #                arg1.trace(), \
+      #                arg1._trace(), \
       #                numarray.trace(arrays1[0]), \
       #                numarray.trace(arrays1[1]), \
       #                numarray.trace(arrays1[2]), \
@@ -334,7 +340,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       # transpose:
       #axis=arrays1[0]/2
       #ref=checkResult("transpose("+ex1+")", \
-      #                arg1.transpose(), \
+      #                arg1._transpose(), \
       #                numarray.transpose(arrays1[0],axis), \
       #                numarray.transpose(arrays1[1],axis), \
       #                numarray.transpose(arrays1[2],axis), \
