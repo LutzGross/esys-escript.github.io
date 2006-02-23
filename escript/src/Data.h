@@ -1492,17 +1492,17 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
     return result;
   } else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
-    DataTagged::TagListType keys;
-    DataTagged::DataMapType::const_iterator i;
-    for (i=dataT->getTagLookup().begin();i!=dataT->getTagLookup().end();i++) {
-      keys.push_back(i->first);
-    }
     DataArrayView::ShapeType viewShape;
     DataArrayView::ValueType viewData(1);
     viewData[0]=0;
     DataArrayView defaultValue(viewData,viewShape);
+    DataTagged::TagListType keys;
     DataTagged::ValueListType values;
-    values.push_back(defaultValue);
+    DataTagged::DataMapType::const_iterator i;
+    for (i=dataT->getTagLookup().begin();i!=dataT->getTagLookup().end();i++) {
+      keys.push_back(i->first);
+      values.push_back(defaultValue);
+    }
     Data result(keys,values,defaultValue,getFunctionSpace());
     DataTagged* resultT=dynamic_cast<DataTagged*>(result.m_data.get());
     EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
