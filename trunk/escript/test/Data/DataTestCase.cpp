@@ -731,134 +731,196 @@ void DataTestCase::testOperations() {
     }
   }
 
-  Data base(dataView);
+  Data baseEx(dataView,FunctionSpace(),true);
+  Data baseCon(dataView,FunctionSpace(),false);
+  Data baseTag(dataView,FunctionSpace(),false);
+  baseTag.tag();
+
+  assert(baseEx.isExpanded());
+  assert(baseCon.isConstant());
+  assert(baseTag.isTagged());
+
+  Data resultEx;
+  Data resultCon;
+  Data resultTag;
 
   // test unary operations
 
   cout << "\tTest Data::pow." << endl;
   Data power(3.0,shape,FunctionSpace(),true);
-  Data result(base.powD(power));
+  resultEx.copy(baseEx.powD(power));
+  resultCon.copy(baseCon.powD(power));
+  resultTag.copy(baseTag.powD(power));
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      assert(result.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
+      assert(resultEx.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
+      assert(resultCon.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
+      assert(resultTag.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
     }
   }
 
   cout << "\tTest Data::sin." << endl;
-  result.copy(base.sin());
+  resultEx.copy(baseEx.sin());
+  resultCon.copy(baseCon.sin());
+  resultTag.copy(baseTag.sin());
   assert(true);
 
   cout << "\tTest Data::cos." << endl;
-  result.copy(base.cos());
+  resultEx.copy(baseEx.cos());
+  resultCon.copy(baseCon.cos());
+  resultTag.copy(baseTag.cos());
   assert(true);
 
   cout << "\tTest Data::tan." << endl;
-  result.copy(base.tan());
+  resultEx.copy(baseEx.tan());
+  resultCon.copy(baseCon.tan());
+  resultTag.copy(baseTag.tan());
   assert(true);
 
   cout << "\tTest Data::asin." << endl;
-  result.copy(base.asin());
+  resultEx.copy(baseEx.asin());
+  resultCon.copy(baseCon.asin());
+  resultTag.copy(baseTag.asin());
   assert(true);
 
   cout << "\tTest Data::acos." << endl;
-  result.copy(base.acos());
+  resultEx.copy(baseEx.acos());
+  resultCon.copy(baseCon.acos());
+  resultTag.copy(baseTag.acos());
   assert(true);
 
   cout << "\tTest Data::atan." << endl;
-  result.copy(base.atan());
+  resultEx.copy(baseEx.atan());
+  resultCon.copy(baseCon.atan());
+  resultTag.copy(baseTag.atan());
   assert(true);
 
   cout << "\tTest Data::sinh." << endl;
-  result.copy(base.sinh());
+  resultEx.copy(baseEx.sinh());
+  resultCon.copy(baseCon.sinh());
+  resultTag.copy(baseTag.sinh());
   assert(true);
 
   cout << "\tTest Data::cosh." << endl;
-  result.copy(base.cosh());
+  resultEx.copy(baseEx.cosh());
+  resultCon.copy(baseCon.cosh());
+  resultTag.copy(baseTag.cosh());
   assert(true);
 
   cout << "\tTest Data::tanh." << endl;
-  result.copy(base.tanh());
+  resultEx.copy(baseEx.tanh());
+  resultCon.copy(baseCon.tanh());
+  resultTag.copy(baseTag.tanh());
   assert(true);
 
   cout << "\tTest Data::asinh." << endl;
-  result.copy(base.asinh());
+  resultEx.copy(baseEx.asinh());
+  resultCon.copy(baseCon.asinh());
+  resultTag.copy(baseTag.asinh());
   assert(true);
 
   cout << "\tTest Data::acosh." << endl;
-  result.copy(base.acosh());
+  resultEx.copy(baseEx.acosh());
+  resultCon.copy(baseCon.acosh());
+  resultTag.copy(baseTag.acosh());
   assert(true);
 
   cout << "\tTest Data::atanh." << endl;
-  result.copy(base.atanh());
+  resultEx.copy(baseEx.atanh());
+  resultCon.copy(baseCon.atanh());
+  resultTag.copy(baseTag.atanh());
   assert(true);
 
   cout << "\tTest Data::log." << endl;
-  result.copy(base.log());
+  resultEx.copy(baseEx.log());
+  resultCon.copy(baseCon.log());
+  resultTag.copy(baseTag.log());
   assert(true);
 
-  //cout << "\tTest Data::ln." << endl;
-  //result.copy(base.ln());
-  //assert(true);
-
   cout << "\tTest Data::abs." << endl;
-  result.copy(base.abs());
+  resultEx.copy(baseEx.abs());
+  resultCon.copy(baseCon.abs());
+  resultTag.copy(baseTag.abs());
   assert(true);
 
   cout << "\tTest Data::sign." << endl;
-  result.copy(base.sign());
+  resultEx.copy(baseEx.sign());
+  resultCon.copy(baseCon.sign());
+  resultTag.copy(baseTag.sign());
   assert(true);
 
   cout << "\tTest Data::exp." << endl;
-  result.copy(base.exp());
+  resultEx.copy(baseEx.exp());
+  resultCon.copy(baseCon.exp());
+  resultTag.copy(baseTag.exp());
   assert(true);
 
   cout << "\tTest Data::sqrt." << endl;
-  result.copy(base.sqrt());
+  resultEx.copy(baseEx.sqrt());
+  resultCon.copy(baseCon.sqrt());
+  resultTag.copy(baseTag.sqrt());
   assert(true);
 
   cout << "\tTest Data::neg." << endl;
-  result.copy(base.neg());
+  resultEx.copy(baseEx.neg());
+  resultCon.copy(baseCon.neg());
+  resultTag.copy(baseTag.neg());
   assert(true);
 
   cout << "\tTest Data::pos." << endl;
-  result.copy(base.pos());
+  resultEx.copy(baseEx.pos());
+  resultCon.copy(baseCon.pos());
+  resultTag.copy(baseTag.pos());
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      assert(result.getPointDataView()(i,j) == dataView.index(i,j));
+      assert(resultEx.getPointDataView()(i,j) == dataView.index(i,j));
+      assert(resultCon.getPointDataView()(i,j) == dataView.index(i,j));
+      assert(resultTag.getPointDataView()(i,j) == dataView.index(i,j));
     }
   }
 
   // test reduction operations
 
   cout << "\tTest Data::Lsup." << endl;
-  assert(base.Lsup() == 5);
+  assert(baseEx.Lsup() == 5);
+  assert(baseCon.Lsup() == 5);
+  assert(baseTag.Lsup() == 5);
 
   cout << "\tTest Data::sup." << endl;
-  assert(base.sup() == 5);
+  assert(baseEx.sup() == 5);
+  assert(baseCon.sup() == 5);
+  assert(baseTag.sup() == 5);
 
   cout << "\tTest Data::inf." << endl;
-  assert(base.inf() == 0);
+  assert(baseEx.inf() == 0);
+  assert(baseCon.inf() == 0);
+  assert(baseTag.inf() == 0);
 
   // test data-point reduction operations
 
   cout << "\tTest Data::minval." << endl;
-  result.copy(base.minval());
-  assert(result.getPointDataView()() == 0);
+  resultEx.copy(baseEx.minval());
+  resultCon.copy(baseCon.minval());
+  resultTag.copy(baseTag.minval());
+  assert(resultEx.getPointDataView()() == 0);
+  assert(resultCon.getPointDataView()() == 0);
+  assert(resultTag.getPointDataView()() == 0);
 
   cout << "\tTest Data::maxval." << endl;
-  result.copy(base.maxval());
-  assert(result.getPointDataView()() == 5);
-
-  //cout << "\tTest Data::length." << endl;
-  //result.copy(base.length());
-  //assert(pow(result.getPointDataView()(),2.0) == 55);
+  resultEx.copy(baseEx.maxval());
+  resultCon.copy(baseCon.maxval());
+  resultTag.copy(baseTag.maxval());
+  assert(resultEx.getPointDataView()() == 5);
+  assert(resultCon.getPointDataView()() == 5);
+  assert(resultTag.getPointDataView()() == 5);
 
   cout << "\tTest Data::trace." << endl;
-  result.copy(base.trace());
-  assert(result.getPointDataView()() == 15);
-
-  //result.copy(base.transpose(0));
-  //assert(true);
+  resultEx.copy(baseEx.trace());
+  resultCon.copy(baseCon.trace());
+  resultTag.copy(baseTag.trace());
+  assert(resultEx.getPointDataView()() == 15);
+  assert(resultCon.getPointDataView()() == 15);
+  assert(resultTag.getPointDataView()() == 15);
 
 }
 
