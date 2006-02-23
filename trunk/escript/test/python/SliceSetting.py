@@ -45,7 +45,9 @@ def prepareArg(val,ex,wh):
         else:
             exx=False
         out=Data(val[0],what=wh,expand=exx)
-        if ex=="Tagged1":
+        if ex=="Tagged0":
+            out.tag()
+        elif ex=="Tagged1":
             out.setTaggedValue(Tag1,val[1])
         elif ex=="Tagged2":
             out.setTaggedValue(Tag1,val[1])
@@ -82,9 +84,9 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
 
   print wh
 
-  for ex1 in ["Constant","Expanded","Tagged1","Tagged2"]:
+  for ex1 in ["Constant","Expanded","Tagged0","Tagged1","Tagged2"]:
 
-    for ex2 in ["Array","Constant","Expanded","Tagged1","Tagged2"]:
+    for ex2 in ["Array","Constant","Expanded","Tagged0","Tagged1","Tagged2"]:
 
           print "Slice setting: ", ex1, ",", ex2, ":"
 
