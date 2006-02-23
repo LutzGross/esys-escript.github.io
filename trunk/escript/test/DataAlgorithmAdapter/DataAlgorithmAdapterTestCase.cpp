@@ -141,9 +141,11 @@ void DataAlgorithmAdapterTestCase::testAll() {
 
 void DataAlgorithmAdapterTestCase::testAlgorithm() {
 
+  cout << endl;
+
   {
-    cout << endl;
-    cout << "\tTest algorithm on Data objects with a single data-point.";
+
+    cout << "\tTest algorithm on Data objects with a single rank 2 data-point." << endl;
 
     // define the shape for the DataArrayView
     DataArrayView::ShapeType shape;
@@ -184,15 +186,15 @@ void DataAlgorithmAdapterTestCase::testAlgorithm() {
 
   }
 
-  cout << endl;
-
 }
 
 void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
 
+  cout << endl;
+
   {
-    cout << endl;
-    cout << "\tTest dp_algorithm on Data objects with a single data-point.";
+
+    cout << "\tTest dp_algorithm on Data objects with a single rank 2 data-point." << endl;
 
     // define the shapes for the DataArrayViews
     DataArrayView::ShapeType shape;
@@ -247,8 +249,6 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
 
   }
 
-  cout << endl;
-
 }
 
 TestSuite* DataAlgorithmAdapterTestCase::suite ()
@@ -262,4 +262,3 @@ TestSuite* DataAlgorithmAdapterTestCase::suite ()
   testSuite->addTest (new TestCaller<DataAlgorithmAdapterTestCase>("testDpAlgorithm",&DataAlgorithmAdapterTestCase::testDpAlgorithm));
   return testSuite;
 }
-
