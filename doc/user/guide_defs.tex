@@ -12,19 +12,25 @@
 
 
 % define some handy commands for escript stuff
-\newcommand{\ESyS}{\module{esys}\xspace}
+\newcommand{\LINUX}{{\it Linux}\xspace}
 \newcommand{\escript}{\module{esys.escript}\xspace}
 \newcommand{\finley}{\module{esys.finley}\xspace}
-\newcommand{\linearPDEsPack}{\module{esys.linearPDEs}\xspace}
+\newcommand{\pyvisi}{\module{esys.pyvisi}\xspace}
+\newcommand{\bruce}{\module{esys.bruce}\xspace}
+
+\newcommand{\linearPDEs}{\module{esys.escript.linearPDEs}\xspace}
 \newcommand{\LinearPDE}{\class{LinearPDE}\xspace}
 \newcommand{\timeseries}{\module{esys.timeseries}\xspace}
 \newcommand{\modelframe}{\module{esys.modelframe}\xspace}
 \newcommand{\pdetools}{\module{esys.pdetools}\xspace}
+
 \newcommand{\AdvectivePDE}{\class{AdvectivePDE}\xspace}
 \newcommand{\Poisson}{\class{Poisson}\xspace}
 \newcommand{\Data}{\class{Data}\xspace}
 \newcommand{\EmptyData}{empty \class{Data} \index{empty Data}\xspace}
 \newcommand{\Domain}{\class{Domain}\xspace}
+\newcommand{\VTK}{{\it vtk} \index{visualization!vtk}\index{vtk}}
+\newcommand{\mayavi}{{\it mayavi} \index{visualization!mayavi}\index{mayavi}}
 \newcommand{\OpenDX}{{\it OpenDX}\xspace}
 \newcommand{\finleyelement}[1]{{\it #1}\index{finley!#1}}
 \newcommand{\False}{\constant{False}\xspace}
@@ -44,8 +50,8 @@
 \newcommand{\FunctionOnContactZero}{contact \class{FunctionSpace} on side 0\xspace}
 \newcommand{\FunctionOnContactOne}{contact \class{FunctionSpace} on side 1\xspace}
 \newcommand{\ContinuousFunction}{continuous \class{FunctionSpace}\xspace}
-\newcommand{\RankTwo}{{rank-2 \Data object}\xspace}
 \newcommand{\RankOne}{{rank-1 \Data object}\xspace}
+\newcommand{\RankTwo}{{rank-2 \Data object}\xspace}
 \newcommand{\RankThree}{{rank-3 \Data object}\xspace}
 \newcommand{\RankFour}{{rank-4 \Data object}\xspace}
 \newcommand{\Scalar}{{scalar \Data object}\xspace}
@@ -53,6 +59,7 @@
 \newcommand{\DataSamplePoints}{{data sample points} \index{data sample!points}\xspace}
 \newcommand{\numarray}{\module{numarray}\xspace}
 \newcommand{\Shape}{shape\xspace\index{shape}}
+\newcommand{\Rank}{rank\xspace\index{shape}}
 \newcommand{\ExampleDirectory}{example directory\xspace}
 
 
