@@ -36,6 +36,8 @@ class escriptTestCase(unittest.TestCase):
     else:
         exx=False
     out=Data(val,what=wh,expand=exx)
+    if ex=="Tagged":
+        out.tag()
     return out
 
   def testAlina1(self):
@@ -50,7 +52,7 @@ class escriptTestCase(unittest.TestCase):
 
   def testLog(self):
     for wh in [ContinuousFunction(self.msh),Function(self.msh)]:
-      for ex in ["Constant","Expanded"]:
+      for ex in ["Constant","Tagged","Expanded"]:
         for a in arglist:
           #print "\n", ex, a, "==>"
           arg=self.prepareArg(a,ex,wh)
@@ -59,12 +61,18 @@ class escriptTestCase(unittest.TestCase):
 
   def testLn(self):
     for wh in [ContinuousFunction(self.msh),Function(self.msh)]:
-      for ex in ["Constant","Expanded"]:
+      for ex in ["Constant","Tagged","Expanded"]:
         for a in arglist:
           #print "\n", ex, a, "==>"
           arg=self.prepareArg(a,ex,wh)
           #print "\nln"
           result = arg._log()
+
+  def testEmptyOp(self):
+    emptyData=Data()
+    emptyData._sin()
+    emptyData2=Data()
+    emptyData3=emptyData+emptyData2
 
 if __name__ == '__main__':
   suite=unittest.TestSuite()

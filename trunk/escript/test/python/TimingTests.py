@@ -18,33 +18,40 @@ arglist = [ \
 3.0, \
 [3.0,4.0], \
 [[1.0,2.0],[3.0,4.0]], \
-[[[15.0,8.0],[12.0,8.0]],[[-9.0,9.0],[13.0,8.0]]] \
+[[[15.0,8.0],[12.0,8.0]],[[-9.0,9.0],[13.0,8.0]]], \
+[[[[14.0,7.0],[11.0,8.5]],[[-970,9.2],[18.0,8.0]]],[[[-4.4,7.0],[93.0,8.0]],[[-1.0,9.4],[12.0,9.0]]]] \
 ]
 
 testlist = [
-"_maxval",
-"_minval",
-"_trace",
-"_sign",
-"_exp",
-"_sqrt",
-"_sin",
-"_cos",
-"_tan",
-"_asin",
-"_acos",
-"_atan",
-"_sinh",
-"_cosh",
-"_tanh",
-"_asinh",
-"_acosh",
-"_atanh",
-"_log10",
-"_log",
-"_Lsup",
-"_sup",
-"_inf"
+"_trace           ",
+"_maxval          ",
+"_minval          ",
+"_wherePositive   ",
+"_whereNegative   ",
+"_whereNonNegative",
+"_whereNonPositive",
+"_whereZero       ",
+"_whereNonZero    ",
+"_sin             ",
+"_cos             ",
+"_tan             ",
+"_asin            ",
+"_acos            ",
+"_atan            ",
+"_sinh            ",
+"_cosh            ",
+"_tanh            ",
+"_asinh           ",
+"_acosh           ",
+"_atanh           ",
+"_exp             ",
+"_sqrt            ",
+"_log10           ",
+"_log             ",
+"_sign            ",
+"_Lsup            ",
+"_sup             ",
+"_inf             "
 ]
 
 #
@@ -56,6 +63,8 @@ def prepareArg(val,ex,wh):
     else:
         exx=False
     out=Data(val,what=wh,expand=exx)
+    if ex=="Tagged":
+        out.tag()
     return out
 
 def getStartTime():
@@ -68,7 +77,8 @@ def calcElapsedTime(starttime):
 
 def runTest(arg,test):
     print "\t\t", test,
-    result = arg.__getattribute__(test)()
+    test_name = test.rstrip()
+    result = arg.__getattribute__(test_name)()
     del result
 
 #
@@ -80,15 +90,15 @@ for wh in [Function(msh),ContinuousFunction(msh)]:
 
   print "\n", wh, ":"
 
-  for ex in ["Expanded"]:
+  for ex in ["Constant", "Tagged", "Expanded"]:
 
     for a in arglist:
 
-      print "\n\t", ex, a, "==>"
+      arg=prepareArg(a,ex,wh)
+
+      print "\n\t", ex, "Rank", arg.getRank(), "==>"
       print "\n\t\tFunction\t\tElapsed time"
       print "\t\t--------\t\t------------"
-
-      arg=prepareArg(a,ex,wh)
 
       for test in testlist:
 
