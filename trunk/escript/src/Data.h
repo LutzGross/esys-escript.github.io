@@ -593,7 +593,7 @@ class Data {
      *
   */
   Data
-  wherePositive() const;
+  wherePositive(double tol=0.0) const;
 
   /**
      \brief
@@ -601,7 +601,7 @@ class Data {
      *
   */
   Data
-  whereNegative() const;
+  whereNegative(double tol=0.0) const;
 
   /**
      \brief
@@ -609,7 +609,7 @@ class Data {
      *
   */
   Data
-  whereNonNegative() const;
+  whereNonNegative(double tol=0.0) const;
 
   /**
      \brief
@@ -617,7 +617,7 @@ class Data {
      *
   */
   Data
-  whereNonPositive() const;
+  whereNonPositive(double tol=0.0) const;
 
   /**
      \brief
@@ -625,7 +625,7 @@ class Data {
      *
   */
   Data
-  whereZero() const;
+  whereZero(double tol=0.0) const;
 
   /**
      \brief
@@ -633,7 +633,7 @@ class Data {
      *
   */
   Data
-  whereNonZero() const;
+  whereNonZero(double tol=0.0) const;
 
   /**
      \brief
