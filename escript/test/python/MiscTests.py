@@ -218,6 +218,7 @@ for wh in [ContinuousFunction(msh),Function(msh)]:
       print "\ninf"
       print arg._inf()
 
+
 print "\n\nTests of archiveData and extractData:"
 
 print "\nDataExpanded:"
