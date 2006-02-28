@@ -405,57 +405,59 @@ Data::reshapeDataPoint(const DataArrayView::ShapeType& shape)
 }
 
 Data
-Data::wherePositive() const
+Data::wherePositive(double tol) const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(greater<double>(),0.0));
+  return escript::unaryOp(*this,bind2nd(greater<double>(),0.0+tol));
 }
 
 Data
-Data::whereNegative() const
+Data::whereNegative(double tol) const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
+  return escript::unaryOp(*this,bind2nd(less<double>(),0.0-tol));
 }
 
 Data
-Data::whereNonNegative() const
+Data::whereNonNegative(double tol) const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0));
+  return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0+tol));
 }
 
 Data
-Data::whereNonPositive() const
+Data::whereNonPositive(double tol) const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0));
+  return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0-tol));
 }
 
 Data
-Data::whereZero() const
+Data::whereZero(double tol) const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(equal_to<double>(),0.0));
+  Data dataAbs=abs();
+  return escript::unaryOp(dataAbs,bind2nd(less_equal<double>(),tol));
 }
 
 Data
-Data::whereNonZero() const
+Data::whereNonZero(double tol) const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(not_equal_to<double>(),0.0));
+  Data dataAbs=abs();
+  return escript::unaryOp(dataAbs,bind2nd(greater<double>(),tol));
 }
 
 Data
