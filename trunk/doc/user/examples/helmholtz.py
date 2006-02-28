@@ -1,6 +1,6 @@
 # $Id$
 from esys.escript import *
-from linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 #... set some parameters ...
 kappa=1.
@@ -13,8 +13,9 @@ mypde=LinearPDE(mydomain)
 mypde.setSymmetryOn()
 n=mydomain.getNormal()
 x=mydomain.getX()
-mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0],d=eta,y=kappa*n[0]+eta*x[0])
+mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
+               d=eta,y=kappa*n[0]+eta*x[0])
 #... calculate error of the PDE solution ...
 u=mypde.getSolution()
-# output should be similar to "error is 1.e-7" 
 print "error is ",Lsup(u-x[0])
+# output should be similar to "error is 1.e-7" 
