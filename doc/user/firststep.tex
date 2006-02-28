@@ -259,11 +259,11 @@ To get the solution of the Poisson equation defined by \var{mypde} we just have 
 \method{getSolution}. 
 
 Now we can write the script to solve our test problem (Remember that
-lines starting with '\#' are comment lines in Python) (available as \file{mypoisson.py} 
+lines starting with '\#' are comment lines in Python) (available as \file{poisson.py} 
 in the \ExampleDirectory):
 \begin{python}
 from esys.escript import *
-from linearPDEs import Poisson
+from esys.escript.linearPDEs import Poisson
 from esys.finley import Rectangle
 # generate domain:
 mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
@@ -291,12 +291,12 @@ for \VTK available, for instance \mayavi which can be downloaded from \url{http:
 \end{figure}
 
 You can edit the script file using your favourite text editor (or the Integrated DeveLopment Environment IDLE
-for Python, see \url{http://idlefork.sourceforge.net}). If the script file has the name \file{mypoisson.py} \index{scripts!\file{mypoisson.py}} you can run the
+for Python, see \url{http://idlefork.sourceforge.net}). If the script file has the name \file{poisson.py} \index{scripts!\file{poisson.py}} you can run the
 script from any shell using the command:
 \begin{python} 
-python mypoisson.py
+python poisson.py
 \end{python}
-After the script has (hopefully successfully) been completed you will find the file \file{u.dx} in the current
+After the script has (hopefully successfully) been completed you will find the file \file{u.xml} in the current
 directory. An easy way to visualize the results is the command
 \begin{python} 
 mayavi -d u.xml -m SurfaceMap &

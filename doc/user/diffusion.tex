@@ -173,7 +173,7 @@ where we assume that \code{mydomain} is a \Domain object and
 \code{kappa} \code{omega} \code{eta} and \code{g} are given scalar values 
 typically \code{float} or \Data objects. The \method{setValue} method 
 assigns values to the coefficients of the general PDE. The \method{getSolution} method solves 
-the PDE and returns the solution \code{u} of the PDE. \code{kronecker} is \escript function
+the PDE and returns the solution \code{u} of the PDE. \function{kronecker} is \escript function
 returning the Kronecker symbol.
 
 The coefficients can set by several calls of \method{setValue} where the order can be chosen arbitrarily. 
@@ -193,7 +193,7 @@ A\hackscore{jl}=A\hackscore{lj} \mbox{ and } B\hackscore{j}=C\hackscore{j} \;.
 \end{equation}
 Note that $D$ and $d$ may have any value and the right hand side $X$, $Y$, $y$ as well as the constraints
 are not relevant. The Helmholtz problem is symmetric. 
-The \LinearPDE class provides the method \code{checkSymmetry} method to check if the given PDE is symmetric. 
+The \LinearPDE class provides the method \method{checkSymmetry} method to check if the given PDE is symmetric. 
 \begin{python}
 mypde=LinearPDE(mydomain)
 mypde.setValue(A=kappa*kronecker(mydomain),d=eta)
@@ -203,50 +203,28 @@ print mypde.checkSymmetry() # returns False
 mypde.setValue(C=kronecker(mydomain)[0])
 print mypde.checkSymmetry() # returns True
 \end{python}
-Unfortunately, a \code{checkSymmetry} is very expensive and is recommendable to use for
-testing and debugging purposes only. The \code{setSymmetryOn} method is used to
+Unfortunately, a \method{checkSymmetry} is very expensive and is recommendable to use for
+testing and debugging purposes only. The \method{setSymmetryOn} method is used to
 declare a PDE symmetric:
 \begin{python}
 mypde = LinearPDE(mydomain)
 mypde.setValue(A=kappa*kronecker(mydomain))
 mypde.setSymmetryOn()
 \end{python}
-
-
-
-
-
-
-
-=====
-
-Here we will write our own specialized sub-class of the \LinearPDE to define the Helmholtz equation
-and use the \method{getSolution} method of parent class to actually solve the problem.
-
-We want to implement a 
-new class which we will call \class{Helmholtz} that provides the same methods as the \LinearPDE class but
-is described using the coefficients $\kappa$, $\omega$, $f$, $\eta$, 
-$g$ rather than the general form given by \eqn{EQU.FEM.1}. 
-Python's mechanism of subclasses allows us to do this in a very simple way.
-That means that all methods (such as the \method{getSolution})
-from the parent class \LinearPDE are available for any \Poisson object. However, new
-methods can be added and methods of the parent class can be redefined. In fact,
-the \Poisson class redefines the \method{setValue} of the \LinearPDE class which is called to assign 
-values to the coefficients of the PDE. This is exactly what we will do when we define 
-our new \class{Helmholtz} class:
-
-To test our \class{Helmholtz} class on a rectangular domain
-of length $l\hackscore{0}=5$ and height $l\hackscore{1}=1$, we choose a simple test solution. Actually, we 
+Now we want to see how we actually solve the Helmholtz equation.
+on a rectangular domain
+of length $l\hackscore{0}=5$ and height $l\hackscore{1}=1$. We choose a simple test solution such that we 
+can verify the returned solution against the exact answer. Actually, we 
 we take $u=x\hackscore{0}$ and then calculate the right hand side terms $f$ and $g$ such that
 the test solution becomes the solution of the problem. If we assume $\kappa$ as being constant, 
 an easy calculation shows that we have to choose $f=\omega \cdot x\hackscore{0}$. On the boundary we get
 $\kappa n\hackscore{i} u\hackscore{,i}=\kappa n\hackscore{0}$.  
-So we have to set $g=\kappa n\hackscore{0}+\eta x\hackscore{0}$. The following script \file{helmholtztest.py} 
+So we have to set $g=\kappa n\hackscore{0}+\eta x\hackscore{0}$. The following script \file{helmholtz.py} 
 \index{scripts!\file{helmholtz.py}} which is available in the \ExampleDirectory
 implements this test problem using the \finley PDE solver:
 \begin{python}
 from esys.escript import *
-from linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 #... set some parameters ...
 kappa=1.
@@ -259,16 +237,17 @@ mypde=LinearPDE(mydomain)
 mypde.setSymmetryOn()
 n=mydomain.getNormal()
 x=mydomain.getX()
-mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0],d=eta,y=kappa*n[0]+eta*x[0])
+mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
+               d=eta,y=kappa*n[0]+eta*x[0])
 #... calculate error of the PDE solution ...
 u=mypde.getSolution()
 print "error is ",Lsup(u-x[0])
 \end{python}
-The script is similar to the script \file{mypoisson.py} dicussed in \Chap{FirstSteps}.
+The script is similar to the script \file{poisson.py} dicussed in \Chap{FirstSteps}.
 \code{mydomain.getNormal()} returns the outer normal field on the surface of the domain. The function \function{Lsup}
-is imported by the \code{from esys.escript import Lsup} statement and returns the maximum absulute value of its argument. 
+imported by the \code{from esys.escript import *} statement and returns the maximum absulute value of its argument. 
 The error shown by the print statement should be in the order of $10^{-7}$. As piecewise bi-linear interpolation is
-used to approximate the solution and our solution is a linear function of the spatial coordinates one might 
+used by \finley approximate the solution and our solution is a linear function of the spatial coordinates one might 
 expect that the error would be zero or in the order of machine precision (typically $\approx 10^{-15}$). 
 However most PDE packages use an iterative solver which is terminated
 when a given tolerance has been reached. The default tolerance is $10^{-8}$. This value can be altered by using the 
@@ -281,24 +260,24 @@ part of the script is the loop over time $t$ which takes the following form:
 \begin{python}
 t=0
 T=Tref
-mypde=Helmholtz(mydomain)
+mypde=LinearPDE(mydomain)
+mypde.setValue(A=kappa*kronecker(mydomain),D=rhocp/h,d=eta,y=eta*Tref)
 while t<t_end:
-      mypde.setValue(kappa,rhocp/h,q+rhocp/h*T,eta,eta*Tref)
+      mypde.setValue(Y=q+rhocp/h*T)
       T=mypde.getSolution()
       t+=h
 \end{python}
 \var{kappa}, \var{rhocp}, \var{eta} and \var{Tref} are input parameters of the model. \var{q} is the heat source
-in the domain and \var{h} is the time step size. Notice that the \class{Hemholtz} class object \var{mypde}
-is created before the loop over time is entered while in each time step only the coefficients
-are reset in each time step. This way some information about the representation of the PDE can be reused 
-\footnote{The efficience can be improved further by setting the coefficients in the operator
-\var{kappa}, \var{omega} and \var{eta} before entering the \code{while}-loop and only updating the coefficients
-in the right hand side \var{f} and \var{g}. This needs a more careful implementation of the \method{setValue}
-method but gives the advantage that the \LinearPDE class can save rebuilding the PDE operator.}. The variable \var{T}
+in the domain and \var{h} is the time step size.
+The variable \var{T}
 holds the current temperature. It is used to calculate the right hand side coefficient \var{f} in the
 Helmholtz equation in \eqn{DIFFUSION HELM EQ 1}. The statement \code{T=mypde.getSolution()} overwrites \var{T} with the 
 temperature of the new time step $\var{t}+\var{h}$. To get this iterative process going we need to specify the
 initial temperature distribution, which equal to $T\hackscore{ref}$.
+The \LinearPDE class object \var{mypde}
+and coefficients not changing over time are set up before the loop over time is entered. In each time step only the coefficient
+$Y$ is reset as it depends on the temperature of the previous time step. This allows the PDE solver to reuse information 
+from previous time steps as much as possible.
 
 The heat source \var{q} which is defined in \eqn{DIFFUSION TEMP EQ 1b} is \var{qc}
 in an area defined as a circle of radius \var{r} and center \var{xc} and zero outside this circle.
@@ -308,7 +287,7 @@ from esys.escript import length
 xc=[0.02,0.002]
 r=0.001
 x=mydomain.getX()
-q=q0*(length(x-xc)-r).whereNegative()
+q=q0*whereNegative(length(x-xc)-r)
 \end{python}
 \var{x} is a \Data class object of
 the \escript module defining locations in the \Domain \var{mydomain}.
@@ -323,16 +302,16 @@ y\hackscore{i}
 So \code{length(x-xc)} calculates the distances  
 of the location \var{x} to the center of the circle \var{xc} where the heat source is acting.
 Note that the coordinates of \var{xc} are defined as a list of floating point numbers. It is independently
-converted into a \Data class object before being subtracted from \var{x}. The method \method{whereNegative} of
-a \Data class object, in this case the result of the expression 
+converted into a \Data class object before being subtracted from \var{x}. The function \function{whereNegative} 
+applied to
 \code{length(x-xc)-r}, returns a \Data class which is equal to one where the object is negative and
 zero elsewhere. After multiplication with \var{qc} we get a function with the desired property.
 
 Now we can put the components together to create the script \file{diffusion.py} which is available in the \ExampleDirectory:
 \index{scripts!\file{diffusion.py}}:
 \begin{python}
-from mytools import Helmholtz
-from esys.escript import Lsup
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 #... set some parameters ...
 xc=[0.02,0.002]
@@ -350,10 +329,12 @@ i=0
 #... generate domain ...
 mydomain = Rectangle(l0=0.05,l1=0.01,n0=250, n1=50)
 #... open PDE ...
-mypde=Helmholtz(mydomain)
+mypde=LinearPDE(mydomain)
+mypde.setSymmetryOn()
+mypde.setValue(A=kappa*kronecker(mydomain),D=rhocp/h,d=eta,y=eta*Tref)
 # ... set heat source: ....
 x=mydomain.getX()
-q=qc*(length(x-xc)-r).whereNegative()
+q=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 # ... start iteration:
@@ -361,13 +342,13 @@ while t<tend:
       i+=1
       t+=h
       print "time step :",t
-      mypde.setValue(kappa=kappa,omega=rhocp/h,f=q+rhocp/h*T,eta=eta,g=eta*Tref)
+      mypde.setValue(Y=q+rhocp/h*T)
       T=mypde.getSolution()
-      T.saveDX("T%d.dx"%i)
+      saveVTK("T.%d.xml"%i,temp=T)
 \end{python}
-The script will create the files \file{T.1.dx},
- \file{T.2.dx}, $\ldots$, \file{T.50.dx} in the directory where the script has been started. The files give the 
-temperature distributions at time steps $1$, $2$, $\ldots$, $50$ in the \OpenDX file format. 
+The script will create the files \file{T.1.xml},
+ \file{T.2.xml}, $\ldots$, \file{T.50.xml} in the directory where the script has been started. The files give the 
+temperature distributions at time steps $1$, $2$, $\ldots$, $50$ in the \VTK file format. 
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{DiffusionRes1}}
@@ -377,11 +358,10 @@ temperature distributions at time steps $1$, $2$, $\ldots$, $50$ in the \OpenDX 
 \caption{Results of the Temperture Diffusion Problem for Time Steps $1$ $16$, $32$ and $48$.}
 \label{DIFFUSION FIG 2}
 \end{figure}
-
 An easy way to visualize the results is the command
 \begin{verbatim}
-dx -edit diffusion.net &
+mayavi -d T.1.xml -m SurfaceMap &
 \end{verbatim}
-where \file{diffusion.net} is an \OpenDX script available in the \ExampleDirectory.
-Use the \texttt{Sequencer} to move forward and and backwards in time. 
+Use the \texttt{Configure Data}
+to move forward and and backwards in time. 
 \fig{DIFFUSION FIG 2} shows the result for some selected time steps.
