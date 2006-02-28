@@ -23,7 +23,6 @@ In Section~\ref{DIFFUSION TRANS SEC} the solver of the Helmholtz equation is use
 solver for the temperature diffusion problem. 
 
 \subsection{\label{DIFFUSION TEMP SEC}Temperature Diffusion}
-
 The unknown temperature $T$ is a function of its location in the domain and time $t>0$. The governing equation
 in the interior of the domain is given by
 \begin{equation}
@@ -117,33 +116,36 @@ takes the form
 \kappa u\hackscore{,i} n\hackscore{i} =  g - \eta u\mbox{ on } \Gamma
 \label{DIFFUSION HELM EQ 2}
 \end{equation}
-The partial differential 
-\eqn{DIFFUSION HELM EQ 1} together with boundary conditions of \eqn{DIFFUSION HELM EQ 2}
+The partial differential \eqn{DIFFUSION HELM EQ 1} together with boundary conditions of \eqn{DIFFUSION HELM EQ 2}
 is called the Helmholtz equation \index{Helmholtz equation}. 
 
-We want to use the \LinearPDE class provided by \escript to define and solve a general linear PDE such as the 
-Helmholtz equation. We have used a special case of the \LinearPDE class, namely the
-\Poisson class already in \Chap{FirstSteps}. 
-Here we will write our own specialized sub-class of the \LinearPDE to define the Helmholtz equation
-and use the \method{getSolution} method of parent class to actually solve the problem.
-
-The form of a single PDE that can be handled by the \LinearPDE class is 
-\begin{equation}\label{EQU.FEM.1}
--(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =Y \; .
+We want to use the \LinearPDE class provided by \escript to define and solve a general linear,steady, second order PDE such as the 
+Helmholtz equation. For a single PDE the \LinearPDE class supports the following form:
+\begin{equation}\label{LINEARPDE.SINGLE.1}
+-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+(B\hackscore{j} u)\hackscore{,j}+C\hackscore{l} u\hackscore{,l}+D u =-X\hackscore{j,j}+Y \; .
 \end{equation}
-We show here the terms which are relevant for the Helmholtz problem. 
-The general form and systems is discussed in \Sec{SEC LinearPDE}.  
-$A$, $D$ and $Y$ are the known coeffecients of the PDE. \index{partial differential equation!coefficients} 
-Notice that $A$ is a matrix or tensor of order 2 and $D$ and $Y$ are scalar. 
-They may be constant or may depend on their 
-location in the domain but must not depend on the unknown solution $u$. 
-The following natural boundary conditions \index{boundary condition!natural} that
-are used in the \LinearPDE class have the form
-\begin{equation}\label{EQU.FEM.2}
-n\hackscore{j}A\hackscore{jl} u\hackscore{,l}+du=y  \;.
+The coefficients $A$, $B$, $C$, $D$, $X$ and $Y$ have to be specified through \Data objects in the 
+\Function on the PDE or objects that can be converted into such \Data objects. 
+$A$ is a \RankTwo, $B$, $C$ and $X$ are \RankOne and $D$ and $Y$ are scalar. 
+The following natural
+boundary conditions are considered \index{boundary condition!natural} on $\Gamma$:
+\begin{equation}\label{LINEARPDE.SINGLE.2}
+n\hackscore{j}(A\hackscore{jl} u\hackscore{,l}+B\hackscore{j} u)+d u=n\hackscore{j}X\hackscore{j} + y  \;.
 \end{equation}
-where, as usual, $n$ denotes the outer normal field on the surface of the domain. Notice that 
-the coefficient $A$ is already used in the PDE in \eqn{EQU.FEM.1}. $d$ and $y$ are given scalar coefficients.
+Notice that the coefficients $A$, $B$ and $X$ are the same like in the PDE~\eqn{LINEARPDE.SINGLE.1}. The coefficients $d$ and $y$ are  
+each a \Scalar in the \FunctionOnBoundary.  Constraints \index{constraint} for the solution prescribing the value of the 
+solution at certain locations in the domain. They have the form
+\begin{equation}\label{LINEARPDE.SINGLE.3}
+u=r \mbox{ where } q>0
+\end{equation}
+$r$ and $q$ are each \Scalar where $q$ is the characteristic function
+\index{characteristic function} defining where the constraint is applied.
+The constraints defined by \eqn{LINEARPDE.SINGLE.3} override any other condition set by \eqn{LINEARPDE.SINGLE.1}
+or \eqn{LINEARPDE.SINGLE.2}. 
+The \Poisson class of the \linearPDEs module,
+which we have already used in \Chap{FirstSteps}, is in fact a subclass of the more general
+\LinearPDE class. The \linearPDEs module provides a \Helmholtz class but
+we will make direct use of the general \LinearPDE class.
 
 By inspecting the Helmholtz equation \index{Helmholtz equation} 
 we can easily assign values to the coefficients in the 
@@ -155,61 +157,83 @@ d=\eta & y= g &  \\
 \end{array}
 \end{equation}
 $\delta\hackscore{ij}$ is the Kronecker symbol \index{Kronecker symbol} defined by $\delta\hackscore{ij}=1$ for
-$i=j$ and $0$ otherwise.
+$i=j$ and $0$ otherwise. Undefined coefficients are assumed to be not present\footnote{There is a difference 
+in \escript of being not present and set to zero. As not present coefficients are not processed, 
+it is more efficient to leave a coefficient undefined insted assigning zero to it.}
+
+Defining and solving the Helmholtz equation is very easy now:
+\begin{python}
+from esys.escript import *
+from linearPDEs import LinearPDE
+mypde=LinearPDE(mydomain)
+mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=f,d=eta,y=g)
+u=mypde.getSolution()
+\end{python}
+where we assume that \code{mydomain} is a \Domain object and 
+\code{kappa} \code{omega} \code{eta} and \code{g} are given scalar values 
+typically \code{float} or \Data objects. The \method{setValue} method 
+assigns values to the coefficients of the general PDE. The \method{getSolution} method solves 
+the PDE and returns the solution \code{u} of the PDE. \code{kronecker} is \escript function
+returning the Kronecker symbol.
+
+The coefficients can set by several calls of \method{setValue} where the order can be chosen arbitrarily. 
+If a value is assigned to a coefficint several times, the last assigned value is used when
+the solution is calculated:
+\begin{python}
+mypde=LinearPDE(mydomain)
+mypde.setValue(A=kappa*kronecker(mydomain),d=eta)
+mypde.setValue(D=omega,Y=f,y=g)
+mypde.setValue(d=2*eta) # overwrites d=eta
+u=mypde.getSolution()
+\end{python}
+In some cases the solver of the PDE can make use of the fact that the PDE is symmetric\index{symmetric PDE} where the 
+PDE is called symmetric if 
+\begin{equation}\label{LINEARPDE.SINGLE.4}
+A\hackscore{jl}=A\hackscore{lj} \mbox{ and } B\hackscore{j}=C\hackscore{j} \;.
+\end{equation}
+Note that $D$ and $d$ may have any value and the right hand side $X$, $Y$, $y$ as well as the constraints
+are not relevant. The Helmholtz problem is symmetric. 
+The \LinearPDE class provides the method \code{checkSymmetry} method to check if the given PDE is symmetric. 
+\begin{python}
+mypde=LinearPDE(mydomain)
+mypde.setValue(A=kappa*kronecker(mydomain),d=eta)
+print mypde.checkSymmetry() # returns True
+mypde.setValue(B=kronecker(mydomain)[0])
+print mypde.checkSymmetry() # returns False
+mypde.setValue(C=kronecker(mydomain)[0])
+print mypde.checkSymmetry() # returns True
+\end{python}
+Unfortunately, a \code{checkSymmetry} is very expensive and is recommendable to use for
+testing and debugging purposes only. The \code{setSymmetryOn} method is used to
+declare a PDE symmetric:
+\begin{python}
+mypde = LinearPDE(mydomain)
+mypde.setValue(A=kappa*kronecker(mydomain))
+mypde.setSymmetryOn()
+\end{python}
+
+
+
+
+
+
+
+=====
+
+Here we will write our own specialized sub-class of the \LinearPDE to define the Helmholtz equation
+and use the \method{getSolution} method of parent class to actually solve the problem.
 
 We want to implement a 
 new class which we will call \class{Helmholtz} that provides the same methods as the \LinearPDE class but
 is described using the coefficients $\kappa$, $\omega$, $f$, $\eta$, 
 $g$ rather than the general form given by \eqn{EQU.FEM.1}. 
 Python's mechanism of subclasses allows us to do this in a very simple way.
-The \Poisson class of the \linearPDEs module,
-which we have already used in \Chap{FirstSteps}, is in fact a subclass of the more general
-\LinearPDE class. That means that all methods (such as the \method{getSolution})
+That means that all methods (such as the \method{getSolution})
 from the parent class \LinearPDE are available for any \Poisson object. However, new
 methods can be added and methods of the parent class can be redefined. In fact,
 the \Poisson class redefines the \method{setValue} of the \LinearPDE class which is called to assign 
 values to the coefficients of the PDE. This is exactly what we will do when we define 
 our new \class{Helmholtz} class:
-\begin{python}
-from esys.linearPDEs import LinearPDE
-import numarray
-class Helmholtz(LinearPDE):
-   def setValue(self,kappa=0,omega=1,f=0,eta=0,g=0)
-        ndim=self.getDim()
-        kronecker=numarray.identity(ndim)
-        self._LinearPDE_setValue(A=kappa*kronecker,D=omega,Y=f,d=eta,y=g)
-\end{python}
-\code{class Helmholtz(linearPDE)} declares the new \class{Helmholtz} class as a subclass 
-of \LinearPDE which we have imported in the first line of the script. 
-We add the method \method{setValue} to the class which overwrites the 
-\method{setValue} method of the \LinearPDE class. The new method which has the 
-parameters of the Helmholtz \eqn{DIFFUSION HELM EQ 1} as arguments 
-maps the parameters of the coefficients of the general PDE defined 
-in \eqn{EQU.FEM.1}. We are actually using the \method{_LinearPDE__setValue} of 
-the \LinearPDE class. 
-The coefficient \var{A} involves the Kronecker symbol. We use the
-\numarray function \function{identity} which returns a square matrix with ones on the
-main diagonal and zeros off the main diagonal. The argument of \function{identity} gives the order of the matrix.
-The \method{getDim} of the \LinearPDE class object \var{self} to get the spatial dimensions of the domain of the
-PDE. As we will make use of the \class{Helmholtz} class several times, it is convenient to 
-put its definition into a file which we name \file{mytools.py} available in the \ExampleDirectory.
-You can use your favourite editor to create and edit the file.   
-
-An object of the \class{Helmholtz} class is created through the statments:
-\begin{python}
-from mytools import Helmholtz
-mypde = Helmholtz(mydomain)
-mypde.setValue(kappa=10.,omega=0.1,f=12)
-u = mypde.getSolution()
-\end{python}
-In the first statement we import all definition from the \file{mytools.py} \index{scripts!\file{mytools.py}}. Make sure
-that \file{mytools.py} is in the directory from where you started Python.
-\var{mydomain} is the \Domain of the PDE which we have undefined here. In the third statment values are
-assigned to the PDE parameters. As no values for arguments \var{eta} and \var{g} are
-specified, the default values $0$ are used. \footnote{It would be better to use the default value 
-\var{escript.Data()} rather then $0$ as then the coefficient would be defined as being not present and
-would not be processed when the PDE is evaluated}. In the fourth statement the solution of the
-PDE is returned. 
 
 To test our \class{Helmholtz} class on a rectangular domain
 of length $l\hackscore{0}=5$ and height $l\hackscore{1}=1$, we choose a simple test solution. Actually, we 
@@ -218,11 +242,11 @@ the test solution becomes the solution of the problem. If we assume $\kappa$ as 
 an easy calculation shows that we have to choose $f=\omega \cdot x\hackscore{0}$. On the boundary we get
 $\kappa n\hackscore{i} u\hackscore{,i}=\kappa n\hackscore{0}$.  
 So we have to set $g=\kappa n\hackscore{0}+\eta x\hackscore{0}$. The following script \file{helmholtztest.py} 
-\index{scripts!\file{helmholtztest.py}} which is available in the \ExampleDirectory
+\index{scripts!\file{helmholtz.py}} which is available in the \ExampleDirectory
 implements this test problem using the \finley PDE solver:
 \begin{python}
-from mytools import Helmholtz
-from esys.escript import Lsup
+from esys.escript import *
+from linearPDEs import LinearPDE
 from esys.finley import Rectangle
 #... set some parameters ...
 kappa=1.
@@ -231,10 +255,11 @@ eta=10.
 #... generate domain ...
 mydomain = Rectangle(l0=5.,l1=1.,n0=50, n1=10)
 #... open PDE and set coefficients ...
-mypde=Helmholtz(mydomain)
+mypde=LinearPDE(mydomain)
+mypde.setSymmetryOn()
 n=mydomain.getNormal()
 x=mydomain.getX()
-mypde.setValue(kappa,omega,omega*x[0],eta,kappa*n[0]+eta*x[0])
+mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0],d=eta,y=kappa*n[0]+eta*x[0])
 #... calculate error of the PDE solution ...
 u=mypde.getSolution()
 print "error is ",Lsup(u-x[0])
