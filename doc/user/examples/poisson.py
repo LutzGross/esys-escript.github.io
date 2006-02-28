@@ -1,6 +1,6 @@
 # $Id$
 from esys.escript import *
-from linearPDEs import Poisson
+from esys.escript.linearPDEs import Poisson
 from esys.finley import Rectangle
 # generate domain:
 mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
