@@ -133,7 +133,7 @@ def identity(shape=()):
    @raise ValueError: if len(shape)>2.
    """
    if len(shape)>0:
-      out=numarray.zeros(shape+shape,numarray.Float)
+      out=numarray.zeros(shape+shape,numarray.Float64)
       if len(shape)==1:
           for i0 in range(shape[0]):
              out[i0,i0]=1.
@@ -389,9 +389,9 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,escript.Data):
           arg0=escript.Data(arg0,arg1.getFunctionSpace())
        elif isinstance(arg1,float):
-          arg1=numarray.array(arg1)
+          arg1=numarray.array(arg1,type=numarray.Float64)
        elif isinstance(arg1,int):
-          arg1=numarray.array(float(arg1))
+          arg1=numarray.array(float(arg1),type=numarray.Float64)
        elif isinstance(arg1,Symbol):
           pass
        else:
@@ -415,41 +415,41 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,escript.Data):
           pass
        elif isinstance(arg1,float):
-          arg1=numarray.array(arg1)
+          arg1=numarray.array(arg1,type=numarray.Float64)
        elif isinstance(arg1,int):
-          arg1=numarray.array(float(arg1))
+          arg1=numarray.array(float(arg1),type=numarray.Float64)
        elif isinstance(arg1,Symbol):
           pass
        else:
           raise TypeError,"function: Unknown type of second argument."    
     elif isinstance(arg0,float):
        if isinstance(arg1,numarray.NumArray):
-          arg0=numarray.array(arg0)
+          arg0=numarray.array(arg0,type=numarray.Float64)
        elif isinstance(arg1,escript.Data):
           arg0=escript.Data(arg0,arg1.getFunctionSpace())
        elif isinstance(arg1,float):
-          arg0=numarray.array(arg0)
-          arg1=numarray.array(arg1)
+          arg0=numarray.array(arg0,type=numarray.Float64)
+          arg1=numarray.array(arg1,type=numarray.Float64)
        elif isinstance(arg1,int):
-          arg0=numarray.array(arg0)
-          arg1=numarray.array(float(arg1))
+          arg0=numarray.array(arg0,type=numarray.Float64)
+          arg1=numarray.array(float(arg1),type=numarray.Float64)
        elif isinstance(arg1,Symbol):
-          arg0=numarray.array(arg0)
+          arg0=numarray.array(arg0,type=numarray.Float64)
        else:
           raise TypeError,"function: Unknown type of second argument."    
     elif isinstance(arg0,int):
        if isinstance(arg1,numarray.NumArray):
-          arg0=numarray.array(float(arg0))
+          arg0=numarray.array(float(arg0),type=numarray.Float64)
        elif isinstance(arg1,escript.Data):
           arg0=escript.Data(float(arg0),arg1.getFunctionSpace())
        elif isinstance(arg1,float):
-          arg0=numarray.array(float(arg0))
-          arg1=numarray.array(arg1)
+          arg0=numarray.array(float(arg0),type=numarray.Float64)
+          arg1=numarray.array(arg1,type=numarray.Float64)
        elif isinstance(arg1,int):
-          arg0=numarray.array(float(arg0))
-          arg1=numarray.array(float(arg1))
+          arg0=numarray.array(float(arg0),type=numarray.Float64)
+          arg1=numarray.array(float(arg1),type=numarray.Float64)
        elif isinstance(arg1,Symbol):
-          arg0=numarray.array(float(arg0))
+          arg0=numarray.array(float(arg0),type=numarray.Float64)
        else:
           raise TypeError,"function: Unknown type of second argument."    
     else:
@@ -472,9 +472,9 @@ def matchShape(arg0,arg1):
     sh0=pokeShape(arg0)
     sh1=pokeShape(arg1)
     if len(sh0)<len(sh):
-       return outer(arg0,numarray.ones(sh[len(sh0):],numarray.Float)),arg1
+       return outer(arg0,numarray.ones(sh[len(sh0):],numarray.Float64)),arg1
     elif len(sh1)<len(sh):
-       return arg0,outer(arg1,numarray.ones(sh[len(sh1):],numarray.Float))
+       return arg0,outer(arg1,numarray.ones(sh[len(sh1):],numarray.Float64))
     else: 
        return arg0,arg1
 #=========================================================
@@ -600,7 +600,7 @@ class Symbol(object):
           else:
               s=pokeShape(s)+arg.getShape()
               if len(s)>0:
-                 out.append(numarray.zeros(s),numarray.Float)
+                 out.append(numarray.zeros(s),numarray.Float64)
               else:
                  out.append(a)
        return out
@@ -690,7 +690,7 @@ class Symbol(object):
        else:
           s=self.getShape()+arg.getShape()
           if len(s)>0:
-             return numarray.zeros(s,numarray.Float)
+             return numarray.zeros(s,numarray.Float64)
           else:
              return 0.
 
@@ -1009,8 +1009,8 @@ def wherePositive(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))*1.
-      if isinstance(out,float): out=numarray.array(out)
+      out=numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float64))*1.
+      if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
       return arg._wherePositive()
@@ -1091,8 +1091,8 @@ def whereNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))*1.
-      if isinstance(out,float): out=numarray.array(out)
+      out=numarray.less(arg,numarray.zeros(arg.shape,numarray.Float64))*1.
+      if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
       return arg._whereNegative()
@@ -1173,8 +1173,8 @@ def whereNonNegative(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))*1.
-      if isinstance(out,float): out=numarray.array(out)
+      out=numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float64))*1.
+      if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
       return arg._whereNonNegative()
@@ -1203,8 +1203,8 @@ def whereNonPositive(arg):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.less_equal(arg,numarray.zeros(arg.shape,numarray.Float))*1.
-      if isinstance(out,float): out=numarray.array(out)
+      out=numarray.less_equal(arg,numarray.zeros(arg.shape,numarray.Float64))*1.
+      if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
       return arg._whereNonPositive()
@@ -1235,8 +1235,8 @@ def whereZero(arg,tol=0.):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.less_equal(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
-      if isinstance(out,float): out=numarray.array(out)
+      out=numarray.less_equal(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float64))*1.
+      if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
       if tol>0.:
@@ -1318,8 +1318,8 @@ def whereNonZero(arg,tol=0.):
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
-      out=numarray.greater(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float))*1.
-      if isinstance(out,float): out=numarray.array(out)
+      out=numarray.greater(abs(arg)-tol,numarray.zeros(arg.shape,numarray.Float64))*1.
+      if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
       if tol>0.:
@@ -2980,7 +2980,7 @@ def trace(arg,axis_offset=0):
       if not sh[axis_offset] == sh[axis_offset+1]:
         raise ValueError,"trace: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
       arg_reshaped=numarray.reshape(arg,(s1,sh[axis_offset],sh[axis_offset],s2))
-      out=numarray.zeros([s1,s2],numarray.Float)
+      out=numarray.zeros([s1,s2],numarray.Float64)
       for i1 in range(s1):
         for i2 in range(s2):
             for j in range(sh[axis_offset]): out[i1,i2]+=arg_reshaped[i1,j,j,i2]
@@ -3557,8 +3557,40 @@ def eigenvalues(arg):
       s=arg.shape      
       if not s[0] == s[1]:
         raise ValueError,"eigenvalues: argument must be a square matrix."
-      out=numarray.linear_algebra.eigenvalues((arg+numarray.transpose(arg))/2.)
-      out.sort()
+      if s[0]==1:
+          out=arg[0]
+      elif s[0]==2:
+          A11=arg[0,0]
+          A12=arg[0,1]
+          A22=arg[1,1]
+          trA=(A11+A22)/2.
+          A11-=trA
+          A22-=trA
+          s=sqrt(A12**2-A11*A22)
+          out=trA+numarray.array([-s,s],type=numarray.Float64)
+      elif s[0]==3:
+          A11=arg[0,0]
+          A12=arg[0,1]
+          A22=arg[1,1]
+          A13=arg[0,2]
+          A23=arg[1,2]
+          A33=arg[2,2]
+          trA=(A11+A22+A33)/3.
+          A11-=trA
+          A22-=trA
+          A33-=trA
+          A13_2=A13**2
+          A23_2=A23**2
+          A12_2=A12**2
+          p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
+          q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
+          sq_p=sqrt(p/3.)
+          alpha_3=acos(clip(-q*sq_p**(-3.)/2.,-1.,1.))/3.
+          sq_p*=2.
+          out=trA+sq_p*numarray.array([-cos(alpha_3-numarray.pi/3.),-cos(alpha_3+numarray.pi/3.),cos(alpha_3)],type=numarray.Float64)
+      else:
+         out=numarray.linear_algebra.eigenvalues((arg+numarray.transpose(arg))/2.)
+         out.sort()
       return out
     elif isinstance(arg,escript.Data):
       return escript_eigenvalues(arg)
@@ -3578,7 +3610,7 @@ def eigenvalues(arg):
           A11-=trA
           A22-=trA
           s=sqrt(A12**2-A11*A22)
-          return trA+s*numarray.array([-1.,1.])
+          return trA+s*numarray.array([-1.,1.],type=numarray.Float64)
       elif s[0]==3:
           A11=arg[0,0]
           A12=arg[0,1]
@@ -3596,11 +3628,11 @@ def eigenvalues(arg):
           p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
           q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
           sq_p=sqrt(p/3.)
-          alpha_3=acos(-q*sq_p**(-3.)/2.)/3.
+          alpha_3=acos(clip(-q*sq_p**(-3.)/2.,-1.,1.))/3.
           sq_p*=2.
-          f=cos(alpha_3)               *numarray.array([0.,0.,1.]) \
-           -cos(alpha_3+numarray.pi/3.)*numarray.array([0.,1.,0.]) \
-           -cos(alpha_3-numarray.pi/3.)*numarray.array([1.,0.,0.])
+          f=cos(alpha_3)               *numarray.array([0.,0.,1.],type=numarray.Float64) \
+           -cos(alpha_3+numarray.pi/3.)*numarray.array([0.,1.,0.],type=numarray.Float64) \
+           -cos(alpha_3-numarray.pi/3.)*numarray.array([1.,0.,0.],type=numarray.Float64)
           return trA+sq_p*f
       else:
          raise TypeError,"eigenvalues: only matrix dimensions 1,2,3 are supported right now."
@@ -3627,7 +3659,7 @@ def escript_eigenvalues(arg): # this should be implemented in C++ arg and LAPACK
           A11-=trA
           A22-=trA
           s=sqrt(A12**2-A11*A22)
-          return trA+s*numarray.array([-1.,1.])
+          return trA+s*numarray.array([-1.,1.],type=numarray.Float64)
       elif s[0]==3:
           A11=arg[0,0]
           A12=arg[0,1]
@@ -3645,7 +3677,7 @@ def escript_eigenvalues(arg): # this should be implemented in C++ arg and LAPACK
           p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
           q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
           sq_p=sqrt(p/3.)
-          alpha_3=acos(-q*sq_p**(-3.)/2.)/3.
+          alpha_3=acos(clip(-q*sq_p**(-3.)/2.,-1.,1.))/3.
           sq_p*=2.
           f=escript.Data(0.,(3,),arg.getFunctionSpace())
           f[0]=-cos(alpha_3-numarray.pi/3.)
@@ -3772,7 +3804,7 @@ def mult(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]) or testForZero(args[1]):
-          return numarray.zeros(pokeShape(args[0]),numarray.Float)
+          return numarray.zeros(pokeShape(args[0]),numarray.Float64)
        else:
           if isinstance(args[0],Symbol) or isinstance(args[1],Symbol) :
               return Mult_Symbol(args[0],args[1])
@@ -3872,7 +3904,7 @@ def quotient(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
-          return numarray.zeros(pokeShape(args[0]),numarray.Float)
+          return numarray.zeros(pokeShape(args[0]),numarray.Float64)
        elif isinstance(args[0],Symbol):
           if isinstance(args[1],Symbol):
              return Quotient_Symbol(args[0],args[1])
@@ -3978,9 +4010,9 @@ def power(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
-          return numarray.zeros(args[0],numarray.Float)
+          return numarray.zeros(args[0],numarray.Float64)
        elif testForZero(args[1]):
-          return numarray.ones(args[0],numarray.Float)
+          return numarray.ones(args[0],numarray.Float64)
        elif isinstance(args[0],Symbol) or isinstance(args[1],Symbol):
           return Power_Symbol(args[0],args[1])
        elif isinstance(args[0],numarray.NumArray) and not isinstance(args[1],numarray.NumArray):
@@ -4277,7 +4309,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
            for i in sh1[:axis_offset]: d01*=i
            arg0_c.resize((d0,d01))
            arg1_c.resize((d01,d1))
-           out=numarray.zeros((d0,d1),numarray.Float)
+           out=numarray.zeros((d0,d1),numarray.Float64)
            for i0 in range(d0):
                     for i1 in range(d1):
                          out[i0,i1]=numarray.sum(arg0_c[i0,:]*arg1_c[:,i1])
