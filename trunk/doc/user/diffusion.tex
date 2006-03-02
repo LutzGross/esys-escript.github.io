@@ -78,8 +78,8 @@ the backward Euler
 scheme is based
 on the Taylor expansion of $T$ at time $t^{(n)}$:
 \begin{equation}
-T^{(n-1)}\approx T^{(n)}+T\hackscore{,t}^{(n)}(t^{(n-1)}-t^{(n)})
-=T^{(n-1)} - h \cdot T\hackscore{,t}^{(n)}
+T^{(n)}\approx T^{(n-1)}+T\hackscore{,t}^{(n)}(t^{(n)}-t^{(n-1)})
+=T^{(n-1)} + h \cdot T\hackscore{,t}^{(n)}
 \label{DIFFUSION TEMP EQ 6}
 \end{equation}
 This is inserted into \eqn{DIFFUSION TEMP EQ 1}. By separating the terms at 
@@ -159,7 +159,7 @@ d=\eta & y= g &  \\
 $\delta\hackscore{ij}$ is the Kronecker symbol \index{Kronecker symbol} defined by $\delta\hackscore{ij}=1$ for
 $i=j$ and $0$ otherwise. Undefined coefficients are assumed to be not present\footnote{There is a difference 
 in \escript of being not present and set to zero. As not present coefficients are not processed, 
-it is more efficient to leave a coefficient undefined insted assigning zero to it.}
+it is more efficient to leave a coefficient undefined instead of assigning zero to it.}
 
 Defining and solving the Helmholtz equation is very easy now:
 \begin{python}
@@ -177,7 +177,7 @@ the PDE and returns the solution \code{u} of the PDE. \function{kronecker} is \e
 returning the Kronecker symbol.
 
 The coefficients can set by several calls of \method{setValue} where the order can be chosen arbitrarily. 
-If a value is assigned to a coefficint several times, the last assigned value is used when
+If a value is assigned to a coefficient several times, the last assigned value is used when
 the solution is calculated:
 \begin{python}
 mypde=LinearPDE(mydomain)
@@ -245,7 +245,7 @@ print "error is ",Lsup(u-x[0])
 \end{python}
 The script is similar to the script \file{poisson.py} dicussed in \Chap{FirstSteps}.
 \code{mydomain.getNormal()} returns the outer normal field on the surface of the domain. The function \function{Lsup}
-imported by the \code{from esys.escript import *} statement and returns the maximum absulute value of its argument. 
+imported by the \code{from esys.escript import *} statement and returns the maximum absolute value of its argument. 
 The error shown by the print statement should be in the order of $10^{-7}$. As piecewise bi-linear interpolation is
 used by \finley approximate the solution and our solution is a linear function of the spatial coordinates one might 
 expect that the error would be zero or in the order of machine precision (typically $\approx 10^{-15}$). 
@@ -283,7 +283,7 @@ The heat source \var{q} which is defined in \eqn{DIFFUSION TEMP EQ 1b} is \var{q
 in an area defined as a circle of radius \var{r} and center \var{xc} and zero outside this circle.
 \var{q0} is a fixed constant. The following script defines \var{q} as desired:  
 \begin{python}
-from esys.escript import length
+from esys.escript import length,whereNegative
 xc=[0.02,0.002]
 r=0.001
 x=mydomain.getX()

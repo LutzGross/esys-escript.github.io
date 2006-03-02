@@ -130,8 +130,8 @@ method} (FEM\index{finite element
 method!FEM}). The basic idea is to fill the domain with a
 set of points called nodes. The solution is approximated by its
 values on the nodes\index{finite element
-method!nodes}. Moreover, the domain is subdivided into small,
-sub-domain called elements \index{finite element
+method!nodes}. Moreover, the domain is subdivided into smaller
+sub-domains called elements \index{finite element
 method!element}. On each element the solution is
 represented by a polynomial of a certain degree through its values at
 the nodes located in the element. The nodes and its connection through
@@ -181,7 +181,7 @@ and $0$ elsewhere. In our case of $\Gamma^D$ defined by \eqn{eq:FirstSteps.2c},
 we need to construct a function \var{gammaD} which is positive for the cases $x\hackscore{0}=0$ or $x\hackscore{1}=0$. To get 
 an object \var{x} which represents locations in the domain one uses
 \begin{python}
-x=mydomain.getX() \;.
+x=mydomain.getX() 
 \end{python}
 In fact \var{x} is a \Data object which we will learn more about in Chapter~\ref{X}. At this stage we only have to know
 that \var{x} has a 
@@ -226,6 +226,7 @@ will print
 \end{python}
 We can now construct the function \var{gammaD} by
 \begin{python}
+from esys.escript import whereZero
 gammaD=whereZero(x[0])+whereZero(x[1])
 \end{python}
 where
@@ -252,9 +253,9 @@ from esys.linearPDEs import Poisson
 x = mydomain.getX()
 gammaD = whereZero(x[0])+whereZero(x[1])
 mypde = Poisson(domain=mydomain)
-mypde = setValue(f=1,q=gammaD)
+mypde.setValue(f=1,q=gammaD)
 \end{python}
-The first statement imports the \Poisson class definition form the \linearPDEs module \escript package.
+The first statement imports the \Poisson class definition from the \linearPDEs module \escript package.
 To get the solution of the Poisson equation defined by \var{mypde} we just have to call its
 \method{getSolution}. 
 
@@ -280,13 +281,13 @@ saveVTK("u.xml",sol=u)
 The last statement writes the solution tagged with the name "sol" to the external file \file{u.xml} in 
 \VTK file format. \VTK is a software library
 for the visualization of scientific, engineering and analytical data and is freely available
-from \url{http://www.vtk.org}. There are a variaty of graphical user interfaces 
+from \url{http://www.vtk.org}. There are a variety of graphical user interfaces 
 for \VTK available, for instance \mayavi which can be downloaded from \url{http://mayavi.sourceforge.net/} but is also available on most
 \LINUX distributions.
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{FirstStepResult.eps}}
-\caption{Visualization of the Possion Equation Solution for $f=1$}
+\caption{Visualization of the Poisson Equation Solution for $f=1$}
 \label{fig:FirstSteps.3}
 \end{figure}
 
