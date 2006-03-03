@@ -714,6 +714,27 @@ class Data {
 
   /**
      \brief
+     Return the eigenvalues of the symmetric part at each data point of this Data object in increasing values.
+     Currently this function is restricted to rank 2, square shape, and dimension 3.
+     *
+  */
+  Data
+  eigenvalues() const;
+
+  /**
+     \brief
+     Return the eigenvalues and corresponding eigenvcetors of the symmetric part at each data point of this Data object.
+     the eigenvalues are ordered in increasing size where eigenvalues with relative difference less than 
+     tol are treated as equal. The eigenvectors are orthogonal, normalized and the sclaed such that the 
+     first non-zero entry is positive.
+     Currently this function is restricted to rank 2, square shape, and dimension 3
+     *
+  */
+  const boost::python::tuple
+  eigenvalues_and_eigenvectors(const double tol=1.e-12) const;
+
+  /**
+     \brief
      Transpose each data point of this Data object around the given axis.
      --* not implemented yet *--
      *
@@ -724,7 +745,6 @@ class Data {
   /**
      \brief
      Calculate the trace of each data point of this Data object.
-     sum(A[i,i,i,i])
      *
   */
   Data

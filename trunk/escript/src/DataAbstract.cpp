@@ -129,5 +129,19 @@ DataAbstract::copyAll(const boost::python::numeric::array& value)
     throw DataException("Error - DataAbstract::copying data from numarray objects is not supported.");
 }
 
+void
+DataAbstract::eigenvalues(DataAbstract* ev) 
+{
+    throw DataException("Error - DataAbstract::eigenvalues is not supported.");
+
+}
+void
+DataAbstract::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
+{
+    throw DataException("Error - DataAbstract::eigenvalues_and_eigenvectors is not supported.");
+
+}
+
+
 
 }  // end of namespace

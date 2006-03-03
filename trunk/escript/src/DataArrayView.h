@@ -20,6 +20,7 @@
 #include "EsysAssert.h"
 
 #include "DataVector.h"
+#include "LocalOps.h"
 
 #include <boost/python/numeric.hpp>
 #include <boost/python/object.hpp>
@@ -767,6 +768,19 @@ class DataArrayView {
   reductionOp(ValueType::size_type offset,
               BinaryFunction operation,
               double initial_value) const;
+
+  /**
+     \brief
+     solves a local eigenvalue problem 
+
+     \param in - Input - The left hand side.
+     \param ev - Output - The eigenvalues
+  */
+  inline
+  void
+  DataArrayView::eigenvalues(const DataArrayView& in,
+                             DataArrayView& ev);
+
 
   /**
      \brief
