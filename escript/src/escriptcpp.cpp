@@ -183,6 +183,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("_log10",&escript::Data::log10)
     .def("_log",&escript::Data::log)
     .def("_sign",&escript::Data::sign)
+    .def("_eigenvalues",&escript::Data::eigenvalues)
+    .def("_eigenvalues_and_eigenvectors",&escript::Data::eigenvalues_and_eigenvectors,(arg("tol")=1.e-13))
     // functions returning a single real number:
     .def("_Lsup",&escript::Data::Lsup)
     .def("_sup",&escript::Data::sup)

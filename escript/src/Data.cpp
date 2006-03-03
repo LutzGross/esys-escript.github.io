@@ -1189,9 +1189,52 @@ Data::transpose(int axis) const
 #if defined DOPROF
   profData->reduction2++;
 #endif
+
   // not implemented
   throw DataException("Error - Data::transpose not implemented yet.");
   return Data();
+}
+
+Data
+Data::eigenvalues() const
+{
+     #if defined DOPROF
+        profData->unary++;
+     #endif
+     // check input
+     DataArrayView::ShapeType s=getDataPointShape();
+     if (getDataPointRank()!=2) 
+        throw DataException("Error - Data::eigenvalues can only be calculated for rank 2 object.");
+     if(s[0] != s[1]) 
+        throw DataException("Error - Data::eigenvalues can only be calculated for object with equal first and second dimension.");
+     // create return
+     DataArrayView::ShapeType ev_shape(1,s[0]);
+     Data ev(0.,ev_shape,getFunctionSpace());
+     ev.typeMatchRight(*this);
+     m_data->eigenvalues(ev.m_data.get());
+     return ev;
+}
+
+const boost::python::tuple
+Data::eigenvalues_and_eigenvectors(const double tol) const
+{
+     #if defined DOPROF
+        profData->unary++;
+     #endif
+     DataArrayView::ShapeType s=getDataPointShape();
+     if (getDataPointRank()!=2) 
+        throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for rank 2 object.");
+     if(s[0] != s[1]) 
+        throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for object with equal first and second dimension.");
+     // create return
+     DataArrayView::ShapeType ev_shape(1,s[0]);
+     Data ev(0.,ev_shape,getFunctionSpace());
+     ev.typeMatchRight(*this);
+     DataArrayView::ShapeType V_shape(2,s[0]);
+     Data V(0.,V_shape,getFunctionSpace());
+     V.typeMatchRight(*this);
+     m_data->eigenvalues_and_eigenvectors(ev.m_data.get(),V.m_data.get(),tol);
+     return make_tuple(boost::python::object(ev),boost::python::object(V));
 }
 
 const boost::python::tuple
