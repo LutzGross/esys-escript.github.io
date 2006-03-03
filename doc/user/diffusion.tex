@@ -26,16 +26,16 @@ solver for the temperature diffusion problem.
 The unknown temperature $T$ is a function of its location in the domain and time $t>0$. The governing equation
 in the interior of the domain is given by
 \begin{equation}
-\rho c\hackscore p T\hackscore{,t} - (\kappa T\hackscore{,i})\hackscore{,i} = q
+\rho c\hackscore p T\hackscore{,t} - (\kappa T\hackscore{,i})\hackscore{,i} = q\hackscore H
 \label{DIFFUSION TEMP EQ 1}
 \end{equation}
 where $\rho c\hackscore p$ and $\kappa$ are given material constants. In case of a composite
-material the parameters depend on their location in the domain. $q$ is
+material the parameters depend on their location in the domain. $q\hackscore H$ is
 a heat source (or sink) within the domain. We are using Einstein summation convention \index{summation convention} 
-as introduced in \Chap{FirstSteps}. In our case we assume $q$ to be equal to a constant heat production rate 
+as introduced in \Chap{FirstSteps}. In our case we assume $q\hackscore H$ to be equal to a constant heat production rate 
 $q^{c}$ on a circle or sphere with center $x^c$ and radius $r$ and $0$ elsewhere:
 \begin{equation}
-q(x,t)=
+q\hackscore H(x,t)=
 \left\{ 
 \begin{array}{lcl}
 q^c  & & \|x-x^c\| \le r \\
@@ -85,7 +85,7 @@ T^{(n)}\approx T^{(n-1)}+T\hackscore{,t}^{(n)}(t^{(n)}-t^{(n-1)})
 This is inserted into \eqn{DIFFUSION TEMP EQ 1}. By separating the terms at 
 $t^{(n)}$ and  $t^{(n-1)}$ one gets for $n=1,2,3\ldots$
 \begin{equation}
-\frac{\rho c\hackscore p}{h} T^{(n)} - (\kappa T^{(n)}\hackscore{,i})\hackscore{,i} = q +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
+\frac{\rho c\hackscore p}{h} T^{(n)} - (\kappa T^{(n)}\hackscore{,i})\hackscore{,i} = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
 \label{DIFFUSION TEMP EQ 7}
 \end{equation}
 where $T^{(0)}=T\hackscore{ref}$ is taken form the initial condition given by \eqn{DIFFUSION TEMP EQ 4}.
@@ -102,18 +102,18 @@ first implement a solver for the  boundary value problem that has to be solved a
 \subsection{\label{DIFFUSION HELM SEC}Helmholtz Problem}
 The partial differential equation to be solved for $T^{(n)}$ has the form 
 \begin{equation}
-\omega u  - (\kappa u\hackscore{,i})\hackscore{,i} = f
+\omega T^{(n)}  - (\kappa T^{(n)}\hackscore{,i})\hackscore{,i} = f
 \label{DIFFUSION HELM EQ 1}
 \end{equation}
-where $u$ plays the role of $T^{(n)}$ and we set
+and we set
 \begin{equation}
-\omega=\frac{\rho c\hackscore p}{h} \mbox{ and } f=q+\frac{\rho c\hackscore p}{h}T^{(n-1)} \;.
+\omega=\frac{\rho c\hackscore p}{h} \mbox{ and } f=q\hackscore H +\frac{\rho c\hackscore p}{h}T^{(n-1)} \;.
 \label{DIFFUSION HELM EQ 1b}
 \end{equation}
 With $g=\eta T\hackscore{ref}$ the radiation condition defined by \eqn{DIFFUSION TEMP EQ 2222}
 takes the form 
 \begin{equation}
-\kappa u\hackscore{,i} n\hackscore{i} =  g - \eta u\mbox{ on } \Gamma
+\kappa T^{(n)}\hackscore{,i} n\hackscore{i} =  g - \eta T^{(n)}\mbox{ on } \Gamma
 \label{DIFFUSION HELM EQ 2}
 \end{equation}
 The partial differential \eqn{DIFFUSION HELM EQ 1} together with boundary conditions of \eqn{DIFFUSION HELM EQ 2}
@@ -148,6 +148,8 @@ which we have already used in \Chap{FirstSteps}, is in fact a subclass of the mo
 we will make direct use of the general \LinearPDE class.
 
 By inspecting the Helmholtz equation \index{Helmholtz equation} 
+(\ref{DIFFUSION HELM EQ 1}) and boundary condition (\ref{DIFFUSION HELM EQ 2}) and 
+substituting $u$ for $T^{(n)}$ 
 we can easily assign values to the coefficients in the 
 general PDE of the \LinearPDE class:
 \begin{equation}\label{DIFFUSION HELM EQ 3}
@@ -157,9 +159,12 @@ d=\eta & y= g &  \\
 \end{array}
 \end{equation}
 $\delta\hackscore{ij}$ is the Kronecker symbol \index{Kronecker symbol} defined by $\delta\hackscore{ij}=1$ for
-$i=j$ and $0$ otherwise. Undefined coefficients are assumed to be not present\footnote{There is a difference 
+$i=j$ and $0$ otherwise. Undefined coefficients are assumed to be not present.\footnote{There is a difference 
 in \escript of being not present and set to zero. As not present coefficients are not processed, 
-it is more efficient to leave a coefficient undefined instead of assigning zero to it.}
+it is more efficient to leave a coefficient undefined instead of assigning zero to it.} 
+In this diffusion example we do not need to define a characteristic function $q$ because the 
+boundary conditions we consider in \eqn{DIFFUSION HELM EQ 2} are just the natural boundary 
+conditions which are already defined in the \LinearPDE class (shown in \eqn{LINEARPDE.SINGLE.2}).
 
 Defining and solving the Helmholtz equation is very easy now:
 \begin{python}
@@ -215,7 +220,7 @@ Now we want to see how we actually solve the Helmholtz equation.
 on a rectangular domain
 of length $l\hackscore{0}=5$ and height $l\hackscore{1}=1$. We choose a simple test solution such that we 
 can verify the returned solution against the exact answer. Actually, we 
-we take $u=x\hackscore{0}$ and then calculate the right hand side terms $f$ and $g$ such that
+take $T=x\hackscore{0}$ (here $q\hackscore H = 0$) and then calculate the right hand side terms $f$ and $g$ such that
 the test solution becomes the solution of the problem. If we assume $\kappa$ as being constant, 
 an easy calculation shows that we have to choose $f=\omega \cdot x\hackscore{0}$. On the boundary we get
 $\kappa n\hackscore{i} u\hackscore{,i}=\kappa n\hackscore{0}$.  
@@ -242,7 +247,14 @@ mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
 #... calculate error of the PDE solution ...
 u=mypde.getSolution()
 print "error is ",Lsup(u-x[0])
+saveVTK("x0.xml",sol=u)
 \end{python}
+To visualise the solution `x0.~xml' just use the command 
+\begin{python}
+mayavi -d u.xml -m SurfaceMap &
+\end{python}
+and it is easy to see that the solution $T=x\hackscore{0}$ is calculated.
+ 
 The script is similar to the script \file{poisson.py} dicussed in \Chap{FirstSteps}.
 \code{mydomain.getNormal()} returns the outer normal field on the surface of the domain. The function \function{Lsup}
 imported by the \code{from esys.escript import *} statement and returns the maximum absolute value of its argument. 
@@ -279,15 +291,15 @@ and coefficients not changing over time are set up before the loop over time is 
 $Y$ is reset as it depends on the temperature of the previous time step. This allows the PDE solver to reuse information 
 from previous time steps as much as possible.
 
-The heat source \var{q} which is defined in \eqn{DIFFUSION TEMP EQ 1b} is \var{qc}
+The heat source $q\hackscore H$ which is defined in \eqn{DIFFUSION TEMP EQ 1b} is \var{qc}
 in an area defined as a circle of radius \var{r} and center \var{xc} and zero outside this circle.
-\var{q0} is a fixed constant. The following script defines \var{q} as desired:  
+\var{q0} is a fixed constant. The following script defines $q\hackscore H$ as desired:  
 \begin{python}
 from esys.escript import length,whereNegative
 xc=[0.02,0.002]
 r=0.001
 x=mydomain.getX()
-q=q0*whereNegative(length(x-xc)-r)
+qH=q0*whereNegative(length(x-xc)-r)
 \end{python}
 \var{x} is a \Data class object of
 the \escript module defining locations in the \Domain \var{mydomain}.
@@ -334,7 +346,7 @@ mypde.setSymmetryOn()
 mypde.setValue(A=kappa*kronecker(mydomain),D=rhocp/h,d=eta,y=eta*Tref)
 # ... set heat source: ....
 x=mydomain.getX()
-q=qc*whereNegative(length(x-xc)-r)
+qH=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 # ... start iteration:
@@ -342,7 +354,7 @@ while t<tend:
       i+=1
       t+=h
       print "time step :",t
-      mypde.setValue(Y=q+rhocp/h*T)
+      mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       saveVTK("T.%d.xml"%i,temp=T)
 \end{python}

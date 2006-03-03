@@ -23,7 +23,7 @@ mypde.setSymmetryOn()
 mypde.setValue(A=kappa*kronecker(mydomain),D=rhocp/h,d=eta,y=eta*Tref)
 # ... set heat source: ....
 x=mydomain.getX()
-q=qc*whereNegative(length(x-xc)-r)
+qH=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 # ... start iteration:
@@ -31,6 +31,6 @@ while t<tend:
       i+=1
       t+=h
       print "time step :",t
-      mypde.setValue(Y=q+rhocp/h*T)
+      mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       saveVTK("T.%d.xml"%i,temp=T)
