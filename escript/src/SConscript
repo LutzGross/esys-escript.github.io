@@ -51,6 +51,7 @@ incs = ['AbstractContinuousDomain.h',
         'UnaryFuncs.h',
         'UnaryOp.h',
         'UtilC.h',
+        'LocalOps.h',
         'Utils.h']
 
 sources = ['AbstractContinuousDomain.cpp',
