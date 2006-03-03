@@ -44,7 +44,7 @@ We use an explicit time-integration scheme to calculate the displacement field $
 certain time marks $t^{(n)}$ where $t^{(n)}=t^{(n-1)}+h$ with time step size $h>0$. In the following the upper index ${(n)}$ refers to values at time $t^{(n)}$. We use the Verlet scheme \index{Verlet scheme} with constant time step size $h$
 which is defined by
 \begin{eqnarray} \label{WAVE dyn 2}
-u^{(n)}=2u^{(n-1)}-u^{(n)} + h^2 a^{(n)} \\
+u^{(n)}=2u^{(n-1)}-u^{(n-2)} + h^2 a^{(n)} \\
 \end{eqnarray}
 for all $n=1,2,\ldots$. It is designed to solve a system of equations of the form
 \begin{eqnarray} \label{WAVE dyn 2b} 
