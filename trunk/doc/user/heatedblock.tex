@@ -1,0 +1,93 @@
+% $Id$
+\section{Elastic Deformation}
+\label{ELASTIC CHAP}
+In this section we want to discuss the deformation of a linear elastic body caused by expansion through a heat distribution. We want 
+to displacement field $u\hackscore{i}$ which solves the momentum equation
+\index{momentum equation}:
+\begin{eqnarray}\label{BEAM general problem}
+ - \sigma\hackscore{ij,j}=0
+\end{eqnarray}
+where the stress $\sigma$ is given by
+\begin{eqnarray}\label{BEAM linear elastic}
+ \sigma\hackscore{ij}= \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu ( u\hackscore{i,j} + u\hackscore{j,i})
+ - (\lambda+\frac{2}{3} \mu)  \; \alpha  \;  (T-T\hackscore{ref})\delta\hackscore{ij} \;.
+\end{eqnarray}
+In this formula $\lambda$ and $\mu$ are the Lame coefficients, $\alpha$ is the 
+temperature expansion coefficient, $T$ is the temperature distribution and $T_{ref}$ a reference temperature. Note that 
+\eqn{BEAM general problem} is similar to eqn{WAVE general problem} introduced in section~\Sec{WAVE CHAP} but the
+inertia term $\rho u\hackscore{i,tt}$ has been dropped as we assume a static scenario here. Moreover, in 
+comparison to the \eqn{WAVE stress}
+definition of stress $\sigma$ in \eqn{BEAM linear elastic} an extra term is introduced 
+to bring in stress due to volume changes trough temperature dependent expansion.   
+
+Our domain is the unit cube 
+\begin{eqnarray} \label{BEAM natural}
+\Omega=\{(x\hackscore{i} | 0 \le x\hackscore{i} \le 1 \}
+\end{eqnarray}
+On the boundary the normal stress component is set to zero
+\begin{eqnarray} \label{BEAM natural}
+\sigma\hackscore{ij}n\hackscore{j}=0
+\end{eqnarray}
+and on the face with $x\hackscore{i}=0$ we set the $i$-th component of the displacement to $0$
+\begin{eqnarray} \label{BEAM constraint}
+u\hackscore{i}(x)=0 & \mbox{ where } & x\hackscore{i}=0 \; 
+\end{eqnarray}
+For the temperature distribution we use 
+\begin{eqnarray} \label{BEAM temperature}
+T(x)= \frac{\beta}{\|x-x^{c}\|}; 
+\end{eqnarray}
+with a given positive constant $\beta$ and location $x^{c}$ in the domain\footnote{This selection of $T$ corresponds to 
+a temperature distribution in an indefinite domain created by a nodal heat source at $x^{c}$. Later in \Sec{X} we will calculate
+the $T$ from an time-dependent temperature diffusion problem as discussed in \Sec{DIFFUSION CHAP}.}
+   
+When we insert~\eqn{BEAM linear elastic} we get a second oder system of linear PDEs for the displacements $u$ which is called
+the Lame equation\index{Lame equation}. We want to solve
+this using the \LinearPDE class to this. For a system of PDEs and a solution with several components the \LinearPDE class 
+takes PDEs of the form
+\begin{equation}\label{LINEARPDE.SYSTEM.1}
+-(A\hackscore{ijkl} u\hackscore{k,l}){,j}+(B\hackscore{ijk} u\hackscore{k})\hackscore{,j}+C\hackscore{ikl} u\hackscore{k,l}+D\hackscore{ik} u\hackscore{k} =-X\hackscore{ij,j}+Y\hackscore{i} \; .
+\end{equation}
+$A$ is a \RankFour, $B$ and $C$ are each a \RankThree, $D$ and $X$ are each a \RankTwo and $Y$ is a \RankOne. 
+The natural boundary conditions \index{boundary condition!natural} take the form:
+\begin{equation}\label{LINEARPDE.SYSTEM.2}
+n\hackscore{j}(A\hackscore{ijkl} u\hackscore{k,l})\hackscore{,j}+(B\hackscore{ijk} u\hackscore{k})+d\hackscore{ik} u\hackscore{k}=n\hackscore{j}X\hackscore{ij}+y\hackscore{i}  \;.
+\end{equation}
+The coefficient $d$ is a \RankTwo and $y$ is a  
+\RankOne both in the \FunctionOnBoundary. Constraints \index{constraint} take the form
+\begin{equation}\label{LINEARPDE.SYSTEM.3}
+u\hackscore{i}=r\hackscore{i} \mbox{ where } q\hackscore{i}>0
+\end{equation}
+$r$ and $q$ are each \RankOne. 
+We can easily identify the coefficients in~\eqn{LINEARPDE.SYSTEM.1}:
+\begin{eqnarray}\label{LINEARPDE ELASTIC COEFFICIENTS}
+A\hackscore{ijkl}=\lambda \delta\hackscore{ij} \delta\hackscore{kl} + \mu ( 
++\delta\hackscore{ik} \delta\hackscore{jl}
+\delta\hackscore{il} \delta\hackscore{jk}) \\
+X\hackscore{ij}=(\lambda+\frac{2}{3} \mu) \;  \alpha \; (T-T\hackscore{ref})\delta\hackscore{ij} \\
+\end{eqnarray}
+The characteristic function $q$ defining the locations and components where constraints are set is given by:
+\begin{equation}\label{BEAM MASK}
+q\hackscore{i}(x)=\left\{ 
+\begin{array}{cl}
+1  & x\hackscore{i}=0  \\ 
+0  & \mbox{otherwise}   \\
+\end{array}
+\right. 
+\end{equation}
+Under the assumption that $\lambda$, $\mu$, $\beta$ and $T\hackscore{ref}$ 
+are constant setting $Y\hackscore{i}=\lambda+\frac{2}{3} \mu) \; \alpha \; T\hackscore{i}$ seems to be also possible. However,
+this choice would lead to a different natural boundary condition which does not set the normal stress component as defined
+in~\eqn{BEAM linear elastic} to zero.
+
+Analogously to concept of symmetry for a single PDE, we call the PDE defined by~\eqn{LINEARPDE.SYSTEM.1} symmetric if
+\index{symmetric PDE}
+\begin{eqnarray}\label{LINEARPDE.SYSTEM.SYMMETRY}
+A\hackscore{ijkl} =A\hackscore{klij} \\
+B\hackscore{ijk}=C\hackscore{kij} \\
+D\hackscore{ik}=D\hackscore{ki} \\
+d\hackscore{ik}=d\hackscore{ki} \
+\end{eqnarray}
+Note that different from the scalar case now the coefficients $D$ and $d$ have to be inspected. It is easy to see that 
+the Lame equation in fact is symmetric.
+
+
