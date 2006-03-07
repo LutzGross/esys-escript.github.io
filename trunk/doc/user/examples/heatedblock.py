@@ -1,23 +1,43 @@
-# $Id: helmholtz.py 575 2006-03-03 03:33:07Z lkettle $
+# $Id$
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Rectangle
+from esys.finley import Brick
 #... set some parameters ...
-kappa=1.
-omega=0.1
-eta=10.
+lam=1.
+mu=0.1
+alpha=1.e-6
+xc=[0.3,0.3,1.]
+beta=8.
+T_ref=0.
+T_0=1.
 #... generate domain ...
-mydomain = Rectangle(l0=5.,l1=1.,n0=50, n1=10)
-#... open PDE and set coefficients ...
+mydomain = Brick(l0=1.,l1=1., l2=1.,n0=10, n1=10, n2=10)
+x=mydomain.getX()
+#... set temperature ...
+T=T_0*exp(-beta*length(x-xc))
+#... open symmetric PDE ...
 mypde=LinearPDE(mydomain)
 mypde.setSymmetryOn()
-n=mydomain.getNormal()
-x=mydomain.getX()
-mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
-               d=eta,y=kappa*n[0]+eta*x[0])
-#... calculate error of the PDE solution ...
+#... set coefficients ...
+C=Tensor4(0.,Function(mydomain))
+for i in range(mydomain.getDim()):
+  for j in range(mydomain.getDim()):
+     C[i,i,j,j]+=lam
+     C[j,i,j,i]+=mu
+     C[j,i,i,j]+=mu
+msk=whereZero(x[0])*[1.,0.,0.] \
+   +whereZero(x[1])*[0.,1.,0.] \
+   +whereZero(x[2])*[0.,0.,1.]
+sigma0=(lam+2./3.*mu)*alpha*(T-T_ref)*kronecker(mydomain)
+mypde.setValue(A=C,X=sigma0,q=msk)
+#... solve pde ...
 u=mypde.getSolution()
-print "error is ",Lsup(u-x[0])
-# output should be similar to "error is 1.e-7"
-saveVTK("x0.xml",sol=u)
+#... calculate von-Misses
+g=grad(u)
+sigma=mu*(g+transpose(g))+lam*trace(g)*kronecker(mydomain)-sigma0
+sigma_mises=sqrt(((sigma[0,0]-sigma[1,1])**2+(sigma[1,1]-sigma[2,2])**2+ \
+                  (sigma[2,2]-sigma[0,0])**2)/6. \
+                   +sigma[0,1]**2 + sigma[1,2]**2 + sigma[2,0]**2)
+#... output ...
+saveVTK("deform.xml",disp=u,stress=sigma_mises)
  
