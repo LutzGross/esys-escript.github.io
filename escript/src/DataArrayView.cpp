@@ -728,46 +728,6 @@ DataArrayView::shapeToString(const DataArrayView::ShapeType& shape)
     return temp.str();
 }
 
-void 
-DataArrayView::eigenvalues(const DataArrayView& in,
-                           DataArrayView& ev)
-{
-   EsysAssert(!in.isEmpty(),
-               "Error - in view is empty.");
-   EsysAssert(!ev.isEmpty(),
-               "Error - ev view is empty.");
-   EsysAssert(in.getRank()==2,
-               "Error - in has not rank 2.");
-   EsysAssert(in.getShape()[0]==in.getShape()[1],
-               "Error - in is not square");
-   EsysAssert(ev.getRank()==1,
-               "Error - ev has not rank 1.");
-   EsysAssert(ev.getShape()[0]==in.getShape()[0],
-               "Error - ev is too short");
-   EsysAssert(0<ev.getShape()[0] && ev.getShape()[0]<4,
-               "Error - dimension is restricted to 3.");
-   double ev0,ev1,ev2;
-   int s=in.getShape()[0];
-   if (s==1) {
-      eigenvalues1(in(0,0),&ev0);
-      ev(0)=ev0;
-
-   } else  if (s==2) {
-      eigenvalues2(in(0,0),(in(0,1)+in(1,0))/2.,in(1,1),
-                   &ev0,&ev1);
-      ev(0)=ev0;
-      ev(1)=ev1;
-
-   } else  if (s==3) {
-      eigenvalues3(in(0,0),(in(0,1)+in(1,0))/2.,(in(0,2)+in(2,0))/2.,in(1,1),(in(2,1)+in(1,2))/2.,in(2,2),
-                 &ev0,&ev1,&ev2);
-      ev(0)=ev0;
-      ev(1)=ev1;
-      ev(2)=ev2;
-
-   }
-}
-
 void
 DataArrayView::matMult(const DataArrayView& left, 
                        const DataArrayView& right, 

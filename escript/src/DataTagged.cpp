@@ -421,5 +421,54 @@ DataTagged::extractData(ifstream& archiveFile,
 {
   return(m_data.extractData(archiveFile, noValues));
 }
+void
+DataTagged::eigenvalues(DataAbstract* ev)
+{
+  DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataTagged::eigenvalues casting to DataTagged failed (propably a programming error).");
+  }
+  const DataTagged::DataMapType& thisLookup=getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      DataArrayView thisView=getDataPointByTag(i->first);
+      DataArrayView evView=temp_ev->getDataPointByTag(i->first);
+cout << i->first << thisView(0,0) << "\n";
+      DataArrayView::eigenvalues(thisView,0,evView,0);
+  }
+  DataArrayView::eigenvalues(getDefaultValue(),0,temp_ev->getDefaultValue(),0);
+}
+void
+DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
+{
+  DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataTagged::eigenvalues_and_eigenvectors casting to DataTagged failed (propably a programming error).");
+  }
+  DataTagged* temp_V=dynamic_cast<DataTagged*>(V);
+  if (temp_V==0) {
+    throw DataException("Error - DataTagged::eigenvalues_and_eigenvectors casting to DataTagged failed (propably a programming error).");
+  }
+  const DataTagged::DataMapType& thisLookup=getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      temp_V->addTaggedValue(i->first,temp_V->getDefaultValue());
+      DataArrayView thisView=getDataPointByTag(i->first);
+      DataArrayView evView=temp_ev->getDataPointByTag(i->first);
+      DataArrayView VView=temp_V->getDataPointByTag(i->first);
+      DataArrayView::eigenvalues_and_eigenvectors(thisView,0,evView,0,VView,0,tol);
+  }
+  DataArrayView::eigenvalues_and_eigenvectors(getDefaultValue(),0,
+                                              temp_ev->getDefaultValue(),0,
+                                              temp_V->getDefaultValue(),0,
+                                              tol);
+
+
+}
+
 
 }  // end of namespace

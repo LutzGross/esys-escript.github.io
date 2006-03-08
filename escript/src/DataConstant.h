@@ -187,6 +187,31 @@ class DataConstant : public DataAbstract  {
   extractData(std::ifstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues);
 
+  /**
+     \brief
+     solves the eigenvalue problem this*V=ev*V for the eigenvalues ev
+
+     \param ev - Output - eigenvalues in increasing order at each data point
+
+  */
+  virtual void
+  eigenvalues(DataAbstract* ev);
+
+  /**
+     \brief
+     solves the eigenvalue problem this*V=ev*V for the eigenvalues ev and eigenvectors V
+
+     \param ev - Output - eigenvalues in increasing order at each data point
+     \param V - Output - corresponding eigenvectors. They are normalized such that their length is one
+                         and the first nonzero component is positive.
+     \param tol - Input - eigenvalue with relative distance tol are treated as equal.
+
+  */
+
+  virtual void
+  eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
+
+
  protected:
 
  private:

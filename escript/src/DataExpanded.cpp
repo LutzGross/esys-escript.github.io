@@ -464,4 +464,50 @@ DataExpanded::copyAll(const boost::python::numeric::array& value) {
     }
   }
 }
+void
+DataExpanded::eigenvalues(DataAbstract* ev)
+{
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataExpanded::eigenvalues: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
+  for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+         DataArrayView::eigenvalues(thisView,getPointOffset(sampleNo,dataPointNo),
+                                    evView,ev->getPointOffset(sampleNo,dataPointNo));
+    }
+  }
+}
+void
+DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
+{
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataExpanded* temp_V=dynamic_cast<DataExpanded*>(V);
+  if (temp_V==0) {
+    throw DataException("Error - DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  DataArrayView& VView=V->getPointDataView();
+  #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
+  for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+         DataArrayView::eigenvalues_and_eigenvectors(thisView,getPointOffset(sampleNo,dataPointNo),
+                                                     evView,ev->getPointOffset(sampleNo,dataPointNo),
+                                                     VView,V->getPointOffset(sampleNo,dataPointNo),
+                                                     tol);
+    }
+  }
+}
+
 }  // end of namespace

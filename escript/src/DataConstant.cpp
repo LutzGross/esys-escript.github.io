@@ -191,4 +191,34 @@ DataConstant::extractData(ifstream& archiveFile,
   return(m_data.extractData(archiveFile, noValues));
 }
 
+void
+DataConstant::eigenvalues(DataAbstract* ev)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  DataArrayView::eigenvalues(thisView,0,evView,0);
+}
+void
+DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (propably a programming error).");
+  }
+  DataConstant* temp_V=dynamic_cast<DataConstant*>(V);
+  if (temp_V==0) {
+    throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (propably a programming error).");
+  }
+  DataArrayView thisView=getPointDataView();
+  DataArrayView evView=ev->getPointDataView();
+  DataArrayView VView=V->getPointDataView();
+
+  DataArrayView::eigenvalues_and_eigenvectors(thisView,0,evView,0,VView,tol);
+}
+
+
 }  // end of namespace
