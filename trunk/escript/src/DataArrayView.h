@@ -773,16 +773,100 @@ class DataArrayView {
      \brief
      solves a local eigenvalue problem 
 
-     \param in - Input - The left hand side.
+     \param in - Input - matrix 
+     \param inOffset - Input - offset into in
      \param ev - Output - The eigenvalues
+     \param inOffset - Input - offset into ev
   */
+  static
   inline
   void
-  DataArrayView::eigenvalues(const DataArrayView& in,
-                             DataArrayView& ev);
+  DataArrayView::eigenvalues(DataArrayView& in,
+                             ValueType::size_type inOffset,
+                             DataArrayView& ev,
+                             ValueType::size_type evOffset)
+ {
+   double in00,in10,in20,in01,in11,in21,in02,in12,in22;
+   double ev0,ev1,ev2;
+   int s=in.getShape()[0];
+   if (s==1) {
+      in00=(*(in.m_data))[inOffset+in.index(0,0)];
+      eigenvalues1(in00,&ev0);
+      (*(ev.m_data))[evOffset+ev.index(0)]=ev0;
 
+   } else  if (s==2) {
+      in00=(*(in.m_data))[inOffset+in.index(0,0)];
+      in10=(*(in.m_data))[inOffset+in.index(1,0)];
+      in01=(*(in.m_data))[inOffset+in.index(0,1)];
+      in11=(*(in.m_data))[inOffset+in.index(1,1)];
+      eigenvalues2(in00,(in01+in10)/2.,in11,&ev0,&ev1);
+      (*(ev.m_data))[evOffset+ev.index(0)]=ev0;
+      (*(ev.m_data))[evOffset+ev.index(1)]=ev1;
+
+   } else  if (s==3) {
+      in00=(*(in.m_data))[inOffset+in.index(0,0)];
+      in10=(*(in.m_data))[inOffset+in.index(1,0)];
+      in20=(*(in.m_data))[inOffset+in.index(2,0)];
+      in01=(*(in.m_data))[inOffset+in.index(0,1)];
+      in11=(*(in.m_data))[inOffset+in.index(1,1)];
+      in21=(*(in.m_data))[inOffset+in.index(2,1)];
+      in02=(*(in.m_data))[inOffset+in.index(0,2)];
+      in12=(*(in.m_data))[inOffset+in.index(1,2)];
+      in22=(*(in.m_data))[inOffset+in.index(2,2)];
+      eigenvalues3(in00,(in01+in10)/2.,(in02+in20)/2.,in11,(in21+in12)/2.,in22,
+                 &ev0,&ev1,&ev2);
+      (*(ev.m_data))[evOffset+ev.index(0)]=ev0;
+      (*(ev.m_data))[evOffset+ev.index(1)]=ev1;
+      (*(ev.m_data))[evOffset+ev.index(2)]=ev2;
+
+   }
+ }
 
   /**
+     \brief
+     solves a local eigenvalue problem 
+
+     \param in - Input - matrix 
+     \param inOffset - Input - offset into in
+     \param ev - Output - The eigenvalues
+     \param evOffset - Input - offset into ev
+     \param V - Output - The eigenvectors
+     \param VOffset - Input - offset into V
+     \param tol - Input - eigenvalues with relative difference tol are treated as equal
+  */
+  static
+  inline
+  void
+  DataArrayView::eigenvalues_and_eigenvectors(DataArrayView& in,
+                                              ValueType::size_type inOffset,
+                                              DataArrayView& ev, 
+                                              ValueType::size_type evOffset,
+                                              DataArrayView& V, 
+                                              ValueType::size_type VOffset,
+                                              const double tol=1.e-13)
+  {
+   double ev0,ev1,ev2;
+   int s=in.getShape()[0];
+   if (s==1) {
+      eigenvalues1(in(0,0),&ev0);
+      ev(0)=ev0;
+
+   } else  if (s==2) {
+      eigenvalues2(in(0,0),(in(0,1)+in(1,0))/2.,in(1,1),
+                   &ev0,&ev1);
+      ev(0)=ev0;
+      ev(1)=ev1;
+
+   } else  if (s==3) {
+      eigenvalues3(in(0,0),(in(0,1)+in(1,0))/2.,(in(0,2)+in(2,0))/2.,in(1,1),(in(2,1)+in(1,2))/2.,in(2,2),
+                 &ev0,&ev1,&ev2);
+      ev(0)=ev0;
+      ev(1)=ev1;
+      ev(2)=ev2;
+
+   }
+ }
+ /**
      \brief
      Perform a matrix multiply of the given views.
      This is purely a utility method and has no bearing on this view.

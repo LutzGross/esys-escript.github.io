@@ -6134,30 +6134,6 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_eigenvalues_array_dim1(self):
-      arg=numarray.array([[0.55998648196067324]])
-      res=eigenvalues(arg)
-      ref=numarray.array([0.55998648196067324])
-      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
-      self.failUnlessEqual(res.shape,(1,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
-   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_eigenvalues_array_dim2(self):
-      arg=numarray.array([[-0.82785169696846017, -0.13252097848511568], [-0.13252097848511568, -0.57337241477421497]])
-      res=eigenvalues(arg)
-      ref=numarray.array([-0.88432851132695822, -0.51689560041571692])
-      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
-      self.failUnlessEqual(res.shape,(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
-   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_eigenvalues_array_dim3(self):
-      arg=numarray.array([[-0.23017631173237429, 0.34683253477098563, 0.40039067825733443], [0.34683253477098563, 0.053901712034509108, -0.14974270647987487], [0.40039067825733443, -0.14974270647987487, -0.81268542047574677]])
-      res=eigenvalues(arg)
-      ref=numarray.array([-1.0939000322647103, -0.19276192412377424, 0.29770193621487262])
-      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
-      self.failUnlessEqual(res.shape,(3,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
-   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_Symbol_dim1(self):
       arg=Symbol(shape=(1, 1))
       res=eigenvalues(arg)

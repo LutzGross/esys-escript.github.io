@@ -2,7 +2,7 @@
 
 import unittest
 from esys.escript.test_util import Test_util_no_tagged_data as Test_util
-#from esys.escript.test_util import Test_util_with_tagged_data as Test_util
+# from esys.escript.test_util import Test_util_with_tagged_data as Test_util
 #from esys.escript.test_util import Test_util as Test_util
 from esys.escript.test_util import Test_Util_SpatialFunctions
 from esys.escript.test_symbols import Test_symbols
@@ -51,10 +51,10 @@ class Test_Util_SpatialFunctionsOnFinley3DOrder2(Test_Util_SpatialFunctions):
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
-   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley2DOrder1))
-   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley2DOrder2))
-   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder1))
-   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder2))
+   # suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley2DOrder1))
+   # suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley2DOrder2))
+   # suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder1))
+   # suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder2))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)

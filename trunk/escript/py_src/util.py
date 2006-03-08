@@ -3552,48 +3552,11 @@ def eigenvalues(arg):
     @remark: for L{escript.Data} and L{Symbol} objects the dimension is restricted to 3.
     """
     if isinstance(arg,numarray.NumArray):
-      if not arg.rank==2: 
-        raise ValueError,"eigenvalues: argument must have rank 2"
-      s=arg.shape      
-      if not s[0] == s[1]:
-        raise ValueError,"eigenvalues: argument must be a square matrix."
-      if s[0]==1:
-          out=arg[0]
-      elif s[0]==2:
-          A11=arg[0,0]
-          A12=arg[0,1]
-          A22=arg[1,1]
-          trA=(A11+A22)/2.
-          A11-=trA
-          A22-=trA
-          s=sqrt(A12**2-A11*A22)
-          out=trA+numarray.array([-s,s],type=numarray.Float64)
-      elif s[0]==3:
-          A11=arg[0,0]
-          A12=arg[0,1]
-          A22=arg[1,1]
-          A13=arg[0,2]
-          A23=arg[1,2]
-          A33=arg[2,2]
-          trA=(A11+A22+A33)/3.
-          A11-=trA
-          A22-=trA
-          A33-=trA
-          A13_2=A13**2
-          A23_2=A23**2
-          A12_2=A12**2
-          p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
-          q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
-          sq_p=sqrt(p/3.)
-          alpha_3=acos(clip(-q*sq_p**(-3.)/2.,-1.,1.))/3.
-          sq_p*=2.
-          out=trA+sq_p*numarray.array([-cos(alpha_3-numarray.pi/3.),-cos(alpha_3+numarray.pi/3.),cos(alpha_3)],type=numarray.Float64)
-      else:
-         out=numarray.linear_algebra.eigenvalues((arg+numarray.transpose(arg))/2.)
-         out.sort()
+      out=numarray.linear_algebra.eigenvalues((arg+numarray.transpose(arg))/2.)
+      out.sort()
       return out
     elif isinstance(arg,escript.Data):
-      return escript_eigenvalues(arg)
+      return arg._eigenvalues()
     elif isinstance(arg,Symbol):
       if not arg.getRank()==2: 
         raise ValueError,"eigenvalues: argument must have rank 2"
@@ -3642,50 +3605,6 @@ def eigenvalues(arg):
       return float(arg)
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
-
-def escript_eigenvalues(arg): # this should be implemented in C++ arg and LAPACK is data object
-      if not arg.getRank()==2: 
-        raise ValueError,"eigenvalues: argument must have rank 2"
-      s=arg.getShape()      
-      if not s[0] == s[1]:
-        raise ValueError,"eigenvalues: argument must be a square matrix."
-      if s[0]==1:
-          return arg[0]
-      elif s[0]==2:
-          A11=arg[0,0]
-          A12=arg[0,1]
-          A22=arg[1,1]
-          trA=(A11+A22)/2.
-          A11-=trA
-          A22-=trA
-          s=sqrt(A12**2-A11*A22)
-          return trA+s*numarray.array([-1.,1.],type=numarray.Float64)
-      elif s[0]==3:
-          A11=arg[0,0]
-          A12=arg[0,1]
-          A22=arg[1,1]
-          A13=arg[0,2]
-          A23=arg[1,2]
-          A33=arg[2,2]
-          trA=(A11+A22+A33)/3.
-          A11-=trA
-          A22-=trA
-          A33-=trA
-          A13_2=A13**2
-          A23_2=A23**2
-          A12_2=A12**2
-          p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
-          q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
-          sq_p=sqrt(p/3.)
-          alpha_3=acos(clip(-q*sq_p**(-3.)/2.,-1.,1.))/3.
-          sq_p*=2.
-          f=escript.Data(0.,(3,),arg.getFunctionSpace())
-          f[0]=-cos(alpha_3-numarray.pi/3.)
-          f[1]=-cos(alpha_3+numarray.pi/3.)
-          f[2]=cos(alpha_3)
-          return trA+sq_p*f
-      else:
-         raise TypeError,"eigenvalues: only matrix dimensions 1,2,3 are supported right now."
 #=======================================================
 #  Binary operations:
 #=======================================================
