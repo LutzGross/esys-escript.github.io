@@ -20,25 +20,18 @@ On the boundary the normal stress is given by
 \begin{eqnarray} \label{WAVE natural}
 \sigma\hackscore{ij}n\hackscore{j}=0
 \end{eqnarray}
-for all time $t>0$. At initial time $t=0$ the displacement 
-$u\hackscore{i}$ and the velocity $u\hackscore{i,t}$ are give:
+for all time $t>0$. 
+
+At initial time $t=0$ the displacement 
+$u\hackscore{i}$ and the velocity $u\hackscore{i,t}$ are given:
 \begin{eqnarray} \label{WAVE initial}
-u\hackscore{i}(0,x)=0 & \mbox{ and } & u\hackscore{i,t}(0,x)=0 \; 
+u\hackscore{i}(0,x)= \left\{\begin{array}{cc} U\hackscore{0} & \mbox{for $x$ at point charge, $x\hackscore{C}$} \\ 0 & \mbox{elsewhere}\end{array}  \right. & \mbox{ and } & u\hackscore{i,t}(0,x)=0 \; 
 \end{eqnarray}
 for all $x$ in the domain. 
 
-The points on the left face of the domain, ie. points $x=(x\hackscore{i})$ with $x\hackscore{0}=0$,
-are moved into the $x\hackscore{2}$ direction by $u^{max}$. This is expressed by the constraint
-\begin{eqnarray} \label{WAVE impact}
-u\hackscore{2}(x,t)=s(t) \mbox{ for } x=(x\hackscore{i}) with  x\hackscore{0}=0 
-\end{eqnarray}
-where
-\begin{eqnarray} \label{WAVE impact s}
-s(t)=u^{max} (1-e^{-(\tau^{-1}t)^3})
-\end{eqnarray}
-$\tau$ measures the time needed to reach the maximum displacement $u^{max}$ (
-actually $\tau (ln 2)^{\frac{1}{3}}) \approx 0.9 \tau$ is the time until $\frac{u^{max}}{2}$ is reached).
-The smaller $\tau$ the faster $u^{max}$ is reached.
+Here we are modelling a point source at the point $x\hackscore C$, in the numerical solution we
+ set the initial displacement to be $U\hackscore 0$ in a sphere of small radius around the point
+ $x\hackscore C$.  
 
 We use an explicit time-integration scheme to calculate the displacement field $u$ at 
 certain time marks $t^{(n)}$ where $t^{(n)}=t^{(n-1)}+h$ with time step size $h>0$. In the following the upper index ${(n)}$ refers to values at time $t^{(n)}$. We use the Verlet scheme \index{Verlet scheme} with constant time step size $h$
@@ -46,7 +39,7 @@ which is defined by
 \begin{eqnarray} \label{WAVE dyn 2}
 u^{(n)}=2u^{(n-1)}-u^{(n-2)} + h^2 a^{(n)} \\
 \end{eqnarray}
-for all $n=1,2,\ldots$. It is designed to solve a system of equations of the form
+for all $n=2,3,\ldots$. It is designed to solve a system of equations of the form
 \begin{eqnarray} \label{WAVE dyn 2b} 
 u\hackscore{,tt}=G(u)
 \end{eqnarray}
@@ -62,21 +55,17 @@ and boundary conditions
 \end{eqnarray}
 derived from \eqn{WAVE natural} where 
 \begin{eqnarray} \label{WAVE dyn 3a}
-\sigma\hackscore{ij}^{(n-1)} & = & \lambda u^{(n-1)}\hackscore{k,k} \delta\hackscore{ij} + \mu ( u^{(n-1)}\hackscore{i,j} + u^{(n-1)}\hackscore{j,i})
-\end{eqnarray}.
-Additionally $a^{(n)}$ has to fullfill the constraint
-\begin{eqnarray}\label{WAVE dyn 4}
-a^{(n)}\hackscore{2}(x)= s\hackscore{,tt}(t^{(n)})\mbox{ where } s\hackscore{,tt}(t)=\frac{u^{max}}{\tau^2}
-(6\tau^{-1}t- 9(\tau^{-1}t)^4) e^{-(\tau^{-1}t)^3}  
+\sigma\hackscore{ij}^{(n-1)} & = & \lambda u^{(n-1)}\hackscore{k,k} \delta\hackscore{ij} + \mu ( u^{(n-1)}\hackscore{i,j} + u^{(n-1)}\hackscore{j,i}).
 \end{eqnarray}
-derived from \eqn{WAVE impact}. 
-
+Now we have converted our problem for displacement, $u^{(n)}$, into a problem for 
+acceleration, $a^(n)$, which now depends 
+on the solution at the previous two time steps, $u^{(n-1)}$  and $u^{(n-2)}$.
 
 In each time step we have to solve this problem to get the acceleration $a^{(n)}$ and we will
 use the \LinearPDE class of the \linearPDEs to do so. The general form of the PDE defined through
-the \LinearPDE class is discussed in \Sec{SEC LinearPDE}. The form which are relevant here are  
+the \LinearPDE class is discussed in \Sec{SEC LinearPDE}. The forms which are relevant here are  
 \begin{equation}\label{WAVE dyn 100}
-D\hackscore{ij} u\hackscore{j} = - X\hackscore{ij,j}\; .
+D\hackscore{ij} a^{(n)}\hackscore{j} = - X\hackscore{ij,j}\; .
 \end{equation}
 Implicitly, the natural boundary condition
 \begin{equation}\label{WAVE dyn 101}
@@ -86,48 +75,70 @@ is assumed. The \LinearPDE object allows defining constraints of the form
 \begin{equation}\label{WAVE dyn 101}
 u\hackscore{i}(x)=r\hackscore{i}(x) \mbox{ for } x \mbox{ with } q\hackscore{i}>0
 \end{equation}
-where $r$ and $q$ are given functions.
+where $r$ and $q$ are given functions. However in this problem we don't need to define 
+any constraints for our problem.
 
-With $u=a^{(n)}$ we can identify the values to be assigned to $D$, $X$, $r$ and $q$:
+With $u=a^{(n)}$ we can identify the values to be assigned to $D$, $X$:
 \begin{equation}\label{WAVE  dyn 6}
 \begin{array}{ll}
 D\hackscore{ij}=\rho \delta\hackscore{ij}&
 X\hackscore{ij}=-\sigma^{(n-1)}\hackscore{ij} \\
-r\hackscore{i}=\delta\hackscore{i2} \cdot s\hackscore{,tt}(t^{(n)}) & q\hackscore{i}=\delta\hackscore{i2}  \cdot x\hackscore{0}.\texttt{whereZero()} 
 \end{array}
 \end{equation}
-Remember that \var{y.whereZero()} returns a function which is $1$ for those points $x$ where $y$ is zero
-(up to a certain tolerance, see \Sec{SEC ESCRIPT DATA}) and $0$ for those points where $y$ is not equal to zero.
+
+
+%Remember that \var{y.whereZero()} returns a function which is $1$ for those points $x$ where $y$ is zero
+%(up to a certain tolerance, see \Sec{SEC ESCRIPT DATA}) and $0$ for those points where $y$ is not equal to zero.
  
-In the following script defines a the function \function{wavePropagation} which
+The following script defines a the function \function{wavePropagation} which
 implements the Verlet scheme to solve our wave propagation problem. 
 The argument \var{domain} which is a \Domain class object
-defines the domain of the problem. \var{h} and \var{tend} is the step size
-and the time mark after which the simulation will be terminated. \var{lam}, \var{mu} and 
-\var{rho} are material properties. \var{s_tt} is a function which returns $s\hackscore{,tt}$ at a given time: 
+defines the domain of the problem. \var{h} and \var{tend} are the step size
+and the time mark after which the simulation will be terminated respectively. \var{lam}, \var{mu} and 
+\var{rho} are material properties. 
 \begin{python}
 from esys.linearPDEs import LinearPDE
-from numarray import identity
+from numarray import identity,zeros,ones
 from esys.escript import *
-def wavePropagation(domain,h,tend,lam,mu,rho,s_tt):
+from esys.escript.pdetools import Locator
+def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
-   mypde.setLumpingOn()
+   mypde.setSolverMethod(LinearPDE.LUMPING)
    kronecker=identity(mypde.getDim())
-   mypde.setValue(D=kronecker*rho, \
-                  q=x[0].whereZero()*kronecker[1,:])
+   #  spherical source at middle of bottom face
+   xc=[width/2.,width/2.,0.] 
+   # define small radius around point xc
+   # Lsup(x) returns the maximum value of the argument x
+   src_radius = 0.1*Lsup(domain.getSize())
+   print "src_radius = ",src_radius
+   dunit=numarray.array([1.,0.,0.]) # defines direction of point source
+   mypde.setValue(D=kronecker*rho)
    # ... set initial values ....
    n=0
-   u=Vector(0,ContinuousFunction(domain))
-   u_last=Vector(0,ContinuousFunction(domain))
+   # initial value of displacement at point source is constant (U0=0.01)
+   # for first two time steps
+   u=U0*whereNegative(length(x-xc)-src_radius)*dunit
+   u_last=U0*whereNegative(length(x-xc)-src_radius)*dunit
    t=0
+   # define the location of the point source
+   L=Locator(domain,xc)
+   # find potential at point source
+   u_pc=L.getValue(u)
+   print "u at point charge=",u_pc
+   u_pc_x = u_pc[0]
+   u_pc_y = u_pc[1]
+   u_pc_z = u_pc[2]
+   # open file to save displacement at point source
+   u_pc_data=open('./data/U_pc.out','w')
+   u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
    while t<tend:
      # ... get current stress ....
      g=grad(u)
      stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
      # ... get new acceleration ....
-     mypde.setValue(X=-stress,r=s_tt(t+h)*kronecker[1,:])
+     mypde.setValue(X=-stress)
      a=mypde.getSolution()
      # ... get new displacement ...
      u_new=2*u-u_last+h**2*a
@@ -137,14 +148,22 @@ def wavePropagation(domain,h,tend,lam,mu,rho,s_tt):
      t+=h
      n+=1
      print n,"-th time step t ",t
-     print "a=",inf(a),sup(a)
-     print "u=",inf(u),sup(u)
-     # ... save current acceleration in units of gravity
-     if n%10==0 : (length(a)/9.81).saveDX("/tmp/res/u.%i.dx"%(n/10))
+     L=Locator(domain,xc)
+     u_pc=L.getValue(u)
+     print "u at point charge=",u_pc
+     u_pc_x=u_pc[0]
+     u_pc_y=u_pc[1]
+     u_pc_z=u_pc[2]
+     # save displacements at point source to file for t > 0
+     u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
+     # ... save current acceleration in units of gravity and displacements
+     if n==1 or n%10==0: saveVTK("./data/usoln.%i.vtu"%(n/10),acceleration=length(a)/9.81,
+     displacement = length(u), Ux = u[0] )
+   u_pc_data.close()
 \end{python}
 Notice that 
 all coefficients of the PDE which are independent from time $t$ are set outside the \code{while} 
-loop. This allows the \LinearPDE class to ruse information as much as possible 
+loop. This allows the \LinearPDE class to reuse information as much as possible 
 when iterating over time.  
  
 We have seen most of the functions in previous examples but there are some new functions here: 
@@ -155,48 +174,52 @@ for \finley the statement \code{grad(grad(u))} will raise an exception.
 and \code{transpose(g)} returns the transposed of the matrix \var{g} (ie. 
 $\var{transpose(g)[i,j]}=\var{g[j,i]}$). 
 
-The initialization of \var{u} and \var{u_last} needs some explanation. The statement
-\begin{python}
-u=Vector(0.,ContinuousFunction(domain))
-\end{python}
-declares \var{u} as a vector-valued function of its coordinates 
-in the domain (i.e. with two or three components in the case of 
-a two or three dimensional domain, repectively). The first argument defines the value of the function which is equal
-to $0$ for all vectot components. The second argument \var{ContinuousFunction(domain)} 
-specifies the `smoothness` of the function. In our case we want the displacement field to be 
-a continuous function over the \Domain \var{domain}. On other option would be 
-\var{Function(domain)} in which case continuity is not garanteed. In fact the 
-argument of the \function{grad} function has to be of the typ \var{ContinuousFunction(domain)} while
-returned function is of the var{Function(domain)} type. For more details see \Sec{SEC ESCRIPT DATA}. 
+We initialize the values of \code{u} and \code{u_last} to be $U\hackscore 0$ for a small 
+sphere of radius, \code{src_radius} around the point source located at $x\hackscore C$.
+These satisfy the initial conditions defined in \eqn{WAVE initial}.
+
+The output \code{U_pc.out} and \code{vtu} files are saved in a directory called \code{data}.
+The \code{U_pc.out} stores 4 columns of data: $t,u\hackscore x,u\hackscore y,u\hackscore z$ 
+respectively, where $u\hackscore x,u\hackscore y,u\hackscore z$ are the $x\hackscore 0,x\hackscore 1,x\hackscore 2$ components of 
+the displacement vector $u$ at the point source. These can be
+plotted easily using any plotting package. In gnuplot the command:
+\code{plot 'U_pc.out' u 1:2 title 'U_x' w l lw 2, 'U_pc.out' u 1:3 title 'U_y' w l lw 2, 
+'U_pc.out' u 1:4 title 'U_z' w l lw 2} will reproduce Figure \ref{WAVE FIG 1}.
+%\begin{python}
+%u=Vector(0.,ContinuousFunction(domain))
+%\end{python}
+%declares \var{u} as a vector-valued function of its coordinates 
+%in the domain (i.e. with two or three components in the case of 
+%a two or three dimensional domain, repectively). The first argument defines the value of the function which is equal
+%to $0$ for all vectot components. The second argument \var{ContinuousFunction(domain)} 
+%specifies the `smoothness` of the function. In our case we want the displacement field to be 
+%a continuous function over the \Domain \var{domain}. On other option would be 
+%\var{Function(domain)} in which case continuity is not garanteed. In fact the 
+%argument of the \function{grad} function has to be of the typ \var{ContinuousFunction(domain)} while
+%returned function is of the var{Function(domain)} type. For more details see \Sec{SEC ESCRIPT DATA}. 
 
 The statement \code{myPDE.setLumpingOn()}
 switches on the usage of an aggressive approximation of the PDE operator, in this case
 formed by the coefficient \var{D} (actually the discrete 
 version of the PDE operator is approximated by a diagonal matrix). The approximation allows, at the costs of 
 an additional error, very fast 
-solving of the PDE when the solution is requested. In the general case of the presents of \var{A}, \var{B} or \var
+solving of the PDE when the solution is requested. In the general case, the presence of \var{A}, \var{B} or \var
 {C} \code{setLumpingOn} will produce wrong results.
-
-It is pointed out that the value of the constraint \var{r} for the acceleration \var{a} at time $t=0$ is consistent 
-with the initial value of the acceleration which is identical zero. Otherwise, a discontinuity of \var{a} in time 
-direction would lead to heavy oscillations in the displacement. It is also pointed out, that at time $t=0$ the 
-constraint defined by \eqn{WAVE impact} fulfills
-the initial conditions in \eqn{WAVE initial}. 
 
 
 One of the big advantages of the Verlet scheme is the fact that the problem to be solved 
 in each time step is very simple and does not involve any spatial derivatives (which actually allows us to use lumping).
-The problem becomes so simple because we use the stress from the last time step rather then the stress which 
-actually is present at the current time step. Schemes using this approach are called an explicit time integration 
+The problem becomes so simple because we use the stress from the last time step rather then the stress which is
+actually present at the current time step. Schemes using this approach are called an explicit time integration 
 scheme \index{explicit scheme} \index{time integration!explicit}. The 
 backward Euler scheme we have used in \Chap{DIFFUSION CHAP} is 
 an example of an implicit schemes
 \index{implicit scheme} \index{time integration!implicit}. In this case one uses the actual status of 
-each variable at a particular time rather then values from previous time steps. This will lead to problem which is 
+each variable at a particular time rather then values from previous time steps. This will lead to a problem which is 
 more expensive to solve, in particular for non-linear problems. 
 Although 
-explicit time integration schemes are cheep to finalize a single time step, they need a significant smaller time
-step then implicit schemes and can suffer from stability problems. Therefor they need a 
+explicit time integration schemes are cheap to finalize a single time step, they need significantly smaller time
+steps then implicit schemes and can suffer from stability problems. Therefore they need a 
 very careful selection of the time step size $h$.
 
 An easy, heuristic way of choosing an appropriate
@@ -207,47 +230,60 @@ $\sqrt{\frac{\lambda+2\mu}{\rho}}$ so one should choose $h$ from
 \begin{eqnarray}\label{WAVE dyn 66}
 h= \frac{1}{5} \sqrt{\frac{\rho}{\lambda+2\mu}} \Delta x
 \end{eqnarray}
-where $\Delta x$ is the cell diameter. The factor $\frac{1}{5}$ is a safety factor considering the heuristic of 
+where $\Delta x$ is the cell diameter. The factor $\frac{1}{5}$ is a safety factor considering the heuristics of 
 the formula.
 
-The following script uses the \code{wavePropagtion} function to solve the
-wave equation over a block in crust of the earth. The depth of the block is 
-$10km$ and the width in each direction is $100km$. The depth of the block is alligned
-with the $x\hackscore{0}$-direction. \var{ne} gives the number of elements in $x\hackscore{0}$-direction. The number 
-of elements in $x\hackscore{1}$- and $x\hackscore{2}$-direction is chosen such that the elements 
-become cubic. The impact is $2m$ acting within a time of about $10sec$:
+The following script uses the \code{wavePropagation} function to solve the
+wave equation for a point source located at the bottom face of a block. The width of the block in 
+each direction on the bottom face is $10\mbox{km}$ ($x\hackscore 0$ and $x\hackscore 1$ directions ie. \code{l0} and \code{l1}).
+\code{ne} gives the number of elements in $x\hackscore{0}$ and $x\hackscore 1$ directions.  
+The depth of the block is aligned with the $x\hackscore{2}$-direction. 
+The depth (\code{l2}) of the block in
+the $x\hackscore{2}$-direction is chosen so that there are 10 elements and the magnitude of the
+of the depth is chosen such that the elements 
+become cubic. We chose 10 for the number of elements in $x\hackscore{2}$-direction so that the 
+computation would be faster. \code{Brick($n\hackscore 0,  n\hackscore 1, n\hackscore 2,l\hackscore 0,l\hackscore 1,l\hackscore 2$)} is an \finley function which creates a rectangular mesh 
+with $n\hackscore 0 \times n\hackscore 1 \times n\hackscore2$ elements over the brick $[0,l\hackscore 0] \times [0,l\hackscore 1] \times [0,l\hackscore 2]$.
 \begin{python}
-ne=10           # number of cells in x_0-direction
-depth=10000.   # length in x_0-direction
-width=100000.  # length in x_1 and x_2 direction
+from esys.finley import Brick
+ne=32          # number of cells in x_0 and x_1 directions
+width=10000.  # length in x_0 and x_1 directions
 lam=3.462e9
 mu=3.462e9
 rho=1154.
-tau=10.
-umax=2.
 tend=60
-h=1./5.*sqrt(rho/(lam+2*mu))*(depth/ne)
-def s_tt(t): return umax/tau**2*(6*t/tau-9*(t/tau)**4)*exp(-(t/tau)**3)
-
+h=(1./5.)*sqrt(rho/(lam+2*mu))*(width/ne)
 print "time step size = ",h
-mydomain=Brick(ne,int(width/depth)*ne,int(width/depth)*ne,l0=depth,l1=width,l2=width)
-wavePropagation(mydomain,h,tend,lam,mu,rho,s_tt)
+U0=0.01 # amplitude of point source
+
+mydomain=Brick(ne,ne,10,l0=width,l1=width,l2=10.*width/32.)
+wavePropagation(mydomain,h,tend,lam,mu,rho,U0)
 \end{python}
-The script is available as \file{wave.py} in the \ExampleDirectory \index{scripts!\file{wave.py}}.
+The script is available as \file{wave.py} in the \ExampleDirectory \index{scripts!\file{wave.py}}. Before running the code make sure you have created a directory called \code{data} in the current
+working directory.
+To visualize the results from the data directory: 
+\begin{verbatim} mayavi -d usoln.1.vtu -m SurfaceMap &\end{verbatim} You can rotate this figure by clicking on it with the mouse and moving it around.
+Again use \code{Configure Data} to move backwards and forward in time, and 
+also to choose the results (acceleration, displacement or $u\hackscore x$) by using \code{Select Scalar}. Figure \ref{WAVE FIG 2} shows the results for the displacement at various time steps.
 
+ \begin{figure}{t!}
+ \centerline{\includegraphics[width=3.in,angle=270]{WavePC.ps}}
+ \caption{Amplitude at Point source}
+ \label{WAVE FIG 1}
+ \end{figure}
 
-% \begin{figure}
-% \centerline{\includegraphics[width=\figwidth]{DiffusionDomain}}
-% \caption{Temperature Diffusion Problem with Circular Heat Source}
-% \label{WAVE FIG 1}
-% \end{figure}
-
-\begin{figure}
-% \centerline{\includegraphics[width=\figwidth]{DiffusionRes1}}
-% \centerline{\includegraphics[width=\figwidth]{DiffusionRes16}}
-% \centerline{\includegraphics[width=\figwidth]{DiffusionRes32}}
-%\centerline{\includegraphics[width=\figwidth]{DiffusionRes48}}
-\caption{Selected time steps of a wave propagation over a $10km \times 100km \times 100km$ 
-with time step size $h=0.0666$. Color represents the acceleration.}
+\begin{figure}{t}
+\begin{center}
+\includegraphics[width=2in,angle=270]{Wavet0.ps}
+\includegraphics[width=2in,angle=270]{Wavet1.ps}
+\includegraphics[width=2in,angle=270]{Wavet3.ps}
+\includegraphics[width=2in,angle=270]{Wavet10.ps}
+\includegraphics[width=2in,angle=270]{Wavet30.ps}
+\includegraphics[width=2in,angle=270]{Wavet288.ps}
+\end{center}
+\caption{Selected time steps ($n = 0,1,30,100,300$ and 2880) of a wave propagation over a $10\mbox{km} \times 10\mbox{km} \times 3.125\mbox{km}$ block 
+from a point source initially at $(5\mbox{km},5\mbox{km},0)$
+with time step size $h=0.02083$. Color represents the displacement.
+Here the view is oriented onto the bottom face.}
 \label{WAVE FIG 2}
 \end{figure}
