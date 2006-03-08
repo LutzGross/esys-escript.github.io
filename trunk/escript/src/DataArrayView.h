@@ -845,24 +845,53 @@ class DataArrayView {
                                               ValueType::size_type VOffset,
                                               const double tol=1.e-13)
   {
+   double in00,in10,in20,in01,in11,in21,in02,in12,in22;
+   double V00,V10,V20,V01,V11,V21,V02,V12,V22;
    double ev0,ev1,ev2;
    int s=in.getShape()[0];
    if (s==1) {
-      eigenvalues1(in(0,0),&ev0);
-      ev(0)=ev0;
-
+      in00=(*(in.m_data))[inOffset+in.index(0,0)];
+      eigenvalues_and_eigenvectors1(in00,&ev0,&V00,tol);
+      (*(ev.m_data))[evOffset+ev.index(0)]=ev0;
+      (*(V.m_data))[inOffset+V.index(0,0)]=V00;
    } else  if (s==2) {
-      eigenvalues2(in(0,0),(in(0,1)+in(1,0))/2.,in(1,1),
-                   &ev0,&ev1);
-      ev(0)=ev0;
-      ev(1)=ev1;
-
+      in00=(*(in.m_data))[inOffset+in.index(0,0)];
+      in10=(*(in.m_data))[inOffset+in.index(1,0)];
+      in01=(*(in.m_data))[inOffset+in.index(0,1)];
+      in11=(*(in.m_data))[inOffset+in.index(1,1)];
+      eigenvalues_and_eigenvectors2(in00,(in01+in10)/2.,in11,
+                   &ev0,&ev1,&V00,&V10,&V01,&V11,tol);
+      (*(ev.m_data))[evOffset+ev.index(0)]=ev0;
+      (*(ev.m_data))[evOffset+ev.index(1)]=ev1;
+      (*(V.m_data))[inOffset+V.index(0,0)]=V00;
+      (*(V.m_data))[inOffset+V.index(1,0)]=V10;
+      (*(V.m_data))[inOffset+V.index(0,1)]=V01;
+      (*(V.m_data))[inOffset+V.index(1,1)]=V11;
    } else  if (s==3) {
-      eigenvalues3(in(0,0),(in(0,1)+in(1,0))/2.,(in(0,2)+in(2,0))/2.,in(1,1),(in(2,1)+in(1,2))/2.,in(2,2),
-                 &ev0,&ev1,&ev2);
-      ev(0)=ev0;
-      ev(1)=ev1;
-      ev(2)=ev2;
+      in00=(*(in.m_data))[inOffset+in.index(0,0)];
+      in10=(*(in.m_data))[inOffset+in.index(1,0)];
+      in20=(*(in.m_data))[inOffset+in.index(2,0)];
+      in01=(*(in.m_data))[inOffset+in.index(0,1)];
+      in11=(*(in.m_data))[inOffset+in.index(1,1)];
+      in21=(*(in.m_data))[inOffset+in.index(2,1)];
+      in02=(*(in.m_data))[inOffset+in.index(0,2)];
+      in12=(*(in.m_data))[inOffset+in.index(1,2)];
+      in22=(*(in.m_data))[inOffset+in.index(2,2)];
+      eigenvalues_and_eigenvectors3(in00,(in01+in10)/2.,(in02+in20)/2.,in11,(in21+in12)/2.,in22,
+                 &ev0,&ev1,&ev2,
+                 &V00,&V10,&V20,&V01,&V11,&V21,&V02,&V12,&V22,tol);
+      (*(ev.m_data))[evOffset+ev.index(0)]=ev0;
+      (*(ev.m_data))[evOffset+ev.index(1)]=ev1;
+      (*(ev.m_data))[evOffset+ev.index(2)]=ev2;
+      (*(V.m_data))[inOffset+V.index(0,0)]=V00;
+      (*(V.m_data))[inOffset+V.index(1,0)]=V10;
+      (*(V.m_data))[inOffset+V.index(2,0)]=V20;
+      (*(V.m_data))[inOffset+V.index(0,1)]=V01;
+      (*(V.m_data))[inOffset+V.index(1,1)]=V11;
+      (*(V.m_data))[inOffset+V.index(2,1)]=V21;
+      (*(V.m_data))[inOffset+V.index(0,2)]=V02;
+      (*(V.m_data))[inOffset+V.index(1,2)]=V12;
+      (*(V.m_data))[inOffset+V.index(2,2)]=V22;
 
    }
  }
