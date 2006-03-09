@@ -7,9 +7,9 @@ import os
 import string
 paso_env = Environment(ENV = os.environ)
 
-paso_path = str(esysroot) + '/paso/src'
-solvers_path = str(esysroot) + '/paso/src/Solvers'
-mmio_path = str(esysroot) + '/tools/mmio/inc'
+paso_path = Dir(str(esysroot) + '/paso/src')
+solvers_path = Dir(str(esysroot) + '/paso/src/Solvers')
+mmio_path = Dir(str(esysroot) + '/tools/mmio/inc')
 
 cpp_path = [paso_path,
             solvers_path,
@@ -20,11 +20,14 @@ cpp_path = [paso_path,
 paso_env.Replace(CC = cc)
 paso_env.Replace(CCFLAGS = cc_flags)
 if len(mkl_libs) >0: paso_env.Append(CCFLAGS=' -DMKL')
-if len(mkl_path) >0: cpp_path.append(mkl_path)
 if len(scsl_libs)>0 : paso_env.Append(CCFLAGS=' -DSCSL')
+if len(mkl_path)>0: cpp_path.append(mkl_path)
 if len(scsl_path)>0: cpp_path.append(scsl_path)
-if len(umfpack_libs)>0 : paso_env.Append(CCFLAGS=' -DUMFPACK')
 if len(umfpack_path)>0: cpp_path.append(umfpack_path)
+if len(papi_path)>0: cpp_path.append(papi_path)
+if len(umfpack_libs)>0 : paso_env.Append(CCFLAGS=' -DUMFPACK')
+if len(papi_libs)>0 : paso_env.Append(CCFLAGS=' -DPAPI')
+
 paso_env.Replace(CPPPATH = cpp_path)
 paso_env.Replace(ARFLAGS = ar_flags)
 

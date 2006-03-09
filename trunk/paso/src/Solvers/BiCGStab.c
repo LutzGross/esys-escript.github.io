@@ -66,7 +66,8 @@ err_t Paso_Solver_BiCGStab(
     double * r,
     double * x,
     dim_t *iter,
-    double * tolerance) {
+    double * tolerance,
+    Paso_Performance* pp) {
 
 
   /* Local variables */

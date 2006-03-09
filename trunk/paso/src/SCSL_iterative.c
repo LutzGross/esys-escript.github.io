@@ -30,7 +30,7 @@ void Paso_SCSL_iterative_free(Paso_SystemMatrix* A) {
 /*  call the iterative solver: */
 
 void Paso_SCSL_iterative(Paso_SystemMatrix* A,
-                           double* out,double* in,Paso_Options* options) {
+                           double* out,double* in,Paso_Options* options,Paso_Performance* pp) {
 #ifdef SCSL
     char text2[3];
     int iters,  method,precond,storage,maxiters;
@@ -47,7 +47,7 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
        if (! (A->type & MATRIX_FORMAT_BLK1) )
            Paso_setError(TYPE_ERROR,"Paso_SCSL_iterative: iterative solver in compressed sparse row requires a nonsymmetric storage scheme, block size 1 and index offset 0.");
     } 
-
+    Performance_startMonitor(pp,PERFORMANCE_ALL);
     method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
     if (Paso_noError()) {
        switch (method) {
@@ -93,22 +93,6 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
        DIterative_DropTol(drop_tolerance);
        drop_storage=options->drop_storage;
        DIterative_DropStorage(drop_storage);
-
-       /* this stuff does not work */
-       if (options->verbose) {
-         setenv("ITERATIVE_VERBOSE","1",1);
-       } else {
-         unsetenv("ITERATIVE_VERBOSE");
-       }
-       if (options->reordering==PASO_NO_REORDERING) {
-         sprintf(text2,"%d",0);
-       } else {
-         sprintf(text2,"%d",-1);
-       }
-       setenv("ITERATIVE_RCM",text2,1);
-       setenv("ITERATIVE_COPY","1",1);
-       /* oend of this stuff does not work */
-
        time0=Paso_timer();
        DIterative(A->num_rows,A->pattern->ptr,A->pattern->index,A->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
        options->iter=iters;
@@ -119,6 +103,7 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
              if (iters>0) printf("timing: per iteration: %.4e sec\n",time0/iters);
        }
     }
+    Performance_stopMonitor(pp,PERFORMANCE_ALL);
 #else
     Paso_setError(SYSTEM_ERROR,"Paso_SCSL_iterative: SCSL not available.");
 #endif

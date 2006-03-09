@@ -30,6 +30,11 @@ doxygen_path = '/usr/bin'
 epydoc_path = '/usr/bin'
 epydoc_pythonpath = ''
 
+# locations of PAPI
+papi_path = ''
+papi_lib_path = ''
+papi_libs = []
+
 # names of c and c++ compilers to use
 cc = 'gcc'
 cxx = 'g++'
@@ -47,6 +52,3 @@ ar_flags = 'crus'
 
 # system specific libraries to link with
 sys_libs = []
-
-# solver libraries to link with
-solver_libs = []

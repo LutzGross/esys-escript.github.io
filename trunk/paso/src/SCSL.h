@@ -15,12 +15,13 @@
 #define INC_PASO_SCSL
 
 #include "SystemMatrix.h"
+#include "performance.h"
 
 void Paso_SCSL_free(Paso_SystemMatrix* A);
-void Paso_SCSL(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+void Paso_SCSL(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options,Paso_Performance* pp);
 void Paso_SCSL_iterative_free(Paso_SystemMatrix* A);
-void Paso_SCSL_iterative(Paso_SystemMatrix* A, double* out,double* in,Paso_Options* options);
+void Paso_SCSL_iterative(Paso_SystemMatrix* A, double* out,double* in,Paso_Options* options,Paso_Performance* pp);
 void Paso_SCSL_direct_free(Paso_SystemMatrix* A);
-void Paso_SCSL_direct(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+void Paso_SCSL_direct(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options,Paso_Performance* pp);
 
 #endif

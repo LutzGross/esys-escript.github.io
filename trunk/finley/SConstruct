@@ -10,6 +10,7 @@ solver_lib_paths=[mkl_lib_path,scsl_lib_path,umfpack_lib_path]
 
 Export(["python_path"])
 Export(["boost_path"])
+Export(["papi_path"])
 Export(["cxx"])
 Export(["cc"])
 Export(["cxx_flags"])
@@ -19,6 +20,8 @@ Export(["boost_lib"])
 Export(["sys_libs"])
 Export(["solver_libs"])
 Export(["solver_lib_paths"])
+Export(["papi_libs"])
+Export(["papi_lib_path"])
 Export(["libinstall"])
 Export(["pyinstall"])
 Export(["incinstall"])
@@ -66,4 +69,5 @@ print "       cxx_flags: ", cxx_flags
 
 SConscript(dirs=['src'], build_dir='obj', duplicate=0)
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
+print solver_libs
 SConscript(dirs=['test/MeshAdapter'], build_dir='obj/test/MeshAdapter', duplicate=0)

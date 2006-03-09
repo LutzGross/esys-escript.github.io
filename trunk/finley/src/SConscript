@@ -8,15 +8,15 @@ import string
 
 libname = 'finleycpp'
 
-finley_path = str(esysroot) + '/finley/src'
-finley_cppadapter_path = str(esysroot) + '/finley/src/CPPAdapter'
-paso_path = str(esysroot) + '/paso/src'
-escript_path = str(esysroot) + '/escript/src'
-esysUtils_path = str(esysroot) + '/esysUtils/src'
+finley_path = Dir(str(esysroot) + '/finley/src')
+finley_cppadapter_path = Dir(str(esysroot) + '/finley/src/CPPAdapter')
+paso_path = Dir(str(esysroot) + '/paso/src')
+escript_path = Dir(str(esysroot) + '/escript/src')
+esysUtils_path = Dir(str(esysroot) + '/esysUtils/src')
 
-esys_lib_path = str(esysroot) + '/lib'
-mmio_lib_path = str(esysroot) + '/tools/mmio/lib'
-esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+esys_lib_path = Dir(str(esysroot) + '/lib')
+mmio_lib_path = Dir(str(esysroot) + '/tools/mmio/lib')
+esysUtils_lib_path = Dir(str(esysroot) + '/esysUtils/lib')
 
 esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
 escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
@@ -29,6 +29,7 @@ cpp_path = [finley_path,
             escript_path,
             esysUtils_path,
             python_path,
+            papi_path,
             boost_path]
 
 incs = ['Assemble.h',
@@ -126,9 +127,9 @@ sources = ['Assemble_addToSystemMatrix.c',
 lib_path = [esys_lib_path,
             mmio_lib_path,
             esysUtils_lib_path,
-            boost_lib_path] \
+            boost_lib_path,
+            papi_lib_path]  \
           + solver_lib_paths
-
 
 libs = ['escriptcpp',
         'esysUtils',
@@ -138,7 +139,8 @@ libs = ['escriptcpp',
         'dl',
         'util']     \
        + sys_libs   \
-       + solver_libs
+       + solver_libs \
+       + papi_libs
 
 finley_env = Environment(ENV = os.environ)
 

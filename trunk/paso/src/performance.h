@@ -39,7 +39,7 @@ struct Paso_Performance {
     long_long values[PERFORMANCE_NUM_MONITORS][PERFORMANCE_NUM_EVENTS]; /* counter accummulator */
     long_long cycles[PERFORMANCE_NUM_MONITORS];                         /* cycle accumulator */
     int set[PERFORMANCE_NUM_MONITORS];
-}
+};
 #else
 struct Paso_Performance {
     int none;
@@ -48,9 +48,9 @@ struct Paso_Performance {
 typedef struct Paso_Performance Paso_Performance;
 
 
-void Performance_open(Paso_Performance* pp);
+void Performance_open(Paso_Performance* pp,int verbose);
 int  Performance_getEventIndex(Paso_Performance* pp, int event_id);
-void Performance_close(Paso_Performance* pp);
+void Performance_close(Paso_Performance* pp,int verbose);
 void Performance_startMonitor(Paso_Performance* pp,int monitor);
 void Performance_stopMonitor(Paso_Performance* pp,int monitor);
 

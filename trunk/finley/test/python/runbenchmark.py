@@ -32,6 +32,7 @@ from esys.escript.benchmark import BenchmarkSuite,Benchmark
 
 type="all" 
 type="mantle"
+type="simple"
 
 thlist=[1,2,4,8,16]
 # thlist=[1,2,4,8,16,32]
@@ -45,6 +46,7 @@ opt2=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.ILU0,ver
 opt3=FinleyOptions(solver_method=LinearPDE.PCG,preconditioner=LinearPDE.RILU,verbose=show)
 opt4=FinleyOptions(solver_method=LinearPDE.DIRECT,verbose=show)
 ops=(opt1,opt3,opt4)
+ops=(opt1,opt3)
 
 bm_L2Do1=Benchmark(name="Laplace 2D (order 1)")
 bm_L2Do1.addProblem(Laplace2DOrder1_30k())
@@ -987,27 +989,50 @@ map(bm_CLA3D_o2_c6_n45.addOptions,ops)
 
 bms=BenchmarkSuite("Paso/Finley (%s benchmark)"%type)
 
-if type in ["all", "mantle"]:
-   bms.addBenchmark(bm_L2Do1)
-   bms.addBenchmark(bm_L2Do2)
-   bms.addBenchmark(bm_L3Do1)
-   bms.addBenchmark(bm_L3Do2)
+# 2D ==========================================================
+bms.addBenchmark(bm_L2Do1)
+bms.addBenchmark(bm_L2Do2)
 
-   bms.addBenchmark(bm_LA2D_o2)
+if type in ["simple"]:
+   bms.addBenchmark(bm_CLA2D_o1)
+   bms.addBenchmark(bm_CLA2D_o2)
+
+if type in ["all", "mantle"]:
+   bms.addBenchmark(bm_CLA2D_o2)
+   bms.addBenchmark(bm_LA2D_o2_pen100)
+
+   bms.addBenchmark(bm_CLA2D_o2_c6)
    bms.addBenchmark(bm_LA2D_o2_pen100_c6)
+
+   bms.addBenchmark(bm_CLA2D_o2_c6_n45)
    bms.addBenchmark(bm_LA2D_o2_pen100_c6_n45)
 
-   bms.addBenchmark(bm_LA3D_o2)
+if type in ["all", "linear elastic"]:
+   bms.addBenchmark(bm_LA2D_o2)
+   bms.addBenchmark(bm_LA2D_o2_c6)
+   bms.addBenchmark(bm_LA2D_o2_c6_n45)
+
+# 3D ==========================================================
+bms.addBenchmark(bm_L3Do1)
+bms.addBenchmark(bm_L3Do2)
+if type in ["simple"]:
+   bms.addBenchmark(bm_CLA3D_o1)
+   bms.addBenchmark(bm_CLA3D_o2)
+     
+if type in ["all", "mantle"]:
+   bms.addBenchmark(bm_CLA3D_o2)
+   bms.addBenchmark(bm_LA3D_o2_pen100)
+
+   bms.addBenchmark(bm_CLA3D_o2_c6)
    bms.addBenchmark(bm_LA3D_o2_pen100_c6)
+
+   bms.addBenchmark(bm_CLA3D_o2_c6_n45)
    bms.addBenchmark(bm_LA3D_o2_pen100_c6_n45)
 
-   bms.addBenchmark(bm_CLA2D_o2)
-   bms.addBenchmark(bm_CLA2D_o2_c6)
-   bms.addBenchmark(bm_CLA2D_o2_c6_n45)
-
-   bms.addBenchmark(bm_CLA3D_o2)
-   bms.addBenchmark(bm_CLA3D_o2_c6)
-   bms.addBenchmark(bm_CLA3D_o2_c6_n45)
+if type in ["all", "linear elastic"]:
+   bms.addBenchmark(bm_LA3D_o2)
+   bms.addBenchmark(bm_LA3D_o2_c6)
+   bms.addBenchmark(bm_LA3D_o2_c6_n45)
 
 if type in ["all"]:
    bms.addBenchmark(bm_A2Do1g30)
@@ -1034,9 +1059,7 @@ if type in ["all"]:
    bms.addBenchmark(bm_LA2D_o1_pen100_c6_n45)
 
    bms.addBenchmark(bm_LA2D_o2_c2)
-   bms.addBenchmark(bm_LA2D_o2_c6)
 
-   bms.addBenchmark(bm_LA2D_o2_c6_n45)
    bms.addBenchmark(bm_LA2D_o2_c2_n45)
    bms.addBenchmark(bm_LA2D_o2_pen100_c2)
    bms.addBenchmark(bm_LA2D_o2_pen100_c2_n45)
@@ -1055,10 +1078,8 @@ if type in ["all"]:
    bms.addBenchmark(bm_LA3D_o2_c2)
    bms.addBenchmark(bm_LA3D_o2_pen100)
    bms.addBenchmark(bm_LA3D_o2_pen100_c2)
-   bms.addBenchmark(bm_LA3D_o2_c6)
    bms.addBenchmark(bm_LA3D_o2_c2_n45)
    bms.addBenchmark(bm_LA3D_o2_pen100_c2_n45)
-   bms.addBenchmark(bm_LA3D_o2_c6_n45)
    
    bms.addBenchmark(bm_CLA2D_o1)
    bms.addBenchmark(bm_CLA2D_o1_c2)
