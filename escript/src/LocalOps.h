@@ -80,18 +80,25 @@ void eigenvalues3(const double A00, const double A01, const double A02,
       const register double A02_2=A02*A02;
       const register double A12_2=A12*A12;
       const register double p=A02_2+A12_2+A01_2+(A_00*A_00+A_11*A_11+A_22*A_22)/2.;
-      const register double q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
-      const register double sq_p=sqrt(p/3.);
-      register double z=-q/(2*pow(sq_p,3));
-      if (z<-1.) {
-         z=-1.;
-      } else if (z>1.) {
-         z=1.;
+      if (p<=0.) {
+         *ev2=trA;
+         *ev1=trA;
+         *ev0=trA;
+
+      } else {
+         const register double q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
+         const register double sq_p=sqrt(p/3.);
+         register double z=-q/(2*pow(sq_p,3));
+         if (z<-1.) {
+            z=-1.;
+         } else if (z>1.) {
+            z=1.;
+         }
+         const register double alpha_3=acos(z)/3.;
+         *ev2=trA+2.*sq_p*cos(alpha_3);
+         *ev1=trA-2.*sq_p*cos(alpha_3+M_PI/3.);
+         *ev0=trA-2.*sq_p*cos(alpha_3-M_PI/3.);
       }
-      const register double alpha_3=acos(z)/3.;
-      *ev2=trA+2.*sq_p*cos(alpha_3);
-      *ev1=trA-2.*sq_p*cos(alpha_3+M_PI/3.);
-      *ev0=trA-2.*sq_p*cos(alpha_3-M_PI/3.);
 }
 /**
    \brief
