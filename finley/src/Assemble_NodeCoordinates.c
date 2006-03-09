@@ -37,13 +37,13 @@ void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
   Finley_resetError();
   if (nodes==NULL) return;
   if (! numSamplesEqual(x,1,nodes->numNodes)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: illegal number of samples of Data object");
   } else if (getFunctionSpaceType(x)!=FINLEY_NODES) {
-       Finley_setError(TYPE_ERROR,"__FILE__: Data object is not defined on nodes.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
   } else if (! isExpanded(x)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object expected");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: expanded Data object expected");
   } else if (! isDataPointShapeEqual(x,1, &(nodes->numDim))) {
-       sprintf(error_msg,"__FILE__: Data object of shape (%d,) expected",nodes->numDim);
+       sprintf(error_msg,"Finley_Assemble_NodeCoordinates: Data object of shape (%d,) expected",nodes->numDim);
        Finley_setError(TYPE_ERROR,error_msg);
   } else {
        #pragma omp parallel for private(n)

@@ -15,6 +15,7 @@
 #define INC_PASO_MKL
 
 #include "SystemMatrix.h"
+#include "performance.h"
 
 # if defined(_WIN32) || defined(_WIN64)
 #define PARDISO pardiso
@@ -46,5 +47,5 @@
 
 
 void Paso_MKL_free(Paso_SystemMatrix* A);
-void Paso_MKL(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+void Paso_MKL(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options,Paso_Performance* pp);
 #endif

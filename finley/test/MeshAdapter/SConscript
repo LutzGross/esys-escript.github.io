@@ -63,9 +63,6 @@ libs = ['escriptcpp',
         'dl',
         'util']
 
-libs.extend(sys_libs)
-libs.extend(solver_libs)
-
 sources = ['MeshAdapterTestCase.cpp',
            'MeshAdapterTest.cpp']
 

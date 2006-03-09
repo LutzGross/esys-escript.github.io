@@ -769,6 +769,36 @@ class DataArrayView {
               BinaryFunction operation,
               double initial_value) const;
 
+ /**
+     \brief
+     Perform a matrix multiply of the given views.
+     This is purely a utility method and has no bearing on this view.
+
+     NB: Only multiplies together the two given views, ie: two data-points,
+     would need to call this over all data-points to multiply the entire
+     Data objects involved.
+
+     \param left - Input - The left hand side.
+     \param right - Input - The right hand side.
+     \param result - Output - The result of the operation.
+  */
+  static
+  void
+  matMult(const DataArrayView& left,
+          const DataArrayView& right,
+          DataArrayView& result);
+
+  /**
+     \brief
+     Determine the shape of the result array for a matrix multiplication
+     of the given views.
+     This is purely a utility method and has no bearing on this view.
+  */
+  static
+  ShapeType
+  determineResultShape(const DataArrayView& left,
+                       const DataArrayView& right);
+
   /**
      \brief
      solves a local eigenvalue problem 
@@ -781,11 +811,11 @@ class DataArrayView {
   static
   inline
   void
-  DataArrayView::eigenvalues(DataArrayView& in,
-                             ValueType::size_type inOffset,
-                             DataArrayView& ev,
-                             ValueType::size_type evOffset)
- {
+  eigenvalues(DataArrayView& in,
+              ValueType::size_type inOffset,
+              DataArrayView& ev,
+              ValueType::size_type evOffset)
+  {
    double in00,in10,in20,in01,in11,in21,in02,in12,in22;
    double ev0,ev1,ev2;
    int s=in.getShape()[0];
@@ -820,7 +850,7 @@ class DataArrayView {
       (*(ev.m_data))[evOffset+ev.index(2)]=ev2;
 
    }
- }
+  }
 
   /**
      \brief
@@ -837,13 +867,13 @@ class DataArrayView {
   static
   inline
   void
-  DataArrayView::eigenvalues_and_eigenvectors(DataArrayView& in,
-                                              ValueType::size_type inOffset,
-                                              DataArrayView& ev, 
-                                              ValueType::size_type evOffset,
-                                              DataArrayView& V, 
-                                              ValueType::size_type VOffset,
-                                              const double tol=1.e-13)
+  eigenvalues_and_eigenvectors(DataArrayView& in,
+                               ValueType::size_type inOffset,
+                               DataArrayView& ev, 
+                               ValueType::size_type evOffset,
+                               DataArrayView& V, 
+                               ValueType::size_type VOffset,
+                               const double tol=1.e-13)
   {
    double in00,in10,in20,in01,in11,in21,in02,in12,in22;
    double V00,V10,V20,V01,V11,V21,V02,V12,V22;
@@ -895,36 +925,6 @@ class DataArrayView {
 
    }
  }
- /**
-     \brief
-     Perform a matrix multiply of the given views.
-     This is purely a utility method and has no bearing on this view.
-
-     NB: Only multiplies together the two given views, ie: two data-points,
-     would need to call this over all data-points to multiply the entire
-     Data objects involved.
-
-     \param left - Input - The left hand side.
-     \param right - Input - The right hand side.
-     \param result - Output - The result of the operation.
-  */
-  static
-  void
-  matMult(const DataArrayView& left,
-          const DataArrayView& right,
-          DataArrayView& result);
-
-  /**
-     \brief
-     Determine the shape of the result array for a matrix multiplication
-     of the given views.
-     This is purely a utility method and has no bearing on this view.
-  */
-  static
-  ShapeType
-  determineResultShape(const DataArrayView& left,
-                       const DataArrayView& right);
-
  protected:
 
  private:

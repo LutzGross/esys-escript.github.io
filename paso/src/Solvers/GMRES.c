@@ -56,7 +56,8 @@ err_t Paso_Solver_GMRES(
     double * r,
     double * x,
     dim_t *iter,
-    double * tolerance,dim_t Length_of_recursion,dim_t restart) {
+    double * tolerance,dim_t Length_of_recursion,dim_t restart,
+    Paso_Performance* pp) {
 
   /* Local variables */
 

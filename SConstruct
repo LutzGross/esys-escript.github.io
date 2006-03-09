@@ -18,5 +18,6 @@ target_scripts = ['tools/CppUnitTest/SConstruct',
                   'finley/SConstruct',
                   'modellib/SConstruct',
                   'doc/SConstruct']
+                  # 'doc/SConstruct']
 
 SConscript(target_scripts, duplicate=0)

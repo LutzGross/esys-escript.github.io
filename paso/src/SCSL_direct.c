@@ -44,7 +44,8 @@ void Paso_SCSL_direct_free(Paso_SystemMatrix* A) {
 void Paso_SCSL_direct(Paso_SystemMatrix* A,
                                double* out,
                                double* in,
-                               Paso_Options* options) {
+                               Paso_Options* options,
+                               Paso_Performance* pp) {
 #ifdef SCSL
   double time0;
   int token,l=sizeof(TokenList)/sizeof(int),reordering_method,method;
@@ -67,6 +68,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
           Paso_setError(TYPE_ERROR,"Paso_SCSL_direct: direct solver can only be applied to CSC format with block size 1 and index offset 0.");
   }
   method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric);
+  Performance_startMonitor(pp,PERFORMANCE_ALL);
   if (Paso_noError()) {
 
      /* if no token has been assigned a free token must be found*/
@@ -107,7 +109,6 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
     }
   }
   time0=Paso_timer();
-
   if (Paso_noError())  {
      token=*(int*)(A->solver);
      if (TokenSym[token]) {
@@ -117,6 +118,7 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
      }
      if (options->verbose) printf("timing SCSL: solve: %.4e sec (token = %d)\n",Paso_timer()-time0,token);
    }
+   Performance_stopMonitor(pp,PERFORMANCE_ALL);
 #else
     Paso_setError(SYSTEM_ERROR,"Paso_SCSL_direct:SCSL is not avialble.");
 #endif

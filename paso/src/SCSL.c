@@ -28,15 +28,16 @@ void Paso_SCSL_free(Paso_SystemMatrix* A) {
 void Paso_SCSL(Paso_SystemMatrix* A,
                           double* out,
                           double* in,
-                          Paso_Options* options) {
+                          Paso_Options* options,
+                          Paso_Performance* pp) {
 
   index_t method=Paso_Options_getSolver(options->method,PASO_SCSL,options->symmetric);
 
   if (Paso_noError()) {
       if (method==PASO_CHOLEVSKY || method==PASO_DIRECT) {
-          Paso_SCSL_direct(A,out,in,options);
+          Paso_SCSL_direct(A,out,in,options,pp);
       } else {
-          Paso_SCSL_iterative(A,out,in,options);
+          Paso_SCSL_iterative(A,out,in,options,pp);
       }
   }
 }

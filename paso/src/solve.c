@@ -12,6 +12,7 @@
 /**************************************************************/
 
 #include "Paso.h"
+#include "performance.h"
 #include "Solvers/Solver.h"
 
 #ifdef SCSL
@@ -32,24 +33,25 @@ void Paso_solve(Paso_SystemMatrix* A,
                                double* out,
                                double* in,
                                Paso_Options* options) {
-
+  Paso_Performance pp;
   Paso_resetError();
   if (A->num_rows!=A->num_cols || A->col_block_size!=A->row_block_size) {
        Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
+  Performance_open(&pp,options->verbose);
   index_t package=Paso_Options_getPackage(options->method,options->package,options->symmetric);
   if (Paso_noError()) {
      switch(package) {
 
         case PASO_PASO:
-          Paso_Solver(A,out,in,options);
+          Paso_Solver(A,out,in,options,&pp);
           if (Paso_noError()) A->solver_package=PASO_PASO;
           break;
 
         #ifdef SCSL
         case PASO_SCSL:
-          Paso_SCSL(A,out,in,options);
+          Paso_SCSL(A,out,in,options,&pp);
           if (Paso_noError()) A->solver_package=PASO_SCSL;
           break;
         #endif
@@ -57,7 +59,7 @@ void Paso_solve(Paso_SystemMatrix* A,
   
         #ifdef MKL
         case PASO_MKL:
-          Paso_MKL(A,out,in,options);
+          Paso_MKL(A,out,in,options,&pp);
           if (Paso_noError()) A->solver_package=PASO_MKL;
           break;
         #endif
@@ -71,9 +73,10 @@ void Paso_solve(Paso_SystemMatrix* A,
 
         default:
            Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
-           return;
+           break;
      }
   }
+  Performance_close(&pp,options->verbose);
   return;
 }
 

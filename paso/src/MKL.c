@@ -52,7 +52,8 @@ void Paso_MKL_free(Paso_SystemMatrix* A) {
 void Paso_MKL(Paso_SystemMatrix* A,
                           double* out,
                           double* in,
-                          Paso_Options* options) {
+                          Paso_Options* options,
+                          Paso_Performance* pp) {
 #ifdef MKL
      double time0;
      index_t i;
@@ -61,6 +62,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
         Paso_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
         return;
      }
+     Performance_startMonitor(pp,PERFORMANCE_ALL);
      _INTEGER_t mtype = MKL_MTYPE_UNSYM;
      if (A->type & MATRIX_FORMAT_SYM) mtype=MKL_MTYPE_SYM;
      _INTEGER_t n = A->num_rows;
@@ -114,19 +116,18 @@ void Paso_MKL(Paso_SystemMatrix* A,
         if (error != MKL_ERROR_NO) {
              Paso_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
              Paso_MKL_free(A);
-             return;
-        }
-        /* LDU factorization */
-        phase = MKL_PHASE_FACTORIZATION;
-        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+        } else {
+           /* LDU factorization */
+           phase = MKL_PHASE_FACTORIZATION;
+           PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
                 &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                 iparm, &msglvl, in, out, &error);
-        if (error != MKL_ERROR_NO) {
+           if (error != MKL_ERROR_NO) {
              Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed.");
              Paso_MKL_free(A);
-             return;
+           }
+           if (options->verbose) printf("timing MKL: LDU factorization: %.4e sec.\n",Paso_timer()-time0);
         }
-        if (options->verbose) printf("timing MKL: LDU factorization: %.4e sec.\n",Paso_timer()-time0);
      }
      /* forward backward substitution\ */
      if (Paso_noError())  {
@@ -138,9 +139,9 @@ void Paso_MKL(Paso_SystemMatrix* A,
         if (options->verbose) printf("timing MKL: solve: %.4e sec\n",Paso_timer()-time0);
         if (error != MKL_ERROR_NO) {
               Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed.");
-              return;
         }
      }
+     Performance_stopMonitor(pp,PERFORMANCE_ALL);
 #else
     Paso_setError(SYSTEM_ERROR,"Paso_MKL:MKL is not avialble.");
 #endif

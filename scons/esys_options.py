@@ -27,12 +27,17 @@ umfpack_libs = []
 # locations of include files for python
 python_path = Dir('/usr/include')
 python_lib_path = Dir('/usr/lib')
-python_lib = Library('python2.3')
+python_lib = [ 'python2.3' ]
+
+# locations of PAPI
+papi_path = ''
+papi_lib_path = ''
+papi_libs = []
 
 # locations of libraries for boost
-boost_path = Dir('/usr/include')
-boost_lib_path = Dir('/usr/lib')
-boost_lib = Library('boost_python')
+boost_path = '/usr/include'
+boost_lib_path = '/usr/lib'
+boost_lib = 'boost_python'
 
 # locations of doc building executables
 doxygen_path = ''
@@ -80,7 +85,6 @@ if ARGUMENTS.get('incinstall',0): pyinstall = ARGUMENTS.get('incinstall',0)
 if ARGUMENTS.get('debug',0): dodebug = 1
 if ARGUMENTS.get('options',0): options = ARGUMENTS.get('options',0)
 if ARGUMENTS.get('usegcc',0): usegcc = 1
-
 #
 # try to import <hostname>_options
 try: 
@@ -111,7 +115,8 @@ if dodebug==1:
 
 #
 # export configuration variables
+#
 Export(["esysroot"])
 Export(["libinstall"])
-Export(["pyinstall"])
 Export(["incinstall"])
+Export(["pyinstall"])

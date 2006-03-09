@@ -52,7 +52,8 @@ err_t Paso_Solver_PCG(
     double * r,
     double * x,
     dim_t *iter,
-    double * tolerance) {
+    double * tolerance,
+    Paso_Performance* pp) {
 
 
   /* Local variables */
@@ -90,6 +91,7 @@ err_t Paso_Solver_PCG(
     #pragma omp parallel firstprivate(maxit,tol,convergeFlag,maxIterFlag,breakFlag) \
                                            private(tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,norm_of_residual,num_iter)
     {
+       Performance_startMonitor(pp,PERFORMANCE_SOLVER);
        /* initialize data */
        #pragma omp for private(i0) schedule(static)
        for (i0=0;i0<n;i0++) {
@@ -115,7 +117,11 @@ err_t Paso_Solver_PCG(
 	       sum_5 = 0;
            }
            /* v=prec(r)  */
+           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
+           Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Paso_Solver_solvePreconditioner(A,v,r);
+           Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
+           Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* tau=v*r    */
            #pragma omp for private(i0) reduction(+:sum_1) schedule(static)
            for (i0=0;i0<n;i0++) sum_1+=v[i0]*r[i0];
@@ -131,7 +137,11 @@ err_t Paso_Solver_PCG(
                for (i0=0;i0<n;i0++) p[i0]=v[i0]+beta*p[i0];
            }
            /* v=A*p */
+           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
+           Performance_startMonitor(pp,PERFORMANCE_MVM);
 	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
+           Performance_stopMonitor(pp,PERFORMANCE_MVM);
+           Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* delta=p*v */
            #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
            for (i0=0;i0<n;i0++) sum_2+=v[i0]*p[i0];
@@ -175,7 +185,8 @@ err_t Paso_Solver_PCG(
            } else if (breakFlag) {
                status = SOLVER_BREAKDOWN;
            }
-         }
+       }
+       Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
     }  /* end of parallel region */
     TMPMEMFREE(rs);
     TMPMEMFREE(x2);
