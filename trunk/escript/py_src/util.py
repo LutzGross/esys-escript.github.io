@@ -3566,21 +3566,23 @@ def eigenvalues(arg):
       if s[0]==1:
           return arg[0]
       elif s[0]==2:
-          A11=arg[0,0]
-          A12=arg[0,1]
-          A22=arg[1,1]
+          arg1=symmetric(arg)
+          A11=arg1[0,0]
+          A12=arg1[0,1]
+          A22=arg1[1,1]
           trA=(A11+A22)/2.
           A11-=trA
           A22-=trA
           s=sqrt(A12**2-A11*A22)
           return trA+s*numarray.array([-1.,1.],type=numarray.Float64)
       elif s[0]==3:
-          A11=arg[0,0]
-          A12=arg[0,1]
-          A22=arg[1,1]
-          A13=arg[0,2]
-          A23=arg[1,2]
-          A33=arg[2,2]
+          arg1=symmetric(arg)
+          A11=arg1[0,0]
+          A12=arg1[0,1]
+          A22=arg1[1,1]
+          A13=arg1[0,2]
+          A23=arg1[1,2]
+          A33=arg1[2,2]
           trA=(A11+A22+A33)/3.
           A11-=trA
           A22-=trA
@@ -3591,7 +3593,7 @@ def eigenvalues(arg):
           p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
           q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
           sq_p=sqrt(p/3.)
-          alpha_3=acos(clip(-q*sq_p**(-3.)/2.,-1.,1.))/3.
+          alpha_3=acos(clip(-q*(sq_p+whereZero(p,0.)*1.e-15)**(-3.)/2.,-1.,1.))/3.  # whereZero is protection against divison by zero
           sq_p*=2.
           f=cos(alpha_3)               *numarray.array([0.,0.,1.],type=numarray.Float64) \
            -cos(alpha_3+numarray.pi/3.)*numarray.array([0.,1.,0.],type=numarray.Float64) \
@@ -3929,9 +3931,9 @@ def power(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
-          return numarray.zeros(args[0],numarray.Float64)
+          return numarray.zeros(pokeShape(args[0]),numarray.Float64)
        elif testForZero(args[1]):
-          return numarray.ones(args[0],numarray.Float64)
+          return numarray.ones(pokeShape(args[1]),numarray.Float64)
        elif isinstance(args[0],Symbol) or isinstance(args[1],Symbol):
           return Power_Symbol(args[0],args[1])
        elif isinstance(args[0],numarray.NumArray) and not isinstance(args[1],numarray.NumArray):
