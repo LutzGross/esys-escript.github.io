@@ -522,19 +522,19 @@ def mkText(case,name,a,a1=None,use_tagging_for_expanded_data=False):
 
          return t_out
 
-def mkTypeAndShapeTest(case,sh,argstr):
+def mkTypeAndShapeTest(case,sh,argstr,name=""):
     text=""
     if case=="float":
-         text+="      self.failUnless(isinstance(%s,float),\"wrong type of result.\")\n"%argstr
+         text+="      self.failUnless(isinstance(%s,float),\"wrong type of result%s.\")\n"%(argstr,name)
     elif case=="array":
-         text+="      self.failUnless(isinstance(%s,numarray.NumArray),\"wrong type of result.\")\n"%argstr
-         text+="      self.failUnlessEqual(%s.shape,%s,\"wrong shape of result.\")\n"%(argstr,str(sh))
+         text+="      self.failUnless(isinstance(%s,numarray.NumArray),\"wrong type of result%s.\")\n"%(argstr,name)
+         text+="      self.failUnlessEqual(%s.shape,%s,\"wrong shape of result%s.\")\n"%(argstr,str(sh),name)
     elif case in ["constData","taggedData","expandedData"]:    
-         text+="      self.failUnless(isinstance(%s,Data),\"wrong type of result.\")\n"%argstr
-         text+="      self.failUnlessEqual(%s.getShape(),%s,\"wrong shape of result.\")\n"%(argstr,str(sh))
+         text+="      self.failUnless(isinstance(%s,Data),\"wrong type of result%s.\")\n"%(argstr,name)
+         text+="      self.failUnlessEqual(%s.getShape(),%s,\"wrong shape of result%s.\")\n"%(argstr,str(sh),name)
     elif case=="Symbol":
-         text+="      self.failUnless(isinstance(%s,Symbol),\"wrong type of result.\")\n"%argstr
-         text+="      self.failUnlessEqual(%s.getShape(),%s,\"wrong shape of result.\")\n"%(argstr,str(sh))
+         text+="      self.failUnless(isinstance(%s,Symbol),\"wrong type of result%s.\")\n"%(argstr,name)
+         text+="      self.failUnlessEqual(%s.getShape(),%s,\"wrong shape of result%s.\")\n"%(argstr,str(sh),name)
     return text
 
 def mkCode(txt,args=[],intend=""):
@@ -549,6 +549,60 @@ def mkCode(txt,args=[],intend=""):
     for r in args:
       out=out.replace("%%a%s%%"%c,r)
     return out   
+
+
+#=======================================================================================================
+# eigenvalues and eigen vectors 2D:
+#=======================================================================================================
+alltests= \
+  [ ("case0",[[0.0, 0.0], [0.0, 0.0]],[0.0, 0.0]) \
+   , ("case3",[[-1.0, 0.0], [0.0, -1.0]],[-1.0, -1.0]) \
+   , ("case5",[[-0.99999999999999967, -6.4606252205695602e-16], [-6.4606252205695602e-16, -0.99999999999999967]],[-1.0, -1.0]) \
+   , ("case6",[[0.0, 0.0], [0.0, 0.0001]],[0.0, 0.0001]) \
+   , ("case7",[[0.0001, 0.0], [0.0, 0.0]],[0.0, 0.0001]) \
+   , ("case8",[[6.0598371831785722e-06, 2.3859213977648625e-05], [2.3859213977648629e-05, 9.3940162816821425e-05]],[0.0, 0.0001]) \
+   , ("case9",[[1.0, 0.0], [0.0, 2.0]],[1.0, 2.0]) \
+   , ("case10",[[2.0, 0.0], [0.0, 1.0]],[1.0, 2.0]) \
+   , ("case11",[[1.0605983718317855, 0.23859213977648688], [0.23859213977648688, 1.9394016281682138]],[1.0, 2.0]) \
+   , ("case12",[[1.0, 0.0], [0.0, 1000000.0]],[1.0, 1000000.0]) \
+   , ("case13",[[1000000.0, 0.0], [0.0, 1.0]],[1.0, 1000000.0]) \
+   , ("case14",[[60599.311233413886, 238591.90118434647], [238591.90118434647, 939401.68876658613]],[1.0, 1000000.0]) \
+   ]
+dim=2
+for case in ["constData","taggedData","expandedData"]: 
+   n=0
+   while n<len(alltests):
+      text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+      tname="test_eigenvalues_and_eigenvectors_%s_dim%s_%s"%(case,dim,alltests[n][0])
+      text+="   def %s(self):\n"%tname
+      a_0=numarray.array(alltests[n][1],numarray.Float64)
+      ev_0=numarray.array(alltests[n][2],numarray.Float64)
+      if case in ["taggedData", "expandedData"]:
+         a1_0=numarray.array(alltests[n+1][1],numarray.Float64)
+         ev1_0=numarray.array(alltests[n+1][2],numarray.Float64)
+         n+=2
+      else:
+         a1_0=a_0                  
+         ev1_0=ev_0
+         n+=1
+      text+=mkText(case,"arg",a_0,a1_0)
+      text+="      res=eigenvalues_and_eigenvectors(arg)\n"
+      text+=mkText(case,"ref_ev",ev_0,ev1_0)
+      text+=mkTypeAndShapeTest(case,(dim,),"res[0]"," for eigenvalues")
+      text+=mkTypeAndShapeTest(case,(dim,dim),"res[1]"," for eigenvectors")
+      text+="      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),\"wrong eigenvalues\")\n"
+      for i in range(dim):
+          text+="      self.failUnless(Lsup(matrixmult(arg,res[1][:,%s])-res[0][%s]*res[1][:,%s])<=self.RES_TOL*Lsup(res[0]),\"wrong eigenvector %s\")\n"%(i,i,i,i)
+      text+="      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(%s))<=self.RES_TOL,\"eigenvectors are not orthonormal\")\n"%dim
+      if case == "taggedData" :
+           t_prog_with_tags+=text
+      else:              
+           t_prog+=text
+print test_header
+print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
 #=======================================================================================================
 # get slices
 #=======================================================================================================
