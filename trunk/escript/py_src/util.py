@@ -3610,14 +3610,16 @@ def eigenvalues(arg):
 
 def eigenvalues_and_eigenvectors(arg):
     """
-    returns the eigenvalues of the square matrix arg. 
+    returns the eigenvalues and eigenvectors of the square matrix arg. 
 
     @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal.
                 arg must be symmetric, ie. transpose(arg)==arg (this is not checked).
-    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
-    @return: the eigenvalues in increasing order.
-    @rtype: L{numarray.NumArray},L{escript.Data}, L{Symbol} depending on the input.
-    @remark: for L{escript.Data} and L{Symbol} objects the dimension is restricted to 3.
+    @type arg: L{escript.Data}
+    @return: the eigenvalues and eigenvectors. The eigenvalues are ordered by increasing value. The 
+             eigenvectors are orthogonal and normalized. If V are the eigenvectors than V[:,i] is
+             the eigenvector coresponding to the i-th eigenvalue. 
+    @rtype: L{tuple} of L{escript.Data}.
+    @remark: The dimension is restricted to 3. 
     """
     if isinstance(arg,numarray.NumArray):
       raise TypeError,"eigenvalues_and_eigenvectors is not supporting numarray arguments"
