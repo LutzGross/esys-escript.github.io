@@ -132,12 +132,12 @@ void  vectorInKernel2(const double A00,const double A10,const double A01,const d
                       double* V0, double*V1)
 {
       register double absA00=fabs(A00);
-      register double absA01=fabs(A01);
       register double absA10=fabs(A10);
+      register double absA01=fabs(A01);
       register double absA11=fabs(A11);
-      register double m=absA11>absA01 ? absA11 : absA01;
-      if (absA00>m || absA10>m) {
-         *V0=-A10;
+      register double m=absA11>absA10 ? absA11 : absA10;
+      if (absA00>m || absA01>m) {
+         *V0=-A01;
          *V1=A00;
       } else {
          if (m<=0) {
@@ -145,7 +145,7 @@ void  vectorInKernel2(const double A00,const double A10,const double A01,const d
            *V1=0.;
          } else {
            *V0=A11;
-           *V1=-A01;
+           *V1=-A10;
          }
      }
 }
@@ -223,21 +223,21 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
             *V00=-TEMP0*scale;
             *V10=-TEMP1*scale;
             if (TEMP1<0.) {
-               *V01=  *V10;
+               *V01=  *V10; 
                *V11=-(*V00);
             } else {
                *V01=-(*V10);
-               *V11= (*V00);
+               *V11= (*V10);
             }
         } else if (TEMP0>0.) {
             *V00=TEMP0*scale;
             *V10=TEMP1*scale;
             if (TEMP1<0.) {
-               *V01=-(*V10);
+               *V01=-(*V10); 
                *V11= (*V00);
             } else {
-               *V01= (*V10);
-               *V11=-(*V00);
+               *V01= (*V10); 
+               *V11=-(*V00); 
             }
         } else {
            *V00=0.;

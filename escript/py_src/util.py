@@ -3607,6 +3607,30 @@ def eigenvalues(arg):
       return float(arg)
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
+
+def eigenvalues_and_eigenvectors(arg):
+    """
+    returns the eigenvalues of the square matrix arg. 
+
+    @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal.
+                arg must be symmetric, ie. transpose(arg)==arg (this is not checked).
+    @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: the eigenvalues in increasing order.
+    @rtype: L{numarray.NumArray},L{escript.Data}, L{Symbol} depending on the input.
+    @remark: for L{escript.Data} and L{Symbol} objects the dimension is restricted to 3.
+    """
+    if isinstance(arg,numarray.NumArray):
+      raise TypeError,"eigenvalues_and_eigenvectors is not supporting numarray arguments"
+    elif isinstance(arg,escript.Data):
+      return arg._eigenvalues_and_eigenvectors()
+    elif isinstance(arg,Symbol):
+      raise TypeError,"eigenvalues_and_eigenvectors is not supporting Symbol arguments"
+    elif isinstance(arg,float):
+      return (numarray.array([[arg]],numarray.Float),numarray.ones((1,1),numarray.Float))
+    elif isinstance(arg,int):
+      return (numarray.array([[arg]],numarray.Float),numarray.ones((1,1),numarray.Float))
+    else:
+      raise TypeError,"eigenvalues: Unknown argument type."
 #=======================================================
 #  Binary operations:
 #=======================================================
