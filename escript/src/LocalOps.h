@@ -177,7 +177,8 @@ void  vectorInKernel3__nonZeroA00(const double A00,const double A10,const double
     register const double I00=1./A00;
     register const double IA10=I00*A10;
     register const double IA20=I00*A20;
-    vectorInKernel2(A11-IA10*A01,A21-IA20*A01,A12-IA10*A02,A22-IA20*A02,&TEMP0,&TEMP1);
+    vectorInKernel2(A11-IA10*A01,A12-IA10*A02,
+                    A21-IA20*A01,A22-IA20*A02,&TEMP0,&TEMP1);
     *V0=-(A10*TEMP0+A20*TEMP1);
     *V1=A00*TEMP0;
     *V2=A00*TEMP1;
@@ -331,27 +332,27 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
             *ev1=TEMP_EV0;
             *ev2=TEMP_EV1;
         } else if (A00>TEMP_EV1) {
-            *V00=TEMP_V00;
-            *V10=TEMP_V10;
-            *V20=0.;
-            *V01=TEMP_V01;
-            *V11=TEMP_V11;
-            *V21=0.;
-            *V02=0.;
+            *V02=1.;
             *V12=0.;
-            *V22=1.;
-            *ev0=TEMP_EV0;
-            *ev1=TEMP_EV1;
-            *ev0=A00;
-        } else {
-            *V00=TEMP_V00;
-            *V10=0;
+            *V22=0.;
+            *V00=0.;
+            *V10=TEMP_V00;
             *V20=TEMP_V10;
             *V01=0.;
-            *V11=1.;
+            *V11=TEMP_V01;
+            *V21=TEMP_V11;
+            *ev0=TEMP_EV0;
+            *ev1=TEMP_EV1;
+            *ev2=A00;
+        } else {
+            *V01=1.;
+            *V11=0.;
             *V21=0.;
-            *V02=TEMP_V01;
-            *V12=0.;
+            *V00=0.;
+            *V10=TEMP_V00;
+            *V20=TEMP_V10;
+            *V02=0.;
+            *V12=TEMP_V01;
             *V22=TEMP_V11;
             *ev0=TEMP_EV0;
             *ev1=A00;
