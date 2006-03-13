@@ -29,9 +29,12 @@ epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
 epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
 
 # locations of PAPI
-papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
-papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
-papi_libs = [ 'papi' ]
+# papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
+# papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
+# papi_libs = [ 'papi' ]
+papi_path = ''
+papi_lib_path = ''
+papi_libs = [ ]
 
 # names of c and c++ compilers to use
 cc = 'icc'
