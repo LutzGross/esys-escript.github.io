@@ -106,16 +106,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("__str__",&escript::FunctionSpace::toString)
      .def(self == self)
      .def(self != self);
-
-  //
-  // Interface for DataVariable
-  //
-  class_<escript::DataVariable>("DataVariable",init<>())
-    .def(init<escript::Data*>())
-    .def("evaluate",&escript::DataVariable::evaluate)
-    .def("sum",&escript::DataVariable::sum)
-    .def("diff",&escript::DataVariable::diff);
-
   //
   // Interface for Data
   //
