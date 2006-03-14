@@ -50,7 +50,7 @@ In our case $a^{(n)}$ is given by
 \rho a^{(n)}\hackscore{i}=\sigma^{(n-1)}\hackscore{ij,j}
 \end{eqnarray}
 and boundary conditions
-\begin{eqnarray} \label{WAVE natural}
+\begin{eqnarray} \label{WAVE natural at n}
 \sigma^{(n-1)}\hackscore{ij}n\hackscore{j}=0
 \end{eqnarray}
 derived from \eqn{WAVE natural} where 
@@ -72,7 +72,7 @@ Implicitly, the natural boundary condition
 n\hackscore{j}X\hackscore{ij} =0 
 \end{equation}
 is assumed. The \LinearPDE object allows defining constraints of the form
-\begin{equation}\label{WAVE dyn 101}
+\begin{equation}\label{WAVE dyn 102}
 u\hackscore{i}(x)=r\hackscore{i}(x) \mbox{ for } x \mbox{ with } q\hackscore{i}>0
 \end{equation}
 where $r$ and $q$ are given functions. However in this problem we don't need to define 
@@ -266,20 +266,20 @@ To visualize the results from the data directory:
 Again use \code{Configure Data} to move backwards and forward in time, and 
 also to choose the results (acceleration, displacement or $u\hackscore x$) by using \code{Select Scalar}. Figure \ref{WAVE FIG 2} shows the results for the displacement at various time steps.
 
- \begin{figure}{t!}
- \centerline{\includegraphics[width=3.in,angle=270]{WavePC.ps}}
- \caption{Amplitude at Point source}
- \label{WAVE FIG 1}
- \end{figure}
+\begin{figure}{t!}
+\centerline{\includegraphics[width=3.in,angle=270]{WavePC.eps}}
+\caption{Amplitude at Point source}
+\label{WAVE FIG 1}
+\end{figure}
 
 \begin{figure}{t}
 \begin{center}
-\includegraphics[width=2in,angle=270]{Wavet0.ps}
-\includegraphics[width=2in,angle=270]{Wavet1.ps}
-\includegraphics[width=2in,angle=270]{Wavet3.ps}
-\includegraphics[width=2in,angle=270]{Wavet10.ps}
-\includegraphics[width=2in,angle=270]{Wavet30.ps}
-\includegraphics[width=2in,angle=270]{Wavet288.ps}
+\includegraphics[width=2in,angle=270]{Wavet0.eps}
+\includegraphics[width=2in,angle=270]{Wavet1.eps}
+\includegraphics[width=2in,angle=270]{Wavet3.eps}
+\includegraphics[width=2in,angle=270]{Wavet10.eps}
+\includegraphics[width=2in,angle=270]{Wavet30.eps}
+\includegraphics[width=2in,angle=270]{Wavet288.eps}
 \end{center}
 \caption{Selected time steps ($n = 0,1,30,100,300$ and 2880) of a wave propagation over a $10\mbox{km} \times 10\mbox{km} \times 3.125\mbox{km}$ block 
 from a point source initially at $(5\mbox{km},5\mbox{km},0)$

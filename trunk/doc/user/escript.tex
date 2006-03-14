@@ -110,7 +110,7 @@ all components.
 
 \Data objects can also be created from any \numarray
 array or any object, such as a list of floating point numbers, 
-that can be converted into a \numarray array \Ref{NUMARRAY}. 
+that can be converted into a \numarray.NumArray \Ref{NUMARRAY}. 
 The following two statements
 create objects which are equivalent to \var{mydat}:
 \begin{python}
@@ -118,11 +118,11 @@ mydat1=Data(value=numarray.ones((2,3)),what=ContinuousFunction(myDomain))
 mydat2=Data(value=[[1,1],[1,1],[1,1]],what=ContinuousFunction(myDomain))
 \end{python}
 In the first case the initial value is \var{numarray.ones((2,3))}
-which generates a $2 \times 3$ matrix as a \numarray array 
+which generates a $2 \times 3$ matrix as a \numarray.NumArray 
 filled with ones. The \Shape of the created \Data object
 it taken from the \Shape of the array. In the second
 case, the creator converts the initial value, which is a list of lists,
-and converts it into a \numarray array before creating the actual
+and converts it into a \numarray.NumArray before creating the actual
 \Data object.      
 
 For convenience \escript provides creators for the most common types
@@ -138,7 +138,7 @@ eg. a stress field.
 \item \var{Tensor4(0,Function(mydomain))} is the same as \var{Data(0,Function(myDomain),(d,d,d,d))}
 eg. a Hook tensor field.   
 \end{itemize}
-Here the initial value is $0$ but any object that can be converted into a \numarray array and whose \Shape
+Here the initial value is $0$ but any object that can be converted into a \numarray.NumArray and whose \Shape
 is consistent with \Shape of the \Data object to be created can be used as the initial value.
 
 \Data objects can be manipulated by applying unitary operations (eg. cos, sin, log) 
@@ -251,7 +251,6 @@ processing the value for each individual sample point.
 
 
 \section{\Domain class}
-
 \begin{classdesc}{Domain}{}
 A \Domain object is used to describe a geometrical region together with 
 a way of representing functions over this region.
@@ -259,7 +258,7 @@ The \Domain class provides an abstract access to the domain of \FunctionSpace an
 \Domain itself has no initialization but implementations of \Domain are 
 instantiated by numerical libraries making use of \Data objects. 
 \end{classdesc}
-
+The following methds are available:
 \begin{methoddesc}[Domain]{getDim}{}
 returns the spatial dimension of the \Domain.
 \end{methoddesc}
@@ -294,6 +293,10 @@ returns \True of the \Domain \var{arg} does not describe the same domain.
 Otherwise \False is returned.
 \end{methoddesc}
 
+\begin{methoddesc}[Domain]{__str__}{g}
+returns string represention of the \Domain.
+\end{methoddesc}
+
 \section{\Domain class}
 \begin{classdesc}{FunctionSpace}{}
 \FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
@@ -301,7 +304,7 @@ are instantiated by generator functions. \Data objects in particular \FunctionSp
 represented by their values at \DataSamplePoints which are defined by the type and the \Domain of the
 \FunctionSpace.
 \end{classdesc}
-
+The following methds are available:
 \begin{methoddesc}[FunctionSpace]{getDim}{}
 returns the spatial dimension of the \Domain of the \FunctionSpace.
 \end{methoddesc}
@@ -334,6 +337,10 @@ returns \True of the \Domain \var{arg} describes the same domain. Otherwise
 \begin{methoddesc}[FunctionSpace]{__ne__}{arg}
 returns \True of the \Domain \var{arg} describes the note same domain. 
 Otherwise \False is returned.
+\end{methoddesc}
+
+\begin{methoddesc}[Domain]{__str__}{g}
+returns string represention of the \Domain.
 \end{methoddesc}
 
 The following function provide generators for \FunctionSpace objects:
@@ -448,269 +455,33 @@ index may be dropped. In the returned or in the object assigned to a slice the c
 i.e. the rank is reduced by one in comparison to \var{arg}.
 The following examples show slicing usage:  
 \begin{python}
+t=Data(1.,(4,4,6,6),Function(mydomain))
 t[1,1,1,0]=9.
 s=t[:2,:,2:6,5] # s has rank 3
 s[:,:,1]=1.
 t[:2,:2,5,5]=s[2:4,1,:2]
 \end{python}
 
-
-
-\begin{classdesc}{Data}{value=0,shape=(,),what=FunctionSpace(),expanded=\False}
+\subsection{Generation of \Data class objects}
+\begin{classdesc}{Data}{value=0,shape=(,),what=FunctionSpace(),expand=\False}
 creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
 The values at all \DataSamplePoints are set to the double value \var{value}. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{classdesc}
 
-\begin{classdesc}{Data}{value,what=FunctionSpace(),expanded=\False}
+\begin{classdesc}{Data}{value,what=FunctionSpace(),expand=\False}
 creates a \Data object in the \FunctionSpace \var{what}. 
-The value for each \DataSamplePoints is set to \numarray object \var{value}. 
+The value for each \DataSamplePoints is set to \numarray, \Data object \var{value} or a dictionary of 
+\numarray or floating point numbers. In the latter case the keys muts be integers and are used
+as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}. If \var{expanded} is \True
 the \Data object is represented in expanded from.
-\end{classdesc}
-
-\begin{classdesc}{Data}{value,what=FunctionSpace()}
-creates a \Data object in the \FunctionSpace \var{what} from the \Data object \var{value}.
-The \Shape of the created \Data object is equal to the \Shape of \var{value}.
-If the \FunctionSpace of \var{value} is equal to the \var{what}, a shallow copy, i.e.
-a reference to the representation of \var{value} is greated. Otherwise,
-\var{value} is interpolated into the \var{what}. 
 \end{classdesc}
 
 \begin{classdesc}{Data}{}
 creates an \EmptyData object. The \EmptyData object is used to indicate that an argument is not present
 where a \Data object is required.
 \end{classdesc}
-
-\begin{methoddesc}[Data]{getFunctionSpace}{}
-returns the \FunctionSpace of the object.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{getFunctionSpace}{}
-returns the \Domain  of the object.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{getShape}{}
-returns the \Shape  of the object as a \class{tuple} of
-integers.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{getRank}{}
-returns the rank of the data on each data point. \index{rank}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{isEmpty}{}
-returns \True id the \Data object is the \EmptyData object.
-Otherwise \False is returned.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{setTaggedValue}{tag,value}
-assigns the \var{value} to all \DataSamplePoints which have the tag
-\var{tag}. \var{value} must be an object of class
-\class{numarray.array} or must be convertable into a
-\class{numarray.array} object. \var{value} (or the cooresponding
-\class{numarray.array} object) must be of rank $0$ or must have the
-same rank like the object.
-If a value has already be defined for tag \var{tag} within the object
-it is overwritten by the new \var{value}.  If the object is expanded,
-the value assigned to \DataSamplePoints with tag \var{tag} is replaced by
-\var{value}.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{wherePositive}{}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is positive and $0$ elsewhere.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{wherePositive}{}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is non-positive and $0$ elsewhere.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{whereNonnegative}{}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is non-negative and $0$ elsewhere.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{whereNegative}{}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is negative and $0$ elsewhere.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{whereZero}{tolerance=1.e-8}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is nearly zero, i.e. where the absolute value is less
-than \var{tolerance}, and $0$ elsewhere.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{whereNonzero}{tolerance=1.e-8}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is nearly non-zero, i.e. where the absolute value is
-greater or equal than \var{tolerance}, and $0$ elsewhere.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{sign}{}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is positive, $-1$ where the value is negative and $0$ elsewhere.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{copyWithMask}{arg,mask}
-copies the \Data object \var{arg} into the object 
-where the \Data object \var{mask} is positive. \var{arg}
-and \var{mask} must have the same \Shape 
-and must belong to same \FunctionSpace as
-the object.
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{Lsup}{}
-returns the $L^{sup}$-norm of the object. This is maximum absolute values over all components and all \DataSamplePoints. \index{$L^{sup}$-norm}.
-\end{methoddesc}
-\begin{methoddesc}[Data]{Linf}{}
-returns the minimum absolute value over all components and all \DataSamplePoints. \index{$L^{inf}$-norm}.
-\end{methoddesc}
-\begin{methoddesc}[Data]{inf}{}
-returns the minimum value (infimum) of the object. The minimum is
-taken over all components and all \DataSamplePoints .  \index{infimum}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{sup}{}
-returns the maximum value (supremum) of the object. The maximum is
-taken over all components and all \DataSamplePoints .  \index{supremum}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{grad}{\optional{on}}
-returns the gradient of the function represented by the object.
-\Data object is in \FunctionSpace \var{on} and has rank r+1 where r is the rank of the object.
-If \var{on} is not present, a suitbale \FunctionSpace is used. 
-\index{gradient}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{integrate}{}
-returns the integral of the function represented by the object. The method returns
-a \class{numarray.array} object of the same \Shape like the object.  A
-component of the returned object is the integral of the corresponding
-component of the object. \index{integral}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{interpolate}{on}
-interpolates 
-the function represented by the object
-into the \FunctionSpace\var{on}.
-\index{interpolation}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{abs}{} 
-applies the absolute value function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the exponential
-function. \index{function!absolute value}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{exp}{} 
-applies the exponential function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the exponential
-function. \index{function!exponential}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{sqrt}{}
-applies the square root function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the square root function. 
-An exception is
-raised if the value is negative.  \index{function!square root}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{sin}{}
-applies the sine function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the sine function. \index{function!sine}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{cos}{}
-applies the cosine function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the cosine function. \index{function!cosine}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{tan}{}
-applies the tangent function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the tangent function. \index{function!tangent}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{log}{}
-applies the logarithmic function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the logarithmic function. An exception is
-raised if the value is negative.\index{function!logarithmic}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{maxval}{}
-returns the maximum value over all components. The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints
-the value is calculated as the maximum value over all components. \index{function!maximum}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{minval}{}
-returns the minimum value over all components. The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints
-the value is calculated as the minimum value over all components. \index{function!minimum}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{length}{}
-returns the Euclidean length at all \DataSamplePoints. The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints
-the value is calculated as the square root of the sum of the square over all over all components. \index{function!length}
-\end{methoddesc}
-\begin{methoddesc}[Data]{transpose}{axis}
-returns the transpose of the object around \var{axis}. \var{axis} is a non-negative integer
-which is less the rank $r$ of the object. Transpose swaps the indexes $0$ to \var{axis}
-with the indexes \var{axis}+1 to $r$. If the \var{d} is \RankFour one has 
-\begin{python}
-d[i,j,k,l]=d.transpose(0)[i,j,k,l]
-d[i,j,k,l]=d.transpose(1)[j,k,l,i]
-d[i,j,k,l]=d.transpose(2)[k,l,i,j]
-d[i,j,k,l]=d.transpose(3)[l,i,j,k]
-\end{python}
-\index{function!transpose}
-\end{methoddesc}
-
-\begin{methoddesc}[Data]{trace}{}
-returns sum of the components with identical indexes. 
-The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object.
-\index{function!trace}
-\end{methoddesc}
-\begin{methoddesc}[Data]{saveDX}{fileName}
-saves the object to an openDX format file of name \var{fileName}, see
-\ulink{www.opendx.org}{\url{www.opendx.org}}.  \index{openDX}
-\end{methoddesc}
-
-
-For convenience the following factories are provided to created \Data object:
 
 \begin{funcdesc}{Scalar}{value=0.,what=escript::FunctionSpace(),expand=\False}
 returns a \Data object of rank 0 in the \FunctionSpace \var{what}.
@@ -745,6 +516,400 @@ where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialed with the double \var{value}. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
+
+\subsection{\Data class methods}
+This is a list of frequently used methods of the 
+\Data class. A complete list can be fond on \ReferenceGuide.
+\begin{methoddesc}[Data]{getFunctionSpace}{}
+returns the \FunctionSpace of the object.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{getDomain}{}
+returns the \Domain  of the object.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{getShape}{}
+returns the \Shape  of the object as a \class{tuple} of
+integers.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{getRank}{}
+returns the rank of the data on each data point. \index{rank}
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{isEmpty}{}
+returns \True id the \Data object is the \EmptyData object.
+Otherwise \False is returned.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{setTaggedValue}{tag,value}
+assigns the \var{value} to all \DataSamplePoints which have the tag
+\var{tag}. \var{value} must be an object of class
+\class{numarray.NumArray} or must be convertible into a
+\class{numarray.NumArray} object. \var{value} (or the corresponding
+\class{numarray.NumArray} object) must be of rank $0$ or must have the
+same rank like the object.
+If a value has already be defined for tag \var{tag} within the object
+it is overwritten by the new \var{value}.  If the object is expanded,
+the value assigned to \DataSamplePoints with tag \var{tag} is replaced by
+\var{value}.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{__str__}{}
+returns a string representation of the object.
+\end{methoddesc}
+
+\section{Functions of \Data class objects}
+This section lists the most important functions for \Data class objects \var{a}.
+A complete list and a more detailed description of the functionality can be fond on \ReferenceGuide.
+\begin{funcdesc}{saveVTK}{filename,\optional{domain},**data}
+writes a 
+\end{funcdesc}
+\begin{funcdesc}{saveDX}{filename,domain=None,**data}
+\end{funcdesc}
+\begin{funcdesc}{kronecker}{d}
+returns a \RankTwo \Data object \var{o} in \FunctionSpace \var{d} such that
+\begin{equation}
+o\left[ i,j\right] = \left\{ 
+\begin{array}{cc}
+1 & \mbox{ if } i=j \\
+0 & \mbox{ otherwise }
+\end{array}
+\right.
+\end{equation}
+\end{funcdesc}
+
+\begin{funcdesc}{identityTensor}{d}
+\end{funcdesc}
+\begin{funcdesc}{identityTensor4}{d}
+\end{funcdesc}
+\begin{funcdesc}{unitVector}{i,d}
+\end{funcdesc}
+
+\begin{funcdesc}{Lsup}{a}
+returns the $L^{sup}$ norm of \var{arg}. This is the maximum of the absolute values
+ over all components and all \DataSamplePoints of \var{a}. 
+\end{funcdesc}
+
+\begin{funcdesc}{sup}{a}
+returns the maximum value over all components and all \DataSamplePoints of \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{inf}{a}
+returns the minimum value over all components and all \DataSamplePoints of \var{a}
+\end{funcdesc}
+
+\begin{funcdesc}{sin}{a}
+applies sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{cos}{a}
+applies cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{tan}{a}
+applies tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{asin}{a}
+applies arc (inverse) sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{acos}{a}
+applies arc (inverse) cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{atan}{a}
+applies arc (inverse) tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sinh}{a}
+applies hyperbolic sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{cosh}{a}
+applies hyperbolic cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{tanh}{a}
+applies hyperbolic tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{asinh}{a}
+applies arc (inverse) hyperbolic sine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{acosh}{a}
+applies arc (inverse) hyperbolic cosine function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{atanh}{a}
+applies arc (inverse) hyperbolic tangent function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{exp}{a}
+applies exponential function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{sqrt}{a}
+applies square root function to \var{a}.
+\end{funcdesc}
+
+\begin{funcdesc}{log}{a}
+\end{funcdesc}
+
+\begin{funcdesc}{log10}{a}
+\end{funcdesc}
+
+\begin{funcdesc}{sign}{a}
+\end{funcdesc}
+
+\begin{funcdesc}{wherePositive}{a}
+\end{funcdesc}
+\begin{funcdesc}{whereNegative}{a}
+\end{funcdesc}
+\begin{funcdesc}{whereNonNegative}{a}
+\end{funcdesc}
+\begin{funcdesc}{whereNonPositive}{a}
+\end{funcdesc}
+\begin{funcdesc}{whereZero}{a,tol=0.}
+\end{funcdesc}
+\begin{funcdesc}{whereNonZero}{a,tol=0.}
+\end{funcdesc}
+\begin{funcdesc}{minval}{a}
+\end{funcdesc}
+\begin{funcdesc}{maxval}{a}
+\end{funcdesc}
+\begin{funcdesc}{length}{a}
+\end{funcdesc}
+\begin{funcdesc}{trace}{a,axis_offset=0}
+\end{funcdesc}
+\begin{funcdesc}{transpose}{a,axis_offset=None}
+\end{funcdesc}
+\begin{funcdesc}{symmetric}{a}
+\end{funcdesc}
+\begin{funcdesc}{nonsymmetric}{a}
+\end{funcdesc}
+\begin{funcdesc}{inverse}{a}
+\end{funcdesc}
+\begin{funcdesc}{eigenvalues}{a}
+\end{funcdesc}
+\begin{funcdesc}{eigenvalues_and_eigenvectors}{a}
+\end{funcdesc}
+\begin{funcdesc}{maximum}{a}
+\end{funcdesc}
+\begin{funcdesc}{minimum}{a}
+\end{funcdesc}
+\begin{funcdesc}{clip}{a,minval=0.,maxval=1.}
+\end{funcdesc}
+\begin{funcdesc}{inner}{a0,a1}
+\end{funcdesc}
+\begin{funcdesc}{matrixmult}{a0,a1}
+\end{funcdesc}
+\begin{funcdesc}{outer}{a0,a1}
+\end{funcdesc}
+\begin{funcdesc}{tensormult}{a0,a1}
+\end{funcdesc}
+\begin{funcdesc}{grad}{a,where=None}
+\end{funcdesc}
+\begin{funcdesc}{integrate}{a,where=None}
+\end{funcdesc}
+\begin{funcdesc}{interpolate}{a,where}
+\end{funcdesc}
+\begin{funcdesc}{div}{a,where=None}
+\end{funcdesc}
+\begin{funcdesc}{jump}{a,domain=None}
+\end{funcdesc}
+\begin{funcdesc}{L2}{a}
+\end{funcdesc}
+
+====
+
+
+\begin{funcdesc}{wherePositive}{a}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is positive and $0$ elsewhere.
+\end{funcdesc}
+
+\begin{funcdesc}{wherePositive}{a}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is non-positive and $0$ elsewhere.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonnegative}{a}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is non-negative and $0$ elsewhere.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNegative}{a}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is negative and $0$ elsewhere.
+\end{funcdesc}
+
+\begin{funcdesc}{whereZero}{a,tol=1.e-8}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is nearly zero, i.e. where the absolute value is less
+than \var{tolerance}, and $0$ elsewhere.
+\end{funcdesc}
+
+\begin{funcdesc}{whereNonzero}{tolerance=1.e-8}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is nearly non-zero, i.e. where the absolute value is
+greater or equal than \var{tolerance}, and $0$ elsewhere.
+\end{funcdesc}
+
+\begin{funcdesc}{sign}{a}
+returns \Data object which has the same \Shape and is defined on
+the same \FunctionSpace like the object. The returned values are $1$
+where the object is positive, $-1$ where the value is negative and $0$ elsewhere.
+\end{funcdesc}
+
+\begin{funcdesc}{Lsup}{a}
+returns the $L^{sup}$-norm of the object. This is maximum absolute values over all components and all \DataSamplePoints. \index{$L^{sup}$-norm}.
+\end{funcdesc}
+\begin{funcdesc}{Linf}{a}
+returns the minimum absolute value over all components and all \DataSamplePoints. \index{$L^{inf}$-norm}.
+\end{funcdesc}
+\begin{funcdesc}{inf}{a}
+returns the minimum value (infimum) of the object. The minimum is
+taken over all components and all \DataSamplePoints .  \index{infimum}
+\end{funcdesc}
+
+\begin{funcdesc}{sup}{a}
+returns the maximum value (supremum) of the object. The maximum is
+taken over all components and all \DataSamplePoints .  \index{supremum}
+\end{funcdesc}
+
+\begin{funcdesc}{grad}{a,\optional{where}}
+returns the gradient of the function represented by the object.
+\Data object is in \FunctionSpace \var{on} and has rank r+1 where r is the rank of the object.
+If \var{on} is not present, a suitbale \FunctionSpace is used. 
+\index{gradient}
+\end{funcdesc}
+
+\begin{funcdesc}{integrate}{a,\optional{where}}
+returns the integral of the function represented by the object. The method returns
+a \class{numarray.NumArray} object of the same \Shape like the object.  A
+component of the returned object is the integral of the corresponding
+component of the object. \index{integral}
+\end{funcdesc}
+
+\begin{funcdesc}{interpolate}{a,where}
+interpolates 
+the function represented by the object
+into the \FunctionSpace\var{where}.
+\index{interpolation}
+\end{funcdesc}
+
+\begin{funcdesc}{abs}{a} 
+applies the absolute value function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the exponential
+function. \index{function!absolute value}
+\end{funcdesc}
+
+\begin{funcdesc}{exp}{a} 
+applies the exponential function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the exponential
+function. \index{function!exponential}
+\end{funcdesc}
+
+\begin{funcdesc}{sqrt}{a}
+applies the square root function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the square root function. 
+An exception is
+raised if the value is negative.  \index{function!square root}
+\end{funcdesc}
+
+\begin{funcdesc}{sin}{a}
+applies the sine function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the sine function. \index{function!sine}
+\end{funcdesc}
+
+\begin{funcdesc}{cos}{a}
+applies the cosine function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the cosine function. \index{function!cosine}
+\end{funcdesc}
+
+\begin{funcdesc}{tan}{a}
+applies the tangent function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the tangent function. \index{function!tangent}
+\end{funcdesc}
+
+\begin{funcdesc}{log}{a}
+applies the logarithmic function to the object. The
+return \Data object has the same \Shape and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints and all
+components the value is calculated by applying the logarithmic function. An exception is
+raised if the value is negative.\index{function!logarithmic}
+\end{funcdesc}
+
+\begin{funcdesc}{maxval}{}
+returns the maximum value over all components. The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints
+the value is calculated as the maximum value over all components. \index{function!maximum}
+\end{funcdesc}
+
+\begin{funcdesc}{minval}{}
+returns the minimum value over all components. The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints
+the value is calculated as the minimum value over all components. \index{function!minimum}
+\end{funcdesc}
+
+\begin{funcdesc}{length}{}
+returns the Euclidean length at all \DataSamplePoints. The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object. For all \DataSamplePoints
+the value is calculated as the square root of the sum of the square over all over all components. \index{function!length}
+\end{funcdesc}
+\begin{funcdesc}{transpose}{axis}
+returns the transpose of the object around \var{axis}. \var{axis} is a non-negative integer
+which is less the rank $r$ of the object. Transpose swaps the indexes $0$ to \var{axis}
+with the indexes \var{axis}+1 to $r$. If the \var{d} is \RankFour one has 
+\begin{python}
+d[i,j,k,l]=d.transpose(0)[i,j,k,l]
+d[i,j,k,l]=d.transpose(1)[j,k,l,i]
+d[i,j,k,l]=d.transpose(2)[k,l,i,j]
+d[i,j,k,l]=d.transpose(3)[l,i,j,k]
+\end{python}
+\index{function!transpose}
+\end{funcdesc}
+
+\begin{funcdesc}{trace}{}
+returns sum of the components with identical indexes. 
+The
+return value is a \Data object of rank 0 
+and is in the same
+\FunctionSpace like the object.
+\index{function!trace}
+\end{funcdesc}
+\begin{funcdesc}{saveDX}{fileName}
+saves the object to an openDX format file of name \var{fileName}, see
+\ulink{www.opendx.org}{\url{www.opendx.org}}.  \index{openDX}
+\end{funcdesc}
+
 
 \begin{funcdesc}{abs}{arg} 
 returns the absolute value of \var{arg} where \var{arg}
@@ -824,7 +989,6 @@ returns the mimumum over all components and all
 \DataSamplePoints of \var{arg}, where \var{arg}
 is a \Data object. 
 \end{funcdesc}
-
 
 \begin{funcdesc}{L2}{arg}
 returns the $L^2$ norm of \var{arg}. This is the square root 
