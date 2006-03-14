@@ -435,7 +435,6 @@ DataTagged::eigenvalues(DataAbstract* ev)
       temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
-cout << i->first << thisView(0,0) << "\n";
       DataArrayView::eigenvalues(thisView,0,evView,0);
   }
   DataArrayView::eigenvalues(getDefaultValue(),0,temp_ev->getDefaultValue(),0);
