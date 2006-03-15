@@ -448,7 +448,7 @@ class LinearPDE(object):
    AMG= 22
    RILU = 23
 
-   __TOL=1.e-13
+   SMALL_TOLERANCE=1.e-13
    __PACKAGE_KEY="package"
    __METHOD_KEY="method"
    __SYMMETRY_KEY="symmetric"
@@ -703,7 +703,7 @@ class LinearPDE(object):
       else:
          A=self.getCoefficientOfGeneralPDE("A")
          if not A.isEmpty():
-            tol=util.Lsup(A)*self.__TOL
+            tol=util.Lsup(A)*self.SMALL_TOLERANCE
             if self.getNumSolutions()>1:
                for i in range(self.getNumEquations()):
                   for j in range(self.getDim()):
@@ -727,7 +727,7 @@ class LinearPDE(object):
             if verbose: print "non-symmetric PDE because C is not present but B is"
             out=False
          elif not B.isEmpty() and not C.isEmpty():
-            tol=(util.Lsup(B)+util.Lsup(C))*self.__TOL/2.
+            tol=(util.Lsup(B)+util.Lsup(C))*self.SMALL_TOLERANCE/2.
             if self.getNumSolutions()>1:
                for i in range(self.getNumEquations()):
                    for j in range(self.getDim()):
@@ -743,7 +743,7 @@ class LinearPDE(object):
          if self.getNumSolutions()>1:
            D=self.getCoefficientOfGeneralPDE("D")
            if not D.isEmpty():
-             tol=util.Lsup(D)*self.__TOL
+             tol=util.Lsup(D)*self.SMALL_TOLERANCE
              for i in range(self.getNumEquations()):
                 for k in range(self.getNumSolutions()):
                   if util.Lsup(D[i,k]-D[k,i])>tol:
@@ -751,7 +751,7 @@ class LinearPDE(object):
                       out=False
            d=self.getCoefficientOfGeneralPDE("d")
            if not d.isEmpty():
-             tol=util.Lsup(d)*self.__TOL
+             tol=util.Lsup(d)*self.SMALL_TOLERANCE
              for i in range(self.getNumEquations()):
                 for k in range(self.getNumSolutions()):
                   if util.Lsup(d[i,k]-d[k,i])>tol:
@@ -759,7 +759,7 @@ class LinearPDE(object):
                       out=False
            d_contact=self.getCoefficientOfGeneralPDE("d_contact")
            if not d_contact.isEmpty():
-             tol=util.Lsup(d_contact)*self.__TOL
+             tol=util.Lsup(d_contact)*self.SMALL_TOLERANCE
              for i in range(self.getNumEquations()):
                 for k in range(self.getNumSolutions()):
                   if util.Lsup(d_contact[i,k]-d_contact[k,i])>tol:
@@ -1836,7 +1836,7 @@ class LameEquation(LinearPDE):
                           "q"            : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
       self.setSymmetryOn()
 
-   def setValue(self,**coefficients):
+   def setValues(self,**coefficients):
      """
      sets new values to coefficients
 
@@ -1859,7 +1859,7 @@ class LameEquation(LinearPDE):
                depending of reduced order is used for the representation of the equation.
      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
      """
-     super(LameEquation, self).setValue(**coefficients)
+     super(LameEquation, self).setValues(**coefficients)
 
    def getCoefficientOfGeneralPDE(self,name):
      """
@@ -1973,7 +1973,7 @@ class AdvectivePDE(LinearPDE):
          self.__xi=xi
       self.__Xi=escript.Data()
 
-   def setValue(**coefficients):
+   def setValue(self,**coefficients):
       """
       sets new values to coefficients
 
@@ -2057,13 +2057,6 @@ class AdvectivePDE(LinearPDE):
      """
      return escript.Scalar(0.5,P.getFunctionSpace())
 
-   def __calculateXi(self,peclet_factor,flux,h):
-       flux=util.Lsup(flux)
-       if flux_max>0.:
-          return h*self.__xi(flux*peclet_factor)/(flux+flux_max*self.__TOL)
-       else:
-          return 0.
-
    def __getXi(self):
       if self.__Xi.isEmpty():
          B=self.getCoefficient("B")
@@ -2073,47 +2066,53 @@ class AdvectivePDE(LinearPDE):
          self.__Xi=escript.Scalar(0.,self.getFunctionSpaceForCoefficient("A"))
          if not C.isEmpty() or not B.isEmpty():
             if not C.isEmpty() and not B.isEmpty():
-                flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
                 if self.getNumEquations()>1:
                    if self.getNumSolutions()>1:
+                      flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
                       for i in range(self.getNumEquations()):
                          for k in range(self.getNumSolutions()):
                             for l in range(self.getDim()): flux2+=(C[i,k,l]-B[i,l,k])**2
+                      length_of_flux=util.sqrt(flux2)
                       # flux=C-util.reorderComponents(B,[0,2,1])
                    else:
+                      flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
                       for i in range(self.getNumEquations()):
                          for l in range(self.getDim()): flux2+=(C[i,l]-B[i,l])**2
+                      length_of_flux=util.sqrt(flux2)
                       # flux=C-B
                 else:
                    if self.getNumSolutions()>1:
+                      flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
                       for k in range(self.getNumSolutions()):
                          for l in range(self.getDim()): flux2+=(C[k,l]-B[l,k])**2
                       # flux=C-util.reorderComponents(B,[1,0])
+                      length_of_flux=util.sqrt(flux2)
                    else:
-                      for l in range(self.getDim()): flux2+=(C[l]-B[l])**2
-                      #flux=C-B
-                length_of_flux=util.sqrt(flux2)
+                      length_of_flux=util.length(C-B)
             elif C.isEmpty():
               length_of_flux=util.length(B)
-              #flux=B
             else:
               length_of_flux=util.length(C)
-              #flux=C
-
-            #length_of_flux=util.length(flux)
             flux_max=util.Lsup(length_of_flux)
             if flux_max>0.:
-               # length_of_A=util.inner(flux,util.tensormutiply(A,flux))
-               length_of_A=util.length(A)
-               A_max=util.Lsup(length_of_A)
-               if A_max>0:
-                    inv_A=1./(length_of_A+A_max*self.__TOL)
-               else:
-                    inv_A=1./self.__TOL
-               peclet_number=length_of_flux*h/2*inv_A
-               xi=self.__xi(peclet_number)
-               self.__Xi=h*xi/(length_of_flux+flux_max*self.__TOL)
-               self.trace("preclet number = %e"%util.Lsup(peclet_number))
+              if A.isEmpty():
+                  inv_A=1./self.SMALL_TOLERANCE
+                  peclet_number=escript.Scalar(inv_A,length_of_flux.getFunctionSpace())
+                  xi=self.__xi(self,peclet_number)
+              else:
+                  # length_of_A=util.inner(flux,util.tensormutiply(A,flux))
+                  length_of_A=util.length(A)
+                  A_max=util.Lsup(length_of_A)
+                  if A_max>0:
+                       inv_A=1./(length_of_A+A_max*self.SMALL_TOLERANCE)
+                  else:
+                       inv_A=1./self.SMALL_TOLERANCE
+                  peclet_number=length_of_flux*h/2*inv_A
+                  xi=self.__xi(self,peclet_number)
+              self.__Xi=h*xi/(length_of_flux+flux_max*self.SMALL_TOLERANCE)
+              self.trace("preclet number = %e"%util.Lsup(peclet_number))
+            else:
+              self.__Xi=escript.Scalar(0.,length_of_flux.getFunctionSpace())
       return self.__Xi
 
 
@@ -2140,7 +2139,7 @@ class AdvectivePDE(LinearPDE):
             Aout=A
          else:
             if A.isEmpty():
-               Aout=self.createNewCoefficient("A")
+               Aout=self.createCoefficientOfGeneralPDE("A")
             else:
                Aout=A[:]
             Xi=self.__getXi()
@@ -2160,23 +2159,16 @@ class AdvectivePDE(LinearPDE):
                                for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*C[p,i,j]*C[p,k,l]
                                # Aout=Aout+Xi*util.generalTensorProduct(util.reorder(C,[1,2,0]),C,offset=1)
             else:
-                for j in range(self.getDim()):
-                   for l in range(self.getDim()):
-                      if not C.isEmpty() and not B.isEmpty():
-                          Aout[j,l]+=Xi*(C[j]-B[j])*(C[l]-B[l])
-                      elif C.isEmpty():
-                          Aout[j,l]+=Xi*B[j]*B[l]
-                      else:
-                          Aout[j,l]+=Xi*C[j]*C[l]
-                 # if not C.isEmpty() and not B.isEmpty():
-                 #    tmp=C-B
-                 #    Aout=Aout+Xi*util.outer(tmp,tmp)
-                 # elif C.isEmpty():
-                 #    Aout=Aout+Xi*util.outer(B,B)
-                 # else:
-                 # Aout=Aout+Xi*util.outer(C,C)
+               if not C.isEmpty() and not B.isEmpty():
+                   delta=(C-B)
+                   Aout+=util.outer(Xi*delta,delta)
+               elif not B.isEmpty():
+                   Aout+=util.outer(Xi*B,B)
+               elif not C.isEmpty():
+                   Aout+=util.outer(Xi*C,C)
          return Aout
      elif name == "B" :
+         # return self.getCoefficient("B")
          B=self.getCoefficient("B")
          C=self.getCoefficient("C")
          D=self.getCoefficient("D")
@@ -2185,7 +2177,7 @@ class AdvectivePDE(LinearPDE):
          else:
             Xi=self.__getXi()
             if B.isEmpty():
-                Bout=self.createNewCoefficient("B")
+                Bout=self.createCoefficientOfGeneralPDE("B")
             else:
                 Bout=B[:]
             if self.getNumEquations()>1:
@@ -2197,11 +2189,10 @@ class AdvectivePDE(LinearPDE):
                            Bout[i,j,k]+=tmp*C[p,i,j]
                            # Bout=Bout+Xi*util.generalTensorProduct(util.reorder(C,[1,2,0]),D,offset=1)
             else:
-               tmp=Xi*D
-               for j in range(self.getDim()): Bout[j]+=tmp*C[j]
-               # Bout=Bout+Xi*D*C
+               Bout+=(Xi*D)*C
          return Bout
      elif name == "C" :
+         # return self.getCoefficient("C")
          B=self.getCoefficient("B")
          C=self.getCoefficient("C")
          D=self.getCoefficient("D")
@@ -2210,7 +2201,7 @@ class AdvectivePDE(LinearPDE):
          else:
             Xi=self.__getXi()
             if C.isEmpty():
-                Cout=self.createNewCoefficient("C")
+                Cout=self.createCoefficientOfGeneralPDE("C")
             else:
                 Cout=C[:]
             if self.getNumEquations()>1:
@@ -2222,13 +2213,12 @@ class AdvectivePDE(LinearPDE):
                                  Cout[i,k,l]+=tmp*B[p,l,i]
                                  # Cout=Cout+Xi*B[p,l,i]*D[p,k]
             else:
-               tmp=Xi*D
-               for j in range(self.getDim()): Cout[j]+=tmp*B[j]
-               # Cout=Cout+tmp*D*B
+               Cout+=(Xi*D)*B
          return Cout
      elif name == "D" :
          return self.getCoefficient("D")
      elif name == "X" :
+         # return self.getCoefficient("X")
          X=self.getCoefficient("X")
          Y=self.getCoefficient("Y")
          B=self.getCoefficient("B")
@@ -2237,7 +2227,7 @@ class AdvectivePDE(LinearPDE):
             Xout=X
          else:
             if X.isEmpty():
-                Xout=self.createNewCoefficient("X")
+                Xout=self.createCoefficientOfGeneralPDE("X")
             else:
                 Xout=X[:]
             Xi=self.__getXi()
@@ -2256,17 +2246,12 @@ class AdvectivePDE(LinearPDE):
                              Xout[i,j]+=tmp*C[p,i,j]
                              # Xout=X_out+Xi*util.inner(Y,C,offset=1)
             else:
-                 tmp=Xi*Y
-                 for j in range(self.getDim()):
-                    if not C.isEmpty() and not B.isEmpty():
-                       Xout[j]+=tmp*(C[j]-B[j])
-                       # Xout=Xout+Xi*Y*(C-B)
-                    elif C.isEmpty():
-                       Xout[j]-=tmp*B[j]
-                       # Xout=Xout-Xi*Y*B
-                    else:
-                       Xout[j]+=tmp*C[j]
-                       # Xout=Xout+Xi*Y*C
+              if not C.isEmpty() and not B.isEmpty():
+                Xout+=(Xi*Y)*(C-B)
+              elif C.isEmpty():
+                Xout-=(Xi*Y)*B
+              else:
+                Xout+=(Xi*Y)*C
          return Xout
      elif name == "Y" :
          return self.getCoefficient("Y")
@@ -2284,115 +2269,6 @@ class AdvectivePDE(LinearPDE):
          return self.getCoefficient("q")
      else:
         raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
-
-class AdvectionDiffusion(LinearPDE):
-   """
-   Class to define PDE equation of the unisotropic advection-diffusion problem, which is genear L{LinearPDE} of the form
-
-   M{S{omega}*u + inner(v,grad(u))- grad(matrixmult(k_bar,grad(u))[j])[j] = f}
-
-   with natural boundary conditons
-
-   M{n[j]*matrixmult(k,grad(u))[j] = g- S{alpha}u }
-
-   and constraints:
-
-   M{u=r} where M{q>0}
-
-   and
-
-   M{k_bar[i,j]=k[i,j]+upwind[i]*upwind[j]}
-
-   """
-
-   def __init__(self,domain,debug=False):
-     """
-     initializes a new Poisson equation
-
-     @param domain: domain of the PDE
-     @type domain: L{Domain<escript.Domain>}
-     @param debug: if True debug informations are printed.
-
-     """
-     super(AdvectionDiffusion, self).__init__(domain,1,1,debug)
-     self.COEFFICIENTS={"omega": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
-                        "k": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
-                        "f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "v": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,),PDECoefficient.OPERATOR),
-                        "upwind": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_DIM,),PDECoefficient.OPERATOR),
-                        "alpha": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
-                        "g": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                        "r": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH),
-                        "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
-
-   def setValue(self,**coefficients):
-     """
-     sets new values to coefficients
-
-     @param coefficients: new values assigned to coefficients
-     @keyword omega: value for coefficient M{S{omega}}
-     @type omega: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Function<escript.Function>}.
-     @keyword k: value for coefficient M{k}
-     @type k: any type that can be casted to L{Tensor<escript.Tensor>} object on L{Function<escript.Function>}.
-     @keyword v: value for coefficient M{v}
-     @type v: any type that can be casted to L{Vector<escript.Vector>} object on L{Function<escript.Function>}.
-     @keyword upwind: value for upwind term M{upwind}
-     @type upwind: any type that can be casted to L{Vector<escript.Vector>} object on L{Function<escript.Function>}.
-     @keyword f: value for right hand side M{f}
-     @type f: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Function<escript.Function>}.
-     @keyword alpha: value for right hand side M{S{alpha}}
-     @type alpha: any type that can be casted to L{Scalar<escript.Scalar>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
-     @keyword g: value for right hand side M{g}
-     @type g: any type that can be casted to L{Scalar<escript.Scalar>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
-     @keyword r: prescribed values M{r} for the solution in constraints.
-     @type r: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
-               depending of reduced order is used for the representation of the equation.
-     @keyword q: mask for location of constraints
-     @type q: any type that can be casted to L{Scalar<escript.Scalar>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
-               depending of reduced order is used for the representation of the equation.
-     @raise IllegalCoefficient: if an unknown coefficient keyword is used.
-     """
-     super(AdvectionDiffusion, self).setValue(**coefficients)
-
-   def getCoefficientOfGeneralPDE(self,name):
-     """
-     return the value of the coefficient name of the general PDE
-
-     @param name: name of the coefficient requested.
-     @type name: C{string}
-     @return: the value of the coefficient  name
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  "A", M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
-     @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
-     """
-     if name == "A" :
-         return self.getCoefficient("k")+util.outer(self.getCoefficient("upwind"),self.getCoefficient("upwind"))
-     elif name == "B" :
-         return escript.Data()
-     elif name == "C" :
-         return self.getCoefficient("v")
-     elif name == "D" :
-         return self.getCoefficient("omega")
-     elif name == "X" :
-         return escript.Data()
-     elif name == "Y" :
-         return self.getCoefficient("f")
-     elif name == "d" :
-         return self.getCoefficient("alpha")
-     elif name == "y" :
-         return self.getCoefficient("g")
-     elif name == "d_contact" :
-         return escript.Data()
-     elif name == "y_contact" :
-         return escript.Data()
-     elif name == "r" :
-         return self.getCoefficient("r")
-     elif name == "q" :
-         return self.getCoefficient("q")
-     else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
-
 
 # $Log$
 # Revision 1.14  2005/09/22 01:54:57  jgs
