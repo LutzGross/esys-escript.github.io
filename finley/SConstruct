@@ -69,5 +69,4 @@ print "       cxx_flags: ", cxx_flags
 
 SConscript(dirs=['src'], build_dir='obj', duplicate=0)
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
-print solver_libs
 SConscript(dirs=['test/MeshAdapter'], build_dir='obj/test/MeshAdapter', duplicate=0)
