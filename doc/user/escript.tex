@@ -7,7 +7,7 @@
 \modulesynopsis{Data manipulation}
 
 \begin{figure}
-\includegraphics[width=\textwidth]{EscriptDiagram1.eps}
+\includegraphics[width=\textwidth]{figures/EscriptDiagram1.eps}
 \caption{\label{ESCRIPT DEP}Dependency of Function Spaces. An arrow indicates that a function in the 
 function space at the starting point can be interpreted as a function in the function space of the arrow target.}
 \end{figure}
@@ -41,13 +41,16 @@ solution_space=Solution(mydomain)
 \end{python}
 The following generators for function spaces on a \Domain \var{mydomain} are available: 
 \begin{itemize}
-\item \var{Solution(mydomain)}: solutions of a PDE.  
+\item \var{Solution(mydomain)}: solutions of a PDE.
+\item \var{ReducedSolution(mydomain)}: solutions of a PDE with a reduced smoothness requirement.  
 \item \var{ContinuousFunction(mydomain)}: continuous functions, eg. a temperature distribution.
 \item \var{Function(mydomain)}: general functions which are not necessarily continuous, eg. a stress field.
 \item \var{FunctionOnBoundary(mydomain)}: functions on the boundary of the domain, eg. a surface pressure.
 \item \var{FunctionOnContact0(mydomain)}: functions on side $0$ of the discontinuity. 
 \item \var{FunctionOnContact1(mydomain)}: functions on side $1$ of the discontinuity.
 \end{itemize}
+The reduced smoothness for PDE solution is often used to fulfill the Ladyzhenskaya–-Babuska–-Brezzi condition \cite{LBB} when 
+solving saddle point problems \index{saddle point problems}, eg. the Stokes equation.
 A discontinuity \index{discontinuity} is a region within the domain across which functions may be discontinuous.  
 The location of discontinuity is defined in the \Domain object.
 \fig{ESCRIPT DEP} shows the dependency between the types of function spaces. 
@@ -161,18 +164,17 @@ $\lambda$ and $\mu$ are the Lame coefficients. The following function
 takes the displacement {\tt u} and the Lame coefficients
 \var{lam} and \var{mu} as arguments and returns the corresponding stress:
 \begin{python}
-import numarray
+from esys.escript import *
 def getStress(u,lam,mu):
   d=u.getDomain().getDim()
   g=grad(u)
-  stress=lam*trace(g)*numarray.identity(d)+ \
-                                 mu*(g+transpose(g))
+  stress=lam*trace(g)*kronecker(d)+mu*(g+transpose(g))
   return stress     
 \end{python}
 The variable 
 \var{d} gives the spatial dimension of the 
 domain on which the displacements are defined.
-\var{identity} is a \numarray function which returns the Kronecker symbol with indexes 
+\var{kronecker} returns the Kronecker symbol with indexes 
 $i$ and $j$ running from $0$ to \var{d}-1. The call \var{grad(u)} requires 
 the displacement field \var{u} to be in the \var{Solution} or \ContinuousFunction
 function space. The result \var{g} as well as the returned stress will be in the \Function function space. 
@@ -204,7 +206,7 @@ In the context of FEM this means the nodal values of
 \escript calls the appropriate function from the PDE solver library.
 
 \begin{figure}
-\includegraphics[width=\textwidth]{EscriptDiagram2.eps}
+\includegraphics[width=\textwidth]{figures/EscriptDiagram2.eps}
 \caption{\label{Figure: tag}Element Tagging. A rectangular mesh over a region with two rock types {\it white} and {\it gray}.
 The number in each cell refers to the major rock type present in the cell ($1$ for {\it white} and $2$ for {\it gray}).
 }
@@ -213,10 +215,9 @@ The number in each cell refers to the major rock type present in the cell ($1$ f
 Material parameters such as the Lame coefficients are typically dependent on rock types present in the 
 area of interest. A common technique to handle these kinds of material parameters is "tagging". \fig{Figure: tag}
 shows an example. In this case two rock types {\it white} and {\it gray} can be found in the domain. The domain
-is subdivided into rectangular shaped cells (which is not necessarily the best subdivision for this case). Each 
+is subdivided into triangular shaped cells. Each 
 cell has a tag indicating the rock type predominately found in this cell. Here $1$ is used to indicate
 rock type {\it white} and $2$ for rock type {\it gray}. The tags are assigned at the time when the cells are generated
-(\escript provides tools to manipulate tags at a later stage) 
 and stored in the \Domain class object. The following statements show how for the
 example of \fig{Figure: tag} and the stress calculation discussed before tagged values are used for
 \var{lam}:
@@ -236,7 +237,8 @@ translations between them. As shown in the example of stress calculation, this a
 develop and test algorithms for a simple case (for instance with the Lame coefficients as constants)
 and then without further modifications of the program code to apply the algorithm in a
 more complex application (for instance a definition of the Lame coefficients using tags). 
-As described here, there are three ways in which \Data objects are represented internally, constant, tagged, and expanded (other representions will become available in later versions of \escript):
+As described here, there are three ways in which \Data objects are represented internally, constant, 
+tagged, and expanded (other representations will become available in later versions of \escript):
 In the constant case, if the same value is used at each sample point a single value is stored to save memory and compute time. 
 Any operation on this constant data will only be performed on the single value. 
 In the expanded case, each sample point has an individual value, eg. the solution of a PDE,
@@ -247,8 +249,6 @@ objects have to be performed for each sample point individually. If tagged value
 held in a dictionary. Operations on tagged data require processing the set of tagged values only, rather than 
 processing the value for each individual sample point. 
 \escript allows use of constant, tagged and expanded data in a single expression.
-
-
 
 \section{\Domain class}
 \begin{classdesc}{Domain}{}
@@ -562,28 +562,72 @@ returns a string representation of the object.
 \section{Functions of \Data class objects}
 This section lists the most important functions for \Data class objects \var{a}.
 A complete list and a more detailed description of the functionality can be fond on \ReferenceGuide.
-\begin{funcdesc}{saveVTK}{filename,\optional{domain},**data}
-writes a 
+\begin{funcdesc}{saveVTK}{filename,**kwdata}
+writes \Data defined by keywords in the file with \var{filename} using the 
+vtk file format \VTK file format. The key word is used as an identifier. The statement
+\begin{python}
+saveVTK("out.xml",temperature=T,velocity=v)
+\end{python} 
+will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the 
+file \file{out.xml}. Restrictions on the allowed combinations of \FunctionSpace apply.
 \end{funcdesc}
-\begin{funcdesc}{saveDX}{filename,domain=None,**data}
+\begin{funcdesc}{saveDX}{filename,**kwdata}
+writes \Data defined by keywords in the file with \var{filename} using the 
+vtk file format \OpenDX file format. The key word is used as an identifier. The statement
+\begin{python}
+saveDX("out.dx",temperature=T,velocity=v)
+\end{python} 
+will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the 
+file \file{out.dx}. Restrictions on the allowed combinations of \FunctionSpace apply.
 \end{funcdesc}
 \begin{funcdesc}{kronecker}{d}
-returns a \RankTwo \Data object \var{o} in \FunctionSpace \var{d} such that
+returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
 \begin{equation}
-o\left[ i,j\right] = \left\{ 
+\code{kronecker(d)}\left[ i,j\right] = \left\{ 
 \begin{array}{cc}
 1 & \mbox{ if } i=j \\
 0 & \mbox{ otherwise }
 \end{array}
 \right.
 \end{equation}
+If \var{d} is an integer a $(d,d)$ \numarray array is returned.
 \end{funcdesc}
-
 \begin{funcdesc}{identityTensor}{d}
+returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
+\begin{equation}
+\code{identityTensor(d)}\left[ i,j\right] = \left\{ 
+\begin{array}{cc}
+1 & \mbox{ if } i=j \\
+0 & \mbox{ otherwise }
+\end{array}
+\right.
+\end{equation}
+If \var{d} is an integer a $(d,d)$ \numarray array is returned.
 \end{funcdesc}
 \begin{funcdesc}{identityTensor4}{d}
+returns a \RankFour \Data object in \FunctionSpace \var{d} such that
+\begin{equation}
+\code{identityTensor(d)}\left[ i,j,k,l\right] = \left\{ 
+\begin{array}{cc}
+1 & \mbox{ if } i=k \mbox{ and } j=l\\
+0 & \mbox{ otherwise }
+\end{array}
+\right.
+\end{equation}
+If \var{d} is an integer a $(d,d,d,d)$ \numarray array is returned.
 \end{funcdesc}
 \begin{funcdesc}{unitVector}{i,d}
+returns a \RankOne \Data object in \FunctionSpace \var{d} such that
+\begin{equation}
+\code{identityTensor(d)}\left[ j \right] = \left\{ 
+\begin{array}{cc}
+1 & \mbox{ if } j=i\\
+0 & \mbox{ otherwise }
+\end{array}
+\right.
+\end{equation}
+If \var{d} is an integer a $(d,)$ \numarray array is returned.
+
 \end{funcdesc}
 
 \begin{funcdesc}{Lsup}{a}
@@ -656,383 +700,227 @@ applies square root function to \var{a}.
 \end{funcdesc}
 
 \begin{funcdesc}{log}{a}
+applies the natural logarithm to \var{a}.
 \end{funcdesc}
 
 \begin{funcdesc}{log10}{a}
+applies the base-$10$ logarithm to \var{a}.
 \end{funcdesc}
 
 \begin{funcdesc}{sign}{a}
+applies the sign function to \var{a}, that is $1$ where \var{a} is positive,
+$-1$ where \var{a} is negative and $0$ otherwise.
 \end{funcdesc}
 
 \begin{funcdesc}{wherePositive}{a}
+returns a function which is $1$ where \var{a} is positive and $0$ otherwise.
 \end{funcdesc}
+
 \begin{funcdesc}{whereNegative}{a}
+returns a function which is $1$ where \var{a} is negative and $0$ otherwise.
 \end{funcdesc}
+
 \begin{funcdesc}{whereNonNegative}{a}
+returns a function which is $1$ where \var{a} is non--negative and $0$ otherwise.
 \end{funcdesc}
+
 \begin{funcdesc}{whereNonPositive}{a}
+returns a function which is $1$ where \var{a} is non--positive and $0$ otherwise.
 \end{funcdesc}
-\begin{funcdesc}{whereZero}{a,tol=0.}
+
+\begin{funcdesc}{whereZero}{a\optional{, tol=0.}}
+returns a function which is $1$ where \var{a} equals zero with tolerance \var{tol} and $0$ otherwise. 
 \end{funcdesc}
-\begin{funcdesc}{whereNonZero}{a,tol=0.}
+
+\begin{funcdesc}{whereNonZero}{a\optional{, tol=0.}}
+returns a function which is $1$ where \var{a} different from zero with tolerance \var{tol} and $0$ otherwise. 
 \end{funcdesc}
+
 \begin{funcdesc}{minval}{a}
+returns at each \DataSamplePoints the minumum value over all components.
 \end{funcdesc}
+
 \begin{funcdesc}{maxval}{a}
+returns at each \DataSamplePoints the maximum value over all components.
 \end{funcdesc}
+
 \begin{funcdesc}{length}{a}
+returns at Euclidean norm at each \DataSamplePoints. For a \RankFour function \var{a} this is
+\begin{equation}
+\code{length(a)}=\sqrt{\sum\hackscore{ijkl} \var{a} \left[i,j,k,l\right]^2}
+\end{equation} 
 \end{funcdesc}
-\begin{funcdesc}{trace}{a,axis_offset=0}
+\begin{funcdesc}{trace}{a\optional{,axis_offset=0}}
+returns the trace of \var{a}. This is the sum over components \var{axis_offset} and \var{axis_offset+1} with the same index. For instance in the
+case of a \RankTwo function and this is 
+\begin{equation}
+\code{trace(a)}=\sum\hackscore{i} \var{a} \left[i,i\right]
+\end{equation} 
+and for a \RankFour function and  \code{axis_offset=1} this is
+\begin{equation}
+\code{trace(a,1)}\left[i,j\right]=\sum\hackscore{k} \var{a} \left[i,k,k,j\right]
+\end{equation} 
 \end{funcdesc}
-\begin{funcdesc}{transpose}{a,axis_offset=None}
+\begin{funcdesc}{transpose}{a\optional{, axis_offset=None}}
+returns the transpose of \var{a}. This swaps the first \var{axis_offset} components of \var{a} with the rest. If \var{axis_offset} is not
+present \code{int(r/2)} is used where \var{r} is the rank of \var{a}. 
+ the sum over components \var{axis_offset} and \var{axis_offset+1} with the same index. For instance in the
+case of a \RankTwo function and this is 
+\begin{equation}
+\code{transpose(a)}\left[i,j\right]=\var{a} \left[j,i\right]
+\end{equation} 
+and for a \RankFour function and  \code{axis_offset=1} this is
+\begin{equation}
+\code{transpose(a,1)}\left[i,j,k,l\right]=\var{a} \left[j,k,l,i\right]
+\end{equation} 
 \end{funcdesc}
 \begin{funcdesc}{symmetric}{a}
+returns the symmetric part of \var{a}. This is \code{(a+transpose(a))/2}.
 \end{funcdesc}
 \begin{funcdesc}{nonsymmetric}{a}
+returns the non--symmetric part of \var{a}. This is \code{(a-transpose(a))/2}.
 \end{funcdesc}
 \begin{funcdesc}{inverse}{a}
+return the inverse of \var{a}. This is 
+\begin{equation}
+\code{matrixmult(inverse(a),a)=kronecker(d)}
+\end{equation} 
+if \var{a} has shape \code{(d,d)}. The current implementation is restricted to arguments of shape 
+\code{(2,2)} and \code{(3,3)}.
 \end{funcdesc}
 \begin{funcdesc}{eigenvalues}{a}
+return the eigenvalues of \var{a}. This is 
+\begin{equation}
+\code{matrixmult(a,V)=e[i]*V}
+\end{equation} 
+where \code{e=eigenvalues(a)} and \var{V} is suitable non--zero vector \var{V}. 
+The eigenvalues are ordered in increasing size.
+The argument \var{a} has to be the symmetric, ie. \code{a=symmetric(a)}.  
+The current implementation is restricted to arguments of shape 
+\code{(2,2)} and \code{(3,3)}.
 \end{funcdesc}
 \begin{funcdesc}{eigenvalues_and_eigenvectors}{a}
+return the eigenvalues and eigenvectors of \var{a}. This is 
+\begin{equation}
+\code{matrixmult(a,V[:,i])=e[i]*V[:,i]}
+\end{equation} 
+where \code{e,V=eigenvalues_and_eigenvectors(a)}. The eigenvectors \var{V} are orthogonal and normalized, ie.
+\begin{equation}
+\code{matrixmult(transpose(V),V)=kronecker(d)}
+\end{equation} 
+if \var{a} has shape \code{(d,d)}. The eigenvalues are ordered in increasing size.
+The argument \var{a} has to be the symmetric, ie. \code{a=symmetric(a)}.  
+The current implementation is restricted to arguments of shape 
+\code{(2,2)} and \code{(3,3)}.
 \end{funcdesc}
-\begin{funcdesc}{maximum}{a}
+\begin{funcdesc}{maximum}{*a}
+returns the maximum value over all arguments at all \DataSamplePoints and for each component.
+For instance 
+\begin{equation}
+\code{maximum(a0,a1)}\left[i,j\right]=max(\var{a0} \left[i,j\right],\var{a1} \left[i,j\right])
+\end{equation}
+at all \DataSamplePoints.
 \end{funcdesc}
-\begin{funcdesc}{minimum}{a}
+\begin{funcdesc}{minimum}{*a}
+returns the minimum value over all arguments at all \DataSamplePoints and for each component.
+For instance 
+\begin{equation}
+\code{minimum(a0,a1)}\left[i,j\right]=min(\var{a0} \left[i,j\right],\var{a1} \left[i,j\right])
+\end{equation}
+at all \DataSamplePoints.
 \end{funcdesc}
-\begin{funcdesc}{clip}{a,minval=0.,maxval=1.}
+
+\begin{funcdesc}{clip}{a\optional{, minval=0.}\optional{, maxval=1.}}
+cuts back \var{a} into the range between \var{minval} and \var{maxval}. A value in the returned object equals 
+\var{minval} if the corresponding value of \var{a} is less than \var{minval}, equals \var{maxval} if the 
+ corresponding value of \var{a} is greater than \var{maxval}
+or corresponding value of \var{a} otherwise.
 \end{funcdesc}
 \begin{funcdesc}{inner}{a0,a1}
+returns the inner product of \var{a0} and \var{a1}. For instance in the
+case of \RankTwo arguments and this is 
+\begin{equation}
+\code{inner(a)}=\sum\hackscore{ij}\var{a0} \left[j,i\right]  \cdot \var{a1} \left[j,i\right]
+\end{equation} 
+and for a \RankFour arguments this is
+\begin{equation}
+\code{inner(a)}=\sum\hackscore{ijkl}\var{a0} \left[i,j,k,l\right]  \cdot \var{a1} \left[j,i,k,l\right]
+\end{equation} 
 \end{funcdesc}
 \begin{funcdesc}{matrixmult}{a0,a1}
+returns the matrix product of \var{a0} and \var{a1}. If \var{a1} is \RankOne this is
+\begin{equation}
+\code{matrixmult(a)}\left[i\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k\right]
+\end{equation} 
+and if \var{a1} is \RankTwo this is
+\begin{equation}
+\code{matrixmult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k,j\right]
+\end{equation} 
 \end{funcdesc}
 \begin{funcdesc}{outer}{a0,a1}
+returns the outer product of \var{a0} and \var{a1}. For instance if \var{a0} and \var{a1} both are \RankOne then
+\begin{equation}
+\code{outer(a)}\left[i,j\right]=\var{a0} \left[i\right]  \cdot  \var{a1}\left[j\right]
+\end{equation} 
+and if \var{a0} is \RankOne and \var{a1} is \RankThree
+\begin{equation}
+\code{outer(a)}\left[i,j,k\right]=\var{a0} \left[i\right] \cdot \var{a1}\left[j,k\right]
+\end{equation} 
 \end{funcdesc}
 \begin{funcdesc}{tensormult}{a0,a1}
+returns the tensor product of \var{a0} and \var{a1}. If \var{a1} is \RankTwo this is
+\begin{equation}
+\code{tensormult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[k,l\right]
+\end{equation} 
+and if \var{a1} is \RankFour this is
+\begin{equation}
+\code{tensormult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[m,n,k,l\right]
+\end{equation} 
 \end{funcdesc}
-\begin{funcdesc}{grad}{a,where=None}
+\begin{funcdesc}{grad}{a\optional{, where=None}}
+returns the gradient of \var{a}. If \var{where} is present the gradient will be calculated in \FunctionSpace \var{where} otherwise a 
+default \FunctionSpace is used. In case that \var{a} has \RankTwo one has
+\begin{equation}
+\code{grad(a)}\left[i,j,k\right]=\frac{\partial \var{a} \left[i,j\right]}{\partial x\hackscore{k}}
+\end{equation} 
 \end{funcdesc}
-\begin{funcdesc}{integrate}{a,where=None}
+\begin{funcdesc}{integrate}{a\optional{ ,where=None}}
+returns the integral of \var{a} where the domain of integration is defined by the \FunctionSpace of \var{a}. If \var{where} is 
+present the argument is interpolated into \FunctionSpace \var{where} before integration. For instance in the case of 
+a \RankTwo argument in \ContinuousFunction it is
+\begin{equation}
+\code{integrate(a)}\left[i,j\right]=\int\hackscore{\Omega}\var{a} \left[i,j\right] \; d\Omega
+\end{equation} 
+where $\Omega$ is the spatial domain and $d\Omega$ volume integration. To integrate over the boundary of the domain one uses  
+\begin{equation}
+\code{integrate(a,where=FunctionOnBoundary(a.getDomain))}\left[i,j\right]=\int\hackscore{\partial \Omega} a\left[i,j\right] \; ds
+\end{equation} 
+where $\partial \Omega$ is the surface of the spatial domain and $ds$ area or line integration.
 \end{funcdesc}
 \begin{funcdesc}{interpolate}{a,where}
+interpolates argument \var{a} into the \FunctionSpace \var{where}. 
 \end{funcdesc}
-\begin{funcdesc}{div}{a,where=None}
+\begin{funcdesc}{div}{a\optional{ ,where=None}}
+returns the divergence of \var{a}. This 
+\begin{equation}
+\code{div(a)}=trace(grad(a),where)
+\end{equation}
 \end{funcdesc}
-\begin{funcdesc}{jump}{a,domain=None}
+\begin{funcdesc}{jump}{a\optional{ ,domain=None}}
+returns the jump of \var{a} over the discontinuity in its domain or if \Domain \var{domain} is present
+in \var{domain}.
+\begin{equation}
+\code{jump(a)}=interpolate(a,FunctionOnContactOne(domain))-interpolate(a,FunctionOnContactZero(domain))
+\end{equation}
 \end{funcdesc}
 \begin{funcdesc}{L2}{a}
+returns the $L^2$-norm of \var{a} in its function space. This is 
+\begin{equation}
+\code{L2(a)}=integrate(length(a)^2) \; .
+\end{equation} 
 \end{funcdesc}
-
-====
-
-
-\begin{funcdesc}{wherePositive}{a}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is positive and $0$ elsewhere.
-\end{funcdesc}
-
-\begin{funcdesc}{wherePositive}{a}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is non-positive and $0$ elsewhere.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonnegative}{a}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is non-negative and $0$ elsewhere.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNegative}{a}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is negative and $0$ elsewhere.
-\end{funcdesc}
-
-\begin{funcdesc}{whereZero}{a,tol=1.e-8}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is nearly zero, i.e. where the absolute value is less
-than \var{tolerance}, and $0$ elsewhere.
-\end{funcdesc}
-
-\begin{funcdesc}{whereNonzero}{tolerance=1.e-8}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is nearly non-zero, i.e. where the absolute value is
-greater or equal than \var{tolerance}, and $0$ elsewhere.
-\end{funcdesc}
-
-\begin{funcdesc}{sign}{a}
-returns \Data object which has the same \Shape and is defined on
-the same \FunctionSpace like the object. The returned values are $1$
-where the object is positive, $-1$ where the value is negative and $0$ elsewhere.
-\end{funcdesc}
-
-\begin{funcdesc}{Lsup}{a}
-returns the $L^{sup}$-norm of the object. This is maximum absolute values over all components and all \DataSamplePoints. \index{$L^{sup}$-norm}.
-\end{funcdesc}
-\begin{funcdesc}{Linf}{a}
-returns the minimum absolute value over all components and all \DataSamplePoints. \index{$L^{inf}$-norm}.
-\end{funcdesc}
-\begin{funcdesc}{inf}{a}
-returns the minimum value (infimum) of the object. The minimum is
-taken over all components and all \DataSamplePoints .  \index{infimum}
-\end{funcdesc}
-
-\begin{funcdesc}{sup}{a}
-returns the maximum value (supremum) of the object. The maximum is
-taken over all components and all \DataSamplePoints .  \index{supremum}
-\end{funcdesc}
-
-\begin{funcdesc}{grad}{a,\optional{where}}
-returns the gradient of the function represented by the object.
-\Data object is in \FunctionSpace \var{on} and has rank r+1 where r is the rank of the object.
-If \var{on} is not present, a suitbale \FunctionSpace is used. 
-\index{gradient}
-\end{funcdesc}
-
-\begin{funcdesc}{integrate}{a,\optional{where}}
-returns the integral of the function represented by the object. The method returns
-a \class{numarray.NumArray} object of the same \Shape like the object.  A
-component of the returned object is the integral of the corresponding
-component of the object. \index{integral}
-\end{funcdesc}
-
-\begin{funcdesc}{interpolate}{a,where}
-interpolates 
-the function represented by the object
-into the \FunctionSpace\var{where}.
-\index{interpolation}
-\end{funcdesc}
-
-\begin{funcdesc}{abs}{a} 
-applies the absolute value function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the exponential
-function. \index{function!absolute value}
-\end{funcdesc}
-
-\begin{funcdesc}{exp}{a} 
-applies the exponential function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the exponential
-function. \index{function!exponential}
-\end{funcdesc}
-
-\begin{funcdesc}{sqrt}{a}
-applies the square root function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the square root function. 
-An exception is
-raised if the value is negative.  \index{function!square root}
-\end{funcdesc}
-
-\begin{funcdesc}{sin}{a}
-applies the sine function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the sine function. \index{function!sine}
-\end{funcdesc}
-
-\begin{funcdesc}{cos}{a}
-applies the cosine function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the cosine function. \index{function!cosine}
-\end{funcdesc}
-
-\begin{funcdesc}{tan}{a}
-applies the tangent function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the tangent function. \index{function!tangent}
-\end{funcdesc}
-
-\begin{funcdesc}{log}{a}
-applies the logarithmic function to the object. The
-return \Data object has the same \Shape and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints and all
-components the value is calculated by applying the logarithmic function. An exception is
-raised if the value is negative.\index{function!logarithmic}
-\end{funcdesc}
-
-\begin{funcdesc}{maxval}{}
-returns the maximum value over all components. The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints
-the value is calculated as the maximum value over all components. \index{function!maximum}
-\end{funcdesc}
-
-\begin{funcdesc}{minval}{}
-returns the minimum value over all components. The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints
-the value is calculated as the minimum value over all components. \index{function!minimum}
-\end{funcdesc}
-
-\begin{funcdesc}{length}{}
-returns the Euclidean length at all \DataSamplePoints. The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object. For all \DataSamplePoints
-the value is calculated as the square root of the sum of the square over all over all components. \index{function!length}
-\end{funcdesc}
-\begin{funcdesc}{transpose}{axis}
-returns the transpose of the object around \var{axis}. \var{axis} is a non-negative integer
-which is less the rank $r$ of the object. Transpose swaps the indexes $0$ to \var{axis}
-with the indexes \var{axis}+1 to $r$. If the \var{d} is \RankFour one has 
-\begin{python}
-d[i,j,k,l]=d.transpose(0)[i,j,k,l]
-d[i,j,k,l]=d.transpose(1)[j,k,l,i]
-d[i,j,k,l]=d.transpose(2)[k,l,i,j]
-d[i,j,k,l]=d.transpose(3)[l,i,j,k]
-\end{python}
-\index{function!transpose}
-\end{funcdesc}
-
-\begin{funcdesc}{trace}{}
-returns sum of the components with identical indexes. 
-The
-return value is a \Data object of rank 0 
-and is in the same
-\FunctionSpace like the object.
-\index{function!trace}
-\end{funcdesc}
-\begin{funcdesc}{saveDX}{fileName}
-saves the object to an openDX format file of name \var{fileName}, see
-\ulink{www.opendx.org}{\url{www.opendx.org}}.  \index{openDX}
-\end{funcdesc}
-
-
-\begin{funcdesc}{abs}{arg} 
-returns the absolute value of \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{sin}{arg}
-returns the sine of \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{cos}{arg}
-returns the cosine of \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{exp}{arg}
-returns the value of the exponential function for \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{sqrt}{arg}
-returns the square root of \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{maxval}{arg}
-returns the maximum value over all component of \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{minval}{arg}
-returns the minumum value over all component of \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{length}{arg}
-returns the length of \var{arg} which is the
-square root of the sum of the squares of all component of \var{arg}. \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{sign}{arg}
-return the sign of \var{arg} where \var{arg}
-can be double, a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{transpose}{arg,\optional{axis}}
-returns the transpose of \var{arg} around \var{axis}. \var{axis} is a non-negative integer
-which is less the rank $r$ of the object. Transpose swaps the indexes $0$ to \var{axis}
-with the indexes \var{axis}+1 to $r$. If \var{axis} is not present, \var{axis}=$r/2$ is assumed.
-\var{arg}
-may be a \Data object or an \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{transpose}{arg,\optional{axis}}
-returns the trace the object of \var{arg}. The trace is the sum over those components
-with identical indexed. 
-\var{arg}
-may be a \Data object or a \numarray object.
-\end{funcdesc}
-
-\begin{funcdesc}{sum}{arg}
-returns the sum over all components and all 
-\DataSamplePoints of \var{arg}, where \var{arg}
-is a \Data object. 
-\end{funcdesc}
-
-\begin{funcdesc}{sup}{arg}
-returns the maximum over all components and all 
-\DataSamplePoints of \var{arg}, where \var{arg}
-is a \Data object. 
-\end{funcdesc}
-
-\begin{funcdesc}{inf}{arg}
-returns the mimumum over all components and all 
-\DataSamplePoints of \var{arg}, where \var{arg}
-is a \Data object. 
-\end{funcdesc}
-
-\begin{funcdesc}{L2}{arg}
-returns the $L^2$ norm of \var{arg}. This is the square root 
-of the sum of the squared value over all components and all 
-\DataSamplePoints of \var{arg}, where \var{arg}
-is a \Data object. 
-\end{funcdesc}
-
-\begin{funcdesc}{Lsup}{arg}
-returns the $L^{sup}$ norm of \var{arg}. This is the maximum of the absolute values
- over all components and all 
-\DataSamplePoints of \var{arg}, where \var{arg}
-is a \Data object. 
-\end{funcdesc}
-
-\begin{funcdesc}{dot}{arg1,arg2}
-returns the dot product of of \var{arg1} and \var{arg2}. This is sum
-of the product of corresponding entries in \var{arg1} and \var{arg2} over all
-components and and all 
-\DataSamplePoints. \var{arg1} and \var{arg2} are \Data objects of the
-same \Shape and in the same \FunctionSpace.
-\end{funcdesc}
-
-\begin{funcdesc}{grad}{arg,\optional{where}}
-returns the gradient of \var{arg} as a function in the \FunctionSpace \var{where}.
-If \var{where} is not present a reasonable \FunctionSpace is chosen.
-\var{arg}
-is a \Data object. 
-\end{funcdesc}
-
-\begin{funcdesc}{integrate}{arg}
-returns the integral of \var{arg} as a \numarray object.
-If \var{where} is not present a reasonable \FunctionSpace is chosen.
-\var{arg}
-is a \Data object. 
-\end{funcdesc}
-
-\begin{funcdesc}{interpolate}{arg,where}
-interpolate \Data object \var{arg} into the \FunctionSpace \var{where}
-\end{funcdesc}
-
 
 \section{\Operator Class}
-
 The \Operator class provides an abstract access to operators build
 within the \LinearPDE class. \Operator objects are created 
 when a PDE is handed over to a PDE solver library and handled
