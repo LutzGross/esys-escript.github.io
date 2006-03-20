@@ -29,14 +29,14 @@ for i in range(len(x)):
 	z[i,j] = x[i]*exp(-x[i]*x[i] - y[j]*y[j])
 
 # import the general pyvisi stuff
-from pyvisi import *
+from esys.pyvisi import *
 # import the gnuplot overrides of the interface
 if ren_mod == "gnuplot":
-    from pyvisi.renderers.gnuplot import *
+    from esys.pyvisi.renderers.gnuplot import *
 elif ren_mod == "vtk":
-    from pyvisi.renderers.vtk import *
+    from esys.pyvisi.renderers.vtk import *
 elif ren_mod == "plplot":
-    from pyvisi.renderers.plplot import *
+    from esys.pyvisi.renderers.plplot import *
 else:
     raise ValueError, "Unknown renderer module"
 

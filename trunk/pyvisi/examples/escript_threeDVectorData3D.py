@@ -8,8 +8,8 @@ from esys import bruce
 
 import numarray
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
 
 brickDomain = bruce.Brick(9,9,9,10,10,10)
 brickFunctionSpace=escript.ContinuousFunction(brickDomain)
@@ -21,7 +21,7 @@ threeDVectorData3D = Data(vectorData3D, brickFunctionSpace, True)
 scene = Scene()
 plot = ArrowPlot3D(scene)
 plot.setData(threeDVectorData3D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_threeDVectorData3D_arrowPlot3D.png", format="png")
 

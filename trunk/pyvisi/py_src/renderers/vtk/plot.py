@@ -21,13 +21,13 @@ Class and functions associated with a pyvisi Plot objects
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
-import Numeric
+from common import debugMsg
+import numarray
 import os
 import copy
 
 # module specific imports
-from pyvisi.renderers.vtk.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.56 $'
 

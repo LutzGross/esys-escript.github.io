@@ -23,10 +23,10 @@ Class and functions associated with a pyvisi Text object
 """
 
 # generic imports
-from pyvisi.renderers.povray.common import debugMsg
+from common import debugMsg
 
 # module specific imports
-from pyvisi.renderers.povray.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.6 $'
 

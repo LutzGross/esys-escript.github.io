@@ -23,9 +23,8 @@ Base class and functions associated with a pyvisi Plot objects
 """
 
 # generic imports
-from pyvisi.common import debugMsg, overrideWarning
-
-from pyvisi.item import Item
+from common import debugMsg, overrideWarning
+from item import Item
 
 __revision__ = '$Revision: 1.19 $'
 

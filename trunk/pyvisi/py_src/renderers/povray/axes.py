@@ -23,10 +23,10 @@ Class and functions associated with a pyvisi Axes object
 """
 
 # generic imports
-from pyvisi.renderers.povray.common import debugMsg
+from common import debugMsg
 
 # module specific imports
-from pyvisi.renderers.povray.plot import Plot
+from plot import Plot
 
 __revision__ = '$Revision: 1.5 $'
 

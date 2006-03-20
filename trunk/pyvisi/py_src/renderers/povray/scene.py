@@ -23,11 +23,11 @@ Class and functions associated with a pyvisi Scene
 """
 
 # generic imports
-from pyvisi.renderers.povray.common import debugMsg
-from pyvisi.scene import Scene as BaseScene
+from common import debugMsg
+from esys.pyvisi.scene import Scene as BaseScene
 
 # module specific imports
-from pyvisi.renderers.povray.renderer import Renderer
+from renderer import Renderer
 
 import os, math
 
@@ -99,12 +99,75 @@ class Scene(BaseScene):
 
         @param interactive: Whether or not to have interactive use of the output
         @type interactive: boolean
+        """
+        debugMsg("Called Scene.render()")
+        self.__render(pause,interactive,False)
+
+    def save(self, fname, format):
+        """
+        Save the scene to a file
+
+        Possible formats are:
+            - PNG
+            - TGA (uncompressed targa)
+            - CTGA (compressed targa)
+            - PPM
+            - SYS (e.g. BMP on Windows, PICT on MacOS)
+
+        @param fname: the name of the file to save to
+        @type fname: string
+
+        @param format: the image format of the output file
+        @type format: Image object or string
+        """
+        debugMsg("Called Scene.save()")
+        self.__render(False,Flase,True,fname, format)
+       
+    def __render(self, pause=False, interactive=False, save=False, fname="out", format="ppm"):
+        """
+        Render (or re-render) the scene
+        
+        Render the scene, either to screen, or to a buffer waiting for a save
+
+        @param pause: Flag to wait at end of script evaluation for user input
+        @type pause: boolean
+
+        @param interactive: Whether or not to have interactive use of the output
+        @type interactive: boolean
 
         @param save: Whether or not to save the output when render
         @type save: boolean
+
+        @param fname: the name of the file to save to
+        @type fname: string
+
+        @param format: the image format of the output file
+        @type format: Image object or string
         """
         debugMsg("Called Scene.render()")
         renderer = self.renderer
+        self.fname = fname
+        # if the format is passed in as a string or object, react
+        # appropriately
+        if save:
+           import types
+           if type(format) is types.StringType:
+               fmt = format.lower()
+           else:
+               fmt = format.format
+
+           if fmt == "png":
+               self.renderer.addToInitStack("Output_File_Type=N")
+           elif fmt == "tga":
+               self.renderer.addToInitStack("Output_File_Type=T")
+           elif fmt == "ppm":
+               self.renderer.addToInitStack("Output_File_Type=P")
+           elif fmt == "ctga":
+               self.renderer.addToInitStack("Output_File_Type=C")
+           elif fmt == "sys":
+               self.renderer.addToInitStack("Output_File_Type=S")
+           else:
+               raise ValueError, "Unknown graphics format.  I got %s" % fmt
 
         # this is the string from which to make the ini file
         renderer.addToInitStack("; PyVisi Povray renderer module ini file")
@@ -232,54 +295,6 @@ class Scene(BaseScene):
         # clean up a bit
         os.unlink(povFname)
         os.unlink(iniFname)
-
-        return
-
-    def save(self, fname, format):
-        """
-        Save the scene to a file
-
-        Possible formats are:
-            - PNG
-            - TGA (uncompressed targa)
-            - CTGA (compressed targa)
-            - PPM
-            - SYS (e.g. BMP on Windows, PICT on MacOS)
-
-        @param fname: the name of the file to save to
-        @type fname: string
-
-        @param format: the image format of the output file
-        @type format: Image object or string
-        """
-        debugMsg("Called Scene.save()")
-        self.renderer.runString("// Scene.save()")
-
-        # if the format is passed in as a string or object, react
-        # appropriately
-        import types
-        if type(format) is types.StringType:
-            fmt = format.lower()
-        else:
-            fmt = format.format
-
-        if fmt == "png":
-            self.renderer.addToInitStack("Output_File_Type=N")
-        elif fmt == "tga":
-            self.renderer.addToInitStack("Output_File_Type=T")
-        elif fmt == "ppm":
-            self.renderer.addToInitStack("Output_File_Type=P")
-        elif fmt == "ctga":
-            self.renderer.addToInitStack("Output_File_Type=C")
-        elif fmt == "sys":
-            self.renderer.addToInitStack("Output_File_Type=S")
-        else:
-            raise ValueError, "Unknown graphics format.  I got %s" % fmt
-
-        self.fname = fname
-
-        # rerender the scene to get the output
-        self.render(save=True)
 
         return
 

@@ -22,25 +22,21 @@
 Initialisation of the opendx renderer module
 """
     
-from pyvisi.renderers.opendx.common \
-        import _rendererName, _rendererVersion, _rendererRevision
-print "This is the \"%s\" renderer module version %s-%s" % \
-        (_rendererName, _rendererVersion, _rendererRevision)
+from common import _rendererName, _rendererVersion, _rendererRevision
+print "This is the \"%s\" renderer module version %s-%s" % (_rendererName, _rendererVersion, _rendererRevision)
 
 __author__ = 'Paul Cochrane'
 __version__ = _rendererVersion
 __revision__ = _rendererRevision
 
-from pyvisi.renderers.opendx.item import Item
-from pyvisi.renderers.opendx.scene import Scene
-from pyvisi.renderers.opendx.renderer import Renderer
-from pyvisi.renderers.opendx.axes import Axes
-from pyvisi.renderers.opendx.camera import Camera
-from pyvisi.renderers.opendx.image import Image, \
-        JpegImage, PbmImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
-from pyvisi.renderers.opendx.plane import Plane
-from pyvisi.renderers.opendx.plot import Plot, \
-        ArrowPlot, ContourPlot, LinePlot
-from pyvisi.renderers.opendx.text import Text
+from item import Item
+from scene import Scene
+from renderer import Renderer
+from axes import Axes
+from camera import Camera
+from image import Image, JpegImage, PbmImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
+from plane import Plane
+from plot import Plot, ArrowPlot, ContourPlot, LinePlot
+from text import Text
 
 # vim: expandtab shiftwidth=4:

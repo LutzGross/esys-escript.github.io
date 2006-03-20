@@ -22,7 +22,7 @@
 Initialisation of the pyvisi utilities
 """
 
-from pyvisi.common import _pyvisiVersion, _pyvisiRevision
+from esys.pyvisi.common import _pyvisiVersion, _pyvisiRevision
 print "This is PyVisi version %s-%s" % (_pyvisiVersion, _pyvisiRevision)
 
 __author__ = 'Paul Cochrane'

@@ -23,9 +23,9 @@ Class and functions associated with a pyvisi Camera object
 """
 
 # generic imports
-from pyvisi.common import debugMsg, overrideWarning
+from common import debugMsg, overrideWarning
 
-from pyvisi.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.13 $'
 

@@ -23,10 +23,9 @@ Class and functions associated with a pyvisi Image objects
 """
 
 # generic imports
-from pyvisi.renderers.gnuplot.common \
-        import debugMsg, unsupportedError
+from common import debugMsg, unsupportedError
 
-from pyvisi.common import fileCheck
+from esys.pyvisi.common import fileCheck
 
 # module specific imports
 from pyvisi.renderers.gnuplot.item import Item

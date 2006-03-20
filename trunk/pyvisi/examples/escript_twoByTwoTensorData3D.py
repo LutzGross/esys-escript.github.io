@@ -8,8 +8,8 @@ from esys import bruce
 
 import numarray
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
 
 brickDomain = bruce.Brick(9,9,9,10,10,10)
 brickFunctionSpace=escript.ContinuousFunction(brickDomain)
@@ -21,7 +21,7 @@ twoByTwoTensorData3D = Data(tensorData2x2, brickFunctionSpace, True)
 scene = Scene()
 plot = EllipsoidPlot(scene)
 plot.setData(twoByTwoTensorData3D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_twoByTwoTensorData3D_ellipsoidPlot.png", 
 	format="png")

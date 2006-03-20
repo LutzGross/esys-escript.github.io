@@ -25,9 +25,9 @@ Base implementation.
 """
 
 # generic import
-from pyvisi.common import debugMsg, overrideWarning, unsupportedError, fileCheck
+from common import debugMsg, overrideWarning, unsupportedError, fileCheck
 
-from pyvisi.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.22 $'
 

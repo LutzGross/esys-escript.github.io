@@ -21,13 +21,12 @@ Class and functions associated with a pyvisi ArrowPlot objects
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
-import Numeric
+from common import debugMsg
 import os
 import copy
 
 # module specific imports
-from pyvisi.renderers.vtk.plot import Plot
+from plot import Plot
 
 __revision__ = '$Revision: 1.2 $'
 

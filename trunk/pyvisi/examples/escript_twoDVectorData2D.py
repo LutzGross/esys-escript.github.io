@@ -8,8 +8,8 @@ from esys import bruce
 
 import numarray
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
 
 tensorDomain = bruce.Rectangle(9,9,10,10)
 tensorFunctionSpace=escript.ContinuousFunction(tensorDomain)
@@ -21,7 +21,7 @@ twoDVectorData2D = Data(vectorData2D, tensorFunctionSpace, True)
 scene = Scene()
 plot = ArrowPlot(scene)
 plot.setData(twoDVectorData2D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_twoDVectorData2D_arrowPlot.png", format="png")
 

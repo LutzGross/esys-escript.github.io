@@ -20,9 +20,9 @@
 This file contains all of the classes for the various plotting objects.
 """
 
-from pyvisi.renderers.plplot.common import debugMsg
+from common import debugMsg
 
-from pyvisi.renderers.plplot.plot import Plot
+from plot import Plot
 
 __revision__ = '$Revision: 1.12 $'
 

@@ -22,31 +22,28 @@
 Initialisation of the plplot renderer module
 """
     
-from pyvisi.renderers.plplot.common \
-        import _rendererName, _rendererVersion, _rendererRevision
-print "This is the \"%s\" renderer module version %s-%s" % \
-        (_rendererName, _rendererVersion, _rendererRevision)
+from common import _rendererName, _rendererVersion, _rendererRevision
+print "This is the \"%s\" renderer module version %s-%s"%(_rendererName, _rendererVersion, _rendererRevision)
 
 __author__ = 'Paul Cochrane'
 __version__ = _rendererVersion
 __revision__ = _rendererRevision
 
-from pyvisi.renderers.plplot.item import Item
-from pyvisi.renderers.plplot.scene import Scene
-from pyvisi.renderers.plplot.renderer import Renderer
-from pyvisi.renderers.plplot.axes import Axes
-from pyvisi.renderers.plplot.camera import Camera
-from pyvisi.renderers.plplot.image import Image, \
-        JpegImage, PbmImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
-from pyvisi.renderers.plplot.plane import Plane
+from item import Item
+from scene import Scene
+from renderer import Renderer
+from axes import Axes
+from camera import Camera
+from image import Image, JpegImage, PbmImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
+from plane import Plane
 
 # plotting stuff
-from pyvisi.renderers.plplot.plot import Plot
-from pyvisi.renderers.plplot.arrow_plot import ArrowPlot
-from pyvisi.renderers.plplot.contour_plot import ContourPlot
-from pyvisi.renderers.plplot.line_plot import LinePlot
-from pyvisi.renderers.plplot.surface_plot import SurfacePlot
+from plot import Plot
+from arrow_plot import ArrowPlot
+from contour_plot import ContourPlot
+from line_plot import LinePlot
+from surface_plot import SurfacePlot
 
-from pyvisi.renderers.plplot.text import Text
+from text import Text
 
 # vim: expandtab shiftwidth=4:

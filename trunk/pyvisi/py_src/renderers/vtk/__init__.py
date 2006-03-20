@@ -22,38 +22,35 @@
 Initialisation of vtk renderer module
 """
 
-from pyvisi.renderers.vtk.common \
-        import _rendererName, _rendererVersion, _rendererRevision
-print "This is the \"%s\" renderer module version %s-%s" % \
-    (_rendererName, _rendererVersion, _rendererRevision)
+from common import _rendererName, _rendererVersion, _rendererRevision
+print "This is the \"%s\" renderer module version %s-%s" % (_rendererName, _rendererVersion, _rendererRevision)
 
 __author__ = 'Paul Cochrane'
 __version__ = _rendererVersion
 __revision__ = _rendererRevision
 
-from pyvisi.renderers.vtk.item import Item
-from pyvisi.renderers.vtk.renderer import Renderer
-from pyvisi.renderers.vtk.scene import Scene
+from item import Item
+from renderer import Renderer
+from scene import Scene
 
 # plotting stuff
-from pyvisi.renderers.vtk.plot import Plot
-from pyvisi.renderers.vtk.arrow_plot import ArrowPlot
-from pyvisi.renderers.vtk.arrow_plot_3d import ArrowPlot3D
-from pyvisi.renderers.vtk.ball_plot import BallPlot
-from pyvisi.renderers.vtk.contour_plot import ContourPlot
-from pyvisi.renderers.vtk.ellipsoid_plot import EllipsoidPlot
-from pyvisi.renderers.vtk.isosurface_plot import IsosurfacePlot
-from pyvisi.renderers.vtk.line_plot import LinePlot
-from pyvisi.renderers.vtk.offset_plot import OffsetPlot
-from pyvisi.renderers.vtk.surface_plot import SurfacePlot
+from plot import Plot
+from arrow_plot import ArrowPlot
+from arrow_plot_3d import ArrowPlot3D
+from ball_plot import BallPlot
+from contour_plot import ContourPlot
+from ellipsoid_plot import EllipsoidPlot
+from isosurface_plot import IsosurfacePlot
+from line_plot import LinePlot
+from offset_plot import OffsetPlot
+from surface_plot import SurfacePlot
 
 
-from pyvisi.renderers.vtk.camera import Camera
-from pyvisi.renderers.vtk.image import Image, \
-        JpegImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
-from pyvisi.renderers.vtk.text import Text
-from pyvisi.renderers.vtk.axes import Axes
-from pyvisi.renderers.vtk.plane import Plane
-from pyvisi.renderers.vtk.box import Box, ClipBox
+from camera import Camera
+from image import Image, JpegImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
+from text import Text
+from axes import Axes
+from plane import Plane
+from box import Box, ClipBox
 
 # vim: expandtab shiftwidth=4:

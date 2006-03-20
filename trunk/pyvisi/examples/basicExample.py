@@ -25,10 +25,10 @@ Will hopefully help me write a decent interface.
 """
 
 # example code for how a user would write a script in pyvisi
-from pyvisi import *          # base level visualisation stuff
-#from pyvisi.utils import *   # pyvisi specific utils
+from esys.pyvisi import *          # base level visualisation stuff
+#from esys.pyvisi.utils import *   # pyvisi specific utils
 # import the objects to render the scene using vtk
-from pyvisi.renderers.vtk import * 
+from esys.pyvisi.renderers.vtk import * 
 
 # these things are just here to make data to plot, not all of which are used
 from ESyS import *

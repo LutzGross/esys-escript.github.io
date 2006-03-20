@@ -23,8 +23,8 @@ Class and functions associated with a pyvisi Camera object
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
-from pyvisi.renderers.vtk.item import Item
+from common import debugMsg
+from item import Item
 
 __revision__ = '$Revision: 1.12 $'
 

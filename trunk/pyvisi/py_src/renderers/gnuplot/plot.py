@@ -21,11 +21,11 @@ Class and functions associated with a pyvisi Plot objects (gnuplot)
 """
 
 # generic imports
-from pyvisi.renderers.gnuplot.common import debugMsg
+from common import debugMsg
 import copy
 
 # module specific imports
-from pyvisi.renderers.gnuplot.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.61 $'
 

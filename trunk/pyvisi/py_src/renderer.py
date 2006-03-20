@@ -22,7 +22,7 @@
 This is the file for the base Renderer class
 """
 
-from pyvisi.common import debugMsg
+from common import debugMsg
 
 __revision__ = '$Revision: 1.21 $'
 

@@ -23,10 +23,10 @@ The classes associated with Planes
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
+from common import debugMsg
 
 # module specific imports
-from pyvisi.renderers.vtk.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.13 $'
 

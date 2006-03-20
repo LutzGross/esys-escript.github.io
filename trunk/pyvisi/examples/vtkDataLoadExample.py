@@ -34,9 +34,9 @@ if not vtk:
     sys.path.append('../')
     
     # import the python visualisation interface
-    from pyvisi import *
+    from esys.pyvisi import *
     # import vtk stuff
-    from pyvisi.renderers.vtk import *
+    from esys.pyvisi.renderers.vtk import *
     
     # start a scene, using vtk as the renderer
     scene = Scene()

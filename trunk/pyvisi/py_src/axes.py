@@ -23,9 +23,8 @@ Class and functions associated with a pyvisi Axes object
 """
 
 # generic imports
-from pyvisi.common import debugMsg
-
-from pyvisi.plot import Plot
+from common import debugMsg
+from plot import Plot
 
 __revision__ = '$Revision: 1.13 $'
 

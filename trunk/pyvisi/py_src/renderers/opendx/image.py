@@ -22,9 +22,9 @@
 Brief introduction to what the file contains/does
 """
 
-from pyvisi.renderers.opendx.common import debugMsg
+from common import debugMsg
 
-from pyvisi.renderers.opendx.item import Item
+from opendx.item import Item
 
 __revision__ = '$Revision: 1.5 $'
 

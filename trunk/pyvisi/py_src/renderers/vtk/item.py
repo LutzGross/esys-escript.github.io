@@ -23,8 +23,8 @@ This is the file of the base class for items within a scene
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
-from pyvisi.item import Item as BaseItem
+from common import debugMsg
+from esys.pyvisi.item import Item as BaseItem
 
 __revision__ = '$Revision: 1.12 $'
 
