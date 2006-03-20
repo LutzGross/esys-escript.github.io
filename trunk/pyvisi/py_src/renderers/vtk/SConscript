@@ -1,0 +1,44 @@
+pyinstall = None
+
+Import('*')
+
+import os
+import sys
+
+extensions_dir = str(esysroot) + '/scons'
+sys.path.append(extensions_dir)
+
+import scons_extensions
+
+pyvisipy_env = Environment(ENV = os.environ)
+
+py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+pyvisipy_env.Append(BUILDERS = {'PyCompile' : py_builder});
+
+python_src = ['__init__.py',
+              'arrow_plot_3d.py',
+              'axes.py',
+              'box.py',
+              'common.py',
+              'ellipsoid_plot.py',
+              'item.py',
+              'offset_plot.py',
+              'plot.py',
+              'scene.py',
+              'surface_plot.py',
+              'arrow_plot.py',
+              'ball_plot.py',
+              'camera.py',
+              'contour_plot.py',
+              'image.py',
+              'isosurface_plot.py',
+              'line_plot.py',
+              'plane.py',
+              'renderer.py',
+              'text.py']
+
+pyc = pyvisipy_env.PyCompile(python_src)
+
+Default(pyvisipy_env.Install(Dir(str(pydir2)+"/renderers/vtk"), pyc))
+if pyinstall != None:
+  Default(pyvisipy_env.Install(pyinstall, pyc))

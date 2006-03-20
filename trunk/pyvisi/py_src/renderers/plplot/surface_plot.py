@@ -26,7 +26,7 @@ from pyvisi.renderers.plplot.plot import Plot
 
 __revision__ = '$Revision: 1.1 $'
 
- class SurfacePlot(Plot):
+class SurfacePlot(Plot):
     """
     Surface plot
     """
