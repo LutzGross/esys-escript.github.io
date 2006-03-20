@@ -32,9 +32,9 @@ if method == 'pyvisi':
     import sys
     
     # import the python visualisation interface
-    from pyvisi import *
+    from esys.pyvisi import *
     # this is now where the renderer is specified
-    from pyvisi.renderers.vtk import *
+    from esys.pyvisi.renderers.vtk import *
     
     # set up a scene
     scene = Scene()

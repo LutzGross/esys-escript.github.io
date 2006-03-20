@@ -8,8 +8,8 @@ from esys import bruce
 
 import numarray
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
 
 vectorDomain = bruce.Rectangle(9,1,10,1)
 vectorFunctionSpace=escript.ContinuousFunction(vectorDomain)
@@ -22,7 +22,7 @@ twoDVectorData1D = Data(vectorData2D, vectorFunctionSpace, True)
 scene = Scene()
 plot = ArrowPlot(scene)
 plot.setData(twoDVectorData1D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_twoDVectorData1D_arrowPlot.png", format="png")
 

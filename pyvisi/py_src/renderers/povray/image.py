@@ -23,11 +23,11 @@ Class and functions associated with a pyvisi Image objects
 """
 
 # generic imports
-from pyvisi.renderers.povray.common import debugMsg
-from pyvisi.common import fileCheck
+from common import debugMsg
+from esys.pyvisi.common import fileCheck
 
 # module specific imports
-from pyvisi.renderers.povray.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.5 $'
 

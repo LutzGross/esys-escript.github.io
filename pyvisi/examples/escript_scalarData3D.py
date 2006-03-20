@@ -8,8 +8,10 @@ from esys import bruce
 
 import numarray
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
+
+online=False
 
 brickDomain = bruce.Brick(9,9,9,10,10,10)
 brickFunctionSpace = escript.ContinuousFunction(brickDomain)
@@ -22,7 +24,7 @@ scalarData3D = sin(domainData[0])
 scene = Scene()
 plot = IsosurfacePlot(scene)
 plot.setData(scalarData3D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_scalarData3D_isosurfacePlot.png", format="png")
 

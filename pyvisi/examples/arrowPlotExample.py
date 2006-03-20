@@ -33,10 +33,10 @@ for i in range(len(x)):
 if method == 'pyvisi':
 
     # example code for how a user would write a script in pyvisi
-    from pyvisi import *          # base level visualisation stuff
-    #from pyvisi.utils import *   # pyvisi specific utils
+    from esys.pyvisi import *          # base level visualisation stuff
+    #from esys.pyvisi.utils import *   # pyvisi specific utils
     # import the objects to render the scene using the specific renderer
-    from pyvisi.renderers.gnuplot import *   # gnuplot
+    from esys.pyvisi.renderers.gnuplot import *   # gnuplot
     
     # define the scene object
     # a Scene is a container for all of the kinds of things you want to put 

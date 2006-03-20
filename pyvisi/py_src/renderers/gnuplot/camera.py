@@ -23,9 +23,9 @@ Class and functions associated with a pyvisi Camera object
 """
 
 # generic imports
-from pyvisi.renderers.gnuplot.common import debugMsg
+from common import debugMsg
 
-from pyvisi.renderers.gnuplot.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.11 $'
 

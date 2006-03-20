@@ -22,11 +22,11 @@
 Brief introduction to what the file contains/does
 """
 
-from pyvisi.renderers.opendx.common import debugMsg
+from common import debugMsg
 
-from pyvisi.scene import Scene as BaseScene
+from esys.pyvisi.scene import Scene as BaseScene
 
-from pyvisi.renderers.opendx.renderer import Renderer
+from renderer import Renderer
 
 __revision__ = '$Revision: 1.5 $'
 

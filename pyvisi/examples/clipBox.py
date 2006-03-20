@@ -43,10 +43,10 @@ for i in range(len(x)*len(y)*len(z)):
 if method == 'pyvisi':
 
     # example code for how a user would write a script in pyvisi
-    from pyvisi import *          # base level visualisation stuff
+    from esys.pyvisi import *          # base level visualisation stuff
     # import the objects to render the scene using the specific renderer
-    from pyvisi.renderers.vtk import *       # vtk
-    #from pyvisi.renderers.povray import *       # povray
+    from esys.pyvisi.renderers.vtk import *       # vtk
+    #from esys.pyvisi.renderers.povray import *       # povray
     
     # define the scene object
     scene = Scene()

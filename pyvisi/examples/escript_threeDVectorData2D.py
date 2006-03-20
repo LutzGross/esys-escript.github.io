@@ -8,9 +8,10 @@ from esys import bruce
 
 import numarray
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
 
+online=False
 tensorDomain = bruce.Rectangle(9,9,10,10)
 tensorFunctionSpace=escript.ContinuousFunction(tensorDomain)
 
@@ -21,7 +22,7 @@ threeDVectorData2D = Data(vectorData3D, tensorFunctionSpace, True)
 scene = Scene()
 plot = ArrowPlot3D(scene)
 plot.setData(threeDVectorData2D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_threeDVectorData2D_arrowPlot3D.png", format="png")
 

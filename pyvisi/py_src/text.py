@@ -23,9 +23,9 @@ Class and functions associated with a pyvisi Text object
 """
 
 # generic imports
-from pyvisi.common import debugMsg
+from common import debugMsg
 
-from pyvisi.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.9 $'
 

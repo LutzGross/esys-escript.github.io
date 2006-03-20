@@ -21,13 +21,13 @@ Class and functions associated with a pyvisi BallPlot objects
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
-import Numeric
+from common import debugMsg
+import numarray
 import os
 import copy
 
 # module specific imports
-from pyvisi.renderers.vtk.plot import Plot
+from plot import Plot
 
 __revision__ = '$Revision: 1.1 $'
 
@@ -253,7 +253,7 @@ class BallPlot(Plot):
                 tagValues = range(numRadii)
                 numTags = numRadii
 
-                tags = Numeric.zeros(numPoints, typecode=Numeric.Int)
+                tags = numarray.zeros(numPoints, typecode=numarray.Int)
                 for i in range(numPoints):
                     for j in range(numTags):
                         if radiiKeys[j] == str(radii[i]):
@@ -290,7 +290,7 @@ class BallPlot(Plot):
             self.renderer.runString(evalString)
 
             # now scale the tags
-            scaledTags = Numeric.zeros(numPoints, typecode=Numeric.Float)
+            scaledTags = numarray.zeros(numPoints, typecode=numarray.Float)
             if numTags == 1:
                 pass
             else:

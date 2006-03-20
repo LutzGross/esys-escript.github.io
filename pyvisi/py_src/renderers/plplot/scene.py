@@ -22,11 +22,11 @@
 Brief introduction to what the file contains/does
 """
 
-from pyvisi.renderers.plplot.common import debugMsg
+from common import debugMsg
 
-from pyvisi.scene import Scene as BaseScene
+from esys.pyvisi.scene import Scene as BaseScene
 
-from pyvisi.renderers.plplot.renderer import Renderer
+from renderer import Renderer
 
 __revision__ = '$Revision: 1.8 $'
 
@@ -94,6 +94,47 @@ class Scene(BaseScene):
         @type interactive: boolean
         """
         debugMsg("Called Scene.render()")
+        self.__render(pause,interactive,False)
+
+    def save(self, fname, format):
+        """
+        Save the scene to a file
+
+        Possible formats are:
+            - Jpeg
+            - Postscript
+            - PNG
+            - PBM
+
+        @param fname: Name of output file
+        @type fname: string
+
+        @param format: Graphics format of output file
+        @type format: Image object
+        """
+        debugMsg("Called Scene.save()")
+        self.__render(False,False,True,fname, format)
+
+    def render(self, pause=False, interactive=False, save=False,fname="out", format="Jpeg"):
+        """
+        Render (or re-render) the scene
+        
+        Render the scene, either to screen, or to a buffer waiting for a save
+
+        @param pause: Flag to wait at end of script evaluation for user input
+        @type pause: boolean
+
+        @param interactive: Whether or not to have interactive use of the 
+        output (not available in all renderer modules)
+        @type interactive: boolean
+
+        @param fname: Name of output file
+        @type fname: string
+
+        @param format: Graphics format of output file
+        @type format: Image object
+        """
+        debugMsg("Called Scene.render()")
         renderer = self.renderer
 
         # plplot doesn't support interactive stuff (I think)
@@ -104,7 +145,37 @@ class Scene(BaseScene):
 
         renderer.runString("# Scene.render()")
 
-        if not save:
+        if save:
+           # if the format is passed in as a string or object, react
+           # appropriately
+           import types
+           if type(format) is types.StringType:
+               fmt = format.lower()
+           else:
+               fmt = format.format
+   
+           # set the output format
+           if fmt == "ps":
+               self.renderer.runString(\
+                       "plplot.plsdev(\"psc\")")
+           elif fmt == "png":
+               self.renderer.runString(\
+                       "plplot.plsdev(\"png\")")
+           elif fmt == "pbm":
+               self.renderer.runString(\
+                       "plplot.plsdev(\"pbm\")")
+           elif fmt == "jpeg" or fmt == "jpg":
+               self.renderer.runString(\
+                       "plplot.plsdev(\"jpeg\")")
+           else:
+               raise ValueError, "Unknown graphics format.  I got: %s" % \
+                       fmt
+   
+           # set the output filename
+           evalString = "plplot.plsfnam(\"%s\")" % fname
+           self.renderer.runString(evalString)
+
+        else:
             # so that renderering goes to the window by default
             renderer.runString("plplot.plsdev(\"xwin\")")
 
@@ -134,59 +205,6 @@ class Scene(BaseScene):
         # flush the evaluation stack
         debugMsg("Flusing evaluation stack")
         renderer.resetEvalStack()
-
-        return
-
-    def save(self, fname, format):
-        """
-        Save the scene to a file
-
-        Possible formats are:
-            - Jpeg
-            - Postscript
-            - PNG
-            - PBM
-
-        @param fname: Name of output file
-        @type fname: string
-
-        @param format: Graphics format of output file
-        @type format: Image object
-        """
-        debugMsg("Called Scene.save()")
-        self.renderer.runString("# Scene.save()")
-
-        # if the format is passed in as a string or object, react
-        # appropriately
-        import types
-        if type(format) is types.StringType:
-            fmt = format.lower()
-        else:
-            fmt = format.format
-
-        # set the output format
-        if fmt == "ps":
-            self.renderer.runString(\
-                    "plplot.plsdev(\"psc\")")
-        elif fmt == "png":
-            self.renderer.runString(\
-                    "plplot.plsdev(\"png\")")
-        elif fmt == "pbm":
-            self.renderer.runString(\
-                    "plplot.plsdev(\"pbm\")")
-        elif fmt == "jpeg" or fmt == "jpg":
-            self.renderer.runString(\
-                    "plplot.plsdev(\"jpeg\")")
-        else:
-            raise ValueError, "Unknown graphics format.  I got: %s" % \
-                    fmt
-
-        # set the output filename
-        evalString = "plplot.plsfnam(\"%s\")" % fname
-        self.renderer.runString(evalString)
-
-        # now render the whole shebang (again)
-        self.render(save=True)
 
         return
 

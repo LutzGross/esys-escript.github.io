@@ -38,9 +38,9 @@ if method == 'pyvisi':
     #### pyvisi version of code
 
     # import the general pyvisi stuff
-    from pyvisi import *
+    from esys.pyvisi import *
     # import the gnuplot overrides of the interface
-    from pyvisi.renderers.gnuplot import *
+    from esys.pyvisi.renderers.gnuplot import *
 
     # define a scene object
     # a Scene is a container for all of the kinds of things you want to put

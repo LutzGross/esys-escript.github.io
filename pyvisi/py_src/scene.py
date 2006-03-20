@@ -23,9 +23,9 @@ Class and functions associated with a pyvisi Scene
 """
 
 # generic imports
-from pyvisi.common import debugMsg, overrideWarning, fileCheck
+from common import debugMsg, overrideWarning, fileCheck
 
-from pyvisi.renderer import Renderer
+from renderer import Renderer
 
 __revision__ = '$Revision: 1.23 $'
 

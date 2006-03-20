@@ -23,9 +23,9 @@ This is the file for the Renderer class
 """
 
 # generic imports
-from pyvisi.renderers.gnuplot.common import debugMsg
-from pyvisi.renderers.gnuplot.common import _rendererName
-from pyvisi.renderer import Renderer as BaseRenderer
+from common import debugMsg
+from common import _rendererName
+from esys.pyvisi.renderer import Renderer as BaseRenderer
 
 __revision__ = '$Revision'
 

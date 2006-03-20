@@ -8,8 +8,10 @@ from esys import bruce
 
 import numarray
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
+
+online=False
 
 tensorDomain = bruce.Rectangle(9,9,10,10)
 tensorFunctionSpace=escript.ContinuousFunction(tensorDomain)
@@ -21,7 +23,7 @@ threeByThreeTensorData2D = Data(tensorData3x3, tensorFunctionSpace, True)
 scene = Scene()
 plot = EllipsoidPlot(scene)
 plot.setData(threeByThreeTensorData2D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_threeByThreeTensorData2D_ellipsoidPlot.png",
 	format="png")

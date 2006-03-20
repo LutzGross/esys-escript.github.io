@@ -23,8 +23,8 @@ This is the file for the Renderer class
 """
 
 # generic imports
-from pyvisi.renderers.povray.common import debugMsg
-from pyvisi.renderer import Renderer as BaseRenderer
+from common import debugMsg
+from esys.pyvisi.renderer import Renderer as BaseRenderer
 
 __revision__ = '$Revision: 1.7 $'
 

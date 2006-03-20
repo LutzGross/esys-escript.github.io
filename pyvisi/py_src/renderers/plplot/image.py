@@ -22,11 +22,11 @@
 Brief introduction to what the file contains/does
 """
 
-from pyvisi.renderers.plplot.common import debugMsg, unsupportedError
+from common import debugMsg, unsupportedError
 
-from pyvisi.common import fileCheck
+from esys.pyvisi.common import fileCheck
 
-from pyvisi.renderers.plplot.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.5 $'
     

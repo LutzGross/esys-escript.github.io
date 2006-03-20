@@ -22,7 +22,7 @@
 Variables common to all classes and functions
 """
 
-from pyvisi.common import _debug
+from esys.pyvisi.common import _debug
 _rendererName = "POVRAY"
 _rendererVersion = '0.1'
 _rendererRevision = 'pre-alpha-1'

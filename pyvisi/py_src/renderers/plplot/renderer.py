@@ -22,9 +22,8 @@
 Brief introduction to what the file contains/does
 """
 
-from pyvisi.renderers.plplot.common import debugMsg
-from pyvisi.renderers.gnuplot.common import _rendererName
-from pyvisi.renderer import Renderer as BaseRenderer
+from common import debugMsg, _rendererName
+from esys.pyvisi.renderer import Renderer as BaseRenderer
 
 __revision__ = '$Revision: 1.7 $'
 

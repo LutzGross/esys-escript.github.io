@@ -41,13 +41,13 @@ for i in range(dim):
         dz[i,j] = (random.random()-0.5)/5.0
 
 # example code for how a user would write a script in pyvisi
-from pyvisi import *          # base level visualisation stuff
+from esys.pyvisi import *          # base level visualisation stuff
 # import the objects to render the scene using the specific renderer
-#from pyvisi.renderers.gnuplot import *   # gnuplot
+#from esys.pyvisi.renderers.gnuplot import *   # gnuplot
 if ren_mod == "vtk":
-    from pyvisi.renderers.vtk import *       # vtk
+    from esys.pyvisi.renderers.vtk import *       # vtk
 elif ren_mod == "povray":
-    from pyvisi.renderers.povray import *    # povray
+    from esys.pyvisi.renderers.povray import *    # povray
 else:
     raise ValueError, "Unknown renderer module"
 

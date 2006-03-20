@@ -21,11 +21,11 @@ Class and functions associated with a pyvisi MeshPlot objects (gnuplot)
 """
 
 # generic imports
-from pyvisi.renderers.gnuplot.common import debugMsg
+from common import debugMsg
 import copy
 
 # module specific imports
-from pyvisi.renderers.gnuplot.plot import Plot
+from plot import Plot
 
 __revision__ = '$Revision: 1.1 $'
 

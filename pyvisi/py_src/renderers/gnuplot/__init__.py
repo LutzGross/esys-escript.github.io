@@ -22,36 +22,33 @@
 Initialisation of the gnuplot renderer module
 """
 
-from pyvisi.renderers.gnuplot.common \
-        import _rendererName, _rendererVersion, _rendererRevision
-print "This is the \"%s\" renderer module version %s-%s" % \
-        (_rendererName, _rendererVersion, _rendererRevision)
+from common import _rendererName, _rendererVersion, _rendererRevision
+print "This is the \"%s\" renderer module version %s-%s"%(_rendererName, _rendererVersion, _rendererRevision)
 
 __author__ = 'Paul Cochrane'
 __version__ = _rendererVersion
 __revision__ = _rendererRevision
 
-from pyvisi.renderers.gnuplot.item import Item
-from pyvisi.renderers.gnuplot.renderer import Renderer
-from pyvisi.renderers.gnuplot.scene import Scene
+from item import Item
+from renderer import Renderer
+from scene import Scene
 
 # plotting stuff
-from pyvisi.renderers.gnuplot.plot import Plot
-from pyvisi.renderers.gnuplot.arrow_plot import ArrowPlot
-from pyvisi.renderers.gnuplot.contour_plot import ContourPlot
-from pyvisi.renderers.gnuplot.line_plot import LinePlot
-from pyvisi.renderers.gnuplot.mesh_plot import MeshPlot
-from pyvisi.renderers.gnuplot.offset_plot import OffsetPlot
-from pyvisi.renderers.gnuplot.scatter_plot import ScatterPlot
-from pyvisi.renderers.gnuplot.scatter_plot_3d import ScatterPlot3D
-from pyvisi.renderers.gnuplot.surface_plot import SurfacePlot
+from plot import Plot
+from arrow_plot import ArrowPlot
+from contour_plot import ContourPlot
+from line_plot import LinePlot
+from mesh_plot import MeshPlot
+from offset_plot import OffsetPlot
+from scatter_plot import ScatterPlot
+from scatter_plot_3d import ScatterPlot3D
+from surface_plot import SurfacePlot
 
 
-from pyvisi.renderers.gnuplot.camera import Camera
-from pyvisi.renderers.gnuplot.image import Image, \
-        JpegImage, PbmImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
-from pyvisi.renderers.gnuplot.text import Text
-from pyvisi.renderers.gnuplot.axes import Axes
-from pyvisi.renderers.gnuplot.plane import Plane
+from camera import Camera
+from image import Image, JpegImage, PbmImage, PdfImage, PngImage, PnmImage, PsImage, TiffImage
+from text import Text
+from axes import Axes
+from plane import Plane
 
 # vim: expandtab shiftwidth=4:

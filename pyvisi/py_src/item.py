@@ -22,7 +22,7 @@
 This is the file of the base class for items within a scene
 """
 
-from pyvisi.common import debugMsg, overrideWarning
+from common import debugMsg, overrideWarning
 
 __revision__ = '$Revision: 1.10 $'
 

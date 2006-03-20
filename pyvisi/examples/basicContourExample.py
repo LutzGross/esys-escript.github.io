@@ -9,7 +9,7 @@ Will hopefully help me write a decent interface.
 import sys,os
 
 # import the python visualisation interface
-from pyvisi import *
+from esys.pyvisi import *
 
 # original vtk code
 import vtk

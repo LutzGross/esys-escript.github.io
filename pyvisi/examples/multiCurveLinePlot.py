@@ -20,14 +20,14 @@ y2 = cos(x)
 y3 = cos(x)**2
 
 # example code for how a user would write a script in pyvisi
-from pyvisi import *          # base level visualisation stuff
+from esys.pyvisi import *          # base level visualisation stuff
 # import the objects to render the scene using the specific renderer
 if ren_mod == "gnuplot":
-    from pyvisi.renderers.gnuplot import *   # gnuplot
+    from esys.pyvisi.renderers.gnuplot import *   # gnuplot
 elif ren_mod == "vtk":
-    from pyvisi.renderers.vtk import *       # vtk
+    from esys.pyvisi.renderers.vtk import *       # vtk
 elif ren_mod == "plplot":
-    from pyvisi.renderers.plplot import *    # plplot
+    from esys.pyvisi.renderers.plplot import *    # plplot
 else:
     raise ValueError, "Unknown renderer module"
 

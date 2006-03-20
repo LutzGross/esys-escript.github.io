@@ -22,23 +22,16 @@
 Initialisation of the pyvisi base package
 """
 
-from pyvisi.common import _pyvisiVersion, _pyvisiRevision
-print "This is PyVisi version %s-%s" % (_pyvisiVersion, _pyvisiRevision)
-
 __author__ = 'Paul Cochrane'
-__version__ = _pyvisiVersion
-__revision__ = _pyvisiRevision
 
-from pyvisi.item import Item
-from pyvisi.renderer import Renderer
-from pyvisi.scene import Scene
-from pyvisi.plot import Plot, \
-        ArrowPlot, ContourPlot, LinePlot, SurfacePlot
-from pyvisi.camera import Camera
-from pyvisi.image import Image, \
-        JpegImage, PdfImage, PngImage, PnmImage, TiffImage
-from pyvisi.text import Text
-from pyvisi.axes import Axes
-from pyvisi.plane import Plane
+from item import Item
+from renderer import Renderer
+from scene import Scene
+from plot import Plot, ArrowPlot, ContourPlot, LinePlot, SurfacePlot
+from camera import Camera
+from image import Image, JpegImage, PdfImage, PngImage, PnmImage, TiffImage
+from text import Text
+from axes import Axes
+from plane import Plane
 
 # vim: expandtab shiftwidth=4:

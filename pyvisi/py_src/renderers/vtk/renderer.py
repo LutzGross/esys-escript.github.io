@@ -23,9 +23,8 @@ This is the file for the vtk Renderer class
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
-from pyvisi.renderers.vtk.common import _rendererName
-from pyvisi.renderer import Renderer as BaseRenderer
+from common import debugMsg, _rendererName
+from esys.pyvisi.renderer import Renderer as BaseRenderer
 
 __revision__ = '$Revision: 1.20 $'
 
@@ -60,6 +59,6 @@ class Renderer(BaseRenderer):
         # initialise the renderer module
         self.runString("# Renderer._initRendererModule")
         self.addToInitStack("import vtk")
-        self.addToInitStack("from Numeric import *")
+        self.addToInitStack("from numarray import *")
 
 # vim: expandtab shiftwidth=4:

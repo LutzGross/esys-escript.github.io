@@ -22,25 +22,21 @@
 Initialisation of the povray renderer module
 """
 
-from pyvisi.renderers.povray.common \
-        import _rendererName, _rendererVersion, _rendererRevision
-print "This is the \"%s\" renderer module version %s-%s" % \
-        (_rendererName, _rendererVersion, _rendererRevision)
+from common import _rendererName, _rendererVersion, _rendererRevision
+print "This is the \"%s\" renderer module version %s-%s" % (_rendererName, _rendererVersion, _rendererRevision)
 
 __author__ = 'Paul Cochrane'
 __version__ = _rendererVersion
 __revision__ = _rendererRevision
 
-from pyvisi.renderers.povray.item import Item
-from pyvisi.renderers.povray.renderer import Renderer
-from pyvisi.renderers.povray.scene import Scene
-from pyvisi.renderers.povray.plot import Plot, \
-        ArrowPlot, ArrowPlot3D, BallPlot, ContourPlot, LinePlot
-from pyvisi.renderers.povray.camera import Camera
-from pyvisi.renderers.povray.image import Image, \
-        JpegImage
-from pyvisi.renderers.povray.text import Text
-from pyvisi.renderers.povray.axes import Axes
-from pyvisi.renderers.povray.plane import Plane
+from item import Item
+from renderer import Renderer
+from scene import Scene
+from plot import Plot, ArrowPlot, ArrowPlot3D, BallPlot, ContourPlot, LinePlot
+from camera import Camera
+from image import Image, JpegImage
+from text import Text
+from axes import Axes
+from plane import Plane
 
 # vim: expandtab shiftwidth=4:

@@ -22,8 +22,8 @@
 Class and functions associated with a pyvisi Camera object
 """
 
-from pyvisi.renderers.povray.common import debugMsg
-from pyvisi.renderers.povray.item import Item
+from common import debugMsg
+from item import Item
 
 __revision__ = '$Revision: 1.6 $'
 

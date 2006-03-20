@@ -4,14 +4,14 @@
 # $Id: escript_scalarData1D.py,v 1.3 2006/01/03 08:46:20 paultcochrane Exp $
 
 from esys.escript import *
-from esys import bruce
+import esys.finley as fe
 
-import numarray
+from esys.pyvisi import *
+from esys.pyvisi.renderers.vtk import *
 
-from pyvisi import *
-from pyvisi.renderers.vtk import *
+online=True
 
-vectorDomain = bruce.Rectangle(9,1,10,1)
+vectorDomain = fe.Rectangle(9,10)
 vectorFunctionSpace = escript.ContinuousFunction(vectorDomain)
 domainData = vectorFunctionSpace.getX()
 
@@ -21,7 +21,7 @@ scalarData1D = sin(domainData[0])
 scene = Scene()
 plot = LinePlot(scene)
 plot.setData(scalarData1D)
-scene.render(pause=True)
+if online: scene.render(pause=True)
 
 scene.save(fname="escript_scalarData1D_linePlot.png", format="png")
 

@@ -23,10 +23,10 @@ Class and functions associated with a pyvisi Plot objects
 """
 
 # generic imports
-from pyvisi.renderers.povray.common import debugMsg
+from common import debugMsg
 
 # module specific imports
-from pyvisi.renderers.povray.item import Item
+from item import Item
 
 import Numeric
 import math

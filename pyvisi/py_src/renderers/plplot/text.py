@@ -22,9 +22,9 @@
 Brief introduction to what the file contains/does
 """
 
-from pyvisi.renderers.plplot.common import debugMsg
+from common import debugMsg
 
-from pyvisi.renderers.plplot.item import Item
+from item import Item
 
 __revision__ = '$Revision: 1.4 $'
 

@@ -23,11 +23,11 @@ Class and functions associated with a pyvisi Scene
 """
 
 # generic imports
-from pyvisi.renderers.vtk.common import debugMsg
-from pyvisi.scene import Scene as BaseScene
+from common import debugMsg
+from esys.pyvisi.scene import Scene as BaseScene
 
 # module specific imports
-from pyvisi.renderers.vtk.renderer import Renderer
+from renderer import Renderer
 
 __revision__ = '$Revision: 1.33 $'
 
@@ -82,7 +82,43 @@ class Scene(BaseScene):
 
         return
 
-    def render(self, pause=False, interactive=False, save=False):
+    def render(self, pause=False, interactive=False):
+        """
+        Render (or re-render) the scene
+        
+        Render the scene, either to screen, or to a buffer waiting for a save
+
+        @param pause: Flag to wait at end of script evaluation for user input
+        @type pause: boolean
+
+        @param interactive: Whether or not to have interactive use of the output
+        @type interactive: boolean
+        """
+        debugMsg("Called Scene.render()")
+        self.__render(pause,interactive,save=False)
+
+    def save(self, fname, format):
+        """
+        Save the scene to a file
+
+        Possible formats are:
+            - Postscript
+            - PNG
+            - JPEG
+            - TIFF
+            - BMP
+            - PNM
+
+        @param fname: Name of output file
+        @type fname: string
+
+        @param format: Graphics format of output file
+        @type format: Image object or string
+        """
+        debugMsg("Called Scene.save()")
+        self.__render(False,False,True,fname, format)
+
+    def __render(self, pause=False, interactive=False, save=False, fname="out", format="jpeg"):
         """
         Render (or re-render) the scene
         
@@ -96,16 +132,61 @@ class Scene(BaseScene):
 
         @param save: Whether or not to save the output when render
         @type save: boolean
+
+        @param fname: Name of output file
+        @type fname: string
+                                                                                                                                                                                                     
+        @param format: Graphics format of output file
+        @type format: Image object or string
+
         """
-        debugMsg("Called Scene.render()")
+        debugMsg("Called Scene.__render()")
         renderer = self.renderer
 
         # I don't yet know where to put this, but just to get stuff going...
-        renderer.runString("# Scene.render()")
+        renderer.runString("# Scene.__render()")
 
-        # if saving to file, try not to render to the screen
-        # this needs to be done BEFORE setting up the renderer
         if save:
+            # if the format is passed in as a string or object, react
+            # appropriately
+            import types
+            if type(format) is types.StringType:
+                fmt = format.lower()
+            else:
+                fmt = format.format
+
+            # need to pass the render window through a filter to an image object
+            self.renderer.runString(
+                    "_win2imgFilter = vtk.vtkWindowToImageFilter()")
+            self.renderer.runString("_win2imgFilter.SetInput(_renderWindow)")
+    
+            # set the output format
+            if fmt == "ps":
+                self.renderer.runString(
+                        "_outWriter = vtk.vtkPostScriptWriter()")
+            elif fmt == "png":
+                self.renderer.runString(
+                        "_outWriter = vtk.vtkPNGWriter()")
+            elif fmt == "jpeg" or fmt == "jpg":
+                self.renderer.runString(
+                        "_outWriter = vtk.vtkJPEGWriter()")
+            elif fmt == "tiff" or fmt == "tif":
+                self.renderer.runString(
+                        "_outWriter = vtk.vtkTIFFWriter()")
+            elif fmt == "bmp":
+                self.renderer.runString(
+                        "_outWriter = vtk.vtkBMPWriter()")
+            elif fmt == "pnm":
+                self.renderer.runString(
+                        "_outWriter = vtk.vtkPNMWriter()")
+            else:
+                raise ValueError, "Unknown graphics format.  I got %s" % fmt
+
+            # set stuff up to write
+            self.renderer.runString("_outWriter.SetInput(_win2imgFilter.GetOutput())")
+            evalString = "_outWriter.SetFileName(\"%s\")" % fname
+            self.renderer.runString(evalString)
+
             evalString = "_factGraphics = vtk.vtkGraphicsFactory()\n"
             evalString += "_factGraphics.SetUseMesaClasses(1)\n"
             evalString += "_factImage = vtk.vtkImagingFactory()\n"
@@ -192,73 +273,6 @@ class Scene(BaseScene):
         # flush the evaluation stack
         debugMsg("Flushing evaluation stack")
         renderer.resetEvalStack()
-
-        return
-
-    def save(self, fname, format):
-        """
-        Save the scene to a file
-
-        Possible formats are:
-            - Postscript
-            - PNG
-            - JPEG
-            - TIFF
-            - BMP
-            - PNM
-
-        @param fname: Name of output file
-        @type fname: string
-
-        @param format: Graphics format of output file
-        @type format: Image object or string
-        """
-        debugMsg("Called Scene.save()")
-        self.renderer.runString("# Scene.save()")
-
-        # if the format is passed in as a string or object, react
-        # appropriately
-        import types
-        if type(format) is types.StringType:
-            fmt = format.lower()
-        else:
-            fmt = format.format
-
-        # need to pass the render window through a filter to an image object
-        self.renderer.runString(
-                "_win2imgFilter = vtk.vtkWindowToImageFilter()")
-        self.renderer.runString("_win2imgFilter.SetInput(_renderWindow)")
-
-        # set the output format
-        if fmt == "ps":
-            self.renderer.runString(
-                    "_outWriter = vtk.vtkPostScriptWriter()")
-        elif fmt == "png":
-            self.renderer.runString(
-                    "_outWriter = vtk.vtkPNGWriter()")
-        elif fmt == "jpeg" or fmt == "jpg":
-            self.renderer.runString(
-                    "_outWriter = vtk.vtkJPEGWriter()")
-        elif fmt == "tiff" or fmt == "tif":
-            self.renderer.runString(
-                    "_outWriter = vtk.vtkTIFFWriter()")
-        elif fmt == "bmp":
-            self.renderer.runString(
-                    "_outWriter = vtk.vtkBMPWriter()")
-        elif fmt == "pnm":
-            self.renderer.runString(
-                    "_outWriter = vtk.vtkPNMWriter()")
-        else:
-            raise ValueError, "Unknown graphics format.  I got %s" % fmt
-
-        # set stuff up to write
-        self.renderer.runString(
-                "_outWriter.SetInput(_win2imgFilter.GetOutput())")
-        evalString = "_outWriter.SetFileName(\"%s\")" % fname
-        self.renderer.runString(evalString)
-        
-        # rerender the scene to get the output
-        self.render(save=True)
 
         return
 
