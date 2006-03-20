@@ -8,7 +8,7 @@ import esys.finley as fe
 
 import numarray
 
-from esys.pyvisi import *
+# from esys.pyvisi import *
 from esys.pyvisi.renderers.vtk import *
 
 online=True
@@ -29,10 +29,12 @@ scene.save(fname="escript_scalarData2D_contourPlot.png", format="png")
 
 scene = Scene()
 plot = SurfacePlot(scene)
-plot.setData(scalarData2D)
+plot.setData(-scalarData2D)
+if online: scene.render(pause=True)
+plot.setData(-scalarData2D)
 if online: scene.render(pause=True)
 
-scene.save(fname="escript_scalarData2D_surfacePlot.png", format="png")
+# scene.save(fname="escript_scalarData2D_surfacePlot.png", format="png")
 
 # add SurfacePlot, MeshPlot etc here
 
