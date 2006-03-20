@@ -21,4 +21,8 @@ if pyinstall != None:
 
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
 SConscript(dirs=['py_src/renderers'], build_dir='obj/py_src/renderers', duplicate=0)
-# SConscript(dirs=['test/MeshAdapter'], build_dir='obj/test/MeshAdapter', duplicate=0)
+SConscript(dirs=['py_src/renderers/gnuplot'], build_dir='obj/py_src/renderers/gnuplot', duplicate=0)
+SConscript(dirs=['py_src/renderers/opendx'], build_dir='obj/py_src/renderers/opendx', duplicate=0)
+SConscript(dirs=['py_src/renderers/plplot'], build_dir='obj/py_src/renderers/plplot', duplicate=0)
+SConscript(dirs=['py_src/renderers/povray'], build_dir='obj/py_src/renderers/povray', duplicate=0)
+SConscript(dirs=['py_src/renderers/vtk'], build_dir='obj/py_src/renderers/vtk', duplicate=0)

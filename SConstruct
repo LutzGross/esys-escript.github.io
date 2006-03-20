@@ -16,8 +16,8 @@ target_scripts = ['tools/CppUnitTest/SConstruct',
                   'bruce/SConstruct',
                   'paso/SConstruct',
                   'finley/SConstruct',
-                  'modellib/SConstruct']
-                  # 'pyvisi/SConstruct',
+                  'modellib/SConstruct',
+                  'pyvisi/SConstruct']
                   # 'doc/SConstruct']
                   # 'doc/SConstruct']
 
