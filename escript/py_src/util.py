@@ -28,24 +28,6 @@ import numarray
 import escript
 import os
 
-# missing tests:
-
-# def pokeShape(arg):
-# def pokeDim(arg):
-# def commonShape(arg0,arg1):
-# def commonDim(*args):
-# def testForZero(arg):
-# def matchType(arg0=0.,arg1=0.):
-# def matchShape(arg0,arg1):
-
-# def reorderComponents(arg,index):
-
-#
-# slicing: get
-#          set
-#
-# and derivatives
-
 #=========================================================
 #   some helpers:
 #=========================================================
@@ -3400,8 +3382,8 @@ def inverse(arg):
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     @remark: for L{escript.Data} objects the dimension is restricted to 3.
     """
+    import numarray.linear_algebra # This statement should be after the next statement but then somehow numarray is gone.
     if isinstance(arg,numarray.NumArray):
-      import numarray.linear_algebra
       return numarray.linear_algebra.inverse(arg)
     elif isinstance(arg,escript.Data):
       return escript_inverse(arg)
