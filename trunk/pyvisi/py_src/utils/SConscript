@@ -16,9 +16,9 @@ py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_su
 pyvisipy_env.Append(BUILDERS = {'PyCompile' : py_builder});
 
 python_src = ['__init__.py',
-              'util.py']
+              'utils.py']
 
 pyc = pyvisipy_env.PyCompile(python_src)
-Default(pyvisipy_env.Install(Dir(str(pydir2)+"/util"), pyc))
+Default(pyvisipy_env.Install(Dir(str(pydir2)+"/utils"), pyc))
 if pyinstall != None:
   Default(pyvisipy_env.Install(pyinstall, pyc))
