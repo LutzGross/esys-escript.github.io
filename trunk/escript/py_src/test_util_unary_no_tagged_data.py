@@ -17,8 +17,8 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
 __licence__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licences/osl-3.0.php"""
 __url__="http://www.iservo.edu.au/esys/escript"
-__version__="$Revision:$"
-__date__="$Date:$"
+__version__="$Revision$"
+__date__="$Date$"
 
 import unittest
 import numarray
