@@ -1,15 +1,5 @@
 filter# $Id:$
 
-#
-#      COPYRIGHT ACcESS 2004 -  All Rights Reserved
-#
-#   This software is the property of ACcESS.  No part of this code
-#   may be copied in any form or by any means without the expressed written
-#   consent of ACcESS.  Copying, use or modification of this software
-#   by any unauthorised person is illegal unless that
-#   person has a software license agreement with ACcESS.
-#
-
 """
 A simple framework to run benchmarks under OPENMP and to summarize the results in tables for instance in HTML
 
@@ -21,7 +11,11 @@ var __url__: url entry point on documentation
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
-__licence__="contact: esys@access.uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__licence__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licences/osl-3.0.php"""
 __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"

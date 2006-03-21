@@ -11,7 +11,11 @@ test for util operations for overloaded operations with tagged data
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
-__licence__="contact: esys@access.uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__licence__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licences/osl-3.0.php"""
 __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
