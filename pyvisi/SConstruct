@@ -21,7 +21,7 @@ if pyinstall != None:
 
 SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
 SConscript(dirs=['py_src/renderers'], build_dir='obj/py_src/renderers', duplicate=0)
-SConscript(dirs=['py_src/util'], build_dir='obj/py_src/util', duplicate=0)
+SConscript(dirs=['py_src/utils'], build_dir='obj/py_src/utils', duplicate=0)
 SConscript(dirs=['py_src/renderers/gnuplot'], build_dir='obj/py_src/renderers/gnuplot', duplicate=0)
 SConscript(dirs=['py_src/renderers/opendx'], build_dir='obj/py_src/renderers/opendx', duplicate=0)
 SConscript(dirs=['py_src/renderers/plplot'], build_dir='obj/py_src/renderers/plplot', duplicate=0)
