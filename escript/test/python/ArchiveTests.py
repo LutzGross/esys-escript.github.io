@@ -1,3 +1,4 @@
+
 import sys
 import unittest
 import os
@@ -17,6 +18,11 @@ Version $Id: MiscTests.py 153 2005-10-25 01:51:20Z jgs $
 
 """
 
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__licence__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licences/osl-3.0.php"""
 #
 # ==============================================================
 
