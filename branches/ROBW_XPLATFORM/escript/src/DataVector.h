@@ -13,7 +13,7 @@
 #if !defined escript_DataVector_20050324_H
 #define escript_DataVector_20050324_H
 
-#include "EsysAssert.h"
+#include "esysUtils/EsysAssert.h"
 
 #include <vector>
 #include <iostream>

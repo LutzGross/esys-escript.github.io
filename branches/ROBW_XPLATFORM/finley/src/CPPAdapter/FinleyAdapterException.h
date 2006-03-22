@@ -15,7 +15,7 @@
 #if !defined  finley_FinleyAdapterException_20040526_H
 #define finley_FinleyAdapterException_20040526_H
 
-#include "EsysException.h"
+#include "esysUtils/EsysException.h"
 
 #include <string>
 
