@@ -33,8 +33,8 @@
 #include "Finley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
-#include "DataC.h"
-#include "SystemMatrix.h"
+#include "escriptcpp/DataC.h"
+#include "paso/SystemMatrix.h"
 
 struct Assemble_Parameters {
    dim_t numQuad;

@@ -15,7 +15,7 @@
 #if !defined escript_DataArrayView_20040323_H
 #define escript_DataArrayView_20040323_H
 
-#include "EsysAssert.h"
+#include "esysUtils/EsysAssert.h"
 
 #include "DataVector.h"
 #include "LocalOps.h"

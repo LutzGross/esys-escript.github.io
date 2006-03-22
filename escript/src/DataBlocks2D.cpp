@@ -13,7 +13,7 @@
 #include "DataBlocks2D.h"
 
 #include "DataException.h"
-#include "EsysAssert.h"
+#include "esysUtils/EsysAssert.h"
 
 using namespace std;
 

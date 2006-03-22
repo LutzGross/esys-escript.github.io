@@ -16,7 +16,7 @@
 #if !defined bruce_BruceFactory_20050901_H
 #define bruce_BruceFactory_20050901_H
 
-#include "AbstractContinuousDomain.h"
+#include "escriptcpp/AbstractContinuousDomain.h"
 
 namespace bruce {
 

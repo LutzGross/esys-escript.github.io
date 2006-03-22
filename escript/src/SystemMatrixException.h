@@ -13,7 +13,7 @@
 #if !defined  escript_SystemMatrixException_20040608_H
 #define escript_SystemMatrixException_20040608_H
 
-#include "EsysException.h"
+#include "esysUtils/EsysException.h"
 
 #include <string>
 

@@ -3,8 +3,8 @@
 #ifndef INC_SOLVER
 #define INC_SOLVER
 
-#include "SystemMatrix.h"
-#include "performance.h"
+#include "../SystemMatrix.h"
+#include "../performance.h"
 
 #define FINLEY_SOLVER_TRACE
 /* error codes used in the solver */

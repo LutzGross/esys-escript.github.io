@@ -1,96 +1,38 @@
-libinstall = None
-incinstall = None
-
 Import('*')
 
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import string
-paso_env = Environment(ENV = os.environ)
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+# Filter unused sources
+sources.remove('SystemMatrixPattern_reduceBandwidth.c') # FIXME: Should this file be removed?
 
-paso_path = Dir(str(esysroot) + '/paso/src')
-solvers_path = Dir(str(esysroot) + '/paso/src/Solvers')
-mmio_path = Dir(str(esysroot) + '/tools/mmio/inc')
+# Paso has additional source in the Solvers sub-directory. Append these to the list
+solver_filenames = os.listdir(src_dir+'/Solvers');
+sources += ['Solvers/'+x for x in solver_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+solver_headers = ['Solvers/'+x for x in solver_filenames if os.path.splitext(x)[1] in ['.h']]
 
-cpp_path = [paso_path,
-            solvers_path,
-            mmio_path,
-            python_path,
-            boost_path]
+if mkl_libs:
+   local_env.Append(CPPDEFINES=['MKL',])
+if scsl_libs:
+   local_env.Append(CPPDEFINES=['SCSL',])
+if umf_libs:
+   local_env.Append(CPPDEFINES=['UMFPACK',])
+if papi_libs:
+   local_env.Append(CPPDEFINES=['PAPI',])
 
-paso_env.Replace(CC = cc)
-paso_env.Replace(CCFLAGS = cc_flags)
-if len(mkl_libs) >0: paso_env.Append(CCFLAGS=' -DMKL')
-if len(scsl_libs)>0 : paso_env.Append(CCFLAGS=' -DSCSL')
-if len(mkl_path)>0: cpp_path.append(mkl_path)
-if len(scsl_path)>0: cpp_path.append(scsl_path)
-if len(umfpack_path)>0: cpp_path.append(umfpack_path)
-if len(papi_path)>0: cpp_path.append(papi_path)
-if len(umfpack_libs)>0 : paso_env.Append(CCFLAGS=' -DUMFPACK')
-if len(papi_libs)>0 : paso_env.Append(CCFLAGS=' -DPAPI')
+lib_name = 'paso'
 
-paso_env.Replace(CPPPATH = cpp_path)
-paso_env.Replace(ARFLAGS = ar_flags)
+lib = local_env.StaticLibrary(lib_name, sources)
 
-lib = 'paso'
+include_path = Dir(lib_name, incinstall)
+solvers_include_path = Dir('Solvers', include_path)
 
-incs = ['Common.h',
-        'mmio.h',
-        'MKL.h',
-        'Options.h',
-        'Paso.h',
-        'SCSL.h',
-        'SystemMatrix.h',
-        'SystemMatrixPattern.h',
-        'PasoUtil.h',
-        'performance.h',
-        'Solvers/Solver.h']
-
-sources = ['Options_getPackage.c',
-           'Options_getSolver.c',
-           'Options_setDefaults.c',
-           'mmio.c',
-           'performance.c',
-           'Paso.c',
-           'solve.c',
-           'SystemMatrix_borrowNormalization.c',
-           'SystemMatrix.c',
-           'SystemMatrix_copy.c',
-           'SystemMatrix_getSubmatrix.c',
-           'SystemMatrix_getSystemMatrixTypeId.c',
-           'SystemMatrix_loadMM.c',
-           'SystemMatrix_MatrixVector.c',
-           'SystemMatrix_nullifyRowsAndCols.c',
-           'SystemMatrixPattern.c',
-           'SystemMatrixPattern_getSubpattern.c',
-           'SystemMatrixPattern_mis.c',
-           'SystemMatrixPattern_unrollBlocks.c',
-           'SystemMatrix_saveHB.c',
-           'SystemMatrix_saveMM.c',
-           'SystemMatrix_setValues.c',
-           'PasoUtil.c',
-           'MKL.c',
-           'SCSL.c',
-           'SCSL_direct.c',
-           'SCSL_iterative.c',
-           'Solvers/BiCGStab.c',
-           'Solvers/GMRES.c',
-           'Solvers/PCG.c',
-           'Solvers/Solver_applyBlockDiagonalMatrix.c',
-           'Solvers/Solver.c',
-           'Solvers/Solver_ILU.c',
-           'Solvers/Solver_RILU.c',
-           'Solvers/Solver_jacobi.c',
-           'Solvers/Solver_preconditioner.c',
-           'Solvers/Solver_SchurComplement.c']
-
-paso_lib = paso_env.StaticLibrary(lib, sources)
-
-Default(paso_env.Install(incdir, incs))
-Default(paso_env.Install(incdir2, incs))
-if incinstall != None:
-  Default(paso_env.Install(incinstall, incs))
-
-Default(paso_env.Install(libdir, paso_lib))
-Default(paso_env.Install(libdir2, paso_lib))
-if libinstall != None:
-  Default(paso_env.Install(libinstall, paso_lib))
+local_env.Install(include_path, headers )
+local_env.Install(solvers_include_path, solver_headers )
+local_env.Install(libinstall, lib)
+ 

@@ -17,7 +17,7 @@
 
 #include "BruceException.h"
 
-#include "FunctionSpaceFactory.h"
+#include "escriptcpp/FunctionSpaceFactory.h"
 
 #include <boost/python/extract.hpp>
 

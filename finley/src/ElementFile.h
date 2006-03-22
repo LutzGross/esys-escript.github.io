@@ -19,7 +19,7 @@
 
 #include "Finley.h"
 #include "ReferenceElements.h"
-#include "DataC.h"
+#include "escriptcpp/DataC.h"
 
 struct Finley_ElementFile {
 

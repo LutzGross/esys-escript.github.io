@@ -13,7 +13,7 @@
 #if !defined  escript_DataException_20040324_H
 #define escript_DataException_20040324_H
 
-#include "EsysException.h"
+#include "esysUtils/EsysException.h"
 
 #include <string>
 
