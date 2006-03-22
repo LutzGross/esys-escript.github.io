@@ -1,3 +1,19 @@
+
+"""
+
+Miscellaneous escript/Data tests.
+
+Version $Id$
+
+"""
+
+
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__licence__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licences/osl-3.0.php"""
+
 import sys
 import unittest
 import os
@@ -8,13 +24,6 @@ from esys import bruce
 import numarray
 from numarray import array,Float64,ones,greater
 
-"""
-
-Miscellaneous escript/Data tests.
-
-Version $Id$
-
-"""
 
 arglist = [ \
 3.0, \

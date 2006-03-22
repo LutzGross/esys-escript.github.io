@@ -1,16 +1,3 @@
-import sys
-import unittest
-import os
-                                                                                                                 
-esys_root=os.getenv('ESYS_ROOT')
-sys.path.append(esys_root+'/finley/lib')
-sys.path.append(esys_root+'/escript/lib')
-sys.path.append(esys_root+'/escript/py_src')
-                                                                                                                 
-from escript import *
-import finley
-import numarray
-from util import *
 
 """
 
@@ -24,6 +11,26 @@ by Lutz Gross, ACcESS, University of Queensland, Australia, 2003.
 Version $Id$
 
 """
+
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__licence__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licences/osl-3.0.php"""
+
+import sys
+import unittest
+import os
+                                                                                                                 
+esys_root=os.getenv('ESYS_ROOT')
+sys.path.append(esys_root+'/finley/lib')
+sys.path.append(esys_root+'/escript/lib')
+sys.path.append(esys_root+'/escript/py_src')
+                                                                                                                 
+from escript import *
+import finley
+import numarray
+from util import *
 
 from numarray import array,Float64,ones,greater
 
