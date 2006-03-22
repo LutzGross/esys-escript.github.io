@@ -21,8 +21,12 @@ var __url__: url entry point on documentation
 @var __date__: date of the version
 """
 
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
 __author__="Lutz Gross, l.gross@uq.edu.au"
-__licence__="contact: esys@access.uq.edu.au"
 __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
