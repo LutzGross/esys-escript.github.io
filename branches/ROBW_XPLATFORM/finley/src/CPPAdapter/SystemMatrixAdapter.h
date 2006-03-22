@@ -17,16 +17,16 @@
 #define finley_SystemMatrixAdapter_20040610_H
 
 extern "C" {
-#include "SystemMatrix.h"
-#include "Options.h"
+#include "paso/SystemMatrix.h"
+#include "paso/Options.h"
 }
 
 #include "FinleyAdapterException.h"
 #include "FinleyError.h"
 
-#include "AbstractSystemMatrix.h"
-#include "Data.h"
-#include "UtilC.h"
+#include "escriptcpp/AbstractSystemMatrix.h"
+#include "escriptcpp/Data.h"
+#include "escriptcpp/UtilC.h"
 
 #include <boost/python/dict.hpp>
 #include <boost/shared_ptr.hpp>

@@ -20,16 +20,16 @@ extern "C" {
 #include "../Mesh.h"
 #include "../Finley.h"
 #include "../Assemble.h"
-#include "../SystemMatrix.h"
+#include "paso/SystemMatrix.h"
 }
 
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
 #include "SystemMatrixAdapter.h"
-#include "AbstractContinuousDomain.h"
-#include "FunctionSpace.h"
-#include "FunctionSpaceFactory.h"
+#include "escriptcpp/AbstractContinuousDomain.h"
+#include "escriptcpp/FunctionSpace.h"
+#include "escriptcpp/FunctionSpaceFactory.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/dict.hpp>
