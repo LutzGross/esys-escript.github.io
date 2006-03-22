@@ -1,0 +1,27 @@
+Import('*')
+
+import os
+import string
+
+CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
+
+cpp_path = [CppUnitTest_path]
+
+lib = 'CppUnitTest'
+sources = ['TestCase.cpp',
+           'TestFailure.cpp',
+           'TestRunner.cpp',
+           'TestSuite.cpp',
+           'TestResult.cpp',
+           'TextTestResult.cpp']
+
+cppunit_env = Environment(ENV = os.environ)
+
+cppunit_env.Replace(CXX = cxx)
+cppunit_env.Replace(CXXFLAGS = cxx_flags)
+cppunit_env.Replace(ARFLAGS = ar_flags)
+cppunit_env.Replace(CPPPATH = cpp_path)
+
+cppunit_lib = cppunit_env.StaticLibrary(lib, sources)
+
+Default(cppunit_env.Install(libdir, cppunit_lib))

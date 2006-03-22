@@ -1,0 +1,62 @@
+# Scons configuration file for bruce
+
+#
+# set appropriate defaults for configuration variables
+
+esysroot=str(Dir('./..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
+
+Export(["python_path"])
+Export(["boost_path"])
+Export(["cxx"])
+Export(["cxx_flags"])
+Export(["boost_lib_path"])
+Export(["boost_lib"])
+Export(["sys_libs"])
+Export(["libinstall"])
+Export(["pyinstall"])
+Export(["incinstall"])
+
+#
+# set and export library directories
+
+libdir = Dir(str(esysroot) + '/bruce/lib')
+Export(["libdir"])
+libdir2 = Dir(str(esysroot) + '/lib')
+Export(["libdir2"])
+
+#
+# set and export python directories
+
+pydir = Dir(str(esysroot) + '/bruce/lib/py_src')
+Export(["pydir"])
+pydir2 = Dir(str(esysroot) + '/esys/bruce')
+Export(["pydir2"])
+if pyinstall != None:
+  pyinstall = Dir(str(pyinstall) + '/bruce')
+  Export(["pyinstall"])
+
+#
+# set and export include directories
+
+incdir = Dir(str(esysroot) + '/bruce/inc')
+Export(["incdir"])
+incdir2 = Dir(str(esysroot) + '/inc')
+Export(["incdir2"])
+if incinstall != None:
+  Export(["incinstall"])
+
+#
+# print out build configuration for this module
+
+print "Build configuration for module: bruce"
+print "             cxx: ", cxx
+print "       cxx_flags: ", cxx_flags
+
+#
+# call the SConscript to do the actual build
+
+SConscript(dirs=['src'], build_dir='obj/src', duplicate=0)
+SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
+SConscript(dirs=['test/Bruce'], build_dir='obj/test/Bruce', duplicate=0)
+SConscript(dirs=['test/BruceFactory'], build_dir='obj/test/BruceFactory', duplicate=0)

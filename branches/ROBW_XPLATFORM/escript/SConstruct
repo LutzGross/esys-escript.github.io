@@ -1,0 +1,78 @@
+# Scons configuration file for escript
+
+#
+# set appropriate defaults for configuration variables
+esysroot=str(Dir('./..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
+
+Export(["python_path"])
+Export(["boost_path"])
+Export(["cxx"])
+Export(["cxx_flags"])
+Export(["boost_lib_path"])
+Export(["boost_lib"])
+Export(["python_lib_path"])
+Export(["python_lib"])
+Export(["sys_libs"])
+Export(["libinstall"])
+Export(["pyinstall"])
+Export(["incinstall"])
+
+#
+# set and export library directories
+
+libdir = Dir(str(esysroot) + '/escript/lib')
+Export(["libdir"])
+libdir2 = Dir(str(esysroot) + '/lib')
+Export(["libdir2"])
+
+#
+# set and export python directories
+
+pydir = Dir(str(esysroot) + '/escript/lib/py_src')
+Export(["pydir"])
+pydir2 = Dir(str(esysroot) + '/esys/escript')
+Export(["pydir2"])
+if pyinstall != None:
+  pyinstall = Dir(str(pyinstall) + '/escript')
+  Export(["pyinstall"])
+
+#
+# set and export include directories
+
+incdir = Dir(str(esysroot) + '/escript/inc')
+Export(["incdir"])
+incdir2 = Dir(str(esysroot) + '/inc')
+Export(["incdir2"])
+if incinstall != None:
+  Export(["incinstall"])
+
+#
+# print out build configuration for this module
+
+print "Build configuration for module: escript"
+print "             cxx: ", cxx
+print "       cxx_flags: ", cxx_flags
+
+#
+# call the SConscripts to do the actual build
+
+SConscript(dirs=['src'], build_dir='obj', duplicate=0)
+SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)
+SConscript(dirs=['test/Data'], build_dir='obj/test/Data', duplicate=0)
+SConscript(dirs=['test/DataAlgorithmAdapter'], build_dir='obj/test/DataAlgorithmAdapter', duplicate=0)
+SConscript(dirs=['test/DataArray'], build_dir='obj/test/DataArray', duplicate=0)
+SConscript(dirs=['test/DataArrayView'], build_dir='obj/test/DataArrayView', duplicate=0)
+SConscript(dirs=['test/DataBlocks2D'], build_dir='obj/test/DataBlocks2D', duplicate=0)
+SConscript(dirs=['test/DataC'], build_dir='obj/test/DataC', duplicate=0)
+SConscript(dirs=['test/DataCached'], build_dir='obj/test/DataCached', duplicate=0)
+SConscript(dirs=['test/DataConstant'], build_dir='obj/test/DataConstant', duplicate=0)
+SConscript(dirs=['test/DataEmpty'], build_dir='obj/test/DataEmpty', duplicate=0)
+SConscript(dirs=['test/DataExpanded'], build_dir='obj/test/DataExpanded', duplicate=0)
+SConscript(dirs=['test/DataFactory'], build_dir='obj/test/DataFactory', duplicate=0)
+SConscript(dirs=['test/DataProf'], build_dir='obj/test/DataProf', duplicate=0)
+SConscript(dirs=['test/DataTagged'], build_dir='obj/test/DataTagged', duplicate=0)
+SConscript(dirs=['test/DataVariable'], build_dir='obj/test/DataVariable', duplicate=0)
+SConscript(dirs=['test/DataVector'], build_dir='obj/test/DataVector', duplicate=0)
+SConscript(dirs=['test/FunctionSpace'], build_dir='obj/test/FunctionSpace', duplicate=0)
+SConscript(dirs=['test/Taipan'], build_dir='obj/test/Taipan', duplicate=0)
