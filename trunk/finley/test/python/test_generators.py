@@ -9,6 +9,11 @@ from esys.finley import Interval,Rectangle,Brick,JoinFaces
 checks the mesh generators against the reference meshes in test_meshes
 """
 
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
 TEST_FILE_EXT=".test"
 REERFENCE_FILE_DIR="test_meshes"
 

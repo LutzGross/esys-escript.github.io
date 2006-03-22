@@ -3,6 +3,11 @@
 frame to ran a single test out of the Test_util suite
 """
 
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
 import unittest
 from esys.escript import *
 from esys.finley import Rectangle
