@@ -34,6 +34,7 @@ paso_env.Replace(ARFLAGS = ar_flags)
 lib = 'paso'
 
 incs = ['Common.h',
+        'mmio.h',
         'MKL.h',
         'Options.h',
         'Paso.h',
@@ -47,6 +48,7 @@ incs = ['Common.h',
 sources = ['Options_getPackage.c',
            'Options_getSolver.c',
            'Options_setDefaults.c',
+           'mmio.c',
            'performance.c',
            'Paso.c',
            'solve.c',

@@ -18,7 +18,7 @@ class Test_util2(unittest.TestCase):
    def setUp(self):
        self.__dom =Rectangle(10,10,2)
        self.functionspace = FunctionOnBoundary(self.__dom) # due to a bug in escript python needs to hold a reference to the domain
-   def test_add_overloaded_constData_rank1_taggedData_rank0(self):
+   def itest_add_overloaded_constData_rank1_taggedData_rank0(self):
        arg0=Data(numarray.array([4.5897569702707663, 3.4489828945022865]),self.functionspace)
        arg1=Data(0.812494849561,self.functionspace)
        arg1.setTaggedValue(1,-0.798066999908)
@@ -31,6 +31,14 @@ class Test_util2(unittest.TestCase):
        self.failUnless(isinstance(res,Data),"wrong type of result.")
        self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
        self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result") 
+      #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_array_dim1(self):
+      arg=numarray.array([[1.3914367298126584]])
+      res=inverse(arg)
+      self.failUnless(isinstance(res,numarray.NumArray),"wrong type of result.")
+      self.failUnlessEqual(res.shape,(1, 1),"wrong shape of result.")
+      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_util2))
