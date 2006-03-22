@@ -15,8 +15,8 @@
 
 #include "MeshAdapter.h"
 
-#include "Data.h"
-#include "DataFactory.h"
+#include "escriptcpp/Data.h"
+#include "escriptcpp/DataFactory.h"
 
 using namespace std;
 using namespace escript;
