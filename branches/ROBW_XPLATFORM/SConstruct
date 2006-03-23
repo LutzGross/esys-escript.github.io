@@ -89,8 +89,10 @@ if os.name != "nt" and os.uname()[4]=='ia64':
    env = Environment(ENV = {'PATH' : os.environ['PATH']}, tools = ['default', 'intelc'], options = opts)
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
-else:
+elif os.name == "nt":
    env = Environment(tools = ['default', 'intelc'], options = opts)
+else:
+   env = Environment(tools = ['default'], options = opts)
 
 # Setup help for options
 Help(opts.GenerateHelpText(env))
@@ -167,7 +169,7 @@ except KeyError:
 try:
    sys_libs = env['sys_libs']
 except KeyError:
-   sys_libs = None  
+   sys_libs = '' 
 
 try:
    includes = env['mkl_path']
@@ -182,7 +184,7 @@ except KeyError:
 try:
    mkl_libs = env['mkl_libs']
 except KeyError:
-   mkl_libs = None  
+   mkl_libs = ''
 try:
    includes = env['scsl_path']
    env.Append(CPPPATH = [includes,])
@@ -196,7 +198,7 @@ except KeyError:
 try:
    scsl_libs = env['scsl_libs']
 except KeyError:
-   scsl_libs = None  
+   scsl_libs = ''
 try:
    includes = env['umf_path']
    env.Append(CPPPATH = [includes,])
@@ -210,7 +212,7 @@ except KeyError:
 try:
    umf_libs = env['umf_libs']
 except KeyError:
-   umf_libs = None  
+   umf_libs = ''
 try:
    includes = env['boost_path']
    env.Append(CPPPATH = [includes,])
