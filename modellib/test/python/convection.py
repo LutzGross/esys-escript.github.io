@@ -5,6 +5,12 @@
 #    a very simple convection model in model frame:
 #
 
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+
 from esys.escript.modelframe import Link,Simulation
 from esys.modellib.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
 from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
