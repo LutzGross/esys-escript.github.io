@@ -1,4 +1,12 @@
 % $Id$
+%
+%           Copyright © 2006 by ACcESS MNRF 
+%               \url{http://www.access.edu.au
+%         Primary Business: Queensland, Australia.
+%   Licensed under the Open Software License version 3.0 
+%      http://www.opensource.org/licenses/osl-3.0.php
+%
+
 \section{The Diffusion Problem}
 \label{DIFFUSION CHAP}
 
@@ -121,27 +129,30 @@ is called the Helmholtz equation \index{Helmholtz equation}.
 
 We want to use the \LinearPDE class provided by \escript to define and solve a general linear,steady, second order PDE such as the 
 Helmholtz equation. For a single PDE the \LinearPDE class supports the following form:
-\begin{equation}\label{LINEARPDE.SINGLE.1}
--(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+(B\hackscore{j} u)\hackscore{,j}+C\hackscore{l} u\hackscore{,l}+D u =-X\hackscore{j,j}+Y \; .
+\begin{equation}\label{LINEARPDE.SINGLE.1 TUTORIAL}
+-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u = Y \; .
 \end{equation}
-The coefficients $A$, $B$, $C$, $D$, $X$ and $Y$ have to be specified through \Data objects in the 
+where we show only the coefficients relevant for the problem discussed here. For the general form of 
+single PDE see \eqn{LINEARPDE.SINGLE.1}. 
+The coefficients $A$, and $Y$ have to be specified through \Data objects in the 
 \Function on the PDE or objects that can be converted into such \Data objects. 
-$A$ is a \RankTwo, $B$, $C$ and $X$ are \RankOne and $D$ and $Y$ are scalar. 
+$A$ is a \RankTwo and $D$ and $Y$ are scalar. 
 The following natural
 boundary conditions are considered \index{boundary condition!natural} on $\Gamma$:
-\begin{equation}\label{LINEARPDE.SINGLE.2}
-n\hackscore{j}(A\hackscore{jl} u\hackscore{,l}+B\hackscore{j} u)+d u=n\hackscore{j}X\hackscore{j} + y  \;.
+\begin{equation}\label{LINEARPDE.SINGLE.2 TUTORIAL}
+n\hackscore{j}A\hackscore{jl} u\hackscore{,l}+d u= y  \;.
 \end{equation}
-Notice that the coefficients $A$, $B$ and $X$ are the same like in the PDE~\eqn{LINEARPDE.SINGLE.1}. The coefficients $d$ and $y$ are  
+Notice that the coefficient $A$ is the same like in the PDE~\eqn{LINEARPDE.SINGLE.1 TUTORIAL}. 
+The coefficients $d$ and $y$ are  
 each a \Scalar in the \FunctionOnBoundary.  Constraints \index{constraint} for the solution prescribing the value of the 
 solution at certain locations in the domain. They have the form
-\begin{equation}\label{LINEARPDE.SINGLE.3}
+\begin{equation}\label{LINEARPDE.SINGLE.3 TUTORIAL}
 u=r \mbox{ where } q>0
 \end{equation}
 $r$ and $q$ are each \Scalar where $q$ is the characteristic function
 \index{characteristic function} defining where the constraint is applied.
-The constraints defined by \eqn{LINEARPDE.SINGLE.3} override any other condition set by \eqn{LINEARPDE.SINGLE.1}
-or \eqn{LINEARPDE.SINGLE.2}. 
+The constraints defined by \eqn{LINEARPDE.SINGLE.3  TUTORIAL} override any other condition set by 
+\eqn{LINEARPDE.SINGLE.1 TUTORIAL} or \eqn{LINEARPDE.SINGLE.2 TUTORIAL}. 
 The \Poisson class of the \linearPDEs module,
 which we have already used in \Chap{FirstSteps}, is in fact a subclass of the more general
 \LinearPDE class. The \linearPDEs module provides a \Helmholtz class but
@@ -164,7 +175,7 @@ in \escript of being not present and set to zero. As not present coefficients ar
 it is more efficient to leave a coefficient undefined instead of assigning zero to it.} 
 In this diffusion example we do not need to define a characteristic function $q$ because the 
 boundary conditions we consider in \eqn{DIFFUSION HELM EQ 2} are just the natural boundary 
-conditions which are already defined in the \LinearPDE class (shown in \eqn{LINEARPDE.SINGLE.2}).
+conditions which are already defined in the \LinearPDE class (shown in \eqn{LINEARPDE.SINGLE.2 TUTORIAL}).
 
 Defining and solving the Helmholtz equation is very easy now:
 \begin{python}
@@ -193,10 +204,10 @@ u=mypde.getSolution()
 \end{python}
 In some cases the solver of the PDE can make use of the fact that the PDE is symmetric\index{symmetric PDE} where the 
 PDE is called symmetric if 
-\begin{equation}\label{LINEARPDE.SINGLE.4}
-A\hackscore{jl}=A\hackscore{lj} \mbox{ and } B\hackscore{j}=C\hackscore{j} \;.
+\begin{equation}\label{LINEARPDE.SINGLE.4  TUTORIAL}
+A\hackscore{jl}=A\hackscore{lj}\;.
 \end{equation}
-Note that $D$ and $d$ may have any value and the right hand side $X$, $Y$, $y$ as well as the constraints
+Note that $D$ and $d$ may have any value and the right hand sides $Y$, $y$ as well as the constraints
 are not relevant. The Helmholtz problem is symmetric. 
 The \LinearPDE class provides the method \method{checkSymmetry} method to check if the given PDE is symmetric. 
 \begin{python}

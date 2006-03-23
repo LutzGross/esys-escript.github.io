@@ -1,5 +1,12 @@
-
 % $Id$
+%
+%           Copyright © 2006 by ACcESS MNRF
+%               http://www.access.edu.au
+%         Primary Business: Queensland, Australia.
+%   Licensed under the Open Software License version 3.0
+%      http://www.opensource.org/licenses/osl-3.0.php
+%
+
 
 \chapter{The module \escript}
 
@@ -297,7 +304,7 @@ Otherwise \False is returned.
 returns string represention of the \Domain.
 \end{methoddesc}
 
-\section{\Domain class}
+\section{\FunctionSpace class}
 \begin{classdesc}{FunctionSpace}{}
 \FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
 are instantiated by generator functions. \Data objects in particular \FunctionSpace are
@@ -392,43 +399,44 @@ for the solution approximation.
 The following table shows binary and unitary operations that can be applied to
 \Data objects:
 \begin{tableii}{l|l}{textrm}{expression}{Description}
-\lineii{+\var{arg1}} {just \var{arg} \index{+}}
-\lineii{-\var{arg1}} {swapping the sign\index{-}}
-\lineii{\var{arg1}+\var{arg2}} {adds \var{arg1} and \var{arg2} \index{+}}
-\lineii{\var{arg1}*\var{arg2}} {multiplies \var{arg1} and \var{arg2} \index{*}}
-\lineii{\var{arg1}-\var{arg2}} {difference \var{arg2} from\var{arg2} \index{-}}
-\lineii{\var{arg1}/\var{arg2}} {ratio \var{arg1} by \var{arg2} \index{/}}
-\lineii{\var{arg1}**\var{arg2}} {raises \var{arg1} to the power of \var{arg2} \index{**}}
+\lineii{+\var{arg0}} {just \var{arg} \index{+}}
+\lineii{-\var{arg0}} {swapping the sign\index{-}}
+\lineii{\var{arg0}+\var{arg1}} {adds \var{arg0} and \var{arg1} \index{+}}
+\lineii{\var{arg0}*\var{arg1}} {multiplies \var{arg0} and \var{arg1} \index{*}}
+\lineii{\var{arg0}-\var{arg1}} {difference \var{arg1} from\var{arg1} \index{-}}
+\lineii{\var{arg0}/\var{arg1}} {ratio \var{arg0} by \var{arg1} \index{/}}
+\lineii{\var{arg0}**\var{arg1}} {raises \var{arg0} to the power of \var{arg1} \index{**}}
 \end{tableii}
-At least one of the arguments \var{arg1} or \var{arg2} must be a
+At least one of the arguments \var{arg0} or \var{arg1} must be a
 \Data object. One of the arguments may be an object that can be
-converted into a \Data object. If \var{arg1} or \var{arg2} are
-defined on different \FunctionSpace an attempt is made to embed \var{arg1}
-into the \FunctionSpace of \var{arg2} or to embed \var{arg2} into
-the \FunctionSpace of \var{arg1}. Boths arguments must have the same
-\Shape or one of the arguments my be of rank 0 or \Shape (1,). In the
+converted into a \Data object. If \var{arg0} or \var{arg1} are
+defined on different \FunctionSpace an attempt is made to embed \var{arg0}
+into the \FunctionSpace of \var{arg1} or to embed \var{arg1} into
+the \FunctionSpace of \var{arg0}. Boths arguments must have the same
+\Shape or one of the arguments my be of rank 0. In the
 latter case it is assumed that the particular argument is of the same
 \Shape as the other argument but constant over all components.
 
 The returned \Data object has the same \Shape and is defined on
-the \DataSamplePoints as \var{arg1} or \var{arg2}.
+the \DataSamplePoints as \var{arg0} or \var{arg1}.
 
 The following table shows the update operations that can be applied to
 \Data objects:
 \begin{tableii}{l|l}{textrm}{expression}{Description}
-\lineii{\var{arg1}+=\var{arg2}} {adds \var{arg1} to \var{arg2} \index{+}}
-\lineii{\var{arg1}*=\var{arg2}} {multiplies \var{arg1} with \var{arg2} \index{*}}
-\lineii{\var{arg1}-=\var{arg2}} {subtracts \var{arg2} from\var{arg2} \index{-}}
-\lineii{\var{arg1}/=\var{arg2}} {divides \var{arg1} by \var{arg2} \index{/}}
+\lineii{\var{arg0}+=\var{arg2}} {adds \var{arg0} to \var{arg2} \index{+}}
+\lineii{\var{arg0}*=\var{arg2}} {multiplies \var{arg0} with \var{arg2} \index{*}}
+\lineii{\var{arg0}-=\var{arg2}} {subtracts \var{arg2} from\var{arg2} \index{-}}
+\lineii{\var{arg0}/=\var{arg2}} {divides \var{arg0} by \var{arg2} \index{/}}
+\lineii{\var{arg0}**=\var{arg2}} {raises \var{arg0} by \var{arg2} \index{**}}
 \end{tableii}
-\var{arg1} must be a \Data object. \var{arg1} must be a
+\var{arg0} must be a \Data object. \var{arg1} must be a
 \Data object or an object that can be converted into a
 \Data object. \var{arg1} must have the same \Shape like
-\var{arg1} or has rank 0 or \Shape (1,).  In the latter case it is
+\var{arg1} or has rank 0.  In the latter case it is
 assumed that the values of \var{arg1} are constant for all
-components. \var{arg2} must be defined on the same \DataSamplePoints as
-\var{arg1} or it must be possible to interpolate \var{arg2} onto the
-\DataSamplePoints where \var{arg1} is held.
+components. \var{arg1} must be defined in the same \FunctionSpace as
+\var{arg0} or it must be possible to interpolate \var{arg1} onto the
+\FunctionSpace of \var{arg1}.
 
 The \Data class supports getting slices as well as assigning new values to components in an existing
 \Data object. \index{slicing}
