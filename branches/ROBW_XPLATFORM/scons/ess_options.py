@@ -4,14 +4,9 @@ mkl_lib_path ='/opt/intel/mkl80.019/lib/64'
 mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 
 # locations of libs etc used by SCSL
-scsl_path = ''
-scsl_lib_path = ''
+scsl_path = '/usr/include'
+scsl_lib_path = '/usr/lib'
 scsl_libs = ['scs_mp']
-
-# locations of libs etc used by UMFPACK
-umfpack_path = ''
-umfpack_lib_path = ''
-umfpack_libs = []
 
 # locations of include files for python
 python_path = '/raid2/tools/python-2.3.4/include/python2.3'
@@ -32,9 +27,6 @@ epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-pac
 # papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
 # papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
 # papi_libs = [ 'papi' ]
-papi_path = ''
-papi_lib_path = ''
-papi_libs = [ ]
 
 # names of c and c++ compilers to use
 cc = 'icc'
@@ -47,9 +39,6 @@ cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -ansi_alias -no-gcc -w1 -
 # c++ flags to use
 cxx_flags = '-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report0 -ansi -ansi_alias -no-gcc -w1 -fpic'
 cxx_flags_debug = '-g -O0 -openmp -openmp_report0 -ansi -ansi_alias -no-gcc -w1  -fpic -DDOASSERT -DDOPROF'
-
-# static library archiver flags to use
-ar_flags = 'crus'
 
 # system specific libraries to link with
 sys_libs = ['guide', 'irc']
