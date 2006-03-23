@@ -1,15 +1,4 @@
 
-import sys
-import unittest
-import os
-
-from esys.escript import *
-from esys import bruce
-from esys import finley
-
-import numarray
-from numarray import array,Float64,ones,greater
-
 """
 
 Miscellaneous escript/Data tests.
@@ -23,6 +12,17 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
                 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
+import sys
+import unittest
+import os
+
+from esys.escript import *
+from esys import bruce
+from esys import finley
+
+import numarray
+from numarray import array,Float64,ones,greater
+
 #
 # ==============================================================
 
