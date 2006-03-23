@@ -2,6 +2,12 @@
 
 # $Id$
 
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+
 import os, sys
 import vtk
 from esys.escript import *
@@ -745,6 +751,7 @@ class OceanRegion(Model):
                    name=line[2:]
                    segs=[]
               if not (line=="" or line[0]=="#" or line[0]==">") :
+                  print line
                   x=line.split()
                   segs.append(PointOnEarthSurface(long=float(x[0]),lat=float(x[1])))
               line=f.readline()
