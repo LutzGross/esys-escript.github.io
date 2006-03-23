@@ -6,6 +6,7 @@
 some tools supporting the usage of symbols.
 
 @var __author__: name of author
+@var __copyright__: copyrights
 @var __license__: licence agreement
 @var __url__: url entry point on documentation
 @var __version__: version

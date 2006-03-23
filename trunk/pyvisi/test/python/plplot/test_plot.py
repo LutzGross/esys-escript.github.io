@@ -1,22 +1,24 @@
-# Copyright (C) 2004-2005 Paul Cochrane
-# 
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+"""
+Class and functions for testing the Plot class
 
-# $Id: test_plot.py,v 1.1 2005/02/08 05:56:51 paultcochrane Exp $
+@var __author__: name of author
+@var __license__: licence agreement
+@var __copyright__: copyrights
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
+"""
 
-## @file test_plot.py
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__author__="Paul Cochrane"
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import unittest
 import sys,os,string
@@ -27,9 +29,6 @@ from pyvisi import *
 # this should import the renderer specific stuff
 from pyvisi.renderers.plplot import * 
     
-"""
-Class and functions for testing the Plot class
-"""
 
 class TestPlot(unittest.TestCase):
     """

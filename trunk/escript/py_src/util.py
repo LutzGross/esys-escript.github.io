@@ -3,9 +3,8 @@
 """
 Utility functions for escript
 
-@remark:  This module is under construction and is still tested!!!
-
 @var __author__: name of author
+@var __copyright__: copyrights
 @var __license__: licence agreement
 @var __url__: url entry point on documentation
 @var __version__: version

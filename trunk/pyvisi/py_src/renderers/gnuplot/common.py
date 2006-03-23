@@ -1,33 +1,28 @@
-# Copyright (C) 2004-2005 Paul Cochrane
-# 
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-# $Id: common.py,v 1.16 2005/08/24 05:44:07 paultcochrane Exp $
-
-## @file common.py
-
 """
 Variables common to all classes and functions
+
+@var __author__: name of author
+@var __license__: licence agreement
+@var __copyright__: copyrights
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__author__="Paul Cochrane"
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
 
 from esys.pyvisi.common import _debug
 _rendererName = "GNUPLOT"
-_rendererVersion = '0.1'
-_rendererRevision = 'pre-alpha-4'
-
-__revision__ = '$Revision: 1.16 $'
+_rendererVersion = __version__
+_rendererRevision = __version__
 
 def debugMsg(message):
     """
