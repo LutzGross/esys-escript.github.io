@@ -1,9 +1,5 @@
 # $Id$
 
-import sys
-import unittest
-from esys.escript import *
-from esys.finley import Interval,Rectangle,Brick,JoinFaces
 
 """
 checks the mesh generators against the reference meshes in test_meshes
@@ -16,6 +12,11 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 TEST_FILE_EXT=".test"
 REERFENCE_FILE_DIR="test_meshes"
+
+import sys
+import unittest
+from esys.escript import *
+from esys.finley import Interval,Rectangle,Brick,JoinFaces
 
 class Test_Generators(unittest.TestCase):
 
