@@ -2,7 +2,7 @@
 
 /*
 ********************************************************************************
-*               Copyright © 2006 by ACcESS MNRF                                *
+*               Copyright   2006 by ACcESS MNRF                                *
 *                                                                              * 
 *                 http://www.access.edu.au                                     *
 *           Primary Business: Queensland, Australia                            *
