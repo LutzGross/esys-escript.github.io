@@ -34,7 +34,7 @@ opts.AddOptions(
   ('libinstall', 'where the esys libraries will be installed', Dir('#.').abspath+'/lib'), 
   ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath+'/esys'), 
 # Compilation options
-  BoolOption('dodebug', 'Do you want a debug build?', 'no'),
+  BoolOption('dodebug', 'Do you want a debug build?', 'yes'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
   ('cc_flags','C compiler flags to use (Release build)', None),
@@ -304,7 +304,6 @@ env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', 
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 
 # Unit Tests
-#env.SConscript(dirs = ['esysUtils/test/EsysException'], build_dir='build/$PLATFORM/esysUtils/test/EsysException', duplicate=0)
 #env.SConscript(dirs = ['escript/test'], build_dir='build/$PLATFORM/escript/test', duplicate=0)
 #env.SConscript(dirs = ['bruce/test'], build_dir='build/$PLATFORM/bruce/test', duplicate=0)
 #env.SConscript(dirs = ['finley/test'], build_dir='build/$PLATFORM/finley/test', duplicate=0)
