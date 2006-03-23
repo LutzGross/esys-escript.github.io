@@ -82,7 +82,7 @@ opts.AddOptions(
 # environment which isn't the "scons way"
 # This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
 # FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
-if os.uname()[4]=='ia64':
+if os.name != "nt" and os.uname()[4]=='ia64':
    env = Environment(ENV = {'PATH' : os.environ['PATH']}, tools = ['default', 'intelc'], options = opts)
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
@@ -105,8 +105,6 @@ env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 # FIXME: Copy this builder from the win32 branch
 #runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
 #env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
-
-# Compilation flags REQUIRED for a given platform to achieve a successful build (these are added to the ones specific by the compiler options specified on the command line or options file)
 
 # Convert the options which are held in environment variable into python variables for ease of handling and configure compilation options
 try:
@@ -135,26 +133,28 @@ except KeyError:
 if dodebug:
    try:
       flags = env['cc_flags_debug']
+      env.Append(CCFLAGS = flags)
    except KeyError:
       pass
 else:
    try:
       flags = env['cc_flags']
+      env.Append(CCFLAGS = flags)
    except KeyError:
       pass
-env.Append(CCFLAGS = flags)
 
 if dodebug:
    try:
       flags = env['cxx_flags_debug']
+      env.Append(CXXFLAGS = flags)
    except KeyError:
       pass
 else:
    try:
       flags = env['cxx_flags']
+      env.Append(CXXFLAGS = flags)
    except KeyError:
       pass
-env.Append(CXXFLAGS = flags)
 
 try:
    flags = env['ar_flags']
