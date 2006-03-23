@@ -28,7 +28,3 @@ cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
 
 # system specific libraries to link with
 sys_libs = ['guide', 'irc']
-
-# FIXME: OLD STUFF TO BE REMOVED
-cc = 'icc'
-cxx = 'icpc'
