@@ -12,7 +12,7 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
 lib_name = 'esysUtils'
 
-local_env.Append(LIBS = [boost_lib, 'esysUtils', 'escriptcpp'])
+local_env.Append(LIBS = [boost_lib, ])
 
 lib = local_env.StaticLibrary(lib_name, sources)
 
