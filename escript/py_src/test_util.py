@@ -22,6 +22,7 @@ coordinate 0.
 @note: at this stage this test will not pass as it tests for functionlity that has not been implemented yet. It also does not test the full functionalitu of util.py yet.
 
 @var __author__: name of author
+@var __copyright__: copyrights
 @var __license__: licence agreement
 @var __url__: url entry point on documentation
 @var __version__: version

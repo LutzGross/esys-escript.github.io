@@ -12,6 +12,7 @@ classs which are also derived form the L{LinearPDE} class should be used
 to define of solve these sepecial PDEs.
 
 @var __author__: name of author
+@var __copyright__: copyrights
 @var __license__: licence agreement
 @var __url__: url entry point on documentation
 @var __version__: version
@@ -28,7 +29,7 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
                 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys/escript"
+__url__="http://www.iservo.edu.au/esys"
 __version__="$Revision$"
 __date__="$Date$"
 

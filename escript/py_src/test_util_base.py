@@ -3,7 +3,9 @@
 basic tests for util.py
 
 @remark: use see L{test_util}
+
 @var __author__: name of author
+@var __copyright__: copyrights
 @var __license__: licence agreement
 @var __url__: url entry point on documentation
 @var __version__: version

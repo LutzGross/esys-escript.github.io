@@ -1,7 +1,24 @@
 #!/usr/bin/env python
 
+"""
+@var __author__: name of author
+@var __license__: licence agreement
+@var __copyright__: copyrights
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
+"""
 
-# $Id: escript_scalarData1D.py,v 1.3 2006/01/03 08:46:20 paultcochrane Exp $
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__author__="Paul Cochrane"
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 from esys.escript import *
 import esys.finley as fe

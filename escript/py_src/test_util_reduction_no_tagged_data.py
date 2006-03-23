@@ -4,6 +4,7 @@ test for util operations for reduction operations without tagged data
 
 @remark: use see L{test_util}
 @var __author__: name of author
+@var __copyright__: copyrights
 @var __license__: licence agreement
 @var __url__: url entry point on documentation
 @var __version__: version
@@ -17,8 +18,8 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.iservo.edu.au/esys/escript"
-__version__="$Revision:$"
-__date__="$Date:$"
+__version__="$Revision$"
+__date__="$Date$"
 
 import unittest
 import numarray
