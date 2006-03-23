@@ -13,9 +13,9 @@
  *****************************************************************************
 */
 
-#include "DataExpanded.h"
-#include "DataArrayView.h"
-#include "DataAlgorithm.h"
+#include "escriptcpp/DataExpanded.h"
+#include "escriptcpp/DataArrayView.h"
+#include "escriptcpp/DataAlgorithm.h"
 #include "DataAlgorithmAdapterTestCase.h"
 
 #include <iostream>

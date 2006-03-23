@@ -11,10 +11,10 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "DataArray.h"
-#include "DataArrayView.h"
-#include "DataAlgorithm.h"
-#include "EsysException.h"
+#include "escriptcpp/DataArray.h"
+#include "escriptcpp/DataArrayView.h"
+#include "escriptcpp/DataAlgorithm.h"
+#include "esysUtils/EsysException.h"
 
 #include "DataArrayViewTestCase.h"
 

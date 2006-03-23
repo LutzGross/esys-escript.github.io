@@ -12,9 +12,9 @@
  *****************************************************************************
 */
 
-#include "DataArrayView.h"
-#include "DataArray.h"
-#include "EsysException.h"
+#include "escriptcpp/DataArrayView.h"
+#include "escriptcpp/DataArray.h"
+#include "esysUtils/EsysException.h"
 
 #include "DataArrayTestCase.h"
 

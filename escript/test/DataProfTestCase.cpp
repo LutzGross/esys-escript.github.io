@@ -14,8 +14,8 @@
 
 #include <iostream>
 
-#include "DataProf.h"
-#include "EsysException.h"
+#include "escriptcpp/DataProf.h"
+#include "esysUtils/EsysException.h"
 
 #include "DataProfTestCase.h"
 
