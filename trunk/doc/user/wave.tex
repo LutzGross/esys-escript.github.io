@@ -1,4 +1,11 @@
 % $Id$
+%
+%           Copyright © 2006 by ACcESS MNRF
+%               \url{http://www.access.edu.au
+%         Primary Business: Queensland, Australia.
+%   Licensed under the Open Software License version 3.0
+%      http://www.opensource.org/license/osl-3.0.php
+%
 \section{3D Wave Propagation}
 \label{WAVE CHAP}
 
@@ -63,7 +70,7 @@ on the solution at the previous two time steps, $u^{(n-1)}$  and $u^{(n-2)}$.
 
 In each time step we have to solve this problem to get the acceleration $a^{(n)}$ and we will
 use the \LinearPDE class of the \linearPDEs to do so. The general form of the PDE defined through
-the \LinearPDE class is discussed in \Sec{SEC LinearPDE}. The forms which are relevant here are  
+the \LinearPDE class is discussed in \Sec{SEC LinearPDE}. The form which is relevant here are  
 \begin{equation}\label{WAVE dyn 100}
 D\hackscore{ij} a^{(n)}\hackscore{j} = - X\hackscore{ij,j}\; .
 \end{equation}
@@ -71,12 +78,7 @@ Implicitly, the natural boundary condition
 \begin{equation}\label{WAVE dyn 101}
 n\hackscore{j}X\hackscore{ij} =0 
 \end{equation}
-is assumed. The \LinearPDE object allows defining constraints of the form
-\begin{equation}\label{WAVE dyn 102}
-u\hackscore{i}(x)=r\hackscore{i}(x) \mbox{ for } x \mbox{ with } q\hackscore{i}>0
-\end{equation}
-where $r$ and $q$ are given functions. However in this problem we don't need to define 
-any constraints for our problem.
+is assumed. 
 
 With $u=a^{(n)}$ we can identify the values to be assigned to $D$, $X$:
 \begin{equation}\label{WAVE  dyn 6}
