@@ -14,7 +14,6 @@ import scons_extensions
 # These are defaults and can be overridden using command line arguments or an options file.
 # if the options_file or ARGUMENTS do not exist then the ones listed as default here are used
 # DO NOT CHANGE THEM HERE
-options_file = None
 if ARGUMENTS.get('options_file',0):
    options_file = ARGUMENTS.get('options_file',0)
 else:
@@ -87,7 +86,7 @@ if os.name != "nt" and os.uname()[4]=='ia64':
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
 else:
-   env = Environment(tools = ['default', 'intelc'])
+   env = Environment(tools = ['default', 'intelc'], options = opts)
 
 # Setup help for options
 Help(opts.GenerateHelpText(env))
