@@ -1,68 +1,32 @@
-# Scons configuration file for esysUtils unit tests
+Import('*')
 
-#
-# set appropriate defaults for configuration variables
+program_name = 'EsysExceptionTest'
 
-esysroot=str(Dir('./../../../..').abspath)
-execfile(str(File(esysroot+"/scons/esys_options.py")))
+local_env=env.Copy()
 
-cxx_flags=cxx_flags_debug
+local_env.Append(LIBS=['esysUtils', 'CppUnitTest', sys_libs])
 
-#
-# print out build configuration for this module
-
-print "Build configuration for module: EsysException unit tests"
-print "             cxx: ", cxx
-print "       cxx_flags: ", cxx_flags
-
-#
-# do the actual build
-
-esysexception_test_path = str(esysroot) + '/esysUtils/test/EsysException'
-esysUtils_path = str(esysroot) + '/esysUtils/src'
-CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
-
-esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
-CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
-
-esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
-
-install_dir = str(esysroot) + '/esysUtils/test'
-
-cpp_path = [esysexception_test_path,
-            esysUtils_path,
-            CppUnitTest_path]
-
-lib_path = [esysUtils_lib_path,
-            CppUnitTest_lib_path]
-
-libs = ['esysUtils',
-        'CppUnitTest']
-
-libs.extend(sys_libs)
-
-sources = ['EsysExceptionTestCase.cpp',
-           'EsysExceptionTest.cpp']
-
-target = 'EsysExceptionTest.exe'
+src_dir = local_env.Dir('.').srcnode().abspath
 
 import os
-esysexception_env = Environment(ENV = os.environ)
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
-esysexception_env.Replace(CXX = cxx)
-esysexception_env.Replace(CXXFLAGS = cxx_flags)
-esysexception_env.Replace(CPPPATH = cpp_path)
-esysexception_env.Replace(LIBPATH = lib_path)
-esysexception_env.Replace(LIBS = libs)
+local_env.Append(CPPPATH = ['#/tools/CppUnitTest/inc',])
 
-esysexception_test_exe = esysexception_env.Program(target, sources)
+program = local_env.Program(program_name, sources)
 
-Depends(esysexception_test_exe, esysUtils_lib)
+Depends(program, dep_lib)
 
-Alias("build_tests", esysexception_env.Install(install_dir, esysexception_test_exe))
+# TODO: Need to decide on how the library paths etc are going to be handled
+# TODO: For now just install the program to the same location as the libraries so things can run at least
+test_install = local_env.Install(libinstall, program)
 
-import scons_extensions
-runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
-esysexception_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+#Add Unit Test to target alias
 
-Alias("run_tests", esysexception_env.RunUnitTest(target))
+env.Alias('build_tests', test_install)
+
+# run the tests - but only if test_targets are stale
+local_env.RunUnitTest(program_name)
+test_targets = os.path.splitext(program_name)[0]+'.passed'
+Alias("run_tests", test_targets)

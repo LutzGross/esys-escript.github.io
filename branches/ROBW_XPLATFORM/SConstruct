@@ -30,9 +30,9 @@ else:
 opts = Options(options_file, ARGUMENTS)
 opts.AddOptions(
 # Where to install esys stuff
-  ('incinstall', 'where the esys headers will be installed (# - relative to root of source tree)', '#/include'), 
-  ('libinstall', 'where the esys libraries will be installed (# - relative to root of source tree)', '#/lib'), 
-  ('pyinstall', 'where the esys python modules will be installed (# - relative to root of source tree)', '#/esys'), 
+  ('incinstall', 'where the esys headers will be installed', Dir('#.').abspath+'/include'), 
+  ('libinstall', 'where the esys libraries will be installed', Dir('#.').abspath+'/lib'), 
+  ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath+'/esys'), 
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
@@ -63,6 +63,10 @@ opts.AddOptions(
   PathOption('boost_path', 'Path to Boost includes', '/usr/include'), 
   PathOption('boost_lib_path', 'Path to Boost libs', '/usr/lib'), 
   ('boost_lib', 'Boost libraries to link with', ['boost_python',]),
+# CppUnit
+  PathOption('cppunit_path', 'Path to CppUnit includes', Dir('#.').abspath+'/tools/CppUnitTest/inc'), 
+  PathOption('cppunit_lib_path', 'Path to CppUnit libs', Dir('#.').abspath+'/lib'), 
+  ('cppunit_lib', 'CppUnit libraries to link with', ['CppUnitTest',]),
 # Doc building
   PathOption('doxygen_path', 'Path to Doxygen executable', None), 
   PathOption('epydoc_path', 'Path to Epydoc executable', None), 
@@ -222,6 +226,20 @@ try:
 except KeyError:
    boost_lib = None  
 try:
+   includes = env['cppunit_path']
+   env.Append(CPPPATH = [includes,])
+except KeyError:
+   pass
+try:
+   lib_path = env['cppunit_lib_path']
+   env.Append(LIBPATH = [lib_path,])
+except KeyError:
+   pass
+try:
+   cppunit_lib = env['cppunit_lib']
+except KeyError:
+   boost_lib = None  
+try:
    includes = env['python_path']
    env.Append(CPPPATH = [includes,])
 except KeyError:
@@ -269,7 +287,7 @@ env.Alias('py_test')
 
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
-	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs" ])
+	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs", "cppunit_lib", "sys_libs" ])
 
 # End initialisation section
 # Begin configuration section
@@ -302,12 +320,6 @@ env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplic
 # FIXME: REMOVE THIS OLD STUFF
 # Original SConstruct file contents (minus the bits that have been replaced)
 #target_scripts = [
-#                  'tools/CppUnitTest/SConstruct',
-#                  'esysUtils/SConstruct',
-#                  'escript/SConstruct',
-#                  'bruce/SConstruct',
-#                  'paso/SConstruct',
-#                  'finley/SConstruct',
 #                  'modellib/SConstruct',
 #                  'pyvisi/SConstruct']
                   # 'doc/SConstruct']
