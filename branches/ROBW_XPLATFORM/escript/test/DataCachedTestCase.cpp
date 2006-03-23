@@ -12,9 +12,9 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "DataCached.h"
-#include "FunctionSpace.h"
-#include "EsysException.h"
+#include "escriptcpp/DataCached.h"
+#include "escriptcpp/FunctionSpace.h"
+#include "esysUtils/EsysException.h"
 
 #include "DataCachedTestCase.h"
 

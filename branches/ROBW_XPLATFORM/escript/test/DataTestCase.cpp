@@ -15,10 +15,10 @@
 
 #include "DataTestCase.h"
 
-#include "FunctionSpace.h"
-#include "EsysException.h"
+#include "escriptcpp/FunctionSpace.h"
+#include "esysUtils/EsysException.h"
 
-#include "Data.h"
+#include "escriptcpp/Data.h"
 
 #include <iostream>
 #include <math.h>

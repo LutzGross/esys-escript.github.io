@@ -12,8 +12,8 @@
  *****************************************************************************
 */
 
-#include "Taipan.h"
-#include "EsysException.h"
+#include "escriptcpp/Taipan.h"
+#include "esysUtils/EsysException.h"
 
 #include "TaipanTestCase.h"
 

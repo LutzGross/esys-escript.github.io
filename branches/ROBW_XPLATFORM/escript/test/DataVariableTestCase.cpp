@@ -12,8 +12,8 @@
  *****************************************************************************
 */
 
-#include "DataVariable.h"
-#include "EsysException.h"
+#include "escriptcpp/DataVariable.h"
+#include "esysUtils/EsysException.h"
 
 #include "DataVariableTestCase.h"
 
