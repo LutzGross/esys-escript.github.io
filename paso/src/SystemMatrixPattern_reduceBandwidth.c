@@ -1,3 +1,15 @@
+
+/*
+********************************************************************************
+*               Copyright © 2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
+
 /*  Finley_Reduce determines a row and column permutation which, when applied to a given sparse matrix, produces a permuted */
 /*  matrix with a smaller bandwidth and profile. the input array is a connection table which represents the                 */
 /*  indices of the nonzero elements of the matrix, a.  the algorithm is described in terms of the adjacency graph which     */
