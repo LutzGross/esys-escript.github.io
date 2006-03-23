@@ -1,0 +1,31 @@
+Import('*')
+
+program_name = 'bruce_UnitTest'
+
+local_env=env.Copy()
+
+local_env.Append(LIBS=[ python_lib, boost_lib, 'brucecpp', 'escriptcpp', 'esysUtils', 'CppUnitTest', sys_libs])
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+
+program = local_env.Program(program_name, sources)
+
+Depends(program, dep_lib)
+
+# TODO: Need to decide on how the library paths etc are going to be handled
+# TODO: For now just install the program to the same location as the libraries so things can run at least
+test_install = local_env.Install(libinstall, program)
+
+#Add Unit Test to target alias
+
+env.Alias('build_tests', test_install)
+
+# run the tests - but only if test_targets are stale
+local_env.RunUnitTest(program_name)
+test_targets = os.path.splitext(program_name)[0]+'.passed'
+Alias("run_tests", test_targets)
+

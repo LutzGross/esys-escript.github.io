@@ -21,8 +21,12 @@ include_path = Dir(lib_name, incinstall)
 local_env.Install(include_path, headers )
 local_env.Install(libinstall, lib)
 
-# FIXME: OLD STUFF
-#libs.extend(sys_libs)
+# Call the unit tests SConscript
+# export the lib target since tests will depend on it
+# the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
+# FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
 
-#Depends(bruce_lib, esysUtils_lib)
-#Depends(bruce_lib, escript_lib)
+dep_lib = [libinstall+'/'+str(x) for x in lib]
+Export('dep_lib')
+
+local_env.SConscript(dirs = ['#/bruce/test'], build_dir='#/build/$PLATFORM/bruce/test', duplicate=0) 
