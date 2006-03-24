@@ -16,6 +16,7 @@ program = local_env.RunPyUnitTest(python_src)
 
 Depends(program, dep_lib)
 Depends(program, pyinstall)
+Depends(program, libinstall) # FIXME: The python tests require objects from finley hence you have to have all the libraries available rather than just dep_lib
 
 #Add Unit Test to target alias
 test_targets = [os.path.splitext(x)[0]+'.passed' for x in python_src]
