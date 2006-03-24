@@ -1,34 +1,14 @@
-pyinstall = None
-
 Import('*')
 
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import sys
+filenames = os.listdir(src_dir)
+python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
-extensions_dir = str(esysroot) + '/scons'
-sys.path.append(extensions_dir)
+pyc = local_env.PyCompile(python_src)
 
-import scons_extensions
-
-modellibpy_env = Environment(ENV = os.environ)
-
-py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
-modellibpy_env.Append(BUILDERS = {'PyCompile' : py_builder});
-
-python_src = ['__init__.py',
-              'darcy.py',
-              'flow.py',
-              'geometry.py',
-              'input.py',
-              'materials.py',
-              'probe.py',
-              'temperature.py',
-              'tsunami.py',
-              'visualization.py']
-
-pyc = modellibpy_env.PyCompile(python_src)
-
-Default(modellibpy_env.Install(pydir, pyc))
-Default(modellibpy_env.Install(pydir2, pyc))
-if pyinstall != None:
-  Default(modellibpy_env.Install(pyinstall, pyc))
+local_env.Depends(pyc, dep_lib)
+local_env.Install(pyinstall+'/modellib', pyc)
