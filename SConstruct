@@ -285,6 +285,7 @@ except KeyError:
 # Targets
 env.Default(libinstall)
 env.Default(incinstall)
+env.Default(pyinstall)
 env.Alias('py_test')
 
 # Allow sconscripts to see the env
@@ -305,21 +306,8 @@ env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', dupl
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 
-# Python
-#env.SConscript(dirs = ['esys/py_src'], build_dir='build/$PLATFORM/esys/py', duplicate=0)# call appropriate SConscripts
 # FIXME:modelib and pyvisi need to be incorporated into build system for it to match original one
 #'modellib/SConstruct',
 #'pyvisi/SConstruct']
 # 'doc/SConstruct']
 # 'doc/SConstruct']
-
-# FIXME: REMOVE THIS OLD STUFF
-# Original SConstruct file contents (minus the bits that have been replaced)
-#target_scripts = [
-#                  'modellib/SConstruct',
-#                  'pyvisi/SConstruct']
-                  # 'doc/SConstruct']
-                  # 'doc/SConstruct']
-
-#SConscript(target_scripts, duplicate=0)
-
