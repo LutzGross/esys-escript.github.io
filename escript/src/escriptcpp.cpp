@@ -66,7 +66,7 @@ using namespace boost::python;
  *
  */
 
-BOOST_PYTHON_MODULE(escriptcpp)
+BOOST_PYTHON_MODULE(libescriptcpp)
 {
   def("setNumberOfThreads",escript::setNumberOfThreads);
   def("getNumberOfThreads",escript::getNumberOfThreads);

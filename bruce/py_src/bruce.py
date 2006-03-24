@@ -1,5 +1,5 @@
 # $Id$
 
 import esys.escript
-from brucecpp import *
+from libbrucecpp import *
 

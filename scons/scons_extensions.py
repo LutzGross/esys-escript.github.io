@@ -75,16 +75,3 @@ def build_doxygen(target, source, env):
     else:
 	return 1
     return None
-
-def sharedLinkHack(env, lib_names, libinstall, sources):
-   if env['PLATFORM'] == 'posix':
-      for name in lib_names:
-         shared_lib = env.File(libinstall+'/'+name+env['SHLIBSUFFIX'])
-         shared_lib.attributes.shared = True
-         sources.append(shared_lib)
-   else:
-      env.Append(LIBS = [lib_names])
-
-from SCons.Script.SConscript import SConsEnvironment
-SConsEnvironment.sharedLinkHack = sharedLinkHack
-

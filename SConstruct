@@ -94,9 +94,6 @@ elif os.name == "nt":
 else:
    env = Environment(tools = ['default'], options = opts)
 
-# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
-del env['SHLIBPREFIX']
-
 # Setup help for options
 Help(opts.GenerateHelpText(env))
 
