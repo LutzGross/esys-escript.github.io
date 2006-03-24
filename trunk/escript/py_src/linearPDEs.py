@@ -1807,11 +1807,11 @@ class LameEquation(LinearPDE):
    """
    Class to define a Lame equation problem:
 
-   M{-grad(S{mu}*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(S{lambda}*grad(u[j])[i])[j] = F_i -grad(S{sigma}[i,j])[j] }
+   M{-grad(S{mu}*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(S{lambda}*grad(u[k])[k])[j] = F_i -grad(S{sigma}[ij])[j] }
 
    with natural boundary conditons:
 
-   M{n[j]*(S{mu}*(grad(u[i])[j]+grad(u[j])[i]) - S{lambda}*grad(u[j])[i]) = f_i -n[j]*S{sigma}[i,j] }
+   M{n[j]*(S{mu}*(grad(u[i])[j]+grad(u[j])[i]) + S{lambda}*grad(u[k])[k]) = f_i +n[j]*S{sigma}[ij] }
 
    and constraints:
 
