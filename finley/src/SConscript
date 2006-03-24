@@ -17,7 +17,10 @@ cppadapter_filenames = os.listdir(src_dir+'/CPPAdapter');
 sources += ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 cppadapter_headers = ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
 
-local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'esysUtils', 'escriptcpp', 'paso'])
+local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'esysUtils', 'paso'])
+
+local_env.sharedLinkHack(['escriptcpp',], libinstall, sources)
+
 
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
@@ -42,6 +45,8 @@ cppadapter_include_path = Dir('CppAdapter', include_path)
 local_env.Install(include_path, headers )
 local_env.Install(cppadapter_include_path, cppadapter_headers )
 local_env.Install(libinstall, lib)
+local_env.Install(pyinstall+'/finley', lib)
+
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
