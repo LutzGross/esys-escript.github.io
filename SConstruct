@@ -305,9 +305,6 @@ env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', dupl
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 
-# Unit Tests
-#env.SConscript(dirs = ['finley/test'], build_dir='build/$PLATFORM/finley/test', duplicate=0)
-
 # Python
 #env.SConscript(dirs = ['esys/py_src'], build_dir='build/$PLATFORM/esys/py', duplicate=0)# call appropriate SConscripts
 # FIXME:modelib and pyvisi need to be incorporated into build system for it to match original one
