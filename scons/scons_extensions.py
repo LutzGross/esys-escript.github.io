@@ -18,6 +18,14 @@ def runUnitTest(target, source, env):
     return 1
   return None
 
+def runPyUnitTest(target, source, env): 
+   app = 'python '+str(source[0].abspath)
+   if not os.system(app):
+      open(str(target[0]),'w').write("PASSED\n")
+   else:
+     return 1
+   return None
+
 # code to build epydoc docs
 def build_epydoc(target, source, env):
     # get where I am currently, just as a reference
