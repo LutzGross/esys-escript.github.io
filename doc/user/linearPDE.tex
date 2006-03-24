@@ -162,13 +162,34 @@ switches the debug mode to on.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{isUsingLumping}{}
-returns \True if lumping is switched on. Otherwise \False is returned.
+returns \True if \LUMPING is set as the solver for the system of lienar equations.
+Otherwise \False is returned.
 \end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setSolverMethod}{\optional{solver=LinearPDE.DEFAULT}\options{, preconditioner=LinearPDE.DEFAULT})
+\begin{methoddesc}[LinearPDE]{setSolverMethod}{\optional{solver=LinearPDE.DEFAULT}\optional{, preconditioner=LinearPDE.DEFAULT}}
 sets the solver method and preconditioner to be used. It is pointed out that a PDE solver library
 may not know the specified solver method but may choose a similar method and preconditioner. 
 \end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getSolverMethodName}{}
+returns the name of the solver method and preconditioner which is currently been used.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getSolverMethod}{}
+returns the solver method and preconditioner which is currently been used.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setSolverPackage}{\optional{package=LinearPDE.DEFAULT}}
+Set the solver package to be used by PDE library to solve the linear systems of equations. The 
+specified package may not be supported by the PDE solver library. In this case, dependng on
+the PDE solver, the default solver is used or an exeption is thrown.
+If \var{package} is not specified, the default package of the PDE solver library is used. 
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getSolverPackage}{}
+returns the linear solver package currently by the PDE solver library
+\end{methoddesc}
+
 
 \begin{methoddesc}[LinearPDE]{setTolerance}{\optional{tol=1.e-8}}:
 resets the tolerance for solution. The actually meaning of tolerance is
@@ -210,10 +231,6 @@ returns the flux $J\hackscore{ij}$ \index{flux} for given solution \var{u}
 defined by \eqn{LINEARPDE.SYSTEM.5} and \eqn{LINEARPDE.SINGLE.5}, respectively.
 \end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getSolverMethodName}{}
-\begin{methoddesc}[LinearPDE]{getSolverMethod}{}
-\begin{methoddesc}[LinearPDE]{setSolverPackage}{\optional{package=None}}
-\begin{methoddesc}[LinearPDE]{getSolverPackage}{}
 
 \begin{methoddesc}[LinearPDE]{isSymmetric}{}
 returns \True if the PDE has been indicated to be symmetric.
@@ -262,93 +279,127 @@ returns the \Operator and right hand side of the PDE.
 \optional{, truncation=-1}
 \optional{, restart=-1}
 }
-returns (an approximation of) the solution of the PDE. If \code{verbose=True} some information during the solution process pronted. \var{reordering} selects a reordering methods that is applied before or during the solution process.
-\var{iter_max} specifies the maximum number of iteration steps that are allowed to reach the specified tolerence. 
+returns (an approximation of) the solution of the PDE. If \code{verbose=\True} some information during the solution process printed.
+\var{reordering} selects a reordering methods that is applied before or during the solution process 
+(=\NOREORDERING ,\MINIMUMFILLIN ,\NESTEDDESCTION).
+\var{iter_max} specifies the maximum number of iteration steps that are allowed to reach the specified tolerance. 
 \var{drop_tolerance} specifies a relative tolerance for small elements to be dropped when building a preconditioner
-(eg. in ILUT \Ref{SAAD}). \var{drop_storage} limits the extra storage allowed when building a preconditioner
-(eg. in ILUT \Ref{SAAD}). The extra storage is given relative to the size of the siffness matrix, eg. 
+(eg. in \ILUT). \var{drop_storage} limits the extra storage allowed when building a preconditioner
+(eg. in \ILUT). The extra storage is given relative to the size of the stiffness matrix, eg. 
 \var{drop_storage=1.2} will allow the preconditioner to use the $1.2$ fold storage space than used 
-for the stiffness matrix. \var{truncation} defines the truncation 
+for the stiffness matrix. \var{truncation} defines the truncation. 
 \end{methoddesc}
 
-==================
 \begin{memberdesc}[LinearPDE]{DEFAULT}
 default method, preconditioner or package to be used to solve the PDE. An appropriate method should be 
 chosen by the used PDE solver library.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{SCSL}
+the SCSL library by SGI,~\Ref{SCSL}\footnote{The SCSL library will only be available on SGI systems} 
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{MKL}
+the MKL library by Intel,~\Ref{MKL}\footnote{The MKL library will only be available when the intel compilation environment is used.}.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{UMFPACK}
+the UMFPACK,~\Ref{UMFPACK}. Remark: UMFPACK is not parallelized.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{PASO}
+the solver library of \finley, see \Sec{CHAPTER ON FINLEY}.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{ITERATIVE}
-
+the default iterative method and preconditioner. The actually used method depends on the
+PDE solver library and the solver package been choosen. Typically, \PCG is used for symmetric PDEs 
+and \BiCGStab otherwise, both with \JACOBI preconditioner. 
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{DIRECT}
-direct linear solver~\Ref{SAAD} 
+the default direct linear solver. 
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{CHOLEVSKY}
-direct solver based on Cholevsky factorization (or similar), see~\Ref{SAAD}. The solver will require a symmetric PDE. 
+direct solver based on Cholevsky factorization (or similar), see~\Ref{Saad}. The solver will require a symmetric PDE. 
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{PCG}
-preconditioned conjugate gradient method, see~\Ref{WEISS}. The solver will require a symmetric PDE.
+preconditioned conjugate gradient method, see~\Ref{WEISS}\index{linear solver!PCG}\index{PCG}. The solver will require a symmetric PDE.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{GMRES}
-the GMRES method, see~\Ref{WEISS}. Truncation and restart ar econtrolled by the parameters
+the GMRES method, see~\Ref{WEISS}\index{linear solver!GMRES}\index{GMRES}. Truncation and restart are controlled by the parameters
 \var{truncation} and \var{restart} of \method{getSolution}.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{LUMPING}
-conjugate residual method, see~\Ref{WEISS}. 
+uses lumping to solve the system of linear equations~\index{linear solver!lumping}\index{lumping}. This solver technique 
+condenses the stiffness matrix to a diagonal matrix so the solution of the linear systems becomes very cheap. It can be used when 
+only \var{D} is present but in any case has to applied with care. The difference in the solutions with and without lumping can be significant
+but is expect to converge to zero when the mesh gets finer.  
+Lumping does not use the linear system solver library.   
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{PRES20}
-the GMRES method with trunction after five residuals and
+the GMRES method with truncation after five residuals and
 restart after 20 steps, see~\Ref{WEISS}.
-
-\begin{memberdesc}[LinearPDE]{CR}
+\end{memberdesc}[LinearPDE]{CR}
 
 \begin{memberdesc}[LinearPDE]{CGS}
 conjugate gradient squared method, see~\Ref{WEISS}.
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{BICGSTAB}
-stabilzed bi-conjugate gradients methods, see~\Ref{WEISS}. 
+stabilized bi-conjugate gradients methods, see~\Ref{WEISS}. 
 \end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{SSOR}
-symmetric successive overrelaxtion method, see~\Ref{WEISS}. 
+symmetric successive over-relaxation method, see~\Ref{WEISS}. Typically used as preconditioner but some linear solver libraries support
+this as a solver.  
 \end{memberdesc}
 \begin{memberdesc}[LinearPDE]{ILU0}
+the incomplete LU factorization preconditioner with no fill-in, see~\Ref{Saad}. 
+\end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{ILUT}
+the incomplete LU factorization preconditioner with fill-in, see~\Ref{Saad}. During the  LU-factorization element with
+relative size less then \var{drop_tolerance} are dropped. Moreover, the size of the LU-factorization is restricted to the
+\var{drop_storage}-fold of the stiffness matrix. \var{drop_tolerance} and \var{drop_storage} are both set in the 
+\method{getSolution} call. 
+\end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{JACOBI}
+the Jacobi preconditioner, see~\Ref{Saad}.
+\end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{AMG}
+the algebraic--multi grid method, see~\Ref{AMG}. This method can be used as linear solver method but is more robust when used 
+in a preconditioner.
+\end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{RILU}
-
-
-
+recursive incomplete LU factorization preconditioner, see~\Ref{RILU}. This method is similar to \ILUT but uses smoothing
+between levels. During the  LU-factorization element with
+relative size less then \var{drop_tolerance} are dropped. Moreover, the size of the LU-factorization is restricted to the
+\var{drop_storage}-fold of the stiffness matrix. \var{drop_tolerance} and \var{drop_storage} are both set in the 
+\method{getSolution} call. 
+\end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{NO_REORDERING}
+no ordering is used during factorization.
+\end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{MINIMUM_FILL_IN}
+applies reordering before factorization using a fill-in minimization strategy. You have to check with the particular solver library or
+linear solver package if this is supported. In any case, it is advisable to apply reordering on the mesh to minimize fill-in.
+\end{memberdesc}
+
 \begin{memberdesc}[LinearPDE]{NESTED_DISSECTION}
-
-
-
-
-\begin{memberdesc}[LinearPDE]{BICGSTAB}
-
+applies reordering before factorization using a nested dissection strategy. You have to check with the particular solver library or
+linear solver package if this is supported. In any case, it is advisable to apply reordering on the mesh to minimize fill-in.
+\end{memberdesc}
 
 \section{The \Poisson Class}
 The \Poisson class provides an easy way to define and solve the Poisson

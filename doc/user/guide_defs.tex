@@ -35,6 +35,7 @@
 \newcommand{\AdvectivePDE}{\class{AdvectivePDE}\xspace}
 \newcommand{\Poisson}{\class{Poisson}\xspace}
 \newcommand{\Helmholtz}{\class{Helmholtz}\xspace}
+\newcommand{\Lame}{\class{Lame}\xspace}
 \newcommand{\Data}{\class{Data}\xspace}
 \newcommand{\EmptyData}{empty \class{Data} \index{empty Data}\xspace}
 \newcommand{\Domain}{\class{Domain}\xspace}
@@ -45,11 +46,18 @@
 \newcommand{\finleyelement}[1]{{\it #1}\index{finley!#1}}
 \newcommand{\False}{\constant{False}\xspace}
 \newcommand{\True}{\constant{True}\xspace}
-\newcommand{\PCG}{\constant{PCG}\index{linear solver!PCG}\index{PCG}}
-\newcommand{\BiCGStab}{\constant{BICGSTAB}\index{linear solver!BiCGStab}\index{BiCGStab}}
-\newcommand{\Direct}{\constant{DIRECT}\index{linear solver!Direct}\index{Direct solver}}
-\newcommand{\GMRES}{\constant{GMRES}\index{linear solver!GMRES}\index{GMRES}}
-\newcommand{\PRESTWENTY}{\constant{PRES20}\index{linear solver!PRES20}\index{PRES20}}
+\newcommand{\PCG}{\constant{LinearPDE.PCG}\xspace\index{linear solver!PCG}\index{PCG}}
+\newcommand{\BiCGStab}{\constant{LinearPDE.BICGSTAB}\xspace\index{linear solver!BiCGStab}\index{BiCGStab}}
+\newcommand{\Direct}{\constant{LinearPDE.DIRECT}\xspace\index{linear solver!Direct}\index{Direct solver}}
+\newcommand{\GMRES}{\constant{LinearPDE.GMRES}\xspace\index{linear solver!GMRES}\index{GMRES}}
+\newcommand{\PRESTWENTY}{\constant{LinearPDE.PRES20}\xspace\index{linear solver!PRES20}\index{PRES20}}
+\newcommand{\JACOBI}{\constant{LinearPDE.JACOBI}\xspace\index{preconditioner!Jacobi}\index{Jacobi}}
+\newcommand{\ILU}{\constant{LinearPDE.ILU0}\xspace\index{preconditioner!ILU0}\index{ILU0}}
+\newcommand{\ILUT}{\constant{LinearPDE.ILUT}\xspace\index{preconditioner!ILUT}\index{ILUT}}
+\newcommand{\LUMPING}{\constant{LinearPDE.LUMPING}\xspace\index{linear solver!lumping}\index{lumping}}
+\newcommand{\NOREORDERING}{\constant{LinearPDE.NO\hackscore REORDERING}\xspace}
+\newcommand{\MINIMUMFILLIN}{\constant{LinearPDE.MINIMUM\hackscore FILL\hackscore IN}\xspace\index{linear solver!minimum fill-in ordering}\index{minimum fill-in ordering}}
+\newcommand{\NESTEDDESCTION}{\constant{LinearPDE.NESTED\hackscore DISSECTION}\xspace\index{linear solver!nested dissection ordering}\index{nested dissection}}
 
 \newcommand{\Scene}{\class{Scene}\xspace}
 
