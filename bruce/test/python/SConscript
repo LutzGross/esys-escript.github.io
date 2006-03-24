@@ -1,0 +1,22 @@
+Import('*')
+
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
+
+# Filter out busted or not frequently run tests
+
+program = local_env.RunPyUnitTest(python_src)
+
+Depends(program, dep_lib)
+Depends(program, pyinstall)
+Depends(program, libinstall) # FIXME: The python tests require objects from finley hence you have to have all the libraries available rather than just dep_lib
+
+#Add Unit Test to target alias
+test_targets = [os.path.splitext(x)[0]+'.passed' for x in python_src]
+
+env.Alias('py_tests',test_targets)
