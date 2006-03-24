@@ -17,6 +17,8 @@ cppadapter_filenames = os.listdir(src_dir+'/CPPAdapter');
 sources += ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 cppadapter_headers = ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
 
+local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'esysUtils', 'escriptcpp', 'paso'])
+
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
    local_env.Append(LIBS = mkl_libs)
@@ -31,8 +33,6 @@ if papi_libs:
    local_env.Append(LIBS = papi_libs)
 
 lib_name = 'finleycpp'
-
-local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'esysUtils', 'escriptcpp', 'paso'])
 
 lib = local_env.SharedLibrary(lib_name, sources)
 
