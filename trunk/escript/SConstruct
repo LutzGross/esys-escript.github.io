@@ -1,5 +1,13 @@
 # Scons configuration file for escript
 
+#          Copyright 2006 by ACcESS MNRF                   
+#                                                          
+#              http://www.access.edu.au                    
+#       Primary Business: Queensland, Australia            
+#  Licensed under the Open Software License version 3.0    
+#     http://www.opensource.org/licenses/osl-3.0.php       
+#                                                          
+#
 #
 # set appropriate defaults for configuration variables
 esysroot=str(Dir('./..').abspath)
