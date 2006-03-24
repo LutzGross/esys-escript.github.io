@@ -19,12 +19,16 @@ cppadapter_headers = ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.s
 
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
+   local_env.Append(LIBS = mkl_libs)
 if scsl_libs:
    local_env.Append(CPPDEFINES=['SCSL',])
+   local_env.Append(LIBS = scsl_libs)
 if umf_libs:
    local_env.Append(CPPDEFINES=['UMFPACK',])
+   local_env.Append(LIBS = umf_libs)
 if papi_libs:
    local_env.Append(CPPDEFINES=['PAPI',])
+   local_env.Append(LIBS = papi_libs)
 
 lib_name = 'finleycpp'
 
