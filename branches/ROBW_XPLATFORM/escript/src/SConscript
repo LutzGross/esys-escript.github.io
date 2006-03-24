@@ -20,14 +20,11 @@ include_path = Dir(lib_name, incinstall)
 
 local_env.Install(include_path, headers )
 local_env.Install(libinstall, lib)
-local_env.Install(pyinstall+'/escript', lib)
-
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
 # FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
 dep_lib = [libinstall+'/'+str(x) for x in lib]
-# FIXME: ARGHH, dep_lib is global so this is a bad idea!
 Export('dep_lib')
 
 # Call the python sconscript

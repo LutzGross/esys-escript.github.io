@@ -44,7 +44,7 @@ using namespace boost::python;
 
 */
 
-BOOST_PYTHON_MODULE(brucecpp)
+BOOST_PYTHON_MODULE(libbrucecpp)
 {
 
   //

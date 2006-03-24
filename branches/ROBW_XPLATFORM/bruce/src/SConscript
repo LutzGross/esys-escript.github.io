@@ -12,17 +12,14 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
 lib_name = 'brucecpp'
 
-local_env.Append(LIBS = [boost_lib, 'esysUtils'])
+local_env.Append(LIBS = [boost_lib, 'esysUtils', 'escriptcpp'])
 
-local_env.sharedLinkHack(['escriptcpp',], libinstall, sources)
-   
 lib = local_env.SharedLibrary(lib_name, sources)
 
 include_path = Dir(lib_name, incinstall)
 
 local_env.Install(include_path, headers )
 local_env.Install(libinstall, lib)
-local_env.Install(pyinstall+'/bruce', lib)
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
