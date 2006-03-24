@@ -306,7 +306,6 @@ env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', 
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 
 # Unit Tests
-#env.SConscript(dirs = ['bruce/test'], build_dir='build/$PLATFORM/bruce/test', duplicate=0)
 #env.SConscript(dirs = ['finley/test'], build_dir='build/$PLATFORM/finley/test', duplicate=0)
 
 # Python
