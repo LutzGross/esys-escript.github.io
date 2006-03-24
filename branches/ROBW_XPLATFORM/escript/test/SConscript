@@ -28,3 +28,5 @@ env.Alias('build_tests', test_install)
 local_env.RunUnitTest(program_name)
 test_targets = os.path.splitext(program_name)[0]+'.passed'
 Alias("run_tests", test_targets)
+
+local_env.SConscript(dirs = ['#/escript/test/python'], build_dir='py', duplicate=0)

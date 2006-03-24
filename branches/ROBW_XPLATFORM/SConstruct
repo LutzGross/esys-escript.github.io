@@ -107,9 +107,8 @@ else:
    runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
 env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 
-# FIXME: Copy this builder from the win32 branch
-#runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
-#env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
+runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
+env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
 # Convert the options which are held in environment variable into python variables for ease of handling and configure compilation options
 try:
@@ -286,7 +285,9 @@ except KeyError:
 env.Default(libinstall)
 env.Default(incinstall)
 env.Default(pyinstall)
-env.Alias('py_test')
+env.Alias('build_tests')
+env.Alias('run_tests')
+env.Alias('py_tests')
 
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",

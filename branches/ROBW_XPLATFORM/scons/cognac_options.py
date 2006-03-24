@@ -7,7 +7,6 @@ mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 scsl_path = '/opt/scsl/1.6.1.0/include'
 scsl_lib_path = '/opt/scsl/1.6.1.0/lib'
 scsl_libs = ['scs_mp']
-# locations of libs etc used by UMFPACK
 
 # locations of include files for python
 python_path = '/usr/include/python2.3'
