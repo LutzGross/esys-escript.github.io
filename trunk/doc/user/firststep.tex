@@ -193,13 +193,11 @@ an object \var{x} which represents locations in the domain one uses
 \begin{python}
 x=mydomain.getX() 
 \end{python}
-In fact \var{x} is a \Data object which we will learn more about in Chapter~\ref{X}. At this stage we only have to know
-that \var{x} has a 
-
-In the first statement, the method \method{getX} of the \Domain \var{mydomain} 
+The method \method{getX} of the \Domain \var{mydomain} 
 gives access to locations 
 in the domain defined by \var{mydomain}. The object \var{x} is actually a \Data object which is
-discussed in Chpater\ref{X} in more details. What we need to know here is that 
+discussed in \Chap{ESCRIPT CHAP} in more details. What we need to know here is that 
+
 \var{x} has \Rank (=number of dimensions) and a \Shape (=tuple of dimensions) which can be checked by 
 calling the \method{getRank} and \method{getShape} methods:
 \begin{python}
