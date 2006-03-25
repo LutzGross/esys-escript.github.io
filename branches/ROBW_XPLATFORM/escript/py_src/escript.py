@@ -12,4 +12,4 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
-from libescriptcpp import *
+from escriptcpp import *

@@ -6,4 +6,4 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 from esys.escript import *
-from libfinleycpp import *
+from finleycpp import *

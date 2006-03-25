@@ -72,7 +72,7 @@ using namespace boost::python;
 // BOOST_PYTHON_FUNCTION_OVERLOADS(glueFaces_overloads,finley::glueFaces,1,3)
 // BOOST_PYTHON_FUNCTION_OVERLOADS(joinFaces_overloads,finley::joinFaces,1,3)
 
-BOOST_PYTHON_MODULE(libfinleycpp)
+BOOST_PYTHON_MODULE(finleycpp)
 {
 
   // def("ReadMesh",finley::readMesh,readMesh_overloads());
