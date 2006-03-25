@@ -27,9 +27,9 @@ extern "C" {
 #include "FinleyAdapterException.h"
 
 #include "SystemMatrixAdapter.h"
-#include "escriptcpp/AbstractContinuousDomain.h"
-#include "escriptcpp/FunctionSpace.h"
-#include "escriptcpp/FunctionSpaceFactory.h"
+#include "escript/AbstractContinuousDomain.h"
+#include "escript/FunctionSpace.h"
+#include "escript/FunctionSpaceFactory.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/dict.hpp>

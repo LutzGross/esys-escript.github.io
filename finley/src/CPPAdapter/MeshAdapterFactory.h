@@ -24,7 +24,7 @@ extern "C" {
 
 #include "MeshAdapter.h"
 
-#include "escriptcpp/AbstractContinuousDomain.h"
+#include "escript/AbstractContinuousDomain.h"
 
 #include <boost/python/list.hpp>
 

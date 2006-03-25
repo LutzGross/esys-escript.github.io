@@ -16,15 +16,15 @@
 
 #include "esysUtils/EsysException.h"
 
-#include "escriptcpp/DataTagged.h"
-#include "escriptcpp/DataConstant.h"
+#include "escript/DataTagged.h"
+#include "escript/DataConstant.h"
 
 #include "DataTaggedTestCase.h"
 
-#include "escriptcpp/BinaryOp.h"
-#include "escriptcpp/UnaryOp.h"
-#include "escriptcpp/FunctionSpaceFactory.h"
-#include "escriptcpp/DataFactory.h"
+#include "escript/BinaryOp.h"
+#include "escript/UnaryOp.h"
+#include "escript/FunctionSpaceFactory.h"
+#include "escript/DataFactory.h"
 
 #include <iostream>
 #include <functional>

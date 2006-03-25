@@ -12,8 +12,8 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escriptcpp/DataConstant.h"
-#include "escriptcpp/FunctionSpace.h"
+#include "escript/DataConstant.h"
+#include "escript/FunctionSpace.h"
 #include "esysUtils/EsysException.h"
 
 #include "DataConstantTestCase.h"

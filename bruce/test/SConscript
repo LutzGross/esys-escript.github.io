@@ -16,13 +16,9 @@ program = local_env.Program(program_name, sources)
 
 Depends(program, dep_lib)
 
-# TODO: Need to decide on how the library paths etc are going to be handled
-# TODO: For now just install the program to the same location as the libraries so things can run at least
-test_install = local_env.Install(libinstall, program)
-
 #Add Unit Test to target alias
 
-env.Alias('build_tests', test_install)
+env.Alias('build_tests', program)
 
 # run the tests - but only if test_targets are stale
 local_env.RunUnitTest(program_name)

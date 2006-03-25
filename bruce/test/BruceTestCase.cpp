@@ -12,9 +12,9 @@
  *****************************************************************************
 */
 
-#include "brucecpp/Bruce.h"
+#include "bruce/Bruce.h"
 
-#include "escriptcpp/FunctionSpaceFactory.h"
+#include "escript/FunctionSpaceFactory.h"
 
 #include "esysUtils/EsysException.h"
 
