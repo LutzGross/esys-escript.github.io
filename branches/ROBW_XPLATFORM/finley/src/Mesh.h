@@ -62,7 +62,7 @@
 #include "NodeFile.h"
 #include "ElementFile.h"
 #include "paso/SystemMatrixPattern.h"
-#include "escriptcpp/DataC.h"
+#include "escript/DataC.h"
 
 /**************************************************************/
 

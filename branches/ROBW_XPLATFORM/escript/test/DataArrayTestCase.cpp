@@ -12,8 +12,8 @@
  *****************************************************************************
 */
 
-#include "escriptcpp/DataArrayView.h"
-#include "escriptcpp/DataArray.h"
+#include "escript/DataArrayView.h"
+#include "escript/DataArray.h"
 #include "esysUtils/EsysException.h"
 
 #include "DataArrayTestCase.h"

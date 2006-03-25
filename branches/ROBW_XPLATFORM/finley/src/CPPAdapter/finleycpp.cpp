@@ -25,7 +25,7 @@ extern "C" {
 #include "esysUtils/EsysException.h"
 #include "esysUtils/esysExceptionTranslator.h"
 
-#include "escriptcpp/AbstractContinuousDomain.h"
+#include "escript/AbstractContinuousDomain.h"
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>

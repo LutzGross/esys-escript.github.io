@@ -12,9 +12,9 @@
  *****************************************************************************
 */
 
-#include "escriptcpp/AbstractContinuousDomain.h"
+#include "escript/AbstractContinuousDomain.h"
 
-#include "brucecpp/BruceFactory.h"
+#include "bruce/BruceFactory.h"
 
 #include "BruceFactoryTestCase.h"
 

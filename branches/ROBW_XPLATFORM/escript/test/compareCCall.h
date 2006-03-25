@@ -1,3 +1,3 @@
-#include "escriptcpp/DataC.h"
+#include "escript/DataC.h"
 
 int compareCCall(struct escriptDataC* data, int typeResult);

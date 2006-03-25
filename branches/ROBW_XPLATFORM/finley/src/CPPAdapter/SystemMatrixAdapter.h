@@ -24,9 +24,9 @@ extern "C" {
 #include "FinleyAdapterException.h"
 #include "FinleyError.h"
 
-#include "escriptcpp/AbstractSystemMatrix.h"
-#include "escriptcpp/Data.h"
-#include "escriptcpp/UtilC.h"
+#include "escript/AbstractSystemMatrix.h"
+#include "escript/Data.h"
+#include "escript/UtilC.h"
 
 #include <boost/python/dict.hpp>
 #include <boost/shared_ptr.hpp>

@@ -12,10 +12,10 @@
  *****************************************************************************
 */
 
-#include "finleycpp/CppAdapter/MeshAdapter.h"
-#include "finleycpp/CppAdapter/MeshAdapterFactory.h"
+#include "finley/CppAdapter/MeshAdapter.h"
+#include "finley/CppAdapter/MeshAdapterFactory.h"
 
-#include "escriptcpp/AbstractContinuousDomain.h"
+#include "escript/AbstractContinuousDomain.h"
 
 #include "MeshAdapterTestCase.h"
 

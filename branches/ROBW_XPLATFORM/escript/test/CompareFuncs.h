@@ -1,4 +1,4 @@
-#include "escriptcpp/DataC.h"
+#include "escript/DataC.h"
 
 /**
    \brief

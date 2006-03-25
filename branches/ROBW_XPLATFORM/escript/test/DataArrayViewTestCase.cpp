@@ -11,9 +11,9 @@
  *                                                                           *
  *****************************************************************************
 */
-#include "escriptcpp/DataArray.h"
-#include "escriptcpp/DataArrayView.h"
-#include "escriptcpp/DataAlgorithm.h"
+#include "escript/DataArray.h"
+#include "escript/DataArrayView.h"
+#include "escript/DataAlgorithm.h"
 #include "esysUtils/EsysException.h"
 
 #include "DataArrayViewTestCase.h"
