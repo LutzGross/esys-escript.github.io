@@ -1,6 +1,14 @@
 Import('*')
 
 local_env=env.Copy()
+py_wrapper_local_env=env.Copy()
+# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
+del py_wrapper_local_env['SHLIBPREFIX']
+
+lib_name = 'finley'
+py_wrapper_name = lib_name+'cpp'
+py_wrapper_source = 'CPPAdapter/'+py_wrapper_name+'.cpp' # FIXME: In need of a source tree refactor
+py_wrapper_lib_name = py_wrapper_name
 
 src_dir = local_env.Dir('.').srcnode().abspath
 
@@ -8,16 +16,18 @@ import os
 filenames = os.listdir(src_dir)
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
-
 # Filter unused sources
 sources.remove('ElementFile_borrowLocalVolume.c') # FIXME: Should this file be removed?
+
 
 # finleycpp has additional source in the CPPAdapter sub-directory. Append these to the list
 cppadapter_filenames = os.listdir(src_dir+'/CPPAdapter');
 sources += ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 cppadapter_headers = ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
 
-local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'esysUtils', 'escriptcpp', 'paso'])
+sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
+local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'escript', 'esysUtils', 'paso'])
+py_wrapper_local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, lib_name, 'escript', 'esysUtils', 'paso'])
 
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
@@ -32,9 +42,9 @@ if papi_libs:
    local_env.Append(CPPDEFINES=['PAPI',])
    local_env.Append(LIBS = papi_libs)
 
-lib_name = 'finleycpp'
 
 lib = local_env.SharedLibrary(lib_name, sources)
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)
 
 include_path = Dir(lib_name, incinstall)
 cppadapter_include_path = Dir('CppAdapter', include_path)
@@ -42,6 +52,7 @@ cppadapter_include_path = Dir('CppAdapter', include_path)
 local_env.Install(include_path, headers )
 local_env.Install(cppadapter_include_path, cppadapter_headers )
 local_env.Install(libinstall, lib)
+py_wrapper_local_env.Install(pyinstall+'/finley', py_wrapper_lib)
 
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
