@@ -14,8 +14,6 @@ local_env.Append(LIBS=[ python_lib, boost_lib, 'escript', 'esysUtils', 'CppUnitT
 
 program = local_env.Program(program_name, sources)
 
-Depends(program, dep_lib)
-
 #Add Unit Test to target alias
 
 env.Alias('build_tests', program)
