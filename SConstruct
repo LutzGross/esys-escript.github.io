@@ -288,6 +288,7 @@ env.Default(pyinstall)
 env.Alias('build_tests')
 env.Alias('run_tests')
 env.Alias('py_tests')
+env.Alias('all_tests', ['run_tests', 'py_tests'])
 
 # Python install - esys __init__.py
 # This is just an empty file but stills need to be touched so add a special target and Command. Note you can't use the scons Touch() function as it will not
