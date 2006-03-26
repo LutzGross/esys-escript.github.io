@@ -32,7 +32,7 @@ opts.AddOptions(
 # Where to install esys stuff
   ('incinstall', 'where the esys headers will be installed', Dir('#.').abspath+'/include'), 
   ('libinstall', 'where the esys libraries will be installed', Dir('#.').abspath+'/lib'), 
-  ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath+'/esys'), 
+  ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath), 
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'yes'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
@@ -289,6 +289,11 @@ env.Alias('build_tests')
 env.Alias('run_tests')
 env.Alias('py_tests')
 
+# Python install - esys __init__.py
+# This is just an empty file but stills need to be touched so add a special target and Command. Note you can't use the scons Touch() function as it will not
+# create the file if it doesn't exist
+env.Command('esys/__init__.py', None, 'touch $TARGET')
+
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs", "cppunit_lib", "sys_libs" ])
@@ -308,8 +313,7 @@ env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', 
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib', duplicate=0)
 
-# FIXME:modelib and pyvisi need to be incorporated into build system for it to match original one
-#'modellib/SConstruct',
-#'pyvisi/SConstruct']
-# 'doc/SConstruct']
-# 'doc/SConstruct']
+# FIXME:need to be incorporated into build system
+# FIXME: 'pyvisi/SConstruct']
+# FIXME: 'doc/SConstruct']
+# FIXME: 'doc/SConstruct']
