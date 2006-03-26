@@ -85,14 +85,20 @@ opts.AddOptions(
 # environment which isn't the "scons way"
 # This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
 # FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
+try:
+   python_path = os.environ['PYTHONPATH']
+except KeyError:
+   python_path = ''
+ 
 if os.name != "nt" and os.uname()[4]=='ia64':
-   env = Environment(ENV = {'PATH':os.environ['PATH'], 'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']}, tools = ['default', 'intelc'], options = opts)
+   env = Environment(ENV = {'PATH':os.environ['PATH'], 'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH'], 'PYTHONPATH':python_path}, tools = ['default', 'intelc'], options = opts)
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
 elif os.name == "nt":
-   env = Environment(ENV = {'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']}, tools = ['default', 'intelc'], options = opts)
+   # FIXME: Need to implement equivalent of ld library path for windoze
+   env = Environment(ENV = {'PYTHONPATH':python_path}, tools = ['default', 'intelc'], options = opts)
 else:
-   env = Environment(ENV = {'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']}, tools = ['default'], options = opts)
+   env = Environment(ENV = {'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH'], 'PYTHONPATH':python_path}, tools = ['default'], options = opts)
 
 # Setup help for options
 Help(opts.GenerateHelpText(env))
