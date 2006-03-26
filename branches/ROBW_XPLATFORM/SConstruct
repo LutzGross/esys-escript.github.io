@@ -86,13 +86,13 @@ opts.AddOptions(
 # This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
 # FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
 if os.name != "nt" and os.uname()[4]=='ia64':
-   env = Environment(ENV = {'PATH' : os.environ['PATH']}, tools = ['default', 'intelc'], options = opts)
+   env = Environment(ENV = {'PATH':os.environ['PATH'], 'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']}, tools = ['default', 'intelc'], options = opts)
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
 elif os.name == "nt":
-   env = Environment(tools = ['default', 'intelc'], options = opts)
+   env = Environment(ENV = {'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']}, tools = ['default', 'intelc'], options = opts)
 else:
-   env = Environment(tools = ['default'], options = opts)
+   env = Environment(ENV = {'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']}, tools = ['default'], options = opts)
 
 # Setup help for options
 Help(opts.GenerateHelpText(env))
@@ -119,10 +119,12 @@ except KeyError:
 try:
    libinstall = env['libinstall']
    env.Append(LIBPATH = [libinstall,])
+   env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
 except KeyError:
    libinstall = None  
 try:
-   pyinstall = env['pyinstall']
+   pyinstall = env['pyinstall']+'/esys' # all targets will install into pyinstall/esys but PYTHONPATH points at straight pyinstall so you go import esys.escript etc
+   env.PrependENVPath('PYTHONPATH', env['pyinstall'])
 except KeyError:
    pyinstall = None  
 try:
