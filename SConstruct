@@ -66,9 +66,10 @@ opts.AddOptions(
   PathOption('umf_lib_path', 'Path to UMF libs', None), 
   ('umf_libs', 'UMF libraries to link with', None),
 # Python
-  PathOption('python_path', 'Path to Python includes', '/usr/include'), 
+# locations of include files for python
+  PathOption('python_path', 'Path to Python includes', '/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])), 
   PathOption('python_lib_path', 'Path to Python libs', '/usr/lib'), 
-  ('python_lib', 'Python libraries to link with', ['python2.3',]),
+  ('python_lib', 'Python libraries to link with', ["python%s.%s"%(sys.version_info[0],sys.version_info[1]),]),
 # Boost
   PathOption('boost_path', 'Path to Boost includes', '/usr/include'), 
   PathOption('boost_lib_path', 'Path to Boost libs', '/usr/lib'), 
