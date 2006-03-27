@@ -32,9 +32,12 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   /* if there is no mesh we just return */
   if (mesh_p==NULL) return;
 
-  int i, j, k, numVTKNodesPerElement,i_data;
+  int i, j, k, numVTKNodesPerElement,i_data,m, count, n, rank,shape, numPoints, cellType, numCells,
+      nDim, numPointsPerSample, nComp, nCompReqd;
+
   index_t j2;
   double* values, rtmp;
+  char elemTypeStr[32];
   
   /* open the file and check handle */
 
@@ -153,7 +156,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
      }
   }
   /* select nomber of points and the mesh component */
-  int numPoints = mesh_p->Nodes->numNodes;
+  numPoints = mesh_p->Nodes->numNodes;
   if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
       numPoints = mesh_p->Nodes->reducedNumNodes;
   } else {
@@ -181,10 +184,8 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
      return;
   }
   /* map finley element type to VTK element type */
-  int numCells = elements->numElements;   
-  int cellType;
+  numCells = elements->numElements;   
   ElementTypeId TypeId;
-  char elemTypeStr[32];
   if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
      TypeId = elements->LinearReferenceElement->Type->TypeId;
   } else {
@@ -310,7 +311,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   /* 
    * the reason for this if statement is explained in the long comment below
    */
-  int nDim = mesh_p->Nodes->numDim;
+  nDim = mesh_p->Nodes->numDim;
   fprintf(fileHandle_p, "<DataArray NumberOfComponents=\"%d\" type=\"Float32\" format=\"ascii\">\n",MAX(3,nDim));
   /* vtk/mayavi doesn't like 2D data, it likes 3D data with a degenerate
      * third dimension to handle 2D data (like a sheet of paper).  So, if
@@ -441,11 +442,11 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
        /* write the arrays */
        for (i_data =0 ;i_data<num_data;++i_data) {
           if (! isEmpty(data_pp[i_data]) && isCellCentered[i_data]) {
-             int numPointsPerSample = elements->ReferenceElement->numQuadNodes;
-             int rank = getDataPointRank(data_pp[i_data]);
-             int nComp = getDataPointSize(data_pp[i_data]);
-             int nCompReqd=1;   /* the number of components required by vtk */
-             int shape=0;
+             numPointsPerSample = elements->ReferenceElement->numQuadNodes;
+             rank = getDataPointRank(data_pp[i_data]);
+             nComp = getDataPointSize(data_pp[i_data]);
+             nCompReqd=1;   /* the number of components required by vtk */
+             shape=0;
              if (rank == 0) {
                 nCompReqd = 1;
              } else if (rank == 1) {
@@ -485,21 +486,21 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
    	           fprintf(fileHandle_p, " %e", sampleAvg[0]);
    	         } else if (nCompReqd == 3) {
    	           /* write out the data */
-   	           for (int m=0; m<shape; m++) fprintf(fileHandle_p, " %e", sampleAvg[m]);
-   	           for (int m=0; m<nCompReqd-shape; m++) fprintf(fileHandle_p, " %e", 0.);
+   	           for (m=0; m<shape; m++) fprintf(fileHandle_p, " %e", sampleAvg[m]);
+   	           for (m=0; m<nCompReqd-shape; m++) fprintf(fileHandle_p, " %e", 0.);
    	         } else if (nCompReqd == 9) { 
    	           /* tensor data, so have a 3x3 matrix to output as a row 
    	            * of 9 data points */
-   	            int count = 0;
-   	            for (int m=0; m<shape; m++) {
-   	              for (int n=0; n<shape; n++) {
+   	            count = 0;
+   	            for (m=0; m<shape; m++) {
+   	              for (n=0; n<shape; n++) {
    	                 fprintf(fileHandle_p, " %e", sampleAvg[count]);
    	                 count++;
    	              }
-   	              for (int n=0; n<3-shape; n++) fprintf(fileHandle_p, " %e", 0.);
+   	              for (n=0; n<3-shape; n++) fprintf(fileHandle_p, " %e", 0.);
    	            }
-   	            for (int m=0; m<3-shape; m++) 
-   	               for (int n=0; n<3; n++) fprintf(fileHandle_p, " %e", 0.);
+   	            for (m=0; m<3-shape; m++) 
+   	               for (n=0; n<3; n++) fprintf(fileHandle_p, " %e", 0.);
    	            }
    	          fprintf(fileHandle_p, "\n");
              }
@@ -550,11 +551,11 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
        /* write the arrays */
        for (i_data =0 ;i_data<num_data;++i_data) {
           if (! isEmpty(data_pp[i_data]) && !isCellCentered[i_data]) {
-             int numPointsPerSample = elements->ReferenceElement->numQuadNodes;
-             int rank = getDataPointRank(data_pp[i_data]);
-             int nComp = getDataPointSize(data_pp[i_data]);
-             int nCompReqd=1;   /* the number of components required by vtk */
-             int shape=0;
+             numPointsPerSample = elements->ReferenceElement->numQuadNodes;
+             rank = getDataPointRank(data_pp[i_data]);
+             nComp = getDataPointSize(data_pp[i_data]);
+             nCompReqd=1;   /* the number of components required by vtk */
+             shape=0;
              if (rank == 0) {
                 nCompReqd = 1;
              } else if (rank == 1) {
@@ -614,21 +615,21 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
    	          if (nCompReqd == 1) {
    	            fprintf(fileHandle_p, " %e", values[0]);
    	          } else if (nCompReqd == 3) {
-   	            for (int m=0; m<shape; m++) fprintf(fileHandle_p, " %e", values[m]);
-   	            for (int m=0; m<nCompReqd-shape; m++) fprintf(fileHandle_p, " %e", 0.);
+   	            for (m=0; m<shape; m++) fprintf(fileHandle_p, " %e", values[m]);
+   	            for (m=0; m<nCompReqd-shape; m++) fprintf(fileHandle_p, " %e", 0.);
    	          } else if (nCompReqd == 9) { 
    	            /* tensor data, so have a 3x3 matrix to output as a row 
    	             * of 9 data points */
-   	            int count = 0;
-   	            for (int m=0; m<shape; m++) {
-   	              for (int n=0; n<shape; n++) {
+   	            count = 0;
+   	            for (m=0; m<shape; m++) {
+   	              for (n=0; n<shape; n++) {
    	                fprintf(fileHandle_p, " %e", values[count]);
    	                count++;
    	              }
-   	              for (int n=0; n<3-shape; n++) fprintf(fileHandle_p, " %e", 0.);
+   	              for (n=0; n<3-shape; n++) fprintf(fileHandle_p, " %e", 0.);
    	            }
-   	            for (int m=0; m<3-shape; m++)  
-   	                for (int n=0; n<3; n++) fprintf(fileHandle_p, " %e", 0.);
+   	            for (m=0; m<3-shape; m++)  
+   	                for (n=0; n<3; n++) fprintf(fileHandle_p, " %e", 0.);
    	          }
       	          fprintf(fileHandle_p, "\n");
                }
