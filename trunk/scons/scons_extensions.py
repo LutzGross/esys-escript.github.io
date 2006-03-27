@@ -22,11 +22,19 @@ def build_py(target, source, env):
 # Code to run unit_test executables
 def runUnitTest(target, source, env):
   app = str(source[0].abspath)
-  if not os.system(app):
+  if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
   else:
     return 1
   return None
+
+def runPyUnitTest(target, source, env): 
+   app = 'python '+str(source[0].abspath)
+   if not env.Execute(app):
+      open(str(target[0]),'w').write("PASSED\n")
+   else:
+     return 1
+   return None
 
 # code to build epydoc docs
 def build_epydoc(target, source, env):

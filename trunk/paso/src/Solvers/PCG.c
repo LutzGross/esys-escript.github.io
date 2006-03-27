@@ -14,8 +14,8 @@
 
 /* PCG iterations */
 
-#include "SystemMatrix.h"
-#include "Paso.h"
+#include "../SystemMatrix.h"
+#include "../Paso.h"
 #include "Solver.h"
 /* #include <math.h> */
 #ifdef _OPENMP

@@ -14,10 +14,10 @@
 #if !defined bruce_Bruce_20050829_H
 #define bruce_Bruce_20050829_H
 
-#include "AbstractDomain.h"
-#include "AbstractContinuousDomain.h"
-#include "FunctionSpace.h"
-#include "Data.h"
+#include "escript/AbstractDomain.h"
+#include "escript/AbstractContinuousDomain.h"
+#include "escript/FunctionSpace.h"
+#include "escript/Data.h"
 
 #include <string>
 #include <vector>

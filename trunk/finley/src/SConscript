@@ -1,166 +1,68 @@
-libinstall = None
-incinstall = None
-
 Import('*')
 
+local_env=env.Copy()
+py_wrapper_local_env=env.Copy()
+# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
+del py_wrapper_local_env['SHLIBPREFIX']
+
+lib_name = 'finley'
+py_wrapper_name = lib_name+'cpp'
+py_wrapper_source = 'CPPAdapter/'+py_wrapper_name+'.cpp' # FIXME: In need of a source tree refactor
+py_wrapper_lib_name = py_wrapper_name
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import string
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+# Filter unused sources
+sources.remove('ElementFile_borrowLocalVolume.c') # FIXME: Should this file be removed?
 
-libname = 'finleycpp'
 
-finley_path = Dir(str(esysroot) + '/finley/src')
-finley_cppadapter_path = Dir(str(esysroot) + '/finley/src/CPPAdapter')
-paso_path = Dir(str(esysroot) + '/paso/src')
-escript_path = Dir(str(esysroot) + '/escript/src')
-esysUtils_path = Dir(str(esysroot) + '/esysUtils/src')
+# finleycpp has additional source in the CPPAdapter sub-directory. Append these to the list
+cppadapter_filenames = os.listdir(src_dir+'/CPPAdapter');
+sources += ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+cppadapter_headers = ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
 
-esys_lib_path = Dir(str(esysroot) + '/lib')
-esysUtils_lib_path = Dir(str(esysroot) + '/esysUtils/lib')
+sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
+local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'escript', 'esysUtils', 'paso'])
+py_wrapper_local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, lib_name, 'escript', 'esysUtils', 'paso'])
 
-esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
-escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
-paso_lib = str(esys_lib_path) + '/libpaso.a'
+if mkl_libs:
+   local_env.Append(CPPDEFINES=['MKL',])
+   local_env.Append(LIBS = mkl_libs)
+if scsl_libs:
+   local_env.Append(CPPDEFINES=['SCSL',])
+   local_env.Append(LIBS = scsl_libs)
+if umf_libs:
+   local_env.Append(CPPDEFINES=['UMFPACK',])
+   local_env.Append(LIBS = umf_libs)
+if papi_libs:
+   local_env.Append(CPPDEFINES=['PAPI',])
+   local_env.Append(LIBS = papi_libs)
 
-cpp_path = [finley_path,
-            finley_cppadapter_path,
-            paso_path,
-            escript_path,
-            esysUtils_path,
-            python_path,
-            papi_path,
-            boost_path]
 
-incs = ['Assemble.h',
-        'ElementFile.h',
-        'Finley.h',
-        'FinleyVersion.h',
-        'IndexList.h',
-        'Mesh.h',
-        'NodeFile.h',
-        'Quadrature.h',
-        'RectangularMesh.h',
-        'ReferenceElements.h',
-        'ShapeFunctions.h',
-        'Util.h',
-#        'vtkCellType.h',
-        'CPPAdapter/FinleyAdapterException.h',
-        'CPPAdapter/FinleyError.h',
-        'CPPAdapter/MeshAdapterFactory.h',
-        'CPPAdapter/MeshAdapter.h',
-        'CPPAdapter/SystemMatrixAdapter.h']
+lib = local_env.SharedLibrary(lib_name, sources)
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)
 
-sources = ['Assemble_addToSystemMatrix.c',
-           'Assemble_CopyElementData.c',
-           'Assemble_CopyNodalData.c',
-           'Assemble_getAssembleParameters.c',
-           'Assemble_getSize.c',
-           'Assemble_gradient.c',
-           'Assemble_handelShapeMissMatch.c',
-           'Assemble_integrate.c',
-           'Assemble_interpolate.c',
-           'Assemble_NodeCoordinates.c',
-           'Assemble_PDE.c',
-           'Assemble_PDEMatrix_Single2.c',
-           'Assemble_PDEMatrix_System2.c',
-           'Assemble_PDE_RHS.c',
-           'Assemble_RHSMatrix_Single.c',
-           'Assemble_RHSMatrix_System.c',
-           'Assemble_RobinCondition.c',
-           'Assemble_RobinCondition_RHS.c',
-           'Assemble_setNormal.c',
-           'ElementFile_allocTable.c',
-           'ElementFile.c',
-           'ElementFile_copyTable.c',
-           'ElementFile_gather.c',
-           'ElementFile_improveColoring.c',
-           'ElementFile_markNodes.c',
-           'ElementFile_optimizeDistribution.c',
-           'ElementFile_prepare.c',
-           'ElementFile_relableNodes.c',
-           'ElementFile_scatter.c',
-           'ElementFile_setNodeRange.c',
-           'ElementFile_setCoordinates.c',
-           'Finley.c',
-           'IndexList.c',
-           'Mesh.c',
-           'Mesh_findMatchingFaces.c',
-           'Mesh_getPattern.c',
-           'Mesh_glueFaces.c',
-           'Mesh_hex20.c',
-           'Mesh_hex8.c',
-           'Mesh_joinFaces.c',
-           'Mesh_line2.c',
-           'Mesh_line3.c',
-           'Mesh_markNodes.c',
-           'Mesh_merge.c',
-           'Mesh_prepare.c',
-           'Mesh_prepareNodes.c',
-           'Mesh_print.c',
-           'Mesh_read.c',
-           'Mesh_rec4.c',
-           'Mesh_rec8.c',
-           'Mesh_relabelElementNodes.c',
-           'Mesh_resolveNodeIds.c',
-           'Mesh_saveDX.c',
-           'Mesh_saveVTK.c',
-           'Mesh_write.c',
-           'Mesh_setCoordinates.c',
-           'NodeFile_allocTable.c',
-           'NodeFile.c',
-           'NodeFile_copyTable.c',
-           'NodeFile_gatter.c',
-           'NodeFile_scatter.c',
-           'NodeFile_setCoordinates.c',
-           'NodeFile_setIdRange.c',
-           'Quadrature.c',
-           'ReferenceElements.c',
-           'ShapeFunctions.c',
-           'Util.c',
-           'CPPAdapter/FinleyError.cpp',
-           'CPPAdapter/MeshAdapter.cpp',
-           'CPPAdapter/MeshAdapterFactory.cpp',
-           'CPPAdapter/SystemMatrixAdapter.cpp',
-           'CPPAdapter/finleycpp.cpp']
+include_path = Dir(lib_name, incinstall)
+cppadapter_include_path = Dir('CppAdapter', include_path)
 
-lib_path = [esys_lib_path,
-            esysUtils_lib_path,
-            boost_lib_path,
-            papi_lib_path]  \
-          + solver_lib_paths
+local_env.Install(include_path, headers )
+local_env.Install(cppadapter_include_path, cppadapter_headers )
+local_env.Install(libinstall, lib)
+py_wrapper_local_env.Install(pyinstall+'/finley', py_wrapper_lib)
 
-libs = ['escriptcpp',
-        'esysUtils',
-        'paso',
-        str(boost_lib),
-        'dl',
-        'util']     \
-       + sys_libs   \
-       + solver_libs \
-       + papi_libs
+# export the lib target since tests will depend on it
+# the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
+# FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
+dep_lib = [libinstall+'/'+str(x) for x in lib]
+Export('dep_lib')
 
-finley_env = Environment(ENV = os.environ)
+# Call the python sconscript
+env.SConscript(dirs = ['#/finley/py_src'], build_dir='py', duplicate=0)
 
-finley_env.Replace(CC = cc)
-finley_env.Replace(CXX = cxx)
-finley_env.Replace(CCFLAGS = cc_flags)
-finley_env.Replace(CXXFLAGS = cxx_flags)
-finley_env.Replace(SHOBJSUFFIX = '.lo')
-finley_env.Replace(CPPPATH = cpp_path)
-finley_env.Replace(LIBPATH = lib_path)
-finley_env.Replace(LIBS = libs)
+# Call the unit tests SConscript
+local_env.SConscript(dirs = ['#/finley/test'], build_dir='#/build/$PLATFORM/finley/test', duplicate=0)
 
-finley_lib = finley_env.SharedLibrary(libname, sources)
-
-Depends(finley_lib, esysUtils_lib)
-Depends(finley_lib, escript_lib)
-Depends(finley_lib, paso_lib)
-
-Default(finley_env.Install(incdir, incs))
-Default(finley_env.Install(incdir2, incs))
-if incinstall != None:
-  Default(finley_env.Install(incinstall, incs))
-
-Default(finley_env.Install(libdir, finley_lib))
-Default(finley_env.Install(libdir2, finley_lib))
-if libinstall != None:
-  Default(finley_env.Install(libinstall, finley_lib))

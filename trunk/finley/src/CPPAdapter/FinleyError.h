@@ -14,7 +14,7 @@
 #define finley_FinleyError_20040528_H
 
 extern "C" {
-#include "Finley.h"
+#include "../Finley.h"
 }
 
 #include "FinleyAdapterException.h"

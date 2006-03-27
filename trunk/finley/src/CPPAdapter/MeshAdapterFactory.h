@@ -15,14 +15,14 @@
 #define finley_MeshAdapterFactory_20040526_H
 
 extern "C" {
-#include "Finley.h"
-#include "Mesh.h"
-#include "RectangularMesh.h"
+#include "../Finley.h"
+#include "../Mesh.h"
+#include "../RectangularMesh.h"
 }
 
 #include "MeshAdapter.h"
 
-#include "AbstractContinuousDomain.h"
+#include "escript/AbstractContinuousDomain.h"
 
 #include <boost/python/list.hpp>
 

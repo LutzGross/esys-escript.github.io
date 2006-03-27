@@ -1,27 +1,19 @@
 Import('*')
 
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import string
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+# Filter out sources that should not be in the list automatically
 
-CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
+lib_name = 'CppUnitTest'
 
-cpp_path = [CppUnitTest_path]
+local_env.Append(CPPPATH=['#/tools/CppUnitTest/inc',])
 
-lib = 'CppUnitTest'
-sources = ['TestCase.cpp',
-           'TestFailure.cpp',
-           'TestRunner.cpp',
-           'TestSuite.cpp',
-           'TestResult.cpp',
-           'TextTestResult.cpp']
+lib = local_env.StaticLibrary(lib_name, sources)
 
-cppunit_env = Environment(ENV = os.environ)
-
-cppunit_env.Replace(CXX = cxx)
-cppunit_env.Replace(CXXFLAGS = cxx_flags)
-cppunit_env.Replace(ARFLAGS = ar_flags)
-cppunit_env.Replace(CPPPATH = cpp_path)
-
-cppunit_lib = cppunit_env.StaticLibrary(lib, sources)
-
-Default(cppunit_env.Install(libdir, cppunit_lib))
+local_env.Install(libinstall, lib)

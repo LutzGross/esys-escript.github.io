@@ -21,7 +21,7 @@
 #include "Utils.h"
 #include "AbstractSystemMatrix.h"
 
-#include "esysExceptionTranslator.h"
+#include "esysUtils/esysExceptionTranslator.h"
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>

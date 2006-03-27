@@ -13,7 +13,7 @@
 
 #include "DataConstant.h"
 #include "DataException.h"
-#include "EsysAssert.h"
+#include "esysUtils/EsysAssert.h"
 
 #include <iostream>
 #include <boost/python/extract.hpp>

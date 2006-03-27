@@ -13,7 +13,7 @@
 #if !defined  escript_FunctionSpaceException_20040602_H
 #define escript_FunctionSpaceException_20040602_H
 
-#include "EsysException.h"
+#include "esysUtils/EsysException.h"
 #include <string>
 
 namespace escript {

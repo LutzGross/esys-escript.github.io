@@ -1,27 +1,14 @@
-pyinstall = None
-
 Import('*')
 
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import sys
+filenames = os.listdir(src_dir)
+python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
-extensions_dir = str(esysroot) + '/scons'
-sys.path.append(extensions_dir)
+pyc = local_env.PyCompile(python_src)
 
-import scons_extensions
-
-finleypy_env = Environment(ENV = os.environ)
-
-py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
-finleypy_env.Append(BUILDERS = {'PyCompile' : py_builder});
-
-python_src = ['__init__.py',
-              'finley.py',
-              'finleybench.py']
-
-pyc = finleypy_env.PyCompile(python_src)
-
-Default(finleypy_env.Install(pydir, pyc))
-Default(finleypy_env.Install(pydir2, pyc))
-if pyinstall != None:
-  Default(finleypy_env.Install(pyinstall, pyc))
+local_env.Depends(pyc, dep_lib)
+local_env.Install(pyinstall+'/finley', pyc)

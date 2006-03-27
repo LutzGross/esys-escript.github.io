@@ -1,111 +1,45 @@
-libinstall = None
-incinstall = None
-
 Import('*')
 
+local_env=env.Copy()
+py_wrapper_local_env=env.Copy()
+# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
+del py_wrapper_local_env['SHLIBPREFIX']
+
+lib_name = 'escript'
+py_wrapper_name = lib_name+'cpp'
+py_wrapper_source = py_wrapper_name+'.cpp'
+py_wrapper_lib_name = py_wrapper_name
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import string
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+# Filter out sources that should not be in the list automatically
+sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
 
-libname = 'escriptcpp'
 
-escript_path = str(esysroot) + '/escript/src'
-esysUtils_path = str(esysroot) + '/esysUtils/src'
+local_env.Append(LIBS = [boost_lib, 'esysUtils', sys_libs ])
+py_wrapper_local_env.Append(LIBS = [boost_lib, lib_name, 'esysUtils', sys_libs ])
 
-esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+lib = local_env.SharedLibrary(lib_name, sources)
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)
 
-esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
+include_path = Dir(lib_name, incinstall)
 
-cpp_path = [escript_path,
-            esysUtils_path,
-            python_path,
-            boost_path]
+local_env.Install(include_path, headers )
+local_env.Install(libinstall, lib)
+py_wrapper_local_env.Install(pyinstall+'/escript', py_wrapper_lib)
 
-incs = ['AbstractContinuousDomain.h',
-        'AbstractDomain.h',
-        'AbstractSystemMatrix.h',
-        'BinaryOp.h',
-        'DataAbstract.h',
-        'DataAlgorithm.h',
-        'DataArray.h',
-        'DataArrayView.h',
-        'DataBlocks2D.h',
-        'DataCached.h',
-        'DataC.h',
-        'DataConstant.h',
-        'DataEmpty.h',
-        'DataException.h',
-        'DataExpanded.h',
-        'DataFactory.h',
-        'Data.h',
-        'DataProf.h',
-        'DataTagged.h',
-        'DataVariable.h',
-        'DataVector.h',
-        'DomainException.h',
-        'FunctionSpaceException.h',
-        'FunctionSpaceFactory.h',
-        'FunctionSpace.h',
-        'NullDomain.h',
-        'SystemMatrixException.h',
-        'Taipan.h',
-        'UnaryFuncs.h',
-        'UnaryOp.h',
-        'UtilC.h',
-        'LocalOps.h',
-        'Utils.h']
+# export the lib target since tests will depend on it
+# the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
+# FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
+dep_lib = [libinstall+'/'+str(x) for x in lib]
+Export('dep_lib')
 
-sources = ['AbstractContinuousDomain.cpp',
-           'AbstractDomain.cpp',
-           'AbstractSystemMatrix.cpp',
-           'DataAbstract.cpp',
-           'DataArray.cpp',
-           'DataArrayView.cpp',
-           'DataBlocks2D.cpp',
-           'DataCached.cpp',
-           'DataC.cpp',
-           'DataConstant.cpp',
-           'Data.cpp',
-           'DataEmpty.cpp',
-           'DataExpanded.cpp',
-           'DataFactory.cpp',
-           'DataProf.cpp',
-           'DataTagged.cpp',
-           'DataVariable.cpp',
-           'DataVector.cpp',
-           'FunctionSpace.cpp',
-           'FunctionSpaceFactory.cpp',
-           'NullDomain.cpp',
-           'Taipan.cpp',
-           'Utils.cpp',
-           'escriptcpp.cpp']
+# Call the python sconscript
+env.SConscript(dirs = ['#/escript/py_src'], build_dir='py', duplicate=0)
 
-lib_path = [esysUtils_lib_path,
-            boost_lib_path]
-
-libs = ['esysUtils',
-        str(boost_lib)]
-
-libs.extend(sys_libs)
-
-escript_env = Environment(ENV = os.environ)
-
-escript_env.Replace(CXX = cxx)
-escript_env.Replace(SHOBJSUFFIX = '.lo')
-escript_env.Replace(CXXFLAGS = cxx_flags)
-escript_env.Replace(CPPPATH = cpp_path)
-escript_env.Replace(LIBPATH = lib_path)
-escript_env.Replace(LIBS = libs)
-
-escript_lib = escript_env.SharedLibrary(libname, sources)
-
-Depends(escript_lib, esysUtils_lib)
-
-Default(escript_env.Install(incdir, incs))
-Default(escript_env.Install(incdir2, incs))
-if incinstall != None:
-  Default(escript_env.Install(incinstall, incs))
-
-Default(escript_env.Install(libdir, escript_lib))
-Default(escript_env.Install(libdir2, escript_lib))
-if libinstall != None:
-  Default(escript_env.Install(libinstall, escript_lib))
+# Call the unit tests SConscript
+local_env.SConscript(dirs = ['#/escript/test'], build_dir='#/build/$PLATFORM/escript/test', duplicate=0)

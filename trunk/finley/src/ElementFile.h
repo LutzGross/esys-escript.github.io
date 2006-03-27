@@ -17,7 +17,7 @@
 
 #include "Finley.h"
 #include "ReferenceElements.h"
-#include "DataC.h"
+#include "escript/DataC.h"
 
 struct Finley_ElementFile {
 
