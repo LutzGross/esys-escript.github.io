@@ -81,8 +81,9 @@ void fmt_str( int nvalues, int integer, int *width, int *nlines, int *nperline, 
 /* function to print the actual data in the right format */
 void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *ptr, int integer, int adjust )
 {
+	double *data = ptr;
 	int entries_done = 0;
-	int padding;
+	int padding, i, j;
 	char pad_fmt[10];
 
 	padding = 80 - n_perline*width;
@@ -94,7 +95,7 @@ void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *
 	if( integer )
 	{
 		dim_t *data = ptr;
-		for( int i=0; i<nval; i++ )
+		for(i=0; i<nval; i++ )
 		{
 			fprintf( fp, fmt, data[i]+adjust );
 			entries_done++;
@@ -109,8 +110,7 @@ void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *
 	}
 	else
 	{
-		double *data = ptr;
-		for( int i=0; i<nval; i++ )
+		for(i=0; i<nval; i++ )
 		{
 			fprintf( fp, fmt, data[i] );
 			entries_done++;
@@ -177,6 +177,8 @@ void generate_HB( FILE *fp, dim_t *col_ptr, dim_t *row_ind, double *val )
 
 void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 {
+        int i, curr_col,j ;
+	int iPtr, iCol, ir, ic;
         index_t index_offset=(A_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
 	/* open the file */
 	FILE *fileHandle_p = fopen( filename_p, "w" );
@@ -200,8 +202,6 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 				}
 				else
 				{
-					int i, curr_col;
-					int iPtr, iCol, ir, ic;
 
 // 					fprintf( fileHandle_p, "NEED unrolling!\n" );
 					M = A_p->num_rows*A_p->row_block_size;
@@ -226,7 +226,7 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 					dim_t *col_ptr = MEMALLOC( (N+1), dim_t );
 
 					curr_col = 0;
-					for( int j=0; (j<nz && curr_col<N); curr_col++ )
+					for(j=0; (j<nz && curr_col<N); curr_col++ )
 					{
 						while( col_ind[j] != curr_col )
 							j++;
