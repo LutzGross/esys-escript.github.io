@@ -1,68 +1,45 @@
-libinstall = None
-incinstall = None
-
 Import('*')
 
+local_env=env.Copy()
+py_wrapper_local_env=env.Copy()
+# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
+del py_wrapper_local_env['SHLIBPREFIX']
+
+lib_name = 'bruce'
+py_wrapper_name = lib_name+'cpp'
+py_wrapper_source = py_wrapper_name+'.cpp'
+py_wrapper_lib_name = py_wrapper_name
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import string
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+# Filter out sources that should not be in the list automatically
+# Filter out sources that should not be in the list automatically
+sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
 
-libname = 'brucecpp'
+local_env.Append(LIBS = [boost_lib, 'escript', 'esysUtils'])
+py_wrapper_local_env.Append(LIBS = [boost_lib, lib_name, 'escript', 'esysUtils'])
 
-bruce_path = str(esysroot) + '/bruce/src'
-escript_path = str(esysroot) + '/escript/src'
-esysUtils_path = str(esysroot) + '/esysUtils/src'
+lib = local_env.SharedLibrary(lib_name, sources)
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)
 
-esys_lib_path = str(esysroot) + '/lib'
-esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+include_path = Dir(lib_name, incinstall)
 
-escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
-esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
+local_env.Install(include_path, headers )
+local_env.Install(libinstall, lib)
+py_wrapper_local_env.Install(pyinstall+'/bruce', py_wrapper_lib)
 
-cpp_path = [bruce_path,
-            escript_path,
-            esysUtils_path,
-            python_path,
-            boost_path]
+# export the lib target since tests will depend on it
+# the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
+# FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
+dep_lib = [libinstall+'/'+str(x) for x in lib]
+Export('dep_lib')
 
-incs = ['BruceException.h',
-        'BruceFactory.h',
-        'Bruce.h',
-        'vtkCellType.h']
+# Call the python sconscript
+env.SConscript(dirs = ['#/bruce/py_src'], build_dir='py', duplicate=0)
 
-sources = ['Bruce.cpp',
-           'BruceFactory.cpp',
-           'brucecpp.cpp']
-
-lib_path = [esys_lib_path,
-            esysUtils_lib_path,
-            boost_lib_path]
-
-libs = ['esysUtils',
-        'escriptcpp',
-        str(boost_lib)]
-
-libs.extend(sys_libs)
-
-bruce_env = Environment(ENV = os.environ)
-
-bruce_env.Replace(CXX = cxx)
-bruce_env.Replace(SHOBJSUFFIX = '.lo')
-bruce_env.Replace(CXXFLAGS = cxx_flags)
-bruce_env.Replace(CPPPATH = cpp_path)
-bruce_env.Replace(LIBPATH = lib_path)
-bruce_env.Replace(LIBS = libs)
-
-bruce_lib = bruce_env.SharedLibrary(libname, sources)
-
-Depends(bruce_lib, esysUtils_lib)
-Depends(bruce_lib, escript_lib)
-
-Default(bruce_env.Install(incdir, incs))
-Default(bruce_env.Install(incdir2, incs))
-if incinstall != None:
-  Default(bruce_env.Install(incinstall, incs))
-
-Default(bruce_env.Install(libdir, bruce_lib))
-Default(bruce_env.Install(libdir2, bruce_lib))
-if libinstall != None:
-  Default(bruce_env.Install(libinstall, bruce_lib))
+# Call the unit tests SConscript
+local_env.SConscript(dirs = ['#/bruce/test'], build_dir='#/build/$PLATFORM/bruce/test', duplicate=0) 

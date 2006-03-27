@@ -15,17 +15,17 @@
 ******************************************************************************/
 
 extern "C" {
-#include "Finley.h"
+#include "../Finley.h"
 }
 
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 #include "SystemMatrixAdapter.h"
 
-#include "EsysException.h"
-#include "esysExceptionTranslator.h"
+#include "esysUtils/EsysException.h"
+#include "esysUtils/esysExceptionTranslator.h"
 
-#include "AbstractContinuousDomain.h"
+#include "escript/AbstractContinuousDomain.h"
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>

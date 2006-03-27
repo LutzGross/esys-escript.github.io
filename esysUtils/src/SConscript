@@ -1,26 +1,33 @@
 Import('*')
 
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import string
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+# Filter out sources that should not be in the list automatically
 
-esysUtils_path = str(esysroot) + '/esysUtils/src'
+lib_name = 'esysUtils'
 
-cpp_path = [esysUtils_path,
-            python_path,
-            boost_path]
+local_env.Append(LIBS = [boost_lib, ])
 
-lib = 'esysUtils'
+lib = local_env.StaticLibrary(lib_name, sources)
 
-sources = ['EsysException.cpp',
-           'esysExceptionTranslator.cpp']
+include_path = Dir(lib_name, incinstall)
 
-utils_env = Environment(ENV = os.environ)
+local_env.Install(include_path, headers )
+local_env.Install(libinstall, lib)
 
-utils_env.Replace(CXX = cxx)
-utils_env.Replace(CXXFLAGS = cxx_flags)
-utils_env.Replace(ARFLAGS = ar_flags)
-utils_env.Replace(CPPPATH = cpp_path)
+# Call the unit tests SConscript 
+# export the lib target since tests will depend on it
+# the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
+# FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
 
-utils_lib = utils_env.StaticLibrary(lib, sources)
+dep_lib = [libinstall+'/'+str(x) for x in lib]
+Export('dep_lib')
 
-Default(utils_env.Install(libdir, utils_lib))
+local_env.SConscript(dirs = ['#/esysUtils/test/EsysException'], build_dir='#/build/$PLATFORM/esysUtils/test/EsysException', duplicate=0)
+

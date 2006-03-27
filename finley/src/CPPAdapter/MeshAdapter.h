@@ -15,20 +15,19 @@
 #define finley_MeshAdapter_20040526_H
 
 extern "C" {
-#include "Mesh.h"
-#include "Finley.h"
-#include "Assemble.h"
-#include "Finley.h"
-#include "SystemMatrix.h"
+#include "../Mesh.h"
+#include "../Finley.h"
+#include "../Assemble.h"
+#include "paso/SystemMatrix.h"
 }
 
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
 #include "SystemMatrixAdapter.h"
-#include "AbstractContinuousDomain.h"
-#include "FunctionSpace.h"
-#include "FunctionSpaceFactory.h"
+#include "escript/AbstractContinuousDomain.h"
+#include "escript/FunctionSpace.h"
+#include "escript/FunctionSpaceFactory.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/python/dict.hpp>

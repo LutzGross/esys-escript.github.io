@@ -24,8 +24,8 @@
 
 /**************************************************************/
 
-#include "Paso.h"
-#include "SystemMatrix.h"
+#include "../Paso.h"
+#include "../SystemMatrix.h"
 #include "Solver.h"
 
 /**************************************************************/

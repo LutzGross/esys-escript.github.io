@@ -13,7 +13,7 @@
 #if !defined  escript_DomainException_20040608_H
 #define escript_DomainException_20040608_H
 
-#include "EsysException.h"
+#include "esysUtils/EsysException.h"
 
 #include <string>
 

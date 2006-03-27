@@ -56,8 +56,8 @@
 *  ==============================================================
 */
 
-#include "Common.h"
-#include "SystemMatrix.h"
+#include "../Common.h"
+#include "../SystemMatrix.h"
 #include "Solver.h"
 #ifdef _OPENMP
 #include <omp.h>
