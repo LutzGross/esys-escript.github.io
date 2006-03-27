@@ -1,0 +1,1065 @@
+%
+%           Copyright © 2006 by ACcESS MNRF
+%               \url{http://www.access.edu.au
+%         Primary Business: Queensland, Australia.
+%   Licensed under the Open Software License version 3.0
+%      http://www.opensource.org/license/osl-3.0.php
+%
+\chapter{The module \pyvisi}
+\declaremodule{extension}{pyvisi}
+\modulesynopsis{visualization interface}
+
+The idea behind is to provide an easy to use interface and unified to a variety of
+visualization tools like \VTK, \OpenDX and \GnuPlot.
+
+The following script illustartes the usage of \pyvisi together with the 
+\VTK library:
+\begin{python}
+from esys.pyvisi import *                # base level visualisation stuff
+from esys.pyvisi.renderers.vtk import *  # vtk renderer module
+from esys.escript import *
+from esys.finley import Brick
+# now make some data of some kind
+domain = Brick(3,5,7)  # a Finley domain
+vectorData = domain.getX()  # get vector data from the domain nodes
+# define the scene object
+scene = Scene()
+# create an ArrowPlot object
+plot = ArrowPlot(scene)
+# add the plot to the scene
+scene.add(plot)
+# assign some data to the plot
+plot.setData(vectorData)
+# render the scene
+scene.render()
+# saving a scene
+scene.save(file="example.jpg", format="jpeg")
+\begin{python}
+A \Scene is a container for all of the kinds of things you want to put into your plot,
+for instance, images, domaines, arrow plots, contour plots, spheres etc.
+The renderer is specified in the scene initialisation. In fact the 
+\code{from esys.pyvisi.renderers.vtk import *} provides the specific implementation for 
+\VTK
+
+
+\begin{verbose}
+class ArrowPlot3D(Plot):
+    """
+    Arrow field plot in three dimensions
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the ArrowPlot3D class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+        @param options: Dictionary of extra options
+        @type options: dict
+
+        @param fname: Filename of the input vtk file
+        @type fname: string
+
+        @param format: Format of the input vtk file ('vtk' or 'vtk-xml')
+        @type format: string
+
+	@param vectors: the name of the vector data in the vtk file to use
+	@type vectors: string
+        """
+class ArrowPlot(Plot):
+    """
+    Arrow field plot
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the ArrowPlot class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+	@param options: Dictionary of extra options
+	@type options: dict
+
+	@param fname: the name of the input vtk file
+	@type fname: string
+
+	@param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+	@type format: string
+
+	@param vectors: the name of the vector data in the vtk file to use
+	@type vectors: string
+        """
+class Axes(Plot):
+    """
+    Axes class
+    """
+    def __init__(self):
+        """
+        Initialisation of Axes object
+        """
+        debugMsg("Called Axes.__init__()")
+        Plot.__init__(self)
+
+class BallPlot(Plot):
+    """
+    Ball plot
+    """
+    def __init__(self, scene):
+
+    def setData(self, points=None, 
+            fname=None, format=None,
+            radii=None, colors=None, tags=None):
+        """
+        Set data to the plot
+        @param points: the array to use for the points of the sphere
+        locations in space
+        @type points: float array
+
+        @param fname: the name of the input vtk file
+        @type fname: string
+
+        @param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+        @type format: string
+
+        @param radii: the name of the scalar array in the vtk unstructured
+        grid to use as the radii of the balls
+        @type radii: float array
+
+        @param colors: the name of the scalar array in the vtk unstructured
+        grid to use as the colour tags of the balls
+        @type colors: string
+
+        @param tags: the name of the scalar array in the vtk unstructured
+        grid to use as the colour of the tags of the balls
+        @type tags: integer array
+        """
+
+class Box(Item):
+    """
+    Generic class for Box objects
+
+    To define a box one specify one of three groups of things:
+      - The bounds of the box: xmin, xmax, ymin, ymax, zmin, zmax
+      - The dimensions and origin: width, height, depth and origin
+      - The bottom left front and top right back corners: blf, trb
+    """
+
+    def __init__(self):
+        """
+        Initialisation of the Box object
+        """
+        debugMsg("Called Box.__init__()")
+        Item.__init__(self)
+
+        # define a box in many ways, either by its centre and width, height
+        # and depth, or by its bounds, xmin, xmax, ymin, ymax, zmin, zmax,
+        # or by its bottom left front and top right back points.
+
+        # set the default bounds
+        self.xmin = -0.5
+        self.xmax = 0.5
+        self.ymin = -0.5
+        self.ymax = 0.5
+        self.zmin = -0.5
+        self.zmax = 0.5
+
+        # set the default origin (the centre of the box)
+        self.origin = ((self.xmin + self.xmax)/2.0, 
+                (self.ymin + self.ymax)/2.0, 
+                (self.zmin + self.zmax)/2.0)
+
+        # set the default dimensions
+        self.width = self.xmax - self.xmin
+        self.height = self.ymax - self.ymin
+        self.depth = self.zmax - self.zmin
+
+        # set the default blf and trb points
+        self.blf = (self.xmin, self.ymin, self.zmin)
+        self.trb = (self.xmax, self.ymax, self.zmax)
+
+        # tolerance for calculated variables checking purposes
+        self.tolerance = 1e-8
+
+    def setBounds(self, xmin, xmax, ymin, ymax, zmin, zmax):
+        """
+        Set the bounds of the box
+        """
+    def getBounds(self):
+        """
+        Get the current bounds of the box
+        """
+
+    def setOrigin(self, xo, yo, zo):
+        """
+        Set the origin of the box
+        """
+    def getOrigin(self):
+        """
+        Get the current origin of the box
+        """
+        debugMsg("Called Box.getOrigin()")
+        return self.origin
+
+    def setWidth(self, width):
+        """
+        Set the width of the box
+        """
+    def getWidth(self):
+        """
+        Get the current box width
+        """
+        debugMsg("Called Box.getWidth()")
+        return self.width
+
+    def setHeight(self, height):
+        """
+        Set the box height
+        """
+
+    def getHeight(self):
+        """
+        Get the current box height
+        """
+        debugMsg("Called Box.getHeight()")
+        return self.height
+
+    def setDepth(self, depth):
+        """
+        Set the box depth
+        """
+
+    def getDepth(self):
+        """
+        Get the current box depth
+        """
+        debugMsg("Called Box.getDepth()")
+        return self.depth
+
+    def setBLF(self, bottom, left, front):
+        """
+        Set the position of the bottom, left, front corner
+        """
+
+    def getBLF(self):
+        """
+        Get the current position of the bottom, left, front corner
+        """
+        debugMsg("Called Box.getBLF()")
+        return self.blf
+
+    def setTRB(self, top, right, back):
+        """
+        Set the position of the top, right, back corner
+        """
+
+    def getTRB(self):
+        """
+        Get the current position of the top, right, back corner
+        """
+        debugMsg("Called Box.getTRB()")
+        return self.trb
+
+
+class ClipBox(Box):
+    """
+    Clip box class: used to clip data sets with a box
+
+    A box in this sense means three planes at right angles to one another
+    """
+
+    def __init__(self, plot):
+        """
+        Intialisation of the ClipBox object
+        """
+
+    def setInsideOut(self, insideOut):
+        """
+        Set the inside out flag
+        """
+
+    def getInsideOut(self):
+        """
+        Get the current value of the inside out flag
+        """
+
+class Camera(Item):
+    """
+    Camera class
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the Camera object
+
+        @param scene: The Scene object to add the Camera object to
+        @type scene: Scene object
+        """
+    def setPosition(self, *pos):
+        """
+        Set position of camera within scene
+
+        @param pos: Position to set camera in terms of x,y,z coordinates
+        @type pos: tuple
+        """
+
+    def getPosition(self):
+        """
+        Get the position of Camera within Scene
+
+        Returns the position in a tuple of form (xPos, yPos, zPos)
+        """
+        debugMsg("Called Camera.getPosition()")
+
+        return (self.xPos, self.yPos, self.zPos)
+
+    def setFocalPoint(self, *pos):
+        """
+        Sets the focal point of the Camera with the Scene
+
+        @param pos: Position to set the focal point
+        @type pos: tuple
+        """
+
+    def getFocalPoint(self):
+        """
+        Get the position of the focal point of the Camera
+
+        Returns the position of the focal point in a tuple of form 
+        (xPos, yPos, zPos)
+        """
+
+    def setElevation(self, elevation):
+        """
+        Set the elevation angle (in degrees) of the Camera
+
+        @param elevation: The elevation angle (in degrees) of the Camera
+        @type elevation: float
+        """
+
+        return
+
+    def getElevation(self):
+        """
+        Gets the elevation angle (in degrees) of the Camera
+        """
+
+    def setAzimuth(self, azimuth):
+        """
+        Set the azimuthal angle (in degrees) of the Camera
+
+        @param azimuth: The azimuthal angle (in degrees) of the Camera
+        @type azimuth: float
+        """
+
+    def getAzimuth(self):
+        """
+        Get the azimuthal angle (in degrees) of the Camera
+        """
+class ContourPlot(Plot):
+    """
+    Contour plot
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the ContourPlot class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+        @param options: Dictionary of extra options
+        @type options: dict
+
+        @param fname: the name of the input vtk file
+        @type fname: string
+
+        @param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+        @type format: string
+
+        @param scalars: the scalar data in the vtk file to use
+        @type scalars: string
+        """
+
+class EllipsoidPlot(Plot):
+    """
+    Ellipsoid plot
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the EllipsoidPlot class
+
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+        debugMsg("Called EllipsoidPlot.__init__()")
+        Plot.__init__(self, scene)
+
+        self.renderer = scene.renderer
+        self.renderer.addToInitStack("# EllipsoidPlot.__init__()")
+
+        # labels and stuff
+        self.title = None
+        self.xlabel = None
+        self.ylabel = None
+        self.zlabel = None
+        
+        # default values for fname, format and tensors
+        self.fname = None
+        self.format = None
+	self.tensors = None
+
+	# default values for shared info
+	self.escriptData = False
+	self.otherData = False
+
+        # add the plot to the scene
+        scene.add(self)
+
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+        @param options: Dictionary of keyword options to the method
+        @type options: dict
+
+	@param fname: the name of the input vtk file
+	@type fname: string
+
+	@param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+	@type format: string
+
+	@param tensors: the name of the tensor data in the vtk file to use
+	@type tensors: string
+        """
+
+class Image(Item):
+    """
+    Image class.  Generic class to handle image data.
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the Image class object
+        
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+        debugMsg("Called Image.__init__()")
+        Item.__init__(self)
+
+        if scene is not None:
+            self.renderer = scene.renderer
+        
+    def load(self, fname):
+        """
+        Loads image data from file.
+
+        @param fname: The filename from which to load image data
+        @type fname: string
+        """
+        debugMsg("Called Image.load()")
+
+        fileCheck(fname)
+
+        return
+
+class JpegImage(Image):
+    """
+    Subclass of Image class to explicitly handle jpeg images
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the JpegImage class object
+
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+
+    def load(self, fname):
+        """
+        Loads jpeg image data from file.
+
+        @param fname: The filename from which to load jpeg image data
+        @type fname: string
+        """
+
+class PngImage(Image):
+    """
+    Subclass of Image class to explicitly handle png images
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the PngImage class object
+
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+
+    def load(self, fname):
+        """
+        Loads png image data from file.
+
+        @param fname: The filename from which to load png image data
+        @type fname: string
+        """
+class BmpImage(Image):
+    """
+    Subclass of Image class to explicitly handle bmp images
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the BmpImage class object
+
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+    def load(self, fname):
+        """
+        Loads bmp image data from file.
+
+        @param fname: The filename from which to load bmp image data
+        @type fname: string
+        """
+
+class TiffImage(Image):
+    """
+    Subclass of Image class to explicitly handle tiff images
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the TiffImage class object
+
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+    def load(self, fname):
+        """
+        Loads tiff image data from file.
+
+        @param fname: The filename from which to load tiff image data
+        @type fname: string
+        """
+class PnmImage(Image):
+    """
+    Subclass of Image class to explicitly handle pnm (ppm, pgm, pbm) images
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the PnmImage class object
+
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+        
+    def load(self, fname):
+        """
+        Loads pnm (ppm, pgm, pbm) image data from file.
+
+        @param fname: The filename from which to load pnm image data
+        @type fname: string
+        """
+
+class PsImage(Image):
+    """
+    Subclass of Image class to explicitly handle ps images
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the PsImage class object
+
+        This object is B{only} used for generating postscript output
+
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+
+    def load(self, fname):
+        """
+        Loads ps image data from file.
+
+        B{NOT} supported by this renderer module
+
+        @param fname: The filename from which to load ps image data
+        @type fname: string
+        """
+        debugMsg("Called PsImage.load()")
+
+        # need to check if the file exists
+        fileCheck(fname)
+
+        # this ability not handled by this renderer module
+        unsupportedError()
+        
+        return
+
+    def render(self):
+        """
+        Does PsImage object specific (pre)rendering stuff
+        """
+        debugMsg("Called PsImage.render()")
+
+        return
+
+class PdfImage(Image):
+    """
+    Subclass of Image class to explicitly handle pdf images
+    """
+    def __init__(self, scene=None):
+        """
+        Initialises the PdfImage class object
+
+        This object is B{only} used for generating pdf output
+
+        @param scene: The Scene object to add to
+        @type scene: Scene object
+        """
+
+    def load(self, fname):
+        """
+        Loads pdf image data from file.
+
+        B{NOT} supported by this renderer module
+
+        @param fname: The filename from which to load pdf image data
+        @type fname: string
+        """
+
+class IsosurfacePlot(Plot):
+    """
+    Isosurface plot
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the IsosurfacePlot class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+        @param options: Dictionary of keyword options to the method
+        @type options: dict
+
+	@param fname: the name of the input vtk file
+	@type fname: string
+
+	@param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+	@type format: string
+
+	@param scalars: the name of the scalar data in the vtk file to use
+	@type scalars: string
+        """
+
+class LinePlot(Plot):
+    """
+    Line plot
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the LinePlot class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+	@param options: Dictionary of extra options
+	@type options: dict
+
+	@param offset: whether or not to offset the lines from one another
+	@type offset: boolean
+
+	@param fname: Filename of the input vtk file
+	@type fname: string
+
+	@param format: format of the input vtk file ('vtk' or 'vtk-xml')
+	@type format: string
+
+	@param scalars: the name of the scalar data in the vtk file to use
+	@type scalars: string
+        """
+
+class OffsetPlot(Plot):
+    """
+    Offset plot
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the OffsetPlot class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+        @param options: Dictionary of extra options
+        @type options: dict
+
+	@param fname: Filename of the input vtk file
+	@type fname: string
+
+	@param format: Format of the input vtk file ('vtk' or 'vtk-xml')
+	@type format: string
+
+	@param scalars: the name of the scalar data in the vtk file to use
+	@type scalars: string
+        """
+class Plane(Item):
+    """
+    Generic class for Plane objects
+    """
+
+    def __init__(self, scene):
+        """
+        Initialisation of the Plane object
+        """
+
+    def setOrigin(self, x, y, z):
+        """
+        Set the origin of the plane
+        """
+
+    def getOrigin(self):
+        """
+        Get the current origin of the plane
+        """
+
+    def setNormal(self, vx, vy, vz):
+        """
+        Set the normal vector to the plane
+        """
+
+    def getNormal(self):
+        """
+        Get the current normal vector to the plane
+        """
+
+    def mapImageToPlane(self, image):
+        # this really needs to go somewhere else!!!
+        """
+        Maps an Image object onto a Plane object
+        """
+
+class CutPlane(Plane):
+    """
+    Cut plane class: used to cut data sets with a plane
+
+    Cut plane objects define a plane to cut a data set or plot by and return
+    the data along the intersection between the data set or plot with the
+    defined plane.
+    """
+
+    def __init__(self):
+        """
+        Intialisation of the CutPlane object
+        """
+
+
+class ClipPlane(Plane):
+    """
+    Class for planes used to clip datasets
+    """
+
+    def __init__(self):
+        """
+        Intialisation of the ClipPlane object
+        """
+
+    def setInsideOut(self, insideOut):
+        """
+        Set the inside out flag
+        """
+
+    def getInsideOut(self):
+        """
+        Get the current value of the inside out flag
+        """
+
+class Plot(Item):
+    """
+    Abstract plot class
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the abstract Plot class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+	@param options: Dictionary of extra options
+	@type options: dict
+        """
+
+    def setTitle(self, title):
+        """
+        Set the plot title
+
+        @param title: the string holding the title to the plot
+        @type title: string
+        """
+        debugMsg("Called setTitle() in Plot()")
+
+
+    def setXLabel(self, label):
+        """
+        Set the label of the x-axis
+
+        @param label: the string holding the label of the x-axis
+        @type label: string
+        """
+
+    def setYLabel(self, label):
+        """
+        Set the label of the y-axis
+
+        @param label: the string holding the label of the y-axis
+        @type label: string
+        """
+
+    def setZLabel(self, label):
+        """
+        Set the label of the z-axis
+
+        @param label: the string holding the label of the z-axis
+        @type label: string
+        """
+
+    def setLabel(self, axis, label):
+        """
+        Set the label of a given axis
+
+        @param axis: string (Axis object maybe??) of the axis (e.g. x, y, z)
+        @type axis: string or Axis object
+
+        @param label: string of the label to set for the axis
+        @type label: string
+        """
+
+class Renderer(BaseRenderer):
+    """
+    A generic object holding a renderer of a Scene().
+    """
+
+    def __init__(self):
+        """
+        Initialisation of Renderer() class
+        """
+        debugMsg("Called Renderer.__init__()")
+        BaseRenderer.__init__(self)
+
+        # initialise some attributes
+        self.renderWindowWidth = 640
+        self.renderWindowHeight = 480
+
+        # what is the name of my renderer?
+        self.name = _rendererName
+
+        # the namespace to run the exec code
+        self.renderDict = {}
+
+        # initialise the evalstack
+        self._evalStack = ""
+
+        # keep the initial setup of the module for later reuse
+        self._initStack = ""
+
+        # initialise the renderer module
+        self.runString("# Renderer._initRendererModule")
+        self.addToInitStack("import vtk")
+        self.addToInitStack("from numarray import *")
+
+__revision__ = '$Revision: 1.33 $'
+
+class Scene(BaseScene):
+    """
+    The main object controlling the scene.
+    
+    Scene object methods and classes overriding the BaseScene class.
+    """
+
+    def __init__(self):
+        """
+        The init function
+        """
+
+    def add(self, obj):
+        """
+        Add a new item to the scene
+
+        @param obj: The object to add to the scene
+        @type obj: object
+        """
+
+    def place(self, obj):
+        """
+        Place an object within a scene
+
+        @param obj: The object to place within the scene
+        @type obj: object
+        """
+
+    def render(self, pause=False, interactive=False):
+        """
+        Render (or re-render) the scene
+        
+        Render the scene, either to screen, or to a buffer waiting for a save
+
+        @param pause: Flag to wait at end of script evaluation for user input
+        @type pause: boolean
+
+        @param interactive: Whether or not to have interactive use of the output
+        @type interactive: boolean
+        """
+
+    def save(self, fname, format):
+        """
+        Save the scene to a file
+
+        Possible formats are:
+            - Postscript
+            - PNG
+            - JPEG
+            - TIFF
+            - BMP
+            - PNM
+
+        @param fname: Name of output file
+        @type fname: string
+
+        @param format: Graphics format of output file
+        @type format: Image object or string
+        """
+
+    def setBackgroundColor(self, *color):
+        """
+        Sets the background color of the Scene
+
+        @param color: The color to set the background to.  Can be RGB or CMYK
+        @type color: tuple
+        """
+
+    def getBackgroundColor(self):
+        """
+        Gets the current background color setting of the Scene
+        """
+
+    def setSize(self, xSize, ySize):
+        """
+        Sets the size of the scene.
+
+        This size is effectively the renderer window size.
+
+        @param xSize: the size to set the x dimension
+        @type xSize: float
+
+        @param ySize: the size to set the y dimension
+        @type ySize: float
+        """
+
+    def getSize(self):
+        """
+        Gets the current size of the scene
+
+        This size is effectively the renderer window size.  Returns a tuple
+        of the x and y dimensions respectively, in pixel units(??).
+        """
+class SurfacePlot(Plot):
+    """
+    Surface plot
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the SurfacePlot class
+        
+        @param scene: The Scene to render the plot in
+        @type scene: Scene object
+        """
+
+    def setData(self, *dataList, **options):
+        """
+        Set data to the plot
+
+        @param dataList: List of data to set to the plot
+        @type dataList: tuple
+
+        @param options: Dictionary of extra options
+        @type options: dict
+
+        @param fname: the name of the input vtk file
+        @type fname: string
+
+        @param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+        @type format: string
+
+        @param scalars: the scalar data in the vtk file to use
+        @type scalars: string
+        """
+
+class Text(Item):
+    """
+    Text
+    """
+    def __init__(self, scene):
+        """
+        Initialisation of the Text object
+
+        @param scene: the scene with which to associate the Text object
+        @type scene: Scene object
+        """
+
+    def setFont(self, font):
+        """
+        Set the current font
+
+        @param font: the font to set
+        @type font: string
+        """
+
+    def getFont(self):
+        """
+\end{verbose}

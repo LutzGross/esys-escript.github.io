@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# $Id: autotest-scons 162 2005-11-11 00:09:59Z svn $
+# An explicit testing script for esys using the scons build system
+
+# list of users to email test results to
+MAIL_RECIPIENTS="gross@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au robert.woodcock@csiro.au Peter.Hornby@csiro.au"
+
+# the python tests to run
+BRUCE_PYTESTS="ImportTest.py BruceTest.py test_utilOnBruce.py"
+ESCRIPT_PYTESTS="ImportTest.py BinaryOps.py UnaryOps.py SliceGetting.py SliceSetting.py MiscTests.py ArchiveTests.py newEscriptTests.py test_xml.py insituTests.py s2.py"
+FINLEY_PYTESTS="ImportTest.py finleyTest.py SimpleSolve.py RecTest.py test_linearPDEsOnFinley.py test_generators.py test_visualization_interface.py test_utilOnFinley.py"
+
+echo "===> cd $1"
+cd $1
+if [ $? != 0 ]
+then
+  echo "couldnt cd $1"
+  echo "couldnt cd $1" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 1
+fi
+
+PWD=`pwd`
+echo "===> working in: $PWD"
+
+# define compiler executable and library locations
+export PATH=/opt/intel/cmplrs/80.058/intel_cc_80/bin:$PATH
+export LD_LIBRARY_PATH=/opt/intel/cmplrs/80.058/intel_cc_80/lib
+
+# define python location
+export PATH=/raid2/tools/python-2.3.4/bin:$PATH
+
+# set library and python paths
+export LD_LIBRARY_PATH=$PWD/lib:/raid2/tools/boost/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$PWD
+
+# set openmp settings
+export OMP_SCHEDULE="dynamic"
+export OMP_NUM_THREADS=4
+export OMP_DYNAMIC=TRUE
+export OMP_NESTED=FALSE
+
+echo "===> svn update"
+svn update
+if [ $? != 0 ]
+then
+  echo "svn update failed"
+  echo "svn update failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 2
+fi
+
+echo "===> scons building esys"
+scons
+if [ $? != 0 ]
+then
+  echo "scons build failed"
+  echo "scons build failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 3
+fi
+
+echo "===> building unit_tests"
+scons build_tests
+if [ $? != 0 ]
+then
+  echo "unit_test build failed"
+  echo "unit_test build failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 3
+fi
+
+FAIL=0
+
+echo "===> running unit_tests"
+scons run_tests
+if [ $? != 0 ]
+then
+  echo "unit_testing failed"
+  echo "unit_test failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  FAIL=1
+fi
+
+cd escript/test/python
+for pytest in $ESCRIPT_PYTESTS
+do
+  echo "===>running escript python test: $pytest"
+  python $pytest
+  if [ $? != 0 ]
+  then
+    echo "python testing failed for $pytest in module $module"
+    echo "escript py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+    FAIL=1
+  fi
+done
+cd ../../..
+
+cd finley/test/python
+for pytest in $FINLEY_PYTESTS
+do
+  echo "running finley python test: $pytest"
+  python $pytest
+  if [ $? != 0 ]
+  then
+    echo "python testing failed for $pytest in module $module"
+    echo "finley py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+    FAIL=1
+  fi
+done
+cd ../../..
+
+cd bruce/test/python
+for pytest in $BRUCE_PYTESTS
+do
+  echo "running bruce python test: $pytest"
+  python $pytest
+  if [ $? != 0 ]
+  then
+    echo "python testing failed for $pytest in module $module"
+    echo "bruce py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+    FAIL=1
+  fi
+done
+cd ../../..
+
+if [ $FAIL == 0 ]
+then
+    echo success
+    echo "success" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+fi
+exit 0
