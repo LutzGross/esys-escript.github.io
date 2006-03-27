@@ -111,14 +111,21 @@ except KeyError:
 # FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
  
 if os.name != "nt" and os.uname()[4]=='ia64':
-   env = Environment(ENV = {'PATH':path, 'LD_LIBRARY_PATH':ld_library_path, 'PYTHONPATH':python_path}, tools = ['default', 'intelc'], options = opts)
+   env = Environment(tools = ['default', 'intelc'], options = opts)
+   env['ENV']['PATH'] = path
+   env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
+   env['ENV']['PYTHONPATH'] = python_path
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
 elif os.name == "nt":
    # FIXME: Need to implement equivalent of ld library path for windoze
-   env = Environment(ENV = {'PYTHONPATH':python_path}, tools = ['default', 'intelc'], options = opts)
+   env = Environment(tools = ['default', 'intelc'], options = opts)
+   env['ENV']['PYTHONPATH'] = python_path
 else:
-   env = Environment(ENV = {'PATH':path, 'LD_LIBRARY_PATH':ld_library_path, 'PYTHONPATH':python_path}, tools = ['default'], options = opts)
+   env = Environment(tools = ['default'], options = opts)
+   env['ENV']['PATH'] = path
+   env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
+   env['ENV']['PYTHONPATH'] = python_path
 
 # Setup help for options
 Help(opts.GenerateHelpText(env))
