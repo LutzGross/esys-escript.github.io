@@ -22,8 +22,8 @@ python_path = '/usr/include/python2.3'
 python_lib = 'python2.3'
 
 # locations of libraries for boost
-boost_path = '/home/woo409/dev/boost_1_33_1'
-boost_lib_path = '/home/woo409/dev/boost_1_33_1/altix_binary/lib'
+boost_path = '/opt/boost/python2.3/1.33.1/include'
+boost_lib_path = '/opt/boost/python2.3/1.33.1/lib'
 boost_lib = 'boost_python-il-mt-1_33_1'
 
 # c flags to use
