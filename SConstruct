@@ -324,6 +324,7 @@ env.Default(pyinstall)
 env.Alias('build_tests')
 env.Alias('run_tests')
 env.Alias('py_tests')
+env.Alias('basic_py_tests')
 env.Alias('all_tests', ['run_tests', 'py_tests'])
 
 # Python install - esys __init__.py

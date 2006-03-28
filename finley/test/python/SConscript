@@ -19,3 +19,4 @@ Depends(program, libinstall) # FIXME: The python tests require objects from finl
 test_targets = [os.path.splitext(x)[0]+'.passed' for x in python_src]
 
 env.Alias('py_tests',test_targets)
+env.Alias('basic_py_tests',['ImportTest.passed', 'finleyTest.passed', 'SimpleSolve.passed', 'RecTest.passed', 'test_linearPDEsOnFinley.passed', 'test_generators.passed', 'test_visualization_interface.passed', 'test_utilOnFinley.passed'])
