@@ -112,7 +112,7 @@ except KeyError:
 # FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
  
 if os.name != "nt" and os.uname()[4]=='ia64':
-   env = Environment(tools = ['default', 'intelc'], options = opts)
+   env = Environment(ENV = {'PATH':path}, tools = ['default', 'intelc'], options = opts)
    env['ENV']['PATH'] = path
    env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
    env['ENV']['PYTHONPATH'] = python_path
