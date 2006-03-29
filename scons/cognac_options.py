@@ -24,10 +24,10 @@ python_lib = 'python2.3'
 # locations of libraries for boost
 boost_path = '/opt/boost/python2.3/1.33.1/include'
 boost_lib_path = '/opt/boost/python2.3/1.33.1/lib'
-boost_lib = 'boost_python-il-mt-1_33_1'
+boost_lib = 'boost_python-gcc-mt-1_33_1'
 
 # c flags to use
-cc_flags  = '-O3 -fpic -IPF_fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -c99 -ansi_alias -w1'
+cc_flags  = '-O3 -fpic -IPF-fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -c99 -ansi_alias -w1'
 cc_flags_debug  = '-g -O0 -fpic -openmp -openmp_report0 -tpp2 -c99 -ansi_alias -w1'
 
 # c++ flags to use - only need to list the additional ones compared with cc_flags
