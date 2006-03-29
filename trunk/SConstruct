@@ -330,7 +330,7 @@ env.Alias('all_tests', ['run_tests', 'py_tests'])
 # Python install - esys __init__.py
 # This is just an empty file but stills need to be touched so add a special target and Command. Note you can't use the scons Touch() function as it will not
 # create the file if it doesn't exist
-env.Command('esys/__init__.py', None, 'touch $TARGET')
+env.Command(pyinstall+'/__init__.py', None, 'touch $TARGET')
 
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
