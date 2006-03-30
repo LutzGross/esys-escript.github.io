@@ -12,7 +12,6 @@
 */
 
 #include "Data.h"
-#include "DataVariable.h"
 #include "FunctionSpace.h"
 #include "FunctionSpaceFactory.h"
 #include "DataFactory.h"

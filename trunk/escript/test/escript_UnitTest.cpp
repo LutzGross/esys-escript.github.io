@@ -11,7 +11,6 @@
 #include "DataBlocks2DTestCase.h"
 #include "DataVectorTestCase.h"
 #include "TaipanTestCase.h"
-#include "DataVariableTestCase.h"
 #include "DataCTestCase.h"
 #include "DataAlgorithmAdapterTestCase.h"
 #include "FunctionSpaceTestCase.h"
@@ -40,7 +39,6 @@ int main(int argc, char* argv[])
 	runner.addTest ("DataBlocks2D", DataBlocks2DTestCase::suite());
 	runner.addTest ("DataVector", DataVectorTestCase::suite());
 	runner.addTest ("Taipan", TaipanTestCase::suite());
-	runner.addTest ("DataVariable", DataVariableTestCase::suite());
 	runner.addTest ("DataC", DataCTestCase::suite());
 	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
 	runner.addTest ("FunctionSpace", FunctionSpaceTestCase::suite());
