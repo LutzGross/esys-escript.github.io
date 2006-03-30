@@ -1,34 +1,14 @@
-pyinstall = None
-
 Import('*')
 
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
 import os
-import sys
+filenames = os.listdir(src_dir)
+python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
-extensions_dir = str(esysroot) + '/scons'
-sys.path.append(extensions_dir)
+pyc = local_env.PyCompile(python_src)
 
-import scons_extensions
-
-pyvisipy_env = Environment(ENV = os.environ)
-
-py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
-pyvisipy_env.Append(BUILDERS = {'PyCompile' : py_builder});
-
-python_src = ['__init__.py',
-              'axes.py',
-              'camera.py',
-              'common.py',
-              'image.py',
-              'item.py',
-              'plane.py',
-              'plot.py',
-              'renderer.py',
-              'scene.py',
-              'text.py']
-
-pyc = pyvisipy_env.PyCompile(python_src)
-
-Default(pyvisipy_env.Install(Dir(str(pydir2)+"/renderers/povray"), pyc))
-if pyinstall != None:
-  Default(pyvisipy_env.Install(pyinstall, pyc))
+local_env.Depends(pyc, dep_lib)
+local_env.Install(pyinstall+'/pyvisi/renderers/povray', pyc)

@@ -350,6 +350,7 @@ env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', dupl
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib', duplicate=0)
+env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
 
 # FIXME:need to be incorporated into build system
 # FIXME: 'pyvisi/SConstruct']

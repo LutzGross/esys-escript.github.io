@@ -25,8 +25,8 @@ doxygen_path = '/usr/bin'
 epydoc_path = '/usr/bin'
 
 # c flags to use
-cc_flags  = '-O3 -std=c99 -fpic --no-warn -W -Wno-unknown-pragmas'
-cc_flags_debug  = '-g -O0 -std=c99 -fpic --no-warn -W -Wno-unknown-pragmas'
+cc_flags  = '-O3 -std=c99 -ffast-math -fpic --no-warn -W -Wno-unknown-pragmas'
+cc_flags_debug  = '-g -O0 -ffast-math -std=c99 -fpic --no-warn -W -Wno-unknown-pragmas'
 
 # c++ flags to use
 cxx_flags  = '-ansi'
