@@ -189,6 +189,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     // following two functions implement the python ** operator
     .def("__pow__",&escript::Data::powO)
     .def("__pow__",&escript::Data::powD)
+    .def("__rpow__",&escript::Data::rpowO)
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
     // version will be called. 

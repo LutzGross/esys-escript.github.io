@@ -1389,6 +1389,16 @@ Data::operator/=(const boost::python::object& right)
 }
 
 Data
+Data::rpowO(const boost::python::object& left) const
+{
+#if defined DOPROF
+  profData->binary++;
+#endif
+  Data left_d(left,*this);
+  return left_d.powD(*this);
+}
+
+Data
 Data::powO(const boost::python::object& right) const
 {
 #if defined DOPROF

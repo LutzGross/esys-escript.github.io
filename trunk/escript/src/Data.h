@@ -915,6 +915,17 @@ class Data {
 
   /**
      \brief
+     Return the given power of each data point of this boost python object.
+    
+     \param left Input - the bases
+     *
+   */
+
+  Data
+  rpowO(const boost::python::object& left) const;
+
+  /**
+     \brief
      writes the object to a file in the DX file format
   */
   void
