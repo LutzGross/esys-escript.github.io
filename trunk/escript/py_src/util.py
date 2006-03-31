@@ -1214,10 +1214,7 @@ def whereZero(arg,tol=0.):
       if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
-      if tol>0.:
-         return whereNegative(abs(arg)-tol)
-      else:
-         return arg._whereZero()
+      return arg._whereZero(tol)
    elif isinstance(arg,float):
       if abs(arg)<=tol:
         return 1.
@@ -1297,10 +1294,7 @@ def whereNonZero(arg,tol=0.):
       if isinstance(out,float): out=numarray.array(out,type=numarray.Float64)
       return out
    elif isinstance(arg,escript.Data):
-      if tol>0.:
-         return 1.-whereZero(arg,tol)
-      else:
-         return arg._whereNonZero()
+      return arg._whereNonZero(tol)
    elif isinstance(arg,float):
       if abs(arg)>tol:
         return 1.

@@ -401,39 +401,39 @@ Data::reshapeDataPoint(const DataArrayView::ShapeType& shape)
 }
 
 Data
-Data::wherePositive(double tol) const
+Data::wherePositive() const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(greater<double>(),0.0+tol));
+  return escript::unaryOp(*this,bind2nd(greater<double>(),0.0));
 }
 
 Data
-Data::whereNegative(double tol) const
+Data::whereNegative() const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(less<double>(),0.0-tol));
+  return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
 }
 
 Data
-Data::whereNonNegative(double tol) const
+Data::whereNonNegative() const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0+tol));
+  return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
-Data::whereNonPositive(double tol) const
+Data::whereNonPositive() const
 {
 #if defined DOPROF
   profData->where++;
 #endif
-  return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0-tol));
+  return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0));
 }
 
 Data

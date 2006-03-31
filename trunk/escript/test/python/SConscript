@@ -10,7 +10,6 @@ python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
 
 # Filter out busted or not frequently run tests
 python_src.remove('benchmark.py') # FIXME: fails to run
-python_src.remove('SliceTest.py') # FIXME: fails to run
 
 program = local_env.RunPyUnitTest(python_src)
 
@@ -21,4 +20,4 @@ Depends(program, libinstall) # FIXME: The python tests require objects from finl
 test_targets = [os.path.splitext(x)[0]+'.passed' for x in python_src]
 
 env.Alias('py_tests',test_targets)
-env.Alias('basic_py_tests',['ImportTest.passed', 'MiscTests.passed', 'ArchiveTests.passed', 'newEscriptTests.passed', 'test_xml.passed', 'insituTests.passed''])
+env.Alias('basic_py_tests',['ImportTest.passed', 'MiscTests.passed', 'ArchiveTests.passed', 'newEscriptTests.passed', 'test_xml.passed', 'insituTests.passed'])
