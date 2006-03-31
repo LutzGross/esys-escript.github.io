@@ -25,6 +25,10 @@ class Test_util2(unittest.TestCase):
        res=arg0+arg1
        ref=Data(numarray.array([5.4022518198315126, 4.2614777440630327]),self.functionspace)
        ref.setTaggedValue(1,numarray.array([3.7916899703627909, 2.650915894594311]))
+       print arg0
+       print arg1
+       print res
+       print ref
        self.failUnless(isinstance(res,Data),"wrong type of result.")
        self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
        self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result") 
