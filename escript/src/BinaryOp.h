@@ -66,6 +66,7 @@ template <class BinaryFunction>
 inline void binaryOp(DataTagged& left, const DataTagged& right, 
 		     BinaryFunction operation)
 {
+  int right_rank=right.getPointDataView().getRank();
   //
   // Add the right hand tag keys which can't currently be found on the left
   const DataTagged::DataMapType& rightLookup=right.getTagLookup();
@@ -85,11 +86,19 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
   const DataTagged::DataMapType& leftLookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator leftLookupEnd=leftLookup.end();
   for (i=leftLookup.begin();i!=leftLookupEnd;i++) {
-    left.getDataPointByTag(i->first).binaryOp(right.getDataPointByTag(i->first),operation);
+    if (right_rank==0) {
+       left.getDataPointByTag(i->first).binaryOp(i->second,right.getDataPointByTag(i->first)(),operation);
+    } else {
+       left.getDataPointByTag(i->first).binaryOp(right.getDataPointByTag(i->first),operation);
+    }
   }
   //
   // finally perform the operation on the default value
-  left.getDefaultValue().binaryOp(right.getDefaultValue(),operation);
+  if (right_rank==0) {
+     left.getDefaultValue().binaryOp(0,right.getDefaultValue()(),operation);
+  } else {
+     left.getDefaultValue().binaryOp(right.getDefaultValue(),operation);
+  }
 }
 
 template <class BinaryFunction>
