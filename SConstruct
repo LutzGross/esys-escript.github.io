@@ -15,6 +15,8 @@
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
 
+# import tools:
+import glob
 import sys, os
 # Add our extensions
 if sys.path.count('scons')==0: sys.path.append('scons')
@@ -43,16 +45,23 @@ opts.AddOptions(
   ('incinstall', 'where the esys headers will be installed', Dir('#.').abspath+'/include'), 
   ('libinstall', 'where the esys libraries will be installed', Dir('#.').abspath+'/lib'), 
   ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath), 
+  ('src_zipfile', 'the source zip file will be installed.', Dir('#.').abspath+"/release/escript_src.zip"), 
+  ('test_zipfile', 'the test zip file will be installed.', Dir('#.').abspath+"/release/escript_src_tests.zip"), 
+  ('src_tarfile', 'the source tar file will be installed.', Dir('#.').abspath+"/release/escript_src.tar.gz"), 
+  ('test_tarfile', 'the test tar file will be installed.', Dir('#.').abspath+"/release/escript_src_tests.tar.gz"), 
+  ('doc', 'where the doc files will be installed', Dir('#.').abspath+'/release/doc'), 
+ 
 # Compilation options
-  BoolOption('dodebug', 'Do you want a debug build?', 'yes'),
+  BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
-  ('cc_flags','C compiler flags to use (Release build)', None),
-  ('cc_flags_debug', 'C compiler flags to use (Debug build)', None),
-  ('cxx_flags', 'C++ compiler flags to use (Release build)', None),
-  ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', None),
+  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas'),
+  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas'),
+  ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
+  ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', None),
+  ('tar_flags','flags for zip files','-c -z'),
 # MKL
   PathOption('mkl_path', 'Path to MKL includes', None), 
   PathOption('mkl_lib_path', 'Path to MKL libs', None), 
@@ -74,10 +83,6 @@ opts.AddOptions(
   PathOption('boost_path', 'Path to Boost includes', '/usr/include'), 
   PathOption('boost_lib_path', 'Path to Boost libs', '/usr/lib'), 
   ('boost_lib', 'Boost libraries to link with', ['boost_python',]),
-# CppUnit
-  PathOption('cppunit_path', 'Path to CppUnit includes', Dir('#.').abspath+'/tools/CppUnitTest/inc'), 
-  PathOption('cppunit_lib_path', 'Path to CppUnit libs', Dir('#.').abspath+'/lib'), 
-  ('cppunit_lib', 'CppUnit libraries to link with', ['CppUnitTest',]),
 # Doc building
   PathOption('doxygen_path', 'Path to Doxygen executable', None), 
   PathOption('epydoc_path', 'Path to Epydoc executable', None), 
@@ -207,15 +212,23 @@ except KeyError:
    sys_libs = '' 
 
 try:
+   tar_flags = env['tar_flags']
+   env.Replace(TARFLAGS = tar_flags)
+except KeyError:
+   pass
+
+try:
    includes = env['mkl_path']
    env.Append(CPPPATH = [includes,])
 except KeyError:
    pass
+
 try:
    lib_path = env['mkl_lib_path']
    env.Append(LIBPATH = [lib_path,])
 except KeyError:
    pass
+
 try:
    mkl_libs = env['mkl_libs']
 except KeyError:
@@ -263,20 +276,6 @@ try:
 except KeyError:
    boost_lib = None  
 try:
-   includes = env['cppunit_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
-try:
-   lib_path = env['cppunit_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
-try:
-   cppunit_lib = env['cppunit_lib']
-except KeyError:
-   boost_lib = None  
-try:
    includes = env['python_path']
    env.Append(CPPPATH = [includes,])
 except KeyError:
@@ -317,14 +316,46 @@ try:
 except KeyError:
    papi_libs = None  
 
-# Targets
+try:
+   src_zipfile = env['src_zipfile']
+except KeyError:
+   src_zipfile = None  
+
+
+try:
+   test_zipfile = env['test_zipfile']
+except KeyError:
+   test_zipfile = None  
+
+try:
+   src_tarfile = env['src_tarfile']
+except KeyError:
+   src_tarfile = None  
+
+
+try:
+   test_tarfile = env['test_tarfile']
+except KeyError:
+   test_tarfile = None  
+
+try:
+   doc = env['doc']
+except KeyError:
+   doc = None  
+
+# Zipgets
 env.Default(libinstall)
 env.Default(incinstall)
 env.Default(pyinstall)
+env.Alias('release_src',[ src_zipfile, src_tarfile ])
+env.Alias('release_tests',[ test_zipfile, test_tarfile])
+env.Alias('release', ['release_src', 'release_tests'])
+env.Alias('docs')
 env.Alias('build_tests')
-env.Alias('run_tests')
-env.Alias('py_tests')
-env.Alias('basic_py_tests')
+env.Alias('build_py_tests')
+env.Alias('local_py_tests')
+env.Alias('run_tests',['build_tests'])
+env.Alias('py_tests', ['build_py_tests'])
 env.Alias('all_tests', ['run_tests', 'py_tests'])
 
 # Python install - esys __init__.py
@@ -334,10 +365,19 @@ env.Command(pyinstall+'/__init__.py', None, 'touch $TARGET')
 
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
-	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs", "cppunit_lib", "sys_libs" ])
+	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs", 
+        "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "doc" ])
 
 # End initialisation section
 # Begin configuration section
+# adds this file and the scons option directore to the source tar
+release_srcfiles=[env.File('SConstruct'),]+[ env.File(x) for x in glob.glob('scons/*.py') ]
+release_testfiles=[env.File('README_TESTS'),]
+env.Zip(src_zipfile,release_srcfiles)
+env.Zip(test_zipfile, release_testfiles)
+env.Tar(src_tarfile, release_srcfiles)
+env.Tar(test_tarfile, release_testfiles)
+
 # Insert new components to be build here
 # FIXME: might be nice to replace this verbosity with a list of targets and some
 # FIXME: nifty python to create the lengthy but very similar env.Sconscript lines
@@ -350,9 +390,8 @@ env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', dupl
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib', duplicate=0)
-env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
+#env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
 
 # FIXME:need to be incorporated into build system
-# FIXME: 'pyvisi/SConstruct']
 # FIXME: 'doc/SConstruct']
 # FIXME: 'doc/SConstruct']

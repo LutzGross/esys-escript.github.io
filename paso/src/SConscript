@@ -1,20 +1,15 @@
+import os
 Import('*')
 
 local_env=env.Copy()
 
-src_dir = local_env.Dir('.').srcnode().abspath
 
-import os
-filenames = os.listdir(src_dir)
+# get the relevant file names:
+src_dir = local_env.Dir('.').srcnode().abspath
+filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
+
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
-# Filter unused sources
-sources.remove('SystemMatrixPattern_reduceBandwidth.c') # FIXME: Should this file be removed?
-
-# Paso has additional source in the Solvers sub-directory. Append these to the list
-solver_filenames = os.listdir(src_dir+'/Solvers');
-sources += ['Solvers/'+x for x in solver_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
-solver_headers = ['Solvers/'+x for x in solver_filenames if os.path.splitext(x)[1] in ['.h']]
 
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
@@ -37,6 +32,8 @@ include_path = Dir(lib_name, incinstall)
 solvers_include_path = Dir('Solvers', include_path)
 
 local_env.Install(include_path, headers )
-local_env.Install(solvers_include_path, solver_headers )
 local_env.Install(libinstall, lib)
  
+release_srcfiles = [ env.File(x) for x in filenames ]  + [env.File("SConscript"), ]
+env.Zip(src_zipfile, release_srcfiles)
+env.Tar(src_tarfile, release_srcfiles)

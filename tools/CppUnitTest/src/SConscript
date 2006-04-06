@@ -1,19 +1,26 @@
+import os
 Import('*')
 
 local_env=env.Copy()
 
+# get the relevant file names:
 src_dir = local_env.Dir('.').srcnode().abspath
+filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
 
-import os
-filenames = os.listdir(src_dir)
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 # Filter out sources that should not be in the list automatically
 
 lib_name = 'CppUnitTest'
 
-local_env.Append(CPPPATH=['#/tools/CppUnitTest/inc',])
-
 lib = local_env.StaticLibrary(lib_name, sources)
+include_path = Dir('tools/'+lib_name, incinstall)
 
+local_env.Install(include_path, headers )
 local_env.Install(libinstall, lib)
+
+# add source files to release
+release_srcfiles = [ env.File(x) for x in filenames ] + [env.File("SConscript"), ]
+env.Zip(src_zipfile, release_srcfiles)
+env.Tar(src_tarfile, release_srcfiles)
+

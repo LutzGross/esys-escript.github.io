@@ -1,3 +1,4 @@
+import os
 Import('*')
 
 local_env=env.Copy()
@@ -11,19 +12,16 @@ py_wrapper_source = 'CPPAdapter/'+py_wrapper_name+'.cpp' # FIXME: In need of a s
 py_wrapper_lib_name = py_wrapper_name
 
 src_dir = local_env.Dir('.').srcnode().abspath
+filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
 
-import os
-filenames = os.listdir(src_dir)
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
-# Filter unused sources
-sources.remove('ElementFile_borrowLocalVolume.c') # FIXME: Should this file be removed?
 
 
 # finleycpp has additional source in the CPPAdapter sub-directory. Append these to the list
-cppadapter_filenames = os.listdir(src_dir+'/CPPAdapter');
-sources += ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
-cppadapter_headers = ['CPPAdapter/'+x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
+cppadapter_filenames = [ 'CPPAdapter/'+x for x in os.listdir(src_dir+'/CPPAdapter')  if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
+sources += [ x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+cppadapter_headers = [x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
 
 sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
 local_env.Append(LIBS = [boost_lib, python_lib, sys_libs, 'escript', 'esysUtils', 'paso'])
@@ -59,6 +57,11 @@ py_wrapper_local_env.Install(pyinstall+'/finley', py_wrapper_lib)
 # FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
 dep_lib = [libinstall+'/'+str(x) for x in lib]
 Export('dep_lib')
+
+# add source files to release
+release_srcfiles = [ env.File(x) for x in filenames + cppadapter_filenames ] + [env.File("SConscript"), ]
+env.Zip(src_zipfile, release_srcfiles)
+env.Tar(src_tarfile, release_srcfiles)
 
 # Call the python sconscript
 env.SConscript(dirs = ['#/finley/py_src'], build_dir='py', duplicate=0)

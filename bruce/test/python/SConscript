@@ -1,22 +1,50 @@
 Import('*')
-
 local_env=env.Copy()
-
 src_dir = local_env.Dir('.').srcnode().abspath
-
 import os
 filenames = os.listdir(src_dir)
-python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
+#
+# files defining tests but are not running by itself:
+#
+testfiles = [x for x in filenames if x.startswith('test_') and os.path.splitext(x)[1] in ['.py'] ]
+# 
+# directories defining test data
+# 
+testdata_dir = [x for x in filenames if x.startswith('data_') ]
+# 
+#  files defining test runs (passing in a release)
+# 
+testruns = [x for x in filenames if x.startswith('run_') and os.path.splitext(x)[1] in ['.py'] ]
+#
+# files defining tests run locally (not as part of a release)
+#
+localtestruns = [x for x in filenames if not x.startswith('run_') and os.path.splitext(x)[1] in ['.py']]
+#
+# all test 
+#
+alltestruns = testruns + localtestruns
+#
+# test files are just compiled:
+#
+test_pyc = local_env.PyCompile(testfiles)
+#
+# run all tests:
+#
+program = local_env.RunPyUnitTest(alltestruns)
 
-# Filter out busted or not frequently run tests
-
-program = local_env.RunPyUnitTest(python_src)
-
+Depends(pyinstall, test_pyc)
 Depends(program, pyinstall)
-Depends(program, libinstall) # FIXME: The python tests require objects from finley hence you have to have all the libraries available rather than just dep_lib
+Depends(program, dep_lib) 
 
 #Add Unit Test to target alias
-test_targets = [os.path.splitext(x)[0]+'.passed' for x in python_src]
+env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
+env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 
-env.Alias('py_tests',test_targets)
-env.Alias('basic_py_tests', ['ImportTest.passed', 'BruceTest.passed', 'test_untilOnBruce.passed' ])
+# get all the python files in the release tar file
+release_pyfiles = [ env.File("SConscript"), ]
+release_testfiles = [ env.File(x) for x in testfiles + testruns ] + [ env.Dir(x) for x in testdata_dir ]
+env.Zip(src_zipfile, release_pyfiles)
+env.Tar(src_tarfile, release_pyfiles)
+env.Zip(test_zipfile, release_testfiles)
+env.Tar(test_tarfile, release_testfiles)
+

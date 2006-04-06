@@ -1,7 +1,7 @@
 #include "BruceTestCase.h"
 #include "BruceFactoryTestCase.h"
 
-#include "CppUnitTest/TestRunner.h"
+#include "tools/CppUnitTest/TestRunner.h"
 
 using namespace CppUnitTest;
 

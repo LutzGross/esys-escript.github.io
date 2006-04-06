@@ -25,7 +25,7 @@
 
 #include "Paso.h"
 #include "performance.h"
-#include "Solvers/Solver.h"
+#include "Solver.h"
 
 #ifdef SCSL
 #include "SCSL.h"

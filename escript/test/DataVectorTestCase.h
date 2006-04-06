@@ -14,9 +14,9 @@
 #if !defined  DataVectorTestCase_20050324_H
 #define  DataVectorTestCase_20050324_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class DataVectorTestCase : public CppUnitTest::TestCase
 {

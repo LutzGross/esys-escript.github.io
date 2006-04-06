@@ -15,9 +15,9 @@
 #if !defined DataProfTestCase_20050620_H
 #define  DataProfTestCase_20050620_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class DataProfTestCase : public CppUnitTest::TestCase
 {

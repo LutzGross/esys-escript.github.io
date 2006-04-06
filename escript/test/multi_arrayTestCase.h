@@ -14,9 +14,9 @@
 #if !defined  multi_arrayTestCase_20040319_H
 #define  multi_arrayTestCase_20040319_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class multi_arrayTestCase : public CppUnitTest::TestCase
 {
