@@ -14,9 +14,9 @@
 #if !defined  DataCTestCase_20040611_H
 #define  DataCTestCase_20040611_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class DataCTestCase : public CppUnitTest::TestCase
 {

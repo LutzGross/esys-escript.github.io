@@ -7,4 +7,3 @@ __license__="""Licensed under the Open Software License version 3.0
 
 import esys.escript
 from brucecpp import *
-

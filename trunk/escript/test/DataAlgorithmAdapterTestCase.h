@@ -15,9 +15,9 @@
 #if !defined DataAlgorithmAdapterTestCase_20040715_H
 #define DataAlgorithmAdapterTestCase_20040715_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class DataAlgorithmAdapterTestCase : public CppUnitTest::TestCase
 {

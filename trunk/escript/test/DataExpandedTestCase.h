@@ -15,9 +15,9 @@
 #if !defined  DataExpandedTestCase_20040413_H
 #define  DataExpandedTestCase_20040413_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class DataExpandedTestCase : public CppUnitTest::TestCase
 {

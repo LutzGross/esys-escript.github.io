@@ -12,3 +12,8 @@ pyc = local_env.PyCompile(python_src)
 
 local_env.Depends(pyc, dep_lib)
 local_env.Install(pyinstall+'/modellib', pyc)
+
+# get all the python files in the release tar file
+release_py = [ env.File("SConscript"), ] + [ env.File(x) for x in python_src ]
+env.Zip(src_zipfile, release_py)
+env.Tar(src_tarfile, release_py)

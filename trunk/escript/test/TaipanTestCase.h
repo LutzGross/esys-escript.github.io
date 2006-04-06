@@ -14,9 +14,9 @@
 #if !defined  TaipanTestCase_20050427_H
 #define  TaipanTestCase_20050427_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class TaipanTestCase : public CppUnitTest::TestCase
 {

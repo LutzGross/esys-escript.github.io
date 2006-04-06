@@ -14,9 +14,9 @@
 #if !defined  DataFactoryTestCase_20040721_H
 #define  DataFactoryTestCase_20040721_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class DataFactoryTestCase : public CppUnitTest::TestCase
 {

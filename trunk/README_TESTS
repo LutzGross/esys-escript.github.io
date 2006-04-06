@@ -1,0 +1,4 @@
+# $Id$
+
+The resources for test are delivered in extra archive file as they 
+are big and the compilation can take a while. 

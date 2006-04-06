@@ -6,7 +6,6 @@
 #include "DataExpandedTestCase.h"
 #include "DataFactoryTestCase.h"
 #include "DataArrayTestCase.h"
-#include "DataCachedTestCase.h"
 #include "DataArrayViewTestCase.h"
 #include "DataBlocks2DTestCase.h"
 #include "DataVectorTestCase.h"
@@ -17,7 +16,7 @@
 #include "DataProfTestCase.h"
 #include "DataTestCase.h"
 
-#include "CppUnitTest/TestRunner.h"
+#include "tools/CppUnitTest/TestRunner.h"
 
 using namespace CppUnitTest;
 
@@ -34,7 +33,6 @@ int main(int argc, char* argv[])
 	runner.addTest ("DataExpanded", DataExpandedTestCase::suite());
 	runner.addTest ("DataFactory", DataFactoryTestCase::suite());
 	runner.addTest ("DataArray", DataArrayTestCase::suite());
-	runner.addTest ("DataCached", DataCachedTestCase::suite());
 	runner.addTest ("DataArrayView", DataArrayViewTestCase::suite());
 	runner.addTest ("DataBlocks2D", DataBlocks2DTestCase::suite());
 	runner.addTest ("DataVector", DataVectorTestCase::suite());

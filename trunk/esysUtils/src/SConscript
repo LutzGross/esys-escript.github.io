@@ -1,11 +1,12 @@
+import os
 Import('*')
 
 local_env=env.Copy()
 
+# get the relevant file names:
 src_dir = local_env.Dir('.').srcnode().abspath
+filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
 
-import os
-filenames = os.listdir(src_dir)
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 # Filter out sources that should not be in the list automatically
@@ -29,5 +30,11 @@ local_env.Install(libinstall, lib)
 dep_lib = [libinstall+'/'+str(x) for x in lib]
 Export('dep_lib')
 
-local_env.SConscript(dirs = ['#/esysUtils/test/EsysException'], build_dir='#/build/$PLATFORM/esysUtils/test/EsysException', duplicate=0)
+local_env.SConscript(dirs = ['#/esysUtils/test'], build_dir='#/build/$PLATFORM/esysUtils/test', duplicate=0)
+
+
+# add source files to release
+release_srcfiles = [ env.File(x) for x in filenames ] + [env.File("SConscript"), ]
+env.Zip(src_zipfile, release_srcfiles)
+env.Tar(src_tarfile, release_srcfiles)
 

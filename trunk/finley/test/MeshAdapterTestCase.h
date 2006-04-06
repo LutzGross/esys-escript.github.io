@@ -14,9 +14,9 @@
 #if !defined  MeshAdapterTestCase_20040705_H
 #define  MeshAdapterTestCase_20040705_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class MeshAdapterTestCase : public CppUnitTest::TestCase
 {

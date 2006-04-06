@@ -12,6 +12,7 @@
  *****************************************************************************
 */
 
+
 #include "escript/AbstractContinuousDomain.h"
 
 #include "bruce/BruceFactory.h"

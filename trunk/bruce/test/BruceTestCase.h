@@ -15,9 +15,9 @@
 #if !defined BruceTestCase_20050829_H
 #define BruceTestCase_20050829_H
 
-#include "CppUnitTest/TestCase.h"
-#include "CppUnitTest/TestSuite.h"
-#include "CppUnitTest/TestCaller.h"
+#include "tools/CppUnitTest/TestCase.h"
+#include "tools/CppUnitTest/TestSuite.h"
+#include "tools/CppUnitTest/TestCaller.h"
 
 class BruceTestCase : public CppUnitTest::TestCase
 {

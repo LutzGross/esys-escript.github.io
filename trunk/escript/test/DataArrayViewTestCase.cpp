@@ -1789,7 +1789,7 @@ void DataArrayViewTestCase::testUnaryOp()
       // check the results
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
-          assert(dataView(i,j)==std::sqrt((double)dataView.index(i,j)));
+          assert(std::abs(dataView(i,j)-std::sqrt((double)dataView.index(i,j)))<1.e-10);
         }
       }
 
