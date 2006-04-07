@@ -347,16 +347,15 @@ except KeyError:
 env.Default(libinstall)
 env.Default(incinstall)
 env.Default(pyinstall)
-env.Alias('release_src',[ src_zipfile, src_tarfile ])
+env.Alias('release_src',[ src_zipfile, src_tarfile ])  
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release', ['release_src', 'release_tests'])
 env.Alias('docs')
-env.Alias('build_tests')
-env.Alias('build_py_tests')
-env.Alias('local_py_tests')
-env.Alias('run_tests',['build_tests'])
-env.Alias('py_tests', ['build_py_tests'])
-env.Alias('all_tests', ['run_tests', 'py_tests'])
+env.Alias('build_tests')    # target to build all C++ tests
+env.Alias('build_py_tests') # target to build all python tests
+env.Alias('run_tests',['build_tests'])   # target to run all C++ test
+env.Alias('py_tests', ['build_py_tests']) # taget to run all released python tests
+env.Alias('all_tests', ['run_tests', 'py_tests']) # target to run all C++ and released python tests
 
 # Python install - esys __init__.py
 # This is just an empty file but stills need to be touched so add a special target and Command. Note you can't use the scons Touch() function as it will not

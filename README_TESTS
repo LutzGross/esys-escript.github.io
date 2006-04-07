@@ -2,3 +2,9 @@
 
 The resources for test are delivered in extra archive file as they 
 are big and the compilation can take a while. 
+
+to install the tests
+
+cd <my esys root>
+tar xzf esys_tests.tar.gz
+scons all_tests
