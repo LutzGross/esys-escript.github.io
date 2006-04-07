@@ -32,11 +32,12 @@ test_pyc = local_env.PyCompile(testfiles)
 #
 program = local_env.RunPyUnitTest(alltestruns)
 
-Depends(pyinstall, test_pyc)
 Depends(program, pyinstall)
 Depends(program, dep_lib) 
 
 #Add Unit Test to target alias
+local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
+local_env.PrependENVPath('MODELLIB_TEST_DATA_ROOT',str(env.Dir('#/modellib/test/python')))
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 

@@ -6,8 +6,8 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
 import unittest
-from esys.escript.test_util import Test_util_no_tagged_data as Test_util
-from esys.escript.test_symbols import Test_symbols
+from test_util import Test_util_no_tagged_data as Test_util
+from test_symbols import Test_symbols
 from esys.escript import ContinuousFunction
 from esys.bruce import Rectangle
 import sys
