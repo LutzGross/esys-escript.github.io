@@ -353,8 +353,9 @@ env.Alias('release', ['release_src', 'release_tests'])
 env.Alias('docs')
 env.Alias('build_tests')    # target to build all C++ tests
 env.Alias('build_py_tests') # target to build all python tests
-env.Alias('run_tests',['build_tests'])   # target to run all C++ test
-env.Alias('py_tests', ['build_py_tests']) # taget to run all released python tests
+env.Alias('build_all_tests', [ 'build_tests', 'build_py_tests' ] ) # target to build all python tests
+env.Alias('run_tests', 'build_tests')   # target to run all C++ test
+env.Alias('py_tests', 'build_py_tests') # taget to run all released python tests
 env.Alias('all_tests', ['run_tests', 'py_tests']) # target to run all C++ and released python tests
 
 # Python install - esys __init__.py
@@ -372,7 +373,7 @@ Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "
 # adds this file and the scons option directore to the source tar
 release_srcfiles=[env.File('SConstruct'),]+[ env.File(x) for x in glob.glob('scons/*.py') ]
 release_testfiles=[env.File('README_TESTS'),]
-env.Zip(src_zipfile,release_srcfiles)
+env.Zip(src_zipfile, release_srcfiles)
 env.Zip(test_zipfile, release_testfiles)
 env.Tar(src_tarfile, release_srcfiles)
 env.Tar(test_tarfile, release_testfiles)

@@ -16,6 +16,7 @@ from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.temperature import TemperatureAdvection
 import numarray
+import os
 
 dom=RectangularDomain()
 dom.order=2

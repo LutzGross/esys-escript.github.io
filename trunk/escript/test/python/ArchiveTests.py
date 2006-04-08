@@ -38,9 +38,9 @@ for msh in mshList:
 
   print "\nX -- Continuous:"
   archDataX = msh.getX()
-  archDataX.archiveData("data-archiveX")
+  archDataX.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveX")
   exDataX=Data()
-  exDataX.extractData("data-archiveX",ContinuousFunction(msh))
+  exDataX.extractData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveX",ContinuousFunction(msh))
 
   diff = archDataX - exDataX
   (infdiff, supdiff) = (inf(diff), sup(diff))
@@ -49,36 +49,36 @@ for msh in mshList:
           % (infdiff, supdiff)
     sys.exit(1)
 
-  exDataX.archiveData("data-archive2X");
+  exDataX.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archive2X");
 
   print "\nDataExpanded:"
   archDataE=Data([[1.00001],[2.00001]],Function(msh),True)
-  archDataE.archiveData("data-archiveE")
+  archDataE.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveE")
   exDataE=Data()
-  exDataE.extractData("data-archiveE",Function(msh))
-  exDataE.archiveData("data-archive2E");
+  exDataE.extractData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveE",Function(msh))
+  exDataE.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archive2E");
 
   print "\nDataTagged:"
   archDataT=Data([[1.00001],[2.00001]],Function(msh))
   archDataT.tag()
-  archDataT.archiveData("data-archiveT")
+  archDataT.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveT")
   exDataT=Data()
-  exDataT.extractData("data-archiveT",Function(msh))
-  exDataT.archiveData("data-archive2T");
+  exDataT.extractData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveT",Function(msh))
+  exDataT.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archive2T");
 
   print "\nDataConstant:"
   archDataC=Data([1.00001], Function(msh))
-  archDataC.archiveData("data-archiveC")
+  archDataC.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveC")
   exDataC=Data()
-  exDataC.extractData("data-archiveC",Function(msh))
-  exDataC.archiveData("data-archive2C");
+  exDataC.extractData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveC",Function(msh))
+  exDataC.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archive2C");
 
   print "\nDataEmpty:"
   archDataM=Data()
-  archDataM.archiveData("data-archiveE")
+  archDataM.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveE")
   exDataM=Data()
-  exDataM.extractData("data-archiveE",FunctionSpace())
-  exDataM.archiveData("data-archive2E")
+  exDataM.extractData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archiveE",FunctionSpace())
+  exDataM.archiveData(os.environ['ESCRIPT_WORKING_DIR']+"/data-archive2E")
 
 sys.exit(0)
 # end

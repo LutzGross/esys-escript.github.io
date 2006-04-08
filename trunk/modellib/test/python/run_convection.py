@@ -11,6 +11,7 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
+import os
 from esys.escript.modelframe import Link,Simulation
 from esys.modellib.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
 from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
@@ -88,6 +89,7 @@ vis.t=Link(sq)
 vis.scalar=Link(temp,"temperature")
 vis.vector=Link(vel,"velocity")
 vis.stride=5
+vis.filename=os.environ['MODELLIB_WORKING_DIR']+"/temp.xml"
 
 per=GaussianProfile()
 per.domain=Link(dom)
