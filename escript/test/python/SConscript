@@ -26,7 +26,8 @@ alltestruns = testruns + localtestruns
 #
 # test files are just compiled:
 #
-test_pyc = local_env.PyCompile(testfiles)
+test_pyc = env.PyCompile(testfiles)
+env.Alias('build_py_tests', test_pyc)
 #
 # run all tests:
 #
@@ -34,16 +35,18 @@ program = local_env.RunPyUnitTest(alltestruns)
 
 Depends(program, pyinstall)
 Depends(program, dep_lib) 
+Depends(program, 'build_py_tests') 
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
 local_env.PrependENVPath('ESCRIPT_TEST_DATA_ROOT',str(env.Dir('#/escript/test/python')))
+local_env.PrependENVPath('ESCRIPT_WORKDIR',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 
 # get all the python files in the release tar file
 release_pyfiles = [ env.File("SConscript"), ]
-release_testfiles = [ env.File(x) for x in testfiles + testruns ] + [ env.Dir(x) for x in testdata_dir ]
+release_testfiles = [ env.File(x) for x in testfiles + testruns ] + [ env.Dir(x,'#/escript/test/python') for x in testdata_dir ]
 env.Zip(src_zipfile, release_pyfiles)
 env.Tar(src_tarfile, release_pyfiles)
 env.Zip(test_zipfile, release_testfiles)

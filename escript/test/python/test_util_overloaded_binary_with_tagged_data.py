@@ -24,7 +24,7 @@ __date__="$Date$"
 import unittest
 import numarray
 from esys.escript import *
-from esys.escript.test_util_base  import Test_util_base
+from test_util_base  import Test_util_base
 
 class Test_util_overloaded_binary_with_tagged_data(Test_util_base):
    """

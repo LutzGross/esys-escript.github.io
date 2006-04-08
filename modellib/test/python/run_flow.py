@@ -11,6 +11,7 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
+import os
 from esys.escript.modelframe import Link,Simulation
 from esys.modellib.geometry import RectangularDomain,VectorConstrainer
 from esys.modellib.input import Sequencer

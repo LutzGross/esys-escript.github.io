@@ -82,15 +82,15 @@ class bruceTestCase(unittest.TestCase):
     assert (rectangle.getDim()==2)
 
   def testSaveVTK(self):
-    filename = "testVTK.vts"
+    filename = os.environ['BRUCE_WORKDIR']+"/testVTK.xml"
     fs1 = ContinuousFunction(self.b)
     fs2 = Function(self.b)
     testData1 = Scalar(1.0, fs1)
-    testData2 = Scalar(1.0, fs2)
-    testData3 = Vector(1.0, fs1)
-    testData4 = Vector(1.0, fs2)
-    testData5 = Tensor(1.0, fs1)
-    testData6 = Tensor(1.0, fs2)
+    testData2 = Scalar(2.0, fs2)
+    testData3 = Vector(3.0, fs1)
+    testData4 = Vector(4.0, fs2)
+    testData5 = Tensor(5.0, fs1)
+    testData6 = Tensor(6.0, fs2)
     dict = {'testData1':testData1,
             'testData2':testData2,
 #            'testData3':testData3,

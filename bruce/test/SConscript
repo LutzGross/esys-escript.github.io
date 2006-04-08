@@ -13,8 +13,6 @@ sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
 local_env.Append(LIBS=[ python_lib, boost_lib, 'bruce', 'escript', 'esysUtils', 'CppUnitTest', sys_libs])
 
-program = local_env.Program(program_name, sources)
-
 # compile test
 program = local_env.Program(program_name, sources)
 env.Alias('build_tests', program)

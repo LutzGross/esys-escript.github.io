@@ -10,21 +10,21 @@ __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
                 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
-TEST_FILE_EXT=".test"
-REERFENCE_FILE_DIR="test_meshes"
 
 import sys
+import os
 import unittest
 from esys.escript import *
 from esys.finley import Interval,Rectangle,Brick,JoinFaces
 
+TEST_FILE_EXT=".test"
 class Test_Generators(unittest.TestCase):
 
    def checker(self,dom,reference):
-      dom_file=reference+TEST_FILE_EXT
+      dom_file=os.environ['FINLEY_TEST_DATA']+"/"+reference+TEST_FILE_EXT
       dom.write(dom_file)
       dom_string=open(dom_file).read().splitlines()
-      ref_string=open(REERFENCE_FILE_DIR+"/"+reference).read().splitlines()
+      ref_string=open(os.environ['FINLEY_WORKING_DIR']+"/"+reference).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
          self.failUnlessEqual(dom_string[l].strip(),ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),dom_string[l].strip()))
