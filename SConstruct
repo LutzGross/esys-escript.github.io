@@ -46,11 +46,13 @@ opts.AddOptions(
   ('libinstall', 'where the esys libraries will be installed', Dir('#.').abspath+'/lib'), 
   ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath), 
   ('src_zipfile', 'the source zip file will be installed.', Dir('#.').abspath+"/release/escript_src.zip"), 
-  ('test_zipfile', 'the test zip file will be installed.', Dir('#.').abspath+"/release/escript_src_tests.zip"), 
+  ('test_zipfile', 'the test zip file will be installed.', Dir('#.').abspath+"/release/escript_tests.zip"), 
   ('src_tarfile', 'the source tar file will be installed.', Dir('#.').abspath+"/release/escript_src.tar.gz"), 
-  ('test_tarfile', 'the test tar file will be installed.', Dir('#.').abspath+"/release/escript_src_tests.tar.gz"), 
-  ('doc', 'where the doc files will be installed', Dir('#.').abspath+'/release/doc'), 
- 
+  ('test_tarfile', 'the test tar file will be installed.', Dir('#.').abspath+"/release/escript_tests.tar.gz"), 
+  ('examples_tarfile', 'the examples tar file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.tar.gz"), 
+  ('examples_zipfile', 'the examples zip file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.zip"), 
+  ('guide_pdf', 'name of the user guide in pdf format', Dir('#.').abspath+"/release/doc/user/guide.pdf"), 
+  ('guide_html', 'name of the directory for user guide in html format', Dir('#.').abspath+"/release/doc/user/html"), 
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
@@ -316,32 +318,42 @@ try:
 except KeyError:
    papi_libs = None  
 
+
 try:
-   src_zipfile = env['src_zipfile']
+   src_zipfile = env.File(env['src_zipfile'])
 except KeyError:
    src_zipfile = None  
-
-
 try:
-   test_zipfile = env['test_zipfile']
+   test_zipfile = env.File(env['test_zipfile'])
 except KeyError:
    test_zipfile = None  
+try:
+   examples_zipfile = env.File(env['examples_zipfile'])
+except KeyError:
+   examples_zipfile = None  
 
 try:
-   src_tarfile = env['src_tarfile']
+   src_tarfile = env.File(env['src_tarfile'])
 except KeyError:
    src_tarfile = None  
-
-
 try:
-   test_tarfile = env['test_tarfile']
+   test_tarfile = env.File(env['test_tarfile'])
 except KeyError:
    test_tarfile = None  
+try:
+   examples_tarfile = env.File(env['examples_tarfile'])
+except KeyError:
+   examples_tarfile = None  
 
 try:
-   doc = env['doc']
+   guide_pdf = env.File(env['guide_pdf'])
 except KeyError:
-   doc = None  
+   guide_pdf = None  
+
+try:
+   guide_html_index = env.File('index.htm',env['guide_html'])
+except KeyError:
+   guide_html_index = None  
 
 # Zipgets
 env.Default(libinstall)
@@ -349,8 +361,9 @@ env.Default(incinstall)
 env.Default(pyinstall)
 env.Alias('release_src',[ src_zipfile, src_tarfile ])  
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
-env.Alias('release', ['release_src', 'release_tests'])
-env.Alias('docs')
+env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
+env.Alias('docs',[ 'release_examples', guide_pdf, guide_html_index ])
+env.Alias('release', ['release_src', 'release_tests', 'docs'])
 env.Alias('build_tests')    # target to build all C++ tests
 env.Alias('build_py_tests') # target to build all python tests
 env.Alias('build_all_tests', [ 'build_tests', 'build_py_tests' ] ) # target to build all python tests
@@ -366,7 +379,8 @@ env.Command(pyinstall+'/__init__.py', None, 'touch $TARGET')
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs", 
-        "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "doc" ])
+        "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
+        "guide_pdf", "guide_html_index"])
 
 # End initialisation section
 # Begin configuration section
@@ -390,8 +404,5 @@ env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', dupl
 env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib', duplicate=0)
-#env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
-
-# FIXME:need to be incorporated into build system
-# FIXME: 'doc/SConstruct']
-# FIXME: 'doc/SConstruct']
+env.SConscript(dirs = ['doc'], build_dir='build/$PLATFORM/doc', duplicate=0)
+#env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0) not part of beta.0

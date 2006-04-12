@@ -1,0 +1,33 @@
+# Scons configuration file for documentation
+
+#          Copyright 2006 by ACcESS MNRF                   
+#                                                          
+#              http://www.access.edu.au                    
+#       Primary Business: Queensland, Australia            
+#  Licensed under the Open Software License version 3.0    
+#     http://www.opensource.org/licenses/osl-3.0.php       
+#                                                          
+#
+#
+# set appropriate defaults for configuration variables
+
+import os
+Import('*')
+
+local_env=env.Copy()
+
+# get all the examples:
+src_dir = local_env.Dir('examples').srcnode().abspath
+example_files=[]
+for x in os.listdir(src_dir):
+   if not x.startswith("."):
+      f = "examples/"+x
+      if os.path.isdir(src_dir+'/'+f):
+         example_files+=[ env.File(f+"/"+y) for y in os.listdir(src_dir+'/'+f) if not y.startswith('.')]
+      else:
+         example_files+=[ env.File(f) ]
+env.Zip(examples_zipfile, example_files)
+env.Tar(examples_tarfile, example_files)
+
+# Call the unit tests SConscript
+local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)

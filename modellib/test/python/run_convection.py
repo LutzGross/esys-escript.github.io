@@ -89,7 +89,7 @@ vis.t=Link(sq)
 vis.scalar=Link(temp,"temperature")
 vis.vector=Link(vel,"velocity")
 vis.stride=5
-vis.filename=os.environ['MODELLIB_WORKING_DIR']+"/temp.xml"
+vis.filename=os.environ['MODELLIB_WORKDIR']+"/temp.xml"
 
 per=GaussianProfile()
 per.domain=Link(dom)

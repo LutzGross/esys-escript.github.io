@@ -36,7 +36,7 @@ def runPyUnitTest(target, source, env):
      return 1
    return None
 
-# code to build epydoc docs
+
 def build_epydoc(target, source, env):
     # get where I am currently, just as a reference
     pwd = os.getcwd()
