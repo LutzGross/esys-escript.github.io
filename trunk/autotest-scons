@@ -1,5 +1,13 @@
 #!/bin/bash
-
+#          Copyright 2006 by ACcESS MNRF
+#
+#              http://www.access.edu.au
+#       Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#
+#
 # $Id: autotest-scons 162 2005-11-11 00:09:59Z svn $
 # An explicit testing script for esys using the scons build system
 
@@ -27,8 +35,8 @@ echo "===> working in: $PWD"
 . ${MODULESHOME}/init/sh
 module load intel_cc.9.0.026
 export MODULEPATH=${MODULEPATH}:/data/raid2/toolspp4/modulefiles/gcc-3.3.6
-module load boost/1.33.0/python-2.4.1
 module load python/2.4.1
+module load boost/1.33.0/python-2.4.1
 module load numarray/1.3.3
 
 # set openmp settings
@@ -53,65 +61,21 @@ then
 fi
 
 echo "===> building unit_tests"
-scons build_tests
+scons build_all_tests
 if [ $? != 0 ]
 then
-  echo "unit_test build failed"
-  echo "unit_test build failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  echo "build_tests failed"
+  echo "build_tests failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
   exit 3
 fi
 
 FAIL=0
 
 echo "===> running unit_tests"
-scons run_tests
+scons run_all_tests
 if [ $? != 0 ]
 then
-  echo "unit_testing failed"
-  echo "unit_test failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  FAIL=1
+  echo "run_all_tests failed"
+  echo "run_all_tests failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 4
 fi
-
-exit
-for pytest in $ESCRIPT_PYTESTS
-do
-  echo "===>running escript python test: $pytest"
-  scons build/posix/escript/test/python/$pytest
-  if [ $? != 0 ]
-  then
-    echo "python testing failed for $pytest in module $module"
-    echo "escript py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-    FAIL=1
-  fi
-done
-
-for pytest in $FINLEY_PYTESTS
-do
-  echo "running finley python test: $pytest"
-  scons build/posix/finley/test/python/$pytest
-  if [ $? != 0 ]
-  then
-    echo "python testing failed for $pytest in module $module"
-    echo "finley py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-    FAIL=1
-  fi
-done
-
-for pytest in $BRUCE_PYTESTS
-do
-  echo "running bruce python test: $pytest"
-  scons build/posix/bruce/test/python/$pytest
-  if [ $? != 0 ]
-  then
-    echo "python testing failed for $pytest in module $module"
-    echo "bruce py_test: $pytest failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-    FAIL=1
-  fi
-done
-
-if [ $FAIL == 0 ]
-then
-    echo success
-    echo "success" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-fi
-exit 0

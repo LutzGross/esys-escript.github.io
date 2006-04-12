@@ -282,7 +282,7 @@ type="float"> <Name> tend </Name> <Value>
 ''' % (modulename, modelname)
 
     def testModuleAttribute(self):
-        modeldoc = parse(self._xml('test_xml', 'ODETEST'))
+        modeldoc = parse(self._xml('run_xml', 'ODETEST'))
 
     def testModuleAttributeFails(self):
         try:
@@ -367,6 +367,5 @@ class ODETEST(Model):
 
     
 if __name__ == "__main__":
-    from test_xml import Messenger, ODETEST
     unittest.main()
 
