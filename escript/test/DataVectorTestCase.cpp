@@ -164,7 +164,7 @@ void DataVectorTestCase::testAll() {
 
     assert(vec1 != vec2);
   }
- 
+  #if defined DOASSERT
   {
     cout << "\tCheck DataVector index exception." << endl;
 
@@ -181,6 +181,7 @@ void DataVectorTestCase::testAll() {
     }
 
   }
+  #endif
 
 }
 
