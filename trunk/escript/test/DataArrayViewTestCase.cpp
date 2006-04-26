@@ -1751,7 +1751,7 @@ void DataArrayViewTestCase::testUnaryOp()
 
       // check the results
       tmp = std::sin((double)p);
-      assert(dataView()==tmp);
+      assert(std::abs(dataView()-tmp)<1.e-10);
 
       if (p<npoints-1) {
         dataView.incrOffset();
@@ -1845,7 +1845,7 @@ void DataArrayViewTestCase::testUnaryOp()
         for (int j=0;j<shape[1];j++) {
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
-              assert(dataView(i,j,k,l)==std::log((double)dataView.index(i,j,k,l)));
+              assert(std::abs(dataView(i,j,k,l)-std::log((double)dataView.index(i,j,k,l)))<1.e-10);
             }
           }
         }
