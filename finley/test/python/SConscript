@@ -40,8 +40,8 @@ Depends(program, 'build_py_tests')
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/finley/test/python')))
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
-local_env.PrependENVPath('FINLEY_TEST_DATA',str(env.Dir('#/finley/test/python')))
-local_env.PrependENVPath('FINLEY_WORKDIR',str(env.Dir('#/build/$PLATFORM/finley/test/python')))
+local_env['ENV']['FINLEY_TEST_DATA']=env.Dir('#/finley/test/python').srcnode().abspath
+local_env['ENV']['FINLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/finley/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 

@@ -38,5 +38,4 @@ env.Tar(src_tarfile, release_srcfiles)
 env.Zip(test_zipfile, release_testfiles)
 env.Tar(test_tarfile, release_testfiles)
 
-
 local_env.SConscript(dirs = ['#/bruce/test/python'], build_dir='python', duplicate=0)

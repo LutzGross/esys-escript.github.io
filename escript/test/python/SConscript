@@ -39,8 +39,8 @@ Depends(program, 'build_py_tests')
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
-local_env.PrependENVPath('ESCRIPT_TEST_DATA_ROOT',str(env.Dir('#/escript/test/python')))
-local_env.PrependENVPath('ESCRIPT_WORKDIR',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
+local_env['ENV']['ESCRIPT_TEST_DATA_ROOT']=env.Dir('#/escript/test/python').srcnode().abspath
+local_env['ENV']['ESCRIPT_WORKDIR']=env.Dir('#/build/$PLATFORM/escript/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 
