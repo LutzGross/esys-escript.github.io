@@ -116,9 +116,16 @@ Data::Data(const Data& inData,
 Data::Data(const Data& inData,
            const FunctionSpace& functionspace)
 {
+#if defined DOPROF
+  // create entry in global profiling table for this object
+  profData = dataProfTable.newData();
+#endif
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
   } else {
+    #if defined DOPROF
+    profData->interpolate++;
+    #endif
     Data tmp(0,inData.getPointDataView().getShape(),functionspace,true);
     // Note: Must use a reference or pointer to a derived object
     // in order to get polymorphic behaviour. Shouldn't really
@@ -132,10 +139,6 @@ Data::Data(const Data& inData,
     }
     m_data=tmp.m_data;
   }
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const DataTagged::TagListType& tagKeys,
