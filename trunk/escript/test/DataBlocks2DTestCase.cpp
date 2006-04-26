@@ -203,6 +203,7 @@ void DataBlocks2DTestCase::testAll() {
     }
   }
 
+  #if defined DOASSERT
   {
     cout << "\tTest DOASSERT exception." << endl;
     DataBlocks2D myData;
@@ -214,6 +215,7 @@ void DataBlocks2DTestCase::testAll() {
       assert(true);
     }
   }
+  #endif
 
 }
 

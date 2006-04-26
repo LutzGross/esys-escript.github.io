@@ -1582,6 +1582,7 @@ void DataArrayViewTestCase::testAll()
 
   }
 
+  #if defined DOASSERT
   {
     cout << endl;
     cout << "\tTest too many indices for shape exception.";
@@ -1626,7 +1627,9 @@ void DataArrayViewTestCase::testAll()
     }
 
   }
+  #endif
 
+  #if defined DOASSERT
   {
     cout << endl;
     cout << "\tTest invalid index exception.";
@@ -1644,6 +1647,7 @@ void DataArrayViewTestCase::testAll()
       assert(true);
     }
   }
+  #endif
 
   {
     cout << endl;
