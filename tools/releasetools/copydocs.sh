@@ -46,22 +46,22 @@ scp user/guide.pdf shake200:/home/www/esys/esys13/release/user >> /tmp/scp_msgs.
 #scp -i ~/.cron-ess-rsync-key -r doxygen/ shake200:/home/www/esys/ >> /tmp/scp_msgs.txt 2>&1
 
 # make an html file to link to the errors if any
-echo "<html>" > /tmp/docbuildlog.html
-echo "<head>" >> /tmp/docbuildlog.html
-echo "<title>Documentation autobuild log files</title>" >> /tmp/docbuildlog.html
-echo "</head>" >> /tmp/docbuildlog.html
-echo "<body>" >> /tmp/docbuildlog.html
+echo "<html>" > /tmp/docbuildlogrelease.html
+echo "<head>" >> /tmp/docbuildlogrelease.html
+echo "<title>Documentation autobuild log files</title>" >> /tmp/docbuildlogrelease.html
+echo "</head>" >> /tmp/docbuildlogrelease.html
+echo "<body>" >> /tmp/docbuildlogrelease.html
 DATE=`date`
-echo "<b>Last Update: $DATE</b>" >> /tmp/docbuildlog.html
-echo "<p>" >> /tmp/docbuildlog.html
-echo "<a href=\"svn_msgs.txt\">svn_msgs.txt</a><br>" >> /tmp/docbuildlog.html
-echo "<a href=\"scons_msgs.txt\">scons_msgs.txt</a><br>" >> /tmp/docbuildlog.html
-echo "<a href=\"doxygen_msgs.txt\">doxygen_msgs.txt</a><br>" >> /tmp/docbuildlog.html
-echo "<a href=\"epydoc_msgs.txt\">epydoc_msgs.txt</a><br>" >> /tmp/docbuildlog.html
-echo "<a href=\"scp_msgs.txt\">scp_msgs.txt</a><br>" >> /tmp/docbuildlog.html
-echo "</p>" >> /var/tmp/docbuildlog.html
-echo "</body>" >> /var/tmp/docbuildlog.html
-echo "</html>" >> /var/tmp/docbuildlog.html
+echo "<b>Last Update: $DATE</b>" >> /tmp/docbuildlogrelease.html
+echo "<p>" >> /tmp/docbuildlogrelease.html
+echo "<a href=\"svn_msgs.txt\">svn_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
+echo "<a href=\"scons_msgs.txt\">scons_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
+echo "<a href=\"doxygen_msgs.txt\">doxygen_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
+echo "<a href=\"epydoc_msgs.txt\">epydoc_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
+echo "<a href=\"scp_msgs.txt\">scp_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
+echo "</p>" >> /var/tmp/docbuildlogrelease.html
+echo "</body>" >> /var/tmp/docbuildlogrelease.html
+echo "</html>" >> /var/tmp/docbuildlogrelease.html
 
 scp /tmp/svn_msgs.txt shake200:/home/www/esys/esys13/release
 scp /tmp/scons_msgs.txt shake200:/home/www/esys/esys13/release
