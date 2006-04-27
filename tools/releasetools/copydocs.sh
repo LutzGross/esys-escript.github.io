@@ -41,6 +41,9 @@ scp -r epydoc/* shake200:/home/www/esys/esys13/release/epydoc >> /tmp/scp_msgs.t
 echo "Copying user guide (pdf/html) to the webserver" >> /tmp/scp_msgs.txt 2>&1
 scp -r user/html/* shake200:/home/www/esys/esys13/release/user/html >> /tmp/scp_msgs.txt 2>&1
 scp user/guide.pdf shake200:/home/www/esys/esys13/release/user >> /tmp/scp_msgs.txt 2>&1
+echo "Copying example zip and tarball files" >> /tmp/scp_msgs.txt 2>&1
+scp escript_examples.tar.gz shake200:/home/www/esys/esys13/release/escript_examples.tar.gz >> /tmp/scp_msgs.txt 2>&1
+scp escript_examples.zip shake200:/home/www/esys/esys13/release/escript_examples.zip >> /tmp/scp_msgs.txt 2>&1
 
 #echo "Copying C++ docs to the webserver" >> /tmp/scp_msgs.txt 2>&1
 #scp -i ~/.cron-ess-rsync-key -r doxygen/ shake200:/home/www/esys/ >> /tmp/scp_msgs.txt 2>&1
@@ -59,16 +62,16 @@ echo "<a href=\"scons_msgs.txt\">scons_msgs.txt</a><br>" >> /tmp/docbuildlogrele
 echo "<a href=\"doxygen_msgs.txt\">doxygen_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
 echo "<a href=\"epydoc_msgs.txt\">epydoc_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
 echo "<a href=\"scp_msgs.txt\">scp_msgs.txt</a><br>" >> /tmp/docbuildlogrelease.html
-echo "</p>" >> /var/tmp/docbuildlogrelease.html
-echo "</body>" >> /var/tmp/docbuildlogrelease.html
-echo "</html>" >> /var/tmp/docbuildlogrelease.html
+echo "</p>" >> /tmp/docbuildlogrelease.html
+echo "</body>" >> /tmp/docbuildlogrelease.html
+echo "</html>" >> /tmp/docbuildlogrelease.html
 
 scp /tmp/svn_msgs.txt shake200:/home/www/esys/esys13/release
 scp /tmp/scons_msgs.txt shake200:/home/www/esys/esys13/release
 #scp /tmp/doxygen_msgs.txt shake200:/home/www/esys
 scp /tmp/epydoc_msgs.txt shake200:/home/www/esys/esys13/release
 scp /tmp/scp_msgs.txt shake200:/home/www/esys/esys13/release
-
+scp /tmp/docbuildlogrelease.html shake200:/home/www/esys/esys13/release
 #scp -i ~/.cron-ess-rsync-key /tmp/docbuildlog.html shake200:/home/www/esys/
 
 # get back to "here"
