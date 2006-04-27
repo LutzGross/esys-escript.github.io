@@ -27,7 +27,8 @@ from esys.escript import setNumberOfThreads
 class BenchmarkSuite(object):
    """
    framework to run a bunch of L{Benchmark}s with the object to create a table of statistics.
-   @var MAX_LEVEL: maximum number of level in headers for output
+
+   @cvar MAX_LEVEL: maximum number of level in headers for output
    """
    MAX_LEVEL=5
    def __init__(self,name=None):
@@ -173,7 +174,7 @@ class Benchmark(object):
        adds a options to the benchmark
 
        @param options: adds a new option to the bechmark. If options==None they are are ignored
-       @type problem: L{Options}
+       @type options: L{Options}
        """
        if options!=None: self.__options.append(options)
 
@@ -314,7 +315,7 @@ class BenchmarkProblem(object):
        @type options: L{Options}
        @return: run characteristics
        @rtype: any type that can be read by the L{BenchmarkFilter} applied to it.
-       @remark: this function has to overwritten by a particular problem
+       @note: this function has to overwritten by a particular problem
        """
        raise NotImplementedError
        return []
@@ -337,7 +338,7 @@ class BenchmarkFilter(object):
        
        @return: names the list of the names to be used when the results of the run() call are printed
        @rtype: C{list} of C{str}
-       @remark: this function has to overwritten by a particular problem
+       @note: this function has to overwritten by a particular problem
        """
        raise NotImplementedError
        return []
@@ -350,7 +351,7 @@ class BenchmarkFilter(object):
        @type result: any type that is produced by the L{BenchmarkProblem} it is applied to
        @return: a list of strings selected from result
        @rtype: C{list} of C{str}
-       @remark: this function has to overwritten by a particular problem
+       @note: this function has to overwritten by a particular problem
        """
        raise NotImplementedError
        return []

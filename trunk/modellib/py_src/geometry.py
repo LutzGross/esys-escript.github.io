@@ -24,13 +24,13 @@ class FinleyReader(ParameterSet):
            ParameterSet.__init__(self,debug=debug)
            self.declareParameter(source="none",\
                                  integrationOrder=-1)
-           self._domain=None
+           self.__domain=None
 
        def domain(self):
-          if self._domain==None:
-              self._domain=finley.ReadMesh(self.source,self.integrationOrder) 
+          if self.__domain==None:
+              self.__domain=finley.ReadMesh(self.source,self.integrationOrder) 
               self.trace("mesh read from %s"%self.source)           
-          return self._domain
+          return self.__domain
                        
 class RectangularDomain(ParameterSet):
        """
@@ -52,12 +52,12 @@ class RectangularDomain(ParameterSet):
 				 order=1,\
                                  periodic=[False,False,False],\
                                  integrationOrder=-1)
-           self._domain=None
+           self.__domain=None
 
        def domain(self):
-          if self._domain==None:
+          if self.__domain==None:
              if self.dim==2:
-                self._domain=finley.Rectangle(n0=self.n[0],\
+                self.__domain=finley.Rectangle(n0=self.n[0],\
                                              n1=self.n[1],\
                                              l0=self.l[0],\
                                              l1=self.l[1],\
@@ -66,7 +66,7 @@ class RectangularDomain(ParameterSet):
                                              periodic1=self.periodic[1], \
                                              integrationOrder=self.integrationOrder)
              else:
-                self._domain=finley.Brick(n0=self.n[0],\
+                self.__domain=finley.Brick(n0=self.n[0],\
                                          n1=self.n[1],\
                                          n2=self.n[2],\
                                          l0=self.l[0],\
@@ -78,7 +78,7 @@ class RectangularDomain(ParameterSet):
                                          periodic2=self.periodic[2], \
                                          integrationOrder=self.integrationOrder)
 
-          return self._domain
+          return self.__domain
 
 class ConstrainValue(Model):
        """

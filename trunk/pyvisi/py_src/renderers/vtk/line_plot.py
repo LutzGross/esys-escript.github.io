@@ -71,16 +71,16 @@ class LinePlot(Plot):
 	@param options: Dictionary of extra options
 	@type options: dict
 
-	@param offset: whether or not to offset the lines from one another
+	@keyword offset: whether or not to offset the lines from one another
 	@type offset: boolean
 
-	@param fname: Filename of the input vtk file
+	@keyword fname: Filename of the input vtk file
 	@type fname: string
 
-	@param format: format of the input vtk file ('vtk' or 'vtk-xml')
+	@keyword format: format of the input vtk file ('vtk' or 'vtk-xml')
 	@type format: string
 
-	@param scalars: the name of the scalar data in the vtk file to use
+	@keyword scalars: the name of the scalar data in the vtk file to use
 	@type scalars: string
         """
         debugMsg("Called setData() in LinePlot()")

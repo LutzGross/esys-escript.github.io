@@ -1,21 +1,10 @@
-# $Id:$
-
-
+# $Id$
 """
-some benchmarks for tetsing the finley solver. The idea is to develop a set of standart benchmarks
-
-  * Laplace2Dorder1_?k
-  * Laplace2Dorder2_?k
-  * Laplace3Dorder1_?k
-  * Laplace3Dorder2_?k
-
-
-
-where ? is approximatively the number of unknowns in 1000.
+some benchmarks for tetsing the finley solver. The idea is to develop a set of standart benchmarks.
 
 @var __author__: name of author
 @var __licence__: licence agreement
-var __url__: url entry point on documentation
+@var __url__: url entry point on documentation
 @var __version__: version
 @var __date__: date of the version
 """
@@ -151,8 +140,8 @@ class FinleyProblem(BenchmarkProblem):
        creates a domain and a PDE on this domain, solves it (with the given options) and returns the 
        elapsed time and the error.
        
-       @param options: paso solver options
-       @type options:  L{PasoOptions}
+       @param options: solver options
+       @type options:  L{FinleyOptions}
        @return:  elapsed time and the error of calculated solution
        @rtype: pair of C{float}
        """
@@ -178,7 +167,7 @@ class FinleyProblem(BenchmarkProblem):
        @type domain: L{escript.Domain}
        @return: a linear PDE to be solved an a reference solution
        @rtype: L{LinearPDE},L{escript.Data}
-       @remark: must be overwritten by a particular problem
+       @note: must be overwritten by a particular problem
        """
        raise NotImplementedError
 
@@ -188,7 +177,7 @@ class FinleyProblem(BenchmarkProblem):
 
        @return: a domain
        @rtype: L{escript.Domain}
-       @remark: must be overwritten by a particular problem
+       @note: must be overwritten by a particular problem
        """
        raise NotImplementedError
 
@@ -205,7 +194,9 @@ class RegularFinleyProblem(FinleyProblem):
        @param order: element order
        @type order: 1 or 2
        @param dim: spatial dimension
-       @type n: 2 or 3
+       @type dim: 2 or 3
+       @param num_equations: number of equations
+       @type num_equations: C{int}
        """
        super(RegularFinleyProblem,self).__init__(name=str(num_equations*(order*n+1)**dim))
        self.__n=n
@@ -234,7 +225,7 @@ class LaplaceProblem(RegularFinleyProblem):
          """
          returns a PDE and a test solution on the given domain
      
-         @param doamin: a domain
+         @param domain: a domain
          @type domain: L{escript.Domain}
          @return: the Laplace equation and a test solution
          @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
@@ -264,7 +255,7 @@ class AnisotropicProblem(RegularFinleyProblem):
          """
          returns a PDE and a test solution on the given domain
      
-         @param doamin: a domain
+         @param domain: a domain
          @type domain: L{escript.Domain}
          @return: the Laplace equation and a test solution
          @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}
@@ -296,16 +287,14 @@ class AnisotropicSystem(RegularFinleyProblem):
     base class for the Anisotropic system problem on a rectangular mesh
     with an anisotropic 
 
-       - (mu*(u_{i,j}+u_{j,i}))_j+lam*u_{k,k})_j=X_{ij,j}
+    M{- (mu*(u_{i,j}+u_{j,i}))_j+lam*u_{k,k})_j=X_{ij,j}}
        
-        where u_i=x_i+1/d*\prod{i!=j} x_j
-              
-              mu(x) = 1      for inner(x,normal)<inner(1.,normal)/2.
-                      mu0    for inner(x,normal)>inner(1.,normal)/2.
-
-              lam(x)=max(1,mu0)*alpha (constant)
-
-        + constraints on the boundary
+    where 
+           - M{u_i=x_i+1/d*\prod{i!=j} x_j}
+           - M{mu(x) = 1} for inner(x,normal)<inner(1.,normal)/2.
+             and M{mu(x) =  mu0} for inner(x,normal)>inner(1.,normal)/2.
+           - lam(x)=max(1,mu0)*alpha (constant)
+    plus constraints on the boundary
     """
     def __init__(self,n,order,dim,mu0,normal,alpha):
         self.mu0=mu0
@@ -318,7 +307,7 @@ class AnisotropicSystem(RegularFinleyProblem):
          """
          returns a PDE and a test solution on the given domain
      
-         @param doamin: a domain
+         @param domain: a domain
          @type domain: L{escript.Domain}
          @return: the Laplace equation and a test solution
          @rtype: C{tuple} of C{LinearPDE} and C{escript.Data}

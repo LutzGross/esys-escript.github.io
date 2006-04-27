@@ -65,13 +65,13 @@ class ContourPlot(Plot):
         @param options: Dictionary of extra options
         @type options: dict
 
-        @param fname: the name of the input vtk file
+        @keyword fname: the name of the input vtk file
         @type fname: string
 
-        @param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+        @keyword format: the format of the input vtk file ('vtk' or 'vtk-xml')
         @type format: string
 
-        @param scalars: the scalar data in the vtk file to use
+        @keyword scalars: the scalar data in the vtk file to use
         @type scalars: string
         """
         debugMsg("Called setData() in ContourPlot()")

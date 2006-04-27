@@ -36,17 +36,17 @@ class TimeIntegrationManager:
   """
   a simple mechanism to manage time dependend values. 
 
-  typical usage is:
+  typical usage is::
 
-  dt=0.1 # time increment
-  tm=TimeIntegrationManager(inital_value,p=1)
-  while t<1.
-      v_guess=tm.extrapolate(dt) # extrapolate to t+dt
-      v=...
-      tm.checkin(dt,v)
-      t+=dt
+     dt=0.1 # time increment
+     tm=TimeIntegrationManager(inital_value,p=1)
+     while t<1.
+         v_guess=tm.extrapolate(dt) # extrapolate to t+dt
+         v=...
+         tm.checkin(dt,v)
+         t+=dt
 
-  @remark: currently only p=1 is supported.
+  @note: currently only p=1 is supported.
   """
   def __init__(self,*inital_values,**kwargs):
      """
@@ -192,9 +192,9 @@ class NoPDE:
 
      The constraint is overwriting any other condition.
 
-     @remark: This class is similar to the L{LinearPDE} class with A=B=C=X=0 but has the intention
-              that all input parameter are given in L{Solution} or L{ReducedSolution}. The whole
-              thing is a bit strange and I blame Robert.Woodcock@csiro.au for this.
+     @note: This class is similar to the L{linearPDEs.LinearPDE} class with A=B=C=X=0 but has the intention
+            that all input parameter are given in L{Solution} or L{ReducedSolution}. The whole
+            thing is a bit strange and I blame Robert.Woodcock@csiro.au for this.
      """
      def __init__(self,domain,D=None,Y=None,q=None,r=None):
          """
@@ -203,13 +203,13 @@ class NoPDE:
          @param domain: domain of the PDE.
          @type domain: L{Domain}
          @param D: coefficient of the solution. 
-         @type D: C{float}, C{int}, L{NumArray}, L{Data}
+         @type D: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          @param Y: right hand side
-         @type Y: C{float}, C{int}, L{NumArray}, L{Data}
+         @type Y: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          @param q: location of constraints
-         @type q: C{float}, C{int}, L{NumArray}, L{Data}
+         @type q: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, L{NumArray}, L{Data}
+         @type r: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          """
          self.__domain=domain
          self.__D=D
@@ -237,13 +237,13 @@ class NoPDE:
          assigns values to the parameters.
 
          @param D: coefficient of the solution. 
-         @type D: C{float}, C{int}, L{NumArray}, L{Data}
+         @type D: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          @param Y: right hand side
-         @type Y: C{float}, C{int}, L{NumArray}, L{Data}
+         @type Y: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          @param q: location of constraints
-         @type q: C{float}, C{int}, L{NumArray}, L{Data}
+         @type q: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          @param r: value of solution at locations of constraints
-         @type r: C{float}, C{int}, L{NumArray}, L{Data}
+         @type r: C{float}, C{int}, L{numarray.NumArray}, L{Data}
          """
          if not D==None:
             self.__D=D
