@@ -746,6 +746,7 @@ void DataTestCase::testOperations() {
 
   // test unary operations
 
+  double tmp;
   cout << "\tTest Data::pow." << endl;
   Data power(3.0,shape,FunctionSpace(),true);
   resultEx.copy(baseEx.powD(power));
@@ -753,9 +754,10 @@ void DataTestCase::testOperations() {
   resultTag.copy(baseTag.powD(power));
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      assert(resultEx.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
-      assert(resultCon.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
-      assert(resultTag.getPointDataView()(i,j) == pow(dataView.index(i,j),3.0));
+      tmp=pow(dataView.index(i,j),3.0);
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
     }
   }
 
@@ -763,19 +765,40 @@ void DataTestCase::testOperations() {
   resultEx.copy(baseEx.sin());
   resultCon.copy(baseCon.sin());
   resultTag.copy(baseTag.sin());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=sin((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::cos." << endl;
   resultEx.copy(baseEx.cos());
   resultCon.copy(baseCon.cos());
   resultTag.copy(baseTag.cos());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=cos((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::tan." << endl;
   resultEx.copy(baseEx.tan());
   resultCon.copy(baseCon.tan());
   resultTag.copy(baseTag.tan());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=tan((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::asin." << endl;
   resultEx.copy(baseEx.asin());
@@ -793,25 +816,53 @@ void DataTestCase::testOperations() {
   resultEx.copy(baseEx.atan());
   resultCon.copy(baseCon.atan());
   resultTag.copy(baseTag.atan());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=atan((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::sinh." << endl;
   resultEx.copy(baseEx.sinh());
   resultCon.copy(baseCon.sinh());
   resultTag.copy(baseTag.sinh());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=sinh((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::cosh." << endl;
   resultEx.copy(baseEx.cosh());
   resultCon.copy(baseCon.cosh());
   resultTag.copy(baseTag.cosh());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=cosh((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::tanh." << endl;
   resultEx.copy(baseEx.tanh());
   resultCon.copy(baseCon.tanh());
   resultTag.copy(baseTag.tanh());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=tanh((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::asinh." << endl;
   resultEx.copy(baseEx.asinh());
@@ -841,7 +892,14 @@ void DataTestCase::testOperations() {
   resultEx.copy(baseEx.abs());
   resultCon.copy(baseCon.abs());
   resultTag.copy(baseTag.abs());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=abs((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::sign." << endl;
   resultEx.copy(baseEx.sign());
@@ -853,13 +911,27 @@ void DataTestCase::testOperations() {
   resultEx.copy(baseEx.exp());
   resultCon.copy(baseCon.exp());
   resultTag.copy(baseTag.exp());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=exp((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::sqrt." << endl;
   resultEx.copy(baseEx.sqrt());
   resultCon.copy(baseCon.sqrt());
   resultTag.copy(baseTag.sqrt());
-  assert(true);
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      tmp=sqrt((double)dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+      assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
+    }
+  }
 
   cout << "\tTest Data::neg." << endl;
   resultEx.copy(baseEx.neg());
@@ -873,28 +945,28 @@ void DataTestCase::testOperations() {
   resultTag.copy(baseTag.pos());
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      assert(resultEx.getPointDataView()(i,j) == dataView.index(i,j));
-      assert(resultCon.getPointDataView()(i,j) == dataView.index(i,j));
-      assert(resultTag.getPointDataView()(i,j) == dataView.index(i,j));
+      assert(std::abs(resultEx.getPointDataView()(i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
+      assert(std::abs(resultCon.getPointDataView()(i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
+      assert(std::abs(resultTag.getPointDataView()(i,j) - dataView.index(i,j)) <= REL_TOL*std::abs(dataView.index(i,j)));
     }
   }
 
   // test reduction operations
 
   cout << "\tTest Data::Lsup." << endl;
-  assert(baseEx.Lsup() == 5);
-  assert(baseCon.Lsup() == 5);
-  assert(baseTag.Lsup() == 5);
+  assert(std::abs(baseEx.Lsup() - 5) <= REL_TOL*5);
+  assert(std::abs(baseCon.Lsup() - 5) <= REL_TOL*5);
+  assert(std::abs(baseTag.Lsup() - 5) <= REL_TOL*5);
 
   cout << "\tTest Data::sup." << endl;
-  assert(baseEx.sup() == 5);
-  assert(baseCon.sup() == 5);
-  assert(baseTag.sup() == 5);
+  assert(std::abs(baseEx.sup() - 5) <= REL_TOL*5);
+  assert(std::abs(baseCon.sup() - 5) <= REL_TOL*5);
+  assert(std::abs(baseTag.sup() - 5) <= REL_TOL*5);
 
   cout << "\tTest Data::inf." << endl;
-  assert(baseEx.inf() == 0);
-  assert(baseCon.inf() == 0);
-  assert(baseTag.inf() == 0);
+  assert(std::abs(baseEx.inf() - 0) <= REL_TOL*0);
+  assert(std::abs(baseCon.inf() - 0) <= REL_TOL*0);
+  assert(std::abs(baseTag.inf() - 0) <= REL_TOL*0);
 
   // test data-point reduction operations
 
@@ -902,25 +974,25 @@ void DataTestCase::testOperations() {
   resultEx.copy(baseEx.minval());
   resultCon.copy(baseCon.minval());
   resultTag.copy(baseTag.minval());
-  assert(resultEx.getPointDataView()() == 0);
-  assert(resultCon.getPointDataView()() == 0);
-  assert(resultTag.getPointDataView()() == 0);
+  assert(std::abs(resultEx.getPointDataView()() - 0) <= REL_TOL*0);
+  assert(std::abs(resultCon.getPointDataView()() - 0) <= REL_TOL*0);
+  assert(std::abs(resultTag.getPointDataView()() - 0) <= REL_TOL*0);
 
   cout << "\tTest Data::maxval." << endl;
   resultEx.copy(baseEx.maxval());
   resultCon.copy(baseCon.maxval());
   resultTag.copy(baseTag.maxval());
-  assert(resultEx.getPointDataView()() == 5);
-  assert(resultCon.getPointDataView()() == 5);
-  assert(resultTag.getPointDataView()() == 5);
+  assert(std::abs(resultEx.getPointDataView()() - 5) <= REL_TOL*5);
+  assert(std::abs(resultCon.getPointDataView()() - 5) <= REL_TOL*5);
+  assert(std::abs(resultTag.getPointDataView()() - 5) <= REL_TOL*5);
 
   cout << "\tTest Data::trace." << endl;
   resultEx.copy(baseEx.trace());
   resultCon.copy(baseCon.trace());
   resultTag.copy(baseTag.trace());
-  assert(resultEx.getPointDataView()() == 15);
-  assert(resultCon.getPointDataView()() == 15);
-  assert(resultTag.getPointDataView()() == 15);
+  assert(std::abs(resultEx.getPointDataView()() - 15) <= REL_TOL*15);
+  assert(std::abs(resultCon.getPointDataView()() - 15) <= REL_TOL*15);
+  assert(std::abs(resultTag.getPointDataView()() - 15) <= REL_TOL*15);
 
 }
 

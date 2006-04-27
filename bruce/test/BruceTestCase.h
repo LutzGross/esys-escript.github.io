@@ -19,6 +19,8 @@
 #include "tools/CppUnitTest/TestSuite.h"
 #include "tools/CppUnitTest/TestCaller.h"
 
+#define REL_TOL ((double)1.e-10)
+
 class BruceTestCase : public CppUnitTest::TestCase
 {
  public:
