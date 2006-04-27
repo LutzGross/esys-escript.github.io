@@ -1020,7 +1020,7 @@ void BruceTestCase::testSetToSizecon() {
   for (int i=0; i<10; i++) {
     for (int j=0; j<10; j++) {
       DataAbstract::ValueType::value_type* sampleData = data6.getSampleData(sampleNo);
-      assert(sampleData[0]==std::sqrt(2.0));
+      assert(std::abs(sampleData[0]-std::sqrt(2.0))< REL_TOL*std::abs(std::sqrt(2.0)));
       sampleNo++;
     }
   }
@@ -1075,7 +1075,7 @@ void BruceTestCase::testSetToSizecon() {
   for (int i=0; i<10; i++) {
     for (int j=0; j<10; j++) {
       DataAbstract::ValueType::value_type* sampleData = data9.getSampleData(sampleNo);
-      assert(sampleData[0]==std::sqrt(2.0));
+      assert(std::abs(sampleData[0]-std::sqrt(2.0))<REL_TOL*std::abs(std::sqrt(2.0)));
       sampleNo++;
     }
   }
@@ -1095,7 +1095,7 @@ void BruceTestCase::testSetToSizecon() {
     for (int j=0; j<10; j++) {
       for (int k=0; k<10; k++) {
         DataAbstract::ValueType::value_type* sampleData = data10.getSampleData(sampleNo);
-        assert(sampleData[0]==std::sqrt(3.0));
+        assert(std::abs(sampleData[0]-std::sqrt(3.0))<REL_TOL*std::abs(std::sqrt(3.0)));
         sampleNo++;
       }
     }
@@ -1186,7 +1186,7 @@ void BruceTestCase::testSetToSizefun() {
   for (int i=0; i<9; i++) {
     for (int j=0; j<9; j++) {
       DataAbstract::ValueType::value_type* sampleData = data6.getSampleData(sampleNo);
-      assert(sampleData[0]==std::sqrt(2.0));
+      assert(std::abs(sampleData[0]-std::sqrt(2.0))<REL_TOL*std::abs(std::sqrt(2.0)));
       sampleNo++;
     }
   }
@@ -1230,7 +1230,7 @@ void BruceTestCase::testSetToSizefun() {
   for (int i=0; i<9; i++) {
     for (int j=0; j<9; j++) {
       DataAbstract::ValueType::value_type* sampleData = data9.getSampleData(sampleNo);
-      assert(sampleData[0]==std::sqrt(2.0));
+      assert(std::abs(sampleData[0]-std::sqrt(2.0))<REL_TOL*std::abs(std::sqrt(2.0)));
       sampleNo++;
     }
   }
@@ -1250,7 +1250,7 @@ void BruceTestCase::testSetToSizefun() {
     for (int j=0; j<9; j++) {
       for (int k=0; k<9; k++) {
         DataAbstract::ValueType::value_type* sampleData = data10.getSampleData(sampleNo);
-        assert(sampleData[0]==std::sqrt(3.0));
+        assert(std::abs(sampleData[0]-std::sqrt(3.0))<REL_TOL*std::abs(std::sqrt(3.0)));
         sampleNo++;
       }
     }

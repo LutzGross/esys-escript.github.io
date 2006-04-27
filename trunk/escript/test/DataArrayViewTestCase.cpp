@@ -1751,7 +1751,7 @@ void DataArrayViewTestCase::testUnaryOp()
 
       // check the results
       tmp = std::sin((double)p);
-      assert(std::abs(dataView()-tmp)<1.e-10);
+      assert(std::abs(dataView()-tmp)<=REL_TOL*std::abs(tmp));
 
       if (p<npoints-1) {
         dataView.incrOffset();
@@ -1793,7 +1793,7 @@ void DataArrayViewTestCase::testUnaryOp()
       // check the results
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
-          assert(std::abs(dataView(i,j)-std::sqrt((double)dataView.index(i,j)))<1.e-10);
+          assert(std::abs(dataView(i,j)-std::sqrt((double)dataView.index(i,j)))<=REL_TOL*std::sqrt((double)dataView.index(i,j)));
         }
       }
 
@@ -1831,7 +1831,7 @@ void DataArrayViewTestCase::testUnaryOp()
         for (int j=0;j<shape[1];j++) {
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
-              dataView(i,j,k,l)=dataView.index(i,j,k,l);
+              dataView(i,j,k,l)=dataView.index(i,j,k,l)+1;
             }
           }
         }
@@ -1845,7 +1845,7 @@ void DataArrayViewTestCase::testUnaryOp()
         for (int j=0;j<shape[1];j++) {
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
-              assert(std::abs(dataView(i,j,k,l)-std::log((double)dataView.index(i,j,k,l)))<1.e-10);
+              assert(std::abs(dataView(i,j,k,l)-std::log(1+(double)dataView.index(i,j,k,l)))<=REL_TOL*std::abs(std::log(1+(double)dataView.index(i,j,k,l))));
             }
           }
         }
@@ -2082,7 +2082,7 @@ void DataArrayViewTestCase::testBinaryOp()
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
           tmp=5.8*dataView.index(i,j);
-          assert(dataView(i,j)==tmp);
+          assert(std::abs(dataView(i,j)-tmp)<=REL_TOL*std::abs(tmp));
         }
       }
 
@@ -2136,7 +2136,7 @@ void DataArrayViewTestCase::testBinaryOp()
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
               tmp=5.4*dataView.index(i,j,k,l);
-              assert(dataView(i,j,k,l)==tmp);
+              assert(std::abs(dataView(i,j,k,l)-tmp)<=REL_TOL*std::abs(tmp));
             }
           }
         }
@@ -2179,7 +2179,7 @@ void DataArrayViewTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMax fmax_func;
-      assert(dataView.reductionOp(fmax_func,numeric_limits<double>::max()*-1)==p);
+      assert(std::abs(dataView.reductionOp(fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
 
       if (p<npoints-1) {
         dataView.incrOffset();
@@ -2217,7 +2217,7 @@ void DataArrayViewTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMin fmin_func;
-      assert(dataView.reductionOp(fmin_func,numeric_limits<double>::max())==dataView.index(0,0));
+      assert(std::abs(dataView.reductionOp(fmin_func,numeric_limits<double>::max())-dataView.index(0,0))<=REL_TOL*std::abs(dataView.index(0,0)));
 
       if (p<npoints-1) {
         dataView.incrOffset();
