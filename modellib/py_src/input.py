@@ -13,17 +13,16 @@ from math import log
 class Sequencer(Model):
     """
     Runs through time until t_end is reached.
+    @cvar t_end: - model is terminated when t_end is passed  (exposed in writeXML)
+    @type t_end: float
+    @cvar dt_max: - maximum time step size 
+    @type dt_max: float
+    @cvar t: - initial time
+    @type t: float
+
     """
     def __init__(self,debug=False):
         """
-        @param t_end: - model is terminated when t_end is passed  
-                   (exposed in writeXML)
-        @type t_end: float
-        @param dt_max: - maximum time step size 
-        @type dt_max: float
-        @param t: - initial time
-        @type t: float
-
         """
         super(Sequencer,self).__init__(debug=debug)
         self.declareParameter(t=0.,

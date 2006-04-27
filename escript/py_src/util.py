@@ -34,7 +34,7 @@ def saveVTK(filename,domain=None,**data):
     """
     writes a L{Data} objects into a files using the the VTK XML file format.
 
-    Example:
+    Example::
 
        tmp=Scalar(..)
        v=Vector(..)
@@ -62,7 +62,7 @@ def saveDX(filename,domain=None,**data):
     """
     writes a L{Data} objects into a files using the the DX file format.
 
-    Example:
+    Example::
 
        tmp=Scalar(..)
        v=Vector(..)
@@ -93,7 +93,7 @@ def kronecker(d=3):
    @param d: dimension or an object that has the C{getDim} method defining the dimension
    @type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
    @return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0} otherwise
-   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 2.
+   @rtype: L{numarray.NumArray} or L{escript.Data} of rank 2.
    """
    return identityTensor(d)
 
@@ -129,7 +129,7 @@ def identityTensor(d=3):
    @param d: dimension or an object that has the C{getDim} method defining the dimension
    @type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
    @return: the object u of rank 2 with M{u[i,j]=1} for M{i=j} and M{u[i,j]=0} otherwise
-   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 2
+   @rtype: L{numarray.NumArray} or L{escript.Data} of rank 2
    """
    if isinstance(d,escript.FunctionSpace):
        return escript.Data(identity((d.getDim(),)),d)
@@ -145,7 +145,7 @@ def identityTensor4(d=3):
    @param d: dimension or an object that has the C{getDim} method defining the dimension
    @type d: C{int} or any object with a C{getDim} method
    @return: the object u of rank 4 with M{u[i,j,k,l]=1} for M{i=k and j=l} and M{u[i,j,k,l]=0} otherwise
-   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 4.
+   @rtype: L{numarray.NumArray} or L{escript.Data} of rank 4.
    """
    if isinstance(d,escript.FunctionSpace):
        return escript.Data(identity((d.getDim(),d.getDim())),d)
@@ -163,7 +163,7 @@ def unitVector(i=0,d=3):
    @param d: dimension or an object that has the C{getDim} method defining the dimension
    @type d: C{int}, L{escript.Domain} or L{escript.FunctionSpace}
    @return: the object u of rank 1 with M{u[j]=1} for M{j=i} and M{u[i]=0} otherwise
-   @rtype d: L{numarray.NumArray} or L{escript.Data} of rank 1
+   @rtype: L{numarray.NumArray} or L{escript.Data} of rank 1
    """
    return kronecker(d)[i]
 
@@ -219,7 +219,7 @@ def inf(arg):
 
     @param arg: argument
     @type arg: C{float}, C{int}, L{escript.Data}, L{numarray.NumArray}.
-    @return : minimum value of arg over all components and all data points
+    @return: minimum value of arg over all components and all data points
     @rtype: C{float}
     @raise TypeError: if type of arg cannot be processed
     """
@@ -308,7 +308,7 @@ def commonDim(*args):
     """
     identifies, if possible, the spatial dimension across a set of objects which may or my not have a spatial dimension.
 
-    @param *args: given objects
+    @param args: given objects
     @return: the spatial dimension of the objects with identifiable dimension (see L{pokeDim}). If none the objects has 
              a spatial dimension C{None} is returned.
     @rtype: C{int} or C{None}
@@ -330,8 +330,8 @@ def testForZero(arg):
 
     @param arg: a given object 
     @type arg: typically L{numarray.NumArray},L{escript.Data},C{float}, C{int}
-    @return : True if the argument is identical to zero.
-    @rtype : C{bool}
+    @return: True if the argument is identical to zero.
+    @rtype: C{bool}
     """
     if isinstance(arg,numarray.NumArray):
        return not Lsup(arg)>0.
@@ -434,14 +434,14 @@ def matchType(arg0=0.,arg1=0.):
 
 def matchShape(arg0,arg1):
     """
-    
+    return representations of arg0 amd arg1 which ahve the same shape
 
-    If shape is not given the shape "largest" shape of args is used.
-
-    @param args: a given ob
-    @type arg: typically L{numarray.NumArray},L{escript.Data},C{float}, C{int}
-    @return: True if the argument is identical to zero.
-    @rtype: C{list} of C{int}
+    @param arg0: a given object
+    @type arg0: L{numarray.NumArray},L{escript.Data},C{float}, C{int}, L{Symbol}
+    @param arg1: a given object
+    @type arg1: L{numarray.NumArray},L{escript.Data},C{float}, C{int}, L{Symbol}
+    @return: arg0 and arg1 where copies are returned when the shape has to be changed.
+    @rtype: C{tuple}
     """
     sh=commonShape(arg0,arg1)
     sh0=pokeShape(arg0)
@@ -469,8 +469,8 @@ class Symbol(object):
        Creates an instance of a symbol of a given shape. The symbol may depending on a list of arguments args which may be
        symbols or any other object.
 
-       @param arg: the arguments of the symbol.
-       @type arg: C{list}
+       @param args: the arguments of the symbol.
+       @type args: C{list}
        @param shape: the shape 
        @type shape: C{tuple} of C{int}
        @param dim: spatial dimension of the symbol. If dim=C{None} the spatial dimension is undefined.  
@@ -513,7 +513,7 @@ class Symbol(object):
        """
        the shape of the symbol.
 
-       @return : the shape of the symbol. 
+       @return: the shape of the symbol. 
        @rtype: C{tuple} of C{int}
        """
        return self.__shape
@@ -522,7 +522,7 @@ class Symbol(object):
        """
        the spatial dimension
 
-       @return : the spatial dimension
+       @return: the spatial dimension
        @rtype: C{int} if the dimension is defined. Otherwise C{None} is returned.
        """
        return self.__dim
@@ -546,10 +546,10 @@ class Symbol(object):
        """
        substitutes symbols in the arguments of this object and returns the result as a list.
 
-       @param argvals: L{Symbols} and their substitutes. The L{Symbol} u in the expression defining this object is replaced by argvals[u]. 
+       @param argvals: L{Symbol} and their substitutes. The L{Symbol} u in the expression defining this object is replaced by argvals[u]. 
        @type argvals: C{dict} with keywords of type L{Symbol}.
        @rtype: C{list} of objects
-       @return: list of the object assigned to the arguments through substitution or for the arguments which are not L{Symbols} the value assigned to the argument at instantiation.
+       @return: list of the object assigned to the arguments through substitution or for the arguments which are not L{Symbol} the value assigned to the argument at instantiation.
        """
        out=[]
        for a in self.getArgument():
@@ -673,7 +673,7 @@ class Symbol(object):
        """
        returns -self.
 
-       @return:  a S{Symbol} representing the negative of the object
+       @return:  a L{Symbol} representing the negative of the object
        @rtype: L{DependendSymbol}
        """
        return self*(-1.)
@@ -682,14 +682,14 @@ class Symbol(object):
        """
        returns +self.
 
-       @return:  a S{Symbol} representing the positive of the object
+       @return:  a L{Symbol} representing the positive of the object
        @rtype: L{DependendSymbol}
        """
        return self*(1.)
 
    def __abs__(self):
        """
-       returns a S{Symbol} representing the absolute value of the object.
+       returns a L{Symbol} representing the absolute value of the object.
        """
        return Abs_Symbol(self)
 
@@ -699,7 +699,7 @@ class Symbol(object):
 
        @param other: object to be added to this object
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return:  a S{Symbol} representing the sum of this object and C{other}
+       @return:  a L{Symbol} representing the sum of this object and C{other}
        @rtype: L{DependendSymbol}
        """
        return add(self,other)
@@ -710,7 +710,7 @@ class Symbol(object):
 
        @param other: object this object is added to
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the sum of C{other} and this object object
+       @return: a L{Symbol} representing the sum of C{other} and this object object
        @rtype: L{DependendSymbol}
        """
        return add(other,self)
@@ -721,7 +721,7 @@ class Symbol(object):
 
        @param other: object to be subtracted from this object
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the difference of C{other} and this object 
+       @return: a L{Symbol} representing the difference of C{other} and this object 
        @rtype: L{DependendSymbol}
        """
        return add(self,-other)
@@ -732,7 +732,7 @@ class Symbol(object):
 
        @param other: object this object is been subtracted from
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the difference of this object and C{other}.
+       @return: a L{Symbol} representing the difference of this object and C{other}.
        @rtype: L{DependendSymbol}
        """
        return add(-self,other)
@@ -743,7 +743,7 @@ class Symbol(object):
 
        @param other: object to be mutiplied by this object
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the product of the object and C{other}.
+       @return: a L{Symbol} representing the product of the object and C{other}.
        @rtype: L{DependendSymbol} or 0 if other is identical to zero.
        """
        return mult(self,other)
@@ -754,7 +754,7 @@ class Symbol(object):
 
        @param other: object this object is multiplied with
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the product of C{other} and the object.
+       @return: a L{Symbol} representing the product of C{other} and the object.
        @rtype: L{DependendSymbol} or 0 if other is identical to zero.
        """
        return mult(other,self)
@@ -765,7 +765,7 @@ class Symbol(object):
 
        @param other: object dividing this object
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the quotient of this object and C{other}
+       @return: a L{Symbol} representing the quotient of this object and C{other}
        @rtype: L{DependendSymbol} 
        """
        return quotient(self,other)
@@ -776,7 +776,7 @@ class Symbol(object):
 
        @param other: object dividing this object
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the quotient of C{other} and this object
+       @return: a L{Symbol} representing the quotient of C{other} and this object
        @rtype: L{DependendSymbol} or 0 if C{other} is identical to zero.
        """
        return quotient(other,self)
@@ -787,7 +787,7 @@ class Symbol(object):
 
        @param other: exponent
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the power of this object to C{other}
+       @return: a L{Symbol} representing the power of this object to C{other}
        @rtype: L{DependendSymbol} or 1 if C{other} is identical to zero.
        """
        return power(self,other)
@@ -798,7 +798,7 @@ class Symbol(object):
 
        @param other: basis 
        @type other: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @return: a S{Symbol} representing the power of C{other} to this object
+       @return: a L{Symbol} representing the power of C{other} to this object
        @rtype: L{DependendSymbol} or 0 if C{other} is identical to zero.
        """
        return power(other,self)
@@ -809,7 +809,7 @@ class Symbol(object):
 
        @param index: defines a 
        @type index: C{slice} or C{int} or a C{tuple} of them
-       @return: a S{Symbol} representing the slice defined by index
+       @return: a L{Symbol} representing the slice defined by index
        @rtype: L{DependendSymbol}
        """
        return GetSlice_Symbol(self,index)
@@ -819,20 +819,20 @@ class DependendSymbol(Symbol):
    DependendSymbol extents L{Symbol} by modifying the == operator to allow two instances to be equal. 
    Two DependendSymbol are equal if they have the same shape, the same arguments and one of them has an unspecified spatial dimension or the spatial dimension is identical  
    
-   Example: 
+   Example::
    
-   u1=Symbol(shape=(3,4),dim=2,args=[4.])
-   u2=Symbol(shape=(3,4),dim=2,args=[4.])
-   print u1==u2
-   False
+     u1=Symbol(shape=(3,4),dim=2,args=[4.])
+     u2=Symbol(shape=(3,4),dim=2,args=[4.])
+     print u1==u2
+     False
    
-      but   
+   but::
 
-   u1=DependendSymbol(shape=(3,4),dim=2,args=[4.])
-   u2=DependendSymbol(shape=(3,4),dim=2,args=[4.])
-   u3=DependendSymbol(shape=(2,),dim=2,args=[4.])   
-   print u1==u2, u1==u3
-   True False
+     u1=DependendSymbol(shape=(3,4),dim=2,args=[4.])
+     u2=DependendSymbol(shape=(3,4),dim=2,args=[4.])
+     u3=DependendSymbol(shape=(2,),dim=2,args=[4.])   
+     print u1==u2, u1==u3
+     True False
 
    @note: DependendSymbol should be used as return value of functions with L{Symbol} arguments. This will allow the optimizer to remove redundant function calls. 
    """
@@ -922,7 +922,7 @@ class GetSlice_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "%s.__getitem__(%s)"%(argstrs[0],argstrs[1])
@@ -958,7 +958,7 @@ def log10(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -980,7 +980,7 @@ def wherePositive(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1026,7 +1026,7 @@ class WherePositive_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1062,7 +1062,7 @@ def whereNegative(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1108,7 +1108,7 @@ class WhereNegative_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1144,7 +1144,7 @@ def whereNonNegative(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1174,7 +1174,7 @@ def whereNonPositive(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1206,7 +1206,7 @@ def whereZero(arg,tol=0.):
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
    @param tol: tolerance. values with absolute value less then tol are accepted as zero.
    @type tol: C{float}
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1252,7 +1252,7 @@ class WhereZero_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "whereZero(%s,tol=%s)"%(argstrs[0],argstrs[1])
@@ -1286,7 +1286,7 @@ def whereNonZero(arg,tol=0.):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1316,7 +1316,7 @@ def sin(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1354,7 +1354,7 @@ class Sin_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1406,7 +1406,7 @@ def cos(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1444,7 +1444,7 @@ class Cos_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1496,7 +1496,7 @@ def tan(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1534,7 +1534,7 @@ class Tan_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1586,7 +1586,7 @@ def asin(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1624,7 +1624,7 @@ class Asin_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1676,7 +1676,7 @@ def acos(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1714,7 +1714,7 @@ class Acos_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1766,7 +1766,7 @@ def atan(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1804,7 +1804,7 @@ class Atan_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1856,7 +1856,7 @@ def sinh(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1894,7 +1894,7 @@ class Sinh_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -1946,7 +1946,7 @@ def cosh(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -1984,7 +1984,7 @@ class Cosh_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2036,7 +2036,7 @@ def tanh(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2074,7 +2074,7 @@ class Tanh_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2126,7 +2126,7 @@ def asinh(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2164,7 +2164,7 @@ class Asinh_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2216,7 +2216,7 @@ def acosh(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2254,7 +2254,7 @@ class Acosh_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2306,7 +2306,7 @@ def atanh(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2344,7 +2344,7 @@ class Atanh_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2396,7 +2396,7 @@ def exp(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2434,7 +2434,7 @@ class Exp_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2486,7 +2486,7 @@ def sqrt(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2524,7 +2524,7 @@ class Sqrt_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2576,7 +2576,7 @@ def log(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2614,7 +2614,7 @@ class Log_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2666,7 +2666,7 @@ def sign(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2714,7 +2714,7 @@ class Abs_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2766,7 +2766,7 @@ def minval(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2807,7 +2807,7 @@ class Minval_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2843,7 +2843,7 @@ def maxval(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
    @raises TypeError: if the type of the argument is not expected.
    """
    if isinstance(arg,numarray.NumArray):
@@ -2884,7 +2884,7 @@ class Maxval_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if isinstance(argstrs,list):
           argstrs=argstrs[0]
@@ -2920,7 +2920,7 @@ def length(arg):
 
    @param arg: argument
    @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @rtype:C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
+   @rtype: C{float}, L{escript.Data}, L{Symbol} depending on the type of arg.
    """
    return sqrt(inner(arg,arg))
 
@@ -3037,7 +3037,7 @@ class Trace_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "trace(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
@@ -3185,7 +3185,7 @@ class Transpose_Symbol(DependendSymbol):
 
       @param arg: argument of function
       @type arg: L{Symbol}.
-       @param axis_offset: the first axis_offset components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
+      @param axis_offset: the first axis_offset components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
                        if axis_offset is not present C{int(r/2)} where r is the rank of arg is used.
       @type axis_offset: C{int}
       """
@@ -3205,7 +3205,7 @@ class Transpose_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "transpose(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
@@ -3373,7 +3373,7 @@ def inverse(arg):
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
     @return: inverse arg_inv of the argument. It will be matrixmul(inverse(arg),arg) almost equal to kronecker(arg.getShape()[0])
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
-    @remark: for L{escript.Data} objects the dimension is restricted to 3.
+    @note: for L{escript.Data} objects the dimension is restricted to 3.
     """
     import numarray.linear_algebra # This statement should be after the next statement but then somehow numarray is gone.
     if isinstance(arg,numarray.NumArray):
@@ -3468,7 +3468,7 @@ class Inverse_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "inverse(%s)"%argstrs[0]
@@ -3519,7 +3519,7 @@ def eigenvalues(arg):
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
     @return: the eigenvalues in increasing order.
     @rtype: L{numarray.NumArray},L{escript.Data}, L{Symbol} depending on the input.
-    @remark: for L{escript.Data} and L{Symbol} objects the dimension is restricted to 3.
+    @note: for L{escript.Data} and L{Symbol} objects the dimension is restricted to 3.
     """
     if isinstance(arg,numarray.NumArray):
       out=numarray.linear_algebra.eigenvalues((arg+numarray.transpose(arg))/2.)
@@ -3589,7 +3589,7 @@ def eigenvalues_and_eigenvectors(arg):
              eigenvectors are orthogonal and normalized. If V are the eigenvectors than V[:,i] is
              the eigenvector coresponding to the i-th eigenvalue. 
     @rtype: L{tuple} of L{escript.Data}.
-    @remark: The dimension is restricted to 3. 
+    @note: The dimension is restricted to 3. 
     """
     if isinstance(arg,numarray.NumArray):
       raise TypeError,"eigenvalues_and_eigenvectors is not supporting numarray arguments"
@@ -3662,7 +3662,7 @@ class Add_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="str" or format=="text":
          return "(%s)+(%s)"%(argstrs[0],argstrs[1])
@@ -3761,7 +3761,7 @@ class Mult_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="str" or format=="text":
          return "(%s)*(%s)"%(argstrs[0],argstrs[1])
@@ -3866,7 +3866,7 @@ class Quotient_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="str" or format=="text":
          return "(%s)/(%s)"%(argstrs[0],argstrs[1])
@@ -3970,7 +3970,7 @@ class Power_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str" or format=="text":
          return "(%s)**(%s)"%(argstrs[0],argstrs[1])
@@ -4059,9 +4059,9 @@ def clip(arg,minval=0.,maxval=1.):
     @param arg: argument
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
     @param minval: lower range 
-    @type arg: C{float}
+    @type minval: C{float}
     @param maxval: upper range 
-    @type arg: C{float}
+    @type maxval: C{float}
     @return: is on object with all its value between minval and maxval. value of the argument that greater then minval and
              less then maxval are unchanged.
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float} depending on the input
@@ -4086,7 +4086,7 @@ def inner(arg0,arg1):
     @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
     @param arg1: second argument 
     @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
-    @return : the inner product of arg0 and arg1 at each data point
+    @return: the inner product of arg0 and arg1 at each data point
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float} depending on the input
     @raise ValueError: if the shapes of the arguments are not identical
     """
@@ -4102,7 +4102,7 @@ def matrixmult(arg0,arg1):
  
     out[s0]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0] 
 
-          or 
+    or 
 
     out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0,s1] 
  
@@ -4130,8 +4130,10 @@ def outer(arg0,arg1):
  
     out[t,s]=arg0[t]*arg1[s]
 
-    where s runs through arg0.Shape
-          t runs through arg1.Shape
+    where 
+
+        - s runs through arg0.Shape
+        - t runs through arg1.Shape
 
     @param arg0: first argument 
     @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
@@ -4146,13 +4148,12 @@ def outer(arg0,arg1):
 def tensormult(arg0,arg1):
     """
     the tensor product of the two argument:
-
     
     for arg0 of rank 2 this is
  
     out[s0]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0]  
 
-                 or 
+    or 
 
     out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0,s1] 
 
@@ -4161,11 +4162,11 @@ def tensormult(arg0,arg1):
 
     out[s0,s1,s2,s3]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2,s3] 
               
-                 or
+    or
 
     out[s0,s1,s2]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2] 
  
-                 or 
+    or 
 
     out[s0,s1]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1] 
 
@@ -4194,9 +4195,11 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
 
     out[s,t]=S{Sigma}_r arg0[s,r]*arg1[r,t]
 
-    where s runs through arg0.Shape[:arg0.Rank-axis_offset]
-          r runs trough arg0.Shape[:axis_offset]
-          t runs through arg1.Shape[axis_offset:]
+    where
+
+        - s runs through arg0.Shape[:arg0.Rank-axis_offset]
+        - r runs trough arg0.Shape[:axis_offset]
+        - t runs through arg1.Shape[axis_offset:]
 
     In the first case the the second dimension of arg0 and the length of arg1 must match and  
     in the second case the two last dimensions of arg0 must match the shape of arg1.
@@ -4275,7 +4278,7 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str" or format=="text":
          return "generalTensorProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
@@ -4366,7 +4369,7 @@ def grad(arg,where=None):
                   If not present or C{None} an appropriate default is used. 
     @type where: C{None} or L{escript.FunctionSpace} 
     @return: gradient of arg. 
-    @rtype:  L{escript.Data} or L{Symbol}
+    @rtype: L{escript.Data} or L{Symbol}
     """
     if isinstance(arg,Symbol):
        return Grad_Symbol(arg,where)
@@ -4406,7 +4409,7 @@ class Grad_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "grad(%s,where=%s)"%(argstrs[0],argstrs[1])
@@ -4459,7 +4462,7 @@ def integrate(arg,where=None):
                   If not present or C{None} an appropriate default is used.
     @type where: C{None} or L{escript.FunctionSpace} 
     @return: integral of arg. 
-    @rtype:  C{float}, C{numarray.NumArray} or L{Symbol}
+    @rtype: C{float}, C{numarray.NumArray} or L{Symbol}
     """
     if isinstance(arg,Symbol):
        return Integrate_Symbol(arg,where)
@@ -4497,7 +4500,7 @@ class Integrate_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "integrate(%s,where=%s)"%(argstrs[0],argstrs[1])
@@ -4549,7 +4552,7 @@ def interpolate(arg,where):
     @param where: FunctionSpace to be interpolated to
     @type where: L{escript.FunctionSpace} 
     @return: interpolated argument
-    @rtype:  C{escript.Data} or L{Symbol}
+    @rtype: C{escript.Data} or L{Symbol}
     """
     if isinstance(arg,Symbol):
        return Interpolate_Symbol(arg,where)
@@ -4580,7 +4583,7 @@ class Interpolate_Symbol(DependendSymbol):
       @type format: C{str}
       @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
       @rtype: C{str}
-      @raise: NotImplementedError: if the requested format is not available
+      @raise NotImplementedError: if the requested format is not available
       """
       if format=="escript" or format=="str"  or format=="text":
          return "interpolate(%s,where=%s)"%(argstrs[0],argstrs[1])
@@ -4633,7 +4636,7 @@ def div(arg,where=None):
                   If not present or C{None} an appropriate default is used. 
     @type where: C{None} or L{escript.FunctionSpace} 
     @return: divergence of arg. 
-    @rtype:  L{escript.Data} or L{Symbol}
+    @rtype: L{escript.Data} or L{Symbol}
     """
     if isinstance(arg,Symbol):
         dim=arg.getDim()
@@ -4655,7 +4658,7 @@ def jump(arg,domain=None):
                    the domain of arg is used. If arg is a L{Symbol} the domain must be present.
     @type domain: C{None} or L{escript.Domain} 
     @return: jump of arg 
-    @rtype:  L{escript.Data} or L{Symbol}
+    @rtype: L{escript.Data} or L{Symbol}
     """
     if domain==None: domain=arg.getDomain()
     return interpolate(arg,escript.FunctionOnContactOne(domain))-interpolate(arg,escript.FunctionOnContactZero(domain))
@@ -4667,7 +4670,7 @@ def L2(arg):
     @param arg: function which L2 to be calculated. 
     @type arg: L{escript.Data} or L{Symbol}
     @return: L2 norm of arg. 
-    @rtype:  L{float} or L{Symbol}
+    @rtype: L{float} or L{Symbol}
     @note: L2(arg) is equivalent to sqrt(integrate(inner(arg,arg)))
     """
     return sqrt(integrate(inner(arg,arg)))

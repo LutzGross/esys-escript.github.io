@@ -7,7 +7,7 @@ the PDE solver library defined through the L{Domain<escript.Domain>} of the PDE.
 The general interface is provided through the L{LinearPDE} class. The
 L{AdvectivePDE} which is derived from the L{LinearPDE} class
 provides an interface to PDE dominated by its advective terms. The L{Poisson},
-L{Helmholtz}, L{LameEquation}, L{AdvectionDiffusion}
+L{Helmholtz}, L{LameEquation}, L{AdvectivePDE}
 classs which are also derived form the L{LinearPDE} class should be used
 to define of solve these sepecial PDEs.
 
@@ -115,9 +115,9 @@ class PDECoefficient(object):
        @param domain: domain on which the PDE uses the coefficient
        @type domain: L{Domain<escript.Domain>}
        @param reducedEquationOrder: True to indicate that reduced order is used to represent the equation
-       @type domain: C{bool}
+       @type reducedEquationOrder: C{bool}
        @param reducedSolutionOrder: True to indicate that reduced order is used to represent the solution
-       @type domain: C{bool}
+       @type reducedSolutionOrder: C{bool}
        @return:  L{FunctionSpace<escript.FunctionSpace>} of the coefficient
        @rtype:  L{FunctionSpace<escript.FunctionSpace>}
        """
@@ -155,9 +155,9 @@ class PDECoefficient(object):
        @param numSolutions: number of components of the PDE solution
        @type numSolutions: C{int}
        @param reducedEquationOrder: True to indicate that reduced order is used to represent the equation
-       @type domain: C{bool}
+       @type reducedEquationOrder: C{bool}
        @param reducedSolutionOrder: True to indicate that reduced order is used to represent the solution
-       @type domain: C{bool}
+       @type reducedSolutionOrder: C{bool}
        @param newValue: number of components of the PDE solution
        @type newValue: any object that can be converted into a L{Data<escript.Data>} object with the appropriate shape and L{FunctionSpace<escript.FunctionSpace>}
        @raise IllegalCoefficientValue: if the shape of the assigned value does not match the shape of the coefficient
@@ -885,8 +885,8 @@ class LinearPDE(object):
        """
        sets a new solver package
 
-       @param solver: sets a new solver method.
-       @type solver: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMLPACK}
+       @param package: sets a new solver method.
+       @type package: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMFPACK}
        """
        if package==None: package=self.DEFAULT
        if not package==self.getSolverPackage():

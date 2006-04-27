@@ -74,13 +74,13 @@ class EllipsoidPlot(Plot):
         @param options: Dictionary of keyword options to the method
         @type options: dict
 
-	@param fname: the name of the input vtk file
+	@keyword fname: the name of the input vtk file
 	@type fname: string
 
-	@param format: the format of the input vtk file ('vtk' or 'vtk-xml')
+	@keyword format: the format of the input vtk file ('vtk' or 'vtk-xml')
 	@type format: string
 
-	@param tensors: the name of the tensor data in the vtk file to use
+	@keyword tensors: the name of the tensor data in the vtk file to use
 	@type tensors: string
         """
         debugMsg("Called setData() in EllipsoidPlot()")

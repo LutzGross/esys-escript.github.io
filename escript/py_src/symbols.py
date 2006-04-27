@@ -92,8 +92,6 @@ def Tensor4Symbol(dim=3):
 
       @param dim: spatial dimension or an object that has the C{getDim} method defining the spatial dimension.
       @type dim: C{int} or any object with a C{getDim} method
-      @param name: name of the symbol
-      @type name: C{str}
       @return: a L{Symbol} of shape (C{dim},C{dim},C{dim},C{dim}) 
       @rtype: L{Symbol} 
       """ 

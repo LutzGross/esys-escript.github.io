@@ -369,6 +369,7 @@ env.Default(pyinstall)
 env.Alias('release_src',[ src_zipfile, src_tarfile ])  
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
+env.Alias('api_epydoc',api_epydoc)
 env.Alias('docs',[ 'release_examples', guide_pdf, guide_html_index, api_epydoc])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
 env.Alias('build_tests')    # target to build all C++ tests
@@ -412,4 +413,4 @@ env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', 
 env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib', duplicate=0)
 env.SConscript(dirs = ['doc'], build_dir='build/$PLATFORM/doc', duplicate=0)
-#env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0) not part of beta.0
+env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0) 

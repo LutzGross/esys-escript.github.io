@@ -74,13 +74,13 @@ class OffsetPlot(Plot):
         @param options: Dictionary of extra options
         @type options: dict
 
-	@param fname: Filename of the input vtk file
+	@keyword fname: Filename of the input vtk file
 	@type fname: string
 
-	@param format: Format of the input vtk file ('vtk' or 'vtk-xml')
+	@keyword format: Format of the input vtk file ('vtk' or 'vtk-xml')
 	@type format: string
 
-	@param scalars: the name of the scalar data in the vtk file to use
+	@keyword scalars: the name of the scalar data in the vtk file to use
 	@type scalars: string
         """
         debugMsg("Called setData() in OffsetPlot()")
