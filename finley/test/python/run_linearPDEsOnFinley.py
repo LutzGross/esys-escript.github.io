@@ -24,8 +24,8 @@ __date__="$Date$"
 
 
 import unittest
-from esys.escript.test_linearPDEs import Test_Poisson,Test_LinearPDE
-from esys.escript.test_pdetools import Test_pdetools
+from test_linearPDEs import Test_Poisson,Test_LinearPDE
+from test_pdetools import Test_pdetools
 from esys.finley import Rectangle,Brick
 import sys
 
