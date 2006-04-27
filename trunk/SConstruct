@@ -52,6 +52,7 @@ opts.AddOptions(
   ('examples_tarfile', 'the examples tar file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.tar.gz"), 
   ('examples_zipfile', 'the examples zip file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.zip"), 
   ('guide_pdf', 'name of the user guide in pdf format', Dir('#.').abspath+"/release/doc/user/guide.pdf"), 
+  ('api_epydoc', 'name of the epydoc api docs directory',Dir('#.').abspath+"/release/doc/epydoc"), 
   ('guide_html', 'name of the directory for user guide in html format', Dir('#.').abspath+"/release/doc/user/html"), 
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
@@ -355,14 +356,20 @@ try:
 except KeyError:
    guide_html_index = None  
 
+try:
+   api_epydoc = env.Dir(env['api_epydoc'])
+except KeyError:
+   api_epydoc = None  
+
 # Zipgets
+   
 env.Default(libinstall)
 env.Default(incinstall)
 env.Default(pyinstall)
 env.Alias('release_src',[ src_zipfile, src_tarfile ])  
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
-env.Alias('docs',[ 'release_examples', guide_pdf, guide_html_index ])
+env.Alias('docs',[ 'release_examples', guide_pdf, guide_html_index, api_epydoc])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
 env.Alias('build_tests')    # target to build all C++ tests
 env.Alias('build_py_tests') # target to build all python tests
@@ -380,7 +387,7 @@ env.Command(pyinstall+'/__init__.py', None, 'touch $TARGET')
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs", 
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
-        "guide_pdf", "guide_html_index"])
+        "guide_pdf", "guide_html_index", "api_epydoc"])
 
 # End initialisation section
 # Begin configuration section

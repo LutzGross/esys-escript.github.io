@@ -29,5 +29,7 @@ for x in os.listdir(src_dir):
 env.Zip(examples_zipfile, example_files)
 env.Tar(examples_tarfile, example_files)
 
-# Call the unit tests SConscript
+# Call the doc build using SConscript
 local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)
+
+local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)

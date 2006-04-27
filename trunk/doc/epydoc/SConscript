@@ -1,34 +1,22 @@
-# Scons configuration file for epydoc docs
+# Scons configuration file for documentation
+
+#          Copyright 2006 by ACcESS MNRF                   
+#                                                          
+#              http://www.access.edu.au                    
+#       Primary Business: Queensland, Australia            
+#  Licensed under the Open Software License version 3.0    
+#     http://www.opensource.org/licenses/osl-3.0.php       
+#                                                          
+#
+#
+# builds the user's guide
+
+# command to run:
+# epydoc --html -o doc/epydoc -n esys esys > /tmp/epydoc_msgs.txt 2>&1
 
 import os
+Import('*')
 
-#
-# set appropriate defaults for configuration variables
+#local_env.PrependENVPath('PYTHONPATH',str(pyinstall))
+env.Command(api_epydoc, pyinstall,"epydoc --html -o $TARGET esys esys")
 
-esysroot=str(Dir('../..').abspath)
-execfile(str(File(esysroot+"/scons/esys_options.py")))
-
-#
-# construct the script to run epydoc
-
-runepydoc_script = open(str(File(esysroot+"/doc/epydoc/runepydoc")), 'w')
-runepydoc_script.write(str("#!/bin/bash\n"))
-runepydoc_script.write(str("export PYTHONPATH="+epydoc_pythonpath+"\n"))
-runepydoc_script.write(str(epydoc_path+"/epydoc --html -o "+esysroot+"/doc/lib/html/epydoc -n esys esys > "+esysroot+"/doc/epydoc_msgs.txt 2>&1\n"))
-runepydoc_script.close()
-
-os.chmod(str(File(esysroot+"/doc/epydoc/runepydoc")), 0700)
-
-#
-# do the actual build
-
-import scons_extensions
-
-source = 'runepydoc'
-
-epydoc_env = Environment(ENV = os.environ)
-
-runEpydoc_builder = Builder(action = scons_extensions.build_epydoc, suffix = ".run")
-epydoc_env.Append(BUILDERS = {'RunEpydoc' : runEpydoc_builder})
-
-Alias("build_docs", epydoc_env.RunEpydoc(source))
