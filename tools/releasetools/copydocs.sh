@@ -35,9 +35,13 @@ cd $HOME/src/svn/esys13/trunk/
 scons docs
 
 # copy the docs to the webserver
-cd $HOME/src/svn/esys13/trunk/doc/
+cd $HOME/src/svn/esys13/trunk/release/doc
 echo "Copying python docs to the webserver" > /tmp/scp_msgs.txt 2>&1
 scp -r epydoc/* shake200:/home/www/esys/esys13/release/epydoc >> /tmp/scp_msgs.txt 2>&1
+echo "Copying user guide (pdf/html) to the webserver" >> /tmp/scp_msgs.txt 2>&1
+scp -r user/html/* shake200:/home/www/esys/esys13/release/user/html >> /tmp/scp_msgs.txt 2>&1
+scp user/guide.pdf shake200:/home/www/esys/esys13/release/user >> /tmp/scp_msgs.txt 2>&1
+
 #echo "Copying C++ docs to the webserver" >> /tmp/scp_msgs.txt 2>&1
 #scp -i ~/.cron-ess-rsync-key -r doxygen/ shake200:/home/www/esys/ >> /tmp/scp_msgs.txt 2>&1
 
