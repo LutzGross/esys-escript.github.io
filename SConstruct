@@ -87,9 +87,8 @@ opts.AddOptions(
   PathOption('boost_lib_path', 'Path to Boost libs', '/usr/lib'), 
   ('boost_lib', 'Boost libraries to link with', ['boost_python',]),
 # Doc building
-  PathOption('doxygen_path', 'Path to Doxygen executable', None), 
-  PathOption('epydoc_path', 'Path to Epydoc executable', None), 
-  PathOption('epydoc_pythonpath', 'Path to Epydoc python files', None), 
+#  PathOption('doxygen_path', 'Path to Doxygen executable', None), 
+#  PathOption('epydoc_path', 'Path to Epydoc executable', None), 
 # PAPI
   PathOption('papi_path', 'Path to PAPI includes', None), 
   PathOption('papi_lib_path', 'Path to PAPI libs', None), 
@@ -301,10 +300,6 @@ try:
 except KeyError:
    epydoc_path = None  
 try:
-   epydoc_pythonpath = env['epydoc_pythonpath']
-except KeyError:
-   epydoc_pythonpath = None  
-try:
    includes = env['papi_path']
    env.Append(CPPPATH = [includes,])
 except KeyError:
@@ -386,7 +381,7 @@ env.Command(pyinstall+'/__init__.py', None, 'touch $TARGET')
 
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
-	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "epydoc_pythonpath", "papi_libs", 
+	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs", 
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc"])
 
