@@ -22,7 +22,7 @@ Australia \\
 Email: \email{esys@access.edu.au}
 }                                                                                         
 \date{\today}      
-\release{$Revision: 625 $}
+\release{$Revision$}
 \setreleaseinfo{Beta} 
 \setshortversion{}
 
@@ -36,8 +36,16 @@ Email: \email{esys@access.edu.au}
 \input{copyrights}
 
 \begin{abstract}
-This document is a guide of how to use the \escript software and
-associated tools.
+\escript is a python based environment for implementing mathematical models in particular those based on coupled, non-linear, time-dependend patial differential equation.
+
+It consists of four major components
+\begin{itemize}
+\item escript core library
+\item finite element solver finley (including the linear solver library paso)
+\item model library modellib
+\item visualization interface pyvisi
+\end{itemize}
+The current version supports parallelization through OpenMP for distributed shared memory. 
 \end{abstract}
 
 \tableofcontents
