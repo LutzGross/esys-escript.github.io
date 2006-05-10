@@ -1,0 +1,114 @@
+/* $Id: pyvisi_banner.css,v 1.4 2005/01/19 03:43:36 paultcochrane Exp $ */
+
+/*
+
+  Style sheet for the navigation banner at the top of the page.
+  It is assumed the banner looks somewhat like this:
+
+  <div class="banner">
+    <p>
+      <a href="../"><img alt="W3C" src="../Icons/w3c_home"></a>
+      <a href="Consortium/Activities">Activities</a>
+      <a href="TR/">Tech.&nbsp;Reports</a>
+      <a href="Consortium/Translation/">Translations</a>
+      <a href="Status">Software</a>
+      <a href="Help/siteindex">Site&nbsp;index</a>
+      <a href="Consortium/">About</a>
+      <a href="Consortium/Contact">Contact</a>
+      <a href="http://search.w3.org/Public/">Search</a>
+    </p>
+  </div>
+
+  I.e., a DIV.banner with a P with a small logo and a couple of
+  A elements.
+
+  Copyright © 2003 W3C® (MIT, ERCIM, Keio). All Rights Reserved.
+  See http://www.w3.org/Consortium/Legal/ipr-notice.html#Copyright
+
+  Author: Bert Bos <bert@w3.org>
+  Created: 26 July 2000
+  Version: $Id: pyvisi_banner.css,v 1.4 2005/01/19 03:43:36 paultcochrane Exp $
+
+  Modified by: Paul Cochrane <cochrane@physics.uq.edu.au>
+  Date: 10 Nov 2003
+
+*/
+
+body { font-family: Arial, Helvetica, sans-serif }
+
+body div.banner { display: block } /* Overrides 'none' in banner-*.css */
+
+.logo { display: none }		/* No need for two W3C icons */
+
+div.banner {
+  margin: 0;
+  font-size: 100% /*smaller*/;
+  font-weight: bold;
+  line-height: 1.1;
+  text-align: center;
+  position: absolute;		/* Fallback if 'fixed' is not supported */
+  top: 10px;
+  left: 10px;
+  width: 180px;
+  right: auto;
+}
+/* WinIE6 gets confused by 'fixed', so hide it.
+   Selector trick courtesy of Johannes Koch, see
+   http://pixels.pixelpark.com/~koch/hide_css_from_browsers/
+*/
+/*div.endmatter>div.banner {
+  position: fixed;	*/	/* Overrides 'absolute' above */  /* but doesn't work!! */
+/*}*/
+body>div.banner { position: fixed }
+
+div.banner p {
+  margin: 0;
+  padding: 0.3em 0.4em;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #005099;          /* Override according to type of page */
+  border: thin outset #a39ac6;	/* Override this color together with bg */
+  color: white;
+}
+
+/*
+div.banner a { display: block; margin: 0 0.5em }
+div.banner a + a { border-top: 2px groove #999 }
+*/
+div.banner a, div.banner em { display: block; margin: 3px }
+div.banner a, div.banner em { border: 2px outset #a39ac6 }
+div.banner #hbar { border: none }
+/* div.banner a:first-child { border-top: none } */
+div.banner em { color: #CFC }
+
+div.banner a:link { text-decoration: none; color: white }
+div.banner a:active { border: 2px inset #a39ac6 }
+div.banner a:visited { text-decoration: none; color: #a39ac6 }
+div.banner a:hover { 
+                     background: #2d2e7e; 
+                     color: white;
+}
+
+div.banner img { 
+    float: none; 
+    vertical-align: middle;
+    border: none;
+}
+
+/*
+div.banner p:after {
+  content: "Navigate";
+  font-weight: normal;
+  display: block;
+  width: 6em;
+  margin-bottom: -1.6em;
+  margin-top: 0.2em;
+  margin-right: auto;
+  margin-left: auto;
+  background: #FF6;
+  color: #037;
+  border: thin solid #005A9C;
+  text-align: center;
+  padding: 0.15em;
+}
+*/
+
