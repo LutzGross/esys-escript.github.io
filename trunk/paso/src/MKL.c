@@ -134,7 +134,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
                 &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                 iparm, &msglvl, in, out, &error);
            if (error != MKL_ERROR_NO) {
-             Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed.");
+             Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
              Paso_MKL_free(A);
            }
            if (options->verbose) printf("timing MKL: LDU factorization: %.4e sec.\n",Paso_timer()-time0);
@@ -149,7 +149,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
                  iparm, &msglvl, in, out, &error);
         if (options->verbose) printf("timing MKL: solve: %.4e sec\n",Paso_timer()-time0);
         if (error != MKL_ERROR_NO) {
-              Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed.");
+              Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed. Most likely the matrix is singular.");
         }
      }
      Performance_stopMonitor(pp,PERFORMANCE_ALL);

@@ -890,7 +890,7 @@ class LinearPDE(object):
        """
        if package==None: package=self.DEFAULT
        if not package==self.getSolverPackage():
-           self.__solver_method=solver
+           self.__solver_package=package
            self.__checkMatrixType()
            self.trace("New solver is %s"%self.getSolverMethodName())
 

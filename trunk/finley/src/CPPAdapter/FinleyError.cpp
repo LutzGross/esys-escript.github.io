@@ -13,6 +13,7 @@
 */
 
 #include "FinleyError.h"
+#include <iostream>
 
 namespace finley {
 
