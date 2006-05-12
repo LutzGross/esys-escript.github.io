@@ -22,7 +22,8 @@ extern "C" {
 #include "MeshAdapterFactory.h"
 #include "SystemMatrixAdapter.h"
 
-#include "esysUtils/EsysException.h"
+#include "FinleyAdapterException.h"
+// #include "esysUtils/EsysException.h"
 #include "esysUtils/esysExceptionTranslator.h"
 
 #include "escript/AbstractContinuousDomain.h"
@@ -126,7 +127,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("tolerance")=std::numeric_limits<double>::epsilon()),
       return_value_policy<manage_new_object>());
 
-  register_exception_translator<esysUtils::EsysException>(&esysUtils::esysExceptionTranslator);
+  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
   class_<finley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
       ("MeshAdapter",init<optional <Finley_Mesh*> >())

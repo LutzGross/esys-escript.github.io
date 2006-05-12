@@ -58,13 +58,13 @@ void Paso_solve(Paso_SystemMatrix* A,
 
         case PASO_PASO:
           Paso_Solver(A,out,in,options,&pp);
-          if (Paso_noError()) A->solver_package=PASO_PASO;
+          A->solver_package=PASO_PASO;
           break;
 
         #ifdef SCSL
         case PASO_SCSL:
           Paso_SCSL(A,out,in,options,&pp);
-          if (Paso_noError()) A->solver_package=PASO_SCSL;
+          A->solver_package=PASO_SCSL;
           break;
         #endif
 
@@ -72,14 +72,14 @@ void Paso_solve(Paso_SystemMatrix* A,
         #ifdef MKL
         case PASO_MKL:
           Paso_MKL(A,out,in,options,&pp);
-          if (Paso_noError()) A->solver_package=PASO_MKL;
+          A->solver_package=PASO_MKL;
           break;
         #endif
 
 /*
         case PASO_UMFPACK:
           Paso_UMFPACK(A,out,in,options);
-          if (Paso_noError()) A->solver_package=PASO_UMFPACK;
+          A->solver_package=PASO_UMFPACK;
           break;
 */
 
@@ -95,6 +95,7 @@ void Paso_solve(Paso_SystemMatrix* A,
 /*  free memory possibly resereved for a recall */
 
 void Paso_solve_free(Paso_SystemMatrix* in) { 
+
      switch(in->solver_package) {
 
         case PASO_PASO:
