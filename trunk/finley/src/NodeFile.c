@@ -29,8 +29,11 @@
 
 /*   allocates a node file to hold nodes */
 /*   use Finley_NodeFile_allocTable to allocate the node table (Id,Coordinatess). */
-
-Finley_NodeFile* Finley_NodeFile_alloc(int numDim){
+#ifdef PASO_MPI
+Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo){
+#else
+Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim){
+#endif
   Finley_NodeFile *out;
   
   /*  allocate the return value */
@@ -48,6 +51,10 @@ Finley_NodeFile* Finley_NodeFile_alloc(int numDim){
   out->degreeOfFreedom=NULL;
   out->reducedDegreeOfFreedom=NULL;
   out->toReduced=NULL;
+#ifdef PASO_MPI
+  out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
+  out->degreeOfFreedomDistribution = Finley_NodeDistribution_alloc( MPIInfo );
+#endif
   return out;
 }
 
@@ -58,7 +65,11 @@ void Finley_NodeFile_dealloc(Finley_NodeFile* in) {
      #ifdef Finley_TRACE
      printf("node file is deallocated.\n");
      #endif
-     Finley_NodeFile_deallocTable(in);   
+     Finley_NodeFile_deallocTable(in);
+#ifdef PASO_MPI
+     Paso_MPIInfo_dealloc( in->MPIInfo );
+     Finley_NodeDistribution_dealloc( in->degreeOfFreedomDistribution ); 
+#endif
      MEMFREE(in);      
   }
 }

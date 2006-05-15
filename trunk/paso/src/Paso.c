@@ -26,8 +26,12 @@
 #include "Paso.h"
 #ifdef _OPENMP 
 #include <omp.h>
-#else 
+#else
+#ifdef PASO_MPI
+
+#else
 #include <time.h>
+#endif
 #endif
 
 Paso_ErrorCodeType Paso_ErrorCode_=NO_ERROR;
@@ -69,11 +73,16 @@ bool_t Paso_checkPtr(void* ptr) {
 /* This function returns a timer */
 double Paso_timer(void) {
   double out;
-  #ifdef _OPENMP 
+
+#ifdef PASO_MPI
+  out = MPI_Wtime();
+#else
+#ifdef _OPENMP 
   out=omp_get_wtime();
-  #else
+#else
   out=((double) clock())/CLOCKS_PER_SEC;
-  #endif
+#endif
+#endif
   return out;
 }
 
@@ -87,4 +96,17 @@ char* Paso_getErrorMessage(void) {
    return Paso_ErrorMsg_;
 }
 
+#ifdef PASO_MPI
+/* checks that there is no error accross all processes in a communicator */
+/* NOTE : does not make guarentee consistency of error string on each process */
+bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
+{
+    int errorLocal=0, errorGlobal=0;
+
+    errorLocal = (int)Paso_noError();
+    MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_LAND, mpi_info->comm  );
+
+    return errorGlobal;
+}
+#endif 
 /**************************************************************/

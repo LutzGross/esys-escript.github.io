@@ -20,7 +20,16 @@
 #include "Finley.h"
 #include "escript/DataC.h"
 
+#ifdef PASO_MPI
+#include "Distribution.h"
+#endif
+
 struct Finley_NodeFile {
+#ifdef PASO_MPI
+  Paso_MPIInfo *MPIInfo;              /* MPI information */
+  Finley_NodeDistribution *degreeOfFreedomDistribution;  /* information about the distribution of degrees of freedom
+                                              on this subdomain and over other subdomains */
+#endif
   dim_t numNodes;                      /* number of nodes */
   dim_t numDim;                        /* spatial dimension */
   index_t *Id;                         /* Id[i] is the id number of node i. this number is not really
@@ -48,16 +57,26 @@ struct Finley_NodeFile {
   index_t *toReduced;                  /* toReduced[i] is the node id in the reduced mesh. if toReduced[i]<0 it means that the node does not appear in the reduced mesh */
 };
 
+
+
 typedef struct Finley_NodeFile Finley_NodeFile;
 
-Finley_NodeFile * Finley_NodeFile_alloc(dim_t);
+#ifdef PASO_MPI
+Finley_NodeFile* Finley_NodeFile_alloc(dim_t, Paso_MPIInfo *MPIInfo);
+void Finley_NodeFile_allocTable(Finley_NodeFile*,dim_t);
+#else
+Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim);
+void Finley_NodeFile_allocTable(Finley_NodeFile*,dim_t);
+#endif
+
+/* Finley_NodeFile * Finley_NodeFile_alloc(dim_t); */
 void Finley_NodeFile_dealloc(Finley_NodeFile*);
 void Finley_NodeFile_setIdRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_scatter(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_gather(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);
 void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
-void Finley_NodeFile_allocTable(Finley_NodeFile*,dim_t);
+
 void Finley_NodeFile_deallocTable(Finley_NodeFile*);
 
 #endif

@@ -49,7 +49,8 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFil
              #pragma omp for private(e,i) schedule(static)
              for (e=0;e<in->numElements;e++) {
                if (in->Color[e]==color) {
-                  for (i=0;i<NN;i++) mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
+                  for (i=0;i<NN;i++) 
+                    mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
                }
              }
            }
@@ -58,7 +59,8 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFil
       } else {
         #pragma omp parallel for private(e,i) schedule(static)
         for (e=0;e<in->numElements;e++) {
-           for (i=0;i<NN;i++) mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
+           for (i=0;i<NN;i++) 
+             mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
         }
       }
    }

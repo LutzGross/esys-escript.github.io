@@ -28,13 +28,17 @@
 /*  allocates the node table within an node file to hold numNodes of nodes. The LinearTo mapping, if it exists, */
 /*  is deallocated. use Finley_Mesh_setLinearMesh to create a new one. */
 
-void Finley_NodeFile_allocTable(Finley_NodeFile* in ,int numNodes) {
+#ifdef PASO_MPI
+void Finley_NodeFile_allocTable( Finley_NodeFile* in, dim_t numNodes ) 
+#else
+void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes) 
+#endif
+{
   index_t *Id2=NULL, *Tag2=NULL, *degreeOfFreedom2=NULL, *reducedDegreeOfFreedom2=NULL, *toReduced2=NULL;
   double *Coordinates2=NULL;
   dim_t n,i;
   
   /*  allocate memory: */
-  
   Id2=MEMALLOC(numNodes,index_t);
   Coordinates2=MEMALLOC(numNodes*in->numDim,double);
   Tag2=MEMALLOC(numNodes,index_t);

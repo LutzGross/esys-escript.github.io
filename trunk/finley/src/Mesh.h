@@ -62,6 +62,10 @@
 #include "paso/SystemMatrixPattern.h"
 #include "escript/DataC.h"
 
+#ifdef PASO_MPI
+#include "paso/Paso_MPI.h"
+#endif
+
 /**************************************************************/
 
 /*  this struct holds a mesh: */
@@ -82,6 +86,9 @@ struct Finley_Mesh {
   Paso_SystemMatrixPattern *FullReducedPattern;
   Paso_SystemMatrixPattern *ReducedFullPattern;
   Paso_SystemMatrixPattern *ReducedReducedPattern;
+#ifdef PASO_MPI 
+  Paso_MPIInfo *MPIInfo;
+#endif
 };
 
 typedef struct Finley_Mesh Finley_Mesh;
@@ -97,8 +104,12 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 /**************************************************************/
 
 /*  interfaces: */
-
-Finley_Mesh* Finley_Mesh_alloc(char*,int,int);
+#ifndef PASO_MPI
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order);
+#else
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, Paso_MPIInfo *mpi_info);
+#endif
+/*Finley_Mesh* Finley_Mesh_alloc(char*,int,int);*/
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
 void Finley_Mesh_dealloc(Finley_Mesh*);
 dim_t Finley_Mesh_getDim(Finley_Mesh*);
@@ -129,6 +140,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,
 void Finley_Mesh_print(Finley_Mesh *in);
 void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
 void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
+
 
 #endif /* #ifndef INC_FINLEY_MESH */
 

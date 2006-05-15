@@ -54,5 +54,9 @@ Finley_ErrorCodeType Finley_getErrorType(void);
 char* Finley_getErrorMessage(void);
 void Finley_convertPasoError(void);
 
+#ifdef PASO_MPI
+bool_t Finley_MPI_noError( Paso_MPIInfo *mpi_info );
+#endif
+
 #endif /* #ifndef INC_FINLEY */
 

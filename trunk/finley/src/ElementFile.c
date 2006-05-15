@@ -28,7 +28,12 @@
 
 /**************************************************************/
 
-Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order){
+#ifndef PASO_MPI
+Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order)
+#else
+Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Paso_MPIInfo *MPIInfo)
+#endif
+{
   extern Finley_RefElementInfo Finley_RefElement_InfoList[];
   dim_t NQ;
   Finley_ElementFile *out;
@@ -63,6 +68,10 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order){
   out->X_is_valid=FALSE;        
   out->X=NULL;                
 
+#ifdef PASO_MPI
+  out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
+  out->elementDistribution = Finley_ElementDistribution_alloc( MPIInfo );
+#endif
 
   /*  allocate the reference element: */
   
@@ -93,7 +102,11 @@ void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
      MEMFREE(in->DvDV);             
      MEMFREE(in->DSDV);             
      MEMFREE(in->DSLinearDV);         
-     MEMFREE(in->X);                
+     MEMFREE(in->X);     
+#ifdef PASO_MPI
+     Paso_MPIInfo_dealloc( in->MPIInfo );
+     Finley_ElementDistribution_dealloc( in->elementDistribution );
+#endif           
      MEMFREE(in);      
   }
 }

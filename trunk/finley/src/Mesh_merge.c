@@ -108,7 +108,9 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
     /* allocate */
 
-    if (Finley_noError()) out=Finley_Mesh_alloc(newName,numDim,order);
+#ifndef PASO_MPI
+    if (Finley_noError())
+      out=Finley_Mesh_alloc(newName,numDim,order);
 
     out->Elements=Finley_ElementFile_alloc(elementTypeId,out->order);
     out->FaceElements=Finley_ElementFile_alloc(faceElementTypeId,out->order);
@@ -117,13 +119,17 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
     /* allocate new tables */
 
-    if (Finley_noError()) {
+    if (Finley_noError()) 
+    {
         Finley_NodeFile_allocTable(out->Nodes,numNodes);
         Finley_ElementFile_allocTable(out->Elements,numElements);
         Finley_ElementFile_allocTable(out->FaceElements,numFaceElements);
         Finley_ElementFile_allocTable(out->ContactElements,numContactElements);
         Finley_ElementFile_allocTable(out->Points,numPoints);
     }
+#else
+/* TODO */
+#endif
 
     /* copy tables :*/
 

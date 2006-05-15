@@ -26,9 +26,14 @@
 #ifndef INC_PASO
 #define INC_PASO
 
+//#define PASO_MPI
+
 #include "Common.h"
 #include "Options.h"
 #include "SystemMatrix.h"
+#ifdef PASO_MPI
+#include "Paso_MPI.h"
+#endif
 
 /**************************************************************/
 
@@ -45,7 +50,8 @@ enum Paso_ErrorCodeType {
   INDEX_ERROR,
   OS_ERROR,
   OVERFLOW_ERROR,
-  SYSTEM_ERROR
+  SYSTEM_ERROR,
+  PASO_MPI_ERROR 
 };
 
 typedef enum Paso_ErrorCodeType Paso_ErrorCodeType;

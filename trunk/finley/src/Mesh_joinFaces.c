@@ -81,8 +81,13 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /*  allocate new face element and Contact element files */
+#ifndef PASO_MPI
          newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->ReferenceElement->Type->TypeId,self->ContactElements->order);
          newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order);
+#else
+  /* TODO */
+  PASO_MPI_TODO;
+#endif
          if (Finley_noError()) {
                Finley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
                Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
