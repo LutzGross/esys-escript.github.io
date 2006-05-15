@@ -20,6 +20,12 @@ from esys.modellib.temperature import TemperatureAdvection
 from esys.modellib.materials import SimpleEarthModel,GravityForce
 from esys.modellib.visualization import WriteVTK
 
+try: 
+   WORKDIR=os.environ['MODELLIB_WORKDIR']
+except KeyError:
+   WORKDIR='.'
+ 
+
 dom=RectangularDomain()
 dom.order=2
 
@@ -88,8 +94,8 @@ vis=WriteVTK()
 vis.t=Link(sq)
 vis.scalar=Link(temp,"temperature")
 vis.vector=Link(vel,"velocity")
-vis.stride=5
-vis.filename=os.environ['MODELLIB_WORKDIR']+"/temp.xml"
+vis.dt=0.0005
+vis.filename=WORKDIR+"/temp.xml"
 
 per=GaussianProfile()
 per.domain=Link(dom)
@@ -105,7 +111,6 @@ lc.f1=1.
 lc.v1=Link(temp_val,"out")
 temp.temperature=Link(lc,"out")
 
-# s=Simulation([dom,sq,temp_constraints,vel_constraints,temp_val,per,lc,mat,grav,Simulation([vel],debug=True),temp,vis],debug=True)
-s=Simulation([dom,sq,Simulation([vel],debug=True),temp,vis],debug=True)
+s=Simulation([sq,Simulation([vel],debug=True),temp,vis],debug=True)
 s.writeXML()
 s.run()
