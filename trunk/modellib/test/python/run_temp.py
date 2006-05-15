@@ -23,7 +23,7 @@ dom.order=2
 
 sqe=Sequencer()
 sqe.t=0
-sqe.t_end=0.1
+sqe.t_end=0.05
 
 constraints=ScalarConstrainer()
 constraints.domain=Link(dom)
@@ -48,7 +48,7 @@ tt.velocity=numarray.array([1,-1])
 tt.thermal_source=Link(source,"out")
 tt.location_fixed_temperature=Link(constraints,"location_of_constraint")
 tt.fixed_temperature=Link(boundaryvalue,"out")
-tt.safety_factor=0.01
+tt.safety_factor=0.1
 
 probe=Probe()
 probe.expression="x[0]*x[1]*exp(-t)"
