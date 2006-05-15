@@ -69,7 +69,11 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   /*  allocate a new node file used to gather existing node file: */
   
   len=max_id-min_id+1;
+#ifndef PASO_MPI
   newNodeFile=Finley_NodeFile_alloc(numDim);
+#else
+  newNodeFile=Finley_NodeFile_alloc(numDim,in->MPIInfo);
+#endif
   if (! Finley_noError()) goto clean;
 
   maskNodes=TMPMEMALLOC(len,index_t);
@@ -79,10 +83,8 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   if (Finley_checkPtr(maskElements)) goto clean;
 
   index=TMPMEMALLOC(in->Nodes->numNodes,index_t);
-  if (Finley_checkPtr(maskElements)) goto clean;
 
-  Finley_NodeFile_allocTable(newNodeFile,len);
-  if (! Finley_noError()) goto clean;
+  if (Finley_checkPtr(maskElements)) goto clean;
 
   #pragma omp parallel for private(n) schedule(static)
   for (n=0;n<in->Nodes->numNodes;n++) index[n]=-1;
@@ -111,13 +113,17 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
      }
   }
 
+  Finley_NodeFile_allocTable(newNodeFile,len);
+  if (! Finley_noError() ) goto clean;
+
   if (Finley_noError()) {
   
       /*  scatter the nodefile in->nodes into newNodeFile using index; */
       #pragma omp parallel for private(k) schedule(static)
-      for (k=0;k<in->Nodes->numNodes;k++) index[k]=in->Nodes->Id[k]-min_id;
+      for (k=0;k<in->Nodes->numNodes;k++) 
+        index[k]=in->Nodes->Id[k]-min_id;
       Finley_NodeFile_scatter(index,in->Nodes,newNodeFile);
-  
+
       /*  relable used nodes: */
       /* index maps the new node labeling onto the old one */
       newNumNodes=Finley_Util_packMask(len,maskElements,index);
@@ -127,6 +133,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
       /*  create a new table of nodes: */
       Finley_NodeFile_deallocTable(in->Nodes);
       Finley_NodeFile_allocTable(in->Nodes,newNumNodes);
+
       if (! Finley_noError()) goto clean;
 
       /* gather the new nodefile into in->Nodes */

@@ -47,6 +47,8 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   /*  allocate mesh: */
   
   sprintf(name,"Rectangular mesh with %d nodes",N0);
+  /* TEMPFIX */
+#ifndef PASO_MPI
   out=Finley_Mesh_alloc(name,1,order);
   if (! Finley_noError()) return NULL;
 
@@ -59,14 +61,22 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
     out->ContactElements=Finley_ElementFile_alloc(Point1_Contact,out->order);
   }
   out->Points=Finley_ElementFile_alloc(Point1,out->order);
+#else
+  /* TODO */
+  PASO_MPI_TODO;
+  out = NULL;
+#endif
   if (! Finley_noError()) {
        Finley_Mesh_dealloc(out);
        return NULL;
   }
   
   /*  allocate tables: */
-  
+ #ifndef PASO_MPI
   Finley_NodeFile_allocTable(out->Nodes,N0);
+#else
+  /* TODO */
+#endif
   Finley_ElementFile_allocTable(out->Elements,NE0);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
   if (! Finley_noError()) {

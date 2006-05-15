@@ -30,7 +30,12 @@
 
 extern Finley_RefElementInfo Finley_RefElement_InfoList[];
 
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order) {
+#ifndef PASO_MPI
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order) 
+#else
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, Paso_MPIInfo *mpi_info) 
+#endif
+{
   Finley_Mesh *out;
   
   /*  allocate the return value */
@@ -49,7 +54,17 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order) {
   out->FullReducedPattern=NULL;
   out->ReducedFullPattern=NULL;
   out->ReducedReducedPattern=NULL;
-  
+
+#ifdef PASO_MPI 
+  out->MPIInfo = NULL;
+ 
+  /* get MPI info */
+  out->MPIInfo = Paso_MPIInfo_getReference( mpi_info );
+  if (! Finley_noError()) {
+      Finley_Mesh_dealloc(out);
+      return NULL;
+  }
+#endif
   /*   copy name: */
   
   out->Name=MEMALLOC(strlen(name)+1,char);
@@ -60,8 +75,11 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order) {
   strcpy(out->Name,name);
   
   /*   allocate node table: */
-  
+#ifdef PASO_MPI
+  out->Nodes=Finley_NodeFile_alloc( numDim, mpi_info );
+#else
   out->Nodes=Finley_NodeFile_alloc(numDim);
+#endif
   if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
@@ -105,6 +123,9 @@ void Finley_Mesh_dealloc(Finley_Mesh* in) {
        Paso_SystemMatrixPattern_dealloc(in->FullReducedPattern);
        Paso_SystemMatrixPattern_dealloc(in->ReducedFullPattern);
        Paso_SystemMatrixPattern_dealloc(in->ReducedReducedPattern);
+#ifdef PASO_MPI
+       Paso_MPIInfo_dealloc( in->MPIInfo );
+#endif
        MEMFREE(in);      
      }
   }

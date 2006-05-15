@@ -19,7 +19,16 @@
 #include "ReferenceElements.h"
 #include "escript/DataC.h"
 
+#ifdef PASO_MPI
+#include "paso/Paso_MPI.h"
+#include "Distribution.h"
+#endif
+
 struct Finley_ElementFile {
+#ifdef PASO_MPI
+  Paso_MPIInfo *MPIInfo;
+  Finley_ElementDistribution *elementDistribution;
+#endif
 
   Finley_RefElement* ReferenceElement;           /* the reference element, see
 						    Reference element.c */
@@ -77,7 +86,12 @@ struct Finley_ElementFile {
 
 typedef struct Finley_ElementFile Finley_ElementFile;
 
+#ifndef PASO_MPI
 Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId,dim_t);
+#else
+Finley_ElementFile* Finley_ElementFile_alloc( ElementTypeId, dim_t, Paso_MPIInfo* );
+#endif
+
 void Finley_ElementFile_dealloc(Finley_ElementFile*);
 void Finley_ElementFile_setCoordinates(Finley_ElementFile*,escriptDataC*);
 void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);

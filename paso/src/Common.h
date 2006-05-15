@@ -76,6 +76,7 @@ typedef int err_t;
 #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
 #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
 #ifdef __ECC
+  //#define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)); if( !(_LENGTH_) ) printf( "Trying malloc(0) at %s %d\n", __FILE__, __LINE__ ); //else printf( "malloc(%d) at %s %d\n", _LENGTH_, __FILE__, __LINE__ );
   #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
   #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
   #ifdef _OPENMP
@@ -85,11 +86,14 @@ typedef int err_t;
      #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
      #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
   #endif
+  #define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_) if( (_POINTER_)!=NULL ){ _POINTER_ = (_TYPE_*)realloc((void*)(_POINTER_),((size_t)(_LENGTH_))*sizeof(_TYPE_) );  }else{ _POINTER_ = (_TYPE_*)malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); }
+
 #else
   #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
   #define MEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
   #define THREAD_MEMALLOC(_LENGTH_,_TYPE_) TMPMEMALLOC(_LENGTH_,_TYPE_)
   #define THREAD_MEMFREE(_PTR_) TMPMEMFREE(_PTR_)
+  #define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_) if( (_POINTER_)!=NULL ){ _POINTER_ = (_TYPE_*)realloc((void*)(_POINTER_),((size_t)(_LENGTH_))*sizeof(_TYPE_) );  }else{ _POINTER_ = (_TYPE_*)malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); }
 #endif
 
 #endif /* #ifndef INC_PASO_COMMON */

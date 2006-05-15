@@ -40,7 +40,12 @@ void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
         item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
         index=TMPMEMALLOC((*in)->numElements,index_t);
         if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {
+#ifndef PASO_MPI
            out=Finley_ElementFile_alloc((*in)->ReferenceElement->Type->TypeId,(*in)->order);
+#else
+/* TODO */
+PASO_MPI_TODO;
+#endif
            if (Finley_noError()) {
                Finley_ElementFile_allocTable(out,(*in)->numElements);
                if (Finley_noError()) {

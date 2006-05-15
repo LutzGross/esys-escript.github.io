@@ -98,9 +98,15 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   /*  allocate mesh: */
   
   sprintf(name,"Rectangular %d x %d x %d mesh",N0,N1,N2);
+  /* TEMPFIX */
+#ifndef PASO_MPI
   out=Finley_Mesh_alloc(name,3,order);
+#else
+  out=Finley_Mesh_alloc(name,3,order,NULL);
+#endif
   if (! Finley_noError()) return NULL;
 
+#ifndef PASO_MPI
   out->Elements=Finley_ElementFile_alloc(Hex8,out->order);
   if (useElementsOnFace) {
      out->FaceElements=Finley_ElementFile_alloc(Hex8Face,out->order);
@@ -110,6 +116,17 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
      out->ContactElements=Finley_ElementFile_alloc(Rec4_Contact,out->order);
   }
   out->Points=Finley_ElementFile_alloc(Point1,out->order);
+#else
+  out->Elements=Finley_ElementFile_alloc(Hex8,out->order,NULL);
+  if (useElementsOnFace) {
+     out->FaceElements=Finley_ElementFile_alloc(Hex8Face,out->order,NULL);
+     out->ContactElements=Finley_ElementFile_alloc(Hex8Face_Contact,out->order,NULL);
+  } else {
+     out->FaceElements=Finley_ElementFile_alloc(Rec4,out->order,NULL);
+     out->ContactElements=Finley_ElementFile_alloc(Rec4_Contact,out->order,NULL);
+  }
+  out->Points=Finley_ElementFile_alloc(Point1,out->order,NULL);
+#endif
   if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
@@ -117,8 +134,11 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
 
   
   /*  allocate tables: */
-  
+#ifndef PASO_MPI  
   Finley_NodeFile_allocTable(out->Nodes,N0*N1*N2);
+#else
+ /* TODO */
+#endif
   Finley_ElementFile_allocTable(out->Elements,NE0*NE1*NE2);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
   if (! Finley_noError()) {
