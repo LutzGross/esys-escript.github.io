@@ -734,7 +734,7 @@ class Simulation(Model):
 	Sets the i-th model.
 	"""
         if not isinstance(value,Model):
-            raise ValueError("assigned value is not a Model, Model was:", i, " an instance of: ", value.__class__.__name__)
+            raise ValueError,"assigned value is not a Model but instance of %s"%(value.__class__.__name__,)
         for j in range(max(i-len(self.__models)+1,0)): 
             self.__models.append(None)
         self.__models[i]=value

@@ -50,6 +50,6 @@ ptest.expression="(x[0]+x[1]-1.)*t"
 ptest.t=Link(sqe)
 ptest.value=Link(flow,"pressure")
 
-s=Simulation([dom,sqe,Simulation([flow],debug=True),ptest],debug=True)
+s=Simulation([sqe,Simulation([flow],debug=True),ptest],debug=True)
 s.writeXML()
 s.run()
