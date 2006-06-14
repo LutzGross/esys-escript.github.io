@@ -41,10 +41,10 @@ epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-pac
 
 # c flags to use
 cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report0 -fno-alias -c99 -w1 -fpic"
-cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -ansi_alias -w1 -fpic'
+cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
 
 # c++ flags to use
-cxx_flags = '-ansi -ansi_alias'
+cxx_flags = '-ansi'
 cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
 
 # system specific libraries to link with
