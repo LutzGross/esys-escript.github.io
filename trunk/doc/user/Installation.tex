@@ -88,7 +88,7 @@ By default the configuration for Linux is used. If there is a file \verb|scons/<
   cd <my esys dir>
   scons dodebug=no options_file=myoptions.py
 \end{verbatim}
-You can also overwrite individual setting trough the command line. e.g.
+You can also over-ride individual setting through the command line. e.g.
 \begin{verbatim}
    cd <my esys dir>
   scons dodebug=no libinstall=/usr/lib
@@ -100,7 +100,7 @@ Get help on options with the following command
   cd <my esys dir>
   scons -h
 \end{verbatim}
-To uninstall the installation use
+To uninstall use
 \begin{verbatim}
   cd <my esys dir>
   scons -c
@@ -139,7 +139,7 @@ export LD_LIBRARY_PATH=<my esys dir>/lib:${LD_LIBRARY_PATH}
 \end{verbatim}
 Currently an installation into the python site-packages directory is not supported.
 
-If you wnat to check your setup and you have download the examples you can run
+If you want to check your setup and you have download the examples you can run
 \begin{verbatim}
 cd <my esys dir>/doc/examples
 python poisson.py
@@ -154,5 +154,7 @@ cd <my esys dir>/doc/examples
 python poisson.py
 \end{verbatim}
 
+If you do not set OMP_NUM_THREADS you will get one thread for each processor on the system, even though you probably will not use that many processors. Be sure to always set OMP_NUM_THREADS before running the program on a system where OpenMP is enabled.
+
 \section{Getting help}
-If there is a problem or questin please contact \url{mailto:esys@esscc.uq.edu.au}.
+If there is a problem or question please contact \url{mailto:esys@esscc.uq.edu.au}.
