@@ -1,13 +1,13 @@
 
-#          Copyright 2006 by ACcESS MNRF                   
-#                                                          
-#              http://www.access.edu.au                    
-#       Primary Business: Queensland, Australia            
-#  Licensed under the Open Software License version 3.0    
-#     http://www.opensource.org/licenses/osl-3.0.php       
-#                                                          
+#          Copyright 2006 by ACcESS MNRF
+#
+#              http://www.access.edu.au
+#       Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
 
-
+# TODO: Variables named *_path should be *_include
 
 # locations of libs etc used by mkl
 mkl_path = '/opt/intel/mkl80.019/include'
@@ -20,14 +20,14 @@ scsl_lib_path = '/usr/lib'
 scsl_libs = ['scs_mp']
 
 # locations of include files for python
-python_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/include/python2.4'
-python_lib_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/lib'
+python_path = '/data/raid2/toolspp4/python/2.4.3/gcc-3.3.6/include/python2.4'
+python_lib_path = '/data/raid2/toolspp4/python/2.4.3/gcc-3.3.6/lib'
 python_lib = 'python2.4'
 
 # locations of libraries for boost
-boost_path = '/data/raid2/toolspp4/boost/1.33.0/python-2.4.1/gcc-3.3.6/include'
-boost_lib_path = '/data/raid2/toolspp4/boost/1.33.0/python-2.4.1/gcc-3.3.6/lib'
-boost_lib = 'boost_python-mt-d'
+boost_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.3/gcc-3.3.6/include'
+boost_lib_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.3/gcc-3.3.6/lib'
+boost_lib = 'boost_python-mt'
 
 # locations of doc building executables
 doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
