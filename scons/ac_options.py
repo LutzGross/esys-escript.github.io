@@ -20,14 +20,14 @@ scsl_lib_path = '/opt/scsl-1.6.1.0/lib'
 scsl_libs = ['scs_mp']
 
 # locations of include files for python
-python_path = '/usr/include/python2.3/'
-python_lib_path = '/usr/lib/python2.3/'
-python_lib = 'python2.3'
+python_path = '/home/escript/python-2.4.3/include/python2.4'
+python_lib_path = '/home/escript/python-2.4.3/lib'
+python_lib = 'python2.4'
 
 # locations of libraries for boost
-boost_path = '/opt/boost-1.33.0/gcc/include/boost-1_33'
-boost_lib_path = '/opt/boost-1.33.0/gcc/lib'
-boost_lib = 'boost_python-gcc-mt-d'
+boost_path = '/home/escript/boost-1.33.1/include/boost-1_33_1'
+boost_lib_path = '/home/escript/boost-1.33.1/lib'
+boost_lib = 'boost_python-gcc-mt'
 
 # locations of doc building executables
 #doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
