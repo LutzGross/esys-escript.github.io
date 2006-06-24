@@ -13,7 +13,7 @@
                                                                            
 #if !defined escript_EsysAssert_20040330_H
 #define escript_EsysAssert_20040330_H
-
+#include "system_dep.h"
 /**
    \brief
    EsysAssert is a MACRO that will throw an exception if the boolean

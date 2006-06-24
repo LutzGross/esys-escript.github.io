@@ -12,6 +12,7 @@
 
 #if !defined escript_Taipan_20050427_H
 #define escript_Taipan_20050427_H
+#include "system_dep.h"
 
 namespace escript {
 
@@ -34,7 +35,7 @@ namespace escript {
    arrays are never deallocated, but are kept for possible reuse.
 */
 
-class Taipan {
+class ESCRIPT_DLL_API Taipan {
 
  public:
 

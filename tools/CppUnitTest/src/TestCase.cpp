@@ -32,7 +32,11 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#ifdef _WIN32 && __INTEL_COMPILER
+#include <mathimf.h>
+#else
 #include <math.h>
+#endif
 
 #include "TestCase.h"
 #include "TestResult.h"

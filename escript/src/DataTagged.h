@@ -14,6 +14,7 @@
 
 #if !defined escript_DataTagged_20040615_H
 #define escript_DataTagged_20040615_H
+#include "system_dep.h"
 
 #include "DataAbstract.h"
 #include "DataArrayView.h"
@@ -60,6 +61,7 @@ class DataTagged : public DataAbstract {
      tag values are stored.
     T
   */
+  ESCRIPT_DLL_API
   DataTagged();
 
   /**
@@ -80,6 +82,7 @@ class DataTagged : public DataAbstract {
      \param what - Input - A description of what this data represents.
     T
   */
+  ESCRIPT_DLL_API
   DataTagged(const TagListType& tagKeys,
              const ValueListType& values,
 	     const DataArrayView& defaultValue,
@@ -97,9 +100,28 @@ class DataTagged : public DataAbstract {
      \param data - The data values for each tag.
     NB: no unit testing yet
   */
+  ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
              const DataArrayView::ShapeType &shape,
              const int tags[],
+             const ValueType& data);
+
+  /**
+     \brief
+     Alternative Constructor for DataTagged.
+
+     Description:
+     Alternative Constructor for DataTagged.
+     \param what - Input - A description of what this data object represents.
+     \param shape - Input - The shape of each data-point.
+     \param tags - Input - An vector of tags, one for each sample number.
+     \param data - The data values for each tag.
+    NB: no unit testing yet
+  */
+  ESCRIPT_DLL_API
+  DataTagged(const FunctionSpace& what,
+             const DataArrayView::ShapeType &shape,
+             const TagListType& tags,
              const ValueType& data);
 
   /**
@@ -108,6 +130,7 @@ class DataTagged : public DataAbstract {
      Performs a deep copy from the given DataTagged object.
     T
   */
+  ESCRIPT_DLL_API
   DataTagged(const DataTagged& other);
 
   /**
@@ -117,6 +140,7 @@ class DataTagged : public DataAbstract {
      The default value will be the value of the DataConstant object.
     T
   */
+  ESCRIPT_DLL_API
   DataTagged(const DataConstant& other);
 
   /**
@@ -131,6 +155,7 @@ class DataTagged : public DataAbstract {
      ** NB: need to do array bounds checking when accessing returned value!
     T
   */
+  ESCRIPT_DLL_API
   virtual
   double*
   getSampleDataByTag(int tag);
@@ -142,6 +167,7 @@ class DataTagged : public DataAbstract {
      associated with each tag.
     T
   */
+  ESCRIPT_DLL_API
   virtual
   std::string
   toString() const;
@@ -152,6 +178,7 @@ class DataTagged : public DataAbstract {
      according to the associated function space.
     T
   */
+  ESCRIPT_DLL_API
   virtual
   int
   getTagNumber(int dpno);
@@ -168,6 +195,7 @@ class DataTagged : public DataAbstract {
      \param dataPointNo - Input - data-point number.
     T
   */
+  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
@@ -189,6 +217,7 @@ class DataTagged : public DataAbstract {
 		     will be generated.
     T
   */
+  ESCRIPT_DLL_API
   void
   addTaggedValues(const TagListType& tagKeys,
                   const ValueListType& values);  
@@ -204,6 +233,7 @@ class DataTagged : public DataAbstract {
      \param value - Input - Single DataArrayView value to be assigned to the tag.
     T
   */
+  ESCRIPT_DLL_API
   void
   addTaggedValue(int tagKey,
                  const DataArrayView& value);
@@ -224,6 +254,7 @@ class DataTagged : public DataAbstract {
 		     will be generated.
     T
   */
+  ESCRIPT_DLL_API
   void
   setTaggedValues(const TagListType& tagKeys,
                   const ValueListType& values); 
@@ -238,6 +269,7 @@ class DataTagged : public DataAbstract {
      \param value - Input - Single DataArrayView value to be assigned to the tag.
     T
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setTaggedValue(int tagKey,
@@ -252,6 +284,7 @@ class DataTagged : public DataAbstract {
      \param tag - Input - Integer key.
     T
   */
+  ESCRIPT_DLL_API
   DataArrayView
   getDataPointByTag(int tag) const;
 
@@ -266,6 +299,7 @@ class DataTagged : public DataAbstract {
      \param dataPointNo - Input.
     T
   */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView
   getDataPoint(int sampleNo,
@@ -279,6 +313,7 @@ class DataTagged : public DataAbstract {
      Return a reference to the tag offset lookup table.
     T
   */
+  ESCRIPT_DLL_API
   const DataMapType&
   getTagLookup() const;
 
@@ -293,6 +328,7 @@ class DataTagged : public DataAbstract {
      keys in the associated function space.
     T
   */
+  ESCRIPT_DLL_API
   bool
   isCurrentTag(int tag) const;
 
@@ -305,9 +341,11 @@ class DataTagged : public DataAbstract {
      is not explicitly recorded in this DataTagged object's tag map.
     T
   */
+  ESCRIPT_DLL_API
   DataArrayView&
   getDefaultValue();
 
+  ESCRIPT_DLL_API
   const DataArrayView&
   getDefaultValue() const;
 
@@ -319,6 +357,7 @@ class DataTagged : public DataAbstract {
      Return the total number of doubles stored for this DataTagged object.
     T
   */
+  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getLength() const;
@@ -333,6 +372,7 @@ class DataTagged : public DataAbstract {
      The caller is reponsible for managing the returned object.
     T
   */
+  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   getSlice(const DataArrayView::RegionType& region) const;
@@ -348,6 +388,7 @@ class DataTagged : public DataAbstract {
      \param region - Input - Region to slice.
     T
   */
+  ESCRIPT_DLL_API
   DataTagged(const DataTagged& other, 
 	     const DataArrayView::RegionType& region);
 
@@ -361,6 +402,7 @@ class DataTagged : public DataAbstract {
      \param region - Input - Region to copy into (NB: must have same shape as other!).
     T
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setSlice(const DataAbstract* other,
@@ -378,6 +420,7 @@ class DataTagged : public DataAbstract {
      of the new data-points.
     T
   */
+  ESCRIPT_DLL_API
   void
   reshapeDataPoint(const DataArrayView::ShapeType& shape);
 
@@ -389,6 +432,7 @@ class DataTagged : public DataAbstract {
 
      The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   archiveData(std::ofstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues) const;
@@ -400,6 +444,7 @@ class DataTagged : public DataAbstract {
 
      The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   extractData(std::ifstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues);
@@ -411,6 +456,7 @@ class DataTagged : public DataAbstract {
      \param ev - Output - eigenvalues in increasing order at each data point
 
   */
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues(DataAbstract* ev);
 
@@ -425,6 +471,7 @@ class DataTagged : public DataAbstract {
 
   */
 
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 

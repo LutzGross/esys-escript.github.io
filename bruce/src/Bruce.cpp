@@ -20,7 +20,8 @@
 #include "escript/FunctionSpaceFactory.h"
 
 #include <boost/python/extract.hpp>
-
+#include <vector>
+#include <string>
 #include "vtkCellType.h"
 
 using namespace std;
@@ -28,7 +29,9 @@ using namespace escript;
 
 namespace bruce {
 
+BRUCE_DLL_API
 const int Bruce::ContinuousFunction=0;
+BRUCE_DLL_API
 const int Bruce::Function=1;
 
 Bruce::FunctionSpaceNamesMapType Bruce::m_functionSpaceTypeNames;
@@ -886,18 +889,20 @@ Bruce::saveVTK(const std::string& filename,
                const boost::python::dict& dataDict) const
 {
 
+  const int num_data=boost::python::extract<int>(dataDict.attr("__len__")());
+  boost::python::list keys=dataDict.keys();
+
   //
   // extract Data objects and associated names from dictionary object
-  const int num_data=boost::python::extract<int>(dataDict.attr("__len__")());
+  const int MAX_namelength=256;
 
-  int MAX_namelength=256;
+/* FIXME: win32 refactor - Not required any more
   char names[num_data][MAX_namelength];
   char* c_names[num_data];
 
   escriptDataC data[num_data];
   escriptDataC* ptr_data[num_data];
 
-  boost::python::list keys=dataDict.keys();
   for (int i=0; i<num_data; i++) {
     Data& d=boost::python::extract<Data&>(dataDict[keys[i]]);
     if (dynamic_cast<const Bruce&>(d.getFunctionSpace().getDomain()) != *this) {
@@ -914,7 +919,7 @@ Bruce::saveVTK(const std::string& filename,
       strcpy(c_names[i],n.c_str());
     }
   }
-
+*/
   //
   // open archive file
   ofstream archiveFile;
@@ -922,24 +927,19 @@ Bruce::saveVTK(const std::string& filename,
   if (!archiveFile.good()) {
       throw BruceException("Error in Bruce::saveVTK: File could not be opened for writing");
   }
-
   //
   // determine mesh type to be written
-  bool isCellCentered[num_data], write_celldata=false, write_pointdata=false;
+  bool write_celldata=false, write_pointdata=false;
   for (int i_data=0; i_data<num_data; i_data++) {
-    if (!isEmpty(ptr_data[i_data])) {
-      switch(getFunctionSpaceType(ptr_data[i_data])) {
+    Data& d=boost::python::extract<Data&>(dataDict[keys[i_data]]);
+    if (!d.isEmpty()) {
+      switch(d.getFunctionSpace().getTypeCode()) {
         case ContinuousFunction:
-          isCellCentered[i_data]=false;
+          write_pointdata=true;
           break;
         case Function:
-          isCellCentered[i_data]=true;
+          write_celldata=true;
           break;
-      }
-      if (isCellCentered[i_data]) {
-        write_celldata=true;
-      } else {
-        write_pointdata=true;
       }
     }
   }
@@ -952,7 +952,7 @@ Bruce::saveVTK(const std::string& filename,
   //
   // determine VTK element type
   int cellType;
-  char elemTypeStr[32];
+  std::string elemTypeStr;
   int numVTKNodesPerElement;
 
   int nDim = getDim();
@@ -961,25 +961,25 @@ Bruce::saveVTK(const std::string& filename,
     case 0:
       cellType = VTK_VERTEX;
       numVTKNodesPerElement = 1;
-      strcpy(elemTypeStr, "VTK_VERTEX");
+      elemTypeStr = "VTK_VERTEX";
       break;
 
     case 1:
       cellType = VTK_LINE;
       numVTKNodesPerElement = 2;
-      strcpy(elemTypeStr, "VTK_LINE");
+      elemTypeStr = "VTK_LINE";
       break;
 
     case 2:
       cellType = VTK_QUAD;
       numVTKNodesPerElement = 4;
-      strcpy(elemTypeStr, "VTK_QUAD");
+      elemTypeStr = "VTK_QUAD";
       break;
 
     case 3:
       cellType = VTK_HEXAHEDRON;
       numVTKNodesPerElement = 8;
-      strcpy(elemTypeStr, "VTK_HEXAHEDRON");
+      elemTypeStr = "VTK_HEXAHEDRON";
       break;
 
   }
@@ -1029,33 +1029,35 @@ Bruce::saveVTK(const std::string& filename,
   //
   // cell data
   if (write_celldata) {
-
     //
     // mark the active cell-data data arrays
     bool set_scalar=false, set_vector=false, set_tensor=false;
     archiveFile << "\t\t\t\t<CellData";
     for (int i_data=0; i_data<num_data; i_data++) {
-      if (!isEmpty(ptr_data[i_data]) && isCellCentered[i_data]) {
-
-        switch(getDataPointRank(ptr_data[i_data])) {
+      Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
+      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
+      
+      if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==Function) {
+        
+        switch(d.getDataPointRank()) {
 
           case 0:
             if (!set_scalar) {
-              archiveFile << " Scalars=" << names[i_data];
+              archiveFile << " Scalars=" << name;
               set_scalar=true;
             }
             break;
 
           case 1:
             if (!set_vector) {
-              archiveFile << " Vectors=" << names[i_data];
+              archiveFile << " Vectors=" << name;
               set_vector=true;
             }
             break;
 
           case 2:
             if (!set_tensor) {
-              archiveFile << " Tensors=" << names[i_data];
+              archiveFile << " Tensors=" << name;
               set_tensor=true;
             }
             break;
@@ -1068,15 +1070,16 @@ Bruce::saveVTK(const std::string& filename,
       }
     }
     archiveFile << ">" << endl;
-
     //
     // write the cell-data data arrays
     for (int i_data=0; i_data<num_data; i_data++) {
-      if (!isEmpty(ptr_data[i_data]) && isCellCentered[i_data]) {
-
+      Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
+      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
+      
+      if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==Function) {
         int numPointsPerSample=1;
-        int rank=getDataPointRank(ptr_data[i_data]);
-        int nComp=getDataPointSize(ptr_data[i_data]);
+        int rank = d.getDataPointRank();
+        int nComp = d.getDataPointSize();
         int nCompReqd; // the number of components required by vtk
         int shape=0;
 
@@ -1087,7 +1090,7 @@ Bruce::saveVTK(const std::string& filename,
             break;
 
           case 1:
-            shape=getDataPointShape(ptr_data[i_data], 0);
+            shape = d.getDataPointShape()[0];
             if (shape>3) {
               archiveFile.close();
               throw BruceException("saveVTK: rank 1 object must have less than 4 components");
@@ -1096,8 +1099,8 @@ Bruce::saveVTK(const std::string& filename,
             break;
 
           case 2:
-            shape=getDataPointShape(ptr_data[i_data], 0);
-            if (shape>3 || shape!=getDataPointShape(ptr_data[i_data], 1)) {
+            shape=d.getDataPointShape()[0];
+            if (shape>3 || shape!=d.getDataPointShape()[1]) {
               archiveFile.close();
               throw BruceException("saveVTK: rank 2 object must have less than 4x4 components and must have a square shape");
             }
@@ -1106,8 +1109,7 @@ Bruce::saveVTK(const std::string& filename,
 
         }
 
-        archiveFile << "\t\t\t\t\t<DataArray Name=" << names[i_data] << " type=\"Float32\" NumberOfComponents=" << nCompReqd << " format=\"ascii\">" << endl;
-
+        archiveFile << "\t\t\t\t\t<DataArray Name=" << name << " type=\"Float32\" NumberOfComponents=" << nCompReqd << " format=\"ascii\">" << endl;
 /*
         //
         // write out the cell data
@@ -1168,37 +1170,38 @@ Bruce::saveVTK(const std::string& filename,
 
     archiveFile << "\t\t\t\t</CellData>" << endl;
   }
-
   //
   // point data
   if (write_pointdata) {
-
     //
     // mark the active point-data data arrays 
     bool set_scalar=false, set_vector=false, set_tensor=false;
     archiveFile << "\t\t\t\t<PointData";
     for (int i_data=0; i_data<num_data; i_data++) {
-      if (!isEmpty(ptr_data[i_data]) && !isCellCentered[i_data]) {
+      Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
+      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
 
-        switch(getDataPointRank(ptr_data[i_data])) {
+      if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==ContinuousFunction) {
+
+        switch(d.getDataPointRank()) {
 
           case 0:
             if (!set_scalar) {
-              archiveFile << " Scalars=" << names[i_data];
+              archiveFile << " Scalars=" << name;
               set_scalar=true;
             }
             break;
 
           case 1:
             if (!set_vector) {
-              archiveFile << " Vectors=" << names[i_data];
+              archiveFile << " Vectors=" << name;
               set_vector=true;
             }
             break;
 
           case 2:
             if (!set_tensor) {
-              archiveFile << " Tensors=" << names[i_data];
+              archiveFile << " Tensors=" << name;
               set_tensor=true;
             }
             break;
@@ -1211,15 +1214,16 @@ Bruce::saveVTK(const std::string& filename,
       }
     }
     archiveFile << ">" << endl;
-
     //
     // write the point-data data arrays
     for (int i_data=0; i_data<num_data; i_data++) {
-      if (!isEmpty(ptr_data[i_data]) && !isCellCentered[i_data]) {
+      Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
+      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
+      if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==ContinuousFunction) {
 
         int numPointsPerSample=1;
-        int rank=getDataPointRank(ptr_data[i_data]);
-        int nComp=getDataPointSize(ptr_data[i_data]);
+        int rank = d.getDataPointRank();
+        int nComp = d.getDataPointSize();
         int nCompReqd; // the number of components required by vtk
         int shape=0;
 
@@ -1227,27 +1231,26 @@ Bruce::saveVTK(const std::string& filename,
 
         case 0:
           nCompReqd=1;
-
+          break;
         case 1:
-          shape=getDataPointShape(ptr_data[i_data], 0);
+          shape=d.getDataPointShape()[0];
           if (shape>3) {
             archiveFile.close();
             throw BruceException("saveVTK: rank 1 object must have less than 4 components");
           }
           nCompReqd=3;
-
+          break;
         case 2:
-          shape=getDataPointShape(ptr_data[i_data], 0);
-          if (shape>3 || shape!=getDataPointShape(ptr_data[i_data], 1)) {
+          shape=d.getDataPointShape()[0];
+          if (shape>3 || shape!=d.getDataPointShape()[1]) {
             archiveFile.close();
             throw BruceException("saveVTK: rank 2 object must have less than 4x4 components and must have a square shape");
           }
           nCompReqd=9;
-
+          break;
         }
 
-        archiveFile << "\t\t\t\t\t<DataArray Name=" << names[i_data] << " type=\"Float32\" NumberOfComponents=" << nCompReqd << " format=\"ascii\">" << endl;
-
+        archiveFile << "\t\t\t\t\t<DataArray Name=" << name << " type=\"Float32\" NumberOfComponents=" << nCompReqd << " format=\"ascii\">" << endl;
 /*
         //
         // write out the point data
@@ -1296,14 +1299,11 @@ Bruce::saveVTK(const std::string& filename,
           archiveFile << endl;
         }
 */
-
         archiveFile << "\t\t\t\t\t</DataArray>" << endl;
       }
     }
-
     archiveFile << "\t\t\t\t</PointData>" << endl;
   }
-
   //
   // finish off the grid definition
   archiveFile << "\t\t\t</Piece>" << endl;

@@ -11,6 +11,11 @@
  *                                                          *
  ************************************************************
 */
+#ifdef _WIN32 && __INTEL_COMPILER
+#include <mathimf.h>
+#else
+#include <math.h>
+#endif
 
 #include "Data.h"
 
@@ -29,7 +34,6 @@
 #include <algorithm>
 #include <vector>
 #include <functional>
-#include <math.h>
 
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
@@ -1887,11 +1891,11 @@ Data::archiveData(const std::string fileName)
   int dataPointSize = getDataPointSize();
   int dataLength = getLength();
   DataArrayView::ShapeType dataPointShape = getDataPointShape();
-  int referenceNumbers[noSamples];
+  vector<int> referenceNumbers(noSamples);
   for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
     referenceNumbers[sampleNo] = getFunctionSpace().getReferenceNoFromSampleNo(sampleNo);
   }
-  int tagNumbers[noSamples];
+  vector<int> tagNumbers(noSamples);
   if (isTagged()) {
     for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
       tagNumbers[sampleNo] = getFunctionSpace().getTagFromSampleNo(sampleNo);
@@ -2045,11 +2049,11 @@ Data::extractData(const std::string fileName,
       dataPointShape.push_back(flatShape[dim]);
     }
   }
-  int referenceNumbers[noSamples];
+  vector<int> referenceNumbers(noSamples);
   for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
     archiveFile.read(reinterpret_cast<char *>(&referenceNumbers[sampleNo]),sizeof(int));
   }
-  int tagNumbers[noSamples];
+  vector<int> tagNumbers(noSamples);
   if (dataType==2) {
     for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
       archiveFile.read(reinterpret_cast<char *>(&tagNumbers[sampleNo]),sizeof(int));

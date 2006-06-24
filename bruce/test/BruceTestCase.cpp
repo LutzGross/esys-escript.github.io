@@ -74,24 +74,19 @@ void BruceTestCase::testNull() {
 
   //
   // test null case
-
   cout << "\tTest null Bruce" << endl;
-
   std::pair<int,int> dataShape;
 
   Bruce testbruce;
 
   assert(testbruce.getDim()==0);
-
   AbstractContinuousDomain testbruce_asAbstractContinuousDomain = testbruce.asAbstractContinuousDomain();
   AbstractDomain testbruce_asAbstractDomain = testbruce.asAbstractDomain();
 
   assert(testbruce.getDescription() == "Bruce");
-
   assert(testbruce.isValidFunctionSpaceType(0));
   assert(testbruce.isValidFunctionSpaceType(1));
   assert(!testbruce.isValidFunctionSpaceType(3));
-
   assert(testbruce.functionSpaceTypeAsString(0)=="Bruce_ContinuousFunction");
   assert(testbruce.functionSpaceTypeAsString(1)=="Bruce_Function");
   try {

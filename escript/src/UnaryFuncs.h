@@ -13,6 +13,7 @@
                                                                            
 #if !defined escript_UnaryFuncs_20041124_H
 #define escript_UnaryFuncs_20041124_H
+#include "system_dep.h"
 
 namespace escript {
 

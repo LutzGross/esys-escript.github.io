@@ -12,6 +12,7 @@
                                                                            
 #if !defined  escript_FunctionSpaceFactory_20040604_H
 #define escript_FunctionSpaceFactory_20040604_H
+#include "system_dep.h"
 
 #include "AbstractDomain.h"
 #include "FunctionSpace.h"
@@ -31,43 +32,43 @@ namespace escript {
      \brief
      Return a continuous FunctionSpace
   */
-  FunctionSpace continuousFunction(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace continuousFunction(const AbstractDomain& domain);
 
   /**
      \brief
      Return a functon FunctionSpace
   */
-  FunctionSpace function(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace function(const AbstractDomain& domain);
   /**
      \brief
      Return a function on boundary FunctionSpace
   */
-  FunctionSpace functionOnBoundary(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace functionOnBoundary(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace functionOnContactZero(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace functionOnContactZero(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace functionOnContactOne(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace functionOnContactOne(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace solution(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace solution(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace reducedSolution(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace reducedSolution(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace
   */
-  FunctionSpace diracDeltaFunction(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace diracDeltaFunction(const AbstractDomain& domain);
 
 } // end of namespace
 #endif

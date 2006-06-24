@@ -31,11 +31,16 @@ namespace finley {
     //
     // create a copy of the filename to overcome the non-constness of call
     // to Finley_Mesh_read
-    char fName[fileName.size()+1];
+    // Win32 refactor
+    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
     strcpy(fName,fileName.c_str());
     Finley_Mesh* fMesh=Finley_Mesh_read(fName,integrationOrder);
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
+    
+    /* win32 refactor */
+    TMPMEMFREE(fName);
+    
     return temp;
   }
 
@@ -138,7 +143,7 @@ namespace finley {
     //
     // extract the meshes from meshList
     int numMsh=boost::python::extract<int>(meshList.attr("__len__")());
-    Finley_Mesh* mshes[numMsh];
+    Finley_Mesh **mshes = (numMsh) ? TMPMEMALLOC(numMsh,Finley_Mesh*) : (Finley_Mesh**)NULL;
     for (int i=0;i<numMsh;++i) {
          AbstractContinuousDomain& meshListMember=boost::python::extract<AbstractContinuousDomain&>(meshList[i]);
          const MeshAdapter* finley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
@@ -151,6 +156,8 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
+	TMPMEMFREE(mshes);
+
     return temp;
   }
   AbstractContinuousDomain*  glueFaces(const boost::python::list& meshList,

@@ -14,6 +14,7 @@
 
 #if !defined escript_DataAbstract_20040315_H
 #define escript_DataAbstract_20040315_H
+#include "system_dep.h"
 
 #include "DataArrayView.h"
 #include "DataArray.h"
@@ -57,12 +58,14 @@ class DataAbstract {
 
      \param what - Input - A description of what this data represents.
   */
+  ESCRIPT_DLL_API
   DataAbstract(const FunctionSpace& what);
 
   /**
     \brief
     Destructor for DataAbstract.
   */
+  ESCRIPT_DLL_API
   virtual
   ~DataAbstract();
 
@@ -70,6 +73,7 @@ class DataAbstract {
      \brief
      Write the data as a string.
   */
+  ESCRIPT_DLL_API
   virtual
   std::string
   toString() const = 0;
@@ -78,6 +82,7 @@ class DataAbstract {
      \brief
      Return the number of data points per sample.
   */
+  ESCRIPT_DLL_API
   int
   getNumDPPSample() const;
 
@@ -85,6 +90,7 @@ class DataAbstract {
      \brief
      Return the number of samples.
   */
+  ESCRIPT_DLL_API
   int
   getNumSamples() const;
 
@@ -94,9 +100,11 @@ class DataAbstract {
      the shape information for each data point although it also may be used
      to manipulate the point data.
   */
+  ESCRIPT_DLL_API
   DataArrayView&
   getPointDataView();
 
+  ESCRIPT_DLL_API
   const DataArrayView&
   getPointDataView() const;
 
@@ -109,6 +117,7 @@ class DataAbstract {
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data point number.
    */
+  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
@@ -118,6 +127,7 @@ class DataAbstract {
      \brief
      Return the sample data for the given sample number.
   */
+  ESCRIPT_DLL_API
   double*
   getSampleData(ValueType::size_type sampleNo);
 
@@ -125,6 +135,7 @@ class DataAbstract {
      \brief
      Return the number of doubles stored for this Data object.
   */
+  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getLength() const = 0;
@@ -134,6 +145,7 @@ class DataAbstract {
      Return the sample data for the given tag key.
      NB: If the data isn't tagged an exception will be thrown.
   */
+  ESCRIPT_DLL_API
   virtual
   double*
   getSampleDataByTag(int tag);
@@ -150,6 +162,7 @@ class DataAbstract {
      \param value - Input - value to assign to data-points associated with
                             the given reference number.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setRefValue(int ref,
@@ -167,6 +180,7 @@ class DataAbstract {
      \param value - Output - object to receive data-points associated with
                              the given reference number.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   getRefValue(int ref,
@@ -179,6 +193,7 @@ class DataAbstract {
 
      \param right - Input - The right hand side.
   */
+  ESCRIPT_DLL_API
   void
   operandCheck(const DataAbstract& right) const;
 
@@ -186,6 +201,7 @@ class DataAbstract {
      \brief
      Return true if a valid sample point number.
   */
+  ESCRIPT_DLL_API
   bool
   validSamplePointNo(int samplePointNo) const;
 
@@ -193,6 +209,7 @@ class DataAbstract {
      \brief
      Return true if a valid sample number.
   */
+  ESCRIPT_DLL_API
   bool
   validSampleNo(int sampleNo) const;
  
@@ -205,6 +222,7 @@ class DataAbstract {
      \param sampleNo - Input - the sample number.
      \param dataPointNo - Input - the data point number.
   */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView
   getDataPoint(int sampleNo,
@@ -214,6 +232,7 @@ class DataAbstract {
      \brief
      Return the function space associated with this Data object.
   */
+  ESCRIPT_DLL_API
   const
   FunctionSpace&
   getFunctionSpace() const;
@@ -224,6 +243,7 @@ class DataAbstract {
 
      NB: The caller is responsible for managing the object created.
   */
+  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   getSlice(const DataArrayView::RegionType& region) const = 0;
@@ -235,6 +255,7 @@ class DataAbstract {
      \param value - Input - Data to copy from
      \param region - Input - Region to copy.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setSlice(const DataAbstract* value,
@@ -247,6 +268,7 @@ class DataAbstract {
      The original data point value is used for all values of the new
      data point.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   reshapeDataPoint(const ShapeType& shape) = 0;
@@ -263,6 +285,7 @@ class DataAbstract {
      \param tagKey - Input - Integer key.
      \param value - Input - Single DataArrayView value to be assigned to the tag.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setTaggedValue(int tagKey,
@@ -276,6 +299,7 @@ class DataAbstract {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   virtual
   int
   archiveData(std::ofstream& archiveFile,
@@ -288,6 +312,7 @@ class DataAbstract {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   virtual
   int
   extractData(std::ifstream& archiveFile,
@@ -302,6 +327,7 @@ class DataAbstract {
 
      \param value Input - new values for the data points
   */
+  ESCRIPT_DLL_API
   virtual void
   copyAll(const boost::python::numeric::array& value);
 
@@ -312,6 +338,7 @@ class DataAbstract {
      If the object cannot be referenced by tag numbers, an exception
      will be thrown.
   */
+  ESCRIPT_DLL_API
   virtual
   int
   getTagNumber(int dpno);
@@ -323,6 +350,7 @@ class DataAbstract {
      \param ev - Output - eigenvalues in increasing order at each data point
 
   */
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues(DataAbstract* ev);
 
@@ -337,6 +365,7 @@ class DataAbstract {
 
   */
 
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
@@ -349,9 +378,11 @@ class DataAbstract {
      \param input - Input - The point data view. DataAbstract takes ownership
      of the DataArrayView provided. It will delete it when it is destructed.
   */
+  ESCRIPT_DLL_API
   void
   setPointDataView(const DataArrayView& input);
 
+  ESCRIPT_DLL_API
   void
   resetPointDataView();
 

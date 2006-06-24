@@ -13,6 +13,7 @@
 
 #if !defined escript_DataEmpty_20040726_H
 #define escript_DataEmpty_20040726_H
+#include "system_dep.h"
 
 #include "DataAbstract.h"
 
@@ -38,12 +39,14 @@ class DataEmpty : public DataAbstract {
      Default constructor for DataEmpty.
 
   */
+  ESCRIPT_DLL_API
   DataEmpty();
 
   /**
      \brief
      Destructor for DataEmpty.
   */
+  ESCRIPT_DLL_API
   virtual
   ~DataEmpty();
 
@@ -51,6 +54,7 @@ class DataEmpty : public DataAbstract {
      \brief
      Return a textual representation of the Data object.
   */
+  ESCRIPT_DLL_API
   virtual
   std::string
   toString() const;
@@ -63,6 +67,7 @@ class DataEmpty : public DataAbstract {
      \param sampleNo - Input - Sample number.
      \param dataPointNo - Input - data-point number.
    */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView::ValueType::size_type
   getPointOffset(int sampleNo,
@@ -76,6 +81,7 @@ class DataEmpty : public DataAbstract {
      \param sampleNo - Input - Sample number.
      \param dataPointNo - Input - data-point number.
   */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView
   getDataPoint(int sampleNo,
@@ -86,6 +92,7 @@ class DataEmpty : public DataAbstract {
      Return the number of doubles stored for the Data object.
      As this is an empty Data object, this method will always return 0.
   */
+  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getLength() const;
@@ -97,6 +104,7 @@ class DataEmpty : public DataAbstract {
      NB: This will throw an exception as obviously an empty Data object contains no
      data to slice from. An implementation is required by parent DataAbstract class.
   */
+  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   getSlice(const DataArrayView::RegionType& region) const;
@@ -110,6 +118,7 @@ class DataEmpty : public DataAbstract {
      \param value Input - Data to copy from
      \param region Input - Region to copy.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setSlice(const DataAbstract* value,
@@ -121,6 +130,7 @@ class DataEmpty : public DataAbstract {
      NB: This will throw an exception as obviously an empty Data object contains no
      data to reshape. An implementation is required by parent DataAbstract class.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   reshapeDataPoint(const DataArrayView::ShapeType& shape);

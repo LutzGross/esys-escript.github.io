@@ -97,7 +97,9 @@ class bruceTestCase(unittest.TestCase):
             'testData4':testData4,
             'testData5':testData5,
             'testData6':testData6}
+    print "before saveVTK call"
     self.b.saveVTK(filename, dict)
+    print "after saveVTK call"
 
 if __name__ == '__main__':
   suite=unittest.TestSuite()

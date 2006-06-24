@@ -12,6 +12,12 @@
  *                                                                           *
  *****************************************************************************
 */
+#include <iostream>
+#ifdef _WIN32 && __INTEL_COMPILER
+#include <mathimf.h>
+#else
+#include <math.h>
+#endif
 
 #include "DataTestCase.h"
 
@@ -20,8 +26,6 @@
 
 #include "escript/Data.h"
 
-#include <iostream>
-#include <math.h>
 
 using namespace std;
 using namespace CppUnitTest;

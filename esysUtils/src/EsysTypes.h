@@ -12,7 +12,7 @@
  
 #ifndef ESYSTYPES_H
 #define ESYSTYPES_H
-
+#include "system_dep.h"
 /*
  * Use the integer types defined in the 1999 ISO C Standard
  * To specify a suitable Esys integer type

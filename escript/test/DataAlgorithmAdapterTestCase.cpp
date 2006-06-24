@@ -12,6 +12,11 @@
  *                                                                           *
  *****************************************************************************
 */
+#ifdef _WIN32 && __INTEL_COMPILER
+#include <mathimf.h>
+#else
+#include <math.h>
+#endif
 
 #include "escript/DataExpanded.h"
 #include "escript/DataArrayView.h"
@@ -20,7 +25,6 @@
 
 #include <iostream>
 #include <algorithm>
-#include <math.h>
 #include <limits>
 
 using namespace CppUnitTest;

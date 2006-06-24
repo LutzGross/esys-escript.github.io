@@ -70,10 +70,11 @@ Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
 
 void MeshAdapter::write(const std::string& fileName) const
 {
-  char fName[fileName.size()+1];
+  char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
   strcpy(fName,fileName.c_str());
   Finley_Mesh_write(m_finleyMesh.get(),fName);
   checkFinleyError();
+  TMPMEMFREE(fName);
 }
 
 string MeshAdapter::getDescription() const
@@ -644,10 +645,16 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
 {
     int MAX_namelength=256;
     const int num_data=boost::python::extract<int>(arg.attr("__len__")());
-    char names[num_data][MAX_namelength];
-    char* c_names[num_data];
-    escriptDataC data[num_data];
-    escriptDataC* ptr_data[num_data];
+  /* win32 refactor */
+  char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
+  for(int i=0;i<num_data;i++)
+  {
+  	names[i] = (MAX_namelength>0) ? TMPMEMALLOC(MAX_namelength,char) : (char*)NULL;
+  }
+
+  char* *c_names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
+  escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
+  escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
 
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
@@ -667,6 +674,17 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
     }
     Finley_Mesh_saveDX(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
     checkFinleyError();
+    
+      /* win32 refactor */
+  TMPMEMFREE(c_names);
+  TMPMEMFREE(data);
+  TMPMEMFREE(ptr_data);
+  for(int i=0;i<num_data;i++)
+  {
+  	TMPMEMFREE(names[i]);
+  }
+  TMPMEMFREE(names);
+
     return;
 }
 
@@ -675,10 +693,16 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
 {
     int MAX_namelength=256;
     const int num_data=boost::python::extract<int>(arg.attr("__len__")());
-    char names[num_data][MAX_namelength];
-    char* c_names[num_data];
-    escriptDataC data[num_data];
-    escriptDataC* ptr_data[num_data];
+  /* win32 refactor */
+  char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
+  for(int i=0;i<num_data;i++)
+  {
+  	names[i] = (MAX_namelength>0) ? TMPMEMALLOC(MAX_namelength,char) : (char*)NULL;
+  }
+
+  char* *c_names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
+  escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
+  escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
 
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
@@ -698,6 +722,16 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
     }
     Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
     checkFinleyError();
+  /* win32 refactor */
+  TMPMEMFREE(c_names);
+  TMPMEMFREE(data);
+  TMPMEMFREE(ptr_data);
+  for(int i=0;i<num_data;i++)
+  {
+  	TMPMEMFREE(names[i]);
+  }
+  TMPMEMFREE(names);
+
     return;
 }
                                                                                                                                                                         

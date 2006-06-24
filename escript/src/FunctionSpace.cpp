@@ -25,7 +25,7 @@ namespace escript {
 
 //
 // Create a null domain for use with any default-constructed function space
-NullDomain FunctionSpace::m_nullDomainValue;
+ESCRIPT_DLL_API NullDomain FunctionSpace::m_nullDomainValue;
 
 FunctionSpace::FunctionSpace():
   m_domain(static_cast<AbstractDomain*>(&m_nullDomainValue)),

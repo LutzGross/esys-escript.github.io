@@ -47,6 +47,7 @@ if papi_libs:
    local_env.Append(CPPDEFINES=['PAPI',])
    local_env.Append(LIBS = papi_libs)
 
+local_env.Append(CPPDEFINES = 'FINLEY_EXPORTS')
 
 lib = local_env.SharedLibrary(lib_name, sources)
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)

@@ -13,6 +13,7 @@
 
 #if !defined escript_DataConstant_20040323_H
 #define escript_DataConstant_20040323_H
+#include "system_dep.h"
 
 #include "DataAbstract.h"
 #include "DataArrayView.h"
@@ -44,6 +45,7 @@ class DataConstant : public DataAbstract  {
      \param value - Input - Data value for a single point.
      \param what - Input - A description of what this data object represents.
   */
+  ESCRIPT_DLL_API
   DataConstant(const boost::python::numeric::array& value,
                const FunctionSpace& what);
 
@@ -51,6 +53,7 @@ class DataConstant : public DataAbstract  {
      \brief
      Copy constructor. Performs a deep copy.
   */
+  ESCRIPT_DLL_API
   DataConstant(const DataConstant& other);
 
   /**
@@ -62,6 +65,7 @@ class DataConstant : public DataAbstract  {
      \param value - Input - Data value for a single point.
      \param what - Input - A description of what this data object represents.
   */
+  ESCRIPT_DLL_API
   DataConstant(const DataArrayView& value,
                const FunctionSpace& what);
 
@@ -74,6 +78,7 @@ class DataConstant : public DataAbstract  {
      \param other - Input - Data object to copy from.
      \param region - Input - region to copy.
   */
+  ESCRIPT_DLL_API
   DataConstant(const DataConstant& other,
                const DataArrayView::RegionType& region);
 
@@ -87,6 +92,7 @@ class DataConstant : public DataAbstract  {
      \param shape - Input - the shape of each data-point.
      \param data - the data values for each data-point.
   */
+  ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
                const DataArrayView::ShapeType &shape,
                const DataArrayView::ValueType &data);
@@ -95,6 +101,7 @@ class DataConstant : public DataAbstract  {
      \brief
      Write the data as a string.
   */
+  ESCRIPT_DLL_API
   std::string
   toString() const;
 
@@ -107,6 +114,7 @@ class DataConstant : public DataAbstract  {
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data point number for the sample.
    */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView::ValueType::size_type
   getPointOffset(int sampleNo,
@@ -118,6 +126,7 @@ class DataConstant : public DataAbstract  {
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data point number for the sample.
   */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView
   getDataPoint(int sampleNo,
@@ -127,6 +136,7 @@ class DataConstant : public DataAbstract  {
      \brief
      Return the number of doubles stored for the Data object.
   */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView::ValueType::size_type
   getLength() const;
@@ -138,6 +148,7 @@ class DataConstant : public DataAbstract  {
      The caller is reponsible for managing the object created.
      \param region - Input - region to slice from this object.
   */
+  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   getSlice(const DataArrayView::RegionType& region) const;
@@ -148,6 +159,7 @@ class DataConstant : public DataAbstract  {
      \param value - Input - Data object to copy from.
      \param region - Input - Region to copy.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setSlice(const DataAbstract* value,
@@ -159,6 +171,7 @@ class DataConstant : public DataAbstract  {
      The original data point value is used for all values of the new
      data point.
   */
+  ESCRIPT_DLL_API
   void
   reshapeDataPoint(const DataArrayView::ShapeType& shape);
 
@@ -170,6 +183,7 @@ class DataConstant : public DataAbstract  {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   archiveData(std::ofstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues) const;
@@ -181,6 +195,7 @@ class DataConstant : public DataAbstract  {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   extractData(std::ifstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues);
@@ -192,6 +207,7 @@ class DataConstant : public DataAbstract  {
      \param ev - Output - eigenvalues in increasing order at each data point
 
   */
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues(DataAbstract* ev);
 
@@ -206,6 +222,7 @@ class DataConstant : public DataAbstract  {
 
   */
 
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 

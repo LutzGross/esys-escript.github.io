@@ -13,6 +13,7 @@
                                                                            
 #if !defined  escript_UtilC_20040611_H
 #define escript_UtilC_20040611_H
+#include "system_dep.h"
 
 #define ESCRIPT_MAX_DATA_RANK 4
 /**

@@ -13,6 +13,7 @@
 #if !defined  escript_SystemMatrixException_20040608_H
 #define escript_SystemMatrixException_20040608_H
 
+#include "system_dep.h"
 #include "esysUtils/EsysException.h"
 
 #include <string>
@@ -34,21 +35,25 @@ class SystemMatrixException : public esysUtils::EsysException {
      \brief
      Default constructor for the exception.
   */
+  ESCRIPT_DLL_API
   SystemMatrixException() : EsysException() {}
   /**
      \brief
      Constructor for the exception.
   */
+  ESCRIPT_DLL_API
   SystemMatrixException(const char *cstr) : EsysException(cstr) {}
   /**
      \brief
      Constructor for the exception.
   */
+  ESCRIPT_DLL_API
   SystemMatrixException(const std::string &str) : EsysException(str) {}
   /**
      \brief
      Returns the name of the exception.
   */
+  ESCRIPT_DLL_API
   virtual std::string exceptionName() const {return "SystemMatrixException";}
 };
 

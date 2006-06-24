@@ -12,6 +12,7 @@
                                                                            
 #if !defined  esysUtils_esysExceptionTranslator_20040419_H
 #define esysUtils_esysExceptionTranslator_20040419_H
+#include "system_dep.h"
 
 #include "EsysException.h"
 

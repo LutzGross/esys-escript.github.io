@@ -28,13 +28,17 @@
 /**************************************************************/
 
 /* some system values */
+#ifdef _WIN32 && __INTEL_COMPILER
+#include <mathimf.h>
+#else
+#include <math.h>
+#endif
 
 #include <float.h>
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #define LenString_MAX FILENAME_MAX*2
 #define LenErrorMsg_MAX LenString_MAX

@@ -15,6 +15,7 @@
 
 #ifndef DATA_H
 #define DATA_H
+#include "system_dep.h"
 
 #include "DataAbstract.h"
 #include "DataAlgorithm.h"
@@ -23,9 +24,9 @@
 #include "UnaryOp.h"
 #include "DataException.h"
 
-extern "C" {
+//extern "C" {
 #include "DataC.h"
-}
+//}
 
 #include <string>
 #include <algorithm>
@@ -73,6 +74,7 @@ class Data {
      Default constructor.
      Creates a DataEmpty object.
   */
+  ESCRIPT_DLL_API
   Data();
 
   /**
@@ -80,6 +82,7 @@ class Data {
      Copy constructor.
      WARNING: Only performs a shallow copy.
   */
+  ESCRIPT_DLL_API
   Data(const Data& inData);
 
   /**
@@ -88,6 +91,7 @@ class Data {
      function space of inData the inData are tried to be interpolated to what,
      otherwise a shallow copy of inData is returned.
   */
+  ESCRIPT_DLL_API
   Data(const Data& inData,
        const FunctionSpace& what);
 
@@ -101,6 +105,7 @@ class Data {
                        the value. Otherwise a more efficient storage
                        mechanism will be used.
   */
+  ESCRIPT_DLL_API
   Data(const DataArrayView& value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -116,6 +121,7 @@ class Data {
                        the given value. Otherwise a more efficient storage
                        mechanism will be used.
   */
+  ESCRIPT_DLL_API
   Data(double value,
        const DataArrayView::ShapeType& dataPointShape=DataArrayView::ShapeType(),
        const FunctionSpace& what=FunctionSpace(),
@@ -128,6 +134,7 @@ class Data {
      \param inData - Input - Input Data object.
      \param region - Input - Region to copy.
   */
+  ESCRIPT_DLL_API
   Data(const Data& inData,
        const DataArrayView::RegionType& region);
 
@@ -145,6 +152,7 @@ class Data {
                        the appropriate values.
     ==>*
   */
+  ESCRIPT_DLL_API
   Data(const DataTagged::TagListType& tagKeys,
        const DataTagged::ValueListType& values,
        const DataArrayView& defaultValue,
@@ -161,6 +169,7 @@ class Data {
                        the value. Otherwise a more efficient storage
                        mechanism will be used.
   */
+  ESCRIPT_DLL_API
   Data(const boost::python::numeric::array& value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -176,6 +185,7 @@ class Data {
                        the value. Otherwise a more efficient storage
                        mechanism will be used.
   */
+  ESCRIPT_DLL_API
   Data(const boost::python::object& value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -189,6 +199,7 @@ class Data {
      \param value - Input - Input data.
      \param other - Input - contains all other parameters.
   */
+  ESCRIPT_DLL_API
   Data(const boost::python::object& value,
        const Data& other);
 
@@ -196,6 +207,7 @@ class Data {
      \brief
      Constructor which creates a DataConstant of "shape" with constant value.
   */
+  ESCRIPT_DLL_API
   Data(double value, 
        const boost::python::tuple& shape=boost::python::make_tuple(), 
        const FunctionSpace& what=FunctionSpace(),
@@ -204,12 +216,14 @@ class Data {
      \brief
      Destructor
   */
+  ESCRIPT_DLL_API
   ~Data();
 
   /**
      \brief
      Perform a deep copy.
   */
+  ESCRIPT_DLL_API
   void
   copy(const Data& other);
 
@@ -221,6 +235,7 @@ class Data {
      \brief
      Return the values of all data-points as a single python numarray object.
   */
+  ESCRIPT_DLL_API
   const boost::python::numeric::array
   convertToNumArray();
 
@@ -228,6 +243,7 @@ class Data {
      \brief
      Return the values of all data-points for the given sample as a single python numarray object.
   */
+  ESCRIPT_DLL_API
   const boost::python::numeric::array
   convertToNumArrayFromSampleNo(int sampleNo);
 
@@ -235,6 +251,7 @@ class Data {
      \brief
      Return the value of the specified data-point as a single python numarray object.
   */
+  ESCRIPT_DLL_API
   const boost::python::numeric::array
   convertToNumArrayFromDPNo(int sampleNo,
                             int dataPointNo);
@@ -243,6 +260,7 @@ class Data {
      \brief
      Fills the expanded Data object from values of a python numarray object.
   */
+  ESCRIPT_DLL_API
   void
   fillFromNumArray(const boost::python::numeric::array);
 
@@ -253,6 +271,7 @@ class Data {
      The data-point number here corresponds to the data-point number in the
      numarray returned by convertToNumArray.
   */
+  ESCRIPT_DLL_API
   int
   getTagNumber(int dpno);
 
@@ -260,6 +279,7 @@ class Data {
      \brief
      Return the C wrapper for the Data object.
   */
+  ESCRIPT_DLL_API
   escriptDataC
   getDataC();
 
@@ -267,6 +287,7 @@ class Data {
      \brief
      Return the C wrapper for the Data object - const version.
   */
+  ESCRIPT_DLL_API
   escriptDataC
   getDataC() const;
 
@@ -274,6 +295,7 @@ class Data {
      \brief
      Write the data as a string.
   */
+  ESCRIPT_DLL_API
   inline
   std::string
   toString() const
@@ -287,6 +309,7 @@ class Data {
      the shape information for each data point although it also may be used
      to manipulate the point data.
   */
+  ESCRIPT_DLL_API
   inline
   const DataArrayView&
   getPointDataView() const
@@ -298,6 +321,7 @@ class Data {
      \brief
      Whatever the current Data type make this into a DataExpanded.
   */
+  ESCRIPT_DLL_API
   void
   expand();
 
@@ -308,6 +332,7 @@ class Data {
      Expanded data to tagged will throw an exception.
     ==>*
   */
+  ESCRIPT_DLL_API
   void
   tag();
 
@@ -315,6 +340,7 @@ class Data {
      \brief
      Return true if this Data is expanded.
   */
+  ESCRIPT_DLL_API
   bool
   isExpanded() const;
 
@@ -322,6 +348,7 @@ class Data {
      \brief
      Return true if this Data is tagged.
   */
+  ESCRIPT_DLL_API
   bool
   isTagged() const;
 
@@ -329,6 +356,7 @@ class Data {
      \brief
      Return true if this Data is constant.
   */
+  ESCRIPT_DLL_API
   bool
   isConstant() const;
 
@@ -336,6 +364,7 @@ class Data {
      \brief
      Return true if this Data is empty.
   */
+  ESCRIPT_DLL_API
   bool
   isEmpty() const;
 
@@ -343,6 +372,7 @@ class Data {
      \brief
      Return the function space.
   */
+  ESCRIPT_DLL_API
   inline
   const FunctionSpace&
   getFunctionSpace() const
@@ -354,6 +384,7 @@ class Data {
      \brief
      Return a copy of the function space.
   */
+  ESCRIPT_DLL_API
   const FunctionSpace
   getCopyOfFunctionSpace() const;
 
@@ -361,6 +392,7 @@ class Data {
      \brief
      Return the domain.
   */
+  ESCRIPT_DLL_API
   inline
   const AbstractDomain&
   getDomain() const
@@ -372,6 +404,7 @@ class Data {
      \brief
      Return a copy of the domain.
   */
+  ESCRIPT_DLL_API
   const AbstractDomain
   getCopyOfDomain() const;
 
@@ -379,6 +412,7 @@ class Data {
      \brief
      Return the rank of the point data.
   */
+  ESCRIPT_DLL_API
   inline
   int
   getDataPointRank() const
@@ -390,6 +424,7 @@ class Data {
      \brief
      Return the number of samples.
   */
+  ESCRIPT_DLL_API
   inline
   int
   getNumSamples() const
@@ -401,6 +436,7 @@ class Data {
      \brief
      Return the number of data points per sample.
   */
+  ESCRIPT_DLL_API
   inline
   int
   getNumDataPointsPerSample() const
@@ -414,6 +450,7 @@ class Data {
      preferred interface but is provided for use by C code.
      \param sampleNo - Input - the given sample no.
   */
+  ESCRIPT_DLL_API
   inline
   DataAbstract::ValueType::value_type*
   getSampleData(DataAbstract::ValueType::size_type sampleNo)
@@ -427,6 +464,7 @@ class Data {
      access data that isn't tagged an exception will be thrown.
      \param tag - Input - the tag key.
   */
+  ESCRIPT_DLL_API
   inline
   DataAbstract::ValueType::value_type*
   getSampleDataByTag(int tag)
@@ -450,6 +488,7 @@ class Data {
      \param value - Input - value to assign to data-points associated with
                             the given reference number.
   */
+  ESCRIPT_DLL_API
   void
   setRefValue(int ref,
               const boost::python::numeric::array& value);
@@ -469,6 +508,7 @@ class Data {
      \param value - Output - object to receive values from data-points
                              associated with the given reference number.
   */
+  ESCRIPT_DLL_API
   void
   getRefValue(int ref,
               boost::python::numeric::array& value);
@@ -481,6 +521,7 @@ class Data {
      \param sampleNo - Input -
      \param dataPointNo - Input -
   */
+  ESCRIPT_DLL_API
   inline
   DataArrayView
   getDataPoint(int sampleNo,
@@ -493,6 +534,7 @@ class Data {
      \brief
      Return a reference to the data point shape.
   */
+  ESCRIPT_DLL_API
   const DataArrayView::ShapeType&
   getDataPointShape() const;
 
@@ -500,6 +542,7 @@ class Data {
      \brief
      Return the data point shape as a tuple of integers.
   */
+  ESCRIPT_DLL_API
   const boost::python::tuple
   getShapeTuple() const;
 
@@ -508,6 +551,7 @@ class Data {
      Return the size of the data point. It is the product of the
      data point shape dimensions.
   */
+  ESCRIPT_DLL_API
   int
   getDataPointSize() const;
 
@@ -515,6 +559,7 @@ class Data {
      \brief
      Return the number of doubles stored for this Data.
   */
+  ESCRIPT_DLL_API
   DataArrayView::ValueType::size_type
   getLength() const;
 
@@ -527,6 +572,7 @@ class Data {
      \param value - Input - Value to associate with given key.
     ==>*
   */
+  ESCRIPT_DLL_API
   void
   setTaggedValue(int tagKey,
                  const boost::python::object& value);
@@ -540,6 +586,7 @@ class Data {
      \param value - Input - Value to associate with given key.
     ==>*
   */
+  ESCRIPT_DLL_API
   void
   setTaggedValueFromCPP(int tagKey,
                         const DataArrayView& value);
@@ -548,6 +595,7 @@ class Data {
     \brief
     Copy other Data object into this Data object where mask is positive.
   */
+  ESCRIPT_DLL_API
   void
   copyWithMask(const Data& other,
                const Data& mask);
@@ -562,6 +610,7 @@ class Data {
      the result as a Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   interpolate(const FunctionSpace& functionspace) const;
 
@@ -571,9 +620,11 @@ class Data {
      If functionspace is not present the function space of Function(getDomain()) is used.
      *
   */
+  ESCRIPT_DLL_API
   Data
   gradOn(const FunctionSpace& functionspace) const;
 
+  ESCRIPT_DLL_API
   Data
   grad() const;
 
@@ -582,6 +633,7 @@ class Data {
      Calculate the integral over the function space domain.
      *
   */
+  ESCRIPT_DLL_API
   boost::python::numeric::array
   integrate() const;
 
@@ -590,6 +642,7 @@ class Data {
      Return a Data with a 1 for +ive values and a 0 for 0 or -ive values.
      *
   */
+  ESCRIPT_DLL_API
   Data
   wherePositive() const;
 
@@ -598,6 +651,7 @@ class Data {
      Return a Data with a 1 for -ive values and a 0 for +ive or 0 values.
      *
   */
+  ESCRIPT_DLL_API
   Data
   whereNegative() const;
 
@@ -606,6 +660,7 @@ class Data {
      Return a Data with a 1 for +ive or 0 values and a 0 for -ive values.
      *
   */
+  ESCRIPT_DLL_API
   Data
   whereNonNegative() const;
 
@@ -614,6 +669,7 @@ class Data {
      Return a Data with a 1 for -ive or 0 values and a 0 for +ive values.
      *
   */
+  ESCRIPT_DLL_API
   Data
   whereNonPositive() const;
 
@@ -622,6 +678,7 @@ class Data {
      Return a Data with a 1 for 0 values and a 0 for +ive or -ive values.
      *
   */
+  ESCRIPT_DLL_API
   Data
   whereZero(double tol=0.0) const;
 
@@ -630,6 +687,7 @@ class Data {
      Return a Data with a 0 for 0 values and a 1 for +ive or -ive values.
      *
   */
+  ESCRIPT_DLL_API
   Data
   whereNonZero(double tol=0.0) const;
 
@@ -638,6 +696,7 @@ class Data {
      Return the maximum absolute value of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   double
   Lsup() const;
 
@@ -646,6 +705,7 @@ class Data {
      Return the minimum absolute value of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   double
   Linf() const;
 
@@ -654,6 +714,7 @@ class Data {
      Return the maximum value of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   double
   sup() const;
 
@@ -662,6 +723,7 @@ class Data {
      Return the minimum value of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   double
   inf() const;
 
@@ -670,6 +732,7 @@ class Data {
      Return the absolute value of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   abs() const;
 
@@ -678,6 +741,7 @@ class Data {
      Return the maximum value of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   maxval() const;
 
@@ -686,6 +750,7 @@ class Data {
      Return the minimum value of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   minval() const;
 
@@ -694,9 +759,11 @@ class Data {
      Return the (sample number, data-point number) of the data point with
      the minimum value in this Data object.
   */
+  ESCRIPT_DLL_API
   const boost::python::tuple
   mindp() const;
 
+  ESCRIPT_DLL_API
   void
   calc_mindp(int& SampleNo,
              int& DataPointNo) const;
@@ -707,6 +774,7 @@ class Data {
      -1 for negative values, zero for zero values, 1 for positive values.
      *
   */
+  ESCRIPT_DLL_API
   Data
   sign() const;
 
@@ -716,6 +784,7 @@ class Data {
      Currently this function is restricted to rank 2, square shape, and dimension 3.
      *
   */
+  ESCRIPT_DLL_API
   Data
   eigenvalues() const;
 
@@ -728,6 +797,7 @@ class Data {
      Currently this function is restricted to rank 2, square shape, and dimension 3
      *
   */
+  ESCRIPT_DLL_API
   const boost::python::tuple
   eigenvalues_and_eigenvectors(const double tol=1.e-12) const;
 
@@ -737,6 +807,7 @@ class Data {
      --* not implemented yet *--
      *
   */
+  ESCRIPT_DLL_API
   Data
   transpose(int axis) const;
 
@@ -745,6 +816,7 @@ class Data {
      Calculate the trace of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   trace() const;
 
@@ -753,6 +825,7 @@ class Data {
      Return the sin of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   sin() const;
 
@@ -761,6 +834,7 @@ class Data {
      Return the cos of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   cos() const;
 
@@ -769,6 +843,7 @@ class Data {
      Return the tan of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   tan() const;
 
@@ -777,6 +852,7 @@ class Data {
      Return the asin of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   asin() const;
 
@@ -785,6 +861,7 @@ class Data {
      Return the acos of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   acos() const;
 
@@ -793,6 +870,7 @@ class Data {
      Return the atan of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   atan() const;
 
@@ -801,6 +879,7 @@ class Data {
      Return the sinh of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   sinh() const;
 
@@ -809,6 +888,7 @@ class Data {
      Return the cosh of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   cosh() const;
 
@@ -817,6 +897,7 @@ class Data {
      Return the tanh of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   tanh() const;
 
@@ -825,6 +906,7 @@ class Data {
      Return the asinh of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   asinh() const;
 
@@ -833,6 +915,7 @@ class Data {
      Return the acosh of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   acosh() const;
 
@@ -841,6 +924,7 @@ class Data {
      Return the atanh of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   atanh() const;
 
@@ -849,6 +933,7 @@ class Data {
      Return the log to base 10 of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   log10() const;
 
@@ -857,6 +942,7 @@ class Data {
      Return the natural log of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   log() const;
 
@@ -865,6 +951,7 @@ class Data {
      Return the exponential function of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   exp() const;
 
@@ -873,6 +960,7 @@ class Data {
      Return the square root of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   sqrt() const;
 
@@ -881,6 +969,7 @@ class Data {
      Return the negation of each data point of this Data object.
      *
   */
+  ESCRIPT_DLL_API
   Data
   neg() const;
 
@@ -890,6 +979,7 @@ class Data {
      Simply returns this object unmodified.
      *
   */
+  ESCRIPT_DLL_API
   Data
   pos() const;
 
@@ -900,6 +990,7 @@ class Data {
      \param right Input - the power to raise the object to.
      *
   */
+  ESCRIPT_DLL_API
   Data
   powD(const Data& right) const;
 
@@ -910,6 +1001,7 @@ class Data {
      \param right Input - the power to raise the object to.
      *
    */
+  ESCRIPT_DLL_API
   Data
   powO(const boost::python::object& right) const;
 
@@ -921,6 +1013,7 @@ class Data {
      *
    */
 
+  ESCRIPT_DLL_API
   Data
   rpowO(const boost::python::object& left) const;
 
@@ -928,6 +1021,7 @@ class Data {
      \brief
      writes the object to a file in the DX file format
   */
+  ESCRIPT_DLL_API
   void
   saveDX(std::string fileName) const;
 
@@ -935,6 +1029,7 @@ class Data {
      \brief
      writes the object to a file in the VTK file format
   */
+  ESCRIPT_DLL_API
   void
   saveVTK(std::string fileName) const;
 
@@ -944,7 +1039,9 @@ class Data {
      \param right - Input - The right hand side.
      *
   */
+  ESCRIPT_DLL_API
   Data& operator+=(const Data& right);
+  ESCRIPT_DLL_API
   Data& operator+=(const boost::python::object& right);
 
   /**
@@ -953,7 +1050,9 @@ class Data {
      \param right - Input - The right hand side.
      *
   */
+  ESCRIPT_DLL_API
   Data& operator-=(const Data& right);
+  ESCRIPT_DLL_API
   Data& operator-=(const boost::python::object& right);
 
  /**
@@ -962,7 +1061,9 @@ class Data {
      \param right - Input - The right hand side.
      *
   */
+  ESCRIPT_DLL_API
   Data& operator*=(const Data& right);
+  ESCRIPT_DLL_API
   Data& operator*=(const boost::python::object& right);
 
  /**
@@ -971,13 +1072,16 @@ class Data {
      \param right - Input - The right hand side.
      *
   */
+  ESCRIPT_DLL_API
   Data& operator/=(const Data& right);
+  ESCRIPT_DLL_API
   Data& operator/=(const boost::python::object& right);
 
   /**
      \brief
      Returns true if this can be interpolated to functionspace.
   */
+  ESCRIPT_DLL_API
   bool
   probeInterpolation(const FunctionSpace& functionspace) const;
 
@@ -996,6 +1100,7 @@ class Data {
      \param key - Input - python slice tuple specifying
      slice to return.
   */
+  ESCRIPT_DLL_API
   Data
   getItem(const boost::python::object& key) const;
 
@@ -1010,10 +1115,12 @@ class Data {
      slice to copy from value.
      \param value - Input - Data object to copy from.
   */
+  ESCRIPT_DLL_API
   void
   setItemD(const boost::python::object& key,
            const Data& value);
 
+  ESCRIPT_DLL_API
   void
   setItemO(const boost::python::object& key,
            const boost::python::object& value);
@@ -1026,6 +1133,7 @@ class Data {
      this Data object.
   */
   template <class UnaryFunction>
+  ESCRIPT_DLL_API
   inline
   void
   unaryOp(UnaryFunction operation);
@@ -1037,6 +1145,7 @@ class Data {
      \param region - Input - Region to copy.
      *
   */
+  ESCRIPT_DLL_API
   Data
   getSlice(const DataArrayView::RegionType& region) const;
 
@@ -1048,6 +1157,7 @@ class Data {
      \param region - Input - Region to copy.
      *
   */
+  ESCRIPT_DLL_API
   void
   setSlice(const Data& value,
            const DataArrayView::RegionType& region);
@@ -1057,6 +1167,7 @@ class Data {
      Archive the current Data object to the given file.
      \param fileName - Input - file to archive to.
   */
+  ESCRIPT_DLL_API
   void
   archiveData(const std::string fileName);
 
@@ -1068,6 +1179,7 @@ class Data {
      \param fileName - Input - file to extract from.
      \param fspace - Input - a suitable FunctionSpace descibing the data.
   */
+  ESCRIPT_DLL_API
   void
   extractData(const std::string fileName,
               const FunctionSpace& fspace);
@@ -1215,28 +1327,28 @@ Data::initialise(const IValueType& value,
   Operator+
   Takes two Data objects.
 */
-Data operator+(const Data& left, const Data& right);
+ESCRIPT_DLL_API Data operator+(const Data& left, const Data& right);
 
 /**
   \brief
   Operator-
   Takes two Data objects.
 */
-Data operator-(const Data& left, const Data& right);
+ESCRIPT_DLL_API Data operator-(const Data& left, const Data& right);
 
 /**
   \brief
   Operator*
   Takes two Data objects.
 */
-Data operator*(const Data& left, const Data& right);
+ESCRIPT_DLL_API Data operator*(const Data& left, const Data& right);
 
 /**
   \brief
   Operator/
   Takes two Data objects.
 */
-Data operator/(const Data& left, const Data& right);
+ESCRIPT_DLL_API Data operator/(const Data& left, const Data& right);
 
 /**
   \brief
@@ -1244,7 +1356,7 @@ Data operator/(const Data& left, const Data& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator+(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL_API Data operator+(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1252,7 +1364,7 @@ Data operator+(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator-(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL_API Data operator-(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1260,7 +1372,7 @@ Data operator-(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator*(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL_API Data operator*(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1268,7 +1380,7 @@ Data operator*(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-Data operator/(const Data& left, const boost::python::object& right);
+ESCRIPT_DLL_API Data operator/(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -1276,7 +1388,7 @@ Data operator/(const Data& left, const boost::python::object& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator+(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL_API Data operator+(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -1284,7 +1396,7 @@ Data operator+(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator-(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL_API Data operator-(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -1292,7 +1404,7 @@ Data operator-(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator*(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL_API Data operator*(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -1300,13 +1412,13 @@ Data operator*(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-Data operator/(const boost::python::object& left, const Data& right);
+ESCRIPT_DLL_API Data operator/(const boost::python::object& left, const Data& right);
 
 /**
   \brief
   Output operator
 */
-std::ostream& operator<<(std::ostream& o, const Data& data);
+ESCRIPT_DLL_API std::ostream& operator<<(std::ostream& o, const Data& data);
 
 /**
   \brief
@@ -1314,7 +1426,7 @@ std::ostream& operator<<(std::ostream& o, const Data& data);
   NB: this operator does very little at this point, and isn't to 
   be relied on. Requires further implementation.
 */
-//bool operator==(const Data& left, const Data& right);
+//ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
 
 /**
   \brief
