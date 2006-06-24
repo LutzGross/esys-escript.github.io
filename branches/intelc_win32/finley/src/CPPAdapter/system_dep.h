@@ -27,10 +27,11 @@
 #else
 #define FINLEY_DLL_API __declspec(dllimport)
 #endif
+#endif
+
 #else
 #define FINLEY_DLL_API
 #endif
 
-#endif
 
 #endif
