@@ -13,10 +13,10 @@ cc_defines = ['_USE_MATH_DEFINES', ]
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
 # 161 - openmp pargmas are unknown when not compiling with openmp
-cc_flags  = '/GR /EHsc /MD /Qc99 /Qwd161'
-cc_flags_debug  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qwd161'
-#cc_flags  = '/GR /EHsc /MD /Qc99 /Qopenmp'
-#cc_flags_debug  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp'
+cc_flags  = '/GR /EHsc /MD /Qc99 /Qwd161 /G7'
+#cc_flags_debug  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qwd161'
+#cc_flags  = '/GR /EHsc /MD /Qc99 /Qopenmp /Qopenmp-report0 /G7'
+cc_flags_debug  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp /Qopenmp-report0'
 
 # c++ flags to use
 cxx_flags = ''

@@ -14,11 +14,6 @@
 #if !defined escript_DataAlgorithm_20040714_H
 #define escript_DataAlgorithm_20040714_H
 #include "system_dep.h"
-#ifdef _WIN32 && __INTEL_COMPILER
-#include <mathimf.h>
-#else
-#include <math.h>
-#endif
 
 #include "DataArrayView.h"
 #include "DataExpanded.h"
