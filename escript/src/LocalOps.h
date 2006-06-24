@@ -15,11 +15,11 @@
 #define escript_LocalOps_H
 #ifdef _WIN32 && __INTEL_COMPILER
 #include <mathimf.h>
+#define M_PI 3.141592653589
 #else
 #include <math.h>
 #endif
 
-#define M_PI 3.141592653589
 namespace escript {
 
 

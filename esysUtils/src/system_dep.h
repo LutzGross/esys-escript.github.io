@@ -27,10 +27,10 @@
 #else
 #define ESYSUTILS_DLL_API __declspec(dllimport)
 #endif
+#endif
 #else
 #define ESYSUTILS_DLL_API
 #endif
 
-#endif
 
 #endif
