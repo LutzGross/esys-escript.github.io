@@ -44,16 +44,16 @@ class Test_Generators(unittest.TestCase):
       my_dom=Interval(1,1,useElementsOnFace=1)
       self.checker(my_dom,file)
 
-#   def test_hex_1D_order2(self):
-#      file="hex_1D_order2.msh"
-#      my_dom=Interval(1,2)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_1D_order2_onFace(self):
-#      file="hex_1D_order2_onFace.msh"
-#      my_dom=Interval(1,2,useElementsOnFace=1)
-#      self.checker(my_dom,file)
-#
+   def test_hex_1D_order2(self):
+      file="hex_1D_order2.msh"
+      my_dom=Interval(1,2)
+      self.checker(my_dom,file)
+
+   def test_hex_1D_order2_onFace(self):
+      file="hex_1D_order2_onFace.msh"
+      my_dom=Interval(1,2,useElementsOnFace=1)
+      self.checker(my_dom,file)
+
 #   def test_hex_2D_order1(self):
 #      file="hex_2D_order1.msh"
 #      my_dom=Rectangle(1,1,1)
