@@ -28,6 +28,9 @@ class Test_Generators(unittest.TestCase):
    def checker(self,dom,reference):
       dom_file=FINLEY_WORKDIR_PATH+TEST_FILE_EXT
       dom.write(dom_file)
+# Uncomment this section to dump the files for regression testing
+#      if True:
+#         dom.write(FINLEY_TEST_DATA_PATH+reference)
       dom_string=open(dom_file).read().splitlines()
       ref_string=open(FINLEY_TEST_DATA_PATH+reference).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
