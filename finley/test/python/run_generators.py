@@ -54,109 +54,109 @@ class Test_Generators(unittest.TestCase):
       my_dom=Interval(1,2,useElementsOnFace=1)
       self.checker(my_dom,file)
 
-#   def test_hex_2D_order1(self):
-#      file="hex_2D_order1.msh"
-#      my_dom=Rectangle(1,1,1)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_2D_order1_onFace(self):
-#      file="hex_2D_order1_onFace.msh"
-#      my_dom=Rectangle(1,1,1,useElementsOnFace=1)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_2D_order2(self):
-#      file="hex_2D_order2.msh"
-#      my_dom=Rectangle(1,1,2)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_2D_order2_onFace(self):
-#      file="hex_2D_order2_onFace.msh"
-#      my_dom=Rectangle(1,1,2,useElementsOnFace=1)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_3D_order1(self):
-#      file="hex_3D_order1.msh"
-#      my_dom=Brick(1,1,1,1)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_3D_order1_onFace(self):
-#      file="hex_3D_order1_onFace.msh"
-#      my_dom=Brick(1,1,1,1,useElementsOnFace=1)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_3D_order2(self):
-#      file="hex_3D_order2.msh"
-#      my_dom=Brick(1,1,1,2)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_3D_order2_onFace(self):
-#      file="hex_3D_order2_onFace.msh"
-#      my_dom=Brick(1,1,1,2,useElementsOnFace=1)
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_2D_order1(self):
-#      file="hex_contact_2D_order1.msh"
-#      ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
-#      ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
-#      ms2.setX(ms2.getX()+[0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_2D_order1_onFace(self):
-#      file="hex_contact_2D_order1_onFace.msh"
-#      ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
-#      ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
-#      ms2.setX(ms2.getX()+[0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_2D_order2(self):
-#      file="hex_contact_2D_order2.msh"
-#      ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
-#      ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
-#      ms2.setX(ms2.getX()+[0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_2D_order2_onFace(self):
-#      file="hex_contact_2D_order2_onFace.msh"
-#      ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
-#      ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
-#      ms2.setX(ms2.getX()+[0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_3D_order1(self):
-#      file="hex_contact_3D_order1.msh"
-#      ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
-#      ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
-#      ms2.setX(ms2.getX()+[0,0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_3D_order1_onFace(self):
-#      file="hex_contact_3D_order1_onFace.msh"
-#      ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
-#      ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
-#      ms2.setX(ms2.getX()+[0,0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_3D_order2(self):
-#      file="hex_contact_3D_order2.msh"
-#      ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
-#      ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
-#      ms2.setX(ms2.getX()+[0,0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
-#
-#   def test_hex_contact_3D_order2_onFace(self):
-#      file="hex_contact_3D_order2_onFace.msh"
-#      ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
-#      ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
-#      ms2.setX(ms2.getX()+[0,0,0.5])
-#      my_dom=JoinFaces([ms1,ms2])
-#      self.checker(my_dom,file)
+   def test_hex_2D_order1(self):
+      file="hex_2D_order1.msh"
+      my_dom=Rectangle(1,1,1)
+      self.checker(my_dom,file)
+
+   def test_hex_2D_order1_onFace(self):
+      file="hex_2D_order1_onFace.msh"
+      my_dom=Rectangle(1,1,1,useElementsOnFace=1)
+      self.checker(my_dom,file)
+
+   def test_hex_2D_order2(self):
+      file="hex_2D_order2.msh"
+      my_dom=Rectangle(1,1,2)
+      self.checker(my_dom,file)
+
+   def test_hex_2D_order2_onFace(self):
+      file="hex_2D_order2_onFace.msh"
+      my_dom=Rectangle(1,1,2,useElementsOnFace=1)
+      self.checker(my_dom,file)
+
+   def test_hex_3D_order1(self):
+      file="hex_3D_order1.msh"
+      my_dom=Brick(1,1,1,1)
+      self.checker(my_dom,file)
+
+   def test_hex_3D_order1_onFace(self):
+      file="hex_3D_order1_onFace.msh"
+      my_dom=Brick(1,1,1,1,useElementsOnFace=1)
+      self.checker(my_dom,file)
+
+   def test_hex_3D_order2(self):
+      file="hex_3D_order2.msh"
+      my_dom=Brick(1,1,1,2)
+      self.checker(my_dom,file)
+
+   def test_hex_3D_order2_onFace(self):
+      file="hex_3D_order2_onFace.msh"
+      my_dom=Brick(1,1,1,2,useElementsOnFace=1)
+      self.checker(my_dom,file)
+
+   def test_hex_contact_2D_order1(self):
+      file="hex_contact_2D_order1.msh"
+      ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
+      ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
+      ms2.setX(ms2.getX()+[0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
+
+   def test_hex_contact_2D_order1_onFace(self):
+      file="hex_contact_2D_order1_onFace.msh"
+      ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
+      ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
+      ms2.setX(ms2.getX()+[0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
+
+   def test_hex_contact_2D_order2(self):
+      file="hex_contact_2D_order2.msh"
+      ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
+      ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
+      ms2.setX(ms2.getX()+[0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
+
+   def test_hex_contact_2D_order2_onFace(self):
+      file="hex_contact_2D_order2_onFace.msh"
+      ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
+      ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
+      ms2.setX(ms2.getX()+[0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
+
+   def test_hex_contact_3D_order1(self):
+      file="hex_contact_3D_order1.msh"
+      ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
+      ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
+      ms2.setX(ms2.getX()+[0,0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
+
+   def test_hex_contact_3D_order1_onFace(self):
+      file="hex_contact_3D_order1_onFace.msh"
+      ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
+      ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
+      ms2.setX(ms2.getX()+[0,0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
+
+   def test_hex_contact_3D_order2(self):
+      file="hex_contact_3D_order2.msh"
+      ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
+      ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
+      ms2.setX(ms2.getX()+[0,0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
+
+   def test_hex_contact_3D_order2_onFace(self):
+      file="hex_contact_3D_order2_onFace.msh"
+      ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
+      ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
+      ms2.setX(ms2.getX()+[0,0,0.5])
+      my_dom=JoinFaces([ms1,ms2])
+      self.checker(my_dom,file)
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
