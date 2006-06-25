@@ -119,7 +119,6 @@ static void domain_calculateDimension( index_t rank, dim_t size, dim_t numElemen
 Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool_t* periodic, dim_t order,bool_t useElementsOnFace) 
 #ifndef PASO_MPI
 {
-printf("\nDEBUG OUTPUT: %s(%d)\n: prediodic = %d", __FILE__,__LINE__,periodic[0]);
   /* Serial/OpenMP version */
   dim_t N0,NE0,i0,NDOF0,NFaceElements;
   index_t NUMNODES,k;
@@ -246,18 +245,6 @@ printf("\nDEBUG OUTPUT: %s(%d)\n: prediodic = %d", __FILE__,__LINE__,periodic[0]
       Finley_Mesh_dealloc(out);
       return NULL;
   }
-// FIXME: dump out the mesh contents at this point to debug windows
-printf("\nDEBUG OUTPUT: %s(%d)\nDumping mesh output:\n", __FILE__,__LINE__);
-printf("Name: %s\n",out->Name);
-printf("Reference Counter: %d\n",out->reference_counter);
-printf("%s %d\n", out->FaceElements->ReferenceElement->Type->Name,out->FaceElements->numElements);
-    int NN=out->FaceElements->ReferenceElement->Type->numNodes;
-    for (int i=0;i<out->FaceElements->numElements;i++) {
-      printf("Id: %d Tag: %d Nodes:",out->FaceElements->Id[i],out->FaceElements->Tag[i]);
-      for (int j=0;j<NN;j++) printf(" %d",out->Nodes->Id[out->FaceElements->Nodes[INDEX2(j,i,NN)]]);
-      printf("\n");
-    }
-//END FIXME
   
   return out;
 }
