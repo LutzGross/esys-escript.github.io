@@ -6,10 +6,7 @@
 #  Licensed under the Open Software License version 3.0    
 #     http://www.opensource.org/licenses/osl-3.0.php       
 #                                                          
-# installation location
-incinstall ='/home/escript/escript-740/include' 
-libinstall ='/home/escript/escript-740/lib' 
-pyinstall ='/home/escript/escript-740' 
+
 
 
 # locations of libs etc used by mkl
@@ -23,14 +20,14 @@ scsl_lib_path = '/opt/scsl-1.6.1.0/lib'
 scsl_libs = ['scs_mp']
 
 # locations of include files for python
-python_path = '/home/escript/python-2.4.3/include/python2.4'
-python_lib_path = '/home/escript/python-2.4.3/lib'
-python_lib = 'python2.4'
+python_path = '/usr/include/python2.3/'
+python_lib_path = '/usr/lib/python2.3/'
+python_lib = 'python2.3'
 
 # locations of libraries for boost
-boost_path = '/home/escript/boost-1.33.1/include/boost-1_33_1'
-boost_lib_path = '/home/escript/boost-1.33.1/lib'
-boost_lib = 'boost_python-gcc-mt'
+boost_path = '/opt/boost-1.33.0/gcc/include/boost-1_33'
+boost_lib_path = '/opt/boost-1.33.0/gcc/lib'
+boost_lib = 'boost_python-gcc-mt-d'
 
 # locations of doc building executables
 #doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
@@ -44,10 +41,10 @@ boost_lib = 'boost_python-gcc-mt'
 
 # c flags to use
 cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report0 -fno-alias -c99 -w1 -fpic"
-cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
+cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -ansi_alias -w1 -fpic'
 
 # c++ flags to use
-cxx_flags = '-ansi'
+cxx_flags = '-ansi -ansi_alias'
 cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
 
 # system specific libraries to link with

@@ -19,13 +19,13 @@
 *   (Version 1.01, 5/2003)
 */
 
+#include "mmio.h"
 
-#include <stdio.h>
 #include <string.h>
 #include <malloc.h>
 #include <ctype.h>
 
-#include "mmio.h"
+
 
 int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
                 double **val_, int **I_, int **J_)

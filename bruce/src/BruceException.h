@@ -12,7 +12,7 @@
                                                                            
 #if !defined finley_BruceException_20050905_H
 #define finley_BruceException_20050905_H
-
+#include "system_dep.h"
 #include "esysUtils/EsysException.h"
 
 #include <string>
@@ -36,24 +36,28 @@ class BruceException : public esysUtils::EsysException {
      \brief
      Default constructor for the exception.
   */
+  BRUCE_DLL_API
   BruceException() : EsysException() {}
 
   /**
      \brief
      Constructor for the exception.
   */
+  BRUCE_DLL_API
   BruceException(const char *cstr) : EsysException(cstr) {}
 
   /**
      \brief
      Constructor for the exception.
   */
+  BRUCE_DLL_API
   BruceException(const std::string &str) : EsysException(str) {}
 
   /**
      \brief
      Returns the name of the exception.
   */
+  BRUCE_DLL_API
   virtual
   std::string
   exceptionName() const {return "BruceException";}

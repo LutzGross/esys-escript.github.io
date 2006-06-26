@@ -13,6 +13,7 @@
 
 #if !defined  finley_SystemMatrixAdapter_20040610_H
 #define finley_SystemMatrixAdapter_20040610_H
+#include "system_dep.h"
 
 extern "C" {
 #include "paso/SystemMatrix.h"
@@ -49,12 +50,14 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
      Default Constructor for SystemMatrixAdapter.
      NB: Only throws an exception.
   */
+  FINLEY_DLL_API
   SystemMatrixAdapter();
 
   /**
      /brief
      Constructor for SystemMatrixAdapter.
   */
+  FINLEY_DLL_API
   SystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
@@ -67,12 +70,14 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
      Destructor for SystemMatrixAdapter. As specified in the constructor
      this deallocates the pointer given to the constructor.
   */
+  FINLEY_DLL_API
   ~SystemMatrixAdapter();
 
   /**
      \brief
      Returns the pointer to the system matrix.
   */
+  FINLEY_DLL_API
   Paso_SystemMatrix* getPaso_SystemMatrix() const;
 
   /**
@@ -97,26 +102,31 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
     \brief
     nullifyRowsAndCols - calls Paso_SystemMatrix_nullifyRowsAndCols.
   */
+  FINLEY_DLL_API
   void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, const double mdv) const;
 
   /**
      \brief writes the matrix to a file using the Matrix Market file format
   */
+  FINLEY_DLL_API
   virtual void saveMM(const std::string& fileName) const;
 
   /**
      \brief writes the matrix to a file using the Harwell-Boeing file format
   */
+  FINLEY_DLL_API
   virtual void saveHB(const std::string& fileName) const;
 
   /**
      \brief sets the matrix entries to zero
   */
+  FINLEY_DLL_API
   virtual void resetValues() const;
 
   /**
      \brief maps escript options onto Paso options:
   */
+  FINLEY_DLL_API
   static int mapOptionToPaso(const int option);
 
  protected:
@@ -127,12 +137,14 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
       \brief
       solves the linear system this*out=in
    */
+   FINLEY_DLL_API
    virtual void setToSolution(escript::Data& out, escript::Data& in, const boost::python::dict& options) const;
 
    /**
        \brief
        performs y+=this*x
    */
+   FINLEY_DLL_API
    virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
    //

@@ -12,6 +12,7 @@
 
 #if !defined escript_DataBlocks2D_20040405_H
 #define escript_DataBlocks2D_20040405_H
+#include "system_dep.h"
 
 #include "DataVector.h"
 
@@ -47,6 +48,7 @@ class DataBlocks2D {
      Default constructor for DataBlocks2D.
      Creates an empty DataBlocks2D object.
   */
+  ESCRIPT_DLL_API
   DataBlocks2D();
 
   /**
@@ -56,6 +58,7 @@ class DataBlocks2D {
      Description:
      Copy constructor for DataBlocks2D.
   */
+  ESCRIPT_DLL_API
   DataBlocks2D(const DataBlocks2D& other);
 
   /**
@@ -71,6 +74,7 @@ class DataBlocks2D {
 
      All parameters must be >0, else an exception will be thrown.
   */
+  ESCRIPT_DLL_API
   DataBlocks2D(int numRows, int numCols, int blockSize);
 
   /**
@@ -80,6 +84,7 @@ class DataBlocks2D {
      Description:
      Default destructor for DataBlocks2D.
   */
+  ESCRIPT_DLL_API
   ~DataBlocks2D();
 
   /**
@@ -87,6 +92,7 @@ class DataBlocks2D {
      Return the size of the underlying data array.
      ie: Number of rows * Number of columns * Number of elements per data point.
   */
+  ESCRIPT_DLL_API
   inline
   ValueType::size_type
   size() const;
@@ -95,6 +101,7 @@ class DataBlocks2D {
      \brief
      Return the number of rows in this DataBlocks2D array.
   */
+  ESCRIPT_DLL_API
   inline
   ValueType::size_type
   getNumRows() const;
@@ -103,6 +110,7 @@ class DataBlocks2D {
      \brief
      Return the number of columns in this DataBlocks2D array.
   */
+  ESCRIPT_DLL_API
   inline
   ValueType::size_type
   getNumCols() const;
@@ -111,6 +119,7 @@ class DataBlocks2D {
      \brief
      Return the data point size for this DataBlocks2D array.
   */
+  ESCRIPT_DLL_API
   inline
   ValueType::size_type
   getBlockSize() const;
@@ -126,6 +135,7 @@ class DataBlocks2D {
 
      All parameters must be >0, else an exception will be thrown.
   */
+  ESCRIPT_DLL_API
   void
   resize(int numRows, int numCols, int blockSize);
 
@@ -134,6 +144,7 @@ class DataBlocks2D {
      DataBlocks2D assignment operator =
      Assign the given DataBlocks2D object to this one.
   */
+  ESCRIPT_DLL_API
   DataBlocks2D&
   operator=(const DataBlocks2D& other);
 
@@ -141,6 +152,7 @@ class DataBlocks2D {
      \brief
      Swap all the values managed by the given DataBlocks2D objects.
   */
+  ESCRIPT_DLL_API
   void
   Swap(DataBlocks2D& other);
 
@@ -152,6 +164,7 @@ class DataBlocks2D {
     Subsequent elements of this data point can be accessed by manually
     incrementing the returned index value.
   */
+  ESCRIPT_DLL_API
   inline
   ValueType::size_type
   index(int row, int col) const;
@@ -161,10 +174,12 @@ class DataBlocks2D {
     Return a reference to the first element for the data-point with index i
     within the underlying data array as determined by the index(i,j) method.
   */
+  ESCRIPT_DLL_API
   inline
   ValueType::reference
   operator[](ValueType::size_type i);
 
+  ESCRIPT_DLL_API
   inline
   ValueType::const_reference
   operator[](ValueType::size_type i) const;
@@ -173,10 +188,12 @@ class DataBlocks2D {
     \brief
     Return a reference to the first element for the data-point (i,j).
   */
+  ESCRIPT_DLL_API
   inline
   ValueType::reference
   operator()(int row, int col);
 
+  ESCRIPT_DLL_API
   inline
   ValueType::const_reference
   operator()(int row, int col) const;
@@ -187,10 +204,12 @@ class DataBlocks2D {
      Data returned is an array type object that can be indexed via indexes generated
      by DataBlocks2D::index.
   */
+  ESCRIPT_DLL_API
   inline
   ValueType&
   getData();
 
+  ESCRIPT_DLL_API
   inline
   const ValueType&
   getData() const;
@@ -203,6 +222,7 @@ class DataBlocks2D {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   archiveData(std::ofstream& archiveFile,
               const ValueType::size_type noValues) const;
@@ -214,6 +234,7 @@ class DataBlocks2D {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   extractData(std::ifstream& archiveFile,
               const ValueType::size_type noValues);

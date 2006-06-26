@@ -13,11 +13,12 @@
 
 #if !defined bruce_Bruce_20050829_H
 #define bruce_Bruce_20050829_H
-
+#include "system_dep.h"
 #include "escript/AbstractDomain.h"
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/Data.h"
+
 
 #include <string>
 #include <vector>
@@ -38,7 +39,9 @@ class Bruce : public escript::AbstractContinuousDomain {
 
   //
   // Codes for function space types supported
+  BRUCE_DLL_API
   static const int ContinuousFunction;  // data is on the nodes
+  BRUCE_DLL_API
   static const int Function;            // data is on the cell centres
 
   //
@@ -57,6 +60,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      Default constructor for Bruce.
      Creates a null Bruce object.
   */
+  BRUCE_DLL_API
   Bruce();
 
   /**
@@ -79,6 +83,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      The integers n0,n1,n2 specify the dumber of data-points along each
      axis in the domain.
   */
+  BRUCE_DLL_API
   Bruce(DimVec v0, DimVec v1, DimVec v2,
         int n0, int n1, int n2,
         DimVec origin);
@@ -87,18 +92,21 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Copy constructor.
   */
+  BRUCE_DLL_API
   Bruce(const Bruce& other);
 
   /**
      \brief
      Destructor for Bruce.
   */
+  BRUCE_DLL_API
   ~Bruce();
 
   /**
      \brief
      Return this as an AbstractContinuousDomain.
   */
+  BRUCE_DLL_API
   inline
   const AbstractContinuousDomain&
   asAbstractContinuousDomain() const 
@@ -110,6 +118,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Return this as an AbstractDomain.
   */
+  BRUCE_DLL_API
   inline
   const AbstractDomain&
   asAbstractDomain() const 
@@ -121,6 +130,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Return a description for this domain.
   */
+  BRUCE_DLL_API
   virtual
   inline
   std::string
@@ -134,6 +144,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      Returns true if the given integer is a valid function space type
      for this domain.
   */
+  BRUCE_DLL_API
   virtual
   bool
   isValidFunctionSpaceType(int functionSpaceCode) const;
@@ -142,6 +153,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Return a description for the given function space type code.
   */
+  BRUCE_DLL_API
   virtual
   std::string
   functionSpaceTypeAsString(int functionSpaceCode) const;
@@ -150,6 +162,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Return a continuous FunctionSpace code.
   */
+  BRUCE_DLL_API
   virtual
   inline
   int
@@ -162,6 +175,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Return a function FunctionSpace code.
   */
+  BRUCE_DLL_API
   virtual
   inline
   int
@@ -174,6 +188,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Return the spatial dimension of the mesh.
   */
+  BRUCE_DLL_API
   virtual
   inline
   int
@@ -187,6 +202,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      Return the number of data points per sample, and the number of samples
      needed to represent data on parts of the mesh.
   */
+  BRUCE_DLL_API
   virtual
   std::pair<int,int>
   getDataShape(int functionSpaceCode) const;
@@ -196,6 +212,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      Return the number of samples
      needed to represent data on parts of the mesh.
   */
+  BRUCE_DLL_API
   int
   getNumSamples(int functionSpaceCode) const;
 
@@ -204,6 +221,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      Return the number of data-points per sample
      needed to represent data on parts of the mesh.
   */
+  BRUCE_DLL_API
   inline
   int
   getNumDataPointsPerSample(int functionSpaceCode) const
@@ -215,6 +233,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Returns the locations in the domain of the FEM nodes.
   */
+  BRUCE_DLL_API
   virtual
   escript::Data
   getX() const;
@@ -223,6 +242,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Copies the location of data points on the domain into out.
   */
+  BRUCE_DLL_API
   virtual
   void
   setToX(escript::Data& out) const;
@@ -231,6 +251,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Returns the element size.
   */
+  BRUCE_DLL_API
   virtual
   escript::Data
   getSize() const;
@@ -239,6 +260,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Copies the size of samples into out.
   */
+  BRUCE_DLL_API
   virtual
   void
   setToSize(escript::Data& out) const;
@@ -248,6 +270,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      Copies the gradient of arg into grad. The actual function space to be considered
      for the gradient is defined by grad. arg and grad have to be defined on this.
   */
+  BRUCE_DLL_API
   virtual
   void
   setToGradient(escript::Data& grad,
@@ -257,7 +280,9 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Comparison operators.
   */
+  BRUCE_DLL_API
   virtual bool operator==(const AbstractDomain& other) const;
+  BRUCE_DLL_API
   virtual bool operator!=(const AbstractDomain& other) const;
 
   /*
@@ -265,6 +290,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      Return the tag key for the given sample number.
      NB: tags are not implemented on Bruce, so this method always returns 0.
   */
+  BRUCE_DLL_API
   virtual
   inline
   int
@@ -278,6 +304,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Return the reference number of the given sample number.
   */
+  BRUCE_DLL_API
   virtual
   int
   getReferenceNoFromSampleNo(int functionSpaceCode,
@@ -289,6 +316,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      The dictionary consists of pairs of Data objects plus a name
      for each. Each Data object must be defined on this domain.
   */
+  BRUCE_DLL_API
   virtual
   void
   saveVTK(const std::string& filename,
@@ -299,11 +327,13 @@ class Bruce : public escript::AbstractContinuousDomain {
      Interpolates data given on source onto target where source and target
      have to be given on the same domain.
   */
+  BRUCE_DLL_API
   virtual
   void
   interpolateOnDomain(escript::Data& target,
                       const escript::Data& source) const;
 
+  BRUCE_DLL_API
   virtual
   bool
   probeInterpolationOnDomain(int functionSpaceType_source,
@@ -314,11 +344,13 @@ class Bruce : public escript::AbstractContinuousDomain {
      Interpolates data given on source onto target where source and target
      are given on different domains.
   */
+  BRUCE_DLL_API
   virtual
   void
   interpolateACross(escript::Data& target,
                     const escript::Data& source) const;
 
+  BRUCE_DLL_API
   virtual
   bool
   probeInterpolationACross(int functionSpaceType_source,
@@ -331,6 +363,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Build the table of function space type names.
   */
+  BRUCE_DLL_API
   void
   setFunctionSpaceTypeNames();
 
@@ -338,6 +371,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Ensure the parameters supplied to the constructor are valid.
   */
+  BRUCE_DLL_API
   bool
   checkParameters();
 
@@ -345,6 +379,7 @@ class Bruce : public escript::AbstractContinuousDomain {
      \brief
      Check if all components of vector are zero.
   */
+  BRUCE_DLL_API
   static
   bool
   isZero(DimVec vec);

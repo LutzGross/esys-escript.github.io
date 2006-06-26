@@ -15,6 +15,8 @@
 #if !defined escript_AbstractDomain_20040609_H
 #define escript_AbstractDomain_20040609_H
 
+#include "system_dep.h"
+
 #include <string>
 #include <boost/python/dict.hpp>
 
@@ -58,6 +60,7 @@ class AbstractDomain {
      Throws:
      Describe any exceptions thrown.
   */
+  ESCRIPT_DLL_API
   AbstractDomain();
 
   /**
@@ -67,6 +70,7 @@ class AbstractDomain {
      Description:
      Destructor for AbstractDomain.
   */
+  ESCRIPT_DLL_API
   virtual ~AbstractDomain();
 
   /**
@@ -74,18 +78,21 @@ class AbstractDomain {
      Returns true if the given integer is a valid function space type
      for this domain.
   */
+  ESCRIPT_DLL_API
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
   /**
      \brief
      Return a description for this domain.
   */
+  ESCRIPT_DLL_API
   virtual std::string getDescription() const;
 
   /**
      \brief
      Return a description for the given function space type code.
   */
+  ESCRIPT_DLL_API
   virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
 
   /**
@@ -94,13 +101,16 @@ class AbstractDomain {
 
       This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual int getDim() const;
 
   /**
      \brief
      Return true if given domains are equal.
   */
+  ESCRIPT_DLL_API
   virtual bool operator==(const AbstractDomain& other) const;
+  ESCRIPT_DLL_API
   virtual bool operator!=(const AbstractDomain& other) const;
 
   /**
@@ -109,6 +119,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void write(const std::string& filename) const;
 
   /**
@@ -120,6 +131,7 @@ class AbstractDomain {
      \param functionSpaceCode Input - Code for the function space type.
      \return pair, first - number of data points per sample, second - number of samples
   */
+  ESCRIPT_DLL_API
   virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
 
   /**
@@ -128,6 +140,7 @@ class AbstractDomain {
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
   */
+  ESCRIPT_DLL_API
   virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
 
   /**
@@ -136,6 +149,7 @@ class AbstractDomain {
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
   */
+  ESCRIPT_DLL_API
   virtual int getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const;
 
   /**
@@ -144,6 +158,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void setNewX(const escript::Data& arg);
 
   /**
@@ -152,7 +167,9 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
+  ESCRIPT_DLL_API
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
 
   /**
@@ -161,25 +178,30 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
+  ESCRIPT_DLL_API
   virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
   /**
      \brief
      Returns locations in the domain. The function space is chosen appropriately.
   */
+  ESCRIPT_DLL_API
   virtual escript::Data getX() const;
 
   /**
      \brief
      Return boundary normals. The function space is chosen appropriately.
   */
+  ESCRIPT_DLL_API
   virtual escript::Data getNormal() const;
 
   /**
      \brief
      Returns the local size of samples. The function space is chosen appropriately.
   */
+  ESCRIPT_DLL_API
   virtual escript::Data getSize() const;
   
   /**
@@ -190,6 +212,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void setToX(escript::Data& out) const;
 
   /**
@@ -200,6 +223,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void setToNormal(escript::Data& out) const;
 
   /**
@@ -210,6 +234,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void setToSize(escript::Data& out) const;
 
   /**
@@ -219,6 +244,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
   /**
      \brief
@@ -226,6 +252,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void saveDX(const std::string& filename,const boost::python::dict& arg) const;
 
   /**
@@ -234,6 +261,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual void saveVTK(const std::string& filename,const boost::python::dict& arg) const;
 
   /**
@@ -252,6 +280,7 @@ class AbstractDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
+  ESCRIPT_DLL_API
   virtual bool isCellOriented(int functionSpaceCode) const;
 
   /**
@@ -259,6 +288,7 @@ class AbstractDomain {
      Throw a standard exception. This function is called if any attempt 
      is made to use a base class function.
   */
+  ESCRIPT_DLL_API
   void throwStandardException(const std::string& functionName) const;
 
  protected:

@@ -78,6 +78,29 @@ DataTagged::DataTagged(const FunctionSpace& what,
   }
 }
 
+DataTagged::DataTagged(const FunctionSpace& what,
+                       const DataArrayView::ShapeType &shape,
+                       const TagListType& tags,
+                       const ValueType& data)
+  : DataAbstract(what)
+{
+  // alternative constructor
+  // not unit_tested tested yet
+
+  // copy the data
+  m_data=data;
+
+  // create the view of the data
+  DataArrayView tempView(m_data,shape);
+  setPointDataView(tempView);
+
+  // create the tag lookup map
+  for (int sampleNo=0; sampleNo<getNumSamples(); sampleNo++) {
+    m_offsetLookup.insert(DataMapType::value_type(sampleNo,tags[sampleNo]));
+  }
+}
+
+
 DataTagged::DataTagged(const DataTagged& other)
   : DataAbstract(other.getFunctionSpace()),
   m_data(other.m_data),
@@ -198,7 +221,7 @@ DataTagged::setSlice(const DataAbstract* other,
   if (getPointDataView().getRank()!=region.size()) {
     throw DataException("Error - Invalid slice region.");
   }
-  if (otherTemp->getPointDataView().getRank()>0 and !other->getPointDataView().checkShape(regionShape)) {
+  if (otherTemp->getPointDataView().getRank()>0 && !other->getPointDataView().checkShape(regionShape)) {
     throw DataException (other->getPointDataView().createShapeErrorMessage(
                          "Error - Couldn't copy slice due to shape mismatch.",regionShape));
   }

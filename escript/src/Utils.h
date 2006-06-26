@@ -12,6 +12,7 @@
 
 #if !defined  escript_Utils_H
 #define escript_Utils_H
+#include "system_dep.h"
 
 namespace escript {
 
@@ -25,13 +26,13 @@ namespace escript {
      \brief
      set the number of threads 
   */
-  void setNumberOfThreads(const int num_threads);
+  ESCRIPT_DLL_API void setNumberOfThreads(const int num_threads);
 
   /**
      \brief
      returns  the number of threads 
   */
-  int getNumberOfThreads();
+  ESCRIPT_DLL_API int getNumberOfThreads();
 
 } // end of namespace
 #endif

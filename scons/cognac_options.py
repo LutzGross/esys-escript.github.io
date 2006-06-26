@@ -27,8 +27,10 @@ boost_lib_path = '/opt/boost/python2.3/1.33.1/lib'
 boost_lib = 'boost_python-gcc-mt-1_33_1'
 
 # c flags to use
-cc_flags  = '-O3 -fpic -IPF-fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -c99 -w1'
-cc_flags_debug  = '-g -O0 -fpic -openmp -openmp_report0 -tpp2 -c99 -w1'
+#cc_flags  = '-O3 -fpic -IPF-fma -ftz -openmp -openmp_report0 -mp1 -tpp2 -c99 -w1'
+#cc_flags_debug  = '-g -O0 -fpic -openmp -openmp_report0 -tpp2 -c99 -w1'
+cc_flags  = '-O3 -fpic -IPF-fma -ftz -parallel -mp1 -tpp2 -c99 -w1'
+cc_flags_debug  = '-g -O0 -fpic -openmp -tpp2 -c99 -w1'
 
 # c++ flags to use - only need to list the additional ones compared with cc_flags
 cxx_flags = '-ansi'

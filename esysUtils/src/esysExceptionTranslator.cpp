@@ -11,7 +11,7 @@
  *                                                                            *
  ******************************************************************************
 */
-
+#include "system_dep.h"
 #include "esysExceptionTranslator.h" 
 #include <iostream>
 
@@ -19,7 +19,7 @@ using namespace std;
 
 namespace esysUtils {
 
-  void esysExceptionTranslator(EsysException const& e) 
+void esysExceptionTranslator(EsysException const& e) 
   {
     PyErr_SetString(PyExc_RuntimeError,e.what());
   }

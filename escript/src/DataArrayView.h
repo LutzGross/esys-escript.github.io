@@ -14,6 +14,7 @@
 
 #if !defined escript_DataArrayView_20040323_H
 #define escript_DataArrayView_20040323_H
+#include "system_dep.h"
 
 #include "esysUtils/EsysAssert.h"
 
@@ -48,8 +49,8 @@ namespace escript {
 
 class DataArrayView {
 
-  friend bool operator==(const DataArrayView& left, const DataArrayView& right);
-  friend bool operator!=(const DataArrayView& left, const DataArrayView& right);
+  ESCRIPT_DLL_API friend bool operator==(const DataArrayView& left, const DataArrayView& right);
+  ESCRIPT_DLL_API friend bool operator!=(const DataArrayView& left, const DataArrayView& right);
 
  public:
 
@@ -71,6 +72,7 @@ class DataArrayView {
 
      This is essentially useless but here for completeness.
   */
+  ESCRIPT_DLL_API
   DataArrayView();
 
   /**
@@ -89,6 +91,7 @@ class DataArrayView {
      \param offset - Input -
                 Offset into the data at which view should start.
   */
+  ESCRIPT_DLL_API
   DataArrayView(ValueType& data,
                 const ShapeType& viewShape,
                 int offset=0);
@@ -105,6 +108,7 @@ class DataArrayView {
 
      NOTE: The copy references the same data array.
   */
+  ESCRIPT_DLL_API
   DataArrayView(const DataArrayView& other);
 
   /**
@@ -112,6 +116,7 @@ class DataArrayView {
      Copy from a numarray into the data array viewed by this.
      This must have same shape as the given value - will throw if not.
   */
+  ESCRIPT_DLL_API
   void
   copy(const boost::python::numeric::array& value);
 
@@ -122,6 +127,7 @@ class DataArrayView {
      The shapes of both views must be the same - will throw if not.
      NB: views may or may not reference same underlying data array!
   */
+  ESCRIPT_DLL_API
   void
   copy(const DataArrayView& other);
 
@@ -132,6 +138,7 @@ class DataArrayView {
      The shapes of both views must be the same - will throw if not.
      NB: views may or may not reference same underlying data array!
   */
+  ESCRIPT_DLL_API
   void
   copy(ValueType::size_type offset,
        const DataArrayView& other);
@@ -150,6 +157,7 @@ class DataArrayView {
      \param otherOffset - Input -
                    Offset into the other view's data array to copy from.
   */
+  ESCRIPT_DLL_API
   void
   copy(ValueType::size_type thisOffset,
        const DataArrayView& other,
@@ -165,6 +173,7 @@ class DataArrayView {
      \param value - Input -
                    Value to copy.
   */
+  ESCRIPT_DLL_API
   void
   copy(ValueType::size_type offset,
        ValueType::value_type value);
@@ -173,6 +182,7 @@ class DataArrayView {
      \brief
      Check if view is empty. ie: does not point to any actual data.
   */
+  ESCRIPT_DLL_API
   bool
   isEmpty() const;
 
@@ -180,6 +190,7 @@ class DataArrayView {
     \brief
     Return this view's offset into the viewed data array.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   getOffset() const;
 
@@ -190,6 +201,7 @@ class DataArrayView {
      the offset by noValues successively. Thus this view would provide a moving
      window on the underlying data with the given shape.
   */
+  ESCRIPT_DLL_API
   void
   setOffset(ValueType::size_type offset);
 
@@ -199,6 +211,7 @@ class DataArrayView {
      moving the view onto the next data point of the given shape in the underlying
      data array.
   */
+  ESCRIPT_DLL_API
   void
   incrOffset();
 
@@ -207,9 +220,11 @@ class DataArrayView {
      Check the (given) offset will not result in two few values being available in
      the underlying data array for this view's shape.
   */
+  ESCRIPT_DLL_API
   bool
   checkOffset() const;
 
+  ESCRIPT_DLL_API
   bool
   checkOffset(ValueType::size_type offset) const;
 
@@ -217,6 +232,7 @@ class DataArrayView {
     \brief
      Return the rank of the shape of this view.
   */
+  ESCRIPT_DLL_API
   int
   getRank() const;
 
@@ -224,6 +240,7 @@ class DataArrayView {
      \brief
      Return the number of values for the shape of this view.
   */
+  ESCRIPT_DLL_API
   int
   noValues() const;
 
@@ -232,10 +249,12 @@ class DataArrayView {
      Calculate the number of values for the given shape or region.
      This is purely a utility method and has no bearing on this view.
   */
+  ESCRIPT_DLL_API
   static
   int
   noValues(const ShapeType& shape);
 
+  ESCRIPT_DLL_API
   static
   int
   noValues(const RegionLoopRangeType& region);
@@ -244,6 +263,7 @@ class DataArrayView {
      \brief
      Return a reference to the underlying data array.
   */
+  ESCRIPT_DLL_API
   ValueType&
   getData() const;
 
@@ -252,6 +272,7 @@ class DataArrayView {
      Return a reference to the data value with the given
      index in this view. This takes into account the offset.
   */
+  ESCRIPT_DLL_API
   ValueType::reference
   getData(ValueType::size_type i) const;
 
@@ -259,6 +280,7 @@ class DataArrayView {
      \brief
      Return the shape of this view.
   */
+  ESCRIPT_DLL_API
   const
   ShapeType&
   getShape() const;
@@ -267,6 +289,7 @@ class DataArrayView {
      \brief
      Return true if the given shape is the same as this view's shape.
   */
+  ESCRIPT_DLL_API
   bool
   checkShape(const ShapeType& other) const;
 
@@ -280,6 +303,7 @@ class DataArrayView {
      \param other - Input -
                        The other shape.
   */
+  ESCRIPT_DLL_API
   std::string
   createShapeErrorMessage(const std::string& messagePrefix,
                           const ShapeType& other) const;
@@ -292,6 +316,7 @@ class DataArrayView {
      \param suffix - Input -
                        Suffix appended to index display.
   */
+  ESCRIPT_DLL_API
   std::string
   toString(const std::string& suffix=std::string("")) const;
 
@@ -302,6 +327,7 @@ class DataArrayView {
 
      \param shape - Input.
   */
+  ESCRIPT_DLL_API
   static
   std::string
   shapeToString(const ShapeType& shape);
@@ -312,6 +338,7 @@ class DataArrayView {
     in the view, *ignoring the offset*.
     Assumes a rank 0 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   relIndex() const;
 
@@ -321,6 +348,7 @@ class DataArrayView {
     position i in the view, *ignoring the offset*.
     Assumes a rank 1 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   relIndex(ValueType::size_type i) const;
 
@@ -330,6 +358,7 @@ class DataArrayView {
     position i,j in the view, *ignoring the offset*.
     Assumes a rank 2 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   relIndex(ValueType::size_type i,
            ValueType::size_type j) const;
@@ -340,6 +369,7 @@ class DataArrayView {
     position i,j,k in the view, *ignoring the offset*.
     Assumes a rank 3 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   relIndex(ValueType::size_type i,
            ValueType::size_type j,
@@ -351,6 +381,7 @@ class DataArrayView {
     position i,j,k,m in the view, *ignoring the offset*.
     Assumes a rank 4 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   relIndex(ValueType::size_type i,
            ValueType::size_type j,
@@ -363,6 +394,7 @@ class DataArrayView {
     in the view.
     Assumes a rank 0 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   index() const;
 
@@ -372,6 +404,7 @@ class DataArrayView {
     position i in the view.
     Assumes a rank 1 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   index(ValueType::size_type i) const;
 
@@ -381,6 +414,7 @@ class DataArrayView {
     position i,j in the view.
     Assumes a rank 2 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   index(ValueType::size_type i,
         ValueType::size_type j) const;
@@ -391,6 +425,7 @@ class DataArrayView {
     position i,j,k in the view.
     Assumes a rank 3 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   index(ValueType::size_type i,
         ValueType::size_type j,
@@ -402,6 +437,7 @@ class DataArrayView {
     position i,j,k,m in the view.
     Assumes a rank 4 view.
   */
+  ESCRIPT_DLL_API
   ValueType::size_type
   index(ValueType::size_type i,
         ValueType::size_type j,
@@ -413,9 +449,11 @@ class DataArrayView {
     Return a reference for the only element in the view.
     Assumes a rank 0 view.
   */
+  ESCRIPT_DLL_API
   ValueType::reference
   operator()();
 
+  ESCRIPT_DLL_API
   ValueType::const_reference
   operator()() const;
 
@@ -424,9 +462,11 @@ class DataArrayView {
     Return a reference to the element at position i in the view.
     Assumes a rank 1 view.
   */
+  ESCRIPT_DLL_API
   ValueType::reference
   operator()(ValueType::size_type i);
 
+  ESCRIPT_DLL_API
   ValueType::const_reference
   operator()(ValueType::size_type i) const;
 
@@ -435,10 +475,12 @@ class DataArrayView {
     Return a reference to the element at position i,j in the view.
     Assumes a rank 2 view.
   */
+  ESCRIPT_DLL_API
   ValueType::reference
   operator()(ValueType::size_type i,
              ValueType::size_type j);
 
+  ESCRIPT_DLL_API
   ValueType::const_reference
   operator()(ValueType::size_type i,
              ValueType::size_type j) const;
@@ -448,11 +490,13 @@ class DataArrayView {
     Return a reference to the element at position i,j,k in the view.
     Assumes a rank 3 view.
   */
+  ESCRIPT_DLL_API
   ValueType::reference
   operator()(ValueType::size_type i,
              ValueType::size_type j,
              ValueType::size_type k);
 
+  ESCRIPT_DLL_API
   ValueType::const_reference
   operator()(ValueType::size_type i,
              ValueType::size_type j,
@@ -463,12 +507,14 @@ class DataArrayView {
     Return a reference to the element at position i,j,k,m in the view.
     Assumes a rank 4 view.
   */
+  ESCRIPT_DLL_API
   ValueType::reference
   operator()(ValueType::size_type i,
              ValueType::size_type j,
              ValueType::size_type k,
              ValueType::size_type m);
 
+  ESCRIPT_DLL_API
   ValueType::const_reference
   operator()(ValueType::size_type i,
              ValueType::size_type j,
@@ -483,6 +529,7 @@ class DataArrayView {
      \param region - Input -
                        Slice region.
   */
+  ESCRIPT_DLL_API
   static
   ShapeType
   getResultSliceShape(const RegionType& region);
@@ -541,6 +588,7 @@ class DataArrayView {
          getSliceRegion(:1,0:2)      => < <0,1> <0,2> <0,6> >
 
   */
+  ESCRIPT_DLL_API
   RegionType
   getSliceRegion(const boost::python::object& key) const;
 
@@ -554,6 +602,7 @@ class DataArrayView {
      \param region - Input -
                       Region in other view to copy data from.
   */
+  ESCRIPT_DLL_API
   void
   copySlice(const DataArrayView& other,
             const RegionLoopRangeType& region);
@@ -572,6 +621,7 @@ class DataArrayView {
      \param region - Input -
                       Region in other view to copy data from.
   */
+  ESCRIPT_DLL_API
   void
   copySlice(ValueType::size_type thisOffset,
             const DataArrayView& other,
@@ -588,6 +638,7 @@ class DataArrayView {
      \param region - Input -
                   Region in this view to copy data to.
   */
+  ESCRIPT_DLL_API
   void
   copySliceFrom(const DataArrayView& other,
                 const RegionLoopRangeType& region);
@@ -606,6 +657,7 @@ class DataArrayView {
      \param region - Input -
                     Region in this view to copy data to.
   */
+  ESCRIPT_DLL_API
   void
   copySliceFrom(ValueType::size_type thisOffset,
                 const DataArrayView& other,
@@ -624,6 +676,7 @@ class DataArrayView {
                   Operation to apply. Operation must be a pointer to a function.
   */
   template <class UnaryFunction>
+  ESCRIPT_DLL_API
   void
   unaryOp(UnaryFunction operation);
 
@@ -641,6 +694,7 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class UnaryFunction>
+  ESCRIPT_DLL_API
   void
   unaryOp(ValueType::size_type offset,
           UnaryFunction operation);
@@ -660,6 +714,7 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
+  ESCRIPT_DLL_API
   void
   binaryOp(const DataArrayView& right,
            BinaryFunction operation);
@@ -683,6 +738,7 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
+  ESCRIPT_DLL_API
   void
   binaryOp(ValueType::size_type leftOffset,
            const DataArrayView& right,
@@ -704,6 +760,7 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
+  ESCRIPT_DLL_API
   void
   binaryOp(double right,
            BinaryFunction operation);
@@ -725,6 +782,7 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
+  ESCRIPT_DLL_API
   void
   binaryOp(ValueType::size_type offset,
            double right,
@@ -743,6 +801,7 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
+  ESCRIPT_DLL_API
   double
   reductionOp(BinaryFunction operation,
               double initial_value) const;
@@ -762,6 +821,7 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
+  ESCRIPT_DLL_API
   double
   reductionOp(ValueType::size_type offset,
               BinaryFunction operation,
@@ -780,6 +840,7 @@ class DataArrayView {
      \param right - Input - The right hand side.
      \param result - Output - The result of the operation.
   */
+  ESCRIPT_DLL_API
   static
   void
   matMult(const DataArrayView& left,
@@ -792,6 +853,7 @@ class DataArrayView {
      of the given views.
      This is purely a utility method and has no bearing on this view.
   */
+  ESCRIPT_DLL_API
   static
   ShapeType
   determineResultShape(const DataArrayView& left,
@@ -806,6 +868,7 @@ class DataArrayView {
      \param ev - Output - The eigenvalues
      \param inOffset - Input - offset into ev
   */
+  ESCRIPT_DLL_API
   static
   inline
   void
@@ -862,6 +925,7 @@ class DataArrayView {
      \param VOffset - Input - offset into V
      \param tol - Input - eigenvalues with relative difference tol are treated as equal
   */
+  ESCRIPT_DLL_API
   static
   inline
   void
@@ -957,8 +1021,8 @@ class DataArrayView {
 
 };
 
-bool operator==(const DataArrayView& left, const DataArrayView& right);
-bool operator!=(const DataArrayView& left, const DataArrayView& right);
+ESCRIPT_DLL_API bool operator==(const DataArrayView& left, const DataArrayView& right);
+ESCRIPT_DLL_API bool operator!=(const DataArrayView& left, const DataArrayView& right);
 
 /**
   \brief

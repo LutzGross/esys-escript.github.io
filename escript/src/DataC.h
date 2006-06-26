@@ -13,6 +13,7 @@
 
 #if !defined  escript_DataC_20040611_H
 #define escript_DataC_20040611_H
+#include "system_dep.h"
 
 #define ESCRIPT_MAX_DATA_RANK 4
 /**
@@ -34,7 +35,7 @@ typedef struct escriptDataC escriptDataC;
    Return the function space type code.
    \param data Input - C wrapper for Data.
 */
-int getFunctionSpaceType(escriptDataC* data);
+ESCRIPT_DLL_API int getFunctionSpaceType(escriptDataC* data);
 
 /**
    \brief
@@ -57,7 +58,7 @@ int getFunctionSpaceType(escriptDataC* data);
    Returns the true if the data are empty or data is NULL.
    \param data Input - C wrapper for Data.
 */
-int isEmpty(escriptDataC* data);
+ESCRIPT_DLL_API int isEmpty(escriptDataC* data);
 
 /**
    \brief
@@ -66,7 +67,7 @@ int isEmpty(escriptDataC* data);
    \param rank Input - number of dimensions.
    \param dimensions Input - 
 */
-int isDataPointShapeEqual(escriptDataC* data, int rank, int* dimensions);
+ESCRIPT_DLL_API int isDataPointShapeEqual(escriptDataC* data, int rank, int* dimensions);
 /**
    \brief
    Return true if the number of data points per sample and the number 
@@ -76,7 +77,7 @@ int isDataPointShapeEqual(escriptDataC* data, int rank, int* dimensions);
    \param numDataPointsPerSample Input - number of data points per sample
    \param numSamples Input - number of samples
 */
-int numSamplesEqual(escriptDataC* data, int numDataPointsPerSample,
+ESCRIPT_DLL_API int numSamplesEqual(escriptDataC* data, int numDataPointsPerSample,
 		    int numSamples);
 
 /**
@@ -84,7 +85,7 @@ int numSamplesEqual(escriptDataC* data, int numDataPointsPerSample,
    Returns the rank of the point data for the data. 
    \param data Input - C wrapper for Data.
 */
-int getDataPointRank(escriptDataC* data);
+ESCRIPT_DLL_API int getDataPointRank(escriptDataC* data);
 
 /**
    \brief
@@ -92,28 +93,28 @@ int getDataPointRank(escriptDataC* data);
    \param data Input - C wrapper for Data.
    \param i Input - index of shape component.
 */
-int getDataPointShape(escriptDataC* data,int i);
+ESCRIPT_DLL_API int getDataPointShape(escriptDataC* data,int i);
 
 /**
    \brief
    Return the number of doubles needed for each data point.
    \param data Input - C wrapper for Data.
 */
-int getDataPointSize(escriptDataC* data);
+ESCRIPT_DLL_API int getDataPointSize(escriptDataC* data);
 /**
    \brief
    Return the number of doubles stored for the Data object.
    Argument data may be NULL, in which case 0 is returnd.
    \param data Input - C wrapper for Data.
 */
-int getLength(escriptDataC* data);
+ESCRIPT_DLL_API int getLength(escriptDataC* data);
 /**
    \brief
    Return true if data is expanded.
    Argument data may be NULL, in which case false is returnd.
    \param data Input - C wrapper for Data.
 */
-int isExpanded(escriptDataC* data);
+ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
 /**
    \brief
    Return a pointer to the data for the given sample number.
@@ -122,6 +123,5 @@ int isExpanded(escriptDataC* data);
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 */
-double* getSampleData(escriptDataC* data, int sampleNo);
-
+ESCRIPT_DLL_API double* getSampleData(escriptDataC* data, int sampleNo);
 #endif

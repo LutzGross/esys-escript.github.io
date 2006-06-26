@@ -12,6 +12,7 @@
 
 #if !defined  escript_DomainException_20040608_H
 #define escript_DomainException_20040608_H
+#include "system_dep.h"
 
 #include "esysUtils/EsysException.h"
 
@@ -34,21 +35,25 @@ class DomainException:public esysUtils::EsysException {
      \brief
      Default constructor for the exception.
   */
+  ESCRIPT_DLL_API
   DomainException() : EsysException() {}
   /**
      \brief
      Constructor for the exception.
   */
+  ESCRIPT_DLL_API
   DomainException(const char *cstr) : EsysException(cstr) {}
   /**
      \brief
      Constructor for the exception.
   */
+  ESCRIPT_DLL_API
   DomainException(const std::string &str) : EsysException(str) {}
   /**
      \brief
      Returns the name of the exception.
   */
+  ESCRIPT_DLL_API
   virtual std::string exceptionName() const {return "DomainException";}
 };
 

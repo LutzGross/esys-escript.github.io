@@ -12,6 +12,7 @@
                                                                            
 #if !defined  finley_FinleyError_20040528_H
 #define finley_FinleyError_20040528_H
+#include "system_dep.h"
 
 extern "C" {
 #include "../Finley.h"
@@ -27,6 +28,7 @@ namespace finley {
      Provide a C++ interface to the finley C funcion of the same name.
      Needed because of constness problems.
   */
+  FINLEY_DLL_API
   void setFinleyError(Finley_ErrorCodeType errorCode, 
 		      const std::string& errMess);
  
@@ -34,11 +36,13 @@ namespace finley {
      \brief
      Convert a C finley error into a C++ exception.
   */
+  FINLEY_DLL_API
   void checkFinleyError();
   /**
      \brief
      Convert a C paso  error into a C++ exception.
   */
+  FINLEY_DLL_API
   void checkPasoError();
 } // end of namespace
 #endif

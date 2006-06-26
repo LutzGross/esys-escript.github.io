@@ -28,14 +28,6 @@ alltestruns = testruns + localtestruns
 #
 test_pyc = env.PyCompile(testfiles)
 env.Alias('build_py_tests',test_pyc)
-#
-# run all tests:
-#
-program = local_env.RunPyUnitTest(alltestruns)
-
-Depends(program, pyinstall)
-Depends(program, dep_lib) 
-Depends(program, 'build_py_tests')
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/finley/test/python')))
@@ -56,3 +48,11 @@ env.Tar(src_tarfile, release_pyfiles)
 env.Zip(test_zipfile, release_testfiles)
 env.Tar(test_tarfile, release_testfiles)
 
+#
+# run all tests:
+#
+program = local_env.RunPyUnitTest(alltestruns)
+
+Depends(program, pyinstall)
+Depends(program, dep_lib) 
+Depends(program, 'build_py_tests')

@@ -12,6 +12,7 @@
                                                                            
 #if !defined  finley_FinleyAdapterException_20040526_H
 #define finley_FinleyAdapterException_20040526_H
+#include "system_dep.h"
 
 #include "esysUtils/EsysException.h"
 
@@ -34,21 +35,25 @@ class FinleyAdapterException:public esysUtils::EsysException {
      \brief
      Default constructor for the exception.
   */
+  FINLEY_DLL_API
   FinleyAdapterException() : EsysException() {}
   /**
      \brief
      Constructor for the exception.
   */
+  FINLEY_DLL_API
   FinleyAdapterException(const char *cstr) : EsysException(cstr) {}
   /**
      \brief
      Constructor for the exception.
   */
+  FINLEY_DLL_API
   FinleyAdapterException(const std::string &str) : EsysException(str) {}
   /**
      \brief
      Returns the name of the exception.
   */
+  FINLEY_DLL_API
   virtual std::string exceptionName() const {return "FinleyAdapterException";}
 };
 
