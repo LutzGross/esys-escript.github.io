@@ -25,7 +25,7 @@
 
 #include "Util.h"
 #include "Mesh.h"
-
+#include "qsortG.h"
 /**************************************************************/
 
 static double  Finley_Mesh_lockingGridSize=0;
@@ -98,7 +98,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
        printf("locking grid size is %e\n",Finley_Mesh_lockingGridSize);
        #endif
        /* sort the elements by center center coordinates (lexigraphical)*/
-       qsort(center,faces->numElements,sizeof(Finley_Mesh_findMatchingFaces_center),Finley_Mesh_findMatchingFaces_compar);
+       qsortG(center,faces->numElements,sizeof(Finley_Mesh_findMatchingFaces_center),Finley_Mesh_findMatchingFaces_compar);
        /* find elements with matching center */
        *numPairs=0;
        /* OMP */

@@ -1,4 +1,4 @@
-+Rectangular 3 x 3 mesh+Rectangular 3 x 3 mesh
+$Id: hex_contact_2D_order2_onFace.msh 150 2005-09-15 03:44:45Z jgs $
 2D-Nodes 16
 0 0 11 0.000000000000000e+000 0.000000000000000e+000
 1 1 10 5.000000000000000e-001 0.000000000000000e+000
