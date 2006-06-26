@@ -30,7 +30,6 @@
 
 /**************************************************************/
 
-
 /* get the number of nodes/elements for domain with rank=rank, of size processors
    where n is the total number of nodes/elements in the global domain */
 static index_t domain_MODdim( index_t rank, index_t size, index_t n )
@@ -317,7 +316,7 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
   /*  allocate tables: */
   
   Finley_NodeFile_allocTable(out->Nodes,numNodesLocal+numNodesExternal);
-  Finley_NodeDistibution_allocTable( out->Nodes->degreeOfFreedomDistribution, numNodesLocal, numNodesExternal, 0 );
+  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, numNodesLocal, numNodesExternal, 0 );
   Finley_ElementFile_allocTable(out->Elements,numElementsLocal);
   if( NFaceElements )
     Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
@@ -354,7 +353,7 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
         k--;
         out->Nodes->Coordinates[INDEX2(0,k,1)]=Length[0];
         out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=2;
+        out->Nodes->Tag[k]=0;
         out->Nodes->degreeOfFreedom[k]=0;
         DOFcount--;
         k++;
@@ -382,7 +381,7 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
       {
         out->Nodes->Coordinates[INDEX2(0,k,1)]=Length[0];
         out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=2;
+        out->Nodes->Tag[k]=0;
         out->Nodes->degreeOfFreedom[k]=k;
         k++;
       }
@@ -396,88 +395,61 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
         out->Nodes->degreeOfFreedom[k]=DOFcount;
         k++;
       }
+    }
+    /* setup boundary DOF data */
+    if( domInternal )
+    {
+      targetDomain = mpi_info->rank-1;
+      forwardDOF[0] = 0;
+      backwardDOF[0] = numNodesLocal;
+      Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
+      Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
 
-      /* setup boundary DOF data */
-      if( domInternal )
+      targetDomain = mpi_info->rank+1;
+      forwardDOF[0] = numNodesLocal-1;
+      backwardDOF[0] = numNodesLocal+1;
+      Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
+      Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
+    }
+    else if( domLeft )
+    { 
+      if( periodicLocal[0] )
       {
-        targetDomain = mpi_info->rank-1;
+        targetDomain = mpi_info->size-1;
         forwardDOF[0] = 0;
-        backwardDOF[0] = numNodesLocal;
+        backwardDOF[0] = numNodesLocal;          
         Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
         Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
+      }
+      targetDomain = mpi_info->rank+1;
+      forwardDOF[0] = numNodesLocal-1-periodicLocal[0];
+      backwardDOF[0] = numNodesLocal + periodicLocal[0];
+      Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
+      Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
+    }
+    else
+    {
+      targetDomain = mpi_info->rank-1;
+      forwardDOF[0] = 0;
+      backwardDOF[0] = numNodesLocal;
+      Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
+      Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
 
-        targetDomain = mpi_info->rank+1;
-        forwardDOF[0] = numNodesLocal-1;
+      if( periodicLocal[1] )
+      {
+        targetDomain = 0;
+        forwardDOF[0] = numNodesLocal-1;          
         backwardDOF[0] = numNodesLocal+1;
         Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
         Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
       }
-      else if( domLeft )
-      { 
-        if( periodicLocal[0] )
-        {
-          targetDomain = mpi_info->size-1;
-          forwardDOF[0] = 0;
-          backwardDOF[0] = numNodesLocal;          
-          Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
-          Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
-        }
-        targetDomain = mpi_info->rank+1;
-        forwardDOF[0] = numNodesLocal-1-periodicLocal[0];
-        backwardDOF[0] = numNodesLocal + periodicLocal[0];
-        Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
-        Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
-      }
-      else
-      {
-        targetDomain = mpi_info->rank-1;
-        forwardDOF[0] = 0;
-        backwardDOF[0] = numNodesLocal;
-        Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
-        Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
-
-        if( periodicLocal[1] )
-        {
-          targetDomain = 0;
-          forwardDOF[0] = numNodesLocal-1;          
-          backwardDOF[0] = numNodesLocal+1;
-          Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
-          Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
-        }
-      }      
-       
-    }
+    }      
+      
     if (! Finley_MPI_noError(mpi_info)) {
       Finley_Mesh_dealloc(out);
       return NULL;
     }
 
-    printf( "\n============NODES=============\n" );
-    for( k=0; k<numNodesLocal; k++ )
-      printf( "\tI\tId %d\tDOF %d\tcoord [%g]\n", out->Nodes->Id[k], out->Nodes->degreeOfFreedom[k] , out->Nodes->Coordinates[INDEX2(0,k,1)] );
-    for( k=numNodesLocal; k<numNodesLocal+numNodesExternal; k++ )
-      printf( "\tE\tId %d\tDOF %d\tcoord [%g]\n", out->Nodes->Id[k], out->Nodes->degreeOfFreedom[k] , out->Nodes->Coordinates[INDEX2(0,k,1)] );
-  
-    for( k=0; k<out->Nodes->degreeOfFreedomDistribution->numNeighbours; k++ )
-    {
-      if( out->Nodes->degreeOfFreedomDistribution->neighbours[k]>=0 )
-      {
-        printf( "\t%d boundary DOF { ", out->Nodes->degreeOfFreedomDistribution->edges[k]->numForward ); 
-        for( i0=0; i0<out->Nodes->degreeOfFreedomDistribution->edges[k]->numForward; i0++ )
-          printf( "%d ", out->Nodes->degreeOfFreedomDistribution->edges[k]->indexForward[i0] );
-        printf("} to %d\n", out->Nodes->degreeOfFreedomDistribution->neighbours[k] );
-        printf( "\t%d boundary DOF { ", out->Nodes->degreeOfFreedomDistribution->edges[k]->numBackward ); 
-        for( i0=0; i0<out->Nodes->degreeOfFreedomDistribution->edges[k]->numBackward; i0++ )
-          printf( "%d ", out->Nodes->degreeOfFreedomDistribution->edges[k]->indexBackward[i0] );
-        printf("} from %d\n", out->Nodes->degreeOfFreedomDistribution->neighbours[k] );
-      }
-    }    
-  }
-  else
-  {
-    printf( "\n============NODES=============\n" );
-    for( k=0; k<numNodesLocal; k++ )
-      printf( "\tI\tId %d\tDOF %d\tcoord [%g]\n", out->Nodes->Id[k], out->Nodes->degreeOfFreedom[k] , out->Nodes->Coordinates[INDEX2(0,k,1)] );
   }
 
   /*   set the elements: */
@@ -591,22 +563,7 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
   if( domLeft || domRight && !periodic[0] )
     out->FaceElements->elementDistribution->numLocal = out->FaceElements->elementDistribution->numInternal = domLeft + domRight;
 
-  printf( "\n============ELEMENTS (%d)=============\n", out->Elements->numElements );
-  for( k=0; k<out->Elements->elementDistribution->numInternal; k++ )
-  {
-    printf( "I\tId %d : nodes [%d %d]->DOF [%d %d]\n", out->Elements->Id[k], out->Elements->Nodes[INDEX2(0,k,2)], out->Elements->Nodes[INDEX2(1,k,2)], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(0,k,2)]], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(1,k,2)]] );
-  }
-  for( k=out->Elements->elementDistribution->numInternal; k<out->Elements->elementDistribution->numLocal; k++ )
-  {
-    printf( "E\tId %d : nodes [%d %d]->DOF [%d %d]\n", out->Elements->Id[k], out->Elements->Nodes[INDEX2(0,k,2)], out->Elements->Nodes[INDEX2(1,k,2)], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(0,k,2)]], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(1,k,2)]] );
-  }
-  for( k=0; k<out->FaceElements->numElements; k++ )
-  {
-    if( NUMNODES==2 )
-      printf( "F\tId %d : nodes [%d %d]->DOF [%d %d]\n", out->FaceElements->Id[k], out->FaceElements->Nodes[INDEX2(0,k,2)], out->FaceElements->Nodes[INDEX2(1,k,2)], out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(0,k,2)]], out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(1,k,2)]] );
-    else
-      printf( "F\tId %d : nodes [%d]->DOF [%d]\n", out->FaceElements->Id[k], out->FaceElements->Nodes[INDEX2(0,k,1)], out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(0,k,1)]] );
-  }
+  
   /*  face elements done: */
   
   /*   condense the nodes: */
@@ -614,10 +571,28 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
 
   /* prepare mesh for further calculatuions:*/
 
-  /* TEMPFIX */
   /* this isn't needed for a mesh generated this way */ 
-  //Finley_Mesh_prepare(out);
+  Finley_Mesh_prepare(out);
+  
+  /* setup the CommBuffer */
+  {
+    index_t *numForward=NULL, *numBackward=NULL;
+    index_t i;
 
+    numForward  = MEMALLOC( out->Nodes->degreeOfFreedomDistribution->numNeighbours, index_t );
+    numBackward = MEMALLOC( out->Nodes->degreeOfFreedomDistribution->numNeighbours, index_t );
+
+    for( i=0; i<out->Nodes->degreeOfFreedomDistribution->numNeighbours; i++ )
+    {
+      numForward[i] = out->Nodes->degreeOfFreedomDistribution->edges[i]->numForward;
+      numBackward[i] = out->Nodes->degreeOfFreedomDistribution->edges[i]->numBackward;
+    }
+
+    Paso_CommBuffer_allocTable( out->Nodes->CommBuffer, FINLEY_INIT_ITEMSIZE, numForward, numBackward, out->Nodes->degreeOfFreedomDistribution->numNeighbours, out->Nodes->degreeOfFreedomDistribution->neighbours );
+
+    MEMFREE( numForward );
+    MEMFREE( numBackward );
+  }
   if (! Finley_MPI_noError( mpi_info )) {
       Paso_MPIInfo_dealloc( mpi_info );
       Finley_Mesh_dealloc(out);

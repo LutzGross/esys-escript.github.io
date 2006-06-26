@@ -341,6 +341,8 @@ Data::isTagged() const
   return (temp!=0);
 }
 
+/* TODO */
+/* global reduction -- the local data being empty does not imply that it is empty on other processers*/
 bool
 Data::isEmpty() const
 {
@@ -1103,51 +1105,83 @@ Data::sqrt() const
 double
 Data::Lsup() const
 {
+  double localValue, globalValue;
 #if defined DOPROF
   profData->reduction1++;
 #endif
   //
   // set the initial absolute maximum value to zero
+
   AbsMax abs_max_func;
-  return algorithm(abs_max_func,0);
+  localValue = algorithm(abs_max_func,0);
+#ifdef PASO_MPI
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+  return globalValue;
+#else
+  return localValue;
+#endif
 }
 
 double
 Data::Linf() const
 {
+  double localValue, globalValue;
 #if defined DOPROF
   profData->reduction1++;
 #endif
   //
   // set the initial absolute minimum value to max double
   AbsMin abs_min_func;
-  return algorithm(abs_min_func,numeric_limits<double>::max());
+  localValue = algorithm(abs_min_func,numeric_limits<double>::max());
+
+#ifdef PASO_MPI
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
+  return globalValue;
+#else
+  return localValue;
+#endif
 }
 
 double
 Data::sup() const
 {
+  double localValue, globalValue;
 #if defined DOPROF
   profData->reduction1++;
 #endif
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
-  return algorithm(fmax_func,numeric_limits<double>::max()*-1);
+  localValue = algorithm(fmax_func,numeric_limits<double>::max()*-1);
+#ifdef PASO_MPI
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+  return globalValue;
+#else
+  return localValue;
+#endif
 }
 
 double
 Data::inf() const
 {
+  double localValue, globalValue;
 #if defined DOPROF
   profData->reduction1++;
 #endif
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
-  return algorithm(fmin_func,numeric_limits<double>::max());
+  localValue = algorithm(fmin_func,numeric_limits<double>::max());
+#ifdef PASO_MPI
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
+  return globalValue;
+#else
+  return localValue;
+#endif
 }
 
+/* TODO */
+/* global reduction */
 Data
 Data::maxval() const
 {
@@ -1425,6 +1459,21 @@ Data::powD(const Data& right) const
   return result;
 }
 
+void
+Data::print()
+{
+  int i,j;
+  
+  printf( "Data is %dX%d\n", getNumSamples(), getNumDataPointsPerSample() );
+  for( i=0; i<getNumSamples(); i++ )
+  {
+    printf( "[%6d]", i );
+    for( j=0; j<getNumDataPointsPerSample(); j++ )
+      printf( "\t%10.7g", (getSampleData(i))[j] );
+    printf( "\n" );
+  }
+}
+
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
@@ -1638,6 +1687,8 @@ escript::operator/(const boost::python::object& left, const Data& right)
 //  return ret;
 //}
 
+/* TODO */
+/* global reduction */
 Data
 Data::getItem(const boost::python::object& key) const 
 {
@@ -1652,6 +1703,8 @@ Data::getItem(const boost::python::object& key) const
   return getSlice(slice_region);
 }
 
+/* TODO */
+/* global reduction */
 Data
 Data::getSlice(const DataArrayView::RegionType& region) const
 {
@@ -1661,6 +1714,8 @@ Data::getSlice(const DataArrayView::RegionType& region) const
   return Data(*this,region);
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setItemO(const boost::python::object& key,
                const boost::python::object& value)
@@ -1669,6 +1724,8 @@ Data::setItemO(const boost::python::object& key,
   setItemD(key,tempData);
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setItemD(const boost::python::object& key,
                const Data& value)
@@ -1686,6 +1743,8 @@ Data::setItemD(const boost::python::object& key,
   }
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setSlice(const Data& value,
                const DataArrayView::RegionType& region)
@@ -1727,6 +1786,8 @@ Data::typeMatchRight(const Data& right)
   }
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setTaggedValue(int tagKey,
                      const boost::python::object& value)
@@ -1748,6 +1809,8 @@ Data::setTaggedValue(int tagKey,
   m_data->setTaggedValue(tagKey,valueDataArray.getView());
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setTaggedValueFromCPP(int tagKey,
                             const DataArrayView& value)
@@ -1765,12 +1828,16 @@ Data::setTaggedValueFromCPP(int tagKey,
   m_data->setTaggedValue(tagKey,value);
 }
 
+/* TODO */
+/* global reduction */
 int
 Data::getTagNumber(int dpno)
 {
   return m_data->getTagNumber(dpno);
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setRefValue(int ref,
                   const boost::python::numeric::array& value)
@@ -1784,6 +1851,8 @@ Data::setRefValue(int ref,
   m_data->setRefValue(ref,valueDataArray);
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::getRefValue(int ref,
                   boost::python::numeric::array& value)

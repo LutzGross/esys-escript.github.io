@@ -57,6 +57,9 @@ struct Assemble_Parameters {
    dim_t NN_col;
    dim_t NS_col;
 
+   /* added by Ben Cumming for MPI version */
+   dim_t degreeOfFreedomUpperBound;
+
    index_t id[MAX_numNodes]; /* used to hold a reordering vector, referenced by row_node and col_node */
 };
 

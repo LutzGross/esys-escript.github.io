@@ -7,7 +7,7 @@
  *  assumes that numLocal and numExternal are greater than zero.
  *  numNeigbhours may be zero.
  */
-void Finley_NodeDistibution_allocTable( Finley_NodeDistribution *in, dim_t numLocal, dim_t numExternal, dim_t numNeighbours )
+void Finley_NodeDistribution_allocTable( Finley_NodeDistribution *in, dim_t numLocal, dim_t numExternal, dim_t numNeighbours )
 {
   index_t i;
   index_t *neighbours=NULL, *vtxdist=NULL, *indexExternal=NULL;

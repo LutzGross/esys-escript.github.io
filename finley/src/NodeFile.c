@@ -54,6 +54,9 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim){
 #ifdef PASO_MPI
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
   out->degreeOfFreedomDistribution = Finley_NodeDistribution_alloc( MPIInfo );
+  out->reducedDegreeOfFreedomDistribution = Finley_NodeDistribution_alloc( MPIInfo );
+  out->CommBuffer = Paso_CommBuffer_alloc( MPIInfo, __g_nodeTag++ );
+  out->reducedCommBuffer = Paso_CommBuffer_alloc( MPIInfo, __g_nodeTag++ );
 #endif
   return out;
 }
@@ -69,6 +72,9 @@ void Finley_NodeFile_dealloc(Finley_NodeFile* in) {
 #ifdef PASO_MPI
      Paso_MPIInfo_dealloc( in->MPIInfo );
      Finley_NodeDistribution_dealloc( in->degreeOfFreedomDistribution ); 
+     Finley_NodeDistribution_dealloc( in->reducedDegreeOfFreedomDistribution );
+     Paso_CommBuffer_dealloc( in->CommBuffer );
+     Paso_CommBuffer_dealloc( in->reducedCommBuffer );
 #endif
      MEMFREE(in);      
   }

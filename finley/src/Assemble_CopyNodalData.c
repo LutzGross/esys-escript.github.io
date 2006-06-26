@@ -25,6 +25,63 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#ifdef PASO_MPI
+#include "./paso/CommBuffer.h"
+#endif
+
+
+#ifdef PASO_MPI
+/*  
+  this function does no checking that the input are OK, so it has been put here, to
+  only be used in Finley_Assemble_CopyNodalData() which does the checking for it.
+
+  bufferExternal must be large enough to accomdate the external nodal data (numComps*numExternal)
+*/
+static bool_t getExternalDOF( Finley_NodeFile *nodes, escriptDataC* in, double *externalBuffer, dim_t numComps )
+{
+  double *sendBuffer=NULL;
+  index_t n, i, myMax=0;
+  bool_t result;
+
+  for( i=0; i<nodes->degreeOfFreedomDistribution->numNeighbours; i++ )
+    if( myMax < nodes->degreeOfFreedomDistribution->edges[i]->numForward )
+      myMax = nodes->degreeOfFreedomDistribution->edges[i]->numForward;
+  if( myMax )
+    sendBuffer = MEMALLOC( myMax*numComps, double );
+
+  /* pack and send DOF information to neighbour domains */
+  for( n=0; n<nodes->degreeOfFreedomDistribution->numNeighbours; n++ )
+  {
+    /* pack data */
+    for( i=0; i<nodes->degreeOfFreedomDistribution->edges[n]->numForward; i++ )
+      memcpy( sendBuffer + i*numComps, getSampleData(in,nodes->degreeOfFreedomDistribution->edges[n]->indexForward[i]), numComps*sizeof(double) );
+    
+    /* place it in the send buffer */
+    Paso_CommBuffer_pack( nodes->CommBuffer, nodes->degreeOfFreedomDistribution->neighbours[n], NULL, sendBuffer, numComps*sizeof(double), 0 );
+  
+    /* send it */
+    result = Paso_CommBuffer_send( nodes->CommBuffer, nodes->degreeOfFreedomDistribution->neighbours[n], numComps*sizeof(double) );
+    if( result==FALSE )
+      return FALSE;
+  }
+
+  MEMFREE( sendBuffer );
+
+  /* receive and unpack external DOF information from neigbours */
+  for( n=0; n<nodes->degreeOfFreedomDistribution->numNeighbours; n++ )
+  {
+    /* receive data */
+    result = Paso_CommBuffer_recv( nodes->CommBuffer, nodes->degreeOfFreedomDistribution->neighbours[n], numComps*sizeof(double) );
+    if( result==FALSE )
+      return FALSE;
+
+    /* unpack the data */
+    Paso_CommBuffer_unpack( nodes->CommBuffer, nodes->degreeOfFreedomDistribution->neighbours[n], nodes->degreeOfFreedomDistribution->edges[n]->indexBackward, externalBuffer, numComps*sizeof(double), -nodes->degreeOfFreedomDistribution->numLocal );
+  }
+
+  return TRUE;
+}
+#endif
 
 /******************************************************************************************************/
 
@@ -44,16 +101,26 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
        Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for output data.");
     }
 
+    /* TODO */
+    /* more sophisticated test needed for overlapping node/DOF counts */
     if (in_data_type == FINLEY_NODES) {
         if (! numSamplesEqual(in,1,nodes->numNodes)) {
                Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
        }
     } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
+#ifdef PASO_MPI
+        if (! numSamplesEqual(in,1,nodes->degreeOfFreedomDistribution->numLocal)) {
+#else
         if (! numSamplesEqual(in,1,nodes->numDegreesOfFreedom)) {
+#endif
                Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
        }
     } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+#ifdef PASO_MPI
+        if (! numSamplesEqual(in,1,nodes->reducedDegreeOfFreedomDistribution->numLocal)) {
+#else
         if (! numSamplesEqual(in,1,nodes->reducedNumDegreesOfFreedom)) {
+#endif
                Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
        }
     } else {
@@ -65,11 +132,19 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
        }
     } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
+#ifdef PASO_MPI
+        if (! numSamplesEqual(out,1,nodes->degreeOfFreedomDistribution->numLocal)) {
+#else
         if (! numSamplesEqual(out,1,nodes->numDegreesOfFreedom)) {
+#endif
                Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
        }
     } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+#ifdef PASO_MPI
+        if (! numSamplesEqual(out,1,nodes->reducedDegreeOfFreedomDistribution->numLocal)) {
+#else
         if (! numSamplesEqual(out,1,nodes->reducedNumDegreesOfFreedom)) {
+#endif
                Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
        }
     } else {
@@ -77,7 +152,14 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
     }
 
     /* now we can start */
-
+ 
+   /* This is where the "MPI magic" that shares the data accross domain boundaries occurs.
+      when the user asks to copy from DegreesOfFreedom (non-overlapping solution) to
+      Nodes (overlapping continuous), communication is required to get the DOF values
+      corresponding to external nodes from neighbouring domains. Communication is handled by
+      the Paso_CommBuffer that is attached to nodes. Copying the other direction (nodes to DOF)
+      is similar to the serial case, with just a little bit more care required to ensure that
+      only local values are copied. Piece of cake. */
     if (Finley_noError()) {
         if (in_data_type == FINLEY_NODES) {
            if  (out_data_type == FINLEY_NODES) {
@@ -86,20 +168,42 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                    Finley_copyDouble(numComps,getSampleData(in,n),getSampleData(out,n));
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
               #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nodes->numNodes;n++) 
+              for (n=0;n<nodes->numNodes;n++)
+#ifdef PASO_MPI
+                if( nodes->degreeOfFreedom[n]<nodes->degreeOfFreedomDistribution->numLocal )
+#endif
                    Finley_copyDouble(numComps,getSampleData(in,n),getSampleData(out,nodes->degreeOfFreedom[n]));
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
               #pragma omp parallel for private(n,i) schedule(static)
               for (i=0;i<nodes->numNodes;i++) {
                    n=nodes->reducedDegreeOfFreedom[i];
-                   if (n>=0) Finley_copyDouble(numComps,getSampleData(in,i),getSampleData(out,n)); 
+#ifdef PASO_MPI
+                if( n>=0 && nodes->degreeOfFreedom[n]<nodes->degreeOfFreedomDistribution->numLocal )
+#else
+                if (n>=0)
+#endif           
+                  Finley_copyDouble(numComps,getSampleData(in,i),getSampleData(out,n)); 
               }
            }
         } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-           if  (out_data_type == FINLEY_NODES) {
+            if  (out_data_type == FINLEY_NODES) 
+            {
+#ifdef PASO_MPI
+              double *externalBuffer = MEMALLOC( numComps*nodes->degreeOfFreedomDistribution->numExternal, double );
+              getExternalDOF( nodes, in, externalBuffer, numComps );
+              for (n=0;n<nodes->numNodes;n++) {
+                if( nodes->degreeOfFreedom[n]<nodes->degreeOfFreedomDistribution->numLocal )
+                  Finley_copyDouble(numComps,getSampleData(in,nodes->degreeOfFreedom[n]),getSampleData(out,n));
+                else
+                  Finley_copyDouble(numComps,externalBuffer + numComps*(nodes->degreeOfFreedom[n] - nodes->degreeOfFreedomDistribution->numLocal),getSampleData(out,n));
+							}
+               
+              MEMFREE( externalBuffer );
+#else
               #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<nodes->numNodes;n++) 
+              for (n=0;n<nodes->numNodes;n++)
                    Finley_copyDouble(numComps,getSampleData(in,nodes->degreeOfFreedom[n]),getSampleData(out,n));
+#endif
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
               #pragma omp parallel for private(n) schedule(static)
               for (n=0;n<nodes->numDegreesOfFreedom;n++) 
@@ -108,10 +212,17 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
               #pragma omp parallel for private(n,i) schedule(static)
               for (i=0;i<nodes->numNodes;i++) {
                   n=nodes->reducedDegreeOfFreedom[i];
-                  if (n>=0) Finley_copyDouble(numComps,getSampleData(in,nodes->degreeOfFreedom[i]),getSampleData(out,n));
+#ifdef PASO_MPI
+                if( n>=0 && nodes->degreeOfFreedom[n]<nodes->degreeOfFreedomDistribution->numLocal )
+#else
+                if (n>=0)
+#endif   
+                   Finley_copyDouble(numComps,getSampleData(in,nodes->degreeOfFreedom[i]),getSampleData(out,n));
               }
            }
-        } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+        }
+#ifndef PASO_MPI
+        else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
            if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
               #pragma omp parallel for private(n) schedule(static)
               for (n=0;n<nodes->reducedNumDegreesOfFreedom;n++) 
@@ -132,9 +243,17 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
              Finley_setError(TYPE_ERROR,"__FILE__: cannot copy from data on reduced degrees of freedom");
            }
         }
+#else
+        else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+          Finley_setError(TYPE_ERROR,"__FILE__: cannot copy from data on reduced degrees of freedom : MPI implementation does not support this yet");
+        }
+#endif
    }
    return;
 }
+
+
+
 /*
  * $Log$
  * Revision 1.4  2005/09/15 03:44:21  jgs

@@ -31,9 +31,19 @@ namespace finley {
     //
     // create a copy of the filename to overcome the non-constness of call
     // to Finley_Mesh_read
+    Finley_Mesh* fMesh=0;
     char fName[fileName.size()+1];
     strcpy(fName,fileName.c_str());
-    Finley_Mesh* fMesh=Finley_Mesh_read(fName,integrationOrder);
+
+#ifndef PASO_MPI
+    fMesh=Finley_Mesh_read(fName,integrationOrder);
+#else
+    {
+      stringstream temp;
+      temp << "Unable to read meshes from file under MPI yet...";
+      setFinleyError(VALUE_ERROR,temp.str().c_str());
+    }
+#endif
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp;
@@ -61,11 +71,14 @@ namespace finley {
 
     //
     // linearInterpolation
-    Finley_Mesh* fMesh;
+    Finley_Mesh* fMesh=NULL;
+
     if (order==1) {
       fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,
 					useElementsOnFace) ;
-    } else if (order==2) {
+    } 
+#ifndef PASO_MPI 
+		else if (order==2) {
       fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,
 					 useElementsOnFace) ;
     } else {
@@ -73,6 +86,13 @@ namespace finley {
       temp << "Illegal interpolation order: " << order;
       setFinleyError(VALUE_ERROR,temp.str().c_str());
     }
+#else
+		else {
+      stringstream temp;
+      temp << "type of 3D regular mesh requested is unavailable under MPI\nOR\nIllegal interpolation order: " << order;
+      setFinleyError(VALUE_ERROR,temp.str().c_str());
+    }
+#endif
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
@@ -89,14 +109,18 @@ namespace finley {
     double length[]={l0,l1};
     int periodic[]={periodic0, periodic1};
 
-    Finley_Mesh* fMesh;
+    Finley_Mesh* fMesh=0;
     if (order==1) {
       fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,
 					useElementsOnFace);
-    } else if (order==2) {
+    }
+#ifndef PASO_MPI 
+    else if (order==2) {
       fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,
 					useElementsOnFace);
-    } else {
+    }
+#endif
+    else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
       setFinleyError(VALUE_ERROR,temp.str().c_str());
@@ -118,10 +142,14 @@ namespace finley {
     if (order==1) {
       fMesh=Finley_RectangularMesh_Line2(numElements, length,periodic,integrationOrder,
 					 useElementsOnFace);
-    } else if (order==2) {
+    } 
+#ifndef PASO_MPI
+    else if (order==2) {
       fMesh=Finley_RectangularMesh_Line3(numElements,length,periodic,integrationOrder,
 					 useElementsOnFace);
-    } else {
+    } 
+#endif
+    else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
       setFinleyError(VALUE_ERROR,temp.str().c_str());
@@ -137,6 +165,7 @@ namespace finley {
     Finley_Mesh* fMesh=0;
     //
     // extract the meshes from meshList
+#ifndef PASO_MPI
     int numMsh=boost::python::extract<int>(meshList.attr("__len__")());
     Finley_Mesh* mshes[numMsh];
     for (int i=0;i<numMsh;++i) {
@@ -147,6 +176,13 @@ namespace finley {
     //
     // merge the meshes:
     fMesh=Finley_Mesh_merge(numMsh,mshes);
+#else
+    {
+      stringstream temp;
+      temp << "meshMerge() not available in MPI yet...";
+      setFinleyError(VALUE_ERROR,temp.str().c_str());
+    }
+#endif
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
@@ -158,6 +194,7 @@ namespace finley {
 			double tolerance)
   {
     Finley_Mesh* fMesh=0;
+#ifndef PASO_MPI
     //
     // merge the meshes:
     AbstractContinuousDomain* merged_meshes=meshMerge(meshList);
@@ -166,10 +203,24 @@ namespace finley {
     const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes);
     fMesh=merged_finley_meshes->getFinley_Mesh();
     Finley_Mesh_glueFaces(fMesh,safety_factor,tolerance);
+
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     return merged_meshes;
+#else
+    {
+      stringstream temp;
+      temp << "glueFaces() not available in MPI yet...";
+      setFinleyError(VALUE_ERROR,temp.str().c_str());
+    }
+
+    //
+    // Convert any finley errors into a C++ exception
+    checkFinleyError();
+    return (AbstractContinuousDomain*)0;
+#endif
+
   }
   AbstractContinuousDomain*  joinFaces(const boost::python::list& meshList,
 			double safety_factor, 
@@ -178,6 +229,7 @@ namespace finley {
     Finley_Mesh* fMesh=0;
     //
     // merge the meshes:
+#ifndef PASO_MPI
     AbstractContinuousDomain* merged_meshes=meshMerge(meshList);
     //
     // join the faces:
@@ -188,6 +240,18 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     return merged_meshes;
+#else
+    {
+      stringstream temp;
+      temp << "joinFaces() not available in MPI yet...";
+      setFinleyError(VALUE_ERROR,temp.str().c_str());
+    }
+    //
+    // Convert any finley errors into a C++ exception
+    checkFinleyError();
+    return (AbstractContinuousDomain*)0;
+
+#endif
   }
 
 }  // end of namespace

@@ -23,6 +23,10 @@
 
 #include "Finley.h"
 
+#ifdef PASO_MPI
+int __g_nodeTag    = FINLEY_NODE_TAG;
+int __g_elementTag = FINLEY_ELEMENT_TAG; 
+#endif
 
 /* This function returns a time mark */
 double Finley_timer(void) {

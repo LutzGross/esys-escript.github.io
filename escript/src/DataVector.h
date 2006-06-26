@@ -15,6 +15,7 @@
 
 #include "esysUtils/EsysAssert.h"
 
+#include <mpi.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -171,6 +172,7 @@ class DataVector {
     by ofstream. A count of the number of values expected to be written
     is provided as a cross-check.
 
+		
     The return value indicates success (0) or otherwise (1).
   */
   int

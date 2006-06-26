@@ -83,6 +83,25 @@ void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,do
    }
 }
 
+#ifdef PASO_MPI
+/* same as AddScatter(), but checks that value index[] is below an upper bound upperBound before  
+   addition. This is used to ensure that only the influence of local DOF is added */
+/*        out(1:numData,index[p])+=in(1:numData,p)
+        where p = {k=1...len , index[k]<upperBound}*/
+void Finley_Util_AddScatter_upperBound(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound){
+   dim_t i,s;
+   for (s=0;s<len;s++) {
+       for(i=0;i<numData;i++) {
+          //#pragma omp atomic
+          if( index[s]<upperBound )
+            out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
+       }
+   }
+}  
+
+
+#endif
+
 /*    multiplies two matrices */
 
 /*          A(1:A1,1:A2)=B(1:A1,1:B2)*C(1:B2,1:A2) */
@@ -475,9 +494,56 @@ void Finley_copyDouble(dim_t n,double* source, double* target) {
   for (i=0;i<n;i++) target[i]=source[i];
 }
 
+#ifdef PASO_MPI
+void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  )
+{
+  index_t i;
+  
+  if( name )
+    fprintf( fid, "%s [ ", name );
+  else
+    fprintf( fid, "[ " );  
+  for( i=0; i<(n<30 ? n : 30); i++ )
+    fprintf( fid, "%g ", array[i] );
+  if( n>=30 )
+    fprintf( fid, "... " );
+  fprintf( fid, "]\n" );
+}
+void Finley_printIntArray( FILE *fid, dim_t n, int *array, char *name  )
+{
+  index_t i;
+  
+  if( name )
+    fprintf( fid, "%s [ ", name );
+  else
+    fprintf( fid, "[ " );  
+  for( i=0; i<(n<30 ? n : 30); i++ )
+    fprintf( fid, "%d ", array[i] );
+  if( n>=30 )
+    fprintf( fid, "... " );
+  fprintf( fid, "]\n" );
+}
+void Finley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  )
+{
+  index_t i;
+  
+  if( name )
+    fprintf( fid, "%s [ ", name );
+  else
+    fprintf( fid, "[ " );  
+  for( i=0; i<(n<30 ? n : 30); i++ )
+    if( array[i]!=-1 )
+      fprintf( fid, "%d ", array[i] );
+    else
+      fprintf( fid, "* " );
+  if( n>=30 )
+    fprintf( fid, "... " );
+  fprintf( fid, "]\n" );
+}
+#endif
+
 /*
  * Revision 1.8  2005/08/12 01:45:43  jgs
- * erge of development branch dev-02 back to main trunk on 2005-08-12
  *
  * Revision 1.7.2.2  2005/09/07 06:26:22  gross
  * the solver from finley are put into the standalone package paso now

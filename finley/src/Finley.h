@@ -27,7 +27,7 @@
 #include "paso/Paso.h"
 
 /**************************************************************/
-
+/*#define Finley_TRACE */
 #define FINLEY_UNKNOWN -1
 #define FINLEY_DEGREES_OF_FREEDOM 1
 #define FINLEY_REDUCED_DEGREES_OF_FREEDOM 2
@@ -37,6 +37,14 @@
 #define FINLEY_POINTS 6
 #define FINLEY_CONTACT_ELEMENTS_1 7
 #define FINLEY_CONTACT_ELEMENTS_2 8
+
+#ifdef PASO_MPI
+#define FINLEY_INIT_ITEMSIZE (sizeof(double)*8)
+#define FINLEY_NODE_TAG 0;
+#define FINLEY_ELEMENT_TAG 10000;
+extern int __g_nodeTag;
+extern int __g_elementTag; 
+#endif
 
 /* error codes */
 

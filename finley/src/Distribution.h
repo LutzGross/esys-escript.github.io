@@ -5,6 +5,7 @@
 
 
 #include "Finley.h"
+#include "./paso/CommBuffer.h"
 
 #ifdef PASO_MPI
 
@@ -46,7 +47,7 @@ struct Finley_NodeDistribution
   index_t numExternal;    /* number of nodes belonging to other subdomains that
                              share elements with local boundary nodes */
   index_t *indexExternal;  /* global indices of the external nodes stored on this Pid */
-  index_t *vtxdist;       /* process i has nodes with global indices
+  index_t *vtxdist;        /* process i has nodes with global indices
                              vtxdist[i] to vtxdist[i]-1. */
   index_t numGlobal;      /* total number of nodes in the global domain */
   index_t numNeighbours;  /* number of neighbour domains */
@@ -93,10 +94,13 @@ typedef struct Finley_ElementDistribution Finley_ElementDistribution;
 Finley_NodeDistribution*  Finley_NodeDistribution_alloc( Paso_MPIInfo *MPIInfo );
 void                      Finley_NodeDistribution_dealloc( Finley_NodeDistribution *in );
 Finley_NodeDistribution*  Finley_NodeDistribution_getReference( Finley_NodeDistribution *in );
-void                      Finley_NodeDistibution_allocTable( Finley_NodeDistribution *in, dim_t numLocal, dim_t numExternal, dim_t numNeighbours );
+void                      Finley_NodeDistribution_allocTable( Finley_NodeDistribution *in, dim_t numLocal, dim_t numExternal, dim_t numNeighbours );
 void                      Finley_NodeDistribution_deallocTable( Finley_NodeDistribution *in );
 void                      Finley_NodeDistribution_addForward( Finley_NodeDistribution *in, index_t domain, dim_t numForward, index_t* indexLocal  );
 void                      Finley_NodeDistribution_addBackward( Finley_NodeDistribution *in, index_t domain, dim_t numBackward, index_t* indexLocal  );
+void                      Finley_NodeDistribution_calculateIndexExternal( Finley_NodeDistribution *Distribution, Paso_CommBuffer *CommBuffer );
+void                      Finley_NodeDistribution_formCommBuffer( Finley_NodeDistribution *in, Paso_CommBuffer *CommBuffer );
+void                      Finley_NodeDistribution_print( Finley_NodeDistribution *in, FILE *fid );
 
 /* Finley_NodeGhostEdge */
 Finley_NodeGhostEdge* Finley_NodeGhostEdge_alloc( void );

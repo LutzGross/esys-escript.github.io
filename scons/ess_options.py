@@ -7,6 +7,9 @@
 #     http://www.opensource.org/licenses/osl-3.0.php
 #
 
+# flag the MPI settings
+use_MPI = False
+
 # TODO: Variables named *_path should be *_include
 
 # locations of libs etc used by mkl
@@ -17,7 +20,10 @@ mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 # locations of libs etc used by SCSL
 scsl_path = '/usr/include'
 scsl_lib_path = '/usr/lib'
-scsl_libs = ['scs_mp']
+if use_MPI==False :
+	scsl_libs = ['scs_mp']
+else :
+	scsl_libs = [ 'scs', 'mpi' ]
 
 # locations of include files for python
 python_path = '/data/raid2/toolspp4/python/2.4.3/gcc-3.3.6/include/python2.4'
@@ -39,13 +45,23 @@ epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-pac
 # papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
 # papi_libs = [ 'papi' ]
 
+if use_MPI==False:
+	# c flags to use
+	cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report0 -fno-alias -c99 -w1 -fpic"
+	cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
+
+	# c++ flags to use
+	cxx_flags = '-ansi'
+	cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
+
+else:
 # c flags to use
-cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report0 -fno-alias -c99 -w1 -fpic"
-cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
+	cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -fno-alias -c99 -w1 -fpic -wd161"
+	cc_flags_debug  = '-g -O0 -c99 -w1 -fpic -wd161'
 
 # c++ flags to use
-cxx_flags = '-ansi'
-cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
-
+	cxx_flags = '-ansi -wd1563 -wd161'
+	cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'
+  	
 # system specific libraries to link with
 sys_libs = ['guide', 'irc']
