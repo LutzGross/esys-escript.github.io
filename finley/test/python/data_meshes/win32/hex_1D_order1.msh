@@ -1,4 +1,4 @@
-$Id: hex_1D_order1.msh 150 2005-09-15 03:44:45Z jgs $
+Rectangular mesh with 2 nodes
 1D-Nodes 2
 0 0 1 0.000000000000000e+000
 1 1 2 1.000000000000000e+000
