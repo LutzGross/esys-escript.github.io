@@ -23,9 +23,6 @@
 
 #include "Finley.h"
 #include "Util.h"
-#ifdef USE_QSORTG
-#include "qsortG.h"
-#endif
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -361,11 +358,7 @@ int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
 
 void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
      /* OMP : needs parallelization !*/
-#ifdef USE_QSORTG
-     qsortG(array,n,sizeof(Finley_Util_ValueAndIndex),Finley_Util_ValueAndIndex_compar);
-#else
      qsort(array,n,sizeof(Finley_Util_ValueAndIndex),Finley_Util_ValueAndIndex_compar);
-#endif
 }
 
 
