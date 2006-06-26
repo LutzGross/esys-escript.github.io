@@ -47,6 +47,13 @@ void Finley_copyDouble(dim_t n,double* source,double* target);
 index_t Finley_Util_cumsum(dim_t,index_t*);
 bool_t Finley_Util_anyNonZeroDouble(dim_t N,double* values);
 
+#ifdef PASO_MPI
+void Finley_Util_AddScatter_upperBound(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound);
+void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  );
+void Finley_printIntArray( FILE *fid, dim_t n, int *array, char *name  );
+void Finley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  );
+#endif
+
 
 
 /* Finley_Util_orderValueAndIndex is used to sort items by a value */

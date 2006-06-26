@@ -92,4 +92,36 @@ Finley_NodeGhostEdge* Finley_NodeGhostEdge_getReference( Finley_NodeGhostEdge *i
   return in;
 }
 
+/* print the local distribution data to fid */
+void Finley_NodeDistribution_print( Finley_NodeDistribution *in, FILE *fid )
+{
+  int n, i;
+
+  fprintf( fid, "=======================================================================================\nNode Distribution\n---------------------\n\nInternal %d\nBoundary %d\nLocal %d\nExternal %d\nGlobal %d\n", in->numInternal, in->numBoundary, in->numLocal, in->numExternal, in->numGlobal );
+  fprintf( fid, "vtxdist [ " );
+  for( i=0; i<in->MPIInfo->size+1; i++ )
+    fprintf( fid, "%d ", in->vtxdist[i] );
+  fprintf( fid, "]\n" );
+  fprintf( fid, "indexExternal [ " );
+  for( i=0; i<in->numExternal; i++ )
+    fprintf( fid, "%d ", in->indexExternal[i] );
+  fprintf( fid, "]\n" );
+  fprintf( fid, "NumNeighbours %d\n", in->numNeighbours );
+  /* list each neighbour */
+  for( n=0; n<in->numNeighbours; n++ )
+  {
+
+    fprintf( fid, "\nNeighbour %d - Domain %d\n=====================\n\n", n, in->neighbours[n] );
+    fprintf( fid, "numForward = %d\tnumBackward = %d\n", in->edges[n]->numForward, in->edges[n]->numBackward );
+    fprintf( fid, "indexForward\n[ " );
+    for( i=0; i<in->edges[n]->numForward; i++ )
+      fprintf( fid, "%d ", in->edges[n]->indexForward[i] );
+    fprintf( fid, "]\n" );
+    fprintf( fid, "indexBackward\n[ " );
+    for( i=0; i<in->edges[n]->numBackward; i++ )
+      fprintf( fid, "%d ", in->edges[n]->indexBackward[i] );
+    fprintf( fid, "]\n=======================================================================================\n" );
+  }
+}
+
 #endif

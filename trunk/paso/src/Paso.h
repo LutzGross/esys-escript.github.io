@@ -68,6 +68,10 @@ char* Paso_getErrorMessage(void);
 void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
 void Paso_solve_free(Paso_SystemMatrix* in);
 
+#ifdef PASO_MPI
+bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info );
+#endif
+
 #endif /* #ifndef INC_PASO */
 
 /*

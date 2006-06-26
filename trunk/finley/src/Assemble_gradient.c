@@ -61,7 +61,10 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
        NS_DOF=elements->ReferenceElement->Type->numShapes;
        gradS=elements->ReferenceElement->dSdv;
        numNodes=nodes->numNodes;
-  } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
+  }
+/* lock these two options out for the MPI version */
+#ifndef PASO_MPI
+ else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
        type=DOF;
        resort_nodes=id;
        NN_DOF=elements->ReferenceElement->Type->numNodes;
@@ -75,7 +78,9 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
        NS_DOF=elements->LinearReferenceElement->Type->numShapes;
        gradS=elements->LinearReferenceElement->dSdv;
        numNodes=nodes->reducedNumDegreesOfFreedom;
-   } else {
+   } 
+#endif
+else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculate gradient of data");
   }
   if (getFunctionSpaceType(grad_data)==FINLEY_CONTACT_ELEMENTS_2) {

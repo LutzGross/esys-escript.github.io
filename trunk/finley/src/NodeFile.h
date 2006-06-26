@@ -22,6 +22,7 @@
 
 #ifdef PASO_MPI
 #include "Distribution.h"
+#include "./paso/CommBuffer.h"
 #endif
 
 struct Finley_NodeFile {
@@ -29,6 +30,9 @@ struct Finley_NodeFile {
   Paso_MPIInfo *MPIInfo;              /* MPI information */
   Finley_NodeDistribution *degreeOfFreedomDistribution;  /* information about the distribution of degrees of freedom
                                               on this subdomain and over other subdomains */
+  Finley_NodeDistribution *reducedDegreeOfFreedomDistribution;
+  Paso_CommBuffer *CommBuffer;
+  Paso_CommBuffer *reducedCommBuffer;
 #endif
   dim_t numNodes;                      /* number of nodes */
   dim_t numDim;                        /* spatial dimension */

@@ -263,11 +263,15 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
                 Finley_checkPtr(index_row) || Finley_checkPtr(dVdv) || Finley_checkPtr(dSdV) || Finley_checkPtr(Vol) ))  {
 
            /*  open loop over all colors: */
+#ifndef PASO_MPI
            for (color=elements->minColor;color<=elements->maxColor;color++) {
               /*  open loop over all elements: */
               #pragma omp for private(e) schedule(static) 
               for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
+#else
+           for(e=0;e<elements->numElements;e++){
+#endif	
 //============================
                   for (q=0;q<p.NN_row;q++) index_row[q]=p.label_row[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
                   /* gather V-coordinates of nodes into V: */
@@ -320,12 +324,18 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
                                                                  getSampleData(Y,e),isExpanded(Y));
                        }
                        /* add  */
+#ifndef PASO_MPI
                        Finley_Util_AddScatter(p.NN_row,index_row,p.numEqu,EM_F,getSampleData(F,0));
+#else
+                       Finley_Util_AddScatter_upperBound(p.NN_row,index_row,p.numEqu,EM_F,getSampleData(F,0),p.degreeOfFreedomUpperBound);
+#endif										
                     }
                 }
               }
+#ifndef PASO_MPI
             }
          }
+#endif
          /* clean up */
          THREAD_MEMFREE(EM_S);
          THREAD_MEMFREE(EM_F);

@@ -25,6 +25,7 @@
 
 extern "C" {
 #include "DataC.h"
+#include "./paso/Paso.h"
 }
 
 #include <string>
@@ -1071,6 +1072,13 @@ class Data {
   void
   extractData(const std::string fileName,
               const FunctionSpace& fspace);
+
+
+  /**
+     \brief
+     print the data values to stdout. Used for debugging 
+  */
+  void print();
 
  protected:
 

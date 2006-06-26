@@ -67,7 +67,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   #endif
   
   /*  allocate a new node file used to gather existing node file: */
-  
+
   len=max_id-min_id+1;
 #ifndef PASO_MPI
   newNodeFile=Finley_NodeFile_alloc(numDim);
@@ -117,7 +117,6 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   if (! Finley_noError() ) goto clean;
 
   if (Finley_noError()) {
-  
       /*  scatter the nodefile in->nodes into newNodeFile using index; */
       #pragma omp parallel for private(k) schedule(static)
       for (k=0;k<in->Nodes->numNodes;k++) 
@@ -141,7 +140,6 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
 
       /*  relable nodes of the elements: */
       Finley_Mesh_relableElementNodes(maskElements,min_id,in);
-
   }
 
   /*  clean-up: */

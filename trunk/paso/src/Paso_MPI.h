@@ -5,6 +5,7 @@
 #include "Common.h"
 
 #define PASO_MPI_TODO 	{ fprintf( stdout, "\nTODO : %s:%d\n", __FILE__, __LINE__);	MPI_Finalize(); exit(1); }
+#define PASO_INFO_ERRORMSG( err, msg ) { char _msg__[256]; sprintf( _msg__, "%s : %s:%d\n", msg, __FILE__, __LINE__ ); Paso_setError( err, _msg__ );  }
 
 /* Datatypes */
 struct Paso_MPIInfo{

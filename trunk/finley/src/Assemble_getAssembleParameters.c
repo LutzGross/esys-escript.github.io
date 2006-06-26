@@ -70,11 +70,22 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   parm->referenceElement_col=elements->ReferenceElement;
   /* get the information for the labeling of the degrees of freedom */
   if (S!=NULL) {
+#ifndef PASO_MPI
       if (S->num_rows*S->row_block_size==parm->numEqu*nodes->numDegreesOfFreedom) {
+#else
+      if (S->num_rows*S->row_block_size==parm->numEqu*nodes->degreeOfFreedomDistribution->numLocal) {
+           parm->degreeOfFreedomUpperBound = nodes->degreeOfFreedomDistribution->numLocal;
+#endif
            parm->label_row=nodes->degreeOfFreedom;
            parm->row_node=&(parm->id[0]);
            parm->referenceElement_row=elements->ReferenceElement;
-      } else if (S->num_rows*S->row_block_size==parm->numEqu*nodes->reducedNumDegreesOfFreedom) {
+      } 
+#ifndef PASO_MPI
+      else if (S->num_rows*S->row_block_size==parm->numEqu*nodes->reducedNumDegreesOfFreedom) {
+#else
+      else if (S->num_rows*S->row_block_size==parm->numEqu*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
+           parm->degreeOfFreedomUpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
+#endif
            parm->label_row=nodes->reducedDegreeOfFreedom;
            parm->row_node=parm->referenceElement->Type->linearNodes;
            parm->referenceElement_row=elements->LinearReferenceElement;
@@ -82,11 +93,22 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
            Finley_setError(TYPE_ERROR,"__FILE__: number of rows in matrix does not match the number of degrees of freedom in mesh");
            return;
       }
+#ifndef PASO_MPI      
       if (S->num_cols*S->col_block_size==parm->numComp*nodes->numDegreesOfFreedom) {
+#else
+      if (S->num_cols*S->col_block_size==parm->numComp*nodes->degreeOfFreedomDistribution->numLocal) {
+           parm->degreeOfFreedomUpperBound = nodes->degreeOfFreedomDistribution->numLocal;
+#endif
            parm->label_col=nodes->degreeOfFreedom;
            parm->col_node=&(parm->id[0]);
            parm->referenceElement_col=elements->ReferenceElement;
-      } else if (S->num_cols*S->col_block_size==parm->numComp*nodes->reducedNumDegreesOfFreedom) {
+      } 
+#ifndef PASO_MPI
+      else if (S->num_cols*S->col_block_size==parm->numComp*nodes->reducedNumDegreesOfFreedom) {
+#else
+      else if (S->num_cols*S->col_block_size==parm->numComp*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
+           parm->degreeOfFreedomUpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
+#endif
            parm->label_col=nodes->reducedDegreeOfFreedom;
            parm->col_node=parm->referenceElement->Type->linearNodes;
            parm->referenceElement_col=elements->LinearReferenceElement;
@@ -96,11 +118,22 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
       }
   }
   if (!isEmpty(F)) {
+#ifndef PASO_MPI
       if (numSamplesEqual(F,1,nodes->numDegreesOfFreedom)) {
+#else
+      if (numSamplesEqual(F,1,nodes->degreeOfFreedomDistribution->numLocal)) {
+           parm->degreeOfFreedomUpperBound = nodes->degreeOfFreedomDistribution->numLocal;
+#endif
            parm->row_node=&(parm->id[0]);
            parm->label_row=nodes->degreeOfFreedom;
            parm->referenceElement_row=elements->ReferenceElement;
-      } else if (numSamplesEqual(F,1,nodes->reducedNumDegreesOfFreedom)) {
+      } 
+#ifndef PASO_MPI
+      else if (numSamplesEqual(F,1,nodes->reducedNumDegreesOfFreedom)) {
+#else
+      else if (numSamplesEqual(F,1,nodes->reducedDegreeOfFreedomDistribution->numLocal)) {
+           parm->degreeOfFreedomUpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
+#endif
            parm->label_row=nodes->reducedDegreeOfFreedom;
            parm->row_node=parm->referenceElement->Type->linearNodes;
            parm->referenceElement_row=elements->LinearReferenceElement;
@@ -115,7 +148,7 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
       } 
   }
   if (parm->referenceElement_row!=parm->referenceElement_col) {
-      Finley_setError(TYPE_ERROR,"__FILE__: assemblage cannot handel different shape functions for rows and columns (yet).");
+      Finley_setError(TYPE_ERROR,"__FILE__: assemblage cannot handle different shape functions for rows and columns (yet).");
       return;
   }
   parm->NN_row=parm->referenceElement_row->Type->numNodes;

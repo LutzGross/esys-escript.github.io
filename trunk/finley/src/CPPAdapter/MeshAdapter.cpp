@@ -216,13 +216,21 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
       case(DegreesOfFreedom):
            if (mesh->Nodes!=NULL) {
              numDataPointsPerSample=1;
+#ifndef PASO_MPI
              numSamples=mesh->Nodes->numDegreesOfFreedom;
+#else
+             numSamples=mesh->Nodes->degreeOfFreedomDistribution->numLocal;
+#endif
            }
            break;
       case(ReducedDegreesOfFreedom):
            if (mesh->Nodes!=NULL) {
              numDataPointsPerSample=1;
+#ifndef PASO_MPI
              numSamples=mesh->Nodes->reducedNumDegreesOfFreedom;
+#else
+             numSamples=mesh->Nodes->reducedDegreeOfFreedomDistribution->numLocal;
+#endif
            }
            break;
       default:
@@ -243,30 +251,34 @@ void MeshAdapter::addPDEToSystem(
                      const escript::Data& d, const escript::Data& y, 
                      const escript::Data& d_contact,const escript::Data& y_contact) const
 {
+  escriptDataC _rhs=rhs.getDataC();
+  escriptDataC _A  =A.getDataC();
+  escriptDataC _B=B.getDataC();
+  escriptDataC _C=C.getDataC();
+  escriptDataC _D=D.getDataC();
+  escriptDataC _X=X.getDataC();
+  escriptDataC _Y=Y.getDataC();
+  escriptDataC _d=d.getDataC();
+  escriptDataC _y=y.getDataC();
+  escriptDataC _d_contact=d_contact.getDataC();
+  escriptDataC _y_contact=y_contact.getDataC();
+
    Finley_Mesh* mesh=m_finleyMesh.get();
-   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getPaso_SystemMatrix(),&(rhs.getDataC()),
-                       &(A.getDataC()),&(B.getDataC()),&(C.getDataC()),&(D.getDataC()),&(X.getDataC()),&(Y.getDataC()));
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getPaso_SystemMatrix(), &_rhs, &_A, &_B, &_C, &_D, &_X, &_Y );
+
    checkFinleyError();
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,
-				  mat.getPaso_SystemMatrix(),
-				  &(rhs.getDataC()),
-                                  &(d.getDataC()),&(y.getDataC()),
-                                  Finley_Assemble_handelShapeMissMatch_Mean_out);
+
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements, mat.getPaso_SystemMatrix(), &_rhs, &_d, &_y, Finley_Assemble_handelShapeMissMatch_Mean_out);
    checkFinleyError();
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->ContactElements,
-				  mat.getPaso_SystemMatrix(),
-				  &(rhs.getDataC()),
-                                  &(d_contact.getDataC()),
-				  &(y_contact.getDataC()),
-                                  Finley_Assemble_handelShapeMissMatch_Step_out);
+
+   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->ContactElements, mat.getPaso_SystemMatrix(), &_rhs , &_d_contact, &_y_contact ,             Finley_Assemble_handelShapeMissMatch_Step_out);
    checkFinleyError();
 }
 
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( escript::Data& rhs,
-                     const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact) const
+void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -290,10 +302,10 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
 {
   const MeshAdapter& inDomain=dynamic_cast<const MeshAdapter&>(in.getFunctionSpace().getDomain());
   const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(target.getFunctionSpace().getDomain());
-  if (inDomain!=*this) 
-     throw FinleyAdapterException("Error - Illegal domain of interpolant.");
+  if (inDomain!=*this)  
+    throw FinleyAdapterException("Error - Illegal domain of interpolant.");
   if (targetDomain!=*this) 
-     throw FinleyAdapterException("Error - Illegal domain of interpolation target.");
+    throw FinleyAdapterException("Error - Illegal domain of interpolation target.");
 
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch(in.getFunctionSpace().getTypeCode()) {
@@ -357,13 +369,14 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
            break;
         }
         break;
-     case(DegreesOfFreedom):
+     case(DegreesOfFreedom):      
         switch(target.getFunctionSpace().getTypeCode()) {
            case(ReducedDegreesOfFreedom):
            case(DegreesOfFreedom):
            case(Nodes):
               Finley_Assemble_CopyNodalData(mesh->Nodes,&(target.getDataC()),&(in.getDataC()));
               break;
+#ifndef PASO_MPI
            case(Elements):
               Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&(in.getDataC()),&(target.getDataC()));
               break;
@@ -377,6 +390,34 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
            case(ContactElementsOne):
               Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&(in.getDataC()),&(target.getDataC()));
              break;
+#else
+           /* need to copy Degrees of freedom data to nodal data so that the external values are available */
+           case(Elements):
+           {
+              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
+              Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&(nodeTemp.getDataC()),&(target.getDataC()));
+              break;
+           }
+           case(FaceElements):
+           {
+              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
+              Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&(nodeTemp.getDataC()),&(target.getDataC()));
+              break;
+           }
+           case(Points):
+           {
+              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
+              Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&(nodeTemp.getDataC()),&(target.getDataC()));
+              break;
+           }
+           case(ContactElementsZero):
+           case(ContactElementsOne):
+           {
+              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
+              Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&(nodeTemp.getDataC()),&(target.getDataC()));
+             break;
+           }
+#endif
            default:
              stringstream temp;
              temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
@@ -555,24 +596,37 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
      throw FinleyAdapterException("Error - Illegal domain of gradient");
 
   Finley_Mesh* mesh=m_finleyMesh.get();
+  escriptDataC nodeDataC;
+#ifdef PASO_MPI
+  escript::Data nodeTemp( arg, continuousFunction(asAbstractContinuousDomain()) );
+  if( arg.getFunctionSpace().getTypeCode() != Nodes )
+  {
+    Finley_Assemble_CopyNodalData(mesh->Nodes,&(nodeTemp.getDataC()),&(arg.getDataC()));
+    nodeDataC = nodeTemp.getDataC();
+  }
+  else
+    nodeDataC = arg.getDataC();
+#else
+  nodeDataC = arg.getDataC();
+#endif
   switch(grad.getFunctionSpace().getTypeCode()) {
        case(Nodes):
           throw FinleyAdapterException("Error - Gradient at nodes is not supported.");
           break;
        case(Elements):
-          Finley_Assemble_gradient(mesh->Nodes,mesh->Elements,&(grad.getDataC()),&(arg.getDataC()));
+          Finley_Assemble_gradient(mesh->Nodes,mesh->Elements,&(grad.getDataC()),&nodeDataC);
           break;
        case(FaceElements):
-          Finley_Assemble_gradient(mesh->Nodes,mesh->FaceElements,&(grad.getDataC()),&(arg.getDataC()));
+          Finley_Assemble_gradient(mesh->Nodes,mesh->FaceElements,&(grad.getDataC()),&nodeDataC);
           break;
        case(Points):
           throw FinleyAdapterException("Error - Gradient at points is not supported.");
           break;
        case(ContactElementsZero):
-          Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&(grad.getDataC()),&(arg.getDataC()));
+          Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&(grad.getDataC()),&nodeDataC);
           break;
        case(ContactElementsOne):
-          Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&(grad.getDataC()),&(arg.getDataC()));
+          Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&(grad.getDataC()),&nodeDataC);
           break;
        case(DegreesOfFreedom):
           throw FinleyAdapterException("Error - Gradient at degrees of freedom is not supported.");
@@ -632,10 +686,12 @@ void MeshAdapter::setToSize(escript::Data& size) const
 void MeshAdapter::setNewX(const escript::Data& new_x)
 {
   Finley_Mesh* mesh=m_finleyMesh.get();
+  escriptDataC tmp;
   const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(new_x.getFunctionSpace().getDomain());
   if (newDomain!=*this) 
      throw FinleyAdapterException("Error - Illegal domain of new point locations");
-  Finley_Mesh_setCoordinates(mesh,&(new_x.getDataC()));
+  tmp = new_x.getDataC();
+  Finley_Mesh_setCoordinates(mesh,&tmp);
   checkFinleyError();
 }
 
