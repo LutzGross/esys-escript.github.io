@@ -12,6 +12,7 @@
 
 #if !defined escript_DataVector_20050324_H
 #define escript_DataVector_20050324_H
+#include "system_dep.h"
 
 #include "esysUtils/EsysAssert.h"
 
@@ -34,7 +35,7 @@ namespace escript {
    client classes.
 */
 
-class DataVector {
+class ESCRIPT_DLL_API DataVector {
 
  public:
 

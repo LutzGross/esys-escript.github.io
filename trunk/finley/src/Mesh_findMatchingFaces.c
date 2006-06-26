@@ -25,7 +25,6 @@
 
 #include "Util.h"
 #include "Mesh.h"
-
 /**************************************************************/
 
 static double  Finley_Mesh_lockingGridSize=0;

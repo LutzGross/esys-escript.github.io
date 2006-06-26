@@ -13,6 +13,7 @@
 
 #if !defined escript_UnaryOp_20040315_H
 #define escript_UnaryOp_20040315_H
+#include "system_dep.h"
 
 #include "DataArrayView.h"
 #include "DataConstant.h"

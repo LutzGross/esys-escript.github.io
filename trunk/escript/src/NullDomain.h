@@ -12,6 +12,7 @@
 
 #if !defined escript_NullDomain_20040604_H
 #define escript_NullDomain_20040604_H
+#include "system_dep.h"
 
 #include "AbstractDomain.h"
 
@@ -42,6 +43,7 @@ class NullDomain : public AbstractDomain {
      Default constructor for NullDomain.
 
   */
+  ESCRIPT_DLL_API
   NullDomain();
 
   /**
@@ -49,60 +51,70 @@ class NullDomain : public AbstractDomain {
      Returns true if the given integer is a valid function space type
      for this domain.
   */
+  ESCRIPT_DLL_API
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
   /**
      \brief
      Return a description for this domain.
   */
+  ESCRIPT_DLL_API
   virtual std::string getDescription() const;
 
   /**
      \brief
      Return a continuous FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getContinuousFunctionCode() const;
 
   /**
      \brief
      Return a function FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getFunctionCode() const;
 
   /**
      \brief
      Return a function on boundary FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getFunctionOnBoundaryCode() const;
 
   /**
      \brief
      Return a FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getSolutionCode() const;
 
   /**
      \brief
      Return a FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getReducedSolutionCode() const;
 
   /**
      \brief
      Return a FunctionSpace.
   */
+  ESCRIPT_DLL_API
   virtual int getDiracDeltaFunctionCode() const;
 
   /**
@@ -111,6 +123,7 @@ class NullDomain : public AbstractDomain {
      \param functionSpaceCode Input - Code for the function space type.
      \return pair, first - number of data points per sample, second - number of samples
   */
+  ESCRIPT_DLL_API
   virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
 
   /**
@@ -119,6 +132,7 @@ class NullDomain : public AbstractDomain {
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
   */
+  ESCRIPT_DLL_API
   virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
 
   /**
@@ -127,18 +141,22 @@ class NullDomain : public AbstractDomain {
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
   */
+  ESCRIPT_DLL_API
   virtual int getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const;
 
   /**
      \brief
   */
+  ESCRIPT_DLL_API
   virtual int getDim() const;
 
   /**
      \brief
      Return true if given domains are equal.
   */
+  ESCRIPT_DLL_API
   virtual bool operator==(const AbstractDomain& other) const;
+  ESCRIPT_DLL_API
   virtual bool operator!=(const AbstractDomain& other) const;
 
  protected:

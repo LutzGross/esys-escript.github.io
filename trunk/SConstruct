@@ -126,7 +126,6 @@ if os.name != "nt" and os.uname()[4]=='ia64':
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
 elif os.name == "nt":
-   # FIXME: Need to implement equivalent of ld library path for windoze
    env = Environment(tools = ['default', 'intelc'], options = opts)
    env['ENV']['PYTHONPATH'] = python_path
 else:
@@ -161,6 +160,9 @@ try:
    libinstall = env['libinstall']
    env.Append(LIBPATH = [libinstall,])
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
+   if env['PLATFORM'] == "win32":
+      env.PrependENVPath('PATH', libinstall)
+      env.PrependENVPath('PATH', env['boost_lib_path'])
 except KeyError:
    libinstall = None  
 try:
@@ -174,7 +176,7 @@ except KeyError:
    dodebug = None  
 try:
    cc_defines = env['cc_defines']
-   env.Append(CPPDEFINES = [cc_defines,])
+   env.Append(CPPDEFINES = cc_defines)
 except KeyError:
    pass
 if dodebug:
@@ -375,9 +377,8 @@ env.Alias('py_tests', 'build_py_tests') # taget to run all released python tests
 env.Alias('all_tests', ['run_tests', 'py_tests']) # target to run all C++ and released python tests
 
 # Python install - esys __init__.py
-# This is just an empty file but stills need to be touched so add a special target and Command. Note you can't use the scons Touch() function as it will not
-# create the file if it doesn't exist
-env.Command(pyinstall+'/__init__.py', None, 'touch $TARGET')
+init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
+env.Alias(init_target)
 
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",

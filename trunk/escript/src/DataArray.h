@@ -12,6 +12,7 @@
 
 #if !defined escript_DataArray_20040421_H
 #define escript_DataArray_20040421_H
+#include "system_dep.h"
 
 #include "DataArrayView.h"
 
@@ -47,6 +48,7 @@ class DataArray {
      Creates a data vector containing a single value, plus a DataArrayView
      which presents this data value as a scalar Data object.
   */
+  ESCRIPT_DLL_API
   DataArray(double value=0.0);
 
   /**
@@ -57,6 +59,7 @@ class DataArray {
      Constructor for DataArray of given shape.
      Assigns each element of the shape the given value.
   */
+  ESCRIPT_DLL_API
   DataArray(const DataArrayView::ShapeType& shape,
             double value=0.0);
 
@@ -68,6 +71,7 @@ class DataArray {
      Copy constructor for DataArray.
      Takes a DataArray and performs a deep copy.
   */
+  ESCRIPT_DLL_API
   DataArray(const DataArray& value);
 
   /**
@@ -78,6 +82,7 @@ class DataArray {
      Constructor for DataArray.
      Takes a DataArrayView and performs a deep copy.
   */
+  ESCRIPT_DLL_API
   DataArray(const DataArrayView& value);
 
   /**
@@ -91,6 +96,7 @@ class DataArray {
      Throws:
      A DataException if a DataArray cannot be created from the python object.
   */
+  ESCRIPT_DLL_API
   DataArray(const boost::python::object& value);
 
   /**
@@ -101,15 +107,18 @@ class DataArray {
      Constructor for DataArray.
      Takes a boost::python::numeric::array.
   */
+  ESCRIPT_DLL_API
   DataArray(const boost::python::numeric::array& value);
 
   /**
      \brief
      Return a reference to the DataArrayView.
   */
+  ESCRIPT_DLL_API
   const DataArrayView&
   getView() const;
 
+  ESCRIPT_DLL_API
   DataArrayView&
   getView();
 
@@ -117,9 +126,11 @@ class DataArray {
      \brief
      Return a reference to the the data vector.
   */
+  ESCRIPT_DLL_API
   const DataArrayView::ValueType&
   getData() const;
 
+  ESCRIPT_DLL_API
   DataArrayView::ValueType&
   getData();
 

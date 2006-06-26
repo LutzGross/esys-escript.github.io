@@ -14,6 +14,7 @@
 
 #if !defined  escript_AbstractSystemMatrix_20040628_H
 #define escript_AbstractSystemMatrix_20040628_H
+#include "system_dep.h"
 
 #include "FunctionSpace.h"
 #include "SystemMatrixException.h"
@@ -54,8 +55,10 @@ class AbstractSystemMatrix {
      Throws:
      Describe any exceptions thrown
   */
+  ESCRIPT_DLL_API
   AbstractSystemMatrix();
 
+  ESCRIPT_DLL_API
   AbstractSystemMatrix(const int row_blocksize,
                        const FunctionSpace& row_functionspace,
                        const int column_blocksize,
@@ -64,24 +67,28 @@ class AbstractSystemMatrix {
     \brief
     Destructor.
   */
+  ESCRIPT_DLL_API
   virtual ~AbstractSystemMatrix();
 
   /**
     \brief
     matrix*vector multiplication
   */
+  ESCRIPT_DLL_API
   Data vectorMultiply(Data& right) const;
 
   /**
     \brief
     returns true if the matrix is empty
   */
+  ESCRIPT_DLL_API
   int isEmpty() const;
 
   /**
     \brief
     returns the column function space
   */
+  ESCRIPT_DLL_API
   inline FunctionSpace getColumnFunctionSpace() const
   {
        if (isEmpty())
@@ -93,6 +100,7 @@ class AbstractSystemMatrix {
     \brief
     returns the row function space
   */
+  ESCRIPT_DLL_API
   inline FunctionSpace getRowFunctionSpace() const
   {
        if (isEmpty())
@@ -104,6 +112,7 @@ class AbstractSystemMatrix {
     \brief
     returns the row block size
   */
+  ESCRIPT_DLL_API
   inline int getRowBlockSize() const
   {
        if (isEmpty())
@@ -115,6 +124,7 @@ class AbstractSystemMatrix {
     \brief
     returns the column block size
   */
+  ESCRIPT_DLL_API
   inline int getColumnBlockSize() const
   {
        if (isEmpty())
@@ -126,21 +136,25 @@ class AbstractSystemMatrix {
      \brief
      returns the solution u of the linear system this*u=in
   */
+  ESCRIPT_DLL_API
   Data solve(Data& in,const boost::python::dict& options) const;
 
   /**
      \brief writes the matrix to a file using the Matrix Market file format
   */
+  ESCRIPT_DLL_API
   virtual void saveMM(const std::string& fileName) const;
 
   /**
      \brief writes the matrix to a file using the Harwell-Boeing file format
   */
+  ESCRIPT_DLL_API
   virtual void saveHB(const std::string& fileName) const;
 
   /**
      \brief resets the matrix entries
   */
+  ESCRIPT_DLL_API
   virtual void resetValues() const;
 
  protected:
@@ -151,12 +165,14 @@ class AbstractSystemMatrix {
      \brief
      solves the linear system this*out=in
   */
+  ESCRIPT_DLL_API
   virtual void setToSolution(Data& out,Data& in,const boost::python::dict& options) const;
 
   /**
      \brief
      performs y+=this*x
   */
+  ESCRIPT_DLL_API
   virtual void ypAx(Data& y,Data& x) const;
 
   int m_empty;
@@ -167,7 +183,7 @@ class AbstractSystemMatrix {
 
 };
 
-Data operator*(const AbstractSystemMatrix& left,const Data& right) ;
+ESCRIPT_DLL_API Data operator*(const AbstractSystemMatrix& left,const Data& right) ;
 
 
 

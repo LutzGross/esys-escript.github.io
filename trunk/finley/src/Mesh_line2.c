@@ -244,6 +244,7 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
       Finley_Mesh_dealloc(out);
       return NULL;
   }
+  
   return out;
 }
 #else

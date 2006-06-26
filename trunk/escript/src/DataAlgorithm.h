@@ -13,6 +13,7 @@
                                                                            
 #if !defined escript_DataAlgorithm_20040714_H
 #define escript_DataAlgorithm_20040714_H
+#include "system_dep.h"
 
 #include "DataArrayView.h"
 #include "DataExpanded.h"
@@ -21,7 +22,6 @@
 
 #include <iostream>
 #include <algorithm>
-#include <math.h>
 
 namespace escript {
 

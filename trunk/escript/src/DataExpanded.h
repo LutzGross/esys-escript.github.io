@@ -13,6 +13,7 @@
 
 #if !defined escript_DataExpanded_20040323_H
 #define escript_DataExpanded_20040323_H
+#include "system_dep.h"
 
 #include "DataAbstract.h"
 #include "DataBlocks2D.h"
@@ -57,6 +58,7 @@ class DataExpanded : public DataAbstract {
      \param value - Input - A single data value.
      \param what - Input - A description of what this data represents.
   */
+  ESCRIPT_DLL_API
   DataExpanded(const boost::python::numeric::array& value,
                const FunctionSpace& what);
 
@@ -74,6 +76,7 @@ class DataExpanded : public DataAbstract {
      \param value - Input - A single data value.
      \param what - Input - A description of what this data represents.
   */
+  ESCRIPT_DLL_API
   DataExpanded(const DataArrayView& value,
                const FunctionSpace& what);
 
@@ -85,6 +88,7 @@ class DataExpanded : public DataAbstract {
      \param other - Input - DataExpanded object to slice from.
      \param region - Input - region to copy.
   */
+  ESCRIPT_DLL_API
   DataExpanded(const DataExpanded& other,
                const DataArrayView::RegionType& region);
 
@@ -98,6 +102,7 @@ class DataExpanded : public DataAbstract {
      \param shape - Input - the shape of each data-point.
      \param data - the array of data values for the data-points.
   */
+  ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,
                const DataArrayView::ShapeType &shape,
                const DataArrayView::ValueType &data);
@@ -107,6 +112,7 @@ class DataExpanded : public DataAbstract {
      Copy constructor for DataExpanded.
      Performs a deep copy from another DataExpanded.
   */
+  ESCRIPT_DLL_API
   DataExpanded(const DataExpanded& other);
 
   /**
@@ -114,6 +120,7 @@ class DataExpanded : public DataAbstract {
      Copy constructor for DataExpanded.
      Construct a DataExpanded from a DataConstant.
   */
+  ESCRIPT_DLL_API
   DataExpanded(const DataConstant& other);
 
   /**
@@ -121,12 +128,14 @@ class DataExpanded : public DataAbstract {
      Copy constructor for DataExpanded.
      Construct a DataExpanded from a DataTagged.
   */
+  ESCRIPT_DLL_API
   DataExpanded(const DataTagged& other);
 
   /**
      \brief
      Default destructor for DataExpanded.
   */
+  ESCRIPT_DLL_API
   virtual
   ~DataExpanded();
 
@@ -134,6 +143,7 @@ class DataExpanded : public DataAbstract {
      \brief
      Return a textual representation of the data.
   */
+  ESCRIPT_DLL_API
   virtual
   std::string
   toString() const;
@@ -144,6 +154,7 @@ class DataExpanded : public DataAbstract {
      The original data point value is used for all values of the new
      data point.
   */
+  ESCRIPT_DLL_API
   void
   reshapeDataPoint(const DataArrayView::ShapeType& shape);
 
@@ -156,6 +167,7 @@ class DataExpanded : public DataAbstract {
      \param sampleNo - Input - sample number.
      \param dataPointNo - Input - data point number.
   */
+  ESCRIPT_DLL_API
   virtual
   DataArrayView::ValueType::size_type
   getPointOffset(int sampleNo,
@@ -172,6 +184,7 @@ class DataExpanded : public DataAbstract {
      \param dataPointNo - Input - data point number.
      \return DataArrayView for the data point.
   */
+  ESCRIPT_DLL_API
   DataArrayView
   getDataPoint(int sampleNo,
                int dataPointNo);
@@ -180,6 +193,7 @@ class DataExpanded : public DataAbstract {
      \brief
      Return the number of doubles stored for the Data.
   */
+  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getLength() const;
@@ -191,6 +205,7 @@ class DataExpanded : public DataAbstract {
 
      \param region - Input - Region to copy.
   */
+  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   getSlice(const DataArrayView::RegionType& region) const;
@@ -202,6 +217,7 @@ class DataExpanded : public DataAbstract {
      \param value - Input - Data object to copy from.
      \param region - Input - Region to copy.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setSlice(const DataAbstract* value,
@@ -226,6 +242,7 @@ class DataExpanded : public DataAbstract {
      \param value - Input - Value to assign to data-point associated with
                             the given reference number.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   setRefValue(int ref,
@@ -251,6 +268,7 @@ class DataExpanded : public DataAbstract {
      \param value - Output - Object to receive data-points associated with
                             the given reference number.
   */
+  ESCRIPT_DLL_API
   virtual
   void
   getRefValue(int ref,
@@ -264,6 +282,7 @@ class DataExpanded : public DataAbstract {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   archiveData(std::ofstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues) const;
@@ -275,6 +294,7 @@ class DataExpanded : public DataAbstract {
 
     The return value indicates success (0) or otherwise (1).
   */
+  ESCRIPT_DLL_API
   int
   extractData(std::ifstream& archiveFile,
               const DataArrayView::ValueType::size_type noValues);
@@ -286,6 +306,7 @@ class DataExpanded : public DataAbstract {
      \param ev - Output - eigenvalues in increasing order at each data point
 
   */
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues(DataAbstract* ev);
 
@@ -300,6 +321,7 @@ class DataExpanded : public DataAbstract {
 
   */
 
+  ESCRIPT_DLL_API
   virtual void
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 

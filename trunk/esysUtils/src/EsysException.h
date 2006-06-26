@@ -12,6 +12,7 @@
        
 #ifndef ESYSEXCEPTION_H
 #define ESYSEXCEPTION_H
+#include "system_dep.h"
 
 #include <string>
 #include <sstream>

@@ -15,6 +15,7 @@
 #if !defined escript_AbstractContinuousDomain_20040528_H
 #define escript_AbstractContinuousDomain_20040528_H
 
+#include "system_dep.h"
 #include "AbstractDomain.h"
 
 #include <string>
@@ -53,6 +54,7 @@ class AbstractContinuousDomain : public AbstractDomain {
      Throws:
      Describe any exceptions thrown
   */
+  ESCRIPT_DLL_API 
   AbstractContinuousDomain();
 
   /**
@@ -68,6 +70,7 @@ class AbstractContinuousDomain : public AbstractDomain {
      Throws:
      Describe any exceptions thrown
   */
+  ESCRIPT_DLL_API 
   virtual ~AbstractContinuousDomain();
 
   /**
@@ -75,60 +78,70 @@ class AbstractContinuousDomain : public AbstractDomain {
      Returns true if the given integer is a valid function space type
      for this domain.
   */
+  ESCRIPT_DLL_API 
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
   /**
      \brief
      Return a description for this domain
   */
+  ESCRIPT_DLL_API 
   virtual std::string getDescription() const;
 
   /**
      \brief
      Return a continuous FunctionSpace code
   */
+  ESCRIPT_DLL_API 
   virtual int getContinuousFunctionCode() const;
 
   /**
      \brief
      Return a functon FunctionSpace code
   */
+  ESCRIPT_DLL_API 
   virtual int getFunctionCode() const;
 
   /**
      \brief
      Return a function on boundary FunctionSpace code
   */
+  ESCRIPT_DLL_API 
   virtual int getFunctionOnBoundaryCode() const;
 
   /**
      \brief
      Return a FunctionOnContactZero code
   */
+  ESCRIPT_DLL_API 
   virtual int getFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionOnContactOne code
   */
+  ESCRIPT_DLL_API 
   virtual int getFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a Solution code
   */
+  ESCRIPT_DLL_API 
   virtual int getSolutionCode() const;
 
   /**
      \brief
      Return a ReducedSolution code
   */
+  ESCRIPT_DLL_API 
   virtual int getReducedSolutionCode() const;
 
   /**
      \brief
      Return a DiracDeltaFunction code
   */
+  ESCRIPT_DLL_API 
   virtual int getDiracDeltaFunctionCode() const;
 
   /**
@@ -137,6 +150,7 @@ class AbstractContinuousDomain : public AbstractDomain {
      stiffness matrix when a particular solver package
      and symmetric matrix is used.
   */
+  ESCRIPT_DLL_API 
   virtual int getSystemMatrixTypeId(const int solver, const int package, const bool symmetry) const;
 
   /**
@@ -145,12 +159,14 @@ class AbstractContinuousDomain : public AbstractDomain {
      arg has to be defined on this.
      has to be implemented by the Domain Adapter.
   */
+  ESCRIPT_DLL_API 
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
 
   /**
      \brief
      Return the domain as const AbstractContinuousDomain&
   */
+  ESCRIPT_DLL_API 
   static const  AbstractContinuousDomain& asAbstractContinuousDomain(const AbstractDomain& domain);
 
  protected:

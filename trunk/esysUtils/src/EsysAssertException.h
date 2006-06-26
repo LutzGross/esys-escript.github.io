@@ -13,6 +13,7 @@
                                                                            
 #if !defined escript_EsysAssertException_20040330_H
 #define escript_EsysAssertException_20040330_H
+#include "system_dep.h"
 
 #include "EsysException.h"
 

@@ -12,6 +12,7 @@
 
 #if !defined escript_DataProf_20050620_H
 #define escript_DataProf_20050620_H
+#include "system_dep.h"
 
 #include <string>
 
@@ -42,7 +43,7 @@ typedef struct profDataEntry {
    For templates describe any conditions that the parameters used in the
    template must satisfy
 */
-class DataProf {
+class ESCRIPT_DLL_API DataProf {
 
  public:
 

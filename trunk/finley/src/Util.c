@@ -23,6 +23,7 @@
 
 #include "Finley.h"
 #include "Util.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -373,6 +374,7 @@ int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
    if (e1->value > e2->value) return  1;
    return 0;
 }
+
 void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
      /* OMP : needs parallelization !*/
      qsort(array,n,sizeof(Finley_Util_ValueAndIndex),Finley_Util_ValueAndIndex_compar);

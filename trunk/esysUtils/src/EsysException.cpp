@@ -61,12 +61,14 @@ ostringstream& EsysException::reason()
 // Overloaded assignment operator.
 EsysException& EsysException::operator=(const EsysException &inException) {
   if (this != &inException) {
-    //
-    // call the base class operator=
-    this->exception::operator=(dynamic_cast<const exception&>(inException));
-    //
-    // copy the message buffer into this EsysException
-    m_reason << inException.m_reason.str();
+	  //
+	  // call the base class operator=
+	  // win32 refactor: parent class operator= shares pointer the result is
+	  // all classes try to free the same pointer, dies on windows badly.
+	  // this->exception::operator=(dynamic_cast<const exception&>(inException));
+	  //
+	  // copy the message buffer into this EsysException
+	  m_reason << inException.m_reason.str();    // copy the message buffer into this EsysException
   }
   return *this;
 }

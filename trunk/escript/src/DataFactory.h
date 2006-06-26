@@ -13,6 +13,7 @@
                                                                            
 #if !defined escript_DataFactory_20040721_H
 #define escript_DataFactory_20040721_H
+#include "system_dep.h"
 
 #include "FunctionSpace.h"
 #include "Data.h"
@@ -37,7 +38,7 @@ namespace escript {
                      the value. Otherwise a more efficient storage 
                      mechanism will be used.
 */
-Data
+ESCRIPT_DLL_API Data
 Scalar(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -47,7 +48,7 @@ Scalar(double value,
    Return a Data object containing vector data-points.
    ie: rank 1 data-points.
 */
-Data
+ESCRIPT_DLL_API Data
 Vector(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -57,7 +58,7 @@ Vector(double value,
    Return a Data object containing tensor datapoints.
    ie: rank 2 data-points.
 */
-Data
+ESCRIPT_DLL_API Data
 Tensor(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -67,7 +68,7 @@ Tensor(double value,
    Return a Data object containing tensor3 datapoints.
    ie: rank 3 data-points.
 */
-Data
+ESCRIPT_DLL_API Data
 Tensor3(double value,
         const FunctionSpace& what=FunctionSpace(),
         bool expanded=false);
@@ -77,7 +78,7 @@ Tensor3(double value,
    Return a Data object containing tensor4 datapoints.
    ie: rank 4 data-points.
 */
-Data
+ESCRIPT_DLL_API Data
 Tensor4(double value,
         const FunctionSpace& what=FunctionSpace(),
         bool expanded=false);
@@ -89,7 +90,7 @@ Tensor4(double value,
    interpolated data of values are returned. If value is not a data object it is tried to generate
    the corresponding data object. escript::DataEmpty() is returned if value is identified as empty.
 */
-Data
+ESCRIPT_DLL_API Data
 convertToData(const boost::python::object& value,
               const FunctionSpace& what=FunctionSpace());
 

@@ -11,6 +11,8 @@ from esys.escript import *
 from esys.finley import ReadMesh
 
 FINLEY_TEST_MESH_PATH=os.environ['FINLEY_TEST_DATA']+"/data_meshes/"
+if os.name == "nt":
+   FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
 FINLEY_WORKDIR_PATH=os.environ['FINLEY_WORKDIR']+"/"
 
 class Test_VisualizationInterface(unittest.TestCase):

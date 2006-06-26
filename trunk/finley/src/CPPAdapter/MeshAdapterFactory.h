@@ -13,6 +13,7 @@
 
 #if !defined  finley_MeshAdapterFactory_20040526_H
 #define finley_MeshAdapterFactory_20040526_H
+#include "system_dep.h"
 
 extern "C" {
 #include "../Finley.h"
@@ -44,6 +45,7 @@ namespace finley {
      \param integrationOrder Input - order of the quadrature scheme.  
      If integrationOrder<0 the integration order is selected independently.
   */
+  FINLEY_DLL_API
   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
 				     int integrationOrder=-1);
   /**
@@ -59,6 +61,7 @@ namespace finley {
      \param periodic0, periodic1, periodic2 Input - whether or not boundary 
      conditions of the dimension are periodic
   */
+  FINLEY_DLL_API
   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
 		    double l0=1.0,double l1=1.0,double l2=1.0,
 		    int periodic0=0,int periodic1=0,
@@ -80,6 +83,7 @@ namespace finley {
      conditions of the dimension are periodic
      \param useElementsOnFace Input - whether or not to use elements on face
   */
+  FINLEY_DLL_API
   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
 				      double l0=1.0, double l1=1.0,
 				      int periodic0=false,int periodic1=false,
@@ -99,6 +103,7 @@ namespace finley {
      \param useElementsOnFace Input - whether or not to use the elements
      on the face
   */
+  FINLEY_DLL_API
   escript::AbstractContinuousDomain* interval(int n0=1,int order=1,double l0=1.0,
 				     int periodic0=false,
 				     int integrationOrder=-1,
@@ -108,6 +113,7 @@ namespace finley {
      Merges a list of meshes into one list.
      \param meshList Input - The list of meshes.
   */
+  FINLEY_DLL_API
   escript::AbstractContinuousDomain* meshMerge(const boost::python::list& meshList);
   /**
      \brief
@@ -117,6 +123,7 @@ namespace finley {
      \param safetyFactor Input - ??
      \param tolerance Input - ??
   */
+  FINLEY_DLL_API
   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
 			   double tolerance=100.*std::numeric_limits<double>::epsilon());
@@ -127,6 +134,7 @@ namespace finley {
      \param safetyFactor Input - ??
      \param tolerance Input - ??
   */
+  FINLEY_DLL_API
   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
 			double safetyFactor=0.2, 
 			double tolerance=100.*std::numeric_limits<double>::epsilon());

@@ -12,6 +12,7 @@
 
 #if !defined escript_FunctionSpace_20040323_H
 #define escript_FunctionSpace_20040323_H
+#include "system_dep.h"
 
 #include "AbstractDomain.h"
 #include "NullDomain.h"
@@ -36,7 +37,7 @@ class Data;
    template must satisfy.
 */
 
-class FunctionSpace {
+class ESCRIPT_DLL_API FunctionSpace {
 
  public:
   /**

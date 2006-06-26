@@ -12,6 +12,7 @@
 
 #if !defined  escript_DataException_20040324_H
 #define escript_DataException_20040324_H
+#include "system_dep.h"
 
 #include "esysUtils/EsysException.h"
 
@@ -34,21 +35,25 @@ class DataException:public esysUtils::EsysException {
      \brief
      Default constructor for the exception.
   */
+  ESCRIPT_DLL_API
   DataException() : esysUtils::EsysException() {}
   /**
      \brief
      Constructor for the exception.
   */
+  ESCRIPT_DLL_API
   DataException(const char *cstr) : esysUtils::EsysException(cstr) {}
   /**
      \brief
      Constructor for the exception.
   */
+  ESCRIPT_DLL_API
   DataException(const std::string &str) : esysUtils::EsysException(str) {}
   /**
      \brief
      Returns the name of the exception.
   */
+  ESCRIPT_DLL_API
   virtual std::string exceptionName() const {return "DataException";}
 };
 
