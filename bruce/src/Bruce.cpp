@@ -896,30 +896,6 @@ Bruce::saveVTK(const std::string& filename,
   // extract Data objects and associated names from dictionary object
   const int MAX_namelength=256;
 
-/* FIXME: win32 refactor - Not required any more
-  char names[num_data][MAX_namelength];
-  char* c_names[num_data];
-
-  escriptDataC data[num_data];
-  escriptDataC* ptr_data[num_data];
-
-  for (int i=0; i<num_data; i++) {
-    Data& d=boost::python::extract<Data&>(dataDict[keys[i]]);
-    if (dynamic_cast<const Bruce&>(d.getFunctionSpace().getDomain()) != *this) {
-      throw BruceException("Error: Bruce::saveVTK: Data must be defined on same Domain");
-    }
-    data[i]=d.getDataC();
-    ptr_data[i]=&(data[i]);
-    std::string n=boost::python::extract<std::string>(keys[i]);
-    c_names[i]=&(names[i][0]);
-    if (n.length()>MAX_namelength-1) {
-      strncpy(c_names[i],n.c_str(),MAX_namelength-1);
-      c_names[i][MAX_namelength-1]='\0';
-    } else {
-      strcpy(c_names[i],n.c_str());
-    }
-  }
-*/
   //
   // open archive file
   ofstream archiveFile;

@@ -48,11 +48,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, in
          #pragma omp for schedule(static) 
          for (i=0;i<n_ptr;++i) {
              if (ptr[i]<ptr[i+1]) {
-#ifdef USE_QSORTG
-               qsortG(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-#else
                qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-#endif
                loc_min_index=MIN(loc_min_index,index[ptr[i]-1]);
                loc_max_index=MAX(loc_max_index,index[ptr[i+1]-2]);
              }

@@ -53,11 +53,11 @@ class Test_Util_SpatialFunctionsOnFinley3DOrder2(Test_Util_SpatialFunctions):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-#   suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
+   suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
    suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley2DOrder1))
-#   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley2DOrder2))
-#   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder1))
-#   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder2))
+   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley2DOrder2))
+   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder1))
+   suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinley3DOrder2))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)
