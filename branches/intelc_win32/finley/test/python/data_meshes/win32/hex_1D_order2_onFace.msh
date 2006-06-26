@@ -1,4 +1,4 @@
-Rectangular mesh with 3 nodes
+$Id: hex_1D_order2_onFace.msh 150 2005-09-15 03:44:45Z jgs $
 1D-Nodes 3
 0 0 1 0.000000000000000e+000
 1 1 0 5.000000000000000e-001
@@ -6,7 +6,7 @@ Rectangular mesh with 3 nodes
 Line3 1
 0 0 0 2 1
 Line3Face 2
-2 2 2 0 1
 1 1 0 2 1
+2 2 2 0 1
 Line3Face_Contact 0
 Point1 0
