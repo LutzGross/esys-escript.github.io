@@ -8,7 +8,7 @@ boost_path = 'E:/woo409/development/boost_1_33'
 boost_lib_path = 'E:/woo409/development/boost_1_33/windows_binary/lib'
 boost_lib = 'boost_python-vc71-mt-gd'
 
-cc_defines = ['_USE_MATH_DEFINES', ]
+cc_defines = ['_USE_MATH_DEFINES', 'USE_QSORTG',]
 # c flags to use
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
