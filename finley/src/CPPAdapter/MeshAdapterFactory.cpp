@@ -181,6 +181,7 @@ namespace finley {
     //
     // merge the meshes:
     fMesh=Finley_Mesh_merge(numMsh,mshes);
+	  TMPMEMFREE(mshes);
 #else
     {
       stringstream temp;
@@ -192,7 +193,6 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-	TMPMEMFREE(mshes);
 
     return temp;
   }
