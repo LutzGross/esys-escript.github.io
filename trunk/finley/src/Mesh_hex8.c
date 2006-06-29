@@ -706,8 +706,9 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   
   /*  set nodes: */
   /* INTERNAL/BOUNDARY NODES */
+	k=0;
   #pragma omp parallel for private(i0,i1,i2,k)
-  for (k=0,i2=0;i2<N2;i2++) { 
+  for (i2=0;i2<N2;i2++) { 
     for (i1=0;i1<N1;i1++) {
       for (i0=0;i0<numNodesLocal-domLeft*periodic[0];i0++,k++) {         
         out->Nodes->Coordinates[INDEX2(0,k,3)]=DBLE(i0+firstNode)/DBLE(N0-1)*Length[0];

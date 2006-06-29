@@ -62,6 +62,10 @@ opts.AddOptions(
   ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas'),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
+  ('cc_flags_MPI','C compiler flags to use (Release MPI build)', '-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -fno-alias -c99 -w1 -fpic -wd161'),
+  ('cc_flags_debug_MPI', 'C compiler flags to use (Debug MPI build)', '-g -O0 -c99 -w1 -fpic -wd161'),
+  ('cxx_flags_MPI', 'C++ compiler flags to use (Release MPI build)', '-ansi -wd1563 -wd161'),
+  ('cxx_flags_debug_MPI', 'C++ compiler flags to use (Debug MPI build)', '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', None),
   ('tar_flags','flags for zip files','-c -z'),
@@ -73,6 +77,7 @@ opts.AddOptions(
   PathOption('scsl_path', 'Path to SCSL includes', None), 
   PathOption('scsl_lib_path', 'Path to SCSL libs', None), 
   ('scsl_libs', 'SCSL libraries to link with', None),
+  ('scsl_libs_MPI', 'SCSL libraries to link with for MPI build', None),
 # UMFPACK 
   PathOption('umf_path', 'Path to UMF includes', None), 
   PathOption('umf_lib_path', 'Path to UMF libs', None), 
@@ -93,6 +98,8 @@ opts.AddOptions(
   PathOption('papi_path', 'Path to PAPI includes', None), 
   PathOption('papi_lib_path', 'Path to PAPI libs', None), 
   ('papi_libs', 'PAPI libraries to link with', None),
+# MPI
+  BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
 )
 
 # Initialise Scons Build Environment
@@ -175,36 +182,66 @@ try:
 except KeyError:
    dodebug = None  
 try:
+   useMPI = env['useMPI']
+except KeyError:
+   useMPI = None  
+try:
    cc_defines = env['cc_defines']
    env.Append(CPPDEFINES = cc_defines)
 except KeyError:
    pass
 if dodebug:
-   try:
+  if useMPI:
+    try:
+      flags = env['cc_flags_debug_MPI']
+      env.Append(CCFLAGS = flags)
+    except KeyError:
+      pass
+  else:			 			 
+    try:
       flags = env['cc_flags_debug']
       env.Append(CCFLAGS = flags)
-   except KeyError:
+    except KeyError:
       pass
 else:
+  if useMPI:
+   try:
+     flags = env['cc_flags_MPI']
+     env.Append(CCFLAGS = flags)
+   except KeyError:
+      pass
+  else:
    try:
       flags = env['cc_flags']
       env.Append(CCFLAGS = flags)
    except KeyError:
       pass
-
 if dodebug:
-   try:
-      flags = env['cxx_flags_debug']
-      env.Append(CXXFLAGS = flags)
-   except KeyError:
-      pass
+   if useMPI:
+     try:
+        flags = env['cxx_flags_debug_MPI']
+        env.Append(CXXFLAGS = flags)
+     except KeyError:
+        pass
+   else:
+     try:
+        flags = env['cxx_flags_debug']
+        env.Append(CXXFLAGS = flags)
+     except KeyError:
+        pass
 else:
-   try:
-      flags = env['cxx_flags']
-      env.Append(CXXFLAGS = flags)
-   except KeyError:
-      pass
-
+   if useMPI:
+     try:
+        flags = env['cxx_flags_MPI']
+        env.Append(CXXFLAGS = flags)
+     except KeyError:
+        pass
+   else:
+     try:
+        flags = env['cxx_flags']
+        env.Append(CXXFLAGS = flags)
+     except KeyError:
+        pass
 try:
    flags = env['ar_flags']
    env.Append(ARFLAGS = flags)
@@ -247,10 +284,16 @@ try:
    env.Append(LIBPATH = [lib_path,])
 except KeyError:
    pass
-try:
-   scsl_libs = env['scsl_libs']
-except KeyError:
-   scsl_libs = ''
+if useMPI:	 
+  try:
+    scsl_libs = env['scsl_libs_MPI']
+  except KeyError:
+    scsl_libs = ''
+else:		 
+  try:
+    scsl_libs = env['scsl_libs']
+  except KeyError:
+    scsl_libs = ''
 try:
    includes = env['umf_path']
    env.Append(CPPPATH = [includes,])
@@ -384,7 +427,7 @@ env.Alias(init_target)
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs", 
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
-        "guide_pdf", "guide_html_index", "api_epydoc"])
+        "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])
 
 # End initialisation section
 # Begin configuration section
@@ -413,3 +456,4 @@ env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', dup
 
 # added by Ben Cumming
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0) 
+env.SConscript(dirs = ['../test'], build_dir='../test/build', duplicate=0)
