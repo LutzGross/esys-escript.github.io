@@ -274,6 +274,14 @@ class AbstractDomain {
   //virtual vtkObject createVtkObject(int functionSpaceCode) const;
 
   /**
+     \brief assigns new tag newTag to all samples of functionspace with a positive
+     value of mask for any its sample point.
+
+  */
+  ESCRIPT_DLL_API
+  virtual void setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const;
+
+  /**
      \brief
      returns true if data on this domain and a function space of type functionSpaceCode has to
      considered as cell centered data.

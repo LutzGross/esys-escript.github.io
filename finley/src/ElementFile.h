@@ -109,6 +109,7 @@ void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_E
 void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
 void Finley_ElementFile_deallocTable(Finley_ElementFile*);
 void Finley_ElementFile_prepare(Finley_ElementFile** in,dim_t numNodes,dim_t* degreeOfFreedom);
+void Finley_ElementFile_setTags(Finley_ElementFile*,const int,escriptDataC*);
 
 #endif /* #ifndef INC_FINLEY_ELEMENTFILE */
 
