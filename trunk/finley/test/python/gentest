@@ -1,125 +1,729 @@
 #!/usr/bin/python
+import numarray
+import random
 t_prog={}
-t_prog["2Do1"]=""
-t_prog["2Do2"]=""
-t_prog["3Do1"]=""
-t_prog["3Do2"]=""
+t_prog["2Do1_strong"]=""
+t_prog["2Do2_strong"]=""
+t_prog["3Do1_strong"]=""
+t_prog["3Do2_strong"]=""
+t_prog["2Do1_weak"]=""
+t_prog["2Do2_weak"]=""
+t_prog["3Do1_weak"]=""
+t_prog["3Do2_weak"]=""
 t_prog["2Do1_contact"]=""
 t_prog["2Do2_contact"]=""
 t_prog["3Do1_contact"]=""
 t_prog["3Do2_contact"]=""
 intend="  "
+max_order=3
 
-def makeTitle(d,o,s,coef,case,type,body="",mark=""):
+def makeTitle(d,coeffo,o,s,coef,case,typ,body="",mark="",pdeargs="",add_jump=False):
    if mark=="":
-     name="test_assemblage_%sD_order%s_neq%s_%s_%s_%s"%(d,o,s,coef,case,type)
+     name="test_assemblage_%sD_solO%s_coeffO%s_neq%s_%s_%s_type%s"%(d,o,coeffo,s,coef,case,typ)
    else:
-     name="test_assemblage_%sD_order%s_neq%s_%s_%s_%s_%s"%(d,o,s,coef,case,type,mark)
-   key="%sDo%s"%(d,o)
-   if coef=="d_contact": key+="_contact"
-   t_prog[key]+=intend+"#"+80*"+"+"\n"+intend+"def %s(self):\n"%name
-   if body=="":
-       t_prog[key]+=2*intend+"pass\n"
-   else:
-       t_prog[key]+=body
+     name="test_assemblage_%sD_solO%s_coeffO%s_neq%s_%s_%s_type%s_comp%s"%(d,o,coeffo,s,coef,case,typ,mark)
+   key="%sDo%s_%s"%(d,o,typ.lower())
+   t_prog[key]+=intend+"#"+50*"="+"\n"+intend+"def %s(self):\n"%name
+   t_prog[key]+=2*intend+"x=self.domain.getX()\n"
+   if add_jump:
+       t_prog[key]+=2*intend+"jump=Data(0.,(),ContinuousFunction(self.domain))\n"
+       t_prog[key]+=2*intend+"jump.setTaggedValue(2,1.)\n"
+   t_prog[key]+=body
+   t_prog[key]+=2*intend+"pde=LinearPDE(self.domain)\n"
+   t_prog[key]+=2*intend+"pde.setValue(%s)\n"%pdeargs
+   t_prog[key]+=2*intend+"r=pde.getResidual(u)\n"
+   t_prog[key]+=2*intend+"rhs=pde.getRightHandSide()\n"
+   t_prog[key]+=2*intend+"self.failUnless(Lsup(rhs)>0,\"right hand side is zero\")\n"
+   t_prog[key]+=2*intend+"self.failUnless(Lsup(r)<=self.RES_TOL*Lsup(rhs),\"residual is too big\")\n"
 
-for s in [1,2,3,4]:
+def getRandom():
+    out=0
+    while out==0:
+      out = int(18*random.random())-9
+    return out
+
+def makeTestSolution(order,ncomps,dim):
+   if dim == 2:
+      out=numarray.zeros((ncomps,max_order+1,max_order+1))   
+      for d1 in range(order+1):
+         for d2 in range(order+1):
+            for k in range(ncomps):
+               out[k,d1,d2]=getRandom()
+   if dim == 3:
+      out=numarray.zeros((ncomps,max_order+1,max_order+1,max_order+1))   
+      for d1 in range(order+1):
+         for d2 in range(order+1):
+            for d3 in range(order+1):
+               for k in range(ncomps):
+                  out[k,d1,d2,d3]=getRandom()
+   return out
+
+def makeGradient(func,dim):
+   sh=func.shape
+   if len(sh)==dim+1:
+      sh_out=sh[:1]+(dim,)+sh[1:]
+      out=numarray.zeros(sh_out)
+      if dim==2:
+         for d1 in range(sh[1]-1):
+            for d2 in range(sh[2]-1):
+                for k in range(sh[0]):
+                  out[k,0,d1,d2]=(d1+1)*func[k,d1+1,d2] 
+                  out[k,1,d1,d2]=(d2+1)*func[k,d1,d2+1] 
+      else:
+         for d1 in range(sh[1]-1):
+            for d2 in range(sh[2]-1):
+               for d3 in range(sh[3]-1):
+                  for k in range(sh[0]):
+                     out[k,0,d1,d2,d3]=(d1+1)*func[k,d1+1,d2,d3] 
+                     out[k,1,d1,d2,d3]=(d2+1)*func[k,d1,d2+1,d3] 
+                     out[k,2,d1,d2,d3]=(d3+1)*func[k,d1,d2,d3+1] 
+   elif len(sh)==dim+2:
+      raise RunTimeError,"sdfadsa"
+      sh_out=sh[:2]+(dim,)+sh[2:]
+      out=numarray.zeros(sh_out)
+   else:
+      raise RunTimeError,"sdfadsa"
+   return out   
+
+def makeDiv(func,dim):
+   sh=func.shape
+   if len(sh)==dim+1:
+      sh_out=(1,)+sh[1:]
+      out=numarray.zeros(sh_out)
+      if dim==2:
+         for d1 in range(sh[1]-1):
+            for d2 in range(sh[2]-1):
+                for k in range(sh[0]):
+                  out[0,d1,d2]=(d1+1)*func[0,d1+1,d2]+(d2+1)*func[1,d1,d2+1] 
+      else:
+         for d1 in range(sh[1]-1):
+            for d2 in range(sh[2]-1):
+               for d3 in range(sh[3]-1):
+                  for k in range(sh[0]):
+                     out[0,d1,d2,d3]=(d1+1)*func[0,d1+1,d2,d3]+(d2+1)*func[1,d1,d2+1,d3]+(d3+1)*func[2,d1,d2,d3+1] 
+   elif len(sh)==dim+2:
+      sh_out=(sh[0],)+sh[2:]
+      out=numarray.zeros(sh_out)
+      if dim==2:
+         for d1 in range(sh[2]-1):
+            for d2 in range(sh[3]-1):
+                for k in range(sh[0]):
+                  out[k,d1,d2]=(d1+1)*func[k,0,d1+1,d2]+(d2+1)*func[k,1,d1,d2+1] 
+      else:
+         for d1 in range(sh[2]-1):
+            for d2 in range(sh[3]-1):
+               for d3 in range(sh[4]-1):
+                  for k in range(sh[0]):
+                     out[k,d1,d2,d3]=(d1+1)*func[k,0,d1+1,d2,d3]+(d2+1)*func[k,1,d1,d2+1,d3]+(d3+1)*func[k,2,d1,d2,d3+1] 
+   else:
+      raise RunTimeError,"sdfadsa"
+   return out   
+
+def multiplyByFandX(f,n,func,in_index,out_shape,out_index):
+   if n==0:
+      n1=1
+   else:
+      n1=0
+   if n==1:
+      n2=1
+   else:
+      n2=0
+   if n==2:
+      n3=1
+   else:
+      n3=0
+      
+   sh=func.shape
+   dim=len(sh)-len(in_index)
+   sh_out=out_shape+sh[len(in_index):]
+   out=numarray.zeros(sh_out)
+   if len(in_index)==1:
+      if len(out_index)==1:
+         if dim==2:
+            for d1 in range(n1,sh[1]):
+               for d2 in range(n2,sh[2]):
+                  out[out_index[0],d1,d2]=f*func[in_index[0],d1-n1,d2-n2] 
+
+         else:
+            for d1 in range(n1,sh[1]):
+              for d2 in range(n2,sh[2]):
+                for d3 in range(n3,sh[3]):
+                 out[out_index[0],d1,d2,d3]=f*func[in_index[0],d1-n1,d2-n2,d3-n3] 
+                        
+      elif len(out_index)==2:
+         if dim==2:
+            for d1 in range(n1,sh[1]):
+               for d2 in range(n2,sh[2]):
+                  out[out_index[0],out_index[1],d1,d2]=f*func[in_index[0],d1-n1,d2-n2] 
+         else:
+            for d1 in range(n1,sh[1]):
+              for d2 in range(n2,sh[2]):
+                for d3 in range(n3,sh[3]):
+                 out[out_index[0],out_index[1],d1,d2,d3]=f*func[in_index[0],d1-n1,d2-n2,d3-n3] 
+                     
+      else:
+         raise RunTimeError,"sdfadsa"   
+   
+   elif len(in_index)==2:
+      if len(out_index)==1:
+         if dim==2:
+            for d1 in range(n1,sh[2]):
+               for d2 in range(n2,sh[3]):
+                  out[out_index[0],d1,d2]=f*func[in_index[0],in_index[1],d1-n1,d2-n2] 
+         else:
+            for d1 in range(n1,sh[2]):
+              for d2 in range(n2,sh[3]):
+                for d3 in range(n3,sh[4]):
+                 out[out_index[0],d1,d2,d3]=f*func[in_index[0],in_index[1],d1-n1,d2-n2,d3-n3] 
+                        
+      elif len(out_index)==2:
+         if dim==2:
+            for d1 in range(n1,sh[2]):
+               for d2 in range(n2,sh[3]):
+                  out[out_index[0],out_index[1],d1,d2]=f*func[in_index[0],in_index[1],d1-n1,d2-n2] 
+         else:
+            for d1 in range(n1,sh[2]):
+              for d2 in range(n2,sh[3]):
+                for d3 in range(n3,sh[4]):
+                 out[out_index[0],out_index[1],d1,d2,d3]=f*func[in_index[0],in_index[1],d1-n1,d2-n2,d3-n3] 
+                     
+      else:
+         raise RunTimeError,"sdfadsa"   
+   else:
+      raise RunTimeError,"sdfadsa"
+   return out
+      
+def powTextforX(c,e):
+  if e==0:
+    out=""
+  elif e==1:
+   out="x[%s]"%c
+  else:
+   out="x[%s]**%s"%(c,e)
+  return out
+def multTextFactors(*txt):
+   out=""
+   for t in txt:
+      if len(t)>0:
+        if len(out)==0:
+           out=t
+        else:
+           out+="*"+t
+   return out
+
+def addSumTermText(txt,f,fac):
+     if len(fac)>0: 
+        fac2="*"+fac
+        if f>0:
+          if f==1:
+            if len(txt)==0:
+               out="%s"%fac
+            else:
+               out="+%s"%fac
+          else:
+            if len(txt)==0:
+               out="%s%s"%(f,fac2)
+            else:
+               out="+%s%s"%(f,fac2)
+        elif f<0:
+          if f==1:
+            out="-%s"%fac
+          else:
+            if len(txt)==0:
+              out="(-%s)%s"%(-f,fac2)   
+            else:
+              out="-%s%s"%(-f,fac2)
+        else:
+           out=""
+     else:
+        if f>0:
+          if f==1:
+            if len(txt)==0:
+               out="1"
+            else:
+               out="+1"
+          else:
+             if len(txt)==0:
+               out="%s"%f
+             else:
+               out="+%s"%f
+        elif f<0:
+          if f==1:
+            out="-1"
+          else:
+            if len(txt)==0:
+              out="(-%s)"%(-f,)   
+            else:
+              out="-%s"%(-f,)
+        else:
+           out=""
+
+     return txt+out   
+   
+def makeTermText(func):
+   sh=func.shape
+   out=""
+   if len(sh)==2:
+       for d1 in range(sh[0]):
+          for d2 in range(sh[1]):
+             fac=multTextFactors(powTextforX(0,d1),powTextforX(1,d2))
+             out=addSumTermText(out,func[d1,d2],fac)
+   else:
+       for d1 in range(sh[0]):
+          for d2 in range(sh[1]):
+             for d3 in range(sh[2]):             
+                  fac=multTextFactors(powTextforX(0,d1),powTextforX(1,d2),powTextforX(2,d3))
+                  out=addSumTermText(out,func[d1,d2,d3],fac)
+   if len(out)==0:
+      return "0"
+   else:                  
+      return out
+def makeContactDerivativeText(func,dim,func_name):
+   sh=func.shape
+   out=""
+   if len(sh)==dim+2:
+      if sh[0]==1:
+           out2=""
+           for j in range(sh[1]):
+                 t=makeTermText(func[0,j])
+                 if not t == "0":
+                    if len(out2)>0: out2+="+"
+                    if j==0: out2+=t
+           if len(out2)==0:
+               out+=2*intend+"%s=%s\n"%(func_name,0)
+           else:
+               out+=2*intend+"%s=%s\n"%(func_name,out2)
+      else:
+           out+=2*intend+"%s=Data(0.,%s,FunctionOnContactZero(self.domain))\n"%(func_name,str(tuple(sh[:1])))
+           for i in range(sh[0]):
+              out2=""
+              for j in range(sh[1]):
+                 t=makeTermText(func[i,j])
+                 if not t == "0":
+                    if len(out2)>0: out2+="+"
+                    out2+="%s"%t
+              if len(out2)>0:
+                 out+=2*intend+"%s[%s]=%s\n"%(func_name,i,out2)
+   else:
+      raise RunTimeError,"KKK"
+   return out
+
+def makeNormalDerivativeText(func,dim,func_name,add_jump=False):
+   sh=func.shape
+   out=""
+   if add_jump: 
+      extra=")*jump"
+      extra_pre="("
+   else:
+      extra=""
+      extra_pre=""
+
+   out=2*intend+"x_boundary=FunctionOnBoundary(self.domain).getX()\n"
+   if dim==3:
+     out+=2*intend+"n=%swhereZero(x_boundary[0]   ,self.ABS_TOL)*numarray.array([-1., 0., 0.])"%extra_pre
+     out+="+whereZero(x_boundary[0]-1.,self.ABS_TOL)*numarray.array([ 1., 0., 0.])"
+     out+="+whereZero(x_boundary[1]   ,self.ABS_TOL)*numarray.array([ 0.,-1., 0.])"
+     out+="+whereZero(x_boundary[1]-1.,self.ABS_TOL)*numarray.array([ 0., 1., 0.])"
+     out+="+whereZero(x_boundary[2]   ,self.ABS_TOL)*numarray.array([ 0., 0.,-1.])"
+     out+="+whereZero(x_boundary[2]-1.,self.ABS_TOL)*numarray.array([ 0., 0., 1.])%s\n"%extra
+   else:
+     out+=2*intend+"n=%swhereZero(x_boundary[0]   ,self.ABS_TOL)*numarray.array([-1., 0.])"%extra_pre
+     out+="+whereZero(x_boundary[0]-1.,self.ABS_TOL)*numarray.array([ 1., 0.])"
+     out+="+whereZero(x_boundary[1]   ,self.ABS_TOL)*numarray.array([ 0.,-1.])"
+     out+="+whereZero(x_boundary[1]-1.,self.ABS_TOL)*numarray.array([ 0., 1.])%s\n"%extra
+   if len(sh)==dim+2:
+      if sh[0]==1:
+           out2=""
+           for j in range(sh[1]):
+                 t=makeTermText(func[0,j])
+                 if not t == "0":
+                    if len(out2)>0: out2+="+"
+                    out2+="n[%s]*(%s)"%(j,t)
+           if len(out2)==0:
+               out+=2*intend+"%s=%s\n"%(func_name,0)
+           else:
+               out+=2*intend+"%s=%s\n"%(func_name,out2)
+      else:
+           out+=2*intend+"%s=Data(0.,%s,FunctionOnBoundary(self.domain))\n"%(func_name,str(tuple(sh[:1])))
+           for i in range(sh[0]):
+              out2=""
+              for j in range(sh[1]):
+                 t=makeTermText(func[i,j])
+                 if not t == "0":
+                    if len(out2)>0: out2+="+"
+                    out2+="n[%s]*(%s)"%(j,t)
+              if len(out2)>0:
+                 out+=2*intend+"%s[%s]=%s\n"%(func_name,i,out2)
+   else:
+      raise RunTimeError,"KKK"
+   return out
+
+def makeFunctionText(func,dim,func_name,add_jump=False):
+   sh=func.shape
+   out=""
+   if add_jump: 
+      extra=")*jump"
+      extra_pre="("
+   else:
+      extra=""
+      extra_pre=""
+ 
+   if len(sh)==dim:
+         out+=2*intend+"%s=%s%s%s\n"%(func_name,extra_pre,makeTermText(func),extra)
+   elif len(sh)==dim+1:
+      if sh[0]==1:
+        out+=2*intend+"%s=%s%s%s\n"%(func_name,extra_pre,makeTermText(func[0]),extra)
+      else:
+        out+=2*intend+"%s=Data(0.,%s,ContinuousFunction(self.domain))\n"%(func_name,str(tuple(sh[:1])))
+        for i in range(sh[0]):
+           t=makeTermText(func[i])
+           if not t=="0": out+=2*intend+"%s[%s]=%s%s%s\n"%(func_name,i,extra_pre,t,extra)
+   elif len(sh)==dim+2:
+      if sh[0]==1:
+         if sh[1]==1:
+           out+=2*intend+"%s=%s%s%s\n"%(func_name,extra_pre,makeTermText(func[0,0]),extra)
+         else:
+           out+=2*intend+"%s=Data(0.,%s,ContinuousFunction(self.domain))\n"%(func_name,str(tuple(sh[1:2])))
+           for j in range(sh[1]):
+               t=makeTermText(func[0,j])
+               if not t=="0": out+=2*intend+"%s[%s]=%s%s%s\n"%(func_name,j,extra_pre,t,extra)
+      else:
+         if sh[1]==1:
+           out+=2*intend+"%s=Data(0.,%s,ContinuousFunction(self.domain))\n"%(func_name,str(tuple(sh[:1])))
+           for i in range(sh[0]):
+             t=makeTermText(func[i,0])
+             if not t=="0": out+=2*intend+"%s[%s]=%s%s%s\n"%(func_name,i,extra_pre,t,extra)
+         else:
+           out+=2*intend+"%s=Data(0.,%s,ContinuousFunction(self.domain))\n"%(func_name,str(tuple(sh[:2])))
+           for i in range(sh[0]):
+              for j in range(sh[1]):
+                 t=makeTermText(func[i,j])
+                 if not t=="0": out+=2*intend+"%s[%s,%s]=%s%s%s\n"%(func_name,i,j,extra_pre,t,extra)
+   return out
+for s in [1,2]:
   for d in [2,3]:
-    for type in ["strong","weak"]:
-      for o in [1,2]:
-         for case in ["const","vario"]:
-            # coefficient A:
-            if s==1:
+    for typ in ["Strong","Weak", "Contact"]:
+      for coffo in ["Full"]: # ["Full", "Reduced" ]:
+        if coffo=="Full":
+            func_i="Function"
+        else:
+            func_i="ReducedFunction" 
+        for case in ["Const", "Vario" ]:
+          for solo in [1, 2 ]:
+            order=solo
+            if typ in ["Strong","Weak"]:
+               # coefficient A:
+               if s==1:
                 for i in range(d):
                   for j in range(d):
-                    makeTitle(d,o,s,"A",case,type,body="",mark="%s%s"%(i,j))
-            else:
+                    test_func=makeTestSolution(order,s,d)
+                    grad_test_func=makeGradient(test_func,d)
+                    body2=makeFunctionText(test_func,d,"u")
+                    body2+=2*intend+"A_test=Data(0.,(%d,%d),%s(self.domain))\n"%(d,d,func_i)
+                    if case == "Const" :
+                       f=int(8*random.random())+1
+                       body2+=2*intend+"A_test[%d,%d]=%s\n"%(i,j,f)
+                       A_x_grad=multiplyByFandX(f,-1,grad_test_func,(0,j),(1,d),(0,i))
+                    else:
+                       body2+=2*intend+"A_test[%d,%d]=x[%s]\n"%(i,j,i)  
+                       A_x_grad=multiplyByFandX(1.,i,grad_test_func,(0,j),(1,d),(0,i))
+                    if typ=="Weak":
+                        body2+=makeFunctionText(A_x_grad,d,"X_test")
+                        args="A=A_test, X=X_test" 
+                    else:
+                        div_A_x_grad=makeDiv(A_x_grad,d)
+                        body2+=makeFunctionText(-div_A_x_grad,d,"Y_test")
+                        body2+=makeNormalDerivativeText(A_x_grad,d,"y_test")
+                        args="A=A_test, Y=Y_test, y=y_test" 
+ 
+                    makeTitle(d,coffo,solo,s,"A",case,typ,body2,mark="%s%s"%(i,j),pdeargs=args)
+               else:
                 for p in range(s):
                   for i in range(d):
                     for q in range(s):
                       for j in range(d):
-                         makeTitle(d,o,s,"A",case,type,body="",mark="%s%s%s%s"%(p,i,q,j))
+                         test_func=makeTestSolution(order,s,d)
+                         grad_test_func=makeGradient(test_func,d)
+                         body2=makeFunctionText(test_func,d,"u")
+                         body2+=2*intend+"A_test=Data(0.,(%d,%d,%d,%d),%s(self.domain))\n"%(s,d,s,d,func_i)
+                         if case == "Const" :
+                            f=int(8*random.random())+1
+                            body2+=2*intend+"A_test[%d,%d,%d,%d]=%s\n"%(p,i,q,j,f)
+                            A_x_grad=multiplyByFandX(f,-1,grad_test_func,(q,j),(s,d),(p,i))                          
+                         else:
+                            body2+=2*intend+"A_test[%d,%d,%d,%d]=x[%s]\n"%(p,i,q,j,i)
+                            A_x_grad=multiplyByFandX(1.,i,grad_test_func,(q,j),(s,d),(p,i))
+                         if typ=="Weak":
+                            body2+=makeFunctionText(A_x_grad,d,"X_test")
+                            args="A=A_test, X=X_test" 
+                         else:
+                            div_A_x_grad=makeDiv(A_x_grad,d)
+                            body2+=makeFunctionText(-div_A_x_grad,d,"Y_test")
+                            body2+=makeNormalDerivativeText(A_x_grad,d,"y_test")
+                            args="A=A_test, Y=Y_test, y=y_test" 
+                         makeTitle(d,coffo,solo,s,"A",case,typ,body2,mark="%s%s%s%s"%(p,i,q,j),pdeargs=args)
             # coefficient B:
             if s==1:
                 for i in range(d):
-                  makeTitle(d,o,s,"B",case,type,body="",mark="%s"%(i))
+                  test_func=makeTestSolution(order,s,d)
+                  body2=makeFunctionText(test_func,d,"u",typ=="Contact")
+                  body2+=2*intend+"B_test=Data(0.,(%d,),%s(self.domain))\n"%(d,func_i)
+                  if case == "Const" :
+                      f=int(8*random.random())+1
+                      body2+=2*intend+"B_test[%d]=%s\n"%(i,f)
+                      B=multiplyByFandX(f,-1,test_func,(0,),(1,d),(0,i))
+                  else:
+                      body2+=2*intend+"B_test[%d]=x[%i]\n"%(i,i)
+                      B=multiplyByFandX(1.,i,test_func,(0,),(1,d),(0,i)) 
+                  if typ=="Weak":
+                    body2+=makeFunctionText(B,d,"X_test")
+                    args="B=B_test, X=X_test" 
+                  elif typ=="Strong":
+                    div_B=makeDiv(B,d)
+                    body2+=makeFunctionText(-div_B,d,"Y_test")
+                    body2+=makeNormalDerivativeText(B,d,"y_test")
+                    args="B=B_test, Y=Y_test, y=y_test" 
+                  else:
+                    div_B=makeDiv(B,d)
+                    body2+=makeFunctionText(-div_B,d,"Y_test",typ=="Contact")
+                    body2+=makeNormalDerivativeText(B,d,"y_test",typ=="Contact")
+                    body2+=makeContactDerivativeText(-B,d,"y_contact_test")
+                    args="B=B_test, Y=Y_test, y=y_test, y_contact=y_contact_test" 
+                  makeTitle(d,coffo,solo,s,"B",case,typ,body2,mark="%s"%(i),pdeargs=args,add_jump=(typ=="Contact"))
             else:
                 for p in range(s):
                   for i in range(d):
                     for q in range(s):
-                      makeTitle(d,o,s,"B",case,type,body="",mark="%s%s%s"%(p,i,q))
-            if type=="strong":
+                      test_func=makeTestSolution(order,s,d)      
+                      grad_test_func=makeGradient(test_func,d)
+                      body2=makeFunctionText(test_func,d,"u",typ=="Contact")
+                      body2+=2*intend+"B_test=Data(0.,(%d,%d,%d),%s(self.domain))\n"%(s,d,s,func_i)
+                      if case == "Const" :
+                         f=int(8*random.random())+1
+                         body2+=2*intend+"B_test[%d,%d,%d]=%s\n"%(p,i,q,f)
+                         B=multiplyByFandX(f,-1,test_func,(q,),(s,d),(p,i))
+                      else:
+                         body2+=2*intend+"B_test[%d,%d,%d]=x[%i]\n"%(p,i,q,i)
+                         B=multiplyByFandX(1.,i,test_func,(q,),(s,d),(p,i))
+                      if typ=="Weak":
+                         body2+=makeFunctionText(B,d,"X_test")
+                         args="B=B_test, X=X_test" 
+                      elif typ=="Strong":
+                         div_B=makeDiv(B,d)
+                         body2+=makeFunctionText(-div_B,d,"Y_test")
+                         body2+=makeNormalDerivativeText(B,d,"y_test")
+                         args="B=B_test, Y=Y_test, y=y_test" 
+                      else:
+                         div_B=makeDiv(B,d)
+                         body2+=makeFunctionText(-div_B,d,"Y_test",typ=="Contact")
+                         body2+=makeNormalDerivativeText(B,d,"y_test",typ=="Contact")
+                         body2+=makeContactDerivativeText(B,d,"y_contact_test")
+                         args="B=B_test, Y=Y_test, y=y_test, y_contact=y_contact_test" 
+                      makeTitle(d,coffo,solo,s,"B",case,typ,body2,mark="%s%s%s"%(p,i,q),pdeargs=args,add_jump=(typ=="Contact")) 
+            if typ=="Strong":
                # coefficient C:
                if s==1:
                      for j in range(d):
-                       makeTitle(d,o,s,"C",case,type,body="",mark="%s"%(j))
-               else:
-                   for p in range(s):
-                       for q in range(s):
-                         for j in range(d):
-                            makeTitle(d,o,s,"C",case,type,body="",mark="%s%s%s"%(p,q,j))
-               # coefficient D:
-               if s==1:
-                   makeTitle(d,o,s,"D",case,type,body="",mark="")
+                       test_func=makeTestSolution(order,s,d)
+                       grad_test_func=makeGradient(test_func,d)      
+                       body2=makeFunctionText(test_func,d,"u")
+                       body2+=2*intend+"C_test=Data(0.,(%d,),%s(self.domain))\n"%(d,func_i)
+                       if case == "Const" :
+                             f=int(8*random.random())+1
+                             body2+=2*intend+"C_test[%d]=%s\n"%(j,f)
+                             C_x_grad=multiplyByFandX(f,-1,grad_test_func,(0,j),(1,),(0,))
+                       else:
+                             body2+=2*intend+"C_test[%d]=x[%i]\n"%(j,j)
+                             C_x_grad=multiplyByFandX(1,j,grad_test_func,(0,j),(1,),(0,))
+                       body2+=makeFunctionText(C_x_grad,d,"Y_test")
+                       args="C=C_test, Y=Y_test" 
+                       makeTitle(d,coffo,solo,s,"C",case,typ,body2,mark="%s"%(j),pdeargs=args)
                else:
                    for p in range(s):
                      for q in range(s):
-                          makeTitle(d,o,s,"D",case,type,body="",mark="%s%s"%(p,q))
-            # coefficient d:
-            if s==1:
-                 makeTitle(d,o,s,"d",case,type,body="",mark="")
-            else:
-                for p in range(s):
-                  for q in range(s):
-                       makeTitle(d,o,s,"d_contact",case,type,body="",mark="%s%s"%(p,q))
-            # coefficient d_contact:
-            if s==1:
-                makeTitle(d,o,s,"d_contact",case,type,body="",mark="")
-            else:
-                for p in range(s):
-                  for q in range(s):
-                      makeTitle(d,o,s,"d_contact",case,type,body="",mark="%s%s"%(p,q))
-            #================================
+                       for j in range(d):
+                         test_func=makeTestSolution(order,s,d)      
+                         grad_test_func=makeGradient(test_func,d)      
+                         body2=makeFunctionText(test_func,d,"u")
+                         body2+=2*intend+"C_test=Data(0.,(%d,%d,%d),%s(self.domain))\n"%(s,s,d,func_i)
+                         if case == "Const" :
+                             f=int(8*random.random())+1
+                             body2+=2*intend+"C_test[%d,%d,%d]=%s\n"%(p,q,j,f)
+                             C_x_grad=multiplyByFandX(f,-1,grad_test_func,(q,j),(s,),(p,))
+                         else:
+                             body2+=2*intend+"C_test[%d,%d,%d]=x[%i]\n"%(p,q,j,j)
+                             C_x_grad=multiplyByFandX(1.,j,grad_test_func,(q,j),(s,),(p,))
+                         args="C=C_test, Y=Y_test" 
+                         body2+=makeFunctionText(C_x_grad,d,"Y_test")
+                         makeTitle(d,coffo,solo,s,"C",case,typ,body2,mark="%s%s%s"%(p,q,j),pdeargs=args)
+               # coefficient D:
+               if s==1:
+                  if case == "Const" :
+                    test_func=makeTestSolution(order,s,d)      
+                  else:
+                    test_func=makeTestSolution(order-1,s,d)      
+                  body2=makeFunctionText(test_func,d,"u")
+                  if case == "Const" :
+                      f=int(8*random.random())+1
+                      body2+=2*intend+"D_test=Data(%s,(),%s(self.domain))\n"%(f,func_i)
+                      D=multiplyByFandX(f,-1,test_func,(0,),(1,),(0,))
+                  else:
+                      body2+=2*intend+"D_test=%s(self.domain).getX()[0]\n"%func_i
+                      D=multiplyByFandX(1,0,test_func,(0,),(1,),(0,))
+                  args="D=D_test, Y=Y_test"
+                  body2+=makeFunctionText(D,d,"Y_test")
+                  makeTitle(d,coffo,solo,s,"D",case,typ,body2,mark="",pdeargs=args)
+               else:
+                   for p in range(s):
+                     for q in range(s):
+                        if case == "Const" :
+                          test_func=makeTestSolution(order,s,d)      
+                        else:
+                          test_func=makeTestSolution(order-1,s,d)      
+                        body2=makeFunctionText(test_func,d,"u")
+                        body2+=2*intend+"D_test=Data(0.,(%d,%d),%s(self.domain))\n"%(s,s,func_i)
+                        if case == "Const" :
+                           f=int(8*random.random())+1
+                           body2+=2*intend+"D_test[%d,%d]=%s\n"%(p,q,f)
+                           D=multiplyByFandX(f,-1,test_func,(q,),(s,),(p,))
+                        else:
+                           body2+=2*intend+"D_test[%d,%d]=x[0]\n"%(p,q)
+                           D=multiplyByFandX(1.,0,test_func,(q,),(s,),(p,))
+                        args="D=D_test, Y=Y_test"
+                        body2+=makeFunctionText(D,d,"Y_test")                       
+                        makeTitle(d,coffo,solo,s,"D",case,typ,body2,mark="%s%s"%(p,q),pdeargs=args)
+            if coffo=="Full":
+               # coefficient d:
+               if typ == "Strong":
+                  if s==1:
+                     if case == "Const" :
+                        test_func=makeTestSolution(order,s,d)      
+                     else:
+                        test_func=makeTestSolution(order-1,s,d)      
+                     body2=makeFunctionText(test_func,d,"u")
+                     if case == "Const" :
+                         f=int(8*random.random())+1
+                         body2+=2*intend+"d_test=Data(%s,(),FunctionOnBoundary(self.domain))\n"%(f,)
+                         D=multiplyByFandX(f,-1,test_func,(0,),(1,),(0,))
+                     else:
+                         body2+=2*intend+"d_test=interpolate(x[0],FunctionOnBoundary(self.domain))\n"
+                         D=multiplyByFandX(1.,0,test_func,(0,),(1,),(0,))
+                     body2+=makeFunctionText(D,d,"y_test")
+                     args="d=d_test, y=y_test"
+                     makeTitle(d,coffo,solo,s,"d",case,typ,body2,mark="",pdeargs=args)
+                  else:
+                    for p in range(s):
+                      for q in range(s):
+                        if case == "Const" :
+                          test_func=makeTestSolution(order,s,d)      
+                        else:
+                          test_func=makeTestSolution(order-1,s,d)      
+                        body2=makeFunctionText(test_func,d,"u")
+                        body2+=2*intend+"d_test=Data(0.,(%d,%d),FunctionOnBoundary(self.domain))\n"%(s,s)
+                        if case == "Const" :
+                              f=int(8*random.random())+1
+                              body2+=2*intend+"d_test[%d,%d]=%s\n"%(p,q,f)
+                              D=multiplyByFandX(f,-1,test_func,(q,),(s,),(p,))
+                        else:
+                              body2+=2*intend+"d_test[%d,%d]=x[0]\n"%(p,q)
+                       
+                              D=multiplyByFandX(1.,0,test_func,(q,),(s,),(p,))
+                        args="d=d_test, y=y_test"
+                        body2+=makeFunctionText(D,d,"y_test")
+                        makeTitle(d,coffo,solo,s,"d",case,typ,body2,mark="%s%s"%(p,q),pdeargs=args)
+               # coefficient d_contact:
+               if typ == "Contact":
+                  if s==1:
+                    if case == "Const" :
+                        test_func=makeTestSolution(order,s,d)      
+                    else:
+                        test_func=makeTestSolution(order-1,s,d)      
+
+                    body2=makeFunctionText(test_func,d,"u",add_jump=True)
+                    if case == "Const" :
+                         f=int(8*random.random())+1
+                         body2+=2*intend+"d_contact_test=Data(%s,(),FunctionOnContactZero(self.domain))\n"%(f,)
+                         D=multiplyByFandX(f,-1,test_func,(0,),(1,),(0,))
+                    else:
+                         body2+=2*intend+"d_contact_test=interpolate(x[0],FunctionOnContactZero(self.domain))\n"
+                         D=multiplyByFandX(1.,0,test_func,(0,),(1,),(0,))
+                    body2+=makeFunctionText(D,d,"y_contact_test")
+                    args="d_contact=d_contact_test, y_contact=y_contact_test"
+                    makeTitle(d,coffo,solo,s,"d_contact",case,typ,body2,mark="",pdeargs=args,add_jump=True)
+                  else:
+                   for p in range(s):
+                     for q in range(s):
+                        if case == "Const" :
+                           test_func=makeTestSolution(order,s,d)      
+                        else:
+                           test_func=makeTestSolution(order-1,s,d)      
+
+                        body2=makeFunctionText(test_func,d,"u",add_jump=True)
+                        body2+=2*intend+"d_contact_test=Data(0.,(%d,%d),FunctionOnContactZero(self.domain))\n"%(s,s)
+                        if case == "Const" :
+                           f=int(8*random.random())+1
+                           body2+=2*intend+"d_contact_test[%d,%d]=%s\n"%(p,q,f)
+                           D=multiplyByFandX(f,-1,test_func,(q,),(s,),(p,))
+                        else:
+                           body2+=2*intend+"d_contact_test[%d,%d]=x[0]\n"%(p,q)
+                           D=multiplyByFandX(1.,0,test_func,(q,),(s,),(p,))
+                        body2+=makeFunctionText(D,d,"y_contact_test")
+                        args="d_contact=d_contact_test, y_contact=y_contact_test"
+                        makeTitle(d,coffo,solo,s,"d_contact",case,typ,body2,mark="%s%s"%(p,q),pdeargs=args,add_jump=True
+)
+               #================================
 print "import unittest"
 print "import numarray"
 print "from esys.escript import *"
 print "from esys.finley import Rectangle,Brick"
-print "class Test_assemblage_2Do1(unittest.TestCase):"
-print t_prog["2Do1"]
-print "class Test_assemblage_2Do2(unittest.TestCase):"
-print t_prog["2Do2"]
-print "class Test_assemblage_3Do1(unittest.TestCase):"
-print t_prog["3Do1"]
-print "class Test_assemblage_3Do2(unittest.TestCase):"
-print t_prog["3Do2"]
-print "class Test_assemblage_2Do1Contact(unittest.TestCase):"
+#print "class Test_assemblage_2Do1_Strong(unittest.TestCase):"
+#print t_prog["2Do1_strong"]
+#print "class Test_assemblage_2Do2_Strong(unittest.TestCase):"
+#print t_prog["2Do2_strong"]
+#print "class Test_assemblage_3Do1_Strong(unittest.TestCase):"
+#print t_prog["3Do1_strong"]
+#print "class Test_assemblage_3Do2_Strong(unittest.TestCase):"
+#print t_prog["3Do2_strong"]
+#print "class Test_assemblage_2Do1_Weak(unittest.TestCase):"
+#print t_prog["2Do1_weak"]
+#print "class Test_assemblage_2Do2_Weak(unittest.TestCase):"
+#print t_prog["2Do2_weak"]
+#print "class Test_assemblage_3Do1_Weak(unittest.TestCase):"
+#print t_prog["3Do1_weak"]
+#print "class Test_assemblage_3Do2_Weak(unittest.TestCase):"
+#print t_prog["3Do2_weak"]
+print "class Test_assemblage_2Do1_Contact(unittest.TestCase):"
 print t_prog["2Do1_contact"]
-print "class Test_assemblage_2Do2Contact(unittest.TestCase):"
-print t_prog["2Do2_contact"]
-print "class Test_assemblage_3Do1Contact(unittest.TestCase):"
-print t_prog["3Do1_contact"]
-print "class Test_assemblage_3Do2Contact(unittest.TestCase):"
-print t_prog["3Do2_contact"]
+#print "class Test_assemblage_2Do2_Contact(unittest.TestCase):"
+#print t_prog["2Do2_contact"]
+#print "class Test_assemblage_3Do1_Contact(unittest.TestCase):"
+#print t_prog["3Do1_contact"]
+#print "class Test_assemblage_3Do2_contact(unittest.TestCase):"
+#print t_prog["3Do2_contact"]
 
-print "class Test_Finley_assemblage_2Do1(Test_assemblage_2Do1):"
+
+print "from esys.escript import *\n"
+print "from esys.finley import *\n"
+print "from esys.escript.linearPDEs import LinearPDE\n"
+print "import numarray"
+print "import unittest"
+
+# print "class Test_Finley_assemblage_2Do1(Test_assemblage_2Do1_Strong,Test_assemblage_2Do1_Weak):"
+# print "   RES_TOL=1.e-7"
+# print "   ABS_TOL=1.e-8"
+# print "   def setUp(self):"
+# print "       self.domain =Rectangle(2,2,1)"
+print "class Test_Finley_assemblage_2Do1_Contact(Test_assemblage_2Do1_Contact):"
 print "   RES_TOL=1.e-7"
+print "   ABS_TOL=1.e-8"
 print "   def setUp(self):"
-print "       self.domain =Rectangle(2,2,1)"
-print "class Test_Finley_assemblage_2Do2(Test_assemblage_2Do2):"
-print "   RES_TOL=1.e-7"
-print "   def setUp(self):"
-print "       self.domain =Rectangle(2,2,2)"
-print "class Test_Finley_assemblage_3Do1(Test_assemblage_3Do1):"
-print "   RES_TOL=1.e-7"
-print "   def setUp(self):"
-print "       self.domain =Brick(2,2,2,1)"
-print "class Test_Finley_assemblage_3Do2(Test_assemblage_3Do2):"
-print "   RES_TOL=1.e-7"
-print "   def setUp(self):"
-print "       self.domain =Brick(2,2,2,2)"
+print "       d1 = Rectangle(n0=2,n1=1,l0=0.5,order=1,useElementsOnFace=True)"
+print "       x1 = ContinuousFunction(d1).getX()"
+print "       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))"
+print "       d2 = Rectangle(n0=2,n1=1,l0=0.5,order=1,useElementsOnFace=True)"
+print "       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))"
+print "       d2.setX(d2.getX()+[0.5,0.])"
+print "       self.domain = JoinFaces([d1,d2])"
 print "suite = unittest.TestSuite()"
-print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_2Do1))"
-print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_2Do2))"
-print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_3Do1))"
-print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_3Do2))"
+print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_2Do1_Contact))"
 print "unittest.TextTestRunner(verbosity=2).run(suite)"
