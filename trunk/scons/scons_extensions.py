@@ -13,6 +13,7 @@
 import py_compile
 import sys
 import os
+import time
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
