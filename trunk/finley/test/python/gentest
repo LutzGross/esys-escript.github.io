@@ -280,19 +280,20 @@ def makeTermText(func):
       return out
 def makeContactDerivativeText(func,dim,func_name):
    sh=func.shape
-   out=""
+   out=2*intend+"n_contact=FunctionOnContactZero(self.domain).getNormal()\n"
    if len(sh)==dim+2:
       if sh[0]==1:
            out2=""
            for j in range(sh[1]):
                  t=makeTermText(func[0,j])
                  if not t == "0":
-                    if len(out2)>0: out2+="+"
-                    if j==0: out2+=t
+                    if j==0: 
+                      if len(out2)>0: out2+="+"
+                      out2+=t
            if len(out2)==0:
                out+=2*intend+"%s=%s\n"%(func_name,0)
            else:
-               out+=2*intend+"%s=%s\n"%(func_name,out2)
+               out+=2*intend+"%s=n_contact[0]*(%s)\n"%(func_name,out2)
       else:
            out+=2*intend+"%s=Data(0.,%s,FunctionOnContactZero(self.domain))\n"%(func_name,str(tuple(sh[:1])))
            for i in range(sh[0]):
@@ -300,10 +301,11 @@ def makeContactDerivativeText(func,dim,func_name):
               for j in range(sh[1]):
                  t=makeTermText(func[i,j])
                  if not t == "0":
-                    if len(out2)>0: out2+="+"
-                    out2+="%s"%t
+                    if j==0: 
+                      if len(out2)>0: out2+="+"
+                      out2+="%s"%t
               if len(out2)>0:
-                 out+=2*intend+"%s[%s]=%s\n"%(func_name,i,out2)
+                 out+=2*intend+"%s[%s]=n_contact[0]*(%s)\n"%(func_name,i,out2)
    else:
       raise RunTimeError,"KKK"
    return out
@@ -342,7 +344,7 @@ def makeNormalDerivativeText(func,dim,func_name,add_jump=False):
            if len(out2)==0:
                out+=2*intend+"%s=%s\n"%(func_name,0)
            else:
-               out+=2*intend+"%s=%s\n"%(func_name,out2)
+               out+=2*intend+"%s=%s%s%s\n"%(func_name,extra_pre,out2,extra)
       else:
            out+=2*intend+"%s=Data(0.,%s,FunctionOnBoundary(self.domain))\n"%(func_name,str(tuple(sh[:1])))
            for i in range(sh[0]):
@@ -353,7 +355,7 @@ def makeNormalDerivativeText(func,dim,func_name,add_jump=False):
                     if len(out2)>0: out2+="+"
                     out2+="n[%s]*(%s)"%(j,t)
               if len(out2)>0:
-                 out+=2*intend+"%s[%s]=%s\n"%(func_name,i,out2)
+                 out+=2*intend+"%s[%s]=%s%s%s\n"%(func_name,i,extra_pre,out2,extra)
    else:
       raise RunTimeError,"KKK"
    return out
@@ -466,7 +468,7 @@ for s in [1,2]:
             if s==1:
                 for i in range(d):
                   test_func=makeTestSolution(order,s,d)
-                  body2=makeFunctionText(test_func,d,"u",typ=="Contact")
+                  body2=makeFunctionText(test_func,d,"u")
                   body2+=2*intend+"B_test=Data(0.,(%d,),%s(self.domain))\n"%(d,func_i)
                   if case == "Const" :
                       f=int(8*random.random())+1
@@ -485,18 +487,18 @@ for s in [1,2]:
                     args="B=B_test, Y=Y_test, y=y_test" 
                   else:
                     div_B=makeDiv(B,d)
-                    body2+=makeFunctionText(-div_B,d,"Y_test",typ=="Contact")
-                    body2+=makeNormalDerivativeText(B,d,"y_test",typ=="Contact")
+                    body2+=makeFunctionText(-div_B,d,"Y_test")
+                    body2+=makeNormalDerivativeText(B,d,"y_test")
                     body2+=makeContactDerivativeText(-B,d,"y_contact_test")
                     args="B=B_test, Y=Y_test, y=y_test, y_contact=y_contact_test" 
-                  makeTitle(d,coffo,solo,s,"B",case,typ,body2,mark="%s"%(i),pdeargs=args,add_jump=(typ=="Contact"))
+                  makeTitle(d,coffo,solo,s,"B",case,typ,body2,mark="%s"%(i),pdeargs=args)
             else:
                 for p in range(s):
                   for i in range(d):
                     for q in range(s):
                       test_func=makeTestSolution(order,s,d)      
                       grad_test_func=makeGradient(test_func,d)
-                      body2=makeFunctionText(test_func,d,"u",typ=="Contact")
+                      body2=makeFunctionText(test_func,d,"u")
                       body2+=2*intend+"B_test=Data(0.,(%d,%d,%d),%s(self.domain))\n"%(s,d,s,func_i)
                       if case == "Const" :
                          f=int(8*random.random())+1
@@ -515,11 +517,11 @@ for s in [1,2]:
                          args="B=B_test, Y=Y_test, y=y_test" 
                       else:
                          div_B=makeDiv(B,d)
-                         body2+=makeFunctionText(-div_B,d,"Y_test",typ=="Contact")
-                         body2+=makeNormalDerivativeText(B,d,"y_test",typ=="Contact")
-                         body2+=makeContactDerivativeText(B,d,"y_contact_test")
+                         body2+=makeFunctionText(-div_B,d,"Y_test")
+                         body2+=makeNormalDerivativeText(B,d,"y_test")
+                         body2+=makeContactDerivativeText(-B,d,"y_contact_test")
                          args="B=B_test, Y=Y_test, y=y_test, y_contact=y_contact_test" 
-                      makeTitle(d,coffo,solo,s,"B",case,typ,body2,mark="%s%s%s"%(p,i,q),pdeargs=args,add_jump=(typ=="Contact")) 
+                      makeTitle(d,coffo,solo,s,"B",case,typ,body2,mark="%s%s%s"%(p,i,q),pdeargs=args) 
             if typ=="Strong":
                # coefficient C:
                if s==1:
