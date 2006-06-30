@@ -80,7 +80,7 @@ void Finley_NodeFile_scatter(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_gather(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);
 void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
-
+void Finley_NodeFile_setTags(Finley_NodeFile*,const int,escriptDataC*);
 void Finley_NodeFile_deallocTable(Finley_NodeFile*);
 
 #endif

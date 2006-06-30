@@ -664,9 +664,9 @@ class LinearPDE(object):
      @rtype: L{Data<escript.Data>}
      """
      if u==None:
-          return self.getOperator()*self.getSolution()
+        return self.getOperator()*self.getSolution()
      else:
-        self.getOperator()*escript.Data(u,self.getFunctionSpaceForSolution())
+        return self.getOperator()*escript.Data(u,self.getFunctionSpaceForSolution())
 
    def getResidual(self,u=None):
      """

@@ -163,4 +163,14 @@ FunctionSpace::getSize() const
   return out;
 }
 
+void
+FunctionSpace::setTags(const int newTag, const escript::Data& mask) const
+{
+   if (mask.getFunctionSpace()== *this) {
+          m_domain->setTags(m_functionSpaceType,newTag,mask);
+   } else {
+          throw FunctionSpaceException("illegal function space of mask.");
+   }
+}
+
 }  // end of namespace

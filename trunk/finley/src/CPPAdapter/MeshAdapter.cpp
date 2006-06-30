@@ -1083,4 +1083,43 @@ int MeshAdapter::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo)
   return out;
 }
 
+void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  escriptDataC tmp=mask.getDataC();
+  switch(functionSpaceType) {
+       case(Nodes):
+          Finley_NodeFile_setTags(mesh->Nodes,newTag,&tmp);
+          break;
+       case(DegreesOfFreedom):
+          throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
+          break;
+       case(ReducedDegreesOfFreedom):
+          throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+          break;
+       case(Elements):
+          Finley_ElementFile_setTags(mesh->Elements,newTag,&tmp);
+          break;
+       case(FaceElements):
+          Finley_ElementFile_setTags(mesh->FaceElements,newTag,&tmp);
+          break;
+       case(Points):
+          Finley_ElementFile_setTags(mesh->Points,newTag,&tmp);
+          break;
+       case(ContactElementsZero):
+          Finley_ElementFile_setTags(mesh->ContactElements,newTag,&tmp);
+          break;
+       case(ContactElementsOne):
+          Finley_ElementFile_setTags(mesh->ContactElements,newTag,&tmp);
+          break;
+       default:
+          stringstream temp;
+          temp << "Error - Finley does not know anything about function space type " << functionSpaceType;
+          throw FinleyAdapterException(temp.str());
+  }
+  checkFinleyError();
+  return;
+}
+
+
 }  // end of namespace

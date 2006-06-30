@@ -94,6 +94,15 @@ class ESCRIPT_DLL_API FunctionSpace {
   FunctionSpace&
   operator=(const FunctionSpace& other);
 
+
+  /**
+     \brief assigns new tag newTag to all samples with a positive
+     value of mask for any its sample point.
+
+  */
+  void setTags(const int newTag, const escript::Data& mask) const;
+
+
   /**
    \brief
    Return the shape of the data needed to represent the function space.
