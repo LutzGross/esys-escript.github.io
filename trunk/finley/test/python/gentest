@@ -53,14 +53,14 @@ def makeTestSolution(order,ncomps,dim):
       for d1 in range(order+1):
          for d2 in range(order+1):
             for k in range(ncomps):
-               out[k,d1,d2]=getRandom()
+               if d1+d2<=order: out[k,d1,d2]=getRandom()
    if dim == 3:
       out=numarray.zeros((ncomps,max_order+1,max_order+1,max_order+1))   
       for d1 in range(order+1):
          for d2 in range(order+1):
             for d3 in range(order+1):
                for k in range(ncomps):
-                  out[k,d1,d2,d3]=getRandom()
+                  if d1+d2+d3<=order: out[k,d1,d2,d3]=getRandom()
    return out
 
 def makeGradient(func,dim):
@@ -417,9 +417,12 @@ for s in [1,2,3]:
             func_i="ReducedFunction" 
         for case in ["Const", "Vario" ]:
           for solo in [1, 2 ]:
-            order=solo
             if typ in ["Strong","Weak"]:
                # coefficient A:
+               if case=="Vario" and typ=="Weak":
+                   order=solo
+               else:
+                   order=solo
                if s==1:
                 for i in range(d):
                   for j in range(d):
@@ -471,6 +474,10 @@ for s in [1,2,3]:
                          makeTitle(d,coffo,solo,s,"A",case,typ,body2,mark="%s%s%s%s"%(p,i,q,j),pdeargs=args)
             # coefficient B:
             if typ in ["Strong","Weak"] or coffo=="Full":
+              if case=="Vario" and typ=="Weak":
+                   order=solo-1
+              else:
+                   order=solo
               if s==1:
                   for i in range(d):
                     test_func=makeTestSolution(order,s,d)
@@ -530,6 +537,7 @@ for s in [1,2,3]:
                         makeTitle(d,coffo,solo,s,"B",case,typ,body2,mark="%s%s%s"%(p,i,q),pdeargs=args) 
             if typ=="Strong":
                # coefficient C:
+               order=solo
                if s==1:
                      for j in range(d):
                        test_func=makeTestSolution(order,s,d)
@@ -565,11 +573,12 @@ for s in [1,2,3]:
                          body2+=makeFunctionText(C_x_grad,d,"Y_test")
                          makeTitle(d,coffo,solo,s,"C",case,typ,body2,mark="%s%s%s"%(p,q,j),pdeargs=args)
                # coefficient D:
+               if case=="Vario":
+                   order=solo-1
+               else:
+                   order=solo               
                if s==1:
-                  if case == "Const" :
-                    test_func=makeTestSolution(order,s,d)      
-                  else:
-                    test_func=makeTestSolution(order-1,s,d)      
+                  test_func=makeTestSolution(order,s,d)      
                   body2=makeFunctionText(test_func,d,"u")
                   if case == "Const" :
                       f=int(8*random.random())+1
@@ -584,10 +593,7 @@ for s in [1,2,3]:
                else:
                    for p in range(s):
                      for q in range(s):
-                        if case == "Const" :
-                          test_func=makeTestSolution(order,s,d)      
-                        else:
-                          test_func=makeTestSolution(order-1,s,d)      
+                        test_func=makeTestSolution(order,s,d)      
                         body2=makeFunctionText(test_func,d,"u")
                         body2+=2*intend+"D_test=Data(0.,(%d,%d),%s(self.domain))\n"%(s,s,func_i)
                         if case == "Const" :
@@ -601,13 +607,14 @@ for s in [1,2,3]:
                         body2+=makeFunctionText(D,d,"Y_test")                       
                         makeTitle(d,coffo,solo,s,"D",case,typ,body2,mark="%s%s"%(p,q),pdeargs=args)
             if coffo=="Full":
+               if case=="Vario":
+                   order=solo-1
+               else:
+                   order=solo               
                # coefficient d:
                if typ == "Strong":
                   if s==1:
-                     if case == "Const" :
-                        test_func=makeTestSolution(order,s,d)      
-                     else:
-                        test_func=makeTestSolution(order-1,s,d)      
+                     test_func=makeTestSolution(order,s,d)      
                      body2=makeFunctionText(test_func,d,"u")
                      if case == "Const" :
                          f=int(8*random.random())+1
@@ -622,10 +629,7 @@ for s in [1,2,3]:
                   else:
                     for p in range(s):
                       for q in range(s):
-                        if case == "Const" :
-                          test_func=makeTestSolution(order,s,d)      
-                        else:
-                          test_func=makeTestSolution(order-1,s,d)      
+                        test_func=makeTestSolution(order,s,d)      
                         body2=makeFunctionText(test_func,d,"u")
                         body2+=2*intend+"d_test=Data(0.,(%d,%d),FunctionOnBoundary(self.domain))\n"%(s,s)
                         if case == "Const" :
@@ -641,12 +645,12 @@ for s in [1,2,3]:
                         makeTitle(d,coffo,solo,s,"d",case,typ,body2,mark="%s%s"%(p,q),pdeargs=args)
                # coefficient d_contact:
                if typ == "Contact":
+                  if case=="Vario":
+                     order=solo-1
+                  else:
+                     order=solo               
                   if s==1:
-                    if case == "Const" :
-                        test_func=makeTestSolution(order,s,d)      
-                    else:
-                        test_func=makeTestSolution(order-1,s,d)      
-
+                    test_func=makeTestSolution(order,s,d)      
                     body2=makeFunctionText(test_func,d,"u",add_jump=True)
                     if case == "Const" :
                          f=int(8*random.random())+1
@@ -661,11 +665,7 @@ for s in [1,2,3]:
                   else:
                    for p in range(s):
                      for q in range(s):
-                        if case == "Const" :
-                           test_func=makeTestSolution(order,s,d)      
-                        else:
-                           test_func=makeTestSolution(order-1,s,d)      
-
+                        test_func=makeTestSolution(order,s,d)      
                         body2=makeFunctionText(test_func,d,"u",add_jump=True)
                         body2+=2*intend+"d_contact_test=Data(0.,(%d,%d),FunctionOnContactZero(self.domain))\n"%(s,s)
                         if case == "Const" :
@@ -691,26 +691,26 @@ print t_prog["2Do1_reduced"]
 print "class Test_assemblage_2Do1_Contact(unittest.TestCase):"
 print t_prog["2Do1_contact"]
 
-#print "class Test_assemblage_2Do2(unittest.TestCase):"
-#print t_prog["2Do2"]
-#print "class Test_assemblage_2Do2_Reduced(unittest.TestCase):"
-#print t_prog["2Do2_reduced"]
-#print "class Test_assemblage_2Do2_Contact(unittest.TestCase):"
-#print t_prog["2Do2_contact"]
+print "class Test_assemblage_2Do2(unittest.TestCase):"
+print t_prog["2Do2"]
+print "class Test_assemblage_2Do2_Reduced(unittest.TestCase):"
+print t_prog["2Do2_reduced"]
+print "class Test_assemblage_2Do2_Contact(unittest.TestCase):"
+print t_prog["2Do2_contact"]
 
-#print "class Test_assemblage_3Do1(unittest.TestCase):"
-#print t_prog["3Do1"]
-#print "class Test_assemblage_3Do1_Reduced(unittest.TestCase):"
-#print t_prog["3Do1_reduced"]
-#print "class Test_assemblage_3Do1_Contact(unittest.TestCase):"
-#print t_prog["3Do1_contact"]
+print "class Test_assemblage_3Do1(unittest.TestCase):"
+print t_prog["3Do1"]
+print "class Test_assemblage_3Do1_Reduced(unittest.TestCase):"
+print t_prog["3Do1_reduced"]
+print "class Test_assemblage_3Do1_Contact(unittest.TestCase):"
+print t_prog["3Do1_contact"]
 
-#print "class Test_assemblage_3Do2(unittest.TestCase):"
-#print t_prog["3Do2"]
-#print "class Test_assemblage_3Do2_Reduced(unittest.TestCase):"
-#print t_prog["3Do2_reduced"]
-#print "class Test_assemblage_3Do2_contact(unittest.TestCase):"
-#print t_prog["3Do2_contact"]
+print "class Test_assemblage_3Do2(unittest.TestCase):"
+print t_prog["3Do2"]
+print "class Test_assemblage_3Do2_Reduced(unittest.TestCase):"
+print t_prog["3Do2_reduced"]
+print "class Test_assemblage_3Do2_contact(unittest.TestCase):"
+print t_prog["3Do2_contact"]
 
 
 print "from esys.escript import *"
