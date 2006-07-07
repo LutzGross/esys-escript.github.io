@@ -1,7 +1,7 @@
 # $Id$
 
 """
-Test suite for the linearPDE iand pdetools test on finley
+Test suite for the linearPDE  and pdetools test on finley
 
 @remark:
 
@@ -25,29 +25,143 @@ __date__="$Date$"
 
 import unittest
 from test_linearPDEs import Test_Poisson,Test_LinearPDE
+from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
+                            Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
 from test_pdetools import Test_pdetools
-from esys.finley import Rectangle,Brick
+from esys.escript import *
+from esys.finley import Rectangle,Brick,JoinFaces
 import sys
 
-class Test_LinearPDEOnFinley2DOrder1(Test_LinearPDE,Test_pdetools):
-    def setUp(self):
-        self.domain = Rectangle(50,50,1)
 
-class Test_LinearPDEOnFinley2DOrder2(Test_LinearPDE,Test_pdetools):
-    def setUp(self):
-        self.domain = Rectangle(50,50,2)
+NE=6 # number of element in each spatial direction (must be even)
 
-class Test_LinearPDEOnFinley3DOrder1(Test_LinearPDE,Test_pdetools):
-    def setUp(self):
-        self.domain = Brick(20,10,10,1)
+class Test_LinearPDEOnFinley2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE,1)
 
-class Test_LinearPDEOnFinley3DOrder2(Test_LinearPDE,Test_pdetools):
-    def setUp(self):
-        self.domain = Brick(10,10,20,2)
+class Test_LinearPDEOnFinley2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do2):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE,2)
+
+class Test_LinearPDEOnFinley3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Brick(NE,NE,NE,1)
+
+class Test_LinearPDEOnFinley3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Brick(NE,NE,NE,2)
 
 class Test_PoissonOnFinley(Test_Poisson):
-    def setUp(self):
-        self.domain = Rectangle(20,10,2)
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE,2)
+
+
+class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.])
+       self.domain = JoinFaces([d1,d2])
+
+class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.])
+       self.domain = JoinFaces([d1,d2])
+
+class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.,0.])
+       self.domain = JoinFaces([d1,d2])
+
+class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.,0.])
+       self.domain = JoinFaces([d1,d2])
+
+
+class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage_2Do1_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1,useElementsOnFace=True)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1,useElementsOnFace=True)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.])
+       self.domain = JoinFaces([d1,d2])
+
+class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage_2Do2_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2,useElementsOnFace=True)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2,useElementsOnFace=True)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.])
+       self.domain = JoinFaces([d1,d2])
+
+class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage_3Do1_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.,0.])
+       self.domain = JoinFaces([d1,d2])
+
+class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage_3Do2_Contact):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+       d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.,0.])
+       self.domain = JoinFaces([d1,d2])
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
@@ -55,7 +169,15 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley2DOrder2))
    suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley3DOrder1))
    suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley3DOrder2))
-   suite.addTest(unittest.makeSuite(Test_PoissonOnFinley))
+
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact))
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace))
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
+   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)
