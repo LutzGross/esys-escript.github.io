@@ -1513,7 +1513,7 @@ class LinearPDE(object):
          r=self.getCoefficientOfGeneralPDE("r")
          homogeneous_constraint=True
          if not q.isEmpty() and not r.isEmpty():
-             if util.Lsup(q*r)>=1.e-13*util.Lsup(r):
+             if util.Lsup(q*r)>0.:
                self.trace("Inhomogeneous constraint detected.")
                self.__invalidateSystem()
 
