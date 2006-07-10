@@ -1215,15 +1215,142 @@ Data::trace() const
 }
 
 Data
-Data::transpose(int axis) const
+Data::symmetric() const
+{
+     #if defined DOPROF
+        profData->unary++;
+     #endif
+     // check input
+     DataArrayView::ShapeType s=getDataPointShape();
+     if (getDataPointRank()==2) {
+        if(s[0] != s[1]) 
+           throw DataException("Error - Data::symmetric can only be calculated for rank 2 object with equal first and second dimension.");
+     }
+     else if (getDataPointRank()==4) {
+        if(!(s[0] == s[2] && s[1] == s[3]))
+           throw DataException("Error - Data::symmetric can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
+     }
+     else {
+        throw DataException("Error - Data::symmetric can only be calculated for rank 2 or 4 object.");
+     }
+     Data ev(0.,getDataPointShape(),getFunctionSpace());
+     ev.typeMatchRight(*this);
+     m_data->symmetric(ev.m_data.get());
+     return ev;
+}
+
+Data
+Data::nonsymmetric() const
+{
+     #if defined DOPROF
+        profData->unary++;
+     #endif
+     // check input
+     DataArrayView::ShapeType s=getDataPointShape();
+     if (getDataPointRank()==2) {
+        if(s[0] != s[1]) 
+           throw DataException("Error - Data::nonsymmetric can only be calculated for rank 2 object with equal first and second dimension.");
+        DataArrayView::ShapeType ev_shape;
+        ev_shape.push_back(s[0]);
+        ev_shape.push_back(s[1]);
+        Data ev(0.,ev_shape,getFunctionSpace());
+        ev.typeMatchRight(*this);
+        m_data->nonsymmetric(ev.m_data.get());
+        return ev;
+     }
+     else if (getDataPointRank()==4) {
+        if(!(s[0] == s[2] && s[1] == s[3]))
+           throw DataException("Error - Data::nonsymmetric can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
+        DataArrayView::ShapeType ev_shape;
+        ev_shape.push_back(s[0]);
+        ev_shape.push_back(s[1]);
+        ev_shape.push_back(s[2]);
+        ev_shape.push_back(s[3]);
+        Data ev(0.,ev_shape,getFunctionSpace());
+        ev.typeMatchRight(*this);
+        m_data->nonsymmetric(ev.m_data.get());
+        return ev;
+     }
+     else {
+        throw DataException("Error - Data::nonsymmetric can only be calculated for rank 2 or 4 object.");
+     }
+}
+
+Data
+Data::matrixtrace(int axis_offset) const
+{
+     #if defined DOPROF
+        profData->unary++;
+     #endif
+     DataArrayView::ShapeType s=getDataPointShape();
+     if (getDataPointRank()==2) {
+        DataArrayView::ShapeType ev_shape;
+        Data ev(0.,ev_shape,getFunctionSpace());
+        ev.typeMatchRight(*this);
+        m_data->matrixtrace(ev.m_data.get(), axis_offset);
+        return ev;
+     }
+     if (getDataPointRank()==3) {
+        DataArrayView::ShapeType ev_shape;
+        if (axis_offset==0) {
+          int s2=s[2];
+          ev_shape.push_back(s2);
+        }
+        else if (axis_offset==1) {
+          int s0=s[0];
+          ev_shape.push_back(s0);
+        }
+        Data ev(0.,ev_shape,getFunctionSpace());
+        ev.typeMatchRight(*this);
+        m_data->matrixtrace(ev.m_data.get(), axis_offset);
+        return ev;
+     }
+     if (getDataPointRank()==4) {
+        DataArrayView::ShapeType ev_shape;
+        if (axis_offset==0) {
+          ev_shape.push_back(s[2]);
+          ev_shape.push_back(s[3]);
+        }
+        else if (axis_offset==1) {
+          ev_shape.push_back(s[0]);
+          ev_shape.push_back(s[3]);
+        }
+	else if (axis_offset==2) {
+	  ev_shape.push_back(s[0]);
+	  ev_shape.push_back(s[1]);
+	}
+        Data ev(0.,ev_shape,getFunctionSpace());
+        ev.typeMatchRight(*this);
+	m_data->matrixtrace(ev.m_data.get(), axis_offset);
+        return ev;
+     }
+     else {
+        throw DataException("Error - Data::matrixtrace can only be calculated for rank 2, 3 or 4 object.");
+     }
+}
+
+Data
+Data::transpose(int axis_offset) const
 {
 #if defined DOPROF
-  profData->reduction2++;
+     profData->reduction2++;
 #endif
-
-  // not implemented
-  throw DataException("Error - Data::transpose not implemented yet.");
-  return Data();
+     DataArrayView::ShapeType s=getDataPointShape();
+     DataArrayView::ShapeType ev_shape;
+     // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
+     // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
+     int rank=getDataPointRank();
+     if (axis_offset<0 || axis_offset>rank) {
+        throw DataException("Error - Data::transpose must have 0 <= axis_offset <= rank=" + rank);
+     }
+     for (int i=0; i<rank; i++) {
+       int index = (axis_offset+i)%rank;
+       ev_shape.push_back(s[index]); // Append to new shape
+     }
+     Data ev(0.,ev_shape,getFunctionSpace());
+     ev.typeMatchRight(*this);
+     m_data->transpose(ev.m_data.get(), axis_offset);
+     return ev;
 }
 
 Data

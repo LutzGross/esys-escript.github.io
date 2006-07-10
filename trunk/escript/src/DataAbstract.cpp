@@ -128,6 +128,30 @@ DataAbstract::copyAll(const boost::python::numeric::array& value)
 }
 
 void
+DataAbstract::symmetric(DataAbstract* ev) 
+{
+    throw DataException("Error - DataAbstract::symmetric is not supported.");
+}
+
+void
+DataAbstract::nonsymmetric(DataAbstract* ev) 
+{
+    throw DataException("Error - DataAbstract::nonsymmetric is not supported.");
+}
+
+void
+DataAbstract::matrixtrace(DataAbstract* ev, int axis_offset) 
+{
+    throw DataException("Error - DataAbstract::matrixtrace is not supported.");
+}
+
+void
+DataAbstract::transpose(DataAbstract* ev, int axis_offset) 
+{
+    throw DataException("Error - DataAbstract::transpose is not supported.");
+}
+
+void
 DataAbstract::eigenvalues(DataAbstract* ev) 
 {
     throw DataException("Error - DataAbstract::eigenvalues is not supported.");

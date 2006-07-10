@@ -463,6 +463,86 @@ DataExpanded::copyAll(const boost::python::numeric::array& value) {
   }
 }
 void
+DataExpanded::symmetric(DataAbstract* ev)
+{
+  int sampleNo,dataPointNo;
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataExpanded::symmetric: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+         DataArrayView::symmetric(thisView,getPointOffset(sampleNo,dataPointNo),
+                                    evView,ev->getPointOffset(sampleNo,dataPointNo));
+    }
+  }
+}
+void
+DataExpanded::nonsymmetric(DataAbstract* ev)
+{
+  int sampleNo,dataPointNo;
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataExpanded::nonsymmetric: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+         DataArrayView::nonsymmetric(thisView,getPointOffset(sampleNo,dataPointNo),
+                                    evView,ev->getPointOffset(sampleNo,dataPointNo));
+    }
+  }
+}
+void
+DataExpanded::matrixtrace(DataAbstract* ev, int axis_offset)
+{
+  int sampleNo,dataPointNo;
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataExpanded::matrixtrace: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+         DataArrayView::matrixtrace(thisView,getPointOffset(sampleNo,dataPointNo),
+                                    evView,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);
+    }
+  }
+}
+void
+DataExpanded::transpose(DataAbstract* ev, int axis_offset)
+{
+  int sampleNo,dataPointNo;
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataExpanded::transpose: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+         DataArrayView::transpose(thisView,getPointOffset(sampleNo,dataPointNo),
+                                    evView,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);
+    }
+  }
+}
+void
 DataExpanded::eigenvalues(DataAbstract* ev)
 {
   int sampleNo,dataPointNo;

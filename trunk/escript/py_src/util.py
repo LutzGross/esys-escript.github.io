@@ -2966,8 +2966,8 @@ def trace(arg,axis_offset=0):
    else:
       raise TypeError,"trace: Unknown argument type."
 
-def escript_trace(arg,axis_offset): # this should be escript._trace
-      "arg si a Data objects!!!"
+def escript_trace(arg,axis_offset):
+      "arg is a Data object"
       if arg.getRank()<2: 
         raise ValueError,"escript_trace: rank of argument must be greater than 1"
       if axis_offset<0 or axis_offset>arg.getRank()-2:
@@ -2975,35 +2975,7 @@ def escript_trace(arg,axis_offset): # this should be escript._trace
       s=list(arg.getShape())        
       if not s[axis_offset] == s[axis_offset+1]:
         raise ValueError,"escript_trace: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
-      out=escript.Data(0.,tuple(s[0:axis_offset]+s[axis_offset+2:]),arg.getFunctionSpace())
-      if arg.getRank()==2:
-         for i0 in range(s[0]):
-            out+=arg[i0,i0]
-      elif arg.getRank()==3:
-         if axis_offset==0:
-            for i0 in range(s[0]):
-                  for i2 in range(s[2]):
-                         out[i2]+=arg[i0,i0,i2]
-         elif axis_offset==1:
-            for i0 in range(s[0]):
-               for i1 in range(s[1]):
-                         out[i0]+=arg[i0,i1,i1]
-      elif arg.getRank()==4:
-         if axis_offset==0:
-            for i0 in range(s[0]):
-                  for i2 in range(s[2]):
-                     for i3 in range(s[3]):
-                         out[i2,i3]+=arg[i0,i0,i2,i3]
-         elif axis_offset==1:
-            for i0 in range(s[0]):
-               for i1 in range(s[1]):
-                     for i3 in range(s[3]):
-                         out[i0,i3]+=arg[i0,i1,i1,i3]
-         elif axis_offset==2:
-            for i0 in range(s[0]):
-               for i1 in range(s[1]):
-                  for i2 in range(s[2]):
-                         out[i0,i1]+=arg[i0,i1,i2,i2]
+      out=arg._matrixtrace(axis_offset)
       return out
 class Trace_Symbol(DependendSymbol):
    """
@@ -3111,69 +3083,12 @@ def transpose(arg,axis_offset=None):
    else:
       raise TypeError,"transpose: Unknown argument type."
 
-def escript_transpose(arg,axis_offset): # this should be escript._transpose
-      "arg si a Data objects!!!"
+def escript_transpose(arg,axis_offset):
+      "arg is a Data object"
       r=arg.getRank()
       if axis_offset<0 or axis_offset>r:
         raise ValueError,"escript_transpose: axis_offset must be between 0 and %s"%r
-      s=arg.getShape()
-      s_out=s[axis_offset:]+s[:axis_offset]
-      out=escript.Data(0.,s_out,arg.getFunctionSpace())
-      if r==4:
-         if axis_offset==1:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                  for i2 in range(s_out[2]):
-                     for i3 in range(s_out[3]):
-                         out[i0,i1,i2,i3]=arg[i3,i0,i1,i2]
-         elif axis_offset==2:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                  for i2 in range(s_out[2]):
-                     for i3 in range(s_out[3]):
-                         out[i0,i1,i2,i3]=arg[i2,i3,i0,i1]
-         elif axis_offset==3:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                  for i2 in range(s_out[2]):
-                     for i3 in range(s_out[3]):
-                         out[i0,i1,i2,i3]=arg[i1,i2,i3,i0]
-         else:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                  for i2 in range(s_out[2]):
-                     for i3 in range(s_out[3]):
-                         out[i0,i1,i2,i3]=arg[i0,i1,i2,i3]
-      elif r==3:
-         if axis_offset==1:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                  for i2 in range(s_out[2]):
-                         out[i0,i1,i2]=arg[i2,i0,i1]
-         elif axis_offset==2:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                  for i2 in range(s_out[2]):
-                         out[i0,i1,i2]=arg[i1,i2,i0]
-         else:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                  for i2 in range(s_out[2]):
-                         out[i0,i1,i2]=arg[i0,i1,i2]
-      elif r==2:
-         if axis_offset==1:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                         out[i0,i1]=arg[i1,i0]
-         else:
-            for i0 in range(s_out[0]):
-               for i1 in range(s_out[1]):
-                         out[i0,i1]=arg[i0,i1]
-      elif r==1:
-          for i0 in range(s_out[0]):
-               out[i0]=arg[i0]
-      elif r==0: 
-             out=arg+0.
+      out=arg._transpose(axis_offset)
       return out
 class Transpose_Symbol(DependendSymbol):
    """
@@ -3284,23 +3199,15 @@ def symmetric(arg):
     else:
       raise TypeError,"symmetric: Unknown argument type."
 
-def escript_symmetric(arg): # this should be implemented in c++
+def escript_symmetric(arg):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
            raise ValueError,"escript_symmetric: argument must be square."
-        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
-        for i0 in range(arg.getShape()[0]):
-           for i1 in range(arg.getShape()[1]):
-              out[i0,i1]=(arg[i0,i1]+arg[i1,i0])/2.
+        out=arg._symmetric()
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
            raise ValueError,"escript_symmetric: argument must be square."
-        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
-        for i0 in range(arg.getShape()[0]):
-           for i1 in range(arg.getShape()[1]):
-              for i2 in range(arg.getShape()[2]):
-                 for i3 in range(arg.getShape()[3]):
-                     out[i0,i1,i2,i3]=(arg[i0,i1,i2,i3]+arg[i2,i3,i0,i1])/2.
+        out=arg._symmetric()
       else:
         raise ValueError,"escript_symmetric: rank 2 or 4 is required."
       return out
@@ -3347,19 +3254,11 @@ def escript_nonsymmetric(arg): # this should be implemented in c++
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
            raise ValueError,"escript_nonsymmetric: argument must be square."
-        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
-        for i0 in range(arg.getShape()[0]):
-           for i1 in range(arg.getShape()[1]):
-              out[i0,i1]=(arg[i0,i1]-arg[i1,i0])/2.
+        out=arg._nonsymmetric()
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
            raise ValueError,"escript_nonsymmetric: argument must be square."
-        out=escript.Data(0.,arg.getShape(),arg.getFunctionSpace())
-        for i0 in range(arg.getShape()[0]):
-           for i1 in range(arg.getShape()[1]):
-              for i2 in range(arg.getShape()[2]):
-                 for i3 in range(arg.getShape()[3]):
-                     out[i0,i1,i2,i3]=(arg[i0,i1,i2,i3]-arg[i2,i3,i0,i1])/2.
+        out=arg._nonsymmetric()
       else:
         raise ValueError,"escript_nonsymmetric: rank 2 or 4 is required."
       return out

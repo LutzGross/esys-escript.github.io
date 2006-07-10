@@ -345,6 +345,46 @@ class DataAbstract {
 
   /**
      \brief
+     Computes a symmetric matrix (A + AT) / 2
+
+     \param ev - Output - a symmetric matrix
+
+  */
+  virtual void
+  symmetric(DataAbstract* ev);
+
+  /**
+     \brief
+     Computes a nonsymmetric matrix (A - AT) / 2
+
+     \param ev - Output - a nonsymmetric matrix
+
+  */
+  virtual void
+  nonsymmetric(DataAbstract* ev);
+
+  /**
+     \brief
+     Computes the trace of a matrix
+
+     \param ev - Output - the trace of a matrix
+
+  */
+  virtual void
+  matrixtrace(DataAbstract* ev, int axis_offset);
+
+  /**
+     \brief
+     Transpose each data point of this Data object around the given axis.
+
+     \param ev - Output - the transpose of a matrix
+
+  */
+  virtual void
+  transpose(DataAbstract* ev, int axis_offset);
+
+  /**
+     \brief
      solves the eigenvalue problem this*V=ev*V for the eigenvalues ev
 
      \param ev - Output - eigenvalues in increasing order at each data point

@@ -781,6 +781,42 @@ class Data {
 
   /**
      \brief
+     Return the symmetric part of a matrix which is half the matrix plus its transpose.
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  symmetric() const;
+
+  /**
+     \brief
+     Return the nonsymmetric part of a matrix which is half the matrix minus its transpose.
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  nonsymmetric() const;
+
+  /**
+     \brief
+     Return the trace of a matrix
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  matrixtrace(int axis_offset) const;
+
+  /**
+     \brief
+     Transpose each data point of this Data object around the given axis.
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  transpose(int axis_offset) const;
+
+  /**
+     \brief
      Return the eigenvalues of the symmetric part at each data point of this Data object in increasing values.
      Currently this function is restricted to rank 2, square shape, and dimension 3.
      *
@@ -801,16 +837,6 @@ class Data {
   ESCRIPT_DLL_API
   const boost::python::tuple
   eigenvalues_and_eigenvectors(const double tol=1.e-12) const;
-
-  /**
-     \brief
-     Transpose each data point of this Data object around the given axis.
-     --* not implemented yet *--
-     *
-  */
-  ESCRIPT_DLL_API
-  Data
-  transpose(int axis) const;
 
   /**
      \brief
