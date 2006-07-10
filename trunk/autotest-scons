@@ -1,114 +1,131 @@
+#!/bin/sh
+
+#
+# Submit a PBS job to run the tests
+#
+#	Usage: autotest-scons		# Short testing, only C++ tests
+#	Usage: autotest-scons run_tests	# Short testing, only C++ tests
+#	Usage: autotest-scons all_tests	# Long testing, C++ and python tests
+#
+# Copy this somewhere and run it every day via cron
+#
+# This file should be maintained in SVN as esys13/trunk/autotest-scons,
+# be sure to copy it there and commit after modification
+#
+
+# Which tests should we run?
+target='run_tests'	# Default scons target that runs the tests
+test "x$1" != "x" && target="$1"
+requested_cpus=2
+test "x$target" = "xall_tests" && requested_cpus=4
+
+# MAIL_RECIPIENTS="l.gross@uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au robert.woodcock@csiro.au Peter.Hornby@csiro.au k.steube@uq.edu.au"
+MAIL_RECIPIENTS="k.steube@uq.edu.au"
+
+RunDate=`date '+%Y_%m_%d'`	# Time stamp for log file names
+
+WorkDir=/raid3/ksteube/AutoTests
+cd $WorkDir
+
+# Where to put the output of scons run_tests
+out_file="$WorkDir/Logs/$RunDate.test.output"
+
+# Save the name of this script
+SCRIPT_NAME=$0
+
+# Below here \$variable means I want the variable interpreted when PBS runs the job, not when the job is submitted
+# Similarly for \`...\`
+
+# Write the PBS script to run the tests
+cat << EOF > Logs/$RunDate.pbs.script.sh
 #!/bin/bash
-#          Copyright 2006 by ACcESS MNRF
-#
-#              http://www.access.edu.au
-#       Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#
-#
-# $Id: autotest-scons 162 2005-11-11 00:09:59Z svn $
-# An explicit testing script for esys using the scons build system
 
-# list of users to email test results to
-# currently disabled during testing.
-# MAIL_RECIPIENTS="gross@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au robert.woodcock@csiro.au Peter.Hornby@csiro.au"
-MAIL_RECIPIENTS="elspeth@esscc.uq.edu.au" 
+#PBS -q q1
+#PBS -N autotest
+#PBS -l ncpus=$requested_cpus
+#PBS -o $RunDate.pbs.stdout
+#PBS -e $RunDate.pbs.stderr
+#PBS -W umask=022
 
-# the python tests to run
-BRUCE_PYTESTS="ImportTest.passed BruceTest.passed test_utilOnBruce.py"
-ESCRIPT_PYTESTS="ImportTest.passed BinaryOps.passed UnaryOps.passed SliceGetting.passed SliceSetting.passed MiscTests.passed ArchiveTests.passed newEscriptTests.passed test_xml.passed insituTests.passed s2.passed"
-FINLEY_PYTESTS="ImportTest.passed finleyTest.passed SimpleSolve.passed RecTest.passed test_linearPDEsOnFinley.passed test_generators.passed test_visualization_interface.passed test_utilOnFinley.passed"
+echo "PBS_JOBNAME       \$PBS_JOBNAME"
+echo "PBS_JOBID         \$PBS_JOBID"
+echo "PBS_QUEUE         \$PBS_QUEUE"
+echo "NCPUS             \$NCPUS"
+echo "USER              \$USER"
+echo "PBS_O_HOST        \$PBS_O_HOST"
+echo "PBS_O_WORKDIR     \$PBS_O_WORKDIR"
+echo "PBS_O_SHELL       \$PBS_O_SHELL"
+date
+echo ""
+echo ""
 
-# Changed slightly to cope with new script, so it doesn't stomp all over previous iterations
 
-echo "===> cd $1"
-cd $1
-if [ $? != 0 ]
-then
-  echo "couldnt cd $1"
-  echo "couldnt cd $1" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 1
-fi
 
-# this is for the automated script
-echo "===> change up a directory"
-cd ..
-echo "===> make a sandbox and work in that"
-mkdir sandbox
-cd sandbox
+START=\`date '+%Y/%m/%d %H:%M'\`
 
-PWD=`pwd`
-echo "===> working in: $PWD"
+finish () {
+  date
+  # Clean up the sandbox
+  cd $WorkDir
+  /bin/rm -rf sandbox.$RunDate
+  END=\`date '+%Y/%m/%d %H:%M'\`
+  cat << END_MSG | mail -s "ESYS_TESTS $target $RunDate \$1" $MAIL_RECIPIENTS
+\$2.
+The tests ran from \$START to \$END on \$NCPUS CPUs
+See the log files in $WorkDir/Logs/$RunDate*
+This mail was sent by $SCRIPT_NAME
+running as \$USER on \`hostname\`.
+END_MSG
+  test "x\$1" = "FAILURE" && exit 1
+  exit 0
+}
 
-# Setup the environment
-echo "loading modules"
-. ${MODULESHOME}/init/sh
-module load intel_cc.9.0.026
-export MODULEPATH=${MODULEPATH}:/data/raid2/toolspp4/modulefiles/gcc-3.3.6
-module load python/2.4.1
+
+cd $WorkDir				|| finish FAILURE "Could not cd to WorkDir $WorkDir"
+
+# Create an empty out_file
+cat /dev/null > $out_file		|| finish FAILURE "Could not create out_file $out_file"
+
+umask 022
+
+test -d sandbox.$RunDate		&& finish FAILURE "Today's sandbox already exists"
+mkdir sandbox.$RunDate			|| finish FAILURE "Could not mkdir sandbox"
+cd sandbox.$RunDate			|| finish FAILURE "Could not cd to sandbox"
+
+echo "Checking out esys13/trunk"
+svn checkout svn+ssh://shake200.esscc.uq.edu.au/home/www_svn/repos/esys13/trunk >> $out_file 2>&1 || finish FAILURE "Could not check out esys13/trunk"
+
+# Load modules
+. /opt/modules/default/init/bash
+module use /raid2/matt/modules/modulefiles
+module use /raid2/toolspp4/modulefiles/gcc-3.3.6
+module use /usr/share/modules/modulefiles
+module load esys/env	# Recommended modules
+module load doxygen/1.4.6
 module load boost/1.33.0/python-2.4.1
-module load numarray/1.3.3
 
-# set openmp settings
-export OMP_NUM_THREADS=4
+# How many threads? One per CPU.
+export OMP_NUM_THREADS=\$NCPUS
 
-# doesn't appear to work - don't know why.
-#echo "===> svn update"
-#svn update
-#if [ $? != 0 ]
-#then
-#  echo "svn update failed"
-#  echo "svn update failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-#  exit 2
-#fi
+# Run the tests
+echo "Running the tests $target"
+cd trunk				|| finish FAILURE "Could not cd to trunk"
+scons -j \$NCPUS $target >> $out_file 2>&1		|| finish FAILURE "Could not run scons $target"
 
-# Need to test this bit yet.
-echo "==> removing previous checkout"
-rm -rf trunk/
-ls
-# This works - temporarily removed to speed up testing.
-echo "==> svn checkout"
-svn checkout svn+ssh://ess/esys13/trunk
-if [ $? != 0 ]
-then
-    echo "svn checkout failed"
-    echo "svn checkout failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-    exit 2
-fi
+echo "Cleaning up after the tests"
 
-echo "==> change to trunk"
-ls trunk
-cd trunk
+# Delete files older than 21 days
+find $WorkDir -atime +21 -exec rm -f {} \;
 
-# This bit works. Commented out to speed up testing.
-echo "===> scons building esys"
-scons
-if [ $? != 0 ]
-then
-  echo "scons build failed"
-  echo "scons build failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 3
-fi
+finish SUCCESS "Successfully ran 'scons $target' on \`hostname\`"
 
-# This bit works. Commented out to speed up testing.
-echo "===> building unit_tests"
-scons build_all_tests
-if [ $? != 0 ]
-then
-  echo "build_tests failed"
-  echo "build_tests failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 3
-fi
+EOF
 
-FAIL=0
+# cd to the logs area so the PBS logs are deposited there
+cd $WorkDir/Logs
 
-#echo "===> running all tests"
-#scons all_tests 
-if [ $? != 0 ]
-then
-  echo "all_tests failed"
-  echo "all_tests failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
-  exit 4
-fi
+# Submit the job
+. /opt/modules/default/init/sh
+module load pbspro
+qsub -S /bin/bash $RunDate.pbs.script.sh > /dev/null
+
