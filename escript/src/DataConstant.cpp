@@ -190,6 +190,54 @@ DataConstant::extractData(ifstream& archiveFile,
 }
 
 void
+DataConstant::symmetric(DataAbstract* ev)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  DataArrayView::symmetric(thisView,0,evView,0);
+}
+
+void
+DataConstant::nonsymmetric(DataAbstract* ev)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  DataArrayView::nonsymmetric(thisView,0,evView,0);
+}
+
+void
+DataConstant::matrixtrace(DataAbstract* ev, int axis_offset)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::matrixtrace: casting to DataConstant failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  DataArrayView::matrixtrace(thisView,0,evView,0,axis_offset);
+}
+
+void
+DataConstant::transpose(DataAbstract* ev, int axis_offset)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  DataArrayView::transpose(thisView,0,evView,0,axis_offset);
+}
+
+void
 DataConstant::eigenvalues(DataAbstract* ev)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);

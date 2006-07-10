@@ -18,6 +18,7 @@
 
 #include "esysUtils/EsysAssert.h"
 
+#include "DataException.h"
 #include "DataVector.h"
 #include "LocalOps.h"
 
@@ -858,6 +859,323 @@ class DataArrayView {
   ShapeType
   determineResultShape(const DataArrayView& left,
                        const DataArrayView& right);
+
+  /**
+     \brief
+     computes a symmetric matrix from your square matrix A: (A + transpose(A)) / 2
+
+     \param in - Input - matrix 
+     \param inOffset - Input - offset into in
+     \param ev - Output - The symmetric matrix
+     \param inOffset - Input - offset into ev
+  */
+  static
+  inline
+  void
+  symmetric(DataArrayView& in,
+            ValueType::size_type inOffset,
+            DataArrayView& ev,
+            ValueType::size_type evOffset)
+  {
+   if (in.getRank() == 2) {
+     int i0, i1;
+     int s0=in.getShape()[0];
+     int s1=in.getShape()[1];
+     for (i0=0; i0<s0; i0++) {
+       for (i1=0; i1<s1; i1++) {
+         (*(ev.m_data))[evOffset+ev.index(i0,i1)] = ((*(in.m_data))[inOffset+in.index(i0,i1)] + (*(in.m_data))[inOffset+in.index(i1,i0)]) / 2.0;
+       }
+     }
+   }
+   if (in.getRank() == 4) {
+     int i0, i1, i2, i3;
+     int s0=in.getShape()[0];
+     int s1=in.getShape()[1];
+     int s2=in.getShape()[2];
+     int s3=in.getShape()[3];
+     for (i0=0; i0<s0; i0++) {
+       for (i1=0; i1<s1; i1++) {
+         for (i2=0; i2<s2; i2++) {
+           for (i3=0; i3<s3; i3++) {
+             (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = ((*(in.m_data))[inOffset+in.index(i0,i1,i2,i3)] + (*(in.m_data))[inOffset+in.index(i2,i3,i0,i1)]) / 2.0;
+           }
+         }
+       }
+     }
+   }
+  }
+
+  /**
+     \brief
+     computes a nonsymmetric matrix from your square matrix A: (A - transpose(A)) / 2
+
+     \param in - Input - matrix 
+     \param inOffset - Input - offset into in
+     \param ev - Output - The nonsymmetric matrix
+     \param inOffset - Input - offset into ev
+  */
+  static
+  inline
+  void
+  nonsymmetric(DataArrayView& in,
+            ValueType::size_type inOffset,
+            DataArrayView& ev,
+            ValueType::size_type evOffset)
+  {
+   if (in.getRank() == 2) {
+     int i0, i1;
+     int s0=in.getShape()[0];
+     int s1=in.getShape()[1];
+     for (i0=0; i0<s0; i0++) {
+       for (i1=0; i1<s1; i1++) {
+         (*(ev.m_data))[evOffset+ev.index(i0,i1)] = ((*(in.m_data))[inOffset+in.index(i0,i1)] - (*(in.m_data))[inOffset+in.index(i1,i0)]) / 2.0;
+       }
+     }
+   }
+   if (in.getRank() == 4) {
+     int i0, i1, i2, i3;
+     int s0=in.getShape()[0];
+     int s1=in.getShape()[1];
+     int s2=in.getShape()[2];
+     int s3=in.getShape()[3];
+     for (i0=0; i0<s0; i0++) {
+       for (i1=0; i1<s1; i1++) {
+         for (i2=0; i2<s2; i2++) {
+           for (i3=0; i3<s3; i3++) {
+             (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = ((*(in.m_data))[inOffset+in.index(i0,i1,i2,i3)] - (*(in.m_data))[inOffset+in.index(i2,i3,i0,i1)]) / 2.0;
+           }
+         }
+       }
+     }
+   }
+  }
+
+  /**
+     \brief
+     computes the trace of a matrix
+
+     \param in - Input - matrix 
+     \param inOffset - Input - offset into in
+     \param ev - Output - The nonsymmetric matrix
+     \param inOffset - Input - offset into ev
+  */
+  static
+  inline
+  void
+  matrixtrace(DataArrayView& in,
+            ValueType::size_type inOffset,
+            DataArrayView& ev,
+            ValueType::size_type evOffset,
+	    int axis_offset)
+  {
+   if (in.getRank() == 2) {
+     int s0=in.getShape()[0]; // Python wrapper limits to square matrix
+     int i;
+     for (i=0; i<s0; i++) {
+       (*(ev.m_data))[evOffset+ev.index()] += (*(in.m_data))[inOffset+in.index(i,i)];
+     }
+   }
+   else if (in.getRank() == 3) {
+     if (axis_offset==0) {
+       int s0=in.getShape()[0];
+       int s2=in.getShape()[2];
+       int i0, i2;
+       for (i0=0; i0<s0; i0++) {
+         for (i2=0; i2<s2; i2++) {
+           (*(ev.m_data))[evOffset+ev.index(i2)] += (*(in.m_data))[inOffset+in.index(i0,i0,i2)];
+         }
+       }
+     }
+     else if (axis_offset==1) {
+       int s0=in.getShape()[0];
+       int s1=in.getShape()[1];
+       int i0, i1;
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           (*(ev.m_data))[evOffset+ev.index(i0)] += (*(in.m_data))[inOffset+in.index(i0,i1,i1)];
+         }
+       }
+     }
+   }
+   else if (in.getRank() == 4) {
+     if (axis_offset==0) {
+       int s0=in.getShape()[0];
+       int s2=in.getShape()[2];
+       int s3=in.getShape()[3];
+       int i0, i2, i3;
+       for (i0=0; i0<s0; i0++) {
+         for (i2=0; i2<s2; i2++) {
+           for (i3=0; i3<s3; i3++) {
+             (*(ev.m_data))[evOffset+ev.index(i2,i3)] += (*(in.m_data))[inOffset+in.index(i0,i0,i2,i3)];
+           }
+         }
+       }
+     }
+     else if (axis_offset==1) {
+       int s0=in.getShape()[0];
+       int s1=in.getShape()[1];
+       int s3=in.getShape()[3];
+       int i0, i1, i3;
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i3=0; i3<s3; i3++) {
+             (*(ev.m_data))[evOffset+ev.index(i0,i3)] += (*(in.m_data))[inOffset+in.index(i0,i1,i1,i3)];
+           }
+         }
+       }
+     }
+     else if (axis_offset==2) {
+       int s0=in.getShape()[0];
+       int s1=in.getShape()[1];
+       int s2=in.getShape()[2];
+       int i0, i1, i2;
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             (*(ev.m_data))[evOffset+ev.index(i0,i1)] += (*(in.m_data))[inOffset+in.index(i0,i1,i2,i2)];
+           }
+         }
+       }
+     }
+   }
+  }
+
+  /**
+     \brief
+     Transpose each data point of this Data object around the given axis.
+
+     \param in - Input - matrix 
+     \param inOffset - Input - offset into in
+     \param ev - Output - The nonsymmetric matrix
+     \param inOffset - Input - offset into ev
+  */
+  static
+  inline
+  void
+  transpose(DataArrayView& in,
+            ValueType::size_type inOffset,
+            DataArrayView& ev,
+            ValueType::size_type evOffset,
+	    int axis_offset)
+  {
+   if (in.getRank() == 4) {
+     int s0=ev.getShape()[0];
+     int s1=ev.getShape()[1];
+     int s2=ev.getShape()[2];
+     int s3=ev.getShape()[3];
+     int i0, i1, i2, i3;
+     if (axis_offset==1) {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             for (i3=0; i3<s3; i3++) {
+               (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i3,i0,i1,i2)];
+             }
+           }
+         }
+       }
+     }
+     else if (axis_offset==2) {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             for (i3=0; i3<s3; i3++) {
+               (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i2,i3,i0,i1)];
+             }
+           }
+         }
+       }
+     }
+     else if (axis_offset==3) {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             for (i3=0; i3<s3; i3++) {
+               (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i1,i2,i3,i0)];
+             }
+           }
+         }
+       }
+     }
+     else {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             for (i3=0; i3<s3; i3++) {
+               (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i0,i1,i2,i3)];
+             }
+           }
+         }
+       }
+     }
+   }
+   else if (in.getRank() == 3) {
+     int s0=ev.getShape()[0];
+     int s1=ev.getShape()[1];
+     int s2=ev.getShape()[2];
+     int i0, i1, i2;
+     if (axis_offset==1) {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i2,i0,i1)];
+           }
+         }
+       }
+     }
+     else if (axis_offset==2) {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i1,i2,i0)];
+           }
+         }
+       }
+     }
+     else {
+       // Copy the matrix unchanged
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           for (i2=0; i2<s2; i2++) {
+             (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i0,i1,i2)];
+           }
+         }
+       }
+     }
+   }
+   else if (in.getRank() == 2) {
+     int s0=ev.getShape()[0];
+     int s1=ev.getShape()[1];
+     int i0, i1;
+     if (axis_offset==1) {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           (*(ev.m_data))[evOffset+ev.index(i0,i1)] = (*(in.m_data))[inOffset+in.index(i1,i0)];
+         }
+       }
+     }
+     else {
+       for (i0=0; i0<s0; i0++) {
+         for (i1=0; i1<s1; i1++) {
+           (*(ev.m_data))[evOffset+ev.index(i0,i1)] = (*(in.m_data))[inOffset+in.index(i0,i1)];
+         }
+       }
+     }
+   }
+   else if (in.getRank() == 1) {
+     int s0=ev.getShape()[0];
+     int i0;
+     for (i0=0; i0<s0; i0++) {
+       (*(ev.m_data))[evOffset+ev.index(i0)] = (*(in.m_data))[inOffset+in.index(i0)];
+     }
+   }
+   else if (in.getRank() == 0) {
+     (*(ev.m_data))[evOffset+ev.index()] = (*(in.m_data))[inOffset+in.index()];
+   }
+   else {
+      throw DataException("Error - DataArrayView::transpose can only be calculated for rank 0, 1, 2, 3 or 4 objects.");
+   }
+  }
 
   /**
      \brief
