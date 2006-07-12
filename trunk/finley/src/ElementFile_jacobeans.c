@@ -20,6 +20,7 @@
 
 /**************************************************************/
 
+#include "ElementFile.h"
 #include "Assemble.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -28,13 +29,14 @@
 
 /**************************************************************/
 
-Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(void)
+Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_RefElement* ReferenceElement)
 {
   Finley_ElementFile_Jacobeans* out=MEMALLOC(1,Finley_ElementFile_Jacobeans);
   if (Finley_checkPtr(out)) {
      return NULL;
   } else {
      out->status=FINLEY_INITIAL_STATUS-1;
+     out->ReferenceElement=ReferenceElement;
      out->volume=NULL;
      out->DSDX=NULL;
      return out;
@@ -58,7 +60,7 @@ void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans* in)
 /**************************************************************/
 
 Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile* self, Finley_NodeFile* nodes, 
-                                                             bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
+                                                                 bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
   Finley_ElementFile_Jacobeans *out = NULL;
   
   if (reducedShapefunction) {
@@ -74,80 +76,85 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
            out=self->jacobeans;
        }
   }
-
   if (out->status < nodes->status) {
-     Finley_RefElement *shape, *test;
-     if (reducedShapefunction) {
-       if (reducedIntegrationOrder) {
-           shape=self->LinearReferenceElement;
-           test=self->LinearReferenceElement;
-       } else {
-           shape=self->LinearReferenceElement;
-           test=self->LinearReferenceElement;
-       }
+     dim_t numNodes=self->ReferenceElement->Type->numShapes;
+     Finley_RefElement *shape;
+     if (reducedIntegrationOrder) {
+           shape=self->ReferenceElement;
      } else {
-       if (reducedIntegrationOrder) {
            shape=self->ReferenceElement;
-           test=self->ReferenceElement;
-       } else {
-           shape=self->ReferenceElement;
-           test=self->ReferenceElement;
-       }
      }
-
-     if (out->volume==NULL) out->volume=MEMALLOC((self->numElements)*(shape->numQuadNodes),double);
-     if (out->DSDX==NULL) out->DSDX=MEMALLOC((self->numElements)*(test->Type->numShapes)*(shape->Type->numDim)*(shape->numQuadNodes),double);
+     if (out->volume==NULL) out->volume=MEMALLOC((self->numElements)*(out->ReferenceElement->numQuadNodes),double);
+     if (out->DSDX==NULL) out->DSDX=MEMALLOC((self->numElements)
+                                            *(out->ReferenceElement->Type->numShapes)
+                                            *(nodes->numDim)
+                                            *(out->ReferenceElement->numQuadNodes),double);
      if (! (Finley_checkPtr(out->volume) || Finley_checkPtr(out->DSDX)) ) {
           if (nodes->numDim==1) {
-             if (shape->Type->numDim==0) {
+             if (out->ReferenceElement->Type->numLocalDim==0) {
 
-             } else if (shape->Type->numDim==1) {
-                  Assemble_jacobeans_1D(nodes->Coordinates,shape->numQuadNodes,shape->QuadWeights,shape->Type->numShapes,
-                                        self->numElements,self->Nodes,
-                                        shape->dSdv,test->Type->numShapes,test->dSdv,
+             } else if (out->ReferenceElement->Type->numLocalDim==1) {
+                  Assemble_jacobeans_1D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
                                         out->DSDX,out->volume,self->Id);
              } else {
-                  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be less or equal 1.");
+                  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be 0 or 1.");
              }
           } else if (nodes->numDim==2) {
-             if (shape->Type->numDim==0) {
+             if (out->ReferenceElement->Type->numLocalDim==0) {
 
-             } else if (shape->Type->numDim==1) {
-                  Assemble_jacobeans_2D_M1D(nodes->Coordinates,shape->numQuadNodes,shape->QuadWeights,shape->Type->numShapes,
-                                            self->numElements,self->Nodes,
-                                            shape->dSdv,test->Type->numShapes,test->dSdv,
-                                            out->DSDX,out->volume,self->Id);
-             } else if (shape->Type->numDim==2) {
-                  Assemble_jacobeans_2D(nodes->Coordinates,shape->numQuadNodes,shape->QuadWeights,shape->Type->numShapes,
-                                        self->numElements,self->Nodes,
-                                        shape->dSdv,test->Type->numShapes,test->dSdv,
+             } else if (out->ReferenceElement->Type->numLocalDim==1) {
+                  if (out->ReferenceElement->Type->numDim==2) {
+                      Assemble_jacobeans_2D_M1D_E2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                    out->DSDX,out->volume,self->Id);
+
+                  }  else if (out->ReferenceElement->Type->numDim==1) {
+                      Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                    out->DSDX,out->volume,self->Id);
+                  } else {
+                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
+                  }
+             } else if (out->ReferenceElement->Type->numLocalDim==2) {
+                  Assemble_jacobeans_2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
                                         out->DSDX,out->volume,self->Id);
              } else {
-               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be less or equal 2.");
+               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
              }
           } else if (nodes->numDim==3) {
-             if (shape->Type->numDim==0) {
+             if (out->ReferenceElement->Type->numLocalDim==0) {
 
-             } else if (shape->Type->numDim==1) {
-                  Assemble_jacobeans_3D_M1D(nodes->Coordinates,shape->numQuadNodes,shape->QuadWeights,shape->Type->numShapes,
-                                            self->numElements,self->Nodes,
-                                            shape->dSdv,test->Type->numShapes,test->dSdv,
-                                            out->DSDX,out->volume,self->Id);
-             } else if (shape->Type->numDim==2) {
-                  Assemble_jacobeans_3D_M2D(nodes->Coordinates,shape->numQuadNodes,shape->QuadWeights,shape->Type->numShapes,
-                                            self->numElements,self->Nodes,
-                                            shape->dSdv,test->Type->numShapes,test->dSdv,
-                                            out->DSDX,out->volume,self->Id);
-             } else if (shape->Type->numDim==3) {
-                  Assemble_jacobeans_3D(nodes->Coordinates,shape->numQuadNodes,shape->QuadWeights,shape->Type->numShapes,
-                                        self->numElements,self->Nodes,
-                                        shape->dSdv,test->Type->numShapes,test->dSdv,
+             } else if (out->ReferenceElement->Type->numLocalDim==2) {
+                  if (out->ReferenceElement->Type->numDim==3) {
+                      Assemble_jacobeans_3D_M2D_E3D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                    out->DSDX,out->volume,self->Id);
+
+                  }  else if (out->ReferenceElement->Type->numDim==2) {
+                      Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                    out->DSDX,out->volume,self->Id);
+                  } else {
+                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 3 or 2.");
+                  }
+             } else if (out->ReferenceElement->Type->numLocalDim==3) {
+                  Assemble_jacobeans_3D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
                                         out->DSDX,out->volume,self->Id);
              } else {
-               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be less or equal 3.");
+               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
              }
           } else {
-            Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: spatial dimension has to be less or equal 3.");
+            Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: spatial dimension has to be 1, 2 or 3.");
           }
      }
      if (Finley_noError()) {
