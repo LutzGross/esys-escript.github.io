@@ -59,6 +59,11 @@ struct Finley_NodeFile {
   dim_t reducedNumNodes;               /* returnes the number of nodes in the mesh when looking at the corners */
                                        /* of elements only                                                     */
   index_t *toReduced;                  /* toReduced[i] is the node id in the reduced mesh. if toReduced[i]<0 it means that the node does not appear in the reduced mesh */
+
+  int status; /* the status counts the updates done on the node coordinates */
+              /* the value of status is increased by when the node coordinates are updated.*/
+                                                                                                                                                                                                 
+                                                                                                                                                                                                 
 };
 
 

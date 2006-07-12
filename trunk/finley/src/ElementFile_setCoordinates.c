@@ -27,10 +27,10 @@
 
 
 void Finley_ElementFile_setCoordinates(Finley_ElementFile* self,escriptDataC* newX) {
-  self->volume_is_valid=FALSE;   
+  /* self->volume_is_valid=FALSE;   
   self->DSDV_is_valid=FALSE;    
   self->DSLinearDV_is_valid=FALSE; 
-  self->X_is_valid=FALSE;         
+  self->X_is_valid=FALSE;          */
 }
 /*
 * $Log$
