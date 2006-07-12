@@ -53,15 +53,15 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
   }
   /* check the dimensions of normal */
   if (! (numDim==numDim_local || numDim-1==numDim_local)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: Cannot calculate normal vector");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_setNormal: Cannot calculate normal vector");
   } else if (! isDataPointShapeEqual(normal,1,&(numDim))) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of normal Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_setNormal: illegal number of samples of normal Data object");
   } else if (! numSamplesEqual(normal,numQuad,elements->numElements)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of normal Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_setNormal: illegal number of samples of normal Data object");
   } else if (! isDataPointShapeEqual(normal,1,&(numDim))) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal point data shape of normal Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_setNormal: illegal point data shape of normal Data object");
   }  else if (!isExpanded(normal)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for normal.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_setNormal: expanded Data object is expected for normal.");
   }
    
   /* now we can start */

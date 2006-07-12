@@ -58,10 +58,10 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Pas
   out->minColor=0;
   out->maxColor=-1;
   out->order = order;
-  out->jacobeans=Finley_ElementFile_Jacobeans_alloc();
-  out->jacobeans_reducedS=Finley_ElementFile_Jacobeans_alloc();
-  out->jacobeans_reducedQ=Finley_ElementFile_Jacobeans_alloc();
-  out->jacobeans_reducedS_reducedQ=Finley_ElementFile_Jacobeans_alloc();
+  out->jacobeans=NULL;
+  out->jacobeans_reducedQ=NULL;
+  out->jacobeans_reducedS=NULL;
+  out->jacobeans_reducedS_reducedQ=NULL;
 
 #ifdef PASO_MPI
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
@@ -71,11 +71,12 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Pas
   /*  allocate the reference element: */
   
   out->ReferenceElement=Finley_RefElement_alloc(id,NQ);
-  if (! Finley_noError()) {
-     Finley_ElementFile_dealloc(out);
-     return NULL;
-  }
+  out->jacobeans=Finley_ElementFile_Jacobeans_alloc(out->ReferenceElement);
+  out->jacobeans_reducedQ=Finley_ElementFile_Jacobeans_alloc(out->ReferenceElement);
+
   out->LinearReferenceElement=Finley_RefElement_alloc(Finley_RefElement_InfoList[id].LinearTypeId,NQ);
+  out->jacobeans_reducedS=Finley_ElementFile_Jacobeans_alloc(out->LinearReferenceElement);
+  out->jacobeans_reducedS_reducedQ=Finley_ElementFile_Jacobeans_alloc(out->LinearReferenceElement);
   if (! Finley_noError()) {
      Finley_ElementFile_dealloc(out);
      return NULL;

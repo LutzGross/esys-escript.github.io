@@ -26,9 +26,10 @@
 #endif
 
 struct Finley_ElementFile_Jacobeans {
-  Finley_Status_t status;       /* status of mesh when jacobeans where updated last time */
-  double* volume;               /* local volume */
-  double* DSDX;                 /* derivatives of shape functions in global coordinates at quadrature points*/
+  Finley_Status_t status;               /* status of mesh when jacobeans where updated last time */
+  Finley_RefElement* ReferenceElement;  /* reference elemnt used to calculate jacobeans (this is a borrowd reference) */
+  double* volume;                       /* local volume */
+  double* DSDX;                         /* derivatives of shape functions in global coordinates at quadrature points*/
 };
 
 typedef struct Finley_ElementFile_Jacobeans Finley_ElementFile_Jacobeans;
@@ -114,7 +115,7 @@ void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
 void Finley_ElementFile_deallocTable(Finley_ElementFile*);
 void Finley_ElementFile_prepare(Finley_ElementFile** in,dim_t numNodes,dim_t* degreeOfFreedom);
 void Finley_ElementFile_setTags(Finley_ElementFile*,const int,escriptDataC*);
-Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(void);
+Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_RefElement*);
 void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans*);
 Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile*, Finley_NodeFile*, bool_t, bool_t);
 

@@ -116,6 +116,7 @@ typedef enum {
 typedef struct Finley_RefElementInfo {
   ElementTypeId TypeId;                      /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
+  dim_t numLocalDim;                         /* local dimension of the element */
   dim_t numDim;                              /* dimension of the element */
   dim_t numNodes;                            /* number of nodes defining the element*/
   dim_t numShapes;                           /* number of shape functions, typically = numNodes*/
