@@ -23,14 +23,15 @@ scsl_lib_path = '/usr/lib'
 scsl_libs = ['scs_mp']
 scsl_libs_MPI = [ 'scs', 'mpi' ]
 
+
 # locations of include files for python
-python_path = '/data/raid2/toolspp4/python/2.4.3/gcc-3.3.6/include/python2.4'
-python_lib_path = '/data/raid2/toolspp4/python/2.4.3/gcc-3.3.6/lib'
+python_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/include/python2.4'
+python_lib_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/lib'
 python_lib = 'python2.4'
 
 # locations of libraries for boost
-boost_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.3/gcc-3.3.6/include'
-boost_lib_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.3/gcc-3.3.6/lib'
+boost_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/include'
+boost_lib_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/lib'
 boost_lib = 'boost_python-mt'
 
 # locations of doc building executables

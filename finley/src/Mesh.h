@@ -143,6 +143,5 @@ void Finley_Mesh_print(Finley_Mesh *in);
 void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
 void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
 
-
 #endif /* #ifndef INC_FINLEY_MESH */
 

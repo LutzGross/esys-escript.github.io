@@ -58,15 +58,10 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Pas
   out->minColor=0;
   out->maxColor=-1;
   out->order = order;
-  out->volume_is_valid=FALSE;  
-  out->volume=NULL;          
-  out->DvDV=NULL;             
-  out->DSDV_is_valid=FALSE;
-  out->DSDV=NULL;             
-  out->DSLinearDV_is_valid=FALSE; 
-  out->DSLinearDV=NULL;         
-  out->X_is_valid=FALSE;        
-  out->X=NULL;                
+  out->jacobeans=Finley_ElementFile_Jacobeans_alloc();
+  out->jacobeans_reducedS=Finley_ElementFile_Jacobeans_alloc();
+  out->jacobeans_reducedQ=Finley_ElementFile_Jacobeans_alloc();
+  out->jacobeans_reducedS_reducedQ=Finley_ElementFile_Jacobeans_alloc();
 
 #ifdef PASO_MPI
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
@@ -98,11 +93,10 @@ void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
      Finley_RefElement_dealloc(in->ReferenceElement);
      Finley_RefElement_dealloc(in->LinearReferenceElement);
      Finley_ElementFile_deallocTable(in);   
-     MEMFREE(in->volume);          
-     MEMFREE(in->DvDV);             
-     MEMFREE(in->DSDV);             
-     MEMFREE(in->DSLinearDV);         
-     MEMFREE(in->X);     
+     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans);
+     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS);
+     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
+     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS_reducedQ);
 #ifdef PASO_MPI
      Paso_MPIInfo_dealloc( in->MPIInfo );
      Finley_ElementDistribution_dealloc( in->elementDistribution );

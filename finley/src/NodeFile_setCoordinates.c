@@ -33,12 +33,13 @@ void Finley_NodeFile_setCoordinates(Finley_NodeFile* self,escriptDataC* newX) {
   char error_msg[LenErrorMsg_MAX];
    int n;
    if (getDataPointSize(newX)!=self->numDim)  {
-      sprintf(error_msg,"__FILE__: dimension of new coordinates has to be %d.",self->numDim);
+      sprintf(error_msg,"Finley_NodeFile_setCoordinates: dimension of new coordinates has to be %d.",self->numDim);
       Finley_setError(VALUE_ERROR,error_msg);
    } else if (! numSamplesEqual(newX,1,self->numNodes)) {
-         sprintf(error_msg,"__FILE__: number of give nodes must to be %d.",self->numNodes);
+         sprintf(error_msg,"Finley_NodeFile_setCoordinates: number of give nodes must to be %d.",self->numNodes);
          Finley_setError(VALUE_ERROR,error_msg);
    } else {
+          Finley_increaseStatus(self);
           #pragma omp parallel for private(n) schedule(static)
           for (n=0;n<self->numNodes;n++)
             Finley_copyDouble(self->numDim,getSampleData(newX,n),&(self->Coordinates[INDEX2(0,n,self->numDim)]));

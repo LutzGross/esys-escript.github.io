@@ -37,6 +37,17 @@
 #define FINLEY_POINTS 6
 #define FINLEY_CONTACT_ELEMENTS_1 7
 #define FINLEY_CONTACT_ELEMENTS_2 8
+/* these are not used yet */
+#define FINLEY_REDUCED_NODES 9
+#define FINLEY_REDUCED_ELEMENTS 10
+#define FINLEY_REDUCED_FACE_ELEMENTS 11
+#define FINLEY_REDUCED_CONTACT_ELEMENTS_1 12
+#define FINLEY_REDUCED_CONTACT_ELEMENTS_2 13
+
+/* status stuff */
+typedef int Finley_Status_t;
+#define Finley_increaseStatus(self) ((self)->status)++
+#define FINLEY_INITIAL_STATUS 0
 
 #ifdef PASO_MPI
 #define FINLEY_INIT_ITEMSIZE (sizeof(double)*8)

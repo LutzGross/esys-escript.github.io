@@ -16,6 +16,7 @@
 #define INC_FINLEY_ELEMENTFILE
 
 #include "Finley.h"
+#include "NodeFile.h"
 #include "ReferenceElements.h"
 #include "escript/DataC.h"
 
@@ -23,6 +24,14 @@
 #include "paso/Paso_MPI.h"
 #include "Distribution.h"
 #endif
+
+struct Finley_ElementFile_Jacobeans {
+  Finley_Status_t status;       /* status of mesh when jacobeans where updated last time */
+  double* volume;               /* local volume */
+  double* DSDX;                 /* derivatives of shape functions in global coordinates at quadrature points*/
+};
+
+typedef struct Finley_ElementFile_Jacobeans Finley_ElementFile_Jacobeans;
 
 struct Finley_ElementFile {
 #ifdef PASO_MPI
@@ -73,15 +82,11 @@ struct Finley_ElementFile {
                                               /* Color[e]=e  for all e */
   index_t order;			       /* order of the element */
 
-  bool_t volume_is_valid;    /* true if volume and DvDV are valid */
-  double* volume;               /* local volume */
-  double* DvDV;                 /* inverse jacobean of element parametrization at quadrature points*/
-  bool_t DSDV_is_valid;         /* true is DSDV is valid */
-  double* DSDV;                 /* derivatives of shape functions in global coordinates at quadrature points*/
-  bool_t DSLinearDV_is_valid;   /* true if DSLinearDV is valid */
-  double* DSLinearDV;           /* derivatives of linear shape functions in gloabl coordinates at quadrature points*/
-  bool_t X_is_valid;            /* true if X is valid */
-  double* X;                    /* global coordniates of quadrature points */
+  Finley_ElementFile_Jacobeans* jacobeans;           /* element jacobeans */
+  Finley_ElementFile_Jacobeans* jacobeans_reducedS;  /* element jacobeans for reduced order of shape function*/
+  Finley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* element jacobeans for reduced integration order*/
+  Finley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* element jacobeans for reduced integration order and  reduced order of shape function*/
+
 };
 
 typedef struct Finley_ElementFile Finley_ElementFile;
@@ -97,7 +102,6 @@ void Finley_ElementFile_markBoundaryElementDOF(index_t* mask,index_t offset,inde
 #endif
 
 void Finley_ElementFile_dealloc(Finley_ElementFile*);
-void Finley_ElementFile_setCoordinates(Finley_ElementFile*,escriptDataC*);
 void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
 void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in);
 void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
@@ -110,6 +114,10 @@ void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
 void Finley_ElementFile_deallocTable(Finley_ElementFile*);
 void Finley_ElementFile_prepare(Finley_ElementFile** in,dim_t numNodes,dim_t* degreeOfFreedom);
 void Finley_ElementFile_setTags(Finley_ElementFile*,const int,escriptDataC*);
+Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(void);
+void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans*);
+Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile*, Finley_NodeFile*, bool_t, bool_t);
+
 
 #endif /* #ifndef INC_FINLEY_ELEMENTFILE */
 

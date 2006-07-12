@@ -23,17 +23,12 @@
 /**************************************************************/
 
 #include "Mesh.h"
-#include "Util.h"
 
 /**************************************************************/
 
 
 void Finley_Mesh_setCoordinates(Finley_Mesh* self,escriptDataC* newX) {
   Finley_NodeFile_setCoordinates(self->Nodes,newX);
-  Finley_ElementFile_setCoordinates(self->Elements,newX);
-  Finley_ElementFile_setCoordinates(self->FaceElements,newX);
-  Finley_ElementFile_setCoordinates(self->ContactElements,newX);
-  Finley_ElementFile_setCoordinates(self->Points,newX);
 }
 /*
 * $Log$
