@@ -36,6 +36,10 @@ print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
 # mydomain=finley.Rectangle(151,151,1)
 # mydomain=finley.Rectangle(128,128,1)
 
+# set the direct solver switch
+DIRECT=LinearPDE.DIRECT
+# DIRECT=LinearPDE.ITERATIVE # this will switch of the DIRECT solver call to avoid external library calls which may not be available everywhere
+
 print "\nSetup domain and functions"
 print "--------------------------"
 
@@ -76,7 +80,7 @@ mypde.setSolverMethod(mypde.BICGSTAB,preconditioner=mypde.JACOBI)
 u_i=mypde.getSolution(verbose=True,iter_max=3000)
 
 print "\nDirect Solver (1)=>"
-mypde.setSolverMethod(mypde.DIRECT)
+mypde.setSolverMethod(DIRECT)
 u_d=mypde.getSolution(verbose=True)
 
 print "\n***************************************************************"
@@ -127,12 +131,12 @@ mypde.setSymmetryOn()
 mypde.setTolerance(1.e-13)
 
 # mypde.setSymmetryOn() : is not woking yet!
-mypde.setSolverMethod(mypde.DIRECT)
+mypde.setSolverMethod(DIRECT)
 u_d=mypde.getSolution(verbose=True)
 
 print "\nIterative Solver (2)=>"
 
-mypde.setSolverMethod(mypde.ITERATIVE)
+mypde.setSolverMethod(mypde.PCG)
 u_i=mypde.getSolution(verbose=True,iter_max=3000)
 
 print "\n******************************************************************"
