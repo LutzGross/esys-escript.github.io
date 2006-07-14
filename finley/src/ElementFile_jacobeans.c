@@ -77,79 +77,141 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
        }
   }
   if (out->status < nodes->status) {
-     dim_t numNodes=self->ReferenceElement->Type->numShapes;
+     dim_t numNodes=self->ReferenceElement->Type->numNodes;
      Finley_RefElement *shape;
      if (reducedIntegrationOrder) {
            shape=self->ReferenceElement;
      } else {
            shape=self->ReferenceElement;
      }
+     out->numDim=nodes->numDim;
      if (out->volume==NULL) out->volume=MEMALLOC((self->numElements)*(out->ReferenceElement->numQuadNodes),double);
      if (out->DSDX==NULL) out->DSDX=MEMALLOC((self->numElements)
-                                            *(out->ReferenceElement->Type->numShapes)
-                                            *(nodes->numDim)
+                                            *(out->ReferenceElement->Type->numNodes)
+                                            *(out->numDim)
                                             *(out->ReferenceElement->numQuadNodes),double);
      if (! (Finley_checkPtr(out->volume) || Finley_checkPtr(out->DSDX)) ) {
-          if (nodes->numDim==1) {
+          /*========================== dim = 1 ============================================== */
+          if (out->numDim==1) {
              if (out->ReferenceElement->Type->numLocalDim==0) {
 
              } else if (out->ReferenceElement->Type->numLocalDim==1) {
-                  Assemble_jacobeans_1D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
-                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
-                                        out->DSDX,out->volume,self->Id);
+                  if ((shape->Type->numShapes==numNodes) && 
+                      (out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                      Assemble_jacobeans_1D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                            shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                            shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                            out->DSDX,out->volume,self->Id);
+                  } else {
+                      Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 1D supports numShape=NumNodes only.");
+                  }
              } else {
                   Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be 0 or 1.");
              }
-          } else if (nodes->numDim==2) {
+          /*========================== dim = 2 ============================================== */
+          } else if (out->numDim==2) {
              if (out->ReferenceElement->Type->numLocalDim==0) {
 
              } else if (out->ReferenceElement->Type->numLocalDim==1) {
                   if (out->ReferenceElement->Type->numDim==2) {
-                      Assemble_jacobeans_2D_M1D_E2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
-                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
-                                                    out->DSDX,out->volume,self->Id);
-
+                     if ((shape->Type->numShapes==numNodes) && 
+                         (out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_2D_M1D_E2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                      shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                      shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                      out->DSDX,out->volume,self->Id);
+                     } else if ((2*(shape->Type->numShapes)==numNodes) &&
+                                (2*(out->ReferenceElement->Type->numShapes)==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_2D_M1D_E2D_C(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                        out->DSDX,out->volume,self->Id);
+                     } else {
+                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D supports numShape=NumNodes or 2*numShape=NumNodes only.");
+                      }
                   }  else if (out->ReferenceElement->Type->numDim==1) {
-                      Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
-                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
-                                                    out->DSDX,out->volume,self->Id);
+                     if ((shape->Type->numShapes==numNodes) && 
+                         (out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                      shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                      shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                      out->DSDX,out->volume,self->Id);
+                     } else if ((2*shape->Type->numShapes==numNodes) &&
+                                (2*out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_2D_M1D_E1D_C(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                        out->DSDX,out->volume,self->Id);
+                     } else {
+                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D supports numShape=NumNodes or 2*numShape=NumNodes only.");
+                      }
                   } else {
                     Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
                   }
              } else if (out->ReferenceElement->Type->numLocalDim==2) {
-                  Assemble_jacobeans_2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
-                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
-                                        out->DSDX,out->volume,self->Id);
+                  if ((shape->Type->numShapes==numNodes) && 
+                      (out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                     Assemble_jacobeans_2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                           shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                           shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                           out->DSDX,out->volume,self->Id);
+                  } else {
+                      Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D volume elements supports numShape=NumNodes only.");
+                  }
+
              } else {
                Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
              }
-          } else if (nodes->numDim==3) {
+          /*========================== dim = 3 ============================================== */
+          } else if (out->numDim==3) {
              if (out->ReferenceElement->Type->numLocalDim==0) {
 
              } else if (out->ReferenceElement->Type->numLocalDim==2) {
                   if (out->ReferenceElement->Type->numDim==3) {
-                      Assemble_jacobeans_3D_M2D_E3D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
-                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
-                                                    out->DSDX,out->volume,self->Id);
-
+                     if ((shape->Type->numShapes==numNodes) && 
+                         (out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_3D_M2D_E3D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                      shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                      shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                      out->DSDX,out->volume,self->Id);
+                     } else if ((2*shape->Type->numShapes==numNodes) &&
+                                (2*out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_3D_M2D_E3D_C(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                        out->DSDX,out->volume,self->Id);
+                     } else {
+                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D supports numShape=NumNodes or 2*numShape=NumNodes only.");
+                      }
                   }  else if (out->ReferenceElement->Type->numDim==2) {
-                      Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
-                                                    shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                    shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
-                                                    out->DSDX,out->volume,self->Id);
+                     if ((shape->Type->numShapes==numNodes) && 
+                         (out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                      shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                      shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                      out->DSDX,out->volume,self->Id);
+                     } else if ((2*shape->Type->numShapes==numNodes) &&
+                                (2*out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                        Assemble_jacobeans_3D_M2D_E2D_C(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                                        out->DSDX,out->volume,self->Id);
+                     } else {
+                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D supports numShape=NumNodes or 2*numShape=NumNodes only.");
+                      }
                   } else {
                     Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 3 or 2.");
                   }
              } else if (out->ReferenceElement->Type->numLocalDim==3) {
-                  Assemble_jacobeans_3D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
-                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                        shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
-                                        out->DSDX,out->volume,self->Id);
+                  if ((shape->Type->numShapes==numNodes) && 
+                      (out->ReferenceElement->Type->numShapes==out->ReferenceElement->Type->numNodes)) {
+                     Assemble_jacobeans_3D(nodes->Coordinates,out->ReferenceElement->numQuadNodes,out->ReferenceElement->QuadWeights,
+                                           shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
+                                           shape->dSdv,out->ReferenceElement->Type->numShapes,out->ReferenceElement->dSdv,
+                                           out->DSDX,out->volume,self->Id);
+                  } else {
+                      Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D volume elements supports numShape=NumNodes only.");
+                  }
              } else {
                Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
              }

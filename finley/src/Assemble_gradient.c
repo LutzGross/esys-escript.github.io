@@ -12,7 +12,7 @@
 
 /**************************************************************/
 
-/*    assemblage routines: calculate the gradient of nodal data at quadrature points */
+/*    assemblage rjacines: calculate the gradient of nodal data at quadrature points */
 
 /**************************************************************/
 
@@ -30,150 +30,297 @@
 /*****************************************************************/
 
 
-#define NODES 0
-#define DOF 1
-#define REDUCED_DOF 2
-
 void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elements,
-             escriptDataC* grad_data,escriptDataC* data) {
+                              escriptDataC* grad_data,escriptDataC* data) {
 
-  double *local_X=NULL, *local_data=NULL, *dVdv=NULL, *dvdV=NULL, *Vol=NULL, *d_datadv=NULL, *gradS=NULL,*data_array;
-  index_t node_offset,*resort_nodes=FALSE,dof_offset;
-  dim_t numNodes=0,e,i,q,NS_DOF=0,NN_DOF=0;
-  type_t type=DOF;
-  if (nodes==NULL || elements==NULL) return;
-  dim_t NN=elements->ReferenceElement->Type->numNodes;
-  dim_t NS=elements->ReferenceElement->Type->numShapes;
-  index_t id[NN];
-  dim_t numDim=nodes->numDim;
-  type_t data_type=getFunctionSpaceType(data);
-  dim_t numComps=getDataPointSize(data);
-  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
-  for (i=0;i<NN;i++) id[i]=i;
   Finley_resetError();
-
-    /* set some parameter */
+  if (nodes==NULL || elements==NULL) return;
+  dim_t numComps=getDataPointSize(data);
+  dim_t NN=elements->ReferenceElement->Type->numNodes;
+  dim_t numNodes, numShapes, numLocalNodes; 
+  index_t dof_offset, s_offset;
+  type_t data_type=getFunctionSpaceType(data);
+  type_t grad_data_type=getFunctionSpaceType(grad_data);
+  bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
 
   if (data_type==FINLEY_NODES) {
-       type=NODES;
-       resort_nodes=id;
-       NN_DOF=elements->ReferenceElement->Type->numNodes;
-       NS_DOF=elements->ReferenceElement->Type->numShapes;
-       gradS=elements->ReferenceElement->dSdv;
+       reducedShapefunction=FALSE;
        numNodes=nodes->numNodes;
+       numShapes=elements->ReferenceElement->Type->numShapes;
+       numLocalNodes=elements->ReferenceElement->Type->numNodes;
   }
-/* lock these two options out for the MPI version */
-#ifndef PASO_MPI
- else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
-       type=DOF;
-       resort_nodes=id;
-       NN_DOF=elements->ReferenceElement->Type->numNodes;
-       NS_DOF=elements->ReferenceElement->Type->numShapes;
-       gradS=elements->ReferenceElement->dSdv;
+  /* lock these two options jac for the MPI version */
+  #ifndef PASO_MPI
+  else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
+       reducedShapefunction=FALSE;
        numNodes=nodes->numDegreesOfFreedom;
+       numShapes=elements->ReferenceElement->Type->numShapes;
+       numLocalNodes=elements->ReferenceElement->Type->numNodes;
   } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-       type=REDUCED_DOF;
-       resort_nodes=elements->ReferenceElement->Type->linearNodes;
-       NN_DOF=elements->LinearReferenceElement->Type->numNodes;
-       NS_DOF=elements->LinearReferenceElement->Type->numShapes;
-       gradS=elements->LinearReferenceElement->dSdv;
+       reducedShapefunction=TRUE;
        numNodes=nodes->reducedNumDegreesOfFreedom;
-   } 
-#endif
-else {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculate gradient of data");
+       numShapes=elements->LinearReferenceElement->Type->numShapes;
+       numLocalNodes=elements->LinearReferenceElement->Type->numNodes;
+  } 
+  #endif
+  else {
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
   }
-  if (getFunctionSpaceType(grad_data)==FINLEY_CONTACT_ELEMENTS_2) {
-       node_offset=NN-NS;
-       dof_offset=NN_DOF-NS_DOF;
-  } else {
-       node_offset=0;
+  if (grad_data_type==FINLEY_ELEMENTS) {
+       reducedIntegrationOrder=FALSE;
        dof_offset=0;
+  } else if (grad_data_type==FINLEY_FACE_ELEMENTS)  {
+       reducedIntegrationOrder=FALSE;
+       dof_offset=0;
+  } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_1)  {
+       reducedIntegrationOrder=FALSE;
+       dof_offset=0;
+  } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2)  {
+       reducedIntegrationOrder=FALSE;
+       /* don't reset offset */
+  } else {
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculated for requested location.");
   }
-                                                                                                                                                         
-  /* check the dimensions of interpolated_data and data */
 
-  if (numDim!=elements->ReferenceElement->Type->numDim) {
-     Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Spatial and element dimension must match.");
-  } else if (! numSamplesEqual(grad_data,numQuad,elements->numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples in gradient Data object");
-  } else if (! numSamplesEqual(data,1,numNodes)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples of input Data object");
-  } else if (numDim*numComps!=getDataPointSize(grad_data)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of components in gradient data object.");
-  }  else if (!isExpanded(grad_data)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: expanded Data object is expected for output data.");
+
+  Finley_ElementFile_Jacobeans* jac=Finley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
+
+  if (Finley_noError()) {
+
+      if (grad_data_type==FINLEY_ELEMENTS) {
+        dof_offset=0;
+        s_offset=0;
+      } else if (grad_data_type==FINLEY_FACE_ELEMENTS)  {
+       dof_offset=0;
+       s_offset=0;
+      } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_1)  {
+       dof_offset=0;
+       s_offset=0;
+      } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2)  {
+       dof_offset=numShapes;
+       s_offset=jac->ReferenceElement->Type->numShapes;
+      }
+
+      /* check the dimensions of data */
+
+      if (! numSamplesEqual(grad_data,jac->ReferenceElement->numQuadNodes,elements->numElements)) {
+           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples in gradient Data object");
+      } else if (! numSamplesEqual(data,1,numNodes)) {
+           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples of input Data object");
+      } else if (jac->numDim*numComps!=getDataPointSize(grad_data)) {
+           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of components in gradient data object.");
+      }  else if (!isExpanded(grad_data)) {
+           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: expanded Data object is expected for output data.");
+      } else if (! (dof_offset+jac->ReferenceElement->Type->numShapes <= numLocalNodes)) {
+           Finley_setError(SYSTEM_ERROR,"Finley_Assemble_gradient: nodes per element is inconsistent with number of jacobeans.");
+      } else if (! (s_offset+jac->ReferenceElement->Type->numShapes <= jac->ReferenceElement->Type->numNodes)) {
+           Finley_setError(SYSTEM_ERROR,"Finley_Assemble_gradient: offset test failed.");
+      }
   }
-  
   /* now we can start */
 
   if (Finley_noError()) {
-          #pragma omp parallel private(local_X,local_data,dvdV,dVdv,Vol,d_datadv)
-          {
-               local_X=local_data=dVdv=dvdV=Vol=d_datadv=NULL;
-   	      /* allocation of work arrays */
-   	      local_X=THREAD_MEMALLOC(NS*numDim,double);
-   	      local_data=THREAD_MEMALLOC(NS*numComps,double);
-   	      dVdv=THREAD_MEMALLOC(numQuad*numDim*numDim,double);
-   	      dvdV=THREAD_MEMALLOC(numQuad*numDim*numDim,double);
-   	      Vol=THREAD_MEMALLOC(numQuad,double);
-   	      d_datadv=THREAD_MEMALLOC(numQuad*numComps*numDim,double);
-   	      if (!(Finley_checkPtr(local_X) || Finley_checkPtr(dVdv) || Finley_checkPtr(dvdV) || Finley_checkPtr(Vol) || Finley_checkPtr(d_datadv) || Finley_checkPtr(local_data) ))  {
-   	        /* open the element loop */
-                #pragma omp for private(e,i,q,data_array) schedule(static)
-   	        for(e=0;e<elements->numElements;e++) {
-   	          /* gather local coordinates of nodes into local_X: */
-   	          Finley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(node_offset,e,NN)]),numDim,nodes->Coordinates,local_X);
-   	          /*  calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q) */
-   	          Finley_Util_SmallMatMult(numDim,numDim*numQuad,dVdv,NS,local_X,elements->ReferenceElement->dSdv);
-   	          /*  dvdV=invert(dVdv) */
-   	          Finley_Util_InvertSmallMat(numQuad,numDim,dVdv,dvdV,Vol);
-   	          /* gather local data into local_data(numComps,NS_DOF): */
-                  switch (type) {
-                     case NODES:
-                        for (q=0;q<NS_DOF;q++) {
-                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                           data_array=getSampleData(data,i);
-                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
-                        }
-                        break;
-                     case DOF:
-                        for (q=0;q<NS_DOF;q++) {
-                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                           data_array=getSampleData(data,nodes->degreeOfFreedom[i]);
-                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
+      #pragma omp parallel
+      {
+         register dim_t e,q,l,s,n;
+         register double* data_array,  *grad_data_e;
+         if (data_type==FINLEY_NODES) {
+            if (jac->numDim==1) {
+                #define DIM 1
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
+                       data_array=getSampleData(data,n);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                                grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                      jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
 
-                        }
-                        break;
-                     case REDUCED_DOF:
-                        for (q=0;q<NS_DOF;q++) {
-                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                           data_array=getSampleData(data,nodes->reducedDegreeOfFreedom[i]);
-                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
-                        }
-                        break;
-                  }
-   	          /*  calculate grad_data(l,i,q)=local_data(l,n)* DSDV(n,i,q) */
-   	          // Finley_Util_SmallMatMult(numQuad,numComps,numQuad*numDim,getSampleData(grad_data,e),NS_DOF,local_data,dSdV);
+                #undef DIM
+            } else if (jac->numDim==2) {
+                #define DIM 2
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
+                       data_array=getSampleData(data,n);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,1,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+                #undef DIM
+            } else if (jac->numDim==3) {
+                #define DIM 3
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
+                       data_array=getSampleData(data,n);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                    jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]* 
+                                    jac->DSDX[INDEX4(s_offset+s,1,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,2,q,numComps,DIM)]+=data_array[l]* 
+                                    jac->DSDX[INDEX4(s_offset+s,2,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+                #undef DIM
+            }
 
-   	          /*  calculate d_datadv(l,i,q)=local_data(l,n)*DSDv(n,i,q) */
-   	          Finley_Util_SmallMatMult(numComps,numDim*numQuad,d_datadv,NS_DOF,local_data,gradS);
-   	          /*  calculate grad_data(l,i,q)=d_datadv(l,k,q)*dvdV(k,i,q) */
-   	          Finley_Util_SmallMatSetMult(numQuad,numComps,numDim,getSampleData(grad_data,e),numDim,d_datadv,dvdV);
-   	        } /* for */
-   	      }
-   	      THREAD_MEMFREE(local_X);
-   	      THREAD_MEMFREE(dVdv);
-   	      THREAD_MEMFREE(dvdV);
-   	      THREAD_MEMFREE(Vol);
-   	      THREAD_MEMFREE(local_data);
-   	      THREAD_MEMFREE(d_datadv);
-      }
+         } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
+            if (jac->numDim==1) {
+                #define DIM 1
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
+                       data_array=getSampleData(data,nodes->degreeOfFreedom[n]);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+
+                #undef DIM
+            } else if (jac->numDim==2) {
+                #define DIM 2
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
+                       data_array=getSampleData(data,nodes->degreeOfFreedom[n]);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                                   grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                                   grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,1,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+                #undef DIM
+            } else if (jac->numDim==3) {
+                #define DIM 3
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
+                       data_array=getSampleData(data,nodes->degreeOfFreedom[n]);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                    jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]* 
+                                    jac->DSDX[INDEX4(s_offset+s,1,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,2,q,numComps,DIM)]+=data_array[l]* 
+                                    jac->DSDX[INDEX4(s_offset+s,2,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+                #undef DIM
+            }
+         } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+            if (jac->numDim==1) {
+                #define DIM 1
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
+                       data_array=getSampleData(data,nodes->reducedDegreeOfFreedom[n]);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+
+                #undef DIM
+            } else if (jac->numDim==2) {
+                #define DIM 2
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
+                       data_array=getSampleData(data,nodes->reducedDegreeOfFreedom[n]);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                     jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]* 
+                                     jac->DSDX[INDEX4(s_offset+s,1,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+
+                #undef DIM
+
+            } else if (jac->numDim==3) {
+                #define DIM 3
+                #pragma omp for schedule(static)
+   	        for (e=0;e<elements->numElements;e++) {
+                    grad_data_e=getSampleData(grad_data,e);
+                    for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
+                    for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
+                       n=elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[dof_offset+s],e,NN)];
+                       data_array=getSampleData(data,nodes->reducedDegreeOfFreedom[n]);
+                       for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                           for (l=0;l<numComps;l++) {
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,1,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                               grad_data_e[INDEX3(l,2,q,numComps,DIM)]+=data_array[l]* 
+                                        jac->DSDX[INDEX4(s_offset+s,2,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
+                           }
+                       }
+                    }
+                }
+
+                #undef DIM
+            }
+         }
+      } /* end parallel region */
   }
 }
-#undef NODES
-#undef DOF
-#undef REDUCED_DOF
 /*
  * $Log$
  * Revision 1.6  2005/09/15 03:44:21  jgs

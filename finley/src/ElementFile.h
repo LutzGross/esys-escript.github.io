@@ -27,6 +27,7 @@
 
 struct Finley_ElementFile_Jacobeans {
   Finley_Status_t status;               /* status of mesh when jacobeans where updated last time */
+  dim_t numDim;                         /* spatial dimension */
   Finley_RefElement* ReferenceElement;  /* reference elemnt used to calculate jacobeans (this is a borrowd reference) */
   double* volume;                       /* local volume */
   double* DSDX;                         /* derivatives of shape functions in global coordinates at quadrature points*/
