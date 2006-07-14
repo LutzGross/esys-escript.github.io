@@ -4,8 +4,8 @@ python_lib_path = 'C:/python23/libs'
 python_lib = 'python23'
 
 # locations of libraries for boost
-boost_path = 'E:/woo409/development/boost_1_33'
-boost_lib_path = 'E:/woo409/development/boost_1_33/windows_binary/lib'
+boost_path = 'c:/woo409/development/boost_1_33'
+boost_lib_path = 'c:/woo409/development/boost_1_33/windows_binary/lib'
 boost_lib = 'boost_python-vc71-mt-gd'
 
 cc_defines = ['_USE_MATH_DEFINES', ]
@@ -13,10 +13,10 @@ cc_defines = ['_USE_MATH_DEFINES', ]
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
 # 161 - openmp pargmas are unknown when not compiling with openmp
-cc_flags  = '/GR /EHsc /MD /Qc99 /Qwd161 /G7 /O3 /Qprec /Qparallel /Qpar-report1'
-cc_flags_debug  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qwd161 /Qprec'
-#cc_flags  = '/GR /EHsc /MD /Qc99 /Qopenmp /Qopenmp-report0 /G7 /Qprec'
-#cc_flags_debug  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp /Qopenmp-report0 /Qprec'
+cc_flags  = '/GR /EHsc /MD /Qc99 /Qopenmp /Qopenmp-report1 /O3 /G7 /Qprec /Qparallel /Qpar-report1 /QxP /QaxP'
+#cc_flags  = '/GR /EHsc /MD /Qc99 /O3 /G7 /Qprec /QxP /QaxP'
+
+cc_flags_debug  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp /Qopenmp-report1 /Qprec'
 
 # c++ flags to use
 cxx_flags = ''
