@@ -96,13 +96,17 @@ Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_o
 Finley_Assemble_handelShapeMissMatch Finley_Assemble_handelShapeMissMatch_Mean_in;
 void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 
-void Assemble_jacobeans_1D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t,double*, double*, double*, index_t*);
-void Assemble_jacobeans_2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t,double*, double*, double*, index_t*);
-void Assemble_jacobeans_2D_M1D_E2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t,double*, double*, double*, index_t*);
-void Assemble_jacobeans_2D_M1D_E1D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t,double*, double*, double*, index_t*);
-void Assemble_jacobeans_3D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t,double*, double*, double*, index_t*);
-void Assemble_jacobeans_3D_M2D_E3D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t,double*, double*, double*, index_t*);
-void Assemble_jacobeans_3D_M2D_E2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t,double*, double*, double*, index_t*);
+void Assemble_jacobeans_1D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_2D_M1D_E2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_2D_M1D_E2D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_2D_M1D_E1D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_2D_M1D_E1D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_3D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_3D_M2D_E3D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_3D_M2D_E3D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_3D_M2D_E2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_3D_M2D_E2D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
 
 #endif /* #ifndef INC_FINLEY_ASSEMBLE */
 
