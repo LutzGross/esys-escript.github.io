@@ -13,9 +13,9 @@
 
 #if !defined escript_LocalOps_H
 #define escript_LocalOps_H
-#ifdef _WIN32 && __INTEL_COMPILER
+#ifdef __INTEL_COMPILER
 #include <mathimf.h>
-#define M_PI 3.141592653589
+# define M_PI           3.14159265358979323846  /* pi */
 #else
 #include <math.h>
 #endif
