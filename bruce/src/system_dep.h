@@ -9,8 +9,6 @@
 #ifndef bruce_system_dep_h
 #define bruce_system_dep_h
 
-#ifdef _WIN32
-
 # ifdef __INTEL_COMPILER
 // The Intel compiler on windows has an "improved" math library compared to the usual Visual C++ one
 // In particular it has a acosh and other similar functions which aren't implemented in Visual C++ math.h
@@ -20,6 +18,8 @@
 # else
 #  include <math.h>
 # endif
+
+#ifdef _WIN32
 
 #  ifndef INTERFACE_STATIC_LIB
 #     ifdef BRUCE_EXPORTS
