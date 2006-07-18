@@ -38,7 +38,7 @@ print "\nGenerate mesh: finley.Rectangle(151,151,1)=>"
 
 # set the direct solver switch
 DIRECT=LinearPDE.DIRECT
-# DIRECT=LinearPDE.ITERATIVE # this will switch of the DIRECT solver call to avoid external library calls which may not be available everywhere
+DIRECT=LinearPDE.ITERATIVE # this will switch of the DIRECT solver call to avoid external library calls which may not be available everywhere
 
 print "\nSetup domain and functions"
 print "--------------------------"
@@ -59,9 +59,12 @@ u_ex=Scalar(1,n,True)
 
 print "x=e.getX():"
 x=e.getX()
+print "is x protected: ",x.isProtected()
+
 
 print "norm_u_ex=Lsup(u_ex):"
 norm_u_ex=Lsup(u_ex)
+print "is u_ex protected: ",u_ex.isProtected()
 
 print "\nGenerate a test solution (1)"
 print "----------------------------"

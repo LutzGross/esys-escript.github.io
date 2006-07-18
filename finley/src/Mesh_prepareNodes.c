@@ -250,8 +250,8 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
   }
 	MEMFREE( mask );
 	Finley_MPI_noError( in->MPIInfo );
-#endif
 clean:
+#endif
   TMPMEMFREE(reducedNodesMask);
   TMPMEMFREE(maskDOF);
   TMPMEMFREE(maskReducedDOF);

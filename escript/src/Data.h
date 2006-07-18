@@ -234,6 +234,23 @@ class Data {
 
   /**
      \brief
+     switches on update protection 
+
+  */
+  ESCRIPT_DLL_API
+  void
+  setProtection();
+
+  /**
+     \brief
+     Returns trueif the data object is protected against update
+
+  */
+  ESCRIPT_DLL_API
+  bool
+  isProtected() const;
+  /**
+     \brief
      Return the values of all data-points as a single python numarray object.
   */
   ESCRIPT_DLL_API
@@ -1357,6 +1374,10 @@ class Data {
   */
   void
   reshapeDataPoint(const DataArrayView::ShapeType& shape);
+
+  //
+  // flag to protect the data object against any update
+  bool m_protected;
 
   //
   // pointer to the actual data object
