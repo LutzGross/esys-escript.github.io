@@ -110,17 +110,19 @@ void Finley_NodeDistribution_print( Finley_NodeDistribution *in, FILE *fid )
   /* list each neighbour */
   for( n=0; n<in->numNeighbours; n++ )
   {
-
-    fprintf( fid, "\nNeighbour %d - Domain %d\n=====================\n\n", n, in->neighbours[n] );
-    fprintf( fid, "numForward = %d\tnumBackward = %d\n", in->edges[n]->numForward, in->edges[n]->numBackward );
-    fprintf( fid, "indexForward\n[ " );
-    for( i=0; i<in->edges[n]->numForward; i++ )
-      fprintf( fid, "%d ", in->edges[n]->indexForward[i] );
-    fprintf( fid, "]\n" );
-    fprintf( fid, "indexBackward\n[ " );
-    for( i=0; i<in->edges[n]->numBackward; i++ )
-      fprintf( fid, "%d ", in->edges[n]->indexBackward[i] );
-    fprintf( fid, "]\n=======================================================================================\n" );
+		if( in->neighbours[n]!=-1 ){
+			fprintf( fid, "\nNeighbour %d - Domain %d\n=====================\n\n", n, in->neighbours[n] );
+			fprintf( fid, "numForward = %d\tnumBackward = %d\n", in->edges[n]->numForward, in->edges[n]->numBackward );
+			fprintf( fid, "indexForward\n[ " );
+			for( i=0; i<in->edges[n]->numForward; i++ )
+				fprintf( fid, "%d ", in->edges[n]->indexForward[i] );
+			fprintf( fid, "]\n" );
+			fprintf( fid, "indexBackward\n[ " );
+			for( i=0; i<in->edges[n]->numBackward; i++ )
+				fprintf( fid, "%d ", in->edges[n]->indexBackward[i] );
+			fprintf( fid, "]\n=======================================================================================\n" );
+		}else
+			fprintf( fid, "\nNeighbour %d - Empty\n=====================\n\n", n );
   }
 }
 

@@ -508,7 +508,7 @@ void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  )
     fprintf( fid, "%s [ ", name );
   else
     fprintf( fid, "[ " );  
-  for( i=0; i<(n<30 ? n : 30); i++ )
+  for( i=0; i<(n<60 ? n : 60); i++ )
     fprintf( fid, "%g ", array[i] );
   if( n>=30 )
     fprintf( fid, "... " );
@@ -522,7 +522,7 @@ void Finley_printIntArray( FILE *fid, dim_t n, int *array, char *name  )
     fprintf( fid, "%s [ ", name );
   else
     fprintf( fid, "[ " );  
-  for( i=0; i<(n<30 ? n : 30); i++ )
+  for( i=0; i<(n<60 ? n : 60); i++ )
     fprintf( fid, "%d ", array[i] );
   if( n>=30 )
     fprintf( fid, "... " );
@@ -536,11 +536,11 @@ void Finley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  )
     fprintf( fid, "%s [ ", name );
   else
     fprintf( fid, "[ " );  
-  for( i=0; i<(n<30 ? n : 30); i++ )
+  for( i=0; i<(n<60 ? n : 60); i++ )
     if( array[i]!=-1 )
-      fprintf( fid, "%d ", array[i] );
+      fprintf( fid, "%3d ", array[i] );
     else
-      fprintf( fid, "* " );
+      fprintf( fid, "  * " );
   if( n>=30 )
     fprintf( fid, "... " );
   fprintf( fid, "]\n" );

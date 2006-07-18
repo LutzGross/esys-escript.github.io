@@ -28,17 +28,19 @@
 /*  allocates the node table within an node file to hold numNodes of nodes. The LinearTo mapping, if it exists, */
 /*  is deallocated. use Finley_Mesh_setLinearMesh to create a new one. */
 
-#ifdef PASO_MPI
-void Finley_NodeFile_allocTable( Finley_NodeFile* in, dim_t numNodes ) 
-#else
 void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes) 
-#endif
 {
   index_t *Id2=NULL, *Tag2=NULL, *degreeOfFreedom2=NULL, *reducedDegreeOfFreedom2=NULL, *toReduced2=NULL;
+#ifdef PASO_MPI
+	index_t *Dom2=NULL;
+#endif
   double *Coordinates2=NULL;
   dim_t n,i;
   
   /*  allocate memory: */
+#ifdef PASO_MPI
+  Dom2=MEMALLOC(numNodes,index_t);
+#endif
   Id2=MEMALLOC(numNodes,index_t);
   Coordinates2=MEMALLOC(numNodes*in->numDim,double);
   Tag2=MEMALLOC(numNodes,index_t);
@@ -47,9 +49,14 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
   toReduced2=MEMALLOC(numNodes,index_t);
   
   /*  if fine, deallocate the old table and replace by new: */
-  
+#ifdef PASO_MPI 
+  if (Finley_checkPtr(Id2) || Finley_checkPtr(Coordinates2) || Finley_checkPtr(Tag2) || Finley_checkPtr(Dom2) ||
+      Finley_checkPtr(degreeOfFreedom2) || Finley_checkPtr(reducedDegreeOfFreedom2) || Finley_checkPtr(toReduced2) ) {
+		MEMFREE( Dom2 );
+#else
   if (Finley_checkPtr(Id2) || Finley_checkPtr(Coordinates2) || Finley_checkPtr(Tag2) ||
       Finley_checkPtr(degreeOfFreedom2) || Finley_checkPtr(reducedDegreeOfFreedom2) || Finley_checkPtr(toReduced2) ) {
+#endif
     MEMFREE(Id2);
     MEMFREE(Coordinates2);
     MEMFREE(Tag2);
@@ -58,6 +65,9 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
     MEMFREE(toReduced2);
   } else { 
     Finley_NodeFile_deallocTable(in);
+#ifdef PASO_MPI
+		in->Dom=Dom2;
+#endif
     in->Id=Id2;
     in->Coordinates=Coordinates2;
     in->Tag=Tag2;
@@ -72,6 +82,9 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
     #pragma omp parallel for private(n,i) schedule(static)
     for (n=0;n<numNodes;n++) {
        for (i=0;i<in->numDim;i++) in->Coordinates[INDEX2(i,n,in->numDim)]=0.;
+#ifdef PASO_MPI
+       in->Dom[n]=-1;
+#endif
        in->Id[n]=-1;
        in->Tag[n]=-1;
        in->degreeOfFreedom[n]=n;
@@ -86,6 +99,9 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
 
 void Finley_NodeFile_deallocTable(Finley_NodeFile* in) {
   if (in!=NULL) {
+#ifdef PASO_MPI
+    MEMFREE(in->Dom);
+#endif
     MEMFREE(in->Id);
     MEMFREE(in->Coordinates);
     MEMFREE(in->Tag);

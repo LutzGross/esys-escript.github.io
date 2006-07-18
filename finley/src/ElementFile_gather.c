@@ -39,6 +39,9 @@ void Finley_ElementFile_gather(index_t* index, Finley_ElementFile* in, Finley_El
      #pragma omp parallel for private(e,k,j) schedule(static)
      for (e=0;e<out->numElements;e++) {
         k=index[e];
+#ifdef PASO_MPI
+        out->Dom[e]=in->Dom[k];
+#endif
         out->Id[e]=in->Id[k];
         out->Tag[e]=in->Tag[k];
         out->Color[e]=in->Color[k]+out->maxColor+1;

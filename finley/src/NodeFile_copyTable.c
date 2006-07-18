@@ -46,6 +46,9 @@ void Finley_NodeFile_copyTable(int offset,Finley_NodeFile* out,int idOffset,int 
           out->degreeOfFreedom[offset+n]=in->degreeOfFreedom[n]+dofOffset;
           out->reducedDegreeOfFreedom[offset+n]=in->reducedDegreeOfFreedom[n]+dofOffset;
           out->toReduced[offset+n]=in->toReduced[n]+dofOffset;
+#ifdef PASO_MPI
+					out->Dom[offset+n]=in->Dom[n];
+#endif
           for(i=0;i<out->numDim;i++) out->Coordinates[INDEX2(i,offset+n,out->numDim)]=in->Coordinates[INDEX2(i,n,in->numDim)];
        }
     }

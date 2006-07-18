@@ -43,6 +43,9 @@ void Finley_ElementFile_copyTable(index_t offset,Finley_ElementFile* out,index_t
     if (Finley_noError()) {
        #pragma omp parallel for private(i,n) schedule(static)
        for(n=0;n<in->numElements;n++) {
+#ifdef PASO_MPI
+          out->Dom[offset+n]=in->Dom[n]+idOffset;
+#endif	
           out->Id[offset+n]=in->Id[n]+idOffset;
           out->Tag[offset+n]=in->Tag[n];
           out->Color[offset+n]=in->Color[n]+out->maxColor+1;

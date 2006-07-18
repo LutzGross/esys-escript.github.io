@@ -79,7 +79,7 @@ void Finley_Mesh_markOrderedNodesLocation(index_t* mask,index_t offset,Finley_Me
 
 void Finley_Mesh_markOrderedDegreesOfFreedomLocation(index_t* mask,index_t offset,Finley_Mesh* in,bool_t useLinear) 
 {
-  index_t *internalMask=NULL, *boundaryMask=NULL, i;
+  index_t *internalMask=NULL, *boundaryMask=NULL, i,startElement;
 
   if( offset )
   {
@@ -92,15 +92,23 @@ void Finley_Mesh_markOrderedDegreesOfFreedomLocation(index_t* mask,index_t offse
   for( i=0; i<in->Nodes->numDegreesOfFreedom; i++ )
     internalMask[i] = boundaryMask[i] = 0;
 
-  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->Elements,useLinear);
-  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->FaceElements,useLinear);
-  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->ContactElements,useLinear);
-  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->Points,useLinear);
+	startElement = 0;
+  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->Elements,useLinear,startElement);
+	startElement += in->Elements->numElements;
+  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->FaceElements,useLinear,startElement);
+	startElement += in->FaceElements->numElements;
+  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->ContactElements,useLinear,startElement);
+	startElement += in->ContactElements->numElements;
+  Finley_ElementFile_markInternalElementDOF(internalMask,offset,in->Nodes->degreeOfFreedom,in->Points,useLinear,startElement);
 
-  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->Elements,useLinear);
-  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->FaceElements,useLinear);
-  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->ContactElements,useLinear);
-  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->Points,useLinear);
+	startElement = 0;
+  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->Elements,useLinear,startElement);
+	startElement += in->Elements->numElements;
+  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->FaceElements,useLinear,startElement);
+	startElement += in->FaceElements->numElements;
+  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->ContactElements,useLinear,startElement);
+	startElement += in->ContactElements->numElements;
+  Finley_ElementFile_markBoundaryElementDOF(boundaryMask,offset,in->Nodes->degreeOfFreedom,in->Points,useLinear,startElement);
 
   for( i=0; i<in->Nodes->numDegreesOfFreedom; i++ )
     if( internalMask[i] && boundaryMask[i] )

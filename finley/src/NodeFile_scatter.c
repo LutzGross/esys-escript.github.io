@@ -36,6 +36,9 @@ void Finley_NodeFile_scatter(index_t* index, Finley_NodeFile* in, Finley_NodeFil
      #pragma omp parallel for private(i,j,k) schedule(static)
      for (i=0;i<in->numNodes;i++) {
         k=index[i];
+#ifdef PASO_MPI
+        out->Dom[k]=in->Dom[i];
+#endif
         out->Id[k]=in->Id[i];
         out->Tag[k]=in->Tag[i];
         out->degreeOfFreedom[k]=in->degreeOfFreedom[i];

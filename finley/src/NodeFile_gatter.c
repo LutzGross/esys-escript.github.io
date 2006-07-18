@@ -35,6 +35,9 @@ void Finley_NodeFile_gather(int* index, Finley_NodeFile* in, Finley_NodeFile* ou
      #pragma omp parallel for private(i,j,k) schedule(static)
      for (i=0;i<out->numNodes;i++) {
         k=index[i];
+#ifdef PASO_MPI
+        out->Dom[i]=in->Dom[k];
+#endif
         out->Id[i]=in->Id[k];
         out->Tag[i]=in->Tag[k];
         out->degreeOfFreedom[i]=in->degreeOfFreedom[k];

@@ -64,6 +64,7 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Pas
   out->jacobeans_reducedS_reducedQ=NULL;
 
 #ifdef PASO_MPI
+  out->Dom=NULL;                
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
   out->elementDistribution = Finley_ElementDistribution_alloc( MPIInfo );
 #endif
@@ -99,6 +100,7 @@ void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS_reducedQ);
 #ifdef PASO_MPI
+     MEMFREE(in->Dom);     
      Paso_MPIInfo_dealloc( in->MPIInfo );
      Finley_ElementDistribution_dealloc( in->elementDistribution );
 #endif           

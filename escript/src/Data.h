@@ -766,9 +766,14 @@ class Data {
 
   ESCRIPT_DLL_API
   void
+#ifndef PASO_MPI
   calc_mindp(int& SampleNo,
              int& DataPointNo) const;
-
+#else
+  calc_mindp(int& ProcNo,
+						int& SampleNo,	
+             int& DataPointNo) const;
+#endif
   /**
      \brief
      Return the sign of each data point of this Data object.
@@ -1212,12 +1217,45 @@ class Data {
               const FunctionSpace& fspace);
 
 
+#ifdef PASO_MPI	
   /**
      \brief
      print the data values to stdout. Used for debugging 
   */
-  void print();
+  ESCRIPT_DLL_API
+  void 
+	print(void);
 
+  /**
+     \brief
+     return the MPI rank number of the local data
+		 MPI_COMM_WORLD is assumed and the result of MPI_Comm_size()
+		 is returned
+  */
+  ESCRIPT_DLL_API
+	int 
+	get_MPIRank(void) const;
+
+  /**
+     \brief
+     return the MPI rank number of the local data
+		 MPI_COMM_WORLD is assumed and the result of MPI_Comm_rank()
+		 is returned
+  */
+  ESCRIPT_DLL_API
+	int 
+	get_MPISize(void) const;
+
+  /**
+     \brief
+     return the MPI rank number of the local data
+		 MPI_COMM_WORLD is assumed and returned.
+  */
+  ESCRIPT_DLL_API
+	MPI_Comm 
+	get_MPIComm(void) const;
+#endif
+	
  protected:
 
  private:

@@ -130,6 +130,7 @@ DataProf::compProf() {
 
   stringstream temp_str;
 
+#ifndef PASO_MPI
   temp_str << "========== Op Stats ===================\n";
   temp_str << "Total objects: " << totalDataObjects << "\n";
   temp_str << "interpolate  : " << comp_interpolate << "\n";
@@ -143,6 +144,7 @@ DataProf::compProf() {
   temp_str << "slicing      : " << comp_slicing << "\n";
   temp_str << "======================================= ";
   temp_str << endl;
+#endif
 
   return temp_str.str();
 

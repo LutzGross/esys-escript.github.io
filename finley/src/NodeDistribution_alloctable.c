@@ -16,15 +16,12 @@ void Finley_NodeDistribution_allocTable( Finley_NodeDistribution *in, dim_t numL
   if( Finley_checkPtr(in) )
     return;
 
-  if( numNeighbours )
-  {
-    neighbours = MEMALLOC( numNeighbours, index_t );
-    edges      = MEMALLOC( numNeighbours, Finley_NodeGhostEdge* );
-  }
+	neighbours = numNeighbours ? MEMALLOC( numNeighbours, index_t ) : NULL;
+	edges      = numNeighbours ? MEMALLOC( numNeighbours, Finley_NodeGhostEdge* ) : NULL;
   vtxdist = MEMALLOC( in->MPIInfo->size+1, index_t ); 
-  indexExternal = MEMALLOC( numExternal, index_t );
+ 	indexExternal = numExternal ? MEMALLOC( numExternal, index_t ) : NULL;
     
-  if( (numNeighbours && ( Finley_checkPtr(neighbours) || Finley_checkPtr(edges) )) || Finley_checkPtr(vtxdist) || Finley_checkPtr(indexExternal) )
+  if( (numNeighbours && ( Finley_checkPtr(neighbours) || Finley_checkPtr(edges) )) || Finley_checkPtr(vtxdist) || (numExternal &&  Finley_checkPtr(indexExternal)) )
   {
     MEMFREE( neighbours );
     MEMFREE( edges );

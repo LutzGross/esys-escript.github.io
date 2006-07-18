@@ -754,8 +754,15 @@ Data::convertToNumArrayFromSampleNo(int sampleNo)
 
 const
 boost::python::numeric::array
+#ifdef PASO_MPI
+Data::convertToNumArrayFromDPNo(int procNo,
+                                int sampleNo,
+																int dataPointNo)
+
+#else
 Data::convertToNumArrayFromDPNo(int sampleNo,
                                 int dataPointNo)
+#endif
 {
   //
   // Check a valid sample number has been supplied
@@ -1404,15 +1411,25 @@ Data::mindp() const
 
   int SampleNo;
   int DataPointNo;
-
+#ifdef PASO_MPI
+	int ProcNo;
+  calc_mindp(ProcNo,SampleNo,DataPointNo);
+  return make_tuple(ProcNo,SampleNo,DataPointNo);
+#else
   calc_mindp(SampleNo,DataPointNo);
-
   return make_tuple(SampleNo,DataPointNo);
+#endif
 }
 
 void
-Data::calc_mindp(int& SampleNo,
-                 int& DataPointNo) const
+#ifdef PASO_MPI
+Data::calc_mindp(	int& ProcNo,
+			 	int& SampleNo,
+       	int& DataPointNo) const
+#else
+Data::calc_mindp(	int& SampleNo,
+        int& DataPointNo) const
+#endif
 {
   int i,j;
   int lowi=0,lowj=0;
@@ -1448,6 +1465,26 @@ Data::calc_mindp(int& SampleNo,
     }
   }
 
+#ifdef PASO_MPI
+	// determine the processor on which the minimum occurs
+	next = temp.getDataPoint(lowi,lowj)();
+	int lowProc = 0;
+	double *globalMins = new double[get_MPISize()+1];
+	int error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
+	
+	if( get_MPIRank()==0 ){
+		next = globalMins[lowProc];
+		for( i=1; i<get_MPISize(); i++ )
+			if( next>globalMins[i] ){
+				lowProc = i;
+				next = globalMins[i];
+			}
+	}
+	MPI_Bcast( &lowProc, 1, MPI_DOUBLE, 0, get_MPIComm() );
+
+	delete [] globalMins;
+	ProcNo = lowProc;
+#endif
   SampleNo = lowi;
   DataPointNo = lowj;
 }
@@ -1584,20 +1621,6 @@ Data::powD(const Data& right) const
   return result;
 }
 
-void
-Data::print()
-{
-  int i,j;
-  
-  printf( "Data is %dX%d\n", getNumSamples(), getNumDataPointsPerSample() );
-  for( i=0; i<getNumSamples(); i++ )
-  {
-    printf( "[%6d]", i );
-    for( j=0; j<getNumDataPointsPerSample(); j++ )
-      printf( "\t%10.7g", (getSampleData(i))[j] );
-    printf( "\n" );
-  }
-}
 
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
@@ -2382,3 +2405,46 @@ ostream& escript::operator<<(ostream& o, const Data& data)
   o << data.toString();
   return o;
 }
+
+/* Member functions specific to the MPI implementation */
+#ifdef PASO_MPI
+
+void
+Data::print() 
+{
+  int i,j;
+  
+  printf( "Data is %dX%d\n", getNumSamples(), getNumDataPointsPerSample() );
+  for( i=0; i<getNumSamples(); i++ )
+  {
+    printf( "[%6d]", i );
+    for( j=0; j<getNumDataPointsPerSample(); j++ )
+      printf( "\t%10.7g", (getSampleData(i))[j] );
+    printf( "\n" );
+  }
+}
+
+int
+Data::get_MPISize() const
+{
+	int error, size;
+	error = MPI_Comm_size( get_MPIComm(), &size );
+
+	return size;
+}
+
+int
+Data::get_MPIRank() const
+{
+	int error, rank;
+	error = MPI_Comm_rank( get_MPIComm(), &rank );
+
+	return rank;
+}
+
+MPI_Comm
+Data::get_MPIComm() const
+{
+	return MPI_COMM_WORLD;
+}
+#endif

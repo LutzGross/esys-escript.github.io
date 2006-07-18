@@ -101,12 +101,15 @@ char* Paso_getErrorMessage(void) {
 /* NOTE : does not make guarentee consistency of error string on each process */
 bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
 {
-    int errorLocal=0, errorGlobal=0;
+  int errorLocal=0, errorGlobal=0;
 
-    errorLocal = (int)Paso_noError();
-    MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_LAND, mpi_info->comm  );
+  errorLocal = (int)Paso_noError();
+  MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_LAND, mpi_info->comm  );
 
-    return errorGlobal;
+	// take care of the case where the error was on another processor
+	if( errorLocal && !errorGlobal )
+		Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
+  return errorGlobal;
 }
 #endif 
 /**************************************************************/

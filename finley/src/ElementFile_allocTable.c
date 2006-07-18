@@ -31,11 +31,16 @@
 
 void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements) {
   index_t *Id2=NULL,*Nodes2=NULL,*Tag2=NULL,*Color2=NULL;
+#ifdef PASO_MPI
+	index_t *Dom2=NULL;
+#endif
   dim_t numNodes,e,i;
   Finley_resetError();
   
   /*  allocate memory: */
-  
+#ifdef PASO_MPI 
+  Dom2=MEMALLOC(numElements,dim_t);
+#endif
   numNodes=(dim_t) in->ReferenceElement->Type->numNodes;
   Id2=MEMALLOC(numElements,dim_t);
   Nodes2=MEMALLOC(numElements*numNodes,dim_t);
@@ -44,13 +49,21 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements) {
   
   /*  if fine, deallocate the old table and replace by new: */
   
+#ifdef PASO_MPI
+  if ( Finley_checkPtr(Dom2) || Finley_checkPtr(Id2) || Finley_checkPtr(Nodes2) || Finley_checkPtr(Tag2) || Finley_checkPtr(Color2)) {
+	  MEMFREE( Dom2 );	
+#else
   if (Finley_checkPtr(Id2) || Finley_checkPtr(Nodes2) || Finley_checkPtr(Tag2) || Finley_checkPtr(Color2)) {
-    MEMFREE(Id2);
+#endif
     MEMFREE(Nodes2);
+    MEMFREE(Id2);
     MEMFREE(Tag2);
     MEMFREE(Color2);
   } else { 
     Finley_ElementFile_deallocTable(in);
+#ifdef PASO_MPI
+    in->Dom=Dom2;
+#endif
     in->numElements=numElements;
     in->Id=Id2;
     in->Nodes=Nodes2;
@@ -62,6 +75,9 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements) {
     #pragma omp parallel for private(e,i) schedule(static)
     for (e=0;e<numElements;e++) {
        for (i=0;i<numNodes;i++) in->Nodes[INDEX2(i,e,numNodes)]=-1;
+#ifdef PASO_MPI
+       in->Dom[e]=-1;
+#endif
        in->Id[e]=-1;
        in->Tag[e]=-1;
        in->Color[e]=-1;
@@ -75,6 +91,9 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements) {
 /*  deallocates the element table within an element file: */
 
 void Finley_ElementFile_deallocTable(Finley_ElementFile* in) {
+#ifdef PASO_MPI
+	MEMFREE(in->Dom);
+#endif
   MEMFREE(in->Id);
   MEMFREE(in->Nodes);
   MEMFREE(in->Tag);
