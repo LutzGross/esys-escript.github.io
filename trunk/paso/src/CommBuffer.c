@@ -319,7 +319,7 @@ bool_t Paso_CommBuffer_waitSend( Paso_CommBuffer *in, index_t dom )
 
     if( success!=MPI_SUCCESS )
     {
-      Paso_setError( PASO_MPI_ERROR, "Paso_CommBuffer_waitSend() : Error : failed MPI_Isend" );
+      Paso_setError( PASO_MPI_ERROR, "Paso_CommBuffer_waitSend() : failed MPI_Isend" );
       return FALSE;
     }
   }
@@ -360,7 +360,7 @@ bool_t Paso_CommBuffer_waitRecv( Paso_CommBuffer *in, index_t dom )
 
     if( success!=MPI_SUCCESS )
     {
-      Paso_setError( PASO_MPI_ERROR, "Paso_CommBuffer_waitRecv() : Error : failed MPI_Irecv" );
+      Paso_setError( PASO_MPI_ERROR, "Paso_CommBuffer_waitRecv() : failed MPI_Irecv" );
       return FALSE;
     }
 
@@ -368,7 +368,7 @@ bool_t Paso_CommBuffer_waitRecv( Paso_CommBuffer *in, index_t dom )
 		MPI_Get_count( in->statusBackward + position, MPI_BYTE, &success );
 		if( success!=in->requestedRecvLength[position] )
 		{
-      Paso_setError( PASO_MPI_ERROR, "Paso_CommBuffer_waitRecv() : Error : size of received buffer and backward count are not equal" );
+      Paso_setError( PASO_MPI_ERROR, "Paso_CommBuffer_waitRecv() : size of received buffer and backward count are not equal" );
       return FALSE;
 		}
   }
@@ -466,7 +466,7 @@ void Paso_CommBuffer_unpack( Paso_CommBuffer *in, index_t dom, index_t *index, v
   {
     /* unpack the data according to index */
     for( i=0; i<in->numBackward[position]; i++ )
-      memcpy( to + itemSize*index[i], from + (i*itemSize), itemSize );
+			memcpy( to + itemSize*index[i], from + (i*itemSize), itemSize );
   }
 }
 

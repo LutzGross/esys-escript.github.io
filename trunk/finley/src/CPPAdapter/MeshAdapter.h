@@ -254,6 +254,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual int getDiracDeltaFunctionCode() const;
 
   /**
+		 5B
      \brief
   */
   typedef std::map<int, std::string> FunctionSpaceNamesMapType;

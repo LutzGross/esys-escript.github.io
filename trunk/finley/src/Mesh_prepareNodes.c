@@ -35,9 +35,10 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
   dim_t n,len;
   index_t id,max_id,min_id,*maskReducedDOF=NULL,*maskDOF=NULL,*reducedNodesMask=NULL,*index=NULL;
 #ifdef PASO_MPI
-  index_t *indexLocal=NULL, *maskReducedDOFLocation=NULL;
-  index_t thisDom = in->MPIInfo->rank, i;
-  dim_t bufferLength=0, numReducedLocal, numReducedInternal, numReducedBoundary, numReducedExternal, numForward, numBackward, totalDOF;
+  index_t *maskDOFLocation=NULL, *indexLocal=NULL, *maskReducedDOFLocation=NULL, *mask=NULL;
+  index_t thisDom = in->MPIInfo->rank, i, iI, iB, iE;
+  dim_t bufferLength=0, numInternal, numBoundary, numExternal, numLocal, numReducedLocal, numReducedInternal, numReducedBoundary, numReducedExternal, numForward, numBackward, totalDOF;
+	Finley_NodeDistribution *distribution=NULL;
 
 #endif
 
@@ -114,23 +115,66 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
    }
 
 #ifdef PASO_MPI
-
   /*********************************************************** 
     update the distribution data 
    ***********************************************************/
+	
+	in->Nodes->degreeOfFreedomDistribution->numInternal = 0;
+	in->Nodes->degreeOfFreedomDistribution->numBoundary = 0;
+	in->Nodes->degreeOfFreedomDistribution->numExternal = 0;
+	mask = MEMALLOC(in->Nodes->numDegreesOfFreedom,index_t);
+	for( i=0; i<in->Nodes->numNodes; i++ )
+		mask[in->Nodes->degreeOfFreedom[i]] = in->Nodes->Dom[i]; 
+	for( i=0; i<in->Nodes->numDegreesOfFreedom; i++ )
+		switch( mask[i] ){
+			case NODE_INTERNAL :
+				in->Nodes->degreeOfFreedomDistribution->numInternal++;
+				break; 
+			case NODE_BOUNDARY :
+				in->Nodes->degreeOfFreedomDistribution->numBoundary++;
+				break; 
+			case NODE_EXTERNAL :
+				in->Nodes->degreeOfFreedomDistribution->numExternal++;
+				break; 
+		}
+		
+	in->Nodes->degreeOfFreedomDistribution->numLocal = in->Nodes->degreeOfFreedomDistribution->numInternal + in->Nodes->degreeOfFreedomDistribution->numBoundary;
+	
+	/* reform the vtxdist */
+	distribution = in->Nodes->degreeOfFreedomDistribution;
+	
+	MPI_Allgather( &distribution->numLocal, 1, MPI_INT, distribution->vtxdist+1, 1, MPI_INT, in->MPIInfo->comm );
 
-  totalDOF = in->Nodes->degreeOfFreedomDistribution->numLocal + in->Nodes->degreeOfFreedomDistribution->numExternal;
-
+	distribution->vtxdist[0] = 0;
+	for( i=2; i<in->MPIInfo->size+1; i++ )
+		distribution->vtxdist[i] += distribution->vtxdist[i-1];
+		
+	MPI_Allreduce( &distribution->numLocal, &distribution->numGlobal, 1, MPI_INT, MPI_SUM, in->MPIInfo->comm );
+	
   /* update the forward and backward indices for each neighbour */
   for( n=0; n<in->Nodes->degreeOfFreedomDistribution->numNeighbours; n++ ){
-    for( i=0; i<in->Nodes->degreeOfFreedomDistribution->edges[n]->numForward; i++ )
-      in->Nodes->degreeOfFreedomDistribution->edges[n]->indexForward[i] = maskDOF[in->Nodes->degreeOfFreedomDistribution->edges[n]->indexForward[i]];
-    for( i=0; i<in->Nodes->degreeOfFreedomDistribution->edges[n]->numBackward; i++ )
-      in->Nodes->degreeOfFreedomDistribution->edges[n]->indexBackward[i] = maskDOF[in->Nodes->degreeOfFreedomDistribution->edges[n]->indexBackward[i]];
+    for( i=0, iI=0; i<in->Nodes->degreeOfFreedomDistribution->edges[n]->numForward; i++ ){
+			if( maskDOF[in->Nodes->degreeOfFreedomDistribution->edges[n]->indexForward[i]]>=0 )
+      	in->Nodes->degreeOfFreedomDistribution->edges[n]->indexForward[iI++] = maskDOF[in->Nodes->degreeOfFreedomDistribution->edges[n]->indexForward[i]];
+		}
+		in->Nodes->degreeOfFreedomDistribution->edges[n]->numForward = iI;
+    for( i=0, iI=0; i<in->Nodes->degreeOfFreedomDistribution->edges[n]->numBackward; i++ ){
+			if(maskDOF[in->Nodes->degreeOfFreedomDistribution->edges[n]->indexBackward[i]]>=0)	 
+				in->Nodes->degreeOfFreedomDistribution->edges[n]->indexBackward[iI++] = maskDOF[in->Nodes->degreeOfFreedomDistribution->edges[n]->indexBackward[i]];
+		}
+		in->Nodes->degreeOfFreedomDistribution->edges[n]->numBackward = iI;
+  }
+
+  Finley_NodeDistribution_formCommBuffer( in->Nodes->degreeOfFreedomDistribution, in->Nodes->CommBuffer );
+  if ( !Finley_MPI_noError( in->MPIInfo )) {
+    goto clean;
   }
 
   /* update the global indices for the external DOF on this subdomain */
   Finley_NodeDistribution_calculateIndexExternal( in->Nodes->degreeOfFreedomDistribution, in->Nodes->CommBuffer );
+  if( !Finley_MPI_noError( in->MPIInfo ) ) {
+    goto clean;
+  }
 
   /*********************************************************** 
     compile distribution data for the reduced degrees of freedom 
@@ -139,31 +183,27 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
   /* determnine the number of internal, boundary and external DOF in the reduced distribution */
   totalDOF = in->Nodes->degreeOfFreedomDistribution->numLocal + in->Nodes->degreeOfFreedomDistribution->numExternal;
 
-  maskReducedDOFLocation = MEMALLOC( in->Nodes->numDegreesOfFreedom, index_t );
-  for( n=0; n<in->Nodes->numDegreesOfFreedom; n++ )
-    maskReducedDOFLocation[n] = -1;
-  Finley_Mesh_markOrderedDegreesOfFreedomLocation( maskReducedDOFLocation, 0, in, TRUE);
-
   numReducedInternal = numReducedBoundary = numReducedLocal = numReducedExternal = 0;
-  for( n=0; n<in->Nodes->degreeOfFreedomDistribution->numLocal + in->Nodes->degreeOfFreedomDistribution->numExternal; n++ ) {
-    switch( maskReducedDOFLocation[n] ) {
-      case 1 :
-        numReducedInternal++;
-        break;
-      case 2 :
-        numReducedBoundary++;
-        break;
-      case 3 :        
-        numReducedExternal++;
-        break;
-      }
-  }
-  numReducedLocal = numReducedInternal + numReducedBoundary;
-  MEMFREE( maskReducedDOFLocation );
+	n=0;
+  for( n=0; n<len; n++ ) 
+		if( maskReducedDOF[n]>=0 )
+			switch( mask[maskDOF[n]] ){
+				case NODE_INTERNAL :
+					numReducedInternal++;
+					break;
+				case NODE_BOUNDARY :
+					numReducedBoundary++;
+					break;
+				case NODE_EXTERNAL :
+					numReducedExternal++;
+					break;
+			}
 
+  numReducedLocal = numReducedInternal + numReducedBoundary;
+
+  Finley_NodeDistribution_allocTable( in->Nodes->reducedDegreeOfFreedomDistribution, numReducedLocal, numReducedExternal, 0 );
   if( Finley_MPI_noError( in->MPIInfo ) )  
   {
-    Finley_NodeDistribution_allocTable( in->Nodes->reducedDegreeOfFreedomDistribution, numReducedLocal, numReducedExternal, 0 );
     in->Nodes->reducedDegreeOfFreedomDistribution->numInternal = numReducedInternal;  
     in->Nodes->reducedDegreeOfFreedomDistribution->numBoundary = numReducedBoundary;
 
@@ -177,6 +217,11 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
     }
     indexLocal = TMPMEMALLOC( bufferLength, index_t );
 
+		/* find the new mapping from full to reduced DOF */
+		for( i=0; i<in->Nodes->numNodes; i++ )
+			maskReducedDOF[in->Nodes->degreeOfFreedom[i]] = in->Nodes->reducedDegreeOfFreedom[i];
+
+		/* use the mapping to map the full distribution to the reduced distribution */	
     for( n=0; n<in->Nodes->degreeOfFreedomDistribution->numNeighbours; n++ ){
       numForward = numBackward = 0;
       for( i=0; i<in->Nodes->degreeOfFreedomDistribution->edges[n]->numForward; i++  )
@@ -190,14 +235,23 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
     }
 
     /* update the global indices for the reduced external DOF on this subdomain */
-
     Finley_NodeDistribution_calculateIndexExternal( in->Nodes->degreeOfFreedomDistribution, in->Nodes->CommBuffer );
+  	if( !Finley_MPI_noError( in->MPIInfo ) ) {
+			TMPMEMFREE( indexLocal );
+			goto clean;
+		}
     Finley_NodeDistribution_formCommBuffer( in->Nodes->reducedDegreeOfFreedomDistribution, in->Nodes->reducedCommBuffer );
+  	if( !Finley_MPI_noError( in->MPIInfo ) ) {
+  		TMPMEMFREE( indexLocal );
+			goto clean;
+		}
     Finley_NodeDistribution_calculateIndexExternal( in->Nodes->reducedDegreeOfFreedomDistribution, in->Nodes->reducedCommBuffer );
+		TMPMEMFREE( indexLocal );
   }
-
-  TMPMEMFREE( indexLocal );
+	MEMFREE( mask );
+	Finley_MPI_noError( in->MPIInfo );
 #endif
+clean:
   TMPMEMFREE(reducedNodesMask);
   TMPMEMFREE(maskDOF);
   TMPMEMFREE(maskReducedDOF);

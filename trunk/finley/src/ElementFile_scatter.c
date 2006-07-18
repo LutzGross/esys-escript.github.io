@@ -39,6 +39,9 @@ void Finley_ElementFile_scatter(index_t* index, Finley_ElementFile* in, Finley_E
      #pragma omp parallel for private(e,k,j) schedule(static)
      for (e=0;e<in->numElements;e++) {
         k=index[e];
+#ifdef PASO_MPI
+        out->Dom[k]=in->Dom[e];
+#endif
         out->Id[k]=in->Id[e];
         out->Tag[k]=in->Tag[e];
         out->Color[k]=in->Color[e]+out->maxColor+1;

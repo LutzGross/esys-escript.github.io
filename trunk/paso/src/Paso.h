@@ -26,8 +26,6 @@
 #ifndef INC_PASO
 #define INC_PASO
 
-//#define PASO_MPI
-
 #include "Common.h"
 #include "Options.h"
 #include "SystemMatrix.h"

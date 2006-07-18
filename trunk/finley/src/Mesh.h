@@ -64,6 +64,7 @@
 
 #ifdef PASO_MPI
 #include "paso/Paso_MPI.h"
+
 #endif
 
 /**************************************************************/
@@ -110,6 +111,8 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order);
 Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, Paso_MPIInfo *mpi_info);
 void Finley_Mesh_markOrderedNodesLocation(index_t* mask,index_t offset,Finley_Mesh* in,bool_t useLinear);
 void Finley_Mesh_markOrderedDegreesOfFreedomLocation(index_t* mask,index_t offset,Finley_Mesh* in,bool_t useLinear);
+void Finley_Mesh_resolveDegreeOfFreedomOrder( Finley_Mesh *in, bool_t doReduced );
+void print_mesh_statistics( Finley_Mesh *out, bool_t reduced  );
 #endif
 /*Finley_Mesh* Finley_Mesh_alloc(char*,int,int);*/
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);

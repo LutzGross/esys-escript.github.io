@@ -90,9 +90,10 @@ void Finley_ElementFile_markBoundaryElementNodes(index_t* mask,index_t offset,Fi
         lin_node=id;
      }
      NN2=in->ReferenceElement->Type->numNodes;
-     for (e=0;e<in->elementDistribution->numBoundary;e++) 
-       for (i=0;i<NN;i++) 
-         mask[in->Nodes[INDEX2(lin_node[i],e+in->elementDistribution->numInternal,NN2)]-offset]=1;
+     for (e=0;e<in->elementDistribution->numLocal;e++) 
+			 if( in->Id[e]>=in->elementDistribution->numInternal )
+				 for (i=0;i<NN;i++) 
+					 mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
    }
 }
 
@@ -111,33 +112,37 @@ void Finley_ElementFile_markInternalElementNodes(index_t* mask,index_t offset,Fi
      }
      NN2=in->ReferenceElement->Type->numNodes;
 
-     for (e=0;e<in->elementDistribution->numInternal;e++)
-       for (i=0;i<NN;i++) 
-         mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
+     for (e=0;e<in->elementDistribution->numLocal;e++)
+			 if( in->Id[e]<in->elementDistribution->numInternal )
+				 for (i=0;i<NN;i++) 
+					 mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
    }
 }
 
-void Finley_ElementFile_markBoundaryElementDOF(index_t* mask,index_t offset,index_t *degreeOfFreedom,Finley_ElementFile* in,bool_t useLinear) {
-   dim_t i,NN,NN2,e;
-   index_t color,*lin_node;
-   if (in!=NULL&& in->numElements>0) {
-     index_t id[in->ReferenceElement->Type->numNodes];
-     for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
-     if (useLinear) {
-        NN=in->LinearReferenceElement->Type->numNodes;
-        lin_node=in->ReferenceElement->Type->linearNodes;
-     } else {
-        NN=in->ReferenceElement->Type->numNodes;
-        lin_node=id;
-     }
-     NN2=in->ReferenceElement->Type->numNodes;
-     for (e=0;e<in->elementDistribution->numBoundary;e++) 
-       for (i=0;i<NN;i++) 
-         mask[degreeOfFreedom[in->Nodes[INDEX2(lin_node[i],e+in->elementDistribution->numInternal,NN2)]]-offset]=1;
-   }
+void Finley_ElementFile_markBoundaryElementDOF(index_t* mask,index_t offset,index_t *degreeOfFreedom, Finley_ElementFile* in,bool_t useLinear, index_t startElement) {
+	dim_t i,NN,NN2,e;
+	index_t color,*lin_node;
+	if (in!=NULL&& in->numElements>0) {
+
+		index_t id[in->ReferenceElement->Type->numNodes];
+		for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
+			if (useLinear) {
+				NN=in->LinearReferenceElement->Type->numNodes;
+				lin_node=in->ReferenceElement->Type->linearNodes;
+			} else {
+				NN=in->ReferenceElement->Type->numNodes;
+				lin_node=id;
+			}
+			NN2=in->ReferenceElement->Type->numNodes;
+			for (e=0;e<in->elementDistribution->numLocal;e++) 
+	 			if( in->Id[e]-startElement>=in->elementDistribution->numInternal )
+					for (i=0;i<NN;i++) 
+						mask[degreeOfFreedom[in->Nodes[INDEX2(lin_node[i],e,NN2)]]-offset]=1;
+	}
+
 }
 
-void Finley_ElementFile_markInternalElementDOF(index_t* mask,index_t offset,index_t *degreeOfFreedom, Finley_ElementFile* in,bool_t useLinear) {
+void Finley_ElementFile_markInternalElementDOF(index_t* mask,index_t offset,index_t *degreeOfFreedom, Finley_ElementFile* in,bool_t useLinear, index_t startElement) {
    dim_t i,NN,NN2,e;
    index_t color,*lin_node;
    if (in!=NULL && in->numElements>0) {
@@ -152,9 +157,10 @@ void Finley_ElementFile_markInternalElementDOF(index_t* mask,index_t offset,inde
      }
      NN2=in->ReferenceElement->Type->numNodes;
 
-     for (e=0;e<in->elementDistribution->numInternal;e++)
-       for (i=0;i<NN;i++) 
-         mask[degreeOfFreedom[in->Nodes[INDEX2(lin_node[i],e,NN2)]]-offset]=1;
+     for (e=0;e<in->elementDistribution->numLocal;e++) 
+			 if( in->Id[e]-startElement<in->elementDistribution->numInternal )
+				 for (i=0;i<NN;i++) 
+					 mask[degreeOfFreedom[in->Nodes[INDEX2(lin_node[i],e,NN2)]]-offset]=1;
    }
 }
 #endif

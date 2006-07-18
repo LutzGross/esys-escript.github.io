@@ -82,7 +82,6 @@ namespace finley {
       fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,
 					useElementsOnFace) ;
     } 
-#ifndef PASO_MPI 
 		else if (order==2) {
       fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,
 					 useElementsOnFace) ;
@@ -91,13 +90,6 @@ namespace finley {
       temp << "Illegal interpolation order: " << order;
       setFinleyError(VALUE_ERROR,temp.str().c_str());
     }
-#else
-		else {
-      stringstream temp;
-      temp << "type of 3D regular mesh requested is unavailable under MPI\nOR\nIllegal interpolation order: " << order;
-      setFinleyError(VALUE_ERROR,temp.str().c_str());
-    }
-#endif
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
@@ -119,12 +111,10 @@ namespace finley {
       fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,
 					useElementsOnFace);
     }
-#ifndef PASO_MPI 
     else if (order==2) {
       fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,
 					useElementsOnFace);
     }
-#endif
     else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
@@ -148,12 +138,10 @@ namespace finley {
       fMesh=Finley_RectangularMesh_Line2(numElements, length,periodic,integrationOrder,
 					 useElementsOnFace);
     } 
-#ifndef PASO_MPI
     else if (order==2) {
       fMesh=Finley_RectangularMesh_Line3(numElements,length,periodic,integrationOrder,
 					 useElementsOnFace);
     } 
-#endif
     else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;

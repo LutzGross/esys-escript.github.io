@@ -35,11 +35,11 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   dim_t k,len,numDim,newNumNodes,n;
   index_t min_id,max_id,min_id2,max_id2,*maskNodes=NULL,*maskElements=NULL,*index=NULL;
   Finley_NodeFile *newNodeFile=NULL;
+
   Finley_resetError();
   numDim=Finley_Mesh_getDim(in);
-  
+
   /*   find the minimum and maximum id used: */
-  
   min_id=INDEX_T_MAX;
   max_id=-INDEX_T_MAX;
   Finley_NodeFile_setIdRange(&min_id2,&max_id2,in->Nodes);
@@ -47,6 +47,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
     Finley_setError(VALUE_ERROR,"__FILE__: Mesh has not been defined completely.");
     goto clean;
   }
+
 
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);

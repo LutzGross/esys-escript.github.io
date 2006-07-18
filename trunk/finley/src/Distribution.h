@@ -5,9 +5,17 @@
 
 
 #include "Finley.h"
-#include "./paso/CommBuffer.h"
 
 #ifdef PASO_MPI
+
+#include "./paso/CommBuffer.h"
+
+#define NODE_INTERNAL 1
+#define NODE_BOUNDARY 2
+#define NODE_EXTERNAL 3
+
+#define ELEMENT_INTERNAL 1
+#define ELEMENT_BOUNDARY 2
 
 /* DATA TYPES */
 

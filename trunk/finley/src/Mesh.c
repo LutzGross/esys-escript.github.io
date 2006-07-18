@@ -160,6 +160,109 @@ dim_t Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh *in) {
 dim_t Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh *in) {
   return in->Nodes->reducedNumDegreesOfFreedom;
 }
+
+#ifdef PASO_MPI
+void print_mesh_statistics( Finley_Mesh *out, bool_t reduced )
+{
+  index_t i, r, j, N, M, dim;
+	int *ref;  
+	dim = out->Nodes->numDim;
+
+	if( !reduced ){
+		printf( "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nMESH STATISTICS\n\nFULL MESH\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n" );
+		printf( "\nNodes\n========\n\n" );
+		printf( "\t%d internal DOF\n\t%d boundary DOF\n\t%d local DOF\n\t%d external DOF\n", out->Nodes->degreeOfFreedomDistribution->numInternal, out->Nodes->degreeOfFreedomDistribution->numBoundary, out->Nodes->degreeOfFreedomDistribution->numLocal, out->Nodes->degreeOfFreedomDistribution->numExternal);
+		for( i=0; i<out->Nodes->numNodes; i++ ){
+			printf( "node %d\t: id %d   \tDOF %d   \t: tag %d  \t: Dom %d  \t: coordinates [%3g", i, out->Nodes->Id[i], out->Nodes->degreeOfFreedom[i], out->Nodes->Tag[i], out->Nodes->Dom[i], out->Nodes->Coordinates[INDEX2(0,i,dim)] );
+			for( j=1; j<dim; j++ )
+				printf( ", %3g",  out->Nodes->Coordinates[INDEX2(j,i,dim)]);
+			printf( " ]\n" );
+		}
+
+		printf( "Elements\n=========\n\n" );
+		printf( "\t%d internal\n\t%d boundary\n\t%d local\n", out->Elements->elementDistribution->numInternal, out->Elements->elementDistribution->numBoundary, out->Elements->elementDistribution->numLocal );
+		N = out->Elements->ReferenceElement->Type->numNodes;
+		for( i=0; i<out->Elements->numElements; i++ ){
+			printf( "element %d    \t: id %d  \t: dom %d  \t: nodes [ %2d", i, out->Elements->Id[i], out->Elements->Dom[i], out->Elements->Nodes[INDEX2(0,i,N)] );
+			for( j=1; j<N; j++ )
+				printf( ", %2d", out->Elements->Nodes[INDEX2(j,i,N)]);	
+			printf( " ] -> " );	
+			if( N>8 )
+				printf( "\n\t\t\t\t\t\t" );
+			printf( ": DOF   [ %2d", out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(0,i,N)]] );	
+			for( j=1; j<N; j++ )
+				printf( ", %2d", out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(j,i,N)]]);	
+			printf( " ]\n" );	
+		}
+
+		printf( "\nFace Elements\n==========\n\n" );
+		printf( "\t%d internal\n\t%d boundary\n\t%d local\n", out->FaceElements->elementDistribution->numInternal, out->FaceElements->elementDistribution->numBoundary, out->FaceElements->elementDistribution->numLocal );
+		N = out->FaceElements->ReferenceElement->Type->numNodes;
+		for( i=0; i<out->FaceElements->numElements; i++ ){
+			printf( "face element %d \t: id %d  \t: dom %d  \t: nodes [ %2d", i, out->FaceElements->Id[i], out->FaceElements->Dom[i], out->FaceElements->Nodes[INDEX2(0,i,N)] );
+			for( j=1; j<N; j++ )
+				printf( ", %2d", out->FaceElements->Nodes[INDEX2(j,i,N)]  );	
+			printf( " ] -> " );	
+			if( N>8 )
+				printf( "\n\t\t\t\t\t\t" );
+			printf( ": DOF   [ %2d", out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(0,i,N)]]);	
+			for( j=1; j<N; j++ )
+				printf( ", %2d", out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(j,i,N)]]);	
+			printf( " ]\n" );	
+		}
+		printf( "\nDistribution Data\n==========\n\n" );
+		Finley_NodeDistribution_print( out->Nodes->degreeOfFreedomDistribution, stdout );
+	}
+	else{
+		printf( "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nMESH STATISTICS\n\nREDUCED MESH\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n" );
+		printf( "\nNodes\n========\n\n" );
+		printf( "\t%d internal DOF\n\t%d boundary DOF\n\t%d local DOF\n\t%d external DOF\n", out->Nodes->reducedDegreeOfFreedomDistribution->numInternal, out->Nodes->reducedDegreeOfFreedomDistribution->numBoundary, out->Nodes->reducedDegreeOfFreedomDistribution->numLocal, out->Nodes->reducedDegreeOfFreedomDistribution->numExternal);
+		for( i=0, r=0; i<out->Nodes->numNodes; i++ ){
+			if( out->Nodes->toReduced[i]>=0 ){
+				printf( "node %d   \t: id %d   \tDOF %d   \t: tag %d  \t: Dom %d  \t: coordinates [%3g", r, out->Nodes->Id[i], out->Nodes->reducedDegreeOfFreedom[i], out->Nodes->Tag[i], out->Nodes->Dom[i], out->Nodes->Coordinates[INDEX2(0,i,dim)] );
+				for( j=1; j<dim; j++ )
+					printf( ", %3g",  out->Nodes->Coordinates[INDEX2(j,i,dim)]);
+				printf( " ]\n" );
+				r++;
+			}
+		}
+
+		printf( "Elements\n=========\n\n" );
+		printf( "\t%d internal\n\t%d boundary\n\t%d local\n", out->Elements->elementDistribution->numInternal, out->Elements->elementDistribution->numBoundary, out->Elements->elementDistribution->numLocal );
+		N = out->Elements->LinearReferenceElement->Type->numNodes;
+		M = out->Elements->ReferenceElement->Type->numNodes;
+		ref = out->Elements->ReferenceElement->Type->linearNodes;
+		for( i=0; i<out->Elements->numElements; i++ ){
+			printf( "element %d    \t: id %d  \t: dom %d  \t: nodes [ %3d", i, out->Elements->Id[i], out->Elements->Dom[i], out->Nodes->toReduced[out->Elements->Nodes[INDEX2(ref[0],i,M)]] );
+			for( j=1; j<N; j++ ){
+				printf( ", %3d", out->Nodes->toReduced[out->Elements->Nodes[INDEX2(ref[j],i,M)]] );
+			}
+			printf( " ] DOF [ %3d", out->Nodes->reducedDegreeOfFreedom[out->Elements->Nodes[INDEX2(ref[0],i,M)]] );	
+			for( j=1; j<N; j++ )
+				printf( ", %3d", out->Nodes->reducedDegreeOfFreedom[out->Elements->Nodes[INDEX2(ref[j],i,M)]]);	
+			printf( " ]\n" );	
+		}
+
+		printf( "\nFace Elements\n=================================================\n\n" );
+		printf( "\t%d internal\n\t%d boundary\n\t%d local\n", out->FaceElements->elementDistribution->numInternal, out->FaceElements->elementDistribution->numBoundary, out->FaceElements->elementDistribution->numLocal );
+		N = out->FaceElements->LinearReferenceElement->Type->numNodes;
+		M = out->FaceElements->ReferenceElement->Type->numNodes;
+		ref = out->FaceElements->ReferenceElement->Type->linearNodes;
+		for( i=0; i<out->FaceElements->numElements; i++ ){
+			printf( "face element %d \t: id %d  \t: dom %d  \t: nodes [ %3d", i, out->FaceElements->Id[i], out->FaceElements->Dom[i], out->Nodes->toReduced[out->FaceElements->Nodes[INDEX2(ref[0],i,M)]] );
+			for( j=1; j<N; j++ )
+				printf( ", %3d", out->Nodes->toReduced[out->FaceElements->Nodes[INDEX2(j,i,M)]]  );	
+			printf( " ] DOF [ %3d", out->Nodes->reducedDegreeOfFreedom[out->FaceElements->Nodes[INDEX2(ref[0],i,M)]]);	
+			for( j=1; j<N; j++ )
+				printf( ", %3d", out->Nodes->reducedDegreeOfFreedom[out->FaceElements->Nodes[INDEX2(j,i,M)]]);	
+			printf( " ]\n" );	
+		}
+
+		printf( "\nDistribution Data\n==================\n\n" );
+		Finley_NodeDistribution_print( out->Nodes->reducedDegreeOfFreedomDistribution, stdout );
+	}
+}
+#endif
 /* 
 * $Log$
 * Revision 1.6  2005/09/15 03:44:22  jgs

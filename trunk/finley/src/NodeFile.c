@@ -53,6 +53,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim){
   out->toReduced=NULL;
   out->status=FINLEY_INITIAL_STATUS;
 #ifdef PASO_MPI
+  out->Dom=NULL;
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
   out->degreeOfFreedomDistribution = Finley_NodeDistribution_alloc( MPIInfo );
   out->reducedDegreeOfFreedomDistribution = Finley_NodeDistribution_alloc( MPIInfo );

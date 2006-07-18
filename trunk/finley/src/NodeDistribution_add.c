@@ -48,8 +48,8 @@ void Finley_NodeDistribution_addForward( Finley_NodeDistribution *in, index_t do
       if( posDomain==-1 )
       {     
         posDomain = in->numNeighbours++;
-        MEMREALLOC( in->edges, in->numNeighbours, Finley_NodeGhostEdge* );
-        MEMREALLOC( in->neighbours, in->numNeighbours, index_t );
+				MEMREALLOC( in->edges, in->numNeighbours, Finley_NodeGhostEdge* );
+				MEMREALLOC( in->neighbours, in->numNeighbours, index_t );
         if( Finley_checkPtr( in->edges ) || Finley_checkPtr( in->neighbours ) )
           return;
         in->edges[posDomain] = NULL;
@@ -91,13 +91,12 @@ void Finley_NodeDistribution_addBackward( Finley_NodeDistribution *in, index_t d
     /* we don't */
     else
     {
-      posDomain = in->numNeighbours++;
-
+      posDomain = findInList( -1, in->neighbours, in->numNeighbours );
       if( posDomain==-1 )
       {     
         posDomain = in->numNeighbours++;
-        MEMREALLOC( in->edges, in->numNeighbours, Finley_NodeGhostEdge* );
-        MEMREALLOC( in->neighbours, in->numNeighbours, index_t );
+				MEMREALLOC( in->edges, in->numNeighbours, Finley_NodeGhostEdge* );
+				MEMREALLOC( in->neighbours, in->numNeighbours, index_t );
         if( Finley_checkPtr( in->edges ) || Finley_checkPtr( in->neighbours ) )
           return;
         in->edges[posDomain] = NULL;

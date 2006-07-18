@@ -33,6 +33,10 @@ struct Finley_NodeFile {
   Finley_NodeDistribution *reducedDegreeOfFreedomDistribution;
   Paso_CommBuffer *CommBuffer;
   Paso_CommBuffer *reducedCommBuffer;
+
+	index_t *Dom;													/* flags whether a node references an internal/boundary/external DOF. Is one of
+																					 either NODE_INTERNAL, NODE_BOUNDARY or NODE_EXTERNAL, as defined in
+																					 Mesh.h	*/ 
 #endif
   dim_t numNodes;                      /* number of nodes */
   dim_t numDim;                        /* spatial dimension */

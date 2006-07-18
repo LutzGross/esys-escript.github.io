@@ -30,11 +30,13 @@ void Finley_Mesh_prepare(Finley_Mesh* in) {
        /* set the labeling vectors in node files: */
        Finley_Mesh_prepareNodes(in);
 
+#ifndef PASO_MPI
        /* rearrange elements: */
        Finley_Mesh_optimizeElementDistribution(in);
 
        /* improve coloring */
        Finley_Mesh_improveColoring(in);
+#endif
 }
 /*                                                      */
 /*  tries to reduce the coloring for all element files: */

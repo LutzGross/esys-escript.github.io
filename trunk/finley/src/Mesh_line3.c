@@ -26,20 +26,6 @@
 
 #include "RectangularMesh.h"
 
-
-
-/**************************************************************
-  The code for Mesh_line[2/3].c is messy, it was used as a test
-  bed for getting the MPI distributed mesh figured out before
-  doing the rectangle/brick domains. The code is efficient, it just
-  uses too many if/else if/else statements. Unfortunately, calculating
-  a distributed mesh is an easy thing to visualise, but a devil to implement!
-
-  Sorry if I don't get around
-  to neatening this code up, but rest assured, the more important
-  (and complex) rectangle and brick codes are much better organised.
-**************************************************************/
-
 #ifdef PASO_MPI
 /* get the number of nodes/elements for domain with rank=rank, of size processors
    where n is the total number of nodes/elements in the global domain */
@@ -134,14 +120,15 @@ static void domain_calculateDimension( index_t rank, dim_t size, dim_t numElemen
   {
     DOFBoundary[0] = DOFBoundary[1] = 0;
   }
-  /* some debugging printf statements */
-  //printf( "rank/size = %d/%d\nNodes : %d Local, %d External[%d %d], First = %d\nElements : %d Local\nDOF : %d Local, External [%d %d], Boundary [%d %d]\nperiodicLocal [%d %d]\n\n", rank, size, *numNodesLocal, *numNodesExternal, nodesExternal[0], nodesExternal[1], *firstNode, *numElementsLocal, *numDOFLocal, DOFExternal[0], DOFExternal[1], DOFBoundary[0], DOFBoundary[1], periodicLocal[0], periodicLocal[1] );
 }
 #endif
 
 
+#ifdef PASO_MPI
+Finley_Mesh* Finley_RectangularMesh_Line3_singleCPU(dim_t* numElements,double* Length,bool_t* periodic,index_t order,bool_t useElementsOnFace,Paso_MPIInfo *mpi_info) 
+#else
 Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool_t* periodic,index_t order,bool_t useElementsOnFace) 
-#ifndef PASO_MPI
+#endif
 {
   dim_t N0,NE0,i0,NDOF0,NFaceElements,NUMNODES;
   index_t k,node0;
@@ -161,8 +148,31 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   /*  allocate mesh: */
   
   sprintf(name,"Rectangular mesh with %d nodes",N0);
-  /* TEMPFIX */
+#ifdef PASO_MPI
+  out=Finley_Mesh_alloc(name,1,order,mpi_info);
+  if (! Finley_noError()) return NULL;
 
+  out->Elements=Finley_ElementFile_alloc(Line3,out->order,mpi_info);
+  if (useElementsOnFace) {
+    out->FaceElements=Finley_ElementFile_alloc(Line3Face,out->order,mpi_info);
+    out->ContactElements=Finley_ElementFile_alloc(Line3Face_Contact,out->order,mpi_info);
+  } else {
+    out->FaceElements=Finley_ElementFile_alloc(Point1,out->order,mpi_info);
+    out->ContactElements=Finley_ElementFile_alloc(Point1_Contact,out->order,mpi_info);
+  }
+  out->Points=Finley_ElementFile_alloc(Point1,out->order,mpi_info);
+  if (! Finley_noError()) {
+       Finley_Mesh_dealloc(out);
+       return NULL;
+  }
+  
+  /*  allocate tables: */
+
+  Finley_NodeFile_allocTable(out->Nodes,N0);
+  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, N0, 0, 0);
+  Finley_ElementFile_allocTable(out->Elements,NE0);
+  Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+#else
   out=Finley_Mesh_alloc(name,1,order);
   if (! Finley_noError()) return NULL;
 
@@ -186,6 +196,7 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
 
   Finley_ElementFile_allocTable(out->Elements,NE0);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+#endif
   if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
@@ -200,6 +211,9 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
      out->Nodes->Id[k]=k;
      out->Nodes->Tag[k]=0;
      out->Nodes->degreeOfFreedom[k]=(i0%NDOF0);
+#ifdef PASO_MPI
+		 out->Nodes->Dom[k] = NODE_INTERNAL;
+#endif
   }
   if (!periodic[0]) {
      out->Nodes->Tag[0]=1;
@@ -216,6 +230,9 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
     out->Elements->Id[k]=k;
     out->Elements->Tag[k]=0;
     out->Elements->Color[k]=COLOR_MOD(i0);
+#ifdef PASO_MPI
+		 out->Elements->Dom[k] = ELEMENT_INTERNAL;
+#endif
 
     out->Elements->Nodes[INDEX2(0,k,3)]=node0;
     out->Elements->Nodes[INDEX2(1,k,3)]=node0+2;
@@ -235,6 +252,9 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
      out->FaceElements->Id[0]=NE0;
      out->FaceElements->Tag[0]=1;
      out->FaceElements->Color[0]=0;
+#ifdef PASO_MPI
+		 out->FaceElements->Dom[0] = ELEMENT_INTERNAL;
+#endif
      if (useElementsOnFace) {
        out->FaceElements->Nodes[INDEX2(0,0,NUMNODES)]=0;
        out->FaceElements->Nodes[INDEX2(1,0,NUMNODES)]=2;
@@ -246,6 +266,9 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
      out->FaceElements->Id[1]=NE0+1;
      out->FaceElements->Tag[1]=2;
      out->FaceElements->Color[1]=1;
+#ifdef PASO_MPI
+		 out->FaceElements->Dom[1] = ELEMENT_INTERNAL;
+#endif
      if (useElementsOnFace) {
         out->FaceElements->Nodes[INDEX2(0,1,NUMNODES)]=N0-1;
         out->FaceElements->Nodes[INDEX2(1,1,NUMNODES)]=N0-3;
@@ -257,14 +280,20 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   out->FaceElements->minColor=0;
   out->FaceElements->maxColor=1;
 
-  /*  face elements done: */
-  
+#ifdef PASO_MPI
+	Finley_ElementFile_setDomainFlags( out->Elements );
+	Finley_ElementFile_setDomainFlags( out->FaceElements );
+	Finley_ElementFile_setDomainFlags( out->ContactElements );
+	Finley_ElementFile_setDomainFlags( out->Points );
+
+	/* reorder the degrees of freedom */
+	Finley_Mesh_resolveDegreeOfFreedomOrder( out, TRUE );
+#endif
+
   /*   condense the nodes: */
-  
   Finley_Mesh_resolveNodeIds(out);
 
   /* prepare mesh for further calculations:*/
-
   Finley_Mesh_prepare(out) ;
 
   #ifdef Finley_TRACE
@@ -277,14 +306,15 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   }
   return out;
 }
-#else
 /* MPI version */
+#ifdef PASO_MPI
+Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool_t* periodic,index_t order,bool_t useElementsOnFace) 
 {
-  dim_t N0, NE0, NE0_local, i0, NDOF0, NFaceElements, numNodesLocal, numDOFLocal, numElementsLocal, numElementsInternal, nodesExternal[2], DOFExternal[2], numNodesExternal, DOFBoundary[2];
+  dim_t N0, NE0, NE0_local, i0, NDOF0, NFaceElements, numNodesLocal, numDOFLocal, numElementsLocal, numElementsInternal, nodesExternal[2], DOFExternal[2], numNodesExternal, DOFBoundary[2], N0t, NDOF0t;
   index_t *numForward=NULL, *numBackward=NULL;
-  index_t NUMNODES, node0,k, i,firstNode=0, DOFcount=0, forwardDOF[4], backwardDOF[4];
+  index_t NUMNODES, node0,k, i,firstNode=0, DOFcount=0, forwardDOF[4], backwardDOF[4], firstNodeConstruct;
   index_t targetDomain=-1;
-  bool_t periodicLocal[2], domLeft=FALSE, domRight=FALSE, domInternal=FALSE;
+  bool_t periodicLocal[2], domLeft=FALSE, domRight=FALSE, domInternal=FALSE, boundaryLeft, boundaryRight;
   Finley_Mesh* out=NULL;
   char name[50];
   double time0=Finley_timer();
@@ -303,6 +333,12 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
         Finley_Mesh_dealloc(out);
         return NULL;
   }
+	
+	/* use the serial code to generate the mesh in the 1-CPU case */
+	if( mpi_info->size==1 ){
+		out = Finley_RectangularMesh_Line3_singleCPU(numElements,Length,periodic,order,useElementsOnFace,mpi_info);
+		return out;
+	}
 
   if( mpi_info->rank==0 )
     domLeft = TRUE;
@@ -323,6 +359,13 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
     if(domRight)
       NFaceElements++;
   }  
+
+	boundaryLeft = !domLeft || periodicLocal[0];
+	boundaryRight = !domRight || periodicLocal[1];
+	N0t = numNodesLocal + boundaryRight + 2*boundaryLeft;
+	NDOF0t = numDOFLocal + boundaryRight + 2*boundaryLeft;
+	firstNodeConstruct = firstNode - 2*boundaryLeft;
+	firstNodeConstruct = firstNodeConstruct<0 ? N0-3 : firstNodeConstruct;
 
   /*  allocate mesh: */
   sprintf(name,"Rectangular mesh with %d nodes",N0);
@@ -345,7 +388,7 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   
   /*  allocate tables: */
   Finley_NodeFile_allocTable(out->Nodes,numNodesLocal+numNodesExternal);
-  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, numDOFLocal, DOFExternal[0]+DOFExternal[1], 0 );
+  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, numDOFLocal, 3, 0 );
   Finley_ElementFile_allocTable(out->Elements,numElementsLocal);
   if( NFaceElements )
     Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
@@ -356,271 +399,93 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
 
   /*  set nodes: */
   #pragma omp parallel for private(i0,k)  
-  /* local nodes */
-  for (i0=0;i0<numNodesLocal;i0++) {
+  for (i0=0;i0<N0t;i0++) {
      k=i0;
-     out->Nodes->Coordinates[INDEX2(0,k,1)]=DBLE(i0+firstNode)/DBLE(N0-1)*Length[0];
+     out->Nodes->Coordinates[INDEX2(0,k,1)]=DBLE((i0+firstNodeConstruct) % N0)/DBLE(N0-1)*Length[0];
      out->Nodes->Id[k]=k;
      out->Nodes->Tag[k]=0;
-     out->Nodes->degreeOfFreedom[k]=i0%(numDOFLocal);
+     out->Nodes->degreeOfFreedom[k]=k;
+		 out->Nodes->Dom[k]=NODE_INTERNAL;
   }
 
-  /* external nodes - do left then right hand side */
-  /* the following only applies if more than one domain */
+  /* setup boundary DOF data */
+	if( boundaryLeft ){
+		out->Nodes->Dom[0]= out->Nodes->Dom[1]  = NODE_EXTERNAL;
+		out->Nodes->Dom[2] = NODE_BOUNDARY;
+	}
+	else
+		out->Nodes->Tag[0] += 1;
+	if( boundaryRight ){
+		out->Nodes->Dom[N0t-1] = NODE_EXTERNAL;	
+		out->Nodes->Dom[N0t-2] = out->Nodes->Dom[N0t-3] = NODE_BOUNDARY;	
+	}
+	else
+		out->Nodes->Tag[N0t-1] += 2;
+	if( periodicLocal[0] ){
+		out->Nodes->degreeOfFreedom[3] = out->Nodes->degreeOfFreedom[2];
+		out->Nodes->Dom[3] = NODE_BOUNDARY;
+	}
 
-  /* this is messy, could be done cleaner */
-  if( mpi_info->size>1 )
-  {
-    DOFcount = numNodesLocal;
-    k=numNodesLocal;
-    if( mpi_info->rank!=0 || periodicLocal[0] )
-    {
-      /* left hand boundary is periodic - 
-         add the nodes/DOF that define the element on the right hand boundary */
-      if( periodicLocal[0] )
-      {
-        k--;
-        out->Nodes->Coordinates[INDEX2(0,k,1)]=Length[0];
-        out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=0;
-        DOFcount--;
-        k++;
-        out->Nodes->Coordinates[INDEX2(0,k,1)]=DBLE(N0-2)/DBLE(N0-1)*Length[0];
-        out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=DOFcount++;
-        k++;
-        out->Nodes->Coordinates[INDEX2(0,k,1)]=DBLE(N0-3)/DBLE(N0-1)*Length[0];
-        out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=DOFcount++;
-        k++;
-      }
-      /* left hand boundary with another subdomain, need to add the nodes/DOFs that
-         defines the element that spans the boundary */
-      else
-      {
-        out->Nodes->Coordinates[INDEX2(0,k,1)]=DBLE(firstNode-1)/DBLE(N0-1)*Length[0];
-        out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=DOFcount++;
-        k++;
-        out->Nodes->Coordinates[INDEX2(0,k,1)]=DBLE(firstNode-2)/DBLE(N0-1)*Length[0];
-        out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=DOFcount++;
-        k++;
-      }
-    }
-    if( mpi_info->rank!=(mpi_info->size-1) || periodicLocal[1] )
-    {
-      /* right hand boundary is periodic - add the external reference to the distribution */
-      if( periodicLocal[1] )
-      {
-        out->Nodes->Coordinates[INDEX2(0,k,1)]=Length[0];
-        out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=k;
-        k++;
-      }
-      /* right hand boundary with another subdomain, need to add the nodes/DOFs that
-         defines the element that spans the boundary */
-      else
-      {
-        out->Nodes->Coordinates[INDEX2(0,k,1)]=DBLE(firstNode+numNodesLocal-periodicLocal[0])/DBLE(N0-1)*Length[0];
-        out->Nodes->Id[k]=k;
-        out->Nodes->Tag[k]=0;
-        out->Nodes->degreeOfFreedom[k]=DOFcount;
-        k++;
-      }
-    }
-    /* setup boundary DOF data */
-    if( domInternal )
-    {
-      targetDomain = mpi_info->rank-1;
-      forwardDOF[0] = 0;
-      backwardDOF[0] = numNodesLocal+1; backwardDOF[1] = numNodesLocal;
-      Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
-      Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, backwardDOF );
+	if( !(mpi_info->size==2 && periodicLocal[0])){
+		if( boundaryLeft  ) {
+			targetDomain = mpi_info->rank-1 < 0 ? mpi_info->size-1 : mpi_info->rank-1;
+			forwardDOF[0] = out->Nodes->degreeOfFreedom[2];
+			backwardDOF[0] = out->Nodes->degreeOfFreedom[0];
+			backwardDOF[1] = out->Nodes->degreeOfFreedom[1];
+			Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
+			Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, backwardDOF );
+		}
+		if( boundaryRight ) {
+			targetDomain = mpi_info->rank+1 > mpi_info->size-1 ? 0 : mpi_info->rank+1;
+			forwardDOF[0] = out->Nodes->degreeOfFreedom[N0t-3];
+			forwardDOF[1] = out->Nodes->degreeOfFreedom[N0t-2];
+			backwardDOF[0] = out->Nodes->degreeOfFreedom[N0t-1];
+			Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, forwardDOF );
+			Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
+		}
+  } else{
+		/* periodic boundary conditions with 2 domains, need to change the order in which domain 0 passes boundary data */
+		targetDomain = 1;
 
-      targetDomain = mpi_info->rank+1;
-      forwardDOF[0] = numNodesLocal-2; forwardDOF[1] = numNodesLocal-1;
-      backwardDOF[0] = numNodesLocal+2;
-      Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, forwardDOF );
-      Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
-    }
-    else if( mpi_info->size>2 || (mpi_info->size==2&&!periodic[0]) )
-      if( domLeft )
-      { 
-        if( periodicLocal[0] )
-        {
-          targetDomain = mpi_info->size-1;
-          forwardDOF[0] = 0;
-          backwardDOF[0] = numNodesLocal; backwardDOF[1] = numNodesLocal-1;
-          Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
-          Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, backwardDOF );
-        }
-        targetDomain = mpi_info->rank+1;
-        forwardDOF[0] = numNodesLocal-2-periodicLocal[0]; 
-        forwardDOF[1] = numNodesLocal-1-periodicLocal[0];
-        backwardDOF[0] = numNodesLocal + periodicLocal[0];
-        Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, forwardDOF );
-        Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
-      }
-      else
-      {
-        targetDomain = mpi_info->rank-1;
-        forwardDOF[0] = 0;
-        backwardDOF[0] = numNodesLocal+1;
-        backwardDOF[1] = numNodesLocal;
-        Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
-        Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, backwardDOF );
-
-        if( periodicLocal[1] )
-        {
-          targetDomain = 0;
-          forwardDOF[0] = numNodesLocal-1; forwardDOF[1] = numNodesLocal-1;         
-          backwardDOF[0] = numNodesLocal+1;
-          Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, forwardDOF );
-          Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
-        }
-      }   
-    else if( mpi_info->size==2 && periodic[0]) 
-      if( domLeft )
-      {
-          targetDomain = mpi_info->size-1;
-          forwardDOF[0] = 0; 
-          forwardDOF[1] = numDOFLocal-2; 
-          forwardDOF[2] = numDOFLocal-1;
-          backwardDOF[0] = numDOFLocal+1; 
-          backwardDOF[1] = numDOFLocal; 
-          backwardDOF[2] = numDOFLocal+2;
-          Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 3, forwardDOF );
-          Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 3, backwardDOF );
-      }  
-      else
-      {
-          targetDomain = 0;          
-          forwardDOF[0] = numDOFLocal-2; 
-          forwardDOF[1] = numDOFLocal-1;
-          forwardDOF[2] = 0; 
-          backwardDOF[0] = numDOFLocal+2;
-          backwardDOF[1] = numDOFLocal+1; 
-          backwardDOF[2] = numDOFLocal;           
-          Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 3, forwardDOF );
-          Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 3, backwardDOF );
-      } 
-       
-    
-    if (! Finley_MPI_noError(mpi_info)) {
-      Finley_Mesh_dealloc(out);
-      return NULL;
-    }
-    out->Nodes->degreeOfFreedomDistribution->numBoundary = DOFBoundary[0] + DOFBoundary[1];
-    out->Nodes->degreeOfFreedomDistribution->numInternal = numDOFLocal - out->Nodes->degreeOfFreedomDistribution->numBoundary;
-    
-    /*printf( "\n============NODES=============\n" );
-    for( k=0; k<numNodesLocal; k++ )
-      printf( "\tI\tId %d\tDOF %d\tcoord [%g]\n", out->Nodes->Id[k], out->Nodes->degreeOfFreedom[k] , out->Nodes->Coordinates[INDEX2(0,k,1)] );
-    for( k=numNodesLocal; k<numNodesLocal+numNodesExternal; k++ )
-      printf( "\tE\tId %d\tDOF %d\tcoord [%g]\n", out->Nodes->Id[k], out->Nodes->degreeOfFreedom[k] , out->Nodes->Coordinates[INDEX2(0,k,1)] );
-  
-    for( k=0; k<out->Nodes->degreeOfFreedomDistribution->numNeighbours; k++ )
-    {
-      if( out->Nodes->degreeOfFreedomDistribution->neighbours[k]>=0 )
-      {
-        printf( "\t%d boundary DOF { ", out->Nodes->degreeOfFreedomDistribution->edges[k]->numForward ); 
-        for( i0=0; i0<out->Nodes->degreeOfFreedomDistribution->edges[k]->numForward; i0++ )
-          printf( "%d ", out->Nodes->degreeOfFreedomDistribution->edges[k]->indexForward[i0] );
-        printf("} to %d\n", out->Nodes->degreeOfFreedomDistribution->neighbours[k] );
-        printf( "\t%d boundary DOF { ", out->Nodes->degreeOfFreedomDistribution->edges[k]->numBackward ); 
-        for( i0=0; i0<out->Nodes->degreeOfFreedomDistribution->edges[k]->numBackward; i0++ )
-          printf( "%d ", out->Nodes->degreeOfFreedomDistribution->edges[k]->indexBackward[i0] );
-        printf("} from %d\n", out->Nodes->degreeOfFreedomDistribution->neighbours[k] );
-      }
-    }*/   
-  }
+		forwardDOF[0] = out->Nodes->degreeOfFreedom[N0t-3];
+		forwardDOF[1] = out->Nodes->degreeOfFreedom[N0t-2];
+		backwardDOF[0] = out->Nodes->degreeOfFreedom[N0t-1];
+		Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, forwardDOF );
+		Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, backwardDOF );
+		
+		forwardDOF[0] = out->Nodes->degreeOfFreedom[2];
+		backwardDOF[0] = out->Nodes->degreeOfFreedom[0];
+		backwardDOF[1] = out->Nodes->degreeOfFreedom[1];
+		Finley_NodeDistribution_addForward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 1, forwardDOF );
+		Finley_NodeDistribution_addBackward( out->Nodes->degreeOfFreedomDistribution, targetDomain, 2, backwardDOF );
+	}
 
   /*   set the elements: */
   /*   form internal elements */ 
-  //#pragma omp parallel for private(i0,k) 
-  for (i0=0;i0<numElementsInternal;i0++) 
+  #pragma omp parallel for private(i0,k) 
+  for (i0=0;i0<numElementsLocal;i0++) 
   {
     k=i0;
-    node0=2*i0;
+		node0 = (periodicLocal[0] && !i0) ? 0 :  2*i0 + periodicLocal[0];
     out->Elements->Id[k]=k;
     out->Elements->Tag[k]=0;
-    out->Elements->Color[k]=0;
+    out->Elements->Color[k]=COLOR_MOD(i0);
+		out->Elements->Dom[k]=ELEMENT_INTERNAL;
 
     out->Elements->Nodes[INDEX2(0,k,3)]=node0;
     out->Elements->Nodes[INDEX2(1,k,3)]=node0+2;
     out->Elements->Nodes[INDEX2(2,k,3)]=node0+1;
   }
  
-  /* followed by boundary elements... */
-  i0 = numElementsInternal;
-  if( mpi_info->size>1 )
-  {
-    /* left hand boundary */
-    if( mpi_info->rank>0 ) /* left hand boundary is an internal boundary */
-    {
-      k=i0;
-      node0=numNodesLocal;
-      out->Elements->Id[k]=k;
-      out->Elements->Tag[k]=0;
-      out->Elements->Color[k]=0;
+	if( boundaryLeft )
+		out->Elements->Dom[0] = ELEMENT_BOUNDARY;
+	if( boundaryRight )
+		out->Elements->Dom[numElementsLocal-1] = ELEMENT_BOUNDARY;	
 
-      out->Elements->Nodes[INDEX2(0,k,3)]=node0+1;
-      out->Elements->Nodes[INDEX2(1,k,3)]=0;
-      out->Elements->Nodes[INDEX2(2,k,3)]=node0;
-      i0++;
-    }
-    else if( periodicLocal[0] ) /* left hand boundary is a periodic boundary */
-    {
-      k=i0;
-      node0 = numNodesLocal;
-      out->Elements->Id[k]=k;
-      out->Elements->Tag[k]=0;
-      out->Elements->Color[k]=0;
-
-      out->Elements->Nodes[INDEX2(0,k,3)]=node0+1;
-      out->Elements->Nodes[INDEX2(1,k,3)]=node0-1;
-      out->Elements->Nodes[INDEX2(2,k,3)]=node0;
-      i0++;
-    }
-
-    /* right hand boundary */
-    if( mpi_info->rank<mpi_info->size-1 ) /* right hand boundary is an internal boundary */
-    {
-      k=i0;
-      out->Elements->Id[k]=k;
-      out->Elements->Tag[k]=0;
-      out->Elements->Color[k]=0;
-
-      out->Elements->Nodes[INDEX2(0,k,3)]=numNodesLocal-2-periodicLocal[0];
-      out->Elements->Nodes[INDEX2(1,k,3)]=nodesExternal[0]+numNodesLocal;
-      out->Elements->Nodes[INDEX2(2,k,3)]=numNodesLocal-1-periodicLocal[0];
-    }
-    else if( periodicLocal[1] ) /* right hand boundary is a periodic boundary */
-    {
-      /* no need to do anything */;
-      k=i0;
-      out->Elements->Id[k]=k;
-      out->Elements->Tag[k]=0;
-      out->Elements->Color[k]=0;
-
-      out->Elements->Nodes[INDEX2(0,k,3)]=numNodesLocal-2;
-      out->Elements->Nodes[INDEX2(1,k,3)]=numNodesLocal+2;
-      out->Elements->Nodes[INDEX2(2,k,3)]=numNodesLocal-1;
-    }
-  }
   out->Elements->minColor=0;
-  out->Elements->maxColor=0;
+  out->Elements->maxColor=COLOR_MOD(0);
 
-  out->Elements->elementDistribution->numLocal    = numElementsLocal;
-  out->Elements->elementDistribution->numInternal = numElementsInternal;
-  out->Elements->elementDistribution->numBoundary = numElementsLocal - numElementsInternal;
+	Finley_ElementFile_setDomainFlags( out->Elements );
   
   /*   face elements: */
   if (useElementsOnFace) {
@@ -628,11 +493,13 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   } else {
      NUMNODES=1;
   }
+	i0 = numElementsLocal;
   if ( domLeft && !periodicLocal[0] ) 
   {
-    out->FaceElements->Id[0]=i0-1;
+    out->FaceElements->Id[0]=i0;
     out->FaceElements->Tag[0]=1;
     out->FaceElements->Color[0]=0;
+		out->FaceElements->Dom[0]=ELEMENT_INTERNAL;
     if (useElementsOnFace) {
        out->FaceElements->Nodes[INDEX2(0,0,NUMNODES)]=0;
        out->FaceElements->Nodes[INDEX2(1,0,NUMNODES)]=2;
@@ -647,75 +514,66 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
     out->FaceElements->Id[domLeft]=i0;
     out->FaceElements->Tag[domLeft]=2;
     out->FaceElements->Color[domLeft]=1;
+		out->FaceElements->Dom[domLeft]=ELEMENT_INTERNAL;
     if (useElementsOnFace) {
-       out->FaceElements->Nodes[INDEX2(0,domLeft,NUMNODES)]=numNodesLocal-3;
-       out->FaceElements->Nodes[INDEX2(1,domLeft,NUMNODES)]=numNodesLocal-1;
-       out->FaceElements->Nodes[INDEX2(2,domLeft,NUMNODES)]=numNodesLocal-2;
+       out->FaceElements->Nodes[INDEX2(0,domLeft,NUMNODES)]=N0t-1;
+       out->FaceElements->Nodes[INDEX2(1,domLeft,NUMNODES)]=N0t-3;
+       out->FaceElements->Nodes[INDEX2(2,domLeft,NUMNODES)]=N0t-2;
     } else {
-       out->FaceElements->Nodes[INDEX2(0,domLeft,NUMNODES)]=numNodesLocal-1;
+       out->FaceElements->Nodes[INDEX2(0,domLeft,NUMNODES)]=N0t-1;
     }
   }
+	out->FaceElements->numElements=NFaceElements;
   out->FaceElements->maxColor=0;
-  out->FaceElements->minColor=0;
-  out->FaceElements->elementDistribution->numBoundary = 0;
-  if( domLeft || domRight && !periodic[0] )
-    out->FaceElements->elementDistribution->numLocal = out->FaceElements->elementDistribution->numInternal = domLeft + domRight;
-  else
-    out->FaceElements->elementDistribution->numLocal = out->FaceElements->elementDistribution->numInternal = 0;
-
+  out->FaceElements->minColor=1;
+	
+	Finley_ElementFile_setDomainFlags( out->FaceElements );
+	
   /* setup distribution info for other elements */
-  out->ContactElements->elementDistribution->numLocal = out->ContactElements->elementDistribution->numInternal = out->ContactElements->elementDistribution->numInternal = 0;
-  out->Points->elementDistribution->numLocal = out->Points->elementDistribution->numInternal = out->Points->elementDistribution->numInternal = 0;
-
-  /*printf( "\n============ELEMENTS (%d)=============\n", out->Elements->numElements );
-  for( k=0; k<out->Elements->elementDistribution->numInternal; k++ )
-  {
-    printf( "I\tId %d : nodes [%d %d %d]->DOF [%d %d %d]\n", out->Elements->Id[k],  out->Elements->Nodes[INDEX2(0,k,3)], out->Elements->Nodes[INDEX2(1,k,3)], out->Elements->Nodes[INDEX2(2,k,3)], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(0,k,3)]], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(1,k,3)]], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(2,k,3)]] );
-  }
-  for( k=out->Elements->elementDistribution->numInternal; k<out->Elements->elementDistribution->numLocal; k++ )
-  {
-    printf( "B\tId %d : nodes [%d %d %d]->DOF [%d %d %d]\n", out->Elements->Id[k],  out->Elements->Nodes[INDEX2(0,k,3)], out->Elements->Nodes[INDEX2(1,k,3)], out->Elements->Nodes[INDEX2(2,k,3)], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(0,k,3)]], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(1,k,3)]], out->Nodes->degreeOfFreedom[out->Elements->Nodes[INDEX2(2,k,3)]] );
-  }
-  printf( "\n" );
-  for( k=0; k<out->FaceElements->numElements; k++ )
-  {
-    if( NUMNODES==3 )
-				printf( "F\tId %d : nodes [%d %d %d]->DOF [%d %d %d]\n", out->FaceElements->Id[k],  out->FaceElements->Nodes[INDEX2(0,k,3)], out->FaceElements->Nodes[INDEX2(1,k,3)], out->FaceElements->Nodes[INDEX2(2,k,3)], out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(0,k,3)]], out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(1,k,3)]], out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(2,k,3)]] );
-    else
-      printf( "F\tId %d : nodes [%d]->DOF [%d]\n", out->FaceElements->Id[k], out->FaceElements->Nodes[INDEX2(0,k,1)], out->Nodes->degreeOfFreedom[out->FaceElements->Nodes[INDEX2(0,k,1)]] );
-  }*/
-  /*  face elements done: */
-  
+	Finley_ElementFile_setDomainFlags( out->ContactElements );
+	Finley_ElementFile_setDomainFlags( out->Points );
+	
+	/* reorder the degrees of freedom */
+	Finley_Mesh_resolveDegreeOfFreedomOrder( out, TRUE );
+	
   /*   condense the nodes: */
-
   Finley_Mesh_resolveNodeIds(out);
+  if( !Finley_MPI_noError(mpi_info) )
+  {
+    Paso_MPIInfo_dealloc( mpi_info );
+    Finley_Mesh_dealloc(out);
+    return NULL;
+  } 
 
   /* setup the CommBuffer */
   Finley_NodeDistribution_formCommBuffer( out->Nodes->degreeOfFreedomDistribution, out->Nodes->CommBuffer );
   if ( !Finley_MPI_noError( mpi_info )) {
-    if( Finley_noError() )
-      Finley_setError( PASO_MPI_ERROR, "Error on another MPI process" );
     Paso_MPIInfo_dealloc( mpi_info );
     Finley_Mesh_dealloc(out);
     return NULL;
   }
 
   Finley_NodeDistribution_calculateIndexExternal( out->Nodes->degreeOfFreedomDistribution, out->Nodes->CommBuffer );
-
-  /* prepare mesh for further calculatuions:*/
-  Finley_Mesh_prepare(out);
-
   if( !Finley_MPI_noError(mpi_info) )
   {
-    if( Finley_noError() )
-      Finley_setError( PASO_MPI_ERROR, "Error on another MPI process" );
     Paso_MPIInfo_dealloc( mpi_info );
     Finley_Mesh_dealloc(out);
     return NULL;
   } 
-  
+
+  /* prepare mesh for further calculatuions:*/
+  Finley_Mesh_prepare(out);
+  if( !Finley_MPI_noError(mpi_info) )
+  {
+    Paso_MPIInfo_dealloc( mpi_info );
+    Finley_Mesh_dealloc(out);
+    return NULL;
+  } 
+
   /* free up memory */
   Paso_MPIInfo_dealloc( mpi_info );
+
+	//print_mesh_statistics( out, TRUE );
 
   #ifdef Finley_TRACE
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
