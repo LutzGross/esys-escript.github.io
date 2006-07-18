@@ -51,6 +51,7 @@ Data::Data()
   DataAbstract* temp=new DataEmpty();
   shared_ptr<DataAbstract> temp_data(temp);
   m_data=temp_data;
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -68,6 +69,7 @@ Data::Data(double value,
   }
   DataArray temp(dataPointShape,value);
   initialise(temp.getView(),what,expanded);
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -82,6 +84,7 @@ Data::Data(double value,
   DataArray temp(dataPointShape,value);
   pair<int,int> dataShape=what.getDataShape();
   initialise(temp.getView(),what,expanded);
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -91,6 +94,7 @@ Data::Data(double value,
 Data::Data(const Data& inData)
 {
   m_data=inData.m_data;
+  m_protected=inData.isProtected();
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -105,6 +109,7 @@ Data::Data(const Data& inData,
   DataAbstract* tmp = inData.m_data->getSlice(region);
   shared_ptr<DataAbstract> temp_data(tmp);
   m_data=temp_data;
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -137,6 +142,7 @@ Data::Data(const Data& inData,
     }
     m_data=tmp.m_data;
   }
+  m_protected=false;
 }
 
 Data::Data(const DataTagged::TagListType& tagKeys,
@@ -148,6 +154,7 @@ Data::Data(const DataTagged::TagListType& tagKeys,
   DataAbstract* temp=new DataTagged(tagKeys,values,defaultValue,what);
   shared_ptr<DataAbstract> temp_data(temp);
   m_data=temp_data;
+  m_protected=false;
   if (expanded) {
     expand();
   }
@@ -162,6 +169,7 @@ Data::Data(const numeric::array& value,
            bool expanded)
 {
   initialise(value,what,expanded);
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -173,6 +181,7 @@ Data::Data(const DataArrayView& value,
            bool expanded)
 {
   initialise(value,what,expanded);
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -185,6 +194,7 @@ Data::Data(const object& value,
 {
   numeric::array asNumArray(value);
   initialise(asNumArray,what,expanded);
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -209,6 +219,7 @@ Data::Data(const object& value,
     // Create a DataConstant with the same sample shape as other
     initialise(temp.getView(),other.getFunctionSpace(),false);
   }
+  m_protected=false;
 #if defined DOPROF
   // create entry in global profiling table for this object
   profData = dataProfTable.newData();
@@ -354,6 +365,20 @@ Data::isConstant() const
   DataConstant* temp=dynamic_cast<DataConstant*>(m_data.get());
   return (temp!=0);
 }
+
+void
+Data::setProtection() 
+{ 
+   m_protected=true;
+}
+
+bool
+Data::isProtected() const 
+{ 
+   return m_protected;
+}
+
+
 
 void
 Data::expand()
@@ -525,6 +550,9 @@ Data::getDataPointShape() const
 void
 Data::fillFromNumArray(const boost::python::numeric::array num_array) 
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   //
   // check rank
   if (num_array.getrank()<getDataPointRank()) 
@@ -1510,6 +1538,9 @@ Data::saveVTK(std::string fileName) const
 Data&
 Data::operator+=(const Data& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1520,6 +1551,9 @@ Data::operator+=(const Data& right)
 Data&
 Data::operator+=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1530,6 +1564,9 @@ Data::operator+=(const boost::python::object& right)
 Data&
 Data::operator-=(const Data& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1540,6 +1577,9 @@ Data::operator-=(const Data& right)
 Data&
 Data::operator-=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1550,6 +1590,9 @@ Data::operator-=(const boost::python::object& right)
 Data&
 Data::operator*=(const Data& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1560,6 +1603,9 @@ Data::operator*=(const Data& right)
 Data&
 Data::operator*=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1570,6 +1616,9 @@ Data::operator*=(const boost::python::object& right)
 Data&
 Data::operator/=(const Data& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1580,6 +1629,9 @@ Data::operator/=(const Data& right)
 Data&
 Data::operator/=(const boost::python::object& right)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1590,6 +1642,9 @@ Data::operator/=(const boost::python::object& right)
 Data
 Data::rpowO(const boost::python::object& left) const
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->binary++;
 #endif
@@ -1897,6 +1952,9 @@ void
 Data::setSlice(const Data& value,
                const DataArrayView::RegionType& region)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
 #if defined DOPROF
   profData->slicing++;
 #endif
@@ -1940,6 +1998,9 @@ void
 Data::setTaggedValue(int tagKey,
                      const boost::python::object& value)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   //
   // Ensure underlying data object is of type DataTagged
   tag();
@@ -1963,6 +2024,9 @@ void
 Data::setTaggedValueFromCPP(int tagKey,
                             const DataArrayView& value)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   //
   // Ensure underlying data object is of type DataTagged
   tag();
@@ -1990,6 +2054,9 @@ void
 Data::setRefValue(int ref,
                   const boost::python::numeric::array& value)
 {
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
   //
   // Construct DataArray from boost::python::object input value
   DataArray valueDataArray(value);

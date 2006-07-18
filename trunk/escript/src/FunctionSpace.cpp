@@ -144,6 +144,7 @@ FunctionSpace::getX() const
 {
   Data out=escript::Vector(0,*this,true);
   getDomain().setToX(out);
+  out.setProtection();
   return out;
 }
 
@@ -152,6 +153,7 @@ FunctionSpace::getNormal() const
 {
   Data out=escript::Vector(0,*this,true);
   getDomain().setToNormal(out);
+  out.setProtection();
   return out;
 }
 
@@ -160,6 +162,7 @@ FunctionSpace::getSize() const
 {
   Data out=escript::Scalar(0,*this,true);
   getDomain().setToSize(out);
+  out.setProtection();
   return out;
 }
 
