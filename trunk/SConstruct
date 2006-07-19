@@ -456,4 +456,4 @@ env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', dup
 
 # added by Ben Cumming
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0) 
-env.SConscript(dirs = ['../test'], build_dir='../test/build', duplicate=0)
+#env.SConscript(dirs = ['../test'], build_dir='../test/build', duplicate=0)
