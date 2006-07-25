@@ -153,35 +153,66 @@ def getResultCaseForBin(case0,case1):
 def makeArray(shape,rng):
    l=rng[1]-rng[0]
    out=numarray.zeros(shape,numarray.Float64)
-   if len(shape)==0:
-       out=l*random.random()+rng[0]
-   elif len(shape)==1:
-       for i0 in range(shape[0]):
-                   out[i0]=l*random.random()+rng[0]
-   elif len(shape)==2:
-       for i0 in range(shape[0]):
-          for i1 in range(shape[1]):
-                   out[i0,i1]=l*random.random()+rng[0]
-   elif len(shape)==3:
-       for i0 in range(shape[0]):
-          for i1 in range(shape[1]):
-             for i2 in range(shape[2]):
-                   out[i0,i1,i2]=l*random.random()+rng[0]
-   elif len(shape)==4:
-       for i0 in range(shape[0]):
-          for i1 in range(shape[1]):
-             for i2 in range(shape[2]):
-                for i3 in range(shape[3]):
-                   out[i0,i1,i2,i3]=l*random.random()+rng[0]
-   elif len(shape)==5:
-       for i0 in range(shape[0]):
-          for i1 in range(shape[1]):
-             for i2 in range(shape[2]):
-                for i3 in range(shape[3]):
-                  for i4 in range(shape[4]):
-                   out[i0,i1,i2,i3,i4]=l*ranm.random()+rng[0]
+   if isinstance(l,int):
+     if len(shape)==0:  
+         out=int(l*random.random()+rng[0])*1.
+     elif len(shape)==1:
+         for i0 in range(shape[0]):
+                     out[i0]=int(l*random.random()+rng[0])
+     elif len(shape)==2:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+                     out[i0,i1]=int(l*random.random()+rng[0])
+     elif len(shape)==3:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+               for i2 in range(shape[2]):
+                     out[i0,i1,i2]=int(l*random.random()+rng[0])
+     elif len(shape)==4:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+               for i2 in range(shape[2]):
+                  for i3 in range(shape[3]):
+                     out[i0,i1,i2,i3]=int(l*random.random()+rng[0])
+     elif len(shape)==5:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+               for i2 in range(shape[2]):
+                  for i3 in range(shape[3]):
+                    for i4 in range(shape[4]):
+                     out[i0,i1,i2,i3,i4]=int(l*ranm.random()+rng[0])
+     else:
+         raise SystemError,"rank is restricted to 5"
    else:
-       raise SystemError,"rank is restricted to 5"
+     if len(shape)==0:  
+         out=l*random.random()+rng[0]
+     elif len(shape)==1:
+         for i0 in range(shape[0]):
+                     out[i0]=l*random.random()+rng[0]
+     elif len(shape)==2:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+                     out[i0,i1]=l*random.random()+rng[0]
+     elif len(shape)==3:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+               for i2 in range(shape[2]):
+                     out[i0,i1,i2]=l*random.random()+rng[0]
+     elif len(shape)==4:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+               for i2 in range(shape[2]):
+                  for i3 in range(shape[3]):
+                     out[i0,i1,i2,i3]=l*random.random()+rng[0]
+     elif len(shape)==5:
+         for i0 in range(shape[0]):
+            for i1 in range(shape[1]):
+               for i2 in range(shape[2]):
+                  for i3 in range(shape[3]):
+                    for i4 in range(shape[4]):
+                     out[i0,i1,i2,i3,i4]=l*ranm.random()+rng[0]
+     else:
+         raise SystemError,"rank is restricted to 5"
    return out         
 
 def makeNumberedArray(shape,s=1.):
@@ -505,9 +536,9 @@ def mkText(case,name,a,a1=None,use_tagging_for_expanded_data=False):
                  t_out+="      %s.setTaggedValue(1,numarray.array(%s))\n"%(name,a1.tolist())
               t_out+="      %s.expand()\n"%name           
            else: 
-              t_out+="      msk_%s=whereZero(self.functionspace.getX()[0],1.e-8)\n"%name
+              t_out+="      msk_%s=1-whereZero(self.functionspace.getX()[0],1.e-8)\n"%name
               if isinstance(a,float):
-                   t_out+="      %s=(1.-msk_%s)*(%s)+msk_%s*(%s)\n"%(name,name,a,name,a1)
+                   t_out+="      %s=msk_%s*(%s)+(1-msk_%s)*(%s)\n"%(name,name,a,name,a1)
               elif a.rank==0:
                    t_out+="      %s=msk_%s*numarray.array(%s)+(1.-msk_%s)*numarray.array(%s)\n"%(name,name,a,name,a1)
               else:
@@ -549,6 +580,302 @@ def mkCode(txt,args=[],intend=""):
     for r in args:
       out=out.replace("%%a%s%%"%c,r)
     return out   
+#=================================================
+def testMatrixMult(arg0,arg1,sh_s):
+     return numarray.matrixmultiply(arg0,arg1)
+
+def shapeTestMatrixMult(sh0,sh1,sh_s):
+ if len(sh_s)==1 and len(sh0+sh_s)==2 and (len(sh_s+sh1)==1 or len(sh_s+sh1)==2): 
+        return sh0+sh_s,sh_s+sh1
+
+def testTensorMult(arg0,arg1,sh_s):
+     if arg0.rank==2:
+        return numarray.matrixmultiply(arg0,arg1)
+     else:
+        if arg1.rank==4:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1],arg1.shape[2],arg1.shape[3]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              for j2 in range(arg1.shape[2]):
+               for j3 in range(arg1.shape[3]):
+                     out[i0,i1,j2,j3]+=arg0[i0,i1,i2,i3]*arg1[i2,i3,j2,j3]
+        elif arg1.rank==3:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1],arg1.shape[2]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              for j2 in range(arg1.shape[2]):
+                     out[i0,i1,j2]+=arg0[i0,i1,i2,i3]*arg1[i2,i3,j2]
+        elif arg1.rank==2:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+                     out[i0,i1]+=arg0[i0,i1,i2,i3]*arg1[i2,i3]
+        return out
+
+def shapeTestTensorMult(sh0,sh1,sh_s):
+ if ( len(sh_s)==1 and len(sh0+sh_s)==2 and ( len(sh1+sh_s)==2 or len(sh1+sh_s)==1 )) or (len(sh_s)==2 and len(sh0+sh_s)==4 and (len(sh1+sh_s)==2 or len(sh1+sh_s)==3 or len(sh1+sh_s)==4)):
+        return sh0+sh_s,sh_s+sh1
+
+def tensorProductTest(arg0,arg1,sh_s):
+    if isinstance(arg0,float):
+       out=numarray.array(arg0*arg1)
+    elif isinstance(arg1,float):
+       out=numarray.array(arg0*arg1)
+    elif len(sh_s)==0:
+       out=numarray.outerproduct(arg0,arg1).resize(arg0.shape+arg1.shape)
+    else:
+       l=len(sh_s)
+       sh0=arg0.shape[:arg0.rank-l]
+       sh1=arg1.shape[l:]
+       ls,l0,l1=1,1,1
+       for i in sh_s: ls*=i
+       for i in sh0: l0*=i
+       for i in sh1: l1*=i
+       out1=numarray.outerproduct(arg0,arg1).resize((l0,ls,ls,l1))
+       out2=numarray.zeros((l0,l1),numarray.Float)
+       for i0 in range(l0):
+          for i1 in range(l1):
+              for i in range(ls): out2[i0,i1]+=out1[i0,i,i,i1]
+       out=out2.resize(sh0+sh1)
+    return out
+def tensorProductShape(sh0,sh1,sh_s):
+        return sh0+sh_s,sh_s+sh1
+
+def transpose(r,offset):
+    if isinstance(r,float): return r
+    s=r.shape
+    s1=1
+    for i in s[:offset]: s1*=i
+    s2=1
+    for i in s[offset:]: s2*=i
+    out=numarray.reshape(r,(s1,s2))
+    out.transpose()
+    return numarray.resize(out,s[offset:]+s[:offset])
+
+def shapeTestTMatrixMult(sh0,sh1,sh_s):
+ if len(sh_s)==1 and len(sh0+sh_s)==2 and (len(sh_s+sh1)==1 or len(sh_s+sh1)==2): 
+        return sh_s+sh0,sh_s+sh1
+
+def testTMatrixMult(arg0,arg1,sh_s):
+     return numarray.matrixmultiply(transpose(arg0,1),arg1)
+
+def shapeTestTTensorMult(sh0,sh1,sh_s):
+ if ( len(sh_s)==1 and len(sh0+sh_s)==2 and ( len(sh1+sh_s)==2 or len(sh1+sh_s)==1 )) or (len(sh_s)==2 and len(sh0+sh_s)==4 and (len(sh1+sh_s)==2 or len(sh1+sh_s)==3 or len(sh1+sh_s)==4)):
+        return sh_s+sh0,sh_s+sh1
+
+def testTTensorMult(arg0,arg1,sh_s):
+     if arg0.rank==2:
+        return numarray.matrixmultiply(transpose(arg0,1),arg1)
+     else:
+        if arg1.rank==4:
+          out=numarray.zeros((arg0.shape[2],arg0.shape[3],arg1.shape[2],arg1.shape[3]),numarray.Float)
+          for i0 in range(arg0.shape[2]):
+           for i1 in range(arg0.shape[3]):
+            for i2 in range(arg0.shape[0]):
+             for i3 in range(arg0.shape[1]):
+              for j2 in range(arg1.shape[2]):
+               for j3 in range(arg1.shape[3]):
+                     out[i0,i1,j2,j3]+=arg0[i2,i3,i0,i1]*arg1[i2,i3,j2,j3]
+        elif arg1.rank==3:
+          out=numarray.zeros((arg0.shape[2],arg0.shape[3],arg1.shape[2]),numarray.Float)
+          for i0 in range(arg0.shape[2]):
+           for i1 in range(arg0.shape[3]):
+            for i2 in range(arg0.shape[0]):
+             for i3 in range(arg0.shape[1]):
+              for j2 in range(arg1.shape[2]):
+                     out[i0,i1,j2]+=arg0[i2,i3,i0,i1]*arg1[i2,i3,j2]
+        elif arg1.rank==2:
+          out=numarray.zeros((arg0.shape[2],arg0.shape[3]),numarray.Float)
+          for i0 in range(arg0.shape[2]):
+           for i1 in range(arg0.shape[3]):
+            for i2 in range(arg0.shape[0]):
+             for i3 in range(arg0.shape[1]):
+                     out[i0,i1]+=arg0[i2,i3,i0,i1]*arg1[i2,i3]
+        return out
+
+def tensorTProductShape(sh0,sh1,sh_s):
+        return sh_s+sh0,sh_s+sh1
+
+def tensorTProductTest(arg0,arg1,sh_s):
+    if isinstance(arg0,float):
+       out=numarray.array(arg0*arg1)
+    elif isinstance(arg1,float):
+       out=numarray.array(arg0*arg1)
+    elif len(sh_s)==0:
+       out=numarray.outerproduct(arg0,arg1).resize(arg0.shape+arg1.shape)
+    else:
+       l=len(sh_s)
+       sh0=arg0.shape[l:]
+       sh1=arg1.shape[l:]
+       ls,l0,l1=1,1,1
+       for i in sh_s: ls*=i
+       for i in sh0: l0*=i
+       for i in sh1: l1*=i
+       out1=numarray.outerproduct(arg0,arg1).resize((ls,l0,ls,l1))
+       out2=numarray.zeros((l0,l1),numarray.Float)
+       for i0 in range(l0):
+          for i1 in range(l1):
+              for i in range(ls): out2[i0,i1]+=out1[i,i0,i,i1]
+       out=out2.resize(sh0+sh1)
+    return out
+
+def shapeTestMatrixTMult(sh0,sh1,sh_s):
+ if len(sh_s)==1 and len(sh0+sh_s)==2 and len(sh_s+sh1)==2: 
+     return sh0+sh_s,sh1+sh_s
+
+def testMatrixTMult(arg0,arg1,sh_s):
+     return numarray.matrixmultiply(arg0,transpose(arg1,1))
+
+def shapeTestTensorTMult(sh0,sh1,sh_s):
+ if ( len(sh_s)==1 and len(sh0+sh_s)==2 and ( len(sh1+sh_s)==2 or len(sh1+sh_s)==1 )) or (len(sh_s)==2 and len(sh0+sh_s)==4 and (len(sh1+sh_s)==2 or len(sh1+sh_s)==3 or len(sh1+sh_s)==4)):
+        return sh0+sh_s,sh1+sh_s
+
+def testTensorTMult(arg0,arg1,sh_s):
+     if arg0.rank==2:
+        return numarray.matrixmultiply(arg0,transpose(arg1,1))
+     else:
+        if arg1.rank==4:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1],arg1.shape[0],arg1.shape[1]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              for j0 in range(arg1.shape[0]):
+               for j1 in range(arg1.shape[1]):
+                     out[i0,i1,j0,j1]+=arg0[i0,i1,i2,i3]*arg1[j0,j1,i2,i3]
+        elif arg1.rank==3:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1],arg1.shape[0]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              for j0 in range(arg1.shape[0]):
+                     out[i0,i1,j0]+=arg0[i0,i1,i2,i3]*arg1[j0,i2,i3]
+        elif arg1.rank==2:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+                     out[i0,i1]+=arg0[i0,i1,i2,i3]*arg1[i2,i3]
+        return out
+
+def tensorProductTTest(arg0,arg1,sh_s):
+    if isinstance(arg0,float):
+       out=numarray.array(arg0*arg1)
+    elif isinstance(arg1,float):
+       out=numarray.array(arg0*arg1)
+    elif len(sh_s)==0:
+       out=numarray.outerproduct(arg0,arg1).resize(arg0.shape+arg1.shape)
+    else:
+       l=len(sh_s)
+       sh0=arg0.shape[:arg0.rank-l]
+       sh1=arg1.shape[:arg1.rank-l]
+       ls,l0,l1=1,1,1
+       for i in sh_s: ls*=i
+       for i in sh0: l0*=i
+       for i in sh1: l1*=i
+       out1=numarray.outerproduct(arg0,arg1).resize((l0,ls,l1,ls))
+       out2=numarray.zeros((l0,l1),numarray.Float)
+       for i0 in range(l0):
+          for i1 in range(l1):
+              for i in range(ls): out2[i0,i1]+=out1[i0,i,i1,i]
+       out=out2.resize(sh0+sh1)
+    return out
+
+def tensorProductTShape(sh0,sh1,sh_s):
+        return sh0+sh_s,sh1+sh_s
+
+#=======================================================================================================
+# tensor multiply
+#=======================================================================================================
+# oper=
+# oper=
+for oper in [ ["tensor_mult",testTensorMult,shapeTestTensorMult], \
+              ["generalTensorProduct",tensorProductTest,tensorProductShape], \
+              ["matrix_mult",testMatrixMult,shapeTestMatrixMult], \
+              ["transposed_matrix_mult",testTMatrixMult,shapeTestTMatrixMult], \
+              ["transposed_tensor_mult",testTTensorMult,shapeTestTTensorMult], \
+              ["generalTransposedTensorProduct",tensorTProductTest,tensorTProductShape], \
+              ["matrix_transposed_mult",testMatrixTMult,shapeTestMatrixTMult], \
+              ["tensor_transposed_mult",testTensorTMult,shapeTestTensorTMult], \
+              ["generalTensorTransposedProduct",tensorProductTTest,tensorProductTShape] ]: 
+
+ for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+   for case1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
+     for sh1 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+       for sh_s in [ (),(3,), (2,3), (2,4,3),(4,2,3,2)]:
+          if (len(sh0+sh_s)==0 or not case0=="float") and (len(sh1+sh_s)==0 or not case1=="float") \
+               and len(sh0+sh1)<5 and len(sh0+sh_s)<5 and len(sh1+sh_s)<5:
+            arg_shape=oper[2](sh0,sh1,sh_s)
+            if not arg_shape==None:
+              case=getResultCaseForBin(case0,case1)  
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              if oper[0] in [ "generalTensorProduct", "generalTransposedTensorProduct", "generalTensorTransposedProduct"]:
+                tname="test_%s_%s_rank%s_%s_rank%s_offset%s"%(oper[0],case0,len(sh0+sh_s),case1,len(sh_s+sh1),len(sh_s))
+
+                res_text="      res=%s(arg0,arg1,axis_offset=%s)\n"%(oper[0],len(sh_s))
+              else:
+                tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0+sh_s),case1,len(sh_s+sh1))
+
+                res_text="      res=%s(arg0,arg1)\n"%oper[0]
+
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(arg_shape[0],[-8,8])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(arg_shape[0],[-8,8])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(arg_shape[1],[-8,8])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(arg_shape[1],[-8,8])
+              else:
+                  a1_1=a_1
+              r=oper[1](a_0,a_1,sh_s)
+              r1=oper[1](a1_0,a1_1,sh_s)
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+=res_text
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case,sh0+sh1,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              if case0 == "taggedData" or case1 == "taggedData":
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+print test_header
+print t_prog
+# print t_prog_with_tags
+print test_tail           
+1/0
+
 
 
 #=======================================================================================================

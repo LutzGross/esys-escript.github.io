@@ -2939,15 +2939,15 @@ def trace(arg,axis_offset=0):
    if isinstance(arg,numarray.NumArray):
       sh=arg.shape
       if len(sh)<2: 
-        raise ValueError,"trace: rank of argument must be greater than 1"
+        raise ValueError,"rank of argument must be greater than 1"
       if axis_offset<0 or axis_offset>len(sh)-2:
-        raise ValueError,"trace: axis_offset must be between 0 and %s"%len(sh)-2
+        raise ValueError,"axis_offset must be between 0 and %s"%len(sh)-2
       s1=1
       for i in range(axis_offset): s1*=sh[i]
       s2=1
       for i in range(axis_offset+2,len(sh)): s2*=sh[i]
       if not sh[axis_offset] == sh[axis_offset+1]:
-        raise ValueError,"trace: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+        raise ValueError,"dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
       arg_reshaped=numarray.reshape(arg,(s1,sh[axis_offset],sh[axis_offset],s2))
       out=numarray.zeros([s1,s2],numarray.Float64)
       for i1 in range(s1):
@@ -2956,27 +2956,23 @@ def trace(arg,axis_offset=0):
       out.resize(sh[:axis_offset]+sh[axis_offset+2:])
       return out
    elif isinstance(arg,escript.Data):
-      return escript_trace(arg,axis_offset)
+      if arg.getRank()<2: 
+        raise ValueError,"rank of argument must be greater than 1"
+      if axis_offset<0 or axis_offset>arg.getRank()-2:
+        raise ValueError,"axis_offset must be between 0 and %s"%arg.getRank()-2
+      s=list(arg.getShape())        
+      if not s[axis_offset] == s[axis_offset+1]:
+        raise ValueError,"dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+      return arg._matrixtrace(axis_offset)
    elif isinstance(arg,float):
-      raise TypeError,"trace: illegal argument type float."
+      raise TypeError,"illegal argument type float."
    elif isinstance(arg,int):
-      raise TypeError,"trace: illegal argument type int."
+      raise TypeError,"illegal argument type int."
    elif isinstance(arg,Symbol):
       return Trace_Symbol(arg,axis_offset)
    else:
-      raise TypeError,"trace: Unknown argument type."
+      raise TypeError,"Unknown argument type."
 
-def escript_trace(arg,axis_offset):
-      "arg is a Data object"
-      if arg.getRank()<2: 
-        raise ValueError,"escript_trace: rank of argument must be greater than 1"
-      if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"escript_trace: axis_offset must be between 0 and %s"%arg.getRank()-2
-      s=list(arg.getShape())        
-      if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"escript_trace: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
-      out=arg._matrixtrace(axis_offset)
-      return out
 class Trace_Symbol(DependendSymbol):
    """
    L{Symbol} representing the result of the trace function
@@ -2991,12 +2987,12 @@ class Trace_Symbol(DependendSymbol):
       @type axis_offset: C{int}
       """
       if arg.getRank()<2: 
-        raise ValueError,"Trace_Symbol: rank of argument must be greater than 1"
+        raise ValueError,"rank of argument must be greater than 1"
       if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"Trace_Symbol: axis_offset must be between 0 and %s"%arg.getRank()-2
+        raise ValueError,"axis_offset must be between 0 and %s"%arg.getRank()-2
       s=list(arg.getShape())        
       if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"Trace_Symbol: dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
+        raise ValueError,"dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
       super(Trace_Symbol,self).__init__(args=[arg,axis_offset],shape=tuple(s[0:axis_offset]+s[axis_offset+2:]),dim=arg.getDim())
 
    def getMyCode(self,argstrs,format="escript"):
@@ -3067,29 +3063,25 @@ def transpose(arg,axis_offset=None):
       if axis_offset==None: axis_offset=int(arg.rank/2)
       return numarray.transpose(arg,axes=range(axis_offset,arg.rank)+range(0,axis_offset))
    elif isinstance(arg,escript.Data):
-      if axis_offset==None: axis_offset=int(arg.getRank()/2)
-      return escript_transpose(arg,axis_offset)
+      r=arg.getRank()
+      if axis_offset==None: axis_offset=int(r/2)
+      if axis_offset<0 or axis_offset>r:
+        raise ValueError,"axis_offset must be between 0 and %s"%r
+      return arg._transpose(axis_offset)
    elif isinstance(arg,float):
       if not ( axis_offset==0 or axis_offset==None): 
-        raise ValueError,"transpose: axis_offset must be 0 for float argument"
+        raise ValueError,"axis_offset must be 0 for float argument"
       return arg
    elif isinstance(arg,int):
       if not ( axis_offset==0 or axis_offset==None): 
-        raise ValueError,"transpose: axis_offset must be 0 for int argument"
+        raise ValueError,"axis_offset must be 0 for int argument"
       return float(arg)
    elif isinstance(arg,Symbol):
       if axis_offset==None: axis_offset=int(arg.getRank()/2)
       return Transpose_Symbol(arg,axis_offset)
    else:
-      raise TypeError,"transpose: Unknown argument type."
+      raise TypeError,"Unknown argument type."
 
-def escript_transpose(arg,axis_offset):
-      "arg is a Data object"
-      r=arg.getRank()
-      if axis_offset<0 or axis_offset>r:
-        raise ValueError,"escript_transpose: axis_offset must be between 0 and %s"%r
-      out=arg._transpose(axis_offset)
-      return out
 class Transpose_Symbol(DependendSymbol):
    """
    L{Symbol} representing the result of the transpose function
@@ -3106,7 +3098,7 @@ class Transpose_Symbol(DependendSymbol):
       """
       if axis_offset==None: axis_offset=int(arg.getRank()/2)
       if axis_offset<0 or axis_offset>arg.getRank():
-        raise ValueError,"escript_transpose: axis_offset must be between 0 and %s"%r
+        raise ValueError,"axis_offset must be between 0 and %s"%r
       s=arg.getShape()
       super(Transpose_Symbol,self).__init__(args=[arg,axis_offset],shape=s[axis_offset:]+s[:axis_offset],dim=arg.getDim())
 
@@ -3173,15 +3165,24 @@ def symmetric(arg):
     if isinstance(arg,numarray.NumArray):
       if arg.rank==2:
         if not (arg.shape[0]==arg.shape[1]):
-           raise ValueError,"symmetric: argument must be square."
+           raise ValueError,"argument must be square."
       elif arg.rank==4:
         if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
-           raise ValueError,"symmetric: argument must be square."
+           raise ValueError,"argument must be square."
       else:
-        raise ValueError,"symmetric: rank 2 or 4 is required."
+        raise ValueError,"rank 2 or 4 is required."
       return (arg+transpose(arg))/2
     elif isinstance(arg,escript.Data):
-      return escript_symmetric(arg)
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError,"argument must be square."
+        return arg._symmetric()
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError,"argument must be square."
+        return arg._symmetric()
+      else:
+        raise ValueError,"rank 2 or 4 is required."
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
@@ -3189,28 +3190,15 @@ def symmetric(arg):
     elif isinstance(arg,Symbol):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"symmetric: argument must be square."
+           raise ValueError,"argument must be square."
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"symmetric: argument must be square."
+           raise ValueError,"argument must be square."
       else:
-        raise ValueError,"symmetric: rank 2 or 4 is required."
+        raise ValueError,"rank 2 or 4 is required."
       return (arg+transpose(arg))/2
     else:
       raise TypeError,"symmetric: Unknown argument type."
-
-def escript_symmetric(arg):
-      if arg.getRank()==2:
-        if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"escript_symmetric: argument must be square."
-        out=arg._symmetric()
-      elif arg.getRank()==4:
-        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"escript_symmetric: argument must be square."
-        out=arg._symmetric()
-      else:
-        raise ValueError,"escript_symmetric: rank 2 or 4 is required."
-      return out
 
 def nonsymmetric(arg):
     """
@@ -3232,7 +3220,16 @@ def nonsymmetric(arg):
         raise ValueError,"nonsymmetric: rank 2 or 4 is required."
       return (arg-transpose(arg))/2
     elif isinstance(arg,escript.Data):
-      return escript_nonsymmetric(arg)
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError,"argument must be square."
+        return arg._nonsymmetric()
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError,"argument must be square."
+        return arg._nonsymmetric()
+      else:
+        raise ValueError,"rank 2 or 4 is required."
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
@@ -3249,20 +3246,6 @@ def nonsymmetric(arg):
       return (arg-transpose(arg))/2
     else:
       raise TypeError,"nonsymmetric: Unknown argument type."
-
-def escript_nonsymmetric(arg): # this should be implemented in c++
-      if arg.getRank()==2:
-        if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"escript_nonsymmetric: argument must be square."
-        out=arg._nonsymmetric()
-      elif arg.getRank()==4:
-        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"escript_nonsymmetric: argument must be square."
-        out=arg._nonsymmetric()
-      else:
-        raise ValueError,"escript_nonsymmetric: rank 2 or 4 is required."
-      return out
-
 
 def inverse(arg):
     """
@@ -3407,7 +3390,7 @@ class Inverse_Symbol(DependendSymbol):
       if arg==self:
          return identity(self.getShape())
       else:
-         return -matrixmult(matrixmult(self,self.getDifferentiatedArguments(arg)[0]),self)
+         return -matrix_mult(matrix_mult(self,self.getDifferentiatedArguments(arg)[0]),self)
 
 def eigenvalues(arg):
     """
@@ -3995,34 +3978,6 @@ def inner(arg0,arg1):
         raise ValueError,"inner: shape of arguments does not match"
     return generalTensorProduct(arg0,arg1,axis_offset=len(sh0))
 
-def matrixmult(arg0,arg1):
-    """
-    matrix-matrix or matrix-vector product of the two argument:
- 
-    out[s0]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0] 
-
-    or 
-
-    out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0,s1] 
- 
-    The second dimension of arg0 and the length of arg1 must match.
-
-    @param arg0: first argument of rank 2
-    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
-    @param arg1: second argument of at least rank 1
-    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
-    @return: the matrix-matrix or matrix-vector product of arg0 and arg1 at each data point
-    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
-    @raise ValueError: if the shapes of the arguments are not appropriate
-    """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
-    if not len(sh0)==2 :
-        raise ValueError,"first argument must have rank 2"
-    if not len(sh1)==2 and not len(sh1)==1:
-        raise ValueError,"second argument must have rank 1 or 2"
-    return generalTensorProduct(arg0,arg1,axis_offset=1)
-
 def outer(arg0,arg1):
     """
     the outer product of the two argument:
@@ -4043,8 +3998,47 @@ def outer(arg0,arg1):
     """
     return generalTensorProduct(arg0,arg1,axis_offset=0)
 
+def matrixmul(arg0,arg1):
+    """
+    see L{matrix_mult}
+    """
+    return matrix_mult(arg0,arg1)
+
+def matrix_mult(arg0,arg1):
+    """
+    matrix-matrix or matrix-vector product of the two argument:
+ 
+    out[s0]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0] 
+
+    or 
+
+    out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[r0,s1] 
+ 
+    The second dimension of arg0 and the first dimension of arg1 must match.
+
+    @param arg0: first argument of rank 2
+    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @param arg1: second argument of at least rank 1
+    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: the matrix-matrix or matrix-vector product of arg0 and arg1 at each data point
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    @raise ValueError: if the shapes of the arguments are not appropriate
+    """
+    sh0=pokeShape(arg0)
+    sh1=pokeShape(arg1)
+    if not len(sh0)==2 :
+        raise ValueError,"first argument must have rank 2"
+    if not len(sh1)==2 and not len(sh1)==1:
+        raise ValueError,"second argument must have rank 1 or 2"
+    return generalTensorProduct(arg0,arg1,axis_offset=1)
 
 def tensormult(arg0,arg1):
+    """
+    use L{tensor_mult}
+    """
+    return tensor_mult(arg0,arg1)
+
+def tensor_mult(arg0,arg1):
     """
     the tensor product of the two argument:
     
@@ -4069,8 +4063,8 @@ def tensormult(arg0,arg1):
 
     out[s0,s1]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1] 
 
-    In the first case the the second dimension of arg0 and the length of arg1 must match and  
-    in the second case the two last dimensions of arg0 must match the shape of arg1.
+    In the first case the the second dimension of arg0 and the last dimension of arg1 must match and  
+    in the second case the two last dimensions of arg0 must match the two first dimensions of arg1.
 
     @param arg0: first argument of rank 2 or 4
     @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
@@ -4086,7 +4080,7 @@ def tensormult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
        return generalTensorProduct(arg0,arg1,axis_offset=2)
     else:
-        raise ValueError,"tensormult: first argument must have rank 2 or 4"
+        raise ValueError,"tensor_mult: first argument must have rank 2 or 4"
 
 def generalTensorProduct(arg0,arg1,axis_offset=0):
     """
@@ -4100,12 +4094,9 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
         - r runs trough arg0.Shape[:axis_offset]
         - t runs through arg1.Shape[axis_offset:]
 
-    In the first case the the second dimension of arg0 and the length of arg1 must match and  
-    in the second case the two last dimensions of arg0 must match the shape of arg1.
-
     @param arg0: first argument
     @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
-    @param arg1: second argument of shape greater of 1 or 2 depending on rank of arg0
+    @param arg1: second argument
     @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
     @return: the general tensor product of arg0 and arg1 at each data point. 
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
@@ -4118,7 +4109,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
            return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
        else:
            if not arg0.shape[arg0.rank-axis_offset:]==arg1.shape[:axis_offset]:
-               raise ValueError,"generalTensorProduct: dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
+               raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
            arg0_c=arg0.copy()
            arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
@@ -4144,17 +4135,17 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
                  
 class GeneralTensorProduct_Symbol(DependendSymbol):
    """
-   Symbol representing the quotient of two arguments.
+   Symbol representing the general tensor product of two arguments
    """
    def __init__(self,arg0,arg1,axis_offset=0):
        """
-       initialization of L{Symbol} representing the quotient of two arguments 
+       initialization of L{Symbol} representing the general tensor product of two arguments.
 
-       @param arg0: numerator
+       @param arg0: first argument
        @type arg0: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @param arg1: denominator
+       @param arg1: second argument
        @type arg1: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
-       @raise ValueError: if both arguments do not have the same shape.
+       @raise ValueError: illegal dimension
        @note: if both arguments have a spatial dimension, they must equal.
        """
        sh_arg0=pokeShape(arg0)
@@ -4244,6 +4235,465 @@ def escript_generalTensorProduct(arg0,arg1,axis_offset): # this should be escrip
          s=escript.Scalar(0.,fs)
          for i01 in s01:
             s+=arg0.__getitem__(tuple(i0+i01))*arg1.__getitem__(tuple(i01+i1))
+         out.__setitem__(tuple(i0+i1),s)
+    return out
+
+
+def transposed_matrix_mult(arg0,arg1):
+    """
+    transposed(matrix)-matrix or transposed(matrix)-vector product of the two argument:
+ 
+    out[s0]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0] 
+
+    or 
+
+    out[s0,s1]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0,s1] 
+ 
+    The function call transposed_matrix_mult(arg0,arg1) is equivalent to matrix_mult(transpose(arg0),arg1).
+
+    The first dimension of arg0 and arg1 must match.
+
+    @param arg0: first argument of rank 2
+    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @param arg1: second argument of at least rank 1
+    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: the product of the transposed of arg0 and arg1 at each data point
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    @raise ValueError: if the shapes of the arguments are not appropriate
+    """
+    sh0=pokeShape(arg0)
+    sh1=pokeShape(arg1)
+    if not len(sh0)==2 :
+        raise ValueError,"first argument must have rank 2"
+    if not len(sh1)==2 and not len(sh1)==1:
+        raise ValueError,"second argument must have rank 1 or 2"
+    return generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
+
+def transposed_tensor_mult(arg0,arg1):
+    """
+    the tensor product of the transposed of the first and the second argument
+    
+    for arg0 of rank 2 this is
+ 
+    out[s0]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0]  
+
+    or 
+
+    out[s0,s1]=S{Sigma}_{r0} arg0[r0,s0]*arg1[r0,s1] 
+
+   
+    and for arg0 of rank 4 this is 
+
+    out[s0,s1,s2,s3]=S{Sigma}_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2,s3] 
+              
+    or
+
+    out[s0,s1,s2]=S{Sigma}_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2] 
+ 
+    or 
+
+    out[s0,s1]=S{Sigma}_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1] 
+
+    In the first case the the first dimension of arg0 and the first dimension of arg1 must match and  
+    in the second case the two first dimensions of arg0 must match the two first dimension of arg1.
+
+    The function call transposed_tensor_mult(arg0,arg1) is equivalent to tensor_mult(transpose(arg0),arg1).
+
+    @param arg0: first argument of rank 2 or 4
+    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @param arg1: second argument of shape greater of 1 or 2 depending on rank of arg0
+    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: the tensor product of tarnsposed of arg0 and arg1 at each data point
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    """
+    sh0=pokeShape(arg0)
+    sh1=pokeShape(arg1)
+    if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
+       return generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
+    elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
+       return generalTransposedTensorProduct(arg0,arg1,axis_offset=2)
+    else:
+        raise ValueError,"first argument must have rank 2 or 4"
+
+def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
+    """
+    generalized tensor product of transposed of arg0 and arg1:
+
+    out[s,t]=S{Sigma}_r arg0[r,s]*arg1[r,t]
+
+    where
+
+        - s runs through arg0.Shape[axis_offset:]
+        - r runs trough arg0.Shape[:axis_offset]
+        - t runs through arg1.Shape[axis_offset:]
+
+    The function call generalTransposedTensorProduct(arg0,arg1,axis_offset) is equivalent 
+    to generalTensorProduct(transpose(arg0,arg0.rank-axis_offset),arg1,axis_offset).
+
+    @param arg0: first argument
+    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
+    @param arg1: second argument 
+    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
+    @return: the general tensor product of transposed(arg0) and arg1 at each data point. 
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    """
+    if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
+    arg0,arg1=matchType(arg0,arg1)
+    # at this stage arg0 and arg0 are both numarray.NumArray or escript.Data or Symbols
+    if isinstance(arg0,numarray.NumArray):
+       if isinstance(arg1,Symbol):
+           return GeneralTransposedTensorProduct_Symbol(arg0,arg1,axis_offset)
+       else:
+           if not arg0.shape[:axis_offset]==arg1.shape[:axis_offset]:
+               raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
+           arg0_c=arg0.copy()
+           arg1_c=arg1.copy()
+           sh0,sh1=arg0.shape,arg1.shape
+           d0,d1,d01=1,1,1
+           for i in sh0[axis_offset:]: d0*=i
+           for i in sh1[axis_offset:]: d1*=i
+           for i in sh0[:axis_offset]: d01*=i
+           arg0_c.resize((d01,d0))
+           arg1_c.resize((d01,d1))
+           out=numarray.zeros((d0,d1),numarray.Float64)
+           for i0 in range(d0):
+                    for i1 in range(d1):
+                         out[i0,i1]=numarray.sum(arg0_c[:,i0]*arg1_c[:,i1])
+           out.resize(sh0[axis_offset:]+sh1[axis_offset:])
+           return out
+    elif isinstance(arg0,escript.Data):
+       if isinstance(arg1,Symbol):
+           return GeneralTransposedTensorProduct_Symbol(arg0,arg1,axis_offset)
+       else:
+           return escript_generalTransposedTensorProduct(arg0,arg1,axis_offset) # this calls has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
+    else:       
+       return GeneralTransposedTensorProduct_Symbol(arg0,arg1,axis_offset)
+                 
+class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
+   """
+   Symbol representing the general tensor product of the transposed of arg0 and arg1
+   """
+   def __init__(self,arg0,arg1,axis_offset=0):
+       """
+       initialization of L{Symbol} representing tensor product of the transposed of arg0 and arg1
+
+       @param arg0: first argument
+       @type arg0: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
+       @param arg1: second argument
+       @type arg1: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
+       @raise ValueError: inconsistent dimensions of arguments.
+       @note: if both arguments have a spatial dimension, they must equal.
+       """
+       sh_arg0=pokeShape(arg0)
+       sh_arg1=pokeShape(arg1)
+       sh01=sh_arg0[:axis_offset]
+       sh10=sh_arg1[:axis_offset]
+       sh0=sh_arg0[axis_offset:]
+       sh1=sh_arg1[axis_offset:]
+       if not sh01==sh10:
+           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{list} of length 2 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript", "str" and "text" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str" or format=="text":
+         return "generalTransposedTensorProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
+      else:
+         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         args=self.getSubstitutedArguments(argvals)
+         return generalTransposedTensorProduct(args[0],args[1],args[2])
+
+def escript_generalTransposedTensorProduct(arg0,arg1,axis_offset): # this should be escript._generalTransposedTensorProduct
+    "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
+    # calculate the return shape:
+    shape01=arg0.getShape()[:axis_offset]
+    shape10=arg1.getShape()[:axis_offset]
+    shape0=arg0.getShape()[axis_offset:]
+    shape1=arg1.getShape()[axis_offset:]
+    if not shape01==shape10:
+        raise ValueError,"dimensions of first %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
+
+    # whatr function space should be used? (this here is not good!)
+    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
+    # create return value:
+    out=escript.Data(0.,tuple(shape0+shape1),fs)
+    # 
+    s0=[[]]
+    for k in shape0: 
+          s=[]
+          for j in s0: 
+                for i in range(k): s.append(j+[slice(i,i)])
+          s0=s
+    s1=[[]]
+    for k in shape1: 
+          s=[]
+          for j in s1: 
+                for i in range(k): s.append(j+[slice(i,i)])
+          s1=s
+    s01=[[]]
+    for k in shape01: 
+          s=[]
+          for j in s01: 
+                for i in range(k): s.append(j+[slice(i,i)])
+          s01=s
+
+    for i0 in s0:
+       for i1 in s1:
+         s=escript.Scalar(0.,fs)
+         for i01 in s01:
+            s+=arg0.__getitem__(tuple(i01+i0))*arg1.__getitem__(tuple(i01+i1))
+         out.__setitem__(tuple(i0+i1),s)
+    return out
+
+
+def matrix_transposed_mult(arg0,arg1):
+    """
+    matrix-transposed(matrix) product of the two argument:
+ 
+    out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[s1,r0] 
+ 
+    The function call matrix_transposed_mult(arg0,arg1) is equivalent to matrix_mult(arg0,transpose(arg1)).
+
+    The last dimensions of arg0 and arg1 must match.
+
+    @param arg0: first argument of rank 2
+    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @param arg1: second argument of rank 2
+    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: the product of arg0 and the transposed of arg1 at each data point
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    @raise ValueError: if the shapes of the arguments are not appropriate
+    """
+    sh0=pokeShape(arg0)
+    sh1=pokeShape(arg1)
+    if not len(sh0)==2 :
+        raise ValueError,"first argument must have rank 2"
+    if not len(sh1)==2 and not len(sh1)==1:
+        raise ValueError,"second argument must have rank 1 or 2"
+    return generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
+
+def tensor_transposed_mult(arg0,arg1):
+    """
+    the tensor product of the first and the transpose of the second argument
+    
+    for arg0 of rank 2 this is
+
+    out[s0,s1]=S{Sigma}_{r0} arg0[s0,r0]*arg1[s1,r0] 
+
+    and for arg0 of rank 4 this is 
+
+    out[s0,s1,s2,s3]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,s3,r0,r1] 
+              
+    or
+
+    out[s0,s1,s2]=S{Sigma}_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,r0,r1] 
+ 
+    In the first case the the second dimension of arg0 and arg1 must match and  
+    in the second case the two last dimensions of arg0 must match the two last dimension of arg1.
+
+    The function call tensor_transpose_mult(arg0,arg1) is equivalent to tensor_mult(arg0,transpose(arg1)).
+
+    @param arg0: first argument of rank 2 or 4
+    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @param arg1: second argument of shape greater of 1 or 2 depending on rank of arg0
+    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
+    @return: the tensor product of tarnsposed of arg0 and arg1 at each data point
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    """
+    sh0=pokeShape(arg0)
+    sh1=pokeShape(arg1)
+    if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
+       return generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
+    elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
+       return generalTensorTransposedProduct(arg0,arg1,axis_offset=2)
+    else:
+        raise ValueError,"first argument must have rank 2 or 4"
+
+def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
+    """
+    generalized tensor product of transposed of arg0 and arg1:
+
+    out[s,t]=S{Sigma}_r arg0[s,r]*arg1[t,r]
+
+    where
+
+        - s runs through arg0.Shape[:arg0.Rank-axis_offset]
+        - r runs trough arg0.Shape[arg1.Rank-axis_offset:]
+        - t runs through arg1.Shape[arg1.Rank-axis_offset:]
+
+    The function call generalTensorTransposedProduct(arg0,arg1,axis_offset) is equivalent 
+    to generalTensorProduct(arg0,transpose(arg1,arg1.Rank-axis_offset),axis_offset).
+
+    @param arg0: first argument
+    @type arg0: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
+    @param arg1: second argument 
+    @type arg1: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float}, C{int}
+    @return: the general tensor product of transposed(arg0) and arg1 at each data point. 
+    @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
+    """
+    if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
+    arg0,arg1=matchType(arg0,arg1)
+    # at this stage arg0 and arg0 are both numarray.NumArray or escript.Data or Symbols
+    if isinstance(arg0,numarray.NumArray):
+       if isinstance(arg1,Symbol):
+           return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
+       else:
+           if not arg0.shape[arg0.rank-axis_offset:]==arg1.shape[arg1.rank-axis_offset:]:
+               raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
+           arg0_c=arg0.copy()
+           arg1_c=arg1.copy()
+           sh0,sh1=arg0.shape,arg1.shape
+           d0,d1,d01=1,1,1
+           for i in sh0[:arg0.rank-axis_offset]: d0*=i
+           for i in sh1[:arg1.rank-axis_offset]: d1*=i
+           for i in sh1[arg1.rank-axis_offset:]: d01*=i
+           arg0_c.resize((d0,d01))
+           arg1_c.resize((d1,d01))
+           out=numarray.zeros((d0,d1),numarray.Float64)
+           for i0 in range(d0):
+                    for i1 in range(d1):
+                         out[i0,i1]=numarray.sum(arg0_c[i0,:]*arg1_c[i1,:])
+           out.resize(sh0[:arg0.rank-axis_offset]+sh1[:arg1.rank-axis_offset])
+           return out
+    elif isinstance(arg0,escript.Data):
+       if isinstance(arg1,Symbol):
+           return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
+       else:
+           return escript_generalTensorTransposedProduct(arg0,arg1,axis_offset) # this calls has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
+    else:       
+       return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
+                 
+class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
+   """
+   Symbol representing the general tensor product of arg0 and the transpose of arg1
+   """
+   def __init__(self,arg0,arg1,axis_offset=0):
+       """
+       initialization of L{Symbol} representing the general tensor product of arg0 and the transpose of arg1
+
+       @param arg0: first argument
+       @type arg0: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
+       @param arg1: second argument
+       @type arg1: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray}.
+       @raise ValueError: inconsistent dimensions of arguments.
+       @note: if both arguments have a spatial dimension, they must equal.
+       """
+       sh_arg0=pokeShape(arg0)
+       sh_arg1=pokeShape(arg1)
+       sh0=sh_arg0[:len(sh_arg0)-axis_offset]
+       sh01=sh_arg0[len(sh_arg0)-axis_offset:]
+       sh10=sh_arg1[len(sh_arg1)-axis_offset:]
+       sh1=sh_arg1[:len(sh_arg1)-axis_offset]
+       if not sh01==sh10:
+           raise ValueError,"dimensions of last %s components in left argument don't match the last %s components in the right argument."%(axis_offset,axis_offset)
+       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{list} of length 2 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript", "str" and "text" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str" or format=="text":
+         return "generalTensorTransposedProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
+      else:
+         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         args=self.getSubstitutedArguments(argvals)
+         return generalTensorTransposedProduct(args[0],args[1],args[2])
+
+def escript_generalTensorTransposedProduct(arg0,arg1,axis_offset): # this should be escript._generalTensorTransposedProduct
+    "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
+    # calculate the return shape:
+    shape01=arg0.getShape()[arg0.getRank()-axis_offset:]
+    shape0=arg0.getShape()[:arg0.getRank()-axis_offset]
+    shape10=arg1.getShape()[arg1.getRank()-axis_offset:]
+    shape1=arg1.getShape()[:arg1.getRank()-axis_offset]
+    if not shape01==shape10:
+        raise ValueError,"dimensions of first %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
+
+    # whatr function space should be used? (this here is not good!)
+    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
+    # create return value:
+    out=escript.Data(0.,tuple(shape0+shape1),fs)
+    # 
+    s0=[[]]
+    for k in shape0: 
+          s=[]
+          for j in s0: 
+                for i in range(k): s.append(j+[slice(i,i)])
+          s0=s
+    s1=[[]]
+    for k in shape1: 
+          s=[]
+          for j in s1: 
+                for i in range(k): s.append(j+[slice(i,i)])
+          s1=s
+    s01=[[]]
+    for k in shape01: 
+          s=[]
+          for j in s01: 
+                for i in range(k): s.append(j+[slice(i,i)])
+          s01=s
+
+    for i0 in s0:
+       for i1 in s1:
+         s=escript.Scalar(0.,fs)
+         for i01 in s01:
+            s+=arg0.__getitem__(tuple(i0+i01))*arg1.__getitem__(tuple(i1+i01))
          out.__setitem__(tuple(i0+i1),s)
     return out
 
