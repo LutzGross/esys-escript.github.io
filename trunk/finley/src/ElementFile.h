@@ -98,10 +98,6 @@ typedef struct Finley_ElementFile Finley_ElementFile;
 Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId,dim_t);
 #else
 Finley_ElementFile* Finley_ElementFile_alloc( ElementTypeId, dim_t, Paso_MPIInfo* );
-void Finley_ElementFile_markInternalElementNodes(index_t* mask,index_t offset,Finley_ElementFile* in,bool_t useLinear);
-void Finley_ElementFile_markBoundaryElementNodes(index_t* mask,index_t offset,Finley_ElementFile* in,bool_t useLinear);
-void Finley_ElementFile_markInternalElementDOF(index_t* mask,index_t offset,index_t *degreeOfFreedom, Finley_ElementFile* in,bool_t useLinear, index_t startElement);
-void Finley_ElementFile_markBoundaryElementDOF(index_t* mask,index_t offset,index_t *degreeOfFreedom,Finley_ElementFile* in,bool_t useLinear, index_t startElement);
 void Finley_ElementFile_setDomainFlags( Finley_ElementFile *in  );
 #endif
 

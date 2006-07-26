@@ -225,11 +225,13 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   
   /*  allocate tables: */ 
   Finley_NodeFile_allocTable(out->Nodes,N0*N1*N2);
-#ifdef PASO_MPI
-  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, NDOF0*NDOF1*NDOF2, 0, 0 );
-#endif
   Finley_ElementFile_allocTable(out->Elements,NE0*NE1*NE2);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+#ifdef PASO_MPI
+  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, NDOF0*NDOF1*NDOF2, 0, 0 );
+  Finley_ElementDistribution_allocTable( out->Elements->elementDistribution, NE0*NE1*NE2, NE0*NE1*NE2);
+  Finley_ElementDistribution_allocTable( out->FaceElements->elementDistribution, NFaceElements, NFaceElements );
+#endif
   if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
@@ -666,9 +668,12 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
   
   /*  allocate tables: */
   Finley_NodeFile_allocTable(out->Nodes,N0t*N1*N2);
-  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, numDOFLocal*NDOF1*NDOF2, NDOF1*NDOF2*2, 0 );
   Finley_ElementFile_allocTable(out->Elements,(numElementsLocal)*NE1*NE2);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+
+  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, numDOFLocal*NDOF1*NDOF2, NDOF1*NDOF2*2, 0 );
+  Finley_ElementDistribution_allocTable( out->Elements->elementDistribution, numElementsLocal*NE1*NE2, NE1*NE2*(numElementsLocal-boundaryRight*(!periodic[1])) );
+  Finley_ElementDistribution_allocTable( out->FaceElements->elementDistribution, NFaceElements, NFaceElements-2*boundaryRight*(NE2*(!periodic[1])+NE1*(!periodic[2])) );
   if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
