@@ -29,9 +29,8 @@
 #include "Common.h"
 #include "Options.h"
 #include "SystemMatrix.h"
-#ifdef PASO_MPI
+
 #include "Paso_MPI.h"
-#endif
 
 /**************************************************************/
 

@@ -1,9 +1,10 @@
+#ifdef PASO_MPI
+
 #ifndef INC_COMMBUFFER
 #define INC_COMMBUFFER
 
 #include "Paso.h"
-
-#ifdef PASO_MPI
+#include "Paso_MPI.h"
       
 #define TRACE_COMMBUFFER
 
@@ -54,7 +55,6 @@ bool_t Paso_CommBuffer_waitSendPending( Paso_CommBuffer *in );
 bool_t Paso_CommBuffer_waitSend( Paso_CommBuffer *in, index_t dom );
 bool_t Paso_CommBuffer_waitRecvPending( Paso_CommBuffer *in );
 bool_t Paso_CommBuffer_waitRecv( Paso_CommBuffer *in, index_t dom );
-void*  Paso_CommBuffer_getBufferForward( Paso_CommBuffer *in, index_t dom );
 void   Paso_CommBuffer_pack( Paso_CommBuffer *in, index_t dom, index_t *index, void *data, size_t itemSize, dim_t offset );
 void   Paso_CommBuffer_unpack( Paso_CommBuffer *in, index_t dom, index_t *index, void *data, size_t itemSize, dim_t offset );
 bool_t Paso_CommBuffer_validate( Paso_CommBuffer *in );

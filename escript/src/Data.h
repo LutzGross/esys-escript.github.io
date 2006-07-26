@@ -29,6 +29,10 @@ extern "C" {
 #include "paso/Paso.h"
 }
 
+#ifndef PASO_MPI
+#define MPI_Comm long
+#endif
+
 #include <string>
 #include <algorithm>
 
@@ -272,7 +276,8 @@ class Data {
 #ifndef PASO_MPI  
   ESCRIPT_DLL_API
   const boost::python::numeric::array
-  convertToNumArrayFromDPNo(int sampleNo,
+  convertToNumArrayFromDPNo(int ProcNo,
+														int sampleNo,
                             int dataPointNo);
 #else
   ESCRIPT_DLL_API
@@ -554,7 +559,7 @@ class Data {
   getDataPoint(int sampleNo,
                int dataPointNo)
   {
-    return m_data->getDataPoint(sampleNo,dataPointNo);
+		return m_data->getDataPoint(sampleNo,dataPointNo);
   }
 
   /**
@@ -792,14 +797,9 @@ class Data {
 
   ESCRIPT_DLL_API
   void
-#ifndef PASO_MPI
-  calc_mindp(int& SampleNo,
-             int& DataPointNo) const;
-#else
   calc_mindp(int& ProcNo,
 						int& SampleNo,	
              int& DataPointNo) const;
-#endif
   /**
      \brief
      Return the sign of each data point of this Data object.
@@ -1243,7 +1243,6 @@ class Data {
               const FunctionSpace& fspace);
 
 
-#ifdef PASO_MPI	
   /**
      \brief
      print the data values to stdout. Used for debugging 
@@ -1280,7 +1279,6 @@ class Data {
   ESCRIPT_DLL_API
 	MPI_Comm 
 	get_MPIComm(void) const;
-#endif
 	
  protected:
 

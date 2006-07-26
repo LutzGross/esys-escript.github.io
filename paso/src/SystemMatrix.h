@@ -30,6 +30,9 @@
 #include "SystemMatrixPattern.h"
 #include "Options.h"
 
+//#include "CommBuffer.h"
+//#include "Paso_MPI.h"
+
 /**************************************************************/
 
 /*  this struct holds a stiffness matrix: */
@@ -43,6 +46,17 @@
 typedef int Paso_SystemMatrixType;
 
 typedef struct Paso_SystemMatrix {
+	/*
+#ifdef PASO_MPI
+	Paso_CommBuffer *CommBuffer;
+	Paso_MPIInfo *MPIInfo;
+	dim_t numLocal;
+	dim_t numInternal;
+	dim_t numBoundary;
+	dim_t numExternal;
+	dim_t *vtxdist;
+#endif
+	*/
   Paso_SystemMatrixType type;
   dim_t reference_counter;
 
