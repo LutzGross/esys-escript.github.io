@@ -10,15 +10,13 @@ void Finley_NodeDistribution_formCommBuffer( Finley_NodeDistribution *in, Paso_C
   numForward  = MEMALLOC( in->numNeighbours, index_t );
   numBackward = MEMALLOC( in->numNeighbours, index_t );
 
-  if( Finley_checkPtr(numForward) || Finley_checkPtr(numBackward) )
-  {
+  if( Finley_checkPtr(numForward) || Finley_checkPtr(numBackward) ){
     MEMFREE( numForward );  
     MEMFREE( numBackward );
     return; 
   }
 
-  for( i=0; i<in->numNeighbours; i++ )
-  {
+  for( i=0; i<in->numNeighbours; i++ ){
     numForward[i] = in->edges[i]->numForward;
     numBackward[i] = in->edges[i]->numBackward;
   }
