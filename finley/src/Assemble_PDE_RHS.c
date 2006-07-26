@@ -204,7 +204,6 @@ void Finley_Assemble_PDE_RHS(Finley_NodeFile* nodes,Finley_ElementFile* elements
                        /* add influence to local degrees of freedom */
                        /* it might be more efficient to use a local buffer for copying into using Finley_Util_AddScatter()
                           then doing a memcpy at the end */
-                       printf( "Adding element %d's contribution to the RHS vector...\n", e );
                        Finley_Util_AddScatter_upperBound(p.NN_row,index_row,p.numEqu,EM_F,getSampleData(F,0),p.degreeOfFreedomUpperBound);
 #endif
                     }

@@ -172,6 +172,8 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, N0, 0, 0);
   Finley_ElementFile_allocTable(out->Elements,NE0);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+  Finley_ElementDistribution_allocTable( out->Elements->elementDistribution, NE0, 0 );
+  Finley_ElementDistribution_allocTable( out->FaceElements->elementDistribution, NFaceElements, 0 );
 #else
   out=Finley_Mesh_alloc(name,1,order);
   if (! Finley_noError()) return NULL;
@@ -390,8 +392,9 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   Finley_NodeFile_allocTable(out->Nodes,numNodesLocal+numNodesExternal);
   Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, numDOFLocal, 3, 0 );
   Finley_ElementFile_allocTable(out->Elements,numElementsLocal);
-  if( NFaceElements )
-    Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+  Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+  Finley_ElementDistribution_allocTable( out->Elements->elementDistribution, numElementsLocal, domRight);
+  Finley_ElementDistribution_allocTable( out->FaceElements->elementDistribution, NFaceElements, 0 );
   if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
       return NULL;
@@ -467,7 +470,7 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   {
     k=i0;
 		node0 = (periodicLocal[0] && !i0) ? 0 :  2*i0 + periodicLocal[0];
-    out->Elements->Id[k]=k;
+    out->Elements->Id[k]=(i0+firstNodeConstruct/2)%NE0;
     out->Elements->Tag[k]=0;
     out->Elements->Color[k]=COLOR_MOD(i0);
 		out->Elements->Dom[k]=ELEMENT_INTERNAL;
@@ -493,10 +496,9 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
   } else {
      NUMNODES=1;
   }
-	i0 = numElementsLocal;
   if ( domLeft && !periodicLocal[0] ) 
   {
-    out->FaceElements->Id[0]=i0;
+    out->FaceElements->Id[0]=NE0;
     out->FaceElements->Tag[0]=1;
     out->FaceElements->Color[0]=0;
 		out->FaceElements->Dom[0]=ELEMENT_INTERNAL;
@@ -507,11 +509,10 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
     } else {
        out->FaceElements->Nodes[INDEX2(0,0,NUMNODES)]=0;
     }
-    i0++;
   }
   if( domRight && !periodicLocal[1])
   { 
-    out->FaceElements->Id[domLeft]=i0;
+    out->FaceElements->Id[domLeft]=NE0+1;
     out->FaceElements->Tag[domLeft]=2;
     out->FaceElements->Color[domLeft]=1;
 		out->FaceElements->Dom[domLeft]=ELEMENT_INTERNAL;
@@ -533,6 +534,8 @@ Finley_Mesh* Finley_RectangularMesh_Line3(dim_t* numElements,double* Length,bool
 	Finley_ElementFile_setDomainFlags( out->ContactElements );
 	Finley_ElementFile_setDomainFlags( out->Points );
 	
+	Finley_Mesh_prepareElementDistribution( out );
+
 	/* reorder the degrees of freedom */
 	Finley_Mesh_resolveDegreeOfFreedomOrder( out, TRUE );
 	

@@ -802,8 +802,8 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,double* Length,bool_
     for (i1=0;i1<NE1;i1++) {
       for (i0=0;i0<numElementsLocal;i0++,k++) {
 				node0 = (periodicLocal[0] && !i0) ? i1*N0t + i2*N1*N0t :  i1*N0t + i2*N1*N0t + i0 + periodicLocal[0];
-        out->Elements->Id[k]=k;
 				
+				out->Elements->Id[k]=((firstNodeConstruct+i0)%NE0)*NE1*NE2 + NE1*i2 + i1;
         out->Elements->Tag[k]=0;
         out->Elements->Color[k]=COLOR_MOD(i0)+3*COLOR_MOD(i1)+9*COLOR_MOD(i2);;
 				out->Elements->Dom[k]=ELEMENT_INTERNAL;

@@ -114,8 +114,8 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
      }
   }
 
-  Finley_NodeFile_allocTable(newNodeFile,len);
   if (! Finley_noError() ) goto clean;
+  Finley_NodeFile_allocTable(newNodeFile,len);
 
   if (Finley_noError()) {
       /*  scatter the nodefile in->nodes into newNodeFile using index; */

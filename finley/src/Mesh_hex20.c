@@ -829,8 +829,9 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,double* Length,bool
       return NULL;
   }
 
+	k=0;
   #pragma omp parallel for private(i0,i1,i2,k)
-  for (k=0,i2=0;i2<N2;i2++) {
+  for (i2=0;i2<N2;i2++) {
     for (i1=0;i1<N1;i1++) {
       for (i0=0;i0<N0t;i0++,k++) {         
         out->Nodes->Coordinates[INDEX2(0,k,3)]=DBLE((i0+firstNodeConstruct) % N0)/DBLE(N0-1)*Length[0];
@@ -960,7 +961,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,double* Length,bool
       for (i0=0;i0<numElementsLocal;i0++,k++) {
 				node0 = (periodicLocal[0] && !i0) ? 2*(i1*N0t + i2*N1*N0t) : 2*(i1*N0t + i2*N1*N0t + i0) + periodicLocal[0];
 
-        out->Elements->Id[k]=k;
+				out->Elements->Id[k]=((firstNodeConstruct/2+i0)%NE0)*NE1*NE2 + NE1*i2 + i1;
         out->Elements->Tag[k]=0;
         out->Elements->Color[k]=COLOR_MOD(i0)+3*COLOR_MOD(i1)+9*COLOR_MOD(i2);
         out->Elements->Dom[k]=ELEMENT_INTERNAL;

@@ -184,9 +184,12 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   
   /*  allocate tables: */
   Finley_NodeFile_allocTable(out->Nodes,N0*N1);
-  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, N0*N1, 0, 0);
   Finley_ElementFile_allocTable(out->Elements,NE0*NE1);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+
+  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, NDOF0*NDOF1, 0, 0);
+  Finley_ElementDistribution_allocTable( out->Elements->elementDistribution, NE0*NE1, NE0*NE1);
+  Finley_ElementDistribution_allocTable( out->FaceElements->elementDistribution, NFaceElements, NFaceElements );
 #else
   out=Finley_Mesh_alloc(name,2,order);
 
@@ -429,6 +432,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   Finley_Mesh* out;
   char name[50];
   double time0=Finley_timer();
+	index_t faceStart, numFaceLeft, i;
 
   NE0=MAX(1,numElements[0]);
   NE1=MAX(1,numElements[1]);
@@ -508,9 +512,12 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   
   /*  allocate tables: */
   Finley_NodeFile_allocTable( out->Nodes, (numNodesLocal + numNodesExternal)*N1 );
-  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, numDOFLocal*NDOF1, 2*NDOF1, 0 );
   Finley_ElementFile_allocTable(out->Elements,numElementsLocal*NE1);
   Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+
+  Finley_NodeDistribution_allocTable( out->Nodes->degreeOfFreedomDistribution, NDOF0t*NDOF1, 2*NDOF1, 0 );
+  Finley_ElementDistribution_allocTable( out->Elements->elementDistribution, numElementsLocal*NE1, NE1*(numElementsLocal-boundaryRight*(!periodic[1])) );
+  Finley_ElementDistribution_allocTable( out->FaceElements->elementDistribution, NFaceElements, NFaceElements-2*boundaryRight*(!periodic[1]) );
 
   if (! Finley_noError()) {
       Finley_Mesh_dealloc(out);
@@ -519,8 +526,9 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 
   /*  set nodes: */
   #pragma omp parallel for private(i0,i1,k)
-  for (k=0,i1=0;i1<N1;i1++) {
+  for (i1=0;i1<N1;i1++) {
     for ( i0=0;i0<N0t;i0++,k++) {
+			k=i0+i1*N0t;
       out->Nodes->Coordinates[INDEX2(0,k,2)]=DBLE((i0+firstNodeConstruct) % N0)/DBLE(N0-1)*Length[0];
       out->Nodes->Coordinates[INDEX2(1,k,2)]=DBLE(i1)/DBLE(N1-1)*Length[1];
       out->Nodes->Id[k]=k;
@@ -608,11 +616,12 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   /* elements: */
   
  #pragma omp parallel for private(i0,i1,k,node0)  
- for ( i1=0, k=0; i1<NE1; i1++) {
+ for ( i1=0; i1<NE1; i1++) {
     for ( i0=0; i0<numElementsLocal; i0++, k++) {
+			k=i1*numElementsLocal + i0;
 			node0 = (periodicLocal[0] && !i0) ? i1*N0t :  i1*N0t + i0 + periodicLocal[0];
 
-      out->Elements->Id[k]=k;
+      out->Elements->Id[k]=((firstNodeConstruct+i0)%NE0) * NE1 + i1;
       out->Elements->Tag[k]=0;
       out->Elements->Color[k]=COLOR_MOD(i0)+3*COLOR_MOD(i1);
 			out->Elements->Dom[k]=ELEMENT_INTERNAL;
@@ -643,6 +652,8 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   totalNECount=numElementsLocal*NE1;
   faceNECount=0;
   
+	numFaceLeft = domLeft*(!periodic[0])*NE1;
+	faceStart = out->FaceElements->elementDistribution->vtxdist[mpi_info->rank];
 	if( !periodic[1] ){
 		
 	  /* elements on boundary 010 (x1=0): */
@@ -651,7 +662,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 	 			k=i0+faceNECount;
 				node0 = (periodicLocal[0] && !i0) ? 0 :  i0 + periodicLocal[0];
  
-				out->FaceElements->Id[k]=i0+totalNECount;
+				out->FaceElements->Id[k]=faceStart + numFaceLeft + i0*2;
 				out->FaceElements->Tag[k]   = 10;
 				out->FaceElements->Color[k] = i0%2;
 				out->FaceElements->Dom[k] = ELEMENT_INTERNAL;
@@ -671,8 +682,10 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 		  if( periodicLocal[0] )
 			  out->FaceElements->Dom[faceNECount+1]=ELEMENT_BOUNDARY;
 		}
- 	  if( boundaryRight )
+	  if( boundaryRight ){
 		  out->FaceElements->Dom[faceNECount+numElementsLocal-1]=ELEMENT_BOUNDARY;
+			out->FaceElements->Id[faceNECount+numElementsLocal-1]=out->FaceElements->elementDistribution->vtxdist[mpi_info->rank+1];
+		}
 
 	  totalNECount += numElementsLocal;
 	  faceNECount  += numElementsLocal;
@@ -684,7 +697,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 			k=i0+faceNECount;
 			node0 = (periodicLocal[0] && !i0) ? (NE1-1)*N0t :  i0 + periodicLocal[0] + (NE1-1)*N0t;
 
-			out->FaceElements->Id[k]=i0+totalNECount;
+      out->FaceElements->Id[k]=faceStart + numFaceLeft + i0*2+1;
 			out->FaceElements->Tag[k]   = 20;
 			out->FaceElements->Color[k] = i0%2+2;
 			out->FaceElements->Dom[k] = ELEMENT_INTERNAL;
@@ -704,8 +717,10 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 		  if( periodicLocal[0] )
 			  out->FaceElements->Dom[faceNECount+1]=ELEMENT_BOUNDARY;
 		}
- 	  if( boundaryRight )
+	  if( boundaryRight ){
 		  out->FaceElements->Dom[faceNECount+numElementsLocal-1]=ELEMENT_BOUNDARY;
+			out->FaceElements->Id[faceNECount+numElementsLocal-1]=out->FaceElements->elementDistribution->vtxdist[mpi_info->rank+1]+1;
+		}
 
 	  totalNECount += numElementsLocal;
 	  faceNECount  += numElementsLocal;
@@ -718,7 +733,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 			k=i1+faceNECount;
 			node0=i1*N0t;
 
-			out->FaceElements->Id[k]=i1+totalNECount;
+      out->FaceElements->Id[k]=faceStart + i1;
 			out->FaceElements->Tag[k]   = 1;
 			out->FaceElements->Color[k] = i1%2+4;
 			out->FaceElements->Dom[k] = ELEMENT_INTERNAL;
@@ -745,7 +760,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 			k=i1+faceNECount;
 			node0=(N0t-2)+i1*N0t;
 
-			out->FaceElements->Id[k]=i1+totalNECount;
+      out->FaceElements->Id[k]=faceStart + numElementsLocal*2*(!periodic[1])+i1;
 			out->FaceElements->Tag[k]   = 2;
 			out->FaceElements->Color[k] = i1%2+6;
 			out->FaceElements->Dom[k] = ELEMENT_INTERNAL;
@@ -773,6 +788,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
 	Finley_ElementFile_setDomainFlags( out->ContactElements );
 	Finley_ElementFile_setDomainFlags( out->Points );
 
+	Finley_Mesh_prepareElementDistribution( out );
 
 	/* reorder the degrees of freedom */
 	Finley_Mesh_resolveDegreeOfFreedomOrder( out, TRUE );

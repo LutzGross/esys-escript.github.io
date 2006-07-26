@@ -1,5 +1,7 @@
 /* created by Ben Cumming on 2/5/2006 */
 
+/* Add degrees of freedom to the forward and backward lists for the edge associated with
+   a neighbour sub-domain in a Finley_NodeDistribution */
 #include "Distribution.h"
 
 #ifdef PASO_MPI
@@ -16,6 +18,14 @@ static index_t findInList( index_t val, index_t* list, dim_t len )
   return -1;
 }
 
+/*
+	in : 					the NodeDistribution to update
+	domain : 			the process rank of the domain for which to add 
+				   			the edge data
+	numForward : 	the number of degrees of freedom that are being added
+							 	to the edge
+	indexLocal :	the local indices of the degrees of freedom to add						 				 
+*/
 void Finley_NodeDistribution_addForward( Finley_NodeDistribution *in, index_t domain, dim_t numForward, index_t* indexLocal  )
 {
     index_t posDomain=0;
@@ -66,6 +76,9 @@ void Finley_NodeDistribution_addForward( Finley_NodeDistribution *in, index_t do
     }
 }
 
+/*
+	see comments for Finley_NodeDistribtion_addForward
+*/
 void Finley_NodeDistribution_addBackward( Finley_NodeDistribution *in, index_t domain, dim_t numBackward, index_t* indexLocal  )
 {
     index_t posDomain=0;
@@ -105,7 +118,7 @@ void Finley_NodeDistribution_addBackward( Finley_NodeDistribution *in, index_t d
       in->edges[posDomain] = Finley_NodeGhostEdge_alloc();
       if( Finley_checkPtr(in->edges[posDomain]))
       {
-        Finley_setError( MEMORY_ERROR, "Finley_NodeDistribution_addForward() : invalid pointer to ghost edge" );
+        Finley_setError( MEMORY_ERROR, "Finley_NodeDistribution_addBackward() : invalid pointer to ghost edge" );
         return;
       }
       Finley_NodeGhostEdge_allocTable( in->edges[posDomain], 0, numBackward );
