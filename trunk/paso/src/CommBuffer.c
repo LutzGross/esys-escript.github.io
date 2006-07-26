@@ -377,23 +377,6 @@ bool_t Paso_CommBuffer_waitRecv( Paso_CommBuffer *in, index_t dom )
 }
 
 
-/* return a pointer to the forward (send) buffer, so that the user can pack it directly */
-/* TODO */
-/* This function should not be allowed in the release library, it is better to use the auxillery pack
-   funcitonality provided by Passo_CommBuffer_pack/unpack() */
-void *Paso_CommBuffer_getBufferForward( Paso_CommBuffer *in, index_t dom )
-{
-  index_t position=0;
-
-  if( (position = Paso_CommBuffer_checkDomain( in, dom ))==-1 )
-    return NULL;
-
-  if( !Paso_CommBuffer_waitRecv( in, dom ) )
-    return NULL;  
-
-  return in->bufferForward[position];
-}
-
 /*
   pack information into a send buffer
 */
@@ -429,7 +412,7 @@ void Paso_CommBuffer_pack( Paso_CommBuffer *in, index_t dom, index_t *index, voi
   {
     /* pack the data according to index */
     for( i=0; i<in->numForward[position]; i++, to+=itemSize )
-      memcpy( to , from + (i*itemSize), itemSize );
+      memcpy( to , from + (index[i]*itemSize), itemSize );
   }
 } 
 

@@ -782,16 +782,14 @@ Data::convertToNumArrayFromSampleNo(int sampleNo)
 
 const
 boost::python::numeric::array
-#ifdef PASO_MPI
 Data::convertToNumArrayFromDPNo(int procNo,
                                 int sampleNo,
 																int dataPointNo)
 
-#else
-Data::convertToNumArrayFromDPNo(int sampleNo,
-                                int dataPointNo)
-#endif
 {
+	size_t length=0;
+	int i, j, k, l, pos;
+
   //
   // Check a valid sample number has been supplied
   if (sampleNo >= getNumSamples()) {
@@ -837,9 +835,86 @@ Data::convertToNumArrayFromDPNo(int sampleNo,
     numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
   }
 
+	// added for the MPI communication
+	length=1;
+	for( i=0; i<arrayRank; i++ )
+		length *= arrayShape[i];
+	double *tmpData = new double[length];
+
   //
   // load the values for the data point into the numeric array.
-  DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+
+	// updated for the MPI case
+	if( get_MPIRank()==procNo ){
+		// create a view of the data if it is stored locally
+		DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+		
+		// pack the data from the view into tmpData for MPI communication
+		pos=0;
+		switch( dataPointRank ){
+			case 0 :
+				tmpData[0] = dataPointView();
+				break;
+			case 1 :		
+				for( i=0; i<dataPointShape[0]; i++ )
+					tmpData[i]=dataPointView(i);
+				break;
+			case 2 :		
+				for( i=0; i<dataPointShape[0]; i++ )
+					for( j=0; j<dataPointShape[1]; j++, pos++ )
+						tmpData[pos]=dataPointView(i,j);
+				break;
+			case 3 :		
+				for( i=0; i<dataPointShape[0]; i++ )
+					for( j=0; j<dataPointShape[1]; j++ )
+						for( k=0; k<dataPointShape[2]; k++, pos++ )
+							tmpData[pos]=dataPointView(i,j,k);
+				break;
+			case 4 :
+				for( i=0; i<dataPointShape[0]; i++ )
+					for( j=0; j<dataPointShape[1]; j++ )
+						for( k=0; k<dataPointShape[2]; k++ )
+							for( l=0; l<dataPointShape[3]; l++, pos++ )
+								tmpData[pos]=dataPointView(i,j,k,l);
+				break;
+		}
+	}
+#ifdef PASO_MPI	
+		// broadcast the data to all other processes
+		MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
+#endif
+
+	// unpack the data
+	switch( dataPointRank ){
+		case 0 :
+			numArray[i]=tmpData[0];
+			break;
+		case 1 :		
+			for( i=0; i<dataPointShape[0]; i++ )
+				numArray[i]=tmpData[i];
+			break;
+		case 2 :		
+			for( i=0; i<dataPointShape[0]; i++ )
+				for( j=0; j<dataPointShape[1]; j++ )
+					tmpData[i+j*dataPointShape[0]];
+			break;
+		case 3 :		
+			for( i=0; i<dataPointShape[0]; i++ )
+				for( j=0; j<dataPointShape[1]; j++ )
+					for( k=0; k<dataPointShape[2]; k++ )
+						tmpData[i+dataPointShape[0]*(j*+k*dataPointShape[1])];
+			break;
+		case 4 :
+			for( i=0; i<dataPointShape[0]; i++ )
+				for( j=0; j<dataPointShape[1]; j++ )
+					for( k=0; k<dataPointShape[2]; k++ )
+						for( l=0; l<dataPointShape[3]; l++ )
+							tmpData[i+dataPointShape[0]*(j*+dataPointShape[1]*(k+l*dataPointShape[2]))];
+			break;
+	}
+
+	delete [] tmpData;	
+/*
   if (dataPointRank==0) {
     numArray[0]=dataPointView();
   }
@@ -875,6 +950,7 @@ Data::convertToNumArrayFromDPNo(int sampleNo,
       }
     }
   }
+*/
 
   //
   // return the loaded array
@@ -1439,25 +1515,15 @@ Data::mindp() const
 
   int SampleNo;
   int DataPointNo;
-#ifdef PASO_MPI
 	int ProcNo;
   calc_mindp(ProcNo,SampleNo,DataPointNo);
   return make_tuple(ProcNo,SampleNo,DataPointNo);
-#else
-  calc_mindp(SampleNo,DataPointNo);
-  return make_tuple(SampleNo,DataPointNo);
-#endif
 }
 
 void
-#ifdef PASO_MPI
 Data::calc_mindp(	int& ProcNo,
 			 	int& SampleNo,
        	int& DataPointNo) const
-#else
-Data::calc_mindp(	int& SampleNo,
-        int& DataPointNo) const
-#endif
 {
   int i,j;
   int lowi=0,lowj=0;
@@ -1512,6 +1578,8 @@ Data::calc_mindp(	int& SampleNo,
 
 	delete [] globalMins;
 	ProcNo = lowProc;
+#else
+	ProcNo = 0;
 #endif
   SampleNo = lowi;
   DataPointNo = lowj;
@@ -2474,7 +2542,6 @@ ostream& escript::operator<<(ostream& o, const Data& data)
 }
 
 /* Member functions specific to the MPI implementation */
-#ifdef PASO_MPI
 
 void
 Data::print() 
@@ -2495,8 +2562,11 @@ int
 Data::get_MPISize() const
 {
 	int error, size;
+#ifdef PASO_MPI
 	error = MPI_Comm_size( get_MPIComm(), &size );
-
+#else
+	size = 1;
+#endif
 	return size;
 }
 
@@ -2504,14 +2574,21 @@ int
 Data::get_MPIRank() const
 {
 	int error, rank;
+#ifdef PASO_MPI
 	error = MPI_Comm_rank( get_MPIComm(), &rank );
-
+#else
+	rank = 0;
+#endif
 	return rank;
 }
 
 MPI_Comm
 Data::get_MPIComm() const
-{
+{ 
+#ifdef PASO_MPI
 	return MPI_COMM_WORLD;
-}
+#else
+	return -1;
 #endif
+}
+

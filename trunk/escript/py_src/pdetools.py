@@ -341,11 +341,11 @@ class Locator:
 	"""
         if isinstance(data,escript.Data):
            if data.getFunctionSpace()==self.getFunctionSpace():
-             out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
-             #out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1],self.getId()[2])
+             #out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
+             out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1],self.getId()[2])
            else:
-             out=data.interpolate(self.getFunctionSpace()).convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
-             #out=data.interpolate(self.getFunctionSpace()).convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1],self.getId()[2])
+             #out=data.interpolate(self.getFunctionSpace()).convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
+             out=data.interpolate(self.getFunctionSpace()).convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1],self.getId()[2])
            if data.getRank()==0:
               return out[0]
            else:
