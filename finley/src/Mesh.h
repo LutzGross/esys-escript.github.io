@@ -109,10 +109,9 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order);
 #else
 Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, Paso_MPIInfo *mpi_info);
-void Finley_Mesh_markOrderedNodesLocation(index_t* mask,index_t offset,Finley_Mesh* in,bool_t useLinear);
-void Finley_Mesh_markOrderedDegreesOfFreedomLocation(index_t* mask,index_t offset,Finley_Mesh* in,bool_t useLinear);
 void Finley_Mesh_resolveDegreeOfFreedomOrder( Finley_Mesh *in, bool_t doReduced );
 void print_mesh_statistics( Finley_Mesh *out, bool_t reduced  );
+void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in );
 #endif
 /*Finley_Mesh* Finley_Mesh_alloc(char*,int,int);*/
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);

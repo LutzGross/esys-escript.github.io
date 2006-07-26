@@ -51,7 +51,7 @@ struct Finley_NodeFile {
   index_t* degreeOfFreedom;            /* degreeOfFreedom[i] is the degree of freedom assigned to node i */
                                        /* this index is used to consider periodic boundary conditions by assigning */
                                        /* the same degreeOfFreedom to the same node */
-  /* the following data are set by Finley_NodeFile_? */
+  /* the following data are set by Finley_NodeFile_preparNodes */
   dim_t numDegreesOfFreedom;           /* number of degrees of freedom in the mesh (<=numNodes)*/
                                        /* notice that numDegreesOfFreedom=max(degreeOfFreedom[:]) */
   index_t* reducedDegreeOfFreedom;     /* reducedDegreeOfFreedom[i] is the degree of freedom in the reduced version of the mesh */

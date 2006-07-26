@@ -88,6 +88,7 @@ struct Finley_ElementDistribution
                              that is, not dependent on elements in other domains*/
   index_t numBoundary;    /* number of local elements that are dependant on elements
                              in other domains */
+	dim_t *vtxdist;
   /* there will be further stuff here, as the need for it in domain decomposition arises */
   /* ... */
 };
@@ -121,6 +122,7 @@ void                  Finley_NodeGhostEdge_deallocTable( Finley_NodeGhostEdge *i
 Finley_ElementDistribution* Finley_ElementDistribution_alloc( Paso_MPIInfo *MPIInfo );
 void                        Finley_ElementDistribution_dealloc( Finley_ElementDistribution* in );
 Finley_ElementDistribution* Finley_ElementDistribution_getReference( Finley_ElementDistribution* in );
+void 												Finley_ElementDistribution_allocTable( Finley_ElementDistribution *in, dim_t numElements, dim_t numElementsThis );
 
 #endif
 #endif
