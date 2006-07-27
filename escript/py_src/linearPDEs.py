@@ -1538,7 +1538,8 @@ class LinearPDE(object):
                  D=self.getCoefficientOfGeneralPDE("D")
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
-                        D_times_e=util.matrixmult(D,numarray.ones((self.getNumSolutions(),)))
+                        #D_times_e=util.matrixmult(D,numarray.ones((self.getNumSolutions(),)))
+                        D_times_e=util.matrix_mult(D,numarray.ones((self.getNumSolutions(),)))
                      else:
                         D_times_e=D
                  else:
@@ -1546,7 +1547,8 @@ class LinearPDE(object):
                  d=self.getCoefficientOfGeneralPDE("d")
                  if not d.isEmpty():
                      if self.getNumSolutions()>1:
-                        d_times_e=util.matrixmult(d,numarray.ones((self.getNumSolutions(),)))
+                        #d_times_e=util.matrixmult(d,numarray.ones((self.getNumSolutions(),)))
+                        d_times_e=util.matrix_mult(d,numarray.ones((self.getNumSolutions(),)))
                      else:
                         d_times_e=d
                  else:
