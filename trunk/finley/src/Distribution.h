@@ -88,7 +88,7 @@ struct Finley_ElementDistribution
                              that is, not dependent on elements in other domains*/
   index_t numBoundary;    /* number of local elements that are dependant on elements
                              in other domains */
-	dim_t *vtxdist;
+  dim_t *vtxdist;         /* process i has elements with Id's between vtxdist[i] up to vtxdist[i+1]-1 inclusive */
   /* there will be further stuff here, as the need for it in domain decomposition arises */
   /* ... */
 };
