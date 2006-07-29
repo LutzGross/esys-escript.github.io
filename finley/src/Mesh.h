@@ -143,7 +143,14 @@ int Finley_Mesh_findMatchingFaces_compar(const void*,const void*);
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
 void Finley_Mesh_print(Finley_Mesh *in);
 void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
+#ifndef PASO_MPI
 void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
+#else
+void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char*
+*names_p,escriptDataC* *data_pp);
+#endif
+
+
 
 #endif /* #ifndef INC_FINLEY_MESH */
 

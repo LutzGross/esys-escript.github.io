@@ -716,7 +716,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
     for (int i=0;i<num_data;++i) {
          escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
          if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
-             throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
+             throw FinleyAdapterException("Error  in saveDX: Data must be defined on same Domain");
          data[i]=d.getDataC();
          ptr_data[i]=&(data[i]);
          std::string n=boost::python::extract<std::string>(keys[i]);
@@ -776,8 +776,13 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
             strcpy(c_names[i],n.c_str());
          }
     }
+#ifndef PASO_MPI    
     Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
-    checkFinleyError();
+#else
+    Finley_Mesh_saveVTK_MPIO(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
+#endif
+
+checkFinleyError();
   /* win32 refactor */
   TMPMEMFREE(c_names);
   TMPMEMFREE(data);
