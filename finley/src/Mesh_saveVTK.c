@@ -18,7 +18,7 @@
 /**************************************************************/
 
 /*   Author: Paul Cochrane, cochrane@esscc.uq.edu.au */
-/*   MPI-IO version: Derick Hawcroft, hawcroft@gmail.com           */
+/*   MPI-IO version: Derick Hawcroft, d.hawcroft@uq.edu.au         */
 
 /*   Version: $Id$ */
 
@@ -29,20 +29,28 @@
 #include "vtkCellType.h"  /* copied from vtk source directory !!! */
 
 /*
+ MPI version notes:
  
- In the MPI version, the rank==0 process writes *all* opening and closing 
+ ******************************************************************************
+ ***                                                                       ****
+ *** WARNING: Won't work for meshes with peridodic boundary conditions yet **** 
+ ***                                                                       ****  
+ ******************************************************************************
+ 
+ In this version, the rank==0 process writes *all* opening and closing 
  XML tags.
  Individual process data is copied to a buffer before being written
  out. The  routines are collectively called and will be called in the natural
  ordering i.e 0 to maxProcs-1.
- 
+
 */
 
 #ifdef PASO_MPI
 
+
 //#define MPIO_HINTS
 
-;
+
 
 #define MPIO_DEBUG(str) \
 { \
@@ -72,8 +80,8 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   // Local element info (for debugging)
   size_t numLocalCells,
-  numInternalCells,
-  numBoundaryCells;
+        numInternalCells,
+        numBoundaryCells;
 
   int rank;
 
@@ -107,7 +115,10 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   // Local node info
   int numInternalNodes,
-  numLocalNodes;
+      numLocalNodes, 
+      numBoundaryNodes,
+      localDOF;
+       
 
   nDim  = mesh_p->Nodes->numDim;
 
@@ -128,15 +139,15 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 #endif
 
   // Holds a local node/element values to help minimize the number of times we need to loop & test
-  struct localCache
+  struct localIndexCache
   {
     index_t *values;
     int size;
   };
-  typedef struct localCache localCache;
+  typedef struct localIndexCache localIndexCache;
 
-  localCache nodeCache,
-  elementCache;
+  localIndexCache nodeCache,
+  		  elementCache;
 
   // Collective Call
   MPI_File_open(mesh_p->Nodes->MPIInfo->comm, (char*)filename_p, amode,infoHints, &fh);
@@ -287,9 +298,9 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   }
 
   numInternalNodes = dist->numInternal;
-  int numBoundaryNodes = dist->numBoundary;
+  numBoundaryNodes = dist->numBoundary;
 
-  int localDOF =  dist->numLocal;
+  localDOF =  dist->numLocal;
 
   numPoints        = dist->numGlobal;
 
@@ -314,7 +325,6 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
     Finley_setError(SYSTEM_ERROR,"saveVTK: undefined element file");
     return ;
   }
-
 
   numCells =  elements->numElements;
   numGlobalCells = elements->elementDistribution->vtxdist[gsize];
@@ -452,19 +462,8 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   MPIO_DEBUG(" Writing Coordinate Points... ")
 
-  numLocalNodes=0;
-  for (i = 0; i < mesh_p->Nodes->numNodes; i++)
-    if( mesh_p->Nodes->degreeOfFreedom[i] < localDOF )
-      numLocalNodes++;
-
-  /*  index_t* NodeDist = MEMALLOC( gsize+1, index_t );
-   
-   NodeDist[0] = 0;
-    MPI_Allgather( &numLocalNodes, 1, MPI_INT, NodeDist+1, 1, MPI_INT, mesh_p->MPIInfo->comm );
-    for( i=0; i<gsize; i++ )
-      NodeDist[i+1] += NodeDist[i];
-  */
-
+  numLocalNodes=localDOF;
+  
   //  values vary from 13-14 chars hence the strlen()
   char* largebuf = MEMALLOC( numLocalNodes*14*nDim + numLocalNodes*2 + 1 ,char);
   largebuf[0] = '\0';
@@ -475,16 +474,16 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   index_t *vtxdist = NULL, *DOFNodes=NULL,*forwardBuffer=NULL,*backwardBuffer=NULL;
 
-  DOFNodes    = MEMALLOC(mesh_p->Nodes->numNodes,index_t);
-
-  /* we will allocate slightly more that what is needed */
-  nodeCache.values = MEMALLOC( numLocalNodes, index_t);
+  DOFNodes   = MEMALLOC(mesh_p->Nodes->numNodes,index_t);
+  nodeCache.values = MEMALLOC( numLocalNodes, index_t); 
+  index_t bc_pos = 0;
   for (i = 0; i < mesh_p->Nodes->numNodes; i++)
+  
   {
-    // this is the bit that will break for periodic BCs because it assumes that there is a one to one
-    // correspondance between nodes and DOF
+    // This is the bit that will break for periodic BCs because it assumes that there is a one to one
+    // correspondance between nodes and Degrees of freedom
     DOFNodes[mesh_p->Nodes->degreeOfFreedom[i]] = i;
-
+    
     /* local node ?*/
     if( mesh_p->Nodes->degreeOfFreedom[i] < localDOF )
     {
@@ -509,8 +508,8 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   MPI_File_write_ordered(fh, largebuf,tsz, MPI_CHAR, &status);
   MEMFREE(largebuf);
-  
-  nodesGlobal = MEMALLOC(mesh_p->Nodes->numNodes,index_t);
+ 
+  nodesGlobal = MEMALLOC(mesh_p->Nodes->numNodes ,index_t);
 
   // form distribution info on who output which nodes
   vtxdist = MEMALLOC( gsize+1, index_t );
@@ -520,7 +519,6 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
     vtxdist[i+1]+=vtxdist[i];
 
   // will not work for periodic boundary conditions
-  
   // calculate the local nodes file positions
   pos = 0;
   for( i=0; i<mesh_p->Nodes->numNodes; i++ )
@@ -535,9 +533,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   // communicate the local Nodes file position to the interested parties
   // send local info
-
   forwardBuffer = MEMALLOC( mesh_p->Nodes->numNodes, index_t );
-
   for( n=0; n < dist->numNeighbours; n++ )
   {
     if(  dist->edges[n]->numForward)
@@ -566,16 +562,6 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   MEMFREE(backwardBuffer);
   MEMFREE(forwardBuffer);
 
-
-  /*
-    char fn[20];
-    sprintf(fn,"info_%d.txt",myRank);
-   
-    FILE* fid = fopen(fn,"w");
-    fprintf(fid,"proc %d\n",myRank);
-    fprintf(fid,"Nodes => numLoc = %d, numInternal = %d, numBoundary = %d \nCells => numLoc = %d, numInt=%d, numBd=%d\n",numLocalNodes,numInternalNodes,
-            numBoundaryNodes,numLocalCells,numInternalCells,numBoundaryCells);
-  */
   if( myRank == 0)
   {
     char* tags = "</DataArray>\n</Points>\n<Cells>\n<DataArray Name=\"connectivity\" type=\"Int32\" " \
@@ -591,15 +577,15 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   // Collective
   MPIO_DEBUG(" Writing Connectivity... ")
-  int cnt = 0;
-  size_t cellBufsz = numCells*6*numVTKNodesPerElement + numCells;
-  char *cellBuf = MEMALLOC(cellBufsz,char);
+  
+  // TODO: Improve on upper bound 
+  size_t sz = numLocalCells*6*numVTKNodesPerElement + numLocalCells;
+  char *cellBuf = MEMALLOC(sz,char);
   cellBuf[0] = '\0';
   tsz=0;
-
   pos = 0;
-  //numLocalCells
-  elementCache.values = MEMALLOC(numCells,index_t);
+  // numCells?
+  elementCache.values = MEMALLOC(numLocalCells,index_t);
   if (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM)
   {
     for (i = 0; i < numCells; i++)
@@ -621,7 +607,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   }
   else if (VTK_QUADRATIC_HEXAHEDRON==cellType)
   {
-    char tmpbuf2[20*20+8];
+    char tmpbuf2[20*20];
     for (i = 0; i < numCells; i++)
     {
 
@@ -684,16 +670,15 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         strcat(cellBuf,"\n");
         tsz+=1;
         elementCache.values[pos++]=i;
-
       }
     }
 
   elementCache.size = pos;
-
+  
   MPI_File_write_ordered(fh, cellBuf,tsz, MPI_CHAR, &status);
   MEMFREE(cellBuf);
   MPIO_DEBUG(" Done Writing Connectivity ")
-  MPIO_DEBUG(" Writing Offsets... ")
+  MPIO_DEBUG(" Writing Offsets & Types... ")
 
   // Non-Collective
   if( myRank == 0)
@@ -709,7 +694,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
     int sz=0;
     int lg = log10(numGlobalCells * n) + 1;
     sz += numGlobalCells*lg;
-    sz += numGlobalCells; // #newlines
+    sz += numGlobalCells; 
 
     char* largebuf = MEMALLOC(sz  + strlen(tag1) + strlen(tag2) + strlen(tag3) + strlen(tag4),char);
     largebuf[0] ='\0';
@@ -742,7 +727,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
     MEMFREE(largebuf);
   }
 
-  MPIO_DEBUG(" Done Writing Offsets ")
+  MPIO_DEBUG(" Done Writing Offsets & Types ")
 
   // Write Point Data Header Tags
   if( myRank == 0)
@@ -1158,7 +1143,6 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
           strcat(largebuf,"\n");
           tsz+=1;
         }
-        // Write out local data
         MPI_File_write_ordered(fh,largebuf,tsz,MPI_CHAR,&status);
         MEMFREE(largebuf);
         if( myRank == 0)
@@ -1170,8 +1154,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
       }
     }
-
-    // Closing Celldata tag
+    // closing celldata tag
     if(myRank == 0)
     {
       char* tag =  "</CellData>\n";
@@ -1197,11 +1180,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 #endif
 
   MPI_File_close(&fh);
-
-  //  fclose(fid);
   MPIO_DEBUG(" ***** Exit saveVTK ***** ")
-
-  //  MEMFREE( NodeDist );
 }
 
 #undef MPIO_DEBUG
