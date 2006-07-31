@@ -3253,7 +3253,7 @@ def inverse(arg):
 
     @param arg: square matrix. Must have rank 2 and the first and second dimension must be equal.
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}
-    @return: inverse arg_inv of the argument. It will be matrixmul(inverse(arg),arg) almost equal to kronecker(arg.getShape()[0])
+    @return: inverse arg_inv of the argument. It will be matrix_mult(inverse(arg),arg) almost equal to kronecker(arg.getShape()[0])
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     @note: for L{escript.Data} objects the dimension is restricted to 3.
     """
@@ -3998,7 +3998,7 @@ def outer(arg0,arg1):
     """
     return generalTensorProduct(arg0,arg1,axis_offset=0)
 
-def matrixmul(arg0,arg1):
+def matrixmult(arg0,arg1):
     """
     see L{matrix_mult}
     """
@@ -4195,6 +4195,20 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
       else:
          args=self.getSubstitutedArguments(argvals)
          return generalTensorProduct(args[0],args[1],args[2])
+
+def escript_generalTensorProductNew(arg0,arg1,axis_offset):
+    "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
+    # calculate the return shape:
+    shape0=arg0.getShape()[:arg0.getRank()-axis_offset]
+    shape01=arg0.getShape()[arg0.getRank()-axis_offset:]
+    shape10=arg1.getShape()[:axis_offset]
+    shape1=arg1.getShape()[axis_offset:]
+    if not shape01==shape10:
+        raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
+    # Figure out which functionspace to use (look at where operator+ is defined maybe in BinaryOp.h to get the logic for this)
+    # fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
+    out=GeneralTensorProduct(arg0, arg1, axis_offset)
+    return out
 
 def escript_generalTensorProduct(arg0,arg1,axis_offset): # this should be escript._generalTensorProduct
     "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
