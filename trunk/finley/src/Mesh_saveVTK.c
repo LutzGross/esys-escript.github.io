@@ -42,7 +42,7 @@
  Individual process data is copied to a buffer before being written
  out. The  routines are collectively called and will be called in the natural
  ordering i.e 0 to maxProcs-1.
-
+ 
 */
 
 #ifdef PASO_MPI
@@ -60,13 +60,14 @@
 
 void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p, escriptDataC* *data_pp)
 {
+  double time0 = Paso_timer();
   int    numPoints,
   numCells = -1,
              myRank,comm,gsize,
              numLocal,
              nDim,
              shape;
-
+  size_t __n;
   int* failSend;
   int i,j,k,m,n,count;
   int numGlobalCells = 0;
@@ -80,8 +81,8 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   // Local element info (for debugging)
   size_t numLocalCells,
-        numInternalCells,
-        numBoundaryCells;
+  numInternalCells,
+  numBoundaryCells;
 
   int rank;
 
@@ -115,10 +116,10 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   // Local node info
   int numInternalNodes,
-      numLocalNodes, 
-      numBoundaryNodes,
-      localDOF;
-       
+  numLocalNodes,
+  numBoundaryNodes,
+  localDOF;
+
 
   nDim  = mesh_p->Nodes->numDim;
 
@@ -138,7 +139,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   infoHints = MPI_INFO_NULL;
 #endif
 
-  // Holds a local node/element values to help minimize the number of times we need to loop & test
+  // Holds a local node/element index to their global arrays
   struct localIndexCache
   {
     index_t *values;
@@ -147,7 +148,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   typedef struct localIndexCache localIndexCache;
 
   localIndexCache nodeCache,
-  		  elementCache;
+  elementCache;
 
   // Collective Call
   MPI_File_open(mesh_p->Nodes->MPIInfo->comm, (char*)filename_p, amode,infoHints, &fh);
@@ -463,7 +464,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   MPIO_DEBUG(" Writing Coordinate Points... ")
 
   numLocalNodes=localDOF;
-  
+
   //  values vary from 13-14 chars hence the strlen()
   char* largebuf = MEMALLOC( numLocalNodes*14*nDim + numLocalNodes*2 + 1 ,char);
   largebuf[0] = '\0';
@@ -475,30 +476,44 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   index_t *vtxdist = NULL, *DOFNodes=NULL,*forwardBuffer=NULL,*backwardBuffer=NULL;
 
   DOFNodes   = MEMALLOC(mesh_p->Nodes->numNodes,index_t);
-  nodeCache.values = MEMALLOC( numLocalNodes, index_t); 
+  nodeCache.values = MEMALLOC( numLocalNodes, index_t);
   index_t bc_pos = 0;
+
+  // Custom strcat:  avoids expensive strlen(3) call by  strcat(3)
+  int __len,__j;
+  char  *zero = "0.000000e+00 ";
+  char  *newline = "\n";
+#define __STRCAT(__buf,x)  \
+{                  \
+   __j = -1;      \
+   while(__j++ < __len)  \
+    *(__buf+tsz+__j)=*(x+__j); \
+}
+
   for (i = 0; i < mesh_p->Nodes->numNodes; i++)
-  
   {
     // This is the bit that will break for periodic BCs because it assumes that there is a one to one
     // correspondance between nodes and Degrees of freedom
     DOFNodes[mesh_p->Nodes->degreeOfFreedom[i]] = i;
-    
+
     /* local node ?*/
     if( mesh_p->Nodes->degreeOfFreedom[i] < localDOF )
     {
       for (j = 0; j < nDim; j++)
       {
         sprintf(tmpbuf,"%e ", mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)] );
-        tsz += strlen(tmpbuf);
-        strcat(largebuf,tmpbuf);
+        __len = strlen(tmpbuf);
+        __STRCAT(largebuf,tmpbuf)
+        tsz+=__len;
       }
       for (k=0; k<3-nDim; k++)
       {
-        strcat(largebuf,"0.000000e+00 ");
-        tsz+=13;
+        __len = 13;
+        __STRCAT(largebuf,zero)
+        tsz+=__len;
       }
-      strcat(largebuf,"\n");
+      __len=1;
+      __STRCAT(largebuf,newline)
       tsz += 1;
       nodeCache.values[numNodesOutput++]=i;
     }
@@ -506,9 +521,10 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   nodeCache.size=numNodesOutput;
 
+  largebuf[tsz] = '\0';
   MPI_File_write_ordered(fh, largebuf,tsz, MPI_CHAR, &status);
   MEMFREE(largebuf);
- 
+
   nodesGlobal = MEMALLOC(mesh_p->Nodes->numNodes ,index_t);
 
   // form distribution info on who output which nodes
@@ -577,11 +593,11 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   // Collective
   MPIO_DEBUG(" Writing Connectivity... ")
-  
-  // TODO: Improve on upper bound 
+
+  // TODO: Improve on upper bound , will fail for very large meshes!!
   size_t sz = numLocalCells*6*numVTKNodesPerElement + numLocalCells;
-  char *cellBuf = MEMALLOC(sz,char);
-  cellBuf[0] = '\0';
+  largebuf = MEMALLOC(sz,char);
+  largebuf[0] = '\0';
   tsz=0;
   pos = 0;
   // numCells?
@@ -590,15 +606,18 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   {
     for (i = 0; i < numCells; i++)
     {
+
       if (elements->Id[i] >= elements->elementDistribution->vtxdist[i] &&  elements->Id[i] <= elements->elementDistribution->vtxdist[i+1] - 1 )
       {
         for (j = 0; j < numVTKNodesPerElement; j++)
         {
           sprintf(tmpbuf,"%d ",nodesGlobal[mesh_p->Nodes->toReduced[elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[j], i, NN)]]]);
-          tsz+=strlen(tmpbuf);
-          strcat(largebuf,tmpbuf);
+          __len=strlen(tmpbuf);
+          __STRCAT(largebuf,tmpbuf)
+          tsz+=__len;
         }
-        strcat(largebuf, "\n");
+        __len=1;
+        __STRCAT(largebuf,newline)
         tsz+=1;
 
         elementCache.values[pos++]=i;
@@ -608,9 +627,9 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   else if (VTK_QUADRATIC_HEXAHEDRON==cellType)
   {
     char tmpbuf2[20*20];
+
     for (i = 0; i < numCells; i++)
     {
-
       if( elements->Id[i] >= elements->elementDistribution->vtxdist[myRank] && elements->Id[i] <= elements->elementDistribution->vtxdist[myRank+1]-1)
       {
         sprintf(tmpbuf2,"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
@@ -634,49 +653,58 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
                 nodesGlobal[elements->Nodes[INDEX2(13, i, NN)]],
                 nodesGlobal[elements->Nodes[INDEX2(14, i, NN)]],
                 nodesGlobal[elements->Nodes[INDEX2(15, i, NN)]]);
-        tsz+=strlen(tmpbuf2);
-        strcat(largebuf,tmpbuf2);
+        __len=strlen(tmpbuf2);
+        __STRCAT(largebuf,tmpbuf2)
+        tsz+=__len;
         elementCache.values[pos++]=i;
       }
     }
   }
   else if (numVTKNodesPerElement!=NN)
   {
+
     for (i = 0; i < numCells; i++)
     {
       for (j = 0; j < numVTKNodesPerElement; j++)
       {
         sprintf(tmpbuf,"%d ", nodesGlobal[elements->Nodes[INDEX2(elements->ReferenceElement->Type->geoNodes[j], i, NN)]]);
-        tsz+=strlen(tmpbuf);
-        strcat(largebuf,tmpbuf);
+        __len=strlen(tmpbuf);
+        __STRCAT(largebuf,tmpbuf)
+        tsz+=__len;
       }
-      strcat(largebuf, "\n");
+      __len=1;
+      __STRCAT(largebuf,newline)
       tsz+=1;
       elementCache.values[pos++]=i;
     }
   }
   else
+  {
+
     for(i = 0;i  < numCells ; i++)
     {
       // is this element in domain of process with "myRank"
+
       if( elements->Id[i] >= elements->elementDistribution->vtxdist[myRank] && elements->Id[i] <= elements->elementDistribution->vtxdist[myRank+1]-1)
       {
         for (j = 0; j < numVTKNodesPerElement; j++)
         {
           sprintf(tmpbuf,"%d ", nodesGlobal[ elements->Nodes[INDEX2(j, i, NN) ] ] );
-          tsz += strlen(tmpbuf);
-          strcat(cellBuf,tmpbuf);
+          __len=strlen(tmpbuf);
+          __STRCAT(largebuf,tmpbuf)
+          tsz+=__len;
         }
-        strcat(cellBuf,"\n");
+        __len=1;
+        __STRCAT(largebuf,newline)
         tsz+=1;
         elementCache.values[pos++]=i;
       }
     }
-
+  }
   elementCache.size = pos;
-  
-  MPI_File_write_ordered(fh, cellBuf,tsz, MPI_CHAR, &status);
-  MEMFREE(cellBuf);
+
+  MPI_File_write_ordered(fh,largebuf,tsz, MPI_CHAR, &status);
+  MEMFREE(largebuf);
   MPIO_DEBUG(" Done Writing Connectivity ")
   MPIO_DEBUG(" Writing Offsets & Types... ")
 
@@ -694,35 +722,50 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
     int sz=0;
     int lg = log10(numGlobalCells * n) + 1;
     sz += numGlobalCells*lg;
-    sz += numGlobalCells; 
+    sz += numGlobalCells;
+    tsz = 0;
 
     char* largebuf = MEMALLOC(sz  + strlen(tag1) + strlen(tag2) + strlen(tag3) + strlen(tag4),char);
     largebuf[0] ='\0';
     char tmp[10];
-    strcat(largebuf,tag1);
-    int tsz = strlen(tag1) + strlen(tag2);
+
+    __len = strlen(tag1);
+    __STRCAT(largebuf,tag1)
+    tsz +=  __len;
+
     for (i=numVTKNodesPerElement; i<=numGlobalCells*numVTKNodesPerElement; i+=numVTKNodesPerElement)
     {
       sprintf(tmp,"%d\n", i);
-      tsz += strlen(tmp);
-      strcat(largebuf,tmp);
+      __len=strlen(tmp);
+      __STRCAT(largebuf,tmp)
+      tsz+=__len;
     }
-    strcat(largebuf,tag2);
+
+    __len=strlen(tag2);
+    __STRCAT(largebuf,tag2)
+    tsz+=__len;
+
     MPI_File_iwrite_shared(fh,largebuf, tsz,MPI_CHAR,&req);
     MPI_Wait(&req,&status);
-
+    
     // Re-using buffer!!
     largebuf[0] = '\0';
     tsz = 0;
-    strcat(largebuf,tag3);
+    __len = strlen(tag3);
+    __STRCAT(largebuf,tag3)
+    tsz+=__len;
     for (i=0; i<numGlobalCells; i++)
     {
       sprintf(tmp, "%d\n", cellType);
-      tsz+=strlen(tmp);
-      strcat(largebuf,tmp);
+      __len=strlen(tmp);
+      __STRCAT(largebuf,tmp)
+      tsz+=__len;
     }
-    strcat(largebuf,tag4);
-    MPI_File_iwrite_shared(fh,largebuf,tsz+strlen(tag3)+strlen(tag4),MPI_CHAR,&req);
+    __len=strlen(tag4);
+    __STRCAT(largebuf,tag4)
+    tsz+=__len;
+
+    MPI_File_iwrite_shared(fh,largebuf,tsz,MPI_CHAR,&req);
     MPI_Wait(&req,&status);
     MEMFREE(largebuf);
   }
@@ -888,21 +931,25 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
             if (nCompReqd == 1)
             {
               sprintf(tmpbuf," %e", values[0]);
-              tsz+=strlen(tmpbuf);
-              strcat(largebuf,tmpbuf);
+              __len=strlen(tmpbuf);
+              __STRCAT(largebuf,tmpbuf)
+              tsz+=__len;
             }
             else if (nCompReqd == 3)
             {
               for (m=0; m<shape; m++)
               {
+
                 sprintf(tmpbuf," %e",values[m]);
-                tsz += strlen(tmpbuf);
-                strcat(largebuf,tmpbuf);
+                __len=strlen(tmpbuf);
+                __STRCAT(largebuf,tmpbuf)
+                tsz+=__len;
               }
               for (m=0; m<nCompReqd-shape; m++)
               {
-                tsz+=13;
-                strcat(largebuf," 0.000000e+00");
+                __len=13;
+                __STRCAT(largebuf,zero)
+                tsz+=__len;
               }
             }
             else if (nCompReqd == 9)
@@ -915,26 +962,31 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
                 for (n=0; n<shape; n++)
                 {
                   sprintf(tmpbuf," %e", values[count]);
-                  tsz+=strlen(tmpbuf);
-                  strcat(largebuf,tmpbuf);
+                  __len=strlen(tmpbuf);
+                  __STRCAT(largebuf,tmpbuf)
+                  tsz+=__len;
                   count++;
                 }
                 for (n=0; n<3-shape; n++)
                 {
-                  tsz+13;
-                  strcat(largebuf," 0.000000e+00");
+                  __len=13;
+                  __STRCAT(largebuf,zero)
+                  tsz+=__len;
                 }
               }
               for (m=0; m<3-shape; m++)
               {
                 for (n=0; n<3; n++)
                 {
-                  tsz+=13;
-                  strcat(largebuf," 0.000000e+00");
+                  __len=13;
+                  __STRCAT(largebuf,zero)
+                  tsz+=__len;
+
                 }
               }
             }
-            strcat(largebuf,"\n");
+            __len=1;
+            __STRCAT(largebuf,newline)
             tsz+=1;
           }
 
@@ -1090,9 +1142,9 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
           if (nCompReqd == 1)
           {
             sprintf(tmpbuf, " %e", sampleAvg[0]);
-            tsz+=strlen(tmpbuf);
-            strcat(largebuf,tmpbuf);
-
+            __len=strlen(tmpbuf);
+            __STRCAT(largebuf,tmpbuf)
+            tsz+=__len;
           }
           else if (nCompReqd == 3)
           {
@@ -1100,9 +1152,9 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
             for (m=0; m<shape; m++)
             {
               sprintf(tmpbuf, " %e", sampleAvg[m]);
-              tsz+=strlen(tmpbuf);
-              strcat(largebuf,tmpbuf);
-
+              __len=strlen(tmpbuf);
+              __STRCAT(largebuf,tmpbuf)
+              tsz+=__len;
             }
             for (m=0; m<nCompReqd-shape; m++)
             {
@@ -1121,26 +1173,30 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
               for (n=0; n<shape; n++)
               {
                 sprintf(tmpbuf, " %e", sampleAvg[count]);
-                tsz+=strlen(tmpbuf);
-                strcat(largebuf,tmpbuf);
+                __len=strlen(tmpbuf);
+                __STRCAT(largebuf,tmpbuf)
+                tsz+=__len;;
+
 
                 count++;
               }
               for (n=0; n<3-shape; n++)
               {
+                __len=13;
+                __STRCAT(largebuf,zero)
                 tsz+=13;
-                strcat(largebuf," 0.000000e+00");
-
               }
             }
             for (m=0; m<3-shape; m++)
               for (n=0; n<3; n++)
               {
+                __len=13;
+                __STRCAT(largebuf,zero)
                 tsz+=13;
-                strcat(largebuf," 0.000000e+00");
               }
           }
-          strcat(largebuf,"\n");
+          __len=1;
+          __STRCAT(largebuf,newline)
           tsz+=1;
         }
         MPI_File_write_ordered(fh,largebuf,tsz,MPI_CHAR,&status);
@@ -1176,11 +1232,12 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   MEMFREE(elementCache.values);
 #ifdef MPIO_HINTS
   MPI_Info_free(&infoHints);
-#undef MPIO_HINTS  
+#undef MPIO_HINTS
 #endif
-
+  printf("\nTime: %f \n",  Paso_timer() - time0);
   MPI_File_close(&fh);
   MPIO_DEBUG(" ***** Exit saveVTK ***** ")
+#undef __STRCAT
 }
 
 #undef MPIO_DEBUG
