@@ -1497,7 +1497,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=inverse(arg)
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(1, 1),"wrong shape of result.")
-      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
+      self.failUnless(Lsup(matrix_mult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_dim2(self):
       arg=Data(numarray.array([[2.1762682607002422, -0.78050782824831111], [-0.83510184055361858, 2.604492189120557]]),self.functionspace)
@@ -1505,7 +1505,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=inverse(arg)
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
+      self.failUnless(Lsup(matrix_mult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_dim3(self):
       arg=Data(numarray.array([[1.0566731035132446, -0.23529223422203982, -0.73657527200271922], [-0.90461086237095145, 2.3942152365412581, -0.0078023115760492701], [-0.32951652966235834, 0.5634604257647613, 1.716379935670141]]),self.functionspace)
@@ -1513,7 +1513,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=inverse(arg)
       self.failUnless(isinstance(res,Data),"wrong type of result.")
       self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
-      self.failUnless(Lsup(matrixmult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
+      self.failUnless(Lsup(matrix_mult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank0_offset0(self):
       arg=Data(0.00245568699765,self.functionspace)
@@ -1747,9 +1747,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case5(self):
       arg=Data(numarray.array([[-0.99999999999999967, -6.4606252205695602e-16], [-6.4606252205695602e-16, -0.99999999999999967]]),self.functionspace)
@@ -1762,9 +1762,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case7(self):
       arg=Data(numarray.array([[0.0001, 0.0], [0.0, 0.0]]),self.functionspace)
@@ -1777,9 +1777,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case9(self):
       arg=Data(numarray.array([[1.0, 0.0], [0.0, 2.0]]),self.functionspace)
@@ -1792,9 +1792,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case11(self):
       arg=Data(numarray.array([[1.0605983718317855, 0.23859213977648688], [0.23859213977648688, 1.9394016281682138]]),self.functionspace)
@@ -1807,9 +1807,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case13(self):
       arg=Data(numarray.array([[1000000.0, 0.0], [0.0, 1.0]]),self.functionspace)
@@ -1822,9 +1822,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case0(self):
       arg=Data(numarray.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),self.functionspace)
@@ -1837,10 +1837,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case10(self):
       arg=Data(numarray.array([[0.9, 0.0, 0.0], [0.0, 0.9, 0.0], [0.0, 0.0, 1.0]]),self.functionspace)
@@ -1853,10 +1853,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case12(self):
       arg=Data(numarray.array([[0.92694799760252555, 0.0, 0.044368966468320177], [0.0, 0.9, 0.0], [0.044368966468320184, 0.0, 0.97305200239747425]]),self.functionspace)
@@ -1869,10 +1869,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case14(self):
       arg=Data(numarray.array([[0.92379770619813639, 0.041031106298491521, -0.011396846732439278], [0.041031106298491535, 0.97074428392640366, -0.019650012730342326], [-0.011396846732439236, -0.019650012730342337, 0.90545800987545966]]),self.functionspace)
@@ -1885,10 +1885,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case17(self):
       arg=Data(numarray.array([[1.0269479976025255, 0.0, 0.044368966468320309], [0.0, 1.1, 0.0], [0.044368966468320295, 0.0, 1.0730520023974743]]),self.functionspace)
@@ -1901,10 +1901,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case19(self):
       arg=Data(numarray.array([[1.035487967756175, 0.026317079185831614, -0.039960133424212368], [0.026317079185831618, 1.0892641940924184, 0.016301362071911414], [-0.039960133424212355, 0.016301362071911431, 1.0752478381514063]]),self.functionspace)
@@ -1917,10 +1917,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case21(self):
       arg=Data(numarray.array([[1.0, 0.0, 0.0], [0.0, 2.7060899725040968, -0.45555123008643206], [0.0, -0.45555123008643228, 2.2939100274959037]]),self.functionspace)
@@ -1933,10 +1933,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case23(self):
       arg=Data(numarray.array([[3.0, 0.0, 0.0], [0.0, 1.153410887977139, -0.36038311201720391], [0.0, -0.36038311201720391, 1.8465891120228608]]),self.functionspace)
@@ -1949,10 +1949,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case25(self):
       arg=Data(numarray.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 30000.0]]),self.functionspace)
@@ -1965,10 +1965,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case27(self):
       arg=Data(numarray.array([[8085.1298007817086, 0.0, 13310.246250831115], [0.0, 2.0, 0.0], [13310.246250831115, 0.0, 21915.870199218316]]),self.functionspace)
@@ -1981,10 +1981,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case29(self):
       arg=Data(numarray.array([[7140.1907849945546, 12308.774438213351, -3419.2256841313947], [12308.774438213351, 21223.762934183575, -5894.4478052274408], [-3419.2256841313947, -5894.4478052274408, 1639.0462808218595]]),self.functionspace)
@@ -1997,10 +1997,10 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim1_case0(self):
       arg=Data(numarray.array([[0.0]]),self.functionspace)
@@ -2013,5 +2013,5 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
       self.failUnlessEqual(res[1].getShape(),(1, 1),"wrong shape of result for eigenvectors.")
       self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrixmult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(1))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(1))<=self.RES_TOL,"eigenvectors are not orthonormal")
