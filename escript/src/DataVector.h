@@ -206,6 +206,15 @@ class ESCRIPT_DLL_API DataVector {
   ValueType m_array_data;
 };
 
+/**
+  \brief
+  releases unused memory in the memory manager.
+*/
+                                                                                                                                                                                                     
+ESCRIPT_DLL_API void releaseUnusedMemory();
+                                                                                                                                                                                                     
+
+
 inline
 DataVector::size_type
 DataVector::size() const

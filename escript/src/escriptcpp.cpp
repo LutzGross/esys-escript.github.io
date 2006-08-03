@@ -19,6 +19,7 @@
 #include "AbstractDomain.h"
 #include "Utils.h"
 #include "AbstractSystemMatrix.h"
+#include "DataVector.h"
 
 #include "esysUtils/esysExceptionTranslator.h"
 
@@ -69,6 +70,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
 {
   def("setNumberOfThreads",escript::setNumberOfThreads);
   def("getNumberOfThreads",escript::getNumberOfThreads);
+  def("releaseUnusedMemory",escript::releaseUnusedMemory);
+
 
   //
   // Interface for AbstractDomain
