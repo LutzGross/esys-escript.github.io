@@ -18,16 +18,12 @@
 #include "system_dep.h"
 
 #include <string>
+#include <map>
 #include <boost/python/dict.hpp>
 
 namespace escript {
-
-//
-// forward declarations
+// class forward declarations
 class Data;
-//class AbstractSystemMatrix;
-//class FunctionSpace;
-
 /**
    \brief
    Base class for all escript domains.
@@ -39,6 +35,21 @@ class Data;
 class AbstractDomain {
 
  public:
+
+
+   // structure holding values for X, size and normal
+   typedef int StatusType;
+   struct ValueBuffer
+   {
+       StatusType m_status;
+       boost::shared_ptr<Data> m_data;
+   };
+   typedef struct ValueBuffer ValueBuffer;
+
+   // 
+   // map from function space type code to value buffer
+   typedef std::map<int, ValueBuffer> BufferMapType;
+
 
   /**
      \brief
@@ -293,6 +304,15 @@ class AbstractDomain {
 
   /**
      \brief
+     returns status of the domain. 
+
+     This has to be implemented by the actual Domain adapter.
+  */
+  ESCRIPT_DLL_API
+  virtual StatusType getStatus() const;
+
+  /**
+     \brief
      Throw a standard exception. This function is called if any attempt 
      is made to use a base class function.
   */
@@ -302,6 +322,15 @@ class AbstractDomain {
  protected:
 
  private:
+
+   // buffer for coordinates used by function spaces
+   BufferMapType m_x_buffer;
+
+   // buffer for normal vectors used by function spaces
+   BufferMapType m_normal_buffer;
+
+   // buffer for normal element size used by function spaces
+   BufferMapType m_size_buffer;
 
 };
 

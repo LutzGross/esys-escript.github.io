@@ -64,6 +64,37 @@ Taipan::~Taipan() {
   totalElements = -1;
 }
 
+void
+Taipan::release_unused_arrays()
+{
+  long len=0;
+  Taipan_MemTable *tab;
+  Taipan_MemTable *tab_next, *tab_prev=0;
+  tab = memTable_Root;
+  while (tab != 0) {
+      tab_next = tab->next;
+      if (tab->free) {
+        delete[] tab->array;
+        len += tab->dim * tab->N;
+        if (tab_prev != 0) {
+          tab_prev->next = tab->next;
+        } else {
+          memTable_Root = tab->next;
+        }
+        delete tab;
+        // increment count of arrays dealloced
+        statTable->deallocations++;
+      } else {
+        tab_prev = tab;
+      }
+      tab = tab_next;
+  }
+  totalElements -= len;
+  statTable->deallocated_elements += len;
+  cout << len*8./1048576 << " Mbytes unused memory has been released." << endl;
+}
+
+
 double*
 Taipan::new_array(int dim, int N) {
 

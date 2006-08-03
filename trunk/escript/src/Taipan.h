@@ -91,6 +91,14 @@ class ESCRIPT_DLL_API Taipan {
 
   /**
      \brief
+     frees all arrays that are currently unused.
+
+  */
+  void
+  release_unused_arrays();
+
+  /**
+     \brief
      Calculate the total number of arrays currently under management.
   */
   int

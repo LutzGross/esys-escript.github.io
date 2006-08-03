@@ -13,9 +13,6 @@
 
 #include "AbstractDomain.h" 
 #include "DomainException.h"
-//#include "AbstractSystemMatrix.h"
-//#include "FunctionSpace.h"
-
 #include "Data.h"
 
 using namespace std;
@@ -186,5 +183,12 @@ bool AbstractDomain::operator!=(const AbstractDomain& other) const
   throwStandardException("AbstractDomain::operator!=");
   return false;
 }
+
+AbstractDomain::StatusType AbstractDomain::getStatus() const 
+{
+  throwStandardException("AbstractDomain::getStatus");
+  return 0;
+}
+
 
 } // end of namespace

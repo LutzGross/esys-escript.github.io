@@ -11,6 +11,7 @@
 */
 
 #include "Utils.h"
+#include "DataVector.h"
 
 #ifdef _OPENMP
 #include <omp.h>

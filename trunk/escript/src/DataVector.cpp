@@ -24,6 +24,12 @@ namespace escript {
 
 Taipan arrayManager;
 
+void releaseUnusedMemory()
+{
+   arrayManager.release_unused_arrays();
+}
+
+
 DataVector::DataVector() :
   m_array_data(0),
   m_size(0),
