@@ -17,6 +17,11 @@ class Test_UtilOnBruce(Test_util,Test_symbols):
        self.domain =Rectangle(10,10)
        self.functionspace = ContinuousFunction(self.domain)
 
+   def tearDown(self):
+    del self.domain
+    del self.functionspace
+
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_UtilOnBruce))

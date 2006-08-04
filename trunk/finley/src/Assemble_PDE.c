@@ -56,31 +56,26 @@
 void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, escriptDataC* F,
 			 escriptDataC* A, escriptDataC* B, escriptDataC* C, escriptDataC* D, escriptDataC* X, escriptDataC* Y ) {
 
+  bool_t reducedIntegrationOrder=FALSE;
   char error_msg[LenErrorMsg_MAX];
-  double *EM_S=NULL,*EM_F=NULL,*V=NULL,*dVdv=NULL,*dSdV=NULL,*Vol=NULL,*dvdV=NULL;
-  double time0;
-  dim_t dimensions[ESCRIPT_MAX_DATA_RANK],e,q;
   Assemble_Parameters p;
-  index_t *index_row=NULL,*index_col=NULL,color;
+  double time0;
+  dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
+
   Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
   if (S==NULL && isEmpty(F)) return;
 
-  /* set all parameters in p*/
-  Assemble_getAssembleParameters(nodes,elements,S,F,&p);
-  if (! Finley_noError()) return;
-
-  /*  this function assumes NS=NN */
-  if (p.NN!=p.NS) {
-    Finley_setError(SYSTEM_ERROR,"Finley_Assemble_PDE: for Finley_Assemble_PDE numNodes and numShapes have to be identical.");
-    return;
-  } 
-  if (p.numDim!=p.numElementDim) {
-    Finley_setError(SYSTEM_ERROR,"Finley_Assemble_PDE: Finley_Assemble_PDE accepts volume elements only.");
-    return;
+  if (isEmpty(F) && !isEmpty(X) && !isEmpty(F)) { 
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: right hand side coefficients are non-zero bat no right hand side vector given.");
   }
-  /*  get a functionspace */
+
+  if (S==NULL && !isEmpty(A) && !isEmpty(B) && !isEmpty(C) && !isEmpty(D)) { 
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: coefficients are non-zero but no matrix is given.");
+  }
+
+  /*  get the functionspace for this assemblage call */
   type_t funcspace=UNKNOWN;
   updateFunctionSpaceType(funcspace,A);
   updateFunctionSpaceType(funcspace,B);
@@ -90,8 +85,8 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   updateFunctionSpaceType(funcspace,Y);
   if (funcspace==UNKNOWN) return; /* all  data are empty */
 
-  /* check if all function spaces are the same */
 
+  /* check if all function spaces are the same */
   if (! functionSpaceTypeEqual(funcspace,A) ) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient A");
   }
@@ -110,6 +105,25 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   if (! functionSpaceTypeEqual(funcspace,Y) ) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient Y");
   }
+  if (! Finley_noError()) return;
+
+  /* check if all function spaces are the same */
+  if (funcspace==FINLEY_ELEMENTS) {
+       reducedIntegrationOrder=FALSE;
+  } else if (funcspace==FINLEY_FACE_ELEMENTS)  {
+       reducedIntegrationOrder=FALSE;
+  } else if (funcspace==FINLEY_CONTACT_ELEMENTS_1)  {
+       reducedIntegrationOrder=FALSE;
+  } else if (funcspace==FINLEY_CONTACT_ELEMENTS_2)  {
+       reducedIntegrationOrder=FALSE;
+  } else {
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: assemblage failed because of illegal function space.");
+  }
+  if (! Finley_noError()) return;
+
+  /* set all parameters in p*/
+  Assemble_getAssembleParameters(nodes,elements,S,F, reducedIntegrationOrder, &p);
+  if (! Finley_noError()) return;
 
   /* check if all function spaces are the same */
 
@@ -238,114 +252,94 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
       }
     }
   }
-
   if (Finley_noError()) {
      time0=Finley_timer();
-     #pragma omp parallel private(index_col,index_row,EM_S,EM_F,V,dVdv,dSdV,Vol,dvdV,color,q) \
-            firstprivate(elements,nodes,S,F,A,B,C,D,X,Y)
-     {
-         EM_S=EM_F=V=dVdv=dSdV=Vol=dvdV=NULL;
-         index_row=index_col=NULL;
-
-         /* allocate work arrays: */
-
-         EM_S=(double*) THREAD_MEMALLOC(p.NN_row*p.NN_col*p.numEqu*p.numComp,double);
-         EM_F=(double*) THREAD_MEMALLOC(p.NN_row*p.numEqu,double);
-         V=(double*) THREAD_MEMALLOC(p.NN*p.numDim,double);
-         dVdv=(double*) THREAD_MEMALLOC(p.numDim*p.numDim*p.numQuad,double);
-         dvdV=(double*) THREAD_MEMALLOC(p.numDim*p.numDim*p.numQuad,double);
-         dSdV=(double*) THREAD_MEMALLOC(p.NS_row*p.numQuad*p.numDim,double);
-         Vol=(double*) THREAD_MEMALLOC(p.numQuad,double);
-         index_col=(index_t*) THREAD_MEMALLOC(p.NN_col,index_t);
-         index_row=(index_t*) THREAD_MEMALLOC(p.NN_row,index_t);
-
-         if (! (Finley_checkPtr(EM_S) || Finley_checkPtr(EM_F) || Finley_checkPtr(V) || Finley_checkPtr(index_col) ||
-                Finley_checkPtr(index_row) || Finley_checkPtr(dVdv) || Finley_checkPtr(dSdV) || Finley_checkPtr(Vol) ))  {
-
-           /*  open loop over all colors: */
-#ifndef PASO_MPI
-           for (color=elements->minColor;color<=elements->maxColor;color++) {
-              /*  open loop over all elements: */
-              #pragma omp for private(e) schedule(static) 
-              for(e=0;e<elements->numElements;e++){
-                if (elements->Color[e]==color) {
-#else
-           for(e=0;e<elements->numElements;e++){
-#endif	
-//============================
-                  for (q=0;q<p.NN_row;q++) index_row[q]=p.label_row[elements->Nodes[INDEX2(p.row_node[q],e,p.NN)]];
-                  /* gather V-coordinates of nodes into V: */
-		  Finley_Util_Gather_double(p.NN,&(elements->Nodes[INDEX2(0,e,p.NN)]),p.numDim,nodes->Coordinates,V);
-                  /*  calculate dVdv(i,j,q)=V(i,k)*DSDv(k,j,q) */
-		  Finley_Util_SmallMatMult(p.numDim,p.numDim*p.numQuad,dVdv,p.NS,V,p.referenceElement->dSdv);
-                  /*  dvdV=invert(dVdv) inplace */
-		  Finley_Util_InvertSmallMat(p.numQuad,p.numDim,dVdv,dvdV,Vol);
-                  /*  calculate dSdV=DSDv*DvDV */
-		  Finley_Util_SmallMatSetMult(p.numQuad,p.NS_row,p.numDim,dSdV,p.numDim,p.referenceElement_row->dSdv,dvdV);
-                  /*  scale volume: */
-		  for (q=0;q<p.numQuad;q++) Vol[q]=ABS(Vol[q]*p.referenceElement->QuadWeights[q]);
-//============================
-    
-                   /*   integration for the stiffness matrix: */
-                   /*   in order to optimze the number of operations the case of constants coefficience needs a bit more work */
-                   /*   to make use of some symmetry. */
-
-                     if (S!=NULL) {
-                       for (q=0;q<p.NN_row*p.NN_col*p.numEqu*p.numComp;q++) EM_S[q]=0;
-                       if (p.numEqu==1 && p.numComp==1) {
-  	                   Finley_Assemble_PDEMatrix_Single2(p.NS_row,p.numDim,p.numQuad,
-                                                                     p.referenceElement_row->S,dSdV,Vol,p.NN_row,EM_S,
-                                                                     getSampleData(A,e),isExpanded(A),
-                                                                     getSampleData(B,e),isExpanded(B),
-                                                                     getSampleData(C,e),isExpanded(C),
-                                                                     getSampleData(D,e),isExpanded(D));
-                       } else {
-  	                   Finley_Assemble_PDEMatrix_System2(p.NS_row,p.numDim,p.numQuad,p.numEqu,p.numComp,
-                                                                     p.referenceElement_row->S,dSdV,Vol,p.NN_row,EM_S,
-                                                                     getSampleData(A,e),isExpanded(A),
-                                                                     getSampleData(B,e),isExpanded(B),
-                                                                     getSampleData(C,e),isExpanded(C),
-                                                                     getSampleData(D,e),isExpanded(D));
-                       }
-                       for (q=0;q<p.NN_col;q++) index_col[q]=p.label_col[elements->Nodes[INDEX2(p.col_node[q],e,p.NN)]];
-                       Finley_Assemble_addToSystemMatrix(S,p.NN_row,index_row,p.numEqu,p.NN_col,index_col,p.numComp,EM_S);
-                     }
-                     if (!isEmpty(F)) {
-                       for (q=0;q<p.NN_row*p.numEqu;q++) EM_F[q]=0;
-                       if (p.numEqu==1) {
-  	                   Finley_Assemble_RHSMatrix_Single(p.NS_row,p.numDim,p.numQuad,
-                                                                 p.referenceElement_row->S,dSdV,Vol,p.NN_row,EM_F,
-                                                                 getSampleData(X,e),isExpanded(X),
-                                                                 getSampleData(Y,e),isExpanded(Y));
-                       } else {
-  	                   Finley_Assemble_RHSMatrix_System(p.NS_row,p.numDim,p.numQuad,
-                                                                 p.numEqu,p.referenceElement_row->S,dSdV,Vol,p.NN_row,EM_F,
-                                                                 getSampleData(X,e),isExpanded(X),
-                                                                 getSampleData(Y,e),isExpanded(Y));
-                       }
-                       /* add  */
-#ifndef PASO_MPI
-                       Finley_Util_AddScatter(p.NN_row,index_row,p.numEqu,EM_F,getSampleData(F,0));
-#else
-                       Finley_Util_AddScatter_upperBound(p.NN_row,index_row,p.numEqu,EM_F,getSampleData(F,0),p.degreeOfFreedomUpperBound);
-#endif										
-                    }
-                }
-              }
-#ifndef PASO_MPI
+     if (p.numEqu == p. numComp) {
+        if (p.numEqu > 1) {
+          /* system of PDESs */
+          if (p.numDim==3) {
+            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+               Finley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
+            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
             }
-         }
-#endif
-         /* clean up */
-         THREAD_MEMFREE(EM_S);
-         THREAD_MEMFREE(EM_F);
-         THREAD_MEMFREE(V);
-         THREAD_MEMFREE(dVdv);
-         THREAD_MEMFREE(dvdV);
-         THREAD_MEMFREE(dSdV);
-         THREAD_MEMFREE(Vol); 
-         THREAD_MEMFREE(index_col); 
-         THREAD_MEMFREE(index_row); 
+          } else if (p.numDim==2) {
+            if ((p.row_NS == p.col_NS) && (p.row_NS == p.row_NN) && (p.col_NS == p.col_NN )) {
+               Finley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
+            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else if (p.numDim==2) {
+            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+               Finley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
+            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else {
+            Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+          }
+        } else {
+          /* single PDES */
+          if (p.numDim==3) {
+            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+               Finley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
+            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else if (p.numDim==2) {
+            if ((p.row_NS == p.col_NS) && (p.row_NS == p.row_NN) && (p.col_NS == p.col_NN )) {
+               Finley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
+            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else if (p.numDim==2) {
+            if (p.row_NS == p.col_NS && p.row_NS == p.row_NN && p.col_NS == p.col_NN ) {
+               Finley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
+            } else if ( p.row_NS == p.col_NS &&  2*p.row_NS == p.row_NN && 2*p.col_NS == p.col_NN ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else {
+            Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+          }
+        }
+     } else {
+          Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE requires number of equations == number of solutions  .");
      }
      #ifdef Finley_TRACE
      printf("timing: assemblage PDE: %.4e sec\n",Finley_timer()-time0);

@@ -336,7 +336,7 @@ Taipan::dump_stats() {
   float deelMb=statTable->deallocated_elements*8.0/1048576;
   float tszMb=statTable->max_tab_size*8.0/1048576;
 #ifndef PASO_MPI
-  cout << "========== Mem Stats =============================" << endl;
+  cout << "======= escript Mem Stats ===========================" << endl;
   cout << "Total Num requests:             " << statTable->requests << endl;
   cout << "Total Num releases:             " << statTable->frees << endl;
   cout << "Total Num allocated arrays:     " << statTable->allocations << endl;

@@ -72,36 +72,19 @@ void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in,
 
 /*   adds a vector in into out using and index. */
 
-/*        out(1:numData,index(1:len))+=in(1:numData,1:len) */
+/*        out(1:numData,index[p])+=in(1:numData,p) where p = {k=1...len , index[k]<upperBound}*/
 
-void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out){
+
+void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound){
    dim_t i,s;
    for (s=0;s<len;s++) {
        for(i=0;i<numData;i++) {
           #pragma omp atomic
-          out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
-       }
-   }
-}
-
-#ifdef PASO_MPI
-/* same as AddScatter(), but checks that value index[] is below an upper bound upperBound before  
-   addition. This is used to ensure that only the influence of local DOF is added */
-/*        out(1:numData,index[p])+=in(1:numData,p)
-        where p = {k=1...len , index[k]<upperBound}*/
-void Finley_Util_AddScatter_upperBound(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound){
-   dim_t i,s;
-   for (s=0;s<len;s++) {
-       for(i=0;i<numData;i++) {
-          //#pragma omp atomic
           if( index[s]<upperBound )
             out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
        }
    }
-}  
-
-
-#endif
+}
 
 /*    multiplies two matrices */
 

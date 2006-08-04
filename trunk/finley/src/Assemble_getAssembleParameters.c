@@ -27,134 +27,144 @@
 /**************************************************************/
 
 void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, 
-                                        escriptDataC* F,Assemble_Parameters *parm) {
+                                        escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
   Finley_resetError();
-  dim_t i;
-  parm->NN=elements->ReferenceElement->Type->numNodes;
-  for (i=0;i<parm->NN;i++) parm->id[i]=i;
-  parm->NS=elements->ReferenceElement->Type->numShapes;
-  parm->referenceElement=elements->ReferenceElement;
-  parm->numQuad=parm->referenceElement->numQuadNodes;
-  parm->numDim=nodes->numDim;
-  parm->numElementDim=parm->referenceElement->Type->numDim;
+
+  for (dim_t i=0;i<MAX_numNodes;i++) parm->id[i]=i;
 
   if (!isEmpty(F) && !isExpanded(F) ) {
-      Finley_setError(TYPE_ERROR,"__FILE__: Right hand side is not expanded.");
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Right hand side is not expanded.");
       return;
   }
   /*  check the dimensions of S and F */
   if (S!=NULL && !isEmpty(F)) {
-    if ( getDataPointSize(F)!=S->logical_row_block_size) {
-      Finley_setError(TYPE_ERROR,"__FILE__: matrix row block size and number of components of right hand side don't match.");
-      return;
-    }
-
     if (! numSamplesEqual(F,1,(S->num_rows*S->row_block_size)/S->logical_row_block_size)) {
-      Finley_setError(TYPE_ERROR,"__FILE__: number of rows of matrix and length of right hand side don't match.");
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows of matrix and length of right hand side don't match.");
       return;
     }
   }
   /* get the number of equations and components */
-  if (S!=NULL) {
-    parm->numEqu=S->logical_row_block_size;
-    parm->numComp=S->logical_col_block_size;
+  if (S==NULL) {
+     if (isEmpty(F)) {
+        parm->numEqu=1;
+        parm->numComp=1;
+     } else {
+        parm->numEqu=getDataPointSize(F);
+        parm->numComp=parm->numEqu;
+     }
   } else {
-    parm->numEqu=1;
-    parm->numComp=1;
+     if (isEmpty(F)) {
+        parm->numEqu=S->logical_row_block_size;
+        parm->numComp=S->logical_col_block_size;
+     } else {
+        if ( getDataPointSize(F)!=S->logical_row_block_size) {
+          Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: matrix row block size and number of components of right hand side don't match.");
+          return;
+        }
+        parm->numEqu=S->logical_row_block_size;
+        parm->numComp=S->logical_col_block_size;
+     }
   }
-  if (!isEmpty(F)) parm->numEqu=getDataPointSize(F);
-  
-  parm->label_col=nodes->degreeOfFreedom;
-  parm->label_row=nodes->degreeOfFreedom;
-  parm->referenceElement_row=elements->ReferenceElement;
-  parm->referenceElement_col=elements->ReferenceElement;
-  /* get the information for the labeling of the degrees of freedom */
+
+  parm->col_DOF=nodes->degreeOfFreedom;
+  parm->row_DOF=nodes->degreeOfFreedom;
+  /* get the information for the labeling of the degrees of freedom from matrix */
   if (S!=NULL) {
 #ifndef PASO_MPI
       if (S->num_rows*S->row_block_size==parm->numEqu*nodes->numDegreesOfFreedom) {
+           parm->row_DOF_UpperBound = nodes->numDegreesOfFreedom;
 #else
       if (S->num_rows*S->row_block_size==parm->numEqu*nodes->degreeOfFreedomDistribution->numLocal) {
-           parm->degreeOfFreedomUpperBound = nodes->degreeOfFreedomDistribution->numLocal;
+           parm->row_DOF_UpperBound = nodes->degreeOfFreedomDistribution->numLocal;
 #endif
-           parm->label_row=nodes->degreeOfFreedom;
+           parm->row_DOF=nodes->degreeOfFreedom;
            parm->row_node=&(parm->id[0]);
-           parm->referenceElement_row=elements->ReferenceElement;
+           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
       } 
 #ifndef PASO_MPI
       else if (S->num_rows*S->row_block_size==parm->numEqu*nodes->reducedNumDegreesOfFreedom) {
+           parm->row_DOF_UpperBound = nodes->reducedNumDegreesOfFreedom;
 #else
       else if (S->num_rows*S->row_block_size==parm->numEqu*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
-           parm->degreeOfFreedomUpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
+           parm->row_DOF_UpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
 #endif
-           parm->label_row=nodes->reducedDegreeOfFreedom;
-           parm->row_node=parm->referenceElement->Type->linearNodes;
-           parm->referenceElement_row=elements->LinearReferenceElement;
+           parm->row_DOF=nodes->reducedDegreeOfFreedom;
+           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+           parm->row_node=parm->row_jac->ReferenceElement->Type->linearNodes;
       } else {
-           Finley_setError(TYPE_ERROR,"__FILE__: number of rows in matrix does not match the number of degrees of freedom in mesh");
-           return;
+           Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
       }
 #ifndef PASO_MPI      
       if (S->num_cols*S->col_block_size==parm->numComp*nodes->numDegreesOfFreedom) {
+           parm->col_DOF_UpperBound = nodes->numDegreesOfFreedom;
 #else
       if (S->num_cols*S->col_block_size==parm->numComp*nodes->degreeOfFreedomDistribution->numLocal) {
-           parm->degreeOfFreedomUpperBound = nodes->degreeOfFreedomDistribution->numLocal;
+           parm->col_DOF_UpperBound = nodes->degreeOfFreedomDistribution->numLocal;
 #endif
-           parm->label_col=nodes->degreeOfFreedom;
+           parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+           parm->col_DOF=nodes->degreeOfFreedom;
            parm->col_node=&(parm->id[0]);
-           parm->referenceElement_col=elements->ReferenceElement;
       } 
 #ifndef PASO_MPI
       else if (S->num_cols*S->col_block_size==parm->numComp*nodes->reducedNumDegreesOfFreedom) {
+           parm->col_DOF_UpperBound = nodes->reducedNumDegreesOfFreedom;
 #else
       else if (S->num_cols*S->col_block_size==parm->numComp*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
-           parm->degreeOfFreedomUpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
+           parm->col_DOF_UpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
 #endif
-           parm->label_col=nodes->reducedDegreeOfFreedom;
-           parm->col_node=parm->referenceElement->Type->linearNodes;
-           parm->referenceElement_col=elements->LinearReferenceElement;
+           parm->col_DOF=nodes->reducedDegreeOfFreedom;
+           parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+           parm->col_node=parm->row_jac->ReferenceElement->Type->linearNodes;
       } else {
-           Finley_setError(TYPE_ERROR,"__FILE__: number of columns in matrix does not match the number of degrees of freedom in mesh");
-           return;
+           Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
       }
   }
+  if (! Finley_noError()) return;
+  /* get the information from right hand side */
   if (!isEmpty(F)) {
 #ifndef PASO_MPI
       if (numSamplesEqual(F,1,nodes->numDegreesOfFreedom)) {
+           parm->row_DOF_UpperBound=nodes->numDegreesOfFreedom;
 #else
       if (numSamplesEqual(F,1,nodes->degreeOfFreedomDistribution->numLocal)) {
-           parm->degreeOfFreedomUpperBound = nodes->degreeOfFreedomDistribution->numLocal;
+           parm->row_DOF_UpperBound = nodes->degreeOfFreedomDistribution->numLocal;
 #endif
+           parm->row_DOF=nodes->degreeOfFreedom;
+           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
            parm->row_node=&(parm->id[0]);
-           parm->label_row=nodes->degreeOfFreedom;
-           parm->referenceElement_row=elements->ReferenceElement;
       } 
 #ifndef PASO_MPI
       else if (numSamplesEqual(F,1,nodes->reducedNumDegreesOfFreedom)) {
+           parm->row_DOF_UpperBound=nodes->reducedNumDegreesOfFreedom;
 #else
       else if (numSamplesEqual(F,1,nodes->reducedDegreeOfFreedomDistribution->numLocal)) {
-           parm->degreeOfFreedomUpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
+           parm->row_DOF_UpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
 #endif
-           parm->label_row=nodes->reducedDegreeOfFreedom;
-           parm->row_node=parm->referenceElement->Type->linearNodes;
-           parm->referenceElement_row=elements->LinearReferenceElement;
+           parm->row_DOF=nodes->reducedDegreeOfFreedom;
+           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+           parm->row_node=parm->row_jac->ReferenceElement->Type->linearNodes;
       } else {
-           Finley_setError(TYPE_ERROR,"__FILE__: length of RHS vector does not match the number of degrees of freedom in mesh");
-           return;
+           Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
       }
       if (S==NULL) {
-           parm->label_col=parm->label_row;
+           parm->col_DOF_UpperBound=parm->row_DOF_UpperBound;
+           parm->col_DOF=parm->row_DOF;
            parm->col_node=parm->row_node;
-           parm->referenceElement_col=parm->referenceElement_row;
+           parm->col_jac=parm->row_jac;
       } 
   }
-  if (parm->referenceElement_row!=parm->referenceElement_col) {
-      Finley_setError(TYPE_ERROR,"__FILE__: assemblage cannot handle different shape functions for rows and columns (yet).");
-      return;
+  if (! Finley_noError()) return;
+  if (parm->row_jac!=parm->col_jac) {
+      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: assemblage cannot handle different shape functions for rows and columns (yet).");
   }
-  parm->NN_row=parm->referenceElement_row->Type->numNodes;
-  parm->NS_row=parm->referenceElement_row->Type->numShapes;
-  parm->NN_col=parm->referenceElement_col->Type->numNodes;
-  parm->NS_col=parm->referenceElement_col->Type->numShapes;
+  if (! Finley_noError()) return;
+  parm->NN=elements->ReferenceElement->Type->numNodes;
+  parm->numDim=parm->row_jac->numDim;
+  parm->numQuad=parm->row_jac->ReferenceElement->numQuadNodes;
+  parm->row_NN=parm->row_jac->ReferenceElement->Type->numNodes;
+  parm->row_NS=parm->row_jac->ReferenceElement->Type->numShapes;
+  parm->col_NN=parm->col_jac->ReferenceElement->Type->numNodes;
+  parm->col_NS=parm->col_jac->ReferenceElement->Type->numShapes;
 }
 
 /*

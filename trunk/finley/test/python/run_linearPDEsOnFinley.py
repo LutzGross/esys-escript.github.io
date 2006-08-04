@@ -40,12 +40,16 @@ class Test_LinearPDEOnFinley2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblag
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Rectangle(NE,NE,1)
+   def tearDown(self):
+        del self.domain
 
 class Test_LinearPDEOnFinley2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do2):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Rectangle(NE,NE,2)
+   def tearDown(self):
+        del self.domain
 
 class Test_LinearPDEOnFinley3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1):
    RES_TOL=1.e-7
@@ -58,12 +62,16 @@ class Test_LinearPDEOnFinley3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblag
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Brick(NE,NE,NE,2)
+   def tearDown(self):
+        del self.domain
 
 class Test_PoissonOnFinley(Test_Poisson):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Rectangle(NE,NE,2)
+   def tearDown(self):
+        del self.domain
 
 
 class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
@@ -77,6 +85,8 @@ class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
    RES_TOL=1.e-7
@@ -89,6 +99,8 @@ class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
    RES_TOL=1.e-7
@@ -101,6 +113,8 @@ class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
    RES_TOL=1.e-7
@@ -113,6 +127,8 @@ class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 
 class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage_2Do1_Contact):
@@ -126,6 +142,8 @@ class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage_2Do2_Contact):
    RES_TOL=1.e-7
@@ -138,6 +156,8 @@ class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage_3Do1_Contact):
    RES_TOL=1.e-7
@@ -150,6 +170,8 @@ class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage_3Do2_Contact):
    RES_TOL=1.e-7
@@ -162,6 +184,8 @@ class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
        self.domain = JoinFaces([d1,d2])
+   def tearDown(self):
+        del self.domain
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

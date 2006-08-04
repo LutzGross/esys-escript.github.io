@@ -30,9 +30,9 @@ test_pyc = env.PyCompile(testfiles)
 env.Alias('build_py_tests', test_pyc)
 
 #Add Unit Test to target alias
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
-local_env['ENV']['ESCRIPT_TEST_DATA_ROOT']=env.Dir('#/escript/test/python').srcnode().abspath
-local_env['ENV']['ESCRIPT_WORKDIR']=env.Dir('#/build/$PLATFORM/escript/test/python').srcnode().abspath
+local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/pyvisi/test/python')))
+local_env['ENV']['ESCRIPT_TEST_DATA_ROOT']=env.Dir('#/pyvisi/test/python').srcnode().abspath
+local_env['ENV']['ESCRIPT_WORKDIR']=env.Dir('#/build/$PLATFORM/pyvisi/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 

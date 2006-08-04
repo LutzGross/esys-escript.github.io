@@ -9,6 +9,8 @@ The tests must be linked with a Domain class object in the setUp method:
    class Test_LinearPDEOnFinley(Test_LinearPDE):
        def setUp(self):
            self.domain = Rectangle(10,10,2)
+       def tearDown(self):
+           del self.domain
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley))
    unittest.TextTestRunner(verbosity=2).run(suite)

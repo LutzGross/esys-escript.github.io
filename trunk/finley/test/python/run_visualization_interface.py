@@ -10,10 +10,20 @@ import unittest
 from esys.escript import *
 from esys.finley import ReadMesh
 
-FINLEY_TEST_MESH_PATH=os.environ['FINLEY_TEST_DATA']+"/data_meshes/"
+try:
+     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+except KeyError:
+     FINLEY_TEST_DATA='.'
+
+try:
+     FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
+except KeyError:
+     FINLEY_WORKDIR='.'
+
+FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
 if os.name == "nt":
    FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
-FINLEY_WORKDIR_PATH=os.environ['FINLEY_WORKDIR']+"/"
+FINLEY_WORKDIR_PATH=FINLEY_WORKDIR+"/"
 
 class Test_VisualizationInterface(unittest.TestCase):
    def check_vtk(self,f,reference_f):
