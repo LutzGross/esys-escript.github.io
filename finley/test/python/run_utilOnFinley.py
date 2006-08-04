@@ -20,6 +20,9 @@ class Test_UtilOnFinley(Test_util,Test_symbols):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+   def tearDown(self):
+       del self.functionspace
+       del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
@@ -28,6 +31,9 @@ class Test_Util_SpatialFunctionsOnFinley2DOrder1(Test_Util_SpatialFunctions_noGr
         d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
@@ -36,6 +42,9 @@ class Test_Util_SpatialFunctionsOnFinley2DOrder2(Test_Util_SpatialFunctions_noGr
         d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
@@ -44,6 +53,9 @@ class Test_Util_SpatialFunctionsOnFinley3DOrder1(Test_Util_SpatialFunctions_noGr
         d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
@@ -52,6 +64,9 @@ class Test_Util_SpatialFunctionsOnFinley3DOrder2(Test_Util_SpatialFunctions_noGr
         d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley2DOrder1useElementsOnFace(Test_Util_SpatialFunctions):
     def setUp(self):
@@ -60,6 +75,9 @@ class Test_Util_SpatialFunctionsOnFinley2DOrder1useElementsOnFace(Test_Util_Spat
         d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley2DOrder2useElementsOnFace(Test_Util_SpatialFunctions):
     def setUp(self):
@@ -68,6 +86,9 @@ class Test_Util_SpatialFunctionsOnFinley2DOrder2useElementsOnFace(Test_Util_Spat
         d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley3DOrder1useElementsOnFace(Test_Util_SpatialFunctions):
     def setUp(self):
@@ -76,6 +97,9 @@ class Test_Util_SpatialFunctionsOnFinley3DOrder1useElementsOnFace(Test_Util_Spat
         d2 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnFinley3DOrder2useElementsOnFace(Test_Util_SpatialFunctions):
     def setUp(self):
@@ -84,6 +108,9 @@ class Test_Util_SpatialFunctionsOnFinley3DOrder2useElementsOnFace(Test_Util_Spat
         d2 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2])
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

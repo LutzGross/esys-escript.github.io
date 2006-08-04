@@ -31,7 +31,7 @@
 
 void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in,double * out);
 void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData,index_t* in,index_t * out);
-void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out);
+void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t bound);
 void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);
 void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);
 void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, double* det);
@@ -48,7 +48,6 @@ index_t Finley_Util_cumsum(dim_t,index_t*);
 bool_t Finley_Util_anyNonZeroDouble(dim_t N,double* values);
 
 #ifdef PASO_MPI
-void Finley_Util_AddScatter_upperBound(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound);
 void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  );
 void Finley_printIntArray( FILE *fid, dim_t n, int *array, char *name  );
 void Finley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  );

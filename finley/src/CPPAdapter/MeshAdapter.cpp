@@ -252,27 +252,27 @@ void MeshAdapter::addPDEToSystem(
                      const escript::Data& d, const escript::Data& y, 
                      const escript::Data& d_contact,const escript::Data& y_contact) const
 {
-  escriptDataC _rhs=rhs.getDataC();
-  escriptDataC _A  =A.getDataC();
-  escriptDataC _B=B.getDataC();
-  escriptDataC _C=C.getDataC();
-  escriptDataC _D=D.getDataC();
-  escriptDataC _X=X.getDataC();
-  escriptDataC _Y=Y.getDataC();
-  escriptDataC _d=d.getDataC();
-  escriptDataC _y=y.getDataC();
-  escriptDataC _d_contact=d_contact.getDataC();
-  escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _rhs=rhs.getDataC();
+   escriptDataC _A  =A.getDataC();
+   escriptDataC _B=B.getDataC();
+   escriptDataC _C=C.getDataC();
+   escriptDataC _D=D.getDataC();
+   escriptDataC _X=X.getDataC();
+   escriptDataC _Y=Y.getDataC();
+   escriptDataC _d=d.getDataC();
+   escriptDataC _y=y.getDataC();
+   escriptDataC _d_contact=d_contact.getDataC();
+   escriptDataC _y_contact=y_contact.getDataC();
 
    Finley_Mesh* mesh=m_finleyMesh.get();
+
    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getPaso_SystemMatrix(), &_rhs, &_A, &_B, &_C, &_D, &_X, &_Y );
-
    checkFinleyError();
 
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements, mat.getPaso_SystemMatrix(), &_rhs, &_d, &_y, Finley_Assemble_handelShapeMissMatch_Mean_out);
+   Finley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, mat.getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d, 0, &_y );
    checkFinleyError();
 
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->ContactElements, mat.getPaso_SystemMatrix(), &_rhs , &_d_contact, &_y_contact ,             Finley_Assemble_handelShapeMissMatch_Step_out);
+   Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, mat.getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkFinleyError();
 }
 
@@ -283,16 +283,19 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
 
-   // Finley_Assemble_PDE_RHS(mesh->Nodes,mesh->Elements,&(rhs.getDataC()),&(X.getDataC()),&(Y.getDataC()));
-   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,0,&(rhs.getDataC()),0,0,0,0,&(X.getDataC()),&(Y.getDataC())); 
+   escriptDataC _rhs=rhs.getDataC();
+   escriptDataC _X=X.getDataC();
+   escriptDataC _Y=Y.getDataC();
+   escriptDataC _y=y.getDataC();
+   escriptDataC _y_contact=y_contact.getDataC();
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
    checkFinleyError();
 
-   // Finley_Assemble_RobinCondition_RHS(mesh->Nodes,mesh->FaceElements,&(rhs.getDataC()),&(y.getDataC()),Finley_Assemble_handelShapeMissMatch_Mean_out);
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->FaceElements,0,&(rhs.getDataC()),0,&(y.getDataC()),Finley_Assemble_handelShapeMissMatch_Mean_out); 
-
+   Finley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, 0, &_rhs, 0, 0, 0, 0, 0, &_y );
    checkFinleyError();
-   Finley_Assemble_RobinCondition(mesh->Nodes,mesh->ContactElements,0,&(rhs.getDataC()),0,&(y_contact.getDataC()),Finley_Assemble_handelShapeMissMatch_Step_out); 
-   // Finley_Assemble_RobinCondition_RHS(mesh->Nodes,mesh->ContactElements,&(rhs.getDataC()),&(y_contact.getDataC()),Finley_Assemble_handelShapeMissMatch_Step_out); 
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, 0, &_rhs , 0, 0, 0, 0, 0, &_y_contact );
    checkFinleyError();
 }
 

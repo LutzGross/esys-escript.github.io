@@ -7,8 +7,11 @@ The tests must be linked with a Domain class object in the setUp method:
 
    from esys.finley import Rectangle
    class Test_LinearPDEOnFinley(Test_LinearPDE):
+       RES_TOL=1-8
        def setUp(self):
            self.domain = Rectangle(10,10,2)
+       def tearDown(self):
+           del self.domain
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley))
    unittest.TextTestRunner(verbosity=2).run(suite)
@@ -36,7 +39,6 @@ from esys.escript import *
 from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE
 
 class Test_pdetools(unittest.TestCase):
-    TOL=1.e-6
     DEBUG=False
     VERBOSE=False
     def test_TimeIntegrationManager_scalar(self):
@@ -47,7 +49,7 @@ class Test_pdetools(unittest.TestCase):
            t+=dt
            tm.checkin(dt,t)
         v_guess=tm.extrapolate(dt)
-        self.failUnless(abs(v_guess-(tm.getTime()+dt))<self.TOL,"extrapolation is wrong")
+        self.failUnless(abs(v_guess-(tm.getTime()+dt))<self.RES_TOL,"extrapolation is wrong")
 
     def test_TimeIntegrationManager_vector(self):
         t=0.
@@ -58,7 +60,7 @@ class Test_pdetools(unittest.TestCase):
            tm.checkin(dt,t,3*t)
         v_guess=tm.extrapolate(dt)
         e=max(abs(v_guess[0]-(tm.getTime()+dt)),abs(v_guess[1]-(tm.getTime()+dt)*3.))
-        self.failUnless(e<self.TOL,"extrapolation is wrong")
+        self.failUnless(e<self.RES_TOL,"extrapolation is wrong")
 
     def test_Locator(self):
         x=self.domain.getX()
@@ -70,48 +72,48 @@ class Test_pdetools(unittest.TestCase):
 
         xx=l.getX()
         self.failUnless(isinstance(xx,numarray.NumArray),"wrong vector type")
-        self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.TOL,"location wrong")
+        self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.RES_TOL,"location wrong")
         xx=l(x)
         self.failUnless(isinstance(xx,numarray.NumArray),"wrong vector type")
-        self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.TOL,"value wrong vector")
+        self.failUnless(Lsup(xx-numarray.ones((self.domain.getDim(),)))<self.RES_TOL,"value wrong vector")
         xx=l(x[0]+x[1])
         self.failUnless(isinstance(xx,float),"wrong scalar type")
-        self.failUnless(abs(xx-2.)<self.TOL,"value wrong scalar")
+        self.failUnless(abs(xx-2.)<self.RES_TOL,"value wrong scalar")
       
     def testProjector_rank0(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=x[0]
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank1(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=x
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank2(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank3(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank4(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank0_fast(self):
       x=ContinuousFunction(self.domain).getX()
@@ -158,35 +160,35 @@ class Test_pdetools(unittest.TestCase):
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=x[0]
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank1_reduced(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=x
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank2_reduced(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank3_reduced(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank4_reduced(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.TOL,"value wrong")
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
     def testProjector_rank0_fast_reduced(self):
       x=ContinuousFunction(self.domain).getX()
@@ -235,7 +237,7 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=1.,Y=1.,q=msk)
       u=p.getSolution()
       u_ex=(1.-msk)
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
 
     def test_NoPDE_scalar_missing_Y(self):
       p=NoPDE(self.domain)
@@ -244,7 +246,7 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=1.,q=msk,r=2.)
       u=p.getSolution()
       u_ex=msk*2.
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
 
     def test_NoPDE_scalar_constant(self):
       p=NoPDE(self.domain)
@@ -253,7 +255,7 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=1.,Y=1.,q=msk,r=2.)
       u=p.getSolution()
       u_ex=(1.-msk)+msk*2.
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
 
     def test_NoPDE_scalar_variable(self):
       p=NoPDE(self.domain)
@@ -262,7 +264,7 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=x[0],Y=2*x[0],q=msk,r=2.)
       u=p.getSolution()
       u_ex=2.
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
 
     def test_NoPDE_vector_missing_Y(self):
       p=NoPDE(self.domain)
@@ -271,7 +273,7 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=1.,q=msk,r=2.)
       u=p.getSolution()
       u_ex=msk*2.
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
 
     def test_NoPDE_vector_missing_r(self):
       p=NoPDE(self.domain)
@@ -280,7 +282,7 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=1.,Y=1.,q=msk)
       u=p.getSolution()
       u_ex=(1.-msk)
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
 
     def test_NoPDE_vector_constant(self):
       p=NoPDE(self.domain)
@@ -289,7 +291,7 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=1.,Y=1.,q=msk,r=2.)
       u=p.getSolution()
       u_ex=(1.-msk)+msk*2.
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
 
     def test_NoPDE_vector_variable(self):
       p=NoPDE(self.domain)
@@ -298,4 +300,4 @@ class Test_pdetools(unittest.TestCase):
       p.setValue(D=x[:2],Y=2*x[:2],q=msk,r=2.)
       u=p.getSolution()
       u_ex=2.
-      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.TOL,"value wrong")
+      self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")

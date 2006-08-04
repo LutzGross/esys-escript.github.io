@@ -15,6 +15,11 @@ import os
 import sys
 import unittest
 
+try:
+     BRUCE_WORKDIR=os.environ['BRUCE_WORKDIR']
+except KeyError:
+     BRUCE_WORKDIR='.'
+
 from esys.escript import *
 from esys.bruce import *
 
@@ -82,7 +87,7 @@ class bruceTestCase(unittest.TestCase):
     assert (rectangle.getDim()==2)
 
   def testSaveVTK(self):
-    filename = os.environ['BRUCE_WORKDIR']+"/testVTK.xml"
+    filename = BRUCE_WORKDIR+"/testVTK.xml"
     fs1 = ContinuousFunction(self.b)
     fs2 = Function(self.b)
     testData1 = Scalar(1.0, fs1)
