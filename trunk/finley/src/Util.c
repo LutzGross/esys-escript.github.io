@@ -79,9 +79,10 @@ void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,do
    dim_t i,s;
    for (s=0;s<len;s++) {
        for(i=0;i<numData;i++) {
-          #pragma omp atomic
-          if( index[s]<upperBound )
+          if( index[s]<upperBound ) {
+            #pragma omp atomic
             out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
+	  }
        }
    }
 }
