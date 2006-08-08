@@ -456,6 +456,7 @@ class DataTagged : public DataAbstract {
      \param ev - Output - symmetric matrix
 
   */
+  ESCRIPT_DLL_API
   virtual void
   symmetric(DataAbstract* ev);
 
@@ -466,6 +467,7 @@ class DataTagged : public DataAbstract {
      \param ev - Output - nonsymmetric matrix
 
   */
+  ESCRIPT_DLL_API
   virtual void
   nonsymmetric(DataAbstract* ev);
 
@@ -476,8 +478,20 @@ class DataTagged : public DataAbstract {
      \param ev - Output - the trace of a matrix
 
   */
+  ESCRIPT_DLL_API
   virtual void
-  matrixtrace(DataAbstract* ev, int axis_offset);
+  trace(DataAbstract* ev, int axis_offset);
+
+  /**
+     \brief
+     swaps components axis_offset and axis_offset+1
+
+     \param ev - Output - swapped components
+
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  swap(DataAbstract* ev, int axis_offset);
 
   /**
      \brief
@@ -486,6 +500,7 @@ class DataTagged : public DataAbstract {
      \param ev - Output - the transpose of a matrix
 
   */
+  ESCRIPT_DLL_API
   virtual void
   transpose(DataAbstract* ev, int axis_offset);
 

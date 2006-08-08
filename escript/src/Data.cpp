@@ -1316,13 +1316,33 @@ Data::minval() const
 }
 
 Data
-Data::trace() const
+Data::swap(int axis_offset) const
 {
-#if defined DOPROF
-  profData->reduction2++;
-#endif
-  Trace trace_func;
-  return dp_algorithm(trace_func,0);
+     #if defined DOPROF
+     profData->unary++;
+     #endif
+     DataArrayView::ShapeType s=getDataPointShape();
+     DataArrayView::ShapeType ev_shape;
+     // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
+     // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
+     int rank=getDataPointRank();
+     if (axis_offset<0 || axis_offset+1>rank) {
+        throw DataException("Error - Data::transpose must have 0 <= axis_offset <= rank-1=" + rank-1);
+     }
+     for (int i=0; i<rank; i++) {
+       if (i == axis_offset) {
+          ev_shape.push_back(s[axis_offset+1]); 
+       } else if (i == axis_offset+1) {
+          ev_shape.push_back(s[axis_offset]); 
+       } else {
+          ev_shape.push_back(s[i]); 
+       }
+     }
+     Data ev(0.,ev_shape,getFunctionSpace());
+     ev.typeMatchRight(*this);
+     m_data->swap(ev.m_data.get(), axis_offset);
+     return ev;
+
 }
 
 Data
@@ -1388,7 +1408,7 @@ Data::nonsymmetric() const
 }
 
 Data
-Data::matrixtrace(int axis_offset) const
+Data::trace(int axis_offset) const
 {
      #if defined DOPROF
         profData->unary++;
@@ -1398,7 +1418,7 @@ Data::matrixtrace(int axis_offset) const
         DataArrayView::ShapeType ev_shape;
         Data ev(0.,ev_shape,getFunctionSpace());
         ev.typeMatchRight(*this);
-        m_data->matrixtrace(ev.m_data.get(), axis_offset);
+        m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
      }
      if (getDataPointRank()==3) {
@@ -1413,7 +1433,7 @@ Data::matrixtrace(int axis_offset) const
         }
         Data ev(0.,ev_shape,getFunctionSpace());
         ev.typeMatchRight(*this);
-        m_data->matrixtrace(ev.m_data.get(), axis_offset);
+        m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
      }
      if (getDataPointRank()==4) {
@@ -1432,20 +1452,20 @@ Data::matrixtrace(int axis_offset) const
 	}
         Data ev(0.,ev_shape,getFunctionSpace());
         ev.typeMatchRight(*this);
-	m_data->matrixtrace(ev.m_data.get(), axis_offset);
+	m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
      }
      else {
-        throw DataException("Error - Data::matrixtrace can only be calculated for rank 2, 3 or 4 object.");
+        throw DataException("Error - Data::trace can only be calculated for rank 2, 3 or 4 object.");
      }
 }
 
 Data
 Data::transpose(int axis_offset) const
 {
-#if defined DOPROF
-     profData->reduction2++;
-#endif
+     #if defined DOPROF
+     profData->unary++;
+     #endif
      DataArrayView::ShapeType s=getDataPointShape();
      DataArrayView::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]

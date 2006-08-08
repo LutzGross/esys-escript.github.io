@@ -214,15 +214,27 @@ DataConstant::nonsymmetric(DataAbstract* ev)
 }
 
 void
-DataConstant::matrixtrace(DataAbstract* ev, int axis_offset)
+DataConstant::trace(DataAbstract* ev, int axis_offset)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::matrixtrace: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::trace: casting to DataConstant failed (propably a programming error).");
   }
   DataArrayView& thisView=getPointDataView();
   DataArrayView& evView=ev->getPointDataView();
-  DataArrayView::matrixtrace(thisView,0,evView,0,axis_offset);
+  DataArrayView::trace(thisView,0,evView,0,axis_offset);
+}
+
+void
+DataConstant::swap(DataAbstract* ev, int axis_offset)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::swap: casting to DataConstant failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  DataArrayView::swap(thisView,0,evView,0,axis_offset);
 }
 
 void

@@ -479,11 +479,11 @@ DataTagged::nonsymmetric(DataAbstract* ev)
   DataArrayView::nonsymmetric(getDefaultValue(),0,temp_ev->getDefaultValue(),0);
 }
 void
-DataTagged::matrixtrace(DataAbstract* ev, int axis_offset)
+DataTagged::trace(DataAbstract* ev, int axis_offset)
 {
   DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataTagged::matrixtrace casting to DataTagged failed (probably a programming error).");
+    throw DataException("Error - DataTagged::trace casting to DataTagged failed (probably a programming error).");
   }
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
@@ -492,10 +492,11 @@ DataTagged::matrixtrace(DataAbstract* ev, int axis_offset)
       temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
-      DataArrayView::matrixtrace(thisView,0,evView,0, axis_offset);
+      DataArrayView::trace(thisView,0,evView,0, axis_offset);
   }
-  DataArrayView::matrixtrace(getDefaultValue(),0,temp_ev->getDefaultValue(),0,axis_offset);
+  DataArrayView::trace(getDefaultValue(),0,temp_ev->getDefaultValue(),0,axis_offset);
 }
+
 void
 DataTagged::transpose(DataAbstract* ev, int axis_offset)
 {
@@ -514,6 +515,26 @@ DataTagged::transpose(DataAbstract* ev, int axis_offset)
   }
   DataArrayView::transpose(getDefaultValue(),0,temp_ev->getDefaultValue(),0,axis_offset);
 }
+
+void
+DataTagged::swap(DataAbstract* ev, int axis_offset)
+{
+  DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataTagged::swap casting to DataTagged failed (probably a programming error).");
+  }
+  const DataTagged::DataMapType& thisLookup=getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+      temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
+      DataArrayView thisView=getDataPointByTag(i->first);
+      DataArrayView evView=temp_ev->getDataPointByTag(i->first);
+      DataArrayView::swap(thisView,0,evView,0, axis_offset);
+  }
+  DataArrayView::swap(getDefaultValue(),0,temp_ev->getDefaultValue(),0,axis_offset);
+}
+
 void
 DataTagged::eigenvalues(DataAbstract* ev)
 {

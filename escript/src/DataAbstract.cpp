@@ -140,11 +140,16 @@ DataAbstract::nonsymmetric(DataAbstract* ev)
 }
 
 void
-DataAbstract::matrixtrace(DataAbstract* ev, int axis_offset) 
+DataAbstract::trace(DataAbstract* ev, int axis_offset) 
 {
-    throw DataException("Error - DataAbstract::matrixtrace is not supported.");
+    throw DataException("Error - DataAbstract::trace is not supported.");
 }
 
+void
+DataAbstract::swap(DataAbstract* ev, int axis_offset) 
+{
+    throw DataException("Error - DataAbstract::component swap is not supported.");
+}
 void
 DataAbstract::transpose(DataAbstract* ev, int axis_offset) 
 {
