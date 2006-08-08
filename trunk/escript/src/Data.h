@@ -835,7 +835,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   Data
-  matrixtrace(int axis_offset) const;
+  trace(int axis_offset) const;
 
   /**
      \brief
@@ -871,12 +871,12 @@ class Data {
 
   /**
      \brief
-     Calculate the trace of each data point of this Data object.
+     swaps the components axis_offset and axis_offset+1
      *
   */
   ESCRIPT_DLL_API
   Data
-  trace() const;
+  swap(int axis_offset) const;
 
   /**
      \brief

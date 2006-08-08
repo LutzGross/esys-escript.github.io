@@ -2963,7 +2963,7 @@ def trace(arg,axis_offset=0):
       s=list(arg.getShape())        
       if not s[axis_offset] == s[axis_offset+1]:
         raise ValueError,"dimensions of component %s and %s must match."%(axis_offset.axis_offset+1)
-      return arg._matrixtrace(axis_offset)
+      return arg._trace(axis_offset)
    elif isinstance(arg,float):
       raise TypeError,"illegal argument type float."
    elif isinstance(arg,int):

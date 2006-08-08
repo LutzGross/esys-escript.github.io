@@ -503,25 +503,26 @@ DataExpanded::nonsymmetric(DataAbstract* ev)
   }
 }
 void
-DataExpanded::matrixtrace(DataAbstract* ev, int axis_offset)
+DataExpanded::trace(DataAbstract* ev, int axis_offset)
 {
   int sampleNo,dataPointNo;
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::matrixtrace: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::trace: casting to DataExpanded failed (propably a programming error).");
   }
   DataArrayView& thisView=getPointDataView();
   DataArrayView& evView=ev->getPointDataView();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-         DataArrayView::matrixtrace(thisView,getPointOffset(sampleNo,dataPointNo),
+         DataArrayView::trace(thisView,getPointOffset(sampleNo,dataPointNo),
                                     evView,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);
     }
   }
 }
+
 void
 DataExpanded::transpose(DataAbstract* ev, int axis_offset)
 {
@@ -538,6 +539,27 @@ DataExpanded::transpose(DataAbstract* ev, int axis_offset)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
          DataArrayView::transpose(thisView,getPointOffset(sampleNo,dataPointNo),
+                                    evView,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);
+    }
+  }
+}
+
+void
+DataExpanded::swap(DataAbstract* ev, int axis_offset)
+{
+  int sampleNo,dataPointNo;
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataExpanded::swap: casting to DataExpanded failed (propably a programming error).");
+  }
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView& evView=ev->getPointDataView();
+  #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+         DataArrayView::swap(thisView,getPointOffset(sampleNo,dataPointNo),
                                     evView,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);
     }
   }
