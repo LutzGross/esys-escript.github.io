@@ -28,7 +28,7 @@ def Scene(Component):
    """
    a scene for visualization
    """
-   def __init__(self,x_size,y_size)
+   def __init__(self,x_size,y_size):
       super(Scene, self).__init__()
       self.x_size=x_size
       self.y_size=y_size
@@ -106,7 +106,7 @@ class VTKScene(Scene):
            comp._render=renderArrow
         self.__comps.append(comp)
  
-   def render(self,filename=None,wait=False):
+    def render(self,filename=None,wait=False):
       """
       renders the scene. If filename is present the file is rendered in the file filename
       """
