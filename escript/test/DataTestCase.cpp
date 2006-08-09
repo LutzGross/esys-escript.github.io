@@ -990,14 +990,6 @@ void DataTestCase::testOperations() {
   assert(std::abs(resultCon.getPointDataView()() - 5) <= REL_TOL*5);
   assert(std::abs(resultTag.getPointDataView()() - 5) <= REL_TOL*5);
 
-  cout << "\tTest Data::trace." << endl;
-  resultEx.copy(baseEx.trace());
-  resultCon.copy(baseCon.trace());
-  resultTag.copy(baseTag.trace());
-  assert(std::abs(resultEx.getPointDataView()() - 15) <= REL_TOL*15);
-  assert(std::abs(resultCon.getPointDataView()() - 15) <= REL_TOL*15);
-  assert(std::abs(resultTag.getPointDataView()() - 15) <= REL_TOL*15);
-
 }
 
 void DataTestCase::testRefValue() {
