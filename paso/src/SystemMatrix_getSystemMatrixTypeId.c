@@ -48,7 +48,7 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, 
        break;
 
      case PASO_UMFPACK:
-       out=MATRIX_FORMAT_BLK1;
+       out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
       break;
 
      default:

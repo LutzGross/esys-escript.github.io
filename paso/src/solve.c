@@ -78,7 +78,7 @@ void Paso_solve(Paso_SystemMatrix* A,
 
         #ifdef UMFPACK
         case PASO_UMFPACK:
-          Paso_UMFPACK(A,out,in,options);
+          Paso_UMFPACK(A,out,in,options,&pp);
           A->solver_package=PASO_UMFPACK;
           break;
         #endif
@@ -115,11 +115,11 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
           break;
         #endif
 
-/*
+        #ifdef UMFPACK
         case PASO_UMFPACK:
           Paso_UMFPACK_free(in); 
           break;
-*/
+        #endif
    }
 }
 /*

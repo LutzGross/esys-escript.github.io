@@ -23,24 +23,29 @@ if sys.path.count('scons')==0: sys.path.append('scons')
 import scons_extensions
 
 # check if UMFPACK is installed on the system:
-if os.path.isdir('/opt/UMFPACK/Include') and os.path.isdir('/opt/UMFPACK/Lib') and os.path.isdir('/opt/AMD/Lib'):
+if os.path.isdir('/opt/UMFPACK/Include') and os.path.isdir('/opt/UMFPACK/Lib'):
    umf_path_default='/opt/UMFPACK/Include'
    umf_lib_path_default='/opt/UMFPACK/Lib'
-   amd_lib_path_default='/opt/AMD/Lib'
-   umf_libs_default=['amd', 'umfpack']
+   umf_libs_default=['umfpack']
 else:
    umf_path_default=None
    umf_lib_path_default=None
-   amd_lib_path_default=None
    umf_libs_default=None
-if os.path.isdir('/opt/GotoBLAS'):
-   blas_path_default='/opt/GotoBLAS'
-   blas_lib_path_default='/opt/GotoBLAS'
-   blas_libs_default=['goto',]
+
+if os.path.isdir('/opt/AMD/Include') and os.path.isdir('/opt/AMD/Lib'):
+   amd_path_default='/opt/AMD/Include'
+   amd_lib_path_default='/opt/AMD/Lib'
+   amd_libs_default=['amd']
 else:
-   blas_path_default=None
-   blas_lib_path_default=None
-   blas_libs_default=None
+   amd_path_default=None
+   amd_lib_path_default=None
+   amd_libs_default=None
+
+if os.path.isdir('/opt/UFconfig'):
+   ufc_path_default='/opt/UFconfig'
+else:
+   ufc_path_default=None
+
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
 # if the options_file or ARGUMENTS do not exist then the ones listed as default here are used
@@ -98,14 +103,18 @@ opts.AddOptions(
   ('scsl_libs', 'SCSL libraries to link with', None),
   ('scsl_libs_MPI', 'SCSL libraries to link with for MPI build', None),
 # UMFPACK 
-  PathOption('umf_path', 'Path to UMF includes', umf_path_default), 
-  PathOption('umf_lib_path', 'Path to UMF libs', umf_lib_path_default), 
-  PathOption('amd_lib_path', 'Path to UMF libs', amd_lib_path_default), 
-  ('umf_libs', 'UMF libraries to link with', umf_libs_default),
+  PathOption('ufc_path', 'Path to UFconfig includes', ufc_path_default), 
+  PathOption('umf_path', 'Path to UMFPACK includes', umf_path_default), 
+  PathOption('umf_lib_path', 'Path to UMFPACK libs', umf_lib_path_default), 
+  ('umf_libs', 'UMFPACK libraries to link with', umf_libs_default),
+# AMD (used by UMFPACK)
+  PathOption('amd_path', 'Path to AMD includes', amd_path_default), 
+  PathOption('amd_lib_path', 'Path to AMD libs', amd_lib_path_default), 
+  ('amd_libs', 'AMD libraries to link with', amd_libs_default),
 # BLAS
-  PathOption('blas_path', 'Path to BLAS includes', blas_path_default), 
-  PathOption('blas_lib_path', 'Path to BLAS libs', blas_lib_path_default ), 
-  ('blas_libs', 'BLAS libraries to link with', blas_libs_default ),
+  PathOption('blas_path', 'Path to BLAS includes', None), 
+  PathOption('blas_lib_path', 'Path to BLAS libs', None), 
+  ('blas_libs', 'BLAS libraries to link with', None),
 # Python
 # locations of include files for python
   PathOption('python_path', 'Path to Python includes', '/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])), 
@@ -294,20 +303,26 @@ try:
 except KeyError:
    pass
 
-try:
-   mkl_libs = env['mkl_libs']
-except KeyError:
+if useMPI:
    mkl_libs = ''
+else:
+   try:
+      mkl_libs = env['mkl_libs']
+   except KeyError:
+      mkl_libs = ''
+
 try:
    includes = env['scsl_path']
    env.Append(CPPPATH = [includes,])
 except KeyError:
    pass
+
 try:
    lib_path = env['scsl_lib_path']
    env.Append(LIBPATH = [lib_path,])
 except KeyError:
    pass
+
 if useMPI:	 
   try:
     scsl_libs = env['scsl_libs_MPI']
@@ -331,27 +346,52 @@ try:
 except KeyError:
    pass
 
+if useMPI:	 
+    umf_libs = ''
+else:
+   try:
+      umf_libs = env['umf_libs']
+   except KeyError:
+      umf_libs = ''
+
+try:
+   includes = env['ufc_path']
+   env.Append(CPPPATH = [includes,])
+except KeyError:
+   pass
+
+try:
+   includes = env['amd_path']
+   env.Append(CPPPATH = [includes,])
+except KeyError:
+   pass
+
 try:
    lib_path = env['amd_lib_path']
    env.Append(LIBPATH = [lib_path,])
 except KeyError:
    pass
 
-try:
-   umf_libs = env['umf_libs']
-except KeyError:
-   umf_libs = ''
+if useMPI:	 
+    amd_libs = ''
+else:
+   try:
+      amd_libs = env['amd_libs']
+   except KeyError:
+      amd_libs = ''
 
 try:
    includes = env['blas_path']
    env.Append(CPPPATH = [includes,])
 except KeyError:
    pass
+
 try:
    lib_path = env['blas_lib_path']
    env.Append(LIBPATH = [lib_path,])
 except KeyError:
    pass
+
 try:
    blas_libs = env['blas_libs']
 except KeyError:
@@ -473,7 +513,7 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs",
+Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs",
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs", 
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])
