@@ -1182,22 +1182,24 @@ class DataArrayView {
 
   /**
      \brief
-     swaps the components axis_offset and axis_offset+1
+     swaps the components axis0 and axis1.
 
      \param in - Input - matrix 
      \param inOffset - Input - offset into in
      \param ev - Output - The nonsymmetric matrix
      \param inOffset - Input - offset into ev
+     \param axis0 - axis index
+     \param axis1 - axis index
   */
   ESCRIPT_DLL_API
   static
   inline
   void
-  swap(DataArrayView& in,
-       ValueType::size_type inOffset,
-       DataArrayView& ev,
-       ValueType::size_type evOffset,
-       int axis_offset)
+  swapaxes(DataArrayView& in,
+           ValueType::size_type inOffset,
+           DataArrayView& ev,
+           ValueType::size_type evOffset,
+           int axis0, int axis1)
   {
    if (in.getRank() == 4) {
      int s0=ev.getShape()[0];
@@ -1205,88 +1207,126 @@ class DataArrayView {
      int s2=ev.getShape()[2];
      int s3=ev.getShape()[3];
      int i0, i1, i2, i3;
-     if (axis_offset==0) {
-       for (i0=0; i0<s0; i0++) {
-         for (i1=0; i1<s1; i1++) {
-           for (i2=0; i2<s2; i2++) {
-             for (i3=0; i3<s3; i3++) {
-               (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i1,i0,i2,i3)];
-             }
-           }
-         }
-       }
+     if (axis0==0) {
+        if (axis1==1) {
+            for (i0=0; i0<s0; i0++) {
+              for (i1=0; i1<s1; i1++) {
+                for (i2=0; i2<s2; i2++) {
+                  for (i3=0; i3<s3; i3++) {
+                    (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i1,i0,i2,i3)];
+                  }
+                }
+              }
+            }
+        } else if (axis1==2) {
+            for (i0=0; i0<s0; i0++) {
+              for (i1=0; i1<s1; i1++) {
+                for (i2=0; i2<s2; i2++) {
+                  for (i3=0; i3<s3; i3++) {
+                    (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i2,i1,i0,i3)];
+                  }
+                }
+              }
+            }
+
+        } else if (axis1==3) {
+            for (i0=0; i0<s0; i0++) {
+              for (i1=0; i1<s1; i1++) {
+                for (i2=0; i2<s2; i2++) {
+                  for (i3=0; i3<s3; i3++) {
+                    (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i3,i1,i2,i0)];
+                  }
+                }
+              }
+            }
+        }
+     } else if (axis0==1) {
+        if (axis1==2) {
+            for (i0=0; i0<s0; i0++) {
+              for (i1=0; i1<s1; i1++) {
+                for (i2=0; i2<s2; i2++) {
+                  for (i3=0; i3<s3; i3++) {
+                    (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i0,i2,i1,i3)];
+                  }
+                }
+              }
+            }
+        } else if (axis1==3) {
+            for (i0=0; i0<s0; i0++) {
+              for (i1=0; i1<s1; i1++) {
+                for (i2=0; i2<s2; i2++) {
+                  for (i3=0; i3<s3; i3++) {
+                    (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i0,i3,i2,i1)];
+                  }
+                }
+              }
+            }
+        }
+     } else if (axis0==2) {
+        if (axis1==3) {
+            for (i0=0; i0<s0; i0++) {
+              for (i1=0; i1<s1; i1++) {
+                for (i2=0; i2<s2; i2++) {
+                  for (i3=0; i3<s3; i3++) {
+                    (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i0,i1,i3,i2)];
+                  }
+                }
+              }
+            }
+        }
      }
-     else if (axis_offset==1) {
-       for (i0=0; i0<s0; i0++) {
-         for (i1=0; i1<s1; i1++) {
-           for (i2=0; i2<s2; i2++) {
-             for (i3=0; i3<s3; i3++) {
-               (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i0,i2,i1,i3)];
-             }
-           }
-         }
-       }
-     }
-     else {
-       for (i0=0; i0<s0; i0++) {
-         for (i1=0; i1<s1; i1++) {
-           for (i2=0; i2<s2; i2++) {
-             for (i3=0; i3<s3; i3++) {
-               (*(ev.m_data))[evOffset+ev.index(i0,i1,i2,i3)] = (*(in.m_data))[inOffset+in.index(i0,i1,i3,i2)];
-             }
-           }
-         }
-       }
-     }
-   }
-   else if (in.getRank() == 3) {
+
+   } else if ( in.getRank() == 3) {
      int s0=ev.getShape()[0];
      int s1=ev.getShape()[1];
      int s2=ev.getShape()[2];
      int i0, i1, i2;
-     if (axis_offset==0) {
-       for (i0=0; i0<s0; i0++) {
-         for (i1=0; i1<s1; i1++) {
-           for (i2=0; i2<s2; i2++) {
-             (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i1,i0,i2)];
+     if (axis0==0) {
+        if (axis1==1) {
+           for (i0=0; i0<s0; i0++) {
+             for (i1=0; i1<s1; i1++) {
+               for (i2=0; i2<s2; i2++) {
+                 (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i1,i0,i2)];
+               }
+             }
            }
-         }
-       }
-     }
-     else {
-       for (i0=0; i0<s0; i0++) {
-         for (i1=0; i1<s1; i1++) {
-           for (i2=0; i2<s2; i2++) {
-             (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i0,i2,i1)];
+        } else if (axis1==2) {
+           for (i0=0; i0<s0; i0++) {
+             for (i1=0; i1<s1; i1++) {
+               for (i2=0; i2<s2; i2++) {
+                 (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i2,i1,i0)];
+               }
+             }
            }
-         }
        }
+     } else if (axis0==1) {
+        if (axis1==2) {
+           for (i0=0; i0<s0; i0++) {
+             for (i1=0; i1<s1; i1++) {
+               for (i2=0; i2<s2; i2++) {
+                 (*(ev.m_data))[evOffset+ev.index(i0,i1,i2)] = (*(in.m_data))[inOffset+in.index(i0,i2,i1)];
+               }
+             }
+           }
+        }
      }
-   }
-   else if (in.getRank() == 2) {
+   } else if ( in.getRank() == 2) {
      int s0=ev.getShape()[0];
      int s1=ev.getShape()[1];
-     int i0, i1;
-     for (i0=0; i0<s0; i0++) {
-         for (i1=0; i1<s1; i1++) {
-           (*(ev.m_data))[evOffset+ev.index(i0,i1)] = (*(in.m_data))[inOffset+in.index(i1,i0)];
-         }
-      }
-   }
-   else if (in.getRank() == 1) {
-     int s0=ev.getShape()[0];
-     int i0;
-     for (i0=0; i0<s0; i0++) {
-       (*(ev.m_data))[evOffset+ev.index(i0)] = (*(in.m_data))[inOffset+in.index(i0)];
-     }
-   }
-   else if (in.getRank() == 0) {
-     (*(ev.m_data))[evOffset+ev.index()] = (*(in.m_data))[inOffset+in.index()];
-   }
-   else {
-      throw DataException("Error - DataArrayView::transpose can only be calculated for rank 0, 1, 2, 3 or 4 objects.");
-   }
+     int i0, i1, i2;
+     if (axis0==0) {
+        if (axis1==1) {
+           for (i0=0; i0<s0; i0++) {
+             for (i1=0; i1<s1; i1++) {
+                 (*(ev.m_data))[evOffset+ev.index(i0,i1)] = (*(in.m_data))[inOffset+in.index(i1,i0)];
+             }
+           }
+        }
+    }
+  } else {
+      throw DataException("Error - DataArrayView::swapaxes can only be calculated for rank 2, 3 or 4 objects.");
   }
+ }
 
   /**
      \brief

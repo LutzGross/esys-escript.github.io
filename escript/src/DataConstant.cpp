@@ -226,15 +226,15 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
 }
 
 void
-DataConstant::swap(DataAbstract* ev, int axis_offset)
+DataConstant::swapaxes(DataAbstract* ev, int axis0, int axis1)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::swap: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (propably a programming error).");
   }
   DataArrayView& thisView=getPointDataView();
   DataArrayView& evView=ev->getPointDataView();
-  DataArrayView::swap(thisView,0,evView,0,axis_offset);
+  DataArrayView::swapaxes(thisView,0,evView,0,axis0,axis1);
 }
 
 void

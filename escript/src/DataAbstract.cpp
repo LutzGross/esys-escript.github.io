@@ -146,9 +146,9 @@ DataAbstract::trace(DataAbstract* ev, int axis_offset)
 }
 
 void
-DataAbstract::swap(DataAbstract* ev, int axis_offset) 
+DataAbstract::swapaxes(DataAbstract* ev, int axis0, int axis1)
 {
-    throw DataException("Error - DataAbstract::component swap is not supported.");
+    throw DataException("Error - DataAbstract::component swapaxes is not supported.");
 }
 void
 DataAbstract::transpose(DataAbstract* ev, int axis_offset) 

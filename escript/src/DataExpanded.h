@@ -345,14 +345,14 @@ class DataExpanded : public DataAbstract {
 
   /**
      \brief
-     swaps components axis_offset and axis_offset+1
+     swaps components axis0 and axis1
 
      \param ev - Output - swapped components
 
   */
   ESCRIPT_DLL_API
   virtual void
-  swap(DataAbstract* ev, int axis_offset);
+  swapaxes(DataAbstract* ev, int axis0, int axis1);
 
 
   /**

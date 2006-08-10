@@ -1316,8 +1316,9 @@ Data::minval() const
 }
 
 Data
-Data::swap(int axis_offset) const
+Data::swapaxes(const int axis0, const int axis1) const
 {
+     int axis0_tmp,axis1_tmp;
      #if defined DOPROF
      profData->unary++;
      #endif
@@ -1326,21 +1327,37 @@ Data::swap(int axis_offset) const
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
      // which goes thru all shape vector elements starting with axis_offset (at index=rank wrap around to 0)
      int rank=getDataPointRank();
-     if (axis_offset<0 || axis_offset+1>rank) {
-        throw DataException("Error - Data::transpose must have 0 <= axis_offset <= rank-1=" + rank-1);
+     if (rank<2) {
+        throw DataException("Error - Data::swapaxes argument must have at least rank 2.");
+     }
+     if (axis0<0 || axis0>rank-1) {
+        throw DataException("Error - Data::swapaxes: axis0 must be between 0 and rank-1=" + rank-1);
+     }
+     if (axis1<0 || axis1>rank-1) {
+         throw DataException("Error - Data::swapaxes: axis1 must be between 0 and rank-1=" + rank-1);
+     }
+     if (axis0 == axis1) {
+         throw DataException("Error - Data::swapaxes: axis indices must be different.");
+     }
+     if (axis0 > axis1) {
+         axis0_tmp=axis1;
+         axis1_tmp=axis0;
+     } else {
+         axis0_tmp=axis0;
+         axis1_tmp=axis1;
      }
      for (int i=0; i<rank; i++) {
-       if (i == axis_offset) {
-          ev_shape.push_back(s[axis_offset+1]); 
-       } else if (i == axis_offset+1) {
-          ev_shape.push_back(s[axis_offset]); 
+       if (i == axis0_tmp) {
+          ev_shape.push_back(s[axis1_tmp]); 
+       } else if (i == axis1_tmp) {
+          ev_shape.push_back(s[axis0_tmp]); 
        } else {
           ev_shape.push_back(s[i]); 
        }
      }
      Data ev(0.,ev_shape,getFunctionSpace());
      ev.typeMatchRight(*this);
-     m_data->swap(ev.m_data.get(), axis_offset);
+     m_data->swapaxes(ev.m_data.get(), axis0_tmp, axis1_tmp);
      return ev;
 
 }

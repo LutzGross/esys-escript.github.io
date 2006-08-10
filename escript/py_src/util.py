@@ -440,7 +440,7 @@ def matchShape(arg0,arg1):
     @type arg0: L{numarray.NumArray},L{escript.Data},C{float}, C{int}, L{Symbol}
     @param arg1: a given object
     @type arg1: L{numarray.NumArray},L{escript.Data},C{float}, C{int}, L{Symbol}
-    @return: arg0 and arg1 where copies are returned when the shape has to be changed.
+    @return: C{arg0} and C{arg1} where copies are returned when the shape has to be changed.
     @rtype: C{tuple}
     """
     sh=commonShape(arg0,arg1)
@@ -2930,8 +2930,8 @@ def trace(arg,axis_offset=0):
 
    @param arg: argument
    @type arg: L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
-   @param axis_offset: axis_offset to components to sum over. C{axis_offset} must be non-negative and less than the rank of arg +1. The dimensions on component
-                  axis_offset and axis_offset+1 must be equal.
+   @param axis_offset: C{axis_offset} to components to sum over. C{axis_offset} must be non-negative and less than the rank of arg +1. The dimensions on component
+                  C{axis_offset} and axis_offset+1 must be equal.
    @type axis_offset: C{int}
    @return: trace of arg. The rank of the returned object is minus 2 of the rank of arg.
    @rtype: L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
@@ -2982,8 +2982,8 @@ class Trace_Symbol(DependendSymbol):
       initialization of trace L{Symbol} with argument arg
       @param arg: argument of function
       @type arg: L{Symbol}.
-      @param axis_offset: axis_offset to components to sum over. C{axis_offset} must be non-negative and less than the rank of arg +1. The dimensions on component
-                  axis_offset and axis_offset+1 must be equal.
+      @param axis_offset: C{axis_offset} to components to sum over. C{axis_offset} must be non-negative and less than the rank of arg +1. The dimensions on component
+                  C{axis_offset} and axis_offset+1 must be equal.
       @type axis_offset: C{int}
       """
       if arg.getRank()<2: 
@@ -3049,12 +3049,12 @@ class Trace_Symbol(DependendSymbol):
 
 def transpose(arg,axis_offset=None):
    """
-   returns the transpose of arg by swaping the first axis_offset and the last rank-axis_offset components. 
+   returns the transpose of arg by swaping the first C{axis_offset} and the last rank-axis_offset components. 
 
    @param arg: argument
    @type arg: L{escript.Data}, L{Symbol}, L{numarray.NumArray}, C{float}, C{int}
-   @param axis_offset: the first axis_offset components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
-                       if axis_offset is not present C{int(r/2)} where r is the rank of arg is used.
+   @param axis_offset: the first C{axis_offset} components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
+                       if C{axis_offset} is not present C{int(r/2)} where r is the rank of arg is used.
    @type axis_offset: C{int}
    @return: transpose of arg
    @rtype: L{escript.Data}, L{Symbol}, L{numarray.NumArray},C{float}, C{int} depending on the type of arg.
@@ -3092,13 +3092,13 @@ class Transpose_Symbol(DependendSymbol):
 
       @param arg: argument of function
       @type arg: L{Symbol}.
-      @param axis_offset: the first axis_offset components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
-                       if axis_offset is not present C{int(r/2)} where r is the rank of arg is used.
+      @param axis_offset: the first C{axis_offset} components are swapped with rest. If C{axis_offset} must be non-negative and less or equal the rank of arg. 
+                       if C{axis_offset} is not present C{int(r/2)} where r is the rank of arg is used.
       @type axis_offset: C{int}
       """
       if axis_offset==None: axis_offset=int(arg.getRank()/2)
       if axis_offset<0 or axis_offset>arg.getRank():
-        raise ValueError,"axis_offset must be between 0 and %s"%r
+        raise ValueError,"axis_offset must be between 0 and %s"%arg.getRank()
       s=arg.getShape()
       super(Transpose_Symbol,self).__init__(args=[arg,axis_offset],shape=s[axis_offset:]+s[:axis_offset],dim=arg.getDim())
 
@@ -3153,6 +3153,123 @@ class Transpose_Symbol(DependendSymbol):
          return identity(self.getShape())
       else:
          return transpose(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
+
+def swap_axes(arg,axis0=0,axis1=1):
+   """
+   returns the swap of arg by swaping the components axis0 and axis1
+
+   @param arg: argument
+   @type arg: L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
+   @param axis0: axis. C{axis0} must be non-negative and less than the rank of arg. 
+   @type axis0: C{int}
+   @param axis1: axis. C{axis1} must be non-negative and less than the rank of arg. 
+   @type axis1: C{int}
+   @return: C{arg} with swaped components
+   @rtype: L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   """
+   if axis0 > axis1:
+      axis0,axis1=axis1,axis0
+   if isinstance(arg,numarray.NumArray):
+      return numarray.swapaxes(arg,axis0,axis1)
+   elif isinstance(arg,escript.Data):
+      return arg._swap_axes(axis0,axis1)
+   elif isinstance(arg,float):
+      raise TyepError,"float argument is not supported."
+   elif isinstance(arg,int):
+      raise TyepError,"int argument is not supported."
+   elif isinstance(arg,Symbol):
+      return SwapAxes_Symbol(arg,axis0,axis1)
+   else:
+      raise TypeError,"Unknown argument type."
+
+class SwapAxes_Symbol(DependendSymbol):
+   """
+   L{Symbol} representing the result of the swap function
+   """
+   def __init__(self,arg,axis0=0,axis1=1):
+      """
+      initialization of swap L{Symbol} with argument arg
+
+      @param arg: argument
+      @type arg: L{Symbol}.
+      @param axis0: axis. C{axis0} must be non-negative and less than the rank of arg. 
+      @type axis0: C{int}
+      @param axis1: axis. C{axis1} must be non-negative and less than the rank of arg. 
+      @type axis1: C{int}
+      """
+      if arg.getRank()<2:
+         raise ValueError,"argument must have at least rank 2."
+      if axis0<0 or axis0>arg.getRank()-1:
+         raise ValueError,"axis0 must be between 0 and %s"%arg.getRank()-1
+      if axis1<0 or axis1>arg.getRank()-1:
+         raise ValueError,"axis1 must be between 0 and %s"%arg.getRank()-1
+      if axis0 == axis1:
+         raise ValueError,"axis indices must be different."
+      if axis0 > axis1:
+         axis0,axis1=axis1,axis0
+      s=arg.getShape()
+      s_out=[]
+      for i in range(len(s)):
+         if i == axis0:
+            s_out.append(s[axis1])
+         elif i == axis1:
+            s_out.append(s[axis0])
+         else:
+            s_out.append(s[i])
+      super(SwapAxes_Symbol,self).__init__(args=[arg,axis0,axis1],shape=tuple(s_out),dim=arg.getDim())
+
+   def getMyCode(self,argstrs,format="escript"):
+      """
+      returns a program code that can be used to evaluate the symbol.
+
+      @param argstrs: gives for each argument a string representing the argument for the evaluation.
+      @type argstrs: C{str} or a C{list} of length 1 of C{str}.
+      @param format: specifies the format to be used. At the moment only "escript" ,"text" and "str" are supported.
+      @type format: C{str}
+      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.
+      @rtype: C{str}
+      @raise NotImplementedError: if the requested format is not available
+      """
+      if format=="escript" or format=="str"  or format=="text":
+         return "swap(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
+      else:
+         raise NotImplementedError,"SwapAxes_Symbol does not provide program code for format %s."%format
+
+   def substitute(self,argvals):
+      """
+      assigns new values to symbols in the definition of the symbol.
+      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.
+
+      @param argvals: new values assigned to symbols
+      @type argvals: C{dict} with keywords of type L{Symbol}.
+      @return: result of the substitution process. Operations are executed as much as possible.
+      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution
+      @raise TypeError: if a value for a L{Symbol} cannot be substituted.
+      """
+      if argvals.has_key(self):
+         arg=argvals[self]
+         if self.isAppropriateValue(arg):
+            return arg
+         else:
+            raise TypeError,"%s: new value is not appropriate."%str(self)
+      else:
+         arg=self.getSubstitutedArguments(argvals)
+         return swap_axes(arg[0],axis0=arg[1],axis1=arg[2])
+
+   def diff(self,arg):
+      """
+      differential of this object
+
+      @param arg: the derivative is calculated with respect to arg
+      @type arg: L{escript.Symbol}
+      @return: derivative with respect to C{arg}
+      @rtype: typically L{Symbol} but other types such as C{float}, L{escript.Data}, L{numarray.NumArray}  are possible.
+      """
+      if arg==self:
+         return identity(self.getShape())
+      else:
+         return swap_axes(self.getDifferentiatedArguments(arg)[0],axis0=self.getArgument()[1],axis1=self.getArgument()[2])
+
 def symmetric(arg):
     """
     returns the symmetric part of the square matrix arg. This is (arg+transpose(arg))/2

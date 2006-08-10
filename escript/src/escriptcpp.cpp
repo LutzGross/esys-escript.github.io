@@ -177,7 +177,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("_symmetric",&escript::Data::symmetric)
     .def("_nonsymmetric",&escript::Data::nonsymmetric)
     .def("_trace",&escript::Data::trace)
-    .def("_swap",&escript::Data::swap)
+    .def("_swap_axes",&escript::Data::swapaxes)
     .def("_eigenvalues",&escript::Data::eigenvalues)
     .def("_eigenvalues_and_eigenvectors",&escript::Data::eigenvalues_and_eigenvectors,(arg("tol")=1.e-13))
     // functions returning a single real number:
