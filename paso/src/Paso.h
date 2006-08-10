@@ -69,6 +69,8 @@ void Paso_solve_free(Paso_SystemMatrix* in);
 bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info );
 #endif
 
+#undef UMFPACK
+
 #endif /* #ifndef INC_PASO */
 
 /*

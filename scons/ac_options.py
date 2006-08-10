@@ -1,4 +1,3 @@
-
 #          Copyright 2006 by ACcESS MNRF                   
 #                                                          
 #              http://www.access.edu.au                    
