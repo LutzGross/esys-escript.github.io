@@ -60,6 +60,6 @@ cc_flags_debug_MPI  = '-g -O0 -c99 -w1 -fpic -wd161 -DPASO_MPI'
 # c++ flags to use
 cxx_flags_MPI = '-ansi -wd1563 -wd161'
 cxx_flags_debug_MPI = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'
-		
+
 # system specific libraries to link with
 sys_libs = ['guide', 'irc']

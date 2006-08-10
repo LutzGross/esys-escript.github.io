@@ -35,6 +35,11 @@ umfpack_path = ''
 umfpack_lib_path = ''
 umfpack_libs = []
 
+# locations of libs etc used by BLAS
+blas_path = ''
+blas_lib_path = ''
+blas_libs = []
+
 # locations of include files for python
 python_path = Dir('/usr/include')
 python_lib_path = Dir('/usr/lib')

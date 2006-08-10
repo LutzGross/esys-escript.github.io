@@ -76,12 +76,12 @@ void Paso_solve(Paso_SystemMatrix* A,
           break;
         #endif
 
-/*
+        #ifdef UMFPACK
         case PASO_UMFPACK:
           Paso_UMFPACK(A,out,in,options);
           A->solver_package=PASO_UMFPACK;
           break;
-*/
+        #endif
 
         default:
            Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
