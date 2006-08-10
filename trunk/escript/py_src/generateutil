@@ -580,6 +580,103 @@ def mkCode(txt,args=[],intend=""):
     for r in args:
       out=out.replace("%%a%s%%"%c,r)
     return out   
+
+
+#=======================================================================================================
+# swap axes
+#=======================================================================================================
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (4,5), (6,2,2),(3,2,3,4)]:
+    for axis0 in range(len(sh0)):
+       for axis1 in range(axis0+1,len(sh0)):
+          tname="test_%s_%s_rank%s_axes_%s%s"%("swapaxes",case0,len(sh0),axis0,axis1)
+          text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+          text+="   def %s(self):\n"%tname
+          a_0=makeArray(sh0,[-8,8])
+          if case0 in ["taggedData", "expandedData"]:
+               a1_0=makeArray(sh0,[-8,8])
+          else:
+               a1_0=a_0
+          r=numarray.swapaxes(a_0,axis0,axis1)
+          r1=numarray.swapaxes(a1_0,axis0,axis1)
+          text+=mkText(case0,"arg",a_0,a1_0)
+          text+="      res=swap_axes(arg,axis0=%s,axis1=%s)\n"%(axis0,axis1)
+          if case0=="Symbol":
+              text+=mkText("array","s",a_0,a1_0)
+              text+="      sub=res.substitute({arg:s})\n"
+              res="sub"
+              text+=mkText("array","ref",r,r1)
+          else:
+              res="res"
+              text+=mkText(case0,"ref",r,r1)
+          text+=mkTypeAndShapeTest(case0,r.shape,"res")
+          text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+          if case0 == "taggedData":
+               t_prog_with_tags+=text
+          else:              
+               t_prog+=text
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail
+1/0           
+while True:  
+     for sh_s in [ (),(3,), (2,3), (2,4,3),(4,2,3,2)]:
+          if (len(sh0+sh_s)==0 or not case0=="float") and (len(sh1+sh_s)==0 or not case1=="float") \
+               and len(sh0+sh1)<5 and len(sh0+sh_s)<5 and len(sh1+sh_s)<5:
+            arg_shape=oper[2](sh0,sh1,sh_s)
+            if not arg_shape==None:
+              case=getResultCaseForBin(case0,case1)  
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+              if oper[0] in [ "generalTensorProduct", "generalTransposedTensorProduct", "generalTensorTransposedProduct"]:
+                tname="test_%s_%s_rank%s_%s_rank%s_offset%s"%(oper[0],case0,len(sh0+sh_s),case1,len(sh_s+sh1),len(sh_s))
+
+                res_text="      res=%s(arg0,arg1,axis_offset=%s)\n"%(oper[0],len(sh_s))
+              else:
+                tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0+sh_s),case1,len(sh_s+sh1))
+
+                res_text="      res=%s(arg0,arg1)\n"%oper[0]
+
+              a_0=makeArray(arg_shape[0],[-8,8])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(arg_shape[0],[-8,8])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(arg_shape[1],[-8,8])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(arg_shape[1],[-8,8])
+              else:
+                  a1_1=a_1
+              r=oper[1](a_0,a_1,sh_s)
+              r1=oper[1](a1_0,a1_1,sh_s)
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+=res_text
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case,sh0+sh1,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+1/0
+
 #=================================================
 def testMatrixMult(arg0,arg1,sh_s):
      return numarray.matrixmultiply(arg0,arg1)

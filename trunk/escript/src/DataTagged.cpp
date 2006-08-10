@@ -517,11 +517,11 @@ DataTagged::transpose(DataAbstract* ev, int axis_offset)
 }
 
 void
-DataTagged::swap(DataAbstract* ev, int axis_offset)
+DataTagged::swapaxes(DataAbstract* ev, int axis0, int axis1)
 {
   DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataTagged::swap casting to DataTagged failed (probably a programming error).");
+    throw DataException("Error - DataTagged::swapaxes casting to DataTagged failed (probably a programming error).");
   }
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
@@ -530,9 +530,9 @@ DataTagged::swap(DataAbstract* ev, int axis_offset)
       temp_ev->addTaggedValue(i->first,temp_ev->getDefaultValue());
       DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
-      DataArrayView::swap(thisView,0,evView,0, axis_offset);
+      DataArrayView::swapaxes(thisView,0,evView,0,axis0,axis1);
   }
-  DataArrayView::swap(getDefaultValue(),0,temp_ev->getDefaultValue(),0,axis_offset);
+  DataArrayView::swapaxes(getDefaultValue(),0,temp_ev->getDefaultValue(),0,axis0,axis1);
 }
 
 void

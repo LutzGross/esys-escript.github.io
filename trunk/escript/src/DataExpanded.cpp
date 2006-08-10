@@ -545,22 +545,22 @@ DataExpanded::transpose(DataAbstract* ev, int axis_offset)
 }
 
 void
-DataExpanded::swap(DataAbstract* ev, int axis_offset)
+DataExpanded::swapaxes(DataAbstract* ev, int axis0, int axis1)
 {
   int sampleNo,dataPointNo;
   int numSamples = getNumSamples();
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::swap: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::swapaxes: casting to DataExpanded failed (propably a programming error).");
   }
   DataArrayView& thisView=getPointDataView();
   DataArrayView& evView=ev->getPointDataView();
   #pragma omp parallel for private(sampleNo,dataPointNo) schedule(static)
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-         DataArrayView::swap(thisView,getPointOffset(sampleNo,dataPointNo),
-                                    evView,ev->getPointOffset(sampleNo,dataPointNo),axis_offset);
+         DataArrayView::swapaxes(thisView,getPointOffset(sampleNo,dataPointNo),
+                                    evView,ev->getPointOffset(sampleNo,dataPointNo),axis0,axis1);
     }
   }
 }

@@ -871,12 +871,12 @@ class Data {
 
   /**
      \brief
-     swaps the components axis_offset and axis_offset+1
+     swaps the components axis0 and axis1
      *
   */
   ESCRIPT_DLL_API
   Data
-  swap(int axis_offset) const;
+  swapaxes(const int axis0, const int axis1) const;
 
   /**
      \brief

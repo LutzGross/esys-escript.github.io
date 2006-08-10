@@ -770,6 +770,7 @@ and for a \RankFour function and  \code{axis_offset=1} this is
 \code{trace(a,1)}\left[i,j\right]=\sum\hackscore{k} \var{a} \left[i,k,k,j\right]
 \end{equation} 
 \end{funcdesc}
+
 \begin{funcdesc}{transpose}{a\optional{, axis_offset=None}}
 returns the transpose of \var{a}. This swaps the first \var{axis_offset} components of \var{a} with the rest. If \var{axis_offset} is not
 present \code{int(r/2)} is used where \var{r} is the rank of \var{a}. 
@@ -783,6 +784,16 @@ and for a \RankFour function and  \code{axis_offset=1} this is
 \code{transpose(a,1)}\left[i,j,k,l\right]=\var{a} \left[j,k,l,i\right]
 \end{equation} 
 \end{funcdesc}
+
+\begin{funcdesc}{swap_axes}{a\optional{, axis0=0 \optional{, axis1=1 }}}
+returns \var{a} but with swapped componets \var{axis0} and  \var{axis1}. The argument \var{a} must be
+at least of \RankTwo. For instance in the 
+for a \RankFour argument, \code{axis0=1} and \code{axis1=2} this is
+\begin{equation}
+\code{swap_axes(a,1,2)}\left[i,j,k,l\right]=\var{a} \left[i,k,j,l\right]
+\end{equation} 
+\end{funcdesc}
+
 \begin{funcdesc}{symmetric}{a}
 returns the symmetric part of \var{a}. This is \code{(a+transpose(a))/2}.
 \end{funcdesc}
