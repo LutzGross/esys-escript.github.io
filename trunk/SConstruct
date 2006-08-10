@@ -499,7 +499,8 @@ env.Alias('release_src',[ src_zipfile, src_tarfile ])
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
 env.Alias('api_epydoc',api_epydoc)
-env.Alias('docs',[ 'release_examples', guide_pdf, guide_html_index, api_epydoc])
+env.Alias('guide_pdf', guide_pdf)
+env.Alias('docs',[ 'release_examples', 'guide_pdf', guide_html_index, api_epydoc])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
 env.Alias('build_tests')    # target to build all C++ tests
 env.Alias('build_py_tests') # target to build all python tests
