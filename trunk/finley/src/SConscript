@@ -40,9 +40,14 @@ if mkl_libs:
 if scsl_libs:
    local_env.Append(CPPDEFINES=['SCSL',])
    local_env.Append(LIBS = scsl_libs)
-if umf_libs:
+if umf_libs and amd_libs:
    local_env.Append(CPPDEFINES=['UMFPACK',])
    local_env.Append(LIBS = umf_libs)
+   local_env.Append(LIBS = amd_libs)
+
+if blas_libs:
+   local_env.Append(LIBS = blas_libs)
+
 if papi_libs:
    local_env.Append(CPPDEFINES=['PAPI',])
    local_env.Append(LIBS = papi_libs)
