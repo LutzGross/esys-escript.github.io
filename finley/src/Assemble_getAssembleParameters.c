@@ -30,7 +30,8 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
                                         escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
   Finley_resetError();
 
-  for (dim_t i=0;i<MAX_numNodes;i++) parm->id[i]=i;
+  dim_t i;
+  for (i=0;i<MAX_numNodes;i++) parm->id[i]=i;
 
   if (!isEmpty(F) && !isExpanded(F) ) {
       Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Right hand side is not expanded.");
