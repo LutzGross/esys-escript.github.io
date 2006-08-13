@@ -803,7 +803,7 @@ returns the non--symmetric part of \var{a}. This is \code{(a-transpose(a))/2}.
 \begin{funcdesc}{inverse}{a}
 return the inverse of \var{a}. This is 
 \begin{equation}
-\code{matrixmult(inverse(a),a)=kronecker(d)}
+\code{matrix_mult(inverse(a),a)=kronecker(d)}
 \end{equation} 
 if \var{a} has shape \code{(d,d)}. The current implementation is restricted to arguments of shape 
 \code{(2,2)} and \code{(3,3)}.
@@ -811,7 +811,7 @@ if \var{a} has shape \code{(d,d)}. The current implementation is restricted to a
 \begin{funcdesc}{eigenvalues}{a}
 return the eigenvalues of \var{a}. This is 
 \begin{equation}
-\code{matrixmult(a,V)=e[i]*V}
+\code{matrix_mult(a,V)=e[i]*V}
 \end{equation} 
 where \code{e=eigenvalues(a)} and \var{V} is suitable non--zero vector \var{V}. 
 The eigenvalues are ordered in increasing size.
@@ -822,11 +822,11 @@ The current implementation is restricted to arguments of shape
 \begin{funcdesc}{eigenvalues_and_eigenvectors}{a}
 return the eigenvalues and eigenvectors of \var{a}. This is 
 \begin{equation}
-\code{matrixmult(a,V[:,i])=e[i]*V[:,i]}
+\code{matrix_mult(a,V[:,i])=e[i]*V[:,i]}
 \end{equation} 
 where \code{e,V=eigenvalues_and_eigenvectors(a)}. The eigenvectors \var{V} are orthogonal and normalized, ie.
 \begin{equation}
-\code{matrixmult(transpose(V),V)=kronecker(d)}
+\code{matrix_mult(transpose(V),V)=kronecker(d)}
 \end{equation} 
 if \var{a} has shape \code{(d,d)}. The eigenvalues are ordered in increasing size.
 The argument \var{a} has to be the symmetric, ie. \code{a=symmetric(a)}.  
@@ -867,16 +867,41 @@ and for a \RankFour arguments this is
 \code{inner(a)}=\sum\hackscore{ijkl}\var{a0} \left[i,j,k,l\right]  \cdot \var{a1} \left[j,i,k,l\right]
 \end{equation} 
 \end{funcdesc}
-\begin{funcdesc}{matrixmult}{a0,a1}
+
+\begin{funcdesc}{matrix_mult}{a0,a1}
 returns the matrix product of \var{a0} and \var{a1}. If \var{a1} is \RankOne this is
 \begin{equation}
-\code{matrixmult(a)}\left[i\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k\right]
+\code{matrix_mult(a)}\left[i\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k\right]
 \end{equation} 
 and if \var{a1} is \RankTwo this is
 \begin{equation}
-\code{matrixmult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k,j\right]
+\code{matrix_mult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k,j\right]
 \end{equation} 
 \end{funcdesc}
+
+\begin{funcdesc}{transposed_matrix_mult}{a0,a1}
+returns the matrix product of the transposed of \var{a0} and \var{a1}. The function is equivalent to 
+\code{matrix_mult(transpose(a0),a1)}.
+If \var{a1} is \RankOne this is
+\begin{equation}
+\code{transposed_matrix_mult(a)}\left[i\right]=\sum\hackscore{k}\var{a0}  \cdot \left[k,i\right]\var{a1} \left[k\right]
+\end{equation} 
+and if \var{a1} is \RankTwo this is
+\begin{equation}
+\code{transposed_matrix_mult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[k,i\right]\var{a1} \left[k,j\right]
+\end{equation} 
+\end{funcdesc}
+
+\begin{funcdesc}{matrix_transposed_mult}{a0,a1}
+returns the matrix product of \var{a0} and the transposed of \var{a1}.
+The function is equivalent to
+\code{matrix_mult(a0,transpose(a1))}.  
+If \var{a1} is \RankTwo this is
+\begin{equation}
+\code{matrix_transposed_mult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[j,k\right]
+\end{equation} 
+\end{funcdesc}
+
 \begin{funcdesc}{outer}{a0,a1}
 returns the outer product of \var{a0} and \var{a1}. For instance if \var{a0} and \var{a1} both are \RankOne then
 \begin{equation}
@@ -887,16 +912,45 @@ and if \var{a0} is \RankOne and \var{a1} is \RankThree
 \code{outer(a)}\left[i,j,k\right]=\var{a0} \left[i\right] \cdot \var{a1}\left[j,k\right]
 \end{equation} 
 \end{funcdesc}
-\begin{funcdesc}{tensormult}{a0,a1}
+
+\begin{funcdesc}{tensor_mult}{a0,a1}
 returns the tensor product of \var{a0} and \var{a1}. If \var{a1} is \RankTwo this is
 \begin{equation}
-\code{tensormult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[k,l\right]
+\code{tensor_mult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[k,l\right]
 \end{equation} 
 and if \var{a1} is \RankFour this is
 \begin{equation}
-\code{tensormult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[m,n,k,l\right]
+\code{tensor_mult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[m,n,k,l\right]
 \end{equation} 
 \end{funcdesc}
+
+\begin{funcdesc}{transposed_tensor_mult}{a0,a1}
+returns the tensor product of the transposed of \var{a0} and \var{a1}. The function is equivalent to
+\code{tensor_mult(transpose(a0),a1)}.
+If \var{a1} is \RankTwo this is
+\begin{equation}
+\code{transposed_tensor_mult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[k,l,i,j\right] \cdot \var{a1} \left[k,l\right]
+\end{equation} 
+and if \var{a1} is \RankFour this is
+\begin{equation}
+\code{transposed_tensor_mult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[m,n,i,j\right] \cdot \var{a1} \left[m,n,k,l\right]
+\end{equation} 
+\end{funcdesc}
+
+\begin{funcdesc}{tensor_transposed_mult}{a0,a1}
+returns the tensor product of \var{a0} and the transposed of \var{a1}. 
+The function is equivalent to
+\code{tensor_mult(a0,transpose(a1))}.
+If \var{a1} is \RankTwo this is
+\begin{equation}
+\code{tensor_transposed_mult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[l,k\right]
+\end{equation} 
+and if \var{a1} is \RankFour this is
+\begin{equation}
+\code{tensor_transposed_mult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[k,l,m,n\right]
+\end{equation} 
+\end{funcdesc}
+
 \begin{funcdesc}{grad}{a\optional{, where=None}}
 returns the gradient of \var{a}. If \var{where} is present the gradient will be calculated in \FunctionSpace \var{where} otherwise a 
 default \FunctionSpace is used. In case that \var{a} has \RankTwo one has
@@ -930,13 +984,16 @@ returns the divergence of \var{a}. This
 returns the jump of \var{a} over the discontinuity in its domain or if \Domain \var{domain} is present
 in \var{domain}.
 \begin{equation}
-\code{jump(a)}=interpolate(a,FunctionOnContactOne(domain))-interpolate(a,FunctionOnContactZero(domain))
+\begin{array}{rcl}
+\code{jump(a)}& = &\code{interpolate(a,FunctionOnContactOne(domain))} \\
+              &   & \hfill - \code{interpolate(a,FunctionOnContactZero(domain))}
+\end{array}
 \end{equation}
 \end{funcdesc}
 \begin{funcdesc}{L2}{a}
 returns the $L^2$-norm of \var{a} in its function space. This is 
 \begin{equation}
-\code{L2(a)}=integrate(length(a)^2) \; .
+\code{L2(a)=integrate(length(a)}^2\code{)} \; .
 \end{equation} 
 \end{funcdesc}
 
