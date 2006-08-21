@@ -414,5 +414,46 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
          }
    }
 }
+
+// General tensor product: arg_2(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
+// SM is the product of the last axis_offset entries in arg_0.getShape().
+inline
+void matrix_matrix_product(const int SL, const int SM, const int SR, const double* A, const double* B, double* C, int transpose)
+{
+  if (transpose == 0) {
+    for (int i=0; i<SL; i++) {
+      for (int j=0; j<SR; j++) {
+        double sum = 0.0;
+        for (int l=0; l<SM; l++) {
+	  sum += A[i+SL*l] * B[l+SM*j];
+        }
+        C[i+SL*j] = sum;
+      }
+    }
+  }
+  else if (transpose == 1) {
+    for (int i=0; i<SL; i++) {
+      for (int j=0; j<SR; j++) {
+        double sum = 0.0;
+        for (int l=0; l<SM; l++) {
+	  sum += A[i*SM+l] * B[l+SM*j];
+        }
+        C[i+SL*j] = sum;
+      }
+    }
+  }
+  else if (transpose == 2) {
+    for (int i=0; i<SL; i++) {
+      for (int j=0; j<SR; j++) {
+        double sum = 0.0;
+        for (int l=0; l<SM; l++) {
+	  sum += A[i+SL*l] * B[l*SR+j];
+        }
+        C[i+SL*j] = sum;
+      }
+    }
+  }
+}
+
 } // end of namespace
 #endif
