@@ -1279,7 +1279,15 @@ class Data {
   ESCRIPT_DLL_API
 	MPI_Comm 
 	get_MPIComm(void) const;
-	
+
+  /**
+     \brief
+     return the object produced by the factory, which is a DataConstant or DataExpanded
+  */
+  ESCRIPT_DLL_API
+	DataAbstract*
+	borrowData(void) const;
+
  protected:
 
  private:
@@ -1519,6 +1527,21 @@ ESCRIPT_DLL_API Data operator/(const boost::python::object& left, const Data& ri
   Output operator
 */
 ESCRIPT_DLL_API std::ostream& operator<<(std::ostream& o, const Data& data);
+
+/**
+  \brief
+  Compute a tensor product of two Data objects
+  \param arg0 - Input - Data object
+  \param arg1 - Input - Data object
+  \param axis_offset - Input - axis offset
+  \param transpose - Input - 0: transpose neither, 1: transpose arg0, 2: transpose arg1
+*/
+ESCRIPT_DLL_API
+Data
+C_GeneralTensorProduct(Data& arg0,
+                     Data& arg1,
+                     int axis_offset=0,
+                     int transpose=0);
 
 /**
   \brief

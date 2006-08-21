@@ -267,6 +267,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
        arg("expanded")=false));
 
   //
+  // Binary operators
+  //
+  def("C_GeneralTensorProduct",escript::C_GeneralTensorProduct,
+      (arg("arg0")=escript::Data(),
+       arg("arg1")=escript::Data(),
+       arg("axis_offset")=0,
+       arg("transpose")=0));
+
+  //
   // Interface for AbstractSystemMatrix
   //
   class_<escript::AbstractSystemMatrix>("Operator",init<>())

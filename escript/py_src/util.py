@@ -26,6 +26,7 @@ import math
 import numarray
 import escript
 import os
+from esys.escript import C_GeneralTensorProduct
 
 #=========================================================
 #   some helpers:
@@ -4313,62 +4314,9 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
          args=self.getSubstitutedArguments(argvals)
          return generalTensorProduct(args[0],args[1],args[2])
 
-def escript_generalTensorProductNew(arg0,arg1,axis_offset):
+def escript_generalTensorProduct(arg0,arg1,axis_offset,transpose=0):
     "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
-    # calculate the return shape:
-    shape0=arg0.getShape()[:arg0.getRank()-axis_offset]
-    shape01=arg0.getShape()[arg0.getRank()-axis_offset:]
-    shape10=arg1.getShape()[:axis_offset]
-    shape1=arg1.getShape()[axis_offset:]
-    if not shape01==shape10:
-        raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
-    # Figure out which functionspace to use (look at where operator+ is defined maybe in BinaryOp.h to get the logic for this)
-    # fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
-    out=GeneralTensorProduct(arg0, arg1, axis_offset)
-    return out
-
-def escript_generalTensorProduct(arg0,arg1,axis_offset): # this should be escript._generalTensorProduct
-    "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
-    # calculate the return shape:
-    shape0=arg0.getShape()[:arg0.getRank()-axis_offset]
-    shape01=arg0.getShape()[arg0.getRank()-axis_offset:]
-    shape10=arg1.getShape()[:axis_offset]
-    shape1=arg1.getShape()[axis_offset:]
-    if not shape01==shape10:
-        raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
-
-    # whatr function space should be used? (this here is not good!)
-    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
-    # create return value:
-    out=escript.Data(0.,tuple(shape0+shape1),fs)
-    # 
-    s0=[[]]
-    for k in shape0: 
-          s=[]
-          for j in s0: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s0=s
-    s1=[[]]
-    for k in shape1: 
-          s=[]
-          for j in s1: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s1=s
-    s01=[[]]
-    for k in shape01: 
-          s=[]
-          for j in s01: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s01=s
-
-    for i0 in s0:
-       for i1 in s1:
-         s=escript.Scalar(0.,fs)
-         for i01 in s01:
-            s+=arg0.__getitem__(tuple(i0+i01))*arg1.__getitem__(tuple(i01+i1))
-         out.__setitem__(tuple(i0+i1),s)
-    return out
-
+    return C_GeneralTensorProduct(arg0, arg1, axis_offset, transpose)
 
 def transposed_matrix_mult(arg0,arg1):
     """
@@ -4565,46 +4513,7 @@ class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
 
 def escript_generalTransposedTensorProduct(arg0,arg1,axis_offset): # this should be escript._generalTransposedTensorProduct
     "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
-    # calculate the return shape:
-    shape01=arg0.getShape()[:axis_offset]
-    shape10=arg1.getShape()[:axis_offset]
-    shape0=arg0.getShape()[axis_offset:]
-    shape1=arg1.getShape()[axis_offset:]
-    if not shape01==shape10:
-        raise ValueError,"dimensions of first %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
-
-    # whatr function space should be used? (this here is not good!)
-    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
-    # create return value:
-    out=escript.Data(0.,tuple(shape0+shape1),fs)
-    # 
-    s0=[[]]
-    for k in shape0: 
-          s=[]
-          for j in s0: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s0=s
-    s1=[[]]
-    for k in shape1: 
-          s=[]
-          for j in s1: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s1=s
-    s01=[[]]
-    for k in shape01: 
-          s=[]
-          for j in s01: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s01=s
-
-    for i0 in s0:
-       for i1 in s1:
-         s=escript.Scalar(0.,fs)
-         for i01 in s01:
-            s+=arg0.__getitem__(tuple(i01+i0))*arg1.__getitem__(tuple(i01+i1))
-         out.__setitem__(tuple(i0+i1),s)
-    return out
-
+    return C_GeneralTensorProduct(arg0, arg1, axis_offset, 1)
 
 def matrix_transposed_mult(arg0,arg1):
     """
@@ -4788,46 +4697,7 @@ class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
 
 def escript_generalTensorTransposedProduct(arg0,arg1,axis_offset): # this should be escript._generalTensorTransposedProduct
     "arg0 and arg1 are both Data objects but not neccesrily on the same function space. they could be identical!!!"
-    # calculate the return shape:
-    shape01=arg0.getShape()[arg0.getRank()-axis_offset:]
-    shape0=arg0.getShape()[:arg0.getRank()-axis_offset]
-    shape10=arg1.getShape()[arg1.getRank()-axis_offset:]
-    shape1=arg1.getShape()[:arg1.getRank()-axis_offset]
-    if not shape01==shape10:
-        raise ValueError,"dimensions of first %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset) 
-
-    # whatr function space should be used? (this here is not good!)
-    fs=(escript.Scalar(0.,arg0.getFunctionSpace())+escript.Scalar(0.,arg1.getFunctionSpace())).getFunctionSpace()
-    # create return value:
-    out=escript.Data(0.,tuple(shape0+shape1),fs)
-    # 
-    s0=[[]]
-    for k in shape0: 
-          s=[]
-          for j in s0: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s0=s
-    s1=[[]]
-    for k in shape1: 
-          s=[]
-          for j in s1: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s1=s
-    s01=[[]]
-    for k in shape01: 
-          s=[]
-          for j in s01: 
-                for i in range(k): s.append(j+[slice(i,i)])
-          s01=s
-
-    for i0 in s0:
-       for i1 in s1:
-         s=escript.Scalar(0.,fs)
-         for i01 in s01:
-            s+=arg0.__getitem__(tuple(i0+i01))*arg1.__getitem__(tuple(i1+i01))
-         out.__setitem__(tuple(i0+i1),s)
-    return out
-
+    return C_GeneralTensorProduct(arg0, arg1, axis_offset, 2)
 
 #=========================================================
 #  functions dealing with spatial dependency
