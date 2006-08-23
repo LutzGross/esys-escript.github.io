@@ -2595,7 +2595,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
     if (arg_0.probeInterpolation(arg_1.getFunctionSpace())) {
       Data arg_0_tmp = arg_0.interpolate(arg_1.getFunctionSpace());
-      arg_1=arg_0_tmp;
+      arg_0=arg_0_tmp;
     }
     else if (arg_1.probeInterpolation(arg_0.getFunctionSpace())) {
       arg_1=arg_1.interpolate(arg_0.getFunctionSpace());
@@ -2604,7 +2604,6 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       throw DataException("Error - C_GeneralTensorProduct: arguments have incompatible function spaces.");
     }
   }
-
   // Get rank and shape of inputs
   int rank0 = arg_0.getDataPointRank();
   int rank1 = arg_1.getDataPointRank();

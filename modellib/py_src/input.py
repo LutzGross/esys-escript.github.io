@@ -12,13 +12,14 @@ from math import log
 
 class Sequencer(Model):
     """
-    Runs through time until t_end is reached.
-    @cvar t_end: - model is terminated when t_end is passed  (exposed in writeXML)
-    @type t_end: float
-    @cvar dt_max: - maximum time step size 
-    @type dt_max: float
-    @cvar t: - initial time
-    @type t: float
+    Runs through time until t_end is reached. 
+
+    @ivar t_end: model is terminated when t_end is passed, default 1 (in).
+    @type t_end: C{float}
+    @ivar dt_max: maximum time step size, default L{Model.UNDEF_DT} (in)
+    @type dt_max: C{float}
+    @ivar t: current time stamp (in/out). By default it is initialized with zero.
+    @type t: C{float}
 
     """
     def __init__(self,debug=False):
@@ -43,13 +44,13 @@ class Sequencer(Model):
 
     def finalize(self):
         """
-        true when t has reached t_end
+        returns true when L{t} has reached L{t_end}
         """
         return self.t >= self.t_end
 
     def getSafeTimeStepSize(self, dt):
         """
-        returns dt_max
+        returns L{dt_max}
         """
         return self.dt_max
 
@@ -58,15 +59,14 @@ class GaussianProfile(ParameterSet):
     Generates a Gaussian profile at center x_c, width width and height A 
     over a domain
 
-    @ivar domain (in): domain
-    @ivar x_c (in): center of the Gaussian profile (default [0.,0.,0.])
-    @ivar A (in): height of the profile. A maybe a vector. (default 1.)
-    @ivar width (in): width of the profile (default 0.1)
-    @ivar r (in): radius of the circle (default = 0)
-    @ivar out (callable): profile
+    @ivar domain: domain
+    @ivar x_c: center of the Gaussian profile (default [0.,0.,0.])
+    @ivar A: (in) height of the profile. A maybe a vector. (default 1.)
+    @ivar width: (in) width of the profile (default 0.1)
+    @ivar r: (in) radius of the circle (default = 0)
 
     In the case that the spatial dimension is two, The third component of 
-    x_c is dropped
+    x_c is dropped.
     """
     def __init__(self,debug=False):
         ParameterSet.__init__(self,debug=debug)
@@ -79,6 +79,8 @@ class GaussianProfile(ParameterSet):
     def out(self):
         """
         Generate the Gaussian profile
+
+        Link against this method to get the output of this model.
         """
         x = self.domain.getX()
         dim = self.domain.getDim()
@@ -90,24 +92,21 @@ class GaussianProfile(ParameterSet):
 class InterpolateOverBox(ParameterSet):
     """
     Returns values at each time. The values are defined through given values 
-    at time node.
+    at time node. For two dimensional domains back values are ignored.
 
-    @ivar domain (in): domain
-    @ivar left_bottom_front (in): coordinates of left, bottom, front corner 
+    @ivar domain: domain
+    @ivar left_bottom_front: (in) coordinates of left, bottom, front corner 
               of the box
-    @ivar right_top_back (in): coordinates of the right, top, back corner 
+    @ivar right_top_back: (in) coordinates of the right, top, back corner 
               of the box
-    @ivar value_left_bottom_front (in): value at left,bottom,front corner
-    @ivar value_right_bottom_front (in): value at right, bottom, front corner
-    @ivar value_left_top_front (in): value at left,top,front corner
-    @ivar value_right_top_front (in): value at right,top,front corner
-    @ivar value_left_bottom_back (in): value at  left,bottom,back corner
-    @ivar value_right_bottom_back (in): value at right,bottom,back corner
-    @ivar value_left_top_back (in): value at left,top,back  corner
-    @ivar value_right_top_back (in): value at right,top,back corner
-    @ivar out (callable): values at domain locations by bilinear 
-              interpolation.  For two dimensional domains back values are 
-              ignored.
+    @ivar value_left_bottom_front: (in) value at left,bottom,front corner
+    @ivar value_right_bottom_front: (in) value at right, bottom, front corner
+    @ivar value_left_top_front: (in) value at left,top,front corner
+    @ivar value_right_top_front: (in) value at right,top,front corner
+    @ivar value_left_bottom_back: (in) value at  left,bottom,back corner
+    @ivar value_right_bottom_back: (in) value at right,bottom,back corner
+    @ivar value_left_top_back: (in) value at left,top,back  corner
+    @ivar value_right_top_back: (in) value at right,top,back corner
     """
 
     def __init__(self, debug=False):
@@ -126,6 +125,11 @@ class InterpolateOverBox(ParameterSet):
 
 
     def out(self):
+        """
+        values at domain locations by bilinear interpolation of the given values.
+
+        Link against this method to get the output of this model.
+        """
         x = self.domain.getX()
         if self.domain.getDim() == 2:
             f_right = (x[0] - self.left_bottom_front[0])/\
@@ -171,10 +175,9 @@ class InterpolatedTimeProfile(ParameterSet):
        For time t<nodes[0], value[0] is used and for t>nodes[l], values[l] 
        is used where l=len(nodes)-1.
  
-       @ivar t (in): current time
-       @ivar node (in): list of time nodes
-       @ivar values (in): list of values at time nodes
-       @ivar out (callable): current value 
+       @ivar t: (in) current time
+       @ivar node: (in) list of time nodes
+       @ivar values: (in) list of values at time nodes
        """
 
        def __init__(self,debug=False):
@@ -183,6 +186,11 @@ class InterpolatedTimeProfile(ParameterSet):
                                  nodes=[0.,1.],\
                                  values=[1.,1.])
        def out(self):
+           """
+           current value
+  
+           Link against this method to get the output of this model.
+           """
            l = len(self.nodes) - 1
            t = self.t
            if t <= self.nodes[0]:
@@ -199,17 +207,16 @@ class LinearCombination(Model):
     """
     Returns a linear combination of the f0*v0+f1*v1+f2*v2+f3*v3+f4*v4
             
-    @ivar f0 (in): numerical object or None (default: None) 
-    @ivar v0 (in): numerical object or None (default: None) 
-    @ivar f1 (in): numerical object or None (default: None) 
-    @ivar v1 (in): numerical object or None (default: None) 
-    @ivar f2 (in): numerical object or None (default: None) 
-    @ivar v2 (in): numerical object or None (default: None) 
-    @ivar f3 (in): numerical object or None (default: None) 
-    @ivar v3 (in): numerical object or None (default: None) 
-    @ivar f4 (in): numerical object or None (default: None) 
-    @ivar v4 (in): numerical object or None (default: None)
-    @ivar out (callable): current value 
+    @ivar f0: (in) numerical object or None, default=None (in)
+    @ivar v0: (in) numerical object or None, default=None (in)
+    @ivar f1: (in) numerical object or None, default=None (in)
+    @ivar v1: (in) numerical object or None, default=None (in)
+    @ivar f2: (in) numerical object or None, default=None (in)
+    @ivar v2: (in) numerical object or None, default=None (in)
+    @ivar f3: (in) numerical object or None, default=None (in)
+    @ivar v3: (in) numerical object or None, default=None (in)
+    @ivar f4: (in) numerical object or None, default=None (in)
+    @ivar v4: (in) numerical object or None, default=None (in)
     """
     def __init__(self,debug=False):
         Model.__init__(self,debug=debug)
@@ -225,6 +232,10 @@ class LinearCombination(Model):
                               v4=None)
 
     def out(self):
+        """
+        returns f0*v0+f1*v1+f2*v2+f3*v3+f4*v4.
+        Link against this method to get the output of this model.
+        """
         if not self.f0 == None and not self.v0 == None:
             fv0 = self.f0*self.v0
         else:
