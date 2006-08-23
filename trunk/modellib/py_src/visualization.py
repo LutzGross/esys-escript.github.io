@@ -15,13 +15,13 @@ class Visualization(Model):
     Generic visualization of scalar, vector and tensorial data 
     (not implemeted yet)
 
-    @ivar t: current time
-    @ivar n: frame counter
-    @ivar scalar: scalar data set
-    @ivar vector: vector data set
-    @ivar tensor: tensor data set
-    @ivar dt: increment for output 
-    @ivar filename: name of the output file
+    @ivar t: current time (in)
+    @ivar n: frame counter (in)
+    @ivar scalar: scalar data set (in)
+    @ivar vector: vector data set (in)
+    @ivar tensor: tensor data set (in)
+    @ivar dt: increment for output  (in)
+    @ivar filename: name of the output file (in)
     """
 
     def __init__(self, debug=False):
@@ -40,12 +40,15 @@ class Visualization(Model):
                               filename="movie.mpg")
 
     def doInitialization(self):
-        """
-        Does some kind of initialisation
-        """
-        self.__last_t=self.t
+       """
+       does some kind of initialisation
+       """
+       self.__last_t=self.t
 
     def writeFrame(self):
+       """
+       returns True if the time stamp for writing frame is reached.
+       """
        out=self.t>=self.__last_t+self.dt
        if out: 
             self.__last_t+=self.dt
@@ -53,18 +56,21 @@ class Visualization(Model):
        return out
 
     def getFrameCounter(self):
-        return self.n-1
+       """
+       returns a frame counter
+       """
+       return self.n-1
 
     def getSafeTimeStepSize(self,dt):
-           """
-           returns new step size
-                                                                                                                                                                                                    
-           @param dt: last time step size used
-           @type dt: C{float}
-           @return: time step size that can savely be used
-           @rtype: C{float}
-           """
-           return self.__last_t+self.dt-self.t
+       """
+       returns new step size
+
+       @param dt: last time step size used
+       @type dt: C{float}
+       @return: time step size that can savely be used
+       @rtype: C{float}
+       """
+       return self.__last_t+self.dt-self.t
 
     def doStepPostprocessing(self, dt):
         """
@@ -73,21 +79,14 @@ class Visualization(Model):
         @note: to be overwritten
         """
         if self.writeFrame():
-            self.trace("%s-th frame at time %s"%(self.getFrameCounter(),self.t))
-            if not self.scalar==None:
-               self.trace("scalar data: (min,max) =(%s,%s)"%(inf(self.scalar),sup(self.scalar)))
-            if not self.vector==None:
-               self.trace("vector data: (min,max) =(%s,%s)"%(inf(self.vector),sup(self.vector)))
-            if not self.tensor==None:
-               self.trace("tensor data: (min,max) =(%s,%s)"%(inf(self.tensor),sup(self.tensor)))
-           
-    def doFinalization(self):
-        """
-        Finalises the visualisation.  For instance, makes a movie of the image files.
-
-        @note: to be overwritten
-        """
-        pass
+            if self.debug():
+               self.trace("%s-th frame at time %s"%(self.getFrameCounter(),self.t))
+               if not self.scalar==None:
+                  self.trace("scalar data: (min,max) =(%s,%s)"%(inf(self.scalar),sup(self.scalar)))
+               if not self.vector==None:
+                  self.trace("vector data: (min,max) =(%s,%s)"%(inf(self.vector),sup(self.vector)))
+               if not self.tensor==None:
+                  self.trace("tensor data: (min,max) =(%s,%s)"%(inf(self.tensor),sup(self.tensor)))
 
 class WriteVTK(Visualization):
     """
@@ -99,12 +98,13 @@ class WriteVTK(Visualization):
         Initialisation of the WriteVTK object
 
         @param debug: Debugging flag
+        @type debug: C{bool}
         """
         super(WriteVTK,self).__init__(debug=debug)
 
     def doInitialization(self):
         """
-        Does some kind of initialisation
+        does some kind of initialisation
         """
         super(WriteVTK,self).doInitialization()
         fnc=self.filename.split('.')
@@ -123,9 +123,11 @@ class WriteVTK(Visualization):
 
     def doStepPostprocessing(self, dt):
         """
-        Do any necessary postprocessing operations after a timestep.
+        writes 
+        do any necessary postprocessing operations after a timestep.
 
-        @param dt:
+        @param dt: current time increment
+        @type dt: C{float}
         """
         if self.writeFrame():
             kwargs={}

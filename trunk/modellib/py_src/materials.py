@@ -14,12 +14,16 @@ class GravityForce(ParameterSet):
        """
        Sets a gravity force of given direction in given domain:
 
-       @ivar domain (in): domain of interest
-       @ivar density (in): density
-       @ivar direction (in): density
-       @ivar gravity_force(out): gravity force
+       @ivar domain: domain of interest (in).
+       @type domain: L{esys.escript.Domain}
+       @ivar density: density, default 1 (in).
+       @ivar gravity: the gravity constant, default 9.81 (in).
+       @ivar direction: the direction of gravity, default [1.,0.,0.] (in).
        """
        def __init__(self,debug=False):
+           """
+           initializes the set
+           """
            ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None,
                                  gravity=9.81, \
@@ -27,11 +31,14 @@ class GravityForce(ParameterSet):
                                  direction=[1.,0.,0.])
 
        def gravity_force(self):
-            if isinstance(self.direction,list): 
+           """
+           return the gravity force as L{density}*L{gravity}*L{direction}
+           """
+           if isinstance(self.direction,list): 
                dir=numarray.array(self.direction[:self.domain.getDim()])
-            else:
+           else:
                dir=self.direction[:self.domain.getDim()]
-            return self.gravity*self.density*dir
+           return self.gravity*self.density*dir
      
 
     
@@ -57,7 +64,7 @@ class SimpleEarthModel(ParameterSet):
        """
        B simple matrial table run convection models::
 
-           density=density0*(1-rayleigh_number*(temperature-reference_temperature))
+           density=density0*(1-expansion_coefficient*(temperature-reference_temperature))
            viscocity=viscocity0*(exp(alpha*(1/reference_temperature - 1/temperature))
 
        @ivar gravity (in): gravity constants (9.81)
@@ -65,7 +72,7 @@ class SimpleEarthModel(ParameterSet):
        @ivar density0 (in): density at reference temperature
        @ivar viscosity0 (in): viscosity0 at reference temperature
        @ivar alpha (in): viscosity contrast
-       @ivar rayleigh_number (in): Raleigh number
+       @ivar expansion_coefficient (in): Raleigh number
        @ivar heat_capacity (in): heat capacity
        @ivar thermal_permabilty (in): permabilty
        @ivar temperature (in): temperature
@@ -77,14 +84,14 @@ class SimpleEarthModel(ParameterSet):
            self.declareParameter(reference_temperature=1.,
                                  gravity=9.81, \
                                  density0=1., \
-                                 rayleigh_number=0., \
+                                 expansion_coefficient=0., \
                                  viscosity0=1., \
                                  alpha=0., \
                                  heat_capacity=1., \
                                  thermal_permabilty=1.)
       
        def density(self):
-           return self.density0*(1-self.rayleigh_number*(self.temperature-self.reference_temperature))
+           return self.density0*(1-self.expansion_coefficient*(self.temperature-self.reference_temperature))
 
        def viscosity(self):
            return self.viscosity0*exp(self.alpha*(1/self.reference_temperature - 1/(self.temperature+1.e-15)))
