@@ -138,10 +138,10 @@ class InterpolateOverBox(ParameterSet):
             f_top = (x[1] - self.left_bottom_front[1])/\
 		 (self.right_top_back[1] - self.left_bottom_front[1])
             f_bottom = 1. - f_top
-            out = self.value_left_bottom_front * f_left * f_bottom \
-                + self.value_right_bottom_front* f_right * f_bottom \
-                + self.value_left_top_front    * f_left * f_top \
-                + self.value_right_top_front   * f_right * f_top 
+            out = f_left * f_bottom * self.value_left_bottom_front \
+                + f_right * f_bottom * self.value_right_bottom_front \
+                + f_left * f_top * self.value_left_top_front \
+                + f_right * f_top * self.value_right_top_front
         else:
             f_right = (x[0] - self.left_bottom_front[0])/\
                     (self.right_top_back[0] - self.left_bottom_front[0])
@@ -152,14 +152,14 @@ class InterpolateOverBox(ParameterSet):
             f_back = (x[2] - self.left_bottom_front[1])/\
                     (self.right_top_back[2] - self.left_bottom_front[2])
             f_front = 1. - f_back
-            out = self.value_left_bottom_front * f_left * f_bottom * f_front \
-                + self.value_right_bottom_front* f_right * f_bottom * f_front \
-                + self.value_left_top_front    * f_left * f_top * f_front \
-                + self.value_right_top_front   * f_right * f_top * f_front \
-                + self.value_left_bottom_back  * f_left * f_bottom * f_back \
-                + self.value_right_bottom_back * f_right * f_bottom * f_back \
-                + self.value_left_top_back     * f_left * f_top * f_back \
-                + self.value_right_top_back    * f_right * f_top * f_back
+            out = f_left * f_bottom * f_front * self.value_left_bottom_front\
+                + f_right * f_bottom * f_front * self.value_right_bottom_front\
+                + f_left * f_top * f_front * self.value_left_top_front\
+                + f_right * f_top * f_front * self.value_right_top_front\
+                + f_left * f_bottom * f_back * self.value_left_bottom_back\
+                + f_right * f_bottom * f_back * self.value_right_bottom_back\
+                + f_left * f_top * f_back * self.value_left_top_back\
+                + f_right * f_top * f_back * self.value_right_top_back
         return out
 
 

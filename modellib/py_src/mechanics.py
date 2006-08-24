@@ -153,7 +153,7 @@ class DruckerPrager(Mechanics):
            """
            super(DruckerPrager, self).doInitialization()
            self.__plastic_stress_old=self.plastic_stress
-           self.__tau_y_old=tau_y=self.shear_length
+           self.__tau_y_old=self.shear_length
 
       def doStepPreprocessing(self,dt):
             """
@@ -164,7 +164,6 @@ class DruckerPrager(Mechanics):
             """
             super(DruckerPrager, self).doStepPreprocessing(dt)
             self.plastic_stress=self.__plastic_stress_old
-            self.tau_y=self.__tau_y_old
 
       def doStep(self,dt):
            G=self.shear_modulus
@@ -174,7 +173,7 @@ class DruckerPrager(Mechanics):
            tau_Y=self.shear_length
            if self.__plastic_stress_old:
               dps=self.plastic_stress-self.__plastic_stress_old
-              h=(tau_Y-self.tau_Y_last)/(dps+self.abs_tol*whereZero(dps))
+              h=(tau_Y-self.__tau_y_old)/(dps+self.abs_tol*whereZero(dps))
            else:
               h=0
            # set new tangential operator:
@@ -191,7 +190,6 @@ class DruckerPrager(Mechanics):
       def doStepPostprocessing(self,dt):
           super(DruckerPrager, self).doStepPostprocessing(dt)
           self.plastic_stress=self.__plastic_stress_old=self.plastic_stress
-          self.shear_length=self.__tau_y_old
 
       def getNewStress(self,s,gamma_p,du,ds_therm,tau_Y,G,K,alpha,beta,h):
             k3=kronecker(self.domain)
