@@ -45,21 +45,21 @@ epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-pac
 # papi_libs = [ 'papi' ]
 
 # c flags to use
-cc_flags  = "-O3 -IPF_ftlacc- -IPF_fma -fpic"
-cc_flags_debug  = '-g -O0 -fpic'
+cc_flags  = '-O -fPIC'
+cc_flags_debug  = '-g -fPIC'
 
 # c++ flags to use
-cxx_flags = '-ansi'
-cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
+cxx_flags = '-fPIC'
+cxx_flags_debug = '-DDOASSERT -DDOPROF -fPIC'
   	
 # c and c++ flags for MPI compilation
 # c flags to use
-cc_flags_MPI  = "-O3 -IPF_ftlacc- -IPF_fma -fpic -wd161 -DPASO_MPI"
-cc_flags_debug_MPI  = '-g -O0 -fpic -wd161 -DPASO_MPI'
+cc_flags_MPI  = '-O -DPASO_MPI -fPIC'
+cc_flags_debug_MPI  = '-g -DPASO_MPI -fPIC'
 
 # c++ flags to use
-cxx_flags_MPI = '-ansi -wd1563 -wd161'
-cxx_flags_debug_MPI = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'
+cxx_flags_MPI = '-fPIC'
+cxx_flags_debug_MPI = '-DDOASSERT -DDOPROF -fPIC'
 
 # system specific libraries to link with
 sys_libs = []

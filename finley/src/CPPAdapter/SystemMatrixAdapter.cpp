@@ -13,6 +13,9 @@
  $Id$
 */
 
+#ifdef PASO_MPI
+#include <mpi.h>
+#endif
 #include "SystemMatrixAdapter.h" 
 
 using namespace std;
