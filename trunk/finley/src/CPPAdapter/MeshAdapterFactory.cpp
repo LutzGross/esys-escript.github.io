@@ -13,6 +13,9 @@
  ******************************************************************************
 */
 
+#ifdef PASO_MPI
+#include <mpi.h>
+#endif
 #include "MeshAdapterFactory.h"
 #include "FinleyError.h"
 

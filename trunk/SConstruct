@@ -223,6 +223,12 @@ try:
    env.Append(CPPDEFINES = cc_defines)
 except KeyError:
    pass
+
+if 'shake71' == socket.gethostname().split('.')[0]:
+  if useMPI:
+    env['CC'] = 'mpicc'
+    env['CXX'] = 'mpiCC'
+
 if dodebug:
   if useMPI:
     try:

@@ -24,9 +24,7 @@ if useMPI:
 		 local_env.Append(CPPDEFINES=['PAPI',])
 		 local_env.Append(LIBS = papi_libs)
 
-	local_env.Append(LIBS = "python2.4")
-	local_env.Append(LIBS = "paso")
-	local_env.Append(LIBS = "finley")
+	local_env.Append(LIBS = ["python2.4", "paso", "finley"])
 ## changed
 	lib_name = 'pythonMPI'
 

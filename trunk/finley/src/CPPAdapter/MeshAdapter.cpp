@@ -13,6 +13,9 @@
  ******************************************************************************
 */
 
+#ifdef PASO_MPI
+#include <mpi.h>
+#endif
 #include "MeshAdapter.h"
 
 #include "escript/Data.h"
