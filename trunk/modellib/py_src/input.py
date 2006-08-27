@@ -95,10 +95,6 @@ class InterpolateOverBox(ParameterSet):
     at time node. For two dimensional domains back values are ignored.
 
     @ivar domain: domain
-    @ivar left_bottom_front: (in) coordinates of left, bottom, front corner 
-              of the box
-    @ivar right_top_back: (in) coordinates of the right, top, back corner 
-              of the box
     @ivar value_left_bottom_front: (in) value at left,bottom,front corner
     @ivar value_right_bottom_front: (in) value at right, bottom, front corner
     @ivar value_left_top_front: (in) value at left,top,front corner
@@ -112,8 +108,6 @@ class InterpolateOverBox(ParameterSet):
     def __init__(self, debug=False):
         ParameterSet.__init__(self, debug=debug)
         self.declareParameter(domain=None, 
-                              left_bottom_front=[0.,0.,0.],
-                              right_top_back=[1.,1.,1.],
                               value_left_bottom_front=0.,
                               value_right_bottom_front=0.,
                               value_left_top_front=0.,
@@ -132,25 +126,32 @@ class InterpolateOverBox(ParameterSet):
         """
         x = self.domain.getX()
         if self.domain.getDim() == 2:
-            f_right = (x[0] - self.left_bottom_front[0])/\
-		 (self.right_top_back[0] - self.left_bottom_front[0])
+            x0,x1=x[0],x[1]
+            left_bottom_front0,right_top_back0=inf(x0),sup(x0)
+            left_bottom_front1,right_top_back1=inf(x[1]),sup(x[1])
+            f_right = (x[0] - self.left_bottom_front0)/\
+		 (self.right_top_back0 - self.left_bottom_front0)
             f_left = 1. - f_right
-            f_top = (x[1] - self.left_bottom_front[1])/\
-		 (self.right_top_back[1] - self.left_bottom_front[1])
+            f_top = (x[1] - self.left_bottom_front1)/\
+		 (self.right_top_back1 - self.left_bottom_front1)
             f_bottom = 1. - f_top
             out = f_left * f_bottom * self.value_left_bottom_front \
                 + f_right * f_bottom * self.value_right_bottom_front \
                 + f_left * f_top * self.value_left_top_front \
                 + f_right * f_top * self.value_right_top_front
         else:
-            f_right = (x[0] - self.left_bottom_front[0])/\
-                    (self.right_top_back[0] - self.left_bottom_front[0])
+            x0,x1,x2=x[0],x[1],x[2]
+            left_bottom_front0,right_top_back0=inf(x0),sup(x0)
+            left_bottom_front1,right_top_back1=inf(x[1]),sup(x[1])
+            left_bottom_front2,right_top_back2=inf(x[2]),sup(x[2])
+            f_right = (x[0] - self.left_bottom_front0)/\
+                    (self.right_top_back0 - self.left_bottom_front0)
             f_left = 1. - f_right
-            f_top = (x[1] - self.left_bottom_front[1])/\
-                    (self.right_top_back[1] - self.left_bottom_front[1])
+            f_top = (x[1] - self.left_bottom_front1)/\
+                    (self.right_top_back1 - self.left_bottom_front1)
             f_bottom = 1. - f_top
-            f_back = (x[2] - self.left_bottom_front[1])/\
-                    (self.right_top_back[2] - self.left_bottom_front[2])
+            f_back = (x[2] - self.left_bottom_front1)/\
+                    (self.right_top_back2 - self.left_bottom_front2)
             f_front = 1. - f_back
             out = f_left * f_bottom * f_front * self.value_left_bottom_front\
                 + f_right * f_bottom * f_front * self.value_right_bottom_front\
@@ -207,16 +208,16 @@ class LinearCombination(Model):
     """
     Returns a linear combination of the f0*v0+f1*v1+f2*v2+f3*v3+f4*v4
             
-    @ivar f0: (in) numerical object or None, default=None (in)
-    @ivar v0: (in) numerical object or None, default=None (in)
-    @ivar f1: (in) numerical object or None, default=None (in)
-    @ivar v1: (in) numerical object or None, default=None (in)
-    @ivar f2: (in) numerical object or None, default=None (in)
-    @ivar v2: (in) numerical object or None, default=None (in)
-    @ivar f3: (in) numerical object or None, default=None (in)
-    @ivar v3: (in) numerical object or None, default=None (in)
-    @ivar f4: (in) numerical object or None, default=None (in)
-    @ivar v4: (in) numerical object or None, default=None (in)
+    @ivar f0: numerical object or None, default=None (in)
+    @ivar v0: numerical object or None, default=None (in)
+    @ivar f1: numerical object or None, default=None (in)
+    @ivar v1: numerical object or None, default=None (in)
+    @ivar f2: numerical object or None, default=None (in)
+    @ivar v2: numerical object or None, default=None (in)
+    @ivar f3: numerical object or None, default=None (in)
+    @ivar v3: numerical object or None, default=None (in)
+    @ivar f4: numerical object or None, default=None (in)
+    @ivar v4: numerical object or None, default=None (in)
     """
     def __init__(self,debug=False):
         Model.__init__(self,debug=debug)

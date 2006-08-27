@@ -91,6 +91,8 @@ class Mechanics(Model):
           self.__pde.setValue(X=self.stress_old-self.dthermal_stress*k3)
           if self.internal_force: self.__pde.setValue(Y=self.internal_force)
           if self.external_force: self.__pde.setValue(y=self.external_force)
+          print self.prescribed_velocity
+          print self.location_prescribed_velocity
           self.__pde.setValue(r=self.prescribed_velocity, \
                               q=self.location_prescribed_velocity)
           # solve the PDE:
