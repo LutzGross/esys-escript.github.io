@@ -46,7 +46,6 @@ vel_constraints.back=[0,0,1]
 
 temp_val=InterpolateOverBox()
 temp_val.domain=Link(dom,"domain")
-temp_val.right_top_back=Link(dom,"l")
 temp_val.value_left_bottom_front=1.
 temp_val.value_right_bottom_front=1.
 temp_val.value_left_top_front=0.
@@ -111,6 +110,6 @@ lc.f1=1.
 lc.v1=Link(temp_val,"out")
 temp.temperature=Link(lc,"out")
 
-s=Simulation([sq,Simulation([vel],debug=True),temp,vis],debug=True)
+s=Simulation([sq,dom,Simulation([vel],debug=True),temp,vis],debug=True)
 s.writeXML()
 s.run()

@@ -11,53 +11,107 @@ from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
 from esys import finley
 
-class FinleyReader(ParameterSet):
-       """
-       Generates a mesh over a rectangular domain finley.
+class Domain(Model):
+      """
+      template L{Model} for a domain. 
+      
+      @ivar intergrationOrder: integration order, default -1 (in).
+      @type intergrationOrder: C{int}
+      @ivar displacement: displacements applied to the original mesh coordinates
+      @type displacement: C{None} or L{escript.Vector}
+      @ivar domain: domain (out)
+      @type domain: L{escript.Domain}
+      """
+      def __init__(self,debug=False):
+           """
+           initializes the object
+           """
+           super(Domain, self).__init__(debug=debug)
+           self.declareParameter(displacement=None,\
+                                 integrationOrder=-1)
 
-       @ivar filename:
-       @ivar intergrationOrder
-       @ivar domain: 
+           self.__updated=False
+
+      def doInitialization(self):
+         """
+         applies an initial L{displacement} to the mesh nodes (if not equal to C{None})
+         """
+         self.__x=self.domain.getX()
+         if self.displacement: 
+              self.domain.setX(self.__x+self.displacement)
+         
+      def doStepPreprocessing(self,dt):
+         """
+         applies the final L{displacement} to mesh nodes. 
+         """
+         if self.displacement: 
+              self.domain.setX(self.__x+self.displacement)
+              self.__update=False
+
+      def doStep(self,dt):
+         """
+         applies the current L{displacement} to mesh nodes. 
+         """
+         if self.displacement: 
+              self.domain.setX(self.__x+self.displacement)
+              self.__update=False
+
+      def doStepPostprocessing(self,dt):
+         """
+         applies the final L{displacement} to mesh nodes. 
+         """
+         if self.displacement: 
+              self.domain.setX(self.__x+self.displacement)
+              self.__update=False
+
+class FinleyReader(Domain):
+       """
+       reads finley mesh file.
+
+       @ivar source: file name of the finley input file
+       @type source: C{str}
        """
        def __init__(self,debug=False):
            super(FinleyReader,self).__init__(debug=debug)
-           ParameterSet.__init__(self,debug=debug)
-           self.declareParameter(source="none",\
-                                 integrationOrder=-1)
-           self.__domain=None
+           self.declareParameter(source="none")
 
-       def domain(self):
-          if self.__domain==None:
-              self.__domain=finley.ReadMesh(self.source,self.integrationOrder) 
-              self.trace("mesh read from %s"%self.source)           
-          return self.__domain
+       def doInitialization(self):
+          self.domain=finley.ReadMesh(self.source,self.integrationOrder) 
+          self.trace("mesh read from %s"%self.source)           
+          super(FinleyReader, self).doInitialization()
                        
-class RectangularDomain(ParameterSet):
+class RectangularDomain(Domain):
        """
        Generates a mesh over a rectangular domain finley.
 
-       @ivar dim:
-       @ivar l:
-       @ivar n:
-       @ivar order:
-       @ivar periodic:
-       @ivar intergration order:
-       @ivar domain: 
+       @ivar dim: spatial dimension, default =2 (in).
+       @type dim: spatial dimension
+       @ivar l: spatial lengths, default [1.,1.,1.] (in).
+       @type l: C{list} of C{floats}s
+       @ivar n: number of elements, default [10,10,10] (in).
+       @type n: C{list} of C{int}s
+       @ivar order: element order, default 1 (in).
+       @type order: C{int}
+       @ivar periodic: flags for periodicity, default [False,False,False] (in).
+       @type periodic: C{list} of C{bool}s
        """
        def __init__(self,debug=False):
+           """
+           initializes the object
+           """
            super(RectangularDomain,self).__init__(debug=debug)
            self.declareParameter(dim=2,\
                                  l=[1.,1.,1.],\
                                  n=[10,10,10], \
 				 order=1,\
-                                 periodic=[False,False,False],\
-                                 integrationOrder=-1)
-           self.__domain=None
+                                 periodic=[False,False,False])
 
-       def domain(self):
-          if self.__domain==None:
-             if self.dim==2:
-                self.__domain=finley.Rectangle(n0=self.n[0],\
+       def doInitialization(self):
+           """
+           initializes the object
+           """
+           if self.dim==2:
+                self.domain=finley.Rectangle(n0=self.n[0],\
                                              n1=self.n[1],\
                                              l0=self.l[0],\
                                              l1=self.l[1],\
@@ -65,7 +119,7 @@ class RectangularDomain(ParameterSet):
                                              periodic0=self.periodic[0], \
                                              periodic1=self.periodic[1], \
                                              integrationOrder=self.integrationOrder)
-             else:
+           else:
                 self.__domain=finley.Brick(n0=self.n[0],\
                                          n1=self.n[1],\
                                          n2=self.n[2],\
@@ -77,205 +131,150 @@ class RectangularDomain(ParameterSet):
                                          periodic1=self.periodic[1], \
                                          periodic2=self.periodic[2], \
                                          integrationOrder=self.integrationOrder)
+           super(RectangularDomain, self).doInitialization()
 
-          return self.__domain
 
-class ConstrainValue(Model):
-       """
-       selects values for a given distribution to be used as a constrain. the location of the
-       constrain are he faces of a rectangular domain. This Model is typically used in 
-       time dependend problems to fix the values in a given initial condition.
-       """
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
-           self.declareParameter(domain=None, \
-                                 value=0,  \
-                                 top=True,  \
-                                 bottom=True,\
-                                 front=False, \
-                                 back=False,\
-                                 left=False,\
-                                 right=False,\
-                                 constrain_value = None,  \
-                                 location_constrained_value=None)
-       def doInitialization(self):
-           """
-           initialize time stepping
-           """
-           tol=1.e-8
-           x=self.domain.getX()
-           d=self.domain.getDim()
-           self.location_constrained_value=0
-           x0=x[0]
-           mx=sup(x0)
-           mn=inf(x0)
-           if self.left: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mn,tol*(mx-mn))
-           if self.right: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mx,tol*(mx-mn))
-           x0=x[d-1]
-           mx=sup(x0)
-           mn=inf(x0)
-           if self.bottom: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mn,tol*(mx-mn))
-           if self.top: 
-               self.location_constrained_value=self.location_constrained_value+whereZero(x0-mx,tol*(mx-mn))
-           if d>2:
-              x0=x[1]
-              mx=sup(x0)
-              mn=inf(x0)
-              if self.front: 
-                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-mn,tol*(mx-mn))
-              if self.back: 
-                 self.location_constrained_value=self.location_constrained_value+whereZero(x0-mx,tol*(mx-mn))           
-           self.constrain_value=self.value*self.location_constrained_value
-           
-class ScalarConstrainer(ParameterSet):
+class ScalarConstrainer(Model):
      """
      Creates a characteristic function for the location of constraints 
-     for a scalar value.
+     for a scalar value and selects the value from an initial value 
+     ate these locations.
 
-     In the case that the spatial dimension is two, the arguments front 
-     and back are ignored.
+     In the case that the spatial dimension is two, the arguments front and back are ignored.
 
-     @ivar domain (in): rectangular domain
-     @ivar left (in): True to set a constraint at the left face of the 
-               domain (x[0]=min x[0]), default is False
-     @ivar right (in): True to set a constraint at the left face of the 
-               domain (x[0]=max x[0]), default is False
-     @ivar top (in): True to set a constraint at the left face of the 
-               domain (x[1]=min x[1]), default is False
-     @ivar bottom (in): True to set a constraint at the left face of the 
-               domain (x[1]=max x[1]), default is False
-     @ivar front (in): True to set a constraint at the left face of the 
-               domain (x[2]=min x[2]), default is False
-     @ivar back (in): True to set a constraint at the left face of the 
-               domain (x[2]=max x[2]), default is False
-     @ivar location_of_constraint (out): object that defines the location 
-               of the constraints.
+     @ivar domain: domain (in).
+     @ivar left:  True to set a constraint at the left face of the domain (x[0]=min x[0]), default False (in).
+     @ivar right: True to set a constraint at the left face of the domain (x[0]=max x[0]), default False (in).
+     @ivar top: True to set a constraint at the left face of the domain (x[1]=min x[1]), default False (in).
+     @ivar bottom: True to set a constraint at the left face of the domain (x[1]=max x[1]), default False (in).
+     @ivar front: True to set a constraint at the left face of the domain (x[2]=min x[2]), default False (in).
+     @ivar back: True to set a constraint at the left face of the domain (x[2]=max x[2]), default False (in).
+     @ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
+     @ivar location_of_constraint: locations of the constraints (out).
+     @ivar constraint: locations of the constraints (out).
      """
      def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
+                                 value=0,  \
                                  left=False, \
                                  right=False, \
                                  top=False, \
                                  bottom=False, \
                                  front=False, \
-                                 back=False)
+                                 back=False, \
+                                 tol=1.e-8, \
+                                 constraint_value = None,  \
+                                 location_constrained_value=None)
            self._location_of_constraint=None
 
-     def location_of_constraint(self):
+     def doInitialization(self):
           """
           Returns the mask of the location of constraint.
           """
-          if self._location_of_constraint==None:
-             x=self.domain.getX()
-             self._location_of_constraint=Scalar(0,x.getFunctionSpace())
-             if self.domain.getDim()==3:
-                if self.left: self._location_of_constraint+=whereZero(x[0]-inf(x[0]))
-                if self.right: self._location_of_constraint+=whereZero(x[0]-sup(x[0]))
-                if self.front: self._location_of_constraint+=whereZero(x[1]-inf(x[1]))
-                if self.back: self._location_of_constraint+=whereZero(x[1]-sup(x[1]))
-                if self.bottom: self._location_of_constraint+=whereZero(x[2]-inf(x[2]))
-                if self.top: self._location_of_constraint+=whereZero(x[2]-sup(x[2]))
-             else:
-                if self.left: self._location_of_constraint+=whereZero(x[0]-inf(x[0]))
-                if self.right: self._location_of_constraint+=whereZero(x[0]-sup(x[0]))
-                if self.bottom: self._location_of_constraint+=whereZero(x[1]-inf(x[1]))
-                if self.top: self._location_of_constraint+=whereZero(x[1]-sup(x[1]))
-          return self._location_of_constraint
+          x=self.domain.getX()
+          self._location_of_constraint=Scalar(0,x.getFunctionSpace())
+          if self.domain.getDim()==3:
+                x0,x1,x2=x[0],x[1],x[2]
+                if self.left: self._location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                if self.right: self._location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                if self.front: self._location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                if self.back: self._location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+                if self.bottom: self._location_of_constraint+=whereZero(x2-inf(x2),self.tol)
+                if self.top: self._location_of_constraint+=whereZero(x2-sup(x2),self.tol)
+          else:
+                x0,x1=x[0],x[1]
+                if self.left: self._location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                if self.right: self._location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                if self.bottom: self._location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                if self.top: self._location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+          self.constraint_value=self.location_constrained_value*self.value
 
-class VectorConstrainer(ParameterSet):
+class VectorConstrainer(Model):
       """
-      Creates a characteristic function for the location of constraints 
-      for a scalar value.
-
-      @ivar domain (in): rectangular domain
-      @ivar left (in): list of three boolean. left[i]==True sets a 
-                constraint for the i-th component at the left
-                face of the domain (x[0]=min x[0]), 
-                default is [False,False,False]
-      @ivar right (in): list of three boolean. left[i]==True sets a 
-                constraint for the i-th component at the right
-                face of the domain (x[0]=max x[0]), 
-                default is [False,False,False]
-      @ivar top (in): list of three boolean. left[i]==True sets a 
-                constraint for the i-th component at the top
-                face of the domain (x[1]=min x[1]), 
-                default is [False,False,False]
-      @ivar bottom (in): list of three boolean. left[i]==True sets a 
-                constraint for the i-th component at the bottom
-                face of the domain (x[1]=min x[1]), 
-                default is [False,False,False]
-      @ivar front (in): list of three boolean. left[i]==True sets a 
-                constraint for the i-th component at the front
-                face of the domain (x[2]=min x[2]), 
-                default is [False,False,False]
-      @ivar back (in): list of three boolean. left[i]==True sets a 
-                constraint for the i-th component at the back
-                face of the domain (x[2]=max x[2]), 
-                default is [False,False,False]
-      @ivar location_of_constraint (callable): object that defines the location of the constraints for each vector component.
-
-      In the case that the spatial dimension is two, thh arguments front and
+      Creates a characteristic function for the location of constraints vector value.
+      In the case that the spatial dimension is two, the arguments front and
       back as well as the third component of each argument is ignored.
+
+      @ivar domain: domain
+      @ivar left: list of three boolean. left[i]==True sets a constraint for the i-th component at the left face of the domain (x[0]=min x[0]),
+                       default [False,False,False] (in).
+      @ivar right: list of three boolean. left[i]==True sets a constraint for the i-th component at the right face of the domain (x[0]=max x[0]), 
+                default [False,False,False] (in).
+      @ivar top: list of three boolean. left[i]==True sets a constraint for the i-th component at the top face of the domain (x[1]=min x[1]), 
+                default [False,False,False] (in).
+      @ivar bottom: list of three boolean. left[i]==True sets a constraint for the i-th component at the bottom face of the domain (x[1]=min x[1]), 
+                default [False,False,False] (in).
+      @ivar front: list of three boolean. left[i]==True sets a constraint for the i-th component at the front face of the domain (x[2]=min x[2]), 
+                default [False,False,False] (in).
+      @ivar back: list of three boolean. left[i]==True sets a constraint for the i-th component at the back face of the domain (x[2]=max x[2]), 
+                default [False,False,False] (in).
+      @ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
+      @ivar location_of_constraint: locations of the constraints (out).
+      @ivar constraint: locations of the constraints (out).
+
       """
       def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
+                                 value=0,  \
                                  left=[0,0,0],  \
                                  right=[0,0,0],  \
                                  top=[0,0,0],  \
                                  bottom=[0,0,0],  \
-                                 front=[0,0,0],
-                                 back=[0,0,0])
+                                 front=[0,0,0], \
+                                 ack=[0,0,0], \
+                                 tol=1.e-8, \
+                                 constraint_value = None,  \
+                                 location_constrained_value=None)
            self._location_of_constraint=None
-      def location_of_constraint(self):
+      def doInitialization(self):
           """
-          Returns the mask of the location of constraint.
+          sets the location_constrained_value and constraint_value to be kept throughout the simulation.
           """
           if self._location_of_constraint==None:
              x=self.domain.getX()
              self._location_of_constraint=Vector(0,x.getFunctionSpace())
              if self.domain.getDim()==3:
-                left_mask=whereZero(x[0]-inf(x[0]))
+                x0,x1,x2=x[0],x[1],x[2]
+                left_mask=whereZero(x0-inf(x0),self.tol)
                 if self.left[0]: self._location_of_constraint+=left_mask*[1.,0.,0.]
                 if self.left[1]: self._location_of_constraint+=left_mask*[0.,1.,0.]
                 if self.left[2]: self._location_of_constraint+=left_mask*[0.,0.,1.]
-                right_mask=whereZero(x[0]-sup(x[0]))
+                right_mask=whereZero(x0-sup(x0),self.tol)
                 if self.right[0]: self._location_of_constraint+=right_mask*[1.,0.,0.]
                 if self.right[1]: self._location_of_constraint+=right_mask*[0.,1.,0.]
                 if self.right[2]: self._location_of_constraint+=right_mask*[0.,0.,1.]
-                front_mask=whereZero(x[1]-inf(x[1]))
+                front_mask=whereZero(x1-inf(x1),self.tol)
                 if self.front[0]: self._location_of_constraint+=front_mask*[1.,0.,0.]
                 if self.front[1]: self._location_of_constraint+=front_mask*[0.,1.,0.]
                 if self.front[2]: self._location_of_constraint+=front_mask*[0.,0.,1.]
-                back_mask=whereZero(x[1]-sup(x[1]))
+                back_mask=whereZero(x1-sup(x1),self.tol)
                 if self.back[0]: self._location_of_constraint+=back_mask*[1.,0.,0.]
                 if self.back[1]: self._location_of_constraint+=back_mask*[0.,1.,0.]
                 if self.back[2]: self._location_of_constraint+=back_mask*[0.,0.,1.]
-                bottom_mask=whereZero(x[2]-inf(x[2]))
+                bottom_mask=whereZero(x2-inf(x2),self.tol)
                 if self.bottom[0]: self._location_of_constraint+=bottom_mask*[1.,0.,0.]
                 if self.bottom[1]: self._location_of_constraint+=bottom_mask*[0.,1.,0.]
                 if self.bottom[2]: self._location_of_constraint+=bottom_mask*[0.,0.,1.]
-                top_mask=whereZero(x[2]-sup(x[2]))
+                top_mask=whereZero(x2-sup(x2),self.tol)
                 if self.top[0]: self._location_of_constraint+=top_mask*[1.,0.,0.]
                 if self.top[1]: self._location_of_constraint+=top_mask*[0.,1.,0.]
                 if self.top[2]: self._location_of_constraint+=top_mask*[0.,0.,1.]
              else:
-                left_mask=whereZero(x[0]-inf(x[0]))
+                x0,x1=x[0],x[1]
+                left_mask=whereZero(x0-inf(x0),self.tol)
                 if self.left[0]: self._location_of_constraint+=left_mask*[1.,0.]
                 if self.left[1]: self._location_of_constraint+=left_mask*[0.,1.]
-                right_mask=whereZero(x[0]-sup(x[0]))
+                right_mask=whereZero(x0-sup(x0),self.tol)
                 if self.right[0]: self._location_of_constraint+=right_mask*[1.,0.]
                 if self.right[1]: self._location_of_constraint+=right_mask*[0.,1.]
-                bottom_mask=whereZero(x[1]-inf(x[1]))
+                bottom_mask=whereZero(x1-inf(x1),self.tol)
                 if self.bottom[0]: self._location_of_constraint+=bottom_mask*[1.,0.]
                 if self.bottom[1]: self._location_of_constraint+=bottom_mask*[0.,1.]
-                top_mask=whereZero(x[1]-sup(x[1]))
+                top_mask=whereZero(x1-sup(x1),self.tol)
                 if self.top[0]: self._location_of_constraint+=top_mask*[1.,0.]
                 if self.top[1]: self._location_of_constraint+=top_mask*[0.,1.]
-          return self._location_of_constraint
+          self.constraint_value=self.location_constrained_value*self.value
 
 # vim: expandtab shiftwidth=4:
