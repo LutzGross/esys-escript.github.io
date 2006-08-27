@@ -43,6 +43,8 @@
  out. The  routines are collectively called and will be called in the natural
  ordering i.e 0 to maxProcs-1.
  
+ Notable Notables:
+ the struct localIndexCache: stores local domain indices for faster  reference
 */
 
 #ifdef PASO_MPI
@@ -60,7 +62,6 @@
 
 void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p, escriptDataC* *data_pp)
 {
-  double time0 = Paso_timer();
   int    numPoints,
   numCells = -1,
              myRank,comm,gsize,
@@ -68,7 +69,6 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
              nDim,
              shape;
   size_t __n;
-  int* failSend;
   int i,j,k,m,n,count;
   int numGlobalCells = 0;
   index_t  *nodesGlobal=NULL;   // used to get the connectivity  right for VTK
@@ -118,7 +118,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   int numInternalNodes,
   numLocalNodes,
   numBoundaryNodes,
-  localDOF;
+  localDOF;  // equals to  (DOF of Internal Nodes) +  (DOF of Boundary Nodes) of local domain
 
 
   nDim  = mesh_p->Nodes->numDim;
@@ -139,16 +139,15 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   infoHints = MPI_INFO_NULL;
 #endif
 
-  // Holds a local node/element index to their global arrays
+  // Holds a local node/element index into the global array
   struct localIndexCache
   {
     index_t *values;
     int size;
   };
-  typedef struct localIndexCache localIndexCache;
 
-  localIndexCache nodeCache,
-  elementCache;
+  struct localIndexCache nodeCache,
+  		  elementCache;
 
   // Collective Call
   MPI_File_open(mesh_p->Nodes->MPIInfo->comm, (char*)filename_p, amode,infoHints, &fh);
@@ -465,10 +464,10 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
   numLocalNodes=localDOF;
 
-  //  values vary from 13-14 chars hence the strlen()
-  char* largebuf = MEMALLOC( numLocalNodes*14*nDim + numLocalNodes*2 + 1 ,char);
+  //  we will be writing values which vary from 13-15 chars hence the strlen()
+  char* largebuf = MEMALLOC( numLocalNodes*15*nDim + numLocalNodes*2 + 1 ,char);
   largebuf[0] = '\0';
-  char tmpbuf[14];
+  char tmpbuf[15];
   int tsz=0;
   int numNodesOutput=0;
   index_t pos=0;
@@ -479,42 +478,42 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   nodeCache.values = MEMALLOC( numLocalNodes, index_t);
   index_t bc_pos = 0;
 
-  // Custom strcat:  avoids expensive strlen(3) call by  strcat(3)
+  // Custom string concat:  avoids expensive strlen(3) call by strcat(3)
+  // Note the implicit assumption on the variable "tsz"
   int __len,__j;
   char  *zero = "0.000000e+00 ";
   char  *newline = "\n";
-#define __STRCAT(__buf,x)  \
+  
+#define __STRCAT(dest,chunk,tsz)  \
 {                  \
+   __len = strlen(chunk); \
    __j = -1;      \
    while(__j++ < __len)  \
-    *(__buf+tsz+__j)=*(x+__j); \
+    *(dest+tsz+__j)=*(chunk+__j); \
+   tsz+=__len;              \
 }
-
+  
+  // Loop over all nodes    
   for (i = 0; i < mesh_p->Nodes->numNodes; i++)
   {
     // This is the bit that will break for periodic BCs because it assumes that there is a one to one
     // correspondance between nodes and Degrees of freedom
+    //TODO: handle periodic BC's 
     DOFNodes[mesh_p->Nodes->degreeOfFreedom[i]] = i;
 
-    /* local node ?*/
+    // Is this node local to the domain ?
     if( mesh_p->Nodes->degreeOfFreedom[i] < localDOF )
     {
       for (j = 0; j < nDim; j++)
       {
         sprintf(tmpbuf,"%e ", mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)] );
-        __len = strlen(tmpbuf);
-        __STRCAT(largebuf,tmpbuf)
-        tsz+=__len;
+        __STRCAT(largebuf,tmpbuf,tsz)
       }
       for (k=0; k<3-nDim; k++)
       {
-        __len = 13;
-        __STRCAT(largebuf,zero)
-        tsz+=__len;
+        __STRCAT(largebuf,zero,tsz)
       }
-      __len=1;
-      __STRCAT(largebuf,newline)
-      tsz += 1;
+      __STRCAT(largebuf,newline,tsz)
       nodeCache.values[numNodesOutput++]=i;
     }
   }
@@ -568,11 +567,14 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
     {
       Paso_CommBuffer_recv(mesh_p->Nodes->CommBuffer, dist->neighbours[n], sizeof(index_t));
       Paso_CommBuffer_unpack(mesh_p->Nodes->CommBuffer, dist->neighbours[n], NULL, backwardBuffer, sizeof(index_t), 0 );
+      /* TODO: voodoo to handle perdiodic  BC's */
       for( i=0; i<dist->edges[n]->numBackward; i++ )
         nodesGlobal[DOFNodes[dist->edges[n]->indexBackward[i] ]] = backwardBuffer[i];
     }
   }
+  
 
+  
   MEMFREE(vtxdist);
   MEMFREE(DOFNodes);
   MEMFREE(backwardBuffer);
@@ -594,7 +596,6 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   // Collective
   MPIO_DEBUG(" Writing Connectivity... ")
 
-  // TODO: Improve on upper bound , will fail for very very large meshes!!
   size_t sz = numLocalCells*6*numVTKNodesPerElement + numLocalCells;
   largebuf = MEMALLOC(sz,char);
   largebuf[0] = '\0';
@@ -612,21 +613,16 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         for (j = 0; j < numVTKNodesPerElement; j++)
         {
           sprintf(tmpbuf,"%d ",nodesGlobal[mesh_p->Nodes->toReduced[elements->Nodes[INDEX2(elements->ReferenceElement->Type->linearNodes[j], i, NN)]]]);
-          __len=strlen(tmpbuf);
-          __STRCAT(largebuf,tmpbuf)
-          tsz+=__len;
+          __STRCAT(largebuf,tmpbuf,tsz)
         }
-        __len=1;
-        __STRCAT(largebuf,newline)
-        tsz+=1;
-
+        __STRCAT(largebuf,newline,tsz)
         elementCache.values[pos++]=i;
       }
     }
   }
   else if (VTK_QUADRATIC_HEXAHEDRON==cellType)
   {
-    char tmpbuf2[20*20];
+    char tmpbuf2[20*20*2];
 
     for (i = 0; i < numCells; i++)
     {
@@ -653,9 +649,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
                 nodesGlobal[elements->Nodes[INDEX2(13, i, NN)]],
                 nodesGlobal[elements->Nodes[INDEX2(14, i, NN)]],
                 nodesGlobal[elements->Nodes[INDEX2(15, i, NN)]]);
-        __len=strlen(tmpbuf2);
-        __STRCAT(largebuf,tmpbuf2)
-        tsz+=__len;
+        __STRCAT(largebuf,tmpbuf2,tsz)
         elementCache.values[pos++]=i;
       }
     }
@@ -665,44 +659,38 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
     for (i = 0; i < numCells; i++)
     {
-      for (j = 0; j < numVTKNodesPerElement; j++)
+      if (elements->Id[i] >= elements->elementDistribution->vtxdist[i] &&  elements->Id[i] <= elements->elementDistribution->vtxdist[i+1] - 1 )
       {
-        sprintf(tmpbuf,"%d ", nodesGlobal[elements->Nodes[INDEX2(elements->ReferenceElement->Type->geoNodes[j], i, NN)]]);
-        __len=strlen(tmpbuf);
-        __STRCAT(largebuf,tmpbuf)
-        tsz+=__len;
+        for (j = 0; j < numVTKNodesPerElement; j++)
+        {
+          sprintf(tmpbuf,"%d ", nodesGlobal[elements->Nodes[INDEX2(elements->ReferenceElement->Type->geoNodes[j], i, NN)]]);
+          __STRCAT(largebuf,tmpbuf,tsz)
+        }
+        __STRCAT(largebuf,newline,tsz)
+        elementCache.values[pos++]=i;
       }
-      __len=1;
-      __STRCAT(largebuf,newline)
-      tsz+=1;
-      elementCache.values[pos++]=i;
     }
   }
   else
   {
-
     for(i = 0;i  < numCells ; i++)
     {
-      // is this element in domain of process with "myRank"
-
       if( elements->Id[i] >= elements->elementDistribution->vtxdist[myRank] && elements->Id[i] <= elements->elementDistribution->vtxdist[myRank+1]-1)
       {
         for (j = 0; j < numVTKNodesPerElement; j++)
         {
           sprintf(tmpbuf,"%d ", nodesGlobal[ elements->Nodes[INDEX2(j, i, NN) ] ] );
-          __len=strlen(tmpbuf);
-          __STRCAT(largebuf,tmpbuf)
-          tsz+=__len;
+          __STRCAT(largebuf,tmpbuf,tsz)
         }
-        __len=1;
-        __STRCAT(largebuf,newline)
-        tsz+=1;
+        __STRCAT(largebuf,newline,tsz)
         elementCache.values[pos++]=i;
       }
     }
   }
+
   elementCache.size = pos;
 
+  largebuf[tsz] = '\0';
   MPI_File_write_ordered(fh,largebuf,tsz, MPI_CHAR, &status);
   MEMFREE(largebuf);
   MPIO_DEBUG(" Done Writing Connectivity ")
@@ -719,58 +707,241 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 
     int n = numVTKNodesPerElement;
 
+    // allocate an upper bound on number of bytes needed  
     int sz=0;
     int lg = log10(numGlobalCells * n) + 1;
-    sz += numGlobalCells*lg;
-    sz += numGlobalCells;
+    sz += numGlobalCells*lg; 
+    sz += numGlobalCells;   
     tsz = 0;
 
     char* largebuf = MEMALLOC(sz  + strlen(tag1) + strlen(tag2) + strlen(tag3) + strlen(tag4),char);
     largebuf[0] ='\0';
     char tmp[10];
-
-    __len = strlen(tag1);
-    __STRCAT(largebuf,tag1)
-    tsz +=  __len;
-
+    __STRCAT(largebuf,tag1,tsz)
     for (i=numVTKNodesPerElement; i<=numGlobalCells*numVTKNodesPerElement; i+=numVTKNodesPerElement)
     {
       sprintf(tmp,"%d\n", i);
-      __len=strlen(tmp);
-      __STRCAT(largebuf,tmp)
-      tsz+=__len;
+      __STRCAT(largebuf,tmp,tsz)
     }
-
-    __len=strlen(tag2);
-    __STRCAT(largebuf,tag2)
-    tsz+=__len;
-
+    __STRCAT(largebuf,tag2,tsz)
+    largebuf[tsz] = '\0';
     MPI_File_iwrite_shared(fh,largebuf, tsz,MPI_CHAR,&req);
     MPI_Wait(&req,&status);
-    
-    // Re-using buffer!!
+
+    // re-using buffer!
     largebuf[0] = '\0';
     tsz = 0;
-    __len = strlen(tag3);
-    __STRCAT(largebuf,tag3)
-    tsz+=__len;
+    __STRCAT(largebuf,tag3,tsz)
     for (i=0; i<numGlobalCells; i++)
     {
       sprintf(tmp, "%d\n", cellType);
-      __len=strlen(tmp);
-      __STRCAT(largebuf,tmp)
-      tsz+=__len;
+      __STRCAT(largebuf,tmp,tsz)
     }
-    __len=strlen(tag4);
-    __STRCAT(largebuf,tag4)
-    tsz+=__len;
-
+    __STRCAT(largebuf,tag4,tsz)
+    largebuf[tsz] = '\0';
     MPI_File_iwrite_shared(fh,largebuf,tsz,MPI_CHAR,&req);
     MPI_Wait(&req,&status);
     MEMFREE(largebuf);
   }
 
   MPIO_DEBUG(" Done Writing Offsets & Types ")
+
+  // Write Cell data header Tags
+  if(myRank == 0)
+  {
+    MPIO_DEBUG(" Writing Cell Data ...")
+    if( write_celldata)
+    {
+      char tmpBuf[80];
+      char header[600];
+      // mark the active data arrays
+      bool_t set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
+      sprintf(tmpBuf, "<CellData");
+      strcat(header,tmpBuf);
+      for (i_data =0 ;i_data<num_data;++i_data)
+      {
+        if (! isEmpty(data_pp[i_data]) && isCellCentered[i_data])
+        {
+          // if the rank == 0:   --> scalar data
+          // if the rank == 1:   --> vector data
+          // if the rank == 2:   --> tensor data
+
+          switch(getDataPointRank(data_pp[i_data]))
+          {
+          case 0:
+            if (! set_scalar)
+            {
+              sprintf(tmpBuf," Scalars=\"%s\"",names_p[i_data]);
+              strcat(header,tmpBuf);
+              set_scalar=TRUE;
+            }
+            break;
+          case 1:
+            if (! set_vector)
+            {
+              sprintf(tmpBuf," Vectors=\"%s\"",names_p[i_data]);
+	      strcat(header,tmpBuf);
+              set_vector=TRUE;
+            }
+            break;
+          case 2:
+            if (! set_tensor)
+            {
+              sprintf(tmpBuf," Tensors=\"%s\"",names_p[i_data]);
+	      strcat(header,tmpBuf);
+              set_tensor=TRUE;
+            }
+            break;
+          default:
+            sprintf(error_msg, "saveVTK: data %s: Vtk can't handle objects with rank greater than 2.",names_p[i_data]);
+            Finley_setError(VALUE_ERROR,error_msg);
+            return;
+          }
+        }
+      }
+      strcat(header, ">\n");
+      MPI_File_iwrite_shared(fh,header,strlen(header),MPI_CHAR,&req);
+      MPI_Wait(&req,&status);
+    }
+  }
+
+  // write actual data (collective)
+  if(write_celldata)
+  {
+    for (i_data =0 ;i_data<num_data;++i_data)
+    {
+      if (! isEmpty(data_pp[i_data]) && isCellCentered[i_data])
+      {
+        numPointsPerSample = elements->ReferenceElement->numQuadNodes;
+        rank = getDataPointRank(data_pp[i_data]);
+        nComp = getDataPointSize(data_pp[i_data]);
+        nCompReqd=1;   // the number of components required by vtk
+        shape=0;
+        if (rank == 0)
+        {
+          nCompReqd = 1;
+        }
+        else if (rank == 1)
+        {
+          shape=getDataPointShape(data_pp[i_data], 0);
+          if  (shape>3)
+          {
+            Finley_setError(VALUE_ERROR, "saveVTK: rank 1 object must have less then 4 components");
+            return;
+          }
+          nCompReqd = 3;
+        }
+        else
+        {
+          shape=getDataPointShape(data_pp[i_data], 0);
+          if  (shape>3 || shape != getDataPointShape(data_pp[i_data], 1))
+          {
+            Finley_setError(VALUE_ERROR, "saveVTK: rank 2 object must have less then 4x4 components and must have a square shape");
+            return;
+          }
+          nCompReqd = 9;
+        }
+
+        if( myRank == 0)
+        {
+          char header[250];
+          sprintf(header,"<DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
+          MPI_File_iwrite_shared(fh,header,strlen(header),MPI_CHAR,&req);
+          MPI_Wait(&req,&status);
+        }
+
+        // Write the actual data 
+        char tmpbuf[15];
+        char* largebuf = MEMALLOC(nCompReqd*numLocalCells*15 + numLocalCells*nCompReqd + nCompReqd + 15,char);
+        largebuf[0] = '\0';
+        size_t tsz = 0;
+
+        double sampleAvg[nComp];
+
+        for (k=0; k<elementCache.size; k++)
+        {
+          i = elementCache.values[k];
+
+          values = getSampleData(data_pp[i_data], i);
+          // averaging over the number of points in the sample
+          for (n=0; n<nComp; n++)
+          {
+            rtmp = 0.;
+            for (j=0; j<numPointsPerSample; j++) rtmp += values[INDEX2(n,j,nComp)];
+            sampleAvg[k] = rtmp/numPointsPerSample;
+          }
+          // if the number of required components is more than the number
+          // of actual components, pad with zeros
+
+          // probably only need to get shape of first element
+          // write the data different ways for scalar, vector and tensor
+          if (nCompReqd == 1)
+          {
+            sprintf(tmpbuf, " %e", sampleAvg[0]);
+            __STRCAT(largebuf,tmpbuf,tsz)
+          }
+          else if (nCompReqd == 3)
+          {
+            // write out the data
+            for (m=0; m<shape; m++)
+            {
+              sprintf(tmpbuf, " %e", sampleAvg[m]);
+              __STRCAT(largebuf,tmpbuf,tsz)
+            }
+            for (m=0; m<nCompReqd-shape; m++)
+            {
+              __STRCAT(largebuf,zero,tsz)
+            }
+          }
+          else if (nCompReqd == 9)
+          {
+            // tensor data, so have a 3x3 matrix to output as a row
+            // of 9 data points
+            count = 0;
+            for (m=0; m<shape; m++)
+            {
+              for (n=0; n<shape; n++)
+              {
+                sprintf(tmpbuf, " %e", sampleAvg[count]);
+                __STRCAT(largebuf,tmpbuf,tsz)
+                count++;
+              }
+              for (n=0; n<3-shape; n++)
+              {
+                __STRCAT(largebuf,zero,tsz)
+              }
+            }
+            for (m=0; m<3-shape; m++)
+              for (n=0; n<3; n++)
+              {
+                __STRCAT(largebuf,zero,tsz)
+              }
+          }
+          __STRCAT(largebuf,newline,tsz)
+        }
+        largebuf[tsz] = '\0';
+        MPI_File_write_ordered(fh,largebuf,tsz,MPI_CHAR,&status);
+        MEMFREE(largebuf);
+        if( myRank == 0)
+        {
+          char *tag = "</DataArray>\n";
+          MPI_File_iwrite_shared(fh,tag,strlen(tag),MPI_CHAR,&req);
+          MPI_Wait(&req,&status);
+        }
+
+      }
+    }
+    // closing celldata tag
+    if(myRank == 0)
+    {
+      char* tag =  "</CellData>\n";
+      MPI_File_iwrite_shared(fh,tag,strlen(tag),MPI_CHAR,&req);
+      MPI_Wait(&req,&status);
+    }
+
+    MPIO_DEBUG(" Done Writing Cell Data ")
+  }
+
 
   // Write Point Data Header Tags
   if( myRank == 0)
@@ -879,8 +1050,8 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         // if the number of required components is more than the number
         // of actual components, pad with zeros
 
-        char tmpbuf[14];
-        char* largebuf = MEMALLOC(nCompReqd*numLocalNodes*14 + numLocal*nCompReqd + nCompReqd + 14,char);
+        char tmpbuf[15];
+        char* largebuf = MEMALLOC(nCompReqd*numLocalNodes*15 + numLocal*nCompReqd + nCompReqd + 15,char);
         largebuf[0] = '\0';
         bool_t do_write=TRUE;
         size_t tsz = 0;
@@ -931,9 +1102,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
             if (nCompReqd == 1)
             {
               sprintf(tmpbuf," %e", values[0]);
-              __len=strlen(tmpbuf);
-              __STRCAT(largebuf,tmpbuf)
-              tsz+=__len;
+              __STRCAT(largebuf,tmpbuf,tsz)
             }
             else if (nCompReqd == 3)
             {
@@ -941,15 +1110,11 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
               {
 
                 sprintf(tmpbuf," %e",values[m]);
-                __len=strlen(tmpbuf);
-                __STRCAT(largebuf,tmpbuf)
-                tsz+=__len;
+                __STRCAT(largebuf,tmpbuf,tsz)
               }
               for (m=0; m<nCompReqd-shape; m++)
               {
-                __len=13;
-                __STRCAT(largebuf,zero)
-                tsz+=__len;
+                __STRCAT(largebuf,zero,tsz)
               }
             }
             else if (nCompReqd == 9)
@@ -962,36 +1127,29 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
                 for (n=0; n<shape; n++)
                 {
                   sprintf(tmpbuf," %e", values[count]);
-                  __len=strlen(tmpbuf);
-                  __STRCAT(largebuf,tmpbuf)
-                  tsz+=__len;
+                  __STRCAT(largebuf,tmpbuf,tsz)
                   count++;
                 }
                 for (n=0; n<3-shape; n++)
                 {
-                  __len=13;
-                  __STRCAT(largebuf,zero)
-                  tsz+=__len;
+                  __STRCAT(largebuf,zero,tsz)
                 }
               }
               for (m=0; m<3-shape; m++)
               {
                 for (n=0; n<3; n++)
                 {
-                  __len=13;
-                  __STRCAT(largebuf,zero)
-                  tsz+=__len;
-
+                  __STRCAT(largebuf,zero,tsz)
                 }
               }
             }
-            __len=1;
-            __STRCAT(largebuf,newline)
-            tsz+=1;
+            __STRCAT(largebuf,newline,tsz)
           }
 
         }
         // Write out local data
+
+        largebuf[tsz] = '\0';
         MPI_File_write_ordered(fh,largebuf,tsz,MPI_CHAR,&status);
         MEMFREE(largebuf);
         if( myRank == 0)
@@ -1013,213 +1171,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   }
   // end write_pointdata
 
-  // Write Cell data header Tags
-  if(myRank == 0)
-  {
-    if( write_celldata)
-    {
-      char tmpBuf[80];
-      char header[600];
-      // mark the active data arrays
-      bool_t set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
-      sprintf(tmpBuf, "<CellData");
-      strcat(header,tmpBuf);
-      for (i_data =0 ;i_data<num_data;++i_data)
-      {
-        if (! isEmpty(data_pp[i_data]) && isCellCentered[i_data])
-        {
-          // if the rank == 0:   --> scalar data
-          // if the rank == 1:   --> vector data
-          // if the rank == 2:   --> tensor data
-
-          switch(getDataPointRank(data_pp[i_data]))
-          {
-          case 0:
-            if (! set_scalar)
-            {
-              sprintf(tmpBuf," Scalars=\"%s\"",names_p[i_data]);
-              strcat(header,tmpBuf);
-              set_scalar=TRUE;
-            }
-            break;
-          case 1:
-            if (! set_vector)
-            {
-              sprintf(tmpBuf," Vectors=\"%s\"",names_p[i_data]);
-              set_vector=TRUE;
-            }
-            break;
-          case 2:
-            if (! set_tensor)
-            {
-              sprintf(tmpBuf," Tensors=\"%s\"",names_p[i_data]);
-              set_tensor=TRUE;
-            }
-            break;
-          default:
-            sprintf(error_msg, "saveVTK: data %s: Vtk can't handle objects with rank greater than 2.",names_p[i_data]);
-            Finley_setError(VALUE_ERROR,error_msg);
-            return;
-          }
-        }
-      }
-      strcat(header, ">\n");
-      MPI_File_iwrite_shared(fh,header,strlen(header),MPI_CHAR,&req);
-      MPI_Wait(&req,&status);
-    }
-  }
-
-  // write actual data (collective)
-  if(write_celldata)
-  {
-    for (i_data =0 ;i_data<num_data;++i_data)
-    {
-      if (! isEmpty(data_pp[i_data]) && isCellCentered[i_data])
-      {
-        numPointsPerSample = elements->ReferenceElement->numQuadNodes;
-        rank = getDataPointRank(data_pp[i_data]);
-        nComp = getDataPointSize(data_pp[i_data]);
-        nCompReqd=1;   // the number of components required by vtk
-        shape=0;
-        if (rank == 0)
-        {
-          nCompReqd = 1;
-        }
-        else if (rank == 1)
-        {
-          shape=getDataPointShape(data_pp[i_data], 0);
-          if  (shape>3)
-          {
-            Finley_setError(VALUE_ERROR, "saveVTK: rank 1 object must have less then 4 components");
-            return;
-          }
-          nCompReqd = 3;
-        }
-        else
-        {
-          shape=getDataPointShape(data_pp[i_data], 0);
-          if  (shape>3 || shape != getDataPointShape(data_pp[i_data], 1))
-          {
-            Finley_setError(VALUE_ERROR, "saveVTK: rank 2 object must have less then 4x4 components and must have a square shape");
-            return;
-          }
-          nCompReqd = 9;
-        }
-
-        if( myRank == 0)
-        {
-          char header[250];
-          sprintf(header,"<DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
-          MPI_File_iwrite_shared(fh,header,strlen(header),MPI_CHAR,&req);
-          MPI_Wait(&req,&status);
-        }
-
-        // Write the actual data */
-        char tmpbuf[14];
-        char* largebuf = MEMALLOC(nCompReqd*numLocalCells*14 + numLocalCells*nCompReqd + nCompReqd + 14,char);
-        largebuf[0] = '\0';
-        size_t tsz = 0;
-
-        double sampleAvg[nComp];
-
-        for (k=0; i<elementCache.size; k++)
-        {
-          i = elementCache.values[k];
-
-          values = getSampleData(data_pp[i_data], i);
-          // averaging over the number of points in the sample
-          for (k=0; k<nComp; k++)
-          {
-            rtmp = 0.;
-            for (j=0; j<numPointsPerSample; j++) rtmp += values[INDEX2(k,j,nComp)];
-            sampleAvg[k] = rtmp/numPointsPerSample;
-          }
-          // if the number of required components is more than the number
-          // of actual components, pad with zeros
-
-          // probably only need to get shape of first element
-          // write the data different ways for scalar, vector and tensor
-          if (nCompReqd == 1)
-          {
-            sprintf(tmpbuf, " %e", sampleAvg[0]);
-            __len=strlen(tmpbuf);
-            __STRCAT(largebuf,tmpbuf)
-            tsz+=__len;
-          }
-          else if (nCompReqd == 3)
-          {
-            // write out the data
-            for (m=0; m<shape; m++)
-            {
-              sprintf(tmpbuf, " %e", sampleAvg[m]);
-              __len=strlen(tmpbuf);
-              __STRCAT(largebuf,tmpbuf)
-              tsz+=__len;
-            }
-            for (m=0; m<nCompReqd-shape; m++)
-            {
-              tsz+=13;
-              strcat(largebuf," 0.000000e+00");
-
-            }
-          }
-          else if (nCompReqd == 9)
-          {
-            // tensor data, so have a 3x3 matrix to output as a row
-            // of 9 data points
-            count = 0;
-            for (m=0; m<shape; m++)
-            {
-              for (n=0; n<shape; n++)
-              {
-                sprintf(tmpbuf, " %e", sampleAvg[count]);
-                __len=strlen(tmpbuf);
-                __STRCAT(largebuf,tmpbuf)
-                tsz+=__len;;
-
-
-                count++;
-              }
-              for (n=0; n<3-shape; n++)
-              {
-                __len=13;
-                __STRCAT(largebuf,zero)
-                tsz+=13;
-              }
-            }
-            for (m=0; m<3-shape; m++)
-              for (n=0; n<3; n++)
-              {
-                __len=13;
-                __STRCAT(largebuf,zero)
-                tsz+=13;
-              }
-          }
-          __len=1;
-          __STRCAT(largebuf,newline)
-          tsz+=1;
-        }
-        MPI_File_write_ordered(fh,largebuf,tsz,MPI_CHAR,&status);
-        MEMFREE(largebuf);
-        if( myRank == 0)
-        {
-          char *tag = "</DataArray>\n";
-          MPI_File_iwrite_shared(fh,tag,strlen(tag),MPI_CHAR,&req);
-          MPI_Wait(&req,&status);
-        }
-
-      }
-    }
-    // closing celldata tag
-    if(myRank == 0)
-    {
-      char* tag =  "</CellData>\n";
-      MPI_File_iwrite_shared(fh,tag,strlen(tag),MPI_CHAR,&req);
-      MPI_Wait(&req,&status);
-    }
-  }
-
-  /* tag and bag... */
+  // tag and bag...  
   if (myRank == 0)
   {
     char *footer = "</Piece>\n</UnstructuredGrid>\n</VTKFile>";
@@ -1234,7 +1186,6 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   MPI_Info_free(&infoHints);
 #undef MPIO_HINTS
 #endif
-  printf("\nTime: %f \n",  Paso_timer() - time0);
   MPI_File_close(&fh);
   MPIO_DEBUG(" ***** Exit saveVTK ***** ")
 #undef __STRCAT
