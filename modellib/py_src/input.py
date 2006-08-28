@@ -128,12 +128,10 @@ class InterpolateOverBox(ParameterSet):
         if self.domain.getDim() == 2:
             x0,x1=x[0],x[1]
             left_bottom_front0,right_top_back0=inf(x0),sup(x0)
-            left_bottom_front1,right_top_back1=inf(x[1]),sup(x[1])
-            f_right = (x[0] - self.left_bottom_front0)/\
-		 (self.right_top_back0 - self.left_bottom_front0)
+            left_bottom_front1,right_top_back1=inf(x1),sup(x1)
+            f_right = (x0 - left_bottom_front0)/(right_top_back0 -left_bottom_front0)
             f_left = 1. - f_right
-            f_top = (x[1] - self.left_bottom_front1)/\
-		 (self.right_top_back1 - self.left_bottom_front1)
+            f_top = (x1 - left_bottom_front1)/(right_top_back1 - left_bottom_front1)
             f_bottom = 1. - f_top
             out = f_left * f_bottom * self.value_left_bottom_front \
                 + f_right * f_bottom * self.value_right_bottom_front \
@@ -142,16 +140,13 @@ class InterpolateOverBox(ParameterSet):
         else:
             x0,x1,x2=x[0],x[1],x[2]
             left_bottom_front0,right_top_back0=inf(x0),sup(x0)
-            left_bottom_front1,right_top_back1=inf(x[1]),sup(x[1])
-            left_bottom_front2,right_top_back2=inf(x[2]),sup(x[2])
-            f_right = (x[0] - self.left_bottom_front0)/\
-                    (self.right_top_back0 - self.left_bottom_front0)
+            left_bottom_front1,right_top_back1=inf(x1),sup(x1)
+            left_bottom_front2,right_top_back2=inf(x2),sup(x2)
+            f_right = (x0 - left_bottom_front0)/(right_top_back0 - left_bottom_front0)
             f_left = 1. - f_right
-            f_top = (x[1] - self.left_bottom_front1)/\
-                    (self.right_top_back1 - self.left_bottom_front1)
+            f_top = (x1 - left_bottom_front1)/(right_top_back1 - left_bottom_front1)
             f_bottom = 1. - f_top
-            f_back = (x[2] - self.left_bottom_front1)/\
-                    (self.right_top_back2 - self.left_bottom_front2)
+            f_back = (x2 - left_bottom_front1)/(right_top_back2 - left_bottom_front2)
             f_front = 1. - f_back
             out = f_left * f_bottom * f_front * self.value_left_bottom_front\
                 + f_right * f_bottom * f_front * self.value_right_bottom_front\

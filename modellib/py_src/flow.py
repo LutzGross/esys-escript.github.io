@@ -35,7 +35,7 @@ class SteadyIncompressibleFlow(Model):
                                  internal_force=0., \
                                  location_prescribed_velocity=Data(), \
                                  prescribed_velocity=Data(), \
-                                 rel_tol=1.e-3,abs_tol=0.,max_iter=10,relaxation=0.001)
+                                 rel_tol=1.e-3,abs_tol=0.,max_iter=10,relaxation=0.0001)
            self.__iter=0
 
        def doInitialization(self):
@@ -46,6 +46,7 @@ class SteadyIncompressibleFlow(Model):
            self.__p_very_old=None
            self.__dt_old=None
            self.__pde=LameEquation(self.domain)
+           self.__pde.setSolverMethod(LameEquation.DIRECT)
 
        def stress(self):
            """

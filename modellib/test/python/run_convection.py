@@ -29,6 +29,17 @@ except KeyError:
 dom=RectangularDomain()
 dom.order=2
 
+temp_val=InterpolateOverBox()
+temp_val.domain=Link(dom,"domain")
+temp_val.value_left_bottom_front=1.
+temp_val.value_right_bottom_front=1.
+temp_val.value_left_top_front=0.
+temp_val.value_right_top_front=0.
+temp_val.value_left_bottom_back=1.
+temp_val.value_right_bottom_back=1.
+temp_val.value_left_top_back=0.
+temp_val.value_right_top_back=0.
+
 temp_constraints=ScalarConstrainer()
 temp_constraints.domain=Link(dom)
 temp_constraints.top=1
@@ -42,18 +53,6 @@ vel_constraints.top=[0,1,0]
 vel_constraints.bottom=[0,1,0]
 vel_constraints.front=[0,0,1]
 vel_constraints.back=[0,0,1]
-
-
-temp_val=InterpolateOverBox()
-temp_val.domain=Link(dom,"domain")
-temp_val.value_left_bottom_front=1.
-temp_val.value_right_bottom_front=1.
-temp_val.value_left_top_front=0.
-temp_val.value_right_top_front=0.
-temp_val.value_left_bottom_back=1.
-temp_val.value_right_bottom_back=1.
-temp_val.value_left_top_back=0.
-temp_val.value_right_top_back=0.
 
 mat=SimpleEarthModel()
 mat.density0=1.
@@ -87,13 +86,13 @@ vel.rel_tol=1.e-6
 temp.velocity=Link(vel,"velocity")
 
 sq=Sequencer()
-sq.t_end=0.005
+sq.t_end=0.001
 
 vis=WriteVTK()
 vis.t=Link(sq)
 vis.scalar=Link(temp,"temperature")
 vis.vector=Link(vel,"velocity")
-vis.dt=0.0005
+vis.dt=0.0001
 vis.filename=WORKDIR+"/temp.xml"
 
 per=GaussianProfile()
@@ -110,6 +109,6 @@ lc.f1=1.
 lc.v1=Link(temp_val,"out")
 temp.temperature=Link(lc,"out")
 
-s=Simulation([sq,dom,Simulation([vel],debug=True),temp,vis],debug=True)
+s=Simulation([sq,dom,vel_constraints,temp_constraints,Simulation([vel],debug=True),temp,vis],debug=True)
 s.writeXML()
 s.run()
