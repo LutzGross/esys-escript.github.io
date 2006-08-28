@@ -71,18 +71,23 @@ else:
     _renderer.SetBackground(1,1,1)
     
     # load the vtk file
-    _dataReader = vtk.vtkDataSetReader()
+    _dataReader = vtk.vtkXMLUnstructuredGridReader()
     #_dataReader.SetFileName("Flinders_ranges.vtk")
-    _dataReader.SetFileName("t.vtk")
+    _dataReader.SetFileName("/home/gross/tmp/jump_final_precon.xml")
 	
     # set up the data
-    _dataMapper = vtk.vtkDataSetMapper()
-    _dataMapper.SetInput(_dataReader.GetOutput())
-    _dataMapper.ScalarVisibilityOff()  # what exactly does this do?
+    # _dataMapper = vtk.vtkDataSetMapper()
+    # _dataMapper.SetInput(_dataReader.GetOutput())
+    # _dataMapper.ScalarVisibilityOff()  # what exactly does this do?
+
+    _plotContour = vtk.vtkContourGrid()
+    _plotContour.SetInput(_dataReader.GetOutput())
+    # _plotContour.GenerateValues(5)
+
 
     # set up the actor for viewing it
     _dataActor = vtk.vtkActor()
-    _dataActor.SetMapper(_dataMapper)
+    _dataActor.SetMapper(_plotContour)
     _dataActor.GetProperty().SetColor(0.2,0.2,0.2)
     _dataActor.GetProperty().SetRepresentationToWireframe()
     
@@ -96,6 +101,6 @@ else:
     _renderWindow.Render()
     _iRenderer.Start()
 
-    raw_input("Press enter to continue")
+    # raw_input("Press enter to continue")
 
 # vim: expandtab shiftwidth=4:

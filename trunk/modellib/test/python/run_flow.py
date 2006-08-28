@@ -31,7 +31,7 @@ constraints.front=[0,0,1]
 constraints.back=[0,0,1]
 
 sqe=Sequencer()
-sqe.dt_max=0.3
+sqe.dt_max=0.5
 sqe.t_end=1.
 
 source=EvaluateExpression()
@@ -50,6 +50,6 @@ ptest.expression="(x[0]+x[1]-1.)*t"
 ptest.t=Link(sqe)
 ptest.value=Link(flow,"pressure")
 
-s=Simulation([sqe,dom,Simulation([flow],debug=True),ptest],debug=True)
+s=Simulation([sqe,dom,constraints,Simulation([flow],debug=True),ptest],debug=True)
 s.writeXML()
 s.run()

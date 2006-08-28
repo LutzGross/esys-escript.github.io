@@ -23,18 +23,23 @@ __date__="$Date$"
 
 
 # what plotting method are we using?
-method = 'pyvisi'
+method = 'vtk'
 
 # set up some data to plot
-from Numeric import *
+# from Numeric import *
+from numarray import *
 
 # the x and y axes
-x = arange(-2,2,0.2, typecode=Float)
-y = arange(-2,3,0.2, typecode=Float)
+# x = arange(-2,2,0.2, typecode=Float)
+# y = arange(-2,3,0.2, typecode=Float)
+
+x = arange(-2,2,0.2, type=Float)
+y = arange(-2,3,0.2, type=Float)
 
 # pick some interesting function to generate the data in the third dimension
 # this is the one used in the matlab docs: z = x*exp(-x^2-y^2)
-z = zeros((len(x),len(y)), typecode=Float)
+# z = zeros((len(x),len(y)), typecode=Float)
+z = zeros((len(x),len(y)), type=Float)
 
 # boy do *I* feel old fashioned writing it this way
 # surely there's another way to do it: - something to do later
@@ -99,8 +104,8 @@ elif method == 'vtk':
             _points.InsertPoint(_index, x[_i], y[_j], 0)
             _scalars.InsertValue(_index, z[_i,_j])
 
-    zMin = min(min(z))
-    zMax = max(max(z))
+    zMin = minval(minval(z))
+    zMax = maxval(maxval(z))
 
     _data = vtk.vtkUnstructuredGrid()
     _data.SetPoints(_points)

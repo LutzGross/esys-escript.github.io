@@ -27,10 +27,10 @@ class Domain(Model):
            initializes the object
            """
            super(Domain, self).__init__(debug=debug)
-           self.declareParameter(displacement=None,\
+           self.declareParameter(domain=None,\
+                                 displacement=None,\
                                  integrationOrder=-1)
 
-           self.__updated=False
 
       def doInitialization(self):
          """
@@ -44,9 +44,7 @@ class Domain(Model):
          """
          applies the final L{displacement} to mesh nodes. 
          """
-         if self.displacement: 
-              self.domain.setX(self.__x+self.displacement)
-              self.__update=False
+         self.__updated=False
 
       def doStep(self,dt):
          """
@@ -164,31 +162,31 @@ class ScalarConstrainer(Model):
                                  front=False, \
                                  back=False, \
                                  tol=1.e-8, \
-                                 constraint_value = None,  \
-                                 location_constrained_value=None)
-           self._location_of_constraint=None
+                                 value_of_constraint = None,  \
+                                 location_of_constraint=None)
+           self.location_of_constraint=None
 
      def doInitialization(self):
           """
           Returns the mask of the location of constraint.
           """
           x=self.domain.getX()
-          self._location_of_constraint=Scalar(0,x.getFunctionSpace())
+          self.location_of_constraint=Scalar(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
                 x0,x1,x2=x[0],x[1],x[2]
-                if self.left: self._location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self._location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.front: self._location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.back: self._location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-                if self.bottom: self._location_of_constraint+=whereZero(x2-inf(x2),self.tol)
-                if self.top: self._location_of_constraint+=whereZero(x2-sup(x2),self.tol)
+                if self.left: self.location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                if self.right: self.location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                if self.front: self.location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                if self.back: self.location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+                if self.bottom: self.location_of_constraint+=whereZero(x2-inf(x2),self.tol)
+                if self.top: self.location_of_constraint+=whereZero(x2-sup(x2),self.tol)
           else:
                 x0,x1=x[0],x[1]
-                if self.left: self._location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self._location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.bottom: self._location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.top: self._location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-          self.constraint_value=self.location_constrained_value*self.value
+                if self.left: self.location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                if self.right: self.location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                if self.bottom: self.location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                if self.top: self.location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+          self.value_of_constraint=self.location_of_constraint*self.value
 
 class VectorConstrainer(Model):
       """
@@ -225,56 +223,56 @@ class VectorConstrainer(Model):
                                  front=[0,0,0], \
                                  ack=[0,0,0], \
                                  tol=1.e-8, \
-                                 constraint_value = None,  \
-                                 location_constrained_value=None)
-           self._location_of_constraint=None
+                                 value_of_constraint = None,  \
+                                 location_of_constraint=None)
+           self.location_of_constraint=None
       def doInitialization(self):
           """
-          sets the location_constrained_value and constraint_value to be kept throughout the simulation.
+          sets the location_of_constraint and value_of_constraint to be kept throughout the simulation.
           """
-          if self._location_of_constraint==None:
+          if self.location_of_constraint==None:
              x=self.domain.getX()
-             self._location_of_constraint=Vector(0,x.getFunctionSpace())
+             self.location_of_constraint=Vector(0,x.getFunctionSpace())
              if self.domain.getDim()==3:
                 x0,x1,x2=x[0],x[1],x[2]
                 left_mask=whereZero(x0-inf(x0),self.tol)
-                if self.left[0]: self._location_of_constraint+=left_mask*[1.,0.,0.]
-                if self.left[1]: self._location_of_constraint+=left_mask*[0.,1.,0.]
-                if self.left[2]: self._location_of_constraint+=left_mask*[0.,0.,1.]
+                if self.left[0]: self.location_of_constraint+=left_mask*[1.,0.,0.]
+                if self.left[1]: self.location_of_constraint+=left_mask*[0.,1.,0.]
+                if self.left[2]: self.location_of_constraint+=left_mask*[0.,0.,1.]
                 right_mask=whereZero(x0-sup(x0),self.tol)
-                if self.right[0]: self._location_of_constraint+=right_mask*[1.,0.,0.]
-                if self.right[1]: self._location_of_constraint+=right_mask*[0.,1.,0.]
-                if self.right[2]: self._location_of_constraint+=right_mask*[0.,0.,1.]
+                if self.right[0]: self.location_of_constraint+=right_mask*[1.,0.,0.]
+                if self.right[1]: self.location_of_constraint+=right_mask*[0.,1.,0.]
+                if self.right[2]: self.location_of_constraint+=right_mask*[0.,0.,1.]
                 front_mask=whereZero(x1-inf(x1),self.tol)
-                if self.front[0]: self._location_of_constraint+=front_mask*[1.,0.,0.]
-                if self.front[1]: self._location_of_constraint+=front_mask*[0.,1.,0.]
-                if self.front[2]: self._location_of_constraint+=front_mask*[0.,0.,1.]
+                if self.front[0]: self.location_of_constraint+=front_mask*[1.,0.,0.]
+                if self.front[1]: self.location_of_constraint+=front_mask*[0.,1.,0.]
+                if self.front[2]: self.location_of_constraint+=front_mask*[0.,0.,1.]
                 back_mask=whereZero(x1-sup(x1),self.tol)
-                if self.back[0]: self._location_of_constraint+=back_mask*[1.,0.,0.]
-                if self.back[1]: self._location_of_constraint+=back_mask*[0.,1.,0.]
-                if self.back[2]: self._location_of_constraint+=back_mask*[0.,0.,1.]
+                if self.back[0]: self.location_of_constraint+=back_mask*[1.,0.,0.]
+                if self.back[1]: self.location_of_constraint+=back_mask*[0.,1.,0.]
+                if self.back[2]: self.location_of_constraint+=back_mask*[0.,0.,1.]
                 bottom_mask=whereZero(x2-inf(x2),self.tol)
-                if self.bottom[0]: self._location_of_constraint+=bottom_mask*[1.,0.,0.]
-                if self.bottom[1]: self._location_of_constraint+=bottom_mask*[0.,1.,0.]
-                if self.bottom[2]: self._location_of_constraint+=bottom_mask*[0.,0.,1.]
+                if self.bottom[0]: self.location_of_constraint+=bottom_mask*[1.,0.,0.]
+                if self.bottom[1]: self.location_of_constraint+=bottom_mask*[0.,1.,0.]
+                if self.bottom[2]: self.location_of_constraint+=bottom_mask*[0.,0.,1.]
                 top_mask=whereZero(x2-sup(x2),self.tol)
-                if self.top[0]: self._location_of_constraint+=top_mask*[1.,0.,0.]
-                if self.top[1]: self._location_of_constraint+=top_mask*[0.,1.,0.]
-                if self.top[2]: self._location_of_constraint+=top_mask*[0.,0.,1.]
+                if self.top[0]: self.location_of_constraint+=top_mask*[1.,0.,0.]
+                if self.top[1]: self.location_of_constraint+=top_mask*[0.,1.,0.]
+                if self.top[2]: self.location_of_constraint+=top_mask*[0.,0.,1.]
              else:
                 x0,x1=x[0],x[1]
                 left_mask=whereZero(x0-inf(x0),self.tol)
-                if self.left[0]: self._location_of_constraint+=left_mask*[1.,0.]
-                if self.left[1]: self._location_of_constraint+=left_mask*[0.,1.]
+                if self.left[0]: self.location_of_constraint+=left_mask*[1.,0.]
+                if self.left[1]: self.location_of_constraint+=left_mask*[0.,1.]
                 right_mask=whereZero(x0-sup(x0),self.tol)
-                if self.right[0]: self._location_of_constraint+=right_mask*[1.,0.]
-                if self.right[1]: self._location_of_constraint+=right_mask*[0.,1.]
+                if self.right[0]: self.location_of_constraint+=right_mask*[1.,0.]
+                if self.right[1]: self.location_of_constraint+=right_mask*[0.,1.]
                 bottom_mask=whereZero(x1-inf(x1),self.tol)
-                if self.bottom[0]: self._location_of_constraint+=bottom_mask*[1.,0.]
-                if self.bottom[1]: self._location_of_constraint+=bottom_mask*[0.,1.]
+                if self.bottom[0]: self.location_of_constraint+=bottom_mask*[1.,0.]
+                if self.bottom[1]: self.location_of_constraint+=bottom_mask*[0.,1.]
                 top_mask=whereZero(x1-sup(x1),self.tol)
-                if self.top[0]: self._location_of_constraint+=top_mask*[1.,0.]
-                if self.top[1]: self._location_of_constraint+=top_mask*[0.,1.]
-          self.constraint_value=self.location_constrained_value*self.value
+                if self.top[0]: self.location_of_constraint+=top_mask*[1.,0.]
+                if self.top[1]: self.location_of_constraint+=top_mask*[0.,1.]
+          self.value_of_constraint=self.location_of_constraint*self.value
 
 # vim: expandtab shiftwidth=4:
