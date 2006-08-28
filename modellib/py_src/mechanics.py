@@ -15,20 +15,20 @@ class Mechanics(Model):
       base class for mechanics models in updated lagrangean framework
 
       @ivar domain: domain (in)
-      @ivar internal_force=Data()
-      @ivar external_force=Data()
-      @ivar prescribed_velocity=Data()
-      @ivar location_prescribed_velocity=Data()
-      @ivar temperature = None
-      @ivar expansion_coefficient = 0.
-      @ivar bulk_modulus=1.
-      @ivar shear_modulus=1.
-      @ivar rel_tol=1.e-3
-      @ivar abs_tol=1.e-15
-      @ivar max_iter=10
-      @ivar displacement=None
-      @ivar stress=None
-      @ivar velocity=None
+      @ivar internal_force: =Data()
+      @ivar external_force: =Data()
+      @ivar prescribed_velocity: =Data()
+      @ivar location_prescribed_velocity: =Data()
+      @ivar temperature:  = None
+      @ivar expansion_coefficient:  = 0.
+      @ivar bulk_modulus: =1.
+      @ivar shear_modulus: =1.
+      @ivar rel_tol: =1.e-3
+      @ivar abs_tol: =1.e-15
+      @ivar max_iter: =10
+      @ivar displacement: =None
+      @ivar stress: =None
+      @ivar velocity: =None
       """
       def __init__(self,debug=False):
          """
@@ -48,7 +48,7 @@ class Mechanics(Model):
                                location_prescribed_velocity=Data(), \
                                temperature = None, \
                                expansion_coefficient = 0., \
-                               bulk_modulus=1., \
+                               bulk_modulus=2., \
                                shear_modulus=1., \
                                rel_tol=1.e-3,abs_tol=1.e-15,max_iter=10)
          self.__iter=0
@@ -61,6 +61,7 @@ class Mechanics(Model):
            if not self.velocity: self.velocity=Vector(0.,ContinuousFunction(self.domain))
            if not self.stress: self.stress=Tensor(0.,ContinuousFunction(self.domain))
            self.__pde=LinearPDE(self.domain)
+           self.__pde.setSymmetryOn()
            self.__displacement_old=self.displacement
            self.stress_old=self.stress
            self.__velocity_old=self.velocity
@@ -103,19 +104,20 @@ class Mechanics(Model):
           self.__pde.setValue(X=self.stress_old-self.dthermal_stress*k3)
           if self.internal_force: self.__pde.setValue(Y=self.internal_force)
           if self.external_force: self.__pde.setValue(y=self.external_force)
-          print self.prescribed_velocity
-          print self.location_prescribed_velocity
           self.__pde.setValue(r=self.prescribed_velocity, \
                               q=self.location_prescribed_velocity)
           # solve the PDE:
           self.__pde.setTolerance(self.rel_tol/100.)
-          self.velocity=self.__pde.getSolution()
+          self.velocity=self.__pde.getSolution(verbose=True)
           # calculate convergence indicators:
           self.__diff,diff_old=Lsup(self.velocity-self.__velocity_last),self.__diff
           self.__velocity_last=self.velocity
           self.displacement=self.__displacement_old+dt*self.velocity
           self.__iter+=1
-          self.trace("velocity range %e:%e"%(inf(self.velocity),sup(self.velocity)))
+          if self.debug:
+             for i in range(self.domain.getDim()):
+                self.trace("velocity %d range %e:%e"%(i,inf(self.velocity[i]),sup(self.velocity[i])))
+             self.trace("velocity increment %s"%self.__diff)
           if self.__iter>2 and diff_old<self.__diff:
               raise IterationDivergenceError,"no improvement in stress iteration"
           if self.__iter>self.max_iter:
@@ -159,7 +161,7 @@ class DruckerPrager(Mechanics):
            self.declareParameter(plastic_stress=0.,
                                  friction_parameter=0.,
                                  dilatancy_parameter=0.,
-                                 shear_length=0.)
+                                 shear_length=1.e15)
 
       def doInitialization(self):
            """
@@ -237,7 +239,7 @@ class DruckerPrager(Mechanics):
            S=G*(swap_axes(k3Xk3,1,2)+swap_axes(k3Xk3,1,3)) \
                + (K-2./3*G)*k3Xk3 \
                + sXk3-swap_axes(sXk3,1,3) \
-               + 1./2*(swap_axes(sXk3,0,3)+swap_axes(sXk3,1,2) \
-                      -swap_axes(sXk3,1,3)-swap_axes(sXk3,0,2))
+               + 1./2*(swap_axes(sXk3,0,3)-swap_axes(sXk3,1,2) \
+                      -swap_axes(sXk3,1,3)+swap_axes(sXk3,0,2))
                # - chi/(h+G+alpha*beta*K)*outer(tmp+beta*K*k3,tmp+alpha*K*k3)\
            return S
