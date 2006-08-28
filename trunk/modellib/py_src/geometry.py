@@ -38,27 +38,30 @@ class Domain(Model):
          """
          self.__x=self.domain.getX()
          if self.displacement: 
+              self.trace("mesh nodes updated in initialization.")
               self.domain.setX(self.__x+self.displacement)
          
       def doStepPreprocessing(self,dt):
          """
          applies the final L{displacement} to mesh nodes. 
          """
-         self.__updated=False
+         self.__do_final_update=True
 
       def doStep(self,dt):
          """
          applies the current L{displacement} to mesh nodes. 
          """
          if self.displacement: 
+              self.trace("mesh nodes updated in update.")
               self.domain.setX(self.__x+self.displacement)
-              self.__update=False
+              self.__do_final_update=False
 
       def doStepPostprocessing(self,dt):
          """
          applies the final L{displacement} to mesh nodes. 
          """
-         if self.displacement: 
+         if self.displacement and self.__do_final_update:
+              self.trace("final mesh nodes update.")
               self.domain.setX(self.__x+self.displacement)
               self.__update=False
 
@@ -164,8 +167,6 @@ class ScalarConstrainer(Model):
                                  tol=1.e-8, \
                                  value_of_constraint = None,  \
                                  location_of_constraint=None)
-           self.location_of_constraint=None
-
      def doInitialization(self):
           """
           Returns the mask of the location of constraint.
@@ -215,17 +216,16 @@ class VectorConstrainer(Model):
       def __init__(self,debug=False):
            ParameterSet.__init__(self,debug=debug)
            self.declareParameter(domain=None, \
-                                 value=0,  \
+                                 value=[0,0,0],  \
                                  left=[0,0,0],  \
                                  right=[0,0,0],  \
                                  top=[0,0,0],  \
                                  bottom=[0,0,0],  \
                                  front=[0,0,0], \
-                                 ack=[0,0,0], \
+                                 back=[0,0,0], \
                                  tol=1.e-8, \
                                  value_of_constraint = None,  \
                                  location_of_constraint=None)
-           self.location_of_constraint=None
       def doInitialization(self):
           """
           sets the location_of_constraint and value_of_constraint to be kept throughout the simulation.
@@ -259,6 +259,7 @@ class VectorConstrainer(Model):
                 if self.top[0]: self.location_of_constraint+=top_mask*[1.,0.,0.]
                 if self.top[1]: self.location_of_constraint+=top_mask*[0.,1.,0.]
                 if self.top[2]: self.location_of_constraint+=top_mask*[0.,0.,1.]
+                self.value_of_constraint=self.location_of_constraint*self.value
              else:
                 x0,x1=x[0],x[1]
                 left_mask=whereZero(x0-inf(x0),self.tol)
@@ -273,6 +274,6 @@ class VectorConstrainer(Model):
                 top_mask=whereZero(x1-sup(x1),self.tol)
                 if self.top[0]: self.location_of_constraint+=top_mask*[1.,0.]
                 if self.top[1]: self.location_of_constraint+=top_mask*[0.,1.]
-          self.value_of_constraint=self.location_of_constraint*self.value
+                self.value_of_constraint=self.location_of_constraint*self.value[:2]
 
 # vim: expandtab shiftwidth=4:
