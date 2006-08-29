@@ -20,11 +20,21 @@ __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from common import PyvisiObject
+import vtk
 
-class DataCollector(PyvisiObject):
-    """
-    a collector for data, typically read from file or from an escript object
-    """
-    pass
+class DataCollector:
+
+	def __init__(self, outline = True):
+		self.outline = True
+		self.file_name = None
+		self.vtk_xml_reader = None
+
+	def setSource(self, file_name):
+		self.file_name = file_name
+		self.vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
+		self.vtk_xml_reader.SetFileName(self.file_name)
+
+	def getReader(self):
+		return self.vtk_xml_reader
+
 
