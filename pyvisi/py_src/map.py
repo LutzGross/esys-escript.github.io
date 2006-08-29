@@ -18,17 +18,34 @@ __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from common import Component
+import vtk
 
-class Map(Component):
-    """
-    shows scalar data by color on the domain surface
-    """
-    pass
+class Map:
 
+	def __init__(self, scene, data_collector):
+		self.scene = scene
+		self.data_collector = data_collector
+		self.vtk_xml_mapper = None
+		self.vtk_xml_actor = None
 
-class MapOnPlane(Component):
-    """
-    shows scalar data by color on a given plane
-    """
-    pass
+		self.setMapper()
+		self.setActor()
+
+	def setMapper(self):
+		self.vtk_xml_mapper = vtk.vtkDataSetMapper()
+		self.vtk_xml_mapper.SetInput(
+			self.data_collector.getReader().GetOutput())
+	
+	def setActor(self):
+		self.vtk_xml_actor = vtk.vtkActor()
+		self.vtk_xml_actor.SetMapper(self.vtk_xml_mapper)
+
+		self.scene.getRenderer().AddActor(self.vtk_xml_actor)
+
+	
+
+"""
+class MapOnPlane():
+shows scalar data by color on a given plane
+"""
+pass
