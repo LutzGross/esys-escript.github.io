@@ -2592,10 +2592,11 @@ escript::C_GeneralTensorProduct(Data& arg_0,
   #endif
 
   // Interpolate if necessary and find an appropriate function space
+  Data arg_Z;
   if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
     if (arg_0.probeInterpolation(arg_1.getFunctionSpace())) {
-      Data arg_0_tmp = arg_0.interpolate(arg_1.getFunctionSpace());
-      arg_0=arg_0_tmp;
+      arg_Z = arg_0.interpolate(arg_1.getFunctionSpace());
+      // arg_0=arg_Z;
     }
     else if (arg_1.probeInterpolation(arg_0.getFunctionSpace())) {
       arg_1=arg_1.interpolate(arg_0.getFunctionSpace());
@@ -2605,9 +2606,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     }
   }
   // Get rank and shape of inputs
-  int rank0 = arg_0.getDataPointRank();
+  int rank0 = arg_Z.getDataPointRank();
   int rank1 = arg_1.getDataPointRank();
-  DataArrayView::ShapeType shape0 = arg_0.getDataPointShape();
+  DataArrayView::ShapeType shape0 = arg_Z.getDataPointShape();
   DataArrayView::ShapeType shape1 = arg_1.getDataPointShape();
 
   // Prepare for the loops of the product and verify compatibility of shapes
@@ -2654,23 +2655,23 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
   // Define the shape of the output
   DataArrayView::ShapeType shape2;
-  for (int i=0; i<rank0-axis_offset; i++) { shape2.push_back(tmpShape0[i]); } // First part of arg_0
+  for (int i=0; i<rank0-axis_offset; i++) { shape2.push_back(tmpShape0[i]); } // First part of arg_Z
   for (int i=axis_offset; i<rank1; i++)   { shape2.push_back(tmpShape1[i]); } // Last part of arg_1
 
   // Declare output Data object
   Data arg_2;
 
-  if      (arg_0.isConstant()   && arg_1.isConstant()) {
+  if      (arg_Z.isConstant()   && arg_1.isConstant()) {
     arg_2 = Data(0.0, shape2, arg_1.getFunctionSpace());	// DataConstant output
-    double *ptr_0 = &((arg_0.getPointDataView().getData())[0]);
+    double *ptr_0 = &((arg_Z.getPointDataView().getData())[0]);
     double *ptr_1 = &((arg_1.getPointDataView().getData())[0]);
     double *ptr_2 = &((arg_2.getPointDataView().getData())[0]);
     matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
   }
-  else if (arg_0.isConstant()   && arg_1.isTagged()) {
+  else if (arg_Z.isConstant()   && arg_1.isTagged()) {
 
     // Prepare the DataConstant input
-    DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0.borrowData());
+    DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_Z.borrowData());
     if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
 
     // Borrow DataTagged input from Data object
@@ -2685,7 +2686,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     // Prepare offset into DataConstant
     int offset_0 = tmp_0->getPointOffset(0,0);
-    double *ptr_0 = &((arg_0.getPointDataView().getData())[offset_0]);
+    double *ptr_0 = &((arg_Z.getPointDataView().getData())[offset_0]);
     // Get the views
     DataArrayView view_1 = tmp_1->getDefaultValue();
     DataArrayView view_2 = tmp_2->getDefaultValue();
@@ -2707,10 +2708,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     }
 
   }
-  else if (arg_0.isConstant()   && arg_1.isExpanded()) {
+  else if (arg_Z.isConstant()   && arg_1.isExpanded()) {
 
     arg_2 = Data(0.0, shape2, arg_1.getFunctionSpace(),true); // DataExpanded output
-    DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0.borrowData());
+    DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_Z.borrowData());
     DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(arg_2.borrowData());
     if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
@@ -2725,7 +2726,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
         int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-        double *ptr_0 = &((arg_0.getPointDataView().getData())[offset_0]);
+        double *ptr_0 = &((arg_Z.getPointDataView().getData())[offset_0]);
         double *ptr_1 = &((arg_1.getPointDataView().getData())[offset_1]);
         double *ptr_2 = &((arg_2.getPointDataView().getData())[offset_2]);
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2733,10 +2734,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     }
 
   }
-  else if (arg_0.isTagged()     && arg_1.isConstant()) {
+  else if (arg_Z.isTagged()     && arg_1.isConstant()) {
 
     // Borrow DataTagged input from Data object
-    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0.borrowData());
+    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_Z.borrowData());
     if (tmp_0==0) { throw DataException("GTP_0 Programming error - casting to DataTagged."); }
 
     // Prepare the DataConstant input
@@ -2744,7 +2745,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
 
     // Prepare a DataTagged output 2
-    arg_2 = Data(0.0, shape2, arg_0.getFunctionSpace());	// DataTagged output
+    arg_2 = Data(0.0, shape2, arg_Z.getFunctionSpace());	// DataTagged output
     arg_2.tag();
     DataTagged* tmp_2=dynamic_cast<DataTagged*>(arg_2.borrowData());
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
@@ -2773,10 +2774,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     }
 
   }
-  else if (arg_0.isTagged()     && arg_1.isTagged()) {
+  else if (arg_Z.isTagged()     && arg_1.isTagged()) {
 
     // Borrow DataTagged input from Data object
-    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0.borrowData());
+    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_Z.borrowData());
     if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
     // Borrow DataTagged input from Data object
@@ -2822,23 +2823,23 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     }
 
   }
-  else if (arg_0.isTagged()     && arg_1.isExpanded()) {
+  else if (arg_Z.isTagged()     && arg_1.isExpanded()) {
 
     // After finding a common function space above the two inputs have the same numSamples and num DPPS
     arg_2 = Data(0.0, shape2, arg_1.getFunctionSpace(),true); // DataExpanded output
-    DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0.borrowData());
+    DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_Z.borrowData());
     DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(arg_2.borrowData());
     if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
     if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     int sampleNo_0,dataPointNo_0;
-    int numSamples_0 = arg_0.getNumSamples();
-    int numDataPointsPerSample_0 = arg_0.getNumDataPointsPerSample();
+    int numSamples_0 = arg_Z.getNumSamples();
+    int numDataPointsPerSample_0 = arg_Z.getNumDataPointsPerSample();
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-      double *ptr_0 = &((arg_0.getPointDataView().getData())[offset_0]);
+      double *ptr_0 = &((arg_Z.getPointDataView().getData())[offset_0]);
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
@@ -2849,25 +2850,25 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     }
 
   }
-  else if (arg_0.isExpanded()   && arg_1.isConstant()) {
+  else if (arg_Z.isExpanded()   && arg_1.isConstant()) {
 
     arg_2 = Data(0.0, shape2, arg_1.getFunctionSpace(),true); // DataExpanded output
-    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0.borrowData());
+    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_Z.borrowData());
     DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(arg_2.borrowData());
     if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     int sampleNo_0,dataPointNo_0;
-    int numSamples_0 = arg_0.getNumSamples();
-    int numDataPointsPerSample_0 = arg_0.getNumDataPointsPerSample();
+    int numSamples_0 = arg_Z.getNumSamples();
+    int numDataPointsPerSample_0 = arg_Z.getNumDataPointsPerSample();
     int offset_1 = tmp_1->getPointOffset(0,0);
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0.getPointDataView().getData())[offset_0]);
+        double *ptr_0 = &((arg_Z.getPointDataView().getData())[offset_0]);
         double *ptr_1 = &((arg_1.getPointDataView().getData())[offset_1]);
         double *ptr_2 = &((arg_2.getPointDataView().getData())[offset_2]);
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -2876,19 +2877,19 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
 
   }
-  else if (arg_0.isExpanded()   && arg_1.isTagged()) {
+  else if (arg_Z.isExpanded()   && arg_1.isTagged()) {
 
     // After finding a common function space above the two inputs have the same numSamples and num DPPS
     arg_2 = Data(0.0, shape2, arg_1.getFunctionSpace(),true); // DataExpanded output
-    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0.borrowData());
+    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_Z.borrowData());
     DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(arg_2.borrowData());
     if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     int sampleNo_0,dataPointNo_0;
-    int numSamples_0 = arg_0.getNumSamples();
-    int numDataPointsPerSample_0 = arg_0.getNumDataPointsPerSample();
+    int numSamples_0 = arg_Z.getNumSamples();
+    int numDataPointsPerSample_0 = arg_Z.getNumDataPointsPerSample();
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
@@ -2896,33 +2897,33 @@ escript::C_GeneralTensorProduct(Data& arg_0,
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0.getPointDataView().getData())[offset_0]);
+        double *ptr_0 = &((arg_Z.getPointDataView().getData())[offset_0]);
         double *ptr_2 = &((arg_2.getPointDataView().getData())[offset_2]);
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
       }
     }
 
   }
-  else if (arg_0.isExpanded()   && arg_1.isExpanded()) {
+  else if (arg_Z.isExpanded()   && arg_1.isExpanded()) {
 
     // After finding a common function space above the two inputs have the same numSamples and num DPPS
     arg_2 = Data(0.0, shape2, arg_1.getFunctionSpace(),true); // DataExpanded output
-    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0.borrowData());
+    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_Z.borrowData());
     DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(arg_2.borrowData());
     if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
     int sampleNo_0,dataPointNo_0;
-    int numSamples_0 = arg_0.getNumSamples();
-    int numDataPointsPerSample_0 = arg_0.getNumDataPointsPerSample();
+    int numSamples_0 = arg_Z.getNumSamples();
+    int numDataPointsPerSample_0 = arg_Z.getNumDataPointsPerSample();
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
       for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        double *ptr_0 = &((arg_0.getPointDataView().getData())[offset_0]);
+        double *ptr_0 = &((arg_Z.getPointDataView().getData())[offset_0]);
         double *ptr_1 = &((arg_1.getPointDataView().getData())[offset_1]);
         double *ptr_2 = &((arg_2.getPointDataView().getData())[offset_2]);
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
