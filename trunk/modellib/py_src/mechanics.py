@@ -248,7 +248,7 @@ class DruckerPrager(Mechanics):
                + (K-2./3*G)*k3Xk3 \
                + sXk3-swap_axes(sXk3,1,3) \
                + 1./2*(swap_axes(sXk3,0,3)-swap_axes(sXk3,1,2) \
-                      -swap_axes(sXk3,1,3)+swap_axes(sXk3,0,2))
+                      -swap_axes(sXk3,1,3)+swap_axes(sXk3,0,2)) \
                - chi/(h+G+alpha*beta*K)*outer(tmp+beta*K*k3,tmp+alpha*K*k3)\
            # print S
            return S
