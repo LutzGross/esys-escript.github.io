@@ -41,15 +41,24 @@ m.domain=Link(dom,"domain")
 cv=VectorConstrainer(debug)
 cv.domain=Link(dom,"domain")
 cv.value=Link(iob,"out")
+
 cv.left=[True, False, False] 
+cv.right= [True, False, False]
+cv.bottom= [False, True, False]
 cv.top= [False, False, False]
-cv.bottom= [False, False, False]
-cv.front= [False, False, False]
+cv.front= [False, False, True]
 cv.back= [False, False, False]
-cv.right= [True, True, True]
 
 m.prescribed_velocity=Link(cv,"value_of_constraint")
 m.location_prescribed_velocity=Link(cv,"location_of_constraint")
+
+m.expansion_coefficient= 0.
+m.bulk_modulus=100.
+m.shear_modulus=1.
+m.plastic_stress=0.
+m.friction_parameter=0.
+m.dilatancy_parameter=0.
+m.shear_length=m.shear_modulus*100.
 
 
 ug=UpdateGeometry(debug)

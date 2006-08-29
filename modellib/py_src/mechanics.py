@@ -96,12 +96,13 @@ class Mechanics(Model):
           k3=kronecker(self.domain)
           # set new thermal stress increment
           if self.temperature:
-             self.dthermal_stress=self.bulk_modulus*self.self.expansion_coefficient*(self.temperature-self.__temperature_old)
+             self.deps_therm=self.self.expansion_coefficient*(self.temperature-self.__temperature_old)
           else:
-             self.dthermal_stress=0.
+             self.deps_therm=0.
           # set PDE coefficients:
           self.__pde.setValue(A=self.S)
-          self.__pde.setValue(X=self.stress_old-self.dthermal_stress*k3)
+          self.__pde.checkSymmetry()
+          self.__pde.setValue(X=self.stress_old-self.bulk_modulus*self.deps_therm*k3)
           if self.internal_force: self.__pde.setValue(Y=self.internal_force)
           if self.external_force: self.__pde.setValue(y=self.external_force)
           self.__pde.setValue(r=self.prescribed_velocity, \
@@ -131,10 +132,10 @@ class Mechanics(Model):
            """
            accept all the values:
            """
-           self.displacement=self.__displacement_old
-           self.stress=self.stress_old
-           self.velocity=self.__velocity_old
-           self.temperature=self.__temperature_old
+           self.__displacement_old=self.displacement
+           self.stress_old=self.stress
+           self.__velocity_old=self.velocity
+           self.__temperature_old=self.temperature
 
       def getSafeTimeStepSize(self,dt):
            """
@@ -161,7 +162,8 @@ class DruckerPrager(Mechanics):
            self.declareParameter(plastic_stress=0.,
                                  friction_parameter=0.,
                                  dilatancy_parameter=0.,
-                                 shear_length=1.e15)
+                                 shear_length=1.e15,
+                                 hardening=0.)
 
       def doInitialization(self):
            """
@@ -170,6 +172,7 @@ class DruckerPrager(Mechanics):
            super(DruckerPrager, self).doInitialization()
            self.__plastic_stress_old=self.plastic_stress
            self.__tau_y_old=self.shear_length
+           self.__hardening_old=self.hardening
 
       def doStepPreprocessing(self,dt):
             """
@@ -180,6 +183,8 @@ class DruckerPrager(Mechanics):
             """
             super(DruckerPrager, self).doStepPreprocessing(dt)
             self.plastic_stress=self.__plastic_stress_old
+            self.shear_length=self.__tau_y_old
+            self.hardening=self.__hardening_old
 
       def doStep(self,dt):
            G=self.shear_modulus
@@ -187,11 +192,7 @@ class DruckerPrager(Mechanics):
            alpha=self.friction_parameter
            beta=self.dilatancy_parameter
            tau_Y=self.shear_length
-           if self.__plastic_stress_old:
-              dps=self.plastic_stress-self.__plastic_stress_old
-              h=(tau_Y-self.__tau_y_old)/(dps+self.abs_tol*whereZero(dps))
-           else:
-              h=0
+           h=self.hardening
            # set new tangential operator:
            self.S=self.getTangentialTensor(self.stress,
                                            tau_Y,G,K,alpha,beta,h)
@@ -201,20 +202,27 @@ class DruckerPrager(Mechanics):
            # update stresses:
            self.stress,self.plastic_stress=self.getNewStress(self.stress_old,self.__plastic_stress_old,
                                                         self.velocity*dt,
-                                                        self.dthermal_stress,tau_Y,G,K,alpha,beta,h)
+                                                        self.deps_therm,tau_Y,G,K,alpha,beta,h)
+           if self.__plastic_stress_old:
+              dps=self.plastic_stress-self.__plastic_stress_old
+              self.hardening=(tau_Y-self.__tau_y_old)/(dps+self.abs_tol*whereZero(dps))
+           else:
+              self.hardening=0
 
       def doStepPostprocessing(self,dt):
           super(DruckerPrager, self).doStepPostprocessing(dt)
-          self.plastic_stress=self.__plastic_stress_old=self.plastic_stress
+          self.__plastic_stress_old=self.plastic_stress
+          self.__tau_y_old=self.shear_length
+          self.__hardening_old=self.hardening
 
-      def getNewStress(self,s,gamma_p,du,ds_therm,tau_Y,G,K,alpha,beta,h):
+      def getNewStress(self,s,gamma_p,du,deps_therm,tau_Y,G,K,alpha,beta,h):
             k3=kronecker(self.domain)
             dt=1.
             g=grad(du)
             D=symmetric(g)
             W=nonsymmetric(g)
-            s_e=s+ds_therm+dt*(2*G*D+(K-2./3*G)*trace(D)*k3 \
-                               +2*nonsymmetric(matrix_mult(W,s)))
+            s_e=s+K*deps_therm*k3 +dt*(2*G*D+(K-2./3*G)*trace(D)*k3 \
+                                     +2*nonsymmetric(matrix_mult(W,s)))
             p_e=-1./3*trace(s_e)
             s_e_dev=s_e+p_e*k3
             tau_e=sqrt(1./2*inner(s_e_dev,s_e_dev))
@@ -235,11 +243,12 @@ class DruckerPrager(Mechanics):
            chi=whereNonNegative(tau-alpha*p-tau_Y)
            sXk3=outer(s,k3)
            k3Xk3=outer(k3,k3)
-           tmp=G*s_dev/tau
+           tmp=G*s_dev/(tau+tau_Y*1.e-15*whereZero(tau,1.e-15))
            S=G*(swap_axes(k3Xk3,1,2)+swap_axes(k3Xk3,1,3)) \
                + (K-2./3*G)*k3Xk3 \
                + sXk3-swap_axes(sXk3,1,3) \
                + 1./2*(swap_axes(sXk3,0,3)-swap_axes(sXk3,1,2) \
                       -swap_axes(sXk3,1,3)+swap_axes(sXk3,0,2))
-               # - chi/(h+G+alpha*beta*K)*outer(tmp+beta*K*k3,tmp+alpha*K*k3)\
+               - chi/(h+G+alpha*beta*K)*outer(tmp+beta*K*k3,tmp+alpha*K*k3)\
+           # print S
            return S
