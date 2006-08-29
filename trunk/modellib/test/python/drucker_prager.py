@@ -10,7 +10,7 @@ __license__="""Licensed under the Open Software License version 3.0
 
 from esys.modellib.mechanics import DruckerPrager
 from esys.escript.modelframe import Link,Simulation
-from esys.modellib.geometry import RectangularDomain, VectorConstrainer
+from esys.modellib.geometry import RectangularDomain, VectorConstrainer, UpdateGeometry
 from esys.modellib.input import Sequencer, InterpolateOverBox
 
 debug=True
@@ -51,7 +51,10 @@ cv.right= [True, True, True]
 m.prescribed_velocity=Link(cv,"value_of_constraint")
 m.location_prescribed_velocity=Link(cv,"location_of_constraint")
 
-dom.displacement=Link(m,"displacement")
 
-s=Simulation([sq,dom,cv,m],debug=True)
+ug=UpdateGeometry(debug)
+ug.domain=Link(dom,"domain")
+ug.displacement=Link(m,"displacement")
+
+s=Simulation([sq,m,ug],debug=True)
 s.run()
