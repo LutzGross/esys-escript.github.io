@@ -18,40 +18,15 @@ __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-class Property(object):
-    def __init__(self,val=None):
-       self.setValue(val)
+import vtk
 
-    def setValue(self,val):
-       self.__val=val
-       self.__altered=True
+class Mapper:
 
-    def getValue(self):
-       return self.__val
+	def __init__(self):
+		self.mapper = None
 
-    def isAltered(self):
-       return self.__altered
+	def setMapper(self, component):
+		self.vtk_mapper = vtk.vtkDataSetMapper()
+		eval("self.vtk_mapper.SetInput(self.%s.GetOutput())" % component)
 
-    def markAsUsed(self):
-       self.__altered=False
- 
-   
-class Component(object):
-    """
-    shows a vector field by arrows
-    """
-    def __init__(self):
-       self.features={} # item must be a Component or Property
-
-    def render(self):
-       for i in self.features:
-          if isinstance(self.features[i],Component):
-             self.features[i].render()
-       self._render()
-
-    def markFeaturesAsUsed(self):
-       for i in self.features:
-          if isinstance(self.features[i],Component):
-             self.features[i].markAsUsed()
-          else:
-             self.features[i].markFeaturesAsUsed()
+		

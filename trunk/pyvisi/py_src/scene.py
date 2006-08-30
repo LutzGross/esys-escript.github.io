@@ -29,9 +29,9 @@ class OpenScene:
 		self.vtk_renderer = None
 		self.vtk_render_window = None
 
-		self.setupRenderingWindow()
+		self.setRenderingWindow()
 
-	def setupRenderingWindow(self):
+	def setRenderingWindow(self):
 		self.vtk_renderer = vtk.vtkRenderer()
 		self.vtk_render_window = vtk.vtkRenderWindow()
 		self.vtk_render_window.AddRenderer(self.vtk_renderer)
