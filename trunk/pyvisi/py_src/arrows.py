@@ -19,19 +19,25 @@ __version__="$Revision:$"
 __date__="$Date:$"
 
 import vtk
+from common import *
 
-class Arrows:
+class Arrows(Common):
 
 	def __init__(self, open_scene, data_collector):
-		self.open_scene = open_scene
-		self.data_collector = data_collector
+		Common.__init__(self, open_scene, data_collector)
+		#self.open_scene = open_scene
+		#self.data_collector = data_collector
 		self.vtk_glyph = None
-		self.vtk_arrows_mapper = None
-		self.vtk_arrows_actor = None		
+		#self.vtk_arrows_mapper = None
+		#self.vtk_arrows_actor = None		
 
 		self.setArrows()
-		self.setMapper()
-		self.setActor()
+		#self.setMapper()
+		#self.setActor()
+
+		Common.setMapper(self, "self.vtk_glyph.GetOutput()")
+		Common.setActor(self)
+		Common.addActor(self)		
 	
 	# set up the glyph and use arrows as the source	
 	def setArrows(self):
@@ -44,19 +50,25 @@ class Arrows:
 		self.vtk_glyph.SetScaleModeToScaleByVector()
 		self.vtk_glyph.SetColorModeToColorByScalar()
 		self.vtk_glyph.SetScaleFactor(0.2)
+
+	def setScaleFactor(self, scale_factor):
+		self.vtk_glyph.SetScaleFactor(scale_factor)
+
+	def setColorMode(self, color_mode):
+		eval("self.vtk_glyph.SetColorModeToColorBy%s()" % color_mode)
 	
 	# set up the mapper and data	
-	def setMapper(self):
-		self.vtk_arrows_mapper = vtk.vtkPolyDataMapper()
-		self.vtk_arrows_mapper.SetInput(
-			self.vtk_glyph.GetOutput())
+	#def setMapper(self):
+	#	self.vtk_arrows_mapper = vtk.vtkPolyDataMapper()
+	#	self.vtk_arrows_mapper.SetInput(
+	#		self.vtk_glyph.GetOutput())
 	
 	# set up the actor and add the actor to the scene	
-	def setActor(self):
-		self.vtk_arrows_actor = vtk.vtkActor()
-		self.vtk_arrows_actor.SetMapper(self.vtk_arrows_mapper)
+	#def setActor(self):
+	#	self.vtk_arrows_actor = vtk.vtkActor()
+	#	self.vtk_arrows_actor.SetMapper(self.vtk_arrows_mapper)
 
-		self.open_scene.getRenderer().AddActor(self.vtk_arrows_actor)		
+	#	self.open_scene.getRenderer().AddActor(self.vtk_arrows_actor)		
 
 
 

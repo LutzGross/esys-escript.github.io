@@ -19,31 +19,40 @@ __version__="$Revision:$"
 __date__="$Date:$"
 
 import vtk
+from common import * 
 
-class Map:
+class Map(Common):
 
 	def __init__(self, open_scene, data_collector):
-		self.open_scene = open_scene
-		self.data_collector = data_collector
-		self.vtk_xml_mapper = None
-		self.vtk_xml_actor = None
+		Common.__init__(self, open_scene, data_collector)
+		#self.open_scene = open_scene
+		#self.data_collector = data_collector
+		#self.vtk_xml_mapper = None
+		#self.vtk_xml_actor = None
 
-		self.setMapper()
-		self.setActor()
+		#self.setMapper()
+		#self.setActor()
+		Common.setMapper(self, "self.data_collector.getReader().GetOutput()")
+		Common.setActor(self)
+		Common.addActor(self)
+
+
+		
 
 	# set up the mapper and data
-	def setMapper(self):
-		self.vtk_xml_mapper = vtk.vtkDataSetMapper()
-		self.vtk_xml_mapper.SetInput(
-			self.data_collector.getReader().GetOutput())
+	#def setMapper(self):
+		
+		#self.vtk_xml_mapper = vtk.vtkDataSetMapper()
+		#self.vtk_xml_mapper.SetInput(
+		#	self.data_collector.getReader().GetOutput())
 
 	# set up the actor and add the actor to the scene
-	def setActor(self):
-		self.vtk_xml_actor = vtk.vtkActor()
-		self.vtk_xml_actor.SetMapper(self.vtk_xml_mapper)
-		self.vtk_xml_actor.GetProperty().SetOpacity(0.2)
+	#def setActor(self):
+		#self.vtk_xml_actor = vtk.vtkActor()
+		#self.vtk_xml_actor.SetMapper(self.vtk_xml_mapper)
+		#self.vtk_xml_actor.GetProperty().SetOpacity(0.2)
 
-		self.open_scene.getRenderer().AddActor(self.vtk_xml_actor)
+		#self.open_scene.getRenderer().AddActor(self.vtk_xml_actor)
 
 	
 

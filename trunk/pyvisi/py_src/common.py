@@ -20,13 +20,35 @@ __date__="$Date:$"
 
 import vtk
 
-class Mapper:
+class Common:
 
-	def __init__(self):
-		self.mapper = None
+	def __init__(self, open_scene, data_collector):
+		self.open_scene = open_scene
+		self.data_collector = data_collector
+		self.vtk_mapper = None
+		self.vtk_actor = None
 
 	def setMapper(self, component):
 		self.vtk_mapper = vtk.vtkDataSetMapper()
-		eval("self.vtk_mapper.SetInput(self.%s.GetOutput())" % component)
+		eval("self.vtk_mapper.SetInput(%s)" % component)
+
+	def setActor(self):
+		self.vtk_actor = vtk.vtkActor()
+		self.vtk_actor.SetMapper(self.vtk_mapper)
+
+	def addActor(self):
+		self.open_scene.getRenderer().AddActor(self.vtk_actor) 
+
+	def setOpacity(self, opacity):
+		self.getProperty().SetOpacity(opacity)
+
+	def setColor(self, red, green, blue):
+		self.getProperty().SetColor(red, green, blue)
+
+	def setRepresentation(self, representation):
+		eval("self.getProperty().SetRepresentationTo%s()" % representation)
+	
+	def getProperty(self):
+		return self.vtk_actor.GetProperty()
 
 		
