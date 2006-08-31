@@ -19,13 +19,35 @@ __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from common import PyvisiObject
+import vtk
 
-class Camera(PyvisiObject):
-    """
-    A camera
-    """
-    pass
+class Camera:
+	def __init__(self, open_scene):
+		self.open_scene = open_scene
+		self.vtk_camera = None 
+
+		self.setCamera()
+
+	def setCamera(self):
+		self.vtk_camera = vtk.vtkCamera()		
+		self.open_scene.getRenderer().SetActiveCamera(self.vtk_camera)
+
+	def setClippingRange(self, near_clipping, far_clipping):
+		self.vtk_camera.SetClippingRange(near_clipping, far_clipping)
+
+	def setFocalPoint(self, x_coor, y_coor, z_coor):
+		self.vtk_camera.SetFocalPoint(x_coor, y_coor, z_coor)	
+
+	def setPosition(self, x_coor, y_coor, z_coor):
+		self.vtk_camera.SetPosition(x_coor, y_coor, z_coor)
+
+	def setViewUp(self, x_view, y_view, z_view):
+		self.vtk_camera.SetViewUp(x_view, y_view, z_view)
+
+
+
+
+
 
 class FrontView(Camera):
     pass

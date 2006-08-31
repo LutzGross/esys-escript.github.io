@@ -47,8 +47,8 @@ class Contour(Common):
 	def setValue(self, contour_number, value):
 		self.vtk_contour.SetValue(contour_number, value)
 
-	def generateValues(self, contour_number, min_range, max_range):
-		self.vtk_contour.GenerateValues(contour_number, min_range, max_range)
+	def generateValues(self, number_contours, min_range, max_range):
+		self.vtk_contour.GenerateValues(number_contours, min_range, max_range)
 
 	# set up the mapper and data	
 	#def setMapper(self):
