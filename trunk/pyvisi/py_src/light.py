@@ -19,10 +19,28 @@ __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from common import PyvisiObject
+import vtk
 
-class Light(PyvisiObject):
-    """
-    A light
-    """
-    pass
+class Light:
+
+	def __init__(self, open_scene):
+		self.open_scene = open_scene
+		self.vtk_light = None
+
+		self.setLight()
+
+	def setLight(self):
+		self.vtk_light = vtk.vtkLight()
+		self.open_scene.getRenderer().AddLight(self.vtk_light)
+
+	def setColor(self, red, green, blue):
+		self.vtk_light.SetColor(red, green, blue)
+
+	def setFocalPoint(self, x_coor, y_coor, z_coor):
+		self.vtk_light.SetFocalPoint(x_coor, y_coor, z_coor)
+
+	def setPosition(self, x_coor, y_coor, z_coor):
+		self.vtk_light.SetPosition(x_coor, y_coor, z_coor)
+
+	def setIntensity(self, intensity):
+		self.vtk_light.SetIntensity(intensity)
