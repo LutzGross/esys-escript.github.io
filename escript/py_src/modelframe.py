@@ -885,7 +885,7 @@ class Simulation(Model):
             while not end_of_step:
                end_of_step=True
                if not dt_new>0:
-                  raise NonPositiveStepSizeError("non-positive step size in step %d",self.n+1)
+                  raise NonPositiveStepSizeError("non-positive step size in step %d"%(self.n+1))
                try:
                   self.doStepPreprocessing(dt_new)
                   self.doStep(dt_new)
