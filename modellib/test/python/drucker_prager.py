@@ -32,7 +32,7 @@ dom.order=1
 sq=Sequencer(debug)
 sq.t=0
 sq.t_end=3.0
-sq.dt_max=10.
+sq.dt_max=0.01
 
 iob=InterpolateOverBox(debug)
 iob.domain=Link(dom,"domain")
