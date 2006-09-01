@@ -61,9 +61,11 @@ class Mechanics(Model):
            if not self.velocity: self.velocity=Vector(0.,ContinuousFunction(self.domain))
            if not self.stress: self.stress=Tensor(0.,ContinuousFunction(self.domain))
            # save the old values:
-           self.__stress_old=self.stress
-           self.__temperature_old=self.temperature
-           self.__displacement_old=self.displacement
+           self.__stress_safe=self.stress
+           self.__temperature_safe=self.temperature
+           self.__displacement_safe=self.displacement
+           self.__velocity_safe=self.velocity
+           self.__velocity_last=None
            # get node cooridnates and apply initial displacement
            self.__x=self.domain.getX()
            self.domain.setX(self.__x+self.displacement)
@@ -83,9 +85,11 @@ class Mechanics(Model):
             self.__iter=0
             self.__diff=self.UNDEF_DT
             # set initial values for the iteration:
-            self.temperature=self.__temperature_old
-            self.displacement=self.__displacement_old
-            self.stress=self.__stress_old
+            self.displacement=self.__displacement_safe
+            self.stress=self.__stress_safe
+            self.velocity=self.__velocity_safe
+            self.__velocity_last=self.__velocity_safe
+            print "set self.__velocity_last",dt
             # update geometry
             self.domain.setX(self.__x+self.displacement)
 
@@ -96,7 +100,7 @@ class Mechanics(Model):
           k3=kronecker(self.domain)
           # set new thermal stress increment
           if self.temperature:
-             self.deps_th=self.self.expansion_coefficient*(self.temperature-self.__temperature_old)
+             self.deps_th=self.self.expansion_coefficient*(self.temperature-self.__temperature_safe)
           else:
              self.deps_th=0.
           # set PDE coefficients:
@@ -113,6 +117,7 @@ class Mechanics(Model):
           self.du=self.__pde.getSolution(verbose=True)
           # update geometry
           self.displacement=self.displacement+self.du
+          self.velocity=(self.displacement-self.__displacement_safe)/dt
           self.domain.setX(self.__x+self.displacement)
 
           if self.debug:
@@ -120,20 +125,21 @@ class Mechanics(Model):
                 self.trace("du %d range %e:%e"%(i,inf(self.du[i]),sup(self.du[i])))
              for i in range(self.domain.getDim()):
                 self.trace("displacement %d range %e:%e"%(i,inf(self.displacement[i]),sup(self.displacement[i])))
+             for i in range(self.domain.getDim()):
+                self.trace("velocity %d range %e:%e"%(i,inf(self.velocity[i]),sup(self.velocity[i])))
           self.__stress_last=self.stress
 
       def terminateIteration(self):
           """iteration is terminateIterationd if relative pressure change is less then rel_tol"""
           if self.__iter>self.max_iter:
               raise IterationDivergenceError,"Maximum number of iterations steps reached"
-          print self.__iter
           if self.__iter==0:
              self.__diff=self.UNDEF_DT
           else:
-             self.__diff,diff_old=Lsup(self.stress-self.__stress_last),self.__diff
+             self.__diff,diff_safe=Lsup(self.stress-self.__stress_last),self.__diff
              s_sup=Lsup(self.stress)
              self.trace("stress max and increment :%e, %e"%(s_sup,self.__diff))
-             if diff_old<self.__diff:
+             if diff_safe<self.__diff:
                  raise IterationDivergenceError,"no improvement in stress iteration"
              return self.__diff<=self.rel_tol*self.SAFTY_FACTOR_ITERATION*s_sup+self.abs_tol
 
@@ -141,19 +147,25 @@ class Mechanics(Model):
            """
            accept all the values:
            """
-           self.__displacement_old=self.displacement
-           self.__temperature_old=self.temperature
-           self.__stress_old=self.stress
+           self.__displacement_safe=self.displacement
+           self.__temperature_safe=self.temperature
+           self.__stress_safe=self.stress
+           self.__velocity_safe=self.velocity
 
       def getSafeTimeStepSize(self,dt):
            """
            returns new step size
-           d=Lsup(self.velocity-self.__velocity_old)*Lsup(self.displacement)
-           if d>0:
-              return dt/d*self.rel_tol
-           else:
            """
-           return self.UNDEF_DT
+           if self.__velocity_last:
+              a=Lsup(self.velocity-self.__velocity_last)/dt
+              if a>0:
+                 print "new dt:= ",Lsup(self.displacement)/a*self.rel_tol,dt,a
+                 # return Lsup(self.displacement)/a*self.rel_tol
+                 return self.UNDEF_DT
+              else:
+                 return self.UNDEF_DT
+           else:
+              return self.UNDEF_DT
 
 
 
@@ -176,22 +188,22 @@ class DruckerPrager(Mechanics):
           """
           """
           super(DruckerPrager, self).doInitialization()
-          self.__plastic_stress_old=self.plastic_stress
-          self.__shear_length_old=self.shear_length
-          self.__hardening_old=self.hardening
-          self.__chi_old=0
-          self.__tau_old=0
+          self.__plastic_stress_safe=self.plastic_stress
+          self.__shear_length_safe=self.shear_length
+          self.__hardening_safe=self.hardening
+          self.__chi_safe=0
+          self.__tau_safe=0
 
       def doStepPreprocessing(self,dt):
           """
           """
           super(DruckerPrager, self).doStepPreprocessing(dt)
           # set initial guess for iteration:
-          self.shear_length=self.__shear_length_old
-          self.plastic_stress=self.__plastic_stress_old
-          self.hardening=self.__hardening_old
-          self.__chi=self.__chi_old
-          self.__tau=self.__tau_old
+          self.shear_length=self.__shear_length_safe
+          self.plastic_stress=self.__plastic_stress_safe
+          self.hardening=self.__hardening_safe
+          self.__chi=self.__chi_safe
+          self.__tau=self.__tau_safe
 
       def doStep(self,dt):
           # set new tangential operator:
@@ -203,11 +215,11 @@ class DruckerPrager(Mechanics):
 
       def doStepPostprocessing(self,dt):
           super(DruckerPrager, self).doStepPostprocessing(dt)
-          self.__plastic_stress_old=self.plastic_stress
-          self.__shear_length_old=self.shear_length
-          self.__hardening_old=self.hardening
-          self.__chi_old=self.__chi
-          self.__tau_old=self.__tau
+          self.__plastic_stress_safe=self.plastic_stress
+          self.__shear_length_safe=self.shear_length
+          self.__hardening_safe=self.hardening
+          self.__chi_safe=self.__chi
+          self.__tau_safe=self.__tau
 
       def setStress(self):
            d=self.domain.getDim()
@@ -233,10 +245,10 @@ class DruckerPrager(Mechanics):
            # plastic stress increment:
            l=self.__chi*F/(h+G+beta*K)
            self.__tau=tau_e-G*l
-           self.stress=self.__tau/(tau_e+self.abs_tol*whereZero(tau_e,self.abs_tol))*s_e_dev+(p_e+l*beta*K)*k3
+           self.stress=self.__tau/(tau_e+self.abs_tol*whereZero(tau_e,self.abs_tol))*s_e_dev-(p_e+l*beta*K)*k3
            self.plastic_stress=self.plastic_stress+l
            # update hardening
-           self.hardening=(self.shear_length-self.__shear_length_old)/(l+self.abs_tol*whereZero(l))
+           self.hardening=(self.shear_length-self.__shear_length_safe)/(l+self.abs_tol*whereZero(l))
 
       def setTangentialTensor(self):
            d=self.domain.getDim()
@@ -248,8 +260,17 @@ class DruckerPrager(Mechanics):
            chi=self.__chi
            tau=self.__tau
            h=self.hardening
-
            k3=kronecker(Function(self.domain))
+
+           ###
+           p_e=-1./d*trace(self.stress)
+           s_e_dev=self.stress+p_e*k3
+           tau_e=sqrt(1./2*inner(s_e_dev,s_e_dev))
+           F=tau_e-alpha*p_e-self.shear_length
+           # print F
+           ###
+
+
            sXk3=outer(self.stress,k3)
            k3Xk3=outer(k3,k3)
            s_dev=self.stress-trace(self.stress)*(k3/d)
