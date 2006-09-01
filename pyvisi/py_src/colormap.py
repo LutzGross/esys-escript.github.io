@@ -19,19 +19,19 @@ __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision$"
 __date__="$Date$"
 
-class ColorMap(object):
+class ColorMap:
    """
    defines a color map
    """
    pass
 
-class BlueRed(object):
+class BlueRed:
    """
    color map with spectrum from blue to red
    """
    pass
 
-class RedBlue(object):
+class RedBlue:
    """
    color map with spectrum from red to blue
    """

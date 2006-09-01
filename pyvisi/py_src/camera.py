@@ -21,6 +21,7 @@ __date__="$Date:$"
 
 import vtk
 
+
 class Camera:
 	def __init__(self, open_scene):
 		self.open_scene = open_scene
