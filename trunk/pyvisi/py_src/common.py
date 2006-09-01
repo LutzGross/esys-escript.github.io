@@ -20,6 +20,9 @@ __date__="$Date:$"
 
 import vtk
 
+class Component:
+     pass
+
 class Common:
 
 	def __init__(self, open_scene, data_collector):
