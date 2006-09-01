@@ -84,7 +84,7 @@ class Mechanics(Model):
             # reset iteration counters:
             self.__iter=0
             self.__diff=self.UNDEF_DT
-            # set initial values for the iteration:
+            # set initial guesses for the iteration:
             self.displacement=self.__displacement_safe
             self.stress=self.__stress_safe
             self.velocity=self.__velocity_safe
@@ -117,8 +117,8 @@ class Mechanics(Model):
           self.du=self.__pde.getSolution(verbose=True)
           # update geometry
           self.displacement=self.displacement+self.du
-          self.velocity=(self.displacement-self.__displacement_safe)/dt
           self.domain.setX(self.__x+self.displacement)
+          self.velocity=(self.displacement-self.__displacement_safe)/dt
 
           if self.debug:
              for i in range(self.domain.getDim()):
@@ -139,7 +139,7 @@ class Mechanics(Model):
              self.__diff,diff_safe=Lsup(self.stress-self.__stress_last),self.__diff
              s_sup=Lsup(self.stress)
              self.trace("stress max and increment :%e, %e"%(s_sup,self.__diff))
-             if diff_safe<self.__diff:
+             if self.__iter>2 and diff_safe<self.__diff:
                  raise IterationDivergenceError,"no improvement in stress iteration"
              return self.__diff<=self.rel_tol*self.SAFTY_FACTOR_ITERATION*s_sup+self.abs_tol
 
@@ -232,16 +232,19 @@ class DruckerPrager(Mechanics):
            # elastic trial stress:
            g=grad(self.du)
            D=symmetric(g)
+           print trace(D)
            W=nonsymmetric(g)
            s_e=self.stress+K*self.deps_th*k3+ \
                       2*G*D+(K-2./3*G)*trace(D)*k3 \
                       +2*symmetric(matrix_mult(W,self.stress))
+           print s_e
            p_e=-1./d*trace(s_e)
            s_e_dev=s_e+p_e*k3
            tau_e=sqrt(1./2*inner(s_e_dev,s_e_dev))
            # yield conditon for elastic trial stress:
            F=tau_e-alpha*p_e-self.shear_length
            self.__chi=whereNonNegative(F)
+           print "chi =",Lsup(self.__chi)
            # plastic stress increment:
            l=self.__chi*F/(h+G+beta*K)
            self.__tau=tau_e-G*l
@@ -275,9 +278,9 @@ class DruckerPrager(Mechanics):
            k3Xk3=outer(k3,k3)
            s_dev=self.stress-trace(self.stress)*(k3/d)
            tmp=G*s_dev/(tau+self.abs_tol*whereZero(tau,self.abs_tol))
-           self.S=G*(swap_axes(k3Xk3,1,2)+swap_axes(k3Xk3,1,3)) \
+           self.S=G*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3)) \
                  + (K-2./3*G)*k3Xk3 \
                  + (sXk3-swap_axes(sXk3,1,3)) \
                  + 1./2*(swap_axes(sXk3,0,3)-swap_axes(sXk3,1,2) \
-                      -swap_axes(sXk3,1,3)+swap_axes(sXk3,0,2)) \
+                      +swap_axes(sXk3,1,3)-swap_axes(sXk3,0,2)) \
                  - outer(chi/(h+G+alpha*beta*K)*(tmp+beta*K*k3),tmp+alpha*K*k3)
