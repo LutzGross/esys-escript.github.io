@@ -1,80 +1,70 @@
 """
-class that shows a vector field by arrows
-
-@var __author__: name of author
-@var __license__: licence agreement
-@var __copyright__: copyrights
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+Class that shows a vector field by arrows.
 """
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__author__="Paul Cochrane, L. Gross"
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision:$"
-__date__="$Date:$"
 
 import vtk
 from common import *
 
 class Arrows(Common):
+	"""
+	@author: John Ngui
+	@author: Lutz Gross
+	"""
 
 	def __init__(self, open_scene, data_collector):
-		Common.__init__(self, open_scene, data_collector)
-		#self.open_scene = open_scene
-		#self.data_collector = data_collector
-		self.vtk_glyph = None
-		#self.vtk_arrows_mapper = None
-		#self.vtk_arrows_actor = None		
+		"""
+		@type open_scene: L{OpenScene <openscene.OpenScene>} object
+		@param open_scene: Scene in which components are to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualization			
+		"""
 
+		Common.__init__(self, open_scene, data_collector)
+		self.vtk_glyph = None
 		self.setArrows()
-		#self.setMapper()
-		#self.setActor()
 
 		Common.setMapper(self, "self.vtk_glyph.GetOutput()")
 		Common.setActor(self)
 		Common.addActor(self)		
 	
-	# set up the glyph and use arrows as the source	
 	def setArrows(self):
+		"""
+		Set up the glyph and use arrows as the source.
+		"""
+
 		vtk_arrows = vtk.vtkArrowSource()
 		
 		self.vtk_glyph = vtk.vtkGlyph3D()
 		self.vtk_glyph.SetInput(self.data_collector.getReader().GetOutput())
 		self.vtk_glyph.SetSource(vtk_arrows.GetOutput())
-		self.vtk_glyph.SetVectorModeToUseVector()
-		self.vtk_glyph.SetScaleModeToScaleByVector()
-		self.vtk_glyph.SetColorModeToColorByScalar()
-		self.vtk_glyph.SetScaleFactor(0.2)
+		self.vtk_glyph.SetVectorModeToUseVector() # Default vector mode
+		self.vtk_glyph.SetScaleModeToScaleByVector() # Default scale mode
+		self.setColorMode("Scalar") # Default color mode
+		self.setScaleFactor(0.2) # Default scale factor
 
 	def setScaleFactor(self, scale_factor):
+		"""
+		Set the scale factor for the arrows.
+
+		@type scale_factor: Number
+		@param scale_factor: Scale factor
+		"""
+
 		self.vtk_glyph.SetScaleFactor(scale_factor)
 
 	def setColorMode(self, color_mode):
+		"""
+		Set the color mode for the arrows.	
+
+		@type color_mode: String
+		@param color_mode: Color mode for the arrows (I{Scalar or Vector})
+		"""
+	
 		eval("self.vtk_glyph.SetColorModeToColorBy%s()" % color_mode)
-	
-	# set up the mapper and data	
-	#def setMapper(self):
-	#	self.vtk_arrows_mapper = vtk.vtkPolyDataMapper()
-	#	self.vtk_arrows_mapper.SetInput(
-	#		self.vtk_glyph.GetOutput())
-	
-	# set up the actor and add the actor to the scene	
-	#def setActor(self):
-	#	self.vtk_arrows_actor = vtk.vtkActor()
-	#	self.vtk_arrows_actor.SetMapper(self.vtk_arrows_mapper)
 
-	#	self.open_scene.getRenderer().AddActor(self.vtk_arrows_actor)		
-
-
-
-
-#class ArrowsOnPlane:
-"""
+"""	
+class ArrowsOnPlane:
 shows a vector field by arrows on a plane
 """
 pass

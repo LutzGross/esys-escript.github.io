@@ -1,30 +1,65 @@
 """
-Classes defining geometrical items in visualization
-
-@var __author__: name of author
-@var __license__: licence agreement
-@var __copyright__: copyrights
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+Class that defines the positioning of components in the visualization.
 """
 
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__author__="Paul Cochrane, L. Gross"
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision:$"
-__date__="$Date:$"
+class Position:
+	"""
+	@author: John Ngui
+	@author: Lutz Gross
+	"""
+
+	def __init__(self, x_coor, y_coor, z_coor):
+		"""
+		Initialize the x,y and z coordinates.	
+
+		@type x_coor: Number
+		@param x_coor: X coordinate in global position
+		@type y_coor: Number
+		@param y_coor: Y coordinate in global position
+		@type z_coor: Number 
+		@param z_coor: Z coordinate in global position
+		"""
+		
+		self.x_coor = x_coor 
+		self.y_coor = y_coor 
+		self.z_coor = z_coor
+
+	def getXCoor(self):
+		"""	
+		Return the x coordinate.
+
+		@rtype: Number
+		@return: X coordinate
+		"""
+		return self.x_coor
+
+	def getYCoor(self):
+		"""
+		Return the y coordinate.
+
+		@rtype: Number
+		@return: Y coordiante
+		"""
+
+		return self.y_coor
+
+	def getZCoor(self):
+		"""
+		Return the z coordinate
+
+		@rtype: Number
+		@return: Z coordinate
+		"""
+
+		return self.z_coor
 
 
-def Position(object):
-    """
-    A position in global coordinates
-    """
-    pass
+
+#def Position(object):
+"""
+A position in global coordinates
+"""
+pass
 
 def Origin(Position):
     """
