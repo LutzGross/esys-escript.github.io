@@ -232,12 +232,11 @@ class DruckerPrager(Mechanics):
            # elastic trial stress:
            g=grad(self.du)
            D=symmetric(g)
-           print trace(D)
            W=nonsymmetric(g)
            s_e=self.stress+K*self.deps_th*k3+ \
                       2*G*D+(K-2./3*G)*trace(D)*k3 \
                       +2*symmetric(matrix_mult(W,self.stress))
-           print s_e
+           print "sym (e)= ",Lsup(nonsymmetric(s_e))
            p_e=-1./d*trace(s_e)
            s_e_dev=s_e+p_e*k3
            tau_e=sqrt(1./2*inner(s_e_dev,s_e_dev))
@@ -249,6 +248,7 @@ class DruckerPrager(Mechanics):
            l=self.__chi*F/(h+G+beta*K)
            self.__tau=tau_e-G*l
            self.stress=self.__tau/(tau_e+self.abs_tol*whereZero(tau_e,self.abs_tol))*s_e_dev-(p_e+l*beta*K)*k3
+           print "sym = ",Lsup(nonsymmetric(self.stress))
            self.plastic_stress=self.plastic_stress+l
            # update hardening
            self.hardening=(self.shear_length-self.__shear_length_safe)/(l+self.abs_tol*whereZero(l))
@@ -278,9 +278,14 @@ class DruckerPrager(Mechanics):
            k3Xk3=outer(k3,k3)
            s_dev=self.stress-trace(self.stress)*(k3/d)
            tmp=G*s_dev/(tau+self.abs_tol*whereZero(tau,self.abs_tol))
+
+           print "plast grad= ",Lsup(tmp)
            self.S=G*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3)) \
                  + (K-2./3*G)*k3Xk3 \
-                 + (sXk3-swap_axes(sXk3,1,3)) \
-                 + 1./2*(swap_axes(sXk3,0,3)-swap_axes(sXk3,1,2) \
-                      +swap_axes(sXk3,1,3)-swap_axes(sXk3,0,2)) \
+                 + sXk3-swap_axes(swap_axes(sXk3,1,2),2,3)   \
+                 + 1./2*(swap_axes(swap_axes(sXk3,0,2),2,3)   \
+                        -swap_axes(swap_axes(sXk3,0,3),2,3)   \
+                        -swap_axes(sXk3,1,2)                  \
+                        +swap_axes(sXk3,1,3)                ) \
                  - outer(chi/(h+G+alpha*beta*K)*(tmp+beta*K*k3),tmp+alpha*K*k3)
+           print "sym S:",Lsup(nonsymmetric(self.S))
