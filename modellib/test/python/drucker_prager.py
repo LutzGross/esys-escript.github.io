@@ -32,7 +32,7 @@ dom.order=2
 sq=Sequencer(debug)
 sq.t=0
 sq.t_end=0.8
-sq.dt_max=0.049/10.
+sq.dt_max=0.1
 
 iob=InterpolateOverBox(debug)
 iob.domain=Link(dom,"domain")
@@ -79,7 +79,7 @@ m.shear_modulus=1.
 m.plastic_stress=0.
 m.friction_parameter=0.
 m.dilatancy_parameter=0.
-m.shear_length=m.shear_modulus*1000.
+m.shear_length=m.shear_modulus/5.
 
 
 ug=UpdateGeometry(debug)
@@ -91,7 +91,7 @@ vis.t=Link(sq)
 vis.scalar=Link(m,"plastic_stress")
 vis.vector=Link(m,"velocity")
 vis.tensor=Link(m,"stress")
-vis.dt=0.2
+vis.dt=0.5
 vis.filename=WORKDIR+"/temp.xml"
 
 s=Simulation([sq,m,vis],debug=True)

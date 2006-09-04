@@ -693,6 +693,7 @@ class Simulation(Model):
     
     FAILED_TIME_STEPS_MAX=20
     MAX_ITER_STEPS=50
+    MAX_CHANGE_OF_DT=2.
     
     def __init__(self, models=[], **kwargs):
         """
@@ -879,7 +880,10 @@ class Simulation(Model):
         while not self.finalize():
             step_fail_counter=0
             iteration_fail_counter=0
-            dt_new=self.getSafeTimeStepSize(dt)
+            if self.n==0:
+                dt_new=self.getSafeTimeStepSize(dt)
+            else:
+                dt_new=min(max(self.getSafeTimeStepSize(dt),dt*self.MAX_CHANGE_OF_DT),dt*self.MAX_CHANGE_OF_DT)
             self.trace("%d. time step %e (step size %e.)" % (self.n+1,self.tn+dt_new,dt_new))
             end_of_step=False
             while not end_of_step:
@@ -895,15 +899,15 @@ class Simulation(Model):
                   end_of_step=False
                   iteration_fail_counter+=1
                   if iteration_fail_counter>self.FAILED_TIME_STEPS_MAX:
-                           raise SimulationBreakDownError("reduction of time step to achieve convergence failed.")
-                  self.trace("iteration fails. time step is repeated with new step size.")
+                           raise SimulationBreakDownError("reduction of time step to achieve convergence failed after %s steps."%self.FAILED_TIME_STEPS_MAX)
+                  self.trace("Iteration failed. Time step is repeated with new step size %s."%dt_new)
                except FailedTimeStepError:
                   dt_new=self.getSafeTimeStepSize(dt)
                   end_of_step=False
                   step_fail_counter+=1
-                  self.trace("time step is repeated.")
+                  self.trace("Time step is repeated with new time step size %s."%dt_new)
                   if step_fail_counter>self.FAILED_TIME_STEPS_MAX:
-                        raise SimulationBreakDownError("time integration is given up after %d attempts."%step_fail_counter)
+                        raise SimulationBreakDownError("Time integration is given up after %d attempts."%step_fail_counter)
             dt=dt_new
             if not check_point==None:
                 if n%check_point==0: 
