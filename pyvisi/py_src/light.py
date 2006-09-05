@@ -1,46 +1,76 @@
 """
-Class and functions associated with lights
-
-@var __author__: name of author
-@var __license__: licence agreement
-@var __copyright__: copyrights
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+Class that controls the light and its settings.
 """
-
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__author__="Paul Cochrane, L. Gross"
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision:$"
-__date__="$Date:$"
 
 import vtk
 
 class Light:
+	"""
+	@author: John Ngui
+	@author: Lutz Gross
+	"""
 
 	def __init__(self, open_scene):
+		"""
+		@type open_scene: L{OpenScene <openscene.OpenScene>} object
+		@param open_scene: Scene in which components are to be added to	
+		"""
+
 		self.open_scene = open_scene
 		self.vtk_light = None
 
 		self.setLight()
 
 	def setLight(self):
+		"""
+		Set up the light and associate it with the renderer.
+		"""
 		self.vtk_light = vtk.vtkLight()
 		self.open_scene.getRenderer().AddLight(self.vtk_light)
 
-	def setColor(self, red, green, blue):
-		self.vtk_light.SetColor(red, green, blue)
+	def setColor(self, colorMap):
+		"""
+		Set the color of the light.
+		
+		@type colorMap: L{ColorMap <colormap.ColorMap>} object
+		@param colorMap: Color of the light
+		"""
 
-	def setFocalPoint(self, x_coor, y_coor, z_coor):
-		self.vtk_light.SetFocalPoint(x_coor, y_coor, z_coor)
+		self.vtk_light.SetColor(colorMap.getR(), colorMap.getG(), 
+			colorMap.getB())
 
-	def setPosition(self, x_coor, y_coor, z_coor):
-		self.vtk_light.SetPosition(x_coor, y_coor, z_coor)
+
+	def setFocalPoint(self, position):
+		"""
+		Set the focal point of the light.
+
+		@type position: L{Position <geo.Position>} object
+		@param position: Light focal point position
+		"""
+
+		self.vtk_light.SetFocalPoint(position.getXCoor(), position.getYCoor(),
+			position.getZCoor())
+
+	def setPosition(self, position):
+		"""
+		Set the position of the light.
+
+		@type position: L{Position <geo.Position>} object
+		@param position: Light position
+		"""
+
+		self.vtk_light.SetPosition(position.getXCoor(), position.getYCoor(),
+			position.getZCoor())
 
 	def setIntensity(self, intensity):
+		"""
+		Set the intensity (brightness) of the light.
+
+		@type intensity: Number
+		@param intensity: intensity (brightness) of the light
+		"""
+
 		self.vtk_light.SetIntensity(intensity)
+
+
+
