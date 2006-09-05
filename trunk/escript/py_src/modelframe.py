@@ -883,7 +883,7 @@ class Simulation(Model):
             if self.n==0:
                 dt_new=self.getSafeTimeStepSize(dt)
             else:
-                dt_new=min(max(self.getSafeTimeStepSize(dt),dt*self.MAX_CHANGE_OF_DT),dt*self.MAX_CHANGE_OF_DT)
+                dt_new=min(max(self.getSafeTimeStepSize(dt),dt/self.MAX_CHANGE_OF_DT),dt*self.MAX_CHANGE_OF_DT)
             self.trace("%d. time step %e (step size %e.)" % (self.n+1,self.tn+dt_new,dt_new))
             end_of_step=False
             while not end_of_step:
