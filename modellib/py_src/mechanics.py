@@ -65,7 +65,9 @@ class Mechanics(Model):
            self.__temperature_safe=self.temperature
            self.__displacement_safe=self.displacement
            self.__velocity_safe=self.velocity
-           self.__velocity_last=None
+           self.__velocity_old=None
+           self.__old_dt=None
+           self.__very_old_dt=None
            # get node cooridnates and apply initial displacement
            self.__x=self.domain.getX()
            self.domain.setX(self.__x+self.displacement)
@@ -88,8 +90,8 @@ class Mechanics(Model):
             self.displacement=self.__displacement_safe
             self.stress=self.__stress_safe
             self.velocity=self.__velocity_safe
-            self.__velocity_last=self.__velocity_safe
-            print "set self.__velocity_last",dt
+            self.__velocity_old=self.__velocity_safe
+            self.__very_old_dt, self.__old_dt= self.__old_dt, dt
             # update geometry
             self.domain.setX(self.__x+self.displacement)
 
@@ -138,6 +140,8 @@ class Mechanics(Model):
           else:
              self.__diff,diff_safe=Lsup(self.stress-self.__stress_last),self.__diff
              s_sup=Lsup(self.stress)
+             # self.__diff,diff_safe=Lsup(self.du),self.__diff
+             # s_sup=Lsup(self.displacement)
              self.trace("stress max and increment :%e, %e"%(s_sup,self.__diff))
              if self.__iter>2 and diff_safe<self.__diff:
                  raise IterationDivergenceError,"no improvement in stress iteration"
@@ -151,15 +155,17 @@ class Mechanics(Model):
            self.__temperature_safe=self.temperature
            self.__stress_safe=self.stress
            self.__velocity_safe=self.velocity
+           self.__old_dt=dt
 
       def getSafeTimeStepSize(self,dt):
            """
            returns new step size
            """
-           if self.__velocity_last:
-              a=Lsup(self.velocity-self.__velocity_last)/dt
+           print self.__very_old_dt, self.__old_dt, dt
+           if self.__very_old_dt:
+              a=2*Lsup(self.velocity-self.__velocity_old)/(self.__very_old_dt+self.__old_dt)
               if a>0:
-                 print "new dt:= ",Lsup(self.displacement)/a*self.rel_tol,dt,a
+                 print "new dt:= ",Lsup(self.velocity)/a*self.rel_tol,dt,self.__old_dt,a
                  # return Lsup(self.displacement)/a*self.rel_tol
                  return self.UNDEF_DT
               else:
@@ -236,19 +242,16 @@ class DruckerPrager(Mechanics):
            s_e=self.stress+K*self.deps_th*k3+ \
                       2*G*D+(K-2./3*G)*trace(D)*k3 \
                       +2*symmetric(matrix_mult(W,self.stress))
-           print "sym (e)= ",Lsup(nonsymmetric(s_e))
            p_e=-1./d*trace(s_e)
            s_e_dev=s_e+p_e*k3
            tau_e=sqrt(1./2*inner(s_e_dev,s_e_dev))
            # yield conditon for elastic trial stress:
            F=tau_e-alpha*p_e-self.shear_length
-           self.__chi=whereNonNegative(F)
-           print "chi =",Lsup(self.__chi)
+           self.__chi=whereNonNegative(F+(self.rel_tol*(self.SAFTY_FACTOR_ITERATION)**2)*self.shear_length)
            # plastic stress increment:
            l=self.__chi*F/(h+G+beta*K)
            self.__tau=tau_e-G*l
            self.stress=self.__tau/(tau_e+self.abs_tol*whereZero(tau_e,self.abs_tol))*s_e_dev-(p_e+l*beta*K)*k3
-           print "sym = ",Lsup(nonsymmetric(self.stress))
            self.plastic_stress=self.plastic_stress+l
            # update hardening
            self.hardening=(self.shear_length-self.__shear_length_safe)/(l+self.abs_tol*whereZero(l))
@@ -265,21 +268,11 @@ class DruckerPrager(Mechanics):
            h=self.hardening
            k3=kronecker(Function(self.domain))
 
-           ###
-           p_e=-1./d*trace(self.stress)
-           s_e_dev=self.stress+p_e*k3
-           tau_e=sqrt(1./2*inner(s_e_dev,s_e_dev))
-           F=tau_e-alpha*p_e-self.shear_length
-           # print F
-           ###
-
-
            sXk3=outer(self.stress,k3)
            k3Xk3=outer(k3,k3)
            s_dev=self.stress-trace(self.stress)*(k3/d)
            tmp=G*s_dev/(tau+self.abs_tol*whereZero(tau,self.abs_tol))
 
-           print "plast grad= ",Lsup(tmp)
            self.S=G*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3)) \
                  + (K-2./3*G)*k3Xk3 \
                  + sXk3-swap_axes(swap_axes(sXk3,1,2),2,3)   \
@@ -288,4 +281,3 @@ class DruckerPrager(Mechanics):
                         -swap_axes(sXk3,1,2)                  \
                         +swap_axes(sXk3,1,3)                ) \
                  - outer(chi/(h+G+alpha*beta*K)*(tmp+beta*K*k3),tmp+alpha*K*k3)
-           print "sym S:",Lsup(nonsymmetric(self.S))
