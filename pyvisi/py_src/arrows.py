@@ -63,8 +63,20 @@ class Arrows(Common):
 	
 		eval("self.vtk_glyph.SetColorModeToColorBy%s()" % color_mode)
 
-"""	
-class ArrowsOnPlane:
-shows a vector field by arrows on a plane
-"""
-pass
+
+from arrows import Arrows
+from plane import Plane 
+	
+class ArrowsOnPlane(Arrows, Plane):
+	"""
+	shows a vector field by arrows on a plane
+	"""
+
+	def __init__(self, scene, data_collector):
+		Common.__init__(self, scene, data_collector)		
+		self.vtk_glyph = None
+		self.setArrows()
+
+		Plane.__init__(self, scene, data_collector,
+			"self.vtk_glyph.GetOutput()")
+
