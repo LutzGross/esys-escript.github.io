@@ -29,8 +29,20 @@ class Map(Common):
 		Common.setActor(self)
 		Common.addActor(self)
 
-"""
-class MapOnPlane():
-shows scalar data by color on a given plane
-"""
-pass
+
+from map import Map
+from plane import Plane 
+
+class MapOnPlane(Map, Plane):
+	"""
+	shows scalar data by color on a given plane
+	"""
+
+	def __init__(self, scene, data_collector):
+		Common.__init__(self, scene, data_collector)
+
+		Plane.__init__(self, scene, data_collector,
+			"self.data_collector.getReader().GetOutput()")
+
+		
+
