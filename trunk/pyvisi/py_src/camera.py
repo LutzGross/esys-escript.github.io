@@ -1,22 +1,23 @@
 """
-Class that controls the camera and its settings.
+
+@author: John Ngui
+@author: Lutz Gross
 """
 
 import vtk
 
 class Camera:
 	"""
-	@author: John Ngui
-	@author: Lutz Gross
+	Class that controls the camera and its settings.
 	"""
 
-	def __init__(self, open_scene):
+	def __init__(self, scene):
 		"""
-		@type open_scene: L{OpenScene <openscene.OpenScene>} object
-		@param open_scene: Scene in which components are to be added to
+		@type scene: L{OpenScene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
 		"""
 
-		self.open_scene = open_scene
+		self.scene = scene
 		self.vtk_camera = None 
 
 		self.setCamera()
@@ -27,7 +28,7 @@ class Camera:
 		"""
 
 		self.vtk_camera = vtk.vtkCamera()		
-		self.open_scene.getRenderer().SetActiveCamera(self.vtk_camera)
+		self.scene.getRenderer().SetActiveCamera(self.vtk_camera)
 
 	def setClippingRange(self, near_clipping, far_clipping):
 		"""

@@ -31,7 +31,7 @@ from image import *
 from isosurface import *
 from light import *
 from map import *
-# from scene import *
+from scene import *
 from streamlines import *
 from style import *
 from tensorglyph import *

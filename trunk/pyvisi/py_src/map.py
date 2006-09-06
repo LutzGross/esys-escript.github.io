@@ -1,5 +1,6 @@
 """
-Class that shows a scalar field by a surface map. 
+@author: John Ngui
+@author: Lutz Gross
 """
 
 import vtk
@@ -7,21 +8,24 @@ from common import *
 
 class Map(Common):
 	"""
-	@author: John Ngui
-	@author: Lutz Gross
+	Class that shows a scalar field by a surface map. 
 	"""
 
-	def __init__(self, open_scene, data_collector):
+	def __init__(self, scene, data_collector, lut = None):
 		"""
-		@type open_scene: L{OpenScene <openscene.OpenScene>} object
-		@param open_scene: Scene in which components are to be added to
+		@type scene: L{OpenScene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 			object
 		@param data_collector: Source of data for visualization	
+		@type lut: L{BlueToRed <colormap.BlueToRed>} object or 
+			L{RedToBlue <colormap.RedToBlue>} object
+		@param lut: Color lookup tabl to be used by the mapper
 		"""
 
-		Common.__init__(self, open_scene, data_collector)
-		Common.setMapper(self, "self.data_collector.getReader().GetOutput()")
+		Common.__init__(self, scene, data_collector)
+		Common.setMapper(self, "self.data_collector.getReader().GetOutput()",
+			lut)
 		Common.setActor(self)
 		Common.addActor(self)
 
