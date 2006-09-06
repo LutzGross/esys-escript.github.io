@@ -74,7 +74,7 @@ class Mechanics(Model):
            # open PDE:
            self.__pde=LinearPDE(self.domain)
            self.__pde.setSolverMethod(self.__pde.DIRECT)
-           self.__pde.setSymmetryOn()
+           # self.__pde.setSymmetryOn()
 
       def doStepPreprocessing(self,dt):
             """
@@ -90,8 +90,6 @@ class Mechanics(Model):
             self.displacement=self.__displacement_safe
             self.stress=self.__stress_safe
             self.velocity=self.__velocity_safe
-            self.__velocity_old=self.__velocity_safe
-            self.__very_old_dt, self.__old_dt= self.__old_dt, dt
             # update geometry
             self.domain.setX(self.__x+self.displacement)
 
@@ -140,8 +138,6 @@ class Mechanics(Model):
           else:
              self.__diff,diff_safe=Lsup(self.stress-self.__stress_last),self.__diff
              s_sup=Lsup(self.stress)
-             # self.__diff,diff_safe=Lsup(self.du),self.__diff
-             # s_sup=Lsup(self.displacement)
              self.trace("stress max and increment :%e, %e"%(s_sup,self.__diff))
              if self.__iter>2 and diff_safe<self.__diff:
                  raise IterationDivergenceError,"no improvement in stress iteration"
@@ -155,21 +151,14 @@ class Mechanics(Model):
            self.__temperature_safe=self.temperature
            self.__stress_safe=self.stress
            self.__velocity_safe=self.velocity
-           self.__old_dt=dt
 
       def getSafeTimeStepSize(self,dt):
            """
            returns new step size
            """
-           print self.__very_old_dt, self.__old_dt, dt
-           if self.__very_old_dt:
-              a=2*Lsup(self.velocity-self.__velocity_old)/(self.__very_old_dt+self.__old_dt)
-              if a>0:
-                 print "new dt:= ",Lsup(self.velocity)/a*self.rel_tol,dt,self.__old_dt,a
-                 # return Lsup(self.displacement)/a*self.rel_tol
-                 return self.UNDEF_DT
-              else:
-                 return self.UNDEF_DT
+           a=sup(length(self.velocity)/self.domain.getSize())
+           if a>0:
+              return 1./a
            else:
               return self.UNDEF_DT
 
@@ -275,7 +264,7 @@ class DruckerPrager(Mechanics):
 
            self.S=G*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3)) \
                  + (K-2./3*G)*k3Xk3 \
-                 + sXk3-swap_axes(swap_axes(sXk3,1,2),2,3)   \
+                 + (sXk3-swap_axes(swap_axes(sXk3,1,2),2,3))   \
                  + 1./2*(swap_axes(swap_axes(sXk3,0,2),2,3)   \
                         -swap_axes(swap_axes(sXk3,0,3),2,3)   \
                         -swap_axes(sXk3,1,2)                  \

@@ -25,7 +25,7 @@ debug=True
 
 dom=RectangularDomain(debug)
 dom.l=[1.,1.,1.]
-dom.n=[50,30,2]
+dom.n=[50,50,2]
 dom.order=2
 dom.integrationOrder=2
 
@@ -33,7 +33,7 @@ dom.integrationOrder=2
 sq=Sequencer(debug)
 sq.t=0
 sq.t_end=0.8
-sq.dt_max=0.02
+sq.dt_max=0.03
 
 iob=InterpolateOverBox(debug)
 iob.domain=Link(dom,"domain")
@@ -72,7 +72,7 @@ cv.back= [False, False, False]
 m.velocity=Link(iob,"out")
 m.prescribed_velocity=Link(cv,"value_of_constraint")
 m.location_prescribed_velocity=Link(cv,"location_of_constraint")
-m.rel_tol=0.0001
+m.rel_tol=0.01
 
 m.expansion_coefficient= 0.
 m.bulk_modulus=1000.
@@ -80,14 +80,14 @@ m.shear_modulus=1.
 m.plastic_stress=0.
 m.friction_parameter=0.
 m.dilatancy_parameter=0.
-m.shear_length=m.shear_modulus*0.75*10000.
+m.shear_length=m.shear_modulus*0.75*1.
 
 
 ug=UpdateGeometry(debug)
 ug.domain=Link(dom,"domain")
 ug.displacement=Link(m,"displacement")
 
-vis=WriteVTK()
+vis=WriteVTK(debug)
 vis.t=Link(sq)
 vis.scalar=Link(m,"plastic_stress")
 vis.vector=Link(m,"velocity")
