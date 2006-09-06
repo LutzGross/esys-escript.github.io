@@ -1,11 +1,11 @@
 """
-Class that defines the positioning of components in the visualization.
+@author: John Ngui
+@author: Lutz Gross
 """
 
 class Position:
 	"""
-	@author: John Ngui
-	@author: Lutz Gross
+	Class that defines the positioning of components in the visualization.
 	"""
 
 	def __init__(self, x_coor, y_coor, z_coor):

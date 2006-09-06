@@ -1,41 +1,48 @@
 """
-Class that defines the common operations invoked by the components. 
+
+@author: John Ngui
+@author: Lutz Gross
 """
 
 import vtk
 
 class Common:
 	"""
-	@author: John Ngui
-	@author: Lutz Gross
+	Class that defines the common operations invoked by the components. 
 	"""
 
-	def __init__(self, open_scene, data_collector):
+	def __init__(self, scene, data_collector):
 		"""
 		Initialize all the instance variables.
 
-		@type open_scene: L{OpenScene <openscene.OpenScene>} object
-		@param open_scene: Scene in which components are to be added to
+		@type scene: L{OpenScene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
 		@type data_collector: L{DataCollector <datacollector.DataCollector>} 
 			object
 		@param data_collector: Source of data for visualization
 		"""
 
-		self.open_scene = open_scene
+		self.scene = scene
 		self.data_collector = data_collector
 		self.vtk_mapper = None
 		self.vtk_actor = None
 
-	def setMapper(self, component):
+	def setMapper(self, component, lut = None):
 		"""
 		Set up the mapper and its input.
 
 		@type component: String
 		@param component: Component to be mapped
+		@type lut: L{BlueToRed <colormap.BlueToRed>} or 
+			L{RedToBlue <colormap.RedToBlue>} object
+		@param lut: Color lookup table to be used by the mapper
 		"""
 
 		self.vtk_mapper = vtk.vtkDataSetMapper()
 		eval("self.vtk_mapper.SetInput(%s)" % component)
+		
+		if(lut != None):
+			self.vtk_mapper.SetLookupTable(lut.getLut())	
 
 	def setActor(self):
 		"""
@@ -50,7 +57,7 @@ class Common:
 		Add the actor to the renderer.
 		"""
 
-		self.open_scene.getRenderer().AddActor(self.vtk_actor) 
+		self.scene.getRenderer().AddActor(self.vtk_actor) 
 
 	def setOpacity(self, opacity):
 		"""

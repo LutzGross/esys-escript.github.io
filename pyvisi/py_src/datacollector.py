@@ -1,27 +1,28 @@
 """
-Class that deals with data for the visualization.
+@author: John Ngui
+@author: Lutz Gross
 """
 
 import vtk
 from common import *
+from colormap import ColorMap
 
 class DataCollector(Common):
 	"""
-	@author: John Ngui
-	@author: Lutz Gross
+	Class that deals with data for the visualization.
 	"""
 
-	def __init__(self, open_scene, outline = True):
+	def __init__(self, scene, outline = True):
 		"""
 		Initialize all the instance variables. 
 
-		@type open_scene: L{OpenScene <openscene.OpenScene>} object
-		@param open_scene: Scene in which components are to be added to
+		@type scene: L{OpenScene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
 		@type outline: Boolean (I{True or False})
 		@param outline: Determines the outline for the rendered object
 		"""
 
-		self.open_scene = open_scene	
+		self.scene = scene	
 		self.outline = True
 		self.file_name = None
 		self.vtk_outline = None

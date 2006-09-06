@@ -1,22 +1,22 @@
 """
-Class that controls the light and its settings.
+@author: John Ngui
+@author: Lutz Gross
 """
 
 import vtk
 
 class Light:
 	"""
-	@author: John Ngui
-	@author: Lutz Gross
+	Class that controls the light and its settings.
 	"""
 
-	def __init__(self, open_scene):
+	def __init__(self, scene):
 		"""
-		@type open_scene: L{OpenScene <openscene.OpenScene>} object
-		@param open_scene: Scene in which components are to be added to	
+		@type scene: L{OpenScene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to	
 		"""
 
-		self.open_scene = open_scene
+		self.scene = scene
 		self.vtk_light = None
 
 		self.setLight()
@@ -26,7 +26,7 @@ class Light:
 		Set up the light and associate it with the renderer.
 		"""
 		self.vtk_light = vtk.vtkLight()
-		self.open_scene.getRenderer().AddLight(self.vtk_light)
+		self.scene.getRenderer().AddLight(self.vtk_light)
 
 	def setColor(self, colorMap):
 		"""
