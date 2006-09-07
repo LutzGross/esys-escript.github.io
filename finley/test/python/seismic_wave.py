@@ -23,12 +23,13 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 import time
 
-output=False
-n_end=100
+output=True
+n_end=10000
 
-resolution=4000.  # number of elements per m
+resolution=10000.  # number of elements per m
 l=80000.          # width and length m
 h=30000.          # height in m
+o=1               # element order
 
 rho_bedrock=8e3
 mu_bedrock=1.7e11
@@ -76,11 +77,58 @@ def getDomain():
       
     """
     global netotal
-    ne_l=int(l/resolution+0.5)
-    ne_h=int(h/resolution+0.5)
-    netotal=ne_l*ne_l*ne_h
-    if output: print "grid : %s x %s x %s"%(ne_l,ne_l,ne_h)
-    dom=Brick(ne_l,ne_l,ne_h,l0=l,l1=l,l2=h,order=1)
+    v_p_bedrock=sqrt((2*mu_bedrock+lambda_bedrock)/rho_bedrock)
+    v_p_sand=sqrt((2*mu_sand+lambda_sand)/rho_sand)
+    v_p_water=sqrt((2*mu_water+lambda_water)/rho_water)
+
+    print v_p_bedrock,v_p_sand,v_p_water
+    
+    ne_l_x_bed=int((l-d0_sand-l_x_water)/resolution+0.5)
+    ne_l_y_bed=int((l-d0_sand-l_y_water)/resolution+0.5)
+    ne_h_bed=int((h-d_sand-h_water)/resolution+0.5)
+
+    ne_l_sand=int(d0_sand*v_p_bedrock/v_p_sand/resolution+0.5)
+    ne_h_sand=int(d_sand*v_p_bedrock/v_p_sand/resolution+0.5)
+
+    ne_l_x_water=int(l_x_water*v_p_bedrock/v_p_water/resolution+0.5)
+    ne_l_y_water=int(l_y_water*v_p_bedrock/v_p_water/resolution+0.5)
+    ne_h_water=int(h_water*v_p_bedrock/v_p_water/resolution+0.5)
+
+    ne_l_x=ne_l_x_bed+ne_l_sand+ne_l_x_water
+    ne_l_y=ne_l_y_bed+ne_l_sand+ne_l_y_water
+    ne_h=ne_h_bed+ne_h_sand+ne_h_water
+
+    print ne_l_x,ne_l_x_bed,ne_l_sand,ne_l_x_water
+    print ne_l_y,ne_l_y_bed,ne_l_sand,ne_l_y_water
+    print ne_h,ne_h_bed,ne_h_sand,ne_h_water
+
+    netotal=ne_l_x*ne_l_y*ne_h
+    if output: print "grid : %s x %s x %s (%s elements)"%(ne_l_x,ne_l_y,ne_h,netotal)
+    dom=Brick(ne_l_x,ne_l_y,ne_h,l0=o*ne_l_x,l1=o*ne_l_y,l2=o*ne_h,order=o)
+    x=dom.getX()
+    
+    x0=x[0]
+    x0_new = (l-d0_sand-l_x_water)/(o*ne_l_x_bed)*x0
+    msk=whereNonPositive(x0-o*ne_l_x_bed)
+    x0_new = x0_new * msk + (d0_sand/(o*ne_l_sand)*(x0-o*ne_l_x_bed)+l-d0_sand-l_x_water)*(1.-msk)
+    msk=whereNonPositive(x0-o*(ne_l_x_bed+ne_l_sand))
+    x0_new = x0_new * msk + (l_x_water/(o*ne_l_x_water)*(x0-o*(ne_l_x_bed+ne_l_sand))+l-l_x_water)*(1.-msk)
+
+    x1=x[1]
+    x1_new = (l-d0_sand-l_y_water)/(o*ne_l_y_bed)*x1
+    msk=whereNonPositive(x1-(o*ne_l_y_bed))
+    x1_new = x1_new * msk + (d0_sand/(o*ne_l_sand)*(x1-o*ne_l_y_bed)+l-d0_sand-l_y_water)*(1.-msk)
+    msk=whereNonPositive(x1-o*(ne_l_y_bed+ne_l_sand))
+    x1_new = x1_new * msk + (l_y_water/(o*ne_l_y_water)*(x1-o*(ne_l_y_bed+ne_l_sand))+l-l_y_water)*(1.-msk)
+
+    x2=x[2]
+    x2_new = (h-d_sand-h_water)/(o*ne_h_bed)*x2
+    msk=whereNonPositive(x2-(o*ne_h_bed+1))
+    x2_new = x2_new * msk + (d_sand/(o*ne_h_sand)*(x2-(o*ne_h_bed+1))+h-d_sand-h_water)*(1.-msk)
+    msk=whereNonPositive(x2-(o*(ne_h_bed+ne_h_sand)+1))
+    x2_new = x2_new * msk + (h_water/(o*ne_h_water)*(x2-(o*(ne_h_bed+ne_h_sand)+1))+h-h_water)*(1.-msk)
+
+    dom.setX(x0_new*[1,0,0]+x1_new*[0,1,0]+x2_new*[0,0,1])
 
     fs=Function(dom)
     x=Function(dom).getX()
