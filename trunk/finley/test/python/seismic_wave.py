@@ -21,6 +21,10 @@ __date__="$Date$"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
+import time
+
+output=False
+n_end=100
 
 resolution=4000.  # number of elements per m
 l=80000.          # width and length m
@@ -56,13 +60,14 @@ event=numarray.array([1.,0.,0.])*1.e6
 # time and length of the event
 tc_length=2.
 tc=sqrt(5.*tc_length)
-print "event location = ",xc
-print "radius of event = ",src_radius
-print "time of event = ",tc
-print "length of event = ",tc_length
-print "direction = ",event
+if output:
+   print "event location = ",xc
+   print "radius of event = ",src_radius
+   print "time of event = ",tc
+   print "length of event = ",tc_length
+   print "direction = ",event
 
-t_end=22.
+t_end=20.
 
 def getDomain():
     """
@@ -70,9 +75,11 @@ def getDomain():
 
       
     """
+    global netotal
     ne_l=int(l/resolution+0.5)
     ne_h=int(h/resolution+0.5)
-    print "grid : %s x %s x %s"%(ne_l,ne_l,ne_h)
+    netotal=ne_l*ne_l*ne_h
+    if output: print "grid : %s x %s x %s"%(ne_l,ne_l,ne_h)
     dom=Brick(ne_l,ne_l,ne_h,l0=l,l1=l,l2=h,order=1)
 
     fs=Function(dom)
@@ -110,11 +117,11 @@ def wavePropagation(dom,rho,lame_mu,lame_lambda):
    mypde.setValue(D=k*rho)
 
    v_p=sqrt((2*lame_mu+lame_lambda)/rho)
-   print "v_p=",v_p
+   if output: print "v_p=",v_p
    v_s=sqrt(lame_mu/rho)
-   print "v_s=",v_s
+   if output: print "v_s=",v_s
    dt=(1./5.)*inf(dom.getSize()/v_p)
-   print "time step size = ",dt
+   if output: print "time step size = ",dt
    # ... set initial values ....
    n=0
    t=0
@@ -123,14 +130,15 @@ def wavePropagation(dom,rho,lame_mu,lame_lambda):
    u     =Vector(0.,Solution(dom))
    u_last=Vector(0.,Solution(dom))
 
-   while t<t_end:
-     print n+1,"-th time step t ",t+dt," max u and F: ",Lsup(u),
+   starttime = time.clock()
+   while t<t_end and n<n_end:
+     if output: print n+1,"-th time step t ",t+dt," max u and F: ",Lsup(u),
      # ... get current stress ....
      eps=symmetric(grad(u))
      stress=lame_lambda*trace(eps)*k+2*lame_mu*eps
      # ... force due to event:
      F=exp(-((t-tc)/tc_length)**2)*exp(-(length(x-xc)/src_radius)**2)*event
-     print Lsup(F)
+     if output: print Lsup(F)
      # ... get new acceleration ....
      mypde.setValue(X=-stress,Y=F)
      a=mypde.getSolution()
@@ -139,11 +147,16 @@ def wavePropagation(dom,rho,lame_mu,lame_lambda):
      # ... shift displacements ....
      u_last,u=u,u_new
      # ... save current acceleration in units of gravity and displacements 
-     if n%10==0: saveVTK("disp.%i.vtu"%(n/10),displacement=u, amplitude=length(u))
+     if output:
+          if n%10==0: saveVTK("disp.%i.vtu"%(n/10),displacement=u, amplitude=length(u))
 
      t+=dt
      n+=1
 
+   endtime = time.clock()
+   totaltime = endtime-starttime
+   global netotal
+   print ">>number of elements: %s, total time: %s, per time step: %s <<"%(netotal,totaltime,totaltime/n)
 if __name__ =="__main__":
    dom=getDomain()
    rho,lame_mu,lame_lambda=getMaterialProperties(dom)
