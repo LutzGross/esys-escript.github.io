@@ -11,9 +11,9 @@ class Contour(Common):
 	Class that shows a scalar field by contour surfaces.
 	"""
 
-	def __init__(self, scene, data_collector):
+	def __init__(self, scene, data_collector, lut = None):
 		"""
-		@type scene: L{OpenScene <scene.Scene>} object
+		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 			object
@@ -21,9 +21,10 @@ class Contour(Common):
 		"""
 
 		Common.__init__(self, scene, data_collector)
+		self.vtk_contour = None
 		self.setContour()
 
-		Common.setMapper(self, "self.vtk_contour.GetOutput()")
+		Common.setMapper(self, "self.vtk_contour.GetOutput()", lut)
 		Common.setActor(self)
 		Common.addActor(self)
 
@@ -61,9 +62,25 @@ class Contour(Common):
 
 		self.vtk_contour.GenerateValues(number_contours, min_range, max_range)
 
+from contour import Contour
+from geo import Plane
 
-#class ContourOnPlane(Component):
-"""
-shows scalar data by contour surfaces on a given plane
-"""
-pass
+class ContourOnPlane(Contour, Plane):
+	"""
+	Class that shows a scalar field by contour surfaces on a given plane.
+	"""
+
+	def __init__(self, scene, data_collector, lut = None):
+		"""
+		@type scene: L{Scene <scene.Scene>} object		
+		@param scene: Scene in which components rae to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualization
+		"""
+
+		Common.__init__(self, scene, data_collector)
+		self.setContour()
+
+		Plane.__init__(self, scene, data_collector,
+			"self.vtk_contour.GetOutput()")
