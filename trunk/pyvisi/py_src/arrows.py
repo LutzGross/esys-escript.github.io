@@ -11,9 +11,9 @@ class Arrows(Common):
 	Class that shows a vector field by arrows.
 	"""
 
-	def __init__(self, scene, data_collector):
+	def __init__(self, scene, data_collector, lut = None):
 		"""
-		@type scene: L{OpenScene <scene.Scene>} object
+		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 			object
@@ -24,7 +24,7 @@ class Arrows(Common):
 		self.vtk_glyph = None
 		self.setArrows()
 
-		Common.setMapper(self, "self.vtk_glyph.GetOutput()")
+		Common.setMapper(self, "self.vtk_glyph.GetOutput()", lut)
 		Common.setActor(self)
 		Common.addActor(self)		
 	
@@ -65,14 +65,23 @@ class Arrows(Common):
 
 
 from arrows import Arrows
-from plane import Plane 
+from geo import Plane 
 	
 class ArrowsOnPlane(Arrows, Plane):
 	"""
-	shows a vector field by arrows on a plane
+	Class that shows a vector field by arrows on a given plane.
 	"""
 
-	def __init__(self, scene, data_collector):
+	def __init__(self, scene, data_collector, lut = None):
+		"""
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>} 
+			object
+
+		@param data_collector: Source of data for visualization
+		"""
+
 		Common.__init__(self, scene, data_collector)		
 		self.vtk_glyph = None
 		self.setArrows()

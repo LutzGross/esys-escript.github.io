@@ -1,27 +1,42 @@
-"""
-class that shows an image
+import vtk
+from common import *
 
-@var __author__: name of author
-@var __license__: licence agreement
-@var __copyright__: copyrights
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
-"""
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__author__="Paul Cochrane, L. Gross"
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision:$"
-__date__="$Date:$"
+class Image(Common):
 
-from common import Component
+	def __init__(self, scene, format):
+		Common.__init__(self, scene)
+		self.vtk_image_reader = self.determineReader(format) 
+		self.vtk_texture = None
+		self.vtk_plane = None
 
-class Image(Component):
-    """
-    shows an image
-    """
-    pass
+	def determineReader(self, format):
+		if(format == "jpg"):
+			return vtk.vtkJPEGReader()	
+		elif(format == "bmp"):
+			return vtk.vtkBMPReader()
+
+	def setFileName(self, file_name):
+		self.vtk_image_reader.SetFileName(file_name)
+
+		self.setTexture()
+		self.setPlane()
+
+		Common.setMapper(self, "self.vtk_plane.GetOutput()")
+		Common.setActor(self)
+		Common.setTexture(self.vtk_texture)
+		Common.addActor(self)
+
+	def setTexture(self):
+		self.vtk_texture = vtk.vtkTexture()
+		self.vtk_texture.SetInput(self.vtk_image_reader.GetOutput())	
+
+	def setPlane(self):
+		self.vtk_plane = vtk.vtkPlaneSource()
+		
+		
+		
+		
+		
+		
+
+

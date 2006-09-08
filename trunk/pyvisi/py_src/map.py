@@ -13,7 +13,7 @@ class Map(Common):
 
 	def __init__(self, scene, data_collector, lut = None):
 		"""
-		@type scene: L{OpenScene <scene.Scene>} object
+		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 			object
@@ -31,14 +31,22 @@ class Map(Common):
 
 
 from map import Map
-from plane import Plane 
+from geo import Plane 
 
 class MapOnPlane(Map, Plane):
 	"""
-	shows scalar data by color on a given plane
+	Class that shows a scalar field on a given plane.
 	"""
 
-	def __init__(self, scene, data_collector):
+	def __init__(self, scene, data_collector, lut = None):
+		"""
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualzation
+		"""
+
 		Common.__init__(self, scene, data_collector)
 
 		Plane.__init__(self, scene, data_collector,

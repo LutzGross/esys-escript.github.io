@@ -10,7 +10,7 @@ class Scene:
 	Class that defines a scene in which components are displayed.
 	"""
 
-	def __init__(self, renderer = "vtk-online", x_size = 800, y_size = 600):
+	def __init__(self, renderer = "vtk_online", x_size = 800, y_size = 600):
 		"""
 		Initialize all the instance variables. 
 
@@ -29,7 +29,7 @@ class Scene:
 		self.vtk_renderer = None
 		self.vtk_render_window = None
 
-		if(renderer == "vtk-online"):
+		if(renderer == "vtk_online"):
 			self.setRenderingWindow()
 
 	def setRenderingWindow(self):

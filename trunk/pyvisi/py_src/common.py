@@ -1,5 +1,4 @@
 """
-
 @author: John Ngui
 @author: Lutz Gross
 """
@@ -11,11 +10,11 @@ class Common:
 	Class that defines the common operations invoked by the components. 
 	"""
 
-	def __init__(self, scene, data_collector):
+	def __init__(self, scene, data_collector = None):
 		"""
 		Initialize all the instance variables.
 
-		@type scene: L{OpenScene <scene.Scene>} object
+		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		@type data_collector: L{DataCollector <datacollector.DataCollector>} 
 			object
@@ -51,6 +50,9 @@ class Common:
 
 		self.vtk_actor = vtk.vtkActor()
 		self.vtk_actor.SetMapper(self.vtk_mapper)
+
+	def setTexture(self, texture):
+		self.vtk_actor.SetTexture(texture)
 
 	def addActor(self):
 		"""

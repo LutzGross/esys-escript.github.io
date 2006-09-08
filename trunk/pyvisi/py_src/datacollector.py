@@ -16,7 +16,7 @@ class DataCollector(Common):
 		"""
 		Initialize all the instance variables. 
 
-		@type scene: L{OpenScene <scene.Scene>} object
+		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		@type outline: Boolean (I{True or False})
 		@param outline: Determines the outline for the rendered object
@@ -29,7 +29,7 @@ class DataCollector(Common):
 		self.vtk_xml_reader = None 
 		self.vtk_xml_reader_output = None
 
-	def setSource(self, file_name):
+	def setFileName(self, file_name):
 		"""	
 		Set up the file reader and set the file name.
 
