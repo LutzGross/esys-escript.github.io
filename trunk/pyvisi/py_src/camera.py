@@ -13,7 +13,7 @@ class Camera:
 
 	def __init__(self, scene):
 		"""
-		@type scene: L{OpenScene <scene.Scene>} object
+		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		"""
 
