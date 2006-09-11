@@ -52,6 +52,12 @@ class Common:
 		self.vtk_actor.SetMapper(self.vtk_mapper)
 
 	def setTexture(self, texture):
+		"""
+		Set the texture of the actor.
+
+		@type texture: vtkTexture
+		@param texture: Texture map of the image
+		"""
 		self.vtk_actor.SetTexture(texture)
 
 	def addActor(self):

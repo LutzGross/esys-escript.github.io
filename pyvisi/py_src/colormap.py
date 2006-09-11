@@ -51,7 +51,7 @@ class ColorMap:
 		self.colorMap["Blue"] = [0, 0, 255]
 		self.colorMap["Black"] = [0, 0, 0]
 		self.colorMap["White"] = [255, 255, 255]
-		self.colorMap["Yelow"] = [255, 255, 0]
+		self.colorMap["Yellow"] = [255, 255, 0]
 		self.colorMap["Pink"] = [255, 20, 147]
 		self.colorMap["Orange"] = [255, 69, 0]
 		self.colorMap["Purple"] = [138, 43, 226]
