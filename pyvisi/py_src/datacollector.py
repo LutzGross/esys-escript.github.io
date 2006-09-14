@@ -76,7 +76,7 @@ class DataCollector(Common):
 		vtk_cube_axes.SetCamera(self.scene.getRenderer().GetActiveCamera())
 		vtk_cube_axes.SetLabelFormat("%6.4g")
 		vtk_cube_axes.SetFlyModeToClosestTriad()
-		vtk_cube_axes.SetFontFactor(0.8)
+		vtk_cube_axes.SetFontFactor(0.9)
 
 		self.scene.getRenderer().AddActor(vtk_cube_axes)
 			
