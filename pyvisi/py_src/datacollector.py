@@ -12,7 +12,7 @@ class DataCollector(Common):
 	Class that deals with data for the visualization.
 	"""
 
-	def __init__(self, scene, outline = True):
+	def __init__(self, scene, outline = True, cube_axes = True):
 		"""
 		Initialize all the instance variables. 
 
@@ -23,7 +23,8 @@ class DataCollector(Common):
 		"""
 
 		self.scene = scene	
-		self.outline = True
+		self.outline = outline 
+		self.cube_axes = cube_axes
 		self.file_name = None
 		self.vtk_outline = None
 		self.vtk_xml_reader = None 
@@ -47,6 +48,9 @@ class DataCollector(Common):
 			Common.setActor(self)
 			Common.addActor(self)	
 			Common.setColor(self, 0, 0, 0) # Default outline is black
+
+		if(self.cube_axes == True):
+			self.setCubeAxes()
 	
 	def getReader(self):
 		"""
@@ -65,5 +69,18 @@ class DataCollector(Common):
 
 		self.vtk_outline = vtk.vtkOutlineFilter()
 		self.vtk_outline.SetInput(self.vtk_xml_reader.GetOutput())	
+
+	def setCubeAxes(self):
+		vtk_cube_axes = vtk.vtkCubeAxesActor2D()
+		vtk_cube_axes.SetInput(self.vtk_xml_reader.GetOutput())
+		vtk_cube_axes.SetCamera(self.scene.getRenderer().GetActiveCamera())
+		vtk_cube_axes.SetLabelFormat("%6.4g")
+		vtk_cube_axes.SetFlyModeToClosestTriad()
+		vtk_cube_axes.SetFontFactor(0.8)
+
+		self.scene.getRenderer().AddActor(vtk_cube_axes)
+			
+
+
 
 
