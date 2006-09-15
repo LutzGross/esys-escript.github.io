@@ -21,11 +21,11 @@ class Contour(Common):
 		"""
 
 		Common.__init__(self, scene, data_collector)
-		self.vtk_contour = None
+		self.vtk_contour = vtk.vtkContourFilter() 
 		self.setContour()
 
-		Common.setMapper(self, "self.vtk_contour.GetOutput()", lut)
-		Common.setActor(self)
+		Common.setMapperInput(self, self.vtk_contour.GetOutput(), lut)
+		Common.setActorInput(self)
 		Common.addActor(self)
 
 	def setContour(self):
@@ -33,7 +33,6 @@ class Contour(Common):
 		Set up the contour and its input.
 		"""
 
-		self.vtk_contour = vtk.vtkContourFilter()
 		self.vtk_contour.SetInput(self.data_collector.getReader().GetOutput())
 
 	def setValue(self, contour_number, value):
@@ -63,7 +62,7 @@ class Contour(Common):
 		self.vtk_contour.GenerateValues(number_contours, min_range, max_range)
 
 from contour import Contour
-from geo import Plane
+from plane import Plane
 
 class ContourOnPlane(Contour, Plane):
 	"""
@@ -79,8 +78,9 @@ class ContourOnPlane(Contour, Plane):
 		@param data_collector: Source of data for visualization
 		"""
 
-		Common.__init__(self, scene, data_collector)
-		self.setContour()
+		self.data_collector = data_collector
+		self.vtk_contour = vtk.vtkContourFilter() 
+		Contour.setContour(self)
 
 		Plane.__init__(self, scene, data_collector,
-			"self.vtk_contour.GetOutput()")
+			self.vtk_contour.GetOutput(), lut)

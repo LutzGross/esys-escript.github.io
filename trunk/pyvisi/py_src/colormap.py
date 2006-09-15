@@ -1,27 +1,4 @@
 """
-@var RED: Constant representing red
-@type RED: RGB color
-@var GREEN: Constant representing green
-@type GREEN: RGB color 
-@var BLUE: Constant representing blue 
-@type BLUE: RGB color
-@var BLACK: Constant representing black
-@type BLACK: RBG color
-@var WHITE: Constant representing white
-@type WHITE: RGB color
-@var YELLOW: Constant representing yellow
-@type YELLOW: RGB color
-@var PINK: Constant represnting pink
-@type PINK: RGB color
-@var ORANGE: Constant representing orange
-@type ORANGE: RGB color
-@var PURPLE: Constant representing purple
-@type PURPLE: RGB color
-@var GREY: Constant representing grey
-@type GREY: RGB color 
-@var BROWN: Constant representing brown
-@type BROWN: RGB color 
-
 @author: John Ngui
 @author: Lutz Gross	
 """
@@ -38,7 +15,7 @@ class ColorMap:
 		"""
 
 		self.color_name = color_name
-		self.colorMap = {}
+		self.color_map = {}
 		self.buildColorMap()
 
 	def buildColorMap(self):
@@ -46,17 +23,17 @@ class ColorMap:
 		Build a hash that defines mapping of colors.
 		"""
 
-		self.colorMap["Red"] = [255, 0, 0]
-		self.colorMap["Green"]= [0, 255, 0]
-		self.colorMap["Blue"] = [0, 0, 255]
-		self.colorMap["Black"] = [0, 0, 0]
-		self.colorMap["White"] = [255, 255, 255]
-		self.colorMap["Yellow"] = [255, 255, 0]
-		self.colorMap["Pink"] = [255, 20, 147]
-		self.colorMap["Orange"] = [255, 69, 0]
-		self.colorMap["Purple"] = [138, 43, 226]
-		self.colorMap["Grey"] = [169, 169, 169]
-		self.colorMap["Brown"] = [139, 69, 19]
+		self.color_map["Red"] = [1, 0, 0]
+		self.color_map["Green"]= [0, 1, 0]
+		self.color_map["Blue"] = [0, 0, 1]
+		self.color_map["Black"] = [0, 0, 0]
+		self.color_map["White"] = [1, 1, 1]
+		self.color_map["Yellow"] = [1,1,0]
+		self.color_map["Pink"] = [1, 0.0784, 0.4588]
+		self.color_map["Orange"] = [1, 0.2706, 0]
+		self.color_map["Purple"] = [0.5412, 0.1680, 0.8828]
+		self.color_map["Grey"] = [0.6602, 0.6602, 0.6602]
+		self.color_map["Brown"] = [0.5430, 0.2700, 0.0742]
 
 	def getR(self):
 		"""
@@ -66,17 +43,17 @@ class ColorMap:
 		@return: Red(R) value from the RGB
 		"""
 
-		return self.colorMap[self.color_name][0]
+		return self.color_map[self.color_name][0]
 
 	def getG(self):
 		"""
 		Return the green(G) value from the RGB.
 
 		@rtype: Number
-		@return: Green(R) value from the RGB
+		@return: Green(G) value from the RGB
 		"""
 
-		return self.colorMap[self.color_name][1]
+		return self.color_map[self.color_name][1]
 
 	def getB(self):
 		"""
@@ -86,7 +63,7 @@ class ColorMap:
 		@return: Blue(B) value from the RGB
 		"""
 
-		return self.colorMap[self.color_name][2]
+		return self.color_map[self.color_name][2]
 
 	def getColor(self):
 		"""
@@ -97,19 +74,6 @@ class ColorMap:
 		"""
 
 		return self.color_name
-
-# Constants
-RED = ColorMap("Red")
-GREEN = ColorMap("Green")
-BLUE = ColorMap("Blue")
-BLACK = ColorMap("Black")
-WHITE = ColorMap("White")
-YELLOW = ColorMap("Yellow")
-PINK = ColorMap("Pink")
-ORANGE = ColorMap("Orange")
-PURPLE = ColorMap("Purple")
-GREY = ColorMap("Grey")
-BROWN = ColorMap("Brown")
 	
 import vtk	
 

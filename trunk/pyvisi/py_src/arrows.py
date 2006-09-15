@@ -4,7 +4,7 @@
 """
 
 import vtk
-from common import *
+from common import Common 
 
 class Arrows(Common):
 	"""
@@ -21,11 +21,11 @@ class Arrows(Common):
 		"""
 
 		Common.__init__(self, scene, data_collector)
-		self.vtk_glyph = None
+		self.vtk_glyph = vtk.vtkGlyph3D()
 		self.setArrows()
 
-		Common.setMapper(self, "self.vtk_glyph.GetOutput()", lut)
-		Common.setActor(self)
+		Common.setMapperInput(self, self.vtk_glyph.GetOutput(), lut)
+		Common.setActorInput(self)
 		Common.addActor(self)		
 	
 	def setArrows(self):
@@ -35,13 +35,18 @@ class Arrows(Common):
 
 		vtk_arrows = vtk.vtkArrowSource()
 		
-		self.vtk_glyph = vtk.vtkGlyph3D()
 		self.vtk_glyph.SetInput(self.data_collector.getReader().GetOutput())
 		self.vtk_glyph.SetSource(vtk_arrows.GetOutput())
-		self.vtk_glyph.SetVectorModeToUseVector() # Default vector mode
-		self.vtk_glyph.SetScaleModeToScaleByVector() # Default scale mode
-		self.setColorMode("Scalar") # Default color mode
-		self.setScaleFactor(0.2) # Default scale factor
+		self.setVectorMode("Vector")
+		self.setScaleMode("Vector")
+		self.setColorMode("Scalar")
+		self.setScaleFactor(0.3) 
+
+	def setVectorMode(self, vector_mode):
+		eval("self.vtk_glyph.SetVectorModeToUse%s" % vector_mode)
+
+	def setScaleMode(self, scale_mode):
+		eval("self.vtk_glyph.SetScaleModeToScaleBy%s" % scale_mode)
 
 	def setScaleFactor(self, scale_factor):
 		"""
@@ -65,7 +70,7 @@ class Arrows(Common):
 
 
 from arrows import Arrows
-from geo import Plane 
+from plane import Plane 
 	
 class ArrowsOnPlane(Arrows, Plane):
 	"""
@@ -82,10 +87,10 @@ class ArrowsOnPlane(Arrows, Plane):
 		@param data_collector: Source of data for visualization
 		"""
 
-		Common.__init__(self, scene, data_collector)		
-		self.vtk_glyph = None
-		self.setArrows()
+		self.data_collector = data_collector
+		self.vtk_glyph = vtk.vtkGlyph3D()
+		Arrows.setArrows(self)
 
 		Plane.__init__(self, scene, data_collector,
-			"self.vtk_glyph.GetOutput()")
+			self.vtk_glyph.GetOutput(), lut)
 
