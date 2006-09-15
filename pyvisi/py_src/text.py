@@ -40,7 +40,7 @@ class Text:
 		self.vtk_text_actor.SetDisplayPosition(x_coor, y_coor)
 
 	def setStyle(self, style):
-		self.vtk_text_mapper.SetTextProperty(style.getTextProperty())		
+		self.vtk_text_mapper.SetTextProperty(style.getStyle())		
 
 
 	def setActor(self):

@@ -4,8 +4,9 @@
 """
 
 import vtk
-from common import *
-from colormap import ColorMap
+from common import Common 
+from constants import *
+from style import Style
 
 class DataCollector(Common):
 	"""
@@ -22,13 +23,10 @@ class DataCollector(Common):
 		@param outline: Determines the outline for the rendered object
 		"""
 
-		self.scene = scene	
+		Common.__init__(self, scene)
 		self.outline = outline 
 		self.cube_axes = cube_axes
-		self.file_name = None
-		self.vtk_outline = None
-		self.vtk_xml_reader = None 
-		self.vtk_xml_reader_output = None
+		self.vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
 
 	def setFileName(self, file_name):
 		"""	
@@ -38,20 +36,45 @@ class DataCollector(Common):
 		@param file_name: Name of the file to be read.
 		"""
 
-		self.file_name = file_name
-		self.vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
-		self.vtk_xml_reader.SetFileName(self.file_name)
+		self.vtk_xml_reader.SetFileName(file_name)
 
 		if(self.outline == True):
 			self.setOutline()
-			Common.setMapper(self, "self.vtk_outline.GetOutput()")
-			Common.setActor(self)
-			Common.addActor(self)	
-			Common.setColor(self, 0, 0, 0) # Default outline is black
 
 		if(self.cube_axes == True):
 			self.setCubeAxes()
+
+	def setOutline(self):
+		"""	
+		Set the outline for the rendered object.
+		"""
+
+		self.vtk_outline = vtk.vtkOutlineFilter()
+		self.vtk_outline.SetInput(self.vtk_xml_reader.GetOutput())	
 	
+		Common.setMapperInput(self, self.vtk_outline.GetOutput())
+		Common.setActorInput(self)
+		Common.addActor(self)
+		# Default outline is black color.	
+		Common.setActorColor(self, BLACK) 
+
+	def setCubeAxes(self):
+		vtk_cube_axes = vtk.vtkCubeAxesActor2D()
+		vtk_cube_axes.SetInput(self.getReader().GetOutput())
+		vtk_cube_axes.SetCamera(self.scene.getRenderer().GetActiveCamera())
+		vtk_cube_axes.SetLabelFormat("%6.4g")
+		vtk_cube_axes.SetFlyModeToOuterEdges()
+		vtk_cube_axes.SetFontFactor(0.9)
+
+		style = Style() 		
+		style.setColor(BLACK)
+		style.setShadow()
+
+		vtk_cube_axes.SetAxisTitleTextProperty(style.getStyle())
+		vtk_cube_axes.SetAxisLabelTextProperty(style.getStyle())
+
+		self.scene.getRenderer().AddActor(vtk_cube_axes)
+
 	def getReader(self):
 		"""
 		Return the file reader.
@@ -61,26 +84,4 @@ class DataCollector(Common):
 		"""
 
 		return self.vtk_xml_reader
-
-	def setOutline(self):
-		"""	
-		Set the outline for the rendered object.
-		"""
-
-		self.vtk_outline = vtk.vtkOutlineFilter()
-		self.vtk_outline.SetInput(self.vtk_xml_reader.GetOutput())	
-
-	def setCubeAxes(self):
-		vtk_cube_axes = vtk.vtkCubeAxesActor2D()
-		vtk_cube_axes.SetInput(self.vtk_xml_reader.GetOutput())
-		vtk_cube_axes.SetCamera(self.scene.getRenderer().GetActiveCamera())
-		vtk_cube_axes.SetLabelFormat("%6.4g")
-		vtk_cube_axes.SetFlyModeToClosestTriad()
-		vtk_cube_axes.SetFontFactor(0.9)
-
-		self.scene.getRenderer().AddActor(vtk_cube_axes)
-			
-
-
-
 

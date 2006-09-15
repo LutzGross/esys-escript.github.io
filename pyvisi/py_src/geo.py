@@ -53,8 +53,8 @@ class Position:
 
 		return self.z_coor
 
-
-from common import *
+import vtk
+from common import Common 
 
 class Plane(Common):
 	"""
@@ -73,13 +73,13 @@ class Plane(Common):
 		"""
 
 		Common.__init__(self, scene, data_collector)
-		self.vtk_plane = None
-		self.vtk_cutter = None
+		self.vtk_plane = vtk.vtkPlane() 
+		self.vtk_cutter = vtk.vtkCutter()
 		self.setPlane()
 		self.setCutter(component)
 
-		Common.setMapper(self, "self.vtk_cutter.GetOutput()")
-		Common.setActor(self)
+		Common.setMapperInput(self, self.vtk_cutter.GetOutput())
+		Common.setActorInput(self)
 		Common.addActor(self)
 
 	def setPlane(self):
@@ -87,13 +87,13 @@ class Plane(Common):
 		Setup the plane.
 		"""
 
-		self.vtk_plane = vtk.vtkPlane()
 		# Default origin
 		#self.vtk_plane.SetOrigin(
 		#self.data_collector.getReader().GetOutput().GetCenter())
-		self.vtk_plane.SetOrigin(0,0,0)
+		self.setPlaneOrigin(0,0,0)
 		# Default normal
-		self.vtk_plane.SetNormal(-1.2, 0.0, 0.9)
+		self.setPlaneNormal(-1.2, 0.0, 0.9)
+		#self.setPlaneNormal(1,0,1)
 
 
 	def setPlaneOrigin(self, x_coor, y_coor, z_coor):
@@ -132,8 +132,7 @@ class Plane(Common):
 		@param component: Component to be cut using the plane
 		"""
 
-		self.vtk_cutter = vtk.vtkCutter()
-		eval("self.vtk_cutter.SetInput(%s)" % component)
+		self.vtk_cutter.SetInput(component)
 		self.vtk_cutter.SetCutFunction(self.vtk_plane)
 
 #def Plane(object):

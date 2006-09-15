@@ -1,5 +1,6 @@
 
 import vtk
+from constants import *
 
 class Style:
 
@@ -18,10 +19,10 @@ class Style:
 	def setShadow(self):
 		self.vtk_text_property.ShadowOn()
 
-	def setColor(self, colorMap):
-		self.vtk_text_property.SetColor(colorMap.getR(), colorMap.getG(),
-			colorMap.getB())
+	def setColor(self, color):
+		self.vtk_text_property.SetColor(color[0], color[1],
+			color[2])
 
-	def getTextProperty(self):
+	def getStyle(self):
 		return self.vtk_text_property
 

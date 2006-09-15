@@ -23,10 +23,10 @@ class Common:
 
 		self.scene = scene
 		self.data_collector = data_collector
-		self.vtk_mapper = None
-		self.vtk_actor = None
+		self.vtk_mapper = vtk.vtkDataSetMapper() 
+		self.vtk_actor = vtk.vtkActor() 
 
-	def setMapper(self, component, lut = None):
+	def setMapperInput(self, component, lut = None):
 		"""
 		Set up the mapper and its input.
 
@@ -37,21 +37,13 @@ class Common:
 		@param lut: Color lookup table to be used by the mapper
 		"""
 
-		self.vtk_mapper = vtk.vtkDataSetMapper()
-		eval("self.vtk_mapper.SetInput(%s)" % component)
+		self.vtk_mapper.SetInput(component)
+		#eval("self.vtk_mapper.SetInput(%s)" % component)
 		
 		if(lut != None):
 			self.vtk_mapper.SetLookupTable(lut.getLut())	
 
-	def setActor(self):
-		"""
-		Set up the actor and its mapper.
-		"""
-
-		self.vtk_actor = vtk.vtkActor()
-		self.vtk_actor.SetMapper(self.vtk_mapper)
-
-	def setTexture(self, texture):
+	def setMapperTexture(self, texture):
 		"""
 		Set the texture of the actor.
 
@@ -60,6 +52,13 @@ class Common:
 		"""
 		self.vtk_actor.SetTexture(texture)
 
+	def setActorInput(self):
+		"""
+		Set up the actor and its mapper.
+		"""
+		self.vtk_actor.SetMapper(self.vtk_mapper)
+
+
 	def addActor(self):
 		"""
 		Add the actor to the renderer.
@@ -67,7 +66,7 @@ class Common:
 
 		self.scene.getRenderer().AddActor(self.vtk_actor) 
 
-	def setOpacity(self, opacity):
+	def setActorOpacity(self, opacity):
 		"""
 		Set the opacity (transparency) of the actor.
 
@@ -75,12 +74,13 @@ class Common:
 		@param opacity: Opacity (transparency) of the actor
 		"""
 
-		self.getProperty().SetOpacity(opacity)
+		self.vtk_actor.GetProperty().SetOpacity(opacity)
 
-	def setColor(self, red, green, blue):
-		self.getProperty().SetColor(red, green, blue)
+	def setActorColor(self, color):
+		self.vtk_actor.GetProperty().SetColor(color[0], color[1],
+			color[2])
 
-	def setRepresentation(self, representation):
+	def setActorRepresentation(self, representation):
 		"""
 		Set the representation of the actor.
 
@@ -88,20 +88,9 @@ class Common:
 		@param representation: Representation type (I{i.e. Wireframe})
 		"""
 
-		eval("self.getProperty().SetRepresentationTo%s()" % representation)
+		eval("self.vtk_actor.GetProperty().SetRepresentationTo%s()" % 
+			representation)
 	
-	def getProperty(self):
-		"""
-		Return the property of the actor.
 
-		@rtype: vtkProperty
-		@return: VTK property	
-		"""
-
-		return self.vtk_actor.GetProperty()
-
-		
-
-		
 class Component:
      pass

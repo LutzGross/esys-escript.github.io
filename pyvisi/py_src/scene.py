@@ -4,6 +4,7 @@
 """	
 
 import vtk
+from constants import *
 
 class Scene:
 	"""
@@ -23,25 +24,23 @@ class Scene:
 		@param y_size: Size of the rendering window on the y-axis
 		"""	
 
-		self.renderer = renderer
 		self.x_size = x_size
 		self.y_size = y_size
-		self.vtk_renderer = None
-		self.vtk_render_window = None
+		self.vtk_renderer = vtk.vtkRenderer() 
+		self.vtk_render_window = vtk.vtkRenderWindow() 
 
 		if(renderer == "vtk_online"):
-			self.setRenderingWindow()
+			self.setRenderWindow()
 
-	def setRenderingWindow(self):
+	def setRenderWindow(self):
 		"""
 		Set up the renderer and rendering window.
 		"""
 
-		self.vtk_renderer = vtk.vtkRenderer()
-		self.vtk_render_window = vtk.vtkRenderWindow()
 		self.vtk_render_window.AddRenderer(self.vtk_renderer)
 		self.vtk_render_window.SetSize(self.x_size, self.y_size)
-		self.vtk_renderer.SetBackground(1, 1, 1) # Default color is white
+		self.vtk_renderer.SetBackground(
+			WHITE[0], WHITE[1], WHITE[2]) 
 
 	def render(self):
 		""" 
@@ -63,11 +62,3 @@ class Scene:
 		"""
 
 		return self.vtk_renderer
-		
-		
-
-
-	
-
-
-

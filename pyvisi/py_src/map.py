@@ -4,7 +4,7 @@
 """
 
 import vtk
-from common import * 
+from common import Common 
 
 class Map(Common):
 	"""
@@ -24,16 +24,15 @@ class Map(Common):
 		"""
 
 		Common.__init__(self, scene, data_collector)
-		Common.setMapper(self, "self.data_collector.getReader().GetOutput()",
+		Common.setMapperInput(self, self.data_collector.getReader().GetOutput(),
 			lut)
-		Common.setActor(self)
+		Common.setActorInput(self)
 		Common.addActor(self)
 
 
-from map import Map
-from geo import Plane 
+from plane import Plane 
 
-class MapOnPlane(Map, Plane):
+class MapOnPlane(Plane):
 	"""
 	Class that shows a scalar field on a given plane.
 	"""
@@ -47,10 +46,6 @@ class MapOnPlane(Map, Plane):
 		@param data_collector: Source of data for visualzation
 		"""
 
-		Common.__init__(self, scene, data_collector)
-
 		Plane.__init__(self, scene, data_collector,
-			"self.data_collector.getReader().GetOutput()")
-
-		
+			data_collector.getReader().GetOutput(), lut)
 
