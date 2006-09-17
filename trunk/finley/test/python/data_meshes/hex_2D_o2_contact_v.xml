@@ -4,7 +4,7 @@
 <UnstructuredGrid>
 <Piece NumberOfPoints="16" NumberOfCells="1">
 <Points>
-<DataArray NumberOfComponents="3" type="Float32" format="ascii">
+<DataArray NumberOfComponents="3" type="Float64" format="ascii">
 0.000000e+00 0.000000e+00 0.000000e+00
 5.000000e-01 0.000000e+00 0.000000e+00
 1.000000e+00 0.000000e+00 0.000000e+00
@@ -35,7 +35,7 @@
 </DataArray>
 </Cells>
 <CellData Vectors="data">
-<DataArray Name="data" type="Float32" NumberOfComponents="3" format="ascii">
+<DataArray Name="data" type="Float64" NumberOfComponents="3" format="ascii">
  5.000000e-01 1.000000e+00 0.000000e+00
 </DataArray>
 </CellData>

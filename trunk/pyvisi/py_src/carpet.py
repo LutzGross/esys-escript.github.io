@@ -4,11 +4,12 @@ class that represents scalar data as plane deformated along the plane normal and
 
 import vtk
 
-class Carpet():
+class Carpet(object):
     """
     represents scalar data as plane deformated along the plane normal 
 	and proportional to the scalar value on the plane.
     """
+    pass
 
 	
 	
