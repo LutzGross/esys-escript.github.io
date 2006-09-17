@@ -452,7 +452,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
             "<UnstructuredGrid>\n" \
             "<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n" \
             "<Points>\n" \
-            "<DataArray NumberOfComponents=\"%d\" type=\"Float32\" format=\"ascii\">\n"
+            "<DataArray NumberOfComponents=\"%d\" type=\"Float64\" format=\"ascii\">\n"
             ,numPoints,numGlobalCells,MAX(3,nDim));
 
 
@@ -845,7 +845,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         if( myRank == 0)
         {
           char header[250];
-          sprintf(header,"<DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
+          sprintf(header,"<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
           MPI_File_iwrite_shared(fh,header,strlen(header),MPI_CHAR,&req);
           MPI_Wait(&req,&status);
         }
@@ -1042,7 +1042,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         if( myRank == 0)
         {
           char header[250];
-          sprintf(header, "<DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
+          sprintf(header, "<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
           MPI_File_iwrite_shared(fh,header,strlen(header),MPI_CHAR,&req);
           MPI_Wait(&req,&status);
         }
@@ -1523,7 +1523,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   * the reason for this if statement is explained in the long comment below
   */
   nDim = mesh_p->Nodes->numDim;
-  fprintf(fileHandle_p, "<DataArray NumberOfComponents=\"%d\" type=\"Float32\" format=\"ascii\">\n",MAX(3,nDim));
+  fprintf(fileHandle_p, "<DataArray NumberOfComponents=\"%d\" type=\"Float64\" format=\"ascii\">\n",MAX(3,nDim));
   /* vtk/mayavi doesn't like 2D data, it likes 3D data with a degenerate
   * third dimension to handle 2D data (like a sheet of paper).  So, if
   * nDim is 2, we have to append zeros to the array to get this third
@@ -1712,7 +1712,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
           }
           nCompReqd = 9;
         }
-        fprintf(fileHandle_p, "<DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
+        fprintf(fileHandle_p, "<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
 
         double sampleAvg[nComp];
         for (i=0; i<numCells; i++)
@@ -1846,7 +1846,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
           }
           nCompReqd = 9;
         }
-        fprintf(fileHandle_p, "<DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
+        fprintf(fileHandle_p, "<DataArray Name=\"%s\" type=\"Float64\" NumberOfComponents=\"%d\" format=\"ascii\">\n",names_p[i_data], nCompReqd);
         /* write out the data */
         /* if the number of required components is more than the number
         * of actual components, pad with zeros

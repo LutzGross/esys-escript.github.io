@@ -32,8 +32,8 @@ dom.integrationOrder=2
 
 sq=Sequencer(debug)
 sq.t=0
-sq.t_end=0.8
-sq.dt_max=0.03
+sq.t_end=3
+sq.dt_max=0.3
 
 iob=InterpolateOverBox(debug)
 iob.domain=Link(dom,"domain")
@@ -46,13 +46,13 @@ iob.value_right_top_front=[0.,0.,0.]
 iob.value_left_top_back=[1.,0.,0.]
 iob.value_right_top_back=[0.,0.,0.]
 
-iob.value_left_bottom_front=[1.,0.]
+iob.value_left_bottom_front=[-1.,0.]
 iob.value_right_bottom_front=[0.,0.]
-iob.value_left_bottom_back=[1.,0.]
+iob.value_left_bottom_back=[-1.,0.]
 iob.value_right_bottom_back=[0.,0.]
-iob.value_left_top_front=[1.,0.]
+iob.value_left_top_front=[-1.,0.]
 iob.value_right_top_front=[0.,0.]
-iob.value_left_top_back=[1.,0.]
+iob.value_left_top_back=[-1.,0.]
 iob.value_right_top_back=[0.,0.]
 
 m=DruckerPrager(debug)

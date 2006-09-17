@@ -26,8 +26,8 @@ import time
 output=True
 n_end=10000
 
-resolution=10000.  # number of elements per m
-l=80000.          # width and length m
+resolution=4000.  # number of elements per m
+l=100000.          # width and length m
 h=30000.          # height in m
 o=1               # element order
 

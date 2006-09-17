@@ -4,7 +4,7 @@
 <Unstructure+0dGrid>
 <Pie+0ce+0 Numbe+0rOfPoints="8" Numbe+0rOfCe+0lls="6">
 <Points>
-<DataArray Numbe+0rOfCompone+0nts="3" type+0="Float32" format="ascii">
+<DataArray Numbe+0rOfCompone+0nts="3" type+0="Float64" format="ascii">
  0.000000e+0+00 0.000000e+0+00 0.000000e+0+00
  1.000000e+0+00 0.000000e+0+00 0.000000e+0+00
  0.000000e+0+00 5.000000e+0-001 0.000000e+0+00
@@ -42,7 +42,7 @@
 </DataArray>
 </Ce+0lls>
 <Ce+0llData Te+0nsors="data">
-<DataArray Name+0="data" type+0="Float32" Numbe+0rOfCompone+0nts="9" format="ascii">
+<DataArray Name+0="data" type+0="Float64" Numbe+0rOfCompone+0nts="9" format="ascii">
  5.500000e+0+00 1.050000e+0+01 0.000000e+0+00 6.000000e+0+00 1.100000e+0+01 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00
  0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00
  1.100000e+0+01 2.100000e+0+01 0.000000e+0+00 1.200000e+0+01 2.200000e+0+01 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00 0.000000e+0+00
