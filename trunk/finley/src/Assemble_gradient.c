@@ -120,10 +120,10 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   /* now we can start */
 
   if (Finley_noError()) {
-      #pragma omp parallel
+      register dim_t e,q,l,s,n;
+      register double* data_array,  *grad_data_e;
+      #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e)
       {
-         register dim_t e,q,l,s,n;
-         register double* data_array,  *grad_data_e;
          if (data_type==FINLEY_NODES) {
             if (jac->numDim==1) {
                 #define DIM 1
@@ -166,20 +166,20 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                 #undef DIM
             } else if (jac->numDim==3) {
                 #define DIM 3
-                #pragma omp for schedule(static)
+                #pragma omp for private(e,grad_data_e,s,n,data_array,q,l) schedule(static)
    	        for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleData(grad_data,e);
+                    grad_data_e=getSampleData(grad_data,e); 
                     for (q=0;q<DIM*(jac->ReferenceElement->numQuadNodes)*numComps; q++) grad_data_e[q]=0;
                     for (s=0;s<jac->ReferenceElement->Type->numShapes;s++) {
                        n=elements->Nodes[INDEX2(dof_offset+s,e,NN)];
                        data_array=getSampleData(data,n);
                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                            for (l=0;l<numComps;l++) {
-                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]* 
+                               grad_data_e[INDEX3(l,0,q,numComps,DIM)]+=data_array[l]*
                                     jac->DSDX[INDEX4(s_offset+s,0,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
-                               grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]* 
+                               grad_data_e[INDEX3(l,1,q,numComps,DIM)]+=data_array[l]*
                                     jac->DSDX[INDEX4(s_offset+s,1,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
-                               grad_data_e[INDEX3(l,2,q,numComps,DIM)]+=data_array[l]* 
+                               grad_data_e[INDEX3(l,2,q,numComps,DIM)]+=data_array[l]*
                                     jac->DSDX[INDEX4(s_offset+s,2,q,e,jac->ReferenceElement->Type->numNodes,DIM,jac->ReferenceElement->numQuadNodes)];
                            }
                        }
@@ -314,7 +314,6 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                        }
                     }
                 }
-
                 #undef DIM
             }
          }
