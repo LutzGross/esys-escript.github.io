@@ -34,7 +34,6 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     type_t datacase;
     index_t node_offset;
     bool_t reducedIntegrationOrder;
-    dim_t q,e,i;
     if (nodes==NULL || elements==NULL) return;
     type_t data_type=getFunctionSpaceType(data);
     dim_t numComps=getDataPointSize(data);
@@ -68,39 +67,41 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
         /* now we can start */
 
         if (Finley_noError()) {
+            dim_t q,e,i;
+            double *out_local=NULL, rtmp,*data_array=NULL;
             for (q=0;q<numComps;q++) out[q]=0;
-            #pragma omp parallel private(q,i)
+            #pragma omp parallel private(q,i,rtmp,data_array,out_local)
             {
-                double out_local[numComps], rtmp;
-                double* data_array;
+                out_local=THREAD_MEMALLOC(numComps,double);
+                if (! Finley_checkPtr(out_local) ) {
+                   /* initialize local result */
 
-                /* initialize local result */
+	           for (i=0;i<numComps;i++) out_local[i]=0;
 
-	        for (i=0;i<numComps;i++) out_local[i]=0;
-
-                /* open the element loop */
-
-                if (isExpanded(data)) {
-                    #pragma omp for private(e) schedule(static)
-                    for(e=0;e<elements->numElements;e++) {
-                         data_array=getSampleData(data,e);
-                         for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
-                               for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
-                         }
-                    }
-                } else {
-                   #pragma omp for private(e) schedule(static)
-                   for(e=0;e<elements->numElements;e++) {
-                        data_array=getSampleData(data,e);
-                        rtmp=0.;
-                        for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) rtmp+=jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
-                        for (i=0;i<numComps;i++) out_local[i]+=data_array[i]*rtmp;
+                   /* open the element loop */
+   
+                   if (isExpanded(data)) {
+                       #pragma omp for private(e) schedule(static)
+                       for(e=0;e<elements->numElements;e++) {
+                            data_array=getSampleData(data,e);
+                            for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
+                                  for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
+                            }
+                       }
+                   } else {
+                      #pragma omp for private(e) schedule(static)
+                      for(e=0;e<elements->numElements;e++) {
+                           data_array=getSampleData(data,e);
+                           rtmp=0.;
+                           for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) rtmp+=jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
+                           for (i=0;i<numComps;i++) out_local[i]+=data_array[i]*rtmp;
+                      }
                    }
+                   /* add local results to global result */
+                   #pragma omp critical
+                   for (i=0;i<numComps;i++) out[i]+=out_local[i];
                 }
-                /* add local results to global result */
-                #pragma omp critical
-                for (i=0;i<numComps;i++) out[i]+=out_local[i];
-
+                THREAD_MEMFREE(out_local);
             }
        }
    }

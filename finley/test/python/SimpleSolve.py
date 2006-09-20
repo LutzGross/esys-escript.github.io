@@ -14,7 +14,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import *
 from esys import finley
 
-starttime = time.clock()
+starttime = time.time()
 
 print "\nSimpleSolve.py"
 print "--------------"
@@ -164,7 +164,7 @@ print "\n-----"
 print "Done."
 print "-----"
 
-stoptime = time.clock()
+stoptime = time.time()
 elapsed = stoptime - starttime
 print "\nElapsed time: ", elapsed, "\n"
 

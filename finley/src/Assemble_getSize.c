@@ -59,13 +59,13 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   /* check the dimensions of element_size */
 
   if (numDim!=elements->ReferenceElement->Type->numDim) {
-     Finley_setError(TYPE_ERROR,"__FILE__: Gradient: Spatial and element dimension must match.");
+     Finley_setError(TYPE_ERROR,"Finley_Assemble_getSize: Gradient: Spatial and element dimension must match.");
   } else if (! numSamplesEqual(element_size,numQuad,elements->numElements)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of element size Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_getSize: illegal number of samples of element size Data object");
   } else if (! isDataPointShapeEqual(element_size,0,&(numDim))) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal data point shape of element size Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_getSize: illegal data point shape of element size Data object");
   }  else if (!isExpanded(element_size)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for element size.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_getSize: expanded Data object is expected for element size.");
   }
   /* now we can start: */
 
