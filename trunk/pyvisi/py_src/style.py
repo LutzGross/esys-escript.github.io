@@ -1,4 +1,3 @@
-
 import vtk
 from constants import *
 

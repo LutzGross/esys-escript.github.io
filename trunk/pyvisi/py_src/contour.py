@@ -35,17 +35,6 @@ class Contour(Common):
 
 		self.vtk_contour.SetInput(self.data_collector.getReader().GetOutput())
 
-	def setValue(self, contour_number, value):
-		"""
-		Set the contour number and its value.
-
-		@type contour_number: Number
-		@param contour_number: Contour number
-		@type value: Number
-		@param value: Contour value
-		"""
-
-		self.vtk_contour.SetValue(contour_number, value)
 
 	def generateValues(self, number_contours, min_range, max_range):
 		"""
@@ -60,6 +49,7 @@ class Contour(Common):
 		"""
 
 		self.vtk_contour.GenerateValues(number_contours, min_range, max_range)
+
 
 from contour import Contour
 from plane import Plane
@@ -84,3 +74,31 @@ class ContourOnPlane(Contour, Plane):
 
 		Plane.__init__(self, scene, data_collector,
 			self.vtk_contour.GetOutput(), lut)
+
+
+from contour import Contour 
+
+class IsoSurface(Contour):
+
+	def __init__(self, scene, data_collector, lut = None):
+		Contour.__init__(self, scene, data_collector, lut)
+
+	def setValue(self, contour_number, value):
+		"""
+		Set the contour number and its value.
+
+		@type contour_number: Number
+		@param contour_number: Contour number
+		@type value: Number
+		@param value: Contour value
+		"""
+
+		self.vtk_contour.SetValue(contour_number, value)
+
+from contour import IsoSurface, ContourOnPlane
+
+class IsoSurfaceOnPlane(IsoSurface, ContourOnPlane):
+
+	def __init__(self, scene, data_collector, lut = None):
+		ContourOnPlane.__init__(self, scene, data_collector, lut)
+		

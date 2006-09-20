@@ -5,7 +5,6 @@
 
 import vtk
 from style import Style
-#from colormap import *
 
 class Text:
 	"""
@@ -19,8 +18,8 @@ class Text:
 		"""
 
 		self.scene = scene
-		self.vtk_text_mapper = None
-		self.vtk_text_actor = None
+		self.vtk_text_mapper = vtk.vtkTextMapper()
+		self.vtk_text_actor = vtk.vtkScaledTextActor()
 
 	def setText(self, text):
 		"""
@@ -30,11 +29,25 @@ class Text:
 		@param text: Text to be displayed	
 		"""
 
-		self.vtk_text_mapper = vtk.vtkTextMapper()
 		self.vtk_text_mapper.SetInput(text)
 		
 		self.setActor()
 		self.addActor()
+
+	def setActor(self):
+		"""
+		Set up the 2D text actor, its mapper and its display position.
+		"""
+
+		self.vtk_text_actor.SetMapper(self.vtk_text_mapper)
+		self.setPosition(50, 20) # Default text position
+
+	def addActor(self):
+		"""
+		Add the 2D text actor to the renderer.
+		"""
+
+		self.scene.getRenderer().AddActor2D(self.vtk_text_actor)
 
 	def setPosition(self, x_coor, y_coor):
 		self.vtk_text_actor.SetDisplayPosition(x_coor, y_coor)
@@ -43,21 +56,7 @@ class Text:
 		self.vtk_text_mapper.SetTextProperty(style.getStyle())		
 
 
-	def setActor(self):
-		"""
-		Set up the 2D text actor, its mapper and its display position.
-		"""
 
-		self.vtk_text_actor = vtk.vtkScaledTextActor()
-		self.vtk_text_actor.SetMapper(self.vtk_text_mapper)
-		self.vtk_text_actor.SetDisplayPosition(50, 20)
-
-	def addActor(self):
-		"""
-		Add the 2D text actor to the renderer.
-		"""
-
-		self.scene.getRenderer().AddActor2D(self.vtk_text_actor)
 
 
 	

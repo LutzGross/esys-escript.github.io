@@ -19,21 +19,21 @@ __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from arrows import *
-from camera import *
-from carpet import *
-from colormap import *
-from common import *
-from contour import *
-from datacollector import *
-from geo import *
-from image import *
-from isosurface import *
-from light import *
-from map import *
-from scene import *
-from streamlines import *
-from style import *
-from tensorglyph import *
-from text import *
-from wireframe import *
+#from arrows import *
+#from camera import *
+#from carpet import *
+#from colormap import *
+#from common import *
+#from contour import *
+#from datacollector import *
+#from geo import *
+#from image import *
+#from isosurface import *
+#from light import *
+#from map import *
+#from scene import *
+#from streamlines import *
+#from style import *
+#from tensorglyph import *
+#from text import *
+#from wireframe import *
