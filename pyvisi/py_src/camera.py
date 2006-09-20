@@ -1,5 +1,4 @@
 """
-
 @author: John Ngui
 @author: Lutz Gross
 """
@@ -18,7 +17,7 @@ class Camera:
 		"""
 
 		self.scene = scene
-		self.vtk_camera = None 
+		self.vtk_camera = vtk.vtkCamera()		
 
 		self.setCamera()
 
@@ -27,7 +26,6 @@ class Camera:
 		Set up the camera and associate it with the renderer.
 		"""
 
-		self.vtk_camera = vtk.vtkCamera()		
 		self.scene.getRenderer().SetActiveCamera(self.vtk_camera)
 
 	def setClippingRange(self, near_clipping, far_clipping):
@@ -75,8 +73,8 @@ class Camera:
 		self.vtk_camera.SetViewUp(position.getXCoor(), position.getYCoor(), 
 			position.getZCoor())
 
-
-
+	def setZoom(self, zoom):
+		self.vtk_camera.Zoom(zoom)
 
 
 

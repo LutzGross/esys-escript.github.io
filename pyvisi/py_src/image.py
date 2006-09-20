@@ -4,7 +4,7 @@
 """
 
 import vtk
-from common import *
+from common import Common 
 
 class Image(Common):
 	"""
@@ -20,11 +20,10 @@ class Image(Common):
 		"""
 
 		Common.__init__(self, scene)
-		self.vtk_image_reader = self.determineReader(format) 
-		self.vtk_texture = None
-		self.vtk_plane = None
+		self.vtk_image_reader = self.getImageReader(format) 
+		self.vtk_texture = vtk.vtkTexture()
 
-	def determineReader(self, format):
+	def getImageReader(self, format):
 		"""
 		Determines the image format and returns the corresponding image reader.
 
@@ -34,10 +33,16 @@ class Image(Common):
 		@return: VTK image reader
 		"""
 
-		if(format == "jpg"):
+		if(format == "jpeg"):
 			return vtk.vtkJPEGReader()	
 		elif(format == "bmp"):
 			return vtk.vtkBMPReader()
+		elif(format == "pnm"):
+			return vtk.vtkPNMReader()
+		elif(format == "png"):
+			return vtk.vtkPNGReader()
+		elif(format == "tiff"):
+			return vtk.vtkTIFFReader()
 
 	def setFileName(self, file_name):
 		"""
@@ -47,14 +52,15 @@ class Image(Common):
 		@param file_name: Image file name
 		"""
 
+		vtk_plane = vtk.vtkPlaneSource()
 		self.vtk_image_reader.SetFileName(file_name)
 
 		self.setTexture()
-		self.setPlane()
+		#self.setPlane()
 
-		Common.setMapper(self, "self.vtk_plane.GetOutput()")
-		Common.setActor(self)
-		Common.setTexture(self, self.vtk_texture)
+		Common.setMapperInput(self, vtk_plane.GetOutput())
+		Common.setMapperTexture(self, self.vtk_texture)
+		Common.setActorInput(self)
 		Common.addActor(self)
 
 	def setTexture(self):
@@ -62,16 +68,15 @@ class Image(Common):
 		Set the texture map.	
 		"""
 
-		self.vtk_texture = vtk.vtkTexture()
 		self.vtk_texture.SetInput(self.vtk_image_reader.GetOutput())	
 
-	def setPlane(self):
-		"""
-		Set the texture coordinates (generated from the plane), which controls 
-		the positioning of the texture on a surface.
-		"""
+#	def setPlane(self):
+"""
+Set the texture coordinates (generated from the plane), which controls 
+the positioning of the texture on a surface.
+"""
 
-		self.vtk_plane = vtk.vtkPlaneSource()
+#self.vtk_plane = vtk.vtkPlaneSource()
 		
 
 

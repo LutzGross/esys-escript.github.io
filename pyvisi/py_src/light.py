@@ -17,7 +17,7 @@ class Light:
 		"""
 
 		self.scene = scene
-		self.vtk_light = None
+		self.vtk_light = vtk.vtkLight()
 
 		self.setLight()
 
@@ -25,7 +25,6 @@ class Light:
 		"""
 		Set up the light and associate it with the renderer.
 		"""
-		self.vtk_light = vtk.vtkLight()
 		self.scene.getRenderer().AddLight(self.vtk_light)
 
 	def setColor(self, colorMap):
