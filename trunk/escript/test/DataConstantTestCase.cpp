@@ -57,10 +57,12 @@ void DataConstantTestCase::testAll() {
   cout << "\tTest getLength." << endl;
   assert(testData.getLength()==1);
 
-  cout << "\tTest reshape." << endl;
   shape.push_back(2);
   shape.push_back(3);
   shape.push_back(21);
+
+/*
+  cout << "\tTest reshape." << endl;
   testData.reshapeDataPoint(shape);
   assert((unsigned int)testData.getPointDataView().getRank()==shape.size());
 
@@ -90,6 +92,7 @@ void DataConstantTestCase::testAll() {
   assert(dataView.getShape()[0]==2);
   assert(dataView.getShape()[1]==3);
   assert(dataView.getShape()[2]==21);
+*/
 
   cout << "\tTesting alternative constructor." << endl;
   DataArrayView::ValueType data1(DataArrayView::noValues(shape),1.0);
@@ -111,7 +114,7 @@ void DataConstantTestCase::testAll() {
   assert(testData1.getLength()==126);
 
   cout << "\tVerify data point attributes." << endl;
-  dataView=testData1.getPointDataView();
+  DataArrayView dataView=testData1.getPointDataView();
   assert(dataView.getRank()==3);
   assert(dataView.noValues()==126);
   assert(dataView.getShape()[0]==2);
@@ -119,7 +122,7 @@ void DataConstantTestCase::testAll() {
   assert(dataView.getShape()[2]==21);
 
   cout << "\tTesting copy constructor." << endl;
-  DataConstant testData2(testData);
+  DataConstant testData2(testData1);
 
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {

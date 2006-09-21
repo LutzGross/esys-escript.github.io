@@ -160,21 +160,6 @@ DataConstant::setSlice(const DataAbstract* value,
   getPointDataView().copySliceFrom(tempDataConst->getPointDataView(),region_loop_range);
 }
 
-void
-DataConstant::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
-{
-  if (getPointDataView().getRank()!=0) {
-    stringstream temp;
-    temp << "Error - Can only reshape Data with data points of rank 0. "
-         << "This Data has data points with rank: " << getPointDataView().getRank();
-    throw DataException(temp.str());
-  }
-  int len = DataArrayView::noValues(shape);
-  m_data.resize(len,getPointDataView()(),len);
-  DataArrayView newView(m_data,shape);
-  setPointDataView(newView);
-}
-
 int
 DataConstant::archiveData(ofstream& archiveFile,
                           const DataArrayView::ValueType::size_type noValues) const

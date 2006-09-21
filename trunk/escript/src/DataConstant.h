@@ -166,16 +166,6 @@ class DataConstant : public DataAbstract  {
            const DataArrayView::RegionType& region);
 
   /**
-     \brief
-     Reshape the data point if the data point is currently rank 0.
-     The original data point value is used for all values of the new
-     data point.
-  */
-  ESCRIPT_DLL_API
-  void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape);
-
-  /**
     \brief
     Archive the underlying data values to the file referenced
     by ofstream. A count of the number of values expected to be written

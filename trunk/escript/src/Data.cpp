@@ -422,10 +422,13 @@ Data::tag()
   }
 }
 
-void
-Data::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
+Data
+Data::oneOver() const
 {
-  m_data->reshapeDataPoint(shape);
+#if defined DOPROF
+  profData->where++;
+#endif
+  return escript::unaryOp(*this,bind1st(divides<double>(),1.));
 }
 
 Data
@@ -1646,9 +1649,6 @@ Data::operator+=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-#if defined DOPROF
-  profData->binary++;
-#endif
   binaryOp(right,plus<double>());
   return (*this);
 }
@@ -1656,13 +1656,8 @@ Data::operator+=(const Data& right)
 Data&
 Data::operator+=(const boost::python::object& right)
 {
-  if (isProtected()) {
-        throw DataException("Error - attempt to update protected Data object.");
-  }
-#if defined DOPROF
-  profData->binary++;
-#endif
-  binaryOp(right,plus<double>());
+  Data tmp(right,getFunctionSpace(),false);
+  binaryOp(tmp,plus<double>());
   return (*this);
 }
 
@@ -1672,9 +1667,6 @@ Data::operator-=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-#if defined DOPROF
-  profData->binary++;
-#endif
   binaryOp(right,minus<double>());
   return (*this);
 }
@@ -1682,13 +1674,8 @@ Data::operator-=(const Data& right)
 Data&
 Data::operator-=(const boost::python::object& right)
 {
-  if (isProtected()) {
-        throw DataException("Error - attempt to update protected Data object.");
-  }
-#if defined DOPROF
-  profData->binary++;
-#endif
-  binaryOp(right,minus<double>());
+  Data tmp(right,getFunctionSpace(),false);
+  binaryOp(tmp,minus<double>());
   return (*this);
 }
 
@@ -1698,9 +1685,6 @@ Data::operator*=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-#if defined DOPROF
-  profData->binary++;
-#endif
   binaryOp(right,multiplies<double>());
   return (*this);
 }
@@ -1708,13 +1692,8 @@ Data::operator*=(const Data& right)
 Data&
 Data::operator*=(const boost::python::object& right)
 {
-  if (isProtected()) {
-        throw DataException("Error - attempt to update protected Data object.");
-  }
-#if defined DOPROF
-  profData->binary++;
-#endif
-  binaryOp(right,multiplies<double>());
+  Data tmp(right,getFunctionSpace(),false);
+  binaryOp(tmp,multiplies<double>());
   return (*this);
 }
 
@@ -1724,9 +1703,6 @@ Data::operator/=(const Data& right)
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-#if defined DOPROF
-  profData->binary++;
-#endif
   binaryOp(right,divides<double>());
   return (*this);
 }
@@ -1734,25 +1710,14 @@ Data::operator/=(const Data& right)
 Data&
 Data::operator/=(const boost::python::object& right)
 {
-  if (isProtected()) {
-        throw DataException("Error - attempt to update protected Data object.");
-  }
-#if defined DOPROF
-  profData->binary++;
-#endif
-  binaryOp(right,divides<double>());
+  Data tmp(right,getFunctionSpace(),false);
+  binaryOp(tmp,divides<double>());
   return (*this);
 }
 
 Data
 Data::rpowO(const boost::python::object& left) const
 {
-  if (isProtected()) {
-        throw DataException("Error - attempt to update protected Data object.");
-  }
-#if defined DOPROF
-  profData->binary++;
-#endif
   Data left_d(left,*this);
   return left_d.powD(*this);
 }
@@ -1760,24 +1725,21 @@ Data::rpowO(const boost::python::object& left) const
 Data
 Data::powO(const boost::python::object& right) const
 {
-#if defined DOPROF
-  profData->binary++;
-#endif
-  Data result;
-  result.copy(*this);
-  result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
-  return result;
+  Data tmp(right,getFunctionSpace(),false);
+  return powD(tmp);
 }
 
 Data
 Data::powD(const Data& right) const
 {
-#if defined DOPROF
-  profData->binary++;
-#endif
   Data result;
-  result.copy(*this);
-  result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
+  if (getDataPointRank()<right.getDataPointRank()) {
+     result.copy(right); 
+     result.binaryOp(*this,escript::rpow);
+  } else {
+     result.copy(*this);
+     result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
+  }
   return result;
 }
 
@@ -1790,8 +1752,13 @@ escript::operator+(const Data& left, const Data& right)
   Data result;
   //
   // perform a deep copy
-  result.copy(left);
-  result+=right;
+  if (left.getDataPointRank()<right.getDataPointRank()) {
+     result.copy(right);
+     result+=left;
+  } else {
+     result.copy(left);
+     result+=right;
+  }
   return result;
 }
 
@@ -1803,8 +1770,13 @@ escript::operator-(const Data& left, const Data& right)
   Data result;
   //
   // perform a deep copy
-  result.copy(left);
-  result-=right;
+  if (left.getDataPointRank()<right.getDataPointRank()) {
+     result=right.neg();
+     result+=left;
+  } else {
+     result.copy(left);
+     result-=right;
+  }
   return result;
 }
 
@@ -1816,8 +1788,13 @@ escript::operator*(const Data& left, const Data& right)
   Data result;
   //
   // perform a deep copy
-  result.copy(left);
-  result*=right;
+  if (left.getDataPointRank()<right.getDataPointRank()) {
+     result.copy(right);
+     result*=left;
+  } else {
+     result.copy(left);
+     result*=right;
+  }
   return result;
 }
 
@@ -1829,8 +1806,13 @@ escript::operator/(const Data& left, const Data& right)
   Data result;
   //
   // perform a deep copy
-  result.copy(left);
-  result/=right;
+  if (left.getDataPointRank()<right.getDataPointRank()) {
+     result=right.oneOver();
+     result*=left;
+  } else {
+     result.copy(left);
+     result/=right;
+  }
   return result;
 }
 
@@ -1839,15 +1821,7 @@ escript::operator/(const Data& left, const Data& right)
 Data
 escript::operator+(const Data& left, const boost::python::object& right)
 {
-  //
-  // Convert to DataArray format if possible
-  DataArray temp(right);
-  Data result;
-  //
-  // perform a deep copy
-  result.copy(left);
-  result+=right;
-  return result;
+  return left+Data(right,left.getFunctionSpace(),false);
 }
 
 //
@@ -1855,15 +1829,7 @@ escript::operator+(const Data& left, const boost::python::object& right)
 Data
 escript::operator-(const Data& left, const boost::python::object& right)
 {
-  //
-  // Convert to DataArray format if possible
-  DataArray temp(right);
-  Data result;
-  //
-  // perform a deep copy
-  result.copy(left);
-  result-=right;
-  return result;
+  return left-Data(right,left.getFunctionSpace(),false);
 }
 
 //
@@ -1871,15 +1837,7 @@ escript::operator-(const Data& left, const boost::python::object& right)
 Data
 escript::operator*(const Data& left, const boost::python::object& right)
 {
-  //
-  // Convert to DataArray format if possible
-  DataArray temp(right);
-  Data result;
-  //
-  // perform a deep copy
-  result.copy(left);
-  result*=right;
-  return result;
+  return left*Data(right,left.getFunctionSpace(),false);
 }
 
 //
@@ -1887,15 +1845,7 @@ escript::operator*(const Data& left, const boost::python::object& right)
 Data
 escript::operator/(const Data& left, const boost::python::object& right)
 {
-  //
-  // Convert to DataArray format if possible
-  DataArray temp(right);
-  Data result;
-  //
-  // perform a deep copy
-  result.copy(left);
-  result/=right;
-  return result;
+  return left/Data(right,left.getFunctionSpace(),false);
 }
 
 //
@@ -1903,12 +1853,7 @@ escript::operator/(const Data& left, const boost::python::object& right)
 Data
 escript::operator+(const boost::python::object& left, const Data& right)
 {
-  //
-  // Construct the result using the given value and the other parameters
-  // from right
-  Data result(left,right);
-  result+=right;
-  return result;
+  return Data(left,right.getFunctionSpace(),false)+right;
 }
 
 //
@@ -1916,12 +1861,7 @@ escript::operator+(const boost::python::object& left, const Data& right)
 Data
 escript::operator-(const boost::python::object& left, const Data& right)
 {
-  //
-  // Construct the result using the given value and the other parameters
-  // from right
-  Data result(left,right);
-  result-=right;
-  return result;
+  return Data(left,right.getFunctionSpace(),false)-right;
 }
 
 //
@@ -1929,12 +1869,7 @@ escript::operator-(const boost::python::object& left, const Data& right)
 Data
 escript::operator*(const boost::python::object& left, const Data& right)
 {
-  //
-  // Construct the result using the given value and the other parameters
-  // from right
-  Data result(left,right);
-  result*=right;
-  return result;
+  return Data(left,right.getFunctionSpace(),false)*right;
 }
 
 //
@@ -1942,12 +1877,7 @@ escript::operator*(const boost::python::object& left, const Data& right)
 Data
 escript::operator/(const boost::python::object& left, const Data& right)
 {
-  //
-  // Construct the result using the given value and the other parameters
-  // from right
-  Data result(left,right);
-  result/=right;
-  return result;
+  return Data(left,right.getFunctionSpace(),false)/right;
 }
 
 //

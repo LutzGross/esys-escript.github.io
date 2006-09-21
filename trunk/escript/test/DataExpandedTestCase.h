@@ -38,11 +38,6 @@ class DataExpandedTestCase : public CppUnitTest::TestCase
   // General test case
   void testAll();
 
-  //
-  // Test case that tests reshaping of rank 0 object
-  void testReshape();
-
-  //
   // Test cases to test slicing of DataExpanded objects
   void testSlicing();
   void testSlicing2();

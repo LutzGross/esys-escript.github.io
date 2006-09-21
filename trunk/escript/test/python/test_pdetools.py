@@ -270,7 +270,7 @@ class Test_pdetools(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])*[1.,0.]
-      p.setValue(D=1.,q=msk,r=2.)
+      p.setValue(D=numarray.ones([2]),q=msk,r=2.)
       u=p.getSolution()
       u_ex=msk*2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
@@ -279,7 +279,7 @@ class Test_pdetools(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])*[1.,0.]
-      p.setValue(D=1.,Y=1.,q=msk)
+      p.setValue(D=numarray.ones([2]),Y=numarray.ones([2]),q=msk)
       u=p.getSolution()
       u_ex=(1.-msk)
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
@@ -288,7 +288,7 @@ class Test_pdetools(unittest.TestCase):
       p=NoPDE(self.domain)
       x=self.domain.getX()
       msk=whereZero(x[0])*[1.,0.]
-      p.setValue(D=1.,Y=1.,q=msk,r=2.)
+      p.setValue(D=numarray.ones([2]),Y=numarray.ones([2]),q=msk,r=2.)
       u=p.getSolution()
       u_ex=(1.-msk)+msk*2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")

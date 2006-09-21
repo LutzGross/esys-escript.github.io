@@ -124,17 +124,6 @@ class DataEmpty : public DataAbstract {
   setSlice(const DataAbstract* value,
            const DataArrayView::RegionType& region);
 
-  /**
-     \brief
-     Reshape the data point if the data point is currently rank 0.
-     NB: This will throw an exception as obviously an empty Data object contains no
-     data to reshape. An implementation is required by parent DataAbstract class.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape);
-
  protected:
 
  private:
