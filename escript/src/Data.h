@@ -70,6 +70,7 @@ class Data {
   typedef double (*UnaryDFunPtr)(double);
   typedef double (*BinaryDFunPtr)(double,double);
 
+
   /**
      Constructors.
   */
@@ -669,6 +670,14 @@ class Data {
   boost::python::numeric::array
   integrate() const;
 
+  /**
+     \brief
+     Returns 1./ Data object
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  oneOver() const;
   /**
      \brief
      Return a Data with a 1 for +ive values and a 0 for 0 or -ive values.
@@ -1345,17 +1354,6 @@ class Data {
 
   /**
      \brief
-     Perform the given binary operation on all of the data's elements.
-     RHS is a boost::python object.
-  */
-  template <class BinaryFunction>
-  inline
-  void
-  binaryOp(const boost::python::object& right,
-           BinaryFunction operation);
-
-  /**
-     \brief
      Convert the data type of the RHS to match this.
      \param right - Input - data type to match.
   */
@@ -1379,16 +1377,6 @@ class Data {
   initialise(const IValueType& value,
              const FunctionSpace& what,
              bool expanded);
-
-  /**
-     \brief
-     Reshape the data point if the data point is currently rank 0.
-     Will throw an exception if the data points are not rank 0.
-     The original data point value is used for all values of the new
-     data point.
-  */
-  void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape);
 
   //
   // flag to protect the data object against any update
@@ -1429,6 +1417,10 @@ Data::initialise(const IValueType& value,
 /**
    Binary Data object operators.
 */
+inline double rpow(double x,double y) 
+{
+    return pow(y,x);
+};
 
 /**
   \brief
@@ -1565,7 +1557,7 @@ Data::binaryOp(const Data& right,
    //
    // if this has a rank of zero promote it to the rank of the RHS
    if (getPointDataView().getRank()==0 && right.getPointDataView().getRank()!=0) {
-     reshapeDataPoint(right.getPointDataView().getShape());
+     throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
    }
    //
    // initially make the temporary a shallow copy
@@ -1617,46 +1609,9 @@ Data::binaryOp(const Data& right,
      EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
      escript::binaryOp(*leftC,*rightC,operation);
    }
-}
-
-/**
-  \brief
-  Perform the given binary operation with this and right as operands.
-  Right is a boost::python object.
-*/
-template <class BinaryFunction>
-inline
-void
-Data::binaryOp(const boost::python::object& right,
-               BinaryFunction operation)
-{
-   DataArray temp(right);
-   //
-   // if this has a rank of zero promote it to the rank of the RHS.
-   if (getPointDataView().getRank()==0 && temp.getView().getRank()!=0) {
-      reshapeDataPoint(temp.getView().getShape());
-   }
-   //
-   // Always allow scalar values for the RHS but check other shapes
-   if (temp.getView().getRank()!=0) {
-     if (!getPointDataView().checkShape(temp.getView().getShape())) {
-       throw DataException(getPointDataView().createShapeErrorMessage(
-                  "Error - RHS shape doesn't match LHS shape.",temp.getView().getShape()));
-     }
-   }
-   if (isExpanded()) {
-     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-     EsysAssert((leftC!=0),"Programming error - casting to DataExpanded.");
-     escript::binaryOp(*leftC,temp.getView(),operation);
-   } else if (isTagged()) {
-     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-     EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
-     escript::binaryOp(*leftC,temp.getView(),operation);
-   } else if (isConstant()) {
-     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
-     EsysAssert((leftC!=0),"Programming error - casting to DataConstant.");
-     escript::binaryOp(*leftC,temp.getView(),operation);
-   }
+   #if defined DOPROF
+   profData->binary++;
+   #endif
 }
 
 /**

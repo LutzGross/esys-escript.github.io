@@ -150,16 +150,6 @@ class DataExpanded : public DataAbstract {
 
   /**
      \brief
-     Reshape the data point if the data point is currently rank 0.
-     The original data point value is used for all values of the new
-     data point.
-  */
-  ESCRIPT_DLL_API
-  void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape);
-
-  /**
-     \brief
      Return the offset for the given given data point. This returns
      the offset in bytes for the given point into the container
      holding the point data.

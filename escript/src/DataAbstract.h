@@ -261,17 +261,6 @@ class DataAbstract {
   setSlice(const DataAbstract* value,
            const DataArrayView::RegionType& region) = 0;
 
-  /**
-     \brief
-     Reshape the data points if they are currently rank 0.
-     Will throw an exception if the data points are not rank 0.
-     The original data point value is used for all values of the new
-     data point.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  reshapeDataPoint(const ShapeType& shape) = 0;
 
   /**
      \brief

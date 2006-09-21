@@ -410,22 +410,6 @@ class DataTagged : public DataAbstract {
 
   /**
      \brief
-     reshapeDataPoint
-
-     Description:
-     Reshape each data-point in this object to the given shape, only
-     if current data-points are scalars. An exception is thrown if
-     the current data-points have rank other than 0.
-     The original values of the data-points are used for all values
-     of the new data-points.
-    T
-  */
-  ESCRIPT_DLL_API
-  void
-  reshapeDataPoint(const DataArrayView::ShapeType& shape);
-
-  /**
-     \brief
      Archive the underlying data values to the file referenced
      by ofstream. A count of the number of values expected to be written
      is provided as a cross-check.

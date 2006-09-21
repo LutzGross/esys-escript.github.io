@@ -131,36 +131,6 @@ DataTagged::DataTagged(const DataConstant& other)
   setPointDataView(temp);
 }
 
-void
-DataTagged::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
-{
-  // can only reshape a rank zero data point
-  if (getPointDataView().getRank()!=0) {
-    stringstream temp;
-    temp << "Error - Can only reshape Data with data points of rank 0. "
-	 << "This Data has data points with rank: " 
-	 << getPointDataView().getRank();
-    throw DataException(temp.str());
-  }
-
-  // allocate enough space for all values
-  DataArrayView::ValueType newData(DataArrayView::noValues(shape)*(m_offsetLookup.size()+1));
-  DataArrayView newView(newData,shape);
-  newView.copy(0,getDefaultValue()());
-
-  // loop through the tag values
-  DataMapType::iterator pos;
-  DataArrayView::ValueType::size_type tagOffset=DataArrayView::noValues(shape);
-  for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++){
-    newView.copy(tagOffset,m_data[pos->second]);
-    pos->second=tagOffset;
-    tagOffset+=DataArrayView::noValues(shape);
-  }
-  m_data=newData;
-  DataArrayView temp(m_data,shape);
-  setPointDataView(temp);
-}
-
 DataAbstract*
 DataTagged::getSlice(const DataArrayView::RegionType& region) const 
 {

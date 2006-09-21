@@ -128,72 +128,6 @@ void DataExpandedTestCase::testAll() {
 
 }
 
-void DataExpandedTestCase::testReshape() {
-
-  cout << endl;
-
-  //
-  // Create a scalar pointData
-  DataArrayView::ShapeType shape;
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
-  DataArrayView pointData(data,shape);
-
-  //
-  // Assign an arbitrary value
-  pointData()=1.0;
-
-  //
-  // Create object to test
-  cout << "\tCreate scalar DataExpanded object." << endl;
-  DataExpanded testData(pointData,FunctionSpace());
-
-  //
-  // Test reshape - legal
-  cout << "\tTest reshape." << endl;
-  shape.push_back(2);
-  shape.push_back(3);
-  shape.push_back(21);
-  testData.reshapeDataPoint(shape);
-  assert(testData.getPointDataView().getRank()==shape.size());
-
-  //
-  // Verify data values
-  cout << "\tVerify data point values." << endl;
-  for (int k=0;k<testData.getPointDataView().getShape()[2];k++) {
-    for (int j=0;j<testData.getPointDataView().getShape()[1];j++) {
-      for (int i=0;i<testData.getPointDataView().getShape()[0];i++) {
-        assert(testData.getPointDataView()(i,j,k)==pointData());
-      }
-    }
-  }
-
-  //
-  // Verify data attributes
-  cout << "\tVerify data point attributes." << endl;
-  DataArrayView dataView=testData.getPointDataView();
-  assert(dataView.getRank()==shape.size());
-  assert(dataView.noValues()==shape[0]*shape[1]*shape[2]);
-  assert(dataView.getShape()[0]==shape[0]);
-  assert(dataView.getShape()[1]==shape[1]);
-  assert(dataView.getShape()[2]==shape[2]);
-  assert(testData.getNumDPPSample()==1);
-  assert(testData.getNumSamples()==1);
-  assert(testData.validSamplePointNo(testData.getNumDPPSample()-1));
-  assert(testData.validSampleNo(testData.getNumSamples()-1));
-
-  //
-  // Test reshape - illegal
-  cout << "\tTest illegal reshape." << endl;
-  try {
-    testData.reshapeDataPoint(shape);
-    assert(false);
-  }
-  catch (EsysException& e) {
-    //cout << e.toString() << endl;
-    assert(true);
-  }
-
-}
 
 void DataExpandedTestCase::testSlicing() {
 
@@ -635,7 +569,6 @@ TestSuite* DataExpandedTestCase::suite ()
   // Create the suite of tests to perform.
   TestSuite *testSuite = new TestSuite ("DataExpandedTestCase");
   testSuite->addTest (new TestCaller< DataExpandedTestCase>("testAll",&DataExpandedTestCase::testAll));
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testReshape",&DataExpandedTestCase::testReshape));
   testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSlicing",&DataExpandedTestCase::testSlicing));
   testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSlicing2",&DataExpandedTestCase::testSlicing2));
   testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSlicing3",&DataExpandedTestCase::testSlicing3));

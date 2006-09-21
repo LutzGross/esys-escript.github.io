@@ -154,42 +154,6 @@ DataExpanded::~DataExpanded()
 {
 }
 
-void
-DataExpanded::reshapeDataPoint(const DataArrayView::ShapeType& shape) 
-{
-  if (getPointDataView().getRank()!=0) {
-    stringstream temp;
-    temp << "Error - Can only reshape Data with data points of rank 0. "
-         << "This Data has data points with rank: " 
-         << getPointDataView().getRank();
-    throw DataException(temp.str());
-  }
-  //
-  // create the new DataBlocks2D data array, and a corresponding DataArrayView
-  DataBlocks2D newData(getNumSamples(),getNumDPPSample(),DataArrayView::noValues(shape));
-  DataArrayView newView(newData.getData(),shape);
-  //
-  // Copy the original data to every value for the new shape
-  int i,j;
-  int nRows=m_data.getNumRows();
-  int nCols=m_data.getNumCols();
-  #pragma omp parallel for private(i,j) schedule(static)
-  for (i=0;i<nRows;i++) {
-    for (j=0;j<nCols;j++) {
-      // NOTE: An exception may be thown from this call if 
-      // DOASSERT is on which of course will play
-      // havoc with the omp threads. Run single threaded
-      // if using DOASSERT. 
-      newView.copy(newData.index(i,j),m_data(i,j));
-    }
-  }
-  // swap the new data array for the original
-  m_data.Swap(newData);
-  // set the corresponding DataArrayView
-  DataArrayView temp(m_data.getData(),shape);
-  setPointDataView(temp);
-}
-
 DataAbstract*
 DataExpanded::getSlice(const DataArrayView::RegionType& region) const 
 {

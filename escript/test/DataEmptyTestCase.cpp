@@ -96,17 +96,6 @@ void DataEmptyTestCase::testAll() {
     assert(true);
   }
 
-  DataArrayView::ShapeType shape;
-  
-  try {
-    cout << "\tTest reshapeDataPoint." << endl;
-    testData.reshapeDataPoint(shape);
-    assert(false);
-  }
-  catch (EsysException& e) {
-    //cout << e.toString() << endl;
-    assert(true);
-  }
 
 }
 

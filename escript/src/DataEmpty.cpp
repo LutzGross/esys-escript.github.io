@@ -70,12 +70,6 @@ DataEmpty::setSlice(const DataAbstract* value,
 }
 
 void
-DataEmpty::reshapeDataPoint(const DataArrayView::ShapeType& shape)
-{
-  throwStandardException("reshapeDataPoint");
-}
-
-void
 DataEmpty::throwStandardException(const std::string& functionName) const
 {
   throw DataException("Error - "+functionName+" function call invalid for DataEmpty.");
