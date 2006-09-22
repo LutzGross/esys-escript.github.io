@@ -121,7 +121,7 @@ class Test_Poisson(Test_linearPDEs):
        u=mypde.getSolution()
        self.failUnless(self.check(u,u_ex,10*self.TOL),"incorrect solution")
 
-class Test_LinearPDE(Test_linearPDEs):
+class Test_LinearPDE_noLumping(Test_linearPDEs):
     N=4
     def test_setCoefficient_WithIllegalFunctionSpace(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -536,6 +536,8 @@ class Test_LinearPDE(Test_linearPDEs):
 	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
         u=mypde.getSolution(verbose=self.VERBOSE,truncation=10,restart=20)
         self.failUnless(self.check(u,1.),'solution is wrong.')
+
+class Test_LinearPDE(Test_LinearPDE_noLumping):
     def test_Lumping_attemptToSetA(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 

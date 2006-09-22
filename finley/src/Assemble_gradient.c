@@ -82,7 +82,6 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
        Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculated for requested location.");
   }
 
-
   Finley_ElementFile_Jacobeans* jac=Finley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
 
   if (Finley_noError()) {

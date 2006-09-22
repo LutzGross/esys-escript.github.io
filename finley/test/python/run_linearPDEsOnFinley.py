@@ -24,18 +24,25 @@ __date__="$Date$"
 
 
 import unittest
-from test_linearPDEs import Test_Poisson,Test_LinearPDE
+from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
-from test_pdetools import Test_pdetools
+from test_pdetools import Test_pdetools, Test_pdetools_noLumping
 from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces
+from esys.finley import Rectangle,Brick,JoinFaces, ReadMesh
 import sys
 
 
+try:
+     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+except KeyError:
+     FINLEY_TEST_DATA='.'
+
+FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
+
 NE=6 # number of element in each spatial direction (must be even)
 
-class Test_LinearPDEOnFinley2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
+class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -43,7 +50,7 @@ class Test_LinearPDEOnFinley2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblag
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinley2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do2):
+class Test_LinearPDEOnFinleyHex2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do2):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -51,17 +58,47 @@ class Test_LinearPDEOnFinley2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblag
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinley3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1):
+class Test_LinearPDEOnFinleyHex3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Brick(NE,NE,NE,1)
 
-class Test_LinearPDEOnFinley3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2):
+class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Brick(NE,NE,NE,2)
+   def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnFinleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_2D_order1.fly")
+   def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnFinleyTet2DOrder2(Test_LinearPDE_noLumping,Test_pdetools_noLumping,Test_assemblage_2Do2):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_2D_order2.fly")
+   def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order1.fly")
+
+class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order2.fly")
    def tearDown(self):
         del self.domain
 
@@ -189,10 +226,15 @@ class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley2DOrder1))
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley2DOrder2))
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley3DOrder1))
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley3DOrder2))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder1))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder2))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder2))
+
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder1))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder2))
+   # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder1))
+   # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder2))
 
    suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
    suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
