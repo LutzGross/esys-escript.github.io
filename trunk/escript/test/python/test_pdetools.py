@@ -38,7 +38,7 @@ import unittest
 from esys.escript import *
 from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE
 
-class Test_pdetools(unittest.TestCase):
+class Test_pdetools_noLumping(unittest.TestCase):
     DEBUG=False
     VERBOSE=False
     def test_TimeIntegrationManager_scalar(self):
@@ -115,45 +115,6 @@ class Test_pdetools(unittest.TestCase):
       td=p(td_ref.interpolate(Function(self.domain)))
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
 
-    def testProjector_rank0_fast(self):
-      x=ContinuousFunction(self.domain).getX()
-      h=Lsup(self.domain.getSize())
-      p=Projector(self.domain,reduce=False,fast=True)
-      td_ref=x[0]
-      td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
-
-    def testProjector_rank1_fast(self):
-      x=ContinuousFunction(self.domain).getX()
-      h=Lsup(self.domain.getSize())
-      p=Projector(self.domain,reduce=False,fast=True)
-      td_ref=x
-      td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
-
-    def testProjector_rank2_fast(self):
-      x=ContinuousFunction(self.domain).getX()
-      h=Lsup(self.domain.getSize())
-      p=Projector(self.domain,reduce=False,fast=True)
-      td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
-      td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
-
-    def testProjector_rank3_fast(self):
-      x=ContinuousFunction(self.domain).getX()
-      h=Lsup(self.domain.getSize())
-      p=Projector(self.domain,reduce=False,fast=True)
-      td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
-      td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
-
-    def testProjector_rank4_fast(self):
-      x=ContinuousFunction(self.domain).getX()
-      h=Lsup(self.domain.getSize())
-      p=Projector(self.domain,reduce=False,fast=True)
-      td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
-      td=p(td_ref.interpolate(Function(self.domain)))
-      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
 
     def testProjector_rank0_reduced(self):
       x=ContinuousFunction(self.domain).getX()
@@ -301,3 +262,45 @@ class Test_pdetools(unittest.TestCase):
       u=p.getSolution()
       u_ex=2.
       self.failUnless(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+
+
+class Test_pdetools(Test_pdetools_noLumping):
+    def testProjector_rank0_fast(self):
+      x=ContinuousFunction(self.domain).getX()
+      h=Lsup(self.domain.getSize())
+      p=Projector(self.domain,reduce=False,fast=True)
+      td_ref=x[0]
+      td=p(td_ref.interpolate(Function(self.domain)))
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+
+    def testProjector_rank1_fast(self):
+      x=ContinuousFunction(self.domain).getX()
+      h=Lsup(self.domain.getSize())
+      p=Projector(self.domain,reduce=False,fast=True)
+      td_ref=x
+      td=p(td_ref.interpolate(Function(self.domain)))
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+
+    def testProjector_rank2_fast(self):
+      x=ContinuousFunction(self.domain).getX()
+      h=Lsup(self.domain.getSize())
+      p=Projector(self.domain,reduce=False,fast=True)
+      td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
+      td=p(td_ref.interpolate(Function(self.domain)))
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+
+    def testProjector_rank3_fast(self):
+      x=ContinuousFunction(self.domain).getX()
+      h=Lsup(self.domain.getSize())
+      p=Projector(self.domain,reduce=False,fast=True)
+      td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
+      td=p(td_ref.interpolate(Function(self.domain)))
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+
+    def testProjector_rank4_fast(self):
+      x=ContinuousFunction(self.domain).getX()
+      h=Lsup(self.domain.getSize())
+      p=Projector(self.domain,reduce=False,fast=True)
+      td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]],[[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
+      td=p(td_ref.interpolate(Function(self.domain)))
+      self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
