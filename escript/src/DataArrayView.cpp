@@ -661,7 +661,7 @@ DataArrayView::toString(const string& suffix) const
       break;
     case 1:
       for (int i=0;i<getShape()[0];i++) {
-	temp << "(" << i << ") " << finalSuffix << (*this)(i);
+	temp << finalSuffix << "(" << i << ") " << (*this)(i);
 	if (i!=(getShape()[0]-1)) {
 	  temp << endl;
 	}
@@ -670,7 +670,7 @@ DataArrayView::toString(const string& suffix) const
     case 2:
       for (int i=0;i<getShape()[0];i++) {
 	for (int j=0;j<getShape()[1];j++) {
-	  temp << "(" << i << "," << j << ") " << finalSuffix << (*this)(i,j);
+	  temp << finalSuffix << "(" << i << "," << j << ") " << (*this)(i,j);
 	  if (!(i==(getShape()[0]-1) && j==(getShape()[1]-1))) {
 	    temp << endl;
 	  }
@@ -681,7 +681,7 @@ DataArrayView::toString(const string& suffix) const
       for (int i=0;i<getShape()[0];i++) {
 	for (int j=0;j<getShape()[1];j++) {
 	  for (int k=0;k<getShape()[2];k++) {
-	    temp << "(" << i << "," << j << "," << k << ") " << finalSuffix << (*this)(i,j,k);
+	    temp << finalSuffix << "(" << i << "," << j << "," << k << ") " << (*this)(i,j,k);
 	    if (!(i==(getShape()[0]-1) && j==(getShape()[1]-1) && k==(getShape()[2]-1))) {
 	      temp << endl;
 	    }
@@ -694,7 +694,7 @@ DataArrayView::toString(const string& suffix) const
 	for (int j=0;j<getShape()[1];j++) {
 	  for (int k=0;k<getShape()[2];k++) {
 	    for (int l=0;l<getShape()[3];l++) {
-	      temp << "(" << i << "," << j << "," << k << "," << l << ") " << finalSuffix << (*this)(i,j,k,l);
+	      temp << finalSuffix << "(" << i << "," << j << "," << k << "," << l << ") " << (*this)(i,j,k,l);
 	      if (!(i==(getShape()[0]-1) && j==(getShape()[1]-1) && k==(getShape()[2]-1) && l==(getShape()[3]-1))) {
 	        temp << endl;
 	      }
