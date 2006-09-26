@@ -19,7 +19,8 @@ class Test_util2(unittest.TestCase):
    RES_TOL=1.e-8
    def setUp(self):
         self.order=1
-        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order1.fly")
+        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order2.fly")
+        # self.domain = ReadMesh("tet_3D_order2.fly")
    def tearDown(self):
         del self.order
         del self.domain

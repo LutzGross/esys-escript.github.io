@@ -234,6 +234,9 @@ if __name__ == '__main__':
 
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder1))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder2))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder1))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder2))
+
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
@@ -242,9 +245,8 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder1))
    else:
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder2))
+      pass
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
