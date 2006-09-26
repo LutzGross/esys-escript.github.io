@@ -253,6 +253,7 @@ string
 DataExpanded::toString() const
 {
   stringstream temp;
+  FunctionSpace fs=getFunctionSpace();
   //
   // create a temporary view as the offset will be changed
   DataArrayView tempView(getPointDataView().getData(),getPointDataView().getShape(),getPointDataView().getOffset());
@@ -260,7 +261,7 @@ DataExpanded::toString() const
     for (int j=0;j<m_data.getNumCols();j++) {
       tempView.setOffset(m_data.index(i,j));
       stringstream suffix;
-      suffix << "(" << i << "," << j << ")";
+      suffix << "( id: " << i << ", ref: " << fs.getReferenceNoFromSampleNo(i) << ", pnt: " << j << ")";
       temp << tempView.toString(suffix.str());
       if (!(i==(m_data.getNumRows()-1) && j==(m_data.getNumCols()-1))) {
         temp << endl;
