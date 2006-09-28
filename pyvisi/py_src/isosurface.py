@@ -1,27 +1,87 @@
 """
-class that shows the isosurface of scalar data for a given value
-
-@var __author__: name of author
-@var __license__: licence agreement
-@var __copyright__: copyrights
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+@author: John Ngui
+@author: Lutz Gross
 """
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__author__="Paul Cochrane, L. Gross"
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision:$"
-__date__="$Date:$"
 
-from common import Component
+from contour import Contour
 
-class IsoSurface(Component):
-    """
-    shows the isosurface of scalar data for a given value
-    """
-    pass
+class IsoSurface(Contour):
+	"""
+	Class that shows the isosurface of a scalar field for a given value.
+	"""
+
+	def __init__(self, scene, data_collector, lut = None):
+		"""
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualization
+		@type lut: L{BlueToRed <colormap.BlueToRed>} or
+			L{RedToBLue <colormap.RedToBlue>} object
+		@param lut: Lookup table to be used by the mapper
+		"""
+		
+		Contour.__init__(self, scene, data_collector, lut)
+
+	def setValue(self, contour_number, value):
+		"""
+		Set the contour number and value.
+		@type contour_number: Number
+		@param contour_number: Contour number
+		@type value: Number
+		@param value: Contour value
+		"""
+		
+		self.vtk_contour.SetValue(contour_number, value)
+
+from isosurface import IsoSurface
+from contour import  ContourOnPlane
+
+class IsoSurfaceOnPlane(IsoSurface, ContourOnPlane):
+	"""
+	Class that shows the isosurface of a scalar field for a given value
+	on a plane.
+	"""
+
+	def __init__(self, scene, data_collector, transform, lut = None):
+		"""
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualization
+		@type transform: L{Transform <geo.Transform>} object
+		@param transform: Orientation of the plane
+		@type lut: L{BlueToRed <colormap.BlueToRed>} or
+			L{RedToBLue <colormap.RedToBlue>} object
+		@param lut: Lookup table to be used by the mapper
+		"""
+
+		ContourOnPlane.__init__(self, scene, data_collector, transform, lut)
+
+from isosurface import IsoSurface
+from contour import  ContourOnClip
+
+class IsoSurfaceOnClip(IsoSurface, ContourOnClip):
+	"""
+	Class that shows the isosurface of a scalar field for a given value
+	on a clip.
+	"""
+
+	def __init__(self, scene, data_collector, transform, lut = None):
+		"""
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualization
+		@type transform: L{Transform <geo.Transform>} object
+		@param transform: Orientation of the plane
+		@type lut: L{BlueToRed <colormap.BlueToRed>} or
+			L{RedToBLue <colormap.RedToBlue>} object
+		@param lut: Lookup table to be used by the mapper
+		"""
+
+		ContourOnClip.__init__(self, scene, data_collector, transform, lut)
+

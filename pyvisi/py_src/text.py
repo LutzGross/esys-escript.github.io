@@ -23,7 +23,7 @@ class Text:
 
 	def setText(self, text):
 		"""
-		Setup the text mapper and its input together with the default settings.
+		Set up the text mapper.
 
 		@type text: String
 		@param text: Text to be displayed	
@@ -50,13 +50,22 @@ class Text:
 		self.scene.getRenderer().AddActor2D(self.vtk_text_actor)
 
 	def setPosition(self, x_coor, y_coor):
+		"""
+		Set the display position of the text.
+		@type x_coor: Number
+		@param x_coor: Coordinate along the x-axis
+		@type y_coor: Number
+		@param y_coor: Coordinate along the y-axis
+		"""
+
 		self.vtk_text_actor.SetDisplayPosition(x_coor, y_coor)
 
 	def setStyle(self, style):
+		"""
+		Set the style of the text.
+		@type style: L{Style <style.Style>} object
+		@param style: Style of the text
+		"""
+
 		self.vtk_text_mapper.SetTextProperty(style.getStyle())		
-
-
-
-
-
 	

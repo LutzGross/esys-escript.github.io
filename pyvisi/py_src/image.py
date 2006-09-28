@@ -16,7 +16,7 @@ class Image(Common):
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		@type format: String
-		@param format: Format of the image (i.e. jpg)
+		@param format: Format of the image (i.e. jpeg)
 		"""
 
 		Common.__init__(self, scene)
@@ -25,12 +25,11 @@ class Image(Common):
 
 	def getImageReader(self, format):
 		"""
-		Determines the image format and returns the corresponding image reader.
-
+		Determine the image format and return the corresponding image reader.
 		@type format: String
-		@param format: Format of the image (i.e. jpg)
+		@param format: Format of the image 
 		@rtype: vtkImageReader2 (i.e. vtkJPEGReader)
-		@return: VTK image reader
+		@return: VTK image reader that is used to read an image
 		"""
 
 		if(format == "jpeg"):
@@ -46,20 +45,17 @@ class Image(Common):
 
 	def setFileName(self, file_name):
 		"""
-		Set the file name, and setup the mapper as well as the actor.	
-		
+		Set the file name setup the mapper and the actor.	
 		@type file_name: String
-		@param file_name: Image file name
+		@param file_name: Image file name from which data is to be read 
 		"""
 
 		vtk_plane = vtk.vtkPlaneSource()
 		self.vtk_image_reader.SetFileName(file_name)
-
 		self.setTexture()
-		#self.setPlane()
 
 		Common.setMapperInput(self, vtk_plane.GetOutput())
-		Common.setMapperTexture(self, self.vtk_texture)
+		Common.setActorTexture(self, self.vtk_texture)
 		Common.setActorInput(self)
 		Common.addActor(self)
 
@@ -69,14 +65,5 @@ class Image(Common):
 		"""
 
 		self.vtk_texture.SetInput(self.vtk_image_reader.GetOutput())	
-
-#	def setPlane(self):
-"""
-Set the texture coordinates (generated from the plane), which controls 
-the positioning of the texture on a surface.
-"""
-
-#self.vtk_plane = vtk.vtkPlaneSource()
-		
 
 

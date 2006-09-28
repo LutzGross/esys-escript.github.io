@@ -16,7 +16,6 @@ class Lut:
 	def setHue(self, lower_range, upper_range):
 		"""
 		Set the upper and lower hue(color) range.
-
 		@type lower_range: Number
 		@param lower_range: Lower range of the hue 
 		@type upper_range: Number
@@ -28,7 +27,6 @@ class Lut:
 	def setSaturation(self, lower_range, upper_range):
 		"""
 		Set the upper and lower saturation(vibrancy) range.
-	
 		@type lower_range: Number
 		@param lower_range: Lower range of the saturation
 		@type upper_range: Number
@@ -51,13 +49,15 @@ class Lut:
 		
 	def getLut(self):
 		"""
-		Return the VTK lookup table.
+		Return the lookup table.
 
 		@rtype: vtkLookupTable
-		@return: VTK Lookup table
+		@return: VTK Lookup table that changes the color spectrum
 		"""
 
 		return self.vtk_lut
+
+from colormap import Lut
 
 class BlueToRed(Lut):
 	"""
@@ -68,6 +68,8 @@ class BlueToRed(Lut):
 		Lut.__init__(self)
 		self.setHue(0.667, 0.0)	
 
+from colormap import Lut
+
 class RedToBlue(Lut):
 	"""
 	Class that creates a map with spectrum from red to blue.
@@ -76,6 +78,4 @@ class RedToBlue(Lut):
 	def __init__(self):
 		Lut.__init__(self)
 		self.setHue(0.0, 0.667)
-
-
 
