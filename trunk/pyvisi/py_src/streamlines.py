@@ -25,3 +25,4 @@ class StreamLines(Component):
     shows the path of all particles placed in a set of spheres through a vector field.
     """
     pass
+

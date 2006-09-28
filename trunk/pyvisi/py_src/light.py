@@ -27,24 +27,20 @@ class Light:
 		"""
 		self.scene.getRenderer().AddLight(self.vtk_light)
 
-	def setColor(self, colorMap):
+	def setColor(self, color):
 		"""
-		Set the color of the light.
-		
-		@type colorMap: L{ColorMap <colormap.ColorMap>} object
-		@param colorMap: Color of the light
+		Set the light color.
+		@type color: RGB list 
+		@param color: Color of the light
 		"""
 
-		self.vtk_light.SetColor(colorMap.getR(), colorMap.getG(), 
-			colorMap.getB())
-
+		self.vtk_light.SetColor(color[0], color[1], color[2])
 
 	def setFocalPoint(self, position):
 		"""
 		Set the focal point of the light.
-
 		@type position: L{Position <geo.Position>} object
-		@param position: Light focal point position
+		@param position: Light focal point 
 		"""
 
 		self.vtk_light.SetFocalPoint(position.getXCoor(), position.getYCoor(),
@@ -53,7 +49,6 @@ class Light:
 	def setPosition(self, position):
 		"""
 		Set the position of the light.
-
 		@type position: L{Position <geo.Position>} object
 		@param position: Light position
 		"""
@@ -64,12 +59,9 @@ class Light:
 	def setIntensity(self, intensity):
 		"""
 		Set the intensity (brightness) of the light.
-
 		@type intensity: Number
-		@param intensity: intensity (brightness) of the light
+		@param intensity: Intensity (brightness) of the light
 		"""
 
 		self.vtk_light.SetIntensity(intensity)
-
-
 

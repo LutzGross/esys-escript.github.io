@@ -12,8 +12,6 @@ class Common:
 
 	def __init__(self, scene, data_collector = None):
 		"""
-		Initialize all the instance variables.
-
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
 		@type data_collector: L{DataCollector <datacollector.DataCollector>} 
@@ -28,34 +26,44 @@ class Common:
 
 	def setMapperInput(self, component, lut = None):
 		"""
-		Set up the mapper and its input.
-
+		Set up the mapper.
 		@type component: String
 		@param component: Component to be mapped
 		@type lut: L{BlueToRed <colormap.BlueToRed>} or 
 			L{RedToBlue <colormap.RedToBlue>} object
-		@param lut: Color lookup table to be used by the mapper
+		@param lut: Lookup table to be used by the mapper
 		"""
 
-		self.vtk_mapper.SetInput(component)
-		#eval("self.vtk_mapper.SetInput(%s)" % component)
-		
+		# Convert unstructured grid data to polygonal data.	
+		vtk_geometry = vtk.vtkGeometryFilter()
+		vtk_geometry.SetInput(component)
+
+		# Compute normals to ensure consistent orientation across neighbours.
+		# This results in a better object being rendered. 
+		vtk_normals = vtk.vtkPolyDataNormals()
+		vtk_normals.SetInput(vtk_geometry.GetOutput())
+
+		self.vtk_mapper.SetInput(vtk_normals.GetOutput())
+	
+		# Mapper uses the customized lookup table only if it is specified. 
+		# Otherwise, the default one is used.
 		if(lut != None):
 			self.vtk_mapper.SetLookupTable(lut.getLut())	
 
-	def setMapperTexture(self, texture):
+	def setActorTexture(self, texture):
 		"""
 		Set the texture of the actor.
-
 		@type texture: vtkTexture
 		@param texture: Texture map of the image
 		"""
+
 		self.vtk_actor.SetTexture(texture)
 
 	def setActorInput(self):
 		"""
-		Set up the actor and its mapper.
+		Set up the actor.
 		"""
+
 		self.vtk_actor.SetMapper(self.vtk_mapper)
 
 
@@ -69,7 +77,6 @@ class Common:
 	def setActorOpacity(self, opacity):
 		"""
 		Set the opacity (transparency) of the actor.
-
 		@type opacity: Number
 		@param opacity: Opacity (transparency) of the actor
 		"""
@@ -77,15 +84,20 @@ class Common:
 		self.vtk_actor.GetProperty().SetOpacity(opacity)
 
 	def setActorColor(self, color):
+		"""
+		Set the color of the actor.
+		@type color: RGB list
+		@param color: Color of the actor
+		"""
+		
 		self.vtk_actor.GetProperty().SetColor(color[0], color[1],
 			color[2])
 
 	def setActorRepresentation(self, representation):
 		"""
 		Set the representation of the actor.
-
 		@type representation: String
-		@param representation: Representation type (I{i.e. Wireframe})
+		@param representation: Actor representation type (I{i.e. Wireframe})
 		"""
 
 		eval("self.vtk_actor.GetProperty().SetRepresentationTo%s()" % 
