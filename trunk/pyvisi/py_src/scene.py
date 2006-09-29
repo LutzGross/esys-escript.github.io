@@ -26,9 +26,9 @@ class Scene:
 		self.y_size = y_size
 		self.vtk_renderer = vtk.vtkRenderer() 
 		self.vtk_render_window = vtk.vtkRenderWindow() 
+		self.vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
 
 		self.setRenderWindow()
-		#self.setRenderWindowInteractor()
 		
 	def saveImage(self, image_name):
 		"""
@@ -37,19 +37,19 @@ class Scene:
 		@param image_name: Name of the image file 
 		"""
 
-		self.vtk_render_window.Render()
+		#self.vtk_render_window.Render()
 		#self.vtk_render_window.OffScreenRenderingOn()
 		#self.vtk_render_window.OffScreenRenderingOff()
 
 		# Converts the output of the render window into vtkImageData.
 		vtk_window_to_image = vtk.vtkWindowToImageFilter()
-		vtk_window_to_image.Modified() # Update precaution
-		vtk_window_to_image.Update() # Update precaution
+		#vtk_window_to_image.Update() # Update precaution
 		vtk_window_to_image.SetInput(self.vtk_render_window)
+		vtk_window_to_image.Modified() # Update precaution
 		# Force an update to the of the output image as vtk window's 
 		# modification time does not get updated automatically. 
-		vtk_window_to_image.Modified() # Update precaution
-		vtk_window_to_image.Update() # Update precaution
+		#vtk_window_to_image.Modified() # Update precaution
+		#vtk_window_to_image.Update() # Update precaution
 		
 		# Write the image to file.
 		vtk_image_writer = self.getImageWriter(self.renderer)
@@ -72,28 +72,23 @@ class Scene:
 		self.vtk_renderer.SetBackground(
 			WHITE[0], WHITE[1], WHITE[2]) 
 
-	def setRenderWindowInteractor(self):
-		""" 
-		Set up the render window interactor.
-		"""
-
-		vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
-		vtk_render_window_interactor.SetRenderWindow(self.vtk_render_window)
-		vtk_render_window_interactor.Initialize()
-		self.vtk_render_window.Render()
-		vtk_render_window_interactor.Start()
-		
-
 	def render(self):
 		"""
 		Render the image.
 		"""
-
-		vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
-		vtk_render_window_interactor.SetRenderWindow(self.vtk_render_window)
-		vtk_render_window_interactor.Initialize()
-		self.vtk_render_window.Render()
-		vtk_render_window_interactor.Start()
+		
+		# True if not initialized yet.
+		if(self.vtk_render_window_interactor.GetInitialized() == 0): 
+			self.vtk_render_window_interactor.SetRenderWindow(
+				self.vtk_render_window)
+			self.vtk_render_window_interactor.Initialize()
+			#self.vtk_render_window.Render()
+			self.vtk_render_window_interactor.GetInitialized()
+			self.vtk_render_window_interactor.Start()
+		else: # True if already initialized.
+			#self.vtk_render_window.Modified()
+			self.vtk_render_window.Render()
+			#self.vtk_render_window.Modified()
 
 
 	def getImageWriter(self, renderer):

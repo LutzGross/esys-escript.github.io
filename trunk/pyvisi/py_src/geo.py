@@ -62,7 +62,7 @@ class Transform:
 		self.vtk_transform = vtk.vtkTransform()
 		# Set the transformation to occur after any transformations 
 		# represented by the current matrix.	
-		self.vtk_transform.PostMultiply()
+		#self.vtk_transform.PostMultiply()
 
 	def translate(self, x_offset, y_offset, z_offset):
 		"""
@@ -153,7 +153,7 @@ class Transform:
 		"""
 
 		self.translate(0, offset, 0)
-		self.rotateX(-89.9)
+		self.rotateX(89.9)
 	
 	def getTransform(self):
 		"""
