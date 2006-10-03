@@ -26,7 +26,7 @@ import time
 output=True
 n_end=10000
 
-resolution=4000.  # number of elements per m
+resolution=5000.  # number of elements per m
 l=100000.          # width and length m
 h=30000.          # height in m
 o=1               # element order
@@ -54,10 +54,10 @@ lambda_sand=1.5e10
 
 
 # location and geometrical size of event:
-xc=[30000.,40000.,10000.]
-src_radius = 0.1*h
+xc=[l*0.5,l*0.5,h*0.3]
+src_radius  = 2*resolution
 # direction of event:
-event=numarray.array([1.,0.,0.])*1.e6
+event=numarray.array([0.,0.,1.])*1.e6
 # time and length of the event
 tc_length=2.
 tc=sqrt(5.*tc_length)
@@ -68,7 +68,7 @@ if output:
    print "length of event = ",tc_length
    print "direction = ",event
 
-t_end=20.
+t_end=30.
 
 def getDomain():
     """
@@ -116,17 +116,17 @@ def getDomain():
 
     x1=x[1]
     x1_new = (l-d0_sand-l_y_water)/(o*ne_l_y_bed)*x1
-    msk=whereNonPositive(x1-(o*ne_l_y_bed))
+    msk=whereNonPositive(x1-o*ne_l_y_bed)
     x1_new = x1_new * msk + (d0_sand/(o*ne_l_sand)*(x1-o*ne_l_y_bed)+l-d0_sand-l_y_water)*(1.-msk)
     msk=whereNonPositive(x1-o*(ne_l_y_bed+ne_l_sand))
     x1_new = x1_new * msk + (l_y_water/(o*ne_l_y_water)*(x1-o*(ne_l_y_bed+ne_l_sand))+l-l_y_water)*(1.-msk)
 
     x2=x[2]
     x2_new = (h-d_sand-h_water)/(o*ne_h_bed)*x2
-    msk=whereNonPositive(x2-(o*ne_h_bed+1))
-    x2_new = x2_new * msk + (d_sand/(o*ne_h_sand)*(x2-(o*ne_h_bed+1))+h-d_sand-h_water)*(1.-msk)
-    msk=whereNonPositive(x2-(o*(ne_h_bed+ne_h_sand)+1))
-    x2_new = x2_new * msk + (h_water/(o*ne_h_water)*(x2-(o*(ne_h_bed+ne_h_sand)+1))+h-h_water)*(1.-msk)
+    msk=whereNonPositive(x2-o*ne_h_bed)
+    x2_new = x2_new * msk + (d_sand/(o*ne_h_sand)*(x2-o*ne_h_bed)+h-d_sand-h_water)*(1.-msk)
+    msk=whereNonPositive(x2-o*(ne_h_bed+ne_h_sand))
+    x2_new = x2_new * msk + (h_water/(o*ne_h_water)*(x2-o*(ne_h_bed+ne_h_sand))+h-h_water)*(1.-msk)
 
     dom.setX(x0_new*[1,0,0]+x1_new*[0,1,0]+x2_new*[0,0,1])
 
@@ -173,6 +173,7 @@ def wavePropagation(dom,rho,lame_mu,lame_lambda):
    # ... set initial values ....
    n=0
    t=0
+   t_write=0
    # initial value of displacement at point source is constant (U0=0.01)
    # for first two time steps
    u     =Vector(0.,Solution(dom))
@@ -196,8 +197,9 @@ def wavePropagation(dom,rho,lame_mu,lame_lambda):
      u_last,u=u,u_new
      # ... save current acceleration in units of gravity and displacements 
      if output:
-          if n%10==0: saveVTK("disp.%i.vtu"%(n/10),displacement=u, amplitude=length(u))
-
+          if t>=t_write: 
+             saveVTK("disp.%i.vtu"%(n/10),displacement=u, amplitude=length(u))
+             t_write+=0.5
      t+=dt
      n+=1
 
