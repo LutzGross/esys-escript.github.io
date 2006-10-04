@@ -20,7 +20,7 @@ mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 # locations of libs etc used by SCSL
 scsl_path = '/usr/include'
 scsl_lib_path = '/usr/lib'
-scsl_libs = ['scs_mp']
+scsl_libs = ['scs']
 scsl_libs_MPI = [ 'scs', 'mpi' ]
 
 
@@ -32,7 +32,7 @@ python_lib = 'python2.4'
 # locations of libraries for boost
 boost_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/include'
 boost_lib_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/lib'
-boost_lib = 'boost_python-mt'
+boost_lib = 'boost_python'
 
 # locations of doc building executables
 doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
@@ -62,4 +62,4 @@ cxx_flags_MPI = '-ansi -wd1563 -wd161'
 cxx_flags_debug_MPI = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'
 
 # system specific libraries to link with
-sys_libs = ['guide', 'irc']
+# sys_libs = ['guide', 'irc']
