@@ -26,41 +26,65 @@ import time
 output=True
 n_end=10000
 
-resolution=5000.  # number of elements per m
-l=100000.          # width and length m
-h=30000.          # height in m
-o=1               # element order
+resolution=1000.  # number of elements per m in the finest region
+o=1              # element order
 
-rho_bedrock=8e3
-mu_bedrock=1.7e11
-lambda_bedrock=1.7e11
+l=100000.           # width and length m (without obsorber)
+h=30000.            # height in m        (without obsorber)
+d_absorber=l*0.10   # thickness of absorbing layer
 
-l_x_water=10000    # length of water in x
-l_y_water=10000    # length of water in y
-h_water=max(2000,resolution)       # depth of water region
+l_sand=5000.          # thickness of sand region on surface
+h_sand=2000.           # thickness of sand layer under the water
 
-water_tag=2
-rho_water=1e3
-mu_water=0.
-lambda_water=1.e9
+l_x_water=10000.       # length of water in x
+l_y_water=10000.       # length of water in y
+h_water=2000.          # depth of water region
 
-d0_sand=10000      # thickness of sand region on surface
-d_sand=max(2000,resolution)        # thickness of sand layer under the water
-
-sand_tag=3
-rho_sand=5e3
-mu_sand=1.5e10
-lambda_sand=1.5e10
+x_sand=l/2-l_x_water/2-l_sand # x coordinate of location of sand region (without obsorber)
+y_sand=l/2-l_y_water/2-l_sand # y coordinate of location of sand region (without obsorber)
 
 
-# location and geometrical size of event:
-xc=[l*0.5,l*0.5,h*0.3]
+# origin
+origin={"x": -d_absorber, "y" : -d_absorber , "z" : -h-d_absorber }
+# location and geometrical size of event reltive to origin:
+xc=[l*0.2,l*0.3,-h*0.7]
 src_radius  = 2*resolution
 # direction of event:
 event=numarray.array([0.,0.,1.])*1.e6
 # time and length of the event
-tc_length=2.
-tc=sqrt(5.*tc_length)
+tc=2.
+tc_length=0.5
+
+# material properties:
+bedrock=0
+absorber=1
+water=2
+sand=3
+
+rho_tab={}
+rho_tab[bedrock]=8e3
+rho_tab[absorber]=rho_tab[bedrock]
+rho_tab[water]=1e3
+rho_tab[sand]=5e3
+
+mu_tab={}
+mu_tab[bedrock]=1.7e11
+mu_tab[absorber]=mu_tab[bedrock]
+mu_tab[water]=0.
+mu_tab[sand]=1.5e10
+
+lmbd_tab={}
+lmbd_tab[bedrock]=1.7e11
+lmbd_tab[absorber]=lmbd_tab[bedrock]
+lmbd_tab[water]=1.e9
+lmbd_tab[sand]=1.5e10
+
+eta_tab={}
+eta_tab[absorber]=-log(0.05)*sqrt(rho_tab[absorber]*(lmbd_tab[absorber]+2*mu_tab[absorber]))/d_absorber
+eta_tab[sand]=eta_tab[absorber]/40.
+eta_tab[water]=eta_tab[absorber]/40.
+eta_tab[bedrock]=eta_tab[absorber]/40.
+
 if output:
    print "event location = ",xc
    print "radius of event = ",src_radius
@@ -69,6 +93,8 @@ if output:
    print "direction = ",event
 
 t_end=30.
+dt_write=0.1
+
 
 def getDomain():
     """
@@ -77,86 +103,147 @@ def getDomain():
       
     """
     global netotal
-    v_p_bedrock=sqrt((2*mu_bedrock+lambda_bedrock)/rho_bedrock)
-    v_p_sand=sqrt((2*mu_sand+lambda_sand)/rho_sand)
-    v_p_water=sqrt((2*mu_water+lambda_water)/rho_water)
-
-    print v_p_bedrock,v_p_sand,v_p_water
     
-    ne_l_x_bed=int((l-d0_sand-l_x_water)/resolution+0.5)
-    ne_l_y_bed=int((l-d0_sand-l_y_water)/resolution+0.5)
-    ne_h_bed=int((h-d_sand-h_water)/resolution+0.5)
+    v_p={}
+    for tag in rho_tab.keys():
+       v_p[tag]=sqrt((2*mu_tab[tag]+lmbd_tab[tag])/rho_tab[tag])
+    v_p_ref=min(v_p.values())
 
-    ne_l_sand=int(d0_sand*v_p_bedrock/v_p_sand/resolution+0.5)
-    ne_h_sand=int(d_sand*v_p_bedrock/v_p_sand/resolution+0.5)
+    print "velocities: bedrock = %s, sand = %s, water =%s, absorber =%s, reference =%s"%(v_p[bedrock],v_p[sand],v_p[water],v_p[absorber],v_p_ref)
 
-    ne_l_x_water=int(l_x_water*v_p_bedrock/v_p_water/resolution+0.5)
-    ne_l_y_water=int(l_y_water*v_p_bedrock/v_p_water/resolution+0.5)
-    ne_h_water=int(h_water*v_p_bedrock/v_p_water/resolution+0.5)
+    sections={}
+    sections["x"]=[d_absorber, x_sand, l_sand, l_x_water, l_sand, l-x_sand-2*l_sand-l_x_water, d_absorber]
+    sections["y"]=[d_absorber, y_sand, l_sand, l_y_water, l_sand, l-y_sand-2*l_sand-l_y_water, d_absorber]
+    sections["z"]=[d_absorber,h-h_water-h_sand,h_sand,h_water]
+    if output:
+      print "sections x = ",sections["x"]
+      print "sections y = ",sections["y"]
+      print "sections z = ",sections["z"]
 
-    ne_l_x=ne_l_x_bed+ne_l_sand+ne_l_x_water
-    ne_l_y=ne_l_y_bed+ne_l_sand+ne_l_y_water
-    ne_h=ne_h_bed+ne_h_sand+ne_h_water
+    mats= [ 
+            [ [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber] ],
 
-    print ne_l_x,ne_l_x_bed,ne_l_sand,ne_l_x_water
-    print ne_l_y,ne_l_y_bed,ne_l_sand,ne_l_y_water
-    print ne_h,ne_h_bed,ne_h_sand,ne_h_water
+            [ [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber] ],
 
-    netotal=ne_l_x*ne_l_y*ne_h
-    if output: print "grid : %s x %s x %s (%s elements)"%(ne_l_x,ne_l_y,ne_h,netotal)
-    dom=Brick(ne_l_x,ne_l_y,ne_h,l0=o*ne_l_x,l1=o*ne_l_y,l2=o*ne_h,order=o)
-    x=dom.getX()
+            [ [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, bedrock , sand    , sand    , sand    , bedrock , absorber],
+              [absorber, bedrock , sand    , sand    , sand    , bedrock , absorber],
+              [absorber, bedrock , sand    , sand    , sand    , bedrock , absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber] ],
+
+            [ [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, bedrock , sand    , sand    , sand    , bedrock , absorber],
+              [absorber, bedrock , sand    , water   , sand    , bedrock , absorber],
+              [absorber, bedrock , sand    , sand    , sand    , bedrock , absorber],
+              [absorber, bedrock , bedrock , bedrock , bedrock , bedrock , absorber],
+              [absorber, absorber, absorber, absorber, absorber, absorber, absorber] ] ]
     
-    x0=x[0]
-    x0_new = (l-d0_sand-l_x_water)/(o*ne_l_x_bed)*x0
-    msk=whereNonPositive(x0-o*ne_l_x_bed)
-    x0_new = x0_new * msk + (d0_sand/(o*ne_l_sand)*(x0-o*ne_l_x_bed)+l-d0_sand-l_x_water)*(1.-msk)
-    msk=whereNonPositive(x0-o*(ne_l_x_bed+ne_l_sand))
-    x0_new = x0_new * msk + (l_x_water/(o*ne_l_x_water)*(x0-o*(ne_l_x_bed+ne_l_sand))+l-l_x_water)*(1.-msk)
+    num_elem={}
+    for d in sections:
+       num_elem[d]=[]
+       for i in range(len(sections[d])):
+           if d=="x":
+              v_p_min=v_p[mats[0][0][i]]
+              for q in range(len(sections["y"])):
+                 for r in range(len(sections["z"])):
+                    v_p_min=min(v_p[mats[r][q][i]],v_p_min)
+           elif d=="y":
+              v_p_min=v_p[mats[0][i][0]]
+              for q in range(len(sections["x"])):
+                 for r in range(len(sections["z"])):
+                    v_p_min=min(v_p[mats[r][i][q]],v_p_min)
+           elif d=="z":
+              v_p_min=v_p[mats[i][0][0]]
+              for q in range(len(sections["x"])):
+                 for r in range(len(sections["y"])):
+                    v_p_min=min(v_p[mats[i][r][q]],v_p_min)
+           num_elem[d].append(max(1,int(sections[d][i] * v_p_ref/v_p_min /resolution+0.5)))
+       
+    ne_x=sum(num_elem["x"])
+    ne_y=sum(num_elem["y"])
+    ne_z=sum(num_elem["z"])
+    netotal=ne_x*ne_y*ne_z
+    if output: print "grid : %s x %s x %s (%s elements)"%(ne_x,ne_y,ne_z,netotal)
+    dom=Brick(ne_x,ne_y,ne_z,l0=o*ne_x,l1=o*ne_y,l2=o*ne_z,order=o)
+    x_old=dom.getX()
+    x_new=0
 
-    x1=x[1]
-    x1_new = (l-d0_sand-l_y_water)/(o*ne_l_y_bed)*x1
-    msk=whereNonPositive(x1-o*ne_l_y_bed)
-    x1_new = x1_new * msk + (d0_sand/(o*ne_l_sand)*(x1-o*ne_l_y_bed)+l-d0_sand-l_y_water)*(1.-msk)
-    msk=whereNonPositive(x1-o*(ne_l_y_bed+ne_l_sand))
-    x1_new = x1_new * msk + (l_y_water/(o*ne_l_y_water)*(x1-o*(ne_l_y_bed+ne_l_sand))+l-l_y_water)*(1.-msk)
+    for d in sections:
+        if d=="x": 
+            i=0
+            f=[1,0,0]
+        if d=="y": 
+            i=1
+            f=[0,1,0]
+        if d=="z": 
+            i=2
+            f=[0,0,1]
+        x=x_old[i]
 
-    x2=x[2]
-    x2_new = (h-d_sand-h_water)/(o*ne_h_bed)*x2
-    msk=whereNonPositive(x2-o*ne_h_bed)
-    x2_new = x2_new * msk + (d_sand/(o*ne_h_sand)*(x2-o*ne_h_bed)+h-d_sand-h_water)*(1.-msk)
-    msk=whereNonPositive(x2-o*(ne_h_bed+ne_h_sand))
-    x2_new = x2_new * msk + (h_water/(o*ne_h_water)*(x2-o*(ne_h_bed+ne_h_sand))+h-h_water)*(1.-msk)
-
-    dom.setX(x0_new*[1,0,0]+x1_new*[0,1,0]+x2_new*[0,0,1])
+        p=origin[d]
+        ne=0
+        s=0.
+ 
+        for i in range(len(sections[d])-1):
+            msk=whereNonPositive(x-o*ne+0.5)
+            s=s*msk + (sections[d][i]/(o*num_elem[d][i])*(x-o*ne)+p)*(1.-msk)
+            ne+=num_elem[d][i]
+            p+=sections[d][i]
+        x_new=x_new + s * f
+    dom.setX(x_new)
 
     fs=Function(dom)
     x=Function(dom).getX()
-    fs.setTags(sand_tag,wherePositive(x[0]-(l-l_x_water-d0_sand)) \
-                       *wherePositive(x[1]-(l-l_y_water-d0_sand)) \
-                       *wherePositive(x[2]-(h-h_water-d_sand)))
-    fs.setTags(water_tag,wherePositive(x[0]-(l-l_x_water)) \
-                        *wherePositive(x[1]-(l-l_y_water)) \
-                        *wherePositive(x[2]-(h-h_water)))
+    x0=x[0]
+    x1=x[1]
+    x2=x[2]
+    p_z=origin["z"]
+    for i in range(len(mats)):
+       f_z=wherePositive(x2-p_z)*wherePositive(x2-p_z+sections["z"][i])
+       p_y=origin["y"]
+       for j in range(len(mats[i])):
+         f_y=wherePositive(x1-p_y)*wherePositive(x1-p_z+sections["y"][j])
+         p_x=origin["x"]
+         for k in range(len(mats[i][j])):
+             f_x=wherePositive(x0-p_x)*wherePositive(x0-p_x+sections["x"][k]) 
+             fs.setTags(mats[i][j][k],f_x*f_y*f_z)
+             p_x+=sections["x"][k]
+         p_y+=sections["y"][j]
+       p_z+=sections["z"][i]
     return dom
 
 def getMaterialProperties(dom):
-   rho        =Scalar(rho_bedrock,Function(dom))
-   rho.setTaggedValue(sand_tag,rho_sand)
-   rho.setTaggedValue(water_tag,rho_water)
+   rho =Scalar(rho_tab[bedrock],Function(dom))
+   eta =Scalar(eta_tab[bedrock],Function(dom))
+   mu  =Scalar(mu_tab[bedrock],Function(dom))
+   lmbd=Scalar(lmbd_tab[bedrock],Function(dom))
+   tags=Scalar(bedrock,Function(dom))
+   
+   for tag in rho_tab.keys():
+      rho.setTaggedValue(tag,rho_tab[tag])
+      eta.setTaggedValue(tag,eta_tab[tag])
+      mu.setTaggedValue(tag,mu_tab[tag])
+      lmbd.setTaggedValue(tag,lmbd_tab[tag])
+      tags.setTaggedValue(tag,tag)
+   return rho,mu,lmbd,eta
 
-   lame_mu    =Scalar(mu_bedrock,Function(dom))
-   lame_mu.setTaggedValue(sand_tag,mu_sand)
-   lame_mu.setTaggedValue(water_tag,mu_water)
 
-   lame_lambda=Scalar(lambda_bedrock,Function(dom))
-   lame_lambda.setTaggedValue(sand_tag,lambda_sand)
-   lame_lambda.setTaggedValue(water_tag,lambda_water)
-
-   return rho,lame_mu,lame_lambda
-
-
-def wavePropagation(dom,rho,lame_mu,lame_lambda):
+def wavePropagation(dom,rho,mu,lmbd,eta):
    x=Function(dom).getX()
    # ... open new PDE ...
    mypde=LinearPDE(dom)
@@ -164,42 +251,42 @@ def wavePropagation(dom,rho,lame_mu,lame_lambda):
    k=kronecker(Function(dom))
    mypde.setValue(D=k*rho)
 
-   v_p=sqrt((2*lame_mu+lame_lambda)/rho)
-   if output: print "v_p=",v_p
-   v_s=sqrt(lame_mu/rho)
-   if output: print "v_s=",v_s
-   dt=(1./5.)*inf(dom.getSize()/v_p)
+   dt=(1./5.)*inf(dom.getSize()/sqrt((2*mu+lmbd)/rho))
    if output: print "time step size = ",dt
    # ... set initial values ....
    n=0
    t=0
-   t_write=0
+   t_write=0.
+   n_write=0
    # initial value of displacement at point source is constant (U0=0.01)
    # for first two time steps
    u     =Vector(0.,Solution(dom))
    u_last=Vector(0.,Solution(dom))
+   v=Vector(0.,Solution(dom))
 
    starttime = time.clock()
    while t<t_end and n<n_end:
      if output: print n+1,"-th time step t ",t+dt," max u and F: ",Lsup(u),
      # ... get current stress ....
      eps=symmetric(grad(u))
-     stress=lame_lambda*trace(eps)*k+2*lame_mu*eps
+     stress=lmbd*trace(eps)*k+2*mu*eps
      # ... force due to event:
      F=exp(-((t-tc)/tc_length)**2)*exp(-(length(x-xc)/src_radius)**2)*event
      if output: print Lsup(F)
      # ... get new acceleration ....
-     mypde.setValue(X=-stress,Y=F)
+     mypde.setValue(X=-stress,Y=F-eta*v)
      a=mypde.getSolution()
      # ... get new displacement ...
      u_new=2*u-u_last+dt**2*a
      # ... shift displacements ....
+     v=(u_new-u)/dt
      u_last,u=u,u_new
      # ... save current acceleration in units of gravity and displacements 
      if output:
           if t>=t_write: 
-             saveVTK("disp.%i.vtu"%(n/10),displacement=u, amplitude=length(u))
-             t_write+=0.5
+             saveVTK("disp.%i.vtu"%n,displacement=u, amplitude=length(u))
+             t_write+=dt_write
+             n_write+=1
      t+=dt
      n+=1
 
@@ -209,5 +296,5 @@ def wavePropagation(dom,rho,lame_mu,lame_lambda):
    print ">>number of elements: %s, total time: %s, per time step: %s <<"%(netotal,totaltime,totaltime/n)
 if __name__ =="__main__":
    dom=getDomain()
-   rho,lame_mu,lame_lambda=getMaterialProperties(dom)
-   wavePropagation(dom,rho,lame_mu,lame_lambda)
+   rho,mu,lmbd,eta=getMaterialProperties(dom)
+   wavePropagation(dom,rho,mu,lmbd,eta)
