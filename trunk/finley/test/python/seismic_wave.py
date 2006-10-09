@@ -33,8 +33,8 @@ l=100000.           # width and length m (without obsorber)
 h=30000.            # height in m        (without obsorber)
 d_absorber=l*0.10   # thickness of absorbing layer
 
-l_sand=5000.          # thickness of sand region on surface
-h_sand=2000.           # thickness of sand layer under the water
+l_sand=20000.          # thickness of sand region on surface
+h_sand=5000.           # thickness of sand layer under the water
 
 l_x_water=10000.       # length of water in x
 l_y_water=10000.       # length of water in y
@@ -85,6 +85,37 @@ eta_tab[sand]=eta_tab[absorber]/40.
 eta_tab[water]=eta_tab[absorber]/40.
 eta_tab[bedrock]=eta_tab[absorber]/40.
 
+
+# material properties:
+bedrock=0
+absorber=1
+water=2
+sand=3
+
+rho={}
+rho[bedrock]=8e3
+rho[absorber]=rho[bedrock]
+rho[water]=1e3
+rho[sand]=5e3
+
+mu={}
+mu[bedrock]=1.7e11
+mu[absorber]=mu[bedrock]
+mu[water]=0.
+mu[sand]=1.5e10
+
+lmbd={}
+lmbd[bedrock]=1.7e11
+lmbd_absorber=lmbd[bedrock]
+lmbd[water]=1.e9
+lmbd[sand]=1.5e10
+
+eta={}
+eta[absorber]=-log(0.05)*sqrt(rho[absorber]*(lmbd_absorber+2*mu[absorber]))/d_absorber
+eta[sand]=eta[absorber]/40.
+eta[water]=eta[absorber]/40.
+eta[bedrock]=eta[absorber]/40.
+
 if output:
    print "event location = ",xc
    print "radius of event = ",src_radius
@@ -108,7 +139,6 @@ def getDomain():
     for tag in rho_tab.keys():
        v_p[tag]=sqrt((2*mu_tab[tag]+lmbd_tab[tag])/rho_tab[tag])
     v_p_ref=min(v_p.values())
-
     print "velocities: bedrock = %s, sand = %s, water =%s, absorber =%s, reference =%s"%(v_p[bedrock],v_p[sand],v_p[water],v_p[absorber],v_p_ref)
 
     sections={}
@@ -242,7 +272,6 @@ def getMaterialProperties(dom):
       tags.setTaggedValue(tag,tag)
    return rho,mu,lmbd,eta
 
-
 def wavePropagation(dom,rho,mu,lmbd,eta):
    x=Function(dom).getX()
    # ... open new PDE ...
@@ -260,27 +289,36 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
    n_write=0
    # initial value of displacement at point source is constant (U0=0.01)
    # for first two time steps
-   u     =Vector(0.,Solution(dom))
-   u_last=Vector(0.,Solution(dom))
+   u=Vector(0.,Solution(dom))
+   v=Vector(0.,Solution(dom))
+   a=Vector(0.,Solution(dom))
+   a2=Vector(0.,Solution(dom))
    v=Vector(0.,Solution(dom))
 
    starttime = time.clock()
    while t<t_end and n<n_end:
      if output: print n+1,"-th time step t ",t+dt," max u and F: ",Lsup(u),
+     # prediction:
+     u_pr=u+dt*v+(dt**2/2)*a+(dt**3/6)*a2
+     v_pr=v+dt*a+(dt**2/2)*a2
+     a_pr=a+dt*a2
      # ... get current stress ....
-     eps=symmetric(grad(u))
+     eps=symmetric(grad(u_pr))
      stress=lmbd*trace(eps)*k+2*mu*eps
      # ... force due to event:
-     F=exp(-((t-tc)/tc_length)**2)*exp(-(length(x-xc)/src_radius)**2)*event
-     if output: print Lsup(F)
+     if abs(t-tc)<5*tc_length:
+        F=exp(-((t-tc)/tc_length)**2)*exp(-(length(x-xc)/src_radius)**2)*event
+        if output: print Lsup(F)
+     else:
+        if output: print 0.
      # ... get new acceleration ....
-     mypde.setValue(X=-stress,Y=F-eta*v)
+     mypde.setValue(X=-stress,Y=F-eta*v_pr)
      a=mypde.getSolution()
      # ... get new displacement ...
-     u_new=2*u-u_last+dt**2*a
-     # ... shift displacements ....
-     v=(u_new-u)/dt
-     u_last,u=u,u_new
+     da=a-a_pr
+     u=u_pr+(dt**2/12.)*da
+     v=v_pr+(5*dt/12.)*da
+     a2+=da/dt
      # ... save current acceleration in units of gravity and displacements 
      if output:
           if t>=t_write: 
