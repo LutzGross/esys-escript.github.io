@@ -7,6 +7,7 @@ Currently includes:
     - Projector - to project a discontinuous
     - Locator - to trace values in data objects at a certain location
     - TimeIntegrationManager - to handel extraplotion in time
+    - SaddlePointProblem - solver for Saddle point problems using the inexact uszawa scheme
 
 @var __author__: name of author
 @var __copyright__: copyrights
@@ -353,4 +354,86 @@ class Locator:
         else:
            return data
 
+class SaddlePointProblem(object):
+   """
+   This implements a solver for a saddlepoint problem
+
+   f(u,p)=0
+   g(u)=0
+
+   for u and p. The problem is solved with an inexact Uszawa scheme for p:
+
+   Q_f (u^{k+1}-u^{k}) = - f(u^{k},p^{k})
+   Q_g (p^{k+1}-p^{k}) =   g(u^{k+1})
+
+   where Q_f is an approximation of the Jacobiean A_f of f with respect to u  and Q_f is an approximation of
+   A_g A_f^{-1} A_g with A_g is the jacobiean of g with respect to p. As a the construction of a 'proper'
+   Q_g can be difficult, non-linear conjugate gradient method is applied to solve for p, so Q_g plays
+   in fact the role of a preconditioner.
+   """
+   def __init__(self,verbose=False,*args):
+       """
+       initializes the problem
+
+       @parm verbose: switches on the printing out some information
+       @type verbose: C{bool}
+       @note: this method may be overwritten by a particular saddle point problem
+       """
+       self.__verbose=verbose
+
+   def trace(self,text):
+       """
+       prints text if verbose has been set
+
+       @parm text: a text message
+       @type text: C{str}
+       """
+       if self.__verbose: print "%s: %s"%(str(self),text)
+
+   def solve_f(self,u,p,tol=1.e-7,*args):
+       """
+       solves 
+
+       A_f du = f(u,p) 
+
+       with tolerance C{tol} and return du. A_f is Jacobiean of f with respect to u.
+
+       @param u: current approximation of u
+       @type u: L{escript.Data}
+       @param p: current approximation of p
+       @type p: L{escript.Data}
+       @param tol: tolerance for du
+       @type tol: C{float}
+       @return: increment du
+       @rtype: L{escript.Data}
+       @note: this method has to be overwritten by a particular saddle point problem
+       """
+       pass
+
+   def solve_g(self,u,*args):
+       """
+       solves 
+
+       Q_g dp = g(u) 
+
+       with Q_g is a preconditioner for A_g A_f^{-1} A_g with  A_g is the jacobiean of g with respect to p.
+
+       @param u: current approximation of u
+       @type u: L{escript.Data}
+       @return: increment dp
+       @rtype: L{escript.Data}
+       @note: this method has to be overwritten by a particular saddle point problem
+       """
+       pass
+
+   def inner(self,p0,p1):
+       """
+       inner product of p0 and p1 approximating p. Typically this returns integrate(p0*p1)
+       @return: inner product of p0 and p1
+       @rtype: C{float}
+       """
+       pass
+
+   def solve(self,u0,p0,tolerance=1.e-6,*args):
+       pass
 # vim: expandtab shiftwidth=4:
