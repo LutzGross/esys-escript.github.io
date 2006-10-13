@@ -894,7 +894,7 @@ Bruce::saveVTK(const std::string& filename,
 
   //
   // extract Data objects and associated names from dictionary object
-  const int MAX_namelength=256;
+  const std::string::size_type MAX_namelength=256;
 
   //
   // open archive file
@@ -1011,7 +1011,9 @@ Bruce::saveVTK(const std::string& filename,
     archiveFile << "\t\t\t\t<CellData";
     for (int i_data=0; i_data<num_data; i_data++) {
       Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
-      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
+      const std::string &
+      full_name = boost::python::extract<std::string>(keys[i_data]);
+      std::string name(full_name, 0, MAX_namelength);
       
       if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==Function) {
         
@@ -1050,7 +1052,9 @@ Bruce::saveVTK(const std::string& filename,
     // write the cell-data data arrays
     for (int i_data=0; i_data<num_data; i_data++) {
       Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
-      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
+      const std::string &
+      full_name = boost::python::extract<std::string>(keys[i_data]);
+      std::string name(full_name, 0, MAX_namelength);
       
       if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==Function) {
         int numPointsPerSample=1;
@@ -1155,7 +1159,9 @@ Bruce::saveVTK(const std::string& filename,
     archiveFile << "\t\t\t\t<PointData";
     for (int i_data=0; i_data<num_data; i_data++) {
       Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
-      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
+      const std::string &
+      full_name = boost::python::extract<std::string>(keys[i_data]);
+      std::string name(full_name, 0, MAX_namelength);
 
       if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==ContinuousFunction) {
 
@@ -1194,8 +1200,12 @@ Bruce::saveVTK(const std::string& filename,
     // write the point-data data arrays
     for (int i_data=0; i_data<num_data; i_data++) {
       Data& d = boost::python::extract<Data&>(dataDict[keys[i_data]]);
-      std::string name(boost::python::extract<std::string>(keys[i_data]),0 , MAX_namelength);
-      if (!d.isEmpty() && d.getFunctionSpace().getTypeCode()==ContinuousFunction) {
+      const std::string &
+      full_name = boost::python::extract<std::string>(keys[i_data]);
+      std::string name(full_name, 0, MAX_namelength);
+
+      if (!d.isEmpty() && 
+          d.getFunctionSpace().getTypeCode()==ContinuousFunction) {
 
         int numPointsPerSample=1;
         int rank = d.getDataPointRank();
