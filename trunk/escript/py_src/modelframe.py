@@ -24,6 +24,8 @@ __date__="$Date$"
 
 from types import StringType,IntType,FloatType,BooleanType,ListType,DictType
 from sys import stdout
+import numarray
+import operator
 import itertools
 # import modellib  temporarily removed!!!
 
@@ -482,6 +484,21 @@ class ParameterSet(LinkableObject):
             elif isinstance(value, Link):
                 value.toDom(document, val)
                 param.appendChild(val)
+            elif isinstance(value, numarray.NumArray):
+                shape = value.getshape()
+                if isinstance(shape, tuple):
+                    size = reduce(operator.mul, shape)
+                    shape = ' '.join(map(str, shape))
+                else:
+                    size = shape
+                    shape = str(shape)
+
+                arraytype = value.type()
+                val.appendChild(dataNode(document, 'ArrayType', str(arraytype)))
+                val.appendChild(dataNode(document, 'Shape', shape))
+                val.appendChild(dataNode(document, 'Data', ' '.join(
+                    [str(x) for x in numarray.reshape(value, size)])))
+                param.appendChild(val)
             elif isinstance(value,StringType):
                 param.appendChild(dataNode(document, 'Value', value))
             else:
@@ -496,8 +513,14 @@ class ParameterSet(LinkableObject):
             """
             Remove the empty nodes from the children of this node.
             """
-            return [x for x in node.childNodes 
-                    if not isinstance(x, minidom.Text) or x.nodeValue.strip()]
+            ret = []
+            for x in node.childNodes:
+                if isinstance(x, minidom.Text):
+                    if x.nodeValue.strip():
+                        ret.append(x)
+                else:
+                    ret.append(x)
+            return ret
 
         def _floatfromValue(doc):
             return float(doc.nodeValue.strip())
@@ -513,6 +536,19 @@ class ParameterSet(LinkableObject):
 
         def _nonefromValue(doc):
             return None
+
+        def _numarrayfromValue(doc):
+            for node in doc:
+                if node.tagName == 'ArrayType':
+                    arraytype = node.firstChild.nodeValue.strip()
+                if node.tagName == 'Shape':
+                    shape = node.firstChild.nodeValue.strip()
+                    shape = [int(x) for x in shape.split()]
+                if node.tagName == 'Data':
+                    data = node.firstChild.nodeValue.strip()
+                    data = [float(x) for x in data.split()]
+            return numarray.reshape(numarray.array(data, type=getattr(numarray, arraytype)),
+                                    shape)
        
         # Mapping from text types in the xml to methods used to process trees of that type
         ptypemap = {"Simulation": Simulation.fromDom,
@@ -523,7 +559,7 @@ class ParameterSet(LinkableObject):
                     "int":_intfromValue,
                     "str":_stringfromValue,
                     "bool":_boolfromValue,
-                    "NoneType":_nonefromValue
+                    "NoneType":_nonefromValue,
                     }
 
 #        print doc.toxml()
@@ -540,7 +576,10 @@ class ParameterSet(LinkableObject):
 
                 if childnode.tagName == "Value":
                     nodes = _children(childnode)
-                    pvalue = ptypemap[ptype](nodes[0])
+                    if ptype == 'NumArray':
+                        pvalue = _numarrayfromValue(nodes)
+                    else:
+                        pvalue = ptypemap[ptype](nodes[0])
 
             parameters[pname] = pvalue
 
