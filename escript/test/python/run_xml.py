@@ -143,11 +143,11 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert ("gamma3" in xmlout)
         parsable = parse(xmlout)
         assert (isinstance (parsable, ParameterSet))
-        assert (self._dom().getElementsByTagName("ParameterSet"))
+        assert (self._dom(self.p).getElementsByTagName("ParameterSet"))
 
     def testParameterSetFromXML(self):
-        doc = self._class()
-        pset = ParameterSet.fromDom(self._dom().getElementsByTagName("ParameterSet")[0])
+        doc = self._class(self.p)
+        pset = ParameterSet.fromDom(self._dom(self.p).getElementsByTagName("ParameterSet")[0])
         assert (isinstance(pset, ParameterSet))
         assert (isinstance(doc, ParameterSet))
         self.assertEqual(self.p.gamma1,doc.gamma1)
@@ -157,7 +157,7 @@ class ParamaterSetTestCase(unittest.TestCase):
         p2 = ParameterSet()
         p2.declareParameter(s="abc", f=3.)
         self.p.declareParameter(child=p2)
-        doc = self._class()
+        doc = self._class(self.p)
         #pset = ParameterSet.fromDom(doc.getElementsByTagName("ParameterSet")[0])
         self.assertEqual(self.p.child.f, doc.child.f) 
 
@@ -168,22 +168,47 @@ class ParamaterSetTestCase(unittest.TestCase):
         self.assertEqual(self.p.child.s, "abc")
         self.assertEqual(self.p.child.f, 3.)
 
-    def _dom(self):
+    def _dom(self, input):
         s = StringIO()
-        self.p.writeXML(s)
+        input.writeXML(s)
         s.reset()
         xmlout = s.read()
         doc = minidom.parseString(xmlout)
         return doc
 
-    def _class(self):
+    def _class(self, input):
         s = StringIO()
-        self.p.writeXML(s)
+        input.writeXML(s)
         s.reset()
         xmlout = s.read()
         doc = parse(xmlout)
         return doc
 
+    def testFromDomInt(self):
+        p3 = ParameterSet()
+        p3.declareParameter(inttest=1)
+        doc = self._class(p3)
+        assert type(doc.inttest)==int
+
+    def testFromDomNumarrayVector(self):
+        import numarray
+        p3 = ParameterSet()
+        mynumarray = numarray.array([3., 4., 5.], type=numarray.Float64)
+        p3.declareParameter(numtest=mynumarray)
+        doc = self._class(p3)
+        assert doc.numtest.type() == numarray.Float64
+        assert type(doc.numtest) == numarray.NumArray
+
+    def testFromDomNumarrayMulti(self):
+        import numarray
+        p3 = ParameterSet()
+        mynumarray = numarray.array([[1., 2., 3.], [3., 4., 5.]], type=numarray.Float64)
+        p3.declareParameter(numtest=mynumarray)
+        doc = self._class(p3)
+        assert doc.numtest.type() == numarray.Float64
+        assert type(doc.numtest) == numarray.NumArray
+
+        
 class ModeltoDomTestCase(unittest.TestCase):
     
     def _class(self):
