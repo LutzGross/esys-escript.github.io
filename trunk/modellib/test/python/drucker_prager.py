@@ -24,36 +24,37 @@ except KeyError:
 debug=True
 
 dom=RectangularDomain(debug)
-dom.l=[1.,1.,1.]
-dom.n=[50,50,2]
-dom.order=2
-dom.integrationOrder=2
+dom.dim=3
+dom.l=[0.5,1.,1.]
+dom.n=[30,6,6]
+dom.order=1
+dom.integrationOrder=-1
 
 
 sq=Sequencer(debug)
 sq.t=0
-sq.t_end=3
-sq.dt_max=0.3
+sq.t_end=0.8
+sq.dt_max=100.
 
 iob=InterpolateOverBox(debug)
 iob.domain=Link(dom,"domain")
-iob.value_left_bottom_front=[1.,0.,0.]
+iob.value_left_bottom_front=[-1.,0.,0.]
 iob.value_right_bottom_front=[0.,0.,0.]
-iob.value_left_bottom_back=[1.,0.,0.]
+iob.value_left_bottom_back=[-1.,0.,0.]
 iob.value_right_bottom_back=[0.,0.,0.]
-iob.value_left_top_front=[1.,0.,0.]
+iob.value_left_top_front=[-1.,0.,0.]
 iob.value_right_top_front=[0.,0.,0.]
-iob.value_left_top_back=[1.,0.,0.]
+iob.value_left_top_back=[-1.,0.,0.]
 iob.value_right_top_back=[0.,0.,0.]
 
-iob.value_left_bottom_front=[-1.,0.]
-iob.value_right_bottom_front=[0.,0.]
-iob.value_left_bottom_back=[-1.,0.]
-iob.value_right_bottom_back=[0.,0.]
-iob.value_left_top_front=[-1.,0.]
-iob.value_right_top_front=[0.,0.]
-iob.value_left_top_back=[-1.,0.]
-iob.value_right_top_back=[0.,0.]
+# iob.value_left_bottom_front=[-1.,0.]
+# iob.value_right_bottom_front=[0.,0.]
+# iob.value_left_bottom_back=[-1.,0.]
+# iob.value_right_bottom_back=[0.,0.]
+# iob.value_left_top_front=[-1.,0.]
+# iob.value_right_top_front=[0.,0.]
+# iob.value_left_top_back=[-1.,0.]
+# iob.value_right_top_back=[0.,0.]
 
 m=DruckerPrager(debug)
 m.domain=Link(dom,"domain")
@@ -63,10 +64,10 @@ cv.domain=Link(dom,"domain")
 cv.value=Link(iob,"out")
 
 cv.left=[True, False, False] 
-cv.right= [True, False, False]
-cv.bottom= [False, True, False]
+cv.right= [True, True, True]
+cv.bottom= [False, False, False]
 cv.top= [False, False, False]
-cv.front= [False, False, True]
+cv.front= [False, False, False]
 cv.back= [False, False, False]
 
 m.velocity=Link(iob,"out")
@@ -80,7 +81,7 @@ m.shear_modulus=1.
 m.plastic_stress=0.
 m.friction_parameter=0.
 m.dilatancy_parameter=0.
-m.shear_length=m.shear_modulus*0.75*1.
+m.shear_length=m.shear_modulus*0.9
 
 
 ug=UpdateGeometry(debug)
@@ -92,7 +93,7 @@ vis.t=Link(sq)
 vis.scalar=Link(m,"plastic_stress")
 vis.vector=Link(m,"velocity")
 vis.tensor=Link(m,"stress")
-vis.dt=0.5
+vis.dt=0.01
 vis.filename=WORKDIR+"/temp.xml"
 
 s=Simulation([sq,m,vis],debug=True)
