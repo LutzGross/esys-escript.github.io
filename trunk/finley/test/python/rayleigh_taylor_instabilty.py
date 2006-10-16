@@ -13,7 +13,7 @@ from esys.escript import *
 import esys.finley
 from esys.finley import finley
 from esys.escript.linearPDEs import LinearPDE
-from esys.escript.pdetools import Projector
+from esys.escript.pdetools import Projector, SaddlePointProblem
 import sys
 import math
 
@@ -40,12 +40,13 @@ numDim = mesh.getDim()
 smooth = h*2.0       # SMOOTHING PARAMETER FOR THE TRANSITION ACROSS THE INTERFACE
 
 ### DEFINITION OF THE PDE ###
-velocityPDE = LinearPDE(mesh, numEquations=3)
-velocityPDE.setSolverMethod(solver=LinearPDE.DIRECT)
+velocityPDE = LinearPDE(mesh, numEquations=numDim)
+
 advectPDE = LinearPDE(mesh)
 advectPDE.setReducedOrderOn()
 advectPDE.setValue(D=1.0)
 advectPDE.setSolverMethod(solver=LinearPDE.DIRECT)
+
 reinitPDE = LinearPDE(mesh, numEquations=1)
 reinitPDE.setReducedOrderOn()
 reinitPDE.setSolverMethod(solver=LinearPDE.LUMPING)
@@ -65,6 +66,7 @@ b_c = (bottom+top)*[1.0, 1.0, 1.0] + (left+right)*[1.0,0.0, 0.0] + (front+back)*
 velocityPDE.setValue(q = b_c)
 
 pressure = Scalar(0.0, ContinuousFunction(mesh))
+velocity = Vector(0.0, ContinuousFunction(mesh))
 
 ### INITIALISATION OF THE INTERFACE ###
 func = -(-0.1*cos(math.pi*xx/l0)*cos(math.pi*yy/l0)-zz+0.4)
@@ -98,6 +100,7 @@ def reinitialise(phi):
   previous = 100.0
   mask = whereNegative(abs(phi)-1.2*h)
   reinitPDE.setValue(q=mask, r=phi)
+  print "Reinitialisation started."
   while (iter<=reinit_max):
     prod_scal =0.0
     for i in range(numDim):
@@ -112,6 +115,7 @@ def reinitialise(phi):
     print "Reinitialisation iteration :", iter, " error:", error
     previous = phi
     iter +=1
+  print "Reinitialisation finalized."
   return phi
 
 def update_phi(phi, velocity, dt, t_step):
@@ -129,8 +133,57 @@ def update_parameter(phi, param_neg, param_pos):
   param = param_pos*mask_pos + param_neg*mask_neg + ((param_pos+param_neg)/2 +(param_pos-param_neg)*phi/(2.*smooth))*mask_interface
   return param
 
-def solve_vel(rho, eta, pressure):
+class StokesProblem(SaddlePointProblem):
+      """
+      simple example of saddle point problem
+      """
+      def __init__(self,domain):
+         super(StokesProblem, self).__init__(self)
+         self.domain=domain
+         self.__pde_u=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
+         self.__pde_u.setSymmetryOn()
+
+         self.__pde_p=LinearPDE(domain)
+         self.__pde_p.setReducedOrderOn()
+         self.__pde_p.setSymmetryOn()
+
+      def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1):
+         self.eta=eta
+         A =self.__pde_u.createCoefficientOfGeneralPDE("A")
+         for i in range(self.domain.getDim()):
+           for j in range(self.domain.getDim()):
+             A[i,j,j,i] += self.eta
+             A[i,j,i,j] += self.eta
+         self.__pde_p.setValue(D=1./self.eta)
+         self.__pde_u.setValue(A=A,q=fixed_u_mask,Y=f)
+
+      def inner(self,p0,p1):
+         return integrate(p0*p1,Function(self.__pde_p.getDomain()))
+
+      def solve_f(self,u,p,tol=1.e-8):
+         self.__pde_u.setTolerance(tol)
+         g=grad(u)
+         self.__pde_u.setValue(X=self.eta*symmetric(g)+p*kronecker(self.__pde_u.getDomain()))
+         return  self.__pde_u.getSolution()
+
+      def solve_g(self,u,tol=1.e-8):
+         self.__pde_p.setTolerance(tol)
+         self.__pde_p.setValue(X=-u) 
+         dp=self.__pde_p.getSolution()
+         return  dp
+
+def solve_vel_uszawa(rho, eta, velocity, pressure):
 ### SOLVES THE VELOCITY PROBLEM USING A PENALTY METHOD FOR THE INCOMPRESSIBILITY ###
+  sol=StokesProblem(velocity.getDomain())
+  Y = Vector(0.0,Function(mesh))
+  Y[1] -= rho*g
+  sol.initialize(fixed_u_mask=b_c,eta=eta,f=Y)
+  velocity,pressure=sol.solve(velocity,pressure,relaxation=1.,iter_max=50,tolerance=0.01)
+  return velocity, pressure
+  
+def solve_vel_penalty(rho, eta, velocity, pressure):
+### SOLVES THE VELOCITY PROBLEM USING A PENALTY METHOD FOR THE INCOMPRESSIBILITY ###
+  velocityPDE.setSolverMethod(solver=LinearPDE.DIRECT)
   error = 1.0
   ref = pressure*1.0
   p_iter=0
@@ -151,35 +204,36 @@ def solve_vel(rho, eta, pressure):
       X[i,i] += pressure
     
     velocityPDE.setValue(A=A, X=X, Y=Y)
-    velocity_new = velocityPDE.getSolution()
+    velocity = velocityPDE.getSolution()
     p_iter +=1
     if p_iter >=500:
       print "You're screwed..."
       sys.exit(1)    
     
-    pressure -= penalty*eta*(trace(grad(velocity_new)))
-    error = penalty*Lsup(trace(grad(velocity_new)))/Lsup(grad(velocity_new))
+    pressure -= penalty*eta*(trace(grad(velocity)))
+    error = penalty*Lsup(trace(grad(velocity)))/Lsup(grad(velocity))
     print "\nPressure iteration number:", p_iter
     print "error", error
     ref = pressure*1.0
     
-  return velocity_new, pressure
+  return velocity, pressure
   
 ### MAIN LOOP, OVER TIME ###
 while t_step <= t_step_end:
-
-  rho = update_parameter(phi, rho1, rho2)
-  eta = update_parameter(phi, eta1, eta2)
-
-  velocity_new, pressure = solve_vel(rho, eta, pressure)
-  dt = 0.3*Lsup(mesh.getSize())/Lsup(velocity_new)
-  phi = update_phi(phi, velocity_new, dt, t_step)
-
-### PSEUDO POST-PROCESSING ###
-  print "##########  Saving image", t_step, " ###########" 
-  phi.saveVTK("/home/laurent/results2006/instability/phi3D.%2.2i.vtk" % t_step)  
-
   print "######################"
   print "Time step:", t_step
   print "######################"
+  rho = update_parameter(phi, rho1, rho2)
+  eta = update_parameter(phi, eta1, eta2)
+
+  velocity, pressure = solve_vel_uszawa(rho, eta,  velocity, pressure)
+  dt = 0.3*Lsup(mesh.getSize())/Lsup(velocity)
+  phi = update_phi(phi, velocity, dt, t_step)
+
+### PSEUDO POST-PROCESSING ###
+  print "##########  Saving image", t_step, " ###########" 
+  saveVTK("phi3D.%2.2i.vtk"%t_step,layer=phi)  
+
   t_step += 1
+
+# vim: expandtab shiftwidth=4:

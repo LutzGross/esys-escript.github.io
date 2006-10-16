@@ -390,7 +390,7 @@ class SaddlePointProblem(object):
        """
        if self.__verbose: print "%s: %s"%(str(self),text)
 
-   def solve_f(self,u,p,tol=1.e-7,*args):
+   def solve_f(self,u,p,tol=1.e-8):
        """
        solves 
 
@@ -402,7 +402,7 @@ class SaddlePointProblem(object):
        @type u: L{escript.Data}
        @param p: current approximation of p
        @type p: L{escript.Data}
-       @param tol: tolerance for du
+       @param tol: tolerance expected for du
        @type tol: C{float}
        @return: increment du
        @rtype: L{escript.Data}
@@ -410,7 +410,7 @@ class SaddlePointProblem(object):
        """
        pass
 
-   def solve_g(self,u,*args):
+   def solve_g(self,u,tol=1.e-8):
        """
        solves 
 
@@ -420,6 +420,8 @@ class SaddlePointProblem(object):
 
        @param u: current approximation of u
        @type u: L{escript.Data}
+       @param tol: tolerance expected for dp
+       @type tol: C{float}
        @return: increment dp
        @rtype: L{escript.Data}
        @note: this method has to be overwritten by a particular saddle point problem
@@ -434,6 +436,31 @@ class SaddlePointProblem(object):
        """
        pass
 
-   def solve(self,u0,p0,tolerance=1.e-6,*args):
-       pass
+   def solve(self,u0,p0,tolerance=1.e-6,iter_max=10,relaxation=1.):
+      tol=1.e-2
+      iter=0
+      converged=False
+      u=u0*1.
+      p=p0*1.
+      while not converged and iter<iter_max:
+          du=self.solve_f(u,p,tol)
+          u-=du
+          norm_du=util.Lsup(du)
+          norm_u=util.Lsup(u)
+        
+          dp=relaxation*self.solve_g(u,tol)
+          p+=dp
+          norm_dp=util.sqrt(self.inner(dp,dp))
+          norm_p=util.sqrt(self.inner(p,p))
+          print iter,"-th step rel. errror u,p= (%s,%s)(%s,%s)"%(norm_du/norm_u,norm_dp/norm_p,norm_u,norm_p)
+          iter+=1
+
+          converged = (norm_du <= tolerance*norm_u) and  (norm_dp <= tolerance*norm_p)
+      if converged:
+          print "convergence after %s steps."%iter
+      else:
+          raise ArithmeticError("no convergence after %s steps."%iter)
+
+      return u,p
+          
 # vim: expandtab shiftwidth=4:
