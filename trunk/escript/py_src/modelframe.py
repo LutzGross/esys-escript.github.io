@@ -480,7 +480,7 @@ class ParameterSet(LinkableObject):
 
             val = document.createElement('Value')
 
-            if isinstance(value,(ParameterSet,Link)):
+            if isinstance(value,(ParameterSet,Link,DataSource)):
                 value.toDom(document, val)
                 param.appendChild(val)
             elif isinstance(value, numarray.NumArray):
@@ -567,6 +567,7 @@ class ParameterSet(LinkableObject):
                     "Model":Model.fromDom,
                     "ParameterSet":ParameterSet.fromDom,
                     "Link":Link.fromDom,
+                    "DataSource":DataSource.fromDom,
                     "float":_floatfromValue,
                     "int":_intfromValue,
                     "str":_stringfromValue,
@@ -1010,4 +1011,31 @@ class NonPositiveStepSizeError(Exception):
     """
     pass
 
+class DataSource(object):
+    """
+    Class for handling data sources, including local and remote files. This class is under development.
+    """
+
+    def __init__(self, uri, fileformat):
+        self.uri = uri
+        self.fileformat = fileformat
+
+    def toDom(self, document, node):
+        """
+        C{toDom} method of DataSource. Creates a DataSource node and appends it to the
+	current XML document.
+        """
+        ds = document.createElement('DataSource')
+        ds.appendChild(dataNode(document, 'URI', self.uri))
+        ds.appendChild(dataNode(document, 'FileFormat', self.fileformat))
+        node.appendChild(ds)
+
+    def fromDom(cls, doc):
+        uri= doc.getElementsByTagName("URI")[0].firstChild.nodeValue.strip()
+        fileformat= doc.getElementsByTagName("FileFormat")[0].firstChild.nodeValue.strip()
+        ds = cls(uri, fileformat)
+        return ds
+
+    fromDom = classmethod(fromDom)
+    
 # vim: expandtab shiftwidth=4:
