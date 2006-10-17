@@ -366,7 +366,9 @@ class ParameterSet(LinkableObject):
 	 - a ParameterSet object 
 	 - a Simulation object
 	 - a Model object 
-	 - any other object (not considered by writeESySXML and writeXML)
+	 - a numarray object
+         - a list of booleans
+        - any other object (not considered by writeESySXML and writeXML)
     
     Example how to create an ESySParameters object::
     
@@ -478,10 +480,7 @@ class ParameterSet(LinkableObject):
 
             val = document.createElement('Value')
 
-            if isinstance(value,ParameterSet):
-                value.toDom(document, val)
-                param.appendChild(val)
-            elif isinstance(value, Link):
+            if isinstance(value,(ParameterSet,Link)):
                 value.toDom(document, val)
                 param.appendChild(val)
             elif isinstance(value, numarray.NumArray):
@@ -494,13 +493,17 @@ class ParameterSet(LinkableObject):
                     shape = str(shape)
 
                 arraytype = value.type()
-                val.appendChild(dataNode(document, 'ArrayType', str(arraytype)))
-                val.appendChild(dataNode(document, 'Shape', shape))
-                val.appendChild(dataNode(document, 'Data', ' '.join(
+                numarrayElement = document.createElement('NumArray')
+                numarrayElement.appendChild(dataNode(document, 'ArrayType', str(arraytype)))
+                numarrayElement.appendChild(dataNode(document, 'Shape', shape))
+                numarrayElement.appendChild(dataNode(document, 'Data', ' '.join(
                     [str(x) for x in numarray.reshape(value, size)])))
+                val.appendChild(numarrayElement)
                 param.appendChild(val)
-            elif isinstance(value,StringType):
-                param.appendChild(dataNode(document, 'Value', value))
+            elif isinstance (value, list):
+                param.appendChild(dataNode(document, 'Value', ' '.join(
+                    [str(x) for x in value]) 
+                ))
             else:
                 param.appendChild(dataNode(document, 'Value', str(value)))
 
@@ -532,13 +535,13 @@ class ParameterSet(LinkableObject):
             return int(doc.nodeValue.strip())
 
         def _boolfromValue(doc):
-            return bool(doc.nodeValue.strip())
+            return _boolfromstring(doc.nodeValue.strip())
 
         def _nonefromValue(doc):
             return None
 
         def _numarrayfromValue(doc):
-            for node in doc:
+            for node in _children(doc):
                 if node.tagName == 'ArrayType':
                     arraytype = node.firstChild.nodeValue.strip()
                 if node.tagName == 'Shape':
@@ -549,7 +552,16 @@ class ParameterSet(LinkableObject):
                     data = [float(x) for x in data.split()]
             return numarray.reshape(numarray.array(data, type=getattr(numarray, arraytype)),
                                     shape)
-       
+      
+        def _listfromValue(doc):
+            return [_boolfromstring(x) for x in doc.nodeValue.split()]
+
+
+        def _boolfromstring(s):
+            if s == 'True':
+                return True
+            else:
+                return False
         # Mapping from text types in the xml to methods used to process trees of that type
         ptypemap = {"Simulation": Simulation.fromDom,
                     "Model":Model.fromDom,
@@ -559,6 +571,8 @@ class ParameterSet(LinkableObject):
                     "int":_intfromValue,
                     "str":_stringfromValue,
                     "bool":_boolfromValue,
+                    "list":_listfromValue,
+                    "NumArray":_numarrayfromValue,
                     "NoneType":_nonefromValue,
                     }
 
@@ -576,10 +590,10 @@ class ParameterSet(LinkableObject):
 
                 if childnode.tagName == "Value":
                     nodes = _children(childnode)
-                    if ptype == 'NumArray':
-                        pvalue = _numarrayfromValue(nodes)
-                    else:
-                        pvalue = ptypemap[ptype](nodes[0])
+                #    if ptype == 'NumArray':
+                 #       pvalue = _numarrayfromValue(nodes)
+                 #   else:
+                    pvalue = ptypemap[ptype](nodes[0])
 
             parameters[pname] = pvalue
 
