@@ -208,6 +208,15 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert doc.numtest.type() == numarray.Float64
         assert type(doc.numtest) == numarray.NumArray
 
+    def testLists(self):
+        p4 = ParameterSet()
+        mylist = [True, False, False, True]
+        p4.declareParameter(listest=mylist)
+        doc = self._class(p4)
+        assert type(doc.listest) == list
+        self.assertEquals(mylist, doc.listest)
+        assert type(doc.listest[0]) == bool
+        
         
 class ModeltoDomTestCase(unittest.TestCase):
     
