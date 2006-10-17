@@ -8,7 +8,7 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
 import unittest
-from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,parse
+from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,parse,DataSource
 import math
 from cStringIO import StringIO
 from xml.dom import minidom
@@ -217,7 +217,17 @@ class ParamaterSetTestCase(unittest.TestCase):
         self.assertEquals(mylist, doc.listest)
         assert type(doc.listest[0]) == bool
         
+    def testDatasource(self):
+        p5 = ParameterSet()
+        myURI = DataSource("somelocalfile.txt", "text")
+        p5.declareParameter(uritest=myURI)
+        doc = self._class(p5)
+        self.assertEquals(myURI.uri, doc.uritest.uri)
+        self.assertEquals(myURI.fileformat, doc.uritest.fileformat)
+        assert type(doc.uritest) == DataSource
         
+
+       
 class ModeltoDomTestCase(unittest.TestCase):
     
     def _class(self):
