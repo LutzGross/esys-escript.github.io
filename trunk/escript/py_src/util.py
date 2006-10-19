@@ -1311,6 +1311,20 @@ def whereNonZero(arg,tol=0.):
    else:
       raise TypeError,"whereNonZero: Unknown argument type."
 
+def erf(arg):
+   """
+   returns erf of argument arg
+
+   @param arg: argument
+   @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.
+   @rtype: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.
+   @raises TypeError: if the type of the argument is not expected.
+   """
+   if isinstance(arg,escript.Data):
+      return arg._erf()
+   else:
+      raise TypeError,"erf: Unknown argument type."
+
 def sin(arg):
    """
    returns sine of argument arg

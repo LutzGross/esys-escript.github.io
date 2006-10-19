@@ -1032,6 +1032,15 @@ Data::integrate() const
 }
 
 Data
+Data::erf() const
+{
+#if defined DOPROF
+  profData->unary++;
+#endif
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
+}
+
+Data
 Data::sin() const
 {
 #if defined DOPROF

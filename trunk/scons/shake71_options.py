@@ -50,7 +50,7 @@ cc_flags_debug  = '-g -fPIC'
 
 # c++ flags to use
 cxx_flags = '-fPIC'
-cxx_flags_debug = '-DDOASSERT -DDOPROF -fPIC'
+cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC'
   	
 # c and c++ flags for MPI compilation
 # c flags to use
@@ -59,7 +59,7 @@ cc_flags_debug_MPI  = '-g -DPASO_MPI -fPIC'
 
 # c++ flags to use
 cxx_flags_MPI = '-fPIC'
-cxx_flags_debug_MPI = '-DDOASSERT -DDOPROF -fPIC'
+cxx_flags_debug_MPI = '-DDOASSERT -UDOPROF -fPIC'
 
 # system specific libraries to link with
 sys_libs = []
