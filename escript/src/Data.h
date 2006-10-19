@@ -889,6 +889,15 @@ class Data {
 
   /**
      \brief
+     Return the error function erf of each data point of this Data object.
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  erf() const;
+
+  /**
+     \brief
      Return the sin of each data point of this Data object.
      *
   */
