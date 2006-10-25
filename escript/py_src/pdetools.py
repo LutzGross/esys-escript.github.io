@@ -297,18 +297,47 @@ class Locator:
        Initializes a Locator to access values in Data objects on the Doamin 
        or FunctionSpace where for the sample point which
        closest to the given point x.
+
+       @param where: function space
+       @type where: L{escript.FunctionSpace} 
+       @param x: coefficient of the solution. 
+       @type x: L{numarray.NumArray} or C{list} of L{numarray.NumArray}
        """
        if isinstance(where,escript.FunctionSpace):
           self.__function_space=where
        else:
           self.__function_space=escript.ContinuousFunction(where)
-       self.__id=util.length(self.__function_space.getX()-x[:self.__function_space.getDim()]).mindp()
+       if isinstance(x, list):
+           self.__id=[]
+           for p in x:
+              self.__id.append(util.length(self.__function_space.getX()-p[:self.__function_space.getDim()]).mindp())
+       else:
+           self.__id=util.length(self.__function_space.getX()-x[:self.__function_space.getDim()]).mindp()
 
      def __str__(self):
        """
        Returns the coordinates of the Locator as a string.
        """
-       return "<Locator %s>"%str(self.getX())
+       x=self.getX()
+       if instance(x,list):
+          out="["
+          first=True
+          for xx in x:
+            if not first:
+                out+=","
+            else:
+                first=False
+            out+=str(xx)
+          out+="]>"
+       else:
+          out=str(x)
+       return out
+
+     def getX(self):
+        """
+	Returns the exact coordinates of the Locator.
+	"""
+        return self(self.getFunctionSpace().getX())
 
      def getFunctionSpace(self):
         """
@@ -316,17 +345,18 @@ class Locator:
 	"""
         return self.__function_space
 
-     def getId(self):
+     def getId(self,item=None):
         """
 	Returns the identifier of the location.
 	"""
-        return self.__id
+        if item == None:
+           return self.__id
+        else:
+           if isinstance(self.__id,list):
+              return self.__id[item]
+           else:
+              return self.__id
 
-     def getX(self):
-        """
-	Returns the exact coordinates of the Locator.
-	"""
-        return self(self.getFunctionSpace().getX())
 
      def __call__(self,data):
         """
@@ -342,15 +372,26 @@ class Locator:
 	"""
         if isinstance(data,escript.Data):
            if data.getFunctionSpace()==self.getFunctionSpace():
-             #out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
-             out=data.convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1],self.getId()[2])
+             dat=data
            else:
-             #out=data.interpolate(self.getFunctionSpace()).convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1])
-             out=data.interpolate(self.getFunctionSpace()).convertToNumArrayFromDPNo(self.getId()[0],self.getId()[1],self.getId()[2])
-           if data.getRank()==0:
-              return out[0]
+             dat=data.interpolate(self.getFunctionSpace())
+           id=self.getId()
+           r=data.getRank()
+           if isinstance(id,list):
+               out=[]
+               for i in id:
+                  o=data.convertToNumArrayFromDPNo(*i)
+                  if data.getRank()==0:
+                     out.append(o[0])
+                  else:
+                     out.append(o)
+               return out
            else:
-              return out
+             out=data.convertToNumArrayFromDPNo(*id)
+             if data.getRank()==0:
+                return out[0]
+             else:
+                return out
         else:
            return data
 
