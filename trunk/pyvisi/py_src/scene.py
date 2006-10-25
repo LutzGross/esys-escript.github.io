@@ -8,7 +8,7 @@ from constants import *
 
 class Scene:
 	"""
-	Class that defines a scene in which components are displayed.
+	Class that defines a scene in which components are to be displayed.
 	"""
 
 	def __init__(self, renderer, x_size = 800, y_size = 600):
@@ -37,8 +37,8 @@ class Scene:
 		@param image_name: Name of the image file 
 		"""
 
-		#self.vtk_render_window.Render()
-		#self.vtk_render_window.OffScreenRenderingOn()
+		self.vtk_render_window.OffScreenRenderingOn()
+		self.vtk_render_window.Render()
 		#self.vtk_render_window.OffScreenRenderingOff()
 
 		# Converts the output of the render window into vtkImageData.
@@ -82,14 +82,21 @@ class Scene:
 			self.vtk_render_window_interactor.SetRenderWindow(
 				self.vtk_render_window)
 			self.vtk_render_window_interactor.Initialize()
-			#self.vtk_render_window.Render()
-			self.vtk_render_window_interactor.GetInitialized()
+			self.vtk_render_window.Render()
+			#self.vtk_render_window_interactor.GetInitialized()
 			self.vtk_render_window_interactor.Start()
 		else: # True if already initialized.
 			#self.vtk_render_window.Modified()
 			self.vtk_render_window.Render()
 			#self.vtk_render_window.Modified()
 
+	def animate(self):
+		"""
+		Perform animation on the fly by rendering many files. No interaction 
+		can occur.
+		"""
+		
+		self.vtk_render_window.Render()
 
 	def getImageWriter(self, renderer):
 		"""

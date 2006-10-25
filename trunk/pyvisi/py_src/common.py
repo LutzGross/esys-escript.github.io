@@ -33,17 +33,20 @@ class Common:
 			L{RedToBlue <colormap.RedToBlue>} object
 		@param lut: Lookup table to be used by the mapper
 		"""
-
+		
 		# Convert unstructured grid data to polygonal data.	
 		vtk_geometry = vtk.vtkGeometryFilter()
 		vtk_geometry.SetInput(component)
 
 		# Compute normals to ensure consistent orientation across neighbours.
 		# This results in a better object being rendered. 
-		vtk_normals = vtk.vtkPolyDataNormals()
-		vtk_normals.SetInput(vtk_geometry.GetOutput())
+		#vtk_normals = vtk.vtkPolyDataNormals()
+		#vtk_normals.SetInput(vtk_geometry.GetOutput())
 
-		self.vtk_mapper.SetInput(vtk_normals.GetOutput())
+		#self.vtk_mapper.SetInput(vtk_normals.GetOutput())
+		#self.vtk_mapper.SetInput(vtk_geometry.GetOutput())
+		self.vtk_mapper.SetInput(component)
+
 	
 		# Mapper uses the customized lookup table only if it is specified. 
 		# Otherwise, the default one is used.

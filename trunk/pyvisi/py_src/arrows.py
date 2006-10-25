@@ -121,7 +121,7 @@ from plane import Plane
 
 class ArrowsOnClip(Arrows, Plane):
 	"""
-	Class that shows a vector field by arrows on a clip.
+	Class that shows a vector field by arrows on a given clip.
 	"""
 
 	def __init__(self, scene, data_collector, transform, lut = None):

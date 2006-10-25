@@ -8,7 +8,7 @@ from common import Common
 
 class Map(Common):
 	"""
-	Class that shows a scalar field by a surface map. 
+	Class that shows a scalar field by color on the domain surface. 
 	"""
 
 	def __init__(self, scene, data_collector, lut = None):
@@ -34,7 +34,7 @@ from plane import Plane
 
 class MapOnPlane(Plane):
 	"""
-	Class that shows a scalar field on a given plane.
+	Class that shows a scalar field by color on a given plane.
 	"""
 
 	def __init__(self, scene, data_collector, transform, lut = None):
@@ -59,7 +59,7 @@ from plane import Plane
 
 class MapOnClip(Plane):
 	"""
-	Class that shows a scalar field on a given clip.
+	Class that shows a scalar field by color on a given clip.
 	"""
 
 	def __init__(self, scene, data_collector, transform, lut = None):

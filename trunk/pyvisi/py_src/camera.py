@@ -31,18 +31,23 @@ class Camera:
 		Set up the camera and associate it with the renderer.
 		"""
 
-		# Repositions the camera so that all actors can be seen.
-		self.scene.getRenderer().ResetCamera()	
-
+		self.resetCamera()	
+		# Resets the camera clipping range to ensure no objects are cut off.
+		self.scene.getRenderer().ResetCameraClippingRange()	
+		
 		# Default camera focal point and position is the center.
 		center = self.data_collector.getReader().GetOutput().GetCenter()
 		self.setFocalPoint(Position(center[0], center[1], center[2]))
-		self.setPosition(Position(center[0], center[1], center[2]+10))
+		#print center[0], center[1], center[2]
+		# Camera distance from the rendered object = z + (x*4)
+		self.setPosition(
+			Position(center[0], center[1], center[2] + (center[0] * 4)))
+		# Assigns camera to the scene.
+		self.scene.getRenderer().SetActiveCamera(self.vtk_camera)
 	
 		# Resets the camera clipping range to ensure no objects are cut off.
 		self.scene.getRenderer().ResetCameraClippingRange()	
-		# Assigns camera to the scene.
-		self.scene.getRenderer().SetActiveCamera(self.vtk_camera)
+		self.resetCamera()	
 
 	def setClippingRange(self, near_clipping, far_clipping):
 		"""
@@ -54,6 +59,7 @@ class Camera:
 		"""
 
 		self.vtk_camera.SetClippingRange(near_clipping, far_clipping)
+		self.resetCamera()
 
 	def setFocalPoint(self, position):
 		"""
@@ -64,6 +70,7 @@ class Camera:
 
 		self.vtk_camera.SetFocalPoint(position.getXCoor(), position.getYCoor(),
 			position.getZCoor())	
+		self.resetCamera()
 
 	def setPosition(self, position):
 		"""
@@ -74,6 +81,7 @@ class Camera:
 
 		self.vtk_camera.SetPosition(position.getXCoor(), position.getYCoor(),
 			position.getZCoor())
+		self.resetCamera()
 
 	def setViewUp(self, position):
 		"""
@@ -84,6 +92,7 @@ class Camera:
 
 		self.vtk_camera.SetViewUp(position.getXCoor(), position.getYCoor(), 
 			position.getZCoor())
+		self.resetCamera()
 
 	def zoom(self, factor):
 		"""
@@ -93,6 +102,7 @@ class Camera:
 		"""
 
 		self.vtk_camera.Zoom(factor)
+		self.resetCamera()
 
 	def azimuth(self, angle):
 		"""
@@ -102,6 +112,7 @@ class Camera:
 		"""
 
 		self.vtk_camera.Azimuth(angle)
+		self.resetCamera()
 
 	def elevation(self, angle):
 		"""
@@ -111,15 +122,18 @@ class Camera:
 		"""
 
 		self.vtk_camera.Elevation(angle)
+		self.resetCamera()
+
 
 	def roll(self, angle):
 		"""
-		Tilt the camera to the left and right.
+		Roll the camera to the left and right.
 		@type angle: Number
 		@param angle: Degree to turn the camera
 		"""
 
 		self.vtk_camera.Roll(angle)
+		self.resetCamera()
 
 	def dolly(self, distance):
 		"""
@@ -129,6 +143,7 @@ class Camera:
 		"""
 		
 		self.vtk_camera(distance)
+		self.resetCamera()
 
 	def backView(self):
 		"""
@@ -136,6 +151,7 @@ class Camera:
 		"""
 	
 		self.azimuth(180)	
+		self.resetCamera()
 
 	def topView(self):
 		"""
@@ -143,6 +159,7 @@ class Camera:
 		"""
 
 		self.elevation(90)
+		self.resetCamera()
 
 	def bottomView(self):
 		"""
@@ -150,6 +167,7 @@ class Camera:
 		"""
 
 		self.elevation(-90)
+		self.resetCamera()
 
 	def leftView(self):
 		"""
@@ -157,6 +175,7 @@ class Camera:
 		"""
 
 		self.azimuth(-90)
+		self.resetCamera()
 
 	def rightView(self):
 		"""
@@ -164,6 +183,16 @@ class Camera:
 		"""
 
 		self.azimuth(90)
+		self.resetCamera()
+
+	def resetCamera(self):
+		"""
+		Repositions the camera so that all actors can be seen. Needs to
+		be called whenever the camera's settings are modified.
+		"""
+
+		self.scene.getRenderer().ResetCamera()	
+
 
 	#def isometricView(self):
 	#	self.elevation(-50)

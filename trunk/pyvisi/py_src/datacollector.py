@@ -13,7 +13,7 @@ class DataCollector(Common):
 	Class that deals with data for visualization.
 	"""
 
-	def __init__(self, scene, outline = True, cube_axes = True):
+	def __init__(self, scene, outline = True, cube_axes = False):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
