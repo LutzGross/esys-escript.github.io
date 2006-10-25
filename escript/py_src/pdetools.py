@@ -358,13 +358,13 @@ class SaddlePointProblem(object):
    """
    This implements a solver for a saddlepoint problem
 
-   f(u,p)=0
-   g(u)=0
+   M{f(u,p)=0}
+   M{g(u)=0}
 
    for u and p. The problem is solved with an inexact Uszawa scheme for p:
 
-   Q_f (u^{k+1}-u^{k}) = - f(u^{k},p^{k})
-   Q_g (p^{k+1}-p^{k}) =   g(u^{k+1})
+   M{Q_f (u^{k+1}-u^{k}) = - f(u^{k},p^{k})
+   M{Q_g (p^{k+1}-p^{k}) =   g(u^{k+1})}
 
    where Q_f is an approximation of the Jacobiean A_f of f with respect to u  and Q_f is an approximation of
    A_g A_f^{-1} A_g with A_g is the jacobiean of g with respect to p. As a the construction of a 'proper'
@@ -380,6 +380,7 @@ class SaddlePointProblem(object):
        @note: this method may be overwritten by a particular saddle point problem
        """
        self.__verbose=verbose
+       self.relaxation=1.
 
    def trace(self,text):
        """
@@ -436,31 +437,149 @@ class SaddlePointProblem(object):
        """
        pass
 
-   def solve(self,u0,p0,tolerance=1.e-6,iter_max=10,relaxation=1.):
-      tol=1.e-2
-      iter=0
-      converged=False
-      u=u0*1.
-      p=p0*1.
-      while not converged and iter<iter_max:
-          du=self.solve_f(u,p,tol)
-          u-=du
-          norm_du=util.Lsup(du)
-          norm_u=util.Lsup(u)
-        
-          dp=relaxation*self.solve_g(u,tol)
-          p+=dp
-          norm_dp=util.sqrt(self.inner(dp,dp))
-          norm_p=util.sqrt(self.inner(p,p))
-          print iter,"-th step rel. errror u,p= (%s,%s)(%s,%s)"%(norm_du/norm_u,norm_dp/norm_p,norm_u,norm_p)
-          iter+=1
+   subiter_max=3
+   def solve(self,u0,p0,tolerance=1.e-6,tolerance_u=None,iter_max=100,accepted_reduction=0.995,relaxation=None):
+        """
+        runs the solver
 
-          converged = (norm_du <= tolerance*norm_u) and  (norm_dp <= tolerance*norm_p)
-      if converged:
-          print "convergence after %s steps."%iter
-      else:
-          raise ArithmeticError("no convergence after %s steps."%iter)
+        @param u0: initial guess for C{u}
+        @type u0: L{esys.escript.Data}
+        @param p0: initial guess for C{p}
+        @type p0: L{esys.escript.Data}
+        @param tolerance: tolerance for relative error in C{u} and C{p}
+        @type tolerance: positive C{float}
+        @param tolerance_u: tolerance for relative error in C{u} if different from C{tolerance}
+        @type tolerance_u: positive C{float}
+        @param iter_max: maximum number of iteration steps.
+        @type iter_max: C{int}
+        @param accepted_reduction: if the norm  g cannot be reduced by C{accepted_reduction} backtracking to adapt the 
+                                   relaxation factor. If C{accepted_reduction=None} no backtracking is used.
+        @type accepted_reduction: positive C{float} or C{None}
+        @param relaxation: initial relaxation factor. If C{relaxation==None}, the last relaxation factor is used.
+        @type relaxation: C{float} or C{None}
+        """
+        tol=1.e-2
+        if tolerance_u==None: tolerance_u=tolerance
+        if not relaxation==None: self.relaxation=relaxation
+        if accepted_reduction ==None:
+              angle_limit=0.
+        elif accepted_reduction>=1.:
+              angle_limit=0.
+        else:
+              angle_limit=util.sqrt(1-accepted_reduction**2)
+        self.iter=0
+        u=u0
+        p=p0
+        #
+        #   initialize things:
+        #
+        converged=False
+        #
+        #  start loop:
+        #
+        #  initial search direction is g
+        #
+        while not converged :
+            if self.iter>iter_max:
+                raise ArithmeticError("no convergence after %s steps."%self.iter)
+            f_new=self.solve_f(u,p,tol)
+            norm_f_new = util.Lsup(f_new)
+            u_new=u-f_new
+            g_new=self.solve_g(u_new,tol)
+            self.iter+=1
+            norm_g_new = util.sqrt(self.inner(g_new,g_new))
+            if norm_f_new==0. and norm_g_new==0.: return u, p
+            if self.iter>1 and not accepted_reduction==None:
+               #
+               #   did we manage to reduce the norm of G? I
+               #   if not we start a backtracking procedure
+               #
+               # print "new/old norm = ",norm_g_new, norm_g, norm_g_new/norm_g
+               if norm_g_new > accepted_reduction * norm_g:
+                  sub_iter=0
+                  s=self.relaxation
+                  d=g
+                  g_last=g
+                  self.trace("    start substepping: f = %s, g = %s, relaxation = %s."%(norm_f_new, norm_g_new, s))
+                  while sub_iter < self.subiter_max and  norm_g_new > accepted_reduction * norm_g:
+                     dg= g_new-g_last
+                     norm_dg=abs(util.sqrt(self.inner(dg,dg))/self.relaxation)
+                     rad=self.inner(g_new,dg)/self.relaxation
+                     # print "   ",sub_iter,": rad, norm_dg:",abs(rad), norm_dg*norm_g_new * angle_limit
+                     # print "   ",sub_iter,": rad, norm_dg:",rad, norm_dg, norm_g_new, norm_g
+                     if abs(rad) < norm_dg*norm_g_new * angle_limit:
+                         if sub_iter>0: self.trace("    no further improvements expected from backtracking.")
+                         break
+                     r=self.relaxation
+                     self.relaxation= - rad/norm_dg**2
+                     s+=self.relaxation
+                     #####
+                     # a=g_new+self.relaxation*dg/r
+                     # print "predicted new norm = ",util.sqrt(self.inner(a,a)),util.sqrt(self.inner(g_new,g_new)), self.relaxation
+                     #####
+                     g_last=g_new
+                     p+=self.relaxation*d
+                     f_new=self.solve_f(u,p,tol)
+                     u_new=u-f_new
+                     g_new=self.solve_g(u_new,tol)
+                     self.iter+=1
+                     norm_f_new = util.Lsup(f_new)
+                     norm_g_new = util.sqrt(self.inner(g_new,g_new))
+                     # print "   ",sub_iter," new g norm",norm_g_new
+                     self.trace("    %s th sub-step: f = %s, g = %s, relaxation = %s."%(sub_iter, norm_f_new, norm_g_new, s))
+                     #
+                     #   can we expect reduction of g?
+                     #
+                     # u_last=u_new
+                     sub_iter+=1
+                  self.relaxation=s
+            #
+            #  check for convergence:
+            #
+            norm_u_new = util.Lsup(u_new)
+            p_new=p+self.relaxation*g_new
+            norm_p_new = util.sqrt(self.inner(p_new,p_new))
+            self.trace("%s th step: f/u = %s, g/p = %s, relaxation = %s."%(self.iter,norm_f_new/norm_u_new, norm_g_new/norm_p_new, self.relaxation))
 
-      return u,p
+            if self.iter>1:
+               dg2=g_new-g
+               df2=f_new-f
+               norm_dg2=util.sqrt(self.inner(dg2,dg2))
+               norm_df2=util.Lsup(df2)
+               # print norm_g_new, norm_g, norm_dg, norm_p, tolerance
+               tol_eq_g=tolerance*norm_dg2/(norm_g*abs(self.relaxation))*norm_p_new
+               tol_eq_f=tolerance_u*norm_df2/norm_f*norm_u_new
+               if norm_g_new <= tol_eq_g and norm_f_new <= tol_eq_f:
+                   converged=True
+                   break
+            f, norm_f, u, norm_u, g, norm_g, p, norm_p = f_new, norm_f_new, u_new, norm_u_new, g_new, norm_g_new, p_new, norm_p_new
+        self.trace("convergence after %s steps."%self.iter)
+        return u,p
+#   def solve(self,u0,p0,tolerance=1.e-6,iter_max=10,self.relaxation=1.):
+#      tol=1.e-2
+#      iter=0
+#      converged=False
+#      u=u0*1.
+#      p=p0*1.
+#      while not converged and iter<iter_max:
+#          du=self.solve_f(u,p,tol)
+#          u-=du
+#          norm_du=util.Lsup(du)
+#          norm_u=util.Lsup(u)
+#        
+#          dp=self.relaxation*self.solve_g(u,tol)
+#          p+=dp
+#          norm_dp=util.sqrt(self.inner(dp,dp))
+#          norm_p=util.sqrt(self.inner(p,p))
+#          print iter,"-th step rel. errror u,p= (%s,%s) (%s,%s)(%s,%s)"%(norm_du,norm_dp,norm_du/norm_u,norm_dp/norm_p,norm_u,norm_p)
+#          iter+=1
+#
+#          converged = (norm_du <= tolerance*norm_u) and  (norm_dp <= tolerance*norm_p)
+#      if converged:
+#          print "convergence after %s steps."%iter
+#      else:
+#          raise ArithmeticError("no convergence after %s steps."%iter)
+#
+#      return u,p
           
 # vim: expandtab shiftwidth=4:

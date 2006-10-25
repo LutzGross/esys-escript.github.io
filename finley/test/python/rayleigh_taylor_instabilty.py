@@ -20,8 +20,8 @@ import math
 ### DEFINITION OF THE DOMAIN ###
 l0=1.
 l1=1.
-n0=20  # IDEALLY 80...
-n1=20  # IDEALLY 80...
+n0=10  # IDEALLY 80...
+n1=10  # IDEALLY 80...
 mesh=esys.finley.Brick(l0=l0, l1=l1, l2=l0, order=2, n0=n0, n1=n1, n2=n0)
 
 ### PARAMETERS OF THE SIMULATION ###
@@ -137,8 +137,8 @@ class StokesProblem(SaddlePointProblem):
       """
       simple example of saddle point problem
       """
-      def __init__(self,domain):
-         super(StokesProblem, self).__init__(self)
+      def __init__(self,domain,debug=False):
+         super(StokesProblem, self).__init__(self,debug)
          self.domain=domain
          self.__pde_u=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_u.setSymmetryOn()
@@ -154,7 +154,7 @@ class StokesProblem(SaddlePointProblem):
            for j in range(self.domain.getDim()):
              A[i,j,j,i] += self.eta
              A[i,j,i,j] += self.eta
-         self.__pde_p.setValue(D=1./self.eta)
+         self.__pde_p.setValue(D=1/self.eta)
          self.__pde_u.setValue(A=A,q=fixed_u_mask,Y=f)
 
       def inner(self,p0,p1):
@@ -172,13 +172,13 @@ class StokesProblem(SaddlePointProblem):
          dp=self.__pde_p.getSolution()
          return  dp
 
+sol=StokesProblem(velocity.getDomain(),debug=True)
 def solve_vel_uszawa(rho, eta, velocity, pressure):
 ### SOLVES THE VELOCITY PROBLEM USING A PENALTY METHOD FOR THE INCOMPRESSIBILITY ###
-  sol=StokesProblem(velocity.getDomain())
   Y = Vector(0.0,Function(mesh))
   Y[1] -= rho*g
   sol.initialize(fixed_u_mask=b_c,eta=eta,f=Y)
-  velocity,pressure=sol.solve(velocity,pressure,relaxation=1.,iter_max=50,tolerance=0.01)
+  velocity,pressure=sol.solve(velocity,pressure,iter_max=100,tolerance=0.01) #,accepted_reduction=None)
   return velocity, pressure
   
 def solve_vel_penalty(rho, eta, velocity, pressure):

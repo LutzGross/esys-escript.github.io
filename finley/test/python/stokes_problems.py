@@ -102,7 +102,7 @@ class StokesProblem(SaddlePointProblem):
          dp=self.__pde_p.getSolution()
          return  dp
 
-NE=60
+NE=1
 dom=Rectangle(NE,NE,order=2)
 # prop=SimpleStokesProblem(dom)
 prop=StokesProblem(dom)
@@ -110,14 +110,15 @@ x=dom.getX()
 mask=(whereZero(x[0])+whereZero(x[0]-1.)+whereZero(x[1]-1.))*unitVector(0,dom)+(whereZero(x[1]-1.)+whereZero(x[1]))*unitVector(1,dom)
 u0=Vector(0.,Solution(dom))
 u0[0]=x[1]*whereZero(x[1]-1.)
-p0=0.
+p0=Scalar(0,ReducedSolution(dom))
+# prop.initialize(fixed_u_mask=mask)
 prop.initialize(fixed_u_mask=mask,eta=10.)
-u,p=prop.solve(u0,p0,relaxation=1.,iter_max=50,tolerance=0.01)
-saveVTK("stokes.xml",u=u,p=p,m=mask,u0=u0)
+u,p=prop.solve(u0,p0,tolerance=0.01)
+# saveVTK("stokes.xml",u=u,p=p,m=mask,u0=u0)
 
 eta=whereNegative(x[1]-0.5)*1.e6+whereNonNegative(x[1]-0.5)
 prop.initialize(fixed_u_mask=mask,eta=eta)
-u,p=prop.solve(u0,p0,relaxation=1.,iter_max=50,tolerance=0.01)
+u,p=prop.solve(u0,p0,tolerance=0.01,tolerance_u=0.1,relaxation=1.)
 saveVTK("stokes.xml",u=u,p=p,m=mask,u0=u0)
           
 # vim: expandtab shiftwidth=4:

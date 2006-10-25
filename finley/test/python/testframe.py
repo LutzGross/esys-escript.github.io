@@ -10,49 +10,40 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 import unittest
 from esys.escript import *
-from esys.finley import ReadMesh
-from esys.escript.pdetools import Projector
+from esys.escript.linearPDEs import LinearPDE
+from esys.finley import Rectangle, JoinFaces
 import numarray
 FINLEY_TEST_MESH_PATH="data_meshes/"
 
+NE=6 # number of element in each spatial direction (must be even)
 class Test_util2(unittest.TestCase):
-   RES_TOL=1.e-8
-   def setUp(self):
-        self.order=1
-        self.domain = ReadMesh(FINLEY_TEST_MESH_PATH+"tet_3D_order2.fly")
-        # self.domain = ReadMesh("tet_3D_order2.fly")
-   def tearDown(self):
-        del self.order
+  RES_TOL=1.e-7
+  ABS_TOL=1.e-8
+  def setUp(self):
+       d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1)
+       x1 = ContinuousFunction(d1).getX()
+       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
+       d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1)
+       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
+       d2.setX(d2.getX()+[0.5,0.])
+       self.domain = JoinFaces([d1,d2])
+  def tearDown(self):
         del self.domain
 
-   def test_normal_FunctionOnBoundary(self):
-     """
-     test getNormal() on boundary
-
-     assumptions: FunctionOnBoundary(self.domain) exists
-     """
-     dim=self.domain.getDim()
-     f=FunctionOnBoundary(self.domain)
-     x=f.getX()
-     ref=Vector(0.,what=f)
-     if dim==3:
-         ref+=whereZero(x[0]-1.,tol=self.RES_TOL)*[1,0,0]
-         ref+=whereZero(x[0],tol=self.RES_TOL)*[-1,0,0]
-         ref+=whereZero(x[1]-1.,tol=self.RES_TOL)*[0,1,0]
-         ref+=whereZero(x[1],tol=self.RES_TOL)*[0,-1,0]
-         ref+=whereZero(x[2]-1.,tol=self.RES_TOL)*[0,0,1]
-         ref+=whereZero(x[2],tol=self.RES_TOL)*[0,0,-1]
-     else:
-         ref+=whereZero(x[0]-1.,tol=self.RES_TOL)*[1,0]
-         ref+=whereZero(x[0],tol=self.RES_TOL)*[-1,0]
-         ref+=whereZero(x[1]-1.,tol=self.RES_TOL)*[0,1]
-         ref+=whereZero(x[1],tol=self.RES_TOL)*[0,-1]
-
-     res=f.getNormal()
-     print length(ref-res)
-     self.failUnlessEqual(res.getShape(),(dim,),"wrong shape of result.")
-     self.failUnlessEqual(res.getFunctionSpace(),f,"wrong functionspace of result.")
-     self.failUnless(Lsup(ref-res)<=self.RES_TOL,"wrong result")
+  #==================================================
+  def test_assemblage_2D_solO1_coeffOFull_NEqu1_d_contact_Const_typeContact(self):
+    x=self.domain.getX()
+    jump=Data(0.,(),ContinuousFunction(self.domain))
+    jump.setTaggedValue(2,1.)
+    u=((-6)+x[1]-6*x[0])*jump
+    d_contact_test=Data(4,(),FunctionOnContactZero(self.domain))
+    y_contact_test=(-24)+4*x[1]-24*x[0]
+    pde=LinearPDE(self.domain)
+    pde.setValue(d_contact=d_contact_test, y_contact=y_contact_test)
+    r=pde.getResidual(u)
+    rhs=pde.getRightHandSide()
+    self.failUnless(Lsup(rhs)>0,"right hand side is zero")
+    self.failUnless(Lsup(r)<=self.RES_TOL*Lsup(rhs),"residual is too big")
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
