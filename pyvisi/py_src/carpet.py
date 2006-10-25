@@ -4,11 +4,12 @@ from common import Common
 
 class Carpet(Common, Plane):
 	"""
-	Class that represents scalar data as plane deformated along the plane 
+	Class that represents a scalar field as a plane deformated along the plane 
 	normal and proportional to the scalar value on the plane.
 	"""
 
-	def __init__(self, scene, data_collector, transform, lut = None):
+	def __init__(self, scene, data_collector, transform, lut = None, 
+		deform = None):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to
@@ -19,6 +20,9 @@ class Carpet(Common, Plane):
 		@type lut: L{BlueToRed <colormap.BlueToRed>} or
 			L{RedToBlue <colormap.RedToBlue>} object
 		@param lut: Lookup table to be used by the mapper
+		@type deform: String 
+		@param deform: Mode the data is deformed. Either by I{Scalar} 
+			or I{Vector}
 		"""
 
 		Common.__init__(self, scene, data_collector)
@@ -26,7 +30,12 @@ class Carpet(Common, Plane):
 		self.vtk_plane = vtk.vtkPlane()
 		self.vtk_cutter = vtk.vtkCutter()
 		self.transform = transform.getTransform() 
-		self.vtk_warp = vtk.vtkWarpScalar()
+		
+		if(deform == "Scalar"):
+			self.vtk_warp = vtk.vtkWarpScalar()
+		else:
+			self.vtk_warp = vtk.vtkWarpVector()
+			
 		
 		Plane.setPlane(self)
 		Plane.setCutter(self, data_collector.getReader().GetOutput())	
@@ -38,7 +47,7 @@ class Carpet(Common, Plane):
 
 	def warpScalar(self):
 		"""
-		Set up the war scalar and deform the plane with scalar data.
+		Set up the warp scalar and deform the plane with scalar data.
 		"""
 
 		self.vtk_warp.SetInput(self.vtk_cutter.GetOutput())

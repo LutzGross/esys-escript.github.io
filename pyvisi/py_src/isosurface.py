@@ -7,7 +7,7 @@ from contour import Contour
 
 class IsoSurface(Contour):
 	"""
-	Class that shows the isosurface of a scalar field for a given value.
+	Class that shows a scalar field for a given value by an isosurface.
 	"""
 
 	def __init__(self, scene, data_collector, lut = None):
@@ -40,8 +40,8 @@ from contour import  ContourOnPlane
 
 class IsoSurfaceOnPlane(IsoSurface, ContourOnPlane):
 	"""
-	Class that shows the isosurface of a scalar field for a given value
-	on a plane.
+	Class that shows a scalar field for a given value by an isosurface
+	on a given plane.
 	"""
 
 	def __init__(self, scene, data_collector, transform, lut = None):
@@ -65,8 +65,8 @@ from contour import  ContourOnClip
 
 class IsoSurfaceOnClip(IsoSurface, ContourOnClip):
 	"""
-	Class that shows the isosurface of a scalar field for a given value
-	on a clip.
+	Class that shows a scalar field for a given value by an isosurface
+	on a given clip.
 	"""
 
 	def __init__(self, scene, data_collector, transform, lut = None):

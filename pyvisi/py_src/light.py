@@ -10,13 +10,17 @@ class Light:
 	Class that controls the light and its settings.
 	"""
 
-	def __init__(self, scene):
+	def __init__(self, scene, data_collector):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which components are to be added to	
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualization
 		"""
 
 		self.scene = scene
+		self.data_collector = data_collector
 		self.vtk_light = vtk.vtkLight()
 
 		self.setLight()

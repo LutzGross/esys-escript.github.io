@@ -8,7 +8,7 @@ from style import Style
 
 class Text:
 	"""
-	Class that displays text.
+	Class that displays 2D text.
 	"""
 
 	def __init__(self, scene):
@@ -23,7 +23,7 @@ class Text:
 
 	def setText(self, text):
 		"""
-		Set up the text mapper.
+		Set up the text mapper and text to be displayed.
 
 		@type text: String
 		@param text: Text to be displayed	

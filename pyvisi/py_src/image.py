@@ -45,7 +45,7 @@ class Image(Common):
 
 	def setFileName(self, file_name):
 		"""
-		Set the file name setup the mapper and the actor.	
+		Set the file name, setup the mapper and the actor.	
 		@type file_name: String
 		@param file_name: Image file name from which data is to be read 
 		"""

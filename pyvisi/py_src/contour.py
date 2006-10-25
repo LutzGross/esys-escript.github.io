@@ -40,7 +40,7 @@ class Contour(Common):
 
 	def generateValues(self, number_contours, min_range, max_range):
 		"""
-		Generate a specified number of contours within a specified range.
+		Generate the specified number of contours within the specified range.
 
 		@type number_contours: Number
 		@param number_contours: Number of contours to generate	
@@ -89,7 +89,7 @@ from plane import Plane
 
 class ContourOnClip(Contour, Plane):
 	"""	
-	Class that shows a scalar field by contour on a clip.
+	Class that shows a scalar field by contour surfaces on a given clip.
 	"""
 
 	def __init__(self, scene, data_collector, transform, lut = None):

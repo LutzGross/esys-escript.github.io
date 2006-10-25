@@ -5,7 +5,7 @@
 
 class Position:
 	"""
-	Class that defines the coordinate of components in the visualization.
+	Class that defines the x, y and z coordinates of components.
 	"""
 
 	def __init__(self, x_coor, y_coor, z_coor):
@@ -128,7 +128,7 @@ class Transform:
 
 	def xyPlane(self, offset = 0):
 		"""
-		The plane orthogonal to the z-axis.
+		Set the plane orthogonal to the z-axis.
 		@type offset: Number
 		@param offset: Amount to translate
 		"""
@@ -137,7 +137,7 @@ class Transform:
 
 	def yzPlane(self, offset = 0):
 		"""
-		The plane orthogonal to the x-axis.
+		Set the plane orthogonal to the x-axis.
 		@type offset: Number
 		@param offset: Amount to translate
 		"""
@@ -147,7 +147,7 @@ class Transform:
 
 	def xzPlane(self, offset = 0):
 		"""
-		The plane orthogonal to the y-axis.
+		Set the plane orthogonal to the y-axis.
 		@type offset: Number
 		@param offset: Amount to translate
 		"""
