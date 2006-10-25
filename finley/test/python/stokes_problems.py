@@ -102,7 +102,7 @@ class StokesProblem(SaddlePointProblem):
          dp=self.__pde_p.getSolution()
          return  dp
 
-NE=1
+NE=50
 dom=Rectangle(NE,NE,order=2)
 # prop=SimpleStokesProblem(dom)
 prop=StokesProblem(dom)
@@ -118,7 +118,7 @@ u,p=prop.solve(u0,p0,tolerance=0.01)
 
 eta=whereNegative(x[1]-0.5)*1.e6+whereNonNegative(x[1]-0.5)
 prop.initialize(fixed_u_mask=mask,eta=eta)
-u,p=prop.solve(u0,p0,tolerance=0.01,tolerance_u=0.1,relaxation=1.)
+u,p=prop.solve(u0,p0,tolerance=0.01,tolerance_u=0.1,accepted_reduction=0.8)
 saveVTK("stokes.xml",u=u,p=p,m=mask,u0=u0)
           
 # vim: expandtab shiftwidth=4:
