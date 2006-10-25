@@ -923,10 +923,10 @@ class LinearPDE(object):
        @param tol: new tolerance for the solver. If the tol is lower then the current tolerence
                    the system will be resolved.
        @type tol: positive C{float}
-       @raise ValueException: if tolerance is not positive.
+       @raise ValueError: if tolerance is not positive.
        """
        if not tol>0:
-           raise ValueException,"Tolerance as to be positive"
+           raise ValueError,"Tolerance as to be positive"
        if tol<self.getTolerance(): self.__invalidateSolution()
        self.trace("New tolerance %e"%tol)
        self.__tolerance=tol
