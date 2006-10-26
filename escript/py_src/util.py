@@ -4066,24 +4066,32 @@ def minimum(*args):
           out=add(out,mult(whereNegative(diff),diff))
     return out
 
-def clip(arg,minval=0.,maxval=1.):
+def clip(arg,minval=None,maxval=None):
     """
     cuts the values of arg between minval and maxval
  
     @param arg: argument
     @type arg: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float}
-    @param minval: lower range 
-    @type minval: C{float}
-    @param maxval: upper range 
-    @type maxval: C{float}
+    @param minval: lower range. If None no lower range is applied
+    @type minval: C{float} or C{None}
+    @param maxval: upper range. If None no upper range is applied
+    @type maxval: C{float} or C{None}
     @return: is on object with all its value between minval and maxval. value of the argument that greater then minval and
              less then maxval are unchanged.
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{int} or C{float} depending on the input
     @raise ValueError: if minval>maxval
     """
-    if minval>maxval:
-       raise ValueError,"minval = %s must be less then maxval %s"%(minval,maxval)
-    return minimum(maximum(minval,arg),maxval)
+    if not minval==None and not maxval==None:
+       if minval>maxval:
+          raise ValueError,"minval = %s must be less then maxval %s"%(minval,maxval)
+    if minval == None:
+        tmp=arg
+    else:
+        tmp=maximum(minval,arg)
+    if maxval == None:
+        return tmp
+    else:
+        return minimum(tmp,maxval)
 
    
 def inner(arg0,arg1):
