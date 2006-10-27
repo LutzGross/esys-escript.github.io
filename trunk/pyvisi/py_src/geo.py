@@ -77,28 +77,6 @@ class Transform:
 
 		self.vtk_transform.Translate(-x_offset, -y_offset, -z_offset)
 	
-	def normalTranslate(self, offset):
-		"""
-		Translate the rendered object along the plane normal.
-		@type offset: Number
-		@param offset: Amount to translate along the plane normal
-		"""
-
-		self.vtk_transform.Push(offset)
-
-	def scale(self, x_scale, y_scale, z_scale):
-		"""
-		Scale the rendered object along the x, y and z-axes.
-		@type x_scale: Number
-		@param x_scale: Amount to scale along the x-axis
-		@type y_scale: Number
-		@param y_scale: Amount to scale along the y-axis
-		@type z_scale: Number
-		@param z_scale: Amount to scale along the z-axis
-		"""
-
-		self.vtk_transform.Scale(x_scalr, y_scale, z_scale)
-	
 	def rotateX(self, angle):
 		"""
 		Rotate the rendered object along the x-axis.
@@ -141,9 +119,10 @@ class Transform:
 		@type offset: Number
 		@param offset: Amount to translate
 		"""
-
+		
+		# rotateY must come first before translate. Otherwise, it won't work.
+		self.rotateY(89.9) 
 		self.translate(offset, 0, 0)
-		self.rotateY(89.9)
 
 	def xzPlane(self, offset = 0):
 		"""
@@ -152,8 +131,9 @@ class Transform:
 		@param offset: Amount to translate
 		"""
 
-		self.translate(0, offset, 0)
+		# rotateX must come first before translate. Otherwise, it won't work.
 		self.rotateX(89.9)
+		self.translate(0, offset, 0)
 	
 	def getTransform(self):
 		"""

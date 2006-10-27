@@ -89,10 +89,6 @@ A \Camera object controls the camera's settings.
 \end{classdesc}
 
 The following are some of the methods available:
-\begin{methoddesc}[Camera]{setClippingRange}{near_clipping, far_clipping}
-Set the near and far clipping plane of the camera.
-\end{methoddesc}
-
 \begin{methoddesc}[Camera]{setFocalPoint}{position}
 Set the focal point of the camera.
 \end{methoddesc}
@@ -131,6 +127,10 @@ View the left side of the rendered object.
 
 \begin{methoddesc}[Camera]{rightView}{}
 View the right side of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{isometricView}{}
+View the isometric side of the rendered object.
 \end{methoddesc}
 
 The following is a sample code using the \Camera class. 

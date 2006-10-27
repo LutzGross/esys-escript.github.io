@@ -94,16 +94,6 @@ class Camera:
 			position.getZCoor())
 		self.resetCamera()
 
-	def zoom(self, factor):
-		"""
-		Zoom in and out of the rendered object.
-		@type factor: Number
-		@param factor: Amount to zoom in and out
-		"""
-
-		self.vtk_camera.Zoom(factor)
-		self.resetCamera()
-
 	def azimuth(self, angle):
 		"""
 		Rotate the camera to the left and right.
@@ -122,8 +112,13 @@ class Camera:
 		"""
 
 		self.vtk_camera.Elevation(angle)
+		# Recompute the view up vector. If not used the elevation angle cannot
+		# cannot exceed 87/-87 degrees. Otherwise a warning resetting the
+		# view up will be thrown and the rendered object may be incorrect. 
+		# With the view up recomputed, the elevation angle can reach between
+		# 90/-90 degress. More than that, the rendered object may be incorrect.
+		self.vtk_camera.OrthogonalizeViewUp()
 		self.resetCamera()
-
 
 	def roll(self, angle):
 		"""
@@ -132,17 +127,7 @@ class Camera:
 		@param angle: Degree to turn the camera
 		"""
 
-		self.vtk_camera.Roll(angle)
-		self.resetCamera()
-
-	def dolly(self, distance):
-		"""
-		Move the camera towards and away from the focal point along the normal.
-		@type distance: Number
-		@param distance: Amount to move towards and away 
-		"""
-		
-		self.vtk_camera(distance)
+		self.vtk_camera.Roll(-angle)
 		self.resetCamera()
 
 	def backView(self):
@@ -158,7 +143,7 @@ class Camera:
 		View the top of the rendered object.
 		"""
 
-		self.elevation(90)
+		self.elevation(90) 
 		self.resetCamera()
 
 	def bottomView(self):
@@ -166,7 +151,7 @@ class Camera:
 		View the bottom of the rendered object.
 		"""
 
-		self.elevation(-90)
+		self.elevation(-90) 
 		self.resetCamera()
 
 	def leftView(self):
@@ -185,6 +170,14 @@ class Camera:
 		self.azimuth(90)
 		self.resetCamera()
 
+	def isometricView(self):
+		"""
+		View the isometric side of the rendered object.				
+		"""
+	
+		self.roll(-45)
+		self.elevation(-45)
+
 	def resetCamera(self):
 		"""
 		Repositions the camera so that all actors can be seen. Needs to
@@ -194,7 +187,3 @@ class Camera:
 		self.scene.getRenderer().ResetCamera()	
 
 
-	#def isometricView(self):
-	#	self.elevation(-50)
-		#self.roll(30)
-		#self.azimuth(-90)
