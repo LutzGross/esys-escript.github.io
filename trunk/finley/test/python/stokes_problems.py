@@ -1,13 +1,7 @@
-# $Id: pdetools.py 867 2006-10-09 06:50:09Z gross $
+# $Id$
 
 """
-Provides some tools related to PDEs. 
-
-Currently includes:
-    - Projector - to project a discontinuous
-    - Locator - to trace values in data objects at a certain location
-    - TimeIntegrationManager - to handel extraplotion in time
-    - SaddlePointProblem - solver for Saddle point problems using the inexact uszawa scheme
+solvers for the stokes problem
 
 @var __author__: name of author
 @var __copyright__: copyrights
@@ -25,7 +19,7 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="http://www.iservo.edu.au/esys"
 __version__="$Revision$"
-__date__="$Date:$"
+__date__="$Date$"
 
 from esys.escript import *
 from esys.escript.pdetools import SaddlePointProblem
