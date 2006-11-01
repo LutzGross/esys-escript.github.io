@@ -37,7 +37,7 @@ class FinleyReader(ParameterSet):
           @rtype: L{Domain}
           """
           if not self.__domain:
-             self.__domain=finley.ReadMesh(self.source,self.integrationOrder) 
+             self.__domain=finley.ReadMesh(self.source.getLocalFileName(),self.integrationOrder) 
              self.trace("mesh read from %s"%self.source)           
           return self.__domain
           
