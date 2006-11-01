@@ -1016,7 +1016,7 @@ class DataSource(object):
     Class for handling data sources, including local and remote files. This class is under development.
     """
 
-    def __init__(self, uri, fileformat):
+    def __init__(self, uri="file.ext", fileformat="unknown"):
         self.uri = uri
         self.fileformat = fileformat
 
@@ -1035,6 +1035,9 @@ class DataSource(object):
         fileformat= doc.getElementsByTagName("FileFormat")[0].firstChild.nodeValue.strip()
         ds = cls(uri, fileformat)
         return ds
+
+    def getLocalFileName(self):
+        return self.uri
 
     fromDom = classmethod(fromDom)
     
