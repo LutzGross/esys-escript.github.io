@@ -30,9 +30,15 @@ from esys.finley import ReadMesh
 
 
 rho=0.
-lam_lmbd=1.
-lam_mu=1.
+lam_lmbd=1.7e11
+lam_mu=1.7e11
 g=9.81
+fstart =  [50000.0, 44444.444444444445, 11666.666666666666]
+fend =  [50000.0, 50000.0, -13333.333333333336]
+fstart =  [50000.0, 44444.444444444445, 11666.666666666666]
+fend =  [50000.0, 55555.555555555555, -11666.666666666668]
+
+
 
 class SlippingFault(SaddlePointProblem):
       """
@@ -56,27 +62,37 @@ class SlippingFault(SaddlePointProblem):
          self.__pde_u.setValue(A=A,q=fixed_u_mask,Y=-kronecker(Function(self.domain))[d-1]*g*density,y=traction)
 
       def inner(self,p0,p1):
-         return integrate(p0*p1,FunctionOnContactZero(self.domain))
+         return integrate(inner(p0,p1),FunctionOnContactZero(self.domain))
 
       def solve_f(self,u,p,tol=1.e-8):
          self.__pde_u.setTolerance(tol)
-         self.__pde_u.setValue(y_contact=-p)
+         self.__pde_u.setValue(y_contact=p)
          return  self.__pde_u.getSolution()
 
       def solve_g(self,u,tol=1.e-8):
-         dp=-(self.slip-jump(u))
+         dp=(self.slip-jump(u))*lam_lmbd/FunctionOnContactZero(self.domain).getX()
          return  dp
 
 
-s=numarray.array([0.,1.,1.])
 dom=ReadMesh("meshfault3D.fly")
 prop=SlippingFault(dom)
 d=dom.getDim()
 x=dom.getX()[d-1]
 mask=whereZero(x-inf(x))*numarray.ones((d,))
+s=numarray.array([0.,1.,1.])
+x=FunctionOnContactZero(dom).getX()
+s=numarray.array([0.,1.,1.])
+for i in range(3):
+     d=fend[i]-fstart[i]
+     if d>0:
+         q=(x[i]-fstart[i])/d
+         s=q*(1-q)*4*s
+     elif d<0:
+         q=(x[i]-fend[i])/d
+         s=q*(1-q)*4*s
 u0=Vector(0.,Solution(dom))
 p0=Vector(1.,FunctionOnContactZero(dom))
 prop.initialize(fixed_u_mask=mask,slip=Data(s,FunctionOnContactZero(dom)), density=rho,lmbd=lam_lmbd, mu=lam_mu)
-u,p=prop.solve(u0,p0,iter_max=50,tolerance=0.01)
+u,p=prop.solve(u0,p0,iter_max=100,tolerance=0.5,accepted_reduction=1.1 )
 saveVTK("dis.xml",u=u)
 saveVTK("fault.xml",sigma=p,s=jump(u))
