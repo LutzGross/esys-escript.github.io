@@ -5,15 +5,19 @@
 \modulesynopsis{Python visualization interface}
 
 \pyvisi provides an easy to use interface to the \VTK visualization 
-tool. The module provides the following features:
+tool. \pyvisi provides the following modules:
 
 \begin{itemize}
 \item \Scene: Shows a scene in which components are to be displayed.
+\item \Image: Shows an image.
+\item \Text: Shows some 2D text.
 \item \DataCollector: Deals with data for visualization.
 \item \Camera: Controls the camera manipulation. 
+\item \Light: Controls the light manipulation.
 \item \Map: Shows a scalar field by color on the domain surface.
 \item \MapOnPlane: Shows a scalar field by color on a given plane. 
 \item \MapOnClip: Shows a scalar field by color on a given clip.
+\item \MapOnScalarClip: Shows a scalar field by color on a give scalar clip.
 \item \Arrows: Shows a vector field by arrows.
 \item \ArrowsOnPlane: Shows a vector field by arrows on a given plane.
 \item \ArrowsOnClip: Shows a vector field by arrows on a given clip.
@@ -35,13 +39,12 @@ a given plane.
 \item \StreamLines: Shows the path of particles in a vector field.
 \item \Carpet: Shows a scalar field as plane deformated along 
 the plane normal.
-\item \Image: Shows an image.
-\item \Text: Shows some 2D text.
 \item \Position: Defines the x,y and z coordinates rendered object.
 \item \Transform: Defines the orientation of rendered object.
 \item \Style: Defines the style of text.
 \item \BlueToRed: Defines a map spectrum from blue to red.
 \item \RedToBlue: Defines a map spectrum from red to blue.
+\item \Plane: Defines the cutting/clipping of rendered objects.
 \end{itemize}
 
 \section{\Scene class}
@@ -60,6 +63,58 @@ Render the object on-screen.
 
 The following is a sample code using the \Scene class:
 \verbatiminput{../examples/driverscene.py}
+
+\section{\Image class}
+\begin{classdesc}{Image}{scene, format}
+An \Image object shows an image.
+\end{classdesc}
+
+The following is the method available:
+\begin{methoddesc}[Image]{setFileName}{file_name}
+Set the file name.
+\end{methoddesc}
+
+The following is a sample code using the \Image class.
+\fig{fig:image.1} shows the corresponding output.
+\verbatiminput{../examples/driverimage.py}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=40mm]{figures/Image}
+\end{center}
+\caption{Image}
+\label{fig:image.1}
+\end{figure}
+
+\section{\Text class}
+\begin{classdesc}{Text}{scene}
+A \Text object shows 2D text. 
+\end{classdesc}
+
+The following are the methods available:
+\begin{methoddesc}[Text]{setText}{text}
+Set the text.
+\end{methoddesc}
+
+\begin{methoddesc}[Text]{setPosition}{x_coor, y_coor}
+Set the display position of the text.
+\end{methoddesc}
+
+\begin{methoddesc}[Text]{setStyle}{style}
+Set the style of the text.
+\end{methoddesc}
+
+The following is a sample code using the \Text class.
+\fig{fig:text.1} shows the corresponding output.
+\verbatiminput{../examples/drivertext.py}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=40mm]{figures/Text}
+\end{center}
+\caption{2D text}
+\label{fig:text.1}
+\end{figure}
 
 \section{\DataCollector class}
 \begin{classdesc}{DataCollector}{scene, outline = True, cube_axes = False}
@@ -145,6 +200,40 @@ The following is a sample code using the \Camera class.
 \label{fig:camera.1}
 \end{figure}
 
+\section{\Light class}
+\begin{classdesc}{Light}{scene, data_collector}
+A \Light object controls the light's settings. 
+\end{classdesc}
+
+The following are the methods available:
+\begin{methoddesc}[Light]{setColor}{color}
+Set the color of the light.
+\end{methoddesc}
+
+\begin{methoddesc}[Light]{setFocalPoint}{position}
+Set the focal point of the light.
+\end{methoddesc}
+
+\begin{methoddesc}[Light]{setPosition}{position}
+Set the position of the light.
+\end{methoddesc}
+
+\begin{methoddesc}[Light]{setIntensity}{intesity}
+Set the intensity (brightness) of the light.
+\end{methoddesc}
+
+The following is a sample code using the \Light class.
+\fig{fig:light.1} shows the corresponding output.
+\verbatiminput{../examples/driverlight.py}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=40mm]{figures/Light}
+\end{center}
+\caption{Light}
+\label{fig:light.1}
+\end{figure}
+
 \section{\Map class}
 \begin{classdesc}{Map}{scene, data_collector, lut = None}
 A \Map object shows a scalar field by color on the domain surface.
@@ -194,6 +283,23 @@ The following is a sample code using the \MapOnClip class.
 \end{center}
 \caption{Surface map on a clip}
 \label{fig:maponclip.1}
+\end{figure}
+
+\section{\MapOnScalarClip class}
+\begin{classdesc}{MapOnScalarClip}{scene, data_collector, lut = None}
+A \MapOnScalarClip object show a scalar field by color on a given scalar clip.
+\end{classdesc}
+
+The following is a sample code using the \MapOnScalarClip class.
+\fig{fig:maponscalarclip.1} shows the corresponding output.
+\verbatiminput{../examples/drivermaponscalarclip.py}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=40mm]{figures/MapOnScalarClip}
+\end{center}
+\caption{Surface map on a scalar clip}
+\label{fig:maponscalarclip.1}
 \end{figure}
 
 \section{\Arrows class}
@@ -513,8 +619,8 @@ The following is a sample code using the \StreamLines class.
 \section{\Carpet class}
 \begin{classdesc}{Carpet}{scene, data_collector, transform, lut = None, 
 deform = None}
-A \Carpet object shows a scalar field as a plane deformated along the plane
-normal.
+A \Carpet object shows a scalar/vector field as a plane deformated along 
+the plane normal.
 \end{classdesc}
 
 The following is the method available:
@@ -534,57 +640,6 @@ The following is a sample code using the \Carpet class.
 \label{fig:carpet.1}
 \end{figure}
 
-\section{\Image class}
-\begin{classdesc}{Image}{scene, format}
-An \Image object shows an image.
-\end{classdesc}
-
-The following is the method available:
-\begin{methoddesc}[Image]{setFileName}{file_name}
-Set the file name.
-\end{methoddesc}
-
-The following is a sample code using the \Image class.
-\fig{fig:image.1} shows the corresponding output.
-\verbatiminput{../examples/driverimage.py}
-
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[width=40mm]{figures/Image}
-\end{center}
-\caption{Image}
-\label{fig:image.1}
-\end{figure}
-
-\section{\Text class}
-\begin{classdesc}{Text}{scene}
-A \Text object shows 2D text. 
-\end{classdesc}
-
-The following are the methods available:
-\begin{methoddesc}[Text]{setText}{text}
-Set the text.
-\end{methoddesc}
-
-\begin{methoddesc}[Text]{setPosition}{x_coor, y_coor}
-Set the display position of the text.
-\end{methoddesc}
-
-\begin{methoddesc}[Text]{setStyle}{style}
-Set the style of the text.
-\end{methoddesc}
-
-The following is a sample code using the \Text class.
-\fig{fig:text.1} shows the corresponding output.
-\verbatiminput{../examples/drivertext.py}
-
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[width=40mm]{figures/Text}
-\end{center}
-\caption{2D text}
-\label{fig:text.1}
-\end{figure}
 
 \section{\Position class}
 \begin{classdesc}{Position}{x_coor, y_coor, z_coor}
@@ -661,4 +716,45 @@ A \BlueToRed object defines a map spectrum from blue to red.
 A \RedToBlue object defines a map spectrum from red to blue.
 \end{classdesc}
 
+\section{\Plane class}
+The following are the methods available:
+\begin{methoddesc}[Plane]{setPlaneOrigin}{position}
+Set the plane origin
+\end{methoddesc}
+
+\begin{methoddesc}[Plane]{setPlaneNormal}{position}
+Set the plane normal
+\end{methoddesc}
+
+\begin{methoddesc}[Plane]{setValue}{clipping_value}
+Set the clipping value
+\end{methoddesc}
+
+\begin{methoddesc}[Plane]{setInsideOutOn}{}
+Set the clipping to inside out
+\end{methoddesc}
+
+\begin{methoddesc}[Plane]{setInsideOutOff}{}
+Disable the inside out clipping
+\end{methoddesc}
+
+\section{Additional Notes}
+The following is a sample code rendering multiple planes. 
+\fig{fig:multipleplanes.1} shows the corresponding output.
+\verbatiminput{../examples/drivermultipleplanes.py}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=60mm]{figures/MultiplePlanes}
+\end{center}
+\caption{Multiple planes}
+\label{fig:multipleplanes.1}
+\end{figure}
+
+The following is a sample code rendering multiple cuts.
+\verbatiminput{../examples/drivermultiplecuts.py}
+
+
+The following is a sample code rendering multiple reads from multiple files.
+\verbatiminput{../examples/drivermultiplereads.py}
 

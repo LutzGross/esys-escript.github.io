@@ -31,7 +31,7 @@ __date__="$Date:$"
 #from isosurface import *
 #from light import *
 #from map import *
-#from scene import *
+#from scene import Scene
 #from streamlines import *
 #from style import *
 #from tensorglyph import *

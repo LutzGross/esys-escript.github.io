@@ -41,8 +41,8 @@ class Carpet(Common, Plane):
 		Plane.setCutter(self, data_collector.getReader().GetOutput())	
 		self.warpScalar()
 		
-		#Common.setMapperInput(self, self.vtk_warp.GetOutput(), lut)
-		Common.setMapperInput(self, self.vtk_cutter.GetOutput(), lut)
+		Common.setMapperInput(self, self.vtk_warp.GetOutput(), lut)
+		#Common.setMapperInput(self, self.vtk_cutter.GetOutput(), lut)
 		Common.setActorInput(self)
 		Common.addActor(self)
 

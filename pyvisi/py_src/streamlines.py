@@ -59,7 +59,7 @@ class StreamLines(Common):
 			self.data_collector.getReader().GetOutput())
 		self.vtk_stream_lines.SetSource(self.vtk_point_source.GetOutput())
 		self.setMaximumPropagationTime(500)
-		self.setLineSize(0.2)
+		self.setStreamLinesSize(0.2)
 		self.setAccuracy(0.05)
 		
 		self.setIntegrationToBothDirections()

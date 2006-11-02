@@ -26,6 +26,17 @@ class Map(Common):
 		Common.__init__(self, scene, data_collector)
 		Common.setMapperInput(self, self.data_collector.getReader().GetOutput(),
 			lut)
+
+		#print "in Map class"
+		#bound = self.data_collector.getReader().GetOutput().GetBounds()
+		#print bound
+		#print bound[0]
+		#print bound[1]
+		#print bound[2]
+		#print bound[3]
+		#print bound[4]
+		#print bound[5]
+
 		Common.setActorInput(self)
 		Common.addActor(self)
 
@@ -76,7 +87,27 @@ class MapOnClip(Plane):
 		@param lut: Lookup table to be used by the mapper
 		"""
 
-		# "Clip is used to distinguish clipping from cutting.
+		# "Clip" is used to distinguish clipping from cutting.
 		Plane.__init__(self, scene, data_collector, 
 			data_collector.getReader().GetOutput(), transform, lut, "Clip")
 
+from plane import Plane
+
+class MapOnScalarClip(Plane):
+	
+	def __init__(self, scene, data_collector, lut = None):
+		"""
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which components are to be added to
+		@type data_collector: L{DataCollector <datacollector.DataCollector>}
+			object
+		@param data_collector: Source of data for visualization
+		@type lut: L{BlueToRed <colormap.BlueToRed>} or
+			L{RedToBlue <colormap.RedToBlue>} object
+		@param lut: Lookup table to be used by the mapper
+		"""
+
+		# "ScalarClip" is used to distinguish clipping from cutting.
+		Plane.__init__(self, scene, data_collector, 
+			data_collector.getReader().GetOutput(), None, lut,
+			"ScalarClip")
