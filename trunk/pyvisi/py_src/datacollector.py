@@ -70,6 +70,12 @@ class DataCollector(Common):
 		# Use the outer edges of the bounding box to draw the axes.
 		vtk_cube_axes.SetFlyModeToOuterEdges()
 		vtk_cube_axes.SetFontFactor(0.9)
+		# The amount to pull back the axes from the corner to avoid overlaps.
+		vtk_cube_axes.SetCornerOffset(0.0)	
+		# Makes the axes size to be constant (stay the size of the bounding
+		# box). Otherwise, the axes value can change depending on the 
+		# viewport and can have many decimal places at times.
+		vtk_cube_axes.ScalingOff()
 
 		# Style for the axes title and label.
 		style = Style() 		
