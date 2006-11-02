@@ -30,9 +30,11 @@ from esys.escript import *
 from numarray import zeros,Float,array,size
 
 #... generate domain ...
-ne = 10
-width = 200000.
-height = 30000.
+ne = 18
+width  = 100000.
+height =  30000.
+fstart=numarray.array([width/2.,7.*width/16.,3.*height/8.])
+fend=numarray.array([width/2.,9.*width/16.,5.*height/8.])
 
 def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
    # if contact = true then there is a fault surface
@@ -109,6 +111,8 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
       n0double=int(i0end)-int(i0start)
       n1double=int(i1end)-int(i1start)
       n2double=int(i2end)-int(i2start)
+      print "fstart = ",[i0start*l0/ne0, i1start*l1/ne1, i2start*l2/ne2]
+      print "fend = ", [i0start*l0/ne0, i1start*l1/ne1 + n1double*l1/ne1,i2start*l2/ne2 + n2double*l2/ne2 -height]
       if (i0start == 0) or (i1start==0) or (i2start==0):
          raise FaultError1
          
@@ -587,6 +591,5 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
 
    meshfaultL.close() 
 
+mydomainfile = faultL(width,width, height,ne, ne, ne,contact=True,xstart=fstart,xend=fend)
 
-ne_w=int((ne/height)*width+0.5)
-mydomainfile = faultL(width,width, height,ne_w, ne_w, ne,contact=True,xstart=numarray.array([width/2.,7.*width/16.,3.*height/8.]),xend=numarray.array([width/2.,9.*width/16.,5.*height/8.]))
