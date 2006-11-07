@@ -67,17 +67,21 @@ class SlippingFault(SaddlePointProblem):
       def solve_f(self,u,p,tol=1.e-8):
          self.__pde_u.setTolerance(tol)
          self.__pde_u.setValue(y_contact=p)
+         print "p:",inf(p),sup(p)
+         print "u:",inf(u),sup(u)
+         self.__pde_u.setValue(y_contact=p)
          return  self.__pde_u.getSolution()
 
       def solve_g(self,u,tol=1.e-8):
-         dp=(self.slip-jump(u))*lam_lmbd/FunctionOnContactZero(self.domain).getX()
+         dp= (self.slip-jump(u))*lam_lmbd/FunctionOnContactZero(self.domain).getSize()**2
          return  dp
 
 
-dom=ReadMesh("meshfault3D.fly")
+dom=ReadMesh("meshfault3D.fly",integrationOrder=-1)
 prop=SlippingFault(dom)
 d=dom.getDim()
-x=dom.getX()[d-1]
+x=dom.getX()[0]
+# x=dom.getX()[d-1]
 mask=whereZero(x-inf(x))*numarray.ones((d,))
 s=numarray.array([0.,1.,1.])
 x=FunctionOnContactZero(dom).getX()
@@ -93,6 +97,6 @@ for i in range(3):
 u0=Vector(0.,Solution(dom))
 p0=Vector(1.,FunctionOnContactZero(dom))
 prop.initialize(fixed_u_mask=mask,slip=Data(s,FunctionOnContactZero(dom)), density=rho,lmbd=lam_lmbd, mu=lam_mu)
-u,p=prop.solve(u0,p0,iter_max=100,tolerance=0.5,accepted_reduction=1.1 )
+u,p=prop.solve(u0,p0,iter_max=50,tolerance=0.1,accepted_reduction=10.)
 saveVTK("dis.xml",u=u)
 saveVTK("fault.xml",sigma=p,s=jump(u))

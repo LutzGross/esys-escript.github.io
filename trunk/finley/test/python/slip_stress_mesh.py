@@ -591,5 +591,6 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
 
    meshfaultL.close() 
 
+# ne_w=int((ne/height)*width+0.5)
+ne_w=ne
 mydomainfile = faultL(width,width, height,ne, ne, ne,contact=True,xstart=fstart,xend=fend)
-

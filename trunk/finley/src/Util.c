@@ -358,7 +358,6 @@ int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
    if (e1->value > e2->value) return  1;
    if (e1->index < e2->index) return -1;
    if (e1->index > e2->index) return  1;
-
    return 0;
 }
 

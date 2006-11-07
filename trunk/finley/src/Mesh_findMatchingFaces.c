@@ -43,7 +43,13 @@ int Finley_Mesh_findMatchingFaces_compar(const void *arg1 , const void *arg2 ) {
         if (g) return 1;
      }
    }
-   return 0;
+   if ( e1->refId < e2->refId ) {
+       return -1;
+   } else if ( e1->refId > e2->refId ) {
+       return -1;
+   } else {
+       return 0;
+   }
 }
 
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *faces, double safety_factor,double tolerance,
@@ -95,6 +101,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
        Finley_Mesh_lockingGridSize=h*MAX(safety_factor,0);
        #ifdef Finley_TRACE
        printf("locking grid size is %e\n",Finley_Mesh_lockingGridSize);
+       printf("absolute tolerance is %e.\n",h * tolerance);
        #endif
        /* sort the elements by center center coordinates (lexigraphical)*/
        qsort(center,faces->numElements,sizeof(Finley_Mesh_findMatchingFaces_center),Finley_Mesh_findMatchingFaces_compar);
@@ -102,7 +109,9 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
        *numPairs=0;
        /* OMP */
        for (e=0;e<faces->numElements-1 && Finley_noError();e++) {
-          if (Finley_Mesh_findMatchingFaces_compar((void*) &(center[e]),(void*) &(center[e+1]))==0) {
+          dist=0; 
+          for (i=0;i<numDim;i++) dist=MAX(dist,ABS(center[e].x[i]-center[e+1].x[i]));
+          if (dist < h * tolerance) { 
               e_0=center[e].refId;
               e_1=center[e+1].refId;
               elem0[*numPairs]=e_0;
@@ -122,7 +131,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                  }
                  /* if the permutation is back at the identity, ie. perm[0]=0, the faces don't match: */
                  if (perm[0]==0) {
-                       sprintf(error_msg,"__FILE__:couldn't match first node of element %d to touching element %d",e_0,e_1);
+                       sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match first node of element %d to touching element %d",e_0,e_1);
                        Finley_setError(VALUE_ERROR,error_msg);
                  }
               }
@@ -134,14 +143,14 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                     if (dist>h*tolerance) {
                           /* rotate the nodes */
                           if (faces->ReferenceElement->Type->reverseNodes[0]<0) {
-                             sprintf(error_msg,"__FILE__:couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                             sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
                              Finley_setError(VALUE_ERROR,error_msg);
                           } else {
                              for (i=0;i<NN;i++) perm_tmp[i]=perm[faces->ReferenceElement->Type->reverseNodes[i]];
                              SWAP(perm,perm_tmp);
                              getDist(dist,e_0,1,e_1,perm[faces->ReferenceElement->Type->faceNode[1]]);
                              if (dist>h*tolerance) {
-                                 sprintf(error_msg,"__FILE__:couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                                 sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
                                  Finley_setError(VALUE_ERROR,error_msg);
                              }
                           }
@@ -154,7 +163,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                     n=faces->ReferenceElement->Type->faceNode[i];
                     getDist(dist,e_0,n,e_1,perm[n]);
                     if (dist>h*tolerance) {
-                       sprintf(error_msg,"__FILE__:couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);
+                       sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);
                        Finley_setError(VALUE_ERROR,error_msg);
                        break;
                     }
