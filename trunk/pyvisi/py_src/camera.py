@@ -181,7 +181,8 @@ class Camera:
 	def resetCamera(self):
 		"""
 		Repositions the camera so that all actors can be seen. Needs to
-		be called whenever the camera's settings are modified.
+		be called whenever the camera's settings are modified. Otherwise,
+		the object may not be rendered correctly.
 		"""
 
 		self.scene.getRenderer().ResetCamera()	
