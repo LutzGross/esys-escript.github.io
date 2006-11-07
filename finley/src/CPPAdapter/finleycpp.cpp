@@ -122,12 +122,12 @@ BOOST_PYTHON_MODULE(finleycpp)
 
   def("GlueFaces",finley::glueFaces,
       (arg("safetyFactor")=0.2,
-      arg("tolerance")=std::numeric_limits<double>::epsilon()),
+      arg("tolerance")=1.e-8),
       return_value_policy<manage_new_object>());
 
   def("JoinFaces",finley::joinFaces,
       (arg("safetyFactor")=0.2,
-      arg("tolerance")=std::numeric_limits<double>::epsilon()),
+      arg("tolerance")=1.e-8),
       return_value_policy<manage_new_object>());
 
   register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));

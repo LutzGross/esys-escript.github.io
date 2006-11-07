@@ -126,7 +126,7 @@ namespace finley {
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
-			   double tolerance=100.*std::numeric_limits<double>::epsilon());
+			   double tolerance=1.e-8);
   /**
      \brief
      Detects matching faces in the mesh and replaces them by joint elements.
@@ -137,7 +137,7 @@ namespace finley {
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
 			double safetyFactor=0.2, 
-			double tolerance=100.*std::numeric_limits<double>::epsilon());
+			double tolerance=1.e-8);
  
 } // end of namespace
 #endif
