@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>py_src.tensor.Tensor</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="py_src-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="py_src-module.html">Package&nbsp;py_src</a> ::
+        <a href="py_src.tensor-module.html">Module&nbsp;tensor</a> ::
+        Class&nbsp;Tensor
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[<a href="../private/py_src.tensor.Tensor-class.html">show&nbsp;private</a>&nbsp;|&nbsp;hide&nbsp;private]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="py_src.tensor.Tensor-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class Tensor</h2>
+
+<pre class="base-tree">
+<a href="py_src.common.Common-class.html"><code>Common</code></a> --+
+         |
+        <b>Tensor</b>
+</pre><br />
+
+<dl><dt><b>Known Subclasses:</b></dt>
+<dd>
+    <a href="py_src.tensor.TensorOnClip-class.html"><code>TensorOnClip</code></a>,
+    <a href="py_src.tensor.TensorOnPlane-class.html"><code>TensorOnPlane</code></a></dd></dl>
+
+<hr/>
+
+Class that show a tensor field by ellipsoids.
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.tensor.Tensor-class.html#__init__" class="summary-sig-name"><code>__init__</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>scene</span>,
+          <span class=summary-sig-arg>data_collector</span>,
+          <span class=summary-sig-arg>lut</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.tensor.Tensor-class.html#setMaxScaleFactor" class="summary-sig-name"><code>setMaxScaleFactor</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>max_scale_factor</span>)</span></code>
+<br />
+Set the maximum allowable scale factor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.tensor.Tensor-class.html#setPhiResolution" class="summary-sig-name"><code>setPhiResolution</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>resolution</span>)</span></code>
+<br />
+Set the number of points in the latitude direction.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.tensor.Tensor-class.html#setScaleFactor" class="summary-sig-name"><code>setScaleFactor</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>scale_factor</span>)</span></code>
+<br />
+Set the tensor glyph scale factor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.tensor.Tensor-class.html#setTensor" class="summary-sig-name"><code>setTensor</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set up the tensor glyph and use sphere as the source.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.tensor.Tensor-class.html#setThetaResolution" class="summary-sig-name"><code>setThetaResolution</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>resolution</span>)</span></code>
+<br />
+Set the number of points in the longitude direction.</td></tr>
+<tr bgcolor="#e8f0f8" class="group">
+  <th colspan="2">&nbsp;&nbsp;&nbsp;&nbsp;Inherited from Common</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.common.Common-class.html#addActor" class="summary-sig-name"><code>addActor</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Add the actor to the renderer.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.common.Common-class.html#setActorColor" class="summary-sig-name"><code>setActorColor</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>color</span>)</span></code>
+<br />
+Set the color of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.common.Common-class.html#setActorInput" class="summary-sig-name"><code>setActorInput</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set up the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.common.Common-class.html#setActorOpacity" class="summary-sig-name"><code>setActorOpacity</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>opacity</span>)</span></code>
+<br />
+Set the opacity (transparency) of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.common.Common-class.html#setActorRepresentation" class="summary-sig-name"><code>setActorRepresentation</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>representation</span>)</span></code>
+<br />
+Set the representation of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.common.Common-class.html#setActorTexture" class="summary-sig-name"><code>setActorTexture</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>texture</span>)</span></code>
+<br />
+Set the texture of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.common.Common-class.html#setMapperInput" class="summary-sig-name"><code>setMapperInput</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>component</span>,
+          <span class=summary-sig-arg>lut</span>)</span></code>
+<br />
+Set up the mapper.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="__init__"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">__init__</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>scene</span>,
+          <span class=sig-arg>data_collector</span>,
+          <span class=sig-arg>lut</span>=<span class=sig-default>None</span>)</span>
+    <br /><i>(Constructor)</i>
+  </h3>
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>scene</b></code> -
+         Scene in which components are to be added to
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<a href="py_src.scene.Scene-class.html" 
+              class="link"><code>Scene</code></a> object)</i>
+      <dd><code><b>data_collector</b></code> -
+         Source of data for visualization
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<a href="py_src.datacollector.DataCollector-class.html" 
+              class="link"><code>DataCollector</code></a> object)</i>
+      <dd><code><b>lut</b></code> -
+         Lookup table to be used by the mapper
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<a href="py_src.colormap.BlueToRed-class.html" 
+              class="link"><code>BlueToRed</code></a> object or <a 
+              href="py_src.colormap.RedToBlue-class.html" 
+              class="link"><code>RedToBlue</code></a> object)</i>
+      </dd>
+    </dl>
+    <dl><dt><b>Overrides:</b></dt>
+      <dd><a href="py_src.common.Common-class.html#__init__"><code>py_src.common.Common.__init__</code></a></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setMaxScaleFactor"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setMaxScaleFactor</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>max_scale_factor</span>)</span>
+  </h3>
+  Set the maximum allowable scale factor.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>max_scale_factor</b></code> -
+         Maximum size of the sphere
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setPhiResolution"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setPhiResolution</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>resolution</span>)</span>
+  </h3>
+  Set the number of points in the latitude direction.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>resolution</b></code> -
+         Number of points in the latitude direction
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setScaleFactor"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setScaleFactor</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>scale_factor</span>)</span>
+  </h3>
+  Set the tensor glyph scale factor.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>scale_factor</b></code> -
+         Size of the sphere
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setTensor"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setTensor</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Set up the tensor glyph and use sphere as the source.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setThetaResolution"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setThetaResolution</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>resolution</span>)</span>
+  </h3>
+  Set the number of points in the longitude direction.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>resolution</b></code> -
+         Number of points in the longitude direction
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="py_src-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Wed Sep 27 15:09:46 2006</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

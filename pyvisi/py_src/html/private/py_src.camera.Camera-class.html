@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>py_src.camera.Camera</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="py_src.camera-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        Package&nbsp;py_src ::
+        <a href="py_src.camera-module.html">Module&nbsp;camera</a> ::
+        Class&nbsp;Camera
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/py_src.camera.Camera-class.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="py_src.camera.Camera-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class Camera</h2>
+
+<hr/>
+
+Class that controls the camera and its settings.
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#__init__" class="summary-sig-name"><code>__init__</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>scene</span>,
+          <span class=summary-sig-arg>data_collector</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#azimuth" class="summary-sig-name"><code>azimuth</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>angle</span>)</span></code>
+<br />
+Rotate the camera to the left and right.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#backView" class="summary-sig-name"><code>backView</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+View the back of the rendered object.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#bottomView" class="summary-sig-name"><code>bottomView</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+View the bottom of the rendered object.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#dolly" class="summary-sig-name"><code>dolly</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>distance</span>)</span></code>
+<br />
+Move the camera towards and away from the focal point along the 
+normal.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#elevation" class="summary-sig-name"><code>elevation</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>angle</span>)</span></code>
+<br />
+Rotate the camera to the top and bottom.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#leftView" class="summary-sig-name"><code>leftView</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+View the left side of the rendered object.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#resetCamera" class="summary-sig-name"><code>resetCamera</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Repositions the camera so that all actors can be seen.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#rightView" class="summary-sig-name"><code>rightView</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+View the right side of the rendered object.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#roll" class="summary-sig-name"><code>roll</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>angle</span>)</span></code>
+<br />
+Roll the camera to the left and right.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#setCamera" class="summary-sig-name"><code>setCamera</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set up the camera and associate it with the renderer.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#setClippingRange" class="summary-sig-name"><code>setClippingRange</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>near_clipping</span>,
+          <span class=summary-sig-arg>far_clipping</span>)</span></code>
+<br />
+Set the near and far clipping plane of the camera.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#setFocalPoint" class="summary-sig-name"><code>setFocalPoint</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>position</span>)</span></code>
+<br />
+Set the focal point of the camera.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#setPosition" class="summary-sig-name"><code>setPosition</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>position</span>)</span></code>
+<br />
+Set the position of the camera.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#setViewUp" class="summary-sig-name"><code>setViewUp</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>position</span>)</span></code>
+<br />
+Set the up direction of the camera.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#topView" class="summary-sig-name"><code>topView</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+View the top of the rendered object.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="py_src.camera.Camera-class.html#zoom" class="summary-sig-name"><code>zoom</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>factor</span>)</span></code>
+<br />
+Zoom in and out of the rendered object.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="__init__"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">__init__</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>scene</span>,
+          <span class=sig-arg>data_collector</span>)</span>
+    <br /><i>(Constructor)</i>
+  </h3>
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>scene</b></code> -
+         Scene in which components are to be added to
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>Scene</code> object)</i>
+      <dd><code><b>data_collector</b></code> -
+         Source of data for visualization
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>DataCollector</code> object)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="azimuth"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">azimuth</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>angle</span>)</span>
+  </h3>
+  Rotate the camera to the left and right.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>angle</b></code> -
+         Degree to rotate the camera
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="backView"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">backView</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  View the back of the rendered object.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="bottomView"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">bottomView</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  View the bottom of the rendered object.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dolly"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">dolly</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>distance</span>)</span>
+  </h3>
+  Move the camera towards and away from the focal point along the 
+  normal.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>distance</b></code> -
+         Amount to move towards and away
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="elevation"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">elevation</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>angle</span>)</span>
+  </h3>
+  Rotate the camera to the top and bottom.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>angle</b></code> -
+         Degree to rotate the camera
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="leftView"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">leftView</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  View the left side of the rendered object.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="resetCamera"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">resetCamera</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Repositions the camera so that all actors can be seen. Needs to be 
+  called whenever the camera's settings are modified.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="rightView"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">rightView</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  View the right side of the rendered object.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="roll"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">roll</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>angle</span>)</span>
+  </h3>
+  Roll the camera to the left and right.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>angle</b></code> -
+         Degree to turn the camera
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setCamera"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setCamera</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Set up the camera and associate it with the renderer.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setClippingRange"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setClippingRange</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>near_clipping</span>,
+          <span class=sig-arg>far_clipping</span>)</span>
+  </h3>
+  Set the near and far clipping plane of the camera.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>near_clipping</b></code> -
+         Distance to the near clipping plane
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      <dd><code><b>far_clipping</b></code> -
+         Distance to the far clipping plane
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setFocalPoint"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setFocalPoint</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>position</span>)</span>
+  </h3>
+  Set the focal point of the camera.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>position</b></code> -
+         Camera focal point
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>Position</code> object)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setPosition"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setPosition</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>position</span>)</span>
+  </h3>
+  Set the position of the camera.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>position</b></code> -
+         Camera position
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>Position</code> object)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setViewUp"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setViewUp</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>position</span>)</span>
+  </h3>
+  Set the up direction of the camera.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>position</b></code> -
+         Camera up direction
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>Position</code> object)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="topView"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">topView</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  View the top of the rendered object.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="zoom"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">zoom</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>factor</span>)</span>
+  </h3>
+  Zoom in and out of the rendered object.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>factor</b></code> -
+         Amount to zoom in and out
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="py_src.camera-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Oct 19 11:04:00 2006</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

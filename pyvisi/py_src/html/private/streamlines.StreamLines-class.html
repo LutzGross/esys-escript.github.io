@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>streamlines.StreamLines</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="streamlines-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="streamlines-module.html">Module&nbsp;streamlines</a> ::
+        Class&nbsp;StreamLines
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/streamlines.StreamLines-class.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="streamlines.StreamLines-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class StreamLines</h2>
+
+<pre class="base-tree">
+<a href="common.Common-class.html"><code>Common</code></a> --+
+         |
+        <b>StreamLines</b>
+</pre><br />
+
+<hr/>
+
+Class that shows the path of particles (within a specified cloud of 
+points) in a vector field.
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#__init__" class="summary-sig-name"><code>__init__</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>scene</span>,
+          <span class=summary-sig-arg>data_collector</span>,
+          <span class=summary-sig-arg>lut</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setAccuracy" class="summary-sig-name"><code>setAccuracy</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>accuracy</span>)</span></code>
+<br />
+Set the level of accuracy for the streamlines.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setCenter" class="summary-sig-name"><code>setCenter</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>position</span>)</span></code>
+<br />
+Set the center for the cloud of points.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setCloudRadius" class="summary-sig-name"><code>setCloudRadius</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>radius</span>)</span></code>
+<br />
+Set the radius for the cloud of points.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setIntegrationToBothDirections" class="summary-sig-name"><code>setIntegrationToBothDirections</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set the integration to occur in both directions.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setMaximumPropagationTime" class="summary-sig-name"><code>setMaximumPropagationTime</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>time</span>)</span></code>
+<br />
+Set the maximum length for the streamlines in units of time.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setNumberOfPoints" class="summary-sig-name"><code>setNumberOfPoints</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>points</span>)</span></code>
+<br />
+Set the number of points to generate for the cloud of points.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setNumberOfSides" class="summary-sig-name"><code>setNumberOfSides</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>sides</span>)</span></code>
+<br />
+Set the number of sides for the tube.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setSource" class="summary-sig-name"><code>setSource</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set the default parameters for the spherical cloud of points.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setStreamLines" class="summary-sig-name"><code>setStreamLines</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set the default parameters for the streamlines.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setStreamLinesSize" class="summary-sig-name"><code>setStreamLinesSize</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>stream_lines_size</span>)</span></code>
+<br />
+Set the size of the streamlines.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setTube" class="summary-sig-name"><code>setTube</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set the default parameters for the tube.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setTubeRadius" class="summary-sig-name"><code>setTubeRadius</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>radius</span>)</span></code>
+<br />
+Set the minimum radius of the tube.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="streamlines.StreamLines-class.html#setVaryRadiusByVector" class="summary-sig-name"><code>setVaryRadiusByVector</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set the variation of the tube radius with vector data.</td></tr>
+<tr bgcolor="#e8f0f8" class="group">
+  <th colspan="2">&nbsp;&nbsp;&nbsp;&nbsp;Inherited from Common</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="common.Common-class.html#addActor" class="summary-sig-name"><code>addActor</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Add the actor to the renderer.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="common.Common-class.html#setActorColor" class="summary-sig-name"><code>setActorColor</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>color</span>)</span></code>
+<br />
+Set the color of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="common.Common-class.html#setActorInput" class="summary-sig-name"><code>setActorInput</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Set up the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="common.Common-class.html#setActorOpacity" class="summary-sig-name"><code>setActorOpacity</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>opacity</span>)</span></code>
+<br />
+Set the opacity (transparency) of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="common.Common-class.html#setActorRepresentation" class="summary-sig-name"><code>setActorRepresentation</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>representation</span>)</span></code>
+<br />
+Set the representation of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="common.Common-class.html#setActorTexture" class="summary-sig-name"><code>setActorTexture</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>texture</span>)</span></code>
+<br />
+Set the texture of the actor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="common.Common-class.html#setMapperInput" class="summary-sig-name"><code>setMapperInput</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>component</span>,
+          <span class=summary-sig-arg>lut</span>)</span></code>
+<br />
+Set up the mapper.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="__init__"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">__init__</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>scene</span>,
+          <span class=sig-arg>data_collector</span>,
+          <span class=sig-arg>lut</span>=<span class=sig-default>None</span>)</span>
+    <br /><i>(Constructor)</i>
+  </h3>
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>scene</b></code> -
+         Scene in which components are to be added to
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>Scene</code> object)</i>
+      <dd><code><b>data_collector</b></code> -
+         Source of data for visualization
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>DataCollector</code> object)</i>
+      <dd><code><b>lut</b></code> -
+         Lookup table to be used by the mapper
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>BlueToRed</code> or <code>RedToBlue</code> 
+              object)</i>
+      </dd>
+    </dl>
+    <dl><dt><b>Overrides:</b></dt>
+      <dd><a href="common.Common-class.html#__init__"><code>common.Common.__init__</code></a></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setAccuracy"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setAccuracy</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>accuracy</span>)</span>
+  </h3>
+  Set the level of accuracy for the streamlines. The smaller the value 
+  the more accurate it is.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>accuracy</b></code> -
+         Accuracy for the streamlines (between 0 to 1)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setCenter"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setCenter</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>position</span>)</span>
+  </h3>
+  Set the center for the cloud of points.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>position</b></code> -
+         Center for the cloud of points
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=<code>Position</code> object)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setCloudRadius"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setCloudRadius</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>radius</span>)</span>
+  </h3>
+  Set the radius for the cloud of points.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>radius</b></code> -
+         Radius for the cloud of points
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setIntegrationToBothDirections"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setIntegrationToBothDirections</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Set the integration to occur in both directions.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setMaximumPropagationTime"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setMaximumPropagationTime</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>time</span>)</span>
+  </h3>
+  Set the maximum length for the streamlines in units of time.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>time</b></code> -
+         Units of time specifying the maximum length of streamlines
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setNumberOfPoints"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setNumberOfPoints</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>points</span>)</span>
+  </h3>
+  Set the number of points to generate for the cloud of points.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>points</b></code> -
+         Number of points to generate for the cloud of points
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setNumberOfSides"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setNumberOfSides</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>sides</span>)</span>
+  </h3>
+  Set the number of sides for the tube.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>sides</b></code> -
+         Number of sides for the tube (mimimum is 3)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setSource"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setSource</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Set the default parameters for the spherical cloud of points.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setStreamLines"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setStreamLines</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Set the default parameters for the streamlines.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setStreamLinesSize"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setStreamLinesSize</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>stream_lines_size</span>)</span>
+  </h3>
+  Set the size of the streamlines.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>stream_lines_size</b></code> -
+         Size of the streamlines
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setTube"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setTube</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Set the default parameters for the tube.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setTubeRadius"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setTubeRadius</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>radius</span>)</span>
+  </h3>
+  Set the minimum radius of the tube.
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>radius</b></code> -
+         Minimum radius of the tube
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=Number)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="setVaryRadiusByVector"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">setVaryRadiusByVector</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Set the variation of the tube radius with vector data.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="streamlines-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Wed Oct 25 12:27:32 2006</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>
