@@ -592,7 +592,6 @@ class SaddlePointProblem(object):
                tol_eq_f=tolerance_u*norm_df2/norm_f*norm_u_new
                if norm_g_new <= tol_eq_g and norm_f_new <= tol_eq_f:
                    converged=True
-                   break
             f, norm_f, u, norm_u, g, norm_g, p, norm_p = f_new, norm_f_new, u_new, norm_u_new, g_new, norm_g_new, p_new, norm_p_new
         self.trace("convergence after %s steps."%self.iter)
         return u,p

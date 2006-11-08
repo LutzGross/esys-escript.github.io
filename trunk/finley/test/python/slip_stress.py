@@ -33,10 +33,9 @@ rho=0.
 lam_lmbd=1.7e11
 lam_mu=1.7e11
 g=9.81
-fstart =  [50000.0, 44444.444444444445, 11666.666666666666]
-fend =  [50000.0, 50000.0, -13333.333333333336]
-fstart =  [50000.0, 44444.444444444445, 11666.666666666666]
-fend =  [50000.0, 55555.555555555555, -11666.666666666668]
+fstart =  [50000.0, 40000.0, 10909.09090909091]
+fend =  [50000.0, 60000.0, 19090.909090909092]
+
 
 
 
@@ -66,15 +65,19 @@ class SlippingFault(SaddlePointProblem):
 
       def solve_f(self,u,p,tol=1.e-8):
          self.__pde_u.setTolerance(tol)
-         self.__pde_u.setValue(y_contact=p)
-         print "p:",inf(p),sup(p)
-         print "u:",inf(u),sup(u)
-         self.__pde_u.setValue(y_contact=p)
+         self.__pde_u.setValue(y_contact=-p)
+         # print "p:",inf(p),sup(p)
+         # print "u:",inf(u),sup(u)
+         self.__pde_u.setValue(y_contact=-p)
          return  self.__pde_u.getSolution()
 
       def solve_g(self,u,tol=1.e-8):
-         dp=-(self.slip-jump(u))*lam_lmbd/FunctionOnContactZero(self.domain).getSize()
-         print dp
+         dp=Vector(0.,FunctionOnContactZero(self.domain))
+         h=FunctionOnContactZero(self.domain).getSize()
+         # print jump(u)-self.slip
+         dp[0]=(self.slip[0]-jump(u[0]))*lam_mu/h
+         dp[1]=(self.slip[1]-jump(u[1]))*lam_mu/h
+         dp[2]=(self.slip[2]-jump(u[2]))*lam_mu/h
          return  dp
 
 
@@ -84,9 +87,8 @@ d=dom.getDim()
 x=dom.getX()[0]
 # x=dom.getX()[d-1]
 mask=whereZero(x-inf(x))*numarray.ones((d,))
-s=numarray.array([0.,1.,1.])
 x=FunctionOnContactZero(dom).getX()
-s=numarray.array([0.,1.,1.])
+s=numarray.array([-100000.,1.,1.])
 for i in range(3):
      d=fend[i]-fstart[i]
      if d>0:
@@ -98,6 +100,6 @@ for i in range(3):
 u0=Vector(0.,Solution(dom))
 p0=Vector(1.,FunctionOnContactZero(dom))
 prop.initialize(fixed_u_mask=mask,slip=Data(s,FunctionOnContactZero(dom)), density=rho,lmbd=lam_lmbd, mu=lam_mu)
-u,p=prop.solve(u0,p0,iter_max=50,tolerance=0.1,accepted_reduction=0.99)
+u,p=prop.solve(u0,p0,iter_max=50,tolerance=0.13,accepted_reduction=1.)
 saveVTK("dis.xml",u=u)
 saveVTK("fault.xml",sigma=p,s=jump(u))
