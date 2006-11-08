@@ -73,7 +73,8 @@ class SlippingFault(SaddlePointProblem):
          return  self.__pde_u.getSolution()
 
       def solve_g(self,u,tol=1.e-8):
-         dp= (self.slip-jump(u))*lam_lmbd/FunctionOnContactZero(self.domain).getSize()**2
+         dp=-(self.slip-jump(u))*lam_lmbd/FunctionOnContactZero(self.domain).getSize()
+         print dp
          return  dp
 
 
@@ -97,6 +98,6 @@ for i in range(3):
 u0=Vector(0.,Solution(dom))
 p0=Vector(1.,FunctionOnContactZero(dom))
 prop.initialize(fixed_u_mask=mask,slip=Data(s,FunctionOnContactZero(dom)), density=rho,lmbd=lam_lmbd, mu=lam_mu)
-u,p=prop.solve(u0,p0,iter_max=50,tolerance=0.1,accepted_reduction=10.)
+u,p=prop.solve(u0,p0,iter_max=50,tolerance=0.1,accepted_reduction=0.99)
 saveVTK("dis.xml",u=u)
 saveVTK("fault.xml",sigma=p,s=jump(u))
