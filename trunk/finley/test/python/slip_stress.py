@@ -49,11 +49,11 @@ print "total ne = ",ne*ne_w*ne_w
 
 fstart =  [lockToGrid(50000.0,width,ne_w), lockToGrid(40000.0,width,ne_w), lockToGrid(8000.,height,ne)]
 fend =  [lockToGrid(50000.0,width,ne_w), lockToGrid(60000.0,width,ne_w), lockToGrid(20000.,height,ne)]
-s=[0.,0.,1.]
+s=[0.,1.,0.]
 
-fstart =  [lockToGrid(30000.0,width,ne_w), lockToGrid(30000.0,width,ne_w), lockToGrid(20000.,height,ne)]
-fend =  [lockToGrid(70000.0,width,ne_w), lockToGrid(70000.0,width,ne_w), lockToGrid(20000.,height,ne)]
-s=[1.,0.1,0.]
+# fstart =  [lockToGrid(30000.0,width,ne_w), lockToGrid(30000.0,width,ne_w), lockToGrid(20000.,height,ne)]
+# fend =  [lockToGrid(70000.0,width,ne_w), lockToGrid(70000.0,width,ne_w), lockToGrid(20000.,height,ne)]
+# s=[1.,0.,0.]
 
 dom=Brick(l0=width, l1=width, l2=height, n0=ne_w, n1=ne_w, n2=ne)
 
@@ -89,7 +89,8 @@ for i in range(d):
       A[i,j,j,i] += mu
       A[i,j,i,j] += mu
       A[i,i,j,j] += lmbd
-pde.setValue(A=A,q=mask,Y=-kronecker(Function(dom))[d-1]*g*rho,X=-sigma0)
+pde.setValue(A=A,q=mask,Y=-kronecker(Function(dom))[d-1]*g*rho,X=sigma0)
 u=pde.getSolution(verbose=True)
 g_s=grad(u)
-saveVTK("dis.xml",disp=u,sigma=mu*symmetric(g_s)+lmbd*trace(g_s)*kronecker(d))
+sigma=mu*symmetric(g_s)+lmbd*trace(g_s)*kronecker(d)
+saveVTK("dis.xml",disp=u,sigma=sigma,cfs=sigma[0,1]-0.4*sigma[0,0])
