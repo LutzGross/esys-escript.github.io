@@ -89,10 +89,12 @@ class Design(object):
     def writeFinleyMesh(self,filename):
         mshname=tempfile.mkstemp(suffix=".msh")[1]
         exe=self.writeGmshMesh(mshname)
-        f=open(mshname,"r")
-        line=f.readline().split()
-        while len(line)>0:
-           print line
-           line=f.readline().split()
+        convertGmshToFinley(open(mshname,"r"),open(filename,"w"),dim=self.getDim())
         if not self.keepTmpFiles(): os.unlink(mshname)
         return exe
+
+def convertGmshToFinley(gmsh_file,finley_file,dim=3):
+        line=gmsh_file.readline().split()
+        while len(line)>0:
+           print line
+           line=gmsh_file.readline().split()
