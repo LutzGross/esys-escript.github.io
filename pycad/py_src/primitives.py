@@ -46,8 +46,6 @@ class Primitive(object):
        return "%s(%s)"%(self.__class__.__name__,self.getID())
     def __cmp__(self,other):
        return cmp(self.getID(),other.getID())
-    def getGmshCommand(self):
-        raise NotImplementedError("getGmshCommand is not implemented for this class %s."%self.__class__.__name__)
     def isPoint(self):
         return False
     def isCurve(self):
@@ -60,6 +58,28 @@ class Primitive(object):
         return False
     def __neg__(self):
         return ReversedPrimitive(self)
+    def __pos__(self):
+        return self.copy()
+    def __add__(self,other):
+       out=self.copy()
+       out+=other
+       return out
+    def __iadd__(self,other):
+       self.shift()
+    def setLocalLength(self,factor=1.):
+        for p in self.getPoints(): p.setLocalLength(factor)
+    def shift(self,shift):
+        for p in self.getPoints(): p+=shift
+    def copy(self):
+        return Primitive()
+    def getGmshCommand(self):
+        raise NotImplementedError("getGmshCommand is not implemented for this class %s."%self.__class__.__name__)
+    def getHistory(self):
+        return set()
+    def getPoints(self):
+        return set()
+    def translate(self,shift):
+        raise NotImplementedError("translate is not implemented for this class %s."%self.__class__.__name__)
 
 class ReversedPrimitive(object):
     def __init__(self,prim):
@@ -86,21 +106,39 @@ class Point(Primitive):
        self._x=numarray.array([x,y,z],numarray.Float64)
        self.setLocalScale(local_scale)
     def setLocalScale(self,factor=1.):
+       """
+       sets the local relative length scale
+       """
        self.__local_scale=factor
-    def isPoint(self):
-        return True
     def getLocalScale(self):
        return self.__local_scale
+    def copy(self):
+       c=self.getCoordinates()
+       return Point(c[0],c[1],c[2],local_scale=self.getLocalScale())
+    def isPoint(self):
+        return True
     def getCoordinates(self):
        return self._x
-    def __add__(self,other):
-       c=self.getCoordinates()+numarray.array(other,numarray.Float64)
-       return Point(x=c[0],y=c[1],z=c[2],local_scale=self.getLocalScale())
     def getGmshCommand(self):
         c=self.getCoordinates()
         return "Point(%s) = {%e , %e, %e , %e * scale};"%(self.getID(),c[0],c[1],c[2], self.getLocalScale())
     def getHistory(self):
         return set([self])
+    def getPoints(self):
+        return set([self])
+    def shift(self,shift): 
+       """
+       shifts the point by a given shift
+       """
+       self._x+=numarray.array(shift,numarray.Float64)
+    def translate(self,shift):
+       """
+       returns the point shifted by shift
+       """
+       out=self.copy()
+       out+=other
+       return out
+
 
 class Curve(Primitive):
       """
@@ -120,11 +158,6 @@ class Curve(Primitive):
           return len(self.__nodes)
       def isCurve(self):
         return True
-      def getHistory(self):
-          out=set([self])
-          for i in self.getNodes(): out|=i.getHistory()
-          return out
-
       def getStart(self):
          """
          returns start point
@@ -142,8 +175,6 @@ class Curve(Primitive):
          returns a list of the nodes
          """
          return self.__nodes
-      def __add__(self,other):
-         return Curve([p+other for p in self.getNodes()])
       def getGmshCommand(self):
         out=""
         for i in self.getNodes():
@@ -152,6 +183,15 @@ class Curve(Primitive):
             else:
                 out="%s"%i.getID()
         return "Spline(%s) = {%s};"%(self.getID(),out)
+      def getHistory(self):
+          out=set([self])
+          for i in self.getNodes(): out|=i.getHistory()
+          return out
+      def getPoints(self):
+        out=set()
+        for i in self.getNodes(): out|=i.getPoints()
+        return out
+
 
 class BezierCurve(Curve):
     """
@@ -235,6 +275,10 @@ class Arc(Curve):
           out|=self.getCenter().getHistory()
           for i in self.getNodes(): out|=i.getHistory()
           return out
+    def getPoints(self):
+          out=self.getCenter().getPoints()
+          for i in self.getNodes(): out|=i.getPoints()
+          return out
     def getGmshCommand(self):
         return "Circle(%s) = {%s, %s, %s};"%(self.getID(),self.getStart().getID(),self.getCenter().getID(),self.getEnd().getID())
 
@@ -269,6 +313,10 @@ class CurveLoop(Primitive):
           out=set([self])
           for i in self.getCurves(): out|=i.getHistory()
           return out
+    def getPoints(self):
+          out=set()
+          for i in self.getCurves(): out|=i.getPoints()
+          return out
     def getGmshCommand(self):
         out=""
         for i in self.getCurves():
@@ -301,6 +349,8 @@ class Surface(Primitive):
     def getHistory(self):
         out=set([self]) | self.getBoundaryLoop().getHistory()
         return out
+    def getPoints(self):
+        return self.getBoundaryLoop().getPoints()
     def getGmshCommand(self):
         return "Ruled Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getID())
 
@@ -329,6 +379,10 @@ class PlaneSurface(Surface):
     def getHistory(self):
         out=set([self]) | self.getBoundaryLoop().getHistory()
         for i in self.getHoles(): out|=i.getHistory()
+        return out
+    def getPoints(self):
+        out=self.getBoundaryLoop().getPoints()
+        for i in self.getHoles(): out|=i.getPoints()
         return out
     def getGmshCommand(self):
         out=""
@@ -393,6 +447,10 @@ class SurfaceLoop(Primitive):
           out=set([self])
           for i in self.getSurfaces(): out|=i.getHistory()
           return out
+    def getPoints(self):
+          out=set()
+          for i in self.getSurfaces(): out|=i.getPoints()
+          return out
     def getGmshCommand(self):
         out=""
         for i in self.getSurfaces():
@@ -433,6 +491,10 @@ class Volume(Primitive):
         out=set([self]) | self.getSurfaceLoop().getHistory()
         for i in self.getHoles(): out|=i.getHistory()
         return out
+    def getPoints(self):
+        out=self.getSurfaceLoop().getPoints()
+        for i in self.getHoles(): out|=i.Points()
+        return out
     def getGmshCommand(self):
         out=""
         for i in self.getHoles():
@@ -471,8 +533,3 @@ class PrimitiveStack(object):
         for i in self.__prims:
            out+=i.getGmshCommand()+"\n"
         return out
-
-      def getPycadCommands(self,name="TMP_"):
-        out=""
-        for i in self.__prims:
-           out+=i.getPycadCommand(name)+"\n"
