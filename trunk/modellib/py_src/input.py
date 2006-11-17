@@ -248,7 +248,7 @@ class ScalarDistributionFromTags(ParameterSet):
     @type value9: C{float}
     """
     def __init__(self,debug=False):
-        Model.__init__(self,debug=debug)
+        super(ScalarDistributionFromTags, self).__init__(debug=debug)
         self.declareParameter(domain=None,
                               default=0.,
                               tag0=None,
@@ -279,16 +279,16 @@ class ScalarDistributionFromTags(ParameterSet):
         Link against this method to get the output of this model.
         """
         d=Scalar(self.default,Function(self.domain))
-        if not self.tag0 == None: d=setTaggedValue(self.tag0,self.value0)
-        if not self.tag1 == None: d=setTaggedValue(self.tag1,self.value1)
-        if not self.tag2 == None: d=setTaggedValue(self.tag2,self.value2)
-        if not self.tag3 == None: d=setTaggedValue(self.tag3,self.value3)
-        if not self.tag4 == None: d=setTaggedValue(self.tag4,self.value4)
-        if not self.tag5 == None: d=setTaggedValue(self.tag5,self.value5)
-        if not self.tag6 == None: d=setTaggedValue(self.tag6,self.value6)
-        if not self.tag7 == None: d=setTaggedValue(self.tag7,self.value7)
-        if not self.tag8 == None: d=setTaggedValue(self.tag8,self.value8)
-        if not self.tag9 == None: d=setTaggedValue(self.tag9,self.value9)
+        if not self.tag0 == None: d.setTaggedValue(self.tag0,self.value0)
+        if not self.tag1 == None: d.setTaggedValue(self.tag1,self.value1)
+        if not self.tag2 == None: d.setTaggedValue(self.tag2,self.value2)
+        if not self.tag3 == None: d.setTaggedValue(self.tag3,self.value3)
+        if not self.tag4 == None: d.setTaggedValue(self.tag4,self.value4)
+        if not self.tag5 == None: d.setTaggedValue(self.tag5,self.value5)
+        if not self.tag6 == None: d.setTaggedValue(self.tag6,self.value6)
+        if not self.tag7 == None: d.setTaggedValue(self.tag7,self.value7)
+        if not self.tag8 == None: d.setTaggedValue(self.tag8,self.value8)
+        if not self.tag9 == None: d.setTaggedValue(self.tag9,self.value9)
         return d
 
 class LinearCombination(ParameterSet):
@@ -361,4 +361,65 @@ class LinearCombination(ParameterSet):
             out += fv3
         return out
 
+class MergeConstraints(ParameterSet):
+    """
+    Returns a linear combination of the f0*v0+f1*v1+f2*v2+f3*v3+f4*v4
+    """
+    def __init__(self,debug=False):
+        super(MergeConstraints, self).__init__(debug=debug)
+        self.declareParameter(location_of_constraint0=None, \
+                              value_of_constraint0=None, \
+                              location_of_constraint1=None, \
+                              value_of_constraint1=None, \
+                              location_of_constraint2=None, \
+                              value_of_constraint2=None, \
+                              location_of_constraint3=None, \
+                              value_of_constraint3=None, \
+                              location_of_constraint4=None, \
+                              value_of_constraint4=None)
+    def location_of_constraint(self):
+          """
+          return the values used to constrain a solution
+
+          @return: the mask marking the locations of the constraints
+          @rtype: L{escript.Vector}
+          """
+          out_loc=0
+          if not self.location_of_constraint0 == None and not self.value_of_constraint0== None:
+               out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint0))
+          if not self.location_of_constraint1 == None and not self.value_of_constraint1== None:
+               out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint1))
+          if not self.location_of_constraint2 == None and not self.value_of_constraint2== None:
+               out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint2))
+          if not self.location_of_constraint3 == None and not self.value_of_constraint3== None:
+               out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint3))
+          return out_loc
+
+    def value_of_constraint(self):
+          """
+          return the values used to constrain a solution
+
+          @return: values to be used at the locations of the constraints. If
+                  L{value} is not given C{None} is rerturned.
+          @rtype: L{escript.Vector}
+          """
+          out_loc=0
+          out=0
+          if not self.location_of_constraint0 == None and not self.value_of_constraint0== None:
+               tmp=wherePositive(self.location_of_constraint0)
+               out=out*out_loc+self.value_of_constraint0*tmp
+               out_loc=wherePositive(out_loc+tmp)
+          if not self.location_of_constraint1 == None and not self.value_of_constraint1== None:
+               tmp=wherePositive(self.location_of_constraint1)
+               out=out*out_loc+self.value_of_constraint1*tmp
+               out_loc=wherePositive(out_loc+tmp)
+          if not self.location_of_constraint2 == None and not self.value_of_constraint2== None:
+               tmp=wherePositive(self.location_of_constraint2)
+               out=out*out_loc+self.value_of_constraint2*tmp
+               out_loc=wherePositive(out_loc+tmp)
+          if not self.location_of_constraint3 == None and not self.value_of_constraint3== None:
+               tmp=wherePositive(self.location_of_constraint3)
+               out=out*out_loc+self.value_of_constraint3*tmp
+               out_loc=wherePositive(out_loc+tmp)
+          return out
 # vim: expandtab shiftwidth=4:
