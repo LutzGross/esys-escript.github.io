@@ -241,9 +241,13 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                 for (i=0;i<elements->numElements;i++) {
                     values=getSampleData(data_pp[i_data],i);
                     for (k=0;k<nComp;k++) {
-                        rtmp=0.;
-                        for (j=0;j<numPointsPerSample;j++) rtmp+=values[INDEX2(k,j,nComp)];
-                        fprintf(fileHandle_p, " %g", rtmp/numPointsPerSample);
+                        if ( isExpanded(data_pp[i_data]) ) {
+                            rtmp=0.;
+                            for (j=0;j<numPointsPerSample;j++) rtmp+=values[INDEX2(k,j,nComp)];
+                            fprintf(fileHandle_p, " %g", rtmp/numPointsPerSample);
+                        } else {
+                            fprintf(fileHandle_p, " %g", values[k]);
+                        }
                     }
 	            fprintf(fileHandle_p, "\n");
                 }

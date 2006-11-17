@@ -199,7 +199,99 @@ class InterpolatedTimeProfile(ParameterSet):
                       return m*(t-self.nodes[i-1]) + self.values[i-1]
                return self.values[l]
 
-class LinearCombination(Model):
+class ScalarDistributionFromTags(ParameterSet):
+    """
+    creates a scalar distribution on a domain from tags
+            
+    @ivar domain: domain
+    @type domain: L{esys.escript.Domain}
+    @ivar default: default value 
+    @ivar tag0: tag 0
+    @type tag0: C{int}
+    @ivar value0: value for tag 0
+    @type value0: C{float}
+    @ivar tag1: tag 1
+    @type tag1: C{int}
+    @ivar value1: value for tag 1
+    @type value1: C{float}
+    @ivar tag2: tag 2
+    @type tag2: C{int}
+    @ivar value2: value for tag 2
+    @type value2: C{float}
+    @ivar tag3: tag 3
+    @type tag3: C{int}
+    @ivar value3: value for tag 3
+    @type value3: C{float}
+    @ivar tag4: tag 4
+    @type tag4: C{int}
+    @ivar value4: value for tag 4
+    @type value4: C{float}
+    @ivar tag5: tag 5
+    @type tag5: C{int}
+    @ivar value5: value for tag 5
+    @type value5: C{float}
+    @ivar tag6: tag 6
+    @type tag6: C{int}
+    @ivar value6: value for tag 6
+    @type value6: C{float}
+    @ivar tag7: tag 7
+    @type tag7: C{int}
+    @ivar value7: value for tag 7
+    @type value7: C{float}
+    @ivar tag8: tag 8
+    @type tag8: C{int}
+    @ivar value8: value for tag 8
+    @type value8: C{float}
+    @ivar tag9: tag 9
+    @type tag9: C{int}
+    @ivar value9: value for tag 9
+    @type value9: C{float}
+    """
+    def __init__(self,debug=False):
+        Model.__init__(self,debug=debug)
+        self.declareParameter(domain=None,
+                              default=0.,
+                              tag0=None,
+                              value0=0.,
+                              tag1=None,
+                              value1=0.,
+                              tag2=None,
+                              value2=0.,
+                              tag3=None,
+                              value3=0.,
+                              tag4=None,
+                              value4=0.,
+                              tag5=None,
+                              value5=0.,
+                              tag6=None,
+                              value6=0.,
+                              tag7=None,
+                              value7=0.,
+                              tag8=None,
+                              value8=0.,
+                              tag9=None,
+                              value9=0.)
+
+
+    def out(self):
+        """
+        returns a L{esys.escript.Data} object
+        Link against this method to get the output of this model.
+        """
+        d=Scalar(self.default,Function(self.domain))
+        if not self.tag0 == None: d=setTaggedValue(self.tag0,self.value0)
+        if not self.tag1 == None: d=setTaggedValue(self.tag1,self.value1)
+        if not self.tag2 == None: d=setTaggedValue(self.tag2,self.value2)
+        if not self.tag3 == None: d=setTaggedValue(self.tag3,self.value3)
+        if not self.tag4 == None: d=setTaggedValue(self.tag4,self.value4)
+        if not self.tag5 == None: d=setTaggedValue(self.tag5,self.value5)
+        if not self.tag6 == None: d=setTaggedValue(self.tag6,self.value6)
+        if not self.tag7 == None: d=setTaggedValue(self.tag7,self.value7)
+        if not self.tag8 == None: d=setTaggedValue(self.tag8,self.value8)
+        if not self.tag9 == None: d=setTaggedValue(self.tag9,self.value9)
+        return d
+
+class LinearCombination(ParameterSet):
     """
     Returns a linear combination of the f0*v0+f1*v1+f2*v2+f3*v3+f4*v4
             

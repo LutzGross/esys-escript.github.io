@@ -866,9 +866,13 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
           // averaging over the number of points in the sample
           for (n=0; n<nComp; n++)
           {
-            rtmp = 0.;
-            for (j=0; j<numPointsPerSample; j++) rtmp += values[INDEX2(n,j,nComp)];
-            sampleAvg[k] = rtmp/numPointsPerSample;
+            if (isExpanded(data_pp[i_data])) {
+               rtmp = 0.;
+               for (j=0; j<numPointsPerSample; j++) rtmp += values[INDEX2(n,j,nComp)];
+               sampleAvg[n] = rtmp/numPointsPerSample;
+            } else {
+               sampleAvg[n] = values[n];
+            }
           }
           // if the number of required components is more than the number
           // of actual components, pad with zeros
@@ -1721,9 +1725,14 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
           /* averaging over the number of points in the sample */
           for (k=0; k<nComp; k++)
           {
-            rtmp = 0.;
-            for (j=0; j<numPointsPerSample; j++) rtmp += values[INDEX2(k,j,nComp)];
-            sampleAvg[k] = rtmp/numPointsPerSample;
+            if (isExpanded(data_pp[i_data])) {
+               rtmp = 0.;
+               for (j=0; j<numPointsPerSample; j++) rtmp += values[INDEX2(k,j,nComp)];
+               sampleAvg[k] = rtmp/numPointsPerSample;
+            } else {
+               sampleAvg[k] = values[k];
+            }
+ 
           }
           /* if the number of required components is more than the number
           * of actual components, pad with zeros
