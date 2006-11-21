@@ -621,8 +621,10 @@ class Model(ParameterSet):
     finalizing condition is fullfilled. At each time step an iterative
     process can be performed and the time step size can be controlled. A
     Model has the following work flow::
-
+          
           doInitialization()
+          while not terminateInitialIteration(): doInitializationiStep()
+          doInitialPostprocessing()
           while not finalize():
                dt=getSafeTimeStepSize(dt)
                doStepPreprocessing(dt)
@@ -665,6 +667,27 @@ class Model(ParameterSet):
         """
 	Initializes the time stepping scheme.  
 	
+	This function may be overwritten.
+	"""
+        pass
+    def doInitialStep(self):
+        """
+	performs an iteration step in the initialization phase
+
+	This function may be overwritten.
+	"""
+        pass
+
+    def terminateInitialIteration(self):
+        """
+	Returns True if iteration at the inital phase is terminated.
+	"""
+        return True
+
+    def doInitialPostprocessing(self):
+        """
+	finalises the initialization iteration process 
+
 	This function may be overwritten.
 	"""
         pass
@@ -718,10 +741,11 @@ class Model(ParameterSet):
 	Returns True if iteration on a time step is terminated.
 	"""
         return True
+
        
     def doStepPostprocessing(self,dt):
         """
-	Finalalizes the time step.
+	finalises the time step.
 
         dt is the currently used time step size.
 
@@ -840,7 +864,6 @@ class Simulation(Model):
         This is the minimum over the time step sizes of all models.
 	"""
         out=min([o.getSafeTimeStepSize(dt) for o in self.iterModels()])
-        #print "%s: safe step size is %e."%(str(self),out)
         return out
     
     def doInitialization(self):
@@ -850,8 +873,20 @@ class Simulation(Model):
         self.n=0
         self.tn=0.
         for o in self.iterModels(): 
-            o.doInitialization()
-    
+             o.doInitialization()
+    def doInitialStep(self):
+        """
+	performs an iteration step in the initialization step for all models
+	"""
+        for o in self.iterModels(): 
+             o.doInitialStep()
+
+    def doInitialPostprocessing(self):
+        """
+	finalises the initialization iteration process for all models.
+	"""
+        for o in self.iterModels(): 
+            o.doInitialPostprocessing()
     def finalize(self):
         """
 	Returns True if any of the models is to be finalized.
@@ -860,7 +895,7 @@ class Simulation(Model):
        
     def doFinalization(self):
         """
-	Finalalizes the time stepping for all models.
+	finalises the time stepping for all models.
 	"""
         for i in self.iterModels(): i.doFinalization()
         self.trace("end of time integation.")
@@ -878,10 +913,17 @@ class Simulation(Model):
 	"""
         out=all([o.terminateIteration() for o in self.iterModels()])
         return out
+
+    def terminateInitialIteration(self):
+        """
+	Returns True if all initial iterations for all models are terminated.
+	"""
+        out=all([o.terminateInitialIteration() for o in self.iterModels()])
+        return out
        
     def doStepPostprocessing(self,dt):
         """
-	Finalalizes the iteration process for all models.
+	finalises the iteration process for all models.
 	"""
         for o in self.iterModels(): 
             o.doStepPostprocessing(dt)
@@ -912,6 +954,8 @@ class Simulation(Model):
 	Run the simulation by performing essentially::
     
 	    self.doInitialization()
+            while not self.terminateInitialIteration(): self.doInitialStep()
+            self.doInitialPostprocessing()
 	    while not self.finalize():
 	        dt=self.getSafeTimeStepSize()
 	        self.doStep(dt)
@@ -929,8 +973,16 @@ class Simulation(Model):
         In both cases the time integration is given up after
 	C{Simulation.FAILED_TIME_STEPS_MAX} attempts.
         """
-        dt=self.UNDEF_DT
         self.doInitialization()
+        iter=0
+        while not self.terminateInitialIteration():
+            self.doInitialStep()
+            iter+=1
+            if iter>self.MAX_ITER_STEPS:
+                 raise IterationDivergenceError("initial iteration did not converge after %s steps."%iter)
+        self.doInitialPostprocessing()
+        self.trace("Initialization finalized after %s iteration steps."%iter)
+        dt=self.UNDEF_DT
         while not self.finalize():
             step_fail_counter=0
             iteration_fail_counter=0

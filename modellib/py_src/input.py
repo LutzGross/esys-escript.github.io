@@ -382,16 +382,16 @@ class MergeConstraints(ParameterSet):
           return the values used to constrain a solution
 
           @return: the mask marking the locations of the constraints
-          @rtype: L{escript.Vector}
+          @rtype: L{escript.Scalar}
           """
           out_loc=0
-          if not self.location_of_constraint0 == None and not self.value_of_constraint0== None:
+          if not self.location_of_constraint0 == None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint0))
-          if not self.location_of_constraint1 == None and not self.value_of_constraint1== None:
+          if not self.location_of_constraint1 == None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint1))
-          if not self.location_of_constraint2 == None and not self.value_of_constraint2== None:
+          if not self.location_of_constraint2 == None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint2))
-          if not self.location_of_constraint3 == None and not self.value_of_constraint3== None:
+          if not self.location_of_constraint3 == None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint3))
           return out_loc
 
@@ -401,25 +401,25 @@ class MergeConstraints(ParameterSet):
 
           @return: values to be used at the locations of the constraints. If
                   L{value} is not given C{None} is rerturned.
-          @rtype: L{escript.Vector}
+          @rtype: L{escript.Scalar}
           """
           out_loc=0
           out=0
-          if not self.location_of_constraint0 == None and not self.value_of_constraint0== None:
+          if not self.location_of_constraint0 == None:
                tmp=wherePositive(self.location_of_constraint0)
-               out=out*out_loc+self.value_of_constraint0*tmp
+               out=out*(1.-tmp)+self.value_of_constraint0*tmp
                out_loc=wherePositive(out_loc+tmp)
-          if not self.location_of_constraint1 == None and not self.value_of_constraint1== None:
+          if not self.location_of_constraint1 == None:
                tmp=wherePositive(self.location_of_constraint1)
-               out=out*out_loc+self.value_of_constraint1*tmp
+               out=out*(1.-tmp)+self.value_of_constraint1*tmp
                out_loc=wherePositive(out_loc+tmp)
-          if not self.location_of_constraint2 == None and not self.value_of_constraint2== None:
+          if not self.location_of_constraint2 == None:
                tmp=wherePositive(self.location_of_constraint2)
-               out=out*out_loc+self.value_of_constraint2*tmp
+               out=out*(1.-tmp)+self.value_of_constraint2*tmp
                out_loc=wherePositive(out_loc+tmp)
-          if not self.location_of_constraint3 == None and not self.value_of_constraint3== None:
+          if not self.location_of_constraint3 == None:
                tmp=wherePositive(self.location_of_constraint3)
-               out=out*out_loc+self.value_of_constraint3*tmp
+               out=out*(1.-tmp)+self.value_of_constraint3*tmp
                out_loc=wherePositive(out_loc+tmp)
           return out
 # vim: expandtab shiftwidth=4:
