@@ -69,8 +69,7 @@ std::string
 FunctionSpace::toString() const
 {
   std::stringstream temp;
-  temp << "Function space type: " 
-       << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
+  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
        << " on " << m_domain->getDescription();
   return temp.str();
 }
