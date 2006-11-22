@@ -68,7 +68,7 @@ class Rotatation(Transformation):
        self.__point0=numarray.array(point0,type=_TYPE)
        self.__point1=numarray.array(point1,type=_TYPE)
        self.__axis=self.__point1-self.__point0
-       lax=dot(self.__axis,self.__axis)
+       lax=numarray.dot(self.__axis,self.__axis)
        if not lax>0:
           raise ValueError("points must be distinct.")
        self.__axis/=math.sqrt(lax)
@@ -81,19 +81,20 @@ class Rotatation(Transformation):
        z=x-self.__point0
        z0=numarray.dot(z,self.__axis)
        z_per=z-z0*self.__axis
-       z1=numarray.dot(z_per,z_per)
-       if z1>0:
-         axis1=z_per/math.sqrt(z1)
-         axis2=__cross(self.__axis,axis1)
-         axis2/=math.sqrt(axis2)
-         return z0*self.__axis+z1*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point0
+       lz_per=numarray.dot(z_per,z_per)
+       if lz_per>0:
+         axis1=z_per/math.sqrt(lz_per)
+         axis2=_cross(self.__axis,axis1)
+         lax2=numarray.dot(axis2,axis2)
+         axis2/=math.sqrt(lax2)
+         return z0*self.__axis+math.sqrt(lz_per)*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point0
        else:
          return x
-def __cross(x, y):
+def _cross(x, y):
     """
     Returns the cross product of x and y
     """
-    return numarray.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - y[0] * x[2], x[0] * y[1] - y[1] * x[0]], _TYPE)
+    return numarray.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]], _TYPE)
 
 class Dilation(Transformation):
     """
