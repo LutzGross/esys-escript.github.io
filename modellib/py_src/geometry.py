@@ -188,7 +188,7 @@ class ScalarConstrainer(Model):
           @return: the mask marking the locations of the constraints
           @rtype: L{escript.Scalar}
           """
-          if not self.__location_of_constraint: self.__setOutput()
+          if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -199,7 +199,7 @@ class ScalarConstrainer(Model):
                   L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Scalar}
           """
-          if not self.__location_of_constraint: self.__setOutput()
+          if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):
@@ -264,7 +264,7 @@ class VectorConstrainer(Model):
           @return: the mask marking the locations of the constraints
           @rtype: L{escript.Vector}
           """
-          if not self.__location_of_constraint: self.__setOutput()
+          if self.__location_of_constraint == None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -275,7 +275,7 @@ class VectorConstrainer(Model):
                   L{value} is not given C{None} is rerturned.
           @rtype: L{escript.Vector}
           """
-          if not self.__location_of_constraint: self.__setOutput()
+          if self.__location_of_constraint == None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):

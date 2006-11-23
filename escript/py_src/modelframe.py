@@ -397,8 +397,7 @@ class ParameterSet(LinkableObject):
         self.declareParameters(parameters)
 
     def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, 
-                            [(p, getattr(self, p, None)) for p in self.parameters])
+        return "<%s %d>"%(self.__class__.__name__,id(self))
     
     def declareParameter(self,**parameters):
         """
@@ -650,7 +649,7 @@ class Model(ParameterSet):
         ParameterSet.__init__(self, parameters=parameters,**kwarg)
 
     def __str__(self):
-       return "<%s %d>"%(self.__class__,id(self))
+       return "<%s %d>"%(self.__class__.__name__,id(self))
 
     def toDom(self, document, node):
         """
@@ -878,8 +877,16 @@ class Simulation(Model):
         """
 	performs an iteration step in the initialization step for all models
 	"""
-        for o in self.iterModels(): 
-             o.doInitialStep()
+        iter=0
+        while not self.terminateInitialIteration():
+            if iter==0: self.trace("iteration for initialization starts")
+            iter+=1
+            self.trace("iteration step %d"%(iter))
+            for o in self.iterModels(): 
+                 o.doInitialStep()
+            if iter>self.MAX_ITER_STEPS:
+                 raise IterationDivergenceError("initial iteration did not converge after %s steps."%iter)
+        self.trace("Initialization finalized after %s iteration steps."%iter)
 
     def doInitialPostprocessing(self):
         """
@@ -974,14 +981,8 @@ class Simulation(Model):
 	C{Simulation.FAILED_TIME_STEPS_MAX} attempts.
         """
         self.doInitialization()
-        iter=0
-        while not self.terminateInitialIteration():
-            self.doInitialStep()
-            iter+=1
-            if iter>self.MAX_ITER_STEPS:
-                 raise IterationDivergenceError("initial iteration did not converge after %s steps."%iter)
+        self.doInitialStep()
         self.doInitialPostprocessing()
-        self.trace("Initialization finalized after %s iteration steps."%iter)
         dt=self.UNDEF_DT
         while not self.finalize():
             step_fail_counter=0

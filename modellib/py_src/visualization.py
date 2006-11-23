@@ -59,7 +59,7 @@ class Visualization(Model):
        """
        returns a frame counter
        """
-       return self.n-1
+       return self.n
 
     def getSafeTimeStepSize(self,dt):
        """
@@ -120,6 +120,13 @@ class WriteVTK(Visualization):
               self.__filename=n+".%s."+fnc[-1]
         self.trace("output filename is %s."%self.__filename)
        
+    def doInitialPostprocessing(self):
+        kwargs={}
+        if not self.scalar==None: kwargs["scalar"] = self.scalar
+        if not self.vector==None: kwargs["vector"] = self.vector
+        if not self.tensor==None: kwargs["tensor"] = self.tensor
+        saveVTK(self.__filename%self.getFrameCounter(),**kwargs)
+        self.trace("%s-th frame at time %s is writen to %s"%(self.getFrameCounter(),self.t,self.__filename%self.getFrameCounter()))
 
     def doStepPostprocessing(self, dt):
         """
