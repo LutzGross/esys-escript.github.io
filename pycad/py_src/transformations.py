@@ -84,10 +84,13 @@ class Rotatation(Transformation):
        lz_per=numarray.dot(z_per,z_per)
        if lz_per>0:
          axis1=z_per/math.sqrt(lz_per)
-         axis2=_cross(self.__axis,axis1)
+         axis2=_cross(axis1,self.__axis)
          lax2=numarray.dot(axis2,axis2)
-         axis2/=math.sqrt(lax2)
-         return z0*self.__axis+math.sqrt(lz_per)*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point0
+         if lax2>0:
+            axis2/=math.sqrt(lax2)
+            return z0*self.__axis+math.sqrt(lz_per)*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point0 
+         else:
+            return x
        else:
          return x
 def _cross(x, y):
