@@ -11,7 +11,7 @@ __license__="""Licensed under the Open Software License version 3.0
 import os
 from esys.modellib.mechanics import DruckerPrager
 from esys.escript.modelframe import Link,Simulation
-from esys.modellib.geometry import RectangularDomain, VectorConstrainer, UpdateGeometry
+from esys.modellib.geometry import RectangularDomain, VectorConstrainerOverBox, UpdateGeometry
 from esys.modellib.input import Sequencer, InterpolateOverBox
 from esys.modellib.visualization import WriteVTK
 
@@ -59,7 +59,7 @@ iob.value_right_top_back=[0.,0.,0.]
 m=DruckerPrager(debug)
 m.domain=Link(dom,"domain")
 
-cv=VectorConstrainer(debug)
+cv=VectorConstrainerOverBox(debug)
 cv.domain=Link(dom,"domain")
 cv.value=Link(iob,"out")
 

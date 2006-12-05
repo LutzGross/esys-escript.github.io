@@ -36,7 +36,7 @@ class FinleyReader(ParameterSet):
           @return: the domain
           @rtype: L{Domain}
           """
-          if not self.__domain:
+          if self.__domain == None:
              self.__domain=finley.ReadMesh(self.source.getLocalFileName(),self.integrationOrder) 
              self.trace("mesh read from %s"%self.source)           
           return self.__domain
@@ -79,9 +79,9 @@ class RectangularDomain(ParameterSet):
            @return: the domain
            @rtype: L{Domain}
            """
-           if not self.__domain:
+           if self.__domain==None:
               if self.dim==2:
-                   self.domain=finley.Rectangle(n0=self.n[0],\
+                   self.__domain=finley.Rectangle(n0=self.n[0],\
                                                 n1=self.n[1],\
                                                 l0=self.l[0],\
                                                 l1=self.l[1],\
@@ -151,7 +151,7 @@ class UpdateGeometry(Model):
          """
          self.__reset=False
 
-class ScalarConstrainer(Model):
+class ScalarConstrainerOverBox(Model):
       """
       Creates a characteristic function for the location of constraints 
       for a scalar value and selects the value from an initial value 
@@ -222,7 +222,7 @@ class ScalarConstrainer(Model):
           if self.value:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
-class VectorConstrainer(Model):
+class VectorConstrainerOverBox(Model):
       """
       Creates a characteristic function for the location of constraints vector value.
       In the case that the spatial dimension is two, the arguments front and

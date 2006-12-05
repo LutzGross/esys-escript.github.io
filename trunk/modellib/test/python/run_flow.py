@@ -13,7 +13,7 @@ __license__="""Licensed under the Open Software License version 3.0
 
 import os
 from esys.escript.modelframe import Link,Simulation
-from esys.modellib.geometry import RectangularDomain,VectorConstrainer
+from esys.modellib.geometry import RectangularDomain,VectorConstrainerOverBox
 from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.flow import SteadyIncompressibleFlow
@@ -21,7 +21,7 @@ from esys.modellib.flow import SteadyIncompressibleFlow
 dom=RectangularDomain()
 dom.order=2
 
-constraints=VectorConstrainer()
+constraints=VectorConstrainerOverBox()
 constraints.domain=Link(dom)
 constraints.left=[1,0,0]
 constraints.right=[1,0,0]
@@ -40,7 +40,7 @@ source.t=Link(sqe)
 source.expression=["t","t"]
 
 flow=SteadyIncompressibleFlow()
-flow.domain=Link(dom)
+flow.domain=Link(dom,"domain")
 flow.internal_force=Link(source,"out")
 flow.location_prescribed_velocity=Link(constraints,"location_of_constraint")
 flow.prescribed_velocity=[0.,0.]

@@ -13,7 +13,7 @@ __license__="""Licensed under the Open Software License version 3.0
 
 import os
 from esys.escript.modelframe import Link,Simulation
-from esys.modellib.geometry import RectangularDomain,ScalarConstrainer,VectorConstrainer
+from esys.modellib.geometry import RectangularDomain,ScalarConstrainerOverBox,VectorConstrainerOverBox
 from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
 from esys.modellib.flow import SteadyIncompressibleFlow
 from esys.modellib.temperature import TemperatureAdvection
@@ -40,12 +40,12 @@ temp_val.value_right_bottom_back=1.
 temp_val.value_left_top_back=0.
 temp_val.value_right_top_back=0.
 
-temp_constraints=ScalarConstrainer()
+temp_constraints=ScalarConstrainerOverBox()
 temp_constraints.domain=Link(dom)
 temp_constraints.top=1
 temp_constraints.bottom=1
 
-vel_constraints=VectorConstrainer()
+vel_constraints=VectorConstrainerOverBox()
 vel_constraints.domain=Link(dom)
 vel_constraints.left=[1,0,0]
 vel_constraints.right=[1,0,0]

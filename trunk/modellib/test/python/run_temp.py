@@ -11,7 +11,7 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
 from esys.escript.modelframe import Link,Simulation
-from esys.modellib.geometry import RectangularDomain,ScalarConstrainer
+from esys.modellib.geometry import RectangularDomain,ScalarConstrainerOverBox
 from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.temperature import TemperatureAdvection
@@ -25,7 +25,7 @@ sqe=Sequencer()
 sqe.t=0
 sqe.t_end=0.05
 
-constraints=ScalarConstrainer()
+constraints=ScalarConstrainerOverBox()
 constraints.domain=Link(dom)
 constraints.top=1
 constraints.bottom=1

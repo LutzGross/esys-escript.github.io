@@ -106,7 +106,7 @@ class InterpolateOverBox(ParameterSet):
     """
 
     def __init__(self, debug=False):
-        ParameterSet.__init__(self, debug=debug)
+        super(InterpolateOverBox, self).__init__(self)
         self.declareParameter(domain=None, 
                               value_left_bottom_front=0.,
                               value_right_bottom_front=0.,
@@ -177,7 +177,7 @@ class InterpolatedTimeProfile(ParameterSet):
        """
 
        def __init__(self,debug=False):
-           ParameterSet.__init__(self,debug=debug)
+           super( InterpolatedTimeProfile, self).__init__(debug=debug)
            self.declareParameter(t=0., \
                                  nodes=[0.,1.],\
                                  values=[1.,1.])
@@ -307,7 +307,7 @@ class LinearCombination(ParameterSet):
     @ivar v4: numerical object or None, default=None (in)
     """
     def __init__(self,debug=False):
-        Model.__init__(self,debug=debug)
+        super(LinearCombination, self).__init__(debug=debug)
         self.declareParameter(f0=None, \
                               v0=None, \
                               f1=None, \
