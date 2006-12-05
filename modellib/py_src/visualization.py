@@ -7,7 +7,7 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
 from esys.escript.modelframe import Model
-from esys.escript import saveVTK
+from esys.escript import saveVTK, Data
 import os
 
 class Visualization(Model):
@@ -81,11 +81,11 @@ class Visualization(Model):
         if self.writeFrame():
             if self.debug():
                self.trace("%s-th frame at time %s"%(self.getFrameCounter(),self.t))
-               if not self.scalar==None:
+               if isinstance(self.scalar,Data):
                   self.trace("scalar data: (min,max) =(%s,%s)"%(inf(self.scalar),sup(self.scalar)))
-               if not self.vector==None:
+               if isinstance(self.vector,Data):
                   self.trace("vector data: (min,max) =(%s,%s)"%(inf(self.vector),sup(self.vector)))
-               if not self.tensor==None:
+               if isinstance(self.tensor,Data):
                   self.trace("tensor data: (min,max) =(%s,%s)"%(inf(self.tensor),sup(self.tensor)))
 
 class WriteVTK(Visualization):
@@ -122,9 +122,9 @@ class WriteVTK(Visualization):
        
     def doInitialPostprocessing(self):
         kwargs={}
-        if not self.scalar==None: kwargs["scalar"] = self.scalar
-        if not self.vector==None: kwargs["vector"] = self.vector
-        if not self.tensor==None: kwargs["tensor"] = self.tensor
+        if isinstance(self.scalar,Data): kwargs["scalar"] = self.scalar
+        if isinstance(self.vector,Data): kwargs["vector"] = self.vector
+        if isinstance(self.tensor,Data): kwargs["tensor"] = self.tensor
         saveVTK(self.__filename%self.getFrameCounter(),**kwargs)
         self.trace("%s-th frame at time %s is writen to %s"%(self.getFrameCounter(),self.t,self.__filename%self.getFrameCounter()))
 
@@ -138,9 +138,9 @@ class WriteVTK(Visualization):
         """
         if self.writeFrame():
             kwargs={}
-            if not self.scalar==None: kwargs["scalar"] = self.scalar
-            if not self.vector==None: kwargs["vector"] = self.vector
-            if not self.tensor==None: kwargs["tensor"] = self.tensor
+            if isinstance(self.scalar,Data): kwargs["scalar"] = self.scalar
+            if isinstance(self.vector,Data): kwargs["vector"] = self.vector
+            if isinstance(self.tensor,Data): kwargs["tensor"] = self.tensor
             saveVTK(self.__filename%self.getFrameCounter(),**kwargs)
             self.trace("%s-th frame at time %s is writen to %s"%(self.getFrameCounter(),self.t,self.__filename%self.getFrameCounter()))
 
