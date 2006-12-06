@@ -28,7 +28,7 @@ def _cross(x, y):
     return numarray.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]])
 
 
-class Test_PyCAD(unittest.TestCase):
+class Test_PyCAD_Transformations(unittest.TestCase):
    ABS_TOL=1.e-8
    def __distance(self,x,y):
        return math.sqrt(numarray.dot(x-y,x-y))
@@ -593,9 +593,83 @@ class Test_PyCAD(unittest.TestCase):
         s3=t([1,1,1])
         self.failUnless(isinstance(s3,numarray.NumArray),"s3 is not a numarray object.")
         self.failUnless(self.__distance(s3,numarray.array([1.,1,1.]))<self.ABS_TOL,"s3 is wrong.")
+
+class Test_PyCAD_Primitives(unittest.TestCase):
+   def setUp(self):
+         global global_primitive_id_counter
+         self.id0=global_primitive_id_counter
+
+   def test_baseclass(self):
+         p=Primitive()
+
+         id=p.getID()
+         print id
+         self.failUnless(isinstance(id,int),"id number is not an integer")
+         self.failUnless(id==self.id0,"id number is expected to be %s."%self.id0)
+           
+         self.failUnless(not p.isPoint(),"generic primitive is not a point.")
+         self.failUnless(not p.isCurve(),"generic primitive is not a curve.")
+         self.failUnless(not p.isCurveLoop(),"generic primitive is not a curve loop.")
+         self.failUnless(not p.isSurface(),"generic primitive is not a surface.")
+         self.failUnless(not p.isSurfaceLoop(),"generic primitive is not a surface loop.")
+
+         hs=p.getHistory()
+         self.failUnless(isinstance(hs,set),"history must be a set")
+         self.failUnless(len(hs)==0,"history should be empty.")
+
+         ps=p.getPoints()
+         self.failUnless(isinstance(ps,set),"point set must be a set")
+         self.failUnless(len(ps)==0,"point set should be empty.")
+
+         p.setLocalScale(1.23)
+
+   def test_point(self):
+       p=Point(1.,2.,3.,local_scale=9.)
+       
+       id=p.getID()
+       self.failUnless(isinstance(id,int),"id number is not an integer")
+       self.failUnless(id==self.id0,"id number is expected to be %s"%self.id0)
+           
+       hs=p.getHistory()
+       self.failUnless(isinstance(hs,set),"history must be a set")
+       self.failUnless(len(hs)==1,"history must have length 1.")
+       self.failUnless(p in hs,"history must contain point p")
+
+       ps=p.getPoints()
+       self.failUnless(isinstance(ps,set),"point set must be a set")
+       self.failUnless(len(ps)==1,"point set must have length 1.")
+       self.failUnless(p in ps,"point set must contain point p")
+
+       c=p.getCoordinates()
+       self.failUnless(isinstance(c,numarray.NumArray),"coordinates are not a numarray object.")
+       self.failUnless(c[0]==1.,"x coordinate is not 1.")
+       self.failUnless(c[1]==2.,"y coordinate is not 2.")
+       self.failUnless(c[2]==3.,"z coordinate is not 3.")
+ 
+       p.setCoordinates(-1.,-2.,-3.)
+       c=p.getCoordinates()
+       self.failUnless(isinstance(c,numarray.NumArray),"new coordinates are not a numarray object.")
+       self.failUnless(c[0]==-1.,"new x coordinate is not -1.")
+       self.failUnless(c[1]==-2.,"new y coordinate is not -2.")
+       self.failUnless(c[2]==-3.,"new z coordinate is not -3.")
+
+       self.failUnless(p.isColocated(Point(-1.,-2.,-3.)),"colocation not detected.")
+       self.failUnless(p.isColocated(numarray.array([-1.,-2.,-3.])),"colocation with numarray representation not detected.")
+       self.failUnless(not p.isColocated(numarray.array([1.,-2.,-3.])),"false colocation detected.")
+       self.failUnless(not p.isColocated(numarray.array([0.,0.,0.])),"false colocation with origin detected.")
+
+       l=p.getLocalScale()
+       self.failUnless(l==9.,"refinement scale is not 9.")
+
+       p.setLocalScale(3.)
+       l=p.getLocalScale()
+       self.failUnless(l==3.,"new refinement scale is not 3.")
+       self.UnlessRaises(ValueError,p.setLocalScale,-3.)
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_PyCAD))
+   suite.addTest(unittest.makeSuite(Test_PyCAD_Transformations))
+   suite.addTest(unittest.makeSuite(Test_PyCAD_Primitives))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)

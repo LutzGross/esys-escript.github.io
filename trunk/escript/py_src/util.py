@@ -239,7 +239,30 @@ def inf(arg):
 #=========================================================================
 #   some little helpers
 #=========================================================================
-def pokeShape(arg):
+def getRank(arg):
+    """
+    identifies the rank of its argument
+
+    @param arg: a given object 
+    @type arg: L{numarray.NumArray},L{escript.Data},C{float}, C{int}, C{Symbol}
+    @return: the rank of the argument
+    @rtype: C{int}
+    @raise TypeError: if type of arg cannot be processed
+    """
+
+    if isinstance(arg,numarray.NumArray):
+        return arg.rank
+    elif isinstance(arg,escript.Data):
+        return arg.getRank()
+    elif isinstance(arg,float):
+        return 0
+    elif isinstance(arg,int):
+        return 0
+    elif isinstance(arg,Symbol):
+        return arg.getRank()
+    else:
+      raise TypeError,"getShape: cannot identify shape"
+def getShape(arg):
     """
     identifies the shape of its argument
 
@@ -261,7 +284,7 @@ def pokeShape(arg):
     elif isinstance(arg,Symbol):
         return arg.getShape()
     else:
-      raise TypeError,"pokeShape: cannot identify shape"
+      raise TypeError,"getShape: cannot identify shape"
 
 def pokeDim(arg):
     """
@@ -284,14 +307,14 @@ def commonShape(arg0,arg1):
     """
     returns a shape to which arg0 can be extendent from the right and arg1 can be extended from the left.
 
-    @param arg0: an object with a shape (see L{pokeShape})
-    @param arg1: an object with a shape (see L{pokeShape})
+    @param arg0: an object with a shape (see L{getShape})
+    @param arg1: an object with a shape (see L{getShape})
     @return: the shape of arg0 or arg1 such that the left port equals the shape of arg0 and the right end equals the shape of arg1.
     @rtype: C{tuple} of C{int}
     @raise ValueError: if no shape can be found.
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if len(sh0)<len(sh1):
        if not sh0==sh1[:len(sh0)]:
              raise ValueError,"argument 0 cannot be extended to the shape of argument 1"
@@ -445,8 +468,8 @@ def matchShape(arg0,arg1):
     @rtype: C{tuple}
     """
     sh=commonShape(arg0,arg1)
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if len(sh0)<len(sh):
        return outer(arg0,numarray.ones(sh[len(sh0):],numarray.Float64)),arg1
     elif len(sh1)<len(sh):
@@ -574,7 +597,7 @@ class Symbol(object):
           if isinstance(a,Symbol):
              out.append(a.substitute(argvals))
           else:
-              s=pokeShape(s)+arg.getShape()
+              s=getShape(s)+arg.getShape()
               if len(s)>0:
                  out.append(numarray.zeros(s),numarray.Float64)
               else:
@@ -3660,8 +3683,8 @@ class Add_Symbol(DependendSymbol):
        @raise ValueError: if both arguments do not have the same shape.
        @note: if both arguments have a spatial dimension, they must equal.
        """
-       sh0=pokeShape(arg0)
-       sh1=pokeShape(arg1)
+       sh0=getShape(arg0)
+       sh1=getShape(arg1)
        if not sh0==sh1:
           raise ValueError,"Add_Symbol: shape of arguments must match"
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
@@ -3735,7 +3758,7 @@ def mult(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]) or testForZero(args[1]):
-          return numarray.zeros(pokeShape(args[0]),numarray.Float64)
+          return numarray.zeros(getShape(args[0]),numarray.Float64)
        else:
           if isinstance(args[0],Symbol) or isinstance(args[1],Symbol) :
               return Mult_Symbol(args[0],args[1])
@@ -3759,8 +3782,8 @@ class Mult_Symbol(DependendSymbol):
        @raise ValueError: if both arguments do not have the same shape.
        @note: if both arguments have a spatial dimension, they must equal.
        """
-       sh0=pokeShape(arg0)
-       sh1=pokeShape(arg1)
+       sh0=getShape(arg0)
+       sh1=getShape(arg1)
        if not sh0==sh1:
           raise ValueError,"Mult_Symbol: shape of arguments must match"
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
@@ -3835,7 +3858,7 @@ def quotient(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
-          return numarray.zeros(pokeShape(args[0]),numarray.Float64)
+          return numarray.zeros(getShape(args[0]),numarray.Float64)
        elif isinstance(args[0],Symbol):
           if isinstance(args[1],Symbol):
              return Quotient_Symbol(args[0],args[1])
@@ -3864,8 +3887,8 @@ class Quotient_Symbol(DependendSymbol):
        @raise ValueError: if both arguments do not have the same shape.
        @note: if both arguments have a spatial dimension, they must equal.
        """
-       sh0=pokeShape(arg0)
-       sh1=pokeShape(arg1)
+       sh0=getShape(arg0)
+       sh1=getShape(arg1)
        if not sh0==sh1:
           raise ValueError,"Quotient_Symbol: shape of arguments must match"
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
@@ -3941,9 +3964,9 @@ def power(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]):
-          return numarray.zeros(pokeShape(args[0]),numarray.Float64)
+          return numarray.zeros(getShape(args[0]),numarray.Float64)
        elif testForZero(args[1]):
-          return numarray.ones(pokeShape(args[1]),numarray.Float64)
+          return numarray.ones(getShape(args[1]),numarray.Float64)
        elif isinstance(args[0],Symbol) or isinstance(args[1],Symbol):
           return Power_Symbol(args[0],args[1])
        elif isinstance(args[0],numarray.NumArray) and not isinstance(args[1],numarray.NumArray):
@@ -3966,8 +3989,8 @@ class Power_Symbol(DependendSymbol):
        @raise ValueError: if both arguments do not have the same shape.
        @note: if both arguments have a spatial dimension, they must equal.
        """
-       sh0=pokeShape(arg0)
-       sh1=pokeShape(arg1)
+       sh0=getShape(arg0)
+       sh1=getShape(arg1)
        if not sh0==sh1:
           raise ValueError,"Power_Symbol: shape of arguments must match"
        d0=pokeDim(arg0)
@@ -4112,8 +4135,8 @@ def inner(arg0,arg1):
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol}, C{float} depending on the input
     @raise ValueError: if the shapes of the arguments are not identical
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if not sh0==sh1:
         raise ValueError,"inner: shape of arguments does not match"
     return generalTensorProduct(arg0,arg1,axis_offset=len(sh0))
@@ -4164,8 +4187,8 @@ def matrix_mult(arg0,arg1):
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     @raise ValueError: if the shapes of the arguments are not appropriate
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if not len(sh0)==2 :
         raise ValueError,"first argument must have rank 2"
     if not len(sh1)==2 and not len(sh1)==1:
@@ -4213,8 +4236,8 @@ def tensor_mult(arg0,arg1):
     @return: the tensor product of arg0 and arg1 at each data point
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
        return generalTensorProduct(arg0,arg1,axis_offset=1)
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
@@ -4288,8 +4311,8 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
        @raise ValueError: illegal dimension
        @note: if both arguments have a spatial dimension, they must equal.
        """
-       sh_arg0=pokeShape(arg0)
-       sh_arg1=pokeShape(arg1)
+       sh_arg0=getShape(arg0)
+       sh_arg1=getShape(arg1)
        sh0=sh_arg0[:len(sh_arg0)-axis_offset]
        sh01=sh_arg0[len(sh_arg0)-axis_offset:]
        sh10=sh_arg1[:axis_offset]
@@ -4362,8 +4385,8 @@ def transposed_matrix_mult(arg0,arg1):
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     @raise ValueError: if the shapes of the arguments are not appropriate
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if not len(sh0)==2 :
         raise ValueError,"first argument must have rank 2"
     if not len(sh1)==2 and not len(sh1)==1:
@@ -4407,8 +4430,8 @@ def transposed_tensor_mult(arg0,arg1):
     @return: the tensor product of tarnsposed of arg0 and arg1 at each data point
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
        return generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
@@ -4485,8 +4508,8 @@ class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
        @raise ValueError: inconsistent dimensions of arguments.
        @note: if both arguments have a spatial dimension, they must equal.
        """
-       sh_arg0=pokeShape(arg0)
-       sh_arg1=pokeShape(arg1)
+       sh_arg0=getShape(arg0)
+       sh_arg1=getShape(arg1)
        sh01=sh_arg0[:axis_offset]
        sh10=sh_arg1[:axis_offset]
        sh0=sh_arg0[axis_offset:]
@@ -4555,8 +4578,8 @@ def matrix_transposed_mult(arg0,arg1):
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     @raise ValueError: if the shapes of the arguments are not appropriate
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if not len(sh0)==2 :
         raise ValueError,"first argument must have rank 2"
     if not len(sh1)==2 and not len(sh1)==1:
@@ -4591,8 +4614,8 @@ def tensor_transposed_mult(arg0,arg1):
     @return: the tensor product of tarnsposed of arg0 and arg1 at each data point
     @rtype: L{numarray.NumArray}, L{escript.Data}, L{Symbol} depending on the input
     """
-    sh0=pokeShape(arg0)
-    sh1=pokeShape(arg1)
+    sh0=getShape(arg0)
+    sh1=getShape(arg1)
     if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
        return generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
@@ -4669,8 +4692,8 @@ class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
        @raise ValueError: inconsistent dimensions of arguments.
        @note: if both arguments have a spatial dimension, they must equal.
        """
-       sh_arg0=pokeShape(arg0)
-       sh_arg1=pokeShape(arg1)
+       sh_arg0=getShape(arg0)
+       sh_arg1=getShape(arg1)
        sh0=sh_arg0[:len(sh_arg0)-axis_offset]
        sh01=sh_arg0[len(sh_arg0)-axis_offset:]
        sh10=sh_arg1[len(sh_arg1)-axis_offset:]

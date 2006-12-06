@@ -90,9 +90,9 @@ ug.displacement=Link(m,"displacement")
 
 vis=WriteVTK(debug)
 vis.t=Link(sq)
-vis.scalar=Link(m,"plastic_stress")
-vis.vector=Link(m,"velocity")
-vis.tensor=Link(m,"stress")
+vis.data0=Link(m,"plastic_stress")
+vis.data1=Link(m,"velocity")
+vis.data2=Link(m,"stress")
 vis.dt=0.01
 vis.filename=WORKDIR+"/temp.xml"
 

@@ -26,9 +26,10 @@ __version__="$Revision:$"
 __date__="$Date:$"
 
 import numarray
+from transformations import _TYPE
 
 global global_primitive_id_counter
-global_primitive_id_counter=0
+global_primitive_id_counter=1
 
 class Primitive(object):
     """
@@ -46,16 +47,54 @@ class Primitive(object):
        return "%s(%s)"%(self.__class__.__name__,self.getID())
     def __cmp__(self,other):
        return cmp(self.getID(),other.getID())
+    def getPoints(self):
+        """
+        returns the C{set} of points used to construct the primitive
+        """
+        out=set()
+        for i in self.getHistory(): 
+           if isinstance(i,Point): out.add(i)
+        return out
+
+    def setLocalScale(self,factor=1.):
+        """
+        sets the local refinement factor
+        """
+        for p in self.getPoints(): p.setLocalScale(factor)
+
     def isPoint(self):
+        """
+        returns C{True} is the primitive is a L{Point}
+        """
         return False
     def isCurve(self):
+        """
+        returns C{True} is the primitive is a L{Curve}
+        """
         return False
     def isSurface(self):
+        """
+        returns C{True} is the primitive is a L{Surface}
+        """
         return False
     def isCurveLoop(self):
+        """
+        returns C{True} is the primitive is a L{CurveLoop}
+        """
         return False
     def isSurfaceLoop(self):
+        """
+        returns C{True} is the primitive is a L{SurfaceLoop}
+        """
         return False
+    def getHistory(self):
+        """
+        returns C{set} of primitive used to construct the primitive
+        """
+        return set()
+        
+
+    #==================================================
     def __neg__(self):
         return ReversedPrimitive(self)
     def __pos__(self):
@@ -66,31 +105,14 @@ class Primitive(object):
        return out
     def __iadd__(self,other):
        self.shift()
-    def setLocalLength(self,factor=1.):
-        for p in self.getPoints(): p.setLocalLength(factor)
     def shift(self,shift):
         for p in self.getPoints(): p+=shift
     def copy(self):
         return Primitive()
     def getGmshCommand(self):
         raise NotImplementedError("getGmshCommand is not implemented for this class %s."%self.__class__.__name__)
-    def getHistory(self):
-        return set()
-    def getPoints(self):
-        return set()
     def translate(self,shift):
         raise NotImplementedError("translate is not implemented for this class %s."%self.__class__.__name__)
-
-class ReversedPrimitive(object):
-    def __init__(self,prim):
-       self.__prim=prim
-    def __getattr__(self,name):
-       if name == "getID":
-          return self.getReverseID
-       else:
-          return getattr(self.__prim,name)
-    def getReverseID(self):
-        return -self.__prim.getID()
 
 class Point(Primitive):
     """
@@ -98,34 +120,60 @@ class Point(Primitive):
     """
     def __init__(self,x=0.,y=0.,z=0.,local_scale=1.): 
        """
-       creates a point with coorinates x,y,z with a relative refinement factor 
+       creates a point with coorinates x,y,z with the local refinement factor local_scale
        """ 
        super(Point, self).__init__()
-       if not local_scale > 0.:
-           raise ValueError("local_scale needs to be positive.")
-       self._x=numarray.array([x,y,z],numarray.Float64)
+       self.setCoordinates(x,y,z)
        self.setLocalScale(local_scale)
     def setLocalScale(self,factor=1.):
        """
-       sets the local relative length scale
+       sets the local refinement factor
        """
+       if factor<=0.:
+          raise ValueError("scaling factor must be positive.")
        self.__local_scale=factor
     def getLocalScale(self):
+       """
+       returns the local refinement factor
+       """
        return self.__local_scale
+    def getCoordinates(self):
+       """
+       returns the coodinates of the point as L{numarray.NumArray} object
+       """
+       return self._x
+    def setCoordinates(self,x,y,z):
+       """
+       returns the coodinates of the point as L{numarray.NumArray} object
+       """
+       self._x=numarray.array([x,y,z],_TYPE)
+    def getHistory(self):
+       """
+       returns C{set} of primitive used to construct the primitive
+       """
+       return set([self])
+ 
+    def isColocated(self,point,tol=1.e-11):
+       """
+       returns True if L{Point} point is colocation (same coordinates) 
+       that means if |self-point| <= tol * max(|self|,|point|)
+       """
+       if isinstance(point,Point):
+          point=point.getCoordinates()
+       c=self.getCoordinates()
+       d=c-point
+       return numarray.dot(d,d)<=tol**2*max(numarray.dot(c,c),numarray.dot(point,point))
+    
+
+    #=============================================================
     def copy(self):
        c=self.getCoordinates()
        return Point(c[0],c[1],c[2],local_scale=self.getLocalScale())
     def isPoint(self):
         return True
-    def getCoordinates(self):
-       return self._x
     def getGmshCommand(self):
         c=self.getCoordinates()
         return "Point(%s) = {%e , %e, %e , %e * scale};"%(self.getID(),c[0],c[1],c[2], self.getLocalScale())
-    def getHistory(self):
-        return set([self])
-    def getPoints(self):
-        return set([self])
     def shift(self,shift): 
        """
        shifts the point by a given shift
@@ -506,6 +554,17 @@ class Volume(Primitive):
           return "Volume(%s) = {%s, %s};"%(self.getID(),self.getSurfaceLoop().getID(), out)
         else:
           return "Volume(%s) = {%s};"%(self.getID(),self.getSurfaceLoop().getID())
+
+class ReversedPrimitive(object):
+    def __init__(self,prim):
+       self.__prim=prim
+    def __getattr__(self,name):
+       if name == "getID":
+          return self.getReverseID
+       else:
+          return getattr(self.__prim,name)
+    def getReverseID(self):
+        return -self.__prim.getID()
 
 class PropertySet(Primitive):
     """
