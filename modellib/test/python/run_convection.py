@@ -90,8 +90,8 @@ sq.t_end=0.001
 
 vis=WriteVTK()
 vis.t=Link(sq)
-vis.scalar=Link(temp,"temperature")
-vis.vector=Link(vel,"velocity")
+vis.data0=Link(temp,"temperature")
+vis.data1=Link(vel,"velocity")
 vis.dt=0.0001
 vis.filename=WORKDIR+"/temp.xml"
 

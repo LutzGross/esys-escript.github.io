@@ -161,6 +161,12 @@ class Link:
         self.target = target
         self.attribute = None
         self.setAttributeName(attribute)
+
+    def getAttributeName(self):
+        """
+        returns the name of the attribute the link is pointing to
+        """
+        return self.attribute
     
     def setAttributeName(self,attribute):
         """
