@@ -596,16 +596,14 @@ class Test_PyCAD_Transformations(unittest.TestCase):
 
 class Test_PyCAD_Primitives(unittest.TestCase):
    def setUp(self):
-         global global_primitive_id_counter
-         self.id0=global_primitive_id_counter
+         resetGlobalPrimitiveIdCounter()
 
    def test_baseclass(self):
          p=Primitive()
 
          id=p.getID()
-         print id
          self.failUnless(isinstance(id,int),"id number is not an integer")
-         self.failUnless(id==self.id0,"id number is expected to be %s."%self.id0)
+         self.failUnless(not id==Primitive().getID(),"id number is not unique")
            
          self.failUnless(not p.isPoint(),"generic primitive is not a point.")
          self.failUnless(not p.isCurve(),"generic primitive is not a curve.")
@@ -628,43 +626,135 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        
        id=p.getID()
        self.failUnless(isinstance(id,int),"id number is not an integer")
-       self.failUnless(id==self.id0,"id number is expected to be %s"%self.id0)
+       self.failUnless(not id==Primitive().getID(),"id number is not unique")
            
+       # check history:
        hs=p.getHistory()
        self.failUnless(isinstance(hs,set),"history must be a set")
        self.failUnless(len(hs)==1,"history must have length 1.")
        self.failUnless(p in hs,"history must contain point p")
 
+       # check incolved points:
        ps=p.getPoints()
        self.failUnless(isinstance(ps,set),"point set must be a set")
        self.failUnless(len(ps)==1,"point set must have length 1.")
        self.failUnless(p in ps,"point set must contain point p")
 
+       # check coordinates:
        c=p.getCoordinates()
        self.failUnless(isinstance(c,numarray.NumArray),"coordinates are not a numarray object.")
        self.failUnless(c[0]==1.,"x coordinate is not 1.")
        self.failUnless(c[1]==2.,"y coordinate is not 2.")
        self.failUnless(c[2]==3.,"z coordinate is not 3.")
  
-       p.setCoordinates(-1.,-2.,-3.)
+       # reset coordinates:
+       p.setCoordinates([-1.,-2.,-3.])
        c=p.getCoordinates()
        self.failUnless(isinstance(c,numarray.NumArray),"new coordinates are not a numarray object.")
        self.failUnless(c[0]==-1.,"new x coordinate is not -1.")
        self.failUnless(c[1]==-2.,"new y coordinate is not -2.")
        self.failUnless(c[2]==-3.,"new z coordinate is not -3.")
 
+       # check for a colocated point:
        self.failUnless(p.isColocated(Point(-1.,-2.,-3.)),"colocation not detected.")
        self.failUnless(p.isColocated(numarray.array([-1.,-2.,-3.])),"colocation with numarray representation not detected.")
        self.failUnless(not p.isColocated(numarray.array([1.,-2.,-3.])),"false colocation detected.")
        self.failUnless(not p.isColocated(numarray.array([0.,0.,0.])),"false colocation with origin detected.")
 
+       # check for local length scale
        l=p.getLocalScale()
        self.failUnless(l==9.,"refinement scale is not 9.")
 
+       # check for new local length scale
        p.setLocalScale(3.)
        l=p.getLocalScale()
        self.failUnless(l==3.,"new refinement scale is not 3.")
-       self.UnlessRaises(ValueError,p.setLocalScale,-3.)
+
+       # negative value shouldn't work.
+       self.failUnlessRaises(ValueError,p.setLocalScale,-3.)
+
+       # copy:
+       an_other_p=p.copy()
+       self.failUnless(isinstance(an_other_p ,Point),"copy is not a point")
+       self.failUnless(not an_other_p.getID() == p.getID(),"copy has same Id")
+       self.failUnless(p.isColocated(an_other_p),"p is not colocated with its copy.")
+       self.failUnless(an_other_p.isColocated(p),"the copy is not colocated with p.")
+       self.failUnless(an_other_p.getLocalScale()==3.,"copy has wrong local scale.")
+      
+       # modify by Transformation:
+       p.modifyBy(Dilation(-1))
+       self.failUnless(p.isColocated(Point(1.,2.,3.)),"in-place transformation failed")
+       
+       # apply Transformation:
+       dil_p=p.apply(Dilation(4))
+       self.failUnless(dil_p.isColocated(Point(4.,8.,12.)),"applying transformation failed")
+       self.failUnless(not dil_p.getID() == p.getID(),"transformed point has same Id")
+       self.failUnless(dil_p.getLocalScale()==3.,"transformed point  has wrong local scale.")
+        
+       # overloaded add:
+       shift_p=p+[1,1,1]
+       self.failUnless(shift_p.isColocated(Point(2,3.,4)),"applying shift by list failed")
+       self.failUnless(not shift_p.getID() == p.getID(),"shift by list has same Id")
+       self.failUnless(shift_p.getLocalScale()==3.,"shift by list has wrong local scale.")
+
+       shift_p=p+numarray.array([1,1,1])
+       self.failUnless(shift_p.isColocated(Point(2,3.,4)),"applying shift by numarray failed")
+       self.failUnless(not shift_p.getID() == p.getID(),"shift by numarray has same Id")
+       self.failUnless(shift_p.getLocalScale()==3.,"shift by numarray has wrong local scale.")
+       # overloaded minus
+       shift_p=p-[1,1,1]
+       self.failUnless(shift_p.isColocated(Point(0,1,2.)),"applying shift by -list failed")
+       self.failUnless(not shift_p.getID() == p.getID(),"shift by -list has same Id")
+       self.failUnless(shift_p.getLocalScale()==3.,"shift by -list has wrong local scale.")
+
+       shift_p=p-numarray.array([1,1,1])
+       self.failUnless(shift_p.isColocated(Point(0,1,2.)),"applying shift by -numarray failed")
+       self.failUnless(not shift_p.getID() == p.getID(),"shift by -numarray has same Id")
+       self.failUnless(shift_p.getLocalScale()==3.,"shift by -numarray has wrong local scale.")
+       # overloaded inplace add:
+       p+=[1,1,1]
+       self.failUnless(p.isColocated(Point(2,3.,4)),"modification by list shift failed")
+
+       p+=numarray.array([1,1,1])
+       self.failUnless(p.isColocated(Point(3,4,5)),"modification by numarray shift failed")
+
+       # overloaded inplace add:
+       p-=[1,1,1]
+       self.failUnless(p.isColocated(Point(2,3,4)),"modification by -list shift failed")
+
+       p-=numarray.array([1,1,1])
+       self.failUnless(p.isColocated(Point(1,2.,3)),"modification by -numarray shift failed")
+
+       #overloaded multiplication:
+       mult_p=2*p
+       self.failUnless(mult_p.isColocated(Point(2,4,6)),"applying int factor failed")
+       self.failUnless(not mult_p.getID() == p.getID(),"shift by int factor has same Id")
+       self.failUnless(mult_p.getLocalScale()==3.,"shift by int factor has wrong local scale.")
+
+       mult_p=2.*p
+       self.failUnless(mult_p.isColocated(Point(2,4,6)),"applying float factor failed")
+       self.failUnless(not mult_p.getID() == p.getID(),"shift by float factor has same Id")
+       self.failUnless(mult_p.getLocalScale()==3.,"shift by float factor has wrong local scale.")
+
+       mult_p=Dilation(2)*p
+       self.failUnless(mult_p.isColocated(Point(2,4,6)),"applying Dilation factor failed")
+       self.failUnless(not mult_p.getID() == p.getID(),"shift by Dilation factor has same Id")
+       self.failUnless(mult_p.getLocalScale()==3.,"shift by Dilation factor has wrong local scale.")
+
+       #overloaded inplace multiplication:
+       p*=2
+       self.failUnless(p.isColocated(Point(2,4,6)),"applying in-place int factor failed")
+
+       p*=2.
+       self.failUnless(p.isColocated(Point(4,8,12)),"applying in-place float factor failed")
+
+       p*=Dilation(2)
+       self.failUnless(p.isColocated(Point(8,16,24)),"applying in-place Dilation factor failed")
+
+       # get gmsh code
+       code=p.getGmshCommand(2.)
+       self.failUnless("Point(1) = {8.0 , 16.0, 24.0 , 6.0 };"== code, "wrong gmsh code")
+ 
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

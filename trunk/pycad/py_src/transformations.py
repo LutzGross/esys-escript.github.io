@@ -107,8 +107,8 @@ class Dilation(Transformation):
        """
        creates a dilation with a center an a given expansion/contraction factor
        """
-       if not factor>0:
-          raise ValueError("factor must be positive.")
+       if not abs(factor)>0:
+          raise ValueError("factor must be non-zero.")
        self.__factor=factor
        self.__center=numarray.array(center,type=_TYPE)
     def __call__(self,x=numarray.zeros((3,))):
