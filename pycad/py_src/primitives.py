@@ -26,10 +26,14 @@ __version__="$Revision:$"
 __date__="$Date:$"
 
 import numarray
-from transformations import _TYPE
+from transformations import _TYPE, Translation, Dilation, Transformation
 
-global global_primitive_id_counter
-global_primitive_id_counter=1
+
+def resetGlobalPrimitiveIdCounter():
+   global global_primitive_id_counter
+   global_primitive_id_counter=1
+
+resetGlobalPrimitiveIdCounter()
 
 class Primitive(object):
     """
@@ -37,12 +41,15 @@ class Primitive(object):
     """
     def __init__(self): 
        """
+       
        """ 
        global global_primitive_id_counter
        self.__ID=global_primitive_id_counter
        global_primitive_id_counter+=1
+
     def getID(self):
        return self.__ID
+
     def __repr__(self):
        return "%s(%s)"%(self.__class__.__name__,self.getID())
     def __cmp__(self,other):
@@ -92,27 +99,84 @@ class Primitive(object):
         returns C{set} of primitive used to construct the primitive
         """
         return set()
-        
+    def copy(self):
+       """
+       returns a copy of the object
+       """
+       return Primitive()
 
-    #==================================================
+    def apply(self,transformation):
+        """
+        returns a new object by applying the transformation
+        """
+        raise NotImplementedError("apply is not implemented for this class %s."%self.__class__.__name__)
+
+    def modifyBy(self,transformation):
+        """
+        modifies the object by applying a transformation 
+        """
+        raise NotImplementedError("modifyBy not implemented for this class %s."%self.__class__.__name__)
+
+    def __add__(self,other):
+        """
+        returns a new object shifted by other
+        """
+        return self.apply(Translation(numarray.array(other,_TYPE)))
+
+    def __sub__(self,other):
+        """
+        returns a new object shifted by other
+        """
+        return self.apply(Translation(-numarray.array(other,_TYPE)))
+
+    def __iadd__(self,other):
+        """
+        shifts the point by other
+        """
+        self.modifyBy(Translation(numarray.array(other,_TYPE)))
+        return self
+
+    def __isub__(self,other):
+        """
+        shifts the point by -other
+        """
+        self.modifyBy(Translation(-numarray.array(other,_TYPE)))
+        return self
+
+    def __imul__(self,other):
+        """
+        modifies object by applying L{Transformation} other. If other is not a L{Transformation} it will try convert it.
+        """
+        if isinstance(other,int) or isinstance(other,float):
+            trafo=Dilation(other)
+        elif isinstance(other,numarray.NumArray):
+            trafo=Translation(other)
+        elif isinstance(other,Transformation):
+            trafo=other
+        else:
+            raise TypeError, "cannot convert argument to Trnsformation class object."
+        self.modifyBy(trafo)
+        return self
+
+    def __rmul__(self,other):
+        """
+        applies L{Transformation} other to object. If other is not a L{Transformation} it will try convert it.
+        """
+        if isinstance(other,int) or isinstance(other,float):
+            trafo=Dilation(other)
+        elif isinstance(other,numarray.NumArray):
+            trafo=Translation(other)
+        elif isinstance(other,Transformation):
+            trafo=other
+        else:
+            raise TypeError, "cannot convert argument to Trnsformation class object."
+        return self.apply(trafo)
+
     def __neg__(self):
         return ReversedPrimitive(self)
-    def __pos__(self):
-        return self.copy()
-    def __add__(self,other):
-       out=self.copy()
-       out+=other
-       return out
-    def __iadd__(self,other):
-       self.shift()
-    def shift(self,shift):
-        for p in self.getPoints(): p+=shift
-    def copy(self):
-        return Primitive()
+
     def getGmshCommand(self):
         raise NotImplementedError("getGmshCommand is not implemented for this class %s."%self.__class__.__name__)
-    def translate(self,shift):
-        raise NotImplementedError("translate is not implemented for this class %s."%self.__class__.__name__)
 
 class Point(Primitive):
     """
@@ -123,8 +187,9 @@ class Point(Primitive):
        creates a point with coorinates x,y,z with the local refinement factor local_scale
        """ 
        super(Point, self).__init__()
-       self.setCoordinates(x,y,z)
+       self.setCoordinates(numarray.array([x,y,z],_TYPE))
        self.setLocalScale(local_scale)
+
     def setLocalScale(self,factor=1.):
        """
        sets the local refinement factor
@@ -142,11 +207,15 @@ class Point(Primitive):
        returns the coodinates of the point as L{numarray.NumArray} object
        """
        return self._x
-    def setCoordinates(self,x,y,z):
+    def setCoordinates(self,x):
        """
        returns the coodinates of the point as L{numarray.NumArray} object
        """
-       self._x=numarray.array([x,y,z],_TYPE)
+       if not isinstance(x, numarray.NumArray):
+          self._x=numarray.array(x,_TYPE)
+       else:
+          self._x=x
+
     def getHistory(self):
        """
        returns C{set} of primitive used to construct the primitive
@@ -163,30 +232,32 @@ class Point(Primitive):
        c=self.getCoordinates()
        d=c-point
        return numarray.dot(d,d)<=tol**2*max(numarray.dot(c,c),numarray.dot(point,point))
-    
 
-    #=============================================================
     def copy(self):
+       """
+       returns a copy of the point
+       """
        c=self.getCoordinates()
        return Point(c[0],c[1],c[2],local_scale=self.getLocalScale())
-    def isPoint(self):
-        return True
-    def getGmshCommand(self):
-        c=self.getCoordinates()
-        return "Point(%s) = {%e , %e, %e , %e * scale};"%(self.getID(),c[0],c[1],c[2], self.getLocalScale())
-    def shift(self,shift): 
-       """
-       shifts the point by a given shift
-       """
-       self._x+=numarray.array(shift,numarray.Float64)
-    def translate(self,shift):
-       """
-       returns the point shifted by shift
-       """
-       out=self.copy()
-       out+=other
-       return out
 
+    def modifyBy(self,transformation):
+        """
+        modifies the coordinates by applying a transformation 
+        """
+        self.setCoordinates(transformation(self.getCoordinates()))
+
+    def apply(self,transformation):
+        """
+        returns a new L{Point} by applying the transformation
+        """
+        new_p=self.copy()
+        new_p.modifyBy(transformation)
+        return new_p
+
+
+    def getGmshCommand(self, local_scaling_factor=1.):
+        c=self.getCoordinates()
+        return "Point(%s) = {%s , %s, %s , %s };"%(self.getID(),c[0],c[1],c[2], self.getLocalScale()*local_scaling_factor)
 
 class Curve(Primitive):
       """
