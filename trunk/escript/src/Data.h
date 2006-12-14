@@ -274,21 +274,11 @@ class Data {
      \brief
      Return the value of the specified data-point as a single python numarray object.
   */
-#ifndef PASO_MPI  
-  ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  convertToNumArrayFromDPNo(int ProcNo,
-														int sampleNo,
-                            int dataPointNo);
-#else
   ESCRIPT_DLL_API
   const boost::python::numeric::array
   convertToNumArrayFromDPNo(int procNo,
   			    int sampleNo,
 			    int dataPointNo);
-#endif
-
-
   /**
      \brief
      Fills the expanded Data object from values of a python numarray object.
