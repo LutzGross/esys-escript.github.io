@@ -33,7 +33,15 @@ def resetGlobalPrimitiveIdCounter():
    global global_primitive_id_counter
    global_primitive_id_counter=1
 
+def setToleranceForColocation(tol=1.e-11):
+   global global_tolerance_for_colocation
+   global_tolerance_for_colocation=tol
+
+def getToleranceForColocation():
+   return global_tolerance_for_colocation
+
 resetGlobalPrimitiveIdCounter()
+setToleranceForColocation()
 
 class Primitive(object):
     """
@@ -54,68 +62,35 @@ class Primitive(object):
        return "%s(%s)"%(self.__class__.__name__,self.getID())
     def __cmp__(self,other):
        return cmp(self.getID(),other.getID())
-    def getPoints(self):
+
+    def getConstructionPoints(self):
         """
-        returns the C{set} of points used to construct the primitive
+        returns the points used to construct the primitive
         """
         out=set()
-        for i in self.getHistory(): 
+        for i in self.getPrimitives(): 
            if isinstance(i,Point): out.add(i)
-        return out
+        return list(out)
 
-    def setLocalScale(self,factor=1.):
+    def getPrimitives(self):
         """
-        sets the local refinement factor
+        returns primitives used to construct the primitive
         """
-        for p in self.getPoints(): p.setLocalScale(factor)
+        return []
 
-    def isPoint(self):
-        """
-        returns C{True} is the primitive is a L{Point}
-        """
-        return False
-    def isCurve(self):
-        """
-        returns C{True} is the primitive is a L{Curve}
-        """
-        return False
-    def isSurface(self):
-        """
-        returns C{True} is the primitive is a L{Surface}
-        """
-        return False
-    def isCurveLoop(self):
-        """
-        returns C{True} is the primitive is a L{CurveLoop}
-        """
-        return False
-    def isSurfaceLoop(self):
-        """
-        returns C{True} is the primitive is a L{SurfaceLoop}
-        """
-        return False
-    def getHistory(self):
-        """
-        returns C{set} of primitive used to construct the primitive
-        """
-        return set()
     def copy(self):
        """
-       returns a copy of the object
+       returns a deep copy of the object
        """
        return Primitive()
 
-    def apply(self,transformation):
-        """
-        returns a new object by applying the transformation
-        """
-        raise NotImplementedError("apply is not implemented for this class %s."%self.__class__.__name__)
 
     def modifyBy(self,transformation):
-        """
-        modifies the object by applying a transformation 
-        """
-        raise NotImplementedError("modifyBy not implemented for this class %s."%self.__class__.__name__)
+       """
+       modifies the coordinates by applying a transformation 
+       """
+       for p in self.getConstructionPoints(): p.modifyBy(transformation)
+
 
     def __add__(self,other):
         """
@@ -169,14 +144,35 @@ class Primitive(object):
         elif isinstance(other,Transformation):
             trafo=other
         else:
-            raise TypeError, "cannot convert argument to Trnsformation class object."
+            raise TypeError, "cannot convert argument to Transformation class object."
         return self.apply(trafo)
 
     def __neg__(self):
         return ReversedPrimitive(self)
 
-    def getGmshCommand(self):
+    def setLocalScale(self,factor=1.):
+       """
+       sets the local refinement factor
+       """
+       for p in self.getConstructionPoints(): p.setLocalScale(factor)
+
+    def getGmshCommand(self, local_scaling_factor=1.):
+        """
+        returns the Gmsh command(s) to create the primitive
+        """
         raise NotImplementedError("getGmshCommand is not implemented for this class %s."%self.__class__.__name__)
+
+    def apply(self,transformation):
+        """
+        returns a new object by applying the transformation
+        """
+        raise NotImplementedError("apply is not implemented for this class %s."%self.__class__.__name__)
+
+    def isColocated(self,primitive):
+       """
+       returns True is the two primitives are located at the smae position
+       """
+       raise NotImplementedError("isColocated is not implemented for this class %s."%self.__class__.__name__)
 
 class Point(Primitive):
     """
@@ -216,26 +212,28 @@ class Point(Primitive):
        else:
           self._x=x
 
-    def getHistory(self):
+    def getPrimitives(self):
        """
-       returns C{set} of primitive used to construct the primitive
+       returns primitives used to construct the primitive
        """
-       return set([self])
+       return [self]
  
-    def isColocated(self,point,tol=1.e-11):
+    def isColocated(self,primitive):
        """
-       returns True if L{Point} point is colocation (same coordinates) 
-       that means if |self-point| <= tol * max(|self|,|point|)
+       returns True if L{Point} primitive is colocation (same coordinates) 
+       that means if |self-primitive| <= tol * max(|self|,|primitive|)
        """
-       if isinstance(point,Point):
-          point=point.getCoordinates()
-       c=self.getCoordinates()
-       d=c-point
-       return numarray.dot(d,d)<=tol**2*max(numarray.dot(c,c),numarray.dot(point,point))
+       if isinstance(primitive,Point):
+          primitive=primitive.getCoordinates()
+          c=self.getCoordinates()
+          d=c-primitive
+          return numarray.dot(d,d)<=getToleranceForColocation()**2*max(numarray.dot(c,c),numarray.dot(primitive,primitive))
+       else:
+          return False
 
     def copy(self):
        """
-       returns a copy of the point
+       returns a deep copy of the point
        """
        c=self.getCoordinates()
        return Point(c[0],c[1],c[2],local_scale=self.getLocalScale())
@@ -254,98 +252,150 @@ class Point(Primitive):
         new_p.modifyBy(transformation)
         return new_p
 
-
     def getGmshCommand(self, local_scaling_factor=1.):
+        """
+        returns the Gmsh command(s) to create the primitive
+        """
         c=self.getCoordinates()
         return "Point(%s) = {%s , %s, %s , %s };"%(self.getID(),c[0],c[1],c[2], self.getLocalScale()*local_scaling_factor)
 
-class Curve(Primitive):
+class Primitive1D(Primitive):
       """
-      a curve
+      general one-dimensional primitive
       """
       def __init__(self,*args):
           """
-          defines a curve form a set of control points
+          create a one-dimensional primitive
           """
+          super(Primitive1D, self).__init__()
+      
+class Curve(Primitive1D):
+    """
+    a curve defined through a list of control points. 
+    """
+    def __init__(self,*points):
+          """
+          defines a curve form control points 
+          """
+          if len(points)<2:
+             raise TypeError("Curve needs at least two points")
           super(Curve, self).__init__()
-          l=len(args)
-          for i in range(l):
-              if not args[i].isPoint():
-                 raise TypeError("%s-th argument is not a Point object."%i)
-          self.__nodes=args
-      def __len__(self):
-          return len(self.__nodes)
-      def isCurve(self):
-        return True
-      def getStart(self):
+          i=0
+          for p in points:
+              i+=1
+              if not isinstance(p,Point): raise TypeError("%s-th argument is not a Point object."%i)
+          self.__points=points
+
+    def __len__(self):
+          """
+          returns the number of control points
+          """
+          return len(self.__points)
+
+    def getStartPoint(self):
          """
          returns start point
          """
-         return self.__nodes[0]
+         return self.__points[0]
 
-      def getEnd(self):
+    def getEndPoint(self):
          """
          returns end point
          """
-         return self.__nodes[-1]
+         return self.__points[-1]
 
-      def getNodes(self):
+    def getControlPoints(self):
          """
-         returns a list of the nodes
+         returns a list of the points
          """
-         return self.__nodes
-      def getGmshCommand(self):
+         return self.__points
+
+    def getPrimitives(self):
+       """
+       returns primitives used to construct the Curve
+       """
+       out=set()
+       for p in self.getControlPoints(): out|=set(p.getPrimitives())
+       out.add(self)
+       return list(out)
+
+    def copy(self):
+       """
+       returns a deep copy
+       """
+       new_p=[]
+       for p in self.getControlPoints(): new_p.append(p.copy())
+       return self.__class__(*tuple(new_p))
+
+
+    def apply(self,transformation):
+        """
+        applies transformation
+        """
+        new_p=[]
+        for p in self.getControlPoints(): new_p.append(p.apply(transformation))
+        return self.__class__(*tuple(new_p))
+
+    def isColocated(self,primitive):
+       """
+       returns True curves are on the same position
+       """
+       if isinstance(primitive,self.__class__):
+          if len(primitive) == len(self):
+             cp0=self.getControlPoints()
+             cp1=primitive.getControlPoints()
+             for i in range(len(cp0)):
+                if not cp0[i].isColocated(cp1[i]):
+                   return False
+             return True
+          else:
+             return False
+       else:
+          return False
+
+class Spline(Curve):
+    """
+    a spline curve defined through a list of control points. 
+    """
+    def getGmshCommand(self):
+        """
+        returns the Gmsh command(s) to create the Curve
+        """
         out=""
-        for i in self.getNodes():
+        for i in self.getControlPoints():
             if len(out)>0: 
                 out+=", %s"%i.getID()
             else:
                 out="%s"%i.getID()
         return "Spline(%s) = {%s};"%(self.getID(),out)
-      def getHistory(self):
-          out=set([self])
-          for i in self.getNodes(): out|=i.getHistory()
-          return out
-      def getPoints(self):
-        out=set()
-        for i in self.getNodes(): out|=i.getPoints()
-        return out
-
+    
 
 class BezierCurve(Curve):
     """
     a Bezier curve
     """
-    def __neg__(self):
-         """
-         returns the line segment with swapped start and end points
-         """
-         return BezierCurve(self.getNodes()[::-1])
-    def __add__(self,other):
-         return BezierCurve([p+other for p in self.getNodes()])
     def getGmshCommand(self):
+        """
+        returns the Gmsh command(s) to create the Curve
+        """
         out=""
-        for i in self.getNodes():
+        for i in self.getControlPoints():
             if len(out)>0: 
                 out+=", %s"%i.getID()
             else:
                 out="%s"%i.getID()
         return "Bezier(%s) = {%s};"%(self.getID(),out)
 
-class BSplineCurve(Curve):
+class BSpline(Curve):
     """
     a BSpline curve. Control points may be repeated.
     """
-    def __neg__(self):
-         """
-         returns the line segment with swapped start and end points
-         """
-         return BSplineCurve(self.getNodes()[::-1])
-    def __add__(self,other):
-         return BSplineCurve([p+other for p in self.getNodes()])
     def getGmshCommand(self):
+        """
+        returns the Gmsh command(s) to create the Curve
+        """
         out=""
-        for i in self.getNodes():
+        for i in self.getControlPoints():
             if len(out)>0: 
                 out+=", %s"%i.getID()
             else:
@@ -356,19 +406,21 @@ class Line(Curve):
     """
     a line is defined by two L{Point}s
     """
-    def __init__(self,start,end):
+    def __init__(self,*points):
         """
-        defines a curve form a set of control points
+        defines a line with start and end point
         """
-        super(Line, self).__init__(start,end)
-    def __neg__(self):
-       return ReversedPrimitive(self)
-    def __add__(self,other):
-       return Line(self.getEnd()+other,self.getStart()+other)
+        if len(points)!=2:
+           raise TypeError("Line needs two points")
+        super(Line, self).__init__(*points)
     def getGmshCommand(self):
-        return "Line(%s) = {%s, %s};"%(self.getID(),self.getStart().getID(),self.getEnd().getID())
+        """
+        returns the Gmsh command(s) to create the Curve
+        """
+        return "Line(%s) = {%s, %s};"%(self.getID(),self.getStartPoint().getID(),self.getEndPoint().getID())
 
-class Arc(Curve):
+
+class Arc(Primitive1D):
     """
     defines an arc
     """
@@ -376,31 +428,75 @@ class Arc(Curve):
        """
        creates an arc by the start point, end point and center
        """
-       if center.isPoint():
-           raise TypeError("center needs to be a Point object.")
-       super(Arc, self).__init__(start,end)
+       if isinstance(center,Point): raise TypeError("center needs to be a Point object.")
+       if isinstance(end,Point): raise TypeError("end needs to be a Point object.")
+       if isinstance(start,Point): raise TypeError("start needs to be a Point object.")
+       super(Arc, self).__init__()
        self.__center=center
+       self.__start=start
+       self.__end=end
 
-    def getCenter(self):
+    def getStartPoint(self):
+       """
+       returns start point
+       """
+       return self.__start
+
+    def getEndPoint(self):
+       """
+       returns end point
+       """
+       return self.__end
+
+    def getCenterPoint(self):
        """
        returns center
        """
        return self.__center
-    def __add__(self,other):
-       return Arc(self.getCenter()+other,self.getStart()+other,self.getEnd()+other)
 
-    def getHistory(self):
-          out=set([self])
-          out|=self.getCenter().getHistory()
-          for i in self.getNodes(): out|=i.getHistory()
-          return out
-    def getPoints(self):
-          out=self.getCenter().getPoints()
-          for i in self.getNodes(): out|=i.getPoints()
-          return out
+    def getPrimitives(self):
+       """
+       returns C{set} of primitive used to construct the Curve
+       """
+       out=set()
+       out|=set(self.getStartPoint().getPrimitives())
+       out|=set(self.getEndPoint().getPrimitives())
+       out|=set(self.getCenterPoint().getPrimitives())
+       out.add(self)
+       return list(out)
+
     def getGmshCommand(self):
-        return "Circle(%s) = {%s, %s, %s};"%(self.getID(),self.getStart().getID(),self.getCenter().getID(),self.getEnd().getID())
+       """
+       returns the Gmsh command(s) to create the primitive
+       """
+       return "Circle(%s) = {%s, %s, %s};"%(self.getID(),self.getStartPoint().getID(),self.getCenterPoint().getID(),self.getEndPoint().getID())
 
+    def copy(self):
+       """
+       returns a deep copy
+       """
+       return Arc(self.getCenterPoint().copy(),self.getStartPoint().copy(),self.getEndPoint().copy())
+
+    def apply(self,transformation):
+        """
+        applies transformation
+        """
+        return Arc(self.getCenterPoint().apply(transformation),self.getStartPoint().apply(transformation),self.getEndPoint().apply(transformation))
+
+    def isColocated(self,primitive):
+       """
+       returns True curves are on the same position
+       """
+       if isinstance(primitive,Arc):
+            if not self.getCenterPoint().isColocated(primitive.getCenterPoint()): return False
+            if not self.getEndPoint().isColocated(primitive.getEndPoint()): return False
+            if not self.getStartPoint().isColocated(primitive.getStartPoint()): return False
+            return True
+       else:
+          return False
+
+
+#=================================================================================================================================
 class CurveLoop(Primitive):
     """
     An oriented loop of curves. 
@@ -428,13 +524,13 @@ class CurveLoop(Primitive):
        return CurveLoop(*tuple([c+other for c in self.getCurves()[::-1]]))
     def __len__(self):
        return len(self.__curves)
-    def getHistory(self):
+    def getPrimitives(self):
           out=set([self])
-          for i in self.getCurves(): out|=i.getHistory()
+          for i in self.getCurves(): out|=i.getPrimitives()
           return out
-    def getPoints(self):
+    def getConstructionPoints(self):
           out=set()
-          for i in self.getCurves(): out|=i.getPoints()
+          for i in self.getCurves(): out|=i.getConstructionPoints()
           return out
     def getGmshCommand(self):
         out=""
@@ -465,11 +561,11 @@ class Surface(Primitive):
        return self.__loop
     def __add__(self,other):
        return Surface(self.getBoundaryLoop()+other)
-    def getHistory(self):
-        out=set([self]) | self.getBoundaryLoop().getHistory()
+    def getPrimitives(self):
+        out=set([self]) | self.getBoundaryLoop().getPrimitives()
         return out
-    def getPoints(self):
-        return self.getBoundaryLoop().getPoints()
+    def getConstructionPoints(self):
+        return self.getBoundaryLoop().getConstructionPoints()
     def getGmshCommand(self):
         return "Ruled Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getID())
 
@@ -495,13 +591,13 @@ class PlaneSurface(Surface):
        return self.__holes
     def __add__(self,other):
        return PlaneSurface(self.getBoundaryLoop()+other, holes=[h+other for h in self.getHoles()])
-    def getHistory(self):
-        out=set([self]) | self.getBoundaryLoop().getHistory()
-        for i in self.getHoles(): out|=i.getHistory()
+    def getPrimitives(self):
+        out=set([self]) | self.getBoundaryLoop().getPrimitives()
+        for i in self.getHoles(): out|=i.getPrimitives()
         return out
-    def getPoints(self):
-        out=self.getBoundaryLoop().getPoints()
-        for i in self.getHoles(): out|=i.getPoints()
+    def getConstructionPoints(self):
+        out=self.getBoundaryLoop().getConstructionPoints()
+        for i in self.getHoles(): out|=i.getConstructionPoints()
         return out
     def getGmshCommand(self):
         out=""
@@ -562,13 +658,13 @@ class SurfaceLoop(Primitive):
        return SurfaceLoop([c+other for c in self.getSurfaces])
     def __len__(self):
        return len(self.__surfaces)
-    def getHistory(self):
+    def getPrimitives(self):
           out=set([self])
-          for i in self.getSurfaces(): out|=i.getHistory()
+          for i in self.getSurfaces(): out|=i.getPrimitives()
           return out
-    def getPoints(self):
+    def getConstructionPoints(self):
           out=set()
-          for i in self.getSurfaces(): out|=i.getPoints()
+          for i in self.getSurfaces(): out|=i.getConstructionPoints()
           return out
     def getGmshCommand(self):
         out=""
@@ -606,12 +702,12 @@ class Volume(Primitive):
        return self.__loop
     def __add__(self,other):
        return Volume(self.getSurfaceLoop()+other, holes=[h+other for h in self.getHoles()])
-    def getHistory(self):
-        out=set([self]) | self.getSurfaceLoop().getHistory()
-        for i in self.getHoles(): out|=i.getHistory()
+    def getPrimitives(self):
+        out=set([self]) | self.getSurfaceLoop().getPrimitives()
+        for i in self.getHoles(): out|=i.getPrimitives()
         return out
-    def getPoints(self):
-        out=self.getSurfaceLoop().getPoints()
+    def getConstructionPoints(self):
+        out=self.getSurfaceLoop().getConstructionPoints()
         for i in self.getHoles(): out|=i.Points()
         return out
     def getGmshCommand(self):
@@ -645,16 +741,16 @@ class PropertySet(Primitive):
        super(PropertySet, self).__init__()
        self.__items=items
        self.__tag=tag
-    def getHistory(self):
-        out=set([self, self.getBoundaryLoop().getHistory()])
-        for i in self.getHoles(): out|=i.getHistory()
+    def getPrimitives(self):
+        out=set([self, self.getBoundaryLoop().getPrimitives()])
+        for i in self.getHoles(): out|=i.getPrimitives()
         return out
 
 class PrimitiveStack(object):
       def __init__(self,*items):
         self.__prims=set()
         for i in items:
-            self.__prims|=i.getHistory()
+            self.__prims|=i.getPrimitives()
         self.__prims=list(self.__prims)
         self.__prims.sort()
 

@@ -61,13 +61,12 @@ class Rotatation(Transformation):
     """
     defines a rotation 
     """
-    def __init__(self,point0=numarray.zeros((3,),type=_TYPE),point1=numarray.ones((3,),type=_TYPE),angle=0.*RAD):
+    def __init__(self,axis=numarray.zeros((3,),type=_TYPE),point=numarray.ones((3,),type=_TYPE),angle=0.*RAD):
        """
-       creates a rotation using to points to define the axis and a rotation angle
+       creates a rotation using an axis and a point on the axis
        """
-       self.__point0=numarray.array(point0,type=_TYPE)
-       self.__point1=numarray.array(point1,type=_TYPE)
-       self.__axis=self.__point1-self.__point0
+       self.__axis=numarray.array(axis,type=_TYPE)
+       self.__point=numarray.array(point,type=_TYPE)
        lax=numarray.dot(self.__axis,self.__axis)
        if not lax>0:
           raise ValueError("points must be distinct.")
@@ -78,7 +77,7 @@ class Rotatation(Transformation):
        applies rotatation to x
        """
        x=numarray.array(x,_TYPE)
-       z=x-self.__point0
+       z=x-self.__point
        z0=numarray.dot(z,self.__axis)
        z_per=z-z0*self.__axis
        lz_per=numarray.dot(z_per,z_per)
@@ -88,7 +87,7 @@ class Rotatation(Transformation):
          lax2=numarray.dot(axis2,axis2)
          if lax2>0:
             axis2/=math.sqrt(lax2)
-            return z0*self.__axis+math.sqrt(lz_per)*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point0 
+            return z0*self.__axis+math.sqrt(lz_per)*(math.cos(self.__angle)*axis1-math.sin(self.__angle)*axis2)+self.__point 
          else:
             return x
        else:

@@ -298,7 +298,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s,numarray.NumArray),"s is not a numarray object.")
         self.failUnless(self.__distance(s,numarray.array([1.,2,1]))<self.ABS_TOL,"s is wrong.")
    def test_Rotatation_x_90_0(self):
-        t=Rotatation(point1=[1.,0.,0.],angle=90*DEG)
+        t=Rotatation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -309,7 +309,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,-1.,0.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_x_30_0(self):
-        t=Rotatation(point1=[1.,0.,0.],angle=30*DEG)
+        t=Rotatation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -324,7 +324,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([1.,0.,0.]))<0.,"s2 has wrong orientation.")
    def test_Rotatation_x_330_0(self):
-        t=Rotatation(point1=[1.,0.,0.],angle=330*DEG)
+        t=Rotatation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -339,7 +339,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([1.,0.,0.]))>0.,"s2 has wrong orientation.")
    def test_Rotatation_x_90(self):
-        t=Rotatation(point1=[1.,0.,0.],point0=[2.,0.,0.],angle=90*DEG)
+        t=Rotatation(axis=[-1.,0.,0.],point=[2.,0.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -350,7 +350,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,1.,0.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_x_30(self):
-        t=Rotatation(point1=[1.,0.,0.],point0=[2.,0.,0.],angle=30*DEG)
+        t=Rotatation(axis=[-1.,0.,0.],point=[1.,0.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -365,7 +365,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([-1.,0.,0.]))<0.,"s2 has wrong orientation.")
    def test_Rotatation_x_330(self):
-        t=Rotatation(point1=[1.,0.,0.],point0=[2.,0.,0.],angle=330*DEG)
+        t=Rotatation(axis=[-1.,0.,0.],point=[1.,0.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -380,7 +380,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([-1.,0.,0.]))>0.,"s2 has wrong orientation.")
    def test_Rotatation_y_90_0(self):
-        t=Rotatation(point1=[0.,1.,0.],angle=90*DEG)
+        t=Rotatation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([0.,0,-1.]))<self.ABS_TOL,"s0 is wrong.")
@@ -391,7 +391,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([1,0.,0.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_y_30_0(self):
-        t=Rotatation(point1=[0.,1.,0.],angle=30*DEG)
+        t=Rotatation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -406,7 +406,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([0.,1.,0.]))<0.,"s2 has wrong orientation.")
    def test_Rotatation_y_330_0(self):
-        t=Rotatation(point1=[0.,1.,0.],angle=330*DEG)
+        t=Rotatation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -421,7 +421,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([0.,1.,0.]))>0.,"s2 has wrong orientation.")
    def test_Rotatation_y_90(self):
-        t=Rotatation(point1=[0.,1.,0.],point0=[0.,2.,0.],angle=90*DEG)
+        t=Rotatation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([0.,0,1.]))<self.ABS_TOL,"s0 is wrong.")
@@ -432,7 +432,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([-1,0.,0.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_y_30(self):
-        t=Rotatation(point1=[0.,1.,0.],point0=[0.,2.,0.],angle=30*DEG)
+        t=Rotatation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -447,7 +447,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([0.,-1.,0.]))<0.,"s2 has wrong orientation.")
    def test_Rotatation_y_330(self):
-        t=Rotatation(point1=[0.,1.,0.],point0=[0.,2.,0.],angle=330*DEG)
+        t=Rotatation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -462,7 +462,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s2,[0,0,1]),numarray.array([0.,-1.,0.]))>0.,"s2 has wrong orientation.")
    def test_Rotatation_z_90_0(self):
-        t=Rotatation(point1=[0.,0.,1.],angle=90*DEG)
+        t=Rotatation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([0.,1,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -473,7 +473,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_z_30_0(self):
-        t=Rotatation(point1=[0.,0.,1.],angle=30*DEG)
+        t=Rotatation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -488,7 +488,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_z_330_0(self):
-        t=Rotatation(point1=[0.,0.,1.],angle=330*DEG)
+        t=Rotatation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -500,7 +500,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(s1[1]/5.-math.cos(330*DEG))<self.ABS_TOL,"s1 angle is wrong.")
         self.failUnless(numarray.dot(_cross(s1,[0,1,0]),numarray.array([0.,0.,1.]))>0.,"s1 has wrong orientation.")
    def test_Rotatation_z_90(self):
-        t=Rotatation(point1=[0.,0.,1.],point0=[0.,0.,2.],angle=90*DEG)
+        t=Rotatation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([0.,-1,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -511,7 +511,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_z_30(self):
-        t=Rotatation(point1=[0.,0.,1.],point0=[0.,0.,2.],angle=30*DEG)
+        t=Rotatation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -526,7 +526,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_z_330(self):
-        t=Rotatation(point1=[0.,0.,1.],point0=[0.,0.,2.],angle=330*DEG)
+        t=Rotatation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -541,7 +541,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_x_90_1(self):
-        t=Rotatation(point0=[0.,0.,1.],point1=[1.,0.,1.],angle=90*DEG)
+        t=Rotatation(point=[0.,0.,1.],axis=[1.,0.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,1,1.]))<self.ABS_TOL,"s0 is wrong.")
@@ -552,7 +552,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_y_90_1(self):
-        t=Rotatation(point0=[1.,0.,0.],point1=[1.,1.,0.],angle=90*DEG)
+        t=Rotatation(point=[1.,0.,0.],axis=[0.,1.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -563,7 +563,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([2.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_z_90_1(self):
-        t=Rotatation(point0=[0.,1.,0.],point1=[0.,1.,1.],angle=90*DEG)
+        t=Rotatation(point=[0.,1.,0.],axis=[0.,0.,1.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(self.__distance(s0,numarray.array([1.,2,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -574,7 +574,7 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(isinstance(s2,numarray.NumArray),"s2 is not a numarray object.")
         self.failUnless(self.__distance(s2,numarray.array([1.,1,1.]))<self.ABS_TOL,"s2 is wrong.")
    def test_Rotatation_diag_90_0(self):
-        t=Rotatation(point1=[1.,1.,1.],angle=90*DEG)
+        t=Rotatation(axis=[1.,1.,1.],angle=90*DEG)
         s0=t([1,-1,0])
         self.failUnless(isinstance(s0,numarray.NumArray),"s0 is not a numarray object.")
         self.failUnless(abs(numarray.dot(s0,s0)-2.)<self.ABS_TOL,"s0 length is wrong.")
@@ -605,21 +605,11 @@ class Test_PyCAD_Primitives(unittest.TestCase):
          self.failUnless(isinstance(id,int),"id number is not an integer")
          self.failUnless(not id==Primitive().getID(),"id number is not unique")
            
-         self.failUnless(not p.isPoint(),"generic primitive is not a point.")
-         self.failUnless(not p.isCurve(),"generic primitive is not a curve.")
-         self.failUnless(not p.isCurveLoop(),"generic primitive is not a curve loop.")
-         self.failUnless(not p.isSurface(),"generic primitive is not a surface.")
-         self.failUnless(not p.isSurfaceLoop(),"generic primitive is not a surface loop.")
-
-         hs=p.getHistory()
-         self.failUnless(isinstance(hs,set),"history must be a set")
+         hs=p.getPrimitives()
          self.failUnless(len(hs)==0,"history should be empty.")
 
-         ps=p.getPoints()
-         self.failUnless(isinstance(ps,set),"point set must be a set")
+         ps=p.getConstructionPoints()
          self.failUnless(len(ps)==0,"point set should be empty.")
-
-         p.setLocalScale(1.23)
 
    def test_point(self):
        p=Point(1.,2.,3.,local_scale=9.)
@@ -629,14 +619,12 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.failUnless(not id==Primitive().getID(),"id number is not unique")
            
        # check history:
-       hs=p.getHistory()
-       self.failUnless(isinstance(hs,set),"history must be a set")
+       hs=p.getPrimitives()
        self.failUnless(len(hs)==1,"history must have length 1.")
        self.failUnless(p in hs,"history must contain point p")
 
        # check incolved points:
-       ps=p.getPoints()
-       self.failUnless(isinstance(ps,set),"point set must be a set")
+       ps=p.getConstructionPoints()
        self.failUnless(len(ps)==1,"point set must have length 1.")
        self.failUnless(p in ps,"point set must contain point p")
 
@@ -657,9 +645,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
        # check for a colocated point:
        self.failUnless(p.isColocated(Point(-1.,-2.,-3.)),"colocation not detected.")
-       self.failUnless(p.isColocated(numarray.array([-1.,-2.,-3.])),"colocation with numarray representation not detected.")
-       self.failUnless(not p.isColocated(numarray.array([1.,-2.,-3.])),"false colocation detected.")
-       self.failUnless(not p.isColocated(numarray.array([0.,0.,0.])),"false colocation with origin detected.")
+       self.failUnless(not p.isColocated(numarray.array([-1.,-2.,-3.])),"colocation with numarray representation not detected.")
+       self.failUnless(not p.isColocated(Point(1.,-2.,-3.)),"false colocation detected.")
+       self.failUnless(not p.isColocated(Point(0.,0.,0.)),"false colocation with origin detected.")
 
        # check for local length scale
        l=p.getLocalScale()
@@ -755,6 +743,276 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        code=p.getGmshCommand(2.)
        self.failUnless("Point(1) = {8.0 , 16.0, 24.0 , 6.0 };"== code, "wrong gmsh code")
  
+   def test_spline(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+ 
+        self.failUnlessRaises(TypeError,Spline,p0)
+        c=Spline(p0,p1,p2,p3)
+
+        self.failUnless(len(c) == 4, "wrong spline curve length")
+        self.failUnless(c.getStartPoint()==p0, "wrong start point of spline curve")
+        self.failUnless(c.getEndPoint()==p3, "wrong end point of spline curve")
+
+        co=c.getControlPoints()
+        self.failUnless(co[0]==p0, "1st control point is wrong.")
+        self.failUnless(co[1]==p1, "2nd control point is wrong.")
+        self.failUnless(co[2]==p2, "3rd control point is wrong.")
+        self.failUnless(co[3]==p3, "4th control point is wrong.")
+
+        c.setLocalScale(3.)
+        co=c.getControlPoints()
+        self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
+        self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
+        self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
+        self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
+
+        code=c.getGmshCommand()
+        self.failUnless(code == "Spline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
+        self.failUnless(p0 in h, "missing p0 in history.")
+        self.failUnless(p1 in h, "missing p1 in history.")
+        self.failUnless(p2 in h, "missing p2 in history.")
+        self.failUnless(p3 in h, "missing p3 in history.")
+        self.failUnless(c in h, "missing spline curve in history.")
+
+        cp=c.copy()
+        self.failUnless(not cp == c, "copy returns same spline curve.")
+        cpcp=cp.getControlPoints()
+        self.failUnless(p0.isColocated(cpcp[0]),"1st point of copy and source are not collocated.")
+        self.failUnless(p1.isColocated(cpcp[1]),"2nd point of copy and source are not collocated.")
+        self.failUnless(p2.isColocated(cpcp[2]),"3rd point of copy and source are not collocated.")
+        self.failUnless(p3.isColocated(cpcp[3]),"4th point of copy and source are not collocated.")
+        self.failUnless(c.isColocated(cp),"spline curve is not collocated with its copy.")
+        self.failUnless(not c.isColocated(p0),"spline curve is collocated with point.")
+        self.failUnless(not c.isColocated(Spline(p0,p1)),"spline curve is collocated with shorter spline curve.")
+        self.failUnless(not c.isColocated(Curve(p0,p1,p2,p3)),"spline curve is identified with curve.")
+        self.failUnless(not c.isColocated(Spline(p0,p1,p4,p3)),"spline curve is collocated with defomed spline curve.")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(Spline(Point(0,0,0),Point(-1,-1,-1),Point(-2,-2,-2),Point(-3,-3,-3))),"inplace dilation is wrong.")
+        self.failUnless(p0.isColocated(Point(0,0,0)),"1st point has not been modified through Dilation.")
+        self.failUnless(p1.isColocated(Point(-1,-1,-1)),"2nd point has not been modified through Dilation.")
+        self.failUnless(p2.isColocated(Point(-2,-2,-2)),"3rd point has not been modified through Dilation.")
+        self.failUnless(p3.isColocated(Point(-3,-3,-3)),"4th point has not been modified through Dilation.")
+        cp=c.getControlPoints()
+        self.failUnless(p0 == cp[0],"1st new point after Dilation.")
+        self.failUnless(p1 == cp[1],"2nd new point after Dilation.")
+        self.failUnless(p2 == cp[2],"3rd new point after Dilation.")
+        self.failUnless(p3 == cp[3],"4th new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(Spline(Point(0,0,0),Point(1,1,1),Point(2,2,2),Point(3,3,3))),"dilation is wrong.")
+        dccp=dc.getControlPoints()
+        self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(not p2 == dccp[2],"3rd point of Dilation is identical to source.")
+        self.failUnless(not p3 == dccp[3],"4th point of Dilation is identical to source.")
+   
+
+   def test_BezierCurve(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+ 
+        self.failUnlessRaises(TypeError,BezierCurve,p0)
+        c=BezierCurve(p0,p1,p2,p3)
+
+        self.failUnless(len(c) == 4, "wrong spline curve length")
+        self.failUnless(c.getStartPoint()==p0, "wrong start point of spline curve")
+        self.failUnless(c.getEndPoint()==p3, "wrong end point of spline curve")
+
+        co=c.getControlPoints()
+        self.failUnless(co[0]==p0, "1st control point is wrong.")
+        self.failUnless(co[1]==p1, "2nd control point is wrong.")
+        self.failUnless(co[2]==p2, "3rd control point is wrong.")
+        self.failUnless(co[3]==p3, "4th control point is wrong.")
+
+        c.setLocalScale(3.)
+        co=c.getControlPoints()
+        self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
+        self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
+        self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
+        self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
+
+        code=c.getGmshCommand()
+        self.failUnless(code == "Bezier(6) = {1, 2, 3, 4};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
+        self.failUnless(p0 in h, "missing p0 in history.")
+        self.failUnless(p1 in h, "missing p1 in history.")
+        self.failUnless(p2 in h, "missing p2 in history.")
+        self.failUnless(p3 in h, "missing p3 in history.")
+        self.failUnless(c in h, "missing spline curve in history.")
+
+        cp=c.copy()
+        self.failUnless(not cp == c, "copy returns same spline curve.")
+        cpcp=cp.getControlPoints()
+        self.failUnless(p0.isColocated(cpcp[0]),"1st point of copy and source are not collocated.")
+        self.failUnless(p1.isColocated(cpcp[1]),"2nd point of copy and source are not collocated.")
+        self.failUnless(p2.isColocated(cpcp[2]),"3rd point of copy and source are not collocated.")
+        self.failUnless(p3.isColocated(cpcp[3]),"4th point of copy and source are not collocated.")
+        self.failUnless(c.isColocated(cp),"spline curve is not collocated with its copy.")
+        self.failUnless(not c.isColocated(p0),"spline curve is collocated with point.")
+        self.failUnless(not c.isColocated(BezierCurve(p0,p1)),"spline curve is collocated with shorter spline curve.")
+        self.failUnless(not c.isColocated(Curve(p0,p1,p2,p3)),"spline curve is identified with curve.")
+        self.failUnless(not c.isColocated(BezierCurve(p0,p1,p4,p3)),"spline curve is collocated with defomed spline curve.")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(BezierCurve(Point(0,0,0),Point(-1,-1,-1),Point(-2,-2,-2),Point(-3,-3,-3))),"inplace dilation is wrong.")
+        self.failUnless(p0.isColocated(Point(0,0,0)),"1st point has not been modified through Dilation.")
+        self.failUnless(p1.isColocated(Point(-1,-1,-1)),"2nd point has not been modified through Dilation.")
+        self.failUnless(p2.isColocated(Point(-2,-2,-2)),"3rd point has not been modified through Dilation.")
+        self.failUnless(p3.isColocated(Point(-3,-3,-3)),"4th point has not been modified through Dilation.")
+        cp=c.getControlPoints()
+        self.failUnless(p0 == cp[0],"1st new point after Dilation.")
+        self.failUnless(p1 == cp[1],"2nd new point after Dilation.")
+        self.failUnless(p2 == cp[2],"3rd new point after Dilation.")
+        self.failUnless(p3 == cp[3],"4th new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(BezierCurve(Point(0,0,0),Point(1,1,1),Point(2,2,2),Point(3,3,3))),"dilation is wrong.")
+        dccp=dc.getControlPoints()
+        self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(not p2 == dccp[2],"3rd point of Dilation is identical to source.")
+        self.failUnless(not p3 == dccp[3],"4th point of Dilation is identical to source.")
+
+   def test_BSpline(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+ 
+        self.failUnlessRaises(TypeError,BSpline,p0)
+        c=BSpline(p0,p1,p2,p3)
+
+        self.failUnless(len(c) == 4, "wrong spline curve length")
+        self.failUnless(c.getStartPoint()==p0, "wrong start point of spline curve")
+        self.failUnless(c.getEndPoint()==p3, "wrong end point of spline curve")
+
+        co=c.getControlPoints()
+        self.failUnless(co[0]==p0, "1st control point is wrong.")
+        self.failUnless(co[1]==p1, "2nd control point is wrong.")
+        self.failUnless(co[2]==p2, "3rd control point is wrong.")
+        self.failUnless(co[3]==p3, "4th control point is wrong.")
+
+        c.setLocalScale(3.)
+        co=c.getControlPoints()
+        self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
+        self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
+        self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
+        self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
+
+        code=c.getGmshCommand()
+        self.failUnless(code == "BSpline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
+        self.failUnless(p0 in h, "missing p0 in history.")
+        self.failUnless(p1 in h, "missing p1 in history.")
+        self.failUnless(p2 in h, "missing p2 in history.")
+        self.failUnless(p3 in h, "missing p3 in history.")
+        self.failUnless(c in h, "missing spline curve in history.")
+
+        cp=c.copy()
+        self.failUnless(not cp == c, "copy returns same spline curve.")
+        cpcp=cp.getControlPoints()
+        self.failUnless(p0.isColocated(cpcp[0]),"1st point of copy and source are not collocated.")
+        self.failUnless(p1.isColocated(cpcp[1]),"2nd point of copy and source are not collocated.")
+        self.failUnless(p2.isColocated(cpcp[2]),"3rd point of copy and source are not collocated.")
+        self.failUnless(p3.isColocated(cpcp[3]),"4th point of copy and source are not collocated.")
+        self.failUnless(c.isColocated(cp),"spline curve is not collocated with its copy.")
+        self.failUnless(not c.isColocated(p0),"spline curve is collocated with point.")
+        self.failUnless(not c.isColocated(BSpline(p0,p1)),"spline curve is collocated with shorter spline curve.")
+        self.failUnless(not c.isColocated(Curve(p0,p1,p2,p3)),"spline curve is identified with curve.")
+        self.failUnless(not c.isColocated(BSpline(p0,p1,p4,p3)),"spline curve is collocated with defomed spline curve.")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(BSpline(Point(0,0,0),Point(-1,-1,-1),Point(-2,-2,-2),Point(-3,-3,-3))),"inplace dilation is wrong.")
+        self.failUnless(p0.isColocated(Point(0,0,0)),"1st point has not been modified through Dilation.")
+        self.failUnless(p1.isColocated(Point(-1,-1,-1)),"2nd point has not been modified through Dilation.")
+        self.failUnless(p2.isColocated(Point(-2,-2,-2)),"3rd point has not been modified through Dilation.")
+        self.failUnless(p3.isColocated(Point(-3,-3,-3)),"4th point has not been modified through Dilation.")
+        cp=c.getControlPoints()
+        self.failUnless(p0 == cp[0],"1st new point after Dilation.")
+        self.failUnless(p1 == cp[1],"2nd new point after Dilation.")
+        self.failUnless(p2 == cp[2],"3rd new point after Dilation.")
+        self.failUnless(p3 == cp[3],"4th new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(BSpline(Point(0,0,0),Point(1,1,1),Point(2,2,2),Point(3,3,3))),"dilation is wrong.")
+        dccp=dc.getControlPoints()
+        self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(not p2 == dccp[2],"3rd point of Dilation is identical to source.")
+        self.failUnless(not p3 == dccp[3],"4th point of Dilation is identical to source.")
+
+   def test_LineSegment(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p4=Point(1,2,3)
+ 
+        self.failUnlessRaises(TypeError,Line,p0)
+        self.failUnlessRaises(TypeError,Line,p0,p1,p4)
+
+        c=Line(p0,p1)
+
+        self.failUnless(len(c) == 2, "wrong spline curve length")
+        self.failUnless(c.getStartPoint()==p0, "wrong start point of spline curve")
+        self.failUnless(c.getEndPoint()==p1, "wrong end point of spline curve")
+
+        co=c.getControlPoints()
+        self.failUnless(co[0]==p0, "1st control point is wrong.")
+        self.failUnless(co[1]==p1, "2nd control point is wrong.")
+
+        c.setLocalScale(3.)
+        co=c.getControlPoints()
+        self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
+        self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
+
+        code=c.getGmshCommand()
+        self.failUnless(code == "Line(4) = {1, 2};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 3, "number of primitives in history is wrong.")
+        self.failUnless(p0 in h, "missing p0 in history.")
+        self.failUnless(p1 in h, "missing p1 in history.")
+        self.failUnless(c in h, "missing spline curve in history.")
+
+        cp=c.copy()
+        self.failUnless(not cp == c, "copy returns same spline curve.")
+        cpcp=cp.getControlPoints()
+        self.failUnless(p0.isColocated(cpcp[0]),"1st point of copy and source are not collocated.")
+        self.failUnless(p1.isColocated(cpcp[1]),"2nd point of copy and source are not collocated.")
+        self.failUnless(c.isColocated(cp),"spline curve is not collocated with its copy.")
+        self.failUnless(not c.isColocated(p0),"spline curve is collocated with point.")
+        self.failUnless(not c.isColocated(Curve(p0,p1)),"spline curve is identified with curve.")
+        self.failUnless(not c.isColocated(Line(p0,p4)),"spline curve is collocated with defomed spline curve.")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(Line(Point(0,0,0),Point(-1,-1,-1))),"inplace dilation is wrong.")
+        self.failUnless(p0.isColocated(Point(0,0,0)),"1st point has not been modified through Dilation.")
+        self.failUnless(p1.isColocated(Point(-1,-1,-1)),"2nd point has not been modified through Dilation.")
+        cp=c.getControlPoints()
+        self.failUnless(p0 == cp[0],"1st new point after Dilation.")
+        self.failUnless(p1 == cp[1],"2nd new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(Line(Point(0,0,0),Point(1,1,1))),"dilation is wrong.")
+        dccp=dc.getControlPoints()
+        self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
