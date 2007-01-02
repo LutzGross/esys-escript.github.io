@@ -97,4 +97,5 @@ vis.dt=0.01
 vis.filename=WORKDIR+"/temp.xml"
 
 s=Simulation([sq,m,vis],debug=True)
+s.writeXML()
 s.run()

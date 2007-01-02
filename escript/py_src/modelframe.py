@@ -93,6 +93,7 @@ def parse(xml):
     doc = minidom.parseString(xml)
     sim = getComponent(doc.firstChild)
     for obj_id, link in LinkRegistry:
+        print obj_id.__class__
         link.target = LinkableObjectRegistry[obj_id]
 
     return sim
