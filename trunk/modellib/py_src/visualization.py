@@ -322,7 +322,7 @@ class WriteVTK(Visualization):
                               data19=None,name19=None)
     def collectData(self):
         kwargs={}
-        if not self.data0 == None:
+        if isinstance(self.data0, Data):
             if self.name0 == None:
                if isinstance(self.getAttributeObject("data0"),Link):
                   kwargs[self.getAttributeObject("data0").getAttributeName()]=self.data0
@@ -332,7 +332,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name0)]=self.data0
 
 
-        if not self.data1 == None:
+        if isinstance(self.data1, Data):
             if self.name1 == None:
                if isinstance(self.getAttributeObject("data1"),Link):
                   kwargs[self.getAttributeObject("data1").getAttributeName()]=self.data1
@@ -342,7 +342,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name1)]=self.data1
 
 
-        if not self.data2 == None:
+        if isinstance(self.data2, Data):
             if self.name2 == None:
                if isinstance(self.getAttributeObject("data2"),Link):
                   kwargs[self.getAttributeObject("data2").getAttributeName()]=self.data2
@@ -352,7 +352,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name2)]=self.data2
 
 
-        if not self.data3 == None:
+        if isinstance(self.data3, Data):
             if self.name3 == None:
                if isinstance(self.getAttributeObject("data3"),Link):
                   kwargs[self.getAttributeObject("data3").getAttributeName()]=self.data3
@@ -362,7 +362,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name3)]=self.data3
 
 
-        if not self.data4 == None:
+        if isinstance(self.data4, Data):
             if self.name4 == None:
                if isinstance(self.getAttributeObject("data4"),Link):
                   kwargs[self.getAttributeObject("data4").getAttributeName()]=self.data4
@@ -372,7 +372,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name4)]=self.data4
 
 
-        if not self.data5 == None:
+        if isinstance(self.data5, Data):
             if self.name5 == None:
                if isinstance(self.getAttributeObject("data5"),Link):
                   kwargs[self.getAttributeObject("data5").getAttributeName()]=self.data5
@@ -382,7 +382,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name5)]=self.data5
 
 
-        if not self.data6 == None:
+        if isinstance(self.data6, Data):
             if self.name6 == None:
                if isinstance(self.getAttributeObject("data6"),Link):
                   kwargs[self.getAttributeObject("data6").getAttributeName()]=self.data6
@@ -392,7 +392,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name6)]=self.data6
 
 
-        if not self.data7 == None:
+        if isinstance(self.data7, Data):
             if self.name7 == None:
                if isinstance(self.getAttributeObject("data7"),Link):
                   kwargs[self.getAttributeObject("data7").getAttributeName()]=self.data7
@@ -402,7 +402,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name7)]=self.data7
 
 
-        if not self.data8 == None:
+        if isinstance(self.data8, Data):
             if self.name8 == None:
                if isinstance(self.getAttributeObject("data8"),Link):
                   kwargs[self.getAttributeObject("data8").getAttributeName()]=self.data8
@@ -412,7 +412,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name8)]=self.data8
 
 
-        if not self.data9 == None:
+        if isinstance(self.data9, Data):
             if self.name9 == None:
                if isinstance(self.getAttributeObject("data9"),Link):
                   kwargs[self.getAttributeObject("data9").getAttributeName()]=self.data9
@@ -422,7 +422,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name9)]=self.data9
 
 
-        if not self.data10 == None:
+        if isinstance(self.data10, Data):
             if self.name10 == None:
                if isinstance(self.getAttributeObject("data10"),Link):
                   kwargs[self.getAttributeObject("data10").getAttributeName()]=self.data10
@@ -432,7 +432,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name10)]=self.data10
 
 
-        if not self.data11 == None:
+        if isinstance(self.data11, Data):
             if self.name11 == None:
                if isinstance(self.getAttributeObject("data11"),Link):
                   kwargs[self.getAttributeObject("data11").getAttributeName()]=self.data11
@@ -442,7 +442,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name11)]=self.data11
 
 
-        if not self.data12 == None:
+        if isinstance(self.data12, Data):
             if self.name12 == None:
                if isinstance(self.getAttributeObject("data12"),Link):
                   kwargs[self.getAttributeObject("data12").getAttributeName()]=self.data12
@@ -452,7 +452,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name12)]=self.data12
 
 
-        if not self.data13 == None:
+        if isinstance(self.data13, Data):
             if self.name13 == None:
                if isinstance(self.getAttributeObject("data13"),Link):
                   kwargs[self.getAttributeObject("data13").getAttributeName()]=self.data13
@@ -462,7 +462,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name13)]=self.data13
 
 
-        if not self.data14 == None:
+        if isinstance(self.data14, Data):
             if self.name14 == None:
                if isinstance(self.getAttributeObject("data14"),Link):
                   kwargs[self.getAttributeObject("data14").getAttributeName()]=self.data14
@@ -472,7 +472,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name14)]=self.data14
 
 
-        if not self.data15 == None:
+        if isinstance(self.data15, Data):
             if self.name15 == None:
                if isinstance(self.getAttributeObject("data15"),Link):
                   kwargs[self.getAttributeObject("data15").getAttributeName()]=self.data15
@@ -482,7 +482,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name15)]=self.data15
 
 
-        if not self.data16 == None:
+        if isinstance(self.data16, Data):
             if self.name16 == None:
                if isinstance(self.getAttributeObject("data16"),Link):
                   kwargs[self.getAttributeObject("data16").getAttributeName()]=self.data16
@@ -492,7 +492,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name16)]=self.data16
 
 
-        if not self.data17 == None:
+        if isinstance(self.data17, Data):
             if self.name17 == None:
                if isinstance(self.getAttributeObject("data17"),Link):
                   kwargs[self.getAttributeObject("data17").getAttributeName()]=self.data17
@@ -502,7 +502,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name17)]=self.data17
 
 
-        if not self.data18 == None:
+        if isinstance(self.data18, Data):
             if self.name18 == None:
                if isinstance(self.getAttributeObject("data18"),Link):
                   kwargs[self.getAttributeObject("data18").getAttributeName()]=self.data18
@@ -512,7 +512,7 @@ class WriteVTK(Visualization):
                kwargs[str(self.name18)]=self.data18
 
 
-        if not self.data19 == None:
+        if isinstance(self.data19, Data):
             if self.name19 == None:
                if isinstance(self.getAttributeObject("data19"),Link):
                   kwargs[self.getAttributeObject("data19").getAttributeName()]=self.data19

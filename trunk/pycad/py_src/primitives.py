@@ -30,14 +30,23 @@ from transformations import _TYPE, Translation, Dilation, Transformation
 
 
 def resetGlobalPrimitiveIdCounter():
+   """
+   initializes the global primitive ID counter
+   """
    global global_primitive_id_counter
    global_primitive_id_counter=1
 
 def setToleranceForColocation(tol=1.e-11):
+   """
+   set the global tolerance for colocation checks to tol
+   """
    global global_tolerance_for_colocation
    global_tolerance_for_colocation=tol
 
 def getToleranceForColocation():
+   """
+   returns the global tolerance for colocation checks
+   """
    return global_tolerance_for_colocation
 
 resetGlobalPrimitiveIdCounter()
@@ -422,15 +431,16 @@ class Line(Curve):
 
 class Arc(Primitive1D):
     """
-    defines an arc
+    defines an arc which is strictly, smaller than Pi
     """
     def __init__(self,center,start,end):
        """
        creates an arc by the start point, end point and center
        """
-       if isinstance(center,Point): raise TypeError("center needs to be a Point object.")
-       if isinstance(end,Point): raise TypeError("end needs to be a Point object.")
-       if isinstance(start,Point): raise TypeError("start needs to be a Point object.")
+       if not isinstance(center,Point): raise TypeError("center needs to be a Point object.")
+       if not isinstance(end,Point): raise TypeError("end needs to be a Point object.")
+       if not isinstance(start,Point): raise TypeError("start needs to be a Point object.")
+       # TODO: check length of circle.
        super(Arc, self).__init__()
        self.__center=center
        self.__start=start
@@ -456,7 +466,7 @@ class Arc(Primitive1D):
 
     def getPrimitives(self):
        """
-       returns C{set} of primitive used to construct the Curve
+       returns the primitives used to construct the Curve
        """
        out=set()
        out|=set(self.getStartPoint().getPrimitives())
@@ -494,7 +504,6 @@ class Arc(Primitive1D):
             return True
        else:
           return False
-
 
 #=================================================================================================================================
 class CurveLoop(Primitive):

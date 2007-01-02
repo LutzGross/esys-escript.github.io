@@ -1013,6 +1013,61 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
         self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
 
+   def test_arc(self):
+        center=Point(0,0,0,0.1)
+        p_start=Point(1,1,1,0.2)
+        p_end=Point(1,2,3)
+ 
+        self.failUnlessRaises(TypeError,Arc,Primitive())
+
+        c=Arc(center,p_start,p_end)
+
+        self.failUnless(c.getCenterPoint()==center, "wrong center point")
+        self.failUnless(c.getStartPoint()==p_start, "wrong start point")
+        self.failUnless(c.getEndPoint()==p_end, "wrong end point")
+
+        code=c.getGmshCommand() 
+        self.failUnless(code == "Circle(5) = {2, 1, 3};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 4, "number of primitives in history is wrong.")
+        self.failUnless(center in h, "missing center in history.")
+        self.failUnless(p_start in h, "missing p_start in history.")
+        self.failUnless(p_end in h, "missing p_end in history.")
+        self.failUnless(c in h, "missing spline curve in history.")
+
+
+        c.setLocalScale(3.)
+        self.failUnless(c.getCenterPoint().getLocalScale() == 3., "new local scale of center point is wrong.")
+        self.failUnless(c.getStartPoint().getLocalScale() == 3., "new local scale of start point is wrong.")
+        self.failUnless(c.getEndPoint().getLocalScale() == 3., "new local scale of end point is wrong.")
+
+        cp=c.copy()
+        self.failUnless(isinstance(cp,Arc), "copy returns is not an arc.")
+        self.failUnless(not cp == c, "copy returns same arc.")
+
+        cpcp=cp.getControlPoints()
+        self.failUnless(center.isColocated(cpcp[0]),"1st point of copy and source are not collocated.")
+        self.failUnless(p_start.isColocated(cpcp[1]),"2nd point of copy and source are not collocated.")
+        self.failUnless(c.isColocated(cp),"spline curve is not collocated with its copy.")
+        self.failUnless(not c.isColocated(center),"spline curve is collocated with point.")
+        self.failUnless(not c.isColocated(Curve(center,p_start)),"spline curve is identified with curve.")
+        self.failUnless(not c.isColocated(Line(center,p4)),"spline curve is collocated with defomed spline curve.")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(Line(Point(0,0,0),Point(-1,-1,-1))),"inplace dilation is wrong.")
+        self.failUnless(center.isColocated(Point(0,0,0)),"1st point has not been modified through Dilation.")
+        self.failUnless(p_start.isColocated(Point(-1,-1,-1)),"2nd point has not been modified through Dilation.")
+        cp=c.getControlPoints()
+        self.failUnless(center == cp[0],"1st new point after Dilation.")
+        self.failUnless(p_start == cp[1],"2nd new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(Line(Point(0,0,0),Point(1,1,1))),"dilation is wrong.")
+        dccp=dc.getControlPoints()
+        self.failUnless(not center == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(not p_start == dccp[1],"2nd point of Dilation is identical to source.")
+
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

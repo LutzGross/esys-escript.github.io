@@ -1,0 +1,371 @@
+<?xml version="1.0" ?>
+<ESys>
+	<Simulation type="Simulation">
+		<Component rank="0">
+			<Model id="102" module="esys.modellib.input" type="Sequencer">
+				<Parameter type="float">
+					<Name>
+						t_end
+					</Name>
+					<Value>
+						1.0
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						dt_max
+					</Name>
+					<Value>
+						0.5
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						t
+					</Name>
+					<Value>
+						0.0
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+		<Component rank="1">
+			<Simulation type="Simulation">
+				<Component rank="0">
+					<Model id="104" module="esys.modellib.flow" type="SteadyIncompressibleFlow">
+						<Parameter type="Link">
+							<Name>
+								domain
+							</Name>
+							<Value>
+								<Link>
+									<Target>
+										100
+									</Target>
+									<Attribute>
+										domain
+									</Attribute>
+								</Link>
+							</Value>
+						</Parameter>
+						<Parameter type="Link">
+							<Name>
+								internal_force
+							</Name>
+							<Value>
+								<Link>
+									<Target>
+										103
+									</Target>
+									<Attribute>
+										out
+									</Attribute>
+								</Link>
+							</Value>
+						</Parameter>
+						<Parameter type="float">
+							<Name>
+								abs_tol
+							</Name>
+							<Value>
+								0.0
+							</Value>
+						</Parameter>
+						<Parameter type="int">
+							<Name>
+								max_iter
+							</Name>
+							<Value>
+								10
+							</Value>
+						</Parameter>
+						<Parameter type="float">
+							<Name>
+								viscosity
+							</Name>
+							<Value>
+								1.0
+							</Value>
+						</Parameter>
+						<Parameter type="float">
+							<Name>
+								pressure
+							</Name>
+							<Value>
+								0.0
+							</Value>
+						</Parameter>
+						<Parameter type="float">
+							<Name>
+								rel_tol
+							</Name>
+							<Value>
+								0.001
+							</Value>
+						</Parameter>
+						<Parameter type="float">
+							<Name>
+								relaxation
+							</Name>
+							<Value>
+								0.0001
+							</Value>
+						</Parameter>
+						<Parameter type="list">
+							<Name>
+								prescribed_velocity
+							</Name>
+							<Value>
+								0.0 0.0
+							</Value>
+						</Parameter>
+						<Parameter type="float">
+							<Name>
+								velocity
+							</Name>
+							<Value>
+								0.0
+							</Value>
+						</Parameter>
+						<Parameter type="Link">
+							<Name>
+								location_prescribed_velocity
+							</Name>
+							<Value>
+								<Link>
+									<Target>
+										101
+									</Target>
+									<Attribute>
+										location_of_constraint
+									</Attribute>
+								</Link>
+							</Value>
+						</Parameter>
+					</Model>
+				</Component>
+			</Simulation>
+		</Component>
+		<Component rank="2">
+			<Model id="105" module="esys.modellib.probe" type="Probe">
+				<Parameter type="str">
+					<Name>
+						expression
+					</Name>
+					<Value>
+						(x[0]+x[1]-1.)*t
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						t
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								102
+							</Target>
+							<Attribute>
+								t
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="Link">
+					<Name>
+						value
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								104
+							</Target>
+							<Attribute>
+								pressure
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="str">
+					<Name>
+						line_tag
+					</Name>
+					<Value>
+						PROBE
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+	</Simulation>
+	<ParameterSet id="100">
+		<Parameter type="int">
+			<Name>
+				dim
+			</Name>
+			<Value>
+				2
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				l
+			</Name>
+			<Value>
+				1.0 1.0 1.0
+			</Value>
+		</Parameter>
+		<Parameter type="int">
+			<Name>
+				integrationOrder
+			</Name>
+			<Value>
+				-1
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				n
+			</Name>
+			<Value>
+				10 10 10
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				periodic
+			</Name>
+			<Value>
+				False False False
+			</Value>
+		</Parameter>
+		<Parameter type="int">
+			<Name>
+				order
+			</Name>
+			<Value>
+				2
+			</Value>
+		</Parameter>
+	</ParameterSet>
+	<ParameterSet id="103">
+		<Parameter type="Link">
+			<Name>
+				domain
+			</Name>
+			<Value>
+				<Link>
+					<Target>
+						100
+					</Target>
+					<Attribute>
+						domain
+					</Attribute>
+				</Link>
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				expression
+			</Name>
+			<Value>
+				t t
+			</Value>
+		</Parameter>
+		<Parameter type="Link">
+			<Name>
+				t
+			</Name>
+			<Value>
+				<Link>
+					<Target>
+						102
+					</Target>
+					<Attribute>
+						t
+					</Attribute>
+				</Link>
+			</Value>
+		</Parameter>
+	</ParameterSet>
+	<Model id="101" module="esys.modellib.geometry" type="VectorConstrainerOverBox">
+		<Parameter type="Link">
+			<Name>
+				domain
+			</Name>
+			<Value>
+				<Link>
+					<Target>
+						100
+					</Target>
+					<Attribute>
+						domain
+					</Attribute>
+				</Link>
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				right
+			</Name>
+			<Value>
+				1 0 0
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				bottom
+			</Name>
+			<Value>
+				0 1 0
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				top
+			</Name>
+			<Value>
+				0 1 0
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				back
+			</Name>
+			<Value>
+				0 0 1
+			</Value>
+		</Parameter>
+		<Parameter type="NoneType">
+			<Name>
+				value
+			</Name>
+			<Value>
+				None
+			</Value>
+		</Parameter>
+		<Parameter type="float">
+			<Name>
+				tol
+			</Name>
+			<Value>
+				1e-08
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				front
+			</Name>
+			<Value>
+				0 0 1
+			</Value>
+		</Parameter>
+		<Parameter type="list">
+			<Name>
+				left
+			</Name>
+			<Value>
+				1 0 0
+			</Value>
+		</Parameter>
+	</Model>
+</ESys>
