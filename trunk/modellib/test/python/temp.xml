@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <ESys>
-	<Simulation type="Simulation">
+	<Simulation id="100">
 		<Component rank="0">
 			<Model id="101" module="esys.modellib.input" type="Sequencer">
 				<Parameter type="float">
@@ -30,7 +30,90 @@
 			</Model>
 		</Component>
 		<Component rank="1">
-			<Model id="105" module="esys.modellib.temperature" type="TemperatureAdvection">
+			<Model id="102" module="esys.modellib.geometry" type="ScalarConstrainerOverBox">
+				<Parameter type="Link">
+					<Name>
+						domain
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								103
+							</Target>
+							<Attribute>
+								domain
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						right
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						bottom
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						top
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+				<Parameter type="bool">
+					<Name>
+						back
+					</Name>
+					<Value>
+						False
+					</Value>
+				</Parameter>
+				<Parameter type="NoneType">
+					<Name>
+						value
+					</Name>
+					<Value>
+						None
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						tol
+					</Name>
+					<Value>
+						1e-08
+					</Value>
+				</Parameter>
+				<Parameter type="bool">
+					<Name>
+						front
+					</Name>
+					<Value>
+						False
+					</Value>
+				</Parameter>
+				<Parameter type="int">
+					<Name>
+						left
+					</Name>
+					<Value>
+						1
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+		<Component rank="2">
+			<Model id="104" module="esys.modellib.temperature" type="TemperatureAdvection">
 				<Parameter type="float">
 					<Name>
 						safety_factor
@@ -46,7 +129,7 @@
 					<Value>
 						<Link>
 							<Target>
-								100
+								103
 							</Target>
 							<Attribute>
 								domain
@@ -61,7 +144,7 @@
 					<Value>
 						<Link>
 							<Target>
-								104
+								105
 							</Target>
 							<Attribute>
 								out
@@ -84,7 +167,7 @@
 					<Value>
 						<Link>
 							<Target>
-								104
+								105
 							</Target>
 							<Attribute>
 								out
@@ -130,7 +213,7 @@
 					<Value>
 						<NumArray>
 							<ArrayType>
-								Int32
+								Int
 							</ArrayType>
 							<Shape>
 								2
@@ -148,7 +231,7 @@
 					<Value>
 						<Link>
 							<Target>
-								103
+								106
 							</Target>
 							<Attribute>
 								out
@@ -158,8 +241,8 @@
 				</Parameter>
 			</Model>
 		</Component>
-		<Component rank="2">
-			<Model id="106" module="esys.modellib.probe" type="Probe">
+		<Component rank="3">
+			<Model id="107" module="esys.modellib.probe" type="Probe">
 				<Parameter type="str">
 					<Name>
 						expression
@@ -190,7 +273,7 @@
 					<Value>
 						<Link>
 							<Target>
-								105
+								104
 							</Target>
 							<Attribute>
 								temperature
@@ -209,7 +292,7 @@
 			</Model>
 		</Component>
 	</Simulation>
-	<ParameterSet id="100">
+	<ParameterSet id="103" module="esys.modellib.geometry" type="RectangularDomain">
 		<Parameter type="int">
 			<Name>
 				dim
@@ -218,12 +301,22 @@
 				2
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				l
 			</Name>
 			<Value>
-				1.0 1.0 1.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						1.0 1.0 1.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -234,20 +327,40 @@
 				-1
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				n
 			</Name>
 			<Value>
-				10 10 10
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						10 10 10
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				periodic
 			</Name>
 			<Value>
-				False False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -259,7 +372,7 @@
 			</Value>
 		</Parameter>
 	</ParameterSet>
-	<ParameterSet id="104">
+	<ParameterSet id="105" module="esys.modellib.probe" type="EvaluateExpression">
 		<Parameter type="Link">
 			<Name>
 				domain
@@ -267,7 +380,7 @@
 			<Value>
 				<Link>
 					<Target>
-						100
+						103
 					</Target>
 					<Attribute>
 						domain
@@ -299,7 +412,7 @@
 			</Value>
 		</Parameter>
 	</ParameterSet>
-	<Model id="102" module="esys.modellib.geometry" type="ScalarConstrainerOverBox">
+	<ParameterSet id="106" module="esys.modellib.probe" type="EvaluateExpression">
 		<Parameter type="Link">
 			<Name>
 				domain
@@ -307,88 +420,7 @@
 			<Value>
 				<Link>
 					<Target>
-						100
-					</Target>
-					<Attribute>
-						domain
-					</Attribute>
-				</Link>
-			</Value>
-		</Parameter>
-		<Parameter type="int">
-			<Name>
-				right
-			</Name>
-			<Value>
-				1
-			</Value>
-		</Parameter>
-		<Parameter type="int">
-			<Name>
-				bottom
-			</Name>
-			<Value>
-				1
-			</Value>
-		</Parameter>
-		<Parameter type="int">
-			<Name>
-				top
-			</Name>
-			<Value>
-				1
-			</Value>
-		</Parameter>
-		<Parameter type="bool">
-			<Name>
-				back
-			</Name>
-			<Value>
-				False
-			</Value>
-		</Parameter>
-		<Parameter type="NoneType">
-			<Name>
-				value
-			</Name>
-			<Value>
-				None
-			</Value>
-		</Parameter>
-		<Parameter type="float">
-			<Name>
-				tol
-			</Name>
-			<Value>
-				1e-08
-			</Value>
-		</Parameter>
-		<Parameter type="bool">
-			<Name>
-				front
-			</Name>
-			<Value>
-				False
-			</Value>
-		</Parameter>
-		<Parameter type="int">
-			<Name>
-				left
-			</Name>
-			<Value>
-				1
-			</Value>
-		</Parameter>
-	</Model>
-	<ParameterSet id="103">
-		<Parameter type="Link">
-			<Name>
-				domain
-			</Name>
-			<Value>
-				<Link>
-					<Target>
-						100
+						103
 					</Target>
 					<Attribute>
 						domain

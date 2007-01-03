@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <ESys>
-	<Simulation type="Simulation">
+	<Simulation id="100">
 		<Component rank="0">
-			<Model id="102" module="esys.modellib.input" type="Sequencer">
+			<Model id="101" module="esys.modellib.input" type="Sequencer">
 				<Parameter type="float">
 					<Name>
 						t_end
@@ -30,9 +30,9 @@
 			</Model>
 		</Component>
 		<Component rank="1">
-			<Simulation type="Simulation">
+			<Simulation id="102">
 				<Component rank="0">
-					<Model id="104" module="esys.modellib.flow" type="SteadyIncompressibleFlow">
+					<Model id="103" module="esys.modellib.flow" type="SteadyIncompressibleFlow">
 						<Parameter type="Link">
 							<Name>
 								domain
@@ -40,7 +40,7 @@
 							<Value>
 								<Link>
 									<Target>
-										100
+										104
 									</Target>
 									<Attribute>
 										domain
@@ -55,7 +55,7 @@
 							<Value>
 								<Link>
 									<Target>
-										103
+										105
 									</Target>
 									<Attribute>
 										out
@@ -111,12 +111,22 @@
 								0.0001
 							</Value>
 						</Parameter>
-						<Parameter type="list">
+						<Parameter type="NumArray">
 							<Name>
 								prescribed_velocity
 							</Name>
 							<Value>
-								0.0 0.0
+								<NumArray>
+									<ArrayType>
+										Float
+									</ArrayType>
+									<Shape>
+										2
+									</Shape>
+									<Data>
+										0.0 0.0
+									</Data>
+								</NumArray>
 							</Value>
 						</Parameter>
 						<Parameter type="float">
@@ -134,7 +144,7 @@
 							<Value>
 								<Link>
 									<Target>
-										101
+										106
 									</Target>
 									<Attribute>
 										location_of_constraint
@@ -147,7 +157,7 @@
 			</Simulation>
 		</Component>
 		<Component rank="2">
-			<Model id="105" module="esys.modellib.probe" type="Probe">
+			<Model id="107" module="esys.modellib.probe" type="Probe">
 				<Parameter type="str">
 					<Name>
 						expression
@@ -163,7 +173,7 @@
 					<Value>
 						<Link>
 							<Target>
-								102
+								101
 							</Target>
 							<Attribute>
 								t
@@ -178,7 +188,7 @@
 					<Value>
 						<Link>
 							<Target>
-								104
+								103
 							</Target>
 							<Attribute>
 								pressure
@@ -197,7 +207,7 @@
 			</Model>
 		</Component>
 	</Simulation>
-	<ParameterSet id="100">
+	<ParameterSet id="104" module="esys.modellib.geometry" type="RectangularDomain">
 		<Parameter type="int">
 			<Name>
 				dim
@@ -206,12 +216,22 @@
 				2
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				l
 			</Name>
 			<Value>
-				1.0 1.0 1.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						1.0 1.0 1.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -222,20 +242,40 @@
 				-1
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				n
 			</Name>
 			<Value>
-				10 10 10
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						10 10 10
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				periodic
 			</Name>
 			<Value>
-				False False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -247,7 +287,7 @@
 			</Value>
 		</Parameter>
 	</ParameterSet>
-	<ParameterSet id="103">
+	<ParameterSet id="105" module="esys.modellib.probe" type="EvaluateExpression">
 		<Parameter type="Link">
 			<Name>
 				domain
@@ -255,7 +295,7 @@
 			<Value>
 				<Link>
 					<Target>
-						100
+						104
 					</Target>
 					<Attribute>
 						domain
@@ -278,7 +318,7 @@
 			<Value>
 				<Link>
 					<Target>
-						102
+						101
 					</Target>
 					<Attribute>
 						t
@@ -287,7 +327,7 @@
 			</Value>
 		</Parameter>
 	</ParameterSet>
-	<Model id="101" module="esys.modellib.geometry" type="VectorConstrainerOverBox">
+	<Model id="106" module="esys.modellib.geometry" type="VectorConstrainerOverBox">
 		<Parameter type="Link">
 			<Name>
 				domain
@@ -295,7 +335,7 @@
 			<Value>
 				<Link>
 					<Target>
-						100
+						104
 					</Target>
 					<Attribute>
 						domain
@@ -303,36 +343,76 @@
 				</Link>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				right
 			</Name>
 			<Value>
-				1 0 0
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						1 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				bottom
 			</Name>
 			<Value>
-				0 1 0
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 1 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				top
 			</Name>
 			<Value>
-				0 1 0
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 1 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				back
 			</Name>
 			<Value>
-				0 0 1
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 1
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="NoneType">
@@ -351,20 +431,40 @@
 				1e-08
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				front
 			</Name>
 			<Value>
-				0 0 1
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 1
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				left
 			</Name>
 			<Value>
-				1 0 0
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						1 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 	</Model>

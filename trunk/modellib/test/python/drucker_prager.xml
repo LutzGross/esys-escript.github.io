@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <ESys>
-	<Simulation type="Simulation">
+	<Simulation id="100">
 		<Component rank="0">
 			<Model id="101" module="esys.modellib.input" type="Sequencer">
 				<Parameter type="float">
@@ -30,7 +30,7 @@
 			</Model>
 		</Component>
 		<Component rank="1">
-			<Model id="103" module="esys.modellib.mechanics" type="DruckerPrager">
+			<Model id="102" module="esys.modellib.mechanics" type="DruckerPrager">
 				<Parameter type="NoneType">
 					<Name>
 						stress
@@ -47,12 +47,12 @@
 						0.0
 					</Value>
 				</Parameter>
-				<Parameter type="Data">
+				<Parameter type="NoneType">
 					<Name>
 						internal_force
 					</Name>
 					<Value>
-						(Empty Data)
+						None
 					</Value>
 				</Parameter>
 				<Parameter type="float">
@@ -71,12 +71,12 @@
 						1.0
 					</Value>
 				</Parameter>
-				<Parameter type="Data">
+				<Parameter type="NoneType">
 					<Name>
 						external_force
 					</Name>
 					<Value>
-						(Empty Data)
+						None
 					</Value>
 				</Parameter>
 				<Parameter type="int">
@@ -102,7 +102,7 @@
 					<Value>
 						<Link>
 							<Target>
-								100
+								103
 							</Target>
 							<Attribute>
 								domain
@@ -188,7 +188,7 @@
 					<Value>
 						<Link>
 							<Target>
-								102
+								105
 							</Target>
 							<Attribute>
 								out
@@ -294,7 +294,7 @@
 					<Value>
 						<Link>
 							<Target>
-								103
+								102
 							</Target>
 							<Attribute>
 								velocity
@@ -309,7 +309,7 @@
 					<Value>
 						<Link>
 							<Target>
-								103
+								102
 							</Target>
 							<Attribute>
 								plastic_stress
@@ -332,7 +332,7 @@
 					<Value>
 						<Link>
 							<Target>
-								103
+								102
 							</Target>
 							<Attribute>
 								stress
@@ -606,7 +606,7 @@
 			</Model>
 		</Component>
 	</Simulation>
-	<ParameterSet id="100">
+	<ParameterSet id="103" module="esys.modellib.geometry" type="RectangularDomain">
 		<Parameter type="int">
 			<Name>
 				dim
@@ -615,12 +615,22 @@
 				3
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				l
 			</Name>
 			<Value>
-				0.5 1.0 1.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0.5 1.0 1.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -631,20 +641,40 @@
 				-1
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				n
 			</Name>
 			<Value>
-				30 6 6
+				<NumArray>
+					<ArrayType>
+						Int
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						30 6 6
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				periodic
 			</Name>
 			<Value>
-				False False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="int">
@@ -664,7 +694,7 @@
 			<Value>
 				<Link>
 					<Target>
-						100
+						103
 					</Target>
 					<Attribute>
 						domain
@@ -672,36 +702,76 @@
 				</Link>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				right
 			</Name>
 			<Value>
-				True True True
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						1 1 1
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				bottom
 			</Name>
 			<Value>
-				False False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				top
 			</Name>
 			<Value>
-				False False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				back
 			</Name>
 			<Value>
-				False False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 		<Parameter type="Link">
@@ -711,7 +781,7 @@
 			<Value>
 				<Link>
 					<Target>
-						102
+						105
 					</Target>
 					<Attribute>
 						out
@@ -727,24 +797,44 @@
 				1e-08
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				front
 			</Name>
 			<Value>
-				False False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				left
 			</Name>
 			<Value>
-				True False False
+				<NumArray>
+					<ArrayType>
+						Bool
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						1 0 0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 	</Model>
-	<ParameterSet id="102">
+	<ParameterSet id="105" module="esys.modellib.input" type="InterpolateOverBox">
 		<Parameter type="Link">
 			<Name>
 				domain
@@ -752,7 +842,7 @@
 			<Value>
 				<Link>
 					<Target>
-						100
+						103
 					</Target>
 					<Attribute>
 						domain
@@ -760,68 +850,148 @@
 				</Link>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_left_top_back
 			</Name>
 			<Value>
-				-1.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						-1.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_right_top_front
 			</Name>
 			<Value>
-				0.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_left_bottom_front
 			</Name>
 			<Value>
-				-1.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						-1.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_right_bottom_back
 			</Name>
 			<Value>
-				0.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_left_top_front
 			</Name>
 			<Value>
-				-1.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						-1.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_right_top_back
 			</Name>
 			<Value>
-				0.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_right_bottom_front
 			</Name>
 			<Value>
-				0.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						0.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
-		<Parameter type="list">
+		<Parameter type="NumArray">
 			<Name>
 				value_left_bottom_back
 			</Name>
 			<Value>
-				-1.0 0.0 0.0
+				<NumArray>
+					<ArrayType>
+						Float
+					</ArrayType>
+					<Shape>
+						3
+					</Shape>
+					<Data>
+						-1.0 0.0 0.0
+					</Data>
+				</NumArray>
 			</Value>
 		</Parameter>
 	</ParameterSet>

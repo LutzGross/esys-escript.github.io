@@ -20,11 +20,11 @@ class GravityForce(ParameterSet):
        @ivar gravity: the gravity constant, default 9.81 (in).
        @ivar direction: the direction of gravity, default [1.,0.,0.] (in).
        """
-       def __init__(self,debug=False):
+       def __init__(self,**kwargs):
            """
            initializes the set
            """
-           ParameterSet.__init__(self,debug=debug)
+           super(GravityForce, self).__init__(**kwargs)
            self.declareParameter(domain=None,
                                  gravity=9.81, \
                                  density=1., \
@@ -52,8 +52,8 @@ class MaterialTable(ParameterSet):
        @ivar viscosity (in/out): viscosity
        @ivar radiation_coefficient (in/out):
        """
-       def __init__(self,debug=False):
-           ParameterSet.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           super(MaterialTable, self).__init__(**kwargs)
            self.declareParameter(gravity=9.81, \
                                  density=1., \
                                  heat_capacity=1., \
@@ -79,14 +79,15 @@ class SimpleEarthModel(ParameterSet):
        @ivar viscosity (out): viscosity
        @ivar density (out): density
        """
-       def __init__(self,debug=False):
-           ParameterSet.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           super(SimpleEarthModel, self).__init__(**kwargs)
            self.declareParameter(reference_temperature=1.,
                                  gravity=9.81, \
                                  density0=1., \
                                  expansion_coefficient=0., \
                                  viscosity0=1., \
                                  alpha=0., \
+                                 temperature=0.,\
                                  heat_capacity=1., \
                                  thermal_permabilty=1.)
       
@@ -107,8 +108,8 @@ class SimpleSolidMaterial(MaterialTable):
        @ivar viscosity (in/out): viscosity
        @ivar radiation_coefficient (in/out):
        """
-       def __init__(self,debug=False):
-           MaterialTable.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           super(MaterialTable, self).__init__(**kwargs)
            self.declareParameter(lame_lambda=1.,\
                                  lame_my=1.)
 
@@ -122,8 +123,8 @@ class SimpleFluidMaterial(MaterialTable):
        @ivar viscosity (in/out): viscosity
        @ivar radiation_coefficient (in/out):
        """
-       def __init__(self,debug=False):
-           MaterialTable.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           super(MaterialTable, self).__init__(**kwargs)
            self.declareParameter(viscosity=1., \
                                  hydraulic_conductivity=1.e-4)
 

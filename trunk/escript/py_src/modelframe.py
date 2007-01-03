@@ -27,7 +27,6 @@ from sys import stdout
 import numarray
 import operator
 import itertools
-# import modellib  temporarily removed!!!
 
 # import the 'set' module if it's not defined (python2.3/2.4 difference)
 try:
@@ -37,28 +36,6 @@ except NameError:
 
 from xml.dom import minidom
 
-def dataNode(document, tagName, data):
-    """
-    C{dataNode}s are the building blocks of the xml documents constructed in
-    this module.  
-    
-    @param document: the current xml document
-    @param tagName: the associated xml tag
-    @param data: the values in the tag
-    """
-    t = document.createTextNode(str(data))
-    n = document.createElement(tagName)
-    n.appendChild(t)
-    return n
-
-def esysDoc():
-    """
-    Global method for creating an instance of an EsysXML document.
-    """
-    doc = minidom.Document()
-    esys = doc.createElement('ESys')
-    doc.appendChild(esys)
-    return doc, esys
 
 def all(seq):
     for x in seq:
@@ -72,36 +49,9 @@ def any(seq):
             return True
     return False
 
-LinkableObjectRegistry = {}
-
-def registerLinkableObject(obj_id, o):
-    LinkableObjectRegistry[obj_id] = o
-
-LinkRegistry = []
-
-def registerLink(obj_id, l):
-    LinkRegistry.append((obj_id,l))
-
-def parse(xml):
-    """
-    Generic parse method for EsysXML.  Without this, Links don't work.
-    """
-    global LinkRegistry, LinkableObjectRegistry
-    LinkRegistry = []
-    LinkableObjectRegistry = {}
-
-    doc = minidom.parseString(xml)
-    sim = getComponent(doc.firstChild)
-    for obj_id, link in LinkRegistry:
-        print obj_id.__class__
-        link.target = LinkableObjectRegistry[obj_id]
-
-    return sim
-
 def importName(modulename, name):
     """ Import a named object from a module in the context of this function,
         which means you should use fully qualified module paths.
-        
         Return None on failure.
 
         This function from: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52241
@@ -113,36 +63,137 @@ def importName(modulename, name):
     except KeyError:
         raise ImportError("Could not import %s from %s" % (name, modulename))
 
-def getComponent(doc):
-    """ 
-    Used to get components of Simualtions, Models.
+class ESySXMLParser(object):
     """
-    for node in doc.childNodes:
-        
-        if isinstance(node, minidom.Element):
-            if node.tagName == 'Simulation':
-                if node.getAttribute("type") == 'Simulation':
-                    return Simulation.fromDom(node)
-            if node.tagName == 'Model':
-                if (node.getAttribute("module")):
-                    model_module = node.getAttribute("module")
-                    model_type = node.getAttribute("type")
-                    return importName(model_module, model_type).fromDom(node)
-                else:
-                    model_type = node.getAttribute("type")
-                    model_subclasses = Model.__subclasses__()
-                    for model in model_subclasses:
-                        if model_type == model.__name__:
-                            return Model.fromDom(node)
-            if node.tagName == 'ParameterSet':
-                parameter_type = node.getAttribute("type")
-                return ParameterSet.fromDom(node)
-            raise "Invalid simulation type, %r" % node.getAttribute("type")
-        
+    parser for ESysXML file
+    """
+    def __init__(self,xml, debug=False):
+      self.__dom = minidom.parseString(xml)
+      self.__linkable_object_registry= {}
+      self.__link_registry=  []
+      self.__esys=self.__dom.firstChild
+      self.debug=debug
+  
+    def getClassPath(self, node): 
+        type = node.getAttribute("type")
+        if (node.getAttribute("module")):
+            module = node.getAttribute("module")
+            return importName(module, type)
+        else:
+            return importName("__main__", type)
 
-    raise ValueError("No Simulation Found")
-            
+    def setLinks(self):
+        for obj_id, link in self.__link_registry: 
+            link.target = self.__linkable_object_registry[obj_id]
 
+    def parse(self):
+       """
+       parser method for EsysXML and returns the list of generating ParameterSets 
+       """
+       found=[]
+       for node in self.__esys.childNodes:
+           if isinstance(node, minidom.Element):
+               if node.tagName == 'Simulation':
+                        found.append(Simulation.fromDom(self, node))
+               elif node.tagName == 'Model':
+                        found.append(self.getClassPath(node).fromDom(self, node))
+               elif node.tagName == 'ParameterSet':
+                        found.append(self.getClassPath(node).fromDom(self, node))
+               else:
+                  raise "Invalid type, %r" % node.getAttribute("type")
+       self.setLinks()
+       return found
+
+    def registerLink(self,obj_id, link):
+        self.__link_registry.append((int(obj_id),link))
+
+    def registerLinkableObject(self,obj, node):
+        id_str=node.getAttribute('id').strip()
+        if len(id_str)>0:
+           id=int(id_str)
+           if self.__linkable_object_registry.has_key(id):
+               raise ValueError("Object id %s already exists."%id)
+           else:
+               self.__linkable_object_registry[id]=obj
+
+    def getComponent(self, node):
+       """
+       returns a single component + rank from a simulation 
+       parser method for EsysXML and returns the list of generating ParameterSets 
+       """
+       rank  = int(node.getAttribute("rank"))
+       for n in node.childNodes:
+           if isinstance(n, minidom.Element):
+               if n.tagName == 'Simulation':
+                        return (rank, Simulation.fromDom(self, n))
+               elif n.tagName == 'Model':
+                        return (rank, self.getClassPath(n).fromDom(self, n))
+               elif n.tagName == 'ParameterSet':
+                        return (rank, self.getClassPath(n).fromDom(self, n))
+               else:
+                 raise ValueError("illegal component type %s"%n.tagName)
+       raise ValueError("cannot resolve Component")
+
+class ESySXMLCreator(object):
+    """
+    creates an XML Dom representation
+    """
+    def __init__(self):
+       self.__dom=minidom.Document()
+       self.__esys =self.__dom.createElement('ESys')
+       self.__dom.appendChild(self.__esys)
+       self.__linkable_object_registry={}
+       self.__number_sequence = itertools.count(100)
+    def getRoot(self):
+       return self.__esys
+    def createElement(self,name):
+      return self.__dom.createElement(name)
+    def createTextNode(self,name):
+      return self.__dom.createTextNode(name) 
+    def getElementById(self,name):
+      return self.__dom.getElementById(name)
+    def createDataNode(self, tagName, data):
+          """
+          C{createDataNode}s are the building blocks of the xml documents constructed in
+          this module.  
+    
+          @param tagName: the associated xml tag
+          @param data: the values in the tag
+          """
+          n = self.createElement(tagName)
+          n.appendChild(self.createTextNode(str(data)))
+          return n
+    def getLinkableObjectId(self, obj):
+        for id, o in self.__linkable_object_registry.items():
+            if o == obj: return id
+        id =self.__number_sequence.next()
+        self.__linkable_object_registry[id]=obj
+        return id
+         
+    def registerLinkableObject(self, obj, node):
+        """
+        returns a unique object id for object obj
+        """
+        id=self.getLinkableObjectId(obj)
+        node.setAttribute('id',str(id))
+        node.setIdAttribute("id")
+
+    def includeTargets(self):
+        target_written=True
+        while target_written:
+            targetsList =self.__dom.getElementsByTagName('Target')
+            target_written=False
+            for element in targetsList:
+               targetId = int(element.firstChild.nodeValue.strip())
+               if self.getElementById(str(targetId)): continue
+               targetObj = self.__linkable_object_registry[targetId]
+               targetObj.toDom(self, self.__esys)
+               target_written=True
+
+    def toprettyxml(self):
+        self.includeTargets()
+        return self.__dom.toprettyxml()
+ 
 class Link:
     """
     A Link makes an attribute of an object callable:: 
@@ -213,41 +264,29 @@ class Link:
         else:
             return out
 
-    def toDom(self, document, node):
+    def toDom(self, esysxml, node):
         """
         C{toDom} method of Link. Creates a Link node and appends it to the
-	current XML document.
+	current XML esysxml.
         """
-        link = document.createElement('Link')
+        link = esysxml.createElement('Link')
         assert (self.target != None), ("Target was none, name was %r" % self.attribute)
-        link.appendChild(dataNode(document, 'Target', self.target.id))
+        link.appendChild(esysxml.createDataNode('Target', esysxml.getLinkableObjectId(self.target)))
         # this use of id will not work for purposes of being able to retrieve the intended
         # target from the xml later. I need a better unique identifier.
         assert self.attribute, "You can't xmlify a Link without a target attribute"
-        link.appendChild(dataNode(document, 'Attribute', self.attribute))
+        link.appendChild(esysxml.createDataNode('Attribute', self.attribute))
         node.appendChild(link)
 
-    def fromDom(cls, doc):
-        targetid = doc.getElementsByTagName("Target")[0].firstChild.nodeValue.strip()
-        attribute = doc.getElementsByTagName("Attribute")[0].firstChild.nodeValue.strip()
+    def fromDom(cls, esysxml, node):
+        targetid = int(node.getElementsByTagName("Target")[0].firstChild.nodeValue.strip())
+        attribute =str(node.getElementsByTagName("Attribute")[0].firstChild.nodeValue.strip())
         l = cls(None, attribute)
-        registerLink(targetid, l)
+        esysxml.registerLink(targetid, l)
         return l
 
     fromDom = classmethod(fromDom)
     
-    def writeXML(self,ostream=stdout):
-        """
-        Writes an XML representation of self to the output stream ostream.
-        If ostream is nor present the standart output stream is used.  If
-        esysheader==True the esys XML header is written
-        """
-        print 'I got to the Link writeXML method'
-        document, rootnode = esysDoc()
-        self.toDom(document, rootnode)
-
-        ostream.write(document.toprettyxml())
-
 class LinkableObject(object):
     """
     An object that allows to link its attributes to attributes of other objects
@@ -266,17 +305,14 @@ class LinkableObject(object):
     the return value of the call. 
     """
    
-    number_sequence = itertools.count(100)
     
-    def __init__(self, debug=False):
+    def __init__(self, id = None, debug=False):
         """
 	Initializes LinkableObject so that we can operate on Links 
 	"""
         self.debug = debug
         self.__linked_attributes={}
-        self.id = self.number_sequence.next()
-        registerLinkableObject(self.id, self)
-
+        
     def trace(self, msg):
         """
 	If debugging is on, print the message, otherwise do nothing
@@ -467,27 +503,41 @@ class ParameterSet(LinkableObject):
         except:
             pass
 
-    def toDom(self, document, node):
+    def toDom(self, esysxml, node):
         """
-	C{toDom} method of ParameterSet class.
+	C{toDom} method of Model class
 	"""
-        pset = document.createElement('ParameterSet')
+        pset = esysxml.createElement('ParameterSet')
+        pset.setAttribute('type', self.__class__.__name__)
+        pset.setAttribute('module', self.__class__.__module__)
+        esysxml.registerLinkableObject(self, pset)
+        self._parametersToDom(esysxml, pset)
         node.appendChild(pset)
-        self._parametersToDom(document, pset)
 
-    def _parametersToDom(self, document, node):
-        node.setAttribute('id', str(self.id))
-        node.setIdAttribute("id")
+    def _parametersToDom(self, esysxml, node):
         for name,value in self:
-            param = document.createElement('Parameter')
+            # convert list to numarray when possible:
+            if isinstance (value, list):
+                elem_type=-1
+                for i in value:
+                    if isinstance(i, bool): 
+                        elem_type = max(elem_type,0)
+                    if isinstance(i, int) and not isinstance(i, bool): 
+                        elem_type = max(elem_type,1)
+                    if isinstance(i, float):
+                        elem_type = max(elem_type,2)
+                if elem_type == 0: value = numarray.array(value,numarray.Bool)
+                if elem_type == 1: value = numarray.array(value,numarray.Int)
+                if elem_type == 2: value = numarray.array(value,numarray.Float)
+
+            param = esysxml.createElement('Parameter')
             param.setAttribute('type', value.__class__.__name__)
 
-            param.appendChild(dataNode(document, 'Name', name))
+            param.appendChild(esysxml.createDataNode('Name', name))
 
-            val = document.createElement('Value')
-
+            val = esysxml.createElement('Value')
             if isinstance(value,(ParameterSet,Link,DataSource)):
-                value.toDom(document, val)
+                value.toDom(esysxml, val)
                 param.appendChild(val)
             elif isinstance(value, numarray.NumArray):
                 shape = value.getshape()
@@ -499,24 +549,33 @@ class ParameterSet(LinkableObject):
                     shape = str(shape)
 
                 arraytype = value.type()
-                numarrayElement = document.createElement('NumArray')
-                numarrayElement.appendChild(dataNode(document, 'ArrayType', str(arraytype)))
-                numarrayElement.appendChild(dataNode(document, 'Shape', shape))
-                numarrayElement.appendChild(dataNode(document, 'Data', ' '.join(
+                if isinstance(arraytype, numarray.BooleanType):
+                      arraytype_str="Bool"
+                elif isinstance(arraytype, numarray.IntegralType):
+                      arraytype_str="Int"
+                elif isinstance(arraytype, numarray.FloatingType):
+                      arraytype_str="Float"
+                elif isinstance(arraytype, numarray.ComplexType):
+                      arraytype_str="Complex"
+                else:
+                      arraytype_str=str(arraytype)
+                numarrayElement = esysxml.createElement('NumArray')
+                numarrayElement.appendChild(esysxml.createDataNode('ArrayType', arraytype_str))
+                numarrayElement.appendChild(esysxml.createDataNode('Shape', shape))
+                numarrayElement.appendChild(esysxml.createDataNode('Data', ' '.join(
                     [str(x) for x in numarray.reshape(value, size)])))
                 val.appendChild(numarrayElement)
                 param.appendChild(val)
-            elif isinstance (value, list):
-                param.appendChild(dataNode(document, 'Value', ' '.join(
-                    [str(x) for x in value]) 
-                ))
+            elif isinstance(value, list):
+                param.appendChild(esysxml.createDataNode('Value', ' '.join([str(x) for x in value]) ))
+            elif isinstance(value, (str, bool, int, float, type(None))):
+                param.appendChild(esysxml.createDataNode('Value', str(value)))
             else:
-                param.appendChild(dataNode(document, 'Value', str(value)))
+                raise ValueError("cannot serialize %s type to XML."%str(value.__class__))
 
             node.appendChild(param)
 
-    def fromDom(cls, doc):
-
+    def fromDom(cls, esysxml, node):
         # Define a host of helper functions to assist us.
         def _children(node):
             """
@@ -531,23 +590,23 @@ class ParameterSet(LinkableObject):
                     ret.append(x)
             return ret
 
-        def _floatfromValue(doc):
-            return float(doc.nodeValue.strip())
+        def _floatfromValue(esysxml, node):
+            return float(node.nodeValue.strip())
 
-        def _stringfromValue(doc):
-            return str(doc.nodeValue.strip())
+        def _stringfromValue(esysxml, node):
+            return str(node.nodeValue.strip())
        
-        def _intfromValue(doc):
-            return int(doc.nodeValue.strip())
+        def _intfromValue(esysxml, node):
+            return int(node.nodeValue.strip())
 
-        def _boolfromValue(doc):
-            return _boolfromstring(doc.nodeValue.strip())
+        def _boolfromValue(esysxml, node):
+            return _boolfromstring(node.nodeValue.strip())
 
-        def _nonefromValue(doc):
+        def _nonefromValue(esysxml, node):
             return None
 
-        def _numarrayfromValue(doc):
-            for node in _children(doc):
+        def _numarrayfromValue(esysxml, node):
+            for node in _children(node):
                 if node.tagName == 'ArrayType':
                     arraytype = node.firstChild.nodeValue.strip()
                 if node.tagName == 'Shape':
@@ -559,9 +618,8 @@ class ParameterSet(LinkableObject):
             return numarray.reshape(numarray.array(data, type=getattr(numarray, arraytype)),
                                     shape)
       
-        def _listfromValue(doc):
-            return [_boolfromstring(x) for x in doc.nodeValue.split()]
-
+        def _listfromValue(esysxml, node):
+            return [x for x in node.nodeValue.split()]
 
         def _boolfromstring(s):
             if s == 'True':
@@ -583,44 +641,39 @@ class ParameterSet(LinkableObject):
                     "NoneType":_nonefromValue,
                     }
 
-#        print doc.toxml()
-
         parameters = {}
-        for node in _children(doc):
-            ptype = node.getAttribute("type")
+        for n in _children(node):
+            ptype = n.getAttribute("type")
+            if not ptypemap.has_key(ptype):
+               raise KeyError("cannot handle parameter type %s."%ptype)
 
             pname = pvalue = None
-            for childnode in _children(node):
-
+            for childnode in _children(n):
                 if childnode.tagName == "Name":
                     pname = childnode.firstChild.nodeValue.strip()
 
                 if childnode.tagName == "Value":
                     nodes = _children(childnode)
-                #    if ptype == 'NumArray':
-                 #       pvalue = _numarrayfromValue(nodes)
-                 #   else:
-                    pvalue = ptypemap[ptype](nodes[0])
+                    pvalue = ptypemap[ptype](esysxml, nodes[0])
 
             parameters[pname] = pvalue
 
         # Create the instance of ParameterSet
-        o = cls()
+        o = cls(debug=esysxml.debug)
         o.declareParameters(parameters)
-        registerLinkableObject(doc.getAttribute("id"), o)
+        esysxml.registerLinkableObject(o, node)
         return o
     
     fromDom = classmethod(fromDom)
-    
+
     def writeXML(self,ostream=stdout):
         """
 	Writes the object as an XML object into an output stream.
 	"""
-        # ParameterSet(d) with d[Name]=Value
-        document, node = esysDoc()
-        self.toDom(document, node)
-        ostream.write(document.toprettyxml())
-
+        esysxml=ESySXMLCreator()
+        self.toDom(esysxml, esysxml.getRoot())
+        ostream.write(esysxml.toprettyxml())
+    
 class Model(ParameterSet):
     """
     A Model object represents a processess marching over time until a
@@ -647,27 +700,17 @@ class Model(ParameterSet):
 
     UNDEF_DT=1.e300
 
-    def __init__(self,parameters=[],**kwarg):
+    def __init__(self,parameters=[],**kwargs):
         """
 	Creates a model.
 
         Just calls the parent constructor.
         """
-        ParameterSet.__init__(self, parameters=parameters,**kwarg)
+        ParameterSet.__init__(self, parameters=parameters,**kwargs)
 
     def __str__(self):
        return "<%s %d>"%(self.__class__.__name__,id(self))
 
-    def toDom(self, document, node):
-        """
-	C{toDom} method of Model class
-	"""
-        pset = document.createElement('Model')
-        pset.setAttribute('type', self.__class__.__name__)
-        if not self.__class__.__module__.startswith('esys.escript'):
-            pset.setAttribute('module', self.__class__.__module__)
-        node.appendChild(pset)
-        self._parametersToDom(document, pset)
 
     def doInitialization(self):
         """
@@ -758,13 +801,18 @@ class Model(ParameterSet):
         This function may be overwritten.
 	"""
         pass
-    
-    def writeXML(self, ostream=stdout):
-        document, node = esysDoc()
-        self.toDom(document, node)
-        ostream.write(document.toprettyxml())
-    
 
+    def toDom(self, esysxml, node):
+        """
+	C{toDom} method of Model class
+	"""
+        pset = esysxml.createElement('Model')
+        pset.setAttribute('type', self.__class__.__name__)
+        pset.setAttribute('module', self.__class__.__module__)
+        esysxml.registerLinkableObject(self, pset)
+        node.appendChild(pset)
+        self._parametersToDom(esysxml, pset)
+    
 class Simulation(Model): 
     """
     A Simulation object is special Model which runs a sequence of Models. 
@@ -783,7 +831,7 @@ class Simulation(Model):
         """
 	Initiates a simulation from a list of models.
 	"""
-        Model.__init__(self, **kwargs)
+        super(Simulation, self).__init__(**kwargs)
         self.__models=[]
         
         for i in range(len(models)): 
@@ -830,38 +878,6 @@ class Simulation(Model):
 	"""
         return len(self.__models)
 
-    def toDom(self, document, node):
-        """
-	C{toDom} method of Simulation class.
-	"""
-        simulation = document.createElement('Simulation')
-        simulation.setAttribute('type', self.__class__.__name__)
-
-        for rank, sim in enumerate(self.iterModels()):
-            component = document.createElement('Component')
-            component.setAttribute('rank', str(rank))
-
-            sim.toDom(document, component)
-
-            simulation.appendChild(component)
-
-        node.appendChild(simulation)
-
-    def writeXML(self,ostream=stdout):
-        """
-	Writes the object as an XML object into an output stream.
-	"""
-        document, rootnode = esysDoc()
-        self.toDom(document, rootnode)
-        targetsList = document.getElementsByTagName('Target')
-        
-        for element in targetsList:
-            targetId = int(element.firstChild.nodeValue.strip())
-            if document.getElementById(str(targetId)):
-                continue
-            targetObj = LinkableObjectRegistry[targetId]
-            targetObj.toDom(document, rootnode)
-        ostream.write(document.toprettyxml())
     
     def getSafeTimeStepSize(self,dt):
         """
@@ -1029,18 +1045,41 @@ class Simulation(Model):
                     self.writeXML()
         self.doFinalization()
 
-    def fromDom(cls, doc):
+
+    def toDom(self, esysxml, node):
+        """
+	C{toDom} method of Simulation class.
+	"""
+        simulation = esysxml.createElement('Simulation')
+        esysxml.registerLinkableObject(self, simulation)
+        for rank, sim in enumerate(self.iterModels()):
+            component = esysxml.createElement('Component')
+            component.setAttribute('rank', str(rank))
+            sim.toDom(esysxml, component)
+            simulation.appendChild(component)
+        node.appendChild(simulation)
+
+
+    def fromDom(cls, esysxml, node):
         sims = []
-        for node in doc.childNodes:
-            if isinstance(node, minidom.Text):
+        for n in node.childNodes:
+            if isinstance(n, minidom.Text):
                 continue
-
-            sims.append(getComponent(node))
-
-        return cls(sims)
+            sims.append(esysxml.getComponent(n))
+        sims.sort(cmp=_comp)
+        sim=cls([s[1] for s in sims], debug=esysxml.debug)
+        esysxml.registerLinkableObject(sim, node)
+        return sim
 
     fromDom = classmethod(fromDom)
 
+def _comp(a,b):
+    if a[0]<a[1]:
+      return 1
+    elif a[0]>a[1]:
+      return -1
+    else:
+      return 0
 
 class IterationDivergenceError(Exception):
     """
@@ -1080,19 +1119,19 @@ class DataSource(object):
         self.uri = uri
         self.fileformat = fileformat
 
-    def toDom(self, document, node):
+    def toDom(self, esysxml, node):
         """
         C{toDom} method of DataSource. Creates a DataSource node and appends it to the
-	current XML document.
+	current XML esysxml.
         """
-        ds = document.createElement('DataSource')
-        ds.appendChild(dataNode(document, 'URI', self.uri))
-        ds.appendChild(dataNode(document, 'FileFormat', self.fileformat))
+        ds = esysxml.createElement('DataSource')
+        ds.appendChild(esysxml.createDataNode('URI', self.uri))
+        ds.appendChild(esysxml.createDataNode('FileFormat', self.fileformat))
         node.appendChild(ds)
 
-    def fromDom(cls, doc):
-        uri= doc.getElementsByTagName("URI")[0].firstChild.nodeValue.strip()
-        fileformat= doc.getElementsByTagName("FileFormat")[0].firstChild.nodeValue.strip()
+    def fromDom(cls, esysxml, node):
+        uri= node.getElementsByTagName("URI")[0].firstChild.nodeValue.strip()
+        fileformat= node.getElementsByTagName("FileFormat")[0].firstChild.nodeValue.strip()
         ds = cls(uri, fileformat)
         return ds
 

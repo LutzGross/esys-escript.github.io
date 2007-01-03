@@ -23,18 +23,18 @@ class SteadyIncompressibleFlow(Model):
 
        """
 
-       def __init__(self,debug=False):
+       def __init__(self,**kwargs):
            """
            set up model
            """
-           Model.__init__(self,debug=debug)
+           Model.__init__(self,**kwargs)
            self.declareParameter(domain=None, \
                                  velocity=0., \
                                  pressure=0., \
                                  viscosity=1., \
                                  internal_force=0., \
-                                 location_prescribed_velocity=Data(), \
-                                 prescribed_velocity=Data(), \
+                                 location_prescribed_velocity=None, \
+                                 prescribed_velocity=None, \
                                  rel_tol=1.e-3,abs_tol=0.,max_iter=10,relaxation=0.0001)
            self.__iter=0
 
@@ -47,6 +47,8 @@ class SteadyIncompressibleFlow(Model):
            self.__dt_old=None
            self.__pde=LameEquation(self.domain)
            self.__pde.setSolverMethod(LameEquation.DIRECT)
+           if self.location_prescribed_velocity == None: self.location_prescribed_velocit=Data()
+           if self.prescribed_velocity == None: self.prescribed_velocity=Data()
 
        def stress(self):
            """

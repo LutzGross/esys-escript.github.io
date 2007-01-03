@@ -21,9 +21,9 @@ except KeyError:
    WORKDIR='.'
 
 
-debug=True
+dbg=True
 
-dom=RectangularDomain(debug)
+dom=RectangularDomain(debug=dbg)
 dom.dim=3
 dom.l=[0.5,1.,1.]
 dom.n=[30,6,6]
@@ -31,12 +31,12 @@ dom.order=1
 dom.integrationOrder=-1
 
 
-sq=Sequencer(debug)
+sq=Sequencer(debug=dbg)
 sq.t=0
 sq.t_end=0.8
 sq.dt_max=100.
 
-iob=InterpolateOverBox(debug)
+iob=InterpolateOverBox(debug=dbg)
 iob.domain=Link(dom,"domain")
 iob.value_left_bottom_front=[-1.,0.,0.]
 iob.value_right_bottom_front=[0.,0.,0.]
@@ -56,10 +56,10 @@ iob.value_right_top_back=[0.,0.,0.]
 # iob.value_left_top_back=[-1.,0.]
 # iob.value_right_top_back=[0.,0.]
 
-m=DruckerPrager(debug)
+m=DruckerPrager(debug=dbg)
 m.domain=Link(dom,"domain")
 
-cv=VectorConstrainerOverBox(debug)
+cv=VectorConstrainerOverBox(debug=dbg)
 cv.domain=Link(dom,"domain")
 cv.value=Link(iob,"out")
 
@@ -84,11 +84,11 @@ m.dilatancy_parameter=0.
 m.shear_length=m.shear_modulus*0.9
 
 
-ug=UpdateGeometry(debug)
+ug=UpdateGeometry(debug=dbg)
 ug.domain=Link(dom,"domain")
 ug.displacement=Link(m,"displacement")
 
-vis=WriteVTK(debug)
+vis=WriteVTK(debug=dbg)
 vis.t=Link(sq)
 vis.data0=Link(m,"plastic_stress")
 vis.data1=Link(m,"velocity")
