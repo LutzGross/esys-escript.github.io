@@ -628,8 +628,8 @@ class OceanRegionCollector(Model):
 
 
       """
-      def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+      def __init__(self,**kwargs):
+           Model.__init__(self,**kwargs)
            self.declareParameter(coastline_source="http://jamboree.esscc.uq.edu.au/cgi-bin/doreen/datafile.txt?west=%%west%%&east=%%east%%&south=%%south%%&north=%%north%%&resolution=%%resolution%%&range360=%%range360%%&river=false&city=false&citytyp=wcity.dat&volcano=false&hotspot=false&shoreline=true&state=false&WSMdata=false&plate=false",
                                  bathymetry_source="http://jamboree.esscc.uq.edu.au/cgi-bin/doreen/grdfile.xyz?west=%%west%%&east=%%east%%&south=%%south%%&north=%%north%%&resolution=%%resolution%%",
                                  resolution=1.,
@@ -663,8 +663,8 @@ class Bathymetry(Model):
        """
        generates the bathymetry data within a region on the earth
        """
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           Model.__init__(self,**kwargs)
            self.declareParameter(source="none",
                                  bathymetry=1.)
 
@@ -712,8 +712,8 @@ class OceanRegion(Model):
        generates the ocean region with a coast line and a bathymetry
 
        """
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           Model.__init__(self,**kwargs)
            self.declareParameter(domain=None, \
                                  resolution=1.,
                                  south=0.,
@@ -766,8 +766,8 @@ class TsunamiSource(Model):
        defines a wave in Gaussean form between start and end.
        """
        GAMMA=0.05
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           Model.__init__(self,**kwargs)
            self.declareParameter(domain=None, 
                                  start_lat=-10.,
                                  start_long=110.,
@@ -818,8 +818,8 @@ class TsunamiInDeepWater(Model):
        The simulation uses the Verlet scheme.
 
        """
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           Model.__init__(self,**kwargs)
            self.declareParameter(domain=None, \
                                  wave_height=1.,
                                  wave_velocity=0.,
@@ -879,8 +879,8 @@ class SurfMovie(Model):
        @ivar wave_height: vector data set
        @ivar filename: name of the movie file
        """
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           Model.__init__(self,**kwargs)
            self.declareParameter(bathymetry=1.,
                                  wave_height=1.,
                                  coastline=None,

@@ -20,13 +20,13 @@ class Visualization(Model):
     @ivar filename: name of the output file (in)
     """
 
-    def __init__(self, debug=False):
+    def __init__(self, **kwargs):
         """
         Initialisation of the visualisation model object
 
         @param debug: Debugging flag
         """
-        super(Visualization,self).__init__(debug=debug)
+        super(Visualization,self).__init__(**kwargs)
         self.declareParameter(t=0.,
                               n=0,
                               dt=1,
@@ -89,13 +89,13 @@ class Movie(Visualization):
     @ivar tensor: tensor data set (in)
     """
 
-    def __init__(self, debug=False):
+    def __init__(self, **kwargs):
         """
         Initialisation of the visualisation model object
 
         @param debug: Debugging flag
         """
-        super(Movie,self).__init__(debug=debug)
+        super(Movie,self).__init__(**kwargs)
         self.declareParameter(scalar=None,
                               vector=None,
                               tensor=None)
@@ -120,11 +120,11 @@ class ShadePlot(Movie):
     Shaded contour plots
     """
     
-    def __init(self, debug=False):
+    def __init(self, **kwargs):
         """
         Initialisation
         """
-        Movie.__init__(self, debug)
+        Movie.__init__(self, **kwargs)
         self.declareParameter(filename="shadePlot.%s.png")
 
     def doStepPostprocessing(self, dt):
@@ -159,11 +159,11 @@ class ArrowPlot(Movie):
     Arrow/vector/quiver plots
     """
     
-    def __init(self, debug=False):
+    def __init(self, **kwargs):
         """
         Initialisation
         """
-        Movie.__init__(self, debug)
+        Movie.__init__(self, **kwargs)
         self.declareParameter(filename="arrowPlot.%s.png")
 
     def doStepPostprocessing(self, dt):
@@ -198,11 +198,11 @@ class EllipsoidPlot(Movie):
     Ellipsoid plots
     """
     
-    def __init(self, debug=False):
+    def __init(self, **kwargs):
         """
         Initialisation
         """
-        Movie.__init__(self, debug)
+        Movie.__init__(self, **kwargs)
 
 
 class WriteVTK(Visualization):
@@ -292,14 +292,14 @@ class WriteVTK(Visualization):
     @ivar name19: name tag for data set 19
     @type name19: C{str} or C{None}
     """
-    def __init__(self, debug=False):
+    def __init__(self, **kwargs):
         """
         Initialisation of the WriteVTK object
 
         @param debug: debugging flag
         @type debug: C{bool}
         """
-        super(WriteVTK,self).__init__(debug=debug)
+        super(WriteVTK,self).__init__(**kwargs)
         self.declareParameter(data0=None,name0=None,
                               data1=None,name1=None,
                               data2=None,name2=None,

@@ -22,10 +22,10 @@ class Sequencer(Model):
     @type t: C{float}
 
     """
-    def __init__(self,debug=False):
+    def __init__(self,**kwargs):
         """
         """
-        super(Sequencer,self).__init__(debug=debug)
+        super(Sequencer,self).__init__(**kwargs)
         self.declareParameter(t=0.,
                               t_end=1.,
                               dt_max=Model.UNDEF_DT)
@@ -68,8 +68,8 @@ class GaussianProfile(ParameterSet):
     In the case that the spatial dimension is two, The third component of 
     x_c is dropped.
     """
-    def __init__(self,debug=False):
-        ParameterSet.__init__(self,debug=debug)
+    def __init__(self,**kwargs):
+        super(GaussianProfile, self).__init__(**kwargs)
         self.declareParameter(domain=None, 
                               x_c=numarray.zeros([3]),
                               A=1.,
@@ -105,7 +105,7 @@ class InterpolateOverBox(ParameterSet):
     @ivar value_right_top_back: (in) value at right,top,back corner
     """
 
-    def __init__(self, debug=False):
+    def __init__(self, **kwargs):
         super(InterpolateOverBox, self).__init__(self)
         self.declareParameter(domain=None, 
                               value_left_bottom_front=0.,
@@ -176,8 +176,8 @@ class InterpolatedTimeProfile(ParameterSet):
        @ivar values: (in) list of values at time nodes
        """
 
-       def __init__(self,debug=False):
-           super( InterpolatedTimeProfile, self).__init__(debug=debug)
+       def __init__(self,**kwargs):
+           super( InterpolatedTimeProfile, self).__init__(**kwargs)
            self.declareParameter(t=0., \
                                  nodes=[0.,1.],\
                                  values=[1.,1.])
@@ -247,8 +247,8 @@ class ScalarDistributionFromTags(ParameterSet):
     @ivar value9: value for tag 9
     @type value9: C{float}
     """
-    def __init__(self,debug=False):
-        super(ScalarDistributionFromTags, self).__init__(debug=debug)
+    def __init__(self,**kwargs):
+        super(ScalarDistributionFromTags, self).__init__(**kwargs)
         self.declareParameter(domain=None,
                               default=0.,
                               tag0=None,
@@ -306,8 +306,8 @@ class LinearCombination(ParameterSet):
     @ivar f4: numerical object or None, default=None (in)
     @ivar v4: numerical object or None, default=None (in)
     """
-    def __init__(self,debug=False):
-        super(LinearCombination, self).__init__(debug=debug)
+    def __init__(self,**kwargs):
+        super(LinearCombination, self).__init__(**kwargs)
         self.declareParameter(f0=None, \
                               v0=None, \
                               f1=None, \
@@ -365,8 +365,8 @@ class MergeConstraints(ParameterSet):
     """
     Returns a linear combination of the f0*v0+f1*v1+f2*v2+f3*v3+f4*v4
     """
-    def __init__(self,debug=False):
-        super(MergeConstraints, self).__init__(debug=debug)
+    def __init__(self,**kwargs):
+        super(MergeConstraints, self).__init__(**kwargs)
         self.declareParameter(location_of_constraint0=None, \
                               value_of_constraint0=None, \
                               location_of_constraint1=None, \

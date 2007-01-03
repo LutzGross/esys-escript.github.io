@@ -26,8 +26,8 @@ class TemperatureAdvection(Model):
        solved by Taylor Galerkin method
 
        """
-       def __init__(self,debug=False):
-           Model.__init__(self,debug=debug)
+       def __init__(self,**kwargs):
+           super(TemperatureAdvection, self).__init__(**kwargs)
            self.declareParameter(domain=None, \
                                  temperature=1., \
                                  velocity=numarray.zeros([3]),

@@ -30,22 +30,22 @@ class Mechanics(Model):
       @ivar stress: =None
       """
       SAFTY_FACTOR_ITERATION=1./100.
-      def __init__(self,debug=False):
+      def __init__(self,**kwargs):
          """
          set up the model
          
          @param debug: debug flag
          @type debug: C{bool}
          """
-         super(Mechanics, self).__init__(self,debug=debug)
+         super(Mechanics, self).__init__(self,**kwargs)
          self.declareParameter(domain=None, \
                                displacement=None, \
                                stress=None, \
                                velocity=None, \
-                               internal_force=Data(), \
-                               external_force=Data(), \
-                               prescribed_velocity=Data(), \
-                               location_prescribed_velocity=Data(), \
+                               internal_force=None, \
+                               external_force=None, \
+                               prescribed_velocity=None, \
+                               location_prescribed_velocity=None, \
                                temperature = None, \
                                expansion_coefficient = 0., \
                                bulk_modulus=2., \
@@ -60,6 +60,10 @@ class Mechanics(Model):
            if not self.displacement: self.displacement=Vector(0.,ContinuousFunction(self.domain))
            if not self.velocity: self.velocity=Vector(0.,ContinuousFunction(self.domain))
            if not self.stress: self.stress=Tensor(0.,ContinuousFunction(self.domain))
+           if not self.internal_force: self.internal_force = Data()
+           if not self.external_force: self.external_force = Data()
+           if not self.prescribed_velocity: self.prescribed_velocity = Data()
+           if not self.location_prescribed_velocity: self.location_prescribed_velocity =Data()
            # save the old values:
            self.__stress_safe=self.stress
            self.__temperature_safe=self.temperature
@@ -99,10 +103,10 @@ class Mechanics(Model):
           self.__iter+=1
           k3=kronecker(self.domain)
           # set new thermal stress increment
-          if self.temperature:
-             self.deps_th=self.self.expansion_coefficient*(self.temperature-self.__temperature_safe)
-          else:
+          if self.temperature == None:
              self.deps_th=0.
+          else:
+             self.deps_th=self.expansion_coefficient*(self.temperature-self.__temperature_safe)
           # set PDE coefficients:
           self.__pde.setValue(A=self.S)
           self.__pde.setValue(X=-self.stress-self.bulk_modulus*self.deps_th*k3)
@@ -114,7 +118,7 @@ class Mechanics(Model):
                self.__pde.setValue(r=dt*self.prescribed_velocity)
           # solve the PDE:
           self.__pde.setTolerance(self.rel_tol**2)
-          self.du=self.__pde.getSolution(verbose=True)
+          self.du=self.__pde.getSolution(verbose=self.debug)
           # update geometry
           self.displacement=self.displacement+self.du
           self.domain.setX(self.__x+self.displacement)
@@ -169,11 +173,11 @@ class DruckerPrager(Mechanics):
 
       """
 
-      def __init__(self,debug=False):
+      def __init__(self,**kwargs):
            """
            set up model
            """
-           super(DruckerPrager, self).__init__(debug=debug)
+           super(DruckerPrager, self).__init__(**kwargs)
            self.declareParameter(plastic_stress=0.,
                                  hardening=0.,
                                  friction_parameter=0.,

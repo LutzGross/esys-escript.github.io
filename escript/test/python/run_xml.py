@@ -8,7 +8,7 @@ __license__="""Licensed under the Open Software License version 3.0
              http://www.opensource.org/licenses/osl-3.0.php"""
 
 import unittest
-from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,parse,DataSource
+from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,ESySXMLParser,DataSource
 import math
 from cStringIO import StringIO
 from xml.dom import minidom
@@ -75,7 +75,8 @@ class SimulationTestCase(unittest.TestCase):
         
     def testParseAndInstanceOfSimulation(self):
         
-        newSim = parse(self.xml)
+        xml = ESySXMLParser(self.xml)
+        newSim = xml.parse()[0]
         assert (isinstance (newSim, Simulation))
         newout = StringIO()
         newSim.writeXML(newout)
@@ -141,13 +142,19 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert ("gamma1" in xmlout)
         assert ("gamma2" in xmlout)
         assert ("gamma3" in xmlout)
-        parsable = parse(xmlout)
+        esysxml=ESySXMLParser(xmlout)
+        parsable = esysxml.parse()[0]
         assert (isinstance (parsable, ParameterSet))
         assert (self._dom(self.p).getElementsByTagName("ParameterSet"))
 
     def testParameterSetFromXML(self):
+        s = StringIO()
+        self.p.writeXML(s)
+        s.reset()
+        xmlout = s.read()
+        esysxml=ESySXMLParser(xmlout)
         doc = self._class(self.p)
-        pset = ParameterSet.fromDom(self._dom(self.p).getElementsByTagName("ParameterSet")[0])
+        pset = ParameterSet.fromDom(esysxml, self._dom(self.p).getElementsByTagName("ParameterSet")[0])
         assert (isinstance(pset, ParameterSet))
         assert (isinstance(doc, ParameterSet))
         self.assertEqual(self.p.gamma1,doc.gamma1)
@@ -181,7 +188,8 @@ class ParamaterSetTestCase(unittest.TestCase):
         input.writeXML(s)
         s.reset()
         xmlout = s.read()
-        doc = parse(xmlout)
+        esysxml=ESySXMLParser(xmlout)
+        doc =esysxml.parse()[0]
         return doc
 
     def testFromDomInt(self):
@@ -209,13 +217,14 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert type(doc.numtest) == numarray.NumArray
 
     def testLists(self):
+        import numarray
         p4 = ParameterSet()
         mylist = [True, False, False, True]
         p4.declareParameter(listest=mylist)
         doc = self._class(p4)
-        assert type(doc.listest) == list
-        self.assertEquals(mylist, doc.listest)
-        assert type(doc.listest[0]) == bool
+        assert doc.listest.type() == numarray.Bool
+        assert type(doc.listest) == numarray.NumArray
+        assert numarray.all(numarray.equal(mylist, doc.listest))
         
     def testDatasource(self):
         p5 = ParameterSet()
@@ -236,7 +245,8 @@ class ModeltoDomTestCase(unittest.TestCase):
         self.o1.writeXML(s)
         s.reset()
         self.xmlout = s.read()
-        doc = parse(self.xmlout)
+        esysxml=ESySXMLParser(xmlout)
+        doc =esysxml.parse()[0]
         return doc
 
     def _dom(self):
@@ -292,7 +302,7 @@ type="float"> <Name> tend </Name> <Value>
   <Component rank="2"> <Model id="129" type="Messenger"> <Parameter
   type="Link"> <Name> message </Name> <Value> <Link> <Target> 127 </Target>
   <Attribute> message </Attribute> </Link> </Value> </Parameter> </Model>
-  </Component> </Simulation> <Model id="128" type="ODETEST"> <Parameter
+  </Component> </Simulation> <Model id="150" type="ODETEST"> <Parameter
   type="float"> <Name> a </Name> <Value>
 0.9 </Value> </Parameter> <Parameter type="Link"> <Name> f </Name> <Value>
   <Link> <Target> 127 </Target> <Attribute> u </Attribute> </Link> </Value>
@@ -302,7 +312,7 @@ type="float"> <Name> tend </Name> <Value>
   <Value> 1e-08 </Value> </Parameter> <Parameter type="float"> <Name> dt
   </Name> <Value>
 0.1 </Value> </Parameter> <Parameter type="str"> <Name> message </Name> <Value>
-  current error = 1.904837e+01 </Value> </Parameter> </Model> <Model id="127"
+  current error = 1.904837e+01 </Value> </Parameter> </Model> <Model id="130"
   type="ODETEST"> <Parameter type="float"> <Name> a </Name> <Value>
 0.9 </Value> </Parameter> <Parameter type="Link"> <Name> f </Name> <Value>
   <Link> <Target> 128 </Target> <Attribute> u </Attribute> </Link> </Value>
@@ -313,7 +323,7 @@ type="float"> <Name> tend </Name> <Value>
   <Value>
 0.01 </Value> </Parameter> <Parameter type="str"> <Name> message </Name>
   <Value> current error = 9.516258e-01 </Value> </Parameter> </Model> <Model
-  id="127" type="ODETEST"> <Parameter type="float"> <Name> a </Name> <Value>
+  id="170" type="ODETEST"> <Parameter type="float"> <Name> a </Name> <Value>
 0.9 </Value> </Parameter> <Parameter type="Link"> <Name> f </Name> <Value>
   <Link> <Target> 128 </Target> <Attribute> u </Attribute> </Link> </Value>
   </Parameter> <Parameter type="float"> <Name> tend </Name> <Value>
@@ -326,11 +336,13 @@ type="float"> <Name> tend </Name> <Value>
 ''' % (modulename, modelname)
 
     def testModuleAttribute(self):
-        modeldoc = parse(self._xml('run_xml', 'ODETEST'))
+        esysxml=ESySXMLParser(self._xml('run_xml', 'ODETEST'))
+        modeldoc=esysxml.parse()[0]
 
     def testModuleAttributeFails(self):
         try:
-            modeldoc = parse(self._xml('a', 'b'))
+            esysxml=ESySXMLParser(self._xml('a', 'b'))
+            modeldoc=esysxml.parse()[0]
         except ImportError:
             return # correct
 

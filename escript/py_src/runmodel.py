@@ -27,29 +27,31 @@ __date__="$Date$"
 from esys.escript import modelframe
 import optparse
 
-parser = optparse.OptionParser(usage="\n%prog [options]\n%prog files...")
+parser = optparse.OptionParser(usage="%prog [options] <ESySXML files>")
 parser.add_option('-f', '--file', dest='filename', 
-        help='the FILE', metavar='FILE')
-parser.add_option('-n', '--old-name', action="store",
-        help='the old filename, used in aup',
-        dest='old_name', default='')
+        help='the input ESySXML file', metavar='FILE')
+parser.add_option('-d', '--debug', dest='dbg', action="store_true", 
+        help='switch debug on', default=False)
+parser.add_option('-n', '--new', action="store",
+        help='output ESySXML file',
+        dest='new_file_name', default='')
 def main():
     (options, args) = parser.parse_args()
-    if options.filename and args:
-        parser.usage("Please only specifiy 1 file if using --file=")
     if options.filename:
-        files = [(file(options.filename), options.filename)]
-    elif args:
-        files = [(file(arg), arg) for arg in args]
-    else:
-        parser.usage
+       filenames=list(options.filename) + args
+    else: 
+       filenames=args
+    if len(filenames)<1: 
+        parser.error("no input file.")
 
+    files = [(file(arg), arg) for arg in filenames]
     for f, filename in files:
-        
-        simstring = f.read()
-        sim = modelframe.parse(simstring)
-        print sim
-        sim.run()
+        xml = modelframe.ESySXMLParser(f.read(), debug=options.dbg)
+        sims = xml.parse()
+        for s in sims:
+          if isinstance(s, modelframe.Simulation): 
+               if options.new_file_name: s.writeXML(file(options.new_file_name,'w'))
+               s.run()
 
 if __name__=='__main__':
     main()

@@ -23,11 +23,11 @@ class EvaluateExpression(ParameterSet):
        @ivar out (callable): current value of the expression
        """
 
-       def __init__(self,debug=False):
+       def __init__(self,**kwargs):
            """
            Set up parameters
            """
-           ParameterSet.__init__(self,debug=debug)
+           super(EvaluateExpression, self).__init__(**kwargs)
            self.declareParameter(domain=None, \
                                  t=0., \
                                  expression="x[0]")
@@ -60,11 +60,11 @@ class Probe(Model):
 
        """
 
-       def __init__(self,debug=False):
+       def __init__(self,**kwargs):
            """
            Set up parameters
            """
-           Model.__init__(self,debug=debug)
+           super(Probe, self).__init__(**kwargs)
            self.declareParameter(expression=None, \
                                  value=0., \
                                  t=0., \

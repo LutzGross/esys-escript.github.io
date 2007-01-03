@@ -20,11 +20,11 @@ class FinleyReader(ParameterSet):
        @ivar intergrationOrder: integration order, default -1 (in).
        @type intergrationOrder: C{int}
        """
-       def __init__(self,debug=False):
+       def __init__(self,**kwargs):
           """
           initializes the object
           """
-          super(FinleyReader,self).__init__(debug=debug)
+          super(FinleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
                                  integrationOrder=-1)
           self.__domain=None
@@ -59,11 +59,11 @@ class RectangularDomain(ParameterSet):
        @ivar intergrationOrder: integration order, default -1 (in).
        @type intergrationOrder: C{int}
        """
-       def __init__(self,debug=False):
+       def __init__(self,**kwargs):
            """
            initializes the object
            """
-           super(RectangularDomain,self).__init__(debug=debug)
+           super(RectangularDomain,self).__init__(**kwargs)
            self.declareParameter(dim=2,\
                                  l=[1.,1.,1.],\
                                  n=[10,10,10], \
@@ -112,11 +112,11 @@ class UpdateGeometry(Model):
       @ivar domain: domain
       @type domain: L{escript.Domain}
       """
-      def __init__(self,debug=False):
+      def __init__(self,**kwargs):
            """
            set-up the object
            """
-           super(UpdateGeometry, self).__init__(debug=debug)
+           super(UpdateGeometry, self).__init__(**kwargs)
            self.declareParameter(domain=None,\
                                  displacement=None)
 
@@ -168,8 +168,8 @@ class ScalarConstrainerOverBox(Model):
       @ivar back: True to set a constraint at the left face of the domain (x[2]=max x[2]), default False (in).
       @ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
       """
-      def __init__(self,debug=False):
-           ParameterSet.__init__(self,debug=debug)
+      def __init__(self,**kwargs):
+           super(ScalarConstrainerOverBox, self).__init__(**kwargs)
            self.declareParameter(domain=None, \
                                  value=None,  \
                                  left=False, \
@@ -243,8 +243,8 @@ class VectorConstrainerOverBox(Model):
                 default [False,False,False] (in).
       @ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
       """
-      def __init__(self,debug=False):
-           ParameterSet.__init__(self,debug=debug)
+      def __init__(self, **kwargs):
+           super(VectorConstrainerOverBox, self).__init__(**kwargs)
            self.declareParameter(domain=None, \
                                  value=None,  \
                                  left=[0,0,0],  \
