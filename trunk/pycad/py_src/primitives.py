@@ -353,9 +353,15 @@ class Curve(Primitive1D):
           if len(primitive) == len(self):
              cp0=self.getControlPoints()
              cp1=primitive.getControlPoints()
+             match=True
              for i in range(len(cp0)):
                 if not cp0[i].isColocated(cp1[i]):
-                   return False
+                   match=False
+                   break
+             if not match:
+                for i in range(len(cp0)):
+                   if not cp0[i].isColocated(cp1[len(cp0)-1-i]):
+                      return False
              return True
           else:
              return False
@@ -498,15 +504,22 @@ class Arc(Primitive1D):
        returns True curves are on the same position
        """
        if isinstance(primitive,Arc):
-            if not self.getCenterPoint().isColocated(primitive.getCenterPoint()): return False
-            if not self.getEndPoint().isColocated(primitive.getEndPoint()): return False
-            if not self.getStartPoint().isColocated(primitive.getStartPoint()): return False
-            return True
+            return (self.getCenterPoint().isColocated(primitive.getCenterPoint())) and ( \
+                   (self.getEndPoint().isColocated(primitive.getEndPoint()) and self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
+                or (self.getEndPoint().isColocated(primitive.getStartPoint()) and self.getStartPoint().isColocated(primitive.getEndPoint()) ) )
        else:
           return False
 
-#=================================================================================================================================
-class CurveLoop(Primitive):
+class Primitive2D(Primitive):
+      """
+      general two-dimensional primitive
+      """
+      def __init__(self,*args):
+          """
+          create a two-dimensional primitive
+          """
+          super(Primitive2D, self).__init__()
+class CurveLoop(Primitive2D):
     """
     An oriented loop of curves. 
 
@@ -520,27 +533,69 @@ class CurveLoop(Primitive):
        self.__curves=[]
        self.addCurve(*curves)
     def addCurve(self,*curves):
+       """
+       adds curves to the curves defining the object
+       """
        for i in range(len(curves)):
-           if not curves[i].isCurve():
-              raise TypeError("%s-th argument is not a Curve object."%i)
+           if not isinstance(curves[i],Primitive1D):
+              raise TypeError("%s-th argument is not a Primitive1D object."%i)
        self.__curves+=curves
 
-    def isCurveLoop(self):
-        return True
     def getCurves(self):
+       """
+       returns the curves defining the CurveLoop
+       """
        return self.__curves
-    def __add__(self,other):
-       return CurveLoop(*tuple([c+other for c in self.getCurves()[::-1]]))
     def __len__(self):
+       """
+       return the number of curves in the CurveLoop
+       """
        return len(self.__curves)
+
     def getPrimitives(self):
-          out=set([self])
-          for i in self.getCurves(): out|=i.getPrimitives()
-          return out
-    def getConstructionPoints(self):
-          out=set()
-          for i in self.getCurves(): out|=i.getConstructionPoints()
-          return out
+       """
+       returns primitives used to construct the CurveLoop
+       """
+       out=set()
+       for c in self.getCurves(): out|=set(c.getPrimitives())
+       out.add(self)
+       return list(out)
+
+    def copy(self):
+       """
+       returns a deep copy
+       """
+       new_c=[]
+       for c in self.getCurves(): new_c.append(c.copy())
+       return CurveLoop(*tuple(new_c))
+
+
+    def apply(self,transformation):
+        """
+        applies transformation
+        """
+        new_c=[]
+        for c in self.getCurves(): new_c.append(c.apply(transformation))
+        return CurveLoop(*tuple(new_c))
+
+    def isColocated(self,primitive):
+       """
+       returns True if each curve is collocted with a curve in primitive
+       """
+       if isinstance(primitive,CurveLoop):
+          if len(primitive) == len(self):
+             cp0=self.getCurves()
+             cp1=primitive.getCurves()
+             for c0 in cp0: 
+                 collocated = False
+                 for c1 in cp1: collocated = collocated or c0.isColocated(c1)
+                 if not collocated: return False
+             return True
+          else:
+             return False
+       else:
+          return False
+
     def getGmshCommand(self):
         out=""
         for i in self.getCurves():
@@ -550,6 +605,7 @@ class CurveLoop(Primitive):
                 out="%s"%i.getID()
         return "Line Loop(%s) = {%s};"%(self.getID(),out)
 
+#=================================================================================================================================
 class Surface(Primitive):
     """
     a surface
