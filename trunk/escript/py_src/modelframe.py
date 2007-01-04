@@ -1130,8 +1130,8 @@ class DataSource(object):
         node.appendChild(ds)
 
     def fromDom(cls, esysxml, node):
-        uri= node.getElementsByTagName("URI")[0].firstChild.nodeValue.strip()
-        fileformat= node.getElementsByTagName("FileFormat")[0].firstChild.nodeValue.strip()
+        uri= str(node.getElementsByTagName("URI")[0].firstChild.nodeValue.strip())
+        fileformat= str(node.getElementsByTagName("FileFormat")[0].firstChild.nodeValue.strip())
         ds = cls(uri, fileformat)
         return ds
 
