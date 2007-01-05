@@ -350,8 +350,6 @@ Data::isTagged() const
   return (temp!=0);
 }
 
-/* TODO */
-/* global reduction -- the local data being empty does not imply that it is empty on other processers*/
 bool
 Data::isEmpty() const
 {
@@ -550,6 +548,8 @@ Data::getDataPointShape() const
   return getPointDataView().getShape();
 }
 
+
+
 void
 Data::fillFromNumArray(const boost::python::numeric::array num_array) 
 {
@@ -642,13 +642,13 @@ Data::convertToNumArray()
       }
       if (dataPointRank==1) {
         for (int i=0; i<dataPointShape[0]; i++) {
-          numArray[dataPoint][i]=dataPointView(i);
+          numArray[make_tuple(dataPoint,i)]=dataPointView(i);
         }
       }
       if (dataPointRank==2) {
         for (int i=0; i<dataPointShape[0]; i++) {
           for (int j=0; j<dataPointShape[1]; j++) {
-            numArray[dataPoint][i][j] = dataPointView(i,j);
+            numArray[make_tuple(dataPoint,i,j)] = dataPointView(i,j);
           }
         }
       }
@@ -656,7 +656,7 @@ Data::convertToNumArray()
         for (int i=0; i<dataPointShape[0]; i++) {
           for (int j=0; j<dataPointShape[1]; j++) {
             for (int k=0; k<dataPointShape[2]; k++) {
-              numArray[dataPoint][i][j][k]=dataPointView(i,j,k);
+              numArray[make_tuple(dataPoint,i,j,k)]=dataPointView(i,j,k);
             }
           }
         }
@@ -666,7 +666,7 @@ Data::convertToNumArray()
           for (int j=0; j<dataPointShape[1]; j++) {
             for (int k=0; k<dataPointShape[2]; k++) {
               for (int l=0; l<dataPointShape[3]; l++) {
-                numArray[dataPoint][i][j][k][l]=dataPointView(i,j,k,l);
+                numArray[make_tuple(dataPoint,i,j,k,l)]=dataPointView(i,j,k,l);
               }
             }
           }
@@ -681,130 +681,13 @@ Data::convertToNumArray()
   return numArray;
 }
 
-const
+
+const 
 boost::python::numeric::array
-Data::convertToNumArrayFromSampleNo(int sampleNo)
+Data:: getValueOfDataPoint(int dataPointNo) 
 {
-  //
-  // Check a valid sample number has been supplied
-  if (sampleNo >= getNumSamples()) {
-    throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
-  }
-
-  //
-  // determine the number of data points per sample
-  int numDataPointsPerSample = getNumDataPointsPerSample();
-
-  //
-  // determine the rank and shape of each data point
-  int dataPointRank = getDataPointRank();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
-
-  //
-  // create the numeric array to be returned
-  boost::python::numeric::array numArray(0.0);
-
-  //
-  // the rank of the returned numeric array will be the rank of
-  // the data points, plus one. Where the rank of the array is n,
-  // the last n-1 dimensions will be equal to the shape of the
-  // data points, whilst the first dimension will be equal to the
-  // total number of data points. Thus the array will consist of
-  // a serial vector of the data points.
-  int arrayRank = dataPointRank + 1;
-  DataArrayView::ShapeType arrayShape;
-  arrayShape.push_back(numDataPointsPerSample);
-  for (int d=0; d<dataPointRank; d++) {
-     arrayShape.push_back(dataPointShape[d]);
-  }
-
-  //
-  // resize the numeric array to the shape just calculated
-  if (arrayRank==1) {
-    numArray.resize(arrayShape[0]);
-  }
-  if (arrayRank==2) {
-    numArray.resize(arrayShape[0],arrayShape[1]);
-  }
-  if (arrayRank==3) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-  }
-  if (arrayRank==4) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-  }
-  if (arrayRank==5) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3],arrayShape[4]);
-  }
-
-  //
-  // loop through each data point in turn, loading the values for that data point
-  // into the numeric array.
-  for (int dataPoint = 0; dataPoint < numDataPointsPerSample; dataPoint++) {
-    DataArrayView dataPointView = getDataPoint(sampleNo, dataPoint);
-    if (dataPointRank==0) {
-      numArray[dataPoint]=dataPointView();
-    }
-    if (dataPointRank==1) {
-      for (int i=0; i<dataPointShape[0]; i++) {
-        numArray[dataPoint][i]=dataPointView(i);
-      }
-    }
-    if (dataPointRank==2) {
-      for (int i=0; i<dataPointShape[0]; i++) {
-        for (int j=0; j<dataPointShape[1]; j++) {
-          numArray[dataPoint][i][j] = dataPointView(i,j);
-        }
-      }
-    }
-    if (dataPointRank==3) {
-      for (int i=0; i<dataPointShape[0]; i++) {
-        for (int j=0; j<dataPointShape[1]; j++) {
-          for (int k=0; k<dataPointShape[2]; k++) {
-            numArray[dataPoint][i][j][k]=dataPointView(i,j,k);
-          }
-        }
-      }
-    }
-    if (dataPointRank==4) {
-      for (int i=0; i<dataPointShape[0]; i++) {
-        for (int j=0; j<dataPointShape[1]; j++) {
-          for (int k=0; k<dataPointShape[2]; k++) {
-            for (int l=0; l<dataPointShape[3]; l++) {
-              numArray[dataPoint][i][j][k][l]=dataPointView(i,j,k,l);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  //
-  // return the loaded array
-  return numArray;
-}
-
-const
-boost::python::numeric::array
-Data::convertToNumArrayFromDPNo(int procNo,
-                                int sampleNo,
-																int dataPointNo)
-
-{
-	size_t length=0;
-	int i, j, k, l, pos;
-
-  //
-  // Check a valid sample number has been supplied
-  if (sampleNo >= getNumSamples()) {
-    throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
-  }
-
-  //
-  // Check a valid data point number has been supplied
-  if (dataPointNo >= getNumDataPointsPerSample()) {
-    throw DataException("Error - Data::convertToNumArray: invalid dataPointNo.");
-  }
-
+  size_t length=0;
+  int i, j, k, l;
   //
   // determine the rank and shape of each data point
   int dataPointRank = getDataPointRank();
@@ -838,19 +721,155 @@ Data::convertToNumArrayFromDPNo(int procNo,
     numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
   }
 
-	// added for the MPI communication
-	length=1;
-	for( i=0; i<arrayRank; i++ )
-		length *= arrayShape[i];
-	double *tmpData = new double[length];
+  if (getNumDataPointsPerSample()>0) {
+       int sampleNo = dataPointNo/getNumDataPointsPerSample();
+       int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+       //
+       // Check a valid sample number has been supplied
+       if (sampleNo >= getNumSamples() or sampleNo < 0 ) {
+           throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+       }
+              
+       //
+       // Check a valid data point number has been supplied
+       if (dataPointNoInSample >= getNumDataPointsPerSample() or dataPointNoInSample < 0) {
+           throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+       }
+       // TODO: global error handling
+       // create a view of the data if it is stored locally
+       DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
+		
+       switch( dataPointRank ){
+			case 0 :
+				numArray[0] = dataPointView();
+				break;
+			case 1 :		
+				for( i=0; i<dataPointShape[0]; i++ )
+					numArray[i]=dataPointView(i);
+				break;
+			case 2 :		
+				for( i=0; i<dataPointShape[0]; i++ )
+					for( j=0; j<dataPointShape[1]; j++)
+						numArray[make_tuple(i,j)]=dataPointView(i,j);
+				break;
+			case 3 :		
+				for( i=0; i<dataPointShape[0]; i++ )
+					for( j=0; j<dataPointShape[1]; j++ )
+						for( k=0; k<dataPointShape[2]; k++)
+							numArray[make_tuple(i,j,k)]=dataPointView(i,j,k);
+				break;
+			case 4 :
+				for( i=0; i<dataPointShape[0]; i++ )
+					for( j=0; j<dataPointShape[1]; j++ )
+						for( k=0; k<dataPointShape[2]; k++ )
+							for( l=0; l<dataPointShape[3]; l++)
+								numArray[make_tuple(i,j,k,l)]=dataPointView(i,j,k,l);
+				break;
+	}
+  }
+  //
+  // return the array
+  return numArray;
+
+}
+
+void
+Data::setValueOfDataPoint(int dataPointNo, const boost::python::numeric::array num_array)
+{
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
+  //
+  // check rank
+  if (num_array.getrank()<getDataPointRank()) 
+      throw DataException("Rank of numarray does not match Data object rank");
+
+  //
+  // check shape of num_array
+  for (int i=0; i<getDataPointRank(); i++) {
+    if (extract<int>(num_array.getshape()[i])!=getDataPointShape()[i])
+       throw DataException("Shape of numarray does not match Data object rank");
+  }
+  //
+  // make sure data is expanded:
+  if (!isExpanded()) {
+    expand();
+  }
+  if (getNumDataPointsPerSample()>0) {
+       int sampleNo = dataPointNo/getNumDataPointsPerSample();
+       int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+       m_data->copyToDataPoint(sampleNo, dataPointNoInSample,num_array);
+  } else {
+       m_data->copyToDataPoint(-1, 0,num_array);
+  }
+}
+
+const 
+boost::python::numeric::array
+Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo) 
+{
+  size_t length=0;
+  int i, j, k, l, pos;
+  //
+  // determine the rank and shape of each data point
+  int dataPointRank = getDataPointRank();
+  DataArrayView::ShapeType dataPointShape = getDataPointShape();
+
+  //
+  // create the numeric array to be returned
+  boost::python::numeric::array numArray(0.0);
+
+  //
+  // the shape of the returned numeric array will be the same
+  // as that of the data point
+  int arrayRank = dataPointRank;
+  DataArrayView::ShapeType arrayShape = dataPointShape;
+
+  //
+  // resize the numeric array to the shape just calculated
+  if (arrayRank==0) {
+    numArray.resize(1);
+  }
+  if (arrayRank==1) {
+    numArray.resize(arrayShape[0]);
+  }
+  if (arrayRank==2) {
+    numArray.resize(arrayShape[0],arrayShape[1]);
+  }
+  if (arrayRank==3) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
+  }
+  if (arrayRank==4) {
+    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
+  }
+
+  // added for the MPI communication
+  length=1;
+  for( i=0; i<arrayRank; i++ ) length *= arrayShape[i];
+  double *tmpData = new double[length];
 
   //
   // load the values for the data point into the numeric array.
 
 	// updated for the MPI case
 	if( get_MPIRank()==procNo ){
+             if (getNumDataPointsPerSample()>0) {
+                int sampleNo = dataPointNo/getNumDataPointsPerSample();
+                int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+                //
+                // Check a valid sample number has been supplied
+                if (sampleNo >= getNumSamples() or sampleNo < 0 ) {
+                  throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
+                }
+              
+                //
+                // Check a valid data point number has been supplied
+                if (dataPointNoInSample >= getNumDataPointsPerSample() or dataPointNoInSample < 0) {
+                  throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
+                }
+                // TODO: global error handling
 		// create a view of the data if it is stored locally
-		DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+		DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
 		
 		// pack the data from the view into tmpData for MPI communication
 		pos=0;
@@ -881,16 +900,17 @@ Data::convertToNumArrayFromDPNo(int procNo,
 								tmpData[pos]=dataPointView(i,j,k,l);
 				break;
 		}
+            }
 	}
-#ifdef PASO_MPI	
-		// broadcast the data to all other processes
-		MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
-#endif
+        #ifdef PASO_MPI	
+        // broadcast the data to all other processes
+	MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
+        #endif
 
 	// unpack the data
 	switch( dataPointRank ){
 		case 0 :
-			numArray[i]=tmpData[0];
+			numArray[0]=tmpData[0];
 			break;
 		case 1 :		
 			for( i=0; i<dataPointShape[0]; i++ )
@@ -899,66 +919,30 @@ Data::convertToNumArrayFromDPNo(int procNo,
 		case 2 :		
 			for( i=0; i<dataPointShape[0]; i++ )
 				for( j=0; j<dataPointShape[1]; j++ )
-					tmpData[i+j*dataPointShape[0]];
+				   numArray[make_tuple(i,j)]=tmpData[i+j*dataPointShape[0]];
 			break;
 		case 3 :		
 			for( i=0; i<dataPointShape[0]; i++ )
 				for( j=0; j<dataPointShape[1]; j++ )
 					for( k=0; k<dataPointShape[2]; k++ )
-						tmpData[i+dataPointShape[0]*(j*+k*dataPointShape[1])];
+						numArray[make_tuple(i,j,k)]=tmpData[i+dataPointShape[0]*(j*+k*dataPointShape[1])];
 			break;
 		case 4 :
 			for( i=0; i<dataPointShape[0]; i++ )
 				for( j=0; j<dataPointShape[1]; j++ )
 					for( k=0; k<dataPointShape[2]; k++ )
 						for( l=0; l<dataPointShape[3]; l++ )
-							tmpData[i+dataPointShape[0]*(j*+dataPointShape[1]*(k+l*dataPointShape[2]))];
+					        	numArray[make_tuple(i,j,k,l)]=tmpData[i+dataPointShape[0]*(j*+dataPointShape[1]*(k+l*dataPointShape[2]))];
 			break;
 	}
 
 	delete [] tmpData;	
-/*
-  if (dataPointRank==0) {
-    numArray[0]=dataPointView();
-  }
-  if (dataPointRank==1) {
-    for (int i=0; i<dataPointShape[0]; i++) {
-      numArray[i]=dataPointView(i);
-    }
-  }
-  if (dataPointRank==2) {
-    for (int i=0; i<dataPointShape[0]; i++) {
-      for (int j=0; j<dataPointShape[1]; j++) {
-        numArray[i][j] = dataPointView(i,j);
-      }
-    }
-  }
-  if (dataPointRank==3) {
-    for (int i=0; i<dataPointShape[0]; i++) {
-      for (int j=0; j<dataPointShape[1]; j++) {
-        for (int k=0; k<dataPointShape[2]; k++) {
-          numArray[i][j][k]=dataPointView(i,j,k);
-        }
-      }
-    }
-  }
-  if (dataPointRank==4) {
-    for (int i=0; i<dataPointShape[0]; i++) {
-      for (int j=0; j<dataPointShape[1]; j++) {
-        for (int k=0; k<dataPointShape[2]; k++) {
-          for (int l=0; l<dataPointShape[3]; l++) {
-            numArray[i][j][k][l]=dataPointView(i,j,k,l);
-          }
-        }
-      }
-    }
-  }
-*/
-
   //
   // return the loaded array
   return numArray;
 }
+
+
 
 boost::python::numeric::array
 Data::integrate() const
@@ -1556,23 +1540,21 @@ Data::eigenvalues_and_eigenvectors(const double tol) const
 }
 
 const boost::python::tuple
-Data::mindp() const
+Data::minGlobalDataPoint() const
 {
-  // NB: calc_mindp had to be split off from mindp as boost::make_tuple causes an
+  // NB: calc_minGlobalDataPoint( had to be split off from minGlobalDataPoint( as boost::make_tuple causes an
   // abort (for unknown reasons) if there are openmp directives with it in the
   // surrounding function
 
-  int SampleNo;
   int DataPointNo;
-	int ProcNo;
-  calc_mindp(ProcNo,SampleNo,DataPointNo);
-  return make_tuple(ProcNo,SampleNo,DataPointNo);
+  int ProcNo;
+  calc_minGlobalDataPoint(ProcNo,DataPointNo);
+  return make_tuple(ProcNo,DataPointNo);
 }
 
 void
-Data::calc_mindp(	int& ProcNo,
-			 	int& SampleNo,
-       	int& DataPointNo) const
+Data::calc_minGlobalDataPoint(int& ProcNo,
+       	                int& DataPointNo) const
 {
   int i,j;
   int lowi=0,lowj=0;
@@ -1630,8 +1612,7 @@ Data::calc_mindp(	int& ProcNo,
 #else
 	ProcNo = 0;
 #endif
-  SampleNo = lowi;
-  DataPointNo = lowj;
+  DataPointNo = lowj + lowi * numDPPSample;
 }
 
 void
@@ -2149,7 +2130,7 @@ Data::getRefValue(int ref,
   if (rank==2) {
     for (int i=0; i < shape[0]; i++) {
       for (int j=0; j < shape[1]; j++) {
-        value[i][j] = valueView(i,j);
+        value[make_tuple(i,j)] = valueView(i,j);
       }
     }
   }
@@ -2157,7 +2138,7 @@ Data::getRefValue(int ref,
     for (int i=0; i < shape[0]; i++) {
       for (int j=0; j < shape[1]; j++) {
         for (int k=0; k < shape[2]; k++) {
-          value[i][j][k] = valueView(i,j,k);
+          value[make_tuple(i,j,k)] = valueView(i,j,k);
         }
       }
     }
@@ -2167,7 +2148,7 @@ Data::getRefValue(int ref,
       for (int j=0; j < shape[1]; j++) {
         for (int k=0; k < shape[2]; k++) {
           for (int l=0; l < shape[3]; l++) {
-            value[i][j][k][l] = valueView(i,j,k,l);
+            value[make_tuple(i,j,k,l)] = valueView(i,j,k,l);
           }
         }
       }

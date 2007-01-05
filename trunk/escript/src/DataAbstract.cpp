@@ -126,6 +126,11 @@ DataAbstract::copyAll(const boost::python::numeric::array& value)
 {
     throw DataException("Error - DataAbstract::copying data from numarray objects is not supported.");
 }
+void
+DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value)
+{
+    throw DataException("Error - DataAbstract::copying data from numarray objects to a single data point is not supported.");
+}
 
 void
 DataAbstract::symmetric(DataAbstract* ev) 
