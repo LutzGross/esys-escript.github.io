@@ -322,6 +322,21 @@ class DataAbstract {
 
   /**
      \brief
+     Copy a double value to the data point dataPointNo of sample sampleNo in this object.
+
+     Description:
+     Copy a double value to the data point dataPointNo of sample sampleNo in this object.
+
+     \param sampleNo Input - sample number
+     \param dataPointNo Input - data point of the sample
+     \param value Input - new values for the data point
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const double value);
+
+  /**
+     \brief
      Copy the numarray object to the data point dataPointNo of sample sampleNo in this object.
 
      Description:

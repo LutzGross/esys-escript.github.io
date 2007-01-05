@@ -772,9 +772,8 @@ Data:: getValueOfDataPoint(int dataPointNo)
   return numArray;
 
 }
-
 void
-Data::setValueOfDataPoint(int dataPointNo, const boost::python::numeric::array num_array)
+Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array num_array)
 {
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -801,6 +800,26 @@ Data::setValueOfDataPoint(int dataPointNo, const boost::python::numeric::array n
        m_data->copyToDataPoint(sampleNo, dataPointNoInSample,num_array);
   } else {
        m_data->copyToDataPoint(-1, 0,num_array);
+  }
+}
+
+void
+Data::setValueOfDataPoint(int dataPointNo, const double value)
+{
+  if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+  }
+  //
+  // make sure data is expanded:
+  if (!isExpanded()) {
+    expand();
+  }
+  if (getNumDataPointsPerSample()>0) {
+       int sampleNo = dataPointNo/getNumDataPointsPerSample();
+       int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+       m_data->copyToDataPoint(sampleNo, dataPointNoInSample,value);
+  } else {
+       m_data->copyToDataPoint(-1, 0,value);
   }
 }
 

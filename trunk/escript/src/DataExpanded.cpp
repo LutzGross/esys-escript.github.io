@@ -374,6 +374,56 @@ DataExpanded::extractData(ifstream& archiveFile,
 }
 
 void 
+DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const double value) {
+  //
+  // Get the number of samples and data-points per sample.
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  int dataPointRank = getPointDataView().getRank();
+  ShapeType dataPointShape = getPointDataView().getShape();
+  if (numSamples*numDataPointsPerSample > 0) {
+     //TODO: global error handling
+     if (sampleNo >= numSamples or sampleNo < 0 ) {
+          throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
+     }
+     if (dataPointNo >= numDataPointsPerSample or dataPointNo < 0) {
+           throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
+     }
+     DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+     if (dataPointRank==0) {
+         dataPointView()=value;
+     } else if (dataPointRank==1) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+            dataPointView(i)=value;
+        }
+     } else if (dataPointRank==2) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+              dataPointView(i,j)=value;
+           }
+        }
+     } else if (dataPointRank==3) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+              for (int k=0; k<dataPointShape[2]; k++) {
+                 dataPointView(i,j,k)=value;
+              }
+           }
+        }
+     } else if (dataPointRank==4) {
+         for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+             for (int k=0; k<dataPointShape[2]; k++) {
+               for (int l=0; l<dataPointShape[3]; l++) {
+                  dataPointView(i,j,k,l)=value;
+               }
+             }
+           }
+         }
+     } 
+  }
+}
+void 
 DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value) {
   //
   // Get the number of samples and data-points per sample.
