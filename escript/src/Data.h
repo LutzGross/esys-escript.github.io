@@ -264,28 +264,35 @@ class Data {
 
   /**
      \brief
-     Return the values of all data-points for the given sample as a single python numarray object.
-  */
-  ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  convertToNumArrayFromSampleNo(int sampleNo);
-
-  /**
-     \brief
-     Return the value of the specified data-point as a single python numarray object.
-  */
-  ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  convertToNumArrayFromDPNo(int procNo,
-  			    int sampleNo,
-			    int dataPointNo);
-  /**
-     \brief
      Fills the expanded Data object from values of a python numarray object.
   */
   ESCRIPT_DLL_API
   void
   fillFromNumArray(const boost::python::numeric::array);
+
+  /**
+     \brief
+     Return the values of a data point on this process 
+  */
+  ESCRIPT_DLL_API
+  const boost::python::numeric::array
+  getValueOfDataPoint(int dataPointNo);
+
+  /**
+     \brief
+     sets the values of a data-point on this process
+  */
+  ESCRIPT_DLL_API
+  void
+  setValueOfDataPoint(int dataPointNo, const boost::python::numeric::array);
+
+  /**
+     \brief
+     Return the value of the specified data-point across all processors
+  */
+  ESCRIPT_DLL_API
+  const boost::python::numeric::array
+  getValueOfGlobalDataPoint(int procNo, int dataPointNo);
 
   /**
      \brief
@@ -443,6 +450,17 @@ class Data {
     return m_data->getPointDataView().getRank();
   }
 
+  /**
+     \brief
+     Return the number of data points
+  */
+  ESCRIPT_DLL_API
+  inline
+  int
+  getNumDataPoints() const
+  {
+    return getNumSamples() * getNumDataPointsPerSample();
+  }
   /**
      \brief
      Return the number of samples.
@@ -792,13 +810,11 @@ class Data {
   */
   ESCRIPT_DLL_API
   const boost::python::tuple
-  mindp() const;
+  minGlobalDataPoint() const;
 
   ESCRIPT_DLL_API
   void
-  calc_mindp(int& ProcNo,
-						int& SampleNo,	
-             int& DataPointNo) const;
+  calc_minGlobalDataPoint(int& ProcNo,  int& DataPointNo) const;
   /**
      \brief
      Return the sign of each data point of this Data object.

@@ -373,6 +373,60 @@ DataExpanded::extractData(ifstream& archiveFile,
   return(m_data.extractData(archiveFile, noValues));
 }
 
+void 
+DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value) {
+  //
+  // Get the number of samples and data-points per sample.
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  int dataPointRank = getPointDataView().getRank();
+  ShapeType dataPointShape = getPointDataView().getShape();
+  //
+  // check rank:
+  if (value.getrank()!=dataPointRank)
+       throw DataException("Rank of numarray does not match Data object rank");
+  if (numSamples*numDataPointsPerSample > 0) {
+     //TODO: global error handling
+     if (sampleNo >= numSamples or sampleNo < 0 ) {
+          throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
+     }
+     if (dataPointNo >= numDataPointsPerSample or dataPointNo < 0) {
+           throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
+     }
+     DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
+     if (dataPointRank==0) {
+         dataPointView()=extract<double>(value[0]);
+     } else if (dataPointRank==1) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+            dataPointView(i)=extract<double>(value[i]);
+        }
+     } else if (dataPointRank==2) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+              dataPointView(i,j)=extract<double>(value[i][j]);
+           }
+        }
+     } else if (dataPointRank==3) {
+        for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+              for (int k=0; k<dataPointShape[2]; k++) {
+                 dataPointView(i,j,k)=extract<double>(value[i][j][k]);
+              }
+           }
+        }
+     } else if (dataPointRank==4) {
+         for (int i=0; i<dataPointShape[0]; i++) {
+           for (int j=0; j<dataPointShape[1]; j++) {
+             for (int k=0; k<dataPointShape[2]; k++) {
+               for (int l=0; l<dataPointShape[3]; l++) {
+                  dataPointView(i,j,k,l)=extract<double>(value[i][j][k][l]);
+               }
+             }
+           }
+         }
+     } 
+  }
+}
 void
 DataExpanded::copyAll(const boost::python::numeric::array& value) {
   //

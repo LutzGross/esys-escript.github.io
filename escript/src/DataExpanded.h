@@ -432,6 +432,20 @@ class DataExpanded : public DataAbstract {
   void
   copyAll(const boost::python::numeric::array& value);
 
+  /**
+     \brief
+     Copy the numarray object to the data point dataPointNo of sample sampleNo in this object.
+
+     Description:
+     Copy the numarray object to the data point dataPointNo of sample sampleNo in this object.
+
+     \param sampleNo Input - sample number
+     \param dataPointNo Input - data point of the sample
+     \param value Input - new values for the data point
+  */
+  void
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value);
+
   //
   // The main data storage array, a 2D array of data blocks.
   // noSamples * noDataPointsPerSample

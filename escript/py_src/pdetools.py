@@ -310,9 +310,9 @@ class Locator:
        if isinstance(x, list):
            self.__id=[]
            for p in x:
-              self.__id.append(util.length(self.__function_space.getX()-p[:self.__function_space.getDim()]).mindp())
+              self.__id.append(util.length(self.__function_space.getX()-p[:self.__function_space.getDim()]).minGlobalDataPoint())
        else:
-           self.__id=util.length(self.__function_space.getX()-x[:self.__function_space.getDim()]).mindp()
+           self.__id=util.length(self.__function_space.getX()-x[:self.__function_space.getDim()]).minGlobalDataPoint()
 
      def __str__(self):
        """
@@ -380,14 +380,14 @@ class Locator:
            if isinstance(id,list):
                out=[]
                for i in id:
-                  o=data.convertToNumArrayFromDPNo(*i)
+                  o=data.getValueOfGlobalDataPoint(*i)
                   if data.getRank()==0:
                      out.append(o[0])
                   else:
                      out.append(o)
                return out
            else:
-             out=data.convertToNumArrayFromDPNo(*id)
+             out=data.getValueOfGlobalDataPoint(*id)
              if data.getRank()==0:
                 return out[0]
              else:
