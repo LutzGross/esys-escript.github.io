@@ -69,6 +69,7 @@ class Primitive(object):
 
     def __repr__(self):
        return "%s(%s)"%(self.__class__.__name__,self.getID())
+
     def __cmp__(self,other):
        return cmp(self.getID(),other.getID())
 
@@ -519,6 +520,7 @@ class Primitive2D(Primitive):
           create a two-dimensional primitive
           """
           super(Primitive2D, self).__init__()
+
 class CurveLoop(Primitive2D):
     """
     An oriented loop of curves. 
@@ -530,16 +532,28 @@ class CurveLoop(Primitive2D):
        creates a polygon from a list of line curves. The curves must form a closed loop.
        """
        super(CurveLoop, self).__init__()
-       self.__curves=[]
-       self.addCurve(*curves)
-    def addCurve(self,*curves):
-       """
-       adds curves to the curves defining the object
-       """
+       if len(curves)<2:
+            raise TypeError("at least two curves have to be given.")
        for i in range(len(curves)):
            if not isinstance(curves[i],Primitive1D):
               raise TypeError("%s-th argument is not a Primitive1D object."%i)
-       self.__curves+=curves
+       # for the curves a loop:
+       used=[ False for i in curves]
+       self.__curves=[curves[0]]
+       used[0]=True
+       while not min(used):
+          found=False
+          for i in xrange(len(curves)):
+             if not used[i]:
+                if self.__curves[-1].getEndPoint() == curves[i].getStartPoint():
+                   self.__curves.append(curves[i])
+                   used[i]=True
+                   found=True
+                   break
+          if not found:
+             raise ValueError("loop is not closed.")
+       if not self.__curves[0].getStartPoint() == self.__curves[-1].getEndPoint():
+          raise ValueError("loop is not closed.")
 
     def getCurves(self):
        """
