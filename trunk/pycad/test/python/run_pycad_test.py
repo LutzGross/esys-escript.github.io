@@ -1069,7 +1069,37 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(not dc.getStartPoint() == p_start,"start point of dilation is identical to source.")
         self.failUnless(not dc.getEndPoint() == p_end,"end point of dilation is identical to source.")
 
+   def test_CurveLoop(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+        p5=Point(1,2,3)
+        p6=Point(1,2,3)
 
+        l01=Line(p0,p1)
+        l12=Arc(p3,p1,p2)
+        l20=Spline(p2,p4,p0)
+
+        lx=Line(p2,p3)
+        ly=Line(p3,p1)
+
+        c=CurveLoop(l01,l12,l20)
+        c=CurveLoop(l01,l20,l12)
+        self.failUnlessRaises(TypeError,ValueError,CurveLoop,l01,lx,l20,msg="loop detected.")
+        self.failUnlessRaises(TypeError,ValueError,CurveLoop,l01,l20,l20,msg="douple not detected.")
+        self.failUnlessRaises(TypeError,ValueError,CurveLoop,l01,l20,ly,msg="loop detected.")
+
+        code=c.getGmshCommand() 
+        self.failUnless(code == "Line Loop(14) = {8, 9, 10};", "gmsh command wrong.")
+
+        cc=c.getCurves()
+        self.failUnless(len(cc) == 3, "too many curves.")
+        self.failUnless(l01 in cc, "l01 is missing")
+        self.failUnless(l12 in cc, "l12 is missing")
+        self.failUnless(l20 in cc, "l20 is missing")
+        
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_PyCAD_Transformations))
