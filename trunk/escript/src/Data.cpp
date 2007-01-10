@@ -726,13 +726,13 @@ Data:: getValueOfDataPoint(int dataPointNo)
        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
        //
        // Check a valid sample number has been supplied
-       if (sampleNo >= getNumSamples() or sampleNo < 0 ) {
+       if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
            throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
        }
               
        //
        // Check a valid data point number has been supplied
-       if (dataPointNoInSample >= getNumDataPointsPerSample() or dataPointNoInSample < 0) {
+       if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
            throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
        }
        // TODO: global error handling
@@ -877,13 +877,13 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
                 int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
                 //
                 // Check a valid sample number has been supplied
-                if (sampleNo >= getNumSamples() or sampleNo < 0 ) {
+                if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
                   throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
                 }
               
                 //
                 // Check a valid data point number has been supplied
-                if (dataPointNoInSample >= getNumDataPointsPerSample() or dataPointNoInSample < 0) {
+                if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
                   throw DataException("Error - Data::convertToNumArray: invalid dataPointNoInSample.");
                 }
                 // TODO: global error handling

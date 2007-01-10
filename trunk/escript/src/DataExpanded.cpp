@@ -383,10 +383,10 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const d
   ShapeType dataPointShape = getPointDataView().getShape();
   if (numSamples*numDataPointsPerSample > 0) {
      //TODO: global error handling
-     if (sampleNo >= numSamples or sampleNo < 0 ) {
+     if ((sampleNo >= numSamples) || (sampleNo < 0 )) {
           throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
      }
-     if (dataPointNo >= numDataPointsPerSample or dataPointNo < 0) {
+     if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
            throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
      DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
@@ -437,10 +437,10 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
        throw DataException("Rank of numarray does not match Data object rank");
   if (numSamples*numDataPointsPerSample > 0) {
      //TODO: global error handling
-     if (sampleNo >= numSamples or sampleNo < 0 ) {
+     if ((sampleNo >= numSamples) || (sampleNo < 0 )) {
           throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
      }
-     if (dataPointNo >= numDataPointsPerSample or dataPointNo < 0) {
+     if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
            throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
      DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
