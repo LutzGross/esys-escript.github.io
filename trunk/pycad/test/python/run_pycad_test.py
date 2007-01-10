@@ -1075,8 +1075,8 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p2=Point(2,2,2,0.3)
         p3=Point(3,3,3,0.4)
         p4=Point(1,2,3)
-        p5=Point(1,2,3)
-        p6=Point(1,2,3)
+        p5=Point(10,20,3)
+        p6=Point(1,2,30)
 
         l01=Line(p0,p1)
         l12=Arc(p3,p1,p2)
@@ -1094,11 +1094,74 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         code=c.getGmshCommand() 
         self.failUnless(code == "Line Loop(14) = {8, 9, 10};", "gmsh command wrong.")
 
+
+        self.failUnless(not c.isColocated(p4),"CurveLoop is colocated with point.")
+        self.failUnless(c.isColocated(c),"CurveLoop is not colocated with its self.")
+        self.failUnless(c.isColocated(CurveLoop(l01,l12,l20)),"CurveLoop is not colocated with its copy.")
+        self.failUnless(c.isColocated(CurveLoop(l20,l01,l12)),"CurveLoop is not colocated with its copy with shifted points.")
+        self.failUnless(c.isColocated(CurveLoop(l20,l12,l01)),"CurveLoop is not colocated with its copy with shuffled points.")
+        self.failUnless(not c.isColocated(CurveLoop(lx,ly,l12)),"CurveLoop is colocated with different CurveLoop.")
+
+        self.failUnless(len(c) == 3, "wrong length")
+
+        c.setLocalScale(3.)
+        self.failUnless(p0.getLocalScale()==3., "p0 has wrong local scale.")
+        self.failUnless(p1.getLocalScale()==3., "p1 has wrong local scale.")
+        self.failUnless(p2.getLocalScale()==3., "p2 has wrong local scale.")
+        self.failUnless(p4.getLocalScale()==3., "p4 has wrong local scale.")
+
         cc=c.getCurves()
         self.failUnless(len(cc) == 3, "too many curves.")
         self.failUnless(l01 in cc, "l01 is missing")
         self.failUnless(l12 in cc, "l12 is missing")
         self.failUnless(l20 in cc, "l20 is missing")
+
+        p=c.getPrimitives()
+        self.failUnless(len(p) == 9, "too many primitives.")
+        self.failUnless(l01 in p, "l01 is missing")
+        self.failUnless(l12 in p, "l21 is missing")
+        self.failUnless(l20 in p, "l20 is missing")
+        self.failUnless(p0 in p, "p0 is missing")
+        self.failUnless(p1 in p, "p1 is missing")
+        self.failUnless(p2 in p, "p2 is missing")
+        self.failUnless(p3 in p, "p3 is missing")
+        self.failUnless(p4 in p, "p4 is missing")
+
+        cp=c.copy()
+        self.failUnless(isinstance(cp,CurveLoop), "copy returns is not an arc.")
+        self.failUnless(not cp == c, "copy equals source")
+        cc=cp.getCurves()
+        self.failUnless(len(cc) == 3, "too many primitives in copy.")
+        self.failUnless(not l01 in cc,"copy uses l01.")
+        self.failUnless(not l12 in cc,"copy uses l12.")
+        self.failUnless(not l20 in cc,"copy uses l20.")
+         
+        p0_m=Point(0,0,0)
+        p1_m=Point(-1,-1,-1)
+        p2_m=Point(-2,-2,-2)
+        p3_m=Point(-3,-3,-3)
+        p4_m=Point(-1,-2,-3)
+
+        l01_m=Line(p0_m,p1_m)
+        l12_m=Arc(p3_m,p1_m,p2_m)
+        l20_m=Spline(p2_m,p4_m,p0_m)
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(CurveLoop(l01_m,l12_m,l20_m)),"dilation is wrong.")
+        cc=dc.getCurves()
+        self.failUnless(len(cc) == 3, "too many primitives in dilation result.")
+        self.failUnless(not l01 in cc,"l01 is in dilation result.")
+        self.failUnless(not l12 in cc,"l12 is in dilation result.")
+        self.failUnless(not l20 in cc,"l20 is in dilation result.")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(CurveLoop(l01_m,l12_m,l20_m)),"inplace dilation is wrong.")
+        cc=c.getCurves()
+        self.failUnless(len(cc) == 3, "too many primitives in modified object.")
+        self.failUnless(l01 in cc,"l01 missed in  modified object.")
+        self.failUnless(l12 in cc,"l12 missed in  modified object.")
+        self.failUnless(l20 in cc,"l20 missed in  modified object.")
+      
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()
