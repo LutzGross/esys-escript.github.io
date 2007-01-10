@@ -92,7 +92,7 @@ class Primitive(object):
        """
        returns a deep copy of the object
        """
-       return Primitive()
+       return self.substitute({})
 
 
     def modifyBy(self,transformation):
@@ -174,15 +174,27 @@ class Primitive(object):
 
     def apply(self,transformation):
         """
-        returns a new object by applying the transformation
+        returns a new L{Point} by applying the transformation
         """
-        raise NotImplementedError("apply is not implemented for this class %s."%self.__class__.__name__)
+        out=self.copy()
+        out.modifyBy(transformation)
+        return out
 
     def isColocated(self,primitive):
        """
        returns True is the two primitives are located at the smae position
        """
        raise NotImplementedError("isColocated is not implemented for this class %s."%self.__class__.__name__)
+
+    def substitute(self,sub_dict):
+        """
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
+        """
+        if not sub_dict.has_key(self):
+           sub_dict[self]=self.__class__()
+        return sub_dict[self]
 
 class Point(Primitive):
     """
@@ -241,12 +253,16 @@ class Point(Primitive):
        else:
           return False
 
-    def copy(self):
-       """
-       returns a deep copy of the point
-       """
-       c=self.getCoordinates()
-       return Point(c[0],c[1],c[2],local_scale=self.getLocalScale())
+    def substitute(self,sub_dict):
+        """
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
+        """
+        if not sub_dict.has_key(self):
+           c=self.getCoordinates()
+           sub_dict[self]=Point(c[0],c[1],c[2],local_scale=self.getLocalScale())
+        return sub_dict[self]
 
     def modifyBy(self,transformation):
         """
@@ -254,13 +270,6 @@ class Point(Primitive):
         """
         self.setCoordinates(transformation(self.getCoordinates()))
 
-    def apply(self,transformation):
-        """
-        returns a new L{Point} by applying the transformation
-        """
-        new_p=self.copy()
-        new_p.modifyBy(transformation)
-        return new_p
 
     def getGmshCommand(self, local_scaling_factor=1.):
         """
@@ -329,22 +338,17 @@ class Curve(Primitive1D):
        out.add(self)
        return list(out)
 
-    def copy(self):
-       """
-       returns a deep copy
-       """
-       new_p=[]
-       for p in self.getControlPoints(): new_p.append(p.copy())
-       return self.__class__(*tuple(new_p))
-
-
-    def apply(self,transformation):
+    def substitute(self,sub_dict):
         """
-        applies transformation
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
         """
-        new_p=[]
-        for p in self.getControlPoints(): new_p.append(p.apply(transformation))
-        return self.__class__(*tuple(new_p))
+        if not sub_dict.has_key(self):
+            new_p=[]
+            for p in self.getControlPoints(): new_p.append(p.substitute(sub_dict))
+            sub_dict[self]=self.__class__(*tuple(new_p))
+        return sub_dict[self]
 
     def isColocated(self,primitive):
        """
@@ -488,17 +492,15 @@ class Arc(Primitive1D):
        """
        return "Circle(%s) = {%s, %s, %s};"%(self.getID(),self.getStartPoint().getID(),self.getCenterPoint().getID(),self.getEndPoint().getID())
 
-    def copy(self):
-       """
-       returns a deep copy
-       """
-       return Arc(self.getCenterPoint().copy(),self.getStartPoint().copy(),self.getEndPoint().copy())
-
-    def apply(self,transformation):
+    def substitute(self,sub_dict):
         """
-        applies transformation
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
         """
-        return Arc(self.getCenterPoint().apply(transformation),self.getStartPoint().apply(transformation),self.getEndPoint().apply(transformation))
+        if not sub_dict.has_key(self):
+            sub_dict[self]=Arc(self.getCenterPoint().substitute(sub_dict),self.getStartPoint().substitute(sub_dict),self.getEndPoint().substitute(sub_dict))
+        return sub_dict[self]
 
     def isColocated(self,primitive):
        """
@@ -560,6 +562,7 @@ class CurveLoop(Primitive2D):
        returns the curves defining the CurveLoop
        """
        return self.__curves
+
     def __len__(self):
        """
        return the number of curves in the CurveLoop
@@ -575,22 +578,18 @@ class CurveLoop(Primitive2D):
        out.add(self)
        return list(out)
 
-    def copy(self):
-       """
-       returns a deep copy
-       """
-       new_c=[]
-       for c in self.getCurves(): new_c.append(c.copy())
-       return CurveLoop(*tuple(new_c))
-
-
-    def apply(self,transformation):
+    def substitute(self,sub_dict):
         """
-        applies transformation
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
         """
-        new_c=[]
-        for c in self.getCurves(): new_c.append(c.apply(transformation))
-        return CurveLoop(*tuple(new_c))
+        if not sub_dict.has_key(self):
+            new_c=[]
+            for c in self.getCurves(): new_c.append(c.substitute(sub_dict))
+            sub_dict[self]=CurveLoop(*tuple(new_c))
+        return sub_dict[self]
+
 
     def isColocated(self,primitive):
        """
@@ -602,7 +601,8 @@ class CurveLoop(Primitive2D):
              cp1=primitive.getCurves()
              for c0 in cp0: 
                  collocated = False
-                 for c1 in cp1: collocated = collocated or c0.isColocated(c1)
+                 for c1 in cp1: 
+                      collocated = collocated or c0.isColocated(c1)
                  if not collocated: return False
              return True
           else:
