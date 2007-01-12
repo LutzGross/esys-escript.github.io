@@ -570,7 +570,19 @@ class ParameterSet(LinkableObject):
                 param.appendChild(esysxml.createDataNode('Value', ' '.join([str(x) for x in value]) ))
             elif isinstance(value, (str, bool, int, float, type(None))):
                 param.appendChild(esysxml.createDataNode('Value', str(value)))
+            elif isinstance(value, dict):
+                 dic = esysxml.createElement('dictionary')
+                 if len(value.keys())>0:
+                     dic.setAttribute('key_type', value.keys()[0].__class__.__name__)
+                     dic.setAttribute('value_type', value[value.keys()[0]].__class__.__name__)
+                 for k,v in value.items():
+                    i=esysxml.createElement('item')
+                    i.appendChild(esysxml.createDataNode('key', k))
+                    i.appendChild(esysxml.createDataNode('value', v))
+                    dic.appendChild(i)
+                 param.appendChild(dic)
             else:
+                print value
                 raise ValueError("cannot serialize %s type to XML."%str(value.__class__))
 
             node.appendChild(param)
