@@ -619,34 +619,74 @@ class CurveLoop(Primitive2D):
                 out="%s"%i.getID()
         return "Line Loop(%s) = {%s};"%(self.getID(),out)
 
-#=================================================================================================================================
-class Surface(Primitive):
+class Surface(Primitive2D):
     """
     a surface
     """
+    pass
+
+class RuledSurface(Surface):
+    """
+    A ruled surface, i.e., a surface that can be interpolated using transfinite interpolation
+    """
     def __init__(self,loop):
        """
-       creates a  surface with boundary loop
+       creates a ruled surface with boundary loop
 
-       @param loop: L{CurveLoop} defining the boundary of the surface
+       @param loop: L{CurveLoop} defining the boundary of the surface. 
        """
-       super(Surface, self).__init__()
-       if not loop.isCurveLoop():
+       super(RuledSurface, self).__init__()
+       if not isinstance(CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
+       if len(loop)<2:
+           raise TypeError("the loop must contain at least two Curves.")
+       if len(loop)>4:
+           raise TypeError("the loop must contain at least three Curves.")
+
        self.__loop=loop
-    def isSurface(self):
-        return True
+
     def getBoundaryLoop(self):
-       return self.__loop
-    def __add__(self,other):
-       return Surface(self.getBoundaryLoop()+other)
+        """
+        returns the loop defining the boundary
+        """
+        return self.__loop
+
     def getPrimitives(self):
         out=set([self]) | self.getBoundaryLoop().getPrimitives()
-        return out
-    def getConstructionPoints(self):
-        return self.getBoundaryLoop().getConstructionPoints()
+
     def getGmshCommand(self):
         return "Ruled Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getID())
+
+    def getPrimitives(self):
+       """
+       returns primitives used to construct the CurveLoop
+       """
+       out=list(set([self]) | self.getBoundaryLoop().getPrimitives())
+
+    def substitute(self,sub_dict):
+        """
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
+        """
+        if not sub_dict.has_key(self):
+            sub_dict[self]=CurveLoop(self.getBoundaryLoop().substitute(sub_dict))
+        return sub_dict[self]
+
+    def isColocated(self,primitive):
+       """
+       returns True if each curve is collocted with a curve in primitive
+       """
+       if isinstance(primitive,RuledSurface):
+          return self.getBoundaryLoop().colocated(primitive.getBoundaryLoop())
+       else:
+          return False
+
+def createRuledSurface(*curves):
+      """
+      an easier way to create a L{RuledSurface} from given curves.
+      """
+      return RuledSurface(CurveLoop(*curves))
 
 class PlaneSurface(Surface):
     """
@@ -654,30 +694,36 @@ class PlaneSurface(Surface):
     """
     def __init__(self,loop,holes=[]):
        """
-       creates a  plane surface. 
+       creates a  plane surface with a hole
 
        @param loop: L{CurveLoop} defining the boundary of the surface
        @param holes: list of L{CurveLoop} defining holes in the surface. 
        @note: A CurveLoop defining a hole should not have any lines in common with the exterior CurveLoop.  
               A CurveLoop defining a hole should not have any lines in common with another CurveLoop defining a hole in the same surface.
        """
-       super(PlaneSurface, self).__init__(loop)
+       super(PlaneSurface, self).__init__()
+       if not isinstance(loop,CurveLoop):
+           raise TypeError("argument loop needs to be a CurveLoop object.")
        for i in range(len(holes)):
             if not holes[i].inCurveLoop():
                  raise TypeError("%i th hole needs to be a CurveLoop object.")
+       #TODO: check if lines are in a plane
        self.__holes=holes
     def getHoles(self):
+       """
+       returns the holes
+       """
        return self.__holes
-    def __add__(self,other):
-       return PlaneSurface(self.getBoundaryLoop()+other, holes=[h+other for h in self.getHoles()])
+    def getBoundaryLoop(self):
+        """
+        returns the loop defining the boundary
+        """
+        return self.__loop
     def getPrimitives(self):
         out=set([self]) | self.getBoundaryLoop().getPrimitives()
         for i in self.getHoles(): out|=i.getPrimitives()
         return out
-    def getConstructionPoints(self):
-        out=self.getBoundaryLoop().getConstructionPoints()
-        for i in self.getHoles(): out|=i.getConstructionPoints()
-        return out
+
     def getGmshCommand(self):
         out=""
         for i in self.getHoles():
@@ -690,26 +736,31 @@ class PlaneSurface(Surface):
         else:
           return "Plane Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getID())
 
-class RuledSurface(Surface):
-    """
-   A ruled surface, i.e., a surface that can be interpolated using transfinite interpolation
-    """
-    def __init__(self,loop):
-       """
-       creates a ruled surface from a 
+    def substitute(self,sub_dict):
+        """
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
+        """
+        if not sub_dict.has_key(self):
+            sub_dict[self]=CurveLoop(self.getBoundaryLoop().substitute(sub_dict),[ h.substitute(sub_dict) for h in self.getHoles()])
+        return sub_dict[self]
 
-       @param loop: L{CurveLoop} defining the boundary of the surface. There is a restriction of composed of either three or four L{Curve} objects.
+    def isColocated(self,primitive):
        """
-       if not loop.isCurveLoop():
-           raise TypeError("argument loop needs to be a CurveLoop object.")
-       if len(loop)<3:
-           raise TypeError("the loop must contain at least three Curves.")
-       super(RuledSurface, self).__init__(loop)
-    def __add__(self,other):
-       return RuledSurface(self.getBoundaryLoop()+other)
-    def getGmshCommand(self):
-        return "Ruled Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getID())
+       returns True if each curve is collocted with a curve in primitive
+       """
+       if isinstance(primitive,PlaneSurface):
+          if self.getBoundaryLoop().colocated(primitive.getBoundaryLoop()):
+             my_h=self.getHoles()
+             h=primitive.getHoles()
+          else:
+             return False
+       else:
+          return False
 
+
+#=================================================================================================================================
 class SurfaceLoop(Primitive):
     """
     a surface loop. It defines the shell of a volume. 

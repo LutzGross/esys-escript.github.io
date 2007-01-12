@@ -8,6 +8,7 @@ __license__="""Licensed under the Open Software License version 3.0
 
 from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
+from esys.escript.linearPDEs import LinearPDE
 from math import log
 
 class Sequencer(Model):
@@ -289,6 +290,110 @@ class ScalarDistributionFromTags(ParameterSet):
         if not self.tag7 == None: d.setTaggedValue(self.tag7,self.value7)
         if not self.tag8 == None: d.setTaggedValue(self.tag8,self.value8)
         if not self.tag9 == None: d.setTaggedValue(self.tag9,self.value9)
+        return d
+
+class SmoothScalarDistributionFromTags(ParameterSet):
+    """
+    creates a smooth scalar distribution on a domain from region tags
+            
+    @ivar domain: domain
+    @type domain: L{esys.escript.Domain}
+    @ivar default: default value 
+    @ivar tag0: tag 0
+    @type tag0: C{int}
+    @ivar value0: value for tag 0
+    @type value0: C{float}
+    @ivar tag1: tag 1
+    @type tag1: C{int}
+    @ivar value1: value for tag 1
+    @type value1: C{float}
+    @ivar tag2: tag 2
+    @type tag2: C{int}
+    @ivar value2: value for tag 2
+    @type value2: C{float}
+    @ivar tag3: tag 3
+    @type tag3: C{int}
+    @ivar value3: value for tag 3
+    @type value3: C{float}
+    @ivar tag4: tag 4
+    @type tag4: C{int}
+    @ivar value4: value for tag 4
+    @type value4: C{float}
+    @ivar tag5: tag 5
+    @type tag5: C{int}
+    @ivar value5: value for tag 5
+    @type value5: C{float}
+    @ivar tag6: tag 6
+    @type tag6: C{int}
+    @ivar value6: value for tag 6
+    @type value6: C{float}
+    @ivar tag7: tag 7
+    @type tag7: C{int}
+    @ivar value7: value for tag 7
+    @type value7: C{float}
+    @ivar tag8: tag 8
+    @type tag8: C{int}
+    @ivar value8: value for tag 8
+    @type value8: C{float}
+    @ivar tag9: tag 9
+    @type tag9: C{int}
+    @ivar value9: value for tag 9
+    @type value9: C{float}
+    """
+    def __init__(self,**kwargs):
+        super(SmoothScalarDistributionFromTags, self).__init__(**kwargs)
+        self.declareParameter(domain=None,
+                              default=0.,
+                              tag0=None,
+                              value0=0.,
+                              tag1=None,
+                              value1=0.,
+                              tag2=None,
+                              value2=0.,
+                              tag3=None,
+                              value3=0.,
+                              tag4=None,
+                              value4=0.,
+                              tag5=None,
+                              value5=0.,
+                              tag6=None,
+                              value6=0.,
+                              tag7=None,
+                              value7=0.,
+                              tag8=None,
+                              value8=0.,
+                              tag9=None,
+                              value9=0.)
+
+
+    def __update(self,tag,tag_value,value):
+        if self.__pde==None:
+           self.__pde=LinearPDE(self.domain,numSolutions=1)
+        mask=Scalar(0.,Function(self.domain))
+        mask.setTaggedValue(tag,1.)
+        self.__pde.setValue(Y=mask)
+        mask=wherePositive(abs(self.__pde.getRightHandSide()))
+        value*=(1.-mask)
+        value+=tag_value*mask
+        return value
+
+    def out(self):
+        """
+        returns a L{esys.escript.Data} object
+        Link against this method to get the output of this model.
+        """
+        d=Scalar(self.default,Solution(self.domain)) 
+        self.__pde=None
+        if not self.tag0 == None: d=self.__update(self.tag0,self.value0,d)
+        if not self.tag1 == None: d=self.__update(self.tag1,self.value1,d)
+        if not self.tag2 == None: d=self.__update(self.tag2,self.value2,d)
+        if not self.tag3 == None: d=self.__update(self.tag3,self.value3,d)
+        if not self.tag4 == None: d=self.__update(self.tag4,self.value4,d)
+        if not self.tag5 == None: d=self.__update(self.tag5,self.value5,d)
+        if not self.tag6 == None: d=self.__update(self.tag6,self.value6,d)
+        if not self.tag7 == None: d=self.__update(self.tag7,self.value7,d)
+        if not self.tag8 == None: d=self.__update(self.tag8,self.value8,d)
+        if not self.tag9 == None: d=self.__update(self.tag9,self.value9,d)
         return d
 
 class LinearCombination(ParameterSet):
