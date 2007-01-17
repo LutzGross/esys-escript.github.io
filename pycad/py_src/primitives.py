@@ -55,32 +55,22 @@ setToleranceForColocation()
 
 class PrimitiveBase(object):
     """
-    template for elementary geometrical object
+    template for a set of primitives 
     """
-    def __init__(self,id): 
+    def __init__(self): 
        """
        initializes PrimitiveBase instance object with id
        """ 
-       self.__ID=id
-
-    def getID(self):
-       """
-       returns the primitive ID
-       """
-       return self.__ID
-
-    def __repr__(self):
-       return "%s(%s)"%(self.getClass().__name__,self.getID())
+       pass
 
     def __cmp__(self,other):
        """
        compares object with other by comparing the absolute value of the ID
        """
-       if isinstance(self, PrimitiveBase):
-           return cmp(abs(self.getID()),abs(other.getID()))
+       if isinstance(other, PrimitiveBase):
+           return cmp(self.getID(),other.getID())
        else:
            return False
-
     def getConstructionPoints(self):
         """
         returns the points used to construct the primitive
@@ -95,12 +85,7 @@ class PrimitiveBase(object):
         returns a list of primitives used to construct the primitive with no double entries
         """
         out=set()
-        for p in self.collectPrimitives():
-           if isintance(p,ReversePrimitive):
-              out.add(-p)
-           elif isintance(p,Primitive):
-              out.add(p)
-        return list(set(self.collectPrimitives()))
+        return list(set([p for p in self.collectPrimitiveBases()]))
 
     def copy(self):
        """
@@ -176,15 +161,6 @@ class PrimitiveBase(object):
        """
        for p in self.getConstructionPoints(): p.setLocalScale(factor)
 
-    def __neg__(self):
-        """
-        returns a view of the object with reverse orientiention
-        """
-        if isinstance(self,ReversePrimitive):
-            return self.getUnderlyingPrimitive()
-        else:
-            return ReversedPrimitive(self)
-
     def apply(self,transformation):
         """
         returns a new object by applying the transformation
@@ -193,13 +169,48 @@ class PrimitiveBase(object):
         out.modifyBy(transformation)
         return out
 
-    def collectPrimitives(self):
+
+
+class Primitive(object):
+    """
+    A general primitive
+    """
+    def __init__(self): 
+       """
+       initializes PrimitiveBase instance object with id
+       """ 
+       global global_primitive_id_counter
+       self.__ID=global_primitive_id_counter
+       global_primitive_id_counter+=1
+
+    def getID(self):
+       """
+       returns the primitive ID
+       """
+       return self.__ID
+
+    def getDirectedID(self):
         """
-        returns a list of primitives used to construct the primitive. It may contain primitives twice
-        
+        returns the primitive ID where a negative signs means that the reversed ordring is used.
+        """
+        return self.getID()
+
+    def __repr__(self):
+       return "%s(%s)"%(self.__class__.__name__,self.getID())
+
+    def getUnderlyingPrimitive(self):
+        """
+        returns the underlying primitive
+        """
+        return self
+
+    def __neg__(self):
+        """
+        returns a view onto the curve with reversed ordering
+
         @note: this class is overwritten by subclass
         """
-        return [self]
+        raise NotImplementedError("__neg__ is not implemented.")
 
     def getGmshCommand(self, local_scaling_factor=1.):
         """
@@ -207,15 +218,7 @@ class PrimitiveBase(object):
 
         @note: this class is overwritten by subclass
         """
-        raise NotImplementedError("getGmshCommand is not implemented for this class %s."%self.__class__.__name__)
-
-    def isColocated(self,primitive):
-       """
-       returns True is the two primitives are located at the smae position
-
-       @note: this class is overwritten by subclass
-       """
-       raise NotImplementedError("isColocated is not implemented for this class %s."%self.__class__.__name__)
+        raise NotImplementedError("getGmshCommand is not implemented.")
 
     def substitute(self,sub_dict):
         """
@@ -225,29 +228,26 @@ class PrimitiveBase(object):
 
         @note: this class is overwritten by subclass
         """
-        if not sub_dict.has_key(self):
-           sub_dict[self]=self.getClass()
-        return sub_dict[self]
+        raise NotImplementedError("substitute is not implemented.")
 
-class Primitive(PrimitiveBase):
-    """
-    A general primitive
-    """
-    def __init__(self): 
+    def collectPrimitiveBases(self):
+        """
+        returns a list of primitives used to construct the primitive. It may contain primitives twice
+        
+        @note: this class is overwritten by subclass
+        """
+        raise NotImplementedError("collectPrimitiveBases is not implemented.")
+
+    def isColocated(self,primitive):
        """
-       instantiate a primitve
-       """ 
-       global global_primitive_id_counter
-       self.__ID=global_primitive_id_counter
-       PrimitiveBase.__init__(self,global_primitive_id_counter)
+       returns True is the two primitives are located at the smae position
 
-    def getClass(self):
-        """
-        returns the class of the object
-        """
-        return self.__class__
+       @note: this class is overwritten by subclass
+       """
+       raise NotImplementedError("isColocated is not implemented.")
 
-class ReversePrimitive(PrimitiveBase):
+
+class ReversePrimitive(object):
     """
     A view onto a primitive creating an reverse orientation
     """
@@ -255,8 +255,15 @@ class ReversePrimitive(PrimitiveBase):
        """
        instantiate a view onto primitve
        """ 
-       PrimitiveBase.__init__(self,-primitive.getID())
+       if not isinstance(primitive, Primitive):
+           raise ValueError("argument needs to be a Primitive class object.")
        self.__primitive=primitive
+
+    def getID(self):
+       """
+       returns the primitive ID
+       """
+       return self.__primitive.getID()
 
     def getUnderlyingPrimitive(self):
         """
@@ -264,13 +271,52 @@ class ReversePrimitive(PrimitiveBase):
         """
         return self.__primitive
 
-    def getClass(self):
-        """
-        returns the class of the underlying object
-        """
-        return self.getUnderlyingPrimitive().__class__()
+    def __repr__(self):
+       return "-%s(%s)"%(self.__primitive.__class__.__name__,self.getID())
 
-class Point(Primitive):
+    def getDirectedID(self):
+        """
+        returns the primitive ID where a negative signs means that the reversed ordring is used.
+        """
+        return -self.__primitive.getID()
+
+    def substitute(self,sub_dict):
+        """
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
+        """
+        if not sub_dict.has_key(self):
+            sub_dict[self]=-self.getUnderlyingPrimitive().substitute(sub_dict)
+        return sub_dict[self]
+            
+    def __neg__(self):
+          """
+          returns a view onto the curve with reversed ordering
+          """
+          return self.__primitive
+
+    def getGmshCommand(self, local_scaling_factor=1.):
+        """
+        returns the Gmsh command(s) to create the primitive
+        """
+        return self.__primitive.getGmshCommand(local_scaling_factor)
+
+    def collectPrimitiveBases(self):
+        """
+        returns a list of primitives used to construct the primitive. It may contain primitives twice
+        """
+        return self.__primitive.collectPrimitiveBases()
+
+    def isColocated(self,primitive):
+       """
+       returns True is the two primitives are located at the smae position
+
+       @note: this class is overwritten by subclass
+       """
+       return self.__primitive.isColocated(primitive)
+
+class Point(Primitive, PrimitiveBase):
     """
     a three dimensional point
     """
@@ -278,6 +324,7 @@ class Point(Primitive):
        """
        creates a point with coorinates x,y,z with the local refinement factor local_scale
        """ 
+       PrimitiveBase.__init__(self)
        Primitive.__init__(self)
        self.setCoordinates(numarray.array([x,y,z],_TYPE))
        self.setLocalScale(local_scale)
@@ -289,6 +336,7 @@ class Point(Primitive):
        if factor<=0.:
           raise ValueError("scaling factor must be positive.")
        self.__local_scale=factor
+
     def getLocalScale(self):
        """
        returns the local refinement factor
@@ -308,7 +356,7 @@ class Point(Primitive):
        else:
           self._x=x
 
-    def collectPrimitives(self):
+    def collectPrimitiveBases(self):
        """
        returns primitives used to construct the primitive
        """
@@ -366,7 +414,7 @@ class Manifold1D(PrimitiveBase):
         """
         create a one-dimensional manifold
         """
-        PrimitiveBass.__init__(self)
+        PrimitiveBase.__init__(self)
 
     def getStartPoint(self):
          """
@@ -381,9 +429,12 @@ class Manifold1D(PrimitiveBase):
          raise NotImplementedError()
 
 class CurveBase(Manifold1D):
+    """
+    A Curve is defined by a set of control points 
+    """
     def __init__(self):
           """
-          create a one-dimensional primitive
+          create curve 
           """
           Manifold1D.__init__(self)
 
@@ -397,21 +448,49 @@ class CurveBase(Manifold1D):
          """
          returns start point
          """
-         return self.getControlPoints[0]
+         return self.getControlPoints()[0]
 
     def getEndPoint(self):
          """
          returns end point
          """
-         return self.getControlPoints[-1]
+         return self.getControlPoints()[-1]
 
-    def collectPrimitives(self):
+    def getControlPoints(self):
+         """
+         returns a list of the points
+         """
+         raise NotImplementedError()
+
+class Curve(CurveBase, Primitive):
+    """
+    a curve defined through a list of control points. 
+    """
+    def __init__(self,*points):
        """
-       returns primitives used to construct the Curve
+       defines a curve form control points 
        """
-       out=[self]
-       for p in self.getControlPoints(): out+=p.collectPrimitives()
-       return out
+       if len(points)<2:
+           raise TypeError("Curve needs at least two points")
+       i=0
+       for p in points:
+              i+=1
+              if not isinstance(p,Point): raise TypeError("%s-th argument is not a Point object."%i)
+       self.__points=points
+       CurveBase.__init__(self)
+       Primitive.__init__(self)
+
+    def getControlPoints(self):
+         """
+         returns a list of the points
+         """
+         return self.__points
+      
+    def __neg__(self):
+          """
+          returns a view onto the curve with reversed ordering
+          """
+          return ReverseCurve(self)
 
     def substitute(self,sub_dict):
         """
@@ -422,14 +501,22 @@ class CurveBase(Manifold1D):
         if not sub_dict.has_key(self):
             new_p=[]
             for p in self.getControlPoints(): new_p.append(p.substitute(sub_dict))
-            sub_dict[self]=self.getGeneratingClass()(*tuple(new_p))
+            sub_dict[self]=self.__class__(*tuple(new_p))
         return sub_dict[self]
+
+    def collectPrimitiveBases(self):
+       """
+       returns primitives used to construct the Curve
+       """
+       out=[self]
+       for p in self.getControlPoints(): out+=p.collectPrimitiveBases()
+       return out
 
     def isColocated(self,primitive):
        """
        returns True curves are on the same position
        """
-       if isinstance(primitive,self.__class__):
+       if isinstance(primitive.getUnderlyingPrimitive(),self.__class__):
           if len(primitive) == len(self):
              cp0=self.getControlPoints()
              cp1=primitive.getControlPoints()
@@ -448,40 +535,7 @@ class CurveBase(Manifold1D):
        else:
           return False
 
-      
-class Curve(CurveBase):
-    """
-    a curve defined through a list of control points. 
-    """
-    def __init__(self,*points):
-       """
-       defines a curve form control points 
-       """
-       CurveBase.__init__(self)
-       if len(points)<2:
-           raise TypeError("Curve needs at least two points")
-       super(Curve, self).__init__()
-       i=0
-       for p in points:
-              i+=1
-              if not isinstance(p,Point): raise TypeError("%s-th argument is not a Point object."%i)
-       self.__points=points
-
-    def __neg__(self):
-          """
-          returns a view onto the curce with reversed ordering
-          """
-          return ReverseCurve(self)
-    def getControlPoints(self):
-         """
-         returns a list of the points
-         """
-         return self.__points
-
-    def getGeneratingClass(self):
-         return self.__class__
-
-class ReverseCurve(CurveBase):
+class ReverseCurve(CurveBase, ReversePrimitive):
     """
     a curve defined through a list of control points. 
     """
@@ -489,40 +543,33 @@ class ReverseCurve(CurveBase):
        """
        defines a curve form control points 
        """
+       if not isinstance(curve, Curve):
+           raise TypeError("ReverseCurve needs to be an instance of Curve")
        CurveBase.__init__(self)
-       if not isinstance(curve, CurveBase):
-           raise TypeError("curve needs to be an instance of Curve")
-       self.__curve=curve
+       ReversePrimitive.__init__(self,curve)
 
-    def __neg__(self):
-          """
-          returns a view onto the curce with reversed ordering
-          """
-          return self.__curve
     def getControlPoints(self):
          """
          returns a list of the points
          """
-         out=[p for p in self.__curve.getControlPoints()]
+         out=[p for p in self.getUnderlyingPrimitive().getControlPoints()]
          out.reverse()
          return out
-    def getGeneratingClass(self):
-         return self.__curve.getGeneratingClass()
 
 class Spline(Curve):
     """
     a spline curve defined through a list of control points. 
     """
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the Curve
         """
         out=""
         for i in self.getControlPoints():
             if len(out)>0: 
-                out+=", %s"%i.getID()
+                out+=", %s"%i.getDirectedID()
             else:
-                out="%s"%i.getID()
+                out="%s"%i.getDirectedID()
         return "Spline(%s) = {%s};"%(self.getID(),out)
     
 
@@ -530,37 +577,37 @@ class BezierCurve(Curve):
     """
     a Bezier curve
     """
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the Curve
         """
         out=""
         for i in self.getControlPoints():
             if len(out)>0: 
-                out+=", %s"%i.getID()
+                out+=", %s"%i.getDirectedID()
             else:
-                out="%s"%i.getID()
+                out="%s"%i.getDirectedID()
         return "Bezier(%s) = {%s};"%(self.getID(),out)
 
 class BSpline(Curve):
     """
     a BSpline curve. Control points may be repeated.
     """
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the Curve
         """
         out=""
         for i in self.getControlPoints():
             if len(out)>0: 
-                out+=", %s"%i.getID()
+                out+=", %s"%i.getDirectedID()
             else:
-                out="%s"%i.getID()
+                out="%s"%i.getDirectedID()
         return "BSpline(%s) = {%s};"%(self.getID(),out)
 
 class Line(Curve):
     """
-    a line is defined by two L{Point}s
+    a line is defined by two pointDirecteds
     """
     def __init__(self,*points):
         """
@@ -568,53 +615,38 @@ class Line(Curve):
         """
         if len(points)!=2:
            raise TypeError("Line needs two points")
-        super(Line, self).__init__(*points)
-    def getGmshCommand(self):
+        Curve.__init__(self,*points)
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the Curve
         """
-        return "Line(%s) = {%s, %s};"%(self.getID(),self.getStartPoint().getID(),self.getEndPoint().getID())
+        return "Line(%s) = {%s, %s};"%(self.getID(),self.getStartPoint().getDirectedID(),self.getEndPoint().getDirectedID())
 
 
 class ArcBase(Manifold1D):
-    def collectPrimitives(self):
+    def __init__(self):
+          """
+          create curve 
+          """
+          Manifold1D.__init__(self)
+    def collectPrimitiveBases(self):
        """
        returns the primitives used to construct the Curve
        """
        out=[self]
-       out+=self.getStartPoint().collectPrimitives()
-       out+=self.getEndPoint().collectPrimitives()
-       out+=self.getCenterPoint().collectPrimitives()
+       out+=self.getStartPoint().collectPrimitiveBases()
+       out+=self.getEndPoint().collectPrimitiveBases()
+       out+=self.getCenterPoint().collectPrimitiveBases()
        return out
 
-    def getGmshCommand(self):
-       """
-       returns the Gmsh command(s) to create the primitive
-       """
-       return "Circle(%s) = {%s, %s, %s};"%(self.getID(),self.getStartPoint().getID(),self.getCenterPoint().getID(),self.getEndPoint().getID())
 
-    def substitute(self,sub_dict):
-        """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
-        """
-        if not sub_dict.has_key(self):
-            sub_dict[self]=Arc(self.getCenterPoint().substitute(sub_dict),self.getStartPoint().substitute(sub_dict),self.getEndPoint().substitute(sub_dict))
-        return sub_dict[self]
+    def getCenterPoint(self):
+         """
+         returns center
+         """
+         raise NotImplementedError()
 
-    def isColocated(self,primitive):
-       """
-       returns True curves are on the same position
-       """
-       if isinstance(primitive,Arc):
-            return (self.getCenterPoint().isColocated(primitive.getCenterPoint())) and ( \
-                   (self.getEndPoint().isColocated(primitive.getEndPoint()) and self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
-                or (self.getEndPoint().isColocated(primitive.getStartPoint()) and self.getStartPoint().isColocated(primitive.getEndPoint()) ) )
-       else:
-          return False
-
-class Arc(ArcBase):
+class Arc(ArcBase, Primitive):
     """
     defines an arc which is strictly, smaller than Pi
     """
@@ -627,11 +659,15 @@ class Arc(ArcBase):
        if not isinstance(start,Point): raise TypeError("start needs to be a Point object.")
        # TODO: check length of circle.
        ArcBase.__init__(self)
+       Primitive.__init__(self)
        self.__center=center
        self.__start=start
        self.__end=end
     def __neg__(self):
-       return ReverseArc(self)
+          """
+          returns a view onto the curve with reversed ordering
+          """
+          return ReverseArc(self)
 
     def getStartPoint(self):
        """
@@ -651,7 +687,34 @@ class Arc(ArcBase):
        """
        return self.__center
 
-class ReverseArc(_ArcBase):
+    def substitute(self,sub_dict):
+        """
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
+        """
+        if not sub_dict.has_key(self):
+            sub_dict[self]=Arc(self.getCenterPoint().substitute(sub_dict),self.getStartPoint().substitute(sub_dict),self.getEndPoint().substitute(sub_dict))
+        return sub_dict[self]
+
+    def getGmshCommand(self,scaling_factor=1.):
+       """
+       returns the Gmsh command(s) to create the primitive
+       """
+       return "Circle(%s) = {%s, %s, %s};"%(self.getID(),self.getStartPoint().getDirectedID(),self.getCenterPoint().getDirectedID(),self.getEndPoint().getDirectedID())
+
+    def isColocated(self,primitive):
+       """
+       returns True curves are on the same position
+       """
+       if isinstance(primitive.getUnderlyingPrimitive(),Arc):
+            return (self.getCenterPoint().isColocated(primitive.getCenterPoint())) and ( \
+                   (self.getEndPoint().isColocated(primitive.getEndPoint()) and self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
+                or (self.getEndPoint().isColocated(primitive.getStartPoint()) and self.getStartPoint().isColocated(primitive.getEndPoint()) ) )
+       else:
+          return False
+
+class ReverseArc(ArcBase, ReversePrimitive):
     """
     defines an arc which is strictly, smaller than Pi
     """
@@ -659,33 +722,30 @@ class ReverseArc(_ArcBase):
        """
        creates an arc by the start point, end point and center
        """
-       if not isinstance(arc,Arc): raise TypeError("arc needs to be an instance of Arc.")
+       if not isinstance(arc, Arc):
+           raise TypeError("ReverseCurve needs to be an instance of Arc")
        ArcBase.__init__(self)
-       self.__arc=arc
+       ReversePrimitive.__init__(self,arc)
 
     def getStartPoint(self):
        """
        returns start point
        """
-       return self.__arc.getEndPoint()
+       return self.getUnderlyingPrimitive().getEndPoint()
 
     def getEndPoint(self):
        """
        returns end point
        """
-       return self.__arc.getStartPoint()
+       return self.getUnderlyingPrimitive().getStartPoint()
 
     def getCenterPoint(self):
        """
        returns center
        """
-       return self.__arc.getCenterPoint()
+       return self.getUnderlyingPrimitive().getCenterPoint()
 
-    def __neg__(self):
-       return self.__arc
-
-#====================================
-class CurveLoop(Primitive):
+class CurveLoop(Primitive, PrimitiveBase):
     """
     An oriented loop of 1D primitives (= curves and arcs)
 
@@ -695,7 +755,8 @@ class CurveLoop(Primitive):
        """
        creates a polygon from a list of line curves. The curves must form a closed loop.
        """
-       super(CurveLoop, self).__init__()
+       Primitive.__init__(self)
+       PrimitiveBase.__init__(self)
        if len(curves)<2:
             raise TypeError("at least two curves have to be given.")
        for i in range(len(curves)):
@@ -725,18 +786,25 @@ class CurveLoop(Primitive):
        """
        return self.__curves
 
+    def __neg__(self):
+       """
+       returns a view onto the curve with reversed ordering
+       """
+       return ReverseCurveLoop(self)
+
     def __len__(self):
        """
        return the number of curves in the CurveLoop
        """
        return len(self.getCurves())
 
-    def collectPrimitives(self):
+
+    def collectPrimitiveBases(self):
        """
        returns primitives used to construct the CurveLoop
        """
        out=[self]
-       for c in self.getCurves(): out+=c.collectPrimitives()
+       for c in self.getCurves(): out+=c.collectPrimitiveBases()
        return out
 
     def substitute(self,sub_dict):
@@ -770,19 +838,43 @@ class CurveLoop(Primitive):
        else:
           return False
 
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the primitive
         """
         out=""
         for i in self.getCurves():
             if len(out)>0: 
-                out+=", %s"%i.getID()
+                out+=", %s"%i.getDirectedID()
             else:
-                out="%s"%i.getID()
+                out="%s"%i.getDirectedID()
         return "Line Loop(%s) = {%s};"%(self.getID(),out)
 
-class Primitive2D(Primitive):
+class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
+    """
+    An oriented loop of 1D primitives (= curves and arcs)
+
+    The loop must be closed and the L{Manifold1D}s should be oriented consistently.
+    """
+    def __init__(self,curve_loop):
+       """
+       creates a polygon from a list of line curves. The curves must form a closed loop.
+       """
+       if not isinstance(curve_loop, CurveLoop):
+           raise ValueError("arguments need to be an instance of CurveLoop.")
+       ReversePrimitive.__init__(self, curve_loop)
+       PrimitiveBase.__init__(self)
+
+    def getCurves(self):
+       """
+       returns the curves defining the CurveLoop
+       """
+       return [ -c for c in  self.getUnderlyingPrimitive().getCurves() ]
+
+    def __len__(self):
+        return len(self.getUnderlyingPrimitive())
+
+class PrimitiveBase2D(PrimitiveBase):
     """
     general two-dimensional primitive
     """
@@ -790,7 +882,7 @@ class Primitive2D(Primitive):
           """
           create a two-dimensional primitive
           """
-          super(Primitive2D, self).__init__()
+          super(PrimitiveBase2D, self).__init__()
 
     def getBoundary(self):
         """
@@ -822,15 +914,15 @@ class Primitive2D(Primitive):
        """
        raise NotImplementedError("getHoles is not implemented for this class %s."%self.__class__.__name__)
 
-    def collectPrimitives(self):
+    def collectPrimitiveBases(self):
         """
         returns primitives used to construct the Surface
         """
-        out=[self] + self.getBoundaryLoop().collectPrimitives()
-        for i in self.getHoles(): out+=i.collectPrimitives()
+        out=[self] + self.getBoundaryLoop().collectPrimitiveBases()
+        for i in self.getHoles(): out+=i.collectPrimitiveBases()
         return out
 
-class RuledSurface(Primitive2D):
+class RuledSurface(PrimitiveBase2D):
     """
     A ruled surface, i.e., a surface that can be interpolated using transfinite interpolation
     """
@@ -862,11 +954,11 @@ class RuledSurface(Primitive2D):
         """
         return []
 
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the primitive
         """
-        return "Ruled Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getID())
+        return "Ruled Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getDirectedID())
 
     def substitute(self,sub_dict):
         """
@@ -893,7 +985,7 @@ def createRuledSurface(*curves):
       """
       return RuledSurface(CurveLoop(*curves))
 
-class PlaneSurface(Primitive2D):
+class PlaneSurface(PrimitiveBase2D):
     """
     a plane surface with holes
     """
@@ -933,20 +1025,20 @@ class PlaneSurface(Primitive2D):
         """
         return self.__loop
 
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the primitive
         """
         out=""
         for i in self.getHoles():
             if len(out)>0: 
-                out+=", %s"%i.getID()
+                out+=", %s"%i.getDirectedID()
             else:
-                out="%s"%i.getID()
+                out="%s"%i.getDirectedID()
         if len(out)>0:
-          return "Plane Surface(%s) = {%s, %s};"%(self.getID(),self.getBoundaryLoop().getID(), out)
+          return "Plane Surface(%s) = {%s, %s};"%(self.getID(),self.getBoundaryLoop().getDirectedID(), out)
         else:
-          return "Plane Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getID())
+          return "Plane Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getDirectedID())
 
     def substitute(self,sub_dict):
         """
@@ -979,7 +1071,7 @@ class PlaneSurface(Primitive2D):
        else:
           return False
 
-class SurfaceLoop(Primitive):
+class SurfaceLoop(PrimitiveBase):
     """
     a loop of 2D primitives. It defines the shell of a volume. 
 
@@ -993,8 +1085,8 @@ class SurfaceLoop(Primitive):
        if len(surfaces)<2:
             raise TypeError("at least two surfaces have to be given.")
        for i in range(len(surfaces)):
-           if not isinstance(surfaces[i],Primitive2D):
-              raise TypeError("%s-th argument is not a Primitive2D object."%i)
+           if not isinstance(surfaces[i],PrimitiveBase2D):
+              raise TypeError("%s-th argument is not a PrimitiveBase2D object."%i)
        # for the curves a loop:
        used=[ True for s in surfaces]
        self.__surfaces=[surfaces[0]]
@@ -1035,23 +1127,23 @@ class SurfaceLoop(Primitive):
        """
        return self.__curves
 
-    def collectPrimitives(self):
+    def collectPrimitiveBases(self):
        """
        returns primitives used to construct the SurfaceLoop
        """
        out=[self]
-       for c in self.getSurfaces(): out+=c.collectPrimitives()
+       for c in self.getSurfaces(): out+=c.collectPrimitiveBases()
        return out
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the primitive
         """
         out=""
         for i in self.getSurfaces():
             if len(out)>0: 
-                out+=", %s"%i.getID()
+                out+=", %s"%i.getDirectedID()
             else:
-                out="%s"%i.getID()
+                out="%s"%i.getDirectedID()
         return "Surface Loop(%s) = {%s};"%(self.getID(),out)
     def substitute(self,sub_dict):
         """
@@ -1085,7 +1177,7 @@ class SurfaceLoop(Primitive):
          return False
 
 #==========================
-class Volume(Primitive):
+class Volume(PrimitiveBase):
     """
     a volume with holes.
     """
@@ -1112,54 +1204,43 @@ class Volume(Primitive):
        return self.__loop
     def __add__(self,other):
        return Volume(self.getSurfaceLoop()+other, holes=[h+other for h in self.getHoles()])
-    def collectPrimitives(self):
-        out=[self] + self.getSurfaceLoop().collectPrimitives()
-        for i in self.getHoles(): out+=i.collectPrimitives()
+    def collectPrimitiveBases(self):
+        out=[self] + self.getSurfaceLoop().collectPrimitiveBases()
+        for i in self.getHoles(): out+=i.collectPrimitiveBases()
         return out
     def getConstructionPoints(self):
         out=self.getSurfaceLoop().getConstructionPoints()
         for i in self.getHoles(): out|=i.Points()
         return out
-    def getGmshCommand(self):
+    def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the primitive
         """
         out=""
         for i in self.getHoles():
             if len(out)>0: 
-                out+=", %s"%i.getID()
+                out+=", %s"%i.getDirectedID()
             else:
-                out="%s"%i.getID()
+                out="%s"%i.getDirectedID()
         if len(out)>0:
-          return "Volume(%s) = {%s, %s};"%(self.getID(),self.getSurfaceLoop().getID(), out)
+          return "Volume(%s) = {%s, %s};"%(self.getID(),self.getSurfaceLoop().getDirectedID(), out)
         else:
-          return "Volume(%s) = {%s};"%(self.getID(),self.getSurfaceLoop().getID())
+          return "Volume(%s) = {%s};"%(self.getID(),self.getSurfaceLoop().getDirectedID())
 
-class ReversedPrimitive(object):
-    def __init__(self,prim):
-       self.__prim=prim
-    def __getattr__(self,name):
-       if name == "getID":
-          return self.getReverseID
-       else:
-          return getattr(self.__prim,name)
-    def getReverseID(self):
-        return -self.__prim.getID()
-
-class PropertySet(Primitive):
+class PropertySet(PrimitiveBase):
     """
-    defines a group L{Primitive} objects. 
+    defines a group L{PrimitiveBase} objects. 
     """
     def __init__(self,tag=None,*items):
        super(PropertySet, self).__init__()
        self.__items=items
        self.__tag=tag
-    def collectPrimitives(self):
-        out=[self]+self.getBoundaryLoop().collectPrimitives()
-        for i in self.getHoles(): out+=i.collectPrimitives()
+    def collectPrimitiveBases(self):
+        out=[self]+self.getBoundaryLoop().collectPrimitiveBases()
+        for i in self.getHoles(): out+=i.collectPrimitiveBases()
         return out
 
-class PrimitiveStack(object):
+class PrimitiveBaseStack(object):
       def __init__(self,*items):
         self.__prims=set()
         for i in items:
@@ -1167,8 +1248,8 @@ class PrimitiveStack(object):
         self.__prims=list(self.__prims)
         self.__prims.sort()
 
-      def getGmshCommands(self):
+      def getGmshCommands(self,scaling_factor=1.):
         out=""
         for i in self.__prims:
-           out+=i.getGmshCommand()+"\n"
+           out+=i.getGmshCommand(scaling_factor)+"\n"
         return out
