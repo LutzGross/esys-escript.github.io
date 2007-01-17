@@ -45,7 +45,7 @@ epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-pac
 # papi_libs = [ 'papi' ]
 
 # c flags to use
-cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report2 -c99 -w1 -fpic"
+cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report2 -c99 -w1 -fpic -ivdep-parallel"
 cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
 
 # c++ flags to use
@@ -54,7 +54,7 @@ cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
   	
 # c and c++ flags for MPI compilation
 # c flags to use
-cc_flags_MPI  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -c99 -w1 -fpic -wd161 -DPASO_MPI"
+cc_flags_MPI  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -c99 -w1 -fpic -wd161 -DPASO_MPI -ivdep-parallel"
 cc_flags_debug_MPI  = '-g -O0 -c99 -w1 -fpic -wd161 -DPASO_MPI'
 
 # c++ flags to use

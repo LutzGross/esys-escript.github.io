@@ -23,10 +23,12 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 import time
 
+WORKDIR="/raid2/lutz/waves/"
 output=True
 n_end=10000
 
 resolution=1000.  # number of elements per m in the finest region
+resolution=400.  # number of elements per m in the finest region
 o=1              # element order
 
 l=100000.           # width and length m (without obsorber)
@@ -322,7 +324,7 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
      # ... save current acceleration in units of gravity and displacements 
      if output:
           if t>=t_write: 
-             saveVTK("disp.%i.vtu"%n,displacement=u, amplitude=length(u))
+             saveVTK(WORKDIR+"disp.%i.vtu"%n_write,displacement=u, amplitude=length(u))
              t_write+=dt_write
              n_write+=1
      t+=dt

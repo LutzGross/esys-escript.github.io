@@ -25,7 +25,7 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from primitives import Primitive, PrimitiveStack
+from primitives import Primitive #, PrimitiveStack
 from datetime import date
 import tempfile
 import os

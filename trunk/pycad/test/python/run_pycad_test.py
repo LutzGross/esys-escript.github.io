@@ -598,26 +598,33 @@ class Test_PyCAD_Primitives(unittest.TestCase):
    def setUp(self):
          resetGlobalPrimitiveIdCounter()
 
-   def test_baseclass(self):
+   def test_Primitive(self):
          p=Primitive()
 
          id=p.getID()
          self.failUnless(isinstance(id,int),"id number is not an integer")
          self.failUnless(not id==Primitive().getID(),"id number is not unique")
+
+         self.failUnless(p==p.getUnderlyingPrimitive(),"getUnderlyingPrimitive does not return self.")
+
+   def test_ReversePrimitive(self):
+         p=Primitive()
+      
+         rp=ReversePrimitive(p)
+         self.failUnless(p.getID()==rp.getID(),"reverse primitive does not have same id like source")
+         self.failUnless(p==rp.getUnderlyingPrimitive(),"getUnderlyingPrimitive does return source.")
+         self.failUnless(p == -rp,"reverse or reverse does not return source.")
            
-         hs=p.getPrimitives()
-         self.failUnless(len(hs)==0,"history should be empty.")
-
-         ps=p.getConstructionPoints()
-         self.failUnless(len(ps)==0,"point set should be empty.")
-
-   def test_point(self):
+   def test_Point(self):
        p=Point(1.,2.,3.,local_scale=9.)
        
        id=p.getID()
        self.failUnless(isinstance(id,int),"id number is not an integer")
        self.failUnless(not id==Primitive().getID(),"id number is not unique")
            
+       # check reverse point 
+       self.failUnless(p == -p,"reverse is not working.")
+       
        # check history:
        hs=p.getPrimitives()
        self.failUnless(len(hs)==1,"history must have length 1.")
@@ -743,7 +750,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        code=p.getGmshCommand(2.)
        self.failUnless("Point(1) = {8.0 , 16.0, 24.0 , 6.0 };"== code, "wrong gmsh code")
  
-   def test_spline(self):
+   def test_Spline(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
         p2=Point(2,2,2,0.3)
@@ -809,10 +816,84 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         dccp=dc.getControlPoints()
         self.failUnless(dc.isColocated(Spline(Point(0,0,0),Point(1,1,1),Point(2,2,2),Point(3,3,3))),"dilation is wrong.")
         self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(dccp[0].isColocated(Point(0,0,0)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(dccp[1].isColocated(Point(1,1,1)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p2 == dccp[2],"3rd point of Dilation is identical to source.")
+        self.failUnless(dccp[2].isColocated(Point(2,2,2)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p3 == dccp[3],"4th point of Dilation is identical to source.")
+        self.failUnless(dccp[3].isColocated(Point(3,3,3)),"1st point of Dilation is is wrongly located.")
    
+   def test_ReverseSpline(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+ 
+        CC0=Spline(p0,p1,p2,p3)
+        c=-CC0
+
+        self.failUnless(len(c) == 4, "wrong reverse spline curve length")
+        self.failUnless(c.getStartPoint()==p3, "wrong start point of reverse spline curve")
+        self.failUnless(c.getEndPoint()==p0, "wrong end point of reverse spline curve")
+
+        self.failUnless(not c.isColocated(p1),"reverse spline is colocated with point.")
+        self.failUnless(not c.isColocated(Spline(p0,p1,p2)),"reverse spline is colocated with spline of different length.")
+        self.failUnless(not c.isColocated(Spline(p0,p1,p4,p3)),"reverse spline is colocated with spline with different point.")
+        self.failUnless(c.isColocated(Spline(p0,p1,p2,p3)),"reverse spline is not colocated with spline with same points but opposite direction.")
+        self.failUnless(c.isColocated(Spline(p3,p2,p1,p0)),"reverse spline is not colocated with spline with same points.")
+        self.failUnless(not c.isColocated(Curve(p0,p1,p2,p3)),"spline curve is identified with curve.")
+
+        co=c.getControlPoints()
+        self.failUnless(co[0]==p3, "1st control point is wrong.")
+        self.failUnless(co[1]==p2, "2nd control point is wrong.")
+        self.failUnless(co[2]==p1, "3rd control point is wrong.")
+        self.failUnless(co[3]==p0, "4th control point is wrong.")
+
+        c.setLocalScale(3.)
+        co=c.getControlPoints()
+        self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
+        self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
+        self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
+        self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
+
+        code=c.getGmshCommand()
+        self.failUnless(code == "Spline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
+        self.failUnless(p0 in h, "missing p0 in history.")
+        self.failUnless(p1 in h, "missing p1 in history.")
+        self.failUnless(p2 in h, "missing p2 in history.")
+        self.failUnless(p3 in h, "missing p3 in history.")
+        self.failUnless(CC0 in h, "missing spline curve in history.")
+
+        cp=c.copy()
+        cpcp=cp.getControlPoints()
+        self.failUnless(not cp == c, "copy returns same spline curve.")
+        self.failUnless(not cp == CC0, "copy returns same spline curve.")
+        self.failUnless(c.isColocated(cp),"spline curve is not colocated with its copy.")
+        self.failUnless(not p3 == cpcp[0],"1st point of deep copy and souce are the same.")
+        self.failUnless(not p2 == cpcp[1],"2st point of deep copy and source are the same.")
+        self.failUnless(not p1 == cpcp[2],"3st point of deep copy and source are the same.")
+        self.failUnless(not p0 == cpcp[3],"4st point of deep copy and source are the same.")
+
+        c.modifyBy(Dilation(-1.))
+        cp=c.getControlPoints()
+        self.failUnless(c.isColocated(Spline(Point(0,0,0),Point(-1,-1,-1),Point(-2,-2,-2),Point(-3,-3,-3))),"inplace dilation is wrong.")
+        self.failUnless(p3 == cp[0],"1st new point after Dilation.")
+        self.failUnless(p2 == cp[1],"2nd new point after Dilation.")
+        self.failUnless(p1 == cp[2],"3rd new point after Dilation.")
+        self.failUnless(p0 == cp[3],"4th new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        dccp=dc.getControlPoints()
+        self.failUnless(dc.isColocated(Spline(Point(0,0,0),Point(1,1,1),Point(2,2,2),Point(3,3,3))),"dilation is wrong.")
+        self.failUnless(dccp[0].isColocated(Point(3,3,3)),"1st point of Dilation is is wrongly located.")
+        self.failUnless(dccp[1].isColocated(Point(2,2,2)),"1st point of Dilation is is wrongly located.")
+        self.failUnless(dccp[2].isColocated(Point(1,1,1)),"1st point of Dilation is is wrongly located.")
+        self.failUnless(dccp[3].isColocated(Point(0,0,0)),"1st point of Dilation is is wrongly located.")
 
    def test_BezierCurve(self):
         p0=Point(0,0,0,0.1)
@@ -950,9 +1031,87 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         dccp=dc.getControlPoints()
         self.failUnless(dc.isColocated(BSpline(Point(0,0,0),Point(1,1,1),Point(2,2,2),Point(3,3,3))),"dilation is wrong.")
         self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(dccp[0].isColocated(Point(0,0,0)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(dccp[1].isColocated(Point(1,1,1)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p2 == dccp[2],"3rd point of Dilation is identical to source.")
+        self.failUnless(dccp[2].isColocated(Point(2,2,2)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p3 == dccp[3],"4th point of Dilation is identical to source.")
+        self.failUnless(dccp[3].isColocated(Point(3,3,3)),"1st point of Dilation is is wrongly located.")
+
+   def test_ReverseBSpline(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+ 
+        CC0=BSpline(p0,p1,p2,p3)
+        c=-CC0
+
+        self.failUnless(len(c) == 4, "wrong spline curve length")
+        self.failUnless(c.getStartPoint()==p3, "wrong start point of spline curve")
+        self.failUnless(c.getEndPoint()==p0, "wrong end point of spline curve")
+
+        self.failUnless(not c.isColocated(p1),"spline is colocated with point.")
+        self.failUnless(not c.isColocated(BSpline(p0,p1,p2)),"spline is colocated with spline of different length.")
+        self.failUnless(not c.isColocated(BSpline(p0,p1,p4,p3)),"spline is colocated with spline with different point.")
+        self.failUnless(c.isColocated(BSpline(p0,p1,p2,p3)),"spline is not colocated with spline with same points.")
+        self.failUnless(c.isColocated(BSpline(p3,p2,p1,p0)),"spline is not colocated with spline with same points but opposite direction.")
+        self.failUnless(not c.isColocated(Curve(p0,p1,p2,p3)),"spline curve is identified with curve.")
+
+        co=c.getControlPoints()
+        self.failUnless(co[0]==p3, "1st control point is wrong.")
+        self.failUnless(co[1]==p2, "2nd control point is wrong.")
+        self.failUnless(co[2]==p1, "3rd control point is wrong.")
+        self.failUnless(co[3]==p0, "4th control point is wrong.")
+
+        c.setLocalScale(3.)
+        co=c.getControlPoints()
+        self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
+        self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
+        self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
+        self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
+
+        code=c.getGmshCommand()
+        self.failUnless(code == "BSpline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
+        self.failUnless(p0 in h, "missing p0 in history.")
+        self.failUnless(p1 in h, "missing p1 in history.")
+        self.failUnless(p2 in h, "missing p2 in history.")
+        self.failUnless(p3 in h, "missing p3 in history.")
+        self.failUnless(CC0 in h, "missing spline curve in history.")
+
+        cp=c.copy()
+        cpcp=cp.getControlPoints()
+        self.failUnless(not cp == c, "copy returns same spline curve.")
+        self.failUnless(c.isColocated(cp),"spline curve is not colocated with its copy.")
+        self.failUnless(not p0 == cpcp[0],"1st point of deep copy and source are the same.")
+        self.failUnless(not p1 == cpcp[1],"2st point of deep copy and source are the same.")
+        self.failUnless(not p2 == cpcp[2],"3st point of deep copy and source are the same.")
+        self.failUnless(not p3 == cpcp[3],"4st point of deep copy and source are the same.")
+
+        c.modifyBy(Dilation(-1.))
+        cp=c.getControlPoints()
+        self.failUnless(c.isColocated(BSpline(Point(0,0,0),Point(-1,-1,-1),Point(-2,-2,-2),Point(-3,-3,-3))),"inplace dilation is wrong.")
+        self.failUnless(p3 == cp[0],"1st new point after Dilation.")
+        self.failUnless(p2 == cp[1],"2nd new point after Dilation.")
+        self.failUnless(p1 == cp[2],"3rd new point after Dilation.")
+        self.failUnless(p0 == cp[3],"4th new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        dccp=dc.getControlPoints()
+        self.failUnless(dc.isColocated(BSpline(Point(0,0,0),Point(1,1,1),Point(2,2,2),Point(3,3,3))),"dilation is wrong.")
+        self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(dccp[0].isColocated(Point(3,3,3)),"1st point of Dilation is is wrongly located.")
+        self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(dccp[1].isColocated(Point(2,2,2)),"1st point of Dilation is is wrongly located.")
+        self.failUnless(not p2 == dccp[2],"3rd point of Dilation is identical to source.")
+        self.failUnless(dccp[2].isColocated(Point(1,1,1)),"1st point of Dilation is is wrongly located.")
+        self.failUnless(not p3 == dccp[3],"4th point of Dilation is identical to source.")
+        self.failUnless(dccp[3].isColocated(Point(0,0,0)),"1st point of Dilation is is wrongly located.")
 
    def test_LineSegment(self):
         p0=Point(0,0,0,0.1)
@@ -1009,9 +1168,71 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         dccp=dc.getControlPoints()
         self.failUnless(dc.isColocated(Line(Point(0,0,0),Point(1,1,1))),"dilation is wrong.")
         self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(dccp[0].isColocated(Point(0,0,0)),"1st point of Dilation is is wrongly located.")
         self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(dccp[1].isColocated(Point(1,1,1)),"2st point of Dilation is is wrongly located.")
 
-   def test_arc(self):
+   def test_ReverseLineSegment(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p4=Point(1,2,3)
+ 
+        self.failUnlessRaises(TypeError,Line,p0)
+        self.failUnlessRaises(TypeError,Line,p0,p1,p4)
+
+        CC0=Line(p0,p1)
+        c=-CC0
+
+        self.failUnless(len(c) == 2, "wrong spline curve length")
+        self.failUnless(c.getStartPoint()==p1, "wrong start point of spline curve")
+        self.failUnless(c.getEndPoint()==p0, "wrong end point of spline curve")
+
+        self.failUnless(not c.isColocated(p1),"spline is colocated with point.")
+        self.failUnless(not c.isColocated(Line(p0,p4)),"spline is colocated with spline with different point.")
+        self.failUnless(c.isColocated(Line(p0,p1)),"spline is not colocated with spline with same points.")
+        self.failUnless(c.isColocated(Line(p1,p0)),"spline is not colocated with spline with same points but opposite direction.")
+        self.failUnless(not c.isColocated(Curve(p0,p1,p4)),"spline curve is identified with curve.")
+
+        co=c.getControlPoints()
+        self.failUnless(co[0]==p1, "1st control point is wrong.")
+        self.failUnless(co[1]==p0, "2nd control point is wrong.")
+
+        c.setLocalScale(3.)
+        co=c.getControlPoints()
+        self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
+        self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
+
+        code=c.getGmshCommand()
+        self.failUnless(code == "Line(4) = {1, 2};", "gmsh command wrong.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 3, "number of primitives in history is wrong.")
+        self.failUnless(p0 in h, "missing p0 in history.")
+        self.failUnless(p1 in h, "missing p1 in history.")
+        self.failUnless(CC0 in h, "missing spline curve in history.")
+
+        cp=c.copy()
+        cpcp=cp.getControlPoints()
+        self.failUnless(not cp == c, "copy returns same spline curve.")
+        self.failUnless(c.isColocated(cp),"spline curve is not colocated with its copy.")
+        self.failUnless(not p0 == cpcp[0],"1st point of deep copy and source are the same.")
+        self.failUnless(not p1 == cpcp[1],"2st point of deep copy and source are the same.")
+
+        c.modifyBy(Dilation(-1.))
+        cp=c.getControlPoints()
+        self.failUnless(c.isColocated(Line(Point(0,0,0),Point(-1,-1,-1))),"inplace dilation is wrong.")
+        self.failUnless(p1 == cp[0],"1st new point after Dilation.")
+        self.failUnless(p0 == cp[1],"2nd new point after Dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        dccp=dc.getControlPoints()
+        self.failUnless(dc.isColocated(Line(Point(0,0,0),Point(1,1,1))),"dilation is wrong.")
+        self.failUnless(not p0 == dccp[0],"1st point of Dilation is identical to source.")
+        self.failUnless(dccp[0].isColocated(Point(1,1,1)),"1st point of Dilation is is wrongly located.")
+        self.failUnless(not p1 == dccp[1],"2nd point of Dilation is identical to source.")
+        self.failUnless(dccp[1].isColocated(Point(0,0,0)),"2st point of Dilation is is wrongly located.")
+
+   def test_Arc(self):
         center=Point(0,0,0,0.1)
         p_start=Point(1,1,1,0.2)
         p_end=Point(1,2,3)
@@ -1066,8 +1287,73 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         dc=c.apply(Dilation(-1.))
         self.failUnless(dc.isColocated(Arc(Point(0,0,0),Point(1,1,1),Point(1,2,3))),"dilation is wrong.")
         self.failUnless(not dc.getCenterPoint() == center,"center point of dilation is identical to source.")
+        self.failUnless(dc.getCenterPoint().isColocated(Point(0,0,0)),"center point of dilation is wrong.")
         self.failUnless(not dc.getStartPoint() == p_start,"start point of dilation is identical to source.")
+        self.failUnless(dc.getStartPoint().isColocated(Point(1,1,1)),"start point of dilation is wrong.")
         self.failUnless(not dc.getEndPoint() == p_end,"end point of dilation is identical to source.")
+        self.failUnless(dc.getEndPoint().isColocated(Point(1,2,3)),"end point of dilation is wrong.")
+
+   def test_ReverseArc(self):
+        center=Point(0,0,0,0.1)
+        p_start=Point(1,1,1,0.2)
+        p_end=Point(1,2,3)
+        p4=Point(10,2,3)
+ 
+        self.failUnlessRaises(TypeError,Arc,Primitive())
+
+        CC0=Arc(center,p_start,p_end)
+        c=-CC0
+
+        self.failUnless(c.getCenterPoint()==center, "wrong center point")
+        self.failUnless(c.getStartPoint()==p_end, "wrong start point")
+        self.failUnless(c.getEndPoint()==p_start, "wrong end point")
+
+        code=c.getGmshCommand() 
+        self.failUnless(code == "Circle(6) = {2, 1, 3};", "gmsh command wrong.")
+
+        self.failUnless(not c.isColocated(p4),"spline is colocated with point.")
+        self.failUnless(not c.isColocated(Arc(p4,p_start,p_end)),"spline is colocated with spline with differnt center point.")
+        self.failUnless(not c.isColocated(Arc(center,p4,p_end)),"spline is colocated with spline with differnt start point.")
+        self.failUnless(not c.isColocated(Arc(center,p_start,p4)),"spline is colocated with spline with differnt end point.")
+        self.failUnless(c.isColocated(Arc(center,p_start,p_end)),"spline is not colocated with spline with same points.")
+        self.failUnless(c.isColocated(Arc(center,p_end,p_start)),"spline is not colocated with spline with same points but opposite direction.")
+        self.failUnless(not c.isColocated(Curve(center,p_start,p_end)),"spline curve is identified with curve.")
+
+        h=c.getPrimitives()
+        self.failUnless(len(h) == 4, "number of primitives in history is wrong.")
+        self.failUnless(center in h, "missing center in history.")
+        self.failUnless(p_start in h, "missing p_start in history.")
+        self.failUnless(p_end in h, "missing p_end in history.")
+        self.failUnless(CC0 in h, "missing spline curve in history.")
+
+
+        c.setLocalScale(3.)
+        self.failUnless(c.getCenterPoint().getLocalScale() == 3., "new local scale of center point is wrong.")
+        self.failUnless(c.getStartPoint().getLocalScale() == 3., "new local scale of start point is wrong.")
+        self.failUnless(c.getEndPoint().getLocalScale() == 3., "new local scale of end point is wrong.")
+
+        cp=c.copy()
+        self.failUnless(isinstance(cp,ReverseArc), "copy returns is not an arc.")
+        self.failUnless(not cp == c, "copy returns same arc.")
+        self.failUnless(cp.isColocated(Arc(center,p_end,p_start)),"arc is not colocated with its copy.")
+        self.failUnless(not cp.getCenterPoint()==center, "deep copy has same center point like source")
+        self.failUnless(not cp.getStartPoint()==p_start, "deep copy has same start point like source")
+        self.failUnless(not cp.getEndPoint()==p_end, "deep copy has same end point like source")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(Arc(Point(0,0,0),Point(-1,-1,-1),Point(-1,-2,-3))),"inplace dilation is wrong.")
+        self.failUnless(c.getCenterPoint() == center,"wrong center point after dilation.")
+        self.failUnless(c.getStartPoint() == p_end,"wrong start point after dilation.")
+        self.failUnless(c.getEndPoint() == p_start,"wrong end point after dilation.")
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(Arc(Point(0,0,0),Point(1,1,1),Point(1,2,3))),"dilation is wrong.")
+        self.failUnless(not dc.getCenterPoint() == center,"center point of dilation is identical to source.")
+        self.failUnless(dc.getCenterPoint().isColocated(Point(0,0,0)),"center point of dilation is wrong.")
+        self.failUnless(not dc.getStartPoint() == p_start,"start point of dilation is identical to source.")
+        self.failUnless(dc.getStartPoint().isColocated(Point(1,2,3)),"start point of dilation is wrong.")
+        self.failUnless(not dc.getEndPoint() == p_end,"end point of dilation is identical to source.")
+        self.failUnless(dc.getEndPoint().isColocated(Point(1,1,1)),"end point of dilation is wrong.")
 
    def test_CurveLoop(self):
         p0=Point(0,0,0,0.1)
@@ -1093,6 +1379,99 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         code=c.getGmshCommand() 
         self.failUnless(code == "Line Loop(14) = {8, 9, 10};", "gmsh command wrong.")
+
+
+        self.failUnless(not c.isColocated(p4),"CurveLoop is colocated with point.")
+        self.failUnless(c.isColocated(c),"CurveLoop is not colocated with its self.")
+        self.failUnless(c.isColocated(CurveLoop(l01,l12,l20)),"CurveLoop is not colocated with its copy.")
+        self.failUnless(c.isColocated(CurveLoop(l20,l01,l12)),"CurveLoop is not colocated with its copy with shifted points.")
+        self.failUnless(c.isColocated(CurveLoop(l20,l12,l01)),"CurveLoop is not colocated with its copy with shuffled points.")
+        self.failUnless(not c.isColocated(CurveLoop(lx,ly,l12)),"CurveLoop is colocated with different CurveLoop.")
+
+        self.failUnless(len(c) == 3, "wrong length")
+
+        c.setLocalScale(3.)
+        self.failUnless(p0.getLocalScale()==3., "p0 has wrong local scale.")
+        self.failUnless(p1.getLocalScale()==3., "p1 has wrong local scale.")
+        self.failUnless(p2.getLocalScale()==3., "p2 has wrong local scale.")
+        self.failUnless(p4.getLocalScale()==3., "p4 has wrong local scale.")
+
+
+        cc=c.getCurves()
+        self.failUnless(len(cc) == 3, "too many curves.")
+        self.failUnless(l01 in cc, "l01 is missing")
+        self.failUnless(l12 in cc, "l12 is missing")
+        self.failUnless(l20 in cc, "l20 is missing")
+
+        p=c.getPrimitives()
+        self.failUnless(len(p) == 9, "too many primitives.")
+        self.failUnless(l01 in p, "l01 is missing")
+        self.failUnless(l12 in p, "l21 is missing")
+        self.failUnless(l20 in p, "l20 is missing")
+        self.failUnless(p0 in p, "p0 is missing")
+        self.failUnless(p1 in p, "p1 is missing")
+        self.failUnless(p2 in p, "p2 is missing")
+        self.failUnless(p3 in p, "p3 is missing")
+        self.failUnless(p4 in p, "p4 is missing")
+
+        cp=c.copy()
+        self.failUnless(isinstance(cp,CurveLoop), "copy returns is not an arc.")
+        self.failUnless(not cp == c, "copy equals source")
+        self.failUnless(cp.isColocated(c),"copy is not colocated with its source.")
+        cc=cp.getCurves()
+        self.failUnless(len(cc) == 3, "too many primitives in copy.")
+        self.failUnless(not l01 in cc,"copy uses l01.")
+        self.failUnless(not l12 in cc,"copy uses l12.")
+        self.failUnless(not l20 in cc,"copy uses l20.")
+         
+        p0_m=Point(0,0,0)
+        p1_m=Point(-1,-1,-1)
+        p2_m=Point(-2,-2,-2)
+        p3_m=Point(-3,-3,-3)
+        p4_m=Point(-1,-2,-3)
+
+        l01_m=Line(p0_m,p1_m)
+        l12_m=Arc(p3_m,p1_m,p2_m)
+        l20_m=Spline(p2_m,p4_m,p0_m)
+
+        dc=c.apply(Dilation(-1.))
+        self.failUnless(dc.isColocated(CurveLoop(l01_m,l12_m,l20_m)),"dilation is wrong.")
+        cc=dc.getCurves()
+        self.failUnless(len(cc) == 3, "too many primitives in dilation result.")
+        self.failUnless(not l01 in cc,"l01 is in dilation result.")
+        self.failUnless(not l12 in cc,"l12 is in dilation result.")
+        self.failUnless(not l20 in cc,"l20 is in dilation result.")
+
+        c.modifyBy(Dilation(-1.))
+        self.failUnless(c.isColocated(CurveLoop(l01_m,l12_m,l20_m)),"inplace dilation is wrong.")
+        cc=c.getCurves()
+        self.failUnless(len(cc) == 3, "too many primitives in modified object.")
+        self.failUnless(l01 in cc,"l01 missed in  modified object.")
+        self.failUnless(l12 in cc,"l12 missed in  modified object.")
+        self.failUnless(l20 in cc,"l20 missed in  modified object.")
+      
+   def test_ReverseCurveLoop(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+        p5=Point(10,20,3)
+        p6=Point(1,2,30)
+
+        l01=Line(p0,p1)
+        l12=Arc(p3,p1,p2)
+        l20=Spline(p2,p4,p0)
+
+        lx=Line(p2,p3)
+        ly=Line(p3,p1)
+
+        CC0=CurveLoop(l01,l20,l12)
+        c=-CC0
+
+        code=c.getGmshCommand() 
+        print code
+        self.failUnless(code == "Line Loop(13) = {8, 9, 10};", "gmsh command wrong.")
 
 
         self.failUnless(not c.isColocated(p4),"CurveLoop is colocated with point.")
