@@ -169,8 +169,6 @@ class PrimitiveBase(object):
         out.modifyBy(transformation)
         return out
 
-
-
 class Primitive(object):
     """
     A general primitive
@@ -203,6 +201,11 @@ class Primitive(object):
         returns the underlying primitive
         """
         return self
+    def hasSameOrientation(self,other):
+        """
+        returns True if other is the same primitive and has the same orientation
+        """
+        return self == other and isinstance(other,Primitive)
 
     def __neg__(self):
         """
@@ -270,6 +273,12 @@ class ReversePrimitive(object):
         returns the underlying primitive
         """
         return self.__primitive
+
+    def hasSameOrientation(self,other):
+        """
+        returns True if other is the same primitive and has the same orientation
+        """
+        return self == other and isinstance(other,ReversePrimitive)
 
     def __repr__(self):
        return "-%s(%s)"%(self.__primitive.__class__.__name__,self.getID())
@@ -516,8 +525,9 @@ class Curve(CurveBase, Primitive):
        """
        returns True curves are on the same position
        """
-       if isinstance(primitive.getUnderlyingPrimitive(),self.__class__):
-          if len(primitive) == len(self):
+       if hasattr(primitive,"getUnderlyingPrimitive"): 
+         if isinstance(primitive.getUnderlyingPrimitive(),self.__class__): 
+           if len(primitive) == len(self):
              cp0=self.getControlPoints()
              cp1=primitive.getControlPoints()
              match=True
@@ -530,10 +540,7 @@ class Curve(CurveBase, Primitive):
                    if not cp0[i].isColocated(cp1[len(cp0)-1-i]):
                       return False
              return True
-          else:
-             return False
-       else:
-          return False
+       return False
 
 class ReverseCurve(CurveBase, ReversePrimitive):
     """
@@ -707,12 +714,12 @@ class Arc(ArcBase, Primitive):
        """
        returns True curves are on the same position
        """
-       if isinstance(primitive.getUnderlyingPrimitive(),Arc):
+       if hasattr(primitive,"getUnderlyingPrimitive"): 
+          if isinstance(primitive.getUnderlyingPrimitive(),Arc):
             return (self.getCenterPoint().isColocated(primitive.getCenterPoint())) and ( \
                    (self.getEndPoint().isColocated(primitive.getEndPoint()) and self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
                 or (self.getEndPoint().isColocated(primitive.getStartPoint()) and self.getStartPoint().isColocated(primitive.getEndPoint()) ) )
-       else:
-          return False
+       return False
 
 class ReverseArc(ArcBase, ReversePrimitive):
     """
@@ -747,7 +754,7 @@ class ReverseArc(ArcBase, ReversePrimitive):
 
 class CurveLoop(Primitive, PrimitiveBase):
     """
-    An oriented loop of 1D primitives (= curves and arcs)
+    An oriented loop of one-dimensional manifolds (= curves and arcs)
 
     The loop must be closed and the L{Manifold1D}s should be oriented consistently.
     """
@@ -755,8 +762,6 @@ class CurveLoop(Primitive, PrimitiveBase):
        """
        creates a polygon from a list of line curves. The curves must form a closed loop.
        """
-       Primitive.__init__(self)
-       PrimitiveBase.__init__(self)
        if len(curves)<2:
             raise TypeError("at least two curves have to be given.")
        for i in range(len(curves)):
@@ -779,6 +784,8 @@ class CurveLoop(Primitive, PrimitiveBase):
              raise ValueError("loop is not closed.")
        if not self.__curves[0].getStartPoint() == self.__curves[-1].getEndPoint():
           raise ValueError("loop is not closed.")
+       Primitive.__init__(self)
+       PrimitiveBase.__init__(self)
 
     def getCurves(self):
        """
@@ -823,20 +830,18 @@ class CurveLoop(Primitive, PrimitiveBase):
        """
        returns True if each curve is collocted with a curve in primitive
        """
-       if isinstance(primitive,CurveLoop):
-          if len(primitive) == len(self):
-             cp0=self.getCurves()
-             cp1=primitive.getCurves()
-             for c0 in cp0: 
-                 collocated = False
-                 for c1 in cp1: 
-                      collocated = collocated or c0.isColocated(c1)
-                 if not collocated: return False
-             return True
-          else:
-             return False
-       else:
-          return False
+       if hasattr(primitive,"getUnderlyingPrimitive"): 
+          if isinstance(primitive.getUnderlyingPrimitive(),CurveLoop):
+             if len(primitive) == len(self):
+                cp0=self.getCurves()
+                cp1=primitive.getCurves()
+                for c0 in cp0: 
+                    collocated = False
+                    for c1 in cp1: 
+                         collocated = collocated or c0.isColocated(c1)
+                    if not collocated: return False
+                return True
+       return False
 
     def getGmshCommand(self,scaling_factor=1.):
         """
@@ -852,9 +857,9 @@ class CurveLoop(Primitive, PrimitiveBase):
 
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
     """
-    An oriented loop of 1D primitives (= curves and arcs)
+    An oriented loop of one-dimensional manifolds (= curves and arcs)
 
-    The loop must be closed and the L{Manifold1D}s should be oriented consistently.
+    The loop must be closed and the one-dimensional manifolds should be oriented consistently.
     """
     def __init__(self,curve_loop):
        """
@@ -874,55 +879,24 @@ class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
     def __len__(self):
         return len(self.getUnderlyingPrimitive())
 
-class PrimitiveBase2D(PrimitiveBase):
+#=
+class Manifold2D(PrimitiveBase):
     """
-    general two-dimensional primitive
+    general two-dimensional manifold
     """
     def __init__(self):
-          """
-          create a two-dimensional primitive
-          """
-          super(PrimitiveBase2D, self).__init__()
+       """
+       create a two-dimensional manifold
+       """
+       PrimitiveBase.__init__(self)
 
     def getBoundary(self):
         """
-        returns a list of the 1D primitives forming the boundary of the Surface (including holes)
+        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
         """
-        out=[]
-        for i in self.getPrimitives():
-             if isinstance(i, Manifold1D): out.append(i)
-        return out
+        raise NotImplementedError()
 
-    def getBoundary(self):
-        """
-        returns a list of the 1D primitives forming the boundary of the Surface (including holes)
-        """
-        out=[]
-        for i in self.getPrimitives():
-             if isinstance(i, Manifold1D): out.append(i)
-        return out
-
-    def getBoundaryLoop(self):
-        """
-        returns the loop defining the outer boundary
-        """
-        raise NotImplementedError("getBoundaryLoop is not implemented for this class %s."%self.__class__.__name__)
-
-    def getHoles(self):
-       """
-       returns the holes
-       """
-       raise NotImplementedError("getHoles is not implemented for this class %s."%self.__class__.__name__)
-
-    def collectPrimitiveBases(self):
-        """
-        returns primitives used to construct the Surface
-        """
-        out=[self] + self.getBoundaryLoop().collectPrimitiveBases()
-        for i in self.getHoles(): out+=i.collectPrimitiveBases()
-        return out
-
-class RuledSurface(PrimitiveBase2D):
+class RuledSurface(Primitive, Manifold2D):
     """
     A ruled surface, i.e., a surface that can be interpolated using transfinite interpolation
     """
@@ -932,15 +906,21 @@ class RuledSurface(PrimitiveBase2D):
 
        @param loop: L{CurveLoop} defining the boundary of the surface. 
        """
-       super(RuledSurface, self).__init__()
-       if not isinstance(loop,CurveLoop):
+       if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
        if len(loop)<2:
            raise TypeError("the loop must contain at least two Curves.")
        if len(loop)>4:
            raise TypeError("the loop must contain at least three Curves.")
-
+       Primitive.__init__(self)
+       Manifold2D.__init__(self)
        self.__loop=loop
+
+    def __neg__(self):
+          """
+          returns a view onto the suface with reversed ordering
+          """
+          return ReverseRuledSurface(self)
 
     def getBoundaryLoop(self):
         """
@@ -948,11 +928,11 @@ class RuledSurface(PrimitiveBase2D):
         """
         return self.__loop
 
-    def getHoles(self):
+    def getBoundary(self):
         """
-        returns the holes
+        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
         """
-        return []
+        return self.getBoundaryLoop().getCurves()
 
     def getGmshCommand(self,scaling_factor=1.):
         """
@@ -974,10 +954,16 @@ class RuledSurface(PrimitiveBase2D):
        """
        returns True if each curve is collocted with a curve in primitive
        """
-       if isinstance(primitive,RuledSurface):
-          return self.getBoundaryLoop().isColocated(primitive.getBoundaryLoop())
-       else:
-          return False
+       if hasattr(primitive,"getUnderlyingPrimitive"): 
+          if isinstance(primitive.getUnderlyingPrimitive(),RuledSurface):
+             return self.getBoundaryLoop().isColocated(primitive.getBoundaryLoop())
+       return False
+
+    def collectPrimitiveBases(self):
+        """
+        returns primitives used to construct the Surface
+        """
+        return [self] + self.getBoundaryLoop().collectPrimitiveBases()
 
 def createRuledSurface(*curves):
       """
@@ -985,7 +971,33 @@ def createRuledSurface(*curves):
       """
       return RuledSurface(CurveLoop(*curves))
 
-class PlaneSurface(PrimitiveBase2D):
+
+class ReverseRuledSurface(ReversePrimitive, Manifold2D):
+    """
+    creates a view onto a L{RuledSurface} but with the reverse orientation
+    """
+    def __init__(self,surface):
+       """
+       creates a polygon from a list of line curves. The curves must form a closed loop.
+       """
+       if not isinstance(surface, RuledSurface):
+           raise ValueError("arguments need to be an instance of CurveLoop.")
+       ReversePrimitive.__init__(self, surface)
+       Manifold2D.__init__(self)
+
+    def getBoundaryLoop(self):
+       """
+       returns the CurveLoop defining the RuledSurface
+       """
+       return -self.getUnderlyingPrimitive().getBoundaryLoop()
+
+    def getBoundary(self):
+        """
+        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        """
+        return self.getBoundaryLoop().getCurves()
+#==============================
+class PlaneSurface(Primitive, Manifold2D):
     """
     a plane surface with holes
     """
@@ -998,20 +1010,21 @@ class PlaneSurface(PrimitiveBase2D):
        @note: A CurveLoop defining a hole should not have any lines in common with the exterior CurveLoop.  
               A CurveLoop defining a hole should not have any lines in common with another CurveLoop defining a hole in the same surface.
        """
-       super(PlaneSurface, self).__init__()
-       if not isinstance(loop,CurveLoop):
+       if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
        for l in loop.getCurves():
-           if not isinstance(l,Line):
+           if not isinstance(l.getUnderlyingPrimitive(),Line):
              raise TypeError("loop may be formed by Lines only.")
        for i in range(len(holes)):
-            if not isinstance(holes[i], CurveLoop):
+            if not isinstance(holes[i].getUnderlyingPrimitive(), CurveLoop):
                  raise TypeError("%i-th hole needs to be a CurveLoop object.")
             for l in holes[i].getCurves():
-               if not isinstance(l,Line):
+               if not isinstance(l.getUnderlyingPrimitive(),Line):
                   raise TypeError("holes may be formed by Lines only.")
        #TODO: check if lines and holes are in a plane
        #TODO: are holes really holes?
+       Primitive.__init__(self)
+       Manifold2D.__init__(self)
        self.__loop=loop
        self.__holes=holes
     def getHoles(self):
@@ -1019,6 +1032,7 @@ class PlaneSurface(PrimitiveBase2D):
        returns the holes
        """
        return self.__holes
+
     def getBoundaryLoop(self):
         """
         returns the loop defining the boundary
@@ -1054,24 +1068,75 @@ class PlaneSurface(PrimitiveBase2D):
        """
        returns True if each curve is collocted with a curve in primitive
        """
-       if isinstance(primitive,PlaneSurface):
-          if self.getBoundaryLoop().isColocated(primitive.getBoundaryLoop()):
-             hs0=self.getHoles()
-             hs1=primitive.getHoles()
-             if len(hs0) == len(hs1):
-                 for h0 in hs0:
-                    collocated = False
-                    for h1 in hs1: 
-                      collocated = collocated or h0.isColocated(h1)
-                    if not collocated: return False
-                 return True
-             return False
-          else:
-             return False
-       else:
-          return False
+       if hasattr(primitive,"getUnderlyingPrimitive"): 
+          if isinstance(primitive.getUnderlyingPrimitive(),PlaneSurface):
+             if self.getBoundaryLoop().isColocated(primitive.getBoundaryLoop()):
+                hs0=self.getHoles()
+                hs1=primitive.getHoles()
+                if len(hs0) == len(hs1):
+                    for h0 in hs0:
+                       collocated = False
+                       for h1 in hs1: 
+                         collocated = collocated or h0.isColocated(h1)
+                       if not collocated: return False
+                    return True
+       return False
+    def collectPrimitiveBases(self):
+        """
+        returns primitives used to construct the Surface
+        """
+        out=[self] + self.getBoundaryLoop().collectPrimitiveBases()
+        for i in self.getHoles(): out+=i.collectPrimitiveBases()
+        return out
+    def __neg__(self):
+          """
+          returns a view onto the curve with reversed ordering
+          """
+          return ReversePlaneSurface(self)
+    def getBoundary(self):
+        """
+        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        """
+        out = []+ self.getBoundaryLoop().getCurves()
+        for h in self.getHoles(): out+=h.getCurves()
+        return out
 
-class SurfaceLoop(PrimitiveBase):
+class ReversePlaneSurface(ReversePrimitive, Manifold2D):
+    """
+    creates a view onto a L{PlaneSurface} but with the reverse orientation
+    """
+    def __init__(self,surface):
+       """
+       creates a polygon from a list of line curves. The curves must form a closed loop.
+       """
+       if not isinstance(surface, PlaneSurface):
+           raise ValueError("arguments need to be an instance of PlaneSurface.")
+       ReversePrimitive.__init__(self, surface)
+       Manifold2D.__init__(self)
+
+    def getBoundaryLoop(self):
+       """
+       returns the CurveLoop defining the RuledSurface
+       """
+       return -self.getUnderlyingPrimitive().getBoundaryLoop()
+
+    def getHoles(self):
+        """
+        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        """
+        return [ -h for h in self.getUnderlyingPrimitive().getHoles() ]
+
+    def getBoundary(self):
+        """
+        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        """
+        out = [] + self.getBoundaryLoop().getCurves()
+        for h in self.getHoles(): out+=h.getCurves()
+        return out
+
+
+#=========================================================================
+class SurfaceLoop(Primitive, PrimitiveBase):
     """
     a loop of 2D primitives. It defines the shell of a volume. 
 
@@ -1081,26 +1146,30 @@ class SurfaceLoop(PrimitiveBase):
        """
        creates a surface loop
        """
-       super(SurfaceLoop, self).__init__()
        if len(surfaces)<2:
             raise TypeError("at least two surfaces have to be given.")
        for i in range(len(surfaces)):
-           if not isinstance(surfaces[i],PrimitiveBase2D):
-              raise TypeError("%s-th argument is not a PrimitiveBase2D object."%i)
+           if not isinstance(surfaces[i].getUnderlyingPrimitive(),Manifold2D):
+              raise TypeError("%s-th argument is not a Manifold2D object."%i)
+       Primitive.__init__(self)
+       PrimitiveBase.__init__(self)
        # for the curves a loop:
-       used=[ True for s in surfaces]
+       used=[ False for s in surfaces]
        self.__surfaces=[surfaces[0]]
-       edges=[ e in surfaces[0].getBoundary() ]
-       used_edges=[ False in surfaces[0].getBoundary() ]
-       while min(used):
+       used[0]= True
+       edges=[ e for e in surfaces[0].getBoundary() ]
+       used_edges=[ False for e in surfaces[0].getBoundary() ]
+       while not min(used):
           found=False
           for i in xrange(len(surfaces)):
              if not used[i]:
                 i_boundary=surfaces[i].getBoundary()
-                for ib in xrange(i_boundary):  
+                print i, i_boundary
+                for ib in xrange(len(i_boundary)):  
+                    print ib, i_boundary[ib], edges
                     if i_boundary[ib] in edges:
                          if used_edges[edges.index(i_boundary[ib])]:
-                            raise TypeError("boundary segment %s is shared by more than one surface."%str(i_boundary[ib]))
+                            raise ValueError("boundary segment %s is shared by more than one surface."%str(i_boundary[ib]))
                          used_edges[edges.index(i_boundary[ib])]=True
                          self.__surfaces.append(surfaces[i])
                          for b in i_boundary:
@@ -1113,6 +1182,7 @@ class SurfaceLoop(PrimitiveBase):
              if found: break
           if not found:
              raise ValueError("loop is not closed.")
+       print min(used_edges), used_edges
        if min(used_edges): 
           raise ValueError("loop is not closed. Surface is missing.")
     def __len__(self):
@@ -1121,11 +1191,17 @@ class SurfaceLoop(PrimitiveBase):
        """
        return len(self.__surfaces)
 
+    def __neg__(self):
+       """
+       returns a view onto the curve with reversed ordering
+       """
+       return ReverseSurfaceLoop(self)
+
     def getSurfaces(self):
        """
        returns the surfaces defining the SurfaceLoop
        """
-       return self.__curves
+       return self.__surfaces
 
     def collectPrimitiveBases(self):
        """
@@ -1134,6 +1210,7 @@ class SurfaceLoop(PrimitiveBase):
        out=[self]
        for c in self.getSurfaces(): out+=c.collectPrimitiveBases()
        return out
+
     def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the primitive
@@ -1161,21 +1238,45 @@ class SurfaceLoop(PrimitiveBase):
        """
        returns True if each surface is collocted with a curve in primitive and vice versa.
        """
-       if isinstance(primitive,SurfaceLoop):
-         if len(primitive) == len(self):
-             sp0=self.getSurfaces()
-             sp1=primitive.getCurves()
-             for s0 in sp0: 
-                 collocated = False
-                 for s1 in sp1: 
-                      collocated = collocated or s0.isColocated(s1)
-                 if not collocated: return False
-             return True
-         else:
-             return False
-       else:
-         return False
+       if hasattr(primitive,"getUnderlyingPrimitive"): 
+         if isinstance(primitive.getUnderlyingPrimitive(),SurfaceLoop):
+            if len(primitive) == len(self):
+                sp0=self.getSurfaces()
+                sp1=primitive.getCurves()
+                for s0 in sp0: 
+                    collocated = False
+                    for s1 in sp1: 
+                         collocated = collocated or s0.isColocated(s1)
+                    if not collocated: return False
+                return True
+       return False
 
+class ReverseSurfaceLoop(ReversePrimitive, PrimitiveBase):
+    """
+    a view to SurfaceLoop with reverse orientaion
+
+    The loop must represent a closed shell, and the primitives should be oriented consistently.
+    An oriented loop of 2-dimensional manifolds (= RuledSurface, PlaneSurface)
+
+    The loop must be closed and the one-dimensional manifolds should be oriented consistently.
+    """
+    def __init__(self,surface_loop):
+       """
+       creates a polygon from a list of line surfaces. The curves must form a closed loop.
+       """
+       if not isinstance(surface_loop, SurfaceLoop):
+           raise ValueError("arguments need to be an instance of SurfaceLoop.")
+       ReversePrimitive.__init__(self, surface_loop)
+       PrimitiveBase.__init__(self)
+
+    def getSurfaces(self):
+       """
+       returns the surfaces defining the SurfaceLoop
+       """
+       return [ -s for s in  self.getUnderlyingPrimitive().getSurfaces() ]
+
+    def __len__(self):
+        return len(self.getUnderlyingPrimitive())
 #==========================
 class Volume(PrimitiveBase):
     """
