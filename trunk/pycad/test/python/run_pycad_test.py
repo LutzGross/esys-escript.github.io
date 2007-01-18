@@ -764,6 +764,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(c.getStartPoint()==p0, "wrong start point of spline curve")
         self.failUnless(c.getEndPoint()==p3, "wrong end point of spline curve")
 
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
+
         self.failUnless(not c.isColocated(p1),"spline is colocated with point.")
         self.failUnless(not c.isColocated(Spline(p0,p1,p2)),"spline is colocated with spline of different length.")
         self.failUnless(not c.isColocated(Spline(p0,p1,p4,p3)),"spline is colocated with spline with different point.")
@@ -837,6 +840,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(len(c) == 4, "wrong reverse spline curve length")
         self.failUnless(c.getStartPoint()==p3, "wrong start point of reverse spline curve")
         self.failUnless(c.getEndPoint()==p0, "wrong end point of reverse spline curve")
+
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
 
         self.failUnless(not c.isColocated(p1),"reverse spline is colocated with point.")
         self.failUnless(not c.isColocated(Spline(p0,p1,p2)),"reverse spline is colocated with spline of different length.")
@@ -979,6 +985,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(c.getStartPoint()==p0, "wrong start point of spline curve")
         self.failUnless(c.getEndPoint()==p3, "wrong end point of spline curve")
 
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
+
         self.failUnless(not c.isColocated(p1),"spline is colocated with point.")
         self.failUnless(not c.isColocated(BSpline(p0,p1,p2)),"spline is colocated with spline of different length.")
         self.failUnless(not c.isColocated(BSpline(p0,p1,p4,p3)),"spline is colocated with spline with different point.")
@@ -1052,6 +1061,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(len(c) == 4, "wrong spline curve length")
         self.failUnless(c.getStartPoint()==p3, "wrong start point of spline curve")
         self.failUnless(c.getEndPoint()==p0, "wrong end point of spline curve")
+
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
 
         self.failUnless(not c.isColocated(p1),"spline is colocated with point.")
         self.failUnless(not c.isColocated(BSpline(p0,p1,p2)),"spline is colocated with spline of different length.")
@@ -1127,6 +1139,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(c.getStartPoint()==p0, "wrong start point of spline curve")
         self.failUnless(c.getEndPoint()==p1, "wrong end point of spline curve")
 
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
+
         self.failUnless(not c.isColocated(p1),"spline is colocated with point.")
         self.failUnless(not c.isColocated(Line(p0,p4)),"spline is colocated with spline with different point.")
         self.failUnless(c.isColocated(Line(p0,p1)),"spline is not colocated with spline with same points.")
@@ -1182,6 +1197,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         CC0=Line(p0,p1)
         c=-CC0
+
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
 
         self.failUnless(len(c) == 2, "wrong spline curve length")
         self.failUnless(c.getStartPoint()==p1, "wrong start point of spline curve")
@@ -1246,6 +1264,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(c.getStartPoint()==p_start, "wrong start point")
         self.failUnless(c.getEndPoint()==p_end, "wrong end point")
 
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
+
         code=c.getGmshCommand() 
         self.failUnless(code == "Circle(6) = {2, 1, 3};", "gmsh command wrong.")
 
@@ -1307,6 +1328,9 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(c.getCenterPoint()==center, "wrong center point")
         self.failUnless(c.getStartPoint()==p_end, "wrong start point")
         self.failUnless(c.getEndPoint()==p_start, "wrong end point")
+
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
 
         code=c.getGmshCommand() 
         self.failUnless(code == "Circle(6) = {2, 1, 3};", "gmsh command wrong.")
@@ -1377,9 +1401,11 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnlessRaises(TypeError,ValueError,CurveLoop,l01,l20,l20,msg="douple not detected.")
         self.failUnlessRaises(TypeError,ValueError,CurveLoop,l01,l20,ly,msg="loop detected.")
 
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
+
         code=c.getGmshCommand() 
         self.failUnless(code == "Line Loop(14) = {8, 9, 10};", "gmsh command wrong.")
-
 
         self.failUnless(not c.isColocated(p4),"CurveLoop is colocated with point.")
         self.failUnless(c.isColocated(c),"CurveLoop is not colocated with its self.")
@@ -1447,8 +1473,11 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         cc=c.getCurves()
         self.failUnless(len(cc) == 3, "too many primitives in modified object.")
         self.failUnless(l01 in cc,"l01 missed in  modified object.")
+        self.failUnless(cc[cc.index(l01)].hasSameOrientation(l01),"l01 in modified object has wrong orientation.")
         self.failUnless(l12 in cc,"l12 missed in  modified object.")
+        self.failUnless(cc[cc.index(l12)].hasSameOrientation(l12),"l12 in modified object has wrong orientation.")
         self.failUnless(l20 in cc,"l20 missed in  modified object.")
+        self.failUnless(cc[cc.index(l20)].hasSameOrientation(l20),"l20 in modified object has wrong orientation.")
       
    def test_ReverseCurveLoop(self):
         p0=Point(0,0,0,0.1)
@@ -1469,17 +1498,19 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         CC0=CurveLoop(l01,l20,l12)
         c=-CC0
 
+        self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
+        self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
+
         code=c.getGmshCommand() 
-        print code
         self.failUnless(code == "Line Loop(13) = {8, 9, 10};", "gmsh command wrong.")
 
 
-        self.failUnless(not c.isColocated(p4),"CurveLoop is colocated with point.")
-        self.failUnless(c.isColocated(c),"CurveLoop is not colocated with its self.")
-        self.failUnless(c.isColocated(CurveLoop(l01,l12,l20)),"CurveLoop is not colocated with its copy.")
-        self.failUnless(c.isColocated(CurveLoop(l20,l01,l12)),"CurveLoop is not colocated with its copy with shifted points.")
-        self.failUnless(c.isColocated(CurveLoop(l20,l12,l01)),"CurveLoop is not colocated with its copy with shuffled points.")
-        self.failUnless(not c.isColocated(CurveLoop(lx,ly,l12)),"CurveLoop is colocated with different CurveLoop.")
+        self.failUnless(not c.isColocated(p4),"-CurveLoop is colocated with point.")
+        self.failUnless(c.isColocated(c),"-CurveLoop is not colocated with its self.")
+        self.failUnless(c.isColocated(CurveLoop(l01,l12,l20)),"-CurveLoop is not colocated with its copy.")
+        self.failUnless(c.isColocated(CurveLoop(l20,l01,l12)),"-CurveLoop is not colocated with its copy with shifted points.")
+        self.failUnless(c.isColocated(CurveLoop(l20,l12,l01)),"-CurveLoop is not colocated with its copy with shuffled points.")
+        self.failUnless(not c.isColocated(CurveLoop(lx,ly,l12)),"-CurveLoop is colocated with different CurveLoop.")
 
         self.failUnless(len(c) == 3, "wrong length")
 
@@ -1508,7 +1539,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(p4 in p, "p4 is missing")
 
         cp=c.copy()
-        self.failUnless(isinstance(cp,CurveLoop), "copy returns is not an arc.")
+        self.failUnless(isinstance(cp,ReverseCurveLoop), "copy returns is not an ReverseCurveLoop.")
         self.failUnless(not cp == c, "copy equals source")
         self.failUnless(cp.isColocated(c),"copy is not colocated with its source.")
         cc=cp.getCurves()
@@ -1540,8 +1571,11 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         cc=c.getCurves()
         self.failUnless(len(cc) == 3, "too many primitives in modified object.")
         self.failUnless(l01 in cc,"l01 missed in  modified object.")
+        self.failUnless(cc[cc.index(l01)].hasSameOrientation(-l01),"l01 in modified object has wrong orientation.")
         self.failUnless(l12 in cc,"l12 missed in  modified object.")
+        self.failUnless(cc[cc.index(l12)].hasSameOrientation(-l12),"l12 in modified object has wrong orientation.")
         self.failUnless(l20 in cc,"l20 missed in  modified object.")
+        self.failUnless(cc[cc.index(l20)].hasSameOrientation(-l20),"l20 in modified object has wrong orientation.")
       
    def test_RuledSurface(self):
         p0=Point(0,0,0,0.1)
@@ -1569,15 +1603,19 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         cl=s.getBoundaryLoop()
         self.failUnless(cl == cl1, " wrong boundary loops")
+        self.failUnless(cl.hasSameOrientation(cl1),"cl1 has incorrect orientation.")
 
-        h=s.getHoles()
-        self.failUnless(len(h) == 0, "too many holes.")
+        self.failUnless(s.hasSameOrientation(s),"has not same orientation like itself")
+        self.failUnless(not s.hasSameOrientation(-s),"has same orientation like -itself")
 
         crvs=s.getBoundary()
         self.failUnless(len(crvs) == 3, "too many boundary corves.")
         self.failUnless(l01 in crvs, "l01 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l01)].hasSameOrientation(l01),"l01 has incorrect orientation.")
         self.failUnless(l12_1 in crvs, "l21 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l12_1)].hasSameOrientation(l12_1),"l12_1 has incorrect orientation.")
         self.failUnless(l20 in crvs, "l20 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l20)].hasSameOrientation(l20),"l12_1 has incorrect orientation.")
                
 
         code=s.getGmshCommand() 
@@ -1667,6 +1705,162 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(p3 in p, "inplace dilation p3 is missing")
         self.failUnless(p4 in p, "inplace dilation p4 is missing")
 
+        p=s.getBoundary()
+        self.failUnless(len(p) == 3, "inplace dilation has too many boundary curves.")
+        self.failUnless(l01 in p, "inplace dilation l01 is missing in boundary curves.")
+        self.failUnless(p[p.index(l01)].hasSameOrientation(l01),"l01 in getBoundary after dilation has incorrect orientation.")
+        self.failUnless(l12_1 in p, "inplace dilation l21 is missing")
+        self.failUnless(p[p.index(l12_1)].hasSameOrientation(l12_1),"l12_1 in getBoundary after dilation has incorrect orientation.")
+        self.failUnless(l20 in p, "inplace dilation l20 is missing")
+        self.failUnless(p[p.index(l20)].hasSameOrientation(l20),"l20 in getBoundary after dilation has incorrect orientation.")
+
+        p=s.getBoundaryLoop()
+        self.failUnless(cl1 == p, "inplace dilation s.getBoundaryLoop does not return cl1")
+        self.failUnless(p.hasSameOrientation(cl1),"cl1 in getBoundaryLoop after dilation has incorrect orientation.")
+
+   def test_ReverseRuledSurface(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+        p5=Point(10,20,3)
+        p6=Point(1,2,30)
+
+        l01=Line(p0,p1)
+        l12_1=Arc(p3,p1,p2)
+        l12_2_1=Spline(p1,p3,p4)
+        l12_2_2=Spline(p4,p5,p2)
+        l12_3=Line(p1,p2)
+        l20=Spline(p2,p4,p0)
+
+        cl1=CurveLoop(l01,l12_1,l20) 
+        cl2=CurveLoop(l01,l12_2_1,l12_2_2,l20)
+        cl3=CurveLoop(l01,l12_3,l20)
+
+        self.failUnlessRaises(TypeError,ValueError,RuledSurface,l01,msg="non CurveLoop argument accepted.")
+
+        CC0=RuledSurface(cl1)
+        s=-CC0
+
+        cl=s.getBoundaryLoop()
+        self.failUnless(cl == cl1, " wrong boundary loops")
+        self.failUnless(cl.hasSameOrientation(-cl1),"cl1 has incorrect orientation.")
+
+        self.failUnless(s.hasSameOrientation(s),"has not same orientation like itself")
+        self.failUnless(not s.hasSameOrientation(-s),"has same orientation like -itself")
+
+        crvs=s.getBoundary()
+        self.failUnless(len(crvs) == 3, "too many boundary corves.")
+        self.failUnless(l01 in crvs, "l01 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l01)].hasSameOrientation(-l01),"l01 has incorrect orientation.")
+        self.failUnless(l12_1 in crvs, "l21 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l12_1)].hasSameOrientation(-l12_1),"l12_1 has incorrect orientation.")
+        self.failUnless(l20 in crvs, "l20 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l20)].hasSameOrientation(-l20),"l12_1 has incorrect orientation.")
+               
+
+        code=s.getGmshCommand() 
+        self.failUnless(code == "Ruled Surface(17) = {14};", "gmsh command wrong.")
+
+        self.failUnless(not s.isColocated(p4),"RuledSurface is colocated with point.")
+        self.failUnless(s.isColocated(s),"RuledSurface is not colocated with its self.")
+        self.failUnless(s.isColocated(RuledSurface(cl1)),"RuledSurface is not colocated with its copy.")
+        self.failUnless(not s.isColocated(RuledSurface(cl2)),"RuledSurface is colocated with different length")
+        self.failUnless(not s.isColocated(RuledSurface(cl3)),"RuledSurface is colocated with same length.")
+
+        s.setLocalScale(3.)
+        self.failUnless(p0.getLocalScale()==3., "p0 has wrong local scale.")
+        self.failUnless(p1.getLocalScale()==3., "p1 has wrong local scale.")
+        self.failUnless(p2.getLocalScale()==3., "p2 has wrong local scale.")
+        self.failUnless(p4.getLocalScale()==3., "p4 has wrong local scale.")
+
+        p=s.getPrimitives()
+        self.failUnless(len(p) == 10, "too many primitives.")
+        self.failUnless(cl1 in p, "cl1 is missing")
+        self.failUnless(l01 in p, "l01 is missing")
+        self.failUnless(l12_1 in p, "l21 is missing")
+        self.failUnless(l20 in p, "l20 is missing")
+        self.failUnless(p0 in p, "p0 is missing")
+        self.failUnless(p1 in p, "p1 is missing")
+        self.failUnless(p2 in p, "p2 is missing")
+        self.failUnless(p3 in p, "p3 is missing")
+        self.failUnless(p4 in p, "p4 is missing")
+
+        sp=s.copy()
+        self.failUnless(isinstance(sp,ReverseRuledSurface), "copy returns is not a RuledSurface.")
+        self.failUnless(not sp == s, "copy equals source")
+        self.failUnless(sp.isColocated(s),"copy is not colocated with its source.")
+        cbl=sp.getBoundaryLoop()
+        self.failUnless(not cbl == cl1,"copy uses cl1.")
+        cp=sp.getPrimitives()
+        self.failUnless(len(cp) == 10, "copy as too many primitives.")
+        self.failUnless(not cl1 in cp, "copy is using cl1")
+        self.failUnless(not l01 in cp, "copy is using l01")
+        self.failUnless(not l12_1 in cp, "copy is using l21")
+        self.failUnless(not l20 in cp, "copy is using l20")
+        self.failUnless(not p0 in cp, "copy is using p0")
+        self.failUnless(not p1 in cp, "copy is using p1")
+        self.failUnless(not p2 in cp, "copy is using p2")
+        self.failUnless(not p3 in cp, "copy is using p3")
+        self.failUnless(not p4 in cp, "copy is using p4")
+        del cp
+         
+        p0_m=Point(0,0,0)
+        p1_m=Point(-1,-1,-1)
+        p2_m=Point(-2,-2,-2)
+        p3_m=Point(-3,-3,-3)
+        p4_m=Point(-1,-2,-3)
+
+        l01_m=Line(p0_m,p1_m)
+        l12_m=Arc(p3_m,p1_m,p2_m)
+        l20_m=Spline(p2_m,p4_m,p0_m)
+
+        ds=s.apply(Dilation(-1.))
+        self.failUnless(ds.isColocated(RuledSurface(CurveLoop(l01_m,l12_m,l20_m))),"dilation is wrong.")
+        cbl=ds.getBoundaryLoop()
+        self.failUnless(not cbl == cl1,"dilation uses cl1.")
+        cp=ds.getPrimitives()
+        self.failUnless(len(cp) == 10, "dilation as too many primitives.")
+        self.failUnless(not cl1 in cp, "dilation is using cl1")
+        self.failUnless(not l01 in cp, "dilation is using l01")
+        self.failUnless(not l12_1 in cp, "dilation is using l21")
+        self.failUnless(not l20 in cp, "dilation is using l20")
+        self.failUnless(not p0 in cp, "dilation is using p0")
+        self.failUnless(not p1 in cp, "dilation is using p1")
+        self.failUnless(not p2 in cp, "dilation is using p2")
+        self.failUnless(not p3 in cp, "dilation is using p3")
+        self.failUnless(not p4 in cp, "dilation is using p4")
+
+        s.modifyBy(Dilation(-1.))
+        self.failUnless(s.isColocated(RuledSurface(CurveLoop(l01_m,l12_m,l20_m))),"inplace dilation is wrong.")
+
+        p=s.getPrimitives()
+        self.failUnless(len(p) == 10, "inplace dilation has too many primitives.")
+        self.failUnless(cl1 in p, "inplace dilation cl1 is missing")
+        self.failUnless(l01 in p, "inplace dilation l01 is missing")
+        self.failUnless(l12_1 in p, "inplace dilation l21 is missing")
+        self.failUnless(l20 in p, "inplace dilation l20 is missing")
+        self.failUnless(p0 in p, "inplace dilation p0 is missing")
+        self.failUnless(p1 in p, "inplace dilation p1 is missing")
+        self.failUnless(p2 in p, "inplace dilation p2 is missing")
+        self.failUnless(p3 in p, "inplace dilation p3 is missing")
+        self.failUnless(p4 in p, "inplace dilation p4 is missing")
+
+        p=s.getBoundary()
+        self.failUnless(len(p) == 3, "inplace dilation has too many boundary curves.")
+        self.failUnless(l01 in p, "inplace dilation l01 is missing in boundary curves.")
+        self.failUnless(p[p.index(l01)].hasSameOrientation(-l01),"l01 in getBoundary after dilation has incorrect orientation.")
+        self.failUnless(l12_1 in p, "inplace dilation l21 is missing")
+        self.failUnless(p[p.index(l12_1)].hasSameOrientation(-l12_1),"l12_1 in getBoundary after dilation has incorrect orientation.")
+        self.failUnless(l20 in p, "inplace dilation l20 is missing")
+        self.failUnless(p[p.index(l20)].hasSameOrientation(-l20),"l20 in getBoundary after dilation has incorrect orientation.")
+
+        p=s.getBoundaryLoop()
+        self.failUnless(cl1 == p, "inplace dilation s.getBoundaryLoop does not return cl1")
+        self.failUnless(p.hasSameOrientation(-cl1),"cl1 in getBoundaryLoop after dilation has incorrect orientation.")
+
+
    def test_PlaneSurface(self):
         p0=Point(0,0,0,0.1)
         p1=Point(10,0,0,0.2)
@@ -1708,22 +1902,34 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         s=PlaneSurface(cl,holes=[h])
 
-        cl=s.getBoundaryLoop()
-        self.failUnless(cl == cl, " wrong boundary loops")
+        cl2=s.getBoundaryLoop()
+        self.failUnless(cl == cl2, " wrong boundary loops")
+        self.failUnless(cl.hasSameOrientation(cl2),"cl has incorrect orientation.")
 
         hs=s.getHoles()
         self.failUnless(len(hs) == 1, "one holes expected.")
-        self.failUnless(h in hs, "h is not defined as hole.")
+        self.failUnless(h==hs[0], "h is not defined as hole.")
+        self.failUnless(hs[0].hasSameOrientation(h),"hs has incorrect orientation.")
+
+        self.failUnless(s.hasSameOrientation(s),"has not same orientation like itself")
+        self.failUnless(not s.hasSameOrientation(-s),"has same orientation like -itself")
 
         crvs=s.getBoundary()
         self.failUnless(len(crvs) == 7, "too many boundary corves.")
         self.failUnless(l0 in crvs, "l0 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l0)].hasSameOrientation(l0),"l0 has incorrect orientation.")
         self.failUnless(l1 in crvs, "l1 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l1)].hasSameOrientation(l1),"l1 has incorrect orientation.")
         self.failUnless(l2 in crvs, "l2 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l2)].hasSameOrientation(l2),"l2 has incorrect orientation.")
         self.failUnless(l3 in crvs, "l3 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l3)].hasSameOrientation(l3),"l3 has incorrect orientation.")
         self.failUnless(l4 in crvs, "l4 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l4)].hasSameOrientation(l4),"l4 has incorrect orientation.")
         self.failUnless(l5 in crvs, "l5 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l5)].hasSameOrientation(l5),"l5 has incorrect orientation.")
         self.failUnless(l6 in crvs, "l6 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l6)].hasSameOrientation(l6),"l6 has incorrect orientation.")
                
         code=s.getGmshCommand() 
         self.failUnless(code == "Plane Surface(29) = {23, 24};", "gmsh command wrong.")
@@ -1846,9 +2052,12 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(s.isColocated(PlaneSurface(cl_m,holes=[h_m])),"inplace dilation is wrong.")
         cbl=s.getBoundaryLoop()
         self.failUnless(cbl == cl,"inplace dilation does not use cl1.")
+        self.failUnless(cl.hasSameOrientation(cbl),"cl has incorrect orientation.")
         hs=s.getHoles()
         self.failUnless(len(hs)==1,"inplace dilation is missing holes.")
         self.failUnless(hs[0]== h,"inplace dilation must contain h as a hole.")
+        self.failUnless(hs[0].hasSameOrientation(h),"hole in inplace dilation has incorrect orientation.")
+
         cp=s.getPrimitives()
         self.failUnless(len(cp) == 17, "inplace dilation as too many primitives.")
         self.failUnless(s in cp, "inplace dilation must use s")
@@ -1869,7 +2078,225 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(p5 in cp, "inplace dilation must use p5")
         self.failUnless(p6 in cp, "inplace dilation must use p6")
 
-   def test_SurfaceLoop(self):
+   def test_PlaneSurface(self):
+        p0=Point(0,0,0,0.1)
+        p1=Point(10,0,0,0.2)
+        p2=Point(10,10,0,0.3)
+        p3=Point(0,10,3,0.4)
+        p4=Point(5,5,0,0.001)
+        p5=Point(7,5,0,0.001)
+        p6=Point(5,7,0,0.001)
+        p7=Point(8,8,0,0.001)
+        p8=Point(9,9,0,0.001)
+
+        l0=Line(p0,p1)
+        l1=Line(p1,p2)
+        l2=Line(p2,p3)
+        l3=Line(p3,p0)
+
+        l9=Line(p1,p8)
+        l10=Line(p8,p3)
+
+        l4=Line(p4,p5)
+        l5=Line(p5,p6)
+        l6=Line(p6,p4)
+        l7=Line(p6,p7)
+        l8=Line(p7,p4)
+
+        a1=Arc(p4,p3,p1)
+        a2=Arc(p7,p5,p6)
+
+        cl=CurveLoop(l0,l1,l2,l3)
+        h=CurveLoop(l4,l5,l6)
+        cl_s=CurveLoop(l0,l9,l10,l3)
+        h2=CurveLoop(l4,l5,l7,l8)
+        cl_a=CurveLoop(a1,l1,l2)
+        h_a=CurveLoop(a2,l6,l4)
+
+        self.failUnlessRaises(TypeError,ValueError,PlaneSurface,l4,msg="non CurveLoop argument accepted.")
+        self.failUnlessRaises(TypeError,ValueError,PlaneSurface,cl_a,h,msg="CurveLoop with no line curves accepted.")
+        self.failUnlessRaises(TypeError,ValueError,PlaneSurface,cl,[h_a],msg="CurveLoop with no line curves as holes accepted.")
+
+        CC0=PlaneSurface(cl,holes=[h])
+        s=-CC0
+
+        cl2=s.getBoundaryLoop()
+        self.failUnless(cl == cl2, " wrong boundary loops")
+        self.failUnless(cl.hasSameOrientation(-cl2),"cl has incorrect orientation.")
+
+        hs=s.getHoles()
+        self.failUnless(len(hs) == 1, "one holes expected.")
+        self.failUnless(h==hs[0], "h is not defined as hole.")
+        self.failUnless(hs[0].hasSameOrientation(-h),"hs has incorrect orientation.")
+
+        self.failUnless(s.hasSameOrientation(s),"has not same orientation like itself")
+        self.failUnless(not s.hasSameOrientation(-s),"has same orientation like -itself")
+
+        crvs=s.getBoundary()
+        self.failUnless(len(crvs) == 7, "too many boundary corves.")
+        self.failUnless(l0 in crvs, "l0 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l0)].hasSameOrientation(-l0),"l0 has incorrect orientation.")
+        self.failUnless(l1 in crvs, "l1 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l1)].hasSameOrientation(-l1),"l1 has incorrect orientation.")
+        self.failUnless(l2 in crvs, "l2 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l2)].hasSameOrientation(-l2),"l2 has incorrect orientation.")
+        self.failUnless(l3 in crvs, "l3 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l3)].hasSameOrientation(-l3),"l3 has incorrect orientation.")
+        self.failUnless(l4 in crvs, "l4 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l4)].hasSameOrientation(-l4),"l4 has incorrect orientation.")
+        self.failUnless(l5 in crvs, "l5 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l5)].hasSameOrientation(-l5),"l5 has incorrect orientation.")
+        self.failUnless(l6 in crvs, "l6 is missing in boundary")
+        self.failUnless(crvs[crvs.index(l6)].hasSameOrientation(-l6),"l6 has incorrect orientation.")
+               
+        code=s.getGmshCommand() 
+        self.failUnless(code == "Plane Surface(29) = {23, 24};", "gmsh command wrong.")
+
+        self.failUnless(not s.isColocated(p4),"PlaneSurface is colocated with point.")
+        self.failUnless(s.isColocated(s),"PlaneSurface is not colocated with its self.")
+        self.failUnless(s.isColocated(PlaneSurface(cl,holes=[h])),"PlaneSurface is not colocated with its copy.")
+        self.failUnless(not s.isColocated(PlaneSurface(cl)),"PlaneSurface is colocated with PlaneSurface with same boundary but no hole")
+        self.failUnless(not s.isColocated(PlaneSurface(cl_s,holes=[h])),"PlaneSurface is colocated with PlaneSurface with deformed boundary")
+        self.failUnless(not s.isColocated(PlaneSurface(cl,holes=[h2])),"PlaneSurface is colocated with modified hole")
+
+        s.setLocalScale(3.)
+        self.failUnless(p0.getLocalScale()==3., "p0 has wrong local scale.")
+        self.failUnless(p1.getLocalScale()==3., "p1 has wrong local scale.")
+        self.failUnless(p2.getLocalScale()==3., "p2 has wrong local scale.")
+        self.failUnless(p3.getLocalScale()==3., "p3 has wrong local scale.")
+        self.failUnless(p4.getLocalScale()==3., "p4 has wrong local scale.")
+        self.failUnless(p5.getLocalScale()==3., "p5 has wrong local scale.")
+        self.failUnless(p6.getLocalScale()==3., "p6 has wrong local scale.")
+
+        p=s.getPrimitives()
+        self.failUnless(len(p) == 17, "too many primitives.")
+        self.failUnless(s in p, "cl is missing")
+        self.failUnless(cl in p, "cl is missing")
+        self.failUnless(h in p, "h is missing")
+        self.failUnless(l0 in p, "l0 is missing")
+        self.failUnless(l1 in p, "l1 is missing")
+        self.failUnless(l2 in p, "l2 is missing")
+        self.failUnless(l3 in p, "l3 is missing")
+        self.failUnless(l4 in p, "l4 is missing")
+        self.failUnless(l5 in p, "l5 is missing")
+        self.failUnless(l6 in p, "l6 is missing")
+        self.failUnless(p0 in p, "p0 is missing")
+        self.failUnless(p1 in p, "p1 is missing")
+        self.failUnless(p2 in p, "p2 is missing")
+        self.failUnless(p3 in p, "p3 is missing")
+        self.failUnless(p4 in p, "p4 is missing")
+        self.failUnless(p5 in p, "p5 is missing")
+        self.failUnless(p6 in p, "p6 is missing")
+
+        sp=s.copy()
+        self.failUnless(isinstance(sp,ReversePlaneSurface), "copy returns is not a PlaneSurface.")
+        self.failUnless(not sp == s, "copy equals source")
+        self.failUnless(sp.isColocated(s),"copy is not colocated with its source.")
+        cbl=sp.getBoundaryLoop()
+        self.failUnless(not cbl == cl,"copy uses cl1.")
+        hs=sp.getHoles()
+        self.failUnless(len(hs)==1,"copy is missing holes.")
+        self.failUnless(not hs[0]== h,"copy contains h as a hole.")
+        cp=sp.getPrimitives()
+        self.failUnless(len(cp) == 17, "copy as too many primitives.")
+        self.failUnless(not s in cp, "copy contains s")
+        self.failUnless(not cl in cp, "copy contains cl")
+        self.failUnless(not h in cp, "copy contains h")
+        self.failUnless(not l0 in cp, "copy contains l0")
+        self.failUnless(not l1 in cp, "copy contains l1")
+        self.failUnless(not l2 in cp, "copy contains l2")
+        self.failUnless(not l3 in cp, "copy contains l3")
+        self.failUnless(not l4 in cp, "copy contains l4")
+        self.failUnless(not l5 in cp, "copy contains l5")
+        self.failUnless(not l6 in cp, "copy contains l6")
+        self.failUnless(not p0 in cp, "copy contains p0")
+        self.failUnless(not p1 in cp, "copy contains p1")
+        self.failUnless(not p2 in cp, "copy contains p2")
+        self.failUnless(not p3 in cp, "copy contains p3")
+        self.failUnless(not p4 in cp, "copy contains p4")
+        self.failUnless(not p5 in cp, "copy contains p5")
+        self.failUnless(not p6 in cp, "copy contains p6")
+        del sp
+         
+
+        p0_m=Point(0,0,0,0.1)
+        p1_m=Point(-10,0,0,0.2)
+        p2_m=Point(-10,-10,0,0.3)
+        p3_m=Point(0,-10,-3,0.4)
+        p4_m=Point(-5,-5,0,0.001)
+        p5_m=Point(-7,-5,0,0.001)
+        p6_m=Point(-5,-7,0,0.001)
+
+        l0_m=Line(p0_m,p1_m)
+        l1_m=Line(p1_m,p2_m)
+        l2_m=Line(p2_m,p3_m)
+        l3_m=Line(p3_m,p0_m)
+
+        l4_m=Line(p4_m,p5_m)
+        l5_m=Line(p5_m,p6_m)
+        l6_m=Line(p6_m,p4_m)
+
+        cl_m=CurveLoop(l0_m,l1_m,l2_m,l3_m)
+        h_m=CurveLoop(l4_m,l5_m,l6_m)
+
+        ds=s.apply(Dilation(-1.))
+        self.failUnless(ds.isColocated(PlaneSurface(cl_m,holes=[h_m])),"dilation is wrong.")
+        cbl=ds.getBoundaryLoop()
+        self.failUnless(not cbl == cl,"dilation uses cl1.")
+        hs=ds.getHoles()
+        self.failUnless(len(hs)==1,"dilation is missing holes.")
+        self.failUnless(not hs[0]== h,"dilation contains h as a hole.")
+        cp=ds.getPrimitives()
+        self.failUnless(len(cp) == 17, "dilation as too many primitives.")
+        self.failUnless(not s in cp, "dilation contains s")
+        self.failUnless(not cl in cp, "dilation contains cl")
+        self.failUnless(not h in cp, "dilation contains h")
+        self.failUnless(not l0 in cp, "dilation contains l0")
+        self.failUnless(not l1 in cp, "dilation contains l1")
+        self.failUnless(not l2 in cp, "dilation contains l2")
+        self.failUnless(not l3 in cp, "dilation contains l3")
+        self.failUnless(not l4 in cp, "dilation contains l4")
+        self.failUnless(not l5 in cp, "dilation contains l5")
+        self.failUnless(not l6 in cp, "dilation contains l6")
+        self.failUnless(not p0 in cp, "dilation contains p0")
+        self.failUnless(not p1 in cp, "dilation contains p1")
+        self.failUnless(not p2 in cp, "dilation contains p2")
+        self.failUnless(not p3 in cp, "dilation contains p3")
+        self.failUnless(not p4 in cp, "dilation contains p4")
+        self.failUnless(not p5 in cp, "dilation contains p5")
+        self.failUnless(not p6 in cp, "dilation contains p6")
+
+        s.modifyBy(Dilation(-1.))
+        self.failUnless(s.isColocated(PlaneSurface(cl_m,holes=[h_m])),"inplace dilation is wrong.")
+        cbl=s.getBoundaryLoop()
+        self.failUnless(cbl == cl,"inplace dilation does not use cl1.")
+        self.failUnless(cl.hasSameOrientation(-cbl),"cl has incorrect orientation.")
+        hs=s.getHoles()
+        self.failUnless(len(hs)==1,"inplace dilation is missing holes.")
+        self.failUnless(hs[0]== h,"inplace dilation must contain h as a hole.")
+        self.failUnless(hs[0].hasSameOrientation(-h),"hole in inplace dilation has incorrect orientation.")
+
+        cp=s.getPrimitives()
+        self.failUnless(len(cp) == 17, "inplace dilation as too many primitives.")
+        self.failUnless(s in cp, "inplace dilation must use s")
+        self.failUnless(cl in cp, "inplace dilation must use cl")
+        self.failUnless(h in cp, "inplace dilation must use h")
+        self.failUnless(l0 in cp, "inplace dilation must use l0")
+        self.failUnless(l1 in cp, "inplace dilation must use l1")
+        self.failUnless(l2 in cp, "inplace dilation must use l2")
+        self.failUnless(l3 in cp, "inplace dilation must use l3")
+        self.failUnless(l4 in cp, "inplace dilation must use l4")
+        self.failUnless(l5 in cp, "inplace dilation must use l5")
+        self.failUnless(l6 in cp, "inplace dilation must use l6")
+        self.failUnless(p0 in cp, "inplace dilation must use p0")
+        self.failUnless(p1 in cp, "inplace dilation must use p1")
+        self.failUnless(p2 in cp, "inplace dilation must use p2")
+        self.failUnless(p3 in cp, "inplace dilation must use p3")
+        self.failUnless(p4 in cp, "inplace dilation must use p4")
+        self.failUnless(p5 in cp, "inplace dilation must use p5")
+        self.failUnless(p6 in cp, "inplace dilation must use p6")
+
+   def stest_SurfaceLoop(self):
         p0=Point( 0, 0, 0,0.1)
         p1=Point(10, 0, 0,0.1)
         p2=Point( 0,10, 0,0.1)
@@ -1893,21 +2320,49 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         l54=Line(p5,p4)
         l04=Line(p4,p0)
 
-        l31=Line(p3,p1)
-        l57=Line(p3,p1)
+        l13=Line(p1,p3)
+        l37=Line(p3,p7)
+        l75=Line(p7,p5)
+        l67=Line(p6,p7)
+        l26=Line(p2,p6)
+        l32=Line(p3,p2)
+        l20=Line(p2,p0)
+        l46=Line(p4,p6)
 
         m01=Line(q0,q1)
         m15=Line(q1,q5)
         m54=Line(q5,q4)
-        m04=Line(q4,q0)
+        m40=Line(q4,q0)
+        m23=Line(q2,q3)
+        m37=Line(q3,q7)
+        m76=Line(q7,q6)
+        m62=Line(q6,q2)
 
         cl_l1=CurveLoop(l01,l15,l54,l04)
-        cl_m1=CurveLoop(m01,m15,m54,m04)
+        cl_m1=CurveLoop(m01,m15,m54,m40)
         s1=PlaneSurface(cl_l1,holes=[cl_m1])
 
+        cl_l2=CurveLoop(-l15,l13,l37,l75)
+        s2=PlaneSurface(cl_l2)
+
+        cl_l3=CurveLoop(l32,-l37,l67,l26)
+        cl_m3=CurveLoop(-m23,-m37,-m76,-m62)
+        s3=PlaneSurface(cl_l3,holes=[cl_m3])
      
+        cl_l4=CurveLoop(l20,-l26,l46,-l04)
+        s4=PlaneSurface(cl_l4)
 
+        cl_l5=CurveLoop(l32,l20,l01,l13)
+        s5=PlaneSurface(-cl_l5)
 
+        cl_l6=CurveLoop(l67,l75,l54,l46)
+        s6=PlaneSurface(-cl_l6)
+
+        x=SurfaceLoop(s1,s2,s3,s4,s5)
+        print x
+        print "X"
+        self.failUnlessRaises(TypeError,SurfaceLoop,s1,s2,s3,s4,s5,msg="broken loop not detecred.")
+        s=SurfaceLoop(s1,s2,s3,s4,s5,s6)
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_PyCAD_Transformations))
