@@ -30,6 +30,20 @@ from datetime import date
 import tempfile
 import os
 
+class PrimitiveBaseStack(object):
+      def __init__(self,*items):
+        self.__prims=set()
+        for i in items:
+            self.__prims|=i.getPrimitives()
+        self.__prims=list(self.__prims)
+        self.__prims.sort()
+
+      def getGmshCommands(self,scaling_factor=1.):
+        out=""
+        for i in self.__prims:
+           out+=i.getGmshCommand(scaling_factor)+"\n"
+        return out
+
 class Design(object):
     """
     template for elementary geometrical object
