@@ -436,6 +436,11 @@ class Manifold1D(PrimitiveBase):
          returns end point
          """
          raise NotImplementedError()
+    def getBoundary(self):
+        """
+        returns a list of the zero-dimensional manifolds forming the boundary of the curve 
+        """
+        return [ self.getStartPoint(), self.getEndPoint()]
 
 class CurveBase(Manifold1D):
     """
@@ -480,7 +485,7 @@ class Curve(CurveBase, Primitive):
        defines a curve form control points 
        """
        if len(points)<2:
-           raise TypeError("Curve needs at least two points")
+           raise ValueError("Curve needs at least two points")
        i=0
        for p in points:
               i+=1
@@ -763,7 +768,7 @@ class CurveLoop(Primitive, PrimitiveBase):
        creates a polygon from a list of line curves. The curves must form a closed loop.
        """
        if len(curves)<2:
-            raise TypeError("at least two curves have to be given.")
+            raise ValueError("at least two curves have to be given.")
        for i in range(len(curves)):
            if not isinstance(curves[i],Manifold1D):
               raise TypeError("%s-th argument is not a Manifold1D object."%i)
@@ -866,7 +871,7 @@ class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
        creates a polygon from a list of line curves. The curves must form a closed loop.
        """
        if not isinstance(curve_loop, CurveLoop):
-           raise ValueError("arguments need to be an instance of CurveLoop.")
+           raise TypeError("arguments need to be an instance of CurveLoop.")
        ReversePrimitive.__init__(self, curve_loop)
        PrimitiveBase.__init__(self)
 
@@ -909,9 +914,9 @@ class RuledSurface(Primitive, Manifold2D):
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
        if len(loop)<2:
-           raise TypeError("the loop must contain at least two Curves.")
+           raise ValueError("the loop must contain at least two Curves.")
        if len(loop)>4:
-           raise TypeError("the loop must contain at least three Curves.")
+           raise ValueError("the loop must contain at least three Curves.")
        Primitive.__init__(self)
        Manifold2D.__init__(self)
        self.__loop=loop
@@ -981,7 +986,7 @@ class ReverseRuledSurface(ReversePrimitive, Manifold2D):
        creates a polygon from a list of line curves. The curves must form a closed loop.
        """
        if not isinstance(surface, RuledSurface):
-           raise ValueError("arguments need to be an instance of CurveLoop.")
+           raise TypeError("arguments need to be an instance of CurveLoop.")
        ReversePrimitive.__init__(self, surface)
        Manifold2D.__init__(self)
 
@@ -1110,7 +1115,7 @@ class ReversePlaneSurface(ReversePrimitive, Manifold2D):
        creates a polygon from a list of line curves. The curves must form a closed loop.
        """
        if not isinstance(surface, PlaneSurface):
-           raise ValueError("arguments need to be an instance of PlaneSurface.")
+           raise TypeError("arguments need to be an instance of PlaneSurface.")
        ReversePrimitive.__init__(self, surface)
        Manifold2D.__init__(self)
 
@@ -1147,7 +1152,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
        creates a surface loop
        """
        if len(surfaces)<2:
-            raise TypeError("at least two surfaces have to be given.")
+            raise ValueError("at least two surfaces have to be given.")
        for i in range(len(surfaces)):
            if not isinstance(surfaces[i].getUnderlyingPrimitive(),Manifold2D):
               raise TypeError("%s-th argument is not a Manifold2D object."%i)
@@ -1164,26 +1169,25 @@ class SurfaceLoop(Primitive, PrimitiveBase):
           for i in xrange(len(surfaces)):
              if not used[i]:
                 i_boundary=surfaces[i].getBoundary()
-                print i, i_boundary
                 for ib in xrange(len(i_boundary)):  
-                    print ib, i_boundary[ib], edges
                     if i_boundary[ib] in edges:
-                         if used_edges[edges.index(i_boundary[ib])]:
-                            raise ValueError("boundary segment %s is shared by more than one surface."%str(i_boundary[ib]))
-                         used_edges[edges.index(i_boundary[ib])]=True
-                         self.__surfaces.append(surfaces[i])
-                         for b in i_boundary:
-                            if not b in edges:
-                                edges.append(b)
-                                used_edges.append(False)
                          found=True
-                         used[i]=True
                          break
-             if found: break
+                if found:
+                    used[i]=True
+                    self.__surfaces.append(surfaces[i])
+                    for ib in xrange(len(i_boundary)):  
+                       if i_boundary[ib] in edges:
+                         if used_edges[edges.index(i_boundary[ib])]:
+                            raise ValueError("boundary segment %s is shared by more than one surface."%str(i_boundary[ib].getUnderlyingPrimitive()))
+                         used_edges[edges.index(i_boundary[ib])]=True
+                       else:
+                         edges.append(i_boundary[ib])
+                         used_edges.append(False)
+                    break
           if not found:
-             raise ValueError("loop is not closed.")
-       print min(used_edges), used_edges
-       if min(used_edges): 
+               raise ValueError("loop is not closed.")
+       if not min(used_edges): 
           raise ValueError("loop is not closed. Surface is missing.")
     def __len__(self):
        """
@@ -1222,6 +1226,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
             else:
                 out="%s"%i.getDirectedID()
         return "Surface Loop(%s) = {%s};"%(self.getID(),out)
+
     def substitute(self,sub_dict):
         """
         returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
@@ -1230,7 +1235,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
         """
         if not sub_dict.has_key(self):
             new_s=[]
-            for s in self.getCurves(): new_s.append(s.substitute(sub_dict))
+            for s in self.getSurfaces(): new_s.append(s.substitute(sub_dict))
             sub_dict[self]=SurfaceLoop(*tuple(new_s))
         return sub_dict[self]
 
@@ -1242,7 +1247,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
          if isinstance(primitive.getUnderlyingPrimitive(),SurfaceLoop):
             if len(primitive) == len(self):
                 sp0=self.getSurfaces()
-                sp1=primitive.getCurves()
+                sp1=primitive.getSurfaces()
                 for s0 in sp0: 
                     collocated = False
                     for s1 in sp1: 
@@ -1265,7 +1270,7 @@ class ReverseSurfaceLoop(ReversePrimitive, PrimitiveBase):
        creates a polygon from a list of line surfaces. The curves must form a closed loop.
        """
        if not isinstance(surface_loop, SurfaceLoop):
-           raise ValueError("arguments need to be an instance of SurfaceLoop.")
+           raise TypeError("arguments need to be an instance of SurfaceLoop.")
        ReversePrimitive.__init__(self, surface_loop)
        PrimitiveBase.__init__(self)
 
@@ -1277,8 +1282,25 @@ class ReverseSurfaceLoop(ReversePrimitive, PrimitiveBase):
 
     def __len__(self):
         return len(self.getUnderlyingPrimitive())
-#==========================
-class Volume(PrimitiveBase):
+
+#==============================
+class Manifold3D(PrimitiveBase):
+    """
+    general three-dimensional manifold
+    """
+    def __init__(self):
+       """
+       create a three-dimensional manifold
+       """
+       PrimitiveBase.__init__(self)
+
+    def getBoundary(self):
+        """
+        returns a list of the one-dimensional manifolds forming the boundary of the volume (including holes)
+        """
+        raise NotImplementedError()
+
+class Volume(Manifold3D, Primitive):
     """
     a volume with holes.
     """
@@ -1291,28 +1313,26 @@ class Volume(PrimitiveBase):
        @note: A SurfaceLoop defining a hole should not have any surfaces in common with the exterior SurfaceLoop.  
               A SurfaceLoop defining a hole should not have any surfaces in common with another SurfaceLoop defining a hole in the same volume.
        """
-       super(Volume, self).__init__()
-       if not loop.isSurfaceLoop():
+       if not isinstance(loop.getUnderlyingPrimitive(), SurfaceLoop):
            raise TypeError("argument loop needs to be a SurfaceLoop object.")
        for i in range(len(holes)):
-            if not holes[i].isSurfaceLoop():
+            if not isinstance(holes[i].getUnderlyingPrimitive(), SurfaceLoop):
                  raise TypeError("%i th hole needs to be a SurfaceLoop object.")
+       Primitive.__init__(self)
+       Manifold3D.__init__(self)
        self.__loop=loop
        self.__holes=holes
     def getHoles(self):
+       """
+       returns the hole in the volume
+       """
        return self.__holes
     def getSurfaceLoop(self):
+       """
+       returns the loop forming the surface
+       """
        return self.__loop
-    def __add__(self,other):
-       return Volume(self.getSurfaceLoop()+other, holes=[h+other for h in self.getHoles()])
-    def collectPrimitiveBases(self):
-        out=[self] + self.getSurfaceLoop().collectPrimitiveBases()
-        for i in self.getHoles(): out+=i.collectPrimitiveBases()
-        return out
-    def getConstructionPoints(self):
-        out=self.getSurfaceLoop().getConstructionPoints()
-        for i in self.getHoles(): out|=i.Points()
-        return out
+
     def getGmshCommand(self,scaling_factor=1.):
         """
         returns the Gmsh command(s) to create the primitive
@@ -1328,6 +1348,48 @@ class Volume(PrimitiveBase):
         else:
           return "Volume(%s) = {%s};"%(self.getID(),self.getSurfaceLoop().getDirectedID())
 
+    def substitute(self,sub_dict):
+        """
+        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
+        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
+        with substituted arguments is returned.
+        """
+        if not sub_dict.has_key(self):
+            sub_dict[self]=Volume(self.getSurfaceLoop().substitute(sub_dict),[ h.substitute(sub_dict) for h in self.getHoles()])
+        return sub_dict[self]
+
+    def isColocated(self,primitive):
+       """
+       returns True if each curve is collocted with a curve in primitive
+       """
+       if hasattr(primitive,"getUnderlyingPrimitive"): 
+          if isinstance(primitive.getUnderlyingPrimitive(),Volume):
+             if self.getSurfaceLoop().isColocated(primitive.getSurfaceLoop()):
+                hs0=self.getHoles()
+                hs1=primitive.getHoles()
+                if len(hs0) == len(hs1):
+                    for h0 in hs0:
+                       collocated = False
+                       for h1 in hs1: 
+                         collocated = collocated or h0.isColocated(h1)
+                       if not collocated: return False
+                    return True
+       return False
+    def collectPrimitiveBases(self):
+        """
+        returns primitives used to construct the Surface
+        """
+        out=[self] + self.getSurfaceLoop().collectPrimitiveBases()
+        for i in self.getHoles(): out+=i.collectPrimitiveBases()
+        return out
+    def getBoundary(self):
+        """
+        returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
+        """
+        out = []+ self.getSurfaceLoop().getSurfaces()
+        for h in self.getHoles(): out+=h.getSurfaces()
+        return out
+
 class PropertySet(PrimitiveBase):
     """
     defines a group L{PrimitiveBase} objects. 
@@ -1339,18 +1401,4 @@ class PropertySet(PrimitiveBase):
     def collectPrimitiveBases(self):
         out=[self]+self.getBoundaryLoop().collectPrimitiveBases()
         for i in self.getHoles(): out+=i.collectPrimitiveBases()
-        return out
-
-class PrimitiveBaseStack(object):
-      def __init__(self,*items):
-        self.__prims=set()
-        for i in items:
-            self.__prims|=i.getPrimitives()
-        self.__prims=list(self.__prims)
-        self.__prims.sort()
-
-      def getGmshCommands(self,scaling_factor=1.):
-        out=""
-        for i in self.__prims:
-           out+=i.getGmshCommand(scaling_factor)+"\n"
         return out
