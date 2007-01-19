@@ -774,21 +774,7 @@ class CurveLoop(Primitive, PrimitiveBase):
               raise TypeError("%s-th argument is not a Manifold1D object."%i)
        # for the curves a loop:
        used=[ False for i in curves]
-       self.__curves=[curves[0]]
-       used[0]=True
-       while not min(used):
-          found=False
-          for i in xrange(len(curves)):
-             if not used[i]:
-                if self.__curves[-1].getEndPoint() == curves[i].getStartPoint():
-                   self.__curves.append(curves[i])
-                   used[i]=True
-                   found=True
-                   break
-          if not found:
-             raise ValueError("loop is not closed.")
-       if not self.__curves[0].getStartPoint() == self.__curves[-1].getEndPoint():
-          raise ValueError("loop is not closed.")
+       self.__curves=list(curves)
        Primitive.__init__(self)
        PrimitiveBase.__init__(self)
 
@@ -1156,39 +1142,9 @@ class SurfaceLoop(Primitive, PrimitiveBase):
        for i in range(len(surfaces)):
            if not isinstance(surfaces[i].getUnderlyingPrimitive(),Manifold2D):
               raise TypeError("%s-th argument is not a Manifold2D object."%i)
+       self.__surfaces=list(surfaces)
        Primitive.__init__(self)
        PrimitiveBase.__init__(self)
-       # for the curves a loop:
-       used=[ False for s in surfaces]
-       self.__surfaces=[surfaces[0]]
-       used[0]= True
-       edges=[ e for e in surfaces[0].getBoundary() ]
-       used_edges=[ False for e in surfaces[0].getBoundary() ]
-       while not min(used):
-          found=False
-          for i in xrange(len(surfaces)):
-             if not used[i]:
-                i_boundary=surfaces[i].getBoundary()
-                for ib in xrange(len(i_boundary)):  
-                    if i_boundary[ib] in edges:
-                         found=True
-                         break
-                if found:
-                    used[i]=True
-                    self.__surfaces.append(surfaces[i])
-                    for ib in xrange(len(i_boundary)):  
-                       if i_boundary[ib] in edges:
-                         if used_edges[edges.index(i_boundary[ib])]:
-                            raise ValueError("boundary segment %s is shared by more than one surface."%str(i_boundary[ib].getUnderlyingPrimitive()))
-                         used_edges[edges.index(i_boundary[ib])]=True
-                       else:
-                         edges.append(i_boundary[ib])
-                         used_edges.append(False)
-                    break
-          if not found:
-               raise ValueError("loop is not closed.")
-       if not min(used_edges): 
-          raise ValueError("loop is not closed. Surface is missing.")
     def __len__(self):
        """
        return the number of curves in the SurfaceLoop
