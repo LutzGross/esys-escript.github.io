@@ -22,5 +22,5 @@ __date__="$Date:$"
 
 from transformations import *
 from primitives import *
-from design import *
-import shapes
+from shapes import *
+import gmsh
