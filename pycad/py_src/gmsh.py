@@ -124,15 +124,3 @@ class Design(design.Design):
         open(self.getScriptFileName(),"w").write(self.getScriptString())
         os.system(self.getCommandString())
         return self.getMeshFileName()
-# to finley
-def MakeDomain(design,integrationOrder=-1,optimizeLabeling=True, richFaceElements=False):
-        mshname=design.getMeshHandler()
-        print "MakeDomain :",mshname
-        1/0
-        convertGmshToFinley(open(mshname,"r"),open(filename,"w"),dim=self.getDim())
-        if not self.keepTmpFiles(): os.unlink(mshname)
-        return exe
-        line=gmsh_file.readline().split()
-        while len(line)>0:
-           print line
-           line=gmsh_file.readline().split()

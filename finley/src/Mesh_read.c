@@ -33,7 +33,6 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
   char error_msg[LenErrorMsg_MAX];
-  Finley_NodeFile *nodes_p=NULL;
   double time0=Finley_timer();
 
   Finley_resetError();
@@ -49,13 +48,19 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   /* read header */
   sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
   fscanf(fileHandle_p, frm, name);
+
+  /* allocate mesh */
+#ifndef PASO_MPI
+  mesh_p = Finley_Mesh_alloc(name,numDim,order);
+#else
+  /* TODO */
+#endif
+  if (! Finley_noError()) return NULL;
   /* get the nodes */
 
   fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
 #ifndef PASO_MPI
-  nodes_p=Finley_NodeFile_alloc(numDim);
-  if (! Finley_noError()) return NULL;
-  Finley_NodeFile_allocTable(nodes_p, numNodes);
+  Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
   if (! Finley_noError()) return NULL;
 #else
   /* TODO */
@@ -63,22 +68,22 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   if (1 == numDim) {
       for (i0 = 0; i0 < numNodes; i0++)
-	fscanf(fileHandle_p, "%d %d %d %le\n", &nodes_p->Id[i0],
-	       &nodes_p->degreeOfFreedom[i0], &nodes_p->Tag[i0],
-	       &nodes_p->Coordinates[INDEX2(0,i0,numDim)]);
+	fscanf(fileHandle_p, "%d %d %d %le\n", &mesh_p->Nodes->Id[i0],
+	       &mesh_p->Nodes->degreeOfFreedom[i0], &mesh_p->Nodes->Tag[i0],
+	       &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)]);
   } else if (2 == numDim) {
       for (i0 = 0; i0 < numNodes; i0++)
-	fscanf(fileHandle_p, "%d %d %d %le %le\n", &nodes_p->Id[i0],
-	       &nodes_p->degreeOfFreedom[i0], &nodes_p->Tag[i0],
-	       &nodes_p->Coordinates[INDEX2(0,i0,numDim)],
-	       &nodes_p->Coordinates[INDEX2(1,i0,numDim)]);
+	fscanf(fileHandle_p, "%d %d %d %le %le\n", &mesh_p->Nodes->Id[i0],
+	       &mesh_p->Nodes->degreeOfFreedom[i0], &mesh_p->Nodes->Tag[i0],
+	       &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)],
+	       &mesh_p->Nodes->Coordinates[INDEX2(1,i0,numDim)]);
   } else if (3 == numDim) {
       for (i0 = 0; i0 < numNodes; i0++)
-	fscanf(fileHandle_p, "%d %d %d %le %le %le\n", &nodes_p->Id[i0],
-	       &nodes_p->degreeOfFreedom[i0], &nodes_p->Tag[i0],
-	       &nodes_p->Coordinates[INDEX2(0,i0,numDim)],
-	       &nodes_p->Coordinates[INDEX2(1,i0,numDim)],
-	       &nodes_p->Coordinates[INDEX2(2,i0,numDim)]);
+	fscanf(fileHandle_p, "%d %d %d %le %le %le\n", &mesh_p->Nodes->Id[i0],
+	       &mesh_p->Nodes->degreeOfFreedom[i0], &mesh_p->Nodes->Tag[i0],
+	       &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)],
+	       &mesh_p->Nodes->Coordinates[INDEX2(1,i0,numDim)],
+	       &mesh_p->Nodes->Coordinates[INDEX2(2,i0,numDim)]);
   } /* if else else */
 
   /* get the element type */
@@ -90,19 +95,6 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-
-  /* allocate mesh */
-
-  /* Finley_Mesh * mesh_p =Finley_Mesh_alloc(name,numDim,order); */
-#ifndef PASO_MPI
-  mesh_p = Finley_Mesh_alloc(name,numDim,order);
-#else
-  /* TODO */
-#endif
-
-  if (! Finley_noError()) return NULL;
-  mesh_p->Nodes=nodes_p;
-
   /* read the elements */
 #ifndef PASO_MPI
   mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order);

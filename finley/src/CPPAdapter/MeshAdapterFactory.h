@@ -50,6 +50,23 @@ namespace finley {
 				     int integrationOrder=-1);
   /**
      \brief
+     Read a gmsh mesh file
+     \param fileName Input -  The name of the file.
+     \param numDim Input -  spatial dimension
+     \param integrationOrder Input - order of the quadrature scheme.  
+     If integrationOrder<0 the integration order is selected independently.
+     \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
+     If reducedIntegrationOrder<0 the integration order is selected independently.
+     \param optimizeLabeling Input - switches on the optimization of node labels 
+  */
+  FINLEY_DLL_API
+  escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
+				     int numDim, 
+				     int integrationOrder=-1,
+				     int reducedIntegrationOrder=-1, 
+				     bool optimizeLabeling=true);
+  /**
+     \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
      [0,l0] x [0,l1] x [0,l2].
 

@@ -57,6 +57,38 @@ namespace finley {
     return temp;
   }
 
+  AbstractContinuousDomain* readGmsh(const std::string& fileName,
+                                     int numDim,
+                                     int integrationOrder,
+                                     int reducedIntegrationOrder,
+                                     bool optimizeLabeling)
+  {
+    //
+    // create a copy of the filename to overcome the non-constness of call
+    // to Finley_Mesh_read
+    Finley_Mesh* fMesh=0;
+    // Win32 refactor
+    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
+    strcpy(fName,fileName.c_str());
+
+#ifndef PASO_MPI
+    fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, optimizeLabeling);
+#else
+    {
+      stringstream temp;
+      temp << "Unable to read gmsh meshes from file under MPI yet...";
+      setFinleyError(VALUE_ERROR,temp.str().c_str());
+    }
+#endif
+    checkFinleyError();
+    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
+    
+    /* win32 refactor */
+    TMPMEMFREE(fName);
+    
+    return temp;
+  }
+
   AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,
 		    double l0,double l1,double l2,
 		    int periodic0,int periodic1,
