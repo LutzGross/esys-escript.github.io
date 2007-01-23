@@ -93,6 +93,10 @@ BOOST_PYTHON_MODULE(finleycpp)
       (arg("fileName"),arg("integrationOrder")=-1),
       return_value_policy<manage_new_object>());
 
+  def("ReadGmsh",finley::readGmsh,
+      (arg("fileName"),arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimizeLabeling")=true),
+      return_value_policy<manage_new_object>());
+
   def ("Brick",finley::brick,
       (arg("n0")=1,arg("n1")=1,arg("n2")=1,
       arg("order")=1,

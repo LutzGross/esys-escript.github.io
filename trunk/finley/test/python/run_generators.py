@@ -15,7 +15,7 @@ import sys
 import os
 import unittest
 from esys.escript import *
-from esys.finley import Interval,Rectangle,Brick,JoinFaces
+from esys.finley import Interval,Rectangle,Brick,JoinFaces, ReadGmsh
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -171,9 +171,50 @@ class Test_Generators(unittest.TestCase):
       my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
+class Test_GMSHReader(unittest.TestCase):
+   def compare(self, test_file, reference_file):
+      dom_string=open(test_file).read().splitlines()
+      ref_string=open(reference_file).read().splitlines()
+      self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
+      for l in range(1,len(ref_string)):
+         self.failUnlessEqual(dom_string[l].strip(),ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),dom_string[l].strip()))
+
+   def test_Tri3(self):
+       file="tri3_gmsh.msh"
+       ref ="tri3.fly"
+       test = FINLEY_WORKDIR+os.sep+"tri3_test.fly"
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
+       dom.write(test)
+       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+
+   def test_Tri6(self):
+       file="tri6_gmsh.msh"
+       ref="tri6.fly"
+       test = FINLEY_WORKDIR+os.sep+"tri8_test.fly"
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
+       dom.write(test)
+       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+
+   def test_Tet4(self):
+       file="tet4_gmsh.msh"
+       ref="tet4.fly"
+       test = FINLEY_WORKDIR+os.sep+"tet4_test.fly"
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       dom.write(test)
+       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+
+   def test_Tet(self):
+       file="tet10_gmsh.msh"
+       ref="tet10.fly"
+       test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       dom.write(test)
+       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_Generators))
+   suite.addTest(unittest.makeSuite(Test_GMSHReader))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)
