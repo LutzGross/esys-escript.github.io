@@ -49,16 +49,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
   fscanf(fileHandle_p, frm, name);
 
-  /* allocate mesh */
-#ifndef PASO_MPI
-  mesh_p = Finley_Mesh_alloc(name,numDim,order);
-#else
-  /* TODO */
-#endif
-  if (! Finley_noError()) return NULL;
   /* get the nodes */
 
   fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
+  /* allocate mesh */
+#ifndef PASO_MPI
+  mesh_p = Finley_Mesh_alloc(name,numDim,order);
+  if (! Finley_noError()) return NULL;
+#else
+  /* TODO */
+#endif
+
 #ifndef PASO_MPI
   Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
   if (! Finley_noError()) return NULL;

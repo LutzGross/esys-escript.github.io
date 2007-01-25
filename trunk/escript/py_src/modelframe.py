@@ -1057,15 +1057,8 @@ class Simulation(Model):
         if len(missing)>0:
             msg=""
             for l in missing:
-                 line=str(self)
-                 settarget=False
-                 for c in l:
-                    if settarget:
-                       line+=" linked to "+str(c)
-                    else:
-                       line+="."+str(c)
-                    if isinstance(c,str): settarget=True
-                 msg+="\n\t"+line
+                 msg+="\n\t"+str(l[-1])+" at "+str(self)
+                 for i in xrange(len(l)-1): msg+="."+str(l[i])
             raise MissingLink("link targets missing in the Simulation: %s"%msg)
         #==============================
         self.doInitialization()
