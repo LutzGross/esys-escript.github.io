@@ -15,10 +15,14 @@ class FinleyReader(ParameterSet):
        """
        reads finley mesh file.
 
-       @ivar source: file name of the finley input file
-       @type source: C{str}
+       @ivar source: mesh file in finley or gmsh format
+       @type source: C{DataSource}
        @ivar intergrationOrder: integration order, default -1 (in).
        @type intergrationOrder: C{int}
+       @ivar reducedIntegrationOrder: reduced integration order, default -1 (in).
+       @type reducedIntegrationOrder: C{int}
+       @ivar optimizeLabeling: switches on optimization of the labeling of the nodes
+       @type optimizeLabeling: C{bool}
        """
        def __init__(self,**kwargs):
           """
@@ -26,7 +30,9 @@ class FinleyReader(ParameterSet):
           """
           super(FinleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
-                                 integrationOrder=-1)
+                                optimizeLabeling=True,
+                                reducedIntegrationOrder=-1,
+                                integrationOrder=-1)
           self.__domain=None
 
        def domain(self):
@@ -37,7 +43,12 @@ class FinleyReader(ParameterSet):
           @rtype: L{Domain}
           """
           if self.__domain == None:
-             self.__domain=finley.ReadMesh(self.source.getLocalFileName(),self.integrationOrder) 
+             if  self.source.fileformat == "fly":
+                self.__domain=finley.ReadMesh(self.source.getLocalFileName(),self.integrationOrder) 
+             elif self.source.fileformat == "gmsh":
+                self.__domain=finley.ReadGmsh(self.source.getLocalFileName(),self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling) 
+             else:
+                raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s"%self.source)           
           return self.__domain
           
