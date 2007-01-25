@@ -19,9 +19,11 @@ test "x$1" != "x" && target="$1"
 requested_cpus=2
 test "x$target" = "xall_tests" && requested_cpus=4
 
-# MAIL_RECIPIENTS="l.gross@uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au robert.woodcock@csiro.au Peter.Hornby@csiro.au k.steube@uq.edu.au"
-MAIL_RECIPIENTS="k.steube@uq.edu.au"
+MAIL_RECIPIENTS="l.gross@uq.edu.au matt@esscc.uq.edu.au robert.woodcock@csiro.au Peter.Hornby@csiro.au k.steube@uq.edu.au"
+# MAIL_RECIPIENTS="k.steube@uq.edu.au"
 
+# This time is when the job was submitted. If it waits in the queue it might run on another day.
+# This date is also used to create the sandbox directory where the tests are run.
 RunDate=`date '+%Y_%m_%d'`	# Time stamp for log file names
 
 WorkDir=/raid3/ksteube/AutoTests
@@ -40,7 +42,7 @@ SCRIPT_NAME=$0
 cat << EOF > Logs/$RunDate.pbs.script.sh
 #!/bin/bash
 
-#PBS -q q1
+#PBS -q q80
 #PBS -N autotest
 #PBS -l ncpus=$requested_cpus
 #PBS -o $RunDate.pbs.stdout
@@ -127,5 +129,7 @@ cd $WorkDir/Logs
 # Submit the job
 . /opt/modules/default/init/sh
 module load pbspro
+
+# Submit the job
 qsub -S /bin/bash $RunDate.pbs.script.sh > /dev/null
 
