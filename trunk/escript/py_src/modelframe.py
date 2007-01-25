@@ -214,6 +214,11 @@ class Link:
         self.attribute = None
         self.setAttributeName(attribute)
 
+    def getTarget(self):
+        """
+        returns the target
+        """ 
+        return self.target 
     def getAttributeName(self):
         """
         returns the name of the attribute the link is pointing to
@@ -844,8 +849,10 @@ class Simulation(Model):
 	Initiates a simulation from a list of models.
 	"""
         super(Simulation, self).__init__(**kwargs)
+        for m in models:
+            if not isinstance(m, Model):
+                 raise TypeError("%s is not a subclass of Model."%m)
         self.__models=[]
-        
         for i in range(len(models)): 
             self[i] = models[i]
             
@@ -889,6 +896,34 @@ class Simulation(Model):
 	Returns the number of models.
 	"""
         return len(self.__models)
+
+    def getAllModels(self):
+        """
+        returns a list of all models used in the Simulation including subsimulations
+        """
+        out=[]
+        for m in self.iterModels():
+            if isinstance(m, Simulation):
+               out+=m.getAllModels()
+            else:
+               out.append(m)
+        return list(set(out))
+
+    def checkModelLinks(self, models):
+        """
+        returns a list of (model,parameter, target model ) if the the parameter of model
+        is linking to the target_model which is not in list of models.
+        """
+        out=[]
+        for m in self.iterModels():
+            if isinstance(m, Simulation):
+               out+=[ (m,) + f for f in  m.checkModelLinks(models) ]
+            else:
+              for p in m:
+                 if isinstance(p[1], Link):
+                    l_m=p[1].getTarget()
+                    if isinstance(l_m, Model) and not l_m in models: out.append( (m,p[0],l_m) )
+        return out
 
     
     def getSafeTimeStepSize(self,dt):
@@ -1015,6 +1050,24 @@ class Simulation(Model):
         In both cases the time integration is given up after
 	C{Simulation.FAILED_TIME_STEPS_MAX} attempts.
         """
+        # check the completness of the models:
+        # first a list of all the models involved in the simulation including subsimulations:
+        # 
+        missing=self.checkModelLinks(self.getAllModels())
+        if len(missing)>0:
+            msg=""
+            for l in missing:
+                 line=str(self)
+                 settarget=False
+                 for c in l:
+                    if settarget:
+                       line+=" linked to "+str(c)
+                    else:
+                       line+="."+str(c)
+                    if isinstance(c,str): settarget=True
+                 msg+="\n\t"+line
+            raise MissingLink("link targets missing in the Simulation: %s"%msg)
+        #==============================
         self.doInitialization()
         self.doInitialStep()
         self.doInitialPostprocessing()
@@ -1119,6 +1172,12 @@ class SimulationBreakDownError(Exception):
 class NonPositiveStepSizeError(Exception):
     """
     Exception which is thrown if the step size is not positive.
+    """
+    pass
+
+class MissingLink(Exception):
+    """
+    Exception thrown when a link is missing
     """
     pass
 

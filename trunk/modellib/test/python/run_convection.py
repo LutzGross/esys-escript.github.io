@@ -109,6 +109,6 @@ lc.f1=1.
 lc.v1=Link(temp_val,"out")
 temp.temperature=Link(lc,"out")
 
-s=Simulation([sq,temp_constraints,Simulation([vel],debug=True),temp,vis],debug=True)
+s=Simulation([sq,vel_constraints, temp_constraints,Simulation([vel],debug=True),temp,vis],debug=True)
 s.writeXML()
 s.run()

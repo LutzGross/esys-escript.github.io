@@ -30,7 +30,150 @@
 			</Model>
 		</Component>
 		<Component rank="1">
-			<Model id="102" module="esys.modellib.geometry" type="ScalarConstrainerOverBox">
+			<Model id="102" module="esys.modellib.geometry" type="VectorConstrainerOverBox">
+				<Parameter type="Link">
+					<Name>
+						domain
+					</Name>
+					<Value>
+						<Link>
+							<Target>
+								103
+							</Target>
+							<Attribute>
+								domain
+							</Attribute>
+						</Link>
+					</Value>
+				</Parameter>
+				<Parameter type="NumArray">
+					<Name>
+						right
+					</Name>
+					<Value>
+						<NumArray>
+							<ArrayType>
+								Int
+							</ArrayType>
+							<Shape>
+								3
+							</Shape>
+							<Data>
+								1 0 0
+							</Data>
+						</NumArray>
+					</Value>
+				</Parameter>
+				<Parameter type="NumArray">
+					<Name>
+						bottom
+					</Name>
+					<Value>
+						<NumArray>
+							<ArrayType>
+								Int
+							</ArrayType>
+							<Shape>
+								3
+							</Shape>
+							<Data>
+								0 1 0
+							</Data>
+						</NumArray>
+					</Value>
+				</Parameter>
+				<Parameter type="NumArray">
+					<Name>
+						top
+					</Name>
+					<Value>
+						<NumArray>
+							<ArrayType>
+								Int
+							</ArrayType>
+							<Shape>
+								3
+							</Shape>
+							<Data>
+								0 1 0
+							</Data>
+						</NumArray>
+					</Value>
+				</Parameter>
+				<Parameter type="NumArray">
+					<Name>
+						back
+					</Name>
+					<Value>
+						<NumArray>
+							<ArrayType>
+								Int
+							</ArrayType>
+							<Shape>
+								3
+							</Shape>
+							<Data>
+								0 0 1
+							</Data>
+						</NumArray>
+					</Value>
+				</Parameter>
+				<Parameter type="NoneType">
+					<Name>
+						value
+					</Name>
+					<Value>
+						None
+					</Value>
+				</Parameter>
+				<Parameter type="float">
+					<Name>
+						tol
+					</Name>
+					<Value>
+						1e-08
+					</Value>
+				</Parameter>
+				<Parameter type="NumArray">
+					<Name>
+						front
+					</Name>
+					<Value>
+						<NumArray>
+							<ArrayType>
+								Int
+							</ArrayType>
+							<Shape>
+								3
+							</Shape>
+							<Data>
+								0 0 1
+							</Data>
+						</NumArray>
+					</Value>
+				</Parameter>
+				<Parameter type="NumArray">
+					<Name>
+						left
+					</Name>
+					<Value>
+						<NumArray>
+							<ArrayType>
+								Int
+							</ArrayType>
+							<Shape>
+								3
+							</Shape>
+							<Data>
+								1 0 0
+							</Data>
+						</NumArray>
+					</Value>
+				</Parameter>
+			</Model>
+		</Component>
+		<Component rank="2">
+			<Model id="104" module="esys.modellib.geometry" type="ScalarConstrainerOverBox">
 				<Parameter type="Link">
 					<Name>
 						domain
@@ -112,10 +255,10 @@
 				</Parameter>
 			</Model>
 		</Component>
-		<Component rank="2">
-			<Simulation id="104">
+		<Component rank="3">
+			<Simulation id="105">
 				<Component rank="0">
-					<Model id="105" module="esys.modellib.flow" type="SteadyIncompressibleFlow">
+					<Model id="106" module="esys.modellib.flow" type="SteadyIncompressibleFlow">
 						<Parameter type="Link">
 							<Name>
 								domain
@@ -138,7 +281,7 @@
 							<Value>
 								<Link>
 									<Target>
-										106
+										107
 									</Target>
 									<Attribute>
 										gravity_force
@@ -169,7 +312,7 @@
 							<Value>
 								<Link>
 									<Target>
-										107
+										108
 									</Target>
 									<Attribute>
 										viscosity
@@ -224,7 +367,7 @@
 							<Value>
 								<Link>
 									<Target>
-										108
+										102
 									</Target>
 									<Attribute>
 										location_of_constraint
@@ -236,7 +379,7 @@
 				</Component>
 			</Simulation>
 		</Component>
-		<Component rank="3">
+		<Component rank="4">
 			<Model id="109" module="esys.modellib.temperature" type="TemperatureAdvection">
 				<Parameter type="float">
 					<Name>
@@ -306,7 +449,7 @@
 					<Value>
 						<Link>
 							<Target>
-								107
+								108
 							</Target>
 							<Attribute>
 								density0
@@ -321,7 +464,7 @@
 					<Value>
 						<Link>
 							<Target>
-								102
+								104
 							</Target>
 							<Attribute>
 								location_of_constraint
@@ -336,7 +479,7 @@
 					<Value>
 						<Link>
 							<Target>
-								107
+								108
 							</Target>
 							<Attribute>
 								heat_capacity
@@ -351,7 +494,7 @@
 					<Value>
 						<Link>
 							<Target>
-								105
+								106
 							</Target>
 							<Attribute>
 								velocity
@@ -369,7 +512,7 @@
 				</Parameter>
 			</Model>
 		</Component>
-		<Component rank="4">
+		<Component rank="5">
 			<Model id="112" module="esys.modellib.visualization" type="WriteVTK">
 				<Parameter type="NoneType">
 					<Name>
@@ -442,7 +585,7 @@
 					<Value>
 						<Link>
 							<Target>
-								105
+								106
 							</Target>
 							<Attribute>
 								velocity
@@ -827,7 +970,7 @@
 			</Value>
 		</Parameter>
 	</ParameterSet>
-	<ParameterSet id="106" module="esys.modellib.materials" type="GravityForce">
+	<ParameterSet id="107" module="esys.modellib.materials" type="GravityForce">
 		<Parameter type="Link">
 			<Name>
 				domain
@@ -850,7 +993,7 @@
 			<Value>
 				<Link>
 					<Target>
-						107
+						108
 					</Target>
 					<Attribute>
 						density
@@ -883,7 +1026,7 @@
 			<Value>
 				<Link>
 					<Target>
-						107
+						108
 					</Target>
 					<Attribute>
 						gravity
@@ -892,7 +1035,7 @@
 			</Value>
 		</Parameter>
 	</ParameterSet>
-	<ParameterSet id="107" module="esys.modellib.materials" type="SimpleEarthModel">
+	<ParameterSet id="108" module="esys.modellib.materials" type="SimpleEarthModel">
 		<Parameter type="float">
 			<Name>
 				reference_temperature
@@ -973,147 +1116,6 @@
 			</Value>
 		</Parameter>
 	</ParameterSet>
-	<Model id="108" module="esys.modellib.geometry" type="VectorConstrainerOverBox">
-		<Parameter type="Link">
-			<Name>
-				domain
-			</Name>
-			<Value>
-				<Link>
-					<Target>
-						103
-					</Target>
-					<Attribute>
-						domain
-					</Attribute>
-				</Link>
-			</Value>
-		</Parameter>
-		<Parameter type="NumArray">
-			<Name>
-				right
-			</Name>
-			<Value>
-				<NumArray>
-					<ArrayType>
-						Int
-					</ArrayType>
-					<Shape>
-						3
-					</Shape>
-					<Data>
-						1 0 0
-					</Data>
-				</NumArray>
-			</Value>
-		</Parameter>
-		<Parameter type="NumArray">
-			<Name>
-				bottom
-			</Name>
-			<Value>
-				<NumArray>
-					<ArrayType>
-						Int
-					</ArrayType>
-					<Shape>
-						3
-					</Shape>
-					<Data>
-						0 1 0
-					</Data>
-				</NumArray>
-			</Value>
-		</Parameter>
-		<Parameter type="NumArray">
-			<Name>
-				top
-			</Name>
-			<Value>
-				<NumArray>
-					<ArrayType>
-						Int
-					</ArrayType>
-					<Shape>
-						3
-					</Shape>
-					<Data>
-						0 1 0
-					</Data>
-				</NumArray>
-			</Value>
-		</Parameter>
-		<Parameter type="NumArray">
-			<Name>
-				back
-			</Name>
-			<Value>
-				<NumArray>
-					<ArrayType>
-						Int
-					</ArrayType>
-					<Shape>
-						3
-					</Shape>
-					<Data>
-						0 0 1
-					</Data>
-				</NumArray>
-			</Value>
-		</Parameter>
-		<Parameter type="NoneType">
-			<Name>
-				value
-			</Name>
-			<Value>
-				None
-			</Value>
-		</Parameter>
-		<Parameter type="float">
-			<Name>
-				tol
-			</Name>
-			<Value>
-				1e-08
-			</Value>
-		</Parameter>
-		<Parameter type="NumArray">
-			<Name>
-				front
-			</Name>
-			<Value>
-				<NumArray>
-					<ArrayType>
-						Int
-					</ArrayType>
-					<Shape>
-						3
-					</Shape>
-					<Data>
-						0 0 1
-					</Data>
-				</NumArray>
-			</Value>
-		</Parameter>
-		<Parameter type="NumArray">
-			<Name>
-				left
-			</Name>
-			<Value>
-				<NumArray>
-					<ArrayType>
-						Int
-					</ArrayType>
-					<Shape>
-						3
-					</Shape>
-					<Data>
-						1 0 0
-					</Data>
-				</NumArray>
-			</Value>
-		</Parameter>
-	</Model>
 	<ParameterSet id="110" module="esys.modellib.input" type="LinearCombination">
 		<Parameter type="float">
 			<Name>
