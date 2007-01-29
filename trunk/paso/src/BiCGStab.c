@@ -154,7 +154,6 @@ err_t Paso_Solver_BiCGStab(
 	omegaDenumtr = 0.0;
       }
       #pragma omp barrier
-      #pragma ivdep
       #pragma omp for private(i0) reduction(+:sum_1) schedule(static)
       for (i0 = 0; i0 < n; i0++) sum_1 += rtld[i0] * r[i0];
       rho = sum_1;
@@ -164,11 +163,9 @@ err_t Paso_Solver_BiCGStab(
       
 	if (num_iter > 1) {
 	  beta = rho / rho1 * (alpha / omega);
-          #pragma ivdep
           #pragma omp for private(i0) schedule(static)
 	  for (i0 = 0; i0 < n; i0++) p[i0] = r[i0] + beta * (p[i0] - omega * v[i0]);
 	} else {
-          #pragma ivdep
           #pragma omp for private(i0) schedule(static)
 	  for (i0 = 0; i0 < n; i0++) p[i0] = r[i0];
 	}
@@ -178,13 +175,11 @@ err_t Paso_Solver_BiCGStab(
         Paso_Solver_solvePreconditioner(A,&phat[0], &p[0]);
 	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &phat[0],ZERO, &v[0]);
    
-        // #pragma ivdep
         #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
 	for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
         if (! (breakFlag = (ABS(sum_2) <= TOLERANCE_FOR_SCALARS))) {
 	   alpha = rho / sum_2;
 
-           // #pragma ivdep
            #pragma omp for private(i0) reduction(+:sum_3) schedule(static) 
 	   for (i0 = 0; i0 < n; i0++) {
 	     r[i0] -= alpha * v[i0];
@@ -195,7 +190,6 @@ err_t Paso_Solver_BiCGStab(
         
 	   /*        Early check for tolerance. */
 	   if ( (convergeFlag = (norm_of_residual <= tol)) ) {
-             // #pragma ivdep
              #pragma omp for  private(i0) schedule(static)
 	     for (i0 = 0; i0 < n; i0++) x[i0] += alpha * phat[i0];
 	     maxIterFlag = FALSE;
@@ -205,7 +199,6 @@ err_t Paso_Solver_BiCGStab(
              Paso_Solver_solvePreconditioner(A,&shat[0], &s[0]);
 	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &shat[0],ZERO,&t[0]);
    
-             // #pragma ivdep
              #pragma omp for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
 	     for (i0 = 0; i0 < n; i0++) {
 	       omegaNumtr +=t[i0] * s[i0];
@@ -214,7 +207,6 @@ err_t Paso_Solver_BiCGStab(
              if (! (breakFlag = (ABS(omegaDenumtr) <= TOLERANCE_FOR_SCALARS))) {
 	        omega = omegaNumtr / omegaDenumtr;
    
-                // #pragma ivdep
                 #pragma omp for private(i0) reduction(+:sum_4) schedule(static)
 	        for (i0 = 0; i0 < n; i0++) {
 	          x[i0] += alpha * phat[i0] + omega * shat[i0];

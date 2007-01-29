@@ -289,7 +289,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          Finley_setError(IO_ERROR,error_msg);
       }
       if (feof(fileHandle_p)) {
-         sprintf(error_msg,"%s:Unexected end of file in %s",fname);
+         sprintf(error_msg,"Unexected end of file in %s",fname);
          Finley_setError(IO_ERROR,error_msg);
       }
       if (! Finley_noError()) break;
