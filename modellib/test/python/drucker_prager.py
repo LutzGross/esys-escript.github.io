@@ -96,6 +96,6 @@ vis.data2=Link(m,"stress")
 vis.dt=0.01
 vis.filename=WORKDIR+"/temp.xml"
 
-s=Simulation([sq,m,vis],debug=True)
+s=Simulation([sq,cv,m,vis],debug=True)
 s.writeXML()
 s.run()
