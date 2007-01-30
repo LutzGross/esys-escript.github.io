@@ -290,6 +290,7 @@ class ScalarDistributionFromTags(ParameterSet):
         if not self.tag7 == None: d.setTaggedValue(self.tag7,self.value7)
         if not self.tag8 == None: d.setTaggedValue(self.tag8,self.value8)
         if not self.tag9 == None: d.setTaggedValue(self.tag9,self.value9)
+        print d
         return d
 
 class SmoothScalarDistributionFromTags(ParameterSet):
