@@ -81,7 +81,8 @@ class StructuredPoints:
 	Class that defines the structured points.
 	"""
 	
-	# NOTE: The algorithm of this class was extracted from Mayavi's source code.
+	# NOTE: The algorithm of this class was extracted from Mayavi's 
+	# online source code.
 	def __init__(self, object):
 		"""
 		Initialise the structured points.
@@ -142,7 +143,8 @@ class StructuredPoints:
 
 	def setDimension(self, x, y, z):
 		"""
-		Set the dimension (number of points) on the x, y and z axes.
+		Set the dimension (number of points) on the x, y and z axes. The
+		smaller the dimension, the more points are populated.
 
 		@type x: Number
 		@param x: Number of points on the x-axis

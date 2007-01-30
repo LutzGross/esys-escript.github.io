@@ -69,7 +69,7 @@ class Light:
 
 		self.__vtk_light.SetPosition(position._getGlobalPosition())
 
-	def setAngle(self, elevation, azimuth):
+	def setAngle(self, elevation = 0, azimuth = 0):
 		"""
 		Set the position and focal point of the light based on elevation and 
 		azimuth degree.
