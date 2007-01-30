@@ -53,7 +53,6 @@ class ContourModule:
 		self.__vtk_contour.GenerateValues(contours, self.__lower_range, 
 				self.__upper_range)
 
-
 	# NOTE: Method not used at the moment.
 	def setValue(self, contour, value):
 		"""
@@ -66,7 +65,7 @@ class ContourModule:
 		"""
 
 		self.__vtk_contour.SetValue(contour, value)
-		
+
 
 	def _getOutput(self):
 		"""

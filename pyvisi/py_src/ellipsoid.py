@@ -11,10 +11,12 @@ from sphere import Sphere
 from normals import Normals
 from glyph import  TensorGlyph
 from outline import Outline
+from point import StructuredPoints
+from probe import Probe
 
 # NOTE: DataSetMapper, Actor3D, Sphere, Normals and TensorGlyph were inherited 
 # to allow access to their public methods from the driver.
-class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph):
+class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, StructuredPoints, Probe):
 	"""
 	Class that show a tensor field using ellipsoid.	
 	"""
@@ -80,8 +82,13 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph):
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
+		StructuredPoints.__init__(self, data_collector._getOutput())
+		Probe.__init__(self, data_collector._getOutput(),
+				StructuredPoints._getStructuredPoints(self))
+
 		Sphere.__init__(self)
-		TensorGlyph.__init__(self, data_collector._getOutput(), 
+		#TensorGlyph.__init__(self, data_collector._getOutput(), 
+		TensorGlyph.__init__(self, Probe._getOutput(self), 
 				Sphere._getOutput(self)) 
 		Normals.__init__(self, TensorGlyph._getOutput(self))
 
@@ -102,7 +109,7 @@ from cutter import Cutter
 # and Cutter were inherited to allow access to their public methods from 
 # the driver.
 class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,  
-	TensorGlyph, Transform, Plane, Cutter):
+	TensorGlyph, Transform, Plane, Cutter, StructuredPoints, Probe):
 	"""
 	Class that show a tensor field using ellipsoids on a plane.	
 	"""
@@ -171,7 +178,12 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		Cutter.__init__(self, data_collector._getOutput(), 
+		StructuredPoints.__init__(self, data_collector._getOutput())
+		Probe.__init__(self, data_collector._getOutput(),
+				StructuredPoints._getStructuredPoints(self))
+
+		#Cutter.__init__(self, data_collector._getOutput(), 
+		Cutter.__init__(self, Probe._getOutput(self), 
 				Plane._getPlane(self)) 	
 
 		Sphere.__init__(self)
@@ -193,7 +205,7 @@ from clipper import Clipper
 # and Clipper were inherited to allow access to their public methods from 
 # the driver.
 class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,  
-	TensorGlyph, Transform, Plane, Clipper):
+	TensorGlyph, Transform, Plane, Clipper, StructuredPoints, Probe):
 	"""
 	Class that show a tensor field using ellipsoids on a plane.	
 	"""
@@ -262,10 +274,15 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
+		StructuredPoints.__init__(self, data_collector._getOutput())
+		Probe.__init__(self, data_collector._getOutput(),
+				StructuredPoints._getStructuredPoints(self))
+
 		# NOTE: TensorGlyph must come before Clipper. Otherwise the output
 		# will be incorrect.
 		Sphere.__init__(self)
-		TensorGlyph.__init__(self, data_collector._getOutput(),
+		#TensorGlyph.__init__(self, data_collector._getOutput(),
+		TensorGlyph.__init__(self, Probe._getOutput(self),
 				Sphere._getOutput(self))
 		Normals.__init__(self, TensorGlyph._getOutput(self))
 
