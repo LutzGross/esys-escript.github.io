@@ -23,4 +23,5 @@ __date__="$Date:$"
 from transformations import *
 from primitives import *
 from shapes import *
+from design import TagMap
 import gmsh

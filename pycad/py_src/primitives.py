@@ -1346,15 +1346,113 @@ class Volume(Manifold3D, Primitive):
         for h in self.getHoles(): out+=h.getSurfaces()
         return out
 
-class PropertySet(PrimitiveBase):
+class PropertySet(Primitive, PrimitiveBase):
     """
-    defines a group L{PrimitiveBase} objects. 
+    defines a group L{Primitive} which can be accessed through a name
     """
-    def __init__(self,tag=None,*items):
-       super(PropertySet, self).__init__()
-       self.__items=items
-       self.__tag=tag
+    def __init__(self,name,*items):
+       Primitive.__init__(self)
+       if len(items)==0:
+          raise ValueError("at least one item must be give.")
+       if isinstance(items[0] ,Manifold1D): 
+            dim=1
+       elif isinstance(items[0] ,Manifold2D): 
+            dim=2
+       elif isinstance(items[0] ,Manifold3D): 
+           dim=3
+       else:
+           dim=0
+       self.__dim=dim
+       self.clearItems()
+       self.addItem(*items)
+       self.setName(name)
+    def __repr__(self):
+       """
+       returns a string representation
+       """
+       return "%s(%s)"%(self.getName(),self.getID())
+    def getManifoldClass(self):
+        """
+        returns the manifold class expected from items
+        """
+        d=self.getDim()
+        if d==0:
+           return Point
+        elif d==1:
+           return Manifold1D
+        elif d==2:
+           return Manifold2D
+        else:
+           return Manifold3D
+    def getDim(self):
+        """
+        returns the dimension of the 
+        """ 
+        return self.__dim
+    def getName(self):
+        """
+        returns the name of the set
+        """
+        return self.__name
+    def setName(self,name=None):
+        """
+        sets the name. If no name is given the id is used.
+        """
+        self.__name=str(name)
+    def addItem(self,*items): 
+        """
+        adds items. An item my be any L{Primitive} but no L{PropertySet}
+        """
+        m=self.getManifoldClass()
+        for i in items: 
+            if not i in self.__items: 
+               if not isinstance(i, m):
+                  raise TypeError("argument %s is not a %s class object."%(i, m.__name__))
+               self.__items.append(i)
+    def getItems(self):
+        """
+        returns the list of items
+        """
+        return self.__items
+
+    def clearItems(self):
+        """
+        clears the list of items 
+        """
+        self.__items=[]
     def collectPrimitiveBases(self):
-        out=[self]+self.getBoundaryLoop().collectPrimitiveBases()
-        for i in self.getHoles(): out+=i.collectPrimitiveBases()
+        """
+        returns primitives used to construct the PropertySet
+        """
+        out=[self] 
+        for i in self.getItems(): out+=i.collectPrimitiveBases()
         return out
+
+    def getGmshCommand(self,scaling_factor=1.):
+        """
+        returns the Gmsh command(s) to create the primitive
+        """
+        k=self.getDim()
+        out="Physical "
+        if k==0: 
+            out+="Point"
+        elif k==1: 
+            out+="Line"
+        elif k==2: 
+            out+="Surface"
+        else:
+            out+="Volume"
+        out2=""
+        for i in self.getItems():
+            if len(out2)>0:
+                out2+=", %s"%i.getDirectedID()
+            else:
+                out2="%s"%i.getDirectedID()
+        out+="(" + str(self.getID()) + ") = {"+out2+"};"
+        return out
+
+    def getTag(self):
+         """
+         returns the tag used for this 
+         """
+         return self.getID()

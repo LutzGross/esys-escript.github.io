@@ -71,7 +71,7 @@ class ESySXMLParser(object):
       self.__dom = minidom.parseString(xml)
       self.__linkable_object_registry= {}
       self.__link_registry=  []
-      self.__esys=self.__dom.firstChild
+      self.__esys=self.__dom.getElementsByTagName('ESys')[0]
       self.debug=debug
   
     def getClassPath(self, node): 
