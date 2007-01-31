@@ -32,8 +32,8 @@ class StreamLineModule:
 
 		self.__setInput()
 		self.__setSource()
-		# Default maximum propagation time is 50.
-		self.setMaximumPropagationTime(50)
+		# Default maximum propagation time is 100.
+		self.setMaximumPropagationTime(100)
 		# Default step length is 0.1
 		self.setStepLength(0.1)
 		# Default integration step length is 0.1
@@ -71,7 +71,10 @@ class StreamLineModule:
 	def setStepLength(self, length):
 		"""
 		Set the length of the line segment expressed in elapsed time. A smaller
-		value results in a smoother streamline (but is more expensive).
+		value results in a smoother streamline (but is more expensive). Setting
+		the step length usually goes hand-in-hand with setting the integration
+		step length. Otherwise, errors such as "... can't compute normals" may
+		arise. However, it does not usually apply the other way around.
 
 		@type length: Number
 		@param length: Length of the line segment expressed in elapsed time

@@ -6,7 +6,7 @@ import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D
-from constant import Viewport, Color, Lut
+from constant import Viewport, Color, Lut, ColorMode
 from streamlinemodule import  StreamLineModule
 from tube import Tube
 from point import PointSource
@@ -24,7 +24,7 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 	# be loaded automatically. If no lut is specified, the color scheme will
 	# be used.
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-		lut = Lut.COLOR, outline = True): 
+		lut = Lut.COLOR, outline = True, color_mode = ColorMode.VECTOR): 
 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -88,8 +88,16 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		DataSetMapper.__init__(self, Tube._getOutput(self), 
 				lookup_table._getLookupTable())
 
-		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
+		#DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
+		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getVectorRange())
+			print "vector"
+		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getScalarRange())
+			print "scalar"
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 

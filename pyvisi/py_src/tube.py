@@ -28,7 +28,7 @@ class Tube:
 		# Default radius of the tube is 0.02.
 		self.setTubeRadius(0.02)
 		# Default number of sides for the tube is 12.
-		self.setNumberOfSides(12)
+		self.setTubeNumberOfSides(12)
 		#self.setRadiusToVaryByVector()
 		self.__vtk_tube.Update()
 
@@ -49,7 +49,7 @@ class Tube:
 
 		self.__vtk_tube.SetRadius(radius)
 
-	def setNumberOfSides(self, sides):
+	def setTubeNumberOfSides(self, sides):
 		"""
 		Set the number of sides for the tube. Minimum number of sides is 3.
 		
@@ -59,14 +59,14 @@ class Tube:
 
 		self.__vtk_tube.SetNumberOfSides(sides)
 
-	def setRadiusToVaryByVector(self):
+	def setTubeRadiusToVaryByVector(self):
 		"""
 		Set the radius to vary by vector value.
 		"""
 
 		self.__vtk_tube.SetVaryRadiusToVaryRadiusByVector()
 	
-	def setRadiusToVaryByScalar(self):
+	def setTubeRadiusToVaryByScalar(self):
 		"""
 		Set the radius to vary by scalar value.
 		"""
