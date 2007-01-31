@@ -340,7 +340,9 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 			lookup_table = LookupTable() 
 			lookup_table._setLookupTableToGreyScale()
 
-		Clipper.__init__(self, data_collector._getOutput())
+		# None because a plane is not required when a scalar value is 
+		# used to perform the clipping.
+		Clipper.__init__(self, data_collector._getOutput(), None)
 
 		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 				lookup_table._getLookupTable())

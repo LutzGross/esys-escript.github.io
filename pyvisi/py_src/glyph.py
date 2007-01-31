@@ -17,8 +17,8 @@ class Glyph3D:
 		@param object: Input for the 3D glyph 
 		@type source: vtkPolyData 	
 		@param source: Source for the 3D glyph (i.e. Arrow2D, Arrow3D, etc)
-		@type range: Two column list
-		@param range: Range to map scalar values into 
+		@type range: Two column tuple
+		@param range: Range to map scalar values 
 		"""
 
 		self.__object = object
@@ -29,13 +29,12 @@ class Glyph3D:
 		self.__setInput()
 		self.__setSource()
 		self.setScaleModeByVector()	
-		#self.setColorModeByVector()
 		self.__setVectorModeByVector()
 		self.__setClampingOn()
+
 		self.__setScalingOn()
 		self.__setOrientOn()
 		self.__setRange()
-		self.__output = self.__vtk_glyph3D.GetOutput()
 
 	def __setInput(self):
 		"""
@@ -132,7 +131,7 @@ class Glyph3D:
 		@return Polygonal data
 		"""
 
-		return self.__output
+		return self.__vtk_glyph3D.GetOutput()
 
 
 class TensorGlyph:

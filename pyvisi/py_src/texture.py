@@ -6,7 +6,7 @@ import vtk
 
 class Texture:
 	"""
-	Class that defines a texture map.
+	Class that defines a texture for the rendered object.
 	"""
 
 	def __init__(self, image):
@@ -34,7 +34,7 @@ class Texture:
 		Return the texture.
 
 		@rtype: vtkTexture
-		@return: Texture of the map
+		@return: Texture of the rendered object
 		"""
 
 		return self.__vtk_texture

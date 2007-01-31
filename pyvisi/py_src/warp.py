@@ -10,7 +10,7 @@ class Warp:
 	Class that defines the deformation of a scalar field.
 	"""
 
-	def __init__(self, object, warp_mode = WarpMode.SCALAR):
+	def __init__(self, object, warp_mode):
 		"""
 		Initialise the warp scalar/vector.
 
