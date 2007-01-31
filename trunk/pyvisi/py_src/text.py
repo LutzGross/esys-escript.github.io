@@ -41,6 +41,8 @@ class Text2D(Actor2D):
 		"""
 
 		self._vtk_actor2D.SetInput(self.__text)
+#		self._vtk_actor2D.GetPositionCoordinate().SetCoordinateSystemToViewport()
+	
 
 	def setFontSize(self, size):
 		"""
@@ -79,20 +81,6 @@ class Text2D(Actor2D):
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetJustificationToCentered()
-
-	def setJustificationToLeft(self):
-		"""
-		Set the 2D text to left justification.
-		"""
-
-		self._vtk_actor2D.GetTextProperty().SetJustificationToLeft()
-
-	def setJustificationToRight(self):
-		"""
-		Set the 2D text to right justification.
-		"""
-
-		self._vtk_actor2D.GetTextProperty().SetJustificationToRight()
 
 	def boldOn(self):
 		"""

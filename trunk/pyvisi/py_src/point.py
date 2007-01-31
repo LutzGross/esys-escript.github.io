@@ -27,11 +27,11 @@ class PointSource:
 		"""
 
 		# Default number of points to generate is 10.
-		self.setNumberOfPoints(10)
+		self.setPointSourceNumberOfPoints(10)
 		# Default center is of the sphere is the center of the data object.
 		center = self.__object.GetCenter()
-		self.setCenter(GlobalPosition(center[0], center[1], center[2]))
-		# Default radius of the sphere is 0.1.
+		self.setPointSourceCenter(GlobalPosition(center[0], center[1], center[2]))
+		# Default radius of the sphere is 0.5.
 		self.setPointSourceRadius(0.1)
 		self.__vtk_point_source.Update()
 
@@ -45,7 +45,7 @@ class PointSource:
 
 		self.__vtk_point_source.SetRadius(radius)
 
-	def setCenter(self, position):
+	def setPointSourceCenter(self, position):
 		"""
 		Set the center of the sphere.
 		
@@ -55,9 +55,10 @@ class PointSource:
 
 		self.__vtk_point_source.SetCenter(position._getGlobalPosition())
 
-	def setNumberOfPoints(self, points):
+	def setPointSourceNumberOfPoints(self, points):
 		"""
-		Set the number of points to generate within the sphere.
+		Set the number of points to generate within the sphere. The larger the
+		number of points, the more streamlines are generated.
 
 		@type points: Number
 		@param points: Number of points to generate
