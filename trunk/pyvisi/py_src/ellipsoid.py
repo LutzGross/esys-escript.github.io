@@ -14,17 +14,20 @@ from outline import Outline
 from point import StructuredPoints
 from probe import Probe
 
-# NOTE: DataSetMapper, Actor3D, Sphere, Normals and TensorGlyph were inherited 
-# to allow access to their public methods from the driver.
-class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, StructuredPoints, Probe):
+# NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, 
+# StructuredPoints and Probe  were inherited to allow access to their 
+# public methods from the driver.
+class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, 
+		StructuredPoints, Probe):
 	"""
 	Class that show a tensor field using ellipsoid.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# If no tensor field is specified, the first encountered in the file will
+	# be loaded automatically. If no lut is specified, the color scheme will 
+	# be used. 
 	def __init__(self, scene, data_collector, tensor = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 
@@ -37,7 +40,7 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, Structured
 		@type tensor: String
 		@param tensor: Tensor field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -62,10 +65,10 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, Structured
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
 
 		# ----- Ellipsoid -----
 
@@ -87,18 +90,19 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, Structured
 				StructuredPoints._getStructuredPoints(self))
 
 		Sphere.__init__(self)
-		#TensorGlyph.__init__(self, data_collector._getOutput(), 
 		TensorGlyph.__init__(self, Probe._getOutput(self), 
 				Sphere._getOutput(self)) 
 		Normals.__init__(self, TensorGlyph._getOutput(self))
 
 		DataSetMapper.__init__(self, Normals._getOutput(self), 
 				lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+
+
+###############################################################################
 
 
 from transform import Transform
@@ -106,18 +110,19 @@ from plane import Plane
 from cutter import Cutter
 
 # NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, Transform, Plane,
-# and Cutter were inherited to allow access to their public methods from 
-# the driver.
+# Cutter, StructuredPoints and Probe were inherited to allow access to 
+# their public methods from the driver.
 class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,  
 	TensorGlyph, Transform, Plane, Cutter, StructuredPoints, Probe):
 	"""
-	Class that show a tensor field using ellipsoids on a plane.	
+	Class that show a tensor field using ellipsoids on a cut plane.	
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will 
+	# be used. 
 	def __init__(self, scene, data_collector, tensor = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 
@@ -130,7 +135,7 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		@type tensor: String
 		@param tensor: Tensor field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -150,17 +155,17 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 
 		if(outline == True):
 			outline = Outline(data_collector._getOutput())
-		DataSetMapper.__init__(self, outline._getOutput())
+			DataSetMapper.__init__(self, outline._getOutput())
 
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		# Default outline color is black.
-		Actor3D.setColor(self, Color.BLACK)
-		# Default line width is 1.
-		Actor3D._setLineWidth(self, 1)
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+			# Default outline color is black.
+			Actor3D.setColor(self, Color.BLACK)
 
+			# Default line width is 1.
+			Actor3D._setLineWidth(self, 1)
+			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
-		# ----- Ellipsoid on a plane -----
+		# ----- Ellipsoid on a cut plane -----
 
 		if(tensor != None):
 			data_collector._setActiveTensor(tensor)
@@ -182,38 +187,41 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		Probe.__init__(self, data_collector._getOutput(),
 				StructuredPoints._getStructuredPoints(self))
 
-		#Cutter.__init__(self, data_collector._getOutput(), 
 		Cutter.__init__(self, Probe._getOutput(self), 
 				Plane._getPlane(self)) 	
-
 		Sphere.__init__(self)
+
 		TensorGlyph.__init__(self, Cutter._getOutput(self),
 				Sphere._getOutput(self))
-		Normals.__init__(self, TensorGlyph._getOutput(self))
+		Normals.__init__(self, TensorGlyph._getOutput(self)) 
 
 		DataSetMapper.__init__(self, Normals._getOutput(self), 
 			lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
+
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+
+
+###############################################################################
 
 
 from clipper import Clipper
 
 # NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, Transform, Plane,
-# and Clipper were inherited to allow access to their public methods from 
-# the driver.
+# Clipper, StructuredPoints and Probe were inherited to allow access to 
+# their public methods from the driver.
 class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,  
 	TensorGlyph, Transform, Plane, Clipper, StructuredPoints, Probe):
 	"""
-	Class that show a tensor field using ellipsoids on a plane.	
+	Class that show a tensor field using ellipsoids on a clipped plane.	
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will 
+	# be used. 
 	def __init__(self, scene, data_collector, tensor = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 
@@ -226,7 +234,7 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		@type tensor: String
 		@param tensor: Tensor field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which object are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -246,15 +254,15 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 
 		if(outline == True):
 			outline = Outline(data_collector._getOutput())
-		DataSetMapper.__init__(self, outline._getOutput())
+			DataSetMapper.__init__(self, outline._getOutput())
 
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		# Default outline color is black.
-		Actor3D.setColor(self, Color.BLACK)
-		# Default line width is 1.
-		Actor3D._setLineWidth(self, 1)
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+			# Default outline color is black.
+			Actor3D.setColor(self, Color.BLACK)
 
+			# Default line width is 1.
+			Actor3D._setLineWidth(self, 1)
+			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Ellipsoid on a clipped plane -----
 
@@ -281,23 +289,20 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		# NOTE: TensorGlyph must come before Clipper. Otherwise the output
 		# will be incorrect.
 		Sphere.__init__(self)
-		#TensorGlyph.__init__(self, data_collector._getOutput(),
 		TensorGlyph.__init__(self, Probe._getOutput(self),
 				Sphere._getOutput(self))
+
 		Normals.__init__(self, TensorGlyph._getOutput(self))
-
-
 		# NOTE: Clipper must come after TensorGlyph. Otherwise the output 
 		# will be incorrect.
 		Clipper.__init__(self, Normals._getOutput(self), 
 				Plane._getPlane(self)) 	
 		Clipper._setClipFunction(self)
 
-
 		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 			lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
+
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 

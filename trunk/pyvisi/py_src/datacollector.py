@@ -7,8 +7,8 @@ from constant import Source
 
 class DataCollector:
 	"""
-	Class that defines a data collector which deal with the source 
-	of the data for visualisation.
+	Class that defines a data collector which dealrs with the source 
+	of data for the visualisation.
 	"""
 
 	def __init__(self, source = Source.XML):
@@ -16,7 +16,7 @@ class DataCollector:
 		Initialise the data collector.
 
 		@type source: L{Source <constant.Source>} constant
-		@param source: Source input type
+		@param source: Source data type
 		"""
 
 		if(source == Source.XML): # Source is an XML file.
@@ -24,7 +24,7 @@ class DataCollector:
 
 	def setFileName(self, file_name):
 		"""
-		Set the source file name to read for the data collector.
+		Set the source file name to read. 
 
 		@type file_name: String
 		@param file_name: Name of the file to read
@@ -32,14 +32,14 @@ class DataCollector:
 
 		self.__vtk_xml_reader.SetFileName(file_name)
 		self.__output = self.__vtk_xml_reader.GetOutput()
+
 		# NOTE: Update must be called after SetFileName to make the reader 
 		# up to date. Otherwise, some output values may be incorrect.
 		self.__vtk_xml_reader.Update() 
 
 	def _setActiveScalar(self, scalar):
 		"""
-		Specify the scalar field to laod from the source 
-		file for the data collector.
+		Specify the scalar field to load from the source file.
 
 		@type scalar: String
 		@param scalar: Scalar field to load from the file. 
@@ -49,8 +49,7 @@ class DataCollector:
 
 	def _setActiveVector(self, vector):
 		"""
-		Specify the vector field to laod from the source 
-		file for the data collector.
+		Specify the vector field to load from the source file. 
 
 		@type vector: String
 		@param vector: Vector field to load from the file. 
@@ -60,8 +59,7 @@ class DataCollector:
 
 	def _setActiveTensor(self, tensor):
 		"""
-		Specify the tensor field to laod from the source 
-		file for the data collector.
+		Specify the tensor field to load from the source file.
 
 		@type tensor: String
 		@param tensor: Tensor field to load from the file. 
@@ -87,7 +85,7 @@ class DataCollector:
 		@return: Vector range
 		"""
 
-		vector_range =  self._getOutput().GetPointData().GetVectors().GetRange(-1)
+		vector_range = self._getOutput().GetPoitData().GetVectors().GetRange(-1)
 
 		# NOTE: Generally GetRange(-1) returns the correct vector range. 
 		# However, there are certain data sets where GetRange(-1) seems 
@@ -117,6 +115,9 @@ class DataCollector:
 		return self.__output
 
 	
+###############################################################################
+
+
 from constant import ImageFormat
 
 class ImageReader:
@@ -137,7 +138,7 @@ class ImageReader:
 
 	def getImageReader(self):
 		"""
-		Return the corresponding image reader based on the supplied image 
+		Return the appropriate image reader based on the supplied image 
 		format.
 
 		@rtype: vtkImageReader2 (i.e. vtkJPEGReader, etc)
@@ -160,14 +161,14 @@ class ImageReader:
 		Set the image file name.
 
 		@type file_name: String
-		@param file_name: Image file name which is to be read 
+		@param file_name: Image file name to be read 
 		"""
 
 		self.__vtk_image_reader.SetFileName(file_name)
 
 	def _getOutput(self):
 		"""
-		Return the image reader.
+		Return the output of the image reader.
 
 		@rtype: vtkImageData
 		@return Image data

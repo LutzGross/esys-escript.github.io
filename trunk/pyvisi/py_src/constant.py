@@ -1,6 +1,6 @@
 class Color:
 	"""
-	Constants that define the colors using RGB values.
+	Constants that define colors using RGB values.
 
 	@cvar RED: Constant representing red color
 	@cvar GREEN: Constant representing green color
@@ -29,15 +29,15 @@ class Color:
 
 class Viewport:
 	"""
-	Constants that define the four viewports in the scene.
+	Constants that define the four viewports in a window.
 
-	@cvar SOUTH_WEST: Constant representing the bottom left viewport of the 
+	@cvar SOUTH_WEST: Constant representing the bottom left viewport of a 
 			window
-	@cvar NORTH_WEST: Constant representing the upper left viewport of the 
+	@cvar NORTH_WEST: Constant representing the upper left viewport of a 
 			window
-	@cvar NORTH_EAST: Constatnt representing the upper right viewport of the 
+	@cvar NORTH_EAST: Constatnt representing the upper right viewport of a 
 			window
-	@cvar SOUTH_EAST: Constant representing the bottom right viewport of the 				window
+	@cvar SOUTH_EAST: Constant representing the bottom right viewport of a 				window
 	"""
 
 	SOUTH_WEST = 0
@@ -47,9 +47,9 @@ class Viewport:
 
 class Source:
 	"""
-	Constants that define the source data type.
+	Constant that define the source data type.
 
-	@cvar XML: Constant representing xml as the source type
+	@cvar XML: Constant representing the xml source data type
 	"""
 	
 	XML = "xml"
@@ -88,7 +88,7 @@ class Arrow:
 
 class ColorMode:
 	"""
-	Constants that define the color mode used to color the vector data. 
+	Constants that define the color mode used to color the data. 
 
 	@cvar VECTOR: Constant representing the vector color mode 
 	@cvar SCALAR: Constant representing the scalar color mode
@@ -112,11 +112,11 @@ class ImageFormat:
 	"""
 	Constants that define the image formats.
 
-	@cvar JPG: Constant representing the JPG image
-	@cvar BMP: Constant representing the BMP image
-	@cvar PNM: Constant representing the PNM image
-	@cvar PNG: Constant representing the PNG image
-	@cvar TIF: Constant representing the TIF iamge
+	@cvar JPG: Constant representing the JPG image format
+	@cvar BMP: Constant representing the BMP image format
+	@cvar PNM: Constant representing the PNM image format
+	@cvar PNG: Constant representing the PNG image format
+	@cvar TIF: Constant representing the TIF iamge format
 	"""
 
 	JPG = "jpg"

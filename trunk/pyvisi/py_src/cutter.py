@@ -22,6 +22,13 @@ class Cutter:
 		self.__object = object
 		self.__plane = plane
 		self.__vtk_cutter = vtk.vtkCutter()
+	
+		self.__setupCutter()
+
+	def __setupCutter(self):
+		"""
+		Setup the cutter.
+		"""
 
 		self.__setInput()
 		self.__setCutFunction()
@@ -36,7 +43,7 @@ class Cutter:
 
 	def __setCutFunction(self):
 		"""
-		Set the cut functions.
+		Set the cut functions (using a plance).
 		"""
 
 		self.__vtk_cutter.SetCutFunction(self.__plane)

@@ -11,9 +11,8 @@ from constant import Viewport, Color, Lut
 from contourmodule import ContourModule
 
 
-# NOTE: DataSetMapper, Actor3D and Contour were inherited to allow access to 
-# their public methods from the driver.
-
+# NOTE: DataSetMapper, Actor3D and ContourModule were inherited to allow 
+# access to their public methods from the driver.
 class Contour(DataSetMapper, Actor3D, ContourModule):
 	"""
 	Class that shows a scalar field by contour surfaces.
@@ -22,7 +21,8 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will 
+	# be used. 
 	def __init__(self, scene, data_collector, scalar = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
 		"""
@@ -34,7 +34,7 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		@type scalar: String
 		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which the object is to be rendered on 
+		@param viewport: Viewport in which objects are to be rendered on 
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -59,12 +59,12 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
-
-		# ----- contour -----
+		# ----- Contour -----
 
 		if(scalar != None): # True only if a scalar field was specified.
 			data_collector._setActiveScalar(scalar)
@@ -85,33 +85,38 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		ContourModule.__init__(self, data_collector._getOutput())	
 		# By default 10 contours are generated and the scalar range is based
 		# on the scalar data.
-		ContourModule.generateContours(self, 10, data_collector._getScalarRange()[0],
+		ContourModule.generateContours(self, 10, 
+				data_collector._getScalarRange()[0],
 				data_collector._getScalarRange()[1])
 
 		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
 				lookup_table._getLookupTable())	
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 
+###############################################################################
+
+
 from transform import Transform
 from plane import Plane
 from cutter import Cutter
 
-# NOTE: DataSetMapper, Actor3D, Contour, Transform, Plane and Cutter were 
+# NOTE: DataSetMapper, Actor3D, ContourModule, Transform, Plane and Cutter were 
 # inherited to allow access to their public methods from the driver.
-class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, Plane, Cutter):
+class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, 
+		Plane, Cutter):
 	"""
-	Class that show a scalar field contoured on a plane.	
+	Class that show a scalar field contoured on a cut plane.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will 
+	# be used. 
 	def __init__(self, scene, data_collector, scalar = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
 
@@ -124,7 +129,7 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, Plane,
 		@type scalar: String
 		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -143,19 +148,18 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, Plane,
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
-
-		# ----- contour on a plane -----
+		# ----- Contour on a cut plane -----
 
 		if(scalar != None):
 			data_collector._setActiveScalar(scalar)
@@ -170,37 +174,34 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, Plane,
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		"""
-		Contour.__init__(self, data_collector._getOutput())
-		# By default 10 contours are generated and the scalar range is based
-		# on the scalar data.
-		Contour.generateContours(self, 10, data_collector._getScalarRange()[0],
-				data_collector._getScalarRange()[1])
-		"""
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
 		Cutter.__init__(self, data_collector._getOutput(), 
 				Plane._getPlane(self))
-
 		ContourModule.__init__(self, Cutter._getOutput(self))
+
 		# By default 10 contours are generated and the scalar range is based
 		# on the scalar data.
-		ContourModule.generateContours(self, 10, data_collector._getScalarRange()[0],
+		ContourModule.generateContours(self, 10, 
+				data_collector._getScalarRange()[0],
 				data_collector._getScalarRange()[1])
 
 		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
 				lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
+
+###############################################################################
+
+
 from clipper import Clipper
 
-# NOTE: DataSetMapper, Actor3D, Contour, Transform, Plane and Clipper were 
-# inherited to allow access to their public methods from the driver.
+# NOTE: DataSetMapper, Actor3D, ContourModule, Transform, Plane and Clipper 
+# were inherited to allow access to their public methods from the driver.
 class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Clipper):
 	"""
@@ -210,7 +211,8 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will 
+	# be used. 
 	def __init__(self, scene, data_collector, scalar = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
 
@@ -223,7 +225,7 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		@type scalar: String
 		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -242,19 +244,18 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
-
-		# ----- contour on a clipped plane -----
+		# ----- Contour on a clipped plane -----
 
 		if(scalar != None):
 			data_collector._setActiveScalar(scalar)
@@ -279,16 +280,14 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		ContourModule.__init__(self, Clipper._getOutput(self))
 		# By default 10 contours are generated and the scalar range is based
 		# on the scalar data.
-		ContourModule.generateContours(self, 10, data_collector._getScalarRange()[0],
+		ContourModule.generateContours(self, 10, 
+				data_collector._getScalarRange()[0],
 				data_collector._getScalarRange()[1])
 
 		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
 				lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
-
 

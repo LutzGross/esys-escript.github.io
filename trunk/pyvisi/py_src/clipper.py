@@ -9,29 +9,31 @@ class Clipper:
 	Class that defines a clipper.
 	"""
 	
-	# plane by default is assigned to None because a plane is not required 
-	# when a scalar value is used to perform the clipping.
-	def __init__(self, object, plane = None):
+	def __init__(self, object, plane):
 		"""
 		Initialise the clipper.
 
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Input for the clipper
 		@type plane: vtkPlane
-		@param plane: Plane to clip the object
+		@param plane: Plane to clip the rendered object
 		"""
 
 		self.__object = object 
-		if(plane != None): # True only if a plane is used to perform clipping.
+		# True only if a plane is used to perform clipping. Will be false 
+		# for scalar clipping.
+		if(plane != None): 
 			self.__plane = plane
 			
 		self.__vtk_clipper = vtk.vtkClipDataSet()
+		self.__setupClipper()
+
+	def __setupClipper(self):
+		"""
+		Setup the clipper.
+		"""
 
 		self.__setInput()
-		#self.__setClipFunction()
-		# Generates the clipped away section. At this stage, the clipped
-		# away section is not used.
-		#self.__vtk_clipper.GenerateClippedOutputOn()
 		self.setInsideOutOn()
 		self.__vtk_clipper.Update()
 
@@ -44,7 +46,7 @@ class Clipper:
 
 	def _setClipFunction(self):
 		"""
-		Set the clip function.
+		Set the clip function (using a plane).
 		"""
 
 		self.__vtk_clipper.SetClipFunction(self.__plane)

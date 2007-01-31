@@ -23,14 +23,17 @@ class Actor3D:
 
 	def __setMapper(self):
 		"""
-		Set the mapper for the 3D actor.
+		Set the mapper of the 3D actor.
 		"""
 
 		self.__vtk_actor3D.SetMapper(self.__mapper)
 
 	def _setTexture(self, texture):
 		"""
-		Set the texture for the 3D actor.	
+		Set the texture of the 3D actor.	
+
+		@type texture: vtkTexture
+		@param texture: Texture of the rendered object 
 		"""
 
 		self.__vtk_actor3D.SetTexture(texture)
@@ -50,15 +53,17 @@ class Actor3D:
 		Set the color of the 3D actor.
 
 		@type color: L{Color <constant.Color>} constant
-		@param color: 3D actor color
+		@param color: Color of the 3D actor 
 		"""
 
 		# NOTE: Must be used before actor.GetProperty().SetColor()
-		# in order for the change of color to rendered objects to take effect.
+		# in order for the change of color of the rendered objects to take 
+		# effect.
 		self.__mapper.ScalarVisibilityOff()
 
 		# NOTE: Must be used after mapper.ScalarVisibilityOff()
-		# in order for the change of color rendered objects to take effect.
+		# in order for the change of color of the rendered objects to take 
+		# effect.
 		self.__vtk_actor3D.GetProperty().SetColor(color) 
 
 	def setRepresentationToWireframe(self):
@@ -78,7 +83,6 @@ class Actor3D:
 
 		self.__vtk_actor3D.GetProperty().SetLineWidth(line_width)		
 
-
 	def _getActor3D(self):
 		"""
 		Return the 3D actor.
@@ -90,8 +94,7 @@ class Actor3D:
 		return self.__vtk_actor3D
 
 
-############################################################################
-
+###############################################################################
 
 
 class Actor2D:
@@ -103,7 +106,7 @@ class Actor2D:
 		"""
 		Initialise the 2D actor.
 
-		@type mapper: vtkImageMapper, etc
+		@type mapper: vtkMapper2D, etc
 		@param mapper: Mapped data
 		"""
 
@@ -121,10 +124,10 @@ class Actor2D:
 	def setPosition(self, position):
 		"""
 		Set the position of the 2D actor. Default position is the lower left
-		hand corner.
+		hand corner of the window.
 
 		@type position: L{LocalPosition <position.LocalPosition>} object
-		@param position: 2D actor position
+		@param position: Position of the 2D actor 
 		"""
 
 		self._vtk_actor2D.SetPosition(position._getLocalPosition())
@@ -138,5 +141,4 @@ class Actor2D:
 		"""
 
 		return self._vtk_actor2D
-
 
