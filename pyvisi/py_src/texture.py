@@ -13,8 +13,8 @@ class Texture:
 		"""
 		Initialise the texture.
 
-		@type: vtkImageData
-		@param: Image data from which data is read
+		@type image: vtkImageData
+		@param image: Image data from which data is read
 		"""
 
 		self.__image = image

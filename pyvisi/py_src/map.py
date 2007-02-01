@@ -13,13 +13,14 @@ from constant import Viewport, Color, Lut
 # public methods from the driver.
 class Map(DataSetMapper, Actor3D):
 	"""
-	Class that shows a scalar field by color on a domain surface.
+	Class that shows a scalar field on a domain surface.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will
+	# be used.
 	def __init__(self, scene, data_collector, scalar = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
 			outline = True):
@@ -32,7 +33,7 @@ class Map(DataSetMapper, Actor3D):
 		@type scalar: String
 		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which the object is to be rendered on 
+		@param viewport: Viewport in which objects are to be rendered on 
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -42,10 +43,10 @@ class Map(DataSetMapper, Actor3D):
 		# NOTE: Actor3D is inherited and there are two instances declared here.
 		# As a result, when methods from Actor3D is invoked from the driver,
 		# only the methods associated with the latest instance (which in this
-		# case is the Actor3D for the Surface map) can be executed. Actor3D 
+		# case is the Actor3D for the  map) can be executed. Actor3D 
 		# methods associated with Outline cannot be invoked from the driver. 
 		# They can only be called within here, which is why Outline must
-		# be place before Surface map as there is unlikely to be any changes
+		# be place before map as there is unlikely to be any changes
 		# made to the Outline's Actor3D.
 
 		# ----- Outline -----
@@ -57,11 +58,12 @@ class Map(DataSetMapper, Actor3D):
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
-		# ----- Surface map -----
+		# ----- Map -----
 
 		if(scalar != None): # True only if a scalar field was specified.
 			data_collector._setActiveScalar(scalar)
@@ -78,12 +80,13 @@ class Map(DataSetMapper, Actor3D):
 
 		DataSetMapper.__init__(self, data_collector._getOutput(), 
 				lookup_table._getLookupTable())	
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
+
+###############################################################################
 
 
 from transform import Transform
@@ -94,13 +97,14 @@ from cutter import Cutter
 # to allow access to their public methods from the driver.
 class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 	"""
-	Class that show a scalar field  on a plane.	
+	Class that show a scalar field on a plane.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will
+	# be used.
 	def __init__(self, scene, data_collector, scalar = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
 
@@ -113,7 +117,7 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 		@type scalar: String
 		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme 
 		@type outline: Boolean
@@ -132,7 +136,6 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
@@ -140,9 +143,9 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
 			# Default line width is 1.
+
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
 
 		# ----- Map on a plane -----
 
@@ -167,16 +170,13 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 
 		DataSetMapper.__init__(self, Cutter._getOutput(self), 
 				lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 
-
 ###########################################################################
-
 
 
 from clipper import Clipper
@@ -191,7 +191,8 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will
+	# be used.
 	def __init__(self, scene, data_collector, scalar = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
 
@@ -204,7 +205,7 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 		@type scalar: String
 		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -223,17 +224,16 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
 
 		# ----- Map on a clipped plane -----
 
@@ -259,16 +259,13 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 
 		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 				lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 
-
 #############################################################################
-
 
 
 # NOTE: DataSetMapper, Actor3D and Clipper were inherited 
@@ -281,7 +278,9 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will
+	# be used.
+
 	def __init__(self, scene, data_collector, scalar = None, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
 
@@ -294,7 +293,7 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 		@type scalar: String
 		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -313,17 +312,16 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
 
 		# ----- Map clipped using a scalar value -----
 
@@ -340,13 +338,12 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 			lookup_table = LookupTable() 
 			lookup_table._setLookupTableToGreyScale()
 
-		# None because a plane is not required when a scalar value is 
+		# None is used because a plane is not required when a scalar value is 
 		# used to perform the clipping.
 		Clipper.__init__(self, data_collector._getOutput(), None)
 
 		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 				lookup_table._getLookupTable())
-
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))

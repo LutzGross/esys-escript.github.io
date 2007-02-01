@@ -28,10 +28,12 @@ class PointSource:
 
 		# Default number of points to generate is 10.
 		self.setPointSourceNumberOfPoints(10)
-		# Default center is of the sphere is the center of the data object.
+		# Default center of the sphere is the center of the data object.
 		center = self.__object.GetCenter()
-		self.setPointSourceCenter(GlobalPosition(center[0], center[1], center[2]))
-		# Default radius of the sphere is 0.5.
+		self.setPointSourceCenter(
+				GlobalPosition(center[0], center[1], center[2]))
+
+		# Default radius of the sphere is 0.1.
 		self.setPointSourceRadius(0.1)
 		self.__vtk_point_source.Update()
 
@@ -68,7 +70,7 @@ class PointSource:
 
 	def _getOutput(self):
 		"""
-		Return the point source.
+		Return the output of the point source.
 
 		@rtype: vtkPolyData
 		@return: Polygonal data
@@ -77,13 +79,16 @@ class PointSource:
 		return self.__vtk_point_source.GetOutput()
 
 
+###############################################################################
+
+
 class StructuredPoints:
 	"""
 	Class that defines the structured points.
 	"""
 	
 	# NOTE: The algorithm of this class was extracted from Mayavi's 
-	# online source code.
+	# online source code. Does NOT work for second-order (non-linear) elements.
 	def __init__(self, object):
 		"""
 		Initialise the structured points.
@@ -123,7 +128,8 @@ class StructuredPoints:
 		@param z1: Index of the last point on the z-axis
 		"""
 
-		self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
+		# NOTE: setExtent and setUpdateExtent MUST be used together.
+		#self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
 
 	def __setUpdateExtent(self, x0, x1, y0, y1, z0, z1):
 		"""
@@ -137,22 +143,20 @@ class StructuredPoints:
 		@param z1: Index of the last point on the z-axis
 		"""
 
-		self.__vtk_structured_points.SetUpdateExtent(x0, x1, y0, y1, z0, z1)
-
-	#def __setWholeExtent(self, x0, x1, y0, y1, z0, z1):
-	#	self.__vtk_structured_points.SetWholeExtent(x0, x1, y0, y1, z0, z1)
+		# NOTE: setUpdateExtent and setExtent MUST be used together.
+		#self.__vtk_structured_points.SetUpdateExtent(x0, x1, y0, y1, z0, z1)
 
 	def setDimension(self, x, y, z):
 		"""
-		Set the dimension (number of points) on the x, y and z axes. The
+		Set the dimension on the x, y and z axes. The
 		smaller the dimension, the more points are populated.
 
 		@type x: Number
-		@param x: Number of points on the x-axis
+		@param x: Dimension on the x-axis
 		@type y: Number
-		@param y: Number of points on the y-axis
+		@param y: Dimension on the y-axis
 		@type z: Number
-		@param z: Number of points on the z-axis
+		@param z: Dimension on the z-axis
 		"""
 
 		self.__dims = [int((self.__l[0]*self.__fac)/x) + 1, 

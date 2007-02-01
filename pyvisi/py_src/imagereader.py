@@ -17,7 +17,7 @@ class ImageReader:
 		@type format: String
 		@param format: Format of the image 
 		"""
-		print "Imgae Reader"
+
 		self.__format = format
 		self.__vtk_image_reader = self.getImageReader()
 
@@ -43,13 +43,21 @@ class ImageReader:
 
 	def setFileName(self, file_name):
 		"""
+		Set the image file name to be read.
+
 		@type file_name: String
 		@param file_name: Image file name from which data is to be read 
 		"""
-		print "image reader set file name"
+
 		self.__vtk_image_reader.SetFileName(file_name)
 
 	def _getOutput(self):
-		print "return image reader..."
+		"""
+		Return the output of hte image reader.
+
+		@rtype: vtkImageData
+		@return: Image Data 
+		"""
+
 		return self.__vtk_image_reader.GetOutput()
 

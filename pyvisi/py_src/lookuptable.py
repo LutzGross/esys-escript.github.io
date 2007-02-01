@@ -17,14 +17,13 @@ class LookupTable:
 		self.__vtk_lookup_table = vtk.vtkLookupTable()
 		self.__vtk_inverse_lookup_table = vtk.vtkLookupTable()
 		self.__build()
-		#self._setTableValue()
 
 	def __build(self):
 		"""
 		Generates the lookup table.
 		"""
 
-		# NOTE: Build have to be executed prior to using SetTableValue.
+		# NOTE: Build have to be executed prior to using SetTableValue (if any).
 		self.__vtk_lookup_table.Build()
 		self.__vtk_inverse_lookup_table.Build()
 
@@ -33,25 +32,23 @@ class LookupTable:
 		Setup the lookup table with colors.
 		"""
 
-		# NOTE: The color values are inversed because VTK's default lookup 
+		# NOTE: The color values are inversed because VTK's default lookup
 		# table is inversed by itself. SetTableValue have to be executed after
 		# the Build.
 		for i in range(256):
 			self.__vtk_lookup_table.SetTableValue(
-				i, self.__vtk_inverse_lookup_table.GetTableValue(255 - i))
+					i, self.__vtk_inverse_lookup_table.GetTableValue(255 - i))
 
 	def _setLookupTableToGreyScale(self):
 		"""
 		Setup the lookup table with grey scale.	
 		"""
 
-		#self.__vtk_lookup_table = vtk.vtkLookupTable()
 		self.__setHueRange(0,0)
 		self.__setSaturationRange(0,0)
 		self.__setValueRange(1,0)
 		self.__setNumberOfTableValues(256)
 		self.__setRampToSQRT()
-		#self.__vtk_lookup_table.Build()
 
 	def __setValueRange(self, lower_range, upper_range):
 		"""
