@@ -13,7 +13,7 @@ from plane import PlaneSource
 # allow access to their public methods from the driver.
 class Image(DataSetMapper, Actor3D, Texture, PlaneSource):
 	"""
-	Class that displayes an image with interaction capability.
+	Class that displays an image with interaction capability.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -26,18 +26,18 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource):
 				object
 		@param image_reader: Deal with source of image for visualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which the object is to be rendered on 
+		@param viewport: Viewport in which objects are to be rendered on 
 		"""
 
 		# ----- Image -----
-		print "image"
+
 		Texture.__init__(self, image_reader._getOutput())
 		PlaneSource.__init__(self)
+
 		DataSetMapper.__init__(self, PlaneSource._getOutput(self))	
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		Actor3D._setTexture(self, Texture._getTexture(self))
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
-		
 
+		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 

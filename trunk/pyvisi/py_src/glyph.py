@@ -13,7 +13,7 @@ class Glyph3D:
 		"""
 		Initialise the 3D glyph.
 
-		@type object: vtkUnstructuredGrid, etc
+		@type object: vtkDataSet, etc
 		@param object: Input for the 3D glyph 
 		@type source: vtkPolyData 	
 		@param source: Source for the 3D glyph (i.e. Arrow2D, Arrow3D, etc)
@@ -66,14 +66,14 @@ class Glyph3D:
 
 	def _setColorModeByVector(self):
 		"""
-		Set the 3D glyph to color according to the vector.
+		Set the 3D glyph color according to the vector.
 		"""
 
 		self.__vtk_glyph3D.SetColorModeToColorByVector()
 
 	def _setColorModeByScalar(self):
 		"""
-		Set the 3D glyph to color according to the scalar.
+		Set the 3D glyph color according to the scalar.
 		"""
 
 		self.__vtk_glyph3D.SetColorModeToColorByScalar()
@@ -87,7 +87,7 @@ class Glyph3D:
 
 	def setScaleFactor(self, scale_factor):
 		"""
-		Set the 3D glyph scaling factor.
+		Set the 3D glyph scale factor.
 		
 		@type scale_factor: Number
 		@param scale_factor: Scale factor
@@ -111,21 +111,21 @@ class Glyph3D:
 
 	def __setOrientOn(self):
 		"""
-		Enable the orienting of the rendered object along vector/normal.	
+		Enable the orientation of the rendered object along the vector/normal.	
 		"""
 
 		self.__vtk_glyph3D.OrientOn()
 		
 	def __setRange(self):
 		"""
-		Set the 3D glyph range to maps scalar values into.
+		Set the range to map scalar values.
 		"""
 
 		self.__vtk_glyph3D.SetRange(self.__range)
 
 	def _getOutput(self):
 		"""
-		Return the 3D glyph.
+		Return the output of the 3D glyph.
 
 		@rtype: vtkPolyData
 		@return Polygonal data
@@ -134,12 +134,34 @@ class Glyph3D:
 		return self.__vtk_glyph3D.GetOutput()
 
 
+###############################################################################
+
+
 class TensorGlyph:
+	"""
+	Class that defines tensor glyph.
+	"""
 
 	def __init__(self, object, source):
+		"""
+		Initialise the tensor glyph.
+
+		@type object: vtkDataSet, etc
+		@param object: Input for the 3D glyph 
+		@type source: vtkPolyData 	
+		@param source: Source for the 3D glyph (i.e. Sphere, etc)
+		"""
+
 		self.__object = object
 		self.__source = source
 		self.__vtk_tensor_glyph = vtk.vtkTensorGlyph()
+
+		self.__setupTensorGlyph()
+
+	def __setupTensorGlyph(self):
+		"""
+		Setup the tensor glyph.
+		"""
 
 		self.__setInput()
 		self.__setSource()
@@ -160,7 +182,7 @@ class TensorGlyph:
 
 	def setScaleFactor(self, scale_factor):
 		"""
-		Set the tensor glyph scaling factor.
+		Set the scale factor for the tensor glyph.
 		
 		@type scale_factor: Number
 		@param scale_factor: Scale factor
@@ -170,7 +192,7 @@ class TensorGlyph:
 
 	def setMaxScaleFactor(self, max_scale_factor):
 		"""
-		Set the maximum allowable scale factor.	
+		Set the maximum allowable scale factor for the tensor glyph.	
 
 		@type max_scale_factor: Number
 		@param max_scale_factor: Maximum allowable scale factor.
@@ -180,10 +202,11 @@ class TensorGlyph:
 
 	def _getOutput(self):
 		"""
-		Return the tensor glyph.
+		Return the output of the tensor glyph.
 
 		@rtype: vtkPolyData
 		@return: Polygonal data
 		"""
 
 		return self.__vtk_tensor_glyph.GetOutput()
+

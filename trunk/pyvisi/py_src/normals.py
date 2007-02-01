@@ -6,7 +6,7 @@ import vtk
 
 class Normals:
 	"""
-	Class that defines normals. Normals is used to average the normals of 
+	Class that defines normals. Normals are used to average the normals of 
 	points in order to generate better sufaces (in the case of tensors, normals
 	avoids the tensors from appearing black in color).
 	"""
@@ -15,7 +15,7 @@ class Normals:
 		"""
 		Initialise the normals.
 
-		@type object: vtkUnstructuredGrid, etc
+		@type object: vtkPolyData, etc
 		@param object: Input for the normals
 		"""
 

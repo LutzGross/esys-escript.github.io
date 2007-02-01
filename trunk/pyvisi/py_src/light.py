@@ -8,7 +8,7 @@ from constant import Viewport
 
 class Light:
 	"""
-	Class that defines a light and its settings.
+	Class that defines a light. 
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -23,7 +23,7 @@ class Light:
 			object
 		@param data_collector: Source of data for visualization
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
 		self.__scene = scene
@@ -37,6 +37,7 @@ class Light:
 		"""
 		Set up the light and associate it with the renderer.
 		"""
+
 		self.__scene._addLight(self.__viewport, self.__vtk_light)
 
 	def setColor(self, color):
@@ -69,15 +70,17 @@ class Light:
 
 		self.__vtk_light.SetPosition(position._getGlobalPosition())
 
+	# Elevation and azimuth was set to zero so that users do not necessarily 
+	# need to always change both at the same time.
 	def setAngle(self, elevation = 0, azimuth = 0):
 		"""
-		Set the position and focal point of the light based on elevation and 
-		azimuth degree.
+		Set the position and focal point of the light based on the specified
+		elevation and azimuth degrees.
 
 		@type elevation: Number
 		@param elevation: Degree to rotate the light to the top and bottom
 		@type azimuth: Number
-		@param azimuth: Degree to rotate the camera to the left and right
+		@param azimuth: Degree to rotate the light to the left and right
 		"""
 
 		# NOTE: The elevation angle of light does not seem to suffer the same

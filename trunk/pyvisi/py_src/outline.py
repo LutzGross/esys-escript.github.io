@@ -13,21 +13,20 @@ class Outline:
 		"""
 		Initialise the outline.
 
-		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, vtkPolyData, etc)
-		@param object: Data source to outline
+		@type object: vtkUnstructuredGrid, etc
+		@param object: Data source to the outline
 		"""
 		
 		self.__object = object
 		self.__vtk_outline = vtk.vtkOutlineFilter()
-		self.__setupOutline()
+		self.__setInput()
 
-	def __setupOutline(self):
+	def __setInput(self):
 		"""
-		Setup the outline.
+		Set the input for the outline.
 		"""
 
 		self.__vtk_outline.SetInput(self.__object)
-		self.__output = self.__vtk_outline.GetOutput()
 		
 	
 	def _getOutput(self):
@@ -38,5 +37,5 @@ class Outline:
 		@return: Polyognal data
 		"""
 
-		return self.__output
+		return self.__vtk_outline.GetOutput()
 	

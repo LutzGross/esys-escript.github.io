@@ -85,7 +85,7 @@ class DataCollector:
 		@return: Vector range
 		"""
 
-		vector_range = self._getOutput().GetPoitData().GetVectors().GetRange(-1)
+		vector_range = self._getOutput().GetPointData().GetVectors().GetRange(-1)
 
 		# NOTE: Generally GetRange(-1) returns the correct vector range. 
 		# However, there are certain data sets where GetRange(-1) seems 
