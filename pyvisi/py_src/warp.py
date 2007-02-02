@@ -14,7 +14,7 @@ class Warp:
 		"""
 		Initialise the warp scalar/vector.
 
-		@type object: vtkUnstructuredGrid, etc
+		@type object: vtkPolyData, etc
 		@param object: Input for the warp scalar
 		@type warp_mode: L{WarpMode <constant.WarpMode>} constant
 		@param warp_mode: Mode in which to deform the data
@@ -41,14 +41,14 @@ class Warp:
 		Set the displacement scale factor.
 
 		@type scale_factor: Number
-		@param scale_factor: Size of the displacement
+		@param scale_factor: Scale factor of the displacement
 		"""
 
 		self.__vtk_warp.SetScaleFactor(scale_factor)
 
 	def _getOutput(self):
 		"""
-		Return the deformed scalar. 
+		Return the output of the deformed data. 
 		
 		@rtype: vtkPointSet
 		@return: PointSet data

@@ -118,33 +118,43 @@ class StructuredPoints:
 
 	def __setExtent(self, x0, x1, y0, y1, z0, z1):
 		"""
-		Set the extent in the order of x, y, z axes. 
+		Set the extent in the order of x, y and z axes. 
 
-		@type x0: Index of the first point on the x-axis
+		@type x0: Number
+		@param x0: Index of the first point on the x-axis
+		@type x1: Number
 		@param x1: Index of the last point on the x-axis
-		@type y0: Index of the first point on the y-axis
+		@type y0: Number
+		@param y0: Index of the first point on the y-axis
+		@type y1: Number
 		@param y1: Index of the last point on the y-axis
-		@type z0: Index of the first point on the z-axis
+		@type z0: Number
+		@param z0: Index of the first point on the z-axis
+		@type z1: Number
 		@param z1: Index of the last point on the z-axis
 		"""
 
-		# NOTE: setExtent and setUpdateExtent MUST be used together.
 		#self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
 
 	def __setUpdateExtent(self, x0, x1, y0, y1, z0, z1):
 		"""
-		Set the update extent in the oder of x, y, z axes.
+		Set the update extent in the oder of x, y and z axes.
 
 		@type x0: Number
+		@param x0: Index of the first point on the x-axis
+		@type x1: Number
 		@param x1: Index of the last point on the x-axis
 		@type y0: Number
+		@param y0: Index of the first point on the y-axis
+		@type y1: Number
 		@param y1: Index of the last point on the y-axis
 		@type z0: Number
+		@param z0: Index of the first point on the z-axis
+		@type z1: Number
 		@param z1: Index of the last point on the z-axis
 		"""
 
-		# NOTE: setUpdateExtent and setExtent MUST be used together.
-		#self.__vtk_structured_points.SetUpdateExtent(x0, x1, y0, y1, z0, z1)
+		self.__vtk_structured_points.SetUpdateExtent(x0, x1, y0, y1, z0, z1)
 
 	def setDimension(self, x, y, z):
 		"""

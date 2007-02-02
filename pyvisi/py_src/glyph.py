@@ -17,7 +17,7 @@ class Glyph3D:
 		@param object: Input for the 3D glyph 
 		@type source: vtkPolyData 	
 		@param source: Source for the 3D glyph (i.e. Arrow2D, Arrow3D, etc)
-		@type range: Two column tuple
+		@type range: Two column tuple containing numbers
 		@param range: Range to map scalar values 
 		"""
 

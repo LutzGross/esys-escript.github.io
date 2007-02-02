@@ -15,7 +15,8 @@ from point import StructuredPoints
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, StructuredPoints and
 # Probe were inherited to allow access to their public methods from the driver.
-class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, StructuredPoints, Probe):
+class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, 
+		StructuredPoints, Probe):
 	"""
 	Class that show a vector field using arrows.	
 	"""
@@ -23,11 +24,11 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, StructuredPoi
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically. If no lut is specified, the color scheme will
+	# be used.
 	def __init__(self, scene, data_collector, vector = None, 
-			viewport = Viewport.SOUTH_WEST, outline = True, 
 			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
-			lut = Lut.COLOR): 
+			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -37,16 +38,16 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, StructuredPoi
 		@param data_collector: Deal with source of data for visualisation
 		@type vector: String
 		@param vector: Vector field to load from the source file
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
 		@param color_mode: Type of color mode
+		@type viewport: L{Viewport <constant.Viewport>} constant
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type outline: Boolean
+		@param outline: Places an outline around the domain surface
 		"""
 
 		# NOTE: Actor3D is inherited and there are two instances declared here.
@@ -61,17 +62,16 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, StructuredPoi
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
 
 		# ----- Velocity -----
 
@@ -92,18 +92,13 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, StructuredPoi
 		Probe.__init__(self, data_collector._getOutput(), 
 				StructuredPoints._getStructuredPoints(self))
 
-
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			#Glyph3D.__init__(self, data_collector._getOutput(), 
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-			#Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow2D._getOutput(self), data_collector._getScalarRange()) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			#Glyph3D.__init__(self, data_collector._getOutput(), 
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-			#Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self), data_collector._getScalarRange()) 
 
 		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
@@ -122,6 +117,9 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, StructuredPoi
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 
+###############################################################################
+
+
 from transform import Transform
 from plane import Plane
 from cutter import Cutter
@@ -138,12 +136,11 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically.  If no lut is specified, the color scheme will
+	# be used.
 	def __init__(self, scene, data_collector, vector = None, 
-			viewport = Viewport.SOUTH_WEST, outline = True, 
-			arrow = Arrow.THREE_D, color_mode = ColorMode.VECTOR,
-			lut = Lut.COLOR): 
-
+			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
+			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -152,16 +149,16 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param data_collector: Deal with source of data for visualisation
 		@type vector: String
 		@param vector: Vector field to load from the source file
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
 		@param color_mode: Type of color mode
+		@type viewport: L{Viewport <constant.Viewport>} constant
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type outline: Boolean
+		@param outline: Places an outline around the domain surface
 		"""
 
 		# NOTE: Actor3D is inherited and there are two instances declared here.
@@ -176,17 +173,16 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
 
 		# ----- Velocity on a cut plane -----
 
@@ -211,18 +207,15 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 				StructuredPoints._getStructuredPoints(self))
 
 		Cutter.__init__(self, Probe._getOutput(self), 
-		#Cutter.__init__(self, data_collector._getOutput(), 
 				Plane._getPlane(self)) 	
 
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
 			Glyph3D.__init__(self, Cutter._getOutput(self), 
-					#Arrow2D._getOutput(self), data_collector._getVectorRange()) 
 					Arrow2D._getOutput(self), data_collector._getScalarRange()) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
 			Glyph3D.__init__(self, Cutter._getOutput(self), 
-					#Arrow3D._getOutput(self), data_collector._getVectorRange()) 
 					Arrow3D._getOutput(self), data_collector._getScalarRange()) 
 
 		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
@@ -241,6 +234,9 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 
+###############################################################################
+
+
 from clipper import Clipper
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, Transform, Plane,
@@ -255,12 +251,11 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.
+	# be loaded automatically.  If no lut is specified, the color scheme will
+	# be used.
 	def __init__(self, scene, data_collector, vector = None, 
-			viewport = Viewport.SOUTH_WEST, outline = True, 
-			arrow = Arrow.THREE_D, color_mode = ColorMode.VECTOR, 
-			lut = Lut.COLOR): 
-
+			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
+			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -269,16 +264,16 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param data_collector: Deal with source of data for visualisation
 		@type vector: String
 		@param vector: Vector field to load from the source file
-		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which the object is to be rendered on
-		@type outline: Boolean
-		@param outline: Places an outline around the domain surface
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
 		@param color_mode: Type of color mode
+		@type viewport: L{Viewport <constant.Viewport>} constant
+		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type outline: Boolean
+		@param outline: Places an outline around the domain surface
 		"""
 
 		# NOTE: Actor3D is inherited and there are two instances declared here.
@@ -293,17 +288,16 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
  		# ----- Outline -----
 
 		if(outline == True):
-			#outline = Outline(Glyph3D._getOutput(self))
 			outline = Outline(data_collector._getOutput())
 			DataSetMapper.__init__(self, outline._getOutput())
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
 			Actor3D.setColor(self, Color.BLACK)
+
 			# Default line width is 1.
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
-
 
 		# ----- Velocity on a clipped plane -----
 
@@ -327,23 +321,17 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		Probe.__init__(self, data_collector._getOutput(), 
 				StructuredPoints._getStructuredPoints(self))
 
-		#MaskPoints.__init__(self, data_collector._getOutput())
-
 		# NOTE: Glyph3D must come before Clipper. Otherwise, the output will
 		# be incorrect.
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
 			#Glyph3D.__init__(self, data_collector._getOutput(), 
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-			#Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow2D._getOutput(self), data_collector._getScalarRange()) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			#Glyph3D.__init__(self, data_collector._getOutput(), 
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-			#Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self), data_collector._getScalarRange()) 
-
 		
 		# NOTE: Clipper must come after Glyph3D. Otherwise, the output will
 		# be incorrect.

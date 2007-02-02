@@ -23,11 +23,15 @@ class LocalPosition:
 		"""
 		Return the local position.
 
-		@rtype: Two column list
-		@return: List with the x and y coordinates
+		@rtype: Two column tuple containing numbers
+		@return: Tuple with the x and y coordinates
 		"""
 
 		return self.__position
+
+
+###############################################################################
+
 
 class GlobalPosition:
 	"""
@@ -52,8 +56,8 @@ class GlobalPosition:
 		"""
 		Return the global position.
 
-		@rtype: Three column list
-		@return: List with the x, y and z coordinates
+		@rtype: Three column tuple containing numbers
+		@return: Tuple with the x, y and z coordinates
 		"""
 
 		return self.__position

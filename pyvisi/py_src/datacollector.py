@@ -71,7 +71,7 @@ class DataCollector:
 		"""
 		Return the scalar range.
 
-		@rtype: Two column tuple
+		@rtype: Two column tuple containing numbers
 		@return: Scalar range
 		"""
 
@@ -81,7 +81,7 @@ class DataCollector:
 		"""
 		Return the vector range.
 	
-		@rtype: Two column tuple
+		@rtype: Two column tuple containing numbers
 		@return: Vector range
 		"""
 

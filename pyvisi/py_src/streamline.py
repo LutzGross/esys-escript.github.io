@@ -12,6 +12,8 @@ from tube import Tube
 from point import PointSource
 from outline import Outline
 
+# NOTE: DataSetMapper, Actor3D, PointSource, StreamLineModule and Tube  were 
+# inherited to allow access to their public methods from the driver.
 class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		
 	"""
@@ -24,7 +26,7 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 	# be loaded automatically. If no lut is specified, the color scheme will
 	# be used.
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-		lut = Lut.COLOR, outline = True, color_mode = ColorMode.VECTOR): 
+		lut = Lut.COLOR, color_mode = ColorMode.VECTOR, outline = True): 
 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -32,12 +34,12 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type tensor: String
-		@param tensor: Tensor field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which the object is to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type color_mode: L{ColorMode <constant.ColorMode>} constant
+		@param color_mode: Type of color mode
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -64,10 +66,7 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 			Actor3D._setLineWidth(self, 1)
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
-
 		# ----- Streamline -----
-
-
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -84,20 +83,16 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 				PointSource._getOutput(self))
 
 		Tube.__init__(self, StreamLineModule._getOutput(self))
-
 		DataSetMapper.__init__(self, Tube._getOutput(self), 
 				lookup_table._getLookupTable())
-
-		#DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
-			print "vector"
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
-			print "scalar"
+
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 

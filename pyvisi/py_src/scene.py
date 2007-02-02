@@ -16,36 +16,48 @@ class Scene:
 		Initialise the scene.
 
 		@type renderer: String
-		@param renderer: Type of rendering (i.e. online, offline_jpeg, etc)
+		@param renderer: Type of rendering (i.e.Renderer.ONLINE, etc) 
 		@type num_viewport: Number
 		@param num_viewport: Number of viewport(s) in the scene. Either 1 or 4 
 		@type x_size: Number
-		@param x_size: Size of the render window on the x-axis
+		@param x_size: Size of the render window along the x-axis
 		@type y_size: Number
-		@param y_size: Size of the render window on the y-axis
+		@param y_size: Size of the render window along the y-axis
 		"""
 
 		self.__renderer = renderer
 		self.__num_viewport = num_viewport
+		self.__x_size = x_size
+		self.__y_size = y_size
 	
-		self.__createViewport()			
 		self.__vtk_render_window = vtk.vtkRenderWindow()
+		self.__setupScene()
+		
+	def __setupScene(self):
+		"""
+		Setup the scene.
+		"""
+
+		self.__createViewport()			
 		self.__addRenderer()
 		self.setBackground(Color.WHITE) # Default background color is white.
+
 		# Default title bar.
 		self.setTitleBar("Earth Systems Science Computational Centre (ESSCC)")
-		self.__setSize(x_size, y_size)
+		self.__setSize(self.__x_size, self.__y_size)
 		
-		if(renderer == Renderer.ONLINE): # True for online rendering.
+		if(self.__renderer == Renderer.ONLINE): # True for online rendering.
 			self.__setupOnlineRendering()
 		else: # True for offline rendering.
 			self.__setupOfflineRendering()
+
+
 	def __createViewport(self):
 		"""
 		Create the viewport(s) in the scene.
 		"""
 
-		# Create the the renderer(s) for the viewport(s).
+		# Create the renderer(s) for the viewport(s).
 		self.__vtk_renderer = [] 
 		for viewport in range(0, self.__num_viewport):
 			self.__vtk_renderer.append(vtk.vtkRenderer())
@@ -74,7 +86,7 @@ class Scene:
 		
 		# Color the entire scene (background) black initially. 
 		# This is carried out mainly to have the borders between 
-		# the viewports black.
+		# the viewports visibly black.
 		if(self.__num_viewport == 4): 
 			self.__vtk_renderer_background.SetBackground(Color.BLACK)
 
@@ -108,9 +120,9 @@ class Scene:
 		Set the size of the render window.
 
 		@type x_size: Number
-		@param x_size: Size of the render window on the x-axis
+		@param x_size: Size of the render window along the x-axis
 		@type y_size: Number
-		@param y_size: Size of the render window on the y-axis
+		@param y_size: Size of the render window along the y-axis
 		"""
 
 		self.__vtk_render_window.SetSize(x_size, y_size)	
@@ -142,10 +154,13 @@ class Scene:
 		"""
 		Return the appropriate image writer based on the specified offline
 		renderer.
+
+		@rtype: vtkImageWriter
+		@return: Image writer
 		"""
 
 		if(self.__renderer == Renderer.OFFLINE_JPG):
-			return vtk.vtkJPEGWriter() # Generate a .jpg image
+			return vtk.vtkJPEGWriter() 
 		elif(self.__renderer == Renderer.OFFLINE_BMP):
 			return vtk.vtkBMPWriter() 
 		elif(self.__renderer == Renderer.OFFLINE_PNM):
@@ -159,7 +174,7 @@ class Scene:
 	
 	def saveImage(self, image_name):
 		"""
-		Save the rendered objects as an image.
+		Save the rendered object as an image.
 
 		@type image_name: String
 		@param image_name: Name of the saved image.
@@ -171,7 +186,8 @@ class Scene:
 		self.__vtk_render_window.Render()
 		self.__vtk_window_to_image.Modified()
 		
-		# Retrieve the the converted imaged from the window.
+		# Retrieve rendered object from the window and convert it into an 
+		# image.
 		self.__vtk_image_writer.SetInput(
 				self.__vtk_window_to_image.GetOutput())
 		self.__vtk_image_writer.SetFileName(image_name)
@@ -179,9 +195,11 @@ class Scene:
 
 	def render(self):
 		"""
-		Render the objects onto the scene.
+		Render the object onto the scene.
 		"""	
+
 		self.__vtk_render_window.Render()
+
 		# NOTE: Once Start is executed, the driver will not further execute 
 		# any subsequent codes thereafter.
 		self.__vtk_render_window_interactor.Start()
@@ -217,7 +235,7 @@ class Scene:
 		@type viewport: L{Viewport <constant.Viewport>} constant 
 		@param viewport: Viewport which the camera is to be added to 
 		@type camera: L{Camera <camera.Camera>} object
-		@param camera: Camera to be assigned to the viewport
+		@param camera: Camera which is to be assigned to the viewport
 		"""
 
 		self.__vtk_renderer[viewport].SetActiveCamera(camera)
@@ -225,10 +243,11 @@ class Scene:
 	def _addLight(self, viewport, light):
 		"""
 		Add the light to the appropriate viewport.
+
 		@type viewport: L{Viewport <constant.Viewport>} constant 
 		@param viewport: Viewport which the camera is to be added to 
 		@type light: L{Light <light.Light>} object
-		@param light: Light to be assigned to the viewport
+		@param light: Light which is to be assigned to the viewport
 		"""
 
 		self.__vtk_renderer[viewport].AddLight(light)
@@ -237,7 +256,7 @@ class Scene:
 		"""
 		Return the renderer(s)
 
-		@rtype: One column list of vtkRenderer
+		@rtype: One or more column tuple of vtkRenderer
 		@return: Renderer(s)
 		"""
 	

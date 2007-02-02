@@ -6,7 +6,7 @@ import vtk
 
 class Tube:
 	"""
-	Class that defines the tubes around streamlines.
+	Class that defines tubes that are wrapped around the streamlines.
 	"""
 
 	def __init__(self, object):
@@ -52,6 +52,7 @@ class Tube:
 	def setTubeNumberOfSides(self, sides):
 		"""
 		Set the number of sides for the tube. Minimum number of sides is 3.
+		The larger the number of sides, the higher quality the steramlines are.
 		
 		@type sides: Number
 		@param sides: Number of sides for the tube
@@ -61,21 +62,21 @@ class Tube:
 
 	def setTubeRadiusToVaryByVector(self):
 		"""
-		Set the radius to vary by vector value.
+		Set the radius to vary by vector data.
 		"""
 
 		self.__vtk_tube.SetVaryRadiusToVaryRadiusByVector()
 	
 	def setTubeRadiusToVaryByScalar(self):
 		"""
-		Set the radius to vary by scalar value.
+		Set the radius to vary by scalar data.
 		"""
 
 		self.__vtk_tube.SetVaryRadiusToVaryRadiusByScalar()
 
 	def _getOutput(self):
 		"""
-		Return the tube.
+		Return the output of the tube.
 
 		@rtype: vtkPolyData
 		@return: Polygonal data

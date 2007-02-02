@@ -48,7 +48,7 @@ class DataSetMapper:
 		"""
 		Set the minimum and maximum scalar range for the data set mapper.
 		
-		@type range: Two column tuple
+		@type range: Two column tuple containing numbers
 		@param range: Maximum and minimum data set mapper scalar range
 		"""
 
