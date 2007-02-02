@@ -6,7 +6,7 @@ import vtk
 
 class StreamLineModule:
 	"""
-	Class that defines streamline.
+	Class that defines streamlines.
 	"""
 
 	def __init__(self, object, source):
@@ -104,7 +104,7 @@ class StreamLineModule:
 
 	def setIntegrator(self, integrator):
 		"""
-		Set the integrator to be used in the streamline calculation.
+		Set the integrator to be used in the streamline calculation. 
 
 		@type integrator: vtkInitialValueProblemSolver
 		@param integrator: Integrator type. i.e. vtkRungeKutta2, vtkRungeKutta4
@@ -114,7 +114,7 @@ class StreamLineModule:
 
 	def _getOutput(self):
 		"""
-		Return the streamline.
+		Return the output of the streamline.
 
 		@rtype: vtkPolyData
 		@return Polygonal data

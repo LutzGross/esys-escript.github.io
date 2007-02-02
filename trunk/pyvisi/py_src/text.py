@@ -6,6 +6,8 @@ import vtk
 from actor import Actor2D
 from constant import Viewport, Color
 
+# NOTE: Actor2D was inherited to allow access to its public methods from 
+# the driver.
 class Text2D(Actor2D):
 	"""
 	Class that defines a 2D text actor.
@@ -15,8 +17,12 @@ class Text2D(Actor2D):
 		"""
 		Initialise the 2D text actor.
 
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		@type text: String
 		@param text: 2D text to be displayed
+		@type viewport: L{Viewport <constant.Viewport>} constant
+		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
 		self.__scene = scene
@@ -37,12 +43,10 @@ class Text2D(Actor2D):
 
 	def __setInput(self):
 		"""
-		Set the 2D text to be displayed.
+		Set the input for the 2D text.
 		"""
 
 		self._vtk_actor2D.SetInput(self.__text)
-#		self._vtk_actor2D.GetPositionCoordinate().SetCoordinateSystemToViewport()
-	
 
 	def setFontSize(self, size):
 		"""
@@ -74,13 +78,6 @@ class Text2D(Actor2D):
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontFamilyToCourier()
-
-	def setJustificationToCenter(self):
-		"""
-		Set the 2D text to center justification.
-		"""
-
-		self._vtk_actor2D.GetTextProperty().SetJustificationToCentered()
 
 	def boldOn(self):
 		"""

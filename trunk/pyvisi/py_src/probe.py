@@ -6,8 +6,8 @@ import vtk
 
 class Probe:
 	"""
-	Class that defines the probe. The class sample data values at 
-	specified point locations.
+	Class that defines the probe. This class samples data values at 
+	the specified point locations.
 	"""
 
 	def __init__(self, object, source):
@@ -23,6 +23,14 @@ class Probe:
 		self.__object = object
 		self.__source = source
 		self.__vtk_probe_filter = vtk.vtkProbeFilter()
+
+		self.__setupProbe()
+
+	def __setupProbe(self):
+		"""
+		Setup the probe.
+		"""
+
 		self.__setInput()
 		self.__setSource()
 
@@ -42,7 +50,7 @@ class Probe:
 
 	def _getOutput(self):
 		"""
-		Return the probe.
+		Return the output for the probe.
 
 		@rtype: vtkDataSet
 		@return: Data set

@@ -6,7 +6,7 @@ import vtk
 
 class Texture:
 	"""
-	Class that defines a texture for the rendered object.
+	Class that defines the texture for the rendered object.
 	"""
 
 	def __init__(self, image):
@@ -14,7 +14,7 @@ class Texture:
 		Initialise the texture.
 
 		@type image: vtkImageData
-		@param image: Image data from which data is read
+		@param image: Image from which data is to be read
 		"""
 
 		self.__image = image

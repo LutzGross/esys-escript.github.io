@@ -6,7 +6,7 @@ import vtk
 
 class Transform:
 	"""
-	Class that defines the orientation of rendered objects.
+	Class that defines the orientation of planes.
 	"""
 
 	def __init__(self):
@@ -14,19 +14,19 @@ class Transform:
 		Initialise the transform object.
 		"""
 
-		# NOTE: VTK's values are not accurate. Origin is not exaclty (0,0,0)
-		# and normal is not exactly (0, 0, 1). There is a slight 
+		# NOTE: VTK's values are not 100% accurate. Origin is not exaclty 
+		#(0,0,0) and normal is not exactly (0, 0, 1). There is a slight 
 		# variance. As a result, a slight alteration has to be done in order 
-		# for the rendered object to be displayed correctly. Otherwise, the 
-		# rendered object may just fall outside the bounding box and nothing 
+		# for the plane to be displayed correctly. Otherwise, the 
+		# plane may just fall outside the bounding box and nothing 
 		# is displayed.  
-
 		self.__OFFSET_VARIANCE = 0.0000000001
 		self.__vtk_transform = vtk.vtkTransform()
 
 	def translate(self, x_offset, y_offset, z_offset):
 		"""
 		Translate the rendered object along the x, y and z-axes.
+
 		@type x_offset: Number
 		@param x_offset: Amount to translate along the x-axis
 		@type y_offset: Number
@@ -39,7 +39,8 @@ class Transform:
 	
 	def rotateX(self, angle):
 		"""
-		Rotate the rendered object along the x-axis.
+		Rotate the plane along the x-axis.
+
 		@type angle: Number
 		@param angle: Angle to rotate the camera
 		"""
@@ -48,7 +49,8 @@ class Transform:
 
 	def rotateY(self, angle):
 		"""
-		Rotate the rendered object along the y-axis.
+		Rotate the plane along the y-axis.
+
 		@type angle: Number
 		@param angle: Angle to rotate the camera
 		"""
@@ -58,7 +60,8 @@ class Transform:
 
 	def rotateZ(self, angle):
 		"""
-		Rotate the rendered object along the z-axis.
+		Rotate the plane along the z-axis.
+
 		@type angle: Number
 		@param angle: Angle to rotate the camera
 		"""
@@ -68,8 +71,9 @@ class Transform:
 	def setPlaneToXY(self, offset = 0):
 		"""
 		Set the plane orthogonal to the z-axis.
+
 		@type offset: Number
-		@param offset: Amount to translate
+		@param offset: Amount to translate along the z-axis
 		"""
 	
 		self.translate(0, 0, offset + self.__OFFSET_VARIANCE)
@@ -77,8 +81,9 @@ class Transform:
 	def setPlaneToYZ(self, offset = 0):
 		"""
 		Set the plane orthogonal to the x-axis.
+
 		@type offset: Number
-		@param offset: Amount to translate
+		@param offset: Amount to translate along the x-axis
 		"""
 		
 		# NOTE: rotateY must come first before translate. Otherwise, 
@@ -89,8 +94,9 @@ class Transform:
 	def setPlaneToXZ(self, offset = 0):
 		"""
 		Set the plane orthogonal to the y-axis.
+
 		@type offset: Number
-		@param offset: Amount to translate
+		@param offset: Amount to translate along the y-axis
 		"""
 
 		# rotateX must come first before translate. Otherwise, it won't work.
@@ -100,9 +106,10 @@ class Transform:
 	def _getTransform(self):
 		"""
 		Return the transform instance.
+
 		@rtype: vtkTransform
-		@return: VTK transform that is used to specify the orientation
-			of objects
+		@return: Transform instance that is used to specify the orientation
+			of the plane
 		"""
 
 		return self.__vtk_transform

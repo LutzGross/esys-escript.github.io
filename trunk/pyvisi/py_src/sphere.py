@@ -28,7 +28,7 @@ class Sphere:
 
 	def setPhiResolution(self, resolution):
 		"""
-		Set the phi resolutio of the sphere.
+		Set the phi resolution of the sphere.
 
 		@type resolution: Number
 		@param resolution: Phi resolution
