@@ -14,6 +14,8 @@
 #include "DataFactory.h"
 
 #include <boost/python/extract.hpp>
+#include <iostream>
+#include <netcdfcpp.h>
 
 using namespace boost::python;
 
@@ -64,6 +66,132 @@ Tensor4(double value,
 {
     DataArrayView::ShapeType shape(4,what.getDomain().getDim());
     return Data(value,shape,what,expanded);
+}
+
+Data 
+load(const std::string fileName,
+     const AbstractDomain& domain)
+{
+   #ifdef PASO_MPI
+   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.")
+   #endif
+   NcAtt *type_att, *rank_att, *function_space_type_att;
+   // netCDF error handler
+   NcError err(NcError::verbose_nonfatal);
+   // Create the file.
+   NcFile dataFile(fileName.c_str(), NcFile::ReadOnly);
+   if (!dataFile.is_valid())
+        throw DataException("Error - load:: opening of netCDF file for input failed.");
+   /* recover function space */
+   if (! (function_space_type_att=dataFile.get_att("function_space_type")) )
+        throw DataException("Error - load:: cannot recover function_space_type attribute from escript netCDF file.");
+   int function_space_type = function_space_type_att->as_int(0);
+   delete function_space_type_att;
+   /* test if function space id is valid and create function space instance */
+   if (! domain.isValidFunctionSpaceType(function_space_type) ) 
+        throw DataException("Error - load:: function space type code in netCDF file is invalid for given domain.");
+   FunctionSpace function_space=FunctionSpace(domain, function_space_type);
+   /* recover rank */
+   if (! (rank_att=dataFile.get_att("rank")) )
+        throw DataException("Error - load:: cannot recover rank attribute from escript netCDF file.");
+   int rank = rank_att->as_int(0);
+   delete rank_att;
+   if (rank<0 || rank>DataArrayView::maxRank)
+        throw DataException("Error - load:: rank in escript netCDF file is greater than maximum rank.");
+  
+   /* recover type attribute */
+   if (! (type_att=dataFile.get_att("type")) )
+	throw DataException("Error - load:: cannot recover type attribute from escript netCDF file.");
+   char* type_str = type_att->as_string(0);
+   int type=-1;
+   if (strncmp(type_str, "constant", strlen("constant")) == 0 ) {
+        type =0;
+   } else if (strncmp(type_str, "tagged", strlen("tagged")) == 0 ) {
+        type =1;
+   } else if (strncmp(type_str, "expanded", strlen("expanded")) == 0 ) {
+        type =2;
+   }
+   delete type_att;
+   delete type_str;
+   /* recover dimension */
+   int ndims=dataFile.num_dims();
+   int ntags =0 , nsamples =0 , ndata_points_per_sample =0, d=0;
+   NcDim *d_dim, *tags_dim, *samples_dim, *data_points_per_sample_dim;
+   /* recover shape */
+   DataArrayView::ShapeType shape;
+   long dims[DataArrayView::maxRank+2];
+   if (rank>0) {
+     if (! (d_dim=dataFile.get_dim("d0")) )
+          throw DataException("Error - load:: unable to recover d0 from netCDF file.");
+      d=d_dim->size();
+      shape.push_back(d);
+      dims[0]=d;
+   }
+   if (rank>1) {
+     if (! (d_dim=dataFile.get_dim("d1")) )
+          throw DataException("Error - load:: unable to recover d1 from netCDF file.");
+      d=d_dim->size();
+      shape.push_back(d);
+      dims[1]=d;
+   }
+   if (rank>2) {
+     if (! (d_dim=dataFile.get_dim("d2")) )
+          throw DataException("Error - load:: unable to recover d2 from netCDF file.");
+      d=d_dim->size();
+      shape.push_back(d);
+      dims[2]=d;
+   }
+   if (rank>3) {
+     if (! (d_dim=dataFile.get_dim("d3")) )
+          throw DataException("Error - load:: unable to recover d3 from netCDF file.");
+      d=d_dim->size();
+      shape.push_back(d);
+      dims[3]=d;
+   }
+   /* recover stuff */
+   Data out;
+   NcVar *var;
+   if (type == 0) {
+      /* constant data */
+      if ( ! ( (ndims == rank && rank >0) || ( ndims ==1 && rank == 0 ) ) )
+          throw DataException("Error - load:: illegal number of dimensions for constant data in netCDF file.");
+      if (rank == 0) {
+          if (! (d_dim=dataFile.get_dim("l")) )
+              throw DataException("Error - load:: unable to recover d0 for scalar constant data in netCDF file.");
+          int d0 = d_dim->size();
+          if (! d0 == 1) 
+              throw DataException("Error - load:: d0 is expected to be one for scalar constant data in netCDF file.");
+          dims[0]=1;
+      }
+      out=Data(0,shape,function_space);
+      if (!(var = dataFile.get_var("data")))
+              throw DataException("Error - load:: unable to find data in netCDF file.");
+      if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
+              throw DataException("Error - load:: unable to recover data from netCDF file.");
+   } else if (type == 1) { 
+      /* tagged data */
+      if ( ! (ndims == rank + 1) )
+          throw DataException("Error - load:: illegal number of dimensions for tagged data in netCDF file.");
+      if (! (tags_dim=dataFile.get_dim("tags")) )
+          throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
+      ntags=tags_dim->size();
+      out=Data(0,shape,function_space);
+   } else if (type == 2) {
+      /* expanded data */
+      if ( ! (ndims == rank + 2) )
+          throw DataException("Error - load:: illegal number of dimensions for exanded data in netCDF file.");
+      if ( ! (samples_dim = dataFile.get_dim("samples") ) )
+          throw DataException("Error - load:: unable to recover number of samples from netCDF file.");
+      nsamples = samples_dim->size();
+      if ( ! (data_points_per_sample_dim = dataFile.get_dim("data_points_per_sample") ) )
+          throw DataException("Error - load:: unable to recover number of data points per sample from netCDF file.");
+      ndata_points_per_sample=data_points_per_sample_dim->size();
+      out=Data(0,shape,function_space);
+   } else {
+       throw DataException("Error - load:: unknown escript data type in netCDF file.");
+   }
+   return out;
+
 }
 
 Data

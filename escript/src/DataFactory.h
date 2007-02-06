@@ -15,6 +15,7 @@
 #define escript_DataFactory_20040721_H
 #include "system_dep.h"
 
+#include "AbstractDomain.h"
 #include "FunctionSpace.h"
 #include "Data.h"
 
@@ -82,6 +83,13 @@ ESCRIPT_DLL_API Data
 Tensor4(double value,
         const FunctionSpace& what=FunctionSpace(),
         bool expanded=false);
+/**
+   \brief
+   reads Data on domain from file in netCDF format
+*/
+ESCRIPT_DLL_API Data 
+load(const std::string fileName,
+     const AbstractDomain& domain);
 
 /**
    \brief

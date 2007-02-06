@@ -1028,14 +1028,14 @@ void DataTestCase::testRefValue() {
   boost::python::numeric::array num_array(1.0);
 
   try {
-      emptyData.getRefValue(ref,num_array);
+      emptyData.getValueByReferenceNumber(ref,num_array);
       assert(false);
   }
   catch (EsysException& e) {
       assert(true);
   }
   try {
-      emptyData.setRefValue(ref,num_array);
+      emptyData.setValueByReferenceNumber(ref,num_array);
       assert(false);
   }
   catch (EsysException& e) {
@@ -1044,14 +1044,14 @@ void DataTestCase::testRefValue() {
 
   // Check assertions are thrown for RefValue methods on DataConstant
   try {
-      constantData.getRefValue(ref,num_array);
+      constantData.getValueByReferenceNumber(ref,num_array);
       assert(false);
   }
   catch (EsysException& e) {
       assert(true);
   }
   try {
-      constantData.setRefValue(ref,num_array);
+      constantData.setValueByReferenceNumber(ref,num_array);
       assert(false);
   }
   catch (EsysException& e) {
@@ -1059,8 +1059,8 @@ void DataTestCase::testRefValue() {
   }
 
   // Check calls to RefValue methods on DataExpanded
-  expandedData.getRefValue(ref,num_array);
-  expandedData.setRefValue(ref,num_array);
+  expandedData.getValueByReferenceNumber(ref,num_array);
+  expandedData.setValueByReferenceNumber(ref,num_array);
 
 }
 

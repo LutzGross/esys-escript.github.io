@@ -553,5 +553,11 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 
 }
 
+void
+DataTagged::dump(const std::string fileName) const
+{
+    throw DataException("Error - DataTagged:: dump: not implemented.");
+}
+
 
 }  // end of namespace

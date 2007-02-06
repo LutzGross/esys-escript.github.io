@@ -492,6 +492,17 @@ class Data {
   {
     return m_data->getNumDPPSample();
   }
+  /**
+     \brief
+     dumps the object into a netCDF file 
+  */
+  ESCRIPT_DLL_API
+  inline
+  void
+  dump(const std::string fileName) const
+  {
+    return m_data->dump(fileName);
+  }
 
   /**
      \brief
@@ -539,8 +550,8 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  setRefValue(int ref,
-              const boost::python::numeric::array& value);
+  setValueByReferenceNumber(int ref,
+                            const boost::python::numeric::array& value);
 
   /**
      \brief
@@ -559,8 +570,8 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  getRefValue(int ref,
-              boost::python::numeric::array& value);
+  getValueByReferenceNumber(int ref,
+                            boost::python::numeric::array& value);
 
   /**
      \brief

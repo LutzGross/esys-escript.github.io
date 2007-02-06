@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <boost/python/extract.hpp>
+#include <netcdfcpp.h>
 
 using namespace std;
 
@@ -263,5 +264,64 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   DataArrayView::eigenvalues_and_eigenvectors(thisView,0,evView,0,VView,tol);
 }
 
+void
+DataConstant::dump(const std::string fileName) const
+{
+   #ifdef PASO_MPI
+   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.")
+   #endif
+   const NcDim* ncdims[DataArrayView::maxRank];
+   NcVar* var;
+   int rank = getPointDataView().getRank();
+   int type=  getFunctionSpace().getTypeCode();
+   int ndims =0;
+   long dims[DataArrayView::maxRank];
+   DataArrayView::ShapeType shape = getPointDataView().getShape();
+   
+   // netCDF error handler
+   NcError err(NcError::verbose_nonfatal);
+   // Create the file.
+   NcFile dataFile(fileName.c_str(), NcFile::Replace);
+   // check if writing was successful
+   if (!dataFile.is_valid()) 
+	throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
+   if (!dataFile.add_att("type","constant") ) 
+	throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
+   if (!dataFile.add_att("rank",rank) ) 
+	throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
+   if (!dataFile.add_att("function_space_type",type)) 
+	throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
+
+   if (rank == 0) {
+      if( ! (ncdims[0] = dataFile.add_dim("l", 1)) ) 
+		throw DataException("Error - DataConstant:: appending ncdimsion 0 to netCDF file failed.");
+      dims[0]=1,
+      ndims=1;
+   } else {
+       ndims=rank;
+       dims[0]=shape[0];
+       if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) ) 
+		throw DataException("Error - DataConstant:: appending ncdimsion 0 to netCDF file failed.");
+       if ( rank >1 ) {
+           dims[1]=shape[1];
+           if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) ) 
+		throw DataException("Error - DataConstant:: appending ncdimsion 1 to netCDF file failed.");
+       }
+       if ( rank >2 ) {
+           dims[2]=shape[2];
+           if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) ) 
+		throw DataException("Error - DataConstant:: appending ncdimsion 2 to netCDF file failed.");
+       }
+       if ( rank >3 ) {
+           dims[3]=shape[3];
+           if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) ) 
+		throw DataException("Error - DataConstant:: appending ncdimsion 3 to netCDF file failed.");
+       }
+   }
+   if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
+	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
+   if (! (var->put(&m_data[0],dims)) )
+	throw DataException("Error - DataConstant:: copy data to netCDF buffer failed."); 
+}
 
 }  // end of namespace

@@ -62,6 +62,7 @@ class DataArrayView {
   typedef std::vector<int>                  ShapeType;
   typedef std::vector<std::pair<int, int> > RegionType;
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
+  static const int maxRank=4;
 
   /**
      \brief

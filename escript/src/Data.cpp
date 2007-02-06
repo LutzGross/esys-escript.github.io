@@ -2095,7 +2095,7 @@ Data::getTagNumber(int dpno)
 /* TODO */
 /* global reduction */
 void
-Data::setRefValue(int ref,
+Data::setValueByReferenceNumber(int ref,
                   const boost::python::numeric::array& value)
 {
   if (isProtected()) {
@@ -2106,14 +2106,14 @@ Data::setRefValue(int ref,
   DataArray valueDataArray(value);
 
   //
-  // Call DataAbstract::setRefValue
-  m_data->setRefValue(ref,valueDataArray);
+  // Call DataAbstract::setValueByReferenceNumber
+  m_data->setValueByReferenceNumber(ref,valueDataArray);
 }
 
 /* TODO */
 /* global reduction */
 void
-Data::getRefValue(int ref,
+Data::getValueByReferenceNumber(int ref,
                   boost::python::numeric::array& value)
 {
   //
@@ -2122,7 +2122,7 @@ Data::getRefValue(int ref,
 
   //
   // Load DataArray with values from data-points specified by ref
-  m_data->getRefValue(ref,valueDataArray);
+  m_data->getValueByReferenceNumber(ref,valueDataArray);
 
   //
   // Load values from valueDataArray into return numarray
