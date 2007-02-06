@@ -147,6 +147,14 @@ class DataExpanded : public DataAbstract {
   virtual
   std::string
   toString() const;
+ /**
+     \brief
+     dumps the object into a netCDF file
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  dump(const std::string fileName) const;
 
   /**
      \brief
@@ -235,7 +243,7 @@ class DataExpanded : public DataAbstract {
   ESCRIPT_DLL_API
   virtual
   void
-  setRefValue(int ref,
+  setValueByReferenceNumber(int ref,
               const DataArray& value);
 
   /**
@@ -261,7 +269,7 @@ class DataExpanded : public DataAbstract {
   ESCRIPT_DLL_API
   virtual
   void
-  getRefValue(int ref,
+  getValueByReferenceNumber(int ref,
               DataArray& value);
 
   /**

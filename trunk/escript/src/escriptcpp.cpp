@@ -125,10 +125,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("setProtection",&escript::Data::setProtection)
     .def("getShape",&escript::Data::getShapeTuple)
     .def("getRank",&escript::Data::getDataPointRank)
+    .def("dump",&escript::Data::dump)
     .def("copyWithMask",&escript::Data::copyWithMask)
     .def("setTaggedValue",&escript::Data::setTaggedValue)
-    .def("setRefValue",&escript::Data::setRefValue)
-    .def("getRefValue",&escript::Data::getRefValue)
+    .def("setValueByReferenceNumber",&escript::Data::setValueByReferenceNumber)
+    .def("getValueByReferenceNumber",&escript::Data::getValueByReferenceNumber)
     .def("getNumberOfDataPoints",&escript::Data::getNumDataPoints)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
@@ -249,6 +250,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Factory methods for Data
   //
+  def("load",escript::load);
   def("Scalar",escript::Scalar,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),

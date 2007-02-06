@@ -49,7 +49,7 @@ class FinleyReader(ParameterSet):
                 self.__domain=finley.ReadGmsh(self.source.getLocalFileName(),self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling) 
              else:
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
-             self.trace("mesh read from %s"%self.source)           
+             self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
           
                        

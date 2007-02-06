@@ -115,6 +115,10 @@ opts.AddOptions(
   PathOption('blas_path', 'Path to BLAS includes', None),
   PathOption('blas_lib_path', 'Path to BLAS libs', None),
   ('blas_libs', 'BLAS libraries to link with', None),
+# netCDF
+  PathOption('netCDF_path', 'Path to netCDF includes', '/usr/local/include'),
+  PathOption('netCDF_lib_path', 'Path to netCDF libs', '/usr/local/lib'),
+  ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', [ 'netcdf_c++', 'netcdf'] ),
 # Python
 # locations of include files for python
   PathOption('python_path', 'Path to Python includes', '/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])),
@@ -404,6 +408,23 @@ except KeyError:
    blas_libs = ''
 
 try:
+   includes = env['netCDF_path']
+   env.Append(CPPPATH = [includes,])
+except KeyError:
+   pass
+
+try:
+   lib_path = env['netCDF_lib_path']
+   env.Append(LIBPATH = [lib_path,])
+except KeyError:
+   pass
+
+try:
+   netCDF_libs_cxx = env['netCDF_libs_cxx']
+except KeyError:
+   netCDF_lib_cxx = [ ]
+
+try:
    includes = env['boost_path']
    env.Append(CPPPATH = [includes,])
 except KeyError:
@@ -520,7 +541,7 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs",
+Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs_cxx", 
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])

@@ -539,9 +539,9 @@ void DataExpandedTestCase::testRefValue() {
   //
   // Try out ref value methods
 
-  dataExp.getRefValue(1,data2);
+  dataExp.getValueByReferenceNumber(1,data2);
 
-  // check the values loaded into data2 by getRefValue
+  // check the values loaded into data2 by getValueByReferenceNumber
   // match the values in dataExp
   assert(data2.getView()(0)==0.0);
   assert(data2.getView()(1)==1.0);
@@ -551,7 +551,7 @@ void DataExpandedTestCase::testRefValue() {
   data2.getView()(1)=4.0;
   data2.getView()(2)=5.0;
 
-  dataExp.setRefValue(1,data2);
+  dataExp.setValueByReferenceNumber(1,data2);
 
   // check the values now in dataExp match the values
   // that were supplied in data2

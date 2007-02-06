@@ -293,7 +293,7 @@ DataExpanded::getLength() const
 }
 
 void
-DataExpanded::setRefValue(int ref,
+DataExpanded::setValueByReferenceNumber(int ref,
                           const DataArray& value)
 {
   //
@@ -313,7 +313,7 @@ DataExpanded::setRefValue(int ref,
     }
   }
   if (sampleNo == -1) {
-    throw DataException("DataExpanded::setRefValue error: invalid ref number supplied.");
+    throw DataException("DataExpanded::setValueByReferenceNumber error: invalid ref number supplied.");
   }
 
   for (int n=0; n<numDPPSample; n++) {
@@ -327,7 +327,7 @@ DataExpanded::setRefValue(int ref,
 }
 
 void
-DataExpanded::getRefValue(int ref,
+DataExpanded::getValueByReferenceNumber(int ref,
                           DataArray& value)
 {
   //
@@ -347,7 +347,7 @@ DataExpanded::getRefValue(int ref,
     }
   }
   if (sampleNo == -1) {
-    throw DataException("DataExpanded::getRefValue error: invalid ref number supplied.");
+    throw DataException("DataExpanded::getValueByReferenceNumber error: invalid ref number supplied.");
   }
 
   //
@@ -680,5 +680,12 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
     }
   }
 }
+
+void
+DataExpanded::dump(const std::string fileName) const
+{
+    throw DataException("Error - DataExpanded:: dump: not implemented.");
+}
+
 
 }  // end of namespace

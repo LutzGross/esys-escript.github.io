@@ -55,6 +55,10 @@ boost_path = '/usr/include'
 boost_lib_path = '/usr/lib'
 boost_lib = 'boost_python'
 
+# locations of libraries for netCDF:
+netCDF_path = '/usr/local/include'
+netCDF_lib_path = '/usr/local/lib'
+netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf' ]
 # locations of doc building executables
 doxygen_path = ''
 epydoc_path = ''

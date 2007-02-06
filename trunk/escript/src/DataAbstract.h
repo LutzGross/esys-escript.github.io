@@ -78,6 +78,15 @@ class DataAbstract {
   std::string
   toString() const = 0;
 
+ /**
+     \brief
+     dumps the object into a netCDF file
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  dump(const std::string fileName) const;
+
   /**
      \brief
      Return the number of data points per sample.
@@ -165,8 +174,8 @@ class DataAbstract {
   ESCRIPT_DLL_API
   virtual
   void
-  setRefValue(int ref,
-              const DataArray& value);
+  setValueByReferenceNumber(int ref,
+                            const DataArray& value);
 
   /**
      \brief
@@ -183,8 +192,8 @@ class DataAbstract {
   ESCRIPT_DLL_API
   virtual
   void
-  getRefValue(int ref,
-              DataArray& value);
+  getValueByReferenceNumber(int ref,
+                            DataArray& value);
 
   /**
      \brief

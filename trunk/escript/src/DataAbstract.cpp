@@ -73,6 +73,14 @@ DataAbstract::operandCheck(const DataAbstract& right) const
       }
 }
 
+void
+DataAbstract::dump(const std::string fileName) const
+{
+    throw DataException("Error - DataAbstract:: dump: not implemented.");
+}
+
+
+
 DataAbstract::ValueType::value_type*
 DataAbstract::getSampleDataByTag(int tag)
 {
@@ -94,17 +102,17 @@ DataAbstract::getTagNumber(int dpno)
 }
 
 void
-DataAbstract::setRefValue(int ref,
+DataAbstract::setValueByReferenceNumber(int ref,
                           const DataArray& value)
 {
-    throw DataException("Error - DataAbstract::setRefValue: Data type cannot be accessed by reference values.");
+    throw DataException("Error - DataAbstract::setValueByReferenceNumber: Data type cannot be accessed by reference values.");
 }
 
 void
-DataAbstract::getRefValue(int ref,
+DataAbstract::getValueByReferenceNumber(int ref,
                           DataArray& value)
 {
-    throw DataException("Error - DataAbstract::getRefValue: Data type cannot be accessed by reference values.");
+    throw DataException("Error - DataAbstract::getValueByReferenceNumber: Data type cannot be accessed by reference values.");
 }
 
 int

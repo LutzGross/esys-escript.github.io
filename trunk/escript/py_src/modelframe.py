@@ -476,6 +476,27 @@ class ParameterSet(LinkableObject):
         if self.isParameter(name): 
             self.parameters.remove(name)
             self.trace("parameter %s has been removed."%name)
+
+    def checkLinkTargets(self, models, hash):
+        """
+        returns a list of (paramter set,parameter, target model ) if the the parameter of model
+        is linking to the target_model which is not in list of models.
+        """
+        out=[]
+        for name, value in self:
+            if isinstance(value, Link):
+               print str(self), name, value
+               m=value.getTarget()
+               if (m,name) in hash:
+                 raise RuntimeError("recursive link: %s"%(hash+[ (m,name) ]))
+               if isinstance(m, Model) and not m in models: out.append( (self,name,m) )
+               if isinstance(m, ParameterSet): 
+                  try:
+                     out+=m.checkLinkTargets(models, hash+[ (self,name) ] )
+                  except RuntimeError, e:
+                     print str(e), str(self), name
+                     raise e
+        return list(set(out))
     
     def __iter__(self):
         """
@@ -909,20 +930,17 @@ class Simulation(Model):
                out.append(m)
         return list(set(out))
 
-    def checkModelLinks(self, models):
+    def checkModels(self, models, hash):
         """
         returns a list of (model,parameter, target model ) if the the parameter of model
         is linking to the target_model which is not in list of models.
         """
-        out=[]
+        out=self.checkLinkTargets(models, hash)
         for m in self.iterModels():
             if isinstance(m, Simulation):
-               out+=[ (m,) + f for f in  m.checkModelLinks(models) ]
+                 out+=[ (m,) + f for f in  m.checkModels(models, hash) ]
             else:
-              for p in m:
-                 if isinstance(p[1], Link):
-                    l_m=p[1].getTarget()
-                    if isinstance(l_m, Model) and not l_m in models: out.append( (m,p[0],l_m) )
+                 out+=[ (m,) + f for f in  m.checkLinkTargets(models, hash) ]
         return out
 
     
@@ -1053,7 +1071,7 @@ class Simulation(Model):
         # check the completness of the models:
         # first a list of all the models involved in the simulation including subsimulations:
         # 
-        missing=self.checkModelLinks(self.getAllModels())
+        missing=self.checkModels(self.getAllModels(), [])
         if len(missing)>0:
             msg=""
             for l in missing:

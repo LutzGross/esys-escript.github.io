@@ -104,6 +104,15 @@ class DataConstant : public DataAbstract  {
   ESCRIPT_DLL_API
   std::string
   toString() const;
+ /**
+     \brief
+     dumps the object into a netCDF file
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  dump(const std::string fileName) const;
+
 
   /**
      \brief
