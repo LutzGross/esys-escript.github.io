@@ -40,8 +40,8 @@ epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
 epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
 
 # locations of netcdf
-netCDF_path = "/raid2/netcdf/include"
-netCDF_lib_path = "/raid2/netcdf/lib"
+netCDF_path = "/raid2/tools/netcdf-3.6.1/include"
+netCDF_lib_path = "/raid2/tools/netcdf-3.6.1/lib"
 netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
