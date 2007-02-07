@@ -479,24 +479,19 @@ class ParameterSet(LinkableObject):
 
     def checkLinkTargets(self, models, hash):
         """
-        returns a list of (paramter set,parameter, target model ) if the the parameter of model
-        is linking to the target_model which is not in list of models.
+        returns a set of tuples ("<self>(<name>)", <target model>) if the parameter <name> is linked to model <target model>
+        but <target model> is not in the list models. If the a parameter is linked to another parameter set which is not in the hash list 
+        the parameter set is checked for its models. hash gives the call history.
         """
-        out=[]
+        out=set()
         for name, value in self:
             if isinstance(value, Link):
-               print str(self), name, value
                m=value.getTarget()
-               if (m,name) in hash:
-                 raise RuntimeError("recursive link: %s"%(hash+[ (m,name) ]))
-               if isinstance(m, Model) and not m in models: out.append( (self,name,m) )
-               if isinstance(m, ParameterSet): 
-                  try:
-                     out+=m.checkLinkTargets(models, hash+[ (self,name) ] )
-                  except RuntimeError, e:
-                     print str(e), str(self), name
-                     raise e
-        return list(set(out))
+               if isinstance(m, Model):
+                   if not m in models: out.add( (str(self)+"("+name+")",m) )
+               elif isinstance(m, ParameterSet) and not m in hash:
+                     out|=set( [ (str(self)+"("+name+")."+f[0],f[1]) for f in m.checkLinkTargets(models, hash+[ self ] ) ] )
+        return out
     
     def __iter__(self):
         """
@@ -608,7 +603,6 @@ class ParameterSet(LinkableObject):
                     dic.appendChild(i)
                  param.appendChild(dic)
             else:
-                print value
                 raise ValueError("cannot serialize %s type to XML."%str(value.__class__))
 
             node.appendChild(param)
@@ -935,13 +929,13 @@ class Simulation(Model):
         returns a list of (model,parameter, target model ) if the the parameter of model
         is linking to the target_model which is not in list of models.
         """
-        out=self.checkLinkTargets(models, hash)
+        out=self.checkLinkTargets(models, hash + [self])
         for m in self.iterModels():
             if isinstance(m, Simulation):
-                 out+=[ (m,) + f for f in  m.checkModels(models, hash) ]
+                 out|=m.checkModels(models, hash)
             else:
-                 out+=[ (m,) + f for f in  m.checkLinkTargets(models, hash) ]
-        return out
+                 out|=m.checkLinkTargets(models, hash + [self])
+        return set( [ (str(self)+"."+f[0],f[1]) for f in out ] )
 
     
     def getSafeTimeStepSize(self,dt):
@@ -1075,8 +1069,7 @@ class Simulation(Model):
         if len(missing)>0:
             msg=""
             for l in missing:
-                 msg+="\n\t"+str(l[-1])+" at "+str(self)
-                 for i in xrange(len(l)-1): msg+="."+str(l[i])
+                 msg+="\n\t"+str(l[1])+" at "+l[0]
             raise MissingLink("link targets missing in the Simulation: %s"%msg)
         #==============================
         self.doInitialization()
