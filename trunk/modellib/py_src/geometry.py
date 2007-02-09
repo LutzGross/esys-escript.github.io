@@ -9,6 +9,7 @@ __license__="""Licensed under the Open Software License version 3.0
 
 from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
+from esys.pycad import TagMap
 from esys import finley
 
 class FinleyReader(ParameterSet):
@@ -30,10 +31,15 @@ class FinleyReader(ParameterSet):
           """
           super(FinleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
+                                region_tag_map_source=None,
+                                surface_tag_map_source=None,
                                 optimizeLabeling=True,
                                 reducedIntegrationOrder=-1,
                                 integrationOrder=-1)
           self.__domain=None
+          self.__region_tag_map=None
+          self.__surface_tag_map=None
+
 
        def domain(self):
           """
@@ -51,6 +57,34 @@ class FinleyReader(ParameterSet):
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
+
+       def region_tag_map(self):
+          """
+          returns the map from regional tag names to tag integers used in the mesh
+
+          @return: the tag map
+          @rtype: L{TagMap}
+          """
+          if self.__region_tag_map == None:
+               self.__region_tag_map = TagMap()
+               if  self.region_tag_map_source != None:
+                   self.__region_tag_map.fillFromXML(open(self.region_tag_map_source.getLocalFileName()))
+               self.trace("region tag map read from %s in %s format."%(self.region_tag_map_source.getLocalFileName(), self.region_tag_map_source.fileformat))           
+          return self.__region_tag_map
+
+       def surface_tag_map(self):
+          """
+          returns the map from surface tag names to tag integers used in the mesh
+
+          @return: the tag map
+          @rtype: L{TagMap}
+          """
+          if self.__surface_tag_map == None:
+               self.__surface_tag_map = TagMap()
+               if  self.surface_tag_map_source != None:
+                   self.__surface_tag_map.fillFromXML(open(self.surface_tag_map_source.getLocalFileName()))
+               self.trace("surface tag map read from %s in %s format."%(self.surface_tag_map_source.getLocalFileName(), self.surface_tag_map_source.fileformat))           
+          return self.__surface_tag_map
           
                        
 class RectangularDomain(ParameterSet):
@@ -162,6 +196,84 @@ class UpdateGeometry(Model):
          """
          self.__reset=False
 
+class ConstrainerOverBox(Model):
+      """
+      Creates a characteristic function for the location of constraints 
+      for all components of a value and selects the value from an initial value 
+      ate these locations.
+
+      In the case that the spatial dimension is two, the arguments front and back are ignored.
+
+      @ivar domain: domain (in).
+      @ivar left:  True to set a constraint at the left face of the domain (x[0]=min x[0]), default False (in).
+      @ivar right: True to set a constraint at the left face of the domain (x[0]=max x[0]), default False (in).
+      @ivar top: True to set a constraint at the left face of the domain (x[1]=min x[1]), default False (in).
+      @ivar bottom: True to set a constraint at the left face of the domain (x[1]=max x[1]), default False (in).
+      @ivar front: True to set a constraint at the left face of the domain (x[2]=min x[2]), default False (in).
+      @ivar back: True to set a constraint at the left face of the domain (x[2]=max x[2]), default False (in).
+      @ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
+      """
+      def __init__(self,**kwargs):
+           super(ConstrainerOverBox, self).__init__(**kwargs)
+           self.declareParameter(domain=None, \
+                                 value=None,  \
+                                 left=False, \
+                                 right=False, \
+                                 top=False, \
+                                 bottom=False, \
+                                 front=False, \
+                                 back=False, \
+                                 tol=1.e-8)
+           self.__value_of_constraint = None
+           self.__location_of_constraint=None
+      def location_of_constraint(self):
+          """
+          return the values used to constrain a solution
+
+          @return: the mask marking the locations of the constraints
+          @rtype: L{escript.Scalar}
+          """
+          if self.__location_of_constraint == None: self.__setOutput()
+          return self.__location_of_constraint
+         
+      def value_of_constraint(self):
+          """
+          return the values used to constrain a solution
+
+          @return: values to be used at the locations of the constraints. If 
+                  L{value} is not given C{None} is rerturned.
+          @rtype: L{escript.Scalar}
+          """
+          if self.__location_of_constraint == None: self.__setOutput()
+          return self.__value_of_constraint
+         
+      def __setOutput(self):
+          x=self.domain.getX()
+          val=self.value
+          if isinstance(val, int) or isinstance(val, float):
+             shape=()
+          elif isinstance(val, list) or isinstance(val, tuple) :
+             shape=(len(val),)
+          elif isinstance(val, numarray.NumArray):
+              shape=val.shape
+          else: 
+              shape=val.getShape()
+          self.__location_of_constraint=Data(0,shape,x.getFunctionSpace())
+          if self.domain.getDim()==3:
+                x0,x1,x2=x[0],x[1],x[2]
+                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+                if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol)
+                if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol)
+          else:
+                x0,x1=x[0],x[1]
+                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+          self.__value_of_constraint=self.__location_of_constraint*self.value
 class ScalarConstrainerOverBox(Model):
       """
       Creates a characteristic function for the location of constraints 
