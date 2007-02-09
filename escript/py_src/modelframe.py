@@ -467,8 +467,6 @@ class ParameterSet(LinkableObject):
             setattr(self,prm,value)
             self.parameters.add(prm)
 
-            self.trace("parameter %s has been declared."%prm)
-
     def releaseParameters(self,name):
         """
 	Removes parameter name from the paramameters.
