@@ -1,5 +1,5 @@
 """
-seismic wave propagation domain
+block with some fualts
  
 @var __author__: name of author
 @var __licence__: licence agreement
@@ -21,6 +21,7 @@ __date__="$Date$"
 
 from esys.pycad import *
 from esys.pycad.gmsh import Design
+from esys.finley import MakeDomain
 
 l=100000.           # width and length m (without obsorber)
 h=30000.            # width and length m (without obsorber)
@@ -47,8 +48,9 @@ m3=Line(q3,q4)
 m4=Line(q4,q1)
 c2=CurveLoop(m1,m2,m3,m4)
 c2.setLocalScale(0.1)
-dsgn=Design(element_size=h/3)
+dsgn=Design(element_size=h/5)
 dsgn.addItems(Volume(SurfaceLoop(*tuple(b.getSurfaces()+[PlaneSurface(c1),PlaneSurface(c2)]))))
-dsgn.setScriptFileName("test.geo")
-dsgn.setMeshFileName("test.msh")
-print dsgn.getMeshHandler()
+dsgn.setScriptFileName("faults.geo")
+dsgn.setMeshFileName("faults.msh")
+dom=MakeDomain(dsgn,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
+dom.write("faults.fly")
