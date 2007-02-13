@@ -46,20 +46,20 @@ epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-pac
 
 # c flags to use
 cc_flags  = '-O -fPIC'
-cc_flags_debug  = '-g -fPIC'
+cc_flags_debug  = '-g -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
 
 # c++ flags to use
 cxx_flags = '-fPIC'
-cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC'
+cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
   	
 # c and c++ flags for MPI compilation
 # c flags to use
 cc_flags_MPI  = '-O -DPASO_MPI -fPIC'
-cc_flags_debug_MPI  = '-g -DPASO_MPI -fPIC'
+cc_flags_debug_MPI  = '-g -DPASO_MPI -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
 
 # c++ flags to use
 cxx_flags_MPI = '-fPIC'
-cxx_flags_debug_MPI = '-DDOASSERT -UDOPROF -fPIC'
+cxx_flags_debug_MPI = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
 
 # system specific libraries to link with
 sys_libs = []

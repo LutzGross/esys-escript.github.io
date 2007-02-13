@@ -26,7 +26,7 @@
 
 extern "C" {
 #include "DataC.h"
-#include "paso/Paso.h"
+/* #include "paso/Paso.h" doesn't belong in this file...causes trouble for BruceFactory.cpp */
 }
 
 #ifndef PASO_MPI

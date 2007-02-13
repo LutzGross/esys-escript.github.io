@@ -75,6 +75,7 @@ void AbstractSystemMatrix::ypAx(Data& y,Data& x) const
 
 Data AbstractSystemMatrix::solve(Data& in,const boost::python::dict& options) const
 {
+     printf("ksteube in escript/src/AbstractSystemMatrix.cpp : solve()\n");
      if (isEmpty())
           throw SystemMatrixException("Error - Matrix is empty.");
      if (in.getFunctionSpace()!=getRowFunctionSpace())

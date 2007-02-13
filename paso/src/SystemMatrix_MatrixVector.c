@@ -45,6 +45,9 @@ void  Paso_SystemMatrix_MatrixVector(double alpha,
      } else {
        Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(alpha,A,in,beta,out);
      }
+  } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
+    fprintf(stderr, "Paso_SystemMatrix_MatrixVector: need to implement MATRIX_FORMAT_TRILINOS_CRS");
+    exit(1);
   } else {
      if (A->type & MATRIX_FORMAT_OFFSET1) {
        Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(alpha,A,in,beta,out);

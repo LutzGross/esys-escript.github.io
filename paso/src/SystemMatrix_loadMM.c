@@ -176,7 +176,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	row_ptr[M] = nz;
 
 	/* create F_SMP and F_SM */
-	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind );
+	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind, NULL ); /* NULL should be an MPIInfo if this is ever to be used */
 	if(! Paso_noError() )
 		return NULL;
 
@@ -288,8 +288,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	col_ptr[N] = nz;
 
 	/* create F_SMP and F_SM */
-//	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind );
-	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, N, col_ptr, row_ind );
+//	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind, NULL ); /* NULL should be an MPIInfo if this is ever to be used */
+	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, N, col_ptr, row_ind, NULL ); /* NULL should be an MPIInfo if this is ever to be used */
 	if(! Paso_noError() )
 		return NULL;
 
