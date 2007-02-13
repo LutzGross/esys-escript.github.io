@@ -617,7 +617,61 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 void
 DataExpanded::dump(const std::string fileName) const
 {
-    throw DataException("Error - DataExpanded:: dump: not implemented.");
+   #ifdef PASO_MPI
+   throw DataException("Error - DataExpanded:: dump is not implemented for MPI yet.")
+   #endif
+   const NcDim* ncdims[2+DataArrayView::maxRank];
+   NcVar* var;
+   int rank = getPointDataView().getRank();
+   int type=  getFunctionSpace().getTypeCode();
+   int ndims =0;
+   long dims[2+DataArrayView::maxRank];
+   DataArrayView::ShapeType shape = getPointDataView().getShape();
+
+   // netCDF error handler
+   NcError err(NcError::verbose_nonfatal);
+   // Create the file.
+   NcFile dataFile(fileName.c_str(), NcFile::Replace);
+   // check if writing was successful
+   if (!dataFile.is_valid())
+        throw DataException("Error - DataExpanded:: opening of netCDF file for output failed.");
+   if (!dataFile.add_att("type","constant") )
+        throw DataException("Error - DataExpanded:: appending data type to netCDF file failed.");
+   if (!dataFile.add_att("rank",rank) )
+        throw DataException("Error - DataExpanded:: appending rank attribute to netCDF file failed.");
+   if (!dataFile.add_att("function_space_type",type))
+        throw DataException("Error - DataExpanded:: appending function space attribute to netCDF file failed.");
+   ndims=rank+2;
+   if ( rank >1 ) {
+       dims[0]=shape[0];
+       if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
+            throw DataException("Error - DataExpanded:: appending ncdimsion 0 to netCDF file failed.");
+   }
+   if ( rank >1 ) {
+       dims[1]=shape[1];
+       if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
+            throw DataException("Error - DataExpanded:: appending ncdimsion 1 to netCDF file failed.");
+   }
+   if ( rank >2 ) {
+       dims[2]=shape[2];
+       if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
+            throw DataException("Error - DataExpanded:: appending ncdimsion 2 to netCDF file failed.");
+   }
+   if ( rank >3 ) {
+       dims[3]=shape[3];
+       if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
+            throw DataException("Error - DataExpanded:: appending ncdimsion 3 to netCDF file failed.");
+   }
+   dims[rank]= getNumDataPointsPerSample();
+   if (! (ncdims[rank] = dataFile.add_dim("num_data_points_per_sample", dims[rank])) )
+            throw DataException("Error - DataExpanded:: appending num_data_points_per_sample to netCDF file failed.");
+   dims[rank+1]= getNumSamples();
+   if (! (ncdims[rank+1] = dataFile.add_dim("num_sample", dims[rank+1])) )
+            throw DataException("Error - DataExpanded:: appending num_sample to netCDF file failed.");
+   if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
+        throw DataException("Error - DataExpanded:: appending variable to netCDF file failed.");
+   if (! (var->put(&m_data[0],dims)) )
+        throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
 }
 
 
