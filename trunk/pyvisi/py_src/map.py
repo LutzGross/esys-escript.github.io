@@ -185,7 +185,7 @@ from clipper import Clipper
 # to allow access to their public methods from the driver.
 class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 	"""
-	Class that show a scalar field  on a clipped plane.	
+	Class that show a scalar field on a clipped plane.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
