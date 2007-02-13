@@ -50,6 +50,7 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Pas
   if (Finley_checkPtr(out)) return NULL;
   out->ReferenceElement=NULL;
   out->LinearReferenceElement=NULL;
+  out->isPrepared=FINLEY_UNKNOWN;
   out->numElements=0;
   out->Id=NULL;
   out->Nodes=NULL;

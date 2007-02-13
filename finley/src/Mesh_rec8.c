@@ -447,9 +447,12 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* pe
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
   #endif
 
-  if (! Finley_noError()) {
+  if (Finley_noError()) {
+       if ( ! Finley_Mesh_isPrepared(out)) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  } else {
       Finley_Mesh_dealloc(out);
-      return NULL;
   }
   return out;
 }
@@ -841,7 +844,11 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* pe
     Finley_Mesh_dealloc(out);
     return NULL;
   }
-
-	return out;
+  if (Finley_noError()) {
+       if (! Finley_Mesh_isPrepared(out)) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  }
+  return out;
 }
 #endif

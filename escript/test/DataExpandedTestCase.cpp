@@ -512,56 +512,6 @@ void DataExpandedTestCase::testSliceSetting2() {
 
 }
 
-void DataExpandedTestCase::testRefValue() {
-
-  cout << endl;
-
-  cout << "\tTest DataExpanded refValue methods." << endl;
-
-  //
-  // Create a rank 1 data array to create a DataExpanded object
-  DataArrayView::ShapeType shape;
-  shape.push_back(3);
-  DataArrayView::ValueType data(DataArrayView::noValues(shape),0);
-  DataArrayView dataView(data,shape);
-
-  //
-  // Create another DataArray object to pass to refValue methods
-  DataArray data2(dataView);
-
-  //
-  // Create a DataExpanded object
-  dataView(0)=0.0;
-  dataView(1)=1.0;
-  dataView(2)=2.0;
-  DataExpanded dataExp(dataView,FunctionSpace());
-
-  //
-  // Try out ref value methods
-
-  dataExp.getValueByReferenceNumber(1,data2);
-
-  // check the values loaded into data2 by getValueByReferenceNumber
-  // match the values in dataExp
-  assert(data2.getView()(0)==0.0);
-  assert(data2.getView()(1)==1.0);
-  assert(data2.getView()(2)==2.0);
-
-  data2.getView()(0)=3.0;
-  data2.getView()(1)=4.0;
-  data2.getView()(2)=5.0;
-
-  dataExp.setValueByReferenceNumber(1,data2);
-
-  // check the values now in dataExp match the values
-  // that were supplied in data2
-  assert(dataExp.getPointDataView()(0)==3.0);
-  assert(dataExp.getPointDataView()(1)==4.0);
-  assert(dataExp.getPointDataView()(2)==5.0);
-
-  cout << endl;
-
-}
 
 TestSuite* DataExpandedTestCase::suite ()
 {
@@ -574,6 +524,5 @@ TestSuite* DataExpandedTestCase::suite ()
   testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSlicing3",&DataExpandedTestCase::testSlicing3));
   testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSliceSetting",&DataExpandedTestCase::testSliceSetting));
   testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSliceSetting2",&DataExpandedTestCase::testSliceSetting2));
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testRefValue",&DataExpandedTestCase::testRefValue));
   return testSuite;
 }

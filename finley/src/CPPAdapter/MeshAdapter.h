@@ -163,10 +163,9 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
      Return the reference number of  the given sample number.
      \param functionSpaceType Input - The function space type.
-     \param sampleNo Input - The sample number.
   */
   FINLEY_DLL_API
-  int getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const;
+  int* borrowSampleReferenceIDs(int functionSpaceType) const;
 
   /**
      \brief

@@ -72,9 +72,9 @@ int AbstractDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) cons
   return 0;
 }
 
-int AbstractDomain::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const
+int* AbstractDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {
-  throwStandardException("AbstractDomain::getReferenceNoFromSampleNo");
+  throwStandardException("AbstractDomain::borrowSampleReferenceIDs");
   return 0;
 }
 

@@ -286,12 +286,13 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
   #ifdef Finley_TRACE
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
   #endif
-
-  if (! Finley_noError()) {
+  if (Finley_noError()) {
+       if ( ! Finley_Mesh_isPrepared(out) ) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  } else {
       Finley_Mesh_dealloc(out);
-      return NULL;
   }
-  
   return out;
 }
 #ifdef PASO_MPI
@@ -548,39 +549,11 @@ Finley_Mesh* Finley_RectangularMesh_Line2(dim_t* numElements,double* Length,bool
   #ifdef Finley_TRACE
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
   #endif
-
+  if (Finley_noError()) {
+       if ( ! Finley_Mesh_isPrepared(out) ) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  }
   return out; 
 }
 #endif
-
-
-
-
-/*
-* Revision 1.3  2005/09/01 03:31:36  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-01
-*
-* Revision 1.2.2.2  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.2.2.1  2005/08/24 02:02:18  gross
-* timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
-*
-* Revision 1.2  2005/07/08 04:07:52  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.1.1.1.2.2  2005/06/30 01:53:56  gross
-* a bug in coloring fixed
-*
-* Revision 1.1.1.1.2.1  2005/06/29 02:34:52  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
-

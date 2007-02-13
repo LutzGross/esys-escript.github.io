@@ -148,7 +148,7 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
       return;
     }
   }
-  sprintf(error_msg,"__FILE__: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+  sprintf(error_msg,"Finley_Quad_getNodesRec: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
   Finley_setError(VALUE_ERROR,error_msg);
   #undef DIM
 }
@@ -193,7 +193,7 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
       return;
     }
   }
-  sprintf(error_msg,"__FILE__: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+  sprintf(error_msg,"Finley_Quad_getNodesHex: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
   Finley_setError(VALUE_ERROR,error_msg);
   #undef DIM
 }
@@ -206,7 +206,7 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
 
 void Finley_Quad_getNodesPoint(int numQuadNodes,double* quadNodes,double* quadWeights) {
   if (numQuadNodes!=0) {
-       Finley_setError(VALUE_ERROR,"__FILE__: There is no quadrature scheme on points.");
+       Finley_setError(VALUE_ERROR,"Finley_Quad_getNodesPoint: There is no quadrature scheme on points.");
   }
 }
 
@@ -407,7 +407,7 @@ void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,dou
 
 int Finley_Quad_getNumNodesPoint(int order) {
   if (order <0 ) {
-    Finley_setError(VALUE_ERROR,"__FILE__: Negative intergration order.");
+    Finley_setError(VALUE_ERROR,"Finley_Quad_getNumNodesPoint: Negative intergration order.");
     return -1;
   } else { 
     return 0;
@@ -417,11 +417,11 @@ int Finley_Quad_getNumNodesPoint(int order) {
 int Finley_Quad_getNumNodesLine(int order) {
   char error_msg[LenErrorMsg_MAX];
   if (order <0 ) {
-    Finley_setError(VALUE_ERROR,"__FILE__: Negative intergration order.");
+    Finley_setError(VALUE_ERROR,"Finley_Quad_getNumNodesPoint: Negative intergration order.");
     return -1;
   } else { 
     if (order > 2*MAX_numQuadNodesLine-1) {
-      sprintf(error_msg,"__FILE__: requested integration order %d on line is too large (>%d).",
+      sprintf(error_msg,"Finley_Quad_getNumNodesPoint: requested integration order %d on line is too large (>%d).",
                                                            order,2*MAX_numQuadNodesLine-1);
       Finley_setError(VALUE_ERROR,error_msg);
       return -1;

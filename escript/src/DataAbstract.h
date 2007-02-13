@@ -159,41 +159,6 @@ class DataAbstract {
   double*
   getSampleDataByTag(int tag);
 
-  /**
-     \brief
-     Assign the given value to the data-points(s) referenced by the given
-     reference number.
-
-     If this Data object cannot be accessed by reference numbers an
-     exception will be thrown.
-
-     \param ref - Input - reference number.
-     \param value - Input - value to assign to data-points associated with
-                            the given reference number.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  setValueByReferenceNumber(int ref,
-                            const DataArray& value);
-
-  /**
-     \brief
-     Return the values associated with the data-point(s) referenced by the given
-     reference number.
-
-     If this Data object cannot be accessed by reference numbers an
-     exception will be thrown.
-
-     \param ref - Input - reference number.
-     \param value - Output - object to receive data-points associated with
-                             the given reference number.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  getValueByReferenceNumber(int ref,
-                            DataArray& value);
 
   /**
      \brief

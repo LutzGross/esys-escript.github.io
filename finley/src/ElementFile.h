@@ -42,6 +42,7 @@ struct Finley_ElementFile {
 	index_t *Dom;
 #endif
 
+  index_t isPrepared;                          /* UNKNOWN,  UNPREPARED, PREPARED to indicate that the element table has been pertpared for calculation (maybe not optimized) */
   Finley_RefElement* ReferenceElement;           /* the reference element, see
 						    Reference element.c */
 

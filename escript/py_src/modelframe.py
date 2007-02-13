@@ -541,9 +541,9 @@ class ParameterSet(LinkableObject):
                 for i in value:
                     if isinstance(i, bool): 
                         elem_type = max(elem_type,0)
-                    if isinstance(i, int) and not isinstance(i, bool): 
+                    elif isinstance(i, int):
                         elem_type = max(elem_type,1)
-                    if isinstance(i, float):
+                    elif isinstance(i, float):
                         elem_type = max(elem_type,2)
                 if elem_type == 0: value = numarray.array(value,numarray.Bool)
                 if elem_type == 1: value = numarray.array(value,numarray.Int)

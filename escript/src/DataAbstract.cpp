@@ -101,20 +101,6 @@ DataAbstract::getTagNumber(int dpno)
     return (0);
 }
 
-void
-DataAbstract::setValueByReferenceNumber(int ref,
-                          const DataArray& value)
-{
-    throw DataException("Error - DataAbstract::setValueByReferenceNumber: Data type cannot be accessed by reference values.");
-}
-
-void
-DataAbstract::getValueByReferenceNumber(int ref,
-                          DataArray& value)
-{
-    throw DataException("Error - DataAbstract::getValueByReferenceNumber: Data type cannot be accessed by reference values.");
-}
-
 int
 DataAbstract::archiveData(ofstream& archiveFile,
                           const ValueType::size_type noValues) const

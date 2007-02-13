@@ -261,7 +261,7 @@ DataExpanded::toString() const
     for (int j=0;j<m_data.getNumCols();j++) {
       tempView.setOffset(m_data.index(i,j));
       stringstream suffix;
-      suffix << "( id: " << i << ", ref: " << fs.getReferenceNoFromSampleNo(i) << ", pnt: " << j << ")";
+      suffix << "( id: " << i << ", ref: " << fs.getReferenceIDOfSample(i) << ", pnt: " << j << ")";
       temp << tempView.toString(suffix.str());
       if (!(i==(m_data.getNumRows()-1) && j==(m_data.getNumCols()-1))) {
         temp << endl;
@@ -290,73 +290,6 @@ DataArrayView::ValueType::size_type
 DataExpanded::getLength() const
 {
   return m_data.size();
-}
-
-void
-DataExpanded::setValueByReferenceNumber(int ref,
-                          const DataArray& value)
-{
-  //
-  // Get the number of samples and data-points per sample.
-  int numSamples = getNumSamples();
-  int numDPPSample = getNumDPPSample();
-
-  //
-  // Determine the sample number which corresponds to this reference number.
-  int sampleNo = -1;
-  int tempRef = -1;
-  for (int n=0; n<numSamples; n++) {
-    tempRef = getFunctionSpace().getReferenceNoFromSampleNo(n);
-    if (tempRef == ref) {
-      sampleNo = n;
-      break;
-    }
-  }
-  if (sampleNo == -1) {
-    throw DataException("DataExpanded::setValueByReferenceNumber error: invalid ref number supplied.");
-  }
-
-  for (int n=0; n<numDPPSample; n++) {
-    //
-    // Get *each* data-point in the sample in turn.
-    DataArrayView pointView = getDataPoint(sampleNo, n);
-    //
-    // Assign the values in the DataArray to this data-point.
-    pointView.copy(value.getView());
-  }
-}
-
-void
-DataExpanded::getValueByReferenceNumber(int ref,
-                          DataArray& value)
-{
-  //
-  // Get the number of samples and data-points per sample.
-  int numSamples = getNumSamples();
-  int numDPPSample = getNumDPPSample();
-
-  //
-  // Determine the sample number which corresponds to this reference number
-  int sampleNo = -1;
-  int tempRef = -1;
-  for (int n=0; n<numSamples; n++) {
-    tempRef = getFunctionSpace().getReferenceNoFromSampleNo(n);
-    if (tempRef == ref) {
-      sampleNo = n;
-      break;
-    }
-  }
-  if (sampleNo == -1) {
-    throw DataException("DataExpanded::getValueByReferenceNumber error: invalid ref number supplied.");
-  }
-
-  //
-  // Get the *first* data-point associated with this sample number.
-  DataArrayView pointView = getDataPoint(sampleNo, 0);
-
-  //
-  // Load the values from this data-point into the DataArray
-  value.getView().copy(pointView);
 }
 
 int

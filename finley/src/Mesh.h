@@ -72,7 +72,7 @@
 
 struct Finley_Mesh {
   char* Name;                           /* the name of the mesh */
-  index_t order;                          /* integration order */
+  index_t order;                        /* integration order */
   dim_t reference_counter;              /* counts the number of references to the mesh; */
   Finley_NodeFile* Nodes;               /* the table of the nodes */
   Finley_ElementFile* Elements;         /* the table of the elements */
@@ -127,6 +127,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t);
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 
 void Finley_Mesh_prepare(Finley_Mesh* in);
+bool_t Finley_Mesh_isPrepared(Finley_Mesh*);
 void Finley_Mesh_prepareNodes(Finley_Mesh* in);
 void Finley_Mesh_improveColoring(Finley_Mesh* in);
 void Finley_Mesh_optimizeElementDistribution(Finley_Mesh* in);

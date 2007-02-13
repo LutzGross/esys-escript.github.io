@@ -99,11 +99,13 @@ int NullDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
   return 1; 
 }
 
-int NullDomain::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const
+int referenceID=10;
+
+int* NullDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {
   //
   // return an arbitary value
-  return 1; 
+  return &(referenceID);
 }
 
 int NullDomain::getDim() const

@@ -93,24 +93,35 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
 
       /* get a list of the DOFs in the reduced mesh and convert it into reducedDegreeOfFreedom */
       in->Nodes->reducedNumDegreesOfFreedom=Finley_Util_packMask(len,maskReducedDOF,index);
-      #pragma omp parallel for private(n) schedule(static)
-      for (n=0;n<in->Nodes->reducedNumDegreesOfFreedom;n++) 
-        maskReducedDOF[index[n]]=n;
+      MEMFREE(in->Nodes->reducedDegreeOfFreedomId);
+      in->Nodes->reducedDegreeOfFreedomId=MEMALLOC(in->Nodes->reducedNumDegreesOfFreedom,index_t);
+      if (! Finley_checkPtr(in->Nodes->reducedDegreeOfFreedomId) )  {
+         #pragma omp parallel for private(n) schedule(static)
+         for (n=0;n<in->Nodes->reducedNumDegreesOfFreedom;n++) {
+           maskReducedDOF[index[n]]=n;  
+           in->Nodes->reducedDegreeOfFreedomId[n] = in->Nodes->Id[index[n]];
+         }
 
-      /* get a list of the DOFs and convert it into degreeOfFreedom */
-      in->Nodes->numDegreesOfFreedom=Finley_Util_packMask(len,maskDOF,index);
-
-      #pragma omp parallel 
-      {
-          #pragma omp for private(n) schedule(static)
-          for (n=0;n<in->Nodes->numDegreesOfFreedom;n++) 
-            maskDOF[index[n]]=n;
-          #pragma omp for private(n,id) schedule(static)
-          for (n=0;n<in->Nodes->numNodes;n++) {
-                id=in->Nodes->degreeOfFreedom[n]-min_id;
-                in->Nodes->degreeOfFreedom[n]=maskDOF[id];
-                in->Nodes->reducedDegreeOfFreedom[n]=maskReducedDOF[id];
-          }
+         /* get a list of the DOFs and convert it into degreeOfFreedom */
+         in->Nodes->numDegreesOfFreedom=Finley_Util_packMask(len,maskDOF,index);
+         MEMFREE(in->Nodes->degreeOfFreedomId);
+         in->Nodes->degreeOfFreedomId=MEMALLOC(in->Nodes->numDegreesOfFreedom,index_t);
+         if (! Finley_checkPtr(in->Nodes->degreeOfFreedomId)) {
+             #pragma omp parallel 
+             {
+                 #pragma omp for private(n) schedule(static)
+                 for (n=0;n<in->Nodes->numDegreesOfFreedom;n++) {
+                   maskDOF[index[n]]=n;
+                   in->Nodes->degreeOfFreedomId[n]=in->Nodes->Id[index[n]];
+                 }
+                 #pragma omp for private(n,id) schedule(static)
+                 for (n=0;n<in->Nodes->numNodes;n++) {
+                       id=in->Nodes->degreeOfFreedom[n]-min_id;
+                       in->Nodes->degreeOfFreedom[n]=maskDOF[id];
+                       in->Nodes->reducedDegreeOfFreedom[n]=maskReducedDOF[id];
+                 }
+             }
+         }
       }
    }
 
@@ -256,29 +267,6 @@ clean:
   TMPMEMFREE(maskDOF);
   TMPMEMFREE(maskReducedDOF);
   TMPMEMFREE(index);
+  if (Finley_noError()) in->Nodes->isPrepared=TRUE;
 }
-
-/*
-* $Log$
-* Revision 1.6  2005/09/15 03:44:22  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.5.2.1  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.5  2005/07/08 04:07:53  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.4  2004/12/15 07:08:33  jgs
-* *** empty log message ***
-* Revision 1.1.1.1.2.3  2005/06/29 02:34:52  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1.2.2  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
-*
-*
-*
-*/
-
 

@@ -2092,90 +2092,6 @@ Data::getTagNumber(int dpno)
   return m_data->getTagNumber(dpno);
 }
 
-/* TODO */
-/* global reduction */
-void
-Data::setValueByReferenceNumber(int ref,
-                  const boost::python::numeric::array& value)
-{
-  if (isProtected()) {
-        throw DataException("Error - attempt to update protected Data object.");
-  }
-  //
-  // Construct DataArray from boost::python::object input value
-  DataArray valueDataArray(value);
-
-  //
-  // Call DataAbstract::setValueByReferenceNumber
-  m_data->setValueByReferenceNumber(ref,valueDataArray);
-}
-
-/* TODO */
-/* global reduction */
-void
-Data::getValueByReferenceNumber(int ref,
-                  boost::python::numeric::array& value)
-{
-  //
-  // Construct DataArray for boost::python::object return value
-  DataArray valueDataArray(value);
-
-  //
-  // Load DataArray with values from data-points specified by ref
-  m_data->getValueByReferenceNumber(ref,valueDataArray);
-
-  //
-  // Load values from valueDataArray into return numarray
-
-  // extract the shape of the numarray
-  int rank = value.getrank();
-  DataArrayView::ShapeType shape;
-  for (int i=0; i < rank; i++) {
-    shape.push_back(extract<int>(value.getshape()[i]));
-  }
-
-  // and load the numarray with the data from the DataArray
-  DataArrayView valueView = valueDataArray.getView();
-
-  if (rank==0) {
-      boost::python::numeric::array temp_numArray(valueView());
-      value = temp_numArray;
-  }
-  if (rank==1) {
-    for (int i=0; i < shape[0]; i++) {
-      value[i] = valueView(i);
-    }
-  }
-  if (rank==2) {
-    for (int i=0; i < shape[0]; i++) {
-      for (int j=0; j < shape[1]; j++) {
-        value[make_tuple(i,j)] = valueView(i,j);
-      }
-    }
-  }
-  if (rank==3) {
-    for (int i=0; i < shape[0]; i++) {
-      for (int j=0; j < shape[1]; j++) {
-        for (int k=0; k < shape[2]; k++) {
-          value[make_tuple(i,j,k)] = valueView(i,j,k);
-        }
-      }
-    }
-  }
-  if (rank==4) {
-    for (int i=0; i < shape[0]; i++) {
-      for (int j=0; j < shape[1]; j++) {
-        for (int k=0; k < shape[2]; k++) {
-          for (int l=0; l < shape[3]; l++) {
-            value[make_tuple(i,j,k,l)] = valueView(i,j,k,l);
-          }
-        }
-      }
-    }
-  }
-
-}
-
 void
 Data::archiveData(const std::string fileName)
 {
@@ -2217,7 +2133,7 @@ Data::archiveData(const std::string fileName)
   DataArrayView::ShapeType dataPointShape = getDataPointShape();
   vector<int> referenceNumbers(noSamples);
   for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-    referenceNumbers[sampleNo] = getFunctionSpace().getReferenceNoFromSampleNo(sampleNo);
+    referenceNumbers[sampleNo] = getFunctionSpace().getReferenceIDOfSample(sampleNo);
   }
   vector<int> tagNumbers(noSamples);
   if (isTagged()) {
@@ -2426,7 +2342,7 @@ Data::extractData(const std::string fileName,
     throw DataException("extractData Error: incompatible FunctionSpace");
   }
   for (int sampleNo=0; sampleNo<noSamples; sampleNo++) {
-    if (referenceNumbers[sampleNo] != fspace.getReferenceNoFromSampleNo(sampleNo)) {
+    if (referenceNumbers[sampleNo] != fspace.getReferenceIDOfSample(sampleNo)) {
       throw DataException("extractData Error: incompatible FunctionSpace");
     }
   }

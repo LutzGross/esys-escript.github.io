@@ -44,7 +44,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   max_id=-INDEX_T_MAX;
   Finley_NodeFile_setIdRange(&min_id2,&max_id2,in->Nodes);
   if (min_id2==INDEX_T_MAX || max_id2==-INDEX_T_MAX) {
-    Finley_setError(VALUE_ERROR,"__FILE__: Mesh has not been defined completely.");
+    Finley_setError(VALUE_ERROR,"Finley_Mesh_resolveNodeIds: Mesh has not been defined completely.");
     goto clean;
   }
 
@@ -109,7 +109,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   for (k=0;k<len;k++) {
      /* if a node is refered by an element is there a node defined ?*/
      if (maskElements[k]>=0 && maskNodes[k]<0) {
-       sprintf(error_msg,"__FILE__:Node id %d is referenced by element but is not defined.",k+min_id);
+       sprintf(error_msg,"Finley_Mesh_resolveNodeIds:Node id %d is referenced by element but is not defined.",k+min_id);
        Finley_setError(VALUE_ERROR,error_msg);
      }
   }
@@ -151,27 +151,3 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
          Finley_NodeFile_deallocTable(newNodeFile);
          Finley_NodeFile_dealloc(newNodeFile);
 }
-
-/*
-* $Log$
-* Revision 1.6  2005/09/15 03:44:23  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.5.2.1  2005/09/07 06:26:20  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.5  2005/07/08 04:07:54  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.4  2004/12/15 07:08:33  jgs
-* *** empty log message ***
-* Revision 1.1.1.1.2.2  2005/06/29 02:34:53  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
-*
-*
-*
-*/
-

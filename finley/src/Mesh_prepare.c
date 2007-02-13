@@ -38,6 +38,18 @@ void Finley_Mesh_prepare(Finley_Mesh* in) {
        Finley_Mesh_improveColoring(in);
 #endif
 }
+
+bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
+     /* returns true if nodes and elements have been prepared for calculation */
+     index_t out = TRUE;
+     if ( in->Nodes != NULL) out = MIN(out , in->Nodes->isPrepared);
+     if ( in->Elements != NULL) out = MIN(out ,  in->Elements->isPrepared);
+     if ( in->FaceElements != NULL) out = MIN(out ,  in->FaceElements->isPrepared);
+     if ( in->ContactElements != NULL) out = MIN(out ,  in->ContactElements->isPrepared);
+     if ( in->Points != NULL) out = MIN(out ,  in->Points->isPrepared);
+
+     return out == FINLEY_PREPARED;
+}
 /*                                                      */
 /*  tries to reduce the coloring for all element files: */
 /*                                                      */

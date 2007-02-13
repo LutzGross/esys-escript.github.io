@@ -414,10 +414,12 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   #ifdef Finley_TRACE
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
   #endif
-
-  if (! Finley_noError()) {
+  if (Finley_noError()) {
+       if ( ! Finley_Mesh_isPrepared(out) ) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  } else {
       Finley_Mesh_dealloc(out);
-      return NULL;
   }
   return out;
 }
@@ -819,7 +821,11 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,double* Length,bool_
   #ifdef Finley_TRACE
   printf("timing: mesh generation: %.4e sec\n",Finley_timer()-time0);
   #endif
-
+  if (Finley_noError()) {
+       if (! Finley_Mesh_isPrepared(out) ) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  }
   return out; 
 }
 #endif

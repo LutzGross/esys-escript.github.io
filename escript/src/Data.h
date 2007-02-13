@@ -534,47 +534,6 @@ class Data {
 
   /**
      \brief
-     Assign the given value to the data-points referenced by the given
-     reference number.
-
-     The value supplied is a python numarray object.  The data from this numarray
-     is unpacked into a DataArray, and this is used to set the corresponding
-     data-points in the underlying Data object.
-
-     If the underlying Data object cannot be accessed via reference numbers, an
-     exception will be thrown.
-
-     \param ref - Input - reference number.
-     \param value - Input - value to assign to data-points associated with
-                            the given reference number.
-  */
-  ESCRIPT_DLL_API
-  void
-  setValueByReferenceNumber(int ref,
-                            const boost::python::numeric::array& value);
-
-  /**
-     \brief
-     Return the values associated with the data-points referenced by the given
-     reference number.
-
-     The value supplied is a python numarray object. The data from the corresponding
-     data-points in this Data object are packed into the given numarray object.
-
-     If the underlying Data object cannot be accessed via reference numbers, an
-     exception will be thrown.
-
-     \param ref - Input - reference number.
-     \param value - Output - object to receive values from data-points
-                             associated with the given reference number.
-  */
-  ESCRIPT_DLL_API
-  void
-  getValueByReferenceNumber(int ref,
-                            boost::python::numeric::array& value);
-
-  /**
-     \brief
      Return a view into the data for the data point specified.
      NOTE: Construction of the DataArrayView is a relatively expensive
      operation.
