@@ -193,6 +193,13 @@ class Scene:
 		self.__vtk_image_writer.SetFileName(image_name)
 		self.__vtk_image_writer.Write() 	
 
+	def animate(self):
+		"""
+		Render the object onto the scene on-the-fly. No interaction can occur.
+		"""
+
+		self.__vtk_render_window.Render()
+
 	def render(self):
 		"""
 		Render the object onto the scene.
