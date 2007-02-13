@@ -51,6 +51,10 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, 
        out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
       break;
 
+    case PASO_TRILINOS:
+      out=MATRIX_FORMAT_TRILINOS_CRS; /* Distributed CRS */
+      break;
+
      default:
         Paso_setError(VALUE_ERROR,"unknown package code");
   }

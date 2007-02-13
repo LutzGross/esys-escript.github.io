@@ -75,6 +75,25 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
         out->num_rows=out->pattern->n_index;
         out->num_cols=out->pattern->n_ptr;
         n_norm = out->num_cols * out->col_block_size;
+     } else if (type & MATRIX_FORMAT_TRILINOS_CRS) {
+        if (type & MATRIX_FORMAT_SYM) {
+           Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSC is not implemented yet for TRILINOS.");
+           return NULL;
+        } else {
+#ifdef TRILINOS
+           Initialize_TrilinosData(out->trilinos_data, pattern);
+	   printf("ksteube paso/src/SystemMatrix.c row_block_size=%d col_block_size=%d numCPUs=%d\n", row_block_size, col_block_size, pattern->MPIInfo->size);
+           out->row_block_size=row_block_size;
+           out->col_block_size=col_block_size;
+#else
+           Paso_setError(TYPE_ERROR,"You need to recompile with -DTRILINOS in order to use setSolverPackage(mypde.TRILINOS).");
+           return NULL;
+#endif
+        }
+        out->pattern=Paso_SystemMatrixPattern_reference(pattern); /* Count number of references to pattern */
+        out->num_rows=pattern->numLocal;
+        out->num_cols=out->pattern->n_ptr;
+        n_norm = out->num_cols * out->col_block_size;	/* ksteube what is this used for? */
      } else {
         if (type & MATRIX_FORMAT_SYM) {
            Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSR is not implemented yet.");

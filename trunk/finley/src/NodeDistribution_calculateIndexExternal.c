@@ -7,11 +7,12 @@ void Finley_NodeDistribution_calculateIndexExternal( Finley_NodeDistribution *Di
   index_t *buffer=NULL;
   dim_t bufferLength=0;
 
-  for( n=0; n<Distribution->numNeighbours; n++ )
+  for( n=0; n<Distribution->numNeighbours; n++ ) {
     if( Distribution->edges[n]->numForward>bufferLength )
       bufferLength = Distribution->edges[n]->numForward;
-    else if( Distribution->edges[n]->numBackward>bufferLength )
+    if( Distribution->edges[n]->numBackward>bufferLength )
       bufferLength = Distribution->edges[n]->numBackward;
+  }
 
   buffer = TMPMEMALLOC( bufferLength, index_t );
 

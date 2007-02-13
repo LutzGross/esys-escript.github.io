@@ -51,6 +51,7 @@ int numSamplesEqual(struct escriptDataC* data, int numDataPointsPerSample,
         return true;
      } else {
         int result=(numDataPointsPerSample==temp->getNumDataPointsPerSample());
+	printf("ksteube NumDataPointsPerSample=%d NumSamples=%d\n", temp->getNumDataPointsPerSample(), temp->getNumSamples());
         result=result && (numSamples==temp->getNumSamples());
         return result;
      }

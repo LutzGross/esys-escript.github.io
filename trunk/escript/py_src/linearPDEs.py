@@ -413,6 +413,7 @@ class LinearPDE(object):
    @cvar SCSL: SGI SCSL solver library
    @cvar MKL: Intel's MKL solver library
    @cvar UMFPACK: the UMFPACK library
+   @cvar TRILINOS: the TRILINOS parallel solver class library from Sandia Natl Labs
    @cvar ITERATIVE: The default iterative solver
    @cvar AMG: algebraic multi grid
    @cvar RILU: recursive ILU
@@ -442,6 +443,7 @@ class LinearPDE(object):
    PASO= 21
    AMG= 22
    RILU = 23
+   TRILINOS = 24
 
    SMALL_TOLERANCE=1.e-13
    __PACKAGE_KEY="package"
@@ -868,6 +870,7 @@ class LinearPDE(object):
        elif p==self.MKL: package= "MKL"
        elif p==self.SCSL: package= "SCSL"
        elif p==self.UMFPACK: package= "UMFPACK"
+       elif p==self.TRILINOS: package= "TRILINOS"
        else : method="unknown"
        return "%s solver of %s package"%(method,package)
 
@@ -886,7 +889,7 @@ class LinearPDE(object):
        sets a new solver package
 
        @param package: sets a new solver method.
-       @type package: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMFPACK}
+       @type package: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMFPACK}, L{TRILINOS}
        """
        if package==None: package=self.DEFAULT
        if not package==self.getSolverPackage():

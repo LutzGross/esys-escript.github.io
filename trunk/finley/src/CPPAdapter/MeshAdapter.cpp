@@ -839,7 +839,18 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
     
     Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceRowOrder,reduceColOrder);
     checkFinleyError();
-    Paso_SystemMatrix* fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
+    printf("ksteube in finley/src/CPPAdapter/MeshAdapter.cpp newSystemMatrix\n");
+    Paso_SystemMatrix* fsystemMatrix;
+    int trilinos = 0;
+    if (trilinos) {
+#ifdef TRILINOS
+      /* printf("ksteube newSystemMatrix package=%d\n", row_functionspace.domain.package); */
+      /* Allocation Epetra_VrbMatrix here */
+#endif
+    }
+    else {
+      fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
+    }
     checkPasoError();
     Paso_SystemMatrixPattern_dealloc(fsystemMatrixPattern);
     return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
