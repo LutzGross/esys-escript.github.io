@@ -295,15 +295,6 @@ class Test_Dump(unittest.TestCase):
        self._diffDataObjects(d,file)
 
 
-class Test_DumpOnFinley(Test_Dump):
-   def setUp(self):
-       self.domain =Rectangle(NE,NE+1,2)
-       self.solution = Solution(self.domain) 
-       self.reduced_solution = ReducedSolution(self.domain) 
-       self.continuous_function = ContinuousFunction(self.domain) 
-       self.function = Function(self.domain) 
-       self.function_on_boundary = FunctionOnBoundary(self.domain) 
-
 
 class Test_DumpOnFinley(Test_Dump):
    def setUp(self):
