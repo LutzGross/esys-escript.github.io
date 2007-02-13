@@ -215,14 +215,44 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert doc.numtest.type() == numarray.Float64
         assert type(doc.numtest) == numarray.NumArray
 
-    def testLists(self):
+    def testBoolLists(self):
         p4 = ParameterSet()
         mylist = [True, False, False, True]
         p4.declareParameter(listest=mylist)
         doc = self._class(p4)
-        assert doc.listest.type() == numarray.Bool
         assert type(doc.listest) == numarray.NumArray
-        assert numarray.all(numarray.equal(mylist, doc.listest))
+        assert doc.listest.type() == numarray.Bool
+        assert len(doc.listest) == len(mylist)
+        assert min([ mylist[i] == doc.listest[i] for i in range(len( doc.listest)) ])
+
+    def testIntLists(self):
+        p4 = ParameterSet()
+        mylist = [1,2,4]
+        p4.declareParameter(listest=mylist)
+        doc = self._class(p4)
+        assert type(doc.listest) == numarray.NumArray
+        assert doc.listest.type() == numarray.Int
+        assert len(doc.listest) == len(mylist)
+        assert min([ mylist[i] == doc.listest[i] for i in range(len( doc.listest)) ])
+
+    def testFloatLists(self):
+        p4 = ParameterSet()
+        mylist = [1.,2.,4.]
+        p4.declareParameter(listest=mylist)
+        doc = self._class(p4)
+        assert type(doc.listest) == numarray.NumArray
+        assert doc.listest.type() == numarray.Float
+        assert len(doc.listest) == len(mylist)
+        assert min([ mylist[i] == doc.listest[i] for i in range(len( doc.listest)) ])
+
+    def testStringLists(self):
+        p4 = ParameterSet()
+        mylist = ["a", "b", "c"]
+        p4.declareParameter(listest=mylist)
+        doc = self._class(p4)
+        assert type(doc.listest) == list
+        assert len(doc.listest) == len(mylist)
+        assert min([ mylist[i] == doc.listest[i] for i in range(len( doc.listest)) ])
         
     def testDatasource(self):
         p5 = ParameterSet()
