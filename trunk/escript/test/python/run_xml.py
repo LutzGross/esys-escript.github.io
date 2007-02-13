@@ -12,6 +12,7 @@ from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,ESySXMLPa
 import math
 from cStringIO import StringIO
 from xml.dom import minidom
+import numarray
 
 class XMLDocumentTestCase(unittest.TestCase):
 
@@ -199,7 +200,6 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert type(doc.inttest)==int
 
     def testFromDomNumarrayVector(self):
-        import numarray
         p3 = ParameterSet()
         mynumarray = numarray.array([3., 4., 5.], type=numarray.Float64)
         p3.declareParameter(numtest=mynumarray)
@@ -208,7 +208,6 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert type(doc.numtest) == numarray.NumArray
 
     def testFromDomNumarrayMulti(self):
-        import numarray
         p3 = ParameterSet()
         mynumarray = numarray.array([[1., 2., 3.], [3., 4., 5.]], type=numarray.Float64)
         p3.declareParameter(numtest=mynumarray)
@@ -217,7 +216,6 @@ class ParamaterSetTestCase(unittest.TestCase):
         assert type(doc.numtest) == numarray.NumArray
 
     def testLists(self):
-        import numarray
         p4 = ParameterSet()
         mylist = [True, False, False, True]
         p4.declareParameter(listest=mylist)
