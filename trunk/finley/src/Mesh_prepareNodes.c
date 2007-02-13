@@ -93,38 +93,35 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
 
       /* get a list of the DOFs in the reduced mesh and convert it into reducedDegreeOfFreedom */
       in->Nodes->reducedNumDegreesOfFreedom=Finley_Util_packMask(len,maskReducedDOF,index);
-      MEMFREE(in->Nodes->reducedDegreeOfFreedomId);
-      in->Nodes->reducedDegreeOfFreedomId=MEMALLOC(in->Nodes->reducedNumDegreesOfFreedom,index_t);
-      if (! Finley_checkPtr(in->Nodes->reducedDegreeOfFreedomId) )  {
-         #pragma omp parallel for private(n) schedule(static)
-         for (n=0;n<in->Nodes->reducedNumDegreesOfFreedom;n++) {
+      #pragma omp parallel for private(n) schedule(static)
+      for (n=0;n<in->Nodes->reducedNumDegreesOfFreedom;n++) {
            maskReducedDOF[index[n]]=n;  
-           in->Nodes->reducedDegreeOfFreedomId[n] = in->Nodes->Id[index[n]];
-         }
+      }
 
-         /* get a list of the DOFs and convert it into degreeOfFreedom */
-         in->Nodes->numDegreesOfFreedom=Finley_Util_packMask(len,maskDOF,index);
-         MEMFREE(in->Nodes->degreeOfFreedomId);
-         in->Nodes->degreeOfFreedomId=MEMALLOC(in->Nodes->numDegreesOfFreedom,index_t);
-         if (! Finley_checkPtr(in->Nodes->degreeOfFreedomId)) {
+      /* get a list of the DOFs and convert it into degreeOfFreedom */
+      in->Nodes->numDegreesOfFreedom=Finley_Util_packMask(len,maskDOF,index);
+      MEMFREE(in->Nodes->degreeOfFreedomId);
+      MEMFREE(in->Nodes->reducedDegreeOfFreedomId);
+      in->Nodes->degreeOfFreedomId=MEMALLOC(in->Nodes->numDegreesOfFreedom,index_t);
+      in->Nodes->reducedDegreeOfFreedomId=MEMALLOC(in->Nodes->reducedNumDegreesOfFreedom,index_t);
+      if (! ( Finley_checkPtr(in->Nodes->degreeOfFreedomId) || Finley_checkPtr(in->Nodes->reducedDegreeOfFreedomId) ) ) {
              #pragma omp parallel 
              {
                  #pragma omp for private(n) schedule(static)
                  for (n=0;n<in->Nodes->numDegreesOfFreedom;n++) {
                    maskDOF[index[n]]=n;
-                   in->Nodes->degreeOfFreedomId[n]=in->Nodes->Id[index[n]];
                  }
                  #pragma omp for private(n,id) schedule(static)
                  for (n=0;n<in->Nodes->numNodes;n++) {
                        id=in->Nodes->degreeOfFreedom[n]-min_id;
                        in->Nodes->degreeOfFreedom[n]=maskDOF[id];
                        in->Nodes->reducedDegreeOfFreedom[n]=maskReducedDOF[id];
+                       if (maskReducedDOF[id]>-1) in->Nodes->reducedDegreeOfFreedomId[maskReducedDOF[id]]=in->Nodes->Id[n];
+                       if (maskDOF[id]>-1) in->Nodes->degreeOfFreedomId[maskDOF[id]]=in->Nodes->Id[n];
                  }
              }
-         }
       }
    }
-
 #ifdef PASO_MPI
   /*********************************************************** 
     update the distribution data 

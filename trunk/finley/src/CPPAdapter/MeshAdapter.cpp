@@ -1071,25 +1071,9 @@ int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
     break;
   case(DegreesOfFreedom):
     out=mesh->Nodes->degreeOfFreedomId;
-/*
-    for (i=0;i<mesh->Nodes->numNodes; ++i) {
-       if (mesh->Nodes->degreeOfFreedom[i]==sampleNo) { 
-          out=mesh->Nodes->degreeOfFreedomIds[i];
-          break;
-       }
-    }
-*/
     break;
   case(ReducedDegreesOfFreedom):
     out=mesh->Nodes->reducedDegreeOfFreedomId;
-/*
-    for (i=0;i<mesh->Nodes->numNodes; ++i) {
-       if (mesh->Nodes->reducedDegreeOfFreedom[i]==sampleNo) { 
-          out=mesh->Nodes->Id[i];
-          break;
-       }
-    }
-*/
     break;
   default:
     stringstream temp;

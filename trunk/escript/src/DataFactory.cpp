@@ -115,8 +115,8 @@ load(const std::string fileName,
    delete type_str;
    /* recover dimension */
    int ndims=dataFile.num_dims();
-   int ntags =0 , nsamples =0 , ndata_points_per_sample =0, d=0;
-   NcDim *d_dim, *tags_dim, *samples_dim, *data_points_per_sample_dim;
+   int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0;
+   NcDim *d_dim, *tags_dim, *num_samples_dim, *num_data_points_per_sample_dim;
    /* recover shape */
    DataArrayView::ShapeType shape;
    long dims[DataArrayView::maxRank+2];
@@ -180,13 +180,22 @@ load(const std::string fileName,
       /* expanded data */
       if ( ! (ndims == rank + 2) )
           throw DataException("Error - load:: illegal number of dimensions for exanded data in netCDF file.");
-      if ( ! (samples_dim = dataFile.get_dim("samples") ) )
+      if ( ! (num_samples_dim = dataFile.get_dim("num_samples") ) )
           throw DataException("Error - load:: unable to recover number of samples from netCDF file.");
-      nsamples = samples_dim->size();
-      if ( ! (data_points_per_sample_dim = dataFile.get_dim("data_points_per_sample") ) )
+      num_samples = num_samples_dim->size();
+      if ( ! (num_data_points_per_sample_dim = dataFile.get_dim("num_data_points_per_sample") ) )
           throw DataException("Error - load:: unable to recover number of data points per sample from netCDF file.");
-      ndata_points_per_sample=data_points_per_sample_dim->size();
-      out=Data(0,shape,function_space);
+      num_data_points_per_sample=num_data_points_per_sample_dim->size();
+      // add checks!
+      if ( ! (num_samples == function_space.getNumSamples() && num_data_points_per_sample == function_space.getNumDataPointsPerSample()) )
+          throw DataException("Error - load:: data sample layout of file does not match data layout of function space.");
+      dims[rank]=num_data_points_per_sample;
+      dims[rank+1]=num_samples;
+      out=Data(0,shape,function_space,true);
+      if (!(var = dataFile.get_var("data")))
+              throw DataException("Error - load:: unable to find data in netCDF file.");
+      if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
+              throw DataException("Error - load:: unable to recover data from netCDF file.");
    } else {
        throw DataException("Error - load:: unknown escript data type in netCDF file.");
    }
