@@ -312,10 +312,10 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
   #endif
   #endif
+  if (Finley_noError()) {
+       if (  ! Finley_Mesh_isPrepared(mesh_p)) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  }
   return mesh_p;
 }
-/*
-* $Log$
-*
-*/
-

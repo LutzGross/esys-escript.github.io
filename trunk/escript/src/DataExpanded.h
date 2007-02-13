@@ -222,57 +222,6 @@ class DataExpanded : public DataAbstract {
            const DataArrayView::RegionType& region);
 
   /**
-     \brief
-     Assign the given value to all data-points associated with the given
-     reference number.
-
-     A reference number corresponds to a sample, and thus to all data-points
-     in that sample.
-
-     If the given reference number does not correspond to any sample in this
-     Data object, an exception will be thrown.
-
-     If the given value is a different shape to this Data object, an exception
-     will be thrown.
-
-     \param ref - Input - reference number which determines sample numebr to
-                          assign given values to.
-     \param value - Input - Value to assign to data-point associated with
-                            the given reference number.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  setValueByReferenceNumber(int ref,
-              const DataArray& value);
-
-  /**
-     \brief
-     Return the value of the first data-point in the sample associated with
-     the given reference number.
-
-     A reference number corresponds to a sample, and thus to all data-points
-     in that sample. If there is more than one data-point per sample number
-     in this Data object, the value of the first data-point will be returned.
-
-     If the given reference number does not correspond to any sample in this
-     Data object, an exception will be thrown.
-
-     If the given value is a different shape to this Data object, an exception
-     will be thrown.
-
-     \param ref - Input - reference number which determines sample number to
-                          read from.
-     \param value - Output - Object to receive data-points associated with
-                            the given reference number.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  getValueByReferenceNumber(int ref,
-              DataArray& value);
-
-  /**
     \brief
     Archive the underlying data values to the file referenced
     by ofstream. A count of the number of values expected to be written

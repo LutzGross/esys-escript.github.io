@@ -106,7 +106,9 @@ void Finley_NodeFile_deallocTable(Finley_NodeFile* in) {
     MEMFREE(in->Coordinates);
     MEMFREE(in->Tag);
     MEMFREE(in->degreeOfFreedom);
+    MEMFREE(in->degreeOfFreedomId);
     MEMFREE(in->reducedDegreeOfFreedom);
+    MEMFREE(in->reducedDegreeOfFreedomId);
     MEMFREE(in->toReduced);
     in->numNodes=0;
     in->numDegreesOfFreedom=0;

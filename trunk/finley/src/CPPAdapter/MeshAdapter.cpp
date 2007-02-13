@@ -1044,46 +1044,52 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
   }
   return out;
 }
-int MeshAdapter::getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const
+int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
 {
-  int out=0,i;
+  int *out=0,i;
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch (functionSpaceType) {
   case(Nodes):
     if (mesh->Nodes!=NULL) {
-      out=mesh->Nodes->Id[sampleNo];
+      out=mesh->Nodes->Id;
       break;
     }
   case(Elements):
-    out=mesh->Elements->Id[sampleNo];
+    out=mesh->Elements->Id;
     break;
   case(FaceElements):
-    out=mesh->FaceElements->Id[sampleNo];
+    out=mesh->FaceElements->Id;
     break;
   case(Points):
-    out=mesh->Points->Id[sampleNo];
+    out=mesh->Points->Id;
     break;
   case(ContactElementsZero):
-    out=mesh->ContactElements->Id[sampleNo];
+    out=mesh->ContactElements->Id;
     break;
   case(ContactElementsOne):
-    out=mesh->ContactElements->Id[sampleNo];
+    out=mesh->ContactElements->Id;
     break;
   case(DegreesOfFreedom):
+    out=mesh->Nodes->degreeOfFreedomId;
+/*
     for (i=0;i<mesh->Nodes->numNodes; ++i) {
        if (mesh->Nodes->degreeOfFreedom[i]==sampleNo) { 
-          out=mesh->Nodes->Id[i];
+          out=mesh->Nodes->degreeOfFreedomIds[i];
           break;
        }
     }
+*/
     break;
   case(ReducedDegreesOfFreedom):
+    out=mesh->Nodes->reducedDegreeOfFreedomId;
+/*
     for (i=0;i<mesh->Nodes->numNodes; ++i) {
        if (mesh->Nodes->reducedDegreeOfFreedom[i]==sampleNo) { 
           out=mesh->Nodes->Id[i];
           break;
        }
     }
+*/
     break;
   default:
     stringstream temp;

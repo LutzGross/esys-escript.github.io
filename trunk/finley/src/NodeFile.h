@@ -38,6 +38,7 @@ struct Finley_NodeFile {
 																					 either NODE_INTERNAL, NODE_BOUNDARY or NODE_EXTERNAL, as defined in
 																					 Mesh.h	*/ 
 #endif
+  index_t isPrepared;                   /* UNKNOWN,  UNPREPARED, PREPAED  to indicate that the Nodes are ready for calculation */
   dim_t numNodes;                      /* number of nodes */
   dim_t numDim;                        /* spatial dimension */
   index_t *Id;                         /* Id[i] is the id number of node i. this number is not really
@@ -51,12 +52,14 @@ struct Finley_NodeFile {
   index_t* degreeOfFreedom;            /* degreeOfFreedom[i] is the degree of freedom assigned to node i */
                                        /* this index is used to consider periodic boundary conditions by assigning */
                                        /* the same degreeOfFreedom to the same node */
+  index_t* degreeOfFreedomId;          /* the ids of the degreeOfFreedom */
   /* the following data are set by Finley_NodeFile_preparNodes */
   dim_t numDegreesOfFreedom;           /* number of degrees of freedom in the mesh (<=numNodes)*/
                                        /* notice that numDegreesOfFreedom=max(degreeOfFreedom[:]) */
   index_t* reducedDegreeOfFreedom;     /* reducedDegreeOfFreedom[i] is the degree of freedom in the reduced version of the mesh */
                                        /* assigned to node i. reducedDegreeOfFreedom[i]<0 indicates that the node is not appearing */
                                        /* as a degree of freedom in the reduced version of the mesh. */
+  index_t* reducedDegreeOfFreedomId;  /* the ids of the reducedDegreeOfFreedom */
   dim_t reducedNumDegreesOfFreedom;    /* number of degrees of freedom in the reduced version of the mesh */
                                        /* notice that reducedNumDegreesOfFreedom=max(reducedDegreeOfFreedom[:]) */
   /* this information is used by interfaces to postprocessing tools that can deal with linear elements only: */

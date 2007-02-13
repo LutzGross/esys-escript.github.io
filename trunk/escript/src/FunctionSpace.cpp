@@ -110,10 +110,10 @@ FunctionSpace::getTagFromDataPointNo(int dataPointNo) const
   return(tagNo);
 }
 
-int
-FunctionSpace::getReferenceNoFromSampleNo(int sampleNo) const
+int*
+FunctionSpace::borrowSampleReferenceIDs() const
 {
-  return m_domain->getReferenceNoFromSampleNo(m_functionSpaceType,sampleNo);
+  return m_domain->borrowSampleReferenceIDs(m_functionSpaceType);
 }
 
 FunctionSpace&

@@ -156,12 +156,11 @@ class AbstractDomain {
 
   /**
      \brief
-     Return the reference number of the given sample number.
+     Return a borrowed pointer to the sample reference number id list
      \param functionSpaceType Input - The function space type.
-     \param sampleNo Input - The sample number.
   */
   ESCRIPT_DLL_API
-  virtual int getReferenceNoFromSampleNo(int functionSpaceType, int sampleNo) const;
+  virtual int* borrowSampleReferenceIDs(int functionSpaceType) const;
 
   /**
      \brief

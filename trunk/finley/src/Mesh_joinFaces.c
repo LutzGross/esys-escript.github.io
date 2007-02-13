@@ -112,6 +112,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
             }
             newContactElementsFile->minColor=0;
             newContactElementsFile->maxColor=numPairs-1;
+            newContactElementsFile->isPrepared=self->FaceElements->isPrepared;
          } 
          /* set new face and Contact elements */
          if (Finley_noError()) {
@@ -136,4 +137,9 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    TMPMEMFREE(elem0);
    TMPMEMFREE(matching_nodes_in_elem1);
    TMPMEMFREE(elem_mask);
+   if (Finley_noError()) {
+       if ( ! Finley_Mesh_isPrepared(self) ) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+  }
 }

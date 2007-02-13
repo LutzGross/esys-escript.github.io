@@ -40,6 +40,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim){
   
   out=MEMALLOC(1,Finley_NodeFile);
   if (Finley_checkPtr(out)) return NULL;
+  out->isPrepared=FINLEY_UNKNOWN;
   out->numNodes=0;
   out->numDegreesOfFreedom=0;
   out->reducedNumDegreesOfFreedom=0;
@@ -49,7 +50,9 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim){
   out->Tag=NULL;
   out->Coordinates=NULL;
   out->degreeOfFreedom=NULL;
+  out->degreeOfFreedomId=NULL;
   out->reducedDegreeOfFreedom=NULL;
+  out->reducedDegreeOfFreedomId=NULL;
   out->toReduced=NULL;
   out->status=FINLEY_INITIAL_STATUS;
 #ifdef PASO_MPI
@@ -81,17 +84,3 @@ void Finley_NodeFile_dealloc(Finley_NodeFile* in) {
      MEMFREE(in);      
   }
 }
-/* 
-* $Log$
-* Revision 1.5  2005/09/15 03:44:23  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.4.2.1  2005/09/07 06:26:20  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.4  2004/12/15 07:08:33  jgs
-* *** empty log message ***
-*
-*
-*
-*/

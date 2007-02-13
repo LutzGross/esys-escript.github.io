@@ -44,7 +44,6 @@ class DataTestCase : public CppUnitTest::TestCase
   void testDataTaggedExceptions();
   void testSlicing();
   void testOperations();
-  void testRefValue();
   void testMemAlloc();
 
   DataTestCase (std::string name) : TestCase (name) {}

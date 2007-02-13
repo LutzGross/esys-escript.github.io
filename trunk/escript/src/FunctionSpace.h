@@ -146,9 +146,21 @@ class ESCRIPT_DLL_API FunctionSpace {
   /**
    \brief
    Return the reference number associated with the given sample number.
+   This function is not efficient. It is better to first call 
+   borrowSampleReferenceIDs and then when iterating over sampleNo to use sampleNo as an offset.
   */
+  inline
   int
-  getReferenceNoFromSampleNo(int sampleNo) const;
+  getReferenceIDOfSample(int sampleNo) const
+  {
+      return borrowSampleReferenceIDs()[sampleNo];
+  }
+  /**
+   \brief
+   Return a borrowed reference to the list of sample reference IDs
+  */
+  int*
+  borrowSampleReferenceIDs() const;
 
   /**
    \brief
