@@ -1,4 +1,4 @@
-#          Copyright 2006 by ACcESS MNRF
+#         Copyright 2006 by ACcESS MNRF
 #
 #              http://www.access.edu.au
 #       Primary Business: Queensland, Australia
@@ -116,8 +116,8 @@ opts.AddOptions(
   PathOption('blas_lib_path', 'Path to BLAS libs', None),
   ('blas_libs', 'BLAS libraries to link with', None),
 # netCDF
-  PathOption('netCDF_path', 'Path to netCDF includes', '/usr/local/include'),
-  PathOption('netCDF_lib_path', 'Path to netCDF libs', '/usr/local/lib'),
+  PathOption('netCDF_path', 'Path to netCDF includes', '/home/jongui/netcdf-3.6.1/netcdf-3.6.1/include'),
+  PathOption('netCDF_lib_path', 'Path to netCDF libs', '/home/jongui/netcdf-3.6.1/netcdf-3.6.1/lib'),
   ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', [ 'netcdf_c++', 'netcdf'] ),
 # Python
 # locations of include files for python
