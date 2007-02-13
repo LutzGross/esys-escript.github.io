@@ -1,0 +1,158 @@
+% $Id$
+%
+%           Copyright © 2006 by ACcESS MNRF
+%               \url{http://www.access.edu.au
+%         Primary Business: Queensland, Australia.
+%   Licensed under the Open Software License version 3.0
+%      http://www.opensource.org/licenses/osl-3.0.php
+%
+\chapter{Installation}
+\label{INSTALL}
+
+Visit \url{http://iservo.edu.au/twiki/bin/view/ESSCC/EsysUser} for more information.
+
+\section{Software needed for installation}
+
+\begin{itemize}
+   \item scons  0.96.91 or newer, see \url{http://www.scons.org/}
+   \item python  2.3.4 or higher, see \url{http://www.python.org/}
+   \item numarray  0.9 or higher, see \url{http://www.stsci.edu/resources/software_hardware/numarray}
+   \item python boost boost  1.31.0 or higher (build system defaults to boost 1.33.0), see \url{http://www.boost.org/}
+   \item g++, see \url{http://gcc.gnu.org/}, or intel c++  compiler, see \\
+\url{http://www.intel.com/cd/software/products/asmo-na/eng/compilers/}.
+\end{itemize}
+
+\subsection{optional Libraries}
+These libraries are optional at compile time. By default, thay are switched off.
+\begin{itemize}
+   \item parallel direct solver from the SGI SCSL library, see \url{http://www.sgi.com/products/software/scsl.html} 
+   \item parallel direct solver from intel MKL library  (delivered with intel compilers), see \url{http://www.intel.com/cd/software/products/asmo-na/eng/perflib/mkl/}.
+\end{itemize}
+
+\subsection{optional Software}
+
+\begin{itemize}
+   \item off-line visualization:
+      \begin{itemize}
+      \item mayavi, see \url{http://mayavi.sourceforge.net/}.
+      \item opendx, see \url{http://www.opendx.org/}
+      \end{itemize}
+   \item on-line visualization with pyvisi:
+\begin{itemize}
+      \item vtk  4.2.1 or newer with with python interface, see \url{http://public.kitware.com/VTK/}
+      \item gnuplot  with with python interface, see \url{http://www.gnuplot.info/}
+      \item  povray, see \url{http://www.povray.org/}.
+\end{itemize}
+\end{itemize}
+
+\section{Get the source code}
+
+You can download the source code, examples and, if required, release tests from \url{http://shake200.esscc.uq.edu.au/joomla/content/view/78//}.
+Files can be downloaded as *.zip or *.tar.gz files. 
+Usage is under the Open Software License version 3.0, see \url{http://www.opensource.org/licenses/osl-3.0.php}.
+
+\subsection{Unpack zip file}
+Use the commands
+
+\begin{verbatim}
+   mkdir <my esys dir>
+   mv escript*.zip <my esys dir>
+  cd <my esys dir>
+  unzip escript*.zip
+\end{verbatim}
+
+to unzip the source files into the directory  \verb|<my esys dir>|.
+
+\subsection{Unpack tar file}
+  
+Use the commands
+
+\begin{verbatim}
+  mkdir <my esys dir>
+  mv escriot*.tar.gz <my esys dir>
+  cd <my esys dir>
+  tar xzf escript*.tar.gz
+\end{verbatim}
+
+to unpack the source files into the directory \verb|<my esys dir>|.
+
+\section{Installation}
+
+The installation is started by 
+\begin{verbatim}
+  cd <my esys dir>
+  scons dodebug=no
+\end{verbatim}
+By default the configuration for Linux is used. If there is a file \verb|scons/<hostname>_options.py| where is \verb|hostname| is the name of the machine the installation is running (non-literal or non-numerical charcters are replaed by underscore)  options is this file are overwrite the default setting. Use =scons/ess_options.py= as a staring point to create a file for your machine. If you want to use personalied setting in the file myoptions.py you can run
+\begin{verbatim}
+  cd <my esys dir>
+  scons dodebug=no options_file=myoptions.py
+\end{verbatim}
+You can also overwrite individual setting trough the command line. e.g.
+\begin{verbatim}
+   cd <my esys dir>
+  scons dodebug=no libinstall=/usr/lib
+\end{verbatim}
+will install the libraries into the directory \verb|/usr/lib|. 
+
+Get help on options with the following command
+\begin{verbatim}
+  cd <my esys dir>
+  scons -h
+\end{verbatim}
+To uninstall the installation use
+\begin{verbatim}
+  cd <my esys dir>
+  scons -c
+\end{verbatim}
+
+If you have more than one processor available for compilation you can use the -j option to tell scons to do parallel compiles:
+\begin{verbatim}
+   cd <my esys dir>
+   scons dodebug=no -j 8
+\end{verbatim}
+\section{Running Release Tests}
+To test your installation you have to download and unpack the release tests. You can run the tests by
+\begin{verbatim}
+   cd <my esys dir>
+   scons dodebug=no all_tests
+\end{verbatim}
+The tests can take a while (up to several hours). In some cases it can be sufficient to run the test for the C/C++ components only. Use  
+\begin{verbatim}
+   cd <my esys dir>
+   scons dodebug=no run_tests
+\end{verbatim}
+to run these tests.
+It can be usefull to run the tests in the debug mode:
+\begin{verbatim}
+   cd <my esys dir>
+   scons dodebug=yes run_tests
+\end{verbatim}
+Keep in mind that this will rebuild the libraries in the debug mode. You have to rebuild the libraries with option =dodebug=no= to get back to a productive installation.
+
+
+\section{Environment setup}
+To make esys accessible from python you have to set
+\begin{verbatim}
+export PYTHONPATH=<my esys dir>:${PYTHONPATH}
+export LD_LIBRARY_PATH=<my esys dir>/lib:${LD_LIBRARY_PATH}
+\end{verbatim}
+Currently an installation into the python site-packages directory is not supported.
+
+If you wnat to check your setup and you have download the examples you can run
+\begin{verbatim}
+cd <my esys dir>/doc/examples
+python poisson.py
+\end{verbatim}
+
+\subsection{OpenMP support}
+
+If your system and compiler support OpenMP parallelization and OpenMP parallelization has been switched on during compilation, you need to set the following environment variable to run scripts in parallel (in this case with four threads):
+\begin{verbatim}
+export OMP_NUM_THREADS=4
+cd <my esys dir>/doc/examples
+python poisson.py
+\end{verbatim}
+
+\section{Getting help}
+If there is a problem or questin please contact \url{mailto:esys@esscc.uq.edu.au}.

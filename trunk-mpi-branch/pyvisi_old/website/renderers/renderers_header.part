@@ -1,0 +1,8 @@
+<!-- $Id: renderers_header.part,v 1.1 2005/01/27 01:36:08 paultcochrane Exp $ -->
+<head>
+    <title>Renderer modules</title>
+    <link rel="stylesheet" title="banner" href="css/pyvisi_banner-o.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>

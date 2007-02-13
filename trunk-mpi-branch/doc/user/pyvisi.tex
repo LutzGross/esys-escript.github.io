@@ -1,0 +1,55 @@
+\chapter{The module \pyvisi}
+\label{PYVISI CHAP}
+
+\declaremodule{extension}{pyvisi}
+\modulesynopsis{Python visualization interface}
+
+\pyvisi provides an easy to use interface to the \VTK visualization 
+tool. \pyvisi provides the following modules:
+
+\begin{itemize}
+\item \Scene: Displays a scene in which objects are to be rendered on.
+\item \DataCollector: Deals with the source of data for visualization.
+\item \Map: Displays a scalar field using a domain surface.
+\item \MapOnPlaneCut: Displays a scalar field using a domain surface cut on a plane. 
+\item \MapOnPlaneClip: Displays a scalar field using a domain surface clipped 
+		on a plane.
+\item \MapOnScalarClip: Displays a scalar field using a domain surface clipped 
+		using a scalar value.
+\item \Velocity: Displays a vector field using arrows.
+\item \VelocityOnPlaneCut: Displays a vector field using arrows cut on a plane.
+\item \VelocityOnPlaneClip: Displays a vector field using arrows clipped on a 
+		plane.
+\item \Ellipsoid: Displays a tensor field using spheres.
+\item \EllipsoidOnPlaneCut: Displays a tensor field using spheres cut on a
+        plane.
+\item \EllipsoidOnPlaneClip: Displays a tensor field using spheres clipped 
+        on a plane.
+        
+\item \Contour: Shows a scalar field by contour surfaces. 
+\item \ContourOnPlane: Shows a scalar field by contour surfaces on 
+a given plane.
+\item \ContourOnClip: Shows a scalar field by contour surfaces on 
+a given clip.
+
+\item \Image: Displays an image.
+\item \Text: Shows some 2D text.
+\item \Camera: Controls the camera manipulation. 
+\item \Light: Controls the light manipulation.
+\item \IsoSurface: Shows a scalar field for a given value by 
+an isosurface.
+\item \IsoSurfaceOnPlane: Shows a scalar field for a given value by 
+an isosurfaceon a given plane.
+\item \IsoSurfaceOnClip: Shows a scalar field for a given vlaue by 
+an isosurface on a given clip.
+\item \StreamLines: Shows the path of particles in a vector field.
+\item \Carpet: Shows a scalar field as plane deformated along 
+the plane normal.
+\item \Position: Defines the x,y and z coordinates rendered object.
+\item \Transform: Defines the orientation of rendered object.
+\item \Style: Defines the style of text.
+\item \BlueToRed: Defines a map spectrum from blue to red.
+\item \RedToBlue: Defines a map spectrum from red to blue.
+\item \Plane: Defines the cutting/clipping of rendered objects.
+\end{itemize}
+
