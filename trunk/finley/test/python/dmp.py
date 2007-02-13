@@ -166,6 +166,144 @@ class Test_Dump(unittest.TestCase):
        d=Data(self.arg4,self.function_on_boundary)
        self._diffDataObjects(d,file)
 
+   #===========================================================================
+   def test_DumpAndLoad_Expanded_Solution_Rank0(self):
+       file="expanded_solution_rank0.nc"
+       d=Data(length(self.solution.getX())*self.arg0,self.solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Solution_Rank1(self):
+       file="expanded_solution_rank1.nc"
+       d=Data(length(self.solution.getX())*self.arg1,self.solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Solution_Rank2(self):
+       file="expanded_solution_rank2.nc"
+       d=Data(length(self.solution.getX())*self.arg2,self.solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Solution_Rank3(self):
+       file="expanded_solution_rank3.nc"
+       d=Data(length(self.solution.getX())*self.arg3,self.solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Solution_Rank4(self):
+       file="expanded_solution_rank4.nc"
+       d=Data(length(self.solution.getX())*self.arg4,self.solution)
+       self._diffDataObjects(d,file)
+   #===========================================================================
+   def test_DumpAndLoad_Expanded_ReducedSolution_Rank0(self):
+       file="expanded_reduced_solution_rank0.nc"
+       d=Data(length(self.reduced_solution.getX())*self.arg0,self.reduced_solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedSolution_Rank1(self):
+       file="expanded_reduced_solution_rank1.nc"
+       d=Data(length(self.reduced_solution.getX())*self.arg1,self.reduced_solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedSolution_Rank2(self):
+       file="expanded_reduced_solution_rank2.nc"
+       d=Data(length(self.reduced_solution.getX())*self.arg2,self.reduced_solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedSolution_Rank3(self):
+       file="expanded_reduced_solution_rank3.nc"
+       d=Data(length(self.reduced_solution.getX())*self.arg3,self.reduced_solution)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedSolution_Rank4(self):
+       file="expanded_reduced_solution_rank4.nc"
+       d=Data(length(self.reduced_solution.getX())*self.arg4,self.reduced_solution)
+       self._diffDataObjects(d,file)
+   #===========================================================================
+   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank0(self):
+       file="expanded_continuous_function_rank0.nc"
+       d=Data(length(self.continuous_function.getX())*self.arg0,self.continuous_function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank1(self):
+       file="expanded_continuous_function_rank1.nc"
+       d=Data(length(self.continuous_function.getX())*self.arg1,self.continuous_function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank2(self):
+       file="expanded_continuous_function_rank2.nc"
+       d=Data(length(self.continuous_function.getX())*self.arg2,self.continuous_function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank3(self):
+       file="expanded_continuous_function_rank3.nc"
+       d=Data(length(self.continuous_function.getX())*self.arg3,self.continuous_function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank4(self):
+       file="expanded_continuous_function_rank4.nc"
+       d=Data(length(self.continuous_function.getX())*self.arg4,self.continuous_function)
+       self._diffDataObjects(d,file)
+
+   #===========================================================================
+   def test_DumpAndLoad_Expanded_Function_Rank0(self):
+       file="expanded_function_rank0.nc"
+       d=Data(length(self.function.getX())*self.arg0,self.function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Function_Rank1(self):
+       file="expanded_function_rank1.nc"
+       d=Data(length(self.function.getX())*self.arg1,self.function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Function_Rank2(self):
+       file="expanded_function_rank2.nc"
+       d=Data(length(self.function.getX())*self.arg2,self.function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Function_Rank3(self):
+       file="expanded_function_rank3.nc"
+       d=Data(length(self.function.getX())*self.arg3,self.function)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_Function_Rank4(self):
+       file="expanded_function_rank4.nc"
+       d=Data(length(self.function.getX())*self.arg4,self.function)
+       self._diffDataObjects(d,file)
+
+   #===========================================================================
+   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank0(self):
+       file="expanded_function_on_boundary_rank0.nc"
+       d=Data(length(self.function_on_boundary.getX())*self.arg0,self.function_on_boundary)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank1(self):
+       file="expanded_function_on_boundary_rank1.nc"
+       d=Data(length(self.function_on_boundary.getX())*self.arg1,self.function_on_boundary)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank2(self):
+       file="expanded_function_on_boundary_rank2.nc"
+       d=Data(length(self.function_on_boundary.getX())*self.arg2,self.function_on_boundary)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank3(self):
+       file="expanded_function_on_boundary_rank3.nc"
+       d=Data(length(self.function_on_boundary.getX())*self.arg3,self.function_on_boundary)
+       self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank4(self):
+       file="expanded_function_on_boundary_rank4.nc"
+       d=Data(length(self.function_on_boundary.getX())*self.arg4,self.function_on_boundary)
+       self._diffDataObjects(d,file)
+
+
+class Test_DumpOnFinley(Test_Dump):
+   def setUp(self):
+       self.domain =Rectangle(NE,NE+1,2)
+       self.solution = Solution(self.domain) 
+       self.reduced_solution = ReducedSolution(self.domain) 
+       self.continuous_function = ContinuousFunction(self.domain) 
+       self.function = Function(self.domain) 
+       self.function_on_boundary = FunctionOnBoundary(self.domain) 
+
 
 class Test_DumpOnFinley(Test_Dump):
    def setUp(self):
