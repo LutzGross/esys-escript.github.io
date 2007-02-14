@@ -462,7 +462,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* pe
   dim_t N0,N1,NE0,NE1,i0,i1,totalNECount,faceNECount,NDOF0,NDOF1,NFaceElements,NUMNODES, numNodesLocal, numDOFLocal, numElementsLocal, numElementsInternal, nodesExternal[2], DOFExternal[2], numNodesExternal, DOFBoundary[2];
 	dim_t N0t, NDOF0t;
   index_t *numForward=NULL, *numBackward=NULL;
-  index_t kk, k,i,j,node0,firstNodeConstruct,firstNode=0, DOFcount=0, targetDomain=-1,faceNEBoundary;
+  index_t kk, k,i,j,node0,firstNodeConstruct,firstNode=0, DOFcount=0, forwardDOF=NULL, backwardDOF=NULL, targetDomain=-1,faceNEBoundary;
   Finley_Mesh* out=NULL;
   char name[50];
 	index_t *indexForward=NULL, *indexBackward=NULL;

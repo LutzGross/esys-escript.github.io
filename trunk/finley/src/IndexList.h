@@ -25,7 +25,6 @@
 
 #include "Finley.h"
 #include "ElementFile.h"
-#include "Mesh.h"
 
 /* structure to build system matrix */
 
@@ -37,7 +36,7 @@ typedef struct Finley_IndexList {
   struct Finley_IndexList *extension;
 } Finley_IndexList;
 
-void Finley_IndexList_insertElements(Finley_IndexList*, Finley_Mesh*, Finley_ElementFile*,dim_t, index_t*,dim_t, index_t*);
+void Finley_IndexList_insertElements(Finley_IndexList*, Finley_ElementFile*,dim_t, index_t*,dim_t, index_t*);
 void Finley_IndexList_insertIndex(Finley_IndexList*, index_t);
 void Finley_IndexList_toArray(Finley_IndexList*, index_t*);
 dim_t Finley_IndexList_count(Finley_IndexList*);

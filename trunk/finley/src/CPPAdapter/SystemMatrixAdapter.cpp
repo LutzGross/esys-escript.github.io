@@ -129,8 +129,6 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_AMG;
        case  ESCRIPT_RILU:
           return PASO_RILU;
-       case  ESCRIPT_TRILINOS:
-          return PASO_TRILINOS;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -160,7 +158,6 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, co
     EXTRACT("restart",restart,double);
     #undef EXTRACT
     #undef EXTRACT_OPTION
-    printf("ksteube in finley/src/CPPAdapter/SystemMatrixAdapter.cpp : setToSolution()\n");
     if ( out.getDataPointSize()  != getColumnBlockSize()) {
      throw FinleyAdapterException("solve : column block size does not match the number of components of solution.");
     } else if ( in.getDataPointSize() != getRowBlockSize()) {

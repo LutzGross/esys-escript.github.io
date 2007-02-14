@@ -98,7 +98,6 @@ class FinleyOptions(Options):
                       LinearPDE.SCSL:  "SCSL",
                       LinearPDE.MKL:  "MKL",
                       LinearPDE.UMFPACK: "UMFPACK",
-                      LinearPDE.TRILINOS: "TRILINOS",
                       LinearPDE.PASO:  "PASO",
                       LinearPDE.RILU: "RILU",
                       LinearPDE.AMG:  "AMG"

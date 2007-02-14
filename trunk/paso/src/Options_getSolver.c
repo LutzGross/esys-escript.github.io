@@ -106,29 +106,7 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
         }
         break;
     }
-  /* TRILINOS */
-  } else if (package==PASO_TRILINOS) {
-     switch (solver) {
-        case PASO_BICGSTAB:
-            out=PASO_BICGSTAB;
-            break;
-        case PASO_PCG:
-            out=PASO_PCG;
-            break;
-        case PASO_PRES20:
-            out=PASO_PRES20;
-            break;
-        case PASO_GMRES:
-            out=PASO_GMRES;
-            break;
-        default:
-            if (symmetry) {
-               out=PASO_PCG;
-            } else {
-               out=PASO_BICGSTAB;
-            }
-            break;
-     }
+  /* UMFPACK */
   } else if (package==PASO_UMFPACK) {
       out=PASO_DIRECT;
   } else {

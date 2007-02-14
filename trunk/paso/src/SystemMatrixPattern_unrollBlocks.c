@@ -79,7 +79,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
         }
      }
      /* create return value */
-     out=Paso_SystemMatrixPattern_alloc(type,new_n_ptr,ptr,index,pattern->MPIInfo);
+     out=Paso_SystemMatrixPattern_alloc(type,new_n_ptr,ptr,index);
   }  
   if (! Paso_noError()) {
      MEMFREE(index);

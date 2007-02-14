@@ -25,12 +25,7 @@
 #ifndef INC_PASO_SYSTEMMATRIXPATTERN
 #define INC_PASO_SYSTEMMATRIXPATTERN
 
-#include "Paso_MPI.h"
 #include "Common.h"
-
-#ifdef PASO_MPI
-#include "finley/Distribution.h"
-#endif
 
 /**************************************************************/
 
@@ -46,19 +41,13 @@ typedef struct Paso_SystemMatrixPattern {
   index_t* index;
   dim_t len;
   dim_t reference_counter;
-  Paso_MPIInfo *MPIInfo;
-#ifdef PASO_MPI
-  void *row_degreeOfFreedomDistribution; /* ksteube should be Finley_NodeDistribution instead of void */
-  void *col_degreeOfFreedomDistribution;
-#endif
-  index_t numLocal;
 
 } Paso_SystemMatrixPattern;
 
 
 /*  interfaces: */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int ,dim_t, index_t*,index_t*, Paso_MPIInfo*);
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int ,dim_t, index_t*,index_t*);
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_reference(Paso_SystemMatrixPattern*);
 void Paso_SystemMatrixPattern_dealloc(Paso_SystemMatrixPattern*);
 int Paso_comparIndex(const void *,const void *);
