@@ -23,42 +23,16 @@
 
 #include "IndexList.h"
 
-/* Translate from distributed/local array indices to global indices */
-
-#ifdef PASO_MPI
-int Finley_IndexList_localToGlobal(Finley_NodeDistribution *dofDistribution, int my_CPU, int localIndex) {
-  /*
-    get global id of icol
-    if icol is internal node (on this CPU): use icol+vtxdist[my_CPU]
-    else use indexExternal[icol-numLocal] to get global index of node
-    (actually DOF...the NodeDistribution structure should have been called DofDistribution)
-  */
-  if (localIndex < dofDistribution->numLocal) {
-    localIndex = localIndex + dofDistribution->vtxdist[my_CPU];
-  }
-  else {
-    localIndex = dofDistribution->indexExternal[localIndex-dofDistribution->numLocal];
-  }
-  return(localIndex);
-}
-#endif
-
 /**************************************************************/
 /* inserts the contributions from the element matrices of elements
    into the row index col. If symmetric is set, only the upper
    triangle of the matrix is stored. */
 
-void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* mesh, Finley_ElementFile* elements,
+void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
                                        bool_t reduce_row_order, index_t* row_Label,
                                        bool_t reduce_col_order, index_t* col_Label) {
-  /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
-  index_t color, num_CPUs = 1, my_CPU = 0;
+  index_t color;
   dim_t e,kr,kc,NN_row,NN_col,i,icol,irow;
-#ifdef PASO_MPI
-    num_CPUs = mesh->MPIInfo->size;
-    my_CPU = mesh->MPIInfo->rank;
-#endif
-  /* print_mesh_statistics( mesh, TRUE ); */
 
   if (elements!=NULL) {
     dim_t NN=elements->ReferenceElement->Type->numNodes;
@@ -78,7 +52,6 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* 
        row_node=id;
        NN_row=elements->ReferenceElement->Type->numNodes;
     }
-    if (num_CPUs == 1) {
     for (color=elements->minColor;color<=elements->maxColor;color++) {
         #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
         for (e=0;e<elements->numElements;e++) {
@@ -93,43 +66,6 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* 
             }
         }
       }
-    }
-    else {	/* More than one CPU (what's below should also work for one CPU, but let's build confidence in it first) */
-#ifdef PASO_MPI
-    Finley_NodeDistribution *row_degreeOfFreedomDistribution;
-    Finley_NodeDistribution *col_degreeOfFreedomDistribution;
-    if (reduce_col_order) {
-      col_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
-      col_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
-    }
-    if (reduce_row_order) {
-      row_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
-      row_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
-    }
-    /* Not using loop over colors as above */ {
-        #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
-	for (e=0;e<elements->numElements;e++) {
-                for (kr=0;kr<NN_row;kr++) {
-                  irow=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-		  if (irow < row_degreeOfFreedomDistribution->numLocal) {
-                    for (kc=0;kc<NN_col;kc++) {
-		       /* Get the local col ID */
-                       icol=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-		       /* Convert to global col ID (row ID is saved as local value) */
-		       icol = Finley_IndexList_localToGlobal(col_degreeOfFreedomDistribution, my_CPU, icol);
-                       Finley_IndexList_insertIndex(&(index_list[irow]),icol);
-		       printf("ksteube Finley_IndexList_insertIndex cpu= %d irow= %d icol= %d\n", my_CPU, irow, icol);
-                    }
-		  }
-                }
-        }
-      }
-#endif
-    }	/* More than one CPU */
   }
   return;
 }

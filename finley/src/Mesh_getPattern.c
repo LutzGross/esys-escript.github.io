@@ -60,7 +60,6 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_
          }
       }
    }  
-   out->MPIInfo = Paso_MPIInfo_getReference( mesh->MPIInfo );
    return out;
 }
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
@@ -69,28 +68,8 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   index_t s,itmp,*rowLabel=NULL,*colLabel=NULL, *ptr=NULL, *index=NULL;
   Finley_IndexList* index_list=NULL;
   Finley_resetError();
-  Finley_NodeDistribution *row_degreeOfFreedomDistribution;
-  Finley_NodeDistribution *col_degreeOfFreedomDistribution;
-
+  
   time0=Finley_timer();
-
-#ifdef PASO_MPI
-  if (reduce_col_order) {
-       n=mesh->Nodes->reducedDegreeOfFreedomDistribution->numLocal;
-       colLabel=mesh->Nodes->reducedDegreeOfFreedom;
-  } else {
-       n=mesh->Nodes->degreeOfFreedomDistribution->numLocal;
-       colLabel=mesh->Nodes->degreeOfFreedom;
-  }
-     
-  if (reduce_row_order) {
-      n=mesh->Nodes->reducedDegreeOfFreedomDistribution->numLocal;
-      rowLabel=mesh->Nodes->reducedDegreeOfFreedom;
-  } else {
-      n=mesh->Nodes->degreeOfFreedomDistribution->numLocal;
-      rowLabel=mesh->Nodes->degreeOfFreedom;
-  }
-#else
   if (reduce_col_order) {
        n=mesh->Nodes->reducedNumDegreesOfFreedom;
        colLabel=mesh->Nodes->reducedDegreeOfFreedom;
@@ -106,7 +85,6 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
       n=mesh->Nodes->numDegreesOfFreedom;
       rowLabel=mesh->Nodes->degreeOfFreedom;
   }
-#endif
 
   index_list=TMPMEMALLOC(n,Finley_IndexList);
   ptr=MEMALLOC(n+1,index_t);
@@ -119,19 +97,14 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
              index_list[i].n=0;
         }
         /*  insert contributions from element matrices into colums index index_list: */
-	printf("ksteube mesh->Elements\n");
-        Finley_IndexList_insertElements(index_list,mesh,mesh->Elements,
+        Finley_IndexList_insertElements(index_list,mesh->Elements,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube mesh->FaceElements\n");
-        Finley_IndexList_insertElements(index_list,mesh,mesh->FaceElements,
+        Finley_IndexList_insertElements(index_list,mesh->FaceElements,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube mesh->ContactElements\n");
-        Finley_IndexList_insertElements(index_list,mesh,mesh->ContactElements,
+        Finley_IndexList_insertElements(index_list,mesh->ContactElements,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube mesh->Points\n");
-        Finley_IndexList_insertElements(index_list,mesh,mesh->Points,
+        Finley_IndexList_insertElements(index_list,mesh->Points,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube done with 4 calls to Finley_IndexList_insertElements\n");
         /* get the number of connections per row */
         #pragma omp for schedule(static)
         for(i=0;i<n;++i) {
@@ -173,23 +146,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
     MEMFREE(index);
     return NULL;
   } else {
-    Paso_SystemMatrixPattern *pattern = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,n,ptr,index,mesh->MPIInfo); /* add distr info */
-    // Use a getReference method to get the DOF distributions to avoid memory leaks
-    if (reduce_col_order) {
-      col_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
-      col_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
-    }
-    if (reduce_row_order) {
-      row_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
-      row_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
-    }
-    pattern->row_degreeOfFreedomDistribution = row_degreeOfFreedomDistribution;
-    pattern->col_degreeOfFreedomDistribution = col_degreeOfFreedomDistribution;
-    return pattern;
+    return Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,n,ptr,index);
   }
 }
 /*

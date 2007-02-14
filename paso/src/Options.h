@@ -51,7 +51,6 @@
 #define PASO_PASO 21
 #define PASO_RILU 22
 #define PASO_AMG 23
-#define PASO_TRILINOS 24
 
 
 typedef struct {

@@ -88,7 +88,7 @@ void  Finley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Finley_ElementFile* 
              for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
           #else
-          {  /* Open curly brace to match the one closing the color loop */
+          {
              for(e=0;e<elements->numElements;e++) {
                 {
           #endif

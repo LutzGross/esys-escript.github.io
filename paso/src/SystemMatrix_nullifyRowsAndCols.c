@@ -53,15 +53,6 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
 	  }
 	}
       }
-    } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
-      /*
-      	Plan: Collect non-zeros on each CPU,
-	use MPI to concatenate,
-	sort with qsort,
-	and then use binary search to check if a row is non-zero
-      */
-      fprintf(stderr, "SystemMatrix_nullifyRowsAndCols: need to implement MATRIX_FORMAT_TRILINOS_CRS (and for block sizes != 1)\n");
-      exit(1);
     } else {
       #pragma omp parallel for private(irow, iptr,icol) schedule(static)
       for (irow=0;irow< A->pattern->n_ptr;irow++) {
@@ -99,9 +90,6 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
 	  }
 	}
       }
-    } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
-      fprintf(stderr, "SystemMatrix_nullifyRowsAndCols 2: need to implement MATRIX_FORMAT_TRILINOS_CRS\n");
-      exit(1);
     } else {
       #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
       for (ir=0;ir< A->pattern->n_ptr;ir++) {

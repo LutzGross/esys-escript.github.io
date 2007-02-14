@@ -42,11 +42,21 @@
 #define MATRIX_FORMAT_SYM 2
 #define MATRIX_FORMAT_BLK1 4
 #define MATRIX_FORMAT_OFFSET1 8
-#define MATRIX_FORMAT_TRILINOS_CRS 16
 
 typedef int Paso_SystemMatrixType;
 
 typedef struct Paso_SystemMatrix {
+	/*
+#ifdef PASO_MPI
+	Paso_CommBuffer *CommBuffer;
+	Paso_MPIInfo *MPIInfo;
+	dim_t numLocal;
+	dim_t numInternal;
+	dim_t numBoundary;
+	dim_t numExternal;
+	dim_t *vtxdist;
+#endif
+	*/
   Paso_SystemMatrixType type;
   dim_t reference_counter;
 
@@ -70,10 +80,6 @@ typedef struct Paso_SystemMatrix {
   bool_t normalizer_is_valid;
   index_t solver_package;  /* package controling the solver pointer */
   void* solver;  /* pointer to data needed by a solver */
-
-#ifdef TRILINOS
-  void *trilinos_data;
-#endif
 
 } Paso_SystemMatrix;
 

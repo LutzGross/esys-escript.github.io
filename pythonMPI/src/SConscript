@@ -24,9 +24,7 @@ if useMPI:
 		 local_env.Append(CPPDEFINES=['PAPI',])
 		 local_env.Append(LIBS = papi_libs)
 
-	local_env.Append(LIBS = ["python2.4", "paso", "finley", "aztecoo", "teuchos", "epetra", "lapack", "blas", "gfortran"])
-	local_env.Append(CPPPATH = ["/home/Work/trilinos-6/include"])
-	local_env.Append(LIBPATH = ["/home/Work/lib", "/home/Work/trilinos-6/lib"])
+	local_env.Append(LIBS = ["python2.4", "paso", "finley"])
 ## changed
 	lib_name = 'pythonMPI'
 
