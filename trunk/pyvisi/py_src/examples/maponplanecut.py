@@ -21,7 +21,7 @@ mopc1 = MapOnPlaneCut(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST)
 mopc1.setPlaneToYZ(1.5)
 
-c1 = Camera(scene = s, data_collector = dc2, viewport = Viewport.SOUTH_WEST)
+c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
 
 # Create three map on plane cut instances for the second viewport.
