@@ -9,7 +9,7 @@ class Glyph3D:
 	Class that defines 3D glyph.
 	"""
 
-	def __init__(self, object, source, range):
+	def __init__(self, object, source):
 		"""
 		Initialise the 3D glyph.
 
@@ -17,13 +17,10 @@ class Glyph3D:
 		@param object: Input for the 3D glyph 
 		@type source: vtkPolyData 	
 		@param source: Source for the 3D glyph (i.e. Arrow2D, Arrow3D, etc)
-		@type range: Two column tuple containing numbers
-		@param range: Range to map scalar values 
 		"""
 
 		self.__object = object
 		self.__source = source
-		self.__range = range
 		self.__vtk_glyph3D = vtk.vtkGlyph3D()
 
 		self.__setInput()
@@ -34,7 +31,6 @@ class Glyph3D:
 
 		self.__setScalingOn()
 		self.__setOrientOn()
-		self.__setRange()
 
 	def __setInput(self):
 		"""
@@ -116,12 +112,15 @@ class Glyph3D:
 
 		self.__vtk_glyph3D.OrientOn()
 		
-	def __setRange(self):
+	def _setRange(self, range):
 		"""
 		Set the range to map scalar values.
+
+		@type range: Two column tuple containing numbers
+		@param range: Range to map scalar values 
 		"""
 
-		self.__vtk_glyph3D.SetRange(self.__range)
+		self.__vtk_glyph3D.SetRange(range)
 
 	def _getOutput(self):
 		"""

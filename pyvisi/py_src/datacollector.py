@@ -74,7 +74,8 @@ class DataCollector:
 		@rtype: Two column tuple containing numbers
 		@return: Scalar range
 		"""
-
+	
+		#self._getOutput().GetPointData().SetActiveScalars("temp")
 		return self._getOutput().GetPointData().GetScalars().GetRange(-1)
 
 	def _getVectorRange(self):
@@ -92,6 +93,7 @@ class DataCollector:
 		# to return incorrect mimimum vector although the maximum vector is 
 		# correct. As a result, the mimimum vector has been hard coded to 0.0
 		# to accommodate those incorrect cases.
+
 		return (0.0, vector_range[1])
 
 	def _getTensorRange(self):

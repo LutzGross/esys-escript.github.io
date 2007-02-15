@@ -95,23 +95,29 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-					Arrow2D._getOutput(self), data_collector._getScalarRange()) 
+					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-					Arrow3D._getOutput(self), data_collector._getScalarRange()) 
+					Arrow3D._getOutput(self)) 
 
 		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
+			print "vector .."
 			Glyph3D._setColorModeByVector(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
+			print data_collector._getVectorRange()
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
+			print "scalar.."
 			Glyph3D._setColorModeByScalar(self)
+			Glyph3D._setRange(self, data_collector._getScalarRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
+			print data_collector._getScalarRange()
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
