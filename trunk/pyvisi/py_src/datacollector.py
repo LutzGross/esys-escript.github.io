@@ -3,7 +3,12 @@
 """
 
 import vtk
+import tempfile, os
 from constant import Source 
+try:
+  import esys.escript 
+except ImportError:
+  print "Warning: importing esys.escript failed."
 
 class DataCollector:
 	"""
@@ -18,9 +23,23 @@ class DataCollector:
 		@type source: L{Source <constant.Source>} constant
 		@param source: Source data type
 		"""
-
+                
+                self.__source=source
 		if(source == Source.XML): # Source is an XML file.
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
+                # this is a temporary solution using a file: 
+                if (source == Source.ESCRIPT):
+                         self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
+                         self.__tmp_file=tempfile.mkstemp(suffix=".xml")[1]
+                         self.__vtk_xml_reader.SetFileName(self.__tmp_file)
+                         self.__output = self.__vtk_xml_reader.GetOutput()
+        def __del__(self):
+               """
+               clean up
+               """
+               if (self.__source == Source.ESCRIPT):
+                   if os.access(self.__tmp_file,os.F_OK): os.unlink(self.__tmp_file)
+
 
 	def setFileName(self, file_name):
 		"""
@@ -29,13 +48,26 @@ class DataCollector:
 		@type file_name: String
 		@param file_name: Name of the file to read
 		"""
+                if self.__source == Source.XML:
+		   self.__vtk_xml_reader.SetFileName(file_name)
+		   self.__output = self.__vtk_xml_reader.GetOutput()
 
-		self.__vtk_xml_reader.SetFileName(file_name)
-		self.__output = self.__vtk_xml_reader.GetOutput()
+		   # NOTE: Update must be called after SetFileName to make the reader 
+		   # up to date. Otherwise, some output values may be incorrect.
+		   self.__vtk_xml_reader.Update() 
+                else:
+                   raise ValueError("source type %s does not support setFileName"%self.__source)
 
-		# NOTE: Update must be called after SetFileName to make the reader 
-		# up to date. Otherwise, some output values may be incorrect.
-		self.__vtk_xml_reader.Update() 
+        def setData(self,**args):
+                """
+                sets the data using. <name>=<data> sets the data tagged by <name> to the object <data>. It is expected
+                that the data are given in an appropriate source type.
+                """
+                if self.__source == Source.ESCRIPT:
+                   esys.escript.saveVTK(self.__tmp_file,**args)
+                   self.__vtk_xml_reader.Update()
+                else:
+                   raise ValueError("source type %s does not support setData"%self.__source)
 
 	def _setActiveScalar(self, scalar):
 		"""
@@ -86,6 +118,7 @@ class DataCollector:
 		@return: Vector range
 		"""
 
+                print self._getOutput().GetPointData().GetVectors()
 		vector_range = self._getOutput().GetPointData().GetVectors().GetRange(-1)
 
 		# NOTE: Generally GetRange(-1) returns the correct vector range. 

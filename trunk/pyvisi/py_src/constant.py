@@ -50,9 +50,11 @@ class Source:
 	Constant that define the source data type.
 
 	@cvar XML: Constant representing the xml source data type
+	@cvar ESCRIPT: Constant representing the escript data objects as source
 	"""
 	
 	XML = "xml"
+        ESCRIPT = "escript"
 
 class Renderer:
 	"""
