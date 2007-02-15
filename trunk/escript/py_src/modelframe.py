@@ -27,6 +27,8 @@ from sys import stdout
 import numarray
 import operator
 import itertools
+import time
+import os
 
 # import the 'set' module if it's not defined (python2.3/2.4 difference)
 try:
@@ -742,16 +744,24 @@ class Model(ParameterSet):
        return "<%s %d>"%(self.__class__.__name__,id(self))
 
 
+    def setUp(self):
+        """
+        Sets up the model. 
+
+        This function may be overwritten.
+        """
+        pass
+
     def doInitialization(self):
         """
-	Initializes the time stepping scheme.  
+	Initializes the time stepping scheme. This method is not called in case of a restart.
 	
 	This function may be overwritten.
 	"""
         pass
     def doInitialStep(self):
         """
-	performs an iteration step in the initialization phase
+	performs an iteration step in the initialization phase. This method is not called in case of a restart.
 
 	This function may be overwritten.
 	"""
@@ -759,13 +769,13 @@ class Model(ParameterSet):
 
     def terminateInitialIteration(self):
         """
-	Returns True if iteration at the inital phase is terminated.
+	Returns True if iteration at the inital phase is terminated. 
 	"""
         return True
 
     def doInitialPostprocessing(self):
         """
-	finalises the initialization iteration process 
+	finalises the initialization iteration process. This method is not called in case of a restart.
 
 	This function may be overwritten.
 	"""
@@ -862,6 +872,9 @@ class Simulation(Model):
 	Initiates a simulation from a list of models.
 	"""
         super(Simulation, self).__init__(**kwargs)
+        self.declareParameter(time=0.,
+                              time_step=0,
+                              dt = self.UNDEF_DT)
         for m in models:
             if not isinstance(m, Model):
                  raise TypeError("%s is not a subclass of Model."%m)
@@ -944,13 +957,18 @@ class Simulation(Model):
 	"""
         out=min([o.getSafeTimeStepSize(dt) for o in self.iterModels()])
         return out
+
+    def setUp(self):
+        """
+        performs the setup for all models
+        """
+        for o in self.iterModels(): 
+             o.setUp()
     
     def doInitialization(self):
         """
 	Initializes all models.
 	"""
-        self.n=0
-        self.tn=0.
         for o in self.iterModels(): 
              o.doInitialization()
     def doInitialStep(self):
@@ -1014,8 +1032,9 @@ class Simulation(Model):
 	"""
         for o in self.iterModels(): 
             o.doStepPostprocessing(dt)
-        self.n+=1
-        self.tn+=dt
+        self.time_step+=1
+        self.time+=dt
+        self.dt=dt
     
     def doStep(self,dt):
         """
@@ -1029,25 +1048,27 @@ class Simulation(Model):
         """
         self.iter=0
         while not self.terminateIteration(): 
-            if self.iter==0: self.trace("iteration at %d-th time step %e starts"%(self.n+1,self.tn+dt))
+            if self.iter==0: self.trace("iteration at %d-th time step %e starts"%(self.time_step+1,self.time+dt))
             self.iter+=1
             self.trace("iteration step %d"%(self.iter))
             for o in self.iterModels(): 
                   o.doStep(dt)
-        if self.iter>0: self.trace("iteration at %d-th time step %e finalized."%(self.n+1,self.tn+dt))
+        if self.iter>0: self.trace("iteration at %d-th time step %e finalized."%(self.time_step+1,self.time+dt))
 
-    def run(self,check_point=None):
+    def run(self,check_pointing=None):
         """
 	Run the simulation by performing essentially::
     
-	    self.doInitialization()
-            while not self.terminateInitialIteration(): self.doInitialStep()
-            self.doInitialPostprocessing()
+            self.setUp()
+            if not restart:
+	        self.doInitialization()
+                while not self.terminateInitialIteration(): self.doInitialStep()
+                self.doInitialPostprocessing()
 	    while not self.finalize():
 	        dt=self.getSafeTimeStepSize()
-	        self.doStep(dt)
-	        if n%check_point==0: 
-		    self.writeXML() 
+                self.doStepPreprocessing(dt_new)
+                self.doStep(dt_new)
+                self.doStepPostprocessing(dt_new)
 	    self.doFinalization()
 
         If one of the models in throws a C{FailedTimeStepError} exception a 
@@ -1070,23 +1091,24 @@ class Simulation(Model):
                  msg+="\n\t"+str(l[1])+" at "+l[0]
             raise MissingLink("link targets missing in the Simulation: %s"%msg)
         #==============================
-        self.doInitialization()
-        self.doInitialStep()
-        self.doInitialPostprocessing()
-        dt=self.UNDEF_DT
+        self.setUp()
+        if self.time_step < 1:
+           self.doInitialization()
+           self.doInitialStep()
+           self.doInitialPostprocessing()
         while not self.finalize():
             step_fail_counter=0
             iteration_fail_counter=0
-            if self.n==0:
+            if self.time_step==0:
                 dt_new=self.getSafeTimeStepSize(dt)
             else:
-                dt_new=min(max(self.getSafeTimeStepSize(dt),dt/self.MAX_CHANGE_OF_DT),dt*self.MAX_CHANGE_OF_DT)
-            self.trace("%d. time step %e (step size %e.)" % (self.n+1,self.tn+dt_new,dt_new))
+                dt_new=min(max(self.getSafeTimeStepSize(self.dt),self.dt/self.MAX_CHANGE_OF_DT),self.dt*self.MAX_CHANGE_OF_DT)
+            self.trace("%d. time step %e (step size %e.)" % (self.time_step+1,self.time+dt_new,dt_new))
             end_of_step=False
             while not end_of_step:
                end_of_step=True
                if not dt_new>0:
-                  raise NonPositiveStepSizeError("non-positive step size in step %d"%(self.n+1))
+                  raise NonPositiveStepSizeError("non-positive step size in step %d"%(self.time_step+1))
                try:
                   self.doStepPreprocessing(dt_new)
                   self.doStep(dt_new)
@@ -1099,15 +1121,14 @@ class Simulation(Model):
                            raise SimulationBreakDownError("reduction of time step to achieve convergence failed after %s steps."%self.FAILED_TIME_STEPS_MAX)
                   self.trace("Iteration failed. Time step is repeated with new step size %s."%dt_new)
                except FailedTimeStepError:
-                  dt_new=self.getSafeTimeStepSize(dt)
+                  dt_new=self.getSafeTimeStepSize(self.dt)
                   end_of_step=False
                   step_fail_counter+=1
                   self.trace("Time step is repeated with new time step size %s."%dt_new)
                   if step_fail_counter>self.FAILED_TIME_STEPS_MAX:
                         raise SimulationBreakDownError("Time integration is given up after %d attempts."%step_fail_counter)
-            dt=dt_new
             if not check_point==None:
-                if n%check_point==0: 
+               if check_point.doDump():
                     self.trace("check point is created.")
                     self.writeXML()
         self.doFinalization()
@@ -1212,5 +1233,98 @@ class DataSource(object):
         return self.uri
 
     fromDom = classmethod(fromDom)
-    
+
+class RestartManager(object):
+     """
+     A restart manager which does two things: it decides when restart files have created (when doDump returns true) and
+     manages directories for restart files. The method getNewDumper creates a new directory and returns its name. 
+     
+     This restart manager will decide to dump restart files if every dump_step calls of doDump or
+     if more than dump_time since the last dump has elapsed. The restart manager controls two directories for dumping restart data, namely
+     for the current and previous dump. This way the previous dump can be used for restart in the case the current dump failed.
+
+     @cvar SEC: unit of seconds, for instance for 5*RestartManager.SEC to define 5 seconds.
+     @cvar MIN: unit of minutes, for instance for 5*RestartManager.MIN to define 5 minutes.
+     @cvar H: unit of hours, for instance for 5*RestartManager.H to define 5 hours.
+     @cvar D: unit of days, for instance for 5*RestartManager.D to define 5 days.
+     """
+     SEC=1.
+     MIN=60.
+     H=360.
+     D=8640.
+     def __init__(self,dump_time=1080., dump_step=None, dumper=None):
+         """
+         initializes the RestartManager. 
+
+         @param dump_time: defines the minimum time interval in SEC between to dumps. If None, time is not used as criterion.
+         @param dump_step: defines the number of calls of doDump between to dump events. If None, the call counter is not used as criterion.
+         @param dumper: defines the directory for dumping restart files. Additionally the directories dumper+"_bkp" and dumper+"_bkp2" are used.
+                        if the directory does not exist it is created. If dumper is not present a unique directory within the current 
+                        working directory is used.
+         """
+         self.__dump_step=dump_time
+         self.__dump_time=dump_step
+         self.__counter=0
+         self.__saveMarker()
+         if dumper == None:
+            self.__dumper="restart"+str(os.getpid())
+         else:
+            self.__dumper=dumper
+         self.__dumper_bkp=self.__dumper+"_bkp"
+         self.__dumper_bkp2=self.__dumper+"_bkp2"
+         self.__current_dumper=None
+     def __saveMarker(self):
+         self.__last_restart_time=time.time()
+         self.__last_restart_counter=self.__counter
+     def getCurrentDumper(self):
+         """
+         returns the name of the currently used dumper
+         """
+         return self.__current_dumper
+     def doDump(self):
+        """
+        returns true the restart should be dumped. use C{getNewDumper} to get the directory name to be used.
+        """ 
+        if self.__dump_step == None:
+           if self.__dump_step == None:
+              out = False
+           else:
+              out = (self.__dump_step + self.__last_restart_counter) <= self.__counter
+        else:
+           if dump_step == None:
+              out = (self.__last_restart_time + self.__dump_time) <= time.time()
+           else:
+              out =    ( (self.__dump_step + self.__last_restart_counter) <= self.__counter)  \
+                    or ( (self.__last_restart_time + self.__dump_time) <= time.time() )
+        if out: self.__saveMarker()
+        self__counter+=1
+     def getNewDumper(self):
+       """
+       creates a new directory to be used for dumping and returns its name.
+       """ 
+       if os.access(self.__dumper_bkp,os.F_OK):
+          if os.access(self.__dumper_bkp2, os.F_OK):
+             raise RunTimeError("please remove %s."%self.__dumper_bkp2)
+          try:
+             os.rename(self.__dumper_bkp, self.__dumper_bkp2)
+          except:
+             self.__current_dumper=self.__dumper
+             raise RunTimeError("renaming back-up directory %s failed. Use %s for restart."%(self.__dumper_bkp,self.__dumper))
+       if os.access(self.__dumper,os.F_OK):
+          if os.access(self.__dumper_bkp, os.F_OK):
+             raise RunTimeError("please remove %s."%self.__dumper_bkp)
+          try:
+             os.rename(self.__dumper, self.__dumper_bkp)
+          except:
+             self.__current_dumper=self.__dumper_bkp2
+             raise RunTimeError("moving directory %s to back-up failed. Use %s for restart."%(self.__dumper,self.__dumper_bkp2))
+       try: 
+          os.mkdir(self.__dumper)
+       except:
+          self.__current_dumper=self.__dumper_bkp
+          raise RunTimeError("creating a new restart directory %s failed. Use %s for restart."%(self.__dumper,self.__dumper_bkp))
+       if os.access(self.__dumper_bkp2, os.F_OK): os.rmdir(self.__dumper_bkp2)
+       return self.getCurrentDumper()
+         
+     
 # vim: expandtab shiftwidth=4:
