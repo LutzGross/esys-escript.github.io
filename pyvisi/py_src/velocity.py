@@ -26,7 +26,7 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 	# If no vector field is specified, the first encountered in the file will
 	# be loaded automatically. If no lut is specified, the color scheme will
 	# be used.
-	def __init__(self, scene, data_collector, vector = None, 
+	def __init__(self, scene, data_collector, vector = None, scalar = None,
 			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 
@@ -38,6 +38,8 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 		@param data_collector: Deal with source of data for visualisation
 		@type vector: String
 		@param vector: Vector field to load from the source file
+		@type scalar: String
+		@param scalar: Scalar field to load from the source file
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
@@ -77,6 +79,8 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 
 		if(vector != None):
 			data_collector._setActiveVector(vector)
+		elif(scalar != None):
+			data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -144,7 +148,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	# If no vector field is specified, the first encountered in the file will
 	# be loaded automatically.  If no lut is specified, the color scheme will
 	# be used.
-	def __init__(self, scene, data_collector, vector = None, 
+	def __init__(self, scene, data_collector, vector = None, scalar = None,
 			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 		"""
@@ -155,6 +159,8 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param data_collector: Deal with source of data for visualisation
 		@type vector: String
 		@param vector: Vector field to load from the source file
+		@type scalar: String
+		@param scalar: Scalar field to load from the source file
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
@@ -194,6 +200,8 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(vector != None):
 			data_collector._setActiveVector(vector)
+		elif(scalar != None):
+			data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -259,7 +267,7 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	# If no vector field is specified, the first encountered in the file will
 	# be loaded automatically.  If no lut is specified, the color scheme will
 	# be used.
-	def __init__(self, scene, data_collector, vector = None, 
+	def __init__(self, scene, data_collector, vector = None, scalar = None,
 			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
 		"""
@@ -270,6 +278,8 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param data_collector: Deal with source of data for visualisation
 		@type vector: String
 		@param vector: Vector field to load from the source file
+		@type scalar: String
+		@param scalar: Scalar field to load from the source file
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
@@ -309,6 +319,8 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(vector != None):
 			data_collector._setActiveVector(vector)
+		elif(scalar != None):
+			data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
