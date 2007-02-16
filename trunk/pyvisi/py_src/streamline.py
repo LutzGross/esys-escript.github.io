@@ -25,15 +25,19 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 	# If no vector field is specified, the first encountered in the file will
 	# be loaded automatically. If no lut is specified, the color scheme will
 	# be used.
-	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-		lut = Lut.COLOR, color_mode = ColorMode.VECTOR, outline = True): 
-
+	def __init__(self, scene, data_collector, scalar = None, vector = None, 
+		viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+		color_mode = ColorMode.VECTOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
+		@type vector: String
+		@param vector: Vector field to load from the source file
+		@type scalar: String
+		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which the object is to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -68,6 +72,13 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 
 		# ----- Streamline -----
 
+		if(vector != None):
+			print "vector"
+			data_collector._setActiveVector(vector)
+		elif(scalar != None):
+			print "scalar"
+			data_collector._setActiveScalar(scalar)
+
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
@@ -87,9 +98,11 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
+			print "vectro mode"
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
+			print "scalar mode"
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
 

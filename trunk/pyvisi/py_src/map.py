@@ -77,10 +77,12 @@ class Map(DataSetMapper, Actor3D):
 		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable() 
 			lookup_table._setLookupTableToGreyScale()
+		#print ("dir ", dir(lookup_table))
 
 		DataSetMapper.__init__(self, data_collector._getOutput(), 
 				lookup_table._getLookupTable())	
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
+		#print("range ", data_collector._getScalarRange())
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
