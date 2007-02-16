@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ESys>
+     <MiningArea>
+	<Name>Greater Newcastle Mining
+</Name>
+         <Location>
+         <LocationOnEarth>
+                <Longitude unit="D.MM">151.5581906349188</Longitude>
+                <Latitude unit="D.MM">-32.94607054435458</Latitude>
+                <Altitude unit="m">0</Altitude>
+         </LocationOnEarth>
+         </Location>
+         <LongitudeLength unit="km">100</LongitudeLength>
+         <LatitudeLength unit="km">100</LatitudeLength>
+         <Tilt unit="D.MM">4</Tilt>
+         <Depth unit="km">30</Depth>
+         <Mine>
+		<Name>Newcastle Mining2</Name>
+                <Location>
+                <LocationOnEarth>
+                       <Longitude unit="D.MM">151.5581906349188</Longitude>
+                       <Latitude unit="D.MM">-32.94607054435458</Latitude>
+                       <Altitude unit="m">-100</Altitude>
+                </LocationOnEarth>
+                </Location>
+                <Tilt unit="D.MM"> 20</Tilt>
+                <Depth unit="m">100</Depth>
+                <LongitudeLength unit="m">300 </LongitudeLength>
+                <LatitudeLength unit="m">200 </LatitudeLength>
+         </Mine>
+         <Mine>
+		<Name>Newcastle Mining1</Name>
+                <Location>
+                <LocationOnEarth>
+		       <Longitude unit="D.MM">151.6209275285916</Longitude>
+		       <Latitude unit="D.MM">-32.94383075889717</Latitude>
+                       <Altitude unit="m">-200</Altitude>
+                </LocationOnEarth>
+                </Location>
+                <Tilt unit="D.MM">-10</Tilt>
+                <Depth unit="m">50</Depth>
+                <LongitudeLength unit="m">200</LongitudeLength>
+                <LatitudeLength unit="m">300</LatitudeLength>
+         </Mine>
+         <Mine>
+		<Name>Newcastle Mining3</Name>
+                <Location>
+                <LocationOnEarth>
+		       <Longitude unit="D.MM">151.5011809571203</Longitude>
+		       <Latitude unit="D.MM">-33.0479913390422</Latitude>
+                       <Altitude unit="m">-300</Altitude>
+                </LocationOnEarth>
+                </Location>
+                <Tilt unit="D.MM">-60</Tilt>
+                <Depth unit="m">500</Depth>
+                <LongitudeLength unit="m">100</LongitudeLength>
+                <LatitudeLength unit="m">100</LatitudeLength>
+         </Mine>
+     </MiningArea>
+</ESys>
