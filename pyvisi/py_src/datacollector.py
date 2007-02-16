@@ -50,11 +50,11 @@ class DataCollector:
 		"""
                 if self.__source == Source.XML:
 		   self.__vtk_xml_reader.SetFileName(file_name)
-		   self.__output = self.__vtk_xml_reader.GetOutput()
 
 		   # NOTE: Update must be called after SetFileName to make the reader 
 		   # up to date. Otherwise, some output values may be incorrect.
 		   self.__vtk_xml_reader.Update() 
+		   self.__output = self.__vtk_xml_reader.GetOutput()
                 else:
                    raise ValueError("source type %s does not support setFileName"%self.__source)
 
@@ -107,7 +107,6 @@ class DataCollector:
 		@return: Scalar range
 		"""
 	
-		#self._getOutput().GetPointData().SetActiveScalars("temp")
 		return self._getOutput().GetPointData().GetScalars().GetRange(-1)
 
 	def _getVectorRange(self):
@@ -137,7 +136,7 @@ class DataCollector:
 		@return: Tensor range
 		"""
 
-		return self._getOutput().GetPointData().GetTensors().GetRange()
+		return self._getOutput().GetPointData().GetTensors().GetRange(-1)
 
 	def _getOutput(self):
 		"""

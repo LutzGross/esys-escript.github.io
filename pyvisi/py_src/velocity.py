@@ -118,7 +118,7 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
 			print "scalar.."
 			Glyph3D._setColorModeByScalar(self)
-			Glyph3D._setRange(self, data_collector._getScalarRange())
+			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
 			print data_collector._getScalarRange()
@@ -226,11 +226,11 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
 			Glyph3D.__init__(self, Cutter._getOutput(self), 
-					Arrow2D._getOutput(self), data_collector._getScalarRange()) 
+					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
 			Glyph3D.__init__(self, Cutter._getOutput(self), 
-					Arrow3D._getOutput(self), data_collector._getScalarRange()) 
+					Arrow3D._getOutput(self)) 
 
 		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
@@ -345,11 +345,11 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			Arrow2D.__init__(self)
 			#Glyph3D.__init__(self, data_collector._getOutput(), 
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-					Arrow2D._getOutput(self), data_collector._getScalarRange()) 
+					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
 			Glyph3D.__init__(self, Probe._getOutput(self), 
-					Arrow3D._getOutput(self), data_collector._getScalarRange()) 
+					Arrow3D._getOutput(self)) 
 		
 		# NOTE: Clipper must come after Glyph3D. Otherwise, the output will
 		# be incorrect.
