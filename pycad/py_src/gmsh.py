@@ -76,7 +76,7 @@ class Design(design.Design):
        returns the name of the file for the gmsh msh
        """
        return self.__mshname
-    def setOptions(self,algorithm=None,optimize_quality=True,smoothing=3):
+    def setOptions(self,algorithm=None,optimize_quality=True,smoothing=1):
         """
         sets options for the mesh generator
         """ 
