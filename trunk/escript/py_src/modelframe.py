@@ -1100,7 +1100,7 @@ class Simulation(Model):
             step_fail_counter=0
             iteration_fail_counter=0
             if self.time_step==0:
-                dt_new=self.getSafeTimeStepSize(dt)
+                dt_new=self.getSafeTimeStepSize(self.dt)
             else:
                 dt_new=min(max(self.getSafeTimeStepSize(self.dt),self.dt/self.MAX_CHANGE_OF_DT),self.dt*self.MAX_CHANGE_OF_DT)
             self.trace("%d. time step %e (step size %e.)" % (self.time_step+1,self.time+dt_new,dt_new))
@@ -1127,8 +1127,8 @@ class Simulation(Model):
                   self.trace("Time step is repeated with new time step size %s."%dt_new)
                   if step_fail_counter>self.FAILED_TIME_STEPS_MAX:
                         raise SimulationBreakDownError("Time integration is given up after %d attempts."%step_fail_counter)
-            if not check_point==None:
-               if check_point.doDump():
+            if not check_pointing==None:
+               if check_pointing.doDump():
                     self.trace("check point is created.")
                     self.writeXML()
         self.doFinalization()
