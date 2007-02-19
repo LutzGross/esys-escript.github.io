@@ -27,6 +27,22 @@
                 <Depth unit="m">100</Depth>
                 <LongitudeLength unit="m">300 </LongitudeLength>
                 <LatitudeLength unit="m">200 </LatitudeLength>
+                <Record><Material>coal</Material>
+                   <Year>1840</Year>
+                   <Extraction unit="Mt">1</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1922</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1945</Year>
+                   <Extraction unit="Mt">2</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1967</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
          </Mine>
          <Mine>
 		<Name>Newcastle Mining1</Name>
@@ -41,6 +57,31 @@
                 <Depth unit="m">50</Depth>
                 <LongitudeLength unit="m">200</LongitudeLength>
                 <LatitudeLength unit="m">300</LatitudeLength>
+                <Record>
+                  <Material>coal</Material>
+                   <Year>1922</Year>
+                   <Extraction unit="Mt">2</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1945</Year>
+                   <Extraction unit="Mt">1</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1967</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1980</Year>
+                   <Extraction unit="Mt">7</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1997</Year>
+                   <Extraction unit="Mt">14</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>2000</Year>
+                   <Extraction unit="Mt">13</Extraction>
+                </Record>
          </Mine>
          <Mine>
 		<Name>Newcastle Mining3</Name>
@@ -55,6 +96,22 @@
                 <Depth unit="m">500</Depth>
                 <LongitudeLength unit="m">100</LongitudeLength>
                 <LatitudeLength unit="m">100</LatitudeLength>
+                <Record><Material>coal</Material>
+                   <Year>1967</Year>
+                   <Extraction unit="Mt">2</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1980</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1997</Year>
+                   <Extraction unit="Mt">6</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>2000</Year>
+                   <Extraction unit="Mt">5</Extraction>
+                </Record>
          </Mine>
      </MiningArea>
 </ESys>

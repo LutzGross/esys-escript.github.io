@@ -92,6 +92,9 @@ def unitConverter(val,val_unit,out_unit):
           out=float(val)
        elif VAL_UNIT == "KM":
           out=float(val)*1000.
+    elif OUT_UNIT == "KG":
+        if VAL_UNIT == "MT":
+            out=float(val)*1e9
     if out == None:
           raise ValueError("cannot convert from unit %s to %s."%(val_unit,out_unit))
     return out
@@ -143,6 +146,8 @@ class MiningArea(BoxInTheCrust):
      def __init__(self, longitude_length, latitude_length, depth, location=LocationOnEarth(), name="unknown", tilt=0., mines=[]):
         super(MiningArea, self).__init__(longitude_length, latitude_length, depth, location, name, tilt)
         self.__mines=mines
+     def getStartOfRecords(self):
+         return min([ m.getStartOfRecords() for m in self.__mines ])
      def fillDesign(self,design):
          """
          this puts the mining area and all the mines into the given design
@@ -243,26 +248,6 @@ class MiningArea(BoxInTheCrust):
          dom=SurfaceLoop(bottom,top,front,back,left,right,-bb_bottom,-bb_front,-bb_back,-bb_left,-bb_right)
          design.addItems(Volume(dom))
          return
-         1/0
-               
-               
-         print msh_factor
-         pnts=[]
-         min_fac=1.
-         for m in self.__mines:
-               mb=m.createSurfaceLoop()
-               fac=m.getDiameter()/self.getDiameter()
-               min_fac=min(min_fac, fac)
-               mb.setLocalScale(fac)
-               mb+=m.getCenter().getRelativeXYZ(self.getCenter())
-               mboxes.append(mb)
-               s=m.getCenter().getRelativeXYZ(self.getCenter())
- 
-         print min_fac
-         # for p in box.getConstructionPoints():
-         #     if p.getCoordinates()[2] == 0. : p.setLocalScale(min_fac)
-         # design.addItems(Volume(box, holes=mboxes))
-         design.addItems(Volume(box), *tuple(pnts))
 
 class Mine(BoxInTheCrust):
      """
@@ -270,6 +255,27 @@ class Mine(BoxInTheCrust):
      """
      def __init__(self, longitude_length, latitude_length, depth, location=LocationOnEarth(), name="unknown", tilt=0.):
         super(Mine, self).__init__(longitude_length, latitude_length, depth, location, name, tilt)
+        self.__record=[]
+
+     def addRecord(self, material, year, extraction):
+        TYPE=material.upper()
+        for y, e in self.__record:
+           if y == year:
+               if e.has_key(TYPE):
+                  e[TYPE]+=extraction
+               else:
+                  e[TYPE]=extraction
+               return
+           if y>year:
+               self.__record.insert(self.__record.index((y,e)), { TYPE : extraction} )
+               return
+        self.__record.append((year, { TYPE : extraction} ))
+        return
+     def getStartOfRecords(self):
+          if len(self.__record)>0:
+             return self.__record[0][0]
+          else: 
+             raise ValueError("empty record of %s mine."%self.getName())
 
 
 def _parse(root):
@@ -302,6 +308,7 @@ def _parse(root):
                  DEPTH=0.
                  LONGLENGTH=0.
                  LATLENGTH=0.
+                 RECORD=[]
                  for node in root.childNodes:
                        if isinstance(node, minidom.Element):
                           if node.tagName == 'Name': NAME=_parse(node)
@@ -310,7 +317,11 @@ def _parse(root):
                           if node.tagName == 'Depth': DEPTH=_parse(node)
                           if node.tagName == 'LongitudeLength': LONGLENGTH=_parse(node)
                           if node.tagName == 'LatitudeLength': LATLENGTH=_parse(node)
-                 return Mine(location=LOC, tilt=TILT,name=NAME, longitude_length=LONGLENGTH, latitude_length=LATLENGTH, depth=DEPTH)
+                          if node.tagName == 'Record': RECORD.append(_parse(node))
+                 m=Mine(location=LOC, tilt=TILT,name=NAME, longitude_length=LONGLENGTH, latitude_length=LATLENGTH, depth=DEPTH)
+                 for r in RECORD:
+                    m.addRecord(material=r[0],year=r[1],extraction=r[2])
+                 return m
         elif root.tagName == 'LocationOnEarth':
                     long=0.
                     lat=0.
@@ -321,6 +332,16 @@ def _parse(root):
                           if node.tagName == 'Latitude': lat=_parse(node)
                           if node.tagName == 'Altitude': alt=_parse(node)
                     return LocationOnEarth(longitude=long, latitude=lat, altitude=alt)
+        elif root.tagName == 'Record':
+                    year=0
+                    mat="unknown"
+                    ext=0.
+                    for node in  root.childNodes:
+                       if isinstance(node, minidom.Element):
+                          if node.tagName == 'Year': year=_parse(node)
+                          if node.tagName == 'Material': mat=_parse(node)
+                          if node.tagName == 'Extraction': ext=_parse(node)
+                    return (mat,year,ext)
         elif root.tagName == 'SouthWest':
                   return _parse(root.getElementsByTagName('LocationOnEarth')[0])
         elif root.tagName == 'NorthEast':
@@ -350,7 +371,7 @@ def _parse(root):
                        unit="M"
                    for node in root.childNodes:
                       if isinstance(node, minidom.Text):
-                        return unitConverter(root.firstChild.nodeValue, unit, LocationOnEarth.LENGTH_UNIT)
+                        return unitConverter(node.nodeValue.strip(), unit, LocationOnEarth.LENGTH_UNIT)
                    return 0.
         elif root.tagName == 'LongitudeLength':
                    if root.hasAttribute("unit"):
@@ -359,7 +380,7 @@ def _parse(root):
                        unit="M"
                    for node in root.childNodes:
                       if isinstance(node, minidom.Text):
-                        return unitConverter(root.firstChild.nodeValue, unit, LocationOnEarth.LENGTH_UNIT)
+                        return unitConverter(node.nodeValue.strip(), unit, LocationOnEarth.LENGTH_UNIT)
                    return 0.
         elif root.tagName == 'LatitudeLength':
                    if root.hasAttribute("unit"):
@@ -368,7 +389,7 @@ def _parse(root):
                        unit="M"
                    for node in root.childNodes:
                       if isinstance(node, minidom.Text):
-                        return unitConverter(root.firstChild.nodeValue, unit, LocationOnEarth.LENGTH_UNIT)
+                        return unitConverter(node.nodeValue.strip(), unit, LocationOnEarth.LENGTH_UNIT)
                    return 0.
         elif root.tagName == 'Depth':
                    if root.hasAttribute("unit"):
@@ -377,7 +398,7 @@ def _parse(root):
                        unit="M"
                    for node in root.childNodes:
                       if isinstance(node, minidom.Text):
-                        return unitConverter(root.firstChild.nodeValue, unit, LocationOnEarth.LENGTH_UNIT)
+                        return unitConverter(node.nodeValue.strip(), unit, LocationOnEarth.LENGTH_UNIT)
                    return 0.
         elif root.tagName == 'LongitudeLength':
                    if root.hasAttribute("unit"):
@@ -386,7 +407,7 @@ def _parse(root):
                        unit="M"
                    for node in root.childNodes:
                       if isinstance(node, minidom.Text):
-                        return unitConverter(root.firstChild.nodeValue, unit, LocationOnEarth.LENGTH_UNIT)
+                        return unitConverter(node.nodeValue.strip(), unit, LocationOnEarth.LENGTH_UNIT)
                    return 0.
         elif root.tagName == 'Tilt':
                    if root.hasAttribute("unit"):
@@ -395,13 +416,32 @@ def _parse(root):
                        unit="D.MM"
                    for node in root.childNodes:
                       if isinstance(node, minidom.Text):
-                        return unitConverter(root.firstChild.nodeValue, unit, LocationOnEarth.DEG_UNIT)
+                        return unitConverter(node.nodeValue.strip(), unit, LocationOnEarth.DEG_UNIT)
                    return 0.
         elif root.tagName == 'Name':
                    for node in root.childNodes:
                       if isinstance(node, minidom.Text):
                         return node.nodeValue.strip()
                    return "unknown"
+        elif root.tagName == 'Year':
+                  for node in root.childNodes:
+                      if isinstance(node, minidom.Text):
+                          return int(node.nodeValue.strip())
+                  return 0
+        elif root.tagName == 'Material':
+                   for node in root.childNodes:
+                      if isinstance(node, minidom.Text):
+                        return node.nodeValue.strip()
+                   return "unknown"
+        elif root.tagName == 'Extraction':
+                   if root.hasAttribute("unit"):
+                       unit=root.getAttribute("unit")
+                   else:
+                       unit="MT"
+                   for node in root.childNodes:
+                      if isinstance(node, minidom.Text):
+                        return unitConverter(node.nodeValue.strip(), unit, "kg")
+                   return 0.
      for node in root.childNodes:
            if isinstance(node, minidom.Element): return _parse(node)
    
@@ -424,4 +464,5 @@ if __name__ == "__main__":
     dsgn.setScriptFileName("newcastle_mines.geo")
     dsgn.setMeshFileName("newcastle_mines.msh")
     print dsgn.getCommandString()
+    print "start of records = ",mine.getStartOfRecords()
     dsgn.getMeshHandler()
