@@ -219,9 +219,11 @@ load(const std::string fileName,
       int failed=-1, local_failed=-1, i;
       #pragma omp parallel private(local_failed)
       {
+          local_failed=-1;
           #pragma omp for private(i) schedule(static)
-          for (i=0;i < num_samples; ++i)
+          for (i=0;i < num_samples; ++i) {
               if (ids_of_nc[i]!=ids_p[i]) local_failed=i;
+          }
           #pragma omp critical
           if (local_failed>=0) failed = local_failed;
       }
