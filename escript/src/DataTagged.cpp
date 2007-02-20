@@ -16,6 +16,7 @@
 
 #include "DataConstant.h"
 #include "DataException.h"
+#include <netcdfcpp.h>
 
 using namespace std;
 
@@ -556,7 +557,68 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 void
 DataTagged::dump(const std::string fileName) const
 {
-    throw DataException("Error - DataTagged:: dump: not implemented.");
+   const int ldims=DataArrayView::maxRank+1;
+   const NcDim* ncdims[ldims];
+   NcVar *var, *tags_var;
+   int rank = getPointDataView().getRank();
+   int type=  getFunctionSpace().getTypeCode();
+   int ndims =0;
+   long dims[ldims];
+   DataArrayView::ShapeType shape = getPointDataView().getShape();
+
+   // netCDF error handler
+   NcError err(NcError::verbose_nonfatal);
+   // Create the file.
+   NcFile dataFile(fileName.c_str(), NcFile::Replace);
+   // check if writing was successful
+   if (!dataFile.is_valid())
+        throw DataException("Error - DataTagged:: opening of netCDF file for output failed.");
+   if (!dataFile.add_att("type","tagged") )
+        throw DataException("Error - DataTagged:: appending data type to netCDF file failed.");
+   if (!dataFile.add_att("rank",rank) )
+        throw DataException("Error - DataTagged:: appending rank attribute to netCDF file failed.");
+   if (!dataFile.add_att("function_space_type",type))
+        throw DataException("Error - DataTagged:: appending function space attribute to netCDF file failed.");
+   ndims=rank+1;
+   if ( rank >0 ) {
+       dims[0]=shape[0];
+       if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
+            throw DataException("Error - DataTagged:: appending ncdimsion 0 to netCDF file failed.");
+   }
+   if ( rank >1 ) {
+       dims[1]=shape[1];
+       if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
+            throw DataException("Error - DataTagged:: appending ncdimsion 1 to netCDF file failed.");
+   }
+   if ( rank >2 ) {
+       dims[2]=shape[2];
+       if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
+            throw DataException("Error - DataTagged:: appending ncdimsion 2 to netCDF file failed.");
+   }
+   if ( rank >3 ) {
+       dims[3]=shape[3];
+       if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
+            throw DataException("Error - DataTagged:: appending ncdimsion 3 to netCDF file failed.");
+   }
+   const DataTagged::DataMapType& thisLookup=getTagLookup();
+   DataTagged::DataMapType::const_iterator i;
+   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+   int ntags=1;
+   for (i=thisLookup.begin();i!=thisLookupEnd;i++) ntags++;
+   int tags[ntags], c=1;
+   tags[0]=-1;
+   for (i=thisLookup.begin();i!=thisLookupEnd;i++) tags[c++]=i->first;
+   dims[rank]=ntags;
+   if (! (ncdims[rank] = dataFile.add_dim("num_tags", dims[rank])) )
+            throw DataException("Error - DataTagged:: appending num_tags to netCDF file failed.");
+   if (! ( tags_var = dataFile.add_var("tags", ncInt, ncdims[rank])) )
+        throw DataException("Error - DataTagged:: appending tags to netCDF file failed.");
+   if (! (tags_var->put(tags,dims[rank])) )
+        throw DataException("Error - DataTagged:: copy tags to netCDF buffer failed.");
+   if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
+        throw DataException("Error - DataTagged:: appending variable to netCDF file failed.");
+   if (! (var->put(&m_data[0],dims)) )
+        throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");
 }
 
 
