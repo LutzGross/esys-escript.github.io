@@ -13,7 +13,7 @@ dc1.setFileName(file_name = "/home/jongui/data/laurent/slab/source/slab.xml")
 # Create a velocity instance.
 vopc1 = VelocityOnPlaneCut(scene = s, data_collector = dc1, 
         color_mode = ColorMode.VECTOR)
-vopc1.setScaleFactor(2000000)
+vopc1.setScaleFactor(200000)
 vopc1.setPlaneToXY(0.2)
 vopc1.setDimension(4,4,4)
 

@@ -6,10 +6,11 @@ s = Scene(renderer = Renderer.ONLINE, num_viewport = 1, x_size = 1000,
 
 dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = 
-        "/home/jongui/data/laurent/subduction/source/function.0271.vtk")
+        #"/home/jongui/data/laurent/subduction/source/function.0271.vtk")
+        "/home/jongui/trunk/pyvisi/test/python/data_data/interior_3D.xml")
 
 # Create one contour instance.
-ctr1 = Contour(scene = s, data_collector = dc1, scalar = None, 
+ctr1 = Contour(scene = s, data_collector = dc1, scalar = "temperature_cell", 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 ctr1.generateContours(1, 0.5, 0.5)
 

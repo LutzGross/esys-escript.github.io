@@ -109,19 +109,15 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
-			print "vector .."
 			Glyph3D._setColorModeByVector(self)
 			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
-			print data_collector._getVectorRange()
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
-			print "scalar.."
 			Glyph3D._setColorModeByScalar(self)
 			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
-			print data_collector._getScalarRange()
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
@@ -237,10 +233,12 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
 			Glyph3D._setColorModeByVector(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
 			Glyph3D._setColorModeByScalar(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
 
@@ -362,10 +360,12 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
 			Glyph3D._setColorModeByVector(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
 			Glyph3D._setColorModeByScalar(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
 
