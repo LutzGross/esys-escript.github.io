@@ -148,6 +148,13 @@ class MiningArea(BoxInTheCrust):
         self.__mines=mines
      def getStartOfRecords(self):
          return min([ m.getStartOfRecords() for m in self.__mines ])
+     def getMassChanges(self,t):
+         out={}
+         for m in self.__mines: out[m.getName()]=m.getMassChanges(t)
+         return out
+     def getNextTimeMarker(self,t):
+         return min([ m.getNextTimeMarker(t) for m in self.__mines ])
+          
      def fillDesign(self,design):
          """
          this puts the mining area and all the mines into the given design
@@ -215,7 +222,6 @@ class MiningArea(BoxInTheCrust):
                mboxes.append(-mb)
                props.append(PropertySet(m.getName(),Volume(mb)))
          design.addItems(*tuple(props))
-         design.addItems(Volume(bb, holes= mboxes))
          long=self.getLongitudeLength()
          lat=self.getLatitudeLength()
          dep=self.getDepth()
@@ -246,7 +252,7 @@ class MiningArea(BoxInTheCrust):
          left=PlaneSurface(CurveLoop(l11,-l42,-l41,l40))
          right=PlaneSurface(CurveLoop(-l21,l20,l31,-l22))
          dom=SurfaceLoop(bottom,top,front,back,left,right,-bb_bottom,-bb_front,-bb_back,-bb_left,-bb_right)
-         design.addItems(Volume(dom))
+         design.addItems(PropertySet("matrix",Volume(bb, holes= mboxes), Volume(dom)))
          return
 
 class Mine(BoxInTheCrust):
@@ -276,6 +282,19 @@ class Mine(BoxInTheCrust):
              return self.__record[0][0]
           else: 
              raise ValueError("empty record of %s mine."%self.getName())
+     def getMassChanges(self,t):
+         m0=0.
+         t0=self.getStartOfRecords()
+         if t<=t0:
+            return 0.
+         for y, e in self.__record:
+               return sum(e.values())
+         return 0.
+     def getNextTimeMarker(self,t):
+         for y, e in self.__record:
+           if y>t: return y
+         else:
+           return 999999999
 
 
 def _parse(root):
@@ -456,13 +475,29 @@ def parse(xml):
 
      
 if __name__ == "__main__":
-
-    FILE="newcastle_mining.xml"
+    from optparse import OptionParser
+    parser = OptionParser(usage = "usage: %prog [options] filename")
+    parser.add_option("-g", "--geo", dest="geofile", type="string", action = "store", default=None,
+                        help="geometry file (output)") 
+    parser.add_option("-m", "--msh", dest="mshfile", type="string", action = "store", default=None,
+                        help="mesh file (output)")
+    parser.add_option("-t", "--tag", dest="tagfile", type="string", action = "store", default=None,
+                        help="tags file (output)")
+    parser.add_option("-s", "--size", dest="rel_size", type="float", action = "store", default=0.2,
+                        help="relative mesh size")
+    (options, args) = parser.parse_args()
+    if not len(args)==1:
+        raise parser.error("input file missing.")
+    FILE=args[0]
     mine=parse(open(FILE,'r'))
-    dsgn=Design(element_size=mine.getDiameter()*.2)
+    dsgn=Design(element_size=mine.getDiameter()*options.rel_size)
+    if not options.geofile == None:
+        dsgn.setScriptFileName(options.geofile)
+    if not options.mshfile == None:
+        dsgn.setMeshFileName(options.mshfile)
     mine.fillDesign(dsgn)
-    dsgn.setScriptFileName("newcastle_mines.geo")
-    dsgn.setMeshFileName("newcastle_mines.msh")
     print dsgn.getCommandString()
-    print "start of records = ",mine.getStartOfRecords()
-    dsgn.getMeshHandler()
+    print "mesh in gmsh format is written to ",dsgn.getMeshHandler()
+    if not options.tagfile == None:
+        dsgn.getVolumeTagMap().writeXML(open(options.tagfile,"w"))
+        print "volume tag map written to %s."%options.tagfile
