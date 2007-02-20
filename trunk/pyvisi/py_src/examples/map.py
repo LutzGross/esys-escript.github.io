@@ -7,6 +7,7 @@ s = Scene(renderer = Renderer.ONLINE, num_viewport = 4, x_size = 1000,
 dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = 
         "/home/jongui/data/laurent/subduction/source/function.0271.vtk")
+        #"/home/jongui/data/matt/heat_velocity/source/vel-000659.vtu")
 
 # Create a map instance for the first viewport.
 m1 = Map(scene = s, data_collector = dc1, scalar = None, 

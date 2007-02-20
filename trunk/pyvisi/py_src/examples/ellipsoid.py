@@ -9,7 +9,7 @@ dc1.setFileName(file_name =
         "/home/jongui/trunk/pyvisi/test/python/data_data/interior_3D.xml")
 
 # Create one ellipsoid instance.
-e1 = Ellipsoid(scene = s, data_collector = dc1, tensor = None, 
+e1 = Ellipsoid(scene = s, data_collector = dc1, tensor = "stress_cell", 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 e1.setScaleFactor(scale_factor = 0.1)
 e1.setPhiResolution(10)

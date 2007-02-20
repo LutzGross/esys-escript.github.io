@@ -7,9 +7,10 @@ s = Scene(renderer = Renderer.ONLINE, num_viewport = 4, x_size = 1000,
 dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = 
         "/home/jongui/trunk/pyvisi/test/python/data_data/interior_3D.xml")
+		#"/home/jongui/data/matt/heat_velocity/source/temp-000649.vtu")
 
 # Create a velocity instance in the first viewport.
-v1 = Velocity(scene = s, data_collector = dc1, vector = None, scalar = None,
+v1 = Velocity(scene = s, data_collector = dc1, scalar = None, vector= "velocity_cell",
         viewport = Viewport.SOUTH_WEST, arrow = Arrow.THREE_D, 
         color_mode = ColorMode.VECTOR, lut = Lut.COLOR, outline = True)
 v1.setRepresentationToWireframe()
