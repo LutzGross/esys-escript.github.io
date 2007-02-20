@@ -682,6 +682,4 @@ DataExpanded::dump(const std::string fileName) const
    if (! (var->put(&m_data[0],dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
 }
-
-
 }  // end of namespace

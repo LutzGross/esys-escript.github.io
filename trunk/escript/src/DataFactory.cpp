@@ -115,7 +115,7 @@ load(const std::string fileName,
    delete type_str;
    /* recover dimension */
    int ndims=dataFile.num_dims();
-   int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0;
+   int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0, len_data_point=1;
    NcDim *d_dim, *tags_dim, *num_samples_dim, *num_data_points_per_sample_dim;
    /* recover shape */
    DataArrayView::ShapeType shape;
@@ -126,6 +126,7 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[0]=d;
+      len_data_point*=d;
    }
    if (rank>1) {
      if (! (d_dim=dataFile.get_dim("d1")) )
@@ -133,6 +134,7 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[1]=d;
+      len_data_point*=d;
    }
    if (rank>2) {
      if (! (d_dim=dataFile.get_dim("d2")) )
@@ -140,6 +142,7 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[2]=d;
+      len_data_point*=d;
    }
    if (rank>3) {
      if (! (d_dim=dataFile.get_dim("d3")) )
@@ -147,10 +150,11 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[3]=d;
+      len_data_point*=d;
    }
    /* recover stuff */
    Data out;
-   NcVar *var, *ids_var;
+   NcVar *var, *ids_var, *tags_var;
    if (type == 0) {
       /* constant data */
       if ( ! ( (ndims == rank && rank >0) || ( ndims ==1 && rank == 0 ) ) )
@@ -172,10 +176,25 @@ load(const std::string fileName,
       /* tagged data */
       if ( ! (ndims == rank + 1) )
           throw DataException("Error - load:: illegal number of dimensions for tagged data in netCDF file.");
-      if (! (tags_dim=dataFile.get_dim("tags")) )
+      if (! (tags_dim=dataFile.get_dim("num_tags")) )
           throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
       ntags=tags_dim->size();
-      out=Data(0,shape,function_space);
+      dims[rank]=ntags;
+      int tags[ntags];
+      if (! ( tags_var = dataFile.get_var("tags")) )
+         throw DataException("Error - load:: unable to find tags in netCDF file.");
+      if (! tags_var->get(tags, ntags) ) 
+              throw DataException("Error - load:: unable to recover tags from netCDF file.");
+
+      DataVector data(len_data_point*ntags,0.,len_data_point*ntags);
+      if (!(var = dataFile.get_var("data")))
+              throw DataException("Error - load:: unable to find data in netCDF file.");
+      if (! var->get(&(data[0]), dims) ) 
+              throw DataException("Error - load:: unable to recover data from netCDF file.");
+      out=Data(DataArrayView(data,shape,0),function_space);
+      for (int t=1; t<ntags; ++t) {
+         out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
+      }
    } else if (type == 2) {
       /* expanded data */
       if ( ! (ndims == rank + 2) )

@@ -314,6 +314,18 @@ class DataTagged : public DataAbstract {
                int dataPointNo);
 
   /**
+     \brief
+     getData
+
+     Description:
+     Return pointer to the data
+    T
+  */
+  ESCRIPT_DLL_API
+  const DataArrayView::ValueType::ElementType*
+  DataTagged::getData() const;
+
+  /**
      \brief 
      getTagLookup
 
@@ -563,6 +575,13 @@ DataTagged::getDefaultValue() const
 {
   // The default value is always the first value.
   return getPointDataView();
+}
+
+inline
+const DataArrayView::ValueType::ElementType*
+DataTagged::getData() const
+{
+   return &(m_data[0]);
 }
 
 inline

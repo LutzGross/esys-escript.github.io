@@ -258,6 +258,27 @@ held in a dictionary. Operations on tagged data require processing the set of ta
 processing the value for each individual sample point. 
 \escript allows use of constant, tagged and expanded data in a single expression.
 
+The \var{dump} method provides a possibility to save \Data objects to a file, for instance to restart a simuation
+or to save data for visualization. The file format uses \netCDF~\cite{netCDF} which commonly is using the file extension
+{\tt nc}. For instance to save the coordinates of the data points of the \FunctionSpace
+\ContinuousFunction to the file {\tt x.nc} one uses:
+\begin{python}
+x=ContinuousFunction(mydomain).getX()
+x.dump("x.nc")
+\end{python}
+In order to keep the dump files small {\tt x.nc} does not contain a representation of the \Domain. It has to be saved using 
+apropriated methods of \var{mydomain} to be loaded before \var{x}. Alternatively, the \Domain can be reconstructed. 
+To recover the object \var{x} one uses
+\begin{python}
+x=load("x.nc", mydomain)
+\end{python}
+The \Data object represented by {\tt x.nc} is tight to a \FunctionSpace - in this case \ContinuousFunction - but not 
+o a \Domain. That means that \Data objects that are constant or tagged can be recovered with any \Domain. If the \Data object
+is expanded, the number of data points in the file and of the \Domain for the particular \FunctionSpace must match. 
+Moreover, the ordering of the value is checked using the reference identifiers provided by 
+\FunctionSpace on the \Domain. In some cases, data points will be reordered.
+
+
 \section{\Domain class}
 \begin{classdesc}{Domain}{}
 A \Domain object is used to describe a geometrical region together with 
@@ -526,6 +547,10 @@ Values are initialed with the double \var{value}. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
+\begin{funcdesc}{load}{filename,domain}
+recovers a \Data object on \Domain \var{domain} from the dump file \var{filename}.
+\end{funcdesc}
+
 \subsection{\Data class methods}
 This is a list of frequently used methods of the 
 \Data class. A complete list can be fond on \ReferenceGuide.
@@ -562,6 +587,12 @@ If a value has already be defined for tag \var{tag} within the object
 it is overwritten by the new \var{value}.  If the object is expanded,
 the value assigned to \DataSamplePoints with tag \var{tag} is replaced by
 \var{value}.
+\end{methoddesc}
+
+\begin{methoddesc}[Data]{dump}{filename}
+dumps the \Data object to the file \var{filename}. The file stores the
+function space but not the \Domain. It is in the responsibilty of the user to
+save the \Domain. 
 \end{methoddesc}
 
 \begin{methoddesc}[Data]{__str__}{}
