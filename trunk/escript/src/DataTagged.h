@@ -323,7 +323,7 @@ class DataTagged : public DataAbstract {
   */
   ESCRIPT_DLL_API
   const DataArrayView::ValueType::ElementType*
-  DataTagged::getData() const;
+  getData() const;
 
   /**
      \brief 
