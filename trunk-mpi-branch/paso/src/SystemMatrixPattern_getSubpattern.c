@@ -75,7 +75,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
              }
         }
         /* create return value */
-        out=Paso_SystemMatrixPattern_alloc(pattern->type,new_n_rows,ptr,index);
+        out=Paso_SystemMatrixPattern_alloc(pattern->type,new_n_rows,ptr,index,pattern->MPIInfo);
         if (! Paso_noError()) {
           MEMFREE(index);
           MEMFREE(ptr);

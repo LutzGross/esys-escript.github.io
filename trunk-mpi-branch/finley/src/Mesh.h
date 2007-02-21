@@ -86,9 +86,7 @@ struct Finley_Mesh {
   Paso_SystemMatrixPattern *FullReducedPattern;
   Paso_SystemMatrixPattern *ReducedFullPattern;
   Paso_SystemMatrixPattern *ReducedReducedPattern;
-#ifdef PASO_MPI 
   Paso_MPIInfo *MPIInfo;
-#endif
 };
 
 typedef struct Finley_Mesh Finley_Mesh;

@@ -29,7 +29,7 @@
 
 /* allocates a SystemMatrixPattern  */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, index_t* ptr,index_t* index) {
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, index_t* ptr,index_t* index, Paso_MPIInfo *mpi_info) {
   Paso_SystemMatrixPattern*out;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
@@ -87,6 +87,9 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, in
   out->len=out->ptr[out->n_ptr]-index_offset;
   out->reference_counter=1;
   out->type=type;
+  out->MPIInfo = Paso_MPIInfo_getReference(mpi_info);
+  out->numLocal = n_ptr;
+  printf("ksteube Paso_SystemMatrixPattern_alloc cpu=%d numLocal=%d\n", mpi_info->rank, n_ptr);
   #ifdef Paso_TRACE
   printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been allocated.\n");
   #endif
