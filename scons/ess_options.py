@@ -8,7 +8,7 @@
 #
 
 # flag the MPI settings
-# useMPI = 'yes' 
+# useMPI = 'yes'
 
 # TODO: Variables named *_path should be *_include
 
@@ -40,8 +40,8 @@ epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
 epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
 
 # locations of netcdf
-netCDF_path = "/raid2/tools/netcdf-3.6.1/include"
-netCDF_lib_path = "/raid2/tools/netcdf-3.6.1/lib"
+netCDF_path = "/raid2/toolspp4/netcdf/3.6.1/gcc-3.3.6/include"
+netCDF_lib_path = "/raid2/toolspp4/netcdf/3.6.1/gcc-3.3.6/lib"
 netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
@@ -56,7 +56,7 @@ cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
 # c++ flags to use
 cxx_flags = '-ansi'
 cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
-  	
+
 # c and c++ flags for MPI compilation
 # c flags to use
 cc_flags_MPI  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -c99 -w1 -fpic -wd161 -DPASO_MPI -ivdep-parallel"
