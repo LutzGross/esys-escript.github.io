@@ -40,9 +40,9 @@ class Design(design.Design):
        initializes the gmsh design
 
        @param dim: patial dimension
-       @element_size: global element size
-       @order: element order
-       @keep_files: flag to keep work files.
+       @param element_size: global element size
+       @param order: element order
+       @param keep_files: flag to keep work files.
        """ 
        design.Design.__init__(self,dim=dim,element_size=element_size,order=order,keep_files=keep_files)
        self.setScriptFileName()

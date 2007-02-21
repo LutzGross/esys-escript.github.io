@@ -174,9 +174,9 @@ class Design(object):
        initializes a design 
 
        @param dim: patial dimension
-       @element_size: global element size
-       @order: element order
-       @keep_files: flag to keep work files.
+       @param element_size: global element size
+       @param order: element order
+       @param keep_files: flag to keep work files.
        """ 
        self.clearItems()
        self.setElementSize(element_size)
