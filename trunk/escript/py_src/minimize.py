@@ -14,8 +14,7 @@ A collection of general-purpose optimization routines using numarrayeric
 
 fmin        ---      Nelder-Mead Simplex algorithm (uses only function calls)
 fminBFGS    ---      Quasi-Newton method (uses function and gradient)
-fminNCG     ---      Line-search Newton Conjugate Gradient (uses function, gradient
-                     and hessian (if it's provided))
+fminNCG     ---      Line-search Newton Conjugate Gradient (uses function, gradient and hessian (if it's provided))
 
 """
 import numarray
@@ -205,8 +204,7 @@ def zoom(a_lo, a_hi):
     
 
 def line_search(f, fprime, xk, pk, gfk, args=(), c1=1e-4, c2=0.9, amax=50):
-    """alpha, fc, gc = line_search(f, xk, pk, gfk,
-                                   args=(), c1=1e-4, c2=0.9, amax=1)
+    """alpha, fc, gc = line_search(f, xk, pk, gfk, args=(), c1=1e-4, c2=0.9, amax=1)
 
     minimize the function f(xk+alpha pk) using the line search algorithm of
     Wright and Nocedal in 'numarrayerical Optimization', 1999, pg. 59-60
@@ -256,8 +254,7 @@ def line_search(f, fprime, xk, pk, gfk, args=(), c1=1e-4, c2=0.9, amax=50):
     
 
 def line_search_BFGS(f, xk, pk, gfk, args=(), c1=1e-4, alpha0=1):
-    """alpha, fc, gc = line_search(f, xk, pk, gfk,
-                                   args=(), c1=1e-4, alpha0=1)
+    """alpha, fc, gc = line_search(f, xk, pk, gfk, args=(), c1=1e-4, alpha0=1)
 
     minimize over alpha, the function f(xk+alpha pk) using the interpolation
     algorithm (Armiijo backtracking) as suggested by
@@ -329,8 +326,7 @@ def approx_fhess_p(x0,p,fprime,*args):
 
 
 def fminBFGS(f, x0, fprime=None, args=(), avegtol=1e-5, maxiter=None, fulloutput=0, printmessg=1):
-    """xopt = fminBFGS(f, x0, fprime=None, args=(), avegtol=1e-5,
-                       maxiter=None, fulloutput=0, printmessg=1)
+    """xopt = fminBFGS(f, x0, fprime=None, args=(), avegtol=1e-5, maxiter=None, fulloutput=0, printmessg=1)
 
     Optimize the function, f, whose gradient is given by fprime using the
     quasi-Newton method of Broyden, Fletcher, Goldfarb, and Shanno (BFGS)
@@ -410,8 +406,7 @@ def fminBFGS(f, x0, fprime=None, args=(), avegtol=1e-5, maxiter=None, fulloutput
 
 
 def fminNCG(f, x0, fprime, fhess_p=None, fhess=None, args=(), avextol=1e-5, maxiter=None, fulloutput=0, printmessg=1):
-    """xopt = fminNCG(f, x0, fprime, fhess_p=None, fhess=None, args=(), avextol=1e-5,
-                       maxiter=None, fulloutput=0, printmessg=1)
+    """xopt = fminNCG(f, x0, fprime, fhess_p=None, fhess=None, args=(), avextol=1e-5, maxiter=None, fulloutput=0, printmessg=1)
 
     Optimize the function, f, whose gradient is given by fprime using the
     Newton-CG method.  fhess_p must compute the hessian times an arbitrary

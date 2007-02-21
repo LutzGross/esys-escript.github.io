@@ -240,6 +240,7 @@ class WriteVTK(Visualization):
     @type data6: L{escript.Data}
     @ivar name6: name tag for data set 6
     @type name6: C{str} or C{None}
+    @ivar data7: data set 7 to be written
     @type data7: L{escript.Data}
     @ivar name7: name tag for data set 7
     @type name7: C{str} or C{None}

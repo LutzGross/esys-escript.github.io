@@ -35,7 +35,7 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
         @param reducedIntegrationOrder: reduced integration order. If -1 the default is used.
         @type reducedIntegrationOrder: C{int}
         @param optimizeLabeling: if set the labeling of the mesh nodes is optimized
-        @type: C{bool}
+        @type optimizeLabeling: C{bool}
         @return: the Finley domain defined by the designs 
         @rtype: L{Domain}
         """
