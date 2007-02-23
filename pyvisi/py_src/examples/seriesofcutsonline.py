@@ -6,9 +6,9 @@ s = Scene(renderer = Renderer.ONLINE, num_viewport = 1, x_size = 1152,
 
 # Create two data collector instances.
 dc1 = DataCollector(source = Source.XML)
-
 dc1.setFileName(file_name = 
         "/home/jongui/trunk/pyvisi/test/python/data_data/interior_3D.xml")
+dc1.setActiveScalar(scalar = "temperature")
 
 # NOTE: There is a difference between performing rotation then followed by 
 # translation and performing translation then followed by rotation.

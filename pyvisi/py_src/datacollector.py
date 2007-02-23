@@ -77,7 +77,7 @@ class DataCollector:
 			raise ValueError("source type %s does not support 'setData'." \
 					% self.__source)
 
-	def _setActiveScalar(self, scalar):
+	def setActiveScalar(self, scalar):
 		"""
 		Specify the scalar field to load from the source file.
 
@@ -98,7 +98,7 @@ class DataCollector:
 			print "\nSorry, no scalar called '%s' is available.\n" % scalar
 			sys.exit(0)	
 
-	def _setActiveVector(self, vector):
+	def setActiveVector(self, vector):
 		"""
 		Specify the vector field to load from the source file. 
 
@@ -120,7 +120,7 @@ class DataCollector:
 			sys.exit(0)	
 			
 
-	def _setActiveTensor(self, tensor):
+	def setActiveTensor(self, tensor):
 		"""
 		Specify the tensor field to load from the source file.
 

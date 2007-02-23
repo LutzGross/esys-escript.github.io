@@ -10,7 +10,6 @@ from outline import Outline
 from constant import Viewport, Color, Lut
 from contourmodule import ContourModule
 
-
 # NOTE: DataSetMapper, Actor3D and ContourModule were inherited to allow 
 # access to their public methods from the driver.
 class Contour(DataSetMapper, Actor3D, ContourModule):
@@ -66,8 +65,9 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 
 		# ----- Contour -----
 
-		if(scalar != None): # True only if a scalar field was specified.
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None): # True only if a scalar field was specified.
+		#	pass
+			#data_collector._setActiveScalar(scalar)
 
 		lookup_table = LookupTable() 
 
@@ -161,8 +161,8 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 
 		# ----- Contour on a cut plane -----
 
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -257,8 +257,8 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 
 		# ----- Contour on a clipped plane -----
 
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

@@ -72,8 +72,8 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 
 		# ----- Ellipsoid -----
 
-		if(tensor != None):
-			data_collector._setActiveTensor(tensor)
+		#if(tensor != None):
+		#	data_collector._setActiveTensor(tensor)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -167,8 +167,8 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 
 		# ----- Ellipsoid on a cut plane -----
 
-		if(tensor != None):
-			data_collector._setActiveTensor(tensor)
+		#if(tensor != None):
+		#	data_collector._setActiveTensor(tensor)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -266,8 +266,8 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 
 		# ----- Ellipsoid on a clipped plane -----
 
-		if(tensor != None):
-			data_collector._setActiveTensor(tensor)
+		#if(tensor != None):
+		#	data_collector._setActiveTensor(tensor)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
