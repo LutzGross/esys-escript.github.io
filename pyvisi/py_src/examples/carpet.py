@@ -9,10 +9,10 @@ dc1.setFileName(file_name =
         "/home/jongui/trunk/pyvisi/test/python/data_data/interior_3D.xml")
 
 # Create one carpet instance.
-cpt1 = Carpet(scene = s, data_collector = dc1, warp_mode = WarpMode.SCALAR, 
-        lut = Lut.COLOR)
+cpt1 = Carpet(scene = s, data_collector = dc1, warp_mode = WarpMode.VECTOR, 
+        scalar = "temperature_cell", lut = Lut.COLOR)
 cpt1.setPlaneToXY(0.5)
-cpt1.setScaleFactor(0.8)
+cpt1.setScaleFactor(0.5)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()

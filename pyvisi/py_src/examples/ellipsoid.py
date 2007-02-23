@@ -12,13 +12,13 @@ dc1.setFileName(file_name =
 e1 = Ellipsoid(scene = s, data_collector = dc1, tensor = "stress_cell", 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 e1.setScaleFactor(scale_factor = 0.1)
-e1.setPhiResolution(10)
-e1.setThetaResolution(10)
-e1.setDimension(2,2,2)
+e1.setPhiResolution(resolution = 10)
+e1.setThetaResolution(resolution = 10)
+e1.setDimension(x = 2, y = 2, z = 2)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
-c1.elevation(-20)
+c1.elevation(angle = -20)
 
 s.render()
 

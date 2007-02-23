@@ -14,15 +14,15 @@ m.setRepresentationToWireframe()
 
 # Create a camera instance for the first viewport.
 c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
-c.azimuth(50)
+c.azimuth(angle = 50)
 
 m2 = Map(scene = s, data_collector = dc, scalar = None, 
         viewport = Viewport.NORTH_WEST, lut = Lut.COLOR, outline = True)
-m2.setColor(Color.BLUE)
+m2.setColor(color = Color.BLUE)
 
 # Create a camera instance for the second viewport.
 c2 = Camera(scene = s, data_collector = dc, viewport = Viewport.NORTH_WEST)
-c2.elevation(50)
+c2.elevation(angle = 50)
 
 m3 = Map(scene = s, data_collector = dc, scalar = None, 
         viewport = Viewport.NORTH_EAST, lut = Lut.GREY_SCALE, outline = True)
@@ -33,7 +33,7 @@ c3.isometricView()
 
 m4 = Map(scene = s, data_collector = dc, scalar = None, 
         viewport = Viewport.SOUTH_EAST, lut = Lut.COLOR, outline = True)
-m4.setOpacity(0.7)
+m4.setOpacity(opacity = 0.7)
 
 # Create a camera instance for the fourth viewport.
 c4 = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_EAST)

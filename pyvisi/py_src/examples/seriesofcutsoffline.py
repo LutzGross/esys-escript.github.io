@@ -16,13 +16,13 @@ dc1.setFileName(file_name =
 # Create a map on plane cut instance for the first viewport.
 mopc1 = MapOnPlaneCut(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST)
-mopc1.setPlaneToYZ(0.1)
+mopc1.setPlaneToYZ(offset = 0.1)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
 
 # Generate multiple images from the tranlsation.
 for i in range(0, 30):
-    print "Generating image", i
+    print "Generating image: ", i
     s.saveImage("output/%04d.jpg" % i)
     mopc1.translate(0.1,0,0)

@@ -6,12 +6,12 @@ s = Scene(renderer = Renderer.ONLINE, num_viewport = 1, x_size = 1000,
 
 # Create one image reader instance (used in place of data collector).
 ir = ImageReader(ImageFormat.JPG)
-ir.setFileName(
+ir.setFileName(file_name = 
         "/home/jongui/trunk/pyvisi/test/python/data_data/Flinders_eval.jpg")
 
 # Create one image instance.
 i = Image(scene = s, image_reader = ir)
-i.setOpacity(0.7)
+i.setOpacity(opacity = 0.7)
 
 s.render()
 

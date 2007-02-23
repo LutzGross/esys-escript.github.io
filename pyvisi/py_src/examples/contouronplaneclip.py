@@ -15,11 +15,11 @@ dc1.setFileName(file_name =
 ctropc1 = ContourOnPlaneClip(scene = s, data_collector = dc1, scalar = None, 
         viewport  = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 ctropc1.setPlaneToXY()
-ctropc1.rotateY(20)
-ctropc1.generateContours(8)
+ctropc1.rotateY(angle = 20)
+ctropc1.generateContours(contours = 8)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
-c1.elevation(-40)
+c1.elevation(angle = -40)
 
 s.render()
 

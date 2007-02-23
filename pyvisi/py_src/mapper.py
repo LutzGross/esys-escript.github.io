@@ -53,7 +53,14 @@ class DataSetMapper:
 		"""
 
 		self.__vtk_data_set_mapper.SetScalarRange(range) 
+	
+	def _setScalarVisibilityOn(self):
+		"""
+		Scalar data is used to color the rendered object.
+		"""
 
+		self.__vtk_data_set_mapper.ScalarVisibilityOn()
+	
 	def _getDataSetMapper(self):
 		"""
 		Return the data set mapper.

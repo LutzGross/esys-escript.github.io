@@ -54,7 +54,7 @@ class Source:
 	"""
 	
 	XML = "xml"
-        ESCRIPT = "escript"
+	ESCRIPT = "escript"
 
 class Renderer:
 	"""

@@ -14,14 +14,14 @@ dc1.setFileName(file_name =
 # Create one ellipsoid on plance cut instance.
 eopc1 = EllipsoidOnPlaneCut(scene = s, data_collector = dc1, tensor = None, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
-eopc1.setScaleFactor(0.1)
+eopc1.setScaleFactor(scale_factor = 0.1)
 eopc1.setPlaneToXY()
-eopc1.rotateX(20)
-eopc1.setDimension(2,2,2)
+eopc1.rotateX(angle = 20)
+eopc1.setDimension(x = 2, y = 2, z = 2)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
-c1.elevation(-20)
+c1.elevation(angle = -20)
 
 s.render()
 

@@ -77,9 +77,13 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 
 		# ----- Velocity -----
 
+		# NOTE: Two 'ifs' were used instead of an if-elif because an active 
+		# scalar and an active vector attribute may be specified at the same 
+		# time. One may be for the color mode and the other for the 
+		# scaling mode.
 		if(vector != None):
 			data_collector._setActiveVector(vector)
-		elif(scalar != None):
+		if(scalar != None):
 			data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
@@ -194,9 +198,13 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		# ----- Velocity on a cut plane -----
 
+		# NOTE: Two 'ifs' were used instead of an if-elif because an active 
+		# scalar and an active vector attribute may be specified at the same 
+		# time. One may be for the color mode and the other for the 
+		# scaling mode.
 		if(vector != None):
 			data_collector._setActiveVector(vector)
-		elif(scalar != None):
+		if(scalar != None):
 			data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
@@ -315,9 +323,13 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		# ----- Velocity on a clipped plane -----
 
+		# NOTE: Two 'ifs' were used instead of an if-elif because an active 
+		# scalar and an active vector attribute may be specified at the same 
+		# time. One may be for the color mode and the other for the 
+		# scaling mode.
 		if(vector != None):
 			data_collector._setActiveVector(vector)
-		elif(scalar != None):
+		if(scalar != None):
 			data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
