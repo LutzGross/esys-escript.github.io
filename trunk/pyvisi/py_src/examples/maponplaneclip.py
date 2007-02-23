@@ -15,18 +15,18 @@ dc1.setFileName(file_name =
 mopc1_1 = MapOnPlaneClip(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST)
 mopc1_1.setPlaneToXY()
-mopc1_1.rotateX(5)
+mopc1_1.rotateX(angle = 5)
 
 mopc1_2 = MapOnPlaneClip(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST)
-mopc1_2.setPlaneToYZ(2.5)
-mopc1_2.setOpacity(0.5)
+mopc1_2.setPlaneToYZ(offset = 2.5)
+mopc1_2.setOpacity(opacity = 0.5)
 
 mopc1_3 = MapOnPlaneClip(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST)
 mopc1_3.setPlaneToXZ()
-mopc1_3.rotateX(-40)
-mopc1_3.translate(0,2.2,0)
+mopc1_3.rotateX(angle = -40)
+mopc1_3.translate(x_offset = 0, y_offset = 2.2, z_offset = 0)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()

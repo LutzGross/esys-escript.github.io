@@ -60,7 +60,8 @@ class DataCollector:
 			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
 		else:
-			raise ValueError("source type %s does not support setFileName"%self.__source)
+			raise ValueError("Source type %s does not support 'setFileName'." \
+					% self.__source)
 
 	def setData(self,**args):
 		"""
@@ -73,7 +74,8 @@ class DataCollector:
 			esys.escript.saveVTK(self.__tmp_file,**args)
 			self.__vtk_xml_reader.Update()
 		else:
-			raise ValueError("source type %s does not support setData"%self.__source)
+			raise ValueError("source type %s does not support 'setData'." \
+					% self.__source)
 
 	def _setActiveScalar(self, scalar):
 		"""
@@ -83,6 +85,11 @@ class DataCollector:
 		@param scalar: Scalar field to load from the file. 
 		"""
 		
+		# Check whether the specified scalar is available in either point
+		# or cell data. If not available, program exits.
+
+		# NOTE: This check is similar to the check used in _getScalarRange 
+		# but is used only when a scalar attribute has been specified.
 		if scalar in self.__point_attribute['scalars']:
 			self._getOutput().GetPointData().SetActiveScalars(scalar)
 		elif scalar in self.__cell_attribute['scalars']:
@@ -90,7 +97,6 @@ class DataCollector:
 		else:
 			print "\nSorry, no scalar called '%s' is available.\n" % scalar
 			sys.exit(0)	
-			
 
 	def _setActiveVector(self, vector):
 		"""
@@ -100,6 +106,11 @@ class DataCollector:
 		@param vector: Vector field to load from the file. 
 		"""
 		
+		# Check whether the specified vector is available in either point
+		# or cell data. If not available, program exits.
+
+		# NOTE: This check is similar to the check used in _getVectorRange 
+		# but is used only when a vector attribute has been specified.
 		if vector in self.__point_attribute['vectors']:
 			self._getOutput().GetPointData().SetActiveVectors(vector)
 		elif vector in self.__cell_attribute['vectors']:
@@ -117,6 +128,11 @@ class DataCollector:
 		@param tensor: Tensor field to load from the file. 
 		"""
 
+		# Check whether the specified tensor is available in either point
+		# or cell data. If not available, program exits.
+
+		# NOTE: This check is similar to the check used in _getTensorRange 
+		# but is used only when a tensor attribute has been specified.
 		if tensor in self.__point_attribute['tensors']:
 			self._getOutput().GetPointData().SetActiveTensors(tensor)
 		elif tensor in self.__cell_attribute['tensors']:
@@ -127,7 +143,18 @@ class DataCollector:
 
 
 	def __get_array_type(self, arr):
-		num_components = arr.GetNumberOfComponents()
+		"""
+		Return if the array type is a scalar, vector or tensor by looking 
+		at the number of components in the array.
+
+		@type arr: vtkDataArray
+		@param arr: An array from the source.
+		@rtype: String
+		@return: Array type ('scalar', vector', 'tensor')
+		"""
+
+		# Number of components in an array.
+		num_components = arr.GetNumberOfComponents() 
 
 		if num_components == 1:
 			return 'scalars'
@@ -137,20 +164,36 @@ class DataCollector:
 			return 'tensors'
 
 	def __get_attribute_list(self, data): 
-		attribute = {'scalars':[], 'vectors':[], 'tensors':[]}
+		"""
+		Return the available scalar, vector and tensor attributes 
+		(either point or cell data).
+
+		@type data: vtkPointData or vtkCellData
+		@param data: Available point data or cell data from the source
+		@rtype: Dictionary
+		@return: Dictionary containing the available scalar, vector and \
+				tensor attributes
+		"""
+
+		attribute = {'scalars':[], 'vectors':[], 'tensors':[]} 
 		if data:
-			num_arrays = data.GetNumberOfArrays()
+			num_arrays = data.GetNumberOfArrays() # Number of arrays.
 			for i in range(num_arrays):
-				name = data.GetArrayName(i)
-				type = self.__get_array_type(data.GetArray(i))
-				attribute[type].extend([name])
+				name = data.GetArrayName(i) # Get an array name.
+				type = self.__get_array_type(data.GetArray(i)) # Get array type.
+				attribute[type].extend([name]) # Add array name to dictionary.
 
 		return attribute
 
 	def __get_attribute_lists(self):
+		"""
+		Get all the available point and cell data attributes from the source.
+		"""
+
+		# Get all the available point data attributes into a list.
 		self.__point_attribute = \
 				self.__get_attribute_list(self._getOutput().GetPointData())
-		
+		# Get all the available cell data attribute into another list.	
 		self.__cell_attribute = \
 				self.__get_attribute_list(self._getOutput().GetCellData())
 
@@ -161,7 +204,12 @@ class DataCollector:
 		@rtype: Two column tuple containing numbers
 		@return: Scalar range
 		"""
-	
+
+		# Check whether any tensor is available in either point or cell data. 
+		# If not available, program exits.
+
+		# NOTE: This check is similar to the check used in _setActiveScalar 
+		# but is used only when no scalar attribute has been specified.
 		if(len(self.__point_attribute['scalars']) != 0):
 			return self._getOutput().GetPointData().GetScalars().GetRange(-1)
 		elif(len(self.__cell_attribute['scalars']) != 0):
@@ -178,6 +226,11 @@ class DataCollector:
 		@return: Vector range
 		"""
 		
+		# Check whether any vector is available in either point or cell data. 
+		# If not available, program exits.
+
+		# NOTE: This check is similar to the check used in _setActiveVector 
+		# but is used only when no vector attribute has been specified.
 
 		# NOTE: Generally GetRange(-1) returns the correct vector range. 
 		# However, there are certain data sets where GetRange(-1) seems 
@@ -204,6 +257,11 @@ class DataCollector:
 		@return: Tensor range
 		"""
 
+		# Check whether any tensor is available in either point or cell data. 
+		# If not available, program exits.
+
+		# NOTE: This check is similar to the check used in _setActiveTensor 
+		# but is used only when no tensor attribute has been specified.
 		if(len(self.__point_attribute['tensors']) != 0):
 			return self._getOutput().GetPointData().GetTensors().GetRange(-1)
 		elif(len(self.__cell_attribute['tensors']) != 0): 

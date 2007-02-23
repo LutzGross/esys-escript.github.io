@@ -74,7 +74,8 @@ class StreamLineModule:
 		value results in a smoother streamline (but is more expensive). Setting
 		the step length usually goes hand-in-hand with setting the integration
 		step length. Otherwise, errors such as "... can't compute normals" may
-		arise. However, it does not usually apply the other way around.
+		arise. If such an error occurs try changing the value. However, it 
+		does not usually apply the other way around.
 
 		@type length: Number
 		@param length: Length of the line segment expressed in elapsed time
@@ -111,6 +112,21 @@ class StreamLineModule:
 		"""
 
 		self.__vtk_stream_line.SetIntegrator(integrator)
+	
+	def _setSpeedScalarsOn(self):
+		"""
+		Turn on the creation of scalar data from velocity magnitude. 
+		"""
+
+		self.__vtk_stream_line.SpeedScalarsOn()
+
+	def _setSpeedScalarsOff(self):
+		"""
+		Turn off the creation of scalar data from velocity magnitude. If
+		input dataset has scalars, input dataset scalars are used.
+		"""
+
+		self.__vtk_stream_line.SpeedScalarsOff()
 
 	def _getOutput(self):
 		"""

@@ -15,8 +15,8 @@ c1.isometricView()
 
 # Create one light instance.
 lig = Light(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
-lig.setColor(Color.WHITE)
-lig.setIntensity(1)
+lig.setColor(color = Color.WHITE)
+lig.setIntensity(intensity = 1)
 lig.setAngle(elevation = -15, azimuth = 0)
 
 # Alternative to using setAngle.

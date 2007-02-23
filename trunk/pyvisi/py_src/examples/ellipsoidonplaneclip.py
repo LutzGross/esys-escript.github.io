@@ -14,15 +14,15 @@ dc1.setFileName(file_name =
 # Create on ellipsoid on plane clip instance.
 eopc = EllipsoidOnPlaneClip(scene = s, data_collector = dc1, tensor = None, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
-eopc.setScaleFactor(0.1)
+eopc.setScaleFactor(scale_factor = 0.1)
 eopc.setPlaneToXY()
-eopc.rotateX(20)
-eopc.setDimension(2,2,2)
+eopc.rotateX(angle = 20)
+eopc.setDimension(x = 2,y = 2, z = 2)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.bottomView()
-c1.azimuth(-90)
-c1.elevation(20)
+c1.azimuth(angle = -90)
+c1.elevation(angle = 20)
 
 s.render()
 

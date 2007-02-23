@@ -14,11 +14,11 @@ dc1.setFileName(file_name =
 # Create one contour on plane cut instance.
 ctropc1 = ContourOnPlaneCut(scene = s, data_collector = dc1, scalar = None, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
-ctropc1.generateContours(8)
-ctropc1.setPlaneToXY(200000)
+ctropc1.generateContours(contours = 8)
+ctropc1.setPlaneToXY(offset = 200000)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
-c1.elevation(-45)
+c1.elevation(angle = -45)
 
 s.render()
 

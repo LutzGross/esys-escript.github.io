@@ -16,33 +16,33 @@ mopc1.setPlaneToXY()
 
 vopc1 = VelocityOnPlaneCut(scene = s, data_collector = dc1,
         arrow = Arrow.THREE_D, color_mode = ColorMode.SCALAR)
-vopc1.setScaleFactor(0.2)
-vopc1.setPlaneToYZ(2.999)
-vopc1.setDimension(1.5,1.5,1.5)
+vopc1.setScaleFactor(scale_factor = 0.2)
+vopc1.setPlaneToYZ(offset = 2.999)
+vopc1.setDimension(x = 1.5, y = 1.5, z = 1.5)
 
 sl1 = StreamLine(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True,
 		color_mode = ColorMode.SCALAR)
-sl1.setTubeRadius(0.02)
+sl1.setTubeRadius(radius = 0.02)
 
 eopc1 = EllipsoidOnPlaneCut(scene = s, data_collector = dc1, tensor = None,
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
-eopc1.setScaleFactor(0.1)
+eopc1.setScaleFactor(scale_factor = 0.1)
 eopc1.setPlaneToXZ()
-eopc1.rotateX(-45)
-eopc1.translate(0,1.6,0)
-eopc1.setDimension(1,1,1)
+eopc1.rotateX(angle = -45)
+eopc1.translate(x_offset = 0, y_offset = 0.2, z_offset = 0)
+eopc1.setDimension(x = 1, y = 1, z = 1)
 
 ctropc1 = ContourOnPlaneClip(scene = s, data_collector = dc1, scalar = None,
         viewport  = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 ctropc1.setPlaneToXY()
-ctropc1.rotateY(10)
-ctropc1.generateContours(3)
+ctropc1.rotateY(angle = 10)
+ctropc1.generateContours(contours =  3)
 
 t1 = Text2D(scene = s, viewport = Viewport.SOUTH_WEST, text = "Pyvisi")
-t1.setPosition(LocalPosition(530, 30))
-t1.setColor(Color.BLACK)
-t1.setFontSize(30)
+t1.setPosition(LocalPosition(x_coor = 530, y_coor = 30))
+t1.setColor(color = Color.BLACK)
+t1.setFontSize(size = 30)
 t1.boldOn()
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)

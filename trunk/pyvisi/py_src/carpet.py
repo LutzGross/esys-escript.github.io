@@ -26,7 +26,7 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 	# data. If no scalar field is specified, the first encountered in the 
 	# file will be loaded automatically. If no lut is specified, the 
 	# color scheme will be used. 
-	def __init__(self, scene, data_collector, scalar = None, 
+	def __init__(self, scene, data_collector, scalar = None, vector = None,
 			warp_mode = WarpMode.SCALAR, viewport = Viewport.SOUTH_WEST, 
 			lut = Lut.COLOR, outline = True):
 		"""

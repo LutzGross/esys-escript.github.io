@@ -73,10 +73,8 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		# ----- Streamline -----
 
 		if(vector != None):
-			print "vector"
 			data_collector._setActiveVector(vector)
 		elif(scalar != None):
-			print "scalar"
 			data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
@@ -98,11 +96,13 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
-			print "vectro mode"
+			DataSetMapper._setScalarVisibilityOn(self)
+			StreamLineModule._setSpeedScalarsOn(self)
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
-			print "scalar mode"
+			DataSetMapper._setScalarVisibilityOn(self)
+			StreamLineModule._setSpeedScalarsOff(self)
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
 
