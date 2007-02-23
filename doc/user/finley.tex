@@ -1,6 +1,6 @@
 % $Id$
 %
-%           Copyright © 2006 by ACcESS MNRF
+%           Copyright © 2006, 2007 by ACcESS MNRF
 %               \url{http://www.access.edu.au
 %         Primary Business: Queensland, Australia.
 %   Licensed under the Open Software License version 3.0
@@ -34,7 +34,24 @@ It supports unstructured, 1D, 2D and 3D meshes. The module \finley provides an a
 library through the \LinearPDE class of \escript supporting its full functionality. {\it finley} 
 is parallelized using the OpenMP \index{OpenMP} paradigm. 
 
-\subsection{Meshes}
+\section{Formulation}
+
+For a single PDE with a solution with a single component the linear PDE is defined in the
+following form:
+\begin{equation}\label{FINLEY.SINGLE.1}
+\begin{array}{cl} &
+\displaystyle{
+\int\hackscore{\Omega} 
+A\hackscore{jl} \cdot v\hackscore{,j}u\hackscore{,l}+ B\hackscore{j} \cdot v\hackscore{,j} u+ C\hackscore{l} \cdot v u\hackscore{,l}+D \cdot vu \; d\Omega }  \\
++ & \displaystyle{\int\hackscore{\Gamma} d \cdot vu \; d{\Gamma} } 
++  \displaystyle{\int\hackscore{\Gamma^{contact}} d^{contact} \cdot [v][u] \; d{\Gamma} } \\
+= & \displaystyle{\int\hackscore{\Omega}  X\hackscore{j} \cdot v\hackscore{,j}+ Y \cdot v \; d\Omega }\\ 
++ & \displaystyle{\int\hackscore{\Gamma} y \cdot v \; d{\Gamma}}  + 
+\displaystyle{\int\hackscore{\Gamma^{contact}} y^{contact}\cdot [v] \; d{\Gamma}} \\
+\end{array}
+\end{equation}
+
+\section{Meshes}
 To understand the usage of \finley one needs to have an understanding of how the finite element meshes
 \index{FEM!mesh} are defined. \fig{FINLEY FIG 0} shows an example of the
 subdivision of an ellipse into so called elements \index{FEM!elements} \index{element}. 

@@ -248,32 +248,36 @@ class ConstrainerOverBox(Model):
           return self.__value_of_constraint
          
       def __setOutput(self):
-          x=self.domain.getX()
-          val=self.value
-          if isinstance(val, int) or isinstance(val, float):
-             shape=()
-          elif isinstance(val, list) or isinstance(val, tuple) :
-             shape=(len(val),)
-          elif isinstance(val, numarray.NumArray):
-              shape=val.shape
-          else: 
-              shape=val.getShape()
-          self.__location_of_constraint=Data(0,shape,x.getFunctionSpace())
-          if self.domain.getDim()==3:
-                x0,x1,x2=x[0],x[1],x[2]
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-                if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol)
-                if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol)
-          else:
-                x0,x1=x[0],x[1]
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-          self.__value_of_constraint=self.__location_of_constraint*self.value
+          if self.__location_of_constraint == None:
+             x=self.domain.getX()
+             val=self.value
+             if isinstance(val, int) or isinstance(val, float):
+                shape=()
+             elif isinstance(val, list) or isinstance(val, tuple) :
+                shape=(len(val),)
+             elif isinstance(val, numarray.NumArray):
+                 shape=val.shape
+             elif val == None:
+                  shape=()
+             else: 
+                 shape=val.getShape()
+             self.__location_of_constraint=Data(0,shape,x.getFunctionSpace())
+             if self.domain.getDim()==3:
+                   x0,x1,x2=x[0],x[1],x[2]
+                   if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                   if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                   if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                   if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+                   if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol)
+                   if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol)
+             else:
+                   x0,x1=x[0],x[1]
+                   if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                   if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                   if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                   if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+             if not self.value == None:
+                   self.__value_of_constraint=self.__location_of_constraint*self.value
 class ScalarConstrainerOverBox(Model):
       """
       Creates a characteristic function for the location of constraints 
@@ -342,7 +346,7 @@ class ScalarConstrainerOverBox(Model):
                 if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
                 if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
                 if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-          if self.value:
+          if not self.value == None:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
 class VectorConstrainerOverBox(Model):
@@ -430,7 +434,7 @@ class VectorConstrainerOverBox(Model):
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.,0.]
              if self.top[2]: self.__location_of_constraint+=top_mask*[0.,0.,1.]
-             if self.value:
+             if not self.value == None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value
           else:
              x0,x1=x[0],x[1]
@@ -446,7 +450,7 @@ class VectorConstrainerOverBox(Model):
              top_mask=whereZero(x1-sup(x1),self.tol)
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.]
-             if self.value:
+             if not self.value == None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value[:2]
 
 # vim: expandtab shiftwidth=4:
