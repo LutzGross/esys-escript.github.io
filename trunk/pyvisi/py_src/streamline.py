@@ -72,10 +72,10 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 
 		# ----- Streamline -----
 
-		if(vector != None):
-			data_collector._setActiveVector(vector)
-		elif(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(vector != None):
+		#	data_collector._setActiveVector(vector)
+		#elif(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

@@ -65,8 +65,8 @@ class Map(DataSetMapper, Actor3D):
 
 		# ----- Map -----
 
-		if(scalar != None): # True only if a scalar field was specified.
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None): # True only if a scalar field was specified.
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -150,8 +150,8 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 
 		# ----- Map on a plane -----
 
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -238,8 +238,8 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 
 		# ----- Map on a clipped plane -----
 
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -326,8 +326,8 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 
 		# ----- Map clipped using a scalar value -----
 
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

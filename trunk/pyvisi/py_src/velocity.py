@@ -81,10 +81,10 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 		# scalar and an active vector attribute may be specified at the same 
 		# time. One may be for the color mode and the other for the 
 		# scaling mode.
-		if(vector != None):
-			data_collector._setActiveVector(vector)
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(vector != None):
+		#	data_collector._setActiveVector(vector)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -202,10 +202,10 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		# scalar and an active vector attribute may be specified at the same 
 		# time. One may be for the color mode and the other for the 
 		# scaling mode.
-		if(vector != None):
-			data_collector._setActiveVector(vector)
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(vector != None):
+		#	data_collector._setActiveVector(vector)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -327,10 +327,10 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		# scalar and an active vector attribute may be specified at the same 
 		# time. One may be for the color mode and the other for the 
 		# scaling mode.
-		if(vector != None):
-			data_collector._setActiveVector(vector)
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(vector != None):
+		#	data_collector._setActiveVector(vector)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

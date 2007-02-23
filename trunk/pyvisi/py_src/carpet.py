@@ -72,8 +72,8 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 
 		# ----- Carpet -----
 
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
+		#if(scalar != None):
+		#	data_collector._setActiveScalar(scalar)
 				
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
