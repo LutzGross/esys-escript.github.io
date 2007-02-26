@@ -94,7 +94,7 @@ class DensityChange(Model):
          self.density_rate=Scalar(0.,Function(self.domain))
          d={}
          for i in self.__volumes:
-            if self.mass_rate.has_key(i): d[i]=self.mass_rate[i]/self.__volumes[i]
+            if self.mass_rate.has_key(i): d[i]=-self.mass_rate[i]/self.__volumes[i]
          self.tag_map.insert(self.density_rate,**d)
 
 class LinearElasticStressChange(Model):
@@ -162,6 +162,7 @@ class LinearElasticStressChange(Model):
     def doInitialStep(self):
         """
         """
+        d=self.domain.getDim()
         self.__pde.setValue(Y=-kronecker(Function(self.domain))[d-1]*9.81*self.density)
         ddisp=self.__pde.getSolution()
         deps=symmetric(grad(ddisp))
@@ -175,18 +176,21 @@ class LinearElasticStressChange(Model):
     def terminateIteration(self):
         return not self.__first
 
-    def doInitialStepPostprocessing(self):
+    def doInitialPostprocessing(self):
         self.__stress=self.stress
         self.__displacement=self.displacement
+        self.trace("initial displacement range : %s: %s"%(inf(self.displacement[2]),sup(self.displacement[2])))
+        self.trace("initial stress range : %s: %s"%(inf(self.stress),sup(self.stress)))
 
     def doStepPreprocessing(self,dt):
         self.stress=self.__stress
         self.displacement=self.__displacement
         self.__first=True
          
-    def doStep(self):
+    def doStep(self,dt):
         """
         """
+        d=self.domain.getDim()
         if not self.density_rate == None:
            self.__pde.setValue(Y=-kronecker(Function(self.domain))[d-1]*9.81*self.density_rate)
         ddisp=self.__pde.getSolution()
@@ -198,3 +202,5 @@ class LinearElasticStressChange(Model):
     def doStepPostprocessing(self, dt):
         self.__stress=self.stress
         self.__displacement=self.displacement
+        self.trace("displacement range : %s: %s"%(inf(self.displacement[2]),sup(self.displacement[2])))
+        self.trace("stress range : %s: %s"%(inf(self.stress),sup(self.stress)))
