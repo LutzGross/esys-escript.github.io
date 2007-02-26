@@ -19,15 +19,14 @@ __version__="$Revision$"
 __date__="$Date$"
 
 d=True
-from setups import MiningHistory
+from setups import MiningHistory, DensityChange, LinearElasticStressChange
 from esys.modellib.geometry import FinleyReader,VectorConstrainerOverBox
 from esys.modellib.input import Sequencer
 from esys.escript.modelframe import Link,Simulation, DataSource
 
 dom=FinleyReader(debug=d)
 dom.source=DataSource("./newcastle_mines.msh","gmsh")
-dom.region_tag_map_source=DataSource("./vtag.xml", "ESysXML")
-dom.surface_tag_map_source=DataSource("./vtag.xml", "ESysXML")
+dom.tag_map_source=DataSource("./tags.xml", "ESysXML")
 
 sq=Sequencer(debug=d)
 sq.t=1840.
@@ -38,8 +37,10 @@ hist=MiningHistory(debug=d)
 hist.history=DataSource("./newcastle_mining.xml")
 hist.t=Link(sq,"t")
 
-# hist.mine_locations=Link(dom,"region_tag_map")
-# hist.domain=Link(dom,"domain")
+dens_dot=DensityChange(debug=d)
+dens_dot.domain=Link(dom,"domain")
+dens_dot.tag_map=Link(dom,"tag_map")
+dens_dot.mass_rate=Link(hist,"mass_changes")
 
 fix=VectorConstrainerOverBox(debug=d)
 fix.domain=Link(dom,"domain")
@@ -50,7 +51,19 @@ fix.front=False
 fix.back=False
 fix.left=False
 fix.right=False
+# dens_dot.density_rate=Link(hist,"mass_changes")
+
+el=LinearElasticStressChange(debug=d)
+el.domain=Link(dom,"domain")
+el.tag_map=Link(dom,"tag_map")
+el.density=1.
+el.lame_lambda=2.
+el.lame_mu=1.
+el.location_of_fixed_displacement=Link(fix,"location_of_constraint")
+el.density_rate=Link(dens_dot,"density_rate")
+
+# hist.domain=Link(dom,"domain")
 
 
-s=Simulation([sq, hist, fix], debug=d)
+s=Simulation([sq, hist, dens_dot, fix, el], debug=d)
 s.run()

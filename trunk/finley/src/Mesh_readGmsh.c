@@ -51,6 +51,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 
 #else
   /* allocate mesh */
+
   mesh_p = Finley_Mesh_alloc(fname,numDim,order);
   if (! Finley_noError()) return NULL;
 
@@ -231,6 +232,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
            for(j = 0; j < numNodesPerElement; j++) fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
          }
          /* all elements have been read, now we have to identify the elements for finley */
+     
          if (Finley_noError()) {
             /* first we have to identify the elements to define Elementis and FaceElements */
            mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order);
