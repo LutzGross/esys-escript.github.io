@@ -18,20 +18,15 @@ class Map(DataSetMapper, Actor3D):
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will
-	# be used.
-	def __init__(self, scene, data_collector, scalar = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
-			outline = True):
+	# If no lut is specified, the color scheme will be used.
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant  
 		@param viewport: Viewport in which objects are to be rendered on 
 		@type lut : L{Lut <constant.Lut>} constant
@@ -64,9 +59,6 @@ class Map(DataSetMapper, Actor3D):
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Map -----
-
-		#if(scalar != None): # True only if a scalar field was specified.
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -103,20 +95,15 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will
-	# be used.
-	def __init__(self, scene, data_collector, scalar = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
-
+	# If no lut is specified, the color scheme will be used.
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -149,9 +136,6 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Map on a plane -----
-
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -191,20 +175,15 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will
-	# be used.
-	def __init__(self, scene, data_collector, scalar = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
-
+	# If no lut is specified, the color scheme will be used.
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -237,9 +216,6 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Map on a clipped plane -----
-
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -278,21 +254,16 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will
-	# be used.
+	# If no lut is specified, the color scheme will be used.
 
-	def __init__(self, scene, data_collector, scalar = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
-
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -325,9 +296,6 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Map clipped using a scalar value -----
-
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

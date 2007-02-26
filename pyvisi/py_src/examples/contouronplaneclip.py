@@ -12,7 +12,7 @@ dc1.setFileName(file_name =
 # translation and performing translation then followed by rotation.
 
 # Create one contour on plance clip instance.
-ctropc1 = ContourOnPlaneClip(scene = s, data_collector = dc1, scalar = None, 
+ctropc1 = ContourOnPlaneClip(scene = s, data_collector = dc1, 
         viewport  = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 ctropc1.setPlaneToXY()
 ctropc1.rotateY(angle = 20)

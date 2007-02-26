@@ -25,20 +25,15 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no tensor field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will 
-	# be used. 
-	def __init__(self, scene, data_collector, tensor = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
-
+	# If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type tensor: String
-		@param tensor: Tensor field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -71,9 +66,6 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Ellipsoid -----
-
-		#if(tensor != None):
-		#	data_collector._setActiveTensor(tensor)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -120,20 +112,15 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will 
-	# be used. 
-	def __init__(self, scene, data_collector, tensor = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
-
+	# If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type tensor: String
-		@param tensor: Tensor field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -166,9 +153,6 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Ellipsoid on a cut plane -----
-
-		#if(tensor != None):
-		#	data_collector._setActiveTensor(tensor)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -219,20 +203,15 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will 
-	# be used. 
-	def __init__(self, scene, data_collector, tensor = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
-
+	# If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type tensor: String
-		@param tensor: Tensor field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which object are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -265,9 +244,6 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Ellipsoid on a clipped plane -----
-
-		#if(tensor != None):
-		#	data_collector._setActiveTensor(tensor)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

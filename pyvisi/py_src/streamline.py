@@ -22,22 +22,15 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will
-	# be used.
-	def __init__(self, scene, data_collector, scalar = None, vector = None, 
-		viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
-		color_mode = ColorMode.VECTOR, outline = True): 
+	# If no lut is specified, the color scheme will be used.
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+		lut = Lut.COLOR, color_mode = ColorMode.VECTOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type vector: String
-		@param vector: Vector field to load from the source file
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which the object is to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -71,11 +64,6 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Streamline -----
-
-		#if(vector != None):
-		#	data_collector._setActiveVector(vector)
-		#elif(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

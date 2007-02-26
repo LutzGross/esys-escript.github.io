@@ -12,7 +12,7 @@ dc1.setFileName(file_name =
 # translation and performing translation then followed by rotation.
 
 # Create on ellipsoid on plane clip instance.
-eopc = EllipsoidOnPlaneClip(scene = s, data_collector = dc1, tensor = None, 
+eopc = EllipsoidOnPlaneClip(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 eopc.setScaleFactor(scale_factor = 0.1)
 eopc.setPlaneToXY()

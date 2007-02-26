@@ -82,7 +82,7 @@ class Actor3D:
 		"""
 
 		self.__vtk_actor3D.GetProperty().SetLineWidth(line_width)		
-
+	
 	def _getActor3D(self):
 		"""
 		Return the 3D actor.
