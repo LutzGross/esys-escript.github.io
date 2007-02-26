@@ -31,13 +31,13 @@ class FinleyReader(ParameterSet):
           """
           super(FinleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
-                                region_tag_map_source=None,
-                                surface_tag_map_source=None,
+                                dim=None,
+                                tag_map_source=None,
                                 optimizeLabeling=True,
                                 reducedIntegrationOrder=-1,
                                 integrationOrder=-1)
           self.__domain=None
-          self.__region_tag_map=None
+          self.__tag_map=None
           self.__surface_tag_map=None
 
 
@@ -52,40 +52,30 @@ class FinleyReader(ParameterSet):
              if  self.source.fileformat == "fly":
                 self.__domain=finley.ReadMesh(self.source.getLocalFileName(),self.integrationOrder) 
              elif self.source.fileformat == "gmsh":
-                self.__domain=finley.ReadGmsh(self.source.getLocalFileName(),self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling) 
+                if self.dim==None:
+                   dim=3
+                else:
+                   dim=self.dim
+                self.__domain=finley.ReadGmsh(self.source.getLocalFileName(),dim,self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling) 
              else:
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
 
-       def region_tag_map(self):
+       def tag_map(self):
           """
           returns the map from regional tag names to tag integers used in the mesh
 
           @return: the tag map
           @rtype: L{TagMap}
           """
-          if self.__region_tag_map == None:
-               self.__region_tag_map = TagMap()
-               if  self.region_tag_map_source != None:
-                   self.__region_tag_map.fillFromXML(open(self.region_tag_map_source.getLocalFileName()))
-               self.trace("region tag map read from %s in %s format."%(self.region_tag_map_source.getLocalFileName(), self.region_tag_map_source.fileformat))           
-          return self.__region_tag_map
+          if self.__tag_map == None:
+               self.__tag_map = TagMap()
+               if  self.tag_map_source != None:
+                   self.__tag_map.fillFromXML(open(self.tag_map_source.getLocalFileName()))
+               self.trace("tag map read from %s in %s format."%(self.tag_map_source.getLocalFileName(), self.tag_map_source.fileformat))           
+          return self.__tag_map
 
-       def surface_tag_map(self):
-          """
-          returns the map from surface tag names to tag integers used in the mesh
-
-          @return: the tag map
-          @rtype: L{TagMap}
-          """
-          if self.__surface_tag_map == None:
-               self.__surface_tag_map = TagMap()
-               if  self.surface_tag_map_source != None:
-                   self.__surface_tag_map.fillFromXML(open(self.surface_tag_map_source.getLocalFileName()))
-               self.trace("surface tag map read from %s in %s format."%(self.surface_tag_map_source.getLocalFileName(), self.surface_tag_map_source.fileformat))           
-          return self.__surface_tag_map
-          
                        
 class RectangularDomain(ParameterSet):
        """

@@ -74,11 +74,18 @@ class TagMap(object):
         returns the name of a tag
         """
         return self.__map[tag]
+    def getNames(self):
+        """
+        returns the name keys
+        """
+        return self.__map.values()
+
     def getMapping(self):
         """
         returns a dictionary where the tags define the keys and the values the corresposnding names.
         """
         return self.__map
+
     def map(self,default=0,**kwargs):
         """
         returns a dictionary where the tags define the keys and the values give the values assigned to the tag via name 
@@ -301,21 +308,11 @@ class Design(object):
            if isinstance(p, PropertySet): 
               if p.getDim() == 1: m[ p.getTag() ] = p.getName()
         return TagMap(m)
-    def getSurfaceTagMap(self):
-        """
-        returns a L{TagMap} to map the name of L{Manifold2D} L{PropertySet}s to tags
-        """
-        m={}
-        for p in self.getAllPrimitives():
-           if isinstance(p, PropertySet): 
-              if p.getDim() == 2: m[ p.getTag() ] = p.getName()
-        return TagMap(m)
-    def getVolumeTagMap(self):
+    def getTagMap(self):
         """
         returns a L{TagMap} to map the name of L{Manifold3D} L{PropertySet}s to tags
         """
         m={}
         for p in self.getAllPrimitives():
-           if isinstance(p, PropertySet): 
-              if p.getDim() == 3: m[ p.getTag() ] = p.getName()
+           if isinstance(p, PropertySet): m[ p.getTag() ] = p.getName()
         return TagMap(m)

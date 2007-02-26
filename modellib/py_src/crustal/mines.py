@@ -283,13 +283,20 @@ class Mine(BoxInTheCrust):
           else: 
              raise ValueError("empty record of %s mine."%self.getName())
      def getMassChanges(self,t):
-         m0=0.
+         m0=None
          t0=self.getStartOfRecords()
          if t<=t0:
             return 0.
          for y, e in self.__record:
-               return sum(e.values())
-         return 0.
+             m=sum(e.values())
+             if t<=y:
+                  if m0==None:
+                     return m
+                  else:
+                     return (m-m0)/(y-t0)*(t-t0)+m0
+             else:
+               t0,m0=y,m
+         return m0
      def getNextTimeMarker(self,t):
          for y, e in self.__record:
            if y>t: return y
@@ -499,5 +506,5 @@ if __name__ == "__main__":
     print dsgn.getCommandString()
     print "mesh in gmsh format is written to ",dsgn.getMeshHandler()
     if not options.tagfile == None:
-        dsgn.getVolumeTagMap().writeXML(open(options.tagfile,"w"))
-        print "volume tag map written to %s."%options.tagfile
+        dsgn.getTagMap().writeXML(open(options.tagfile,"w"))
+        print "tag map written to %s."%options.tagfile
