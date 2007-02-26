@@ -44,26 +44,21 @@ dens_dot.mass_rate=Link(hist,"mass_changes")
 
 fix=VectorConstrainerOverBox(debug=d)
 fix.domain=Link(dom,"domain")
-fix.value=0.
-fix.top=False
-fix.bottom=True
-fix.front=False
-fix.back=False
-fix.left=False
-fix.right=False
-# dens_dot.density_rate=Link(hist,"mass_changes")
+fix.top=[False, False, False]
+fix.bottom= [True, True, True]
+fix.front= [False, False, False]
+fix.back=[False, False, False]
+fix.left=[False, False, False]
+fix.right=[False, False, False]
 
 el=LinearElasticStressChange(debug=d)
 el.domain=Link(dom,"domain")
 el.tag_map=Link(dom,"tag_map")
-el.density=1.
-el.lame_lambda=2.
-el.lame_mu=1.
+el.density=8e3*0
+el.lame_lambda=1.7e11
+el.lame_mu=1.7e11
 el.location_of_fixed_displacement=Link(fix,"location_of_constraint")
 el.density_rate=Link(dens_dot,"density_rate")
-
-# hist.domain=Link(dom,"domain")
-
 
 s=Simulation([sq, hist, dens_dot, fix, el], debug=d)
 s.run()
