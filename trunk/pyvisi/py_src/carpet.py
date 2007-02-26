@@ -23,20 +23,15 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no warp_mode is specified, the data will be deformated using scalar
-	# data. If no scalar field is specified, the first encountered in the 
-	# file will be loaded automatically. If no lut is specified, the 
-	# color scheme will be used. 
-	def __init__(self, scene, data_collector, scalar = None, vector = None,
-			warp_mode = WarpMode.SCALAR, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True):
+	# data. If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, warp_mode = WarpMode.SCALAR, 
+			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@param warp_mode: L{WarpMode <constant.WarpMode>} constant
 		@type warp_mode: Mode in which to deform the scalar data
 		@type viewport: L{Viewport <constant.Viewport>} constant
@@ -72,9 +67,6 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 
 		# ----- Carpet -----
 
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
-				
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.

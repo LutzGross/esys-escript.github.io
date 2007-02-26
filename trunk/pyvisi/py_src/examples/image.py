@@ -1,4 +1,4 @@
-from esys.pyvisi import Scene, ImageReader, Image
+from esys.pyvisi import Scene, ImageReader, Image, GlobalPosition
 from esys.pyvisi.constant import *
 
 s = Scene(renderer = Renderer.ONLINE, num_viewport = 1, x_size = 1000, 
@@ -11,7 +11,8 @@ ir.setFileName(file_name =
 
 # Create one image instance.
 i = Image(scene = s, image_reader = ir)
-i.setOpacity(opacity = 0.7)
+i.setOpacity(opacity = 0.9)
+i.setPosition(GlobalPosition(-600,50.9,0.5))
 
 s.render()
 

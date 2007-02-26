@@ -23,23 +23,16 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will
-	# be used.
-	def __init__(self, scene, data_collector, vector = None, scalar = None,
-			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
-
+	# If no lut is specified, the color scheme will be used.
+	def __init__(self, scene, data_collector, arrow = Arrow.TWO_D, 
+			color_mode = ColorMode.VECTOR, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type vector: String
-		@param vector: Vector field to load from the source file
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
@@ -76,15 +69,6 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Velocity -----
-
-		# NOTE: Two 'ifs' were used instead of an if-elif because an active 
-		# scalar and an active vector attribute may be specified at the same 
-		# time. One may be for the color mode and the other for the 
-		# scaling mode.
-		#if(vector != None):
-		#	data_collector._setActiveVector(vector)
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -145,22 +129,16 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.  If no lut is specified, the color scheme will
-	# be used.
-	def __init__(self, scene, data_collector, vector = None, scalar = None,
-			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
+	# If no lut is specified, the color scheme willbe used.
+	def __init__(self, scene, data_collector, arrow = Arrow.TWO_D, 
+			color_mode = ColorMode.VECTOR, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type vector: String
-		@param vector: Vector field to load from the source file
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
@@ -197,15 +175,6 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Velocity on a cut plane -----
-
-		# NOTE: Two 'ifs' were used instead of an if-elif because an active 
-		# scalar and an active vector attribute may be specified at the same 
-		# time. One may be for the color mode and the other for the 
-		# scaling mode.
-		#if(vector != None):
-		#	data_collector._setActiveVector(vector)
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -270,22 +239,16 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no vector field is specified, the first encountered in the file will
-	# be loaded automatically.  If no lut is specified, the color scheme will
-	# be used.
-	def __init__(self, scene, data_collector, vector = None, scalar = None,
-			arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True): 
+	# If no lut is specified, the color scheme will be used.
+	def __init__(self, scene, data_collector, arrow = Arrow.TWO_D, 
+			color_mode = ColorMode.VECTOR, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type vector: String
-		@param vector: Vector field to load from the source file
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type arrow: L{Arrow <constant.Arrow>} constant 
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
@@ -322,15 +285,6 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Velocity on a clipped plane -----
-
-		# NOTE: Two 'ifs' were used instead of an if-elif because an active 
-		# scalar and an active vector attribute may be specified at the same 
-		# time. One may be for the color mode and the other for the 
-		# scaling mode.
-		#if(vector != None):
-		#	data_collector._setActiveVector(vector)
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect

@@ -12,7 +12,7 @@ dc1.setFileName(file_name =
 # translation and performing translation then followed by rotation.
 
 # Create one ellipsoid on plance cut instance.
-eopc1 = EllipsoidOnPlaneCut(scene = s, data_collector = dc1, tensor = None, 
+eopc1 = EllipsoidOnPlaneCut(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 eopc1.setScaleFactor(scale_factor = 0.1)
 eopc1.setPlaneToXY()

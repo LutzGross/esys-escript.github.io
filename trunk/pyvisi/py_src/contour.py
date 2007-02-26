@@ -19,19 +19,15 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will 
-	# be used. 
-	def __init__(self, scene, data_collector, scalar = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
+	# If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant  
 		@param viewport: Viewport in which objects are to be rendered on 
 		@type lut : L{Lut <constant.Lut>} constant
@@ -64,12 +60,6 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Contour -----
-
-		#if(scalar != None): # True only if a scalar field was specified.
-		#	pass
-			#data_collector._setActiveScalar(scalar)
-
-		lookup_table = LookupTable() 
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -114,11 +104,9 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will 
-	# be used. 
-	def __init__(self, scene, data_collector, scalar = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
+	# If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True):
 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -126,8 +114,6 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -160,9 +146,6 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Contour on a cut plane -----
-
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
@@ -210,11 +193,9 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	# If no scalar field is specified, the first encountered in the file will
-	# be loaded automatically. If no lut is specified, the color scheme will 
-	# be used. 
-	def __init__(self, scene, data_collector, scalar = None, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
+	# If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			lut = Lut.COLOR, outline = True):
 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -222,8 +203,6 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -256,9 +235,6 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Contour on a clipped plane -----
-
-		#if(scalar != None):
-		#	data_collector._setActiveScalar(scalar)
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
