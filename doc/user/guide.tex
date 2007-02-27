@@ -12,7 +12,7 @@
 \input{guide_defs}
 
 % title, author, etc stuff
-\title{\escript Users Guide}
+\title{\esys Users Guide: The Partial Differential Equation Solvers}
 
 \author{Lutz Gross et. al.(Editor)}
 \authoraddress{
@@ -40,10 +40,11 @@ Email: \email{esys@access.edu.au}
 
 It consists of four major components
 \begin{itemize}
-\item escript core library
-\item finite element solver finley (including the linear solver library paso)
+\item \escript core library
+\item finite element solver \finley (including the linear solver library paso)
+\item the meshing interface \pycad
+\item visualization interface \pyvisi
 \item model library modellib
-\item visualization interface pyvisi
 \end{itemize}
 The current version supports parallelization through OpenMP for distributed shared memory. 
 \end{abstract}
@@ -56,9 +57,13 @@ The current version supports parallelization through OpenMP for distributed shar
 
 \input{escript}
 \input{linearPDE}
+
+\input{pycad}
+
+\input{pyvisi}
+
 \input{finley}
 % \input{MPI}
-%\input{pyvisi}
 
 \input{modelframe}
 %\input{bruce}

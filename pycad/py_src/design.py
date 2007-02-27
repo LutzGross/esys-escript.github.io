@@ -60,7 +60,7 @@ class TagMap(object):
           self.__map[tag]=name
     def getTags(self,name=None):
         """
-        returns a list of the tags assigned to name
+        returns a list of the tags assigned to name. If name is not present a list of tags is returned.
         """
         if name == None:
            out=self.__map.keys()
@@ -69,16 +69,14 @@ class TagMap(object):
            for tag, arg in self.__map.items():
              if arg == name: out.append(tag)
         return out
-    def getName(self,tag):
+    def getName(self,tag=None):
         """
-        returns the name of a tag
+        returns the name of a tag. If tag is not present a list of names is returned.
         """
-        return self.__map[tag]
-    def getNames(self):
-        """
-        returns the name keys
-        """
-        return self.__map.values()
+        if tag == None:
+           return list(set(self.__map.values()))
+        else:
+            return self.__map[tag]
 
     def getMapping(self):
         """
@@ -142,14 +140,14 @@ class TagMap(object):
                self.setMap(**{ name : tag })
         return
 
-    def fillFromXML(self,xml):
+    def fillFromXML(self,iostream):
        """
        uses the xml file or string to set the mapping
        """
-       if isinstance(xml,str):
-             dom=minidom.parseString(xml)
+       if isinstance(iostream,str):
+             dom=minidom.parseString(iostream)
        else:
-           dom=minidom.parse(xml)
+           dom=minidom.parse(iostream)
        root=dom.getElementsByTagName('ESys')[0]
        for node in root.childNodes:
            if isinstance(node, minidom.Element):
@@ -212,23 +210,27 @@ class Design(object):
         if not order in [1,2]:
            raise ValueError("only element orser 1 or 2 is supported.")
         self.__order=order
-    def getElementOrder(self,order=1):
+        
+    def getElementOrder(self):
         """
         returns the element order
         """
         return self.__order
-    def setElementSize(self,element_size=0.1):
+        
+    def setElementSize(self,element_size=1.):
         """
         set the global element size.
         """
         if element_size<=0.:
-           raise ValueError("element size needs to be non--negative.")
+           raise ValueError("element size needs to be positive.")
         self.__element_size=element_size
-    def getElementSize(self,element_size=1.):
+        
+    def getElementSize(self):
         """
         returns the global element size.
         """
         return self.__element_size
+        
     def setKeepFilesOn(self):
         """
         work files are kept at the end of the generation
@@ -290,27 +292,9 @@ class Design(object):
         """
         raise NotImplementedError()
 
-    def getPointTagMap(self):
-        """
-        returns a L{TagMap} to map the name of L{Point} L{PropertySet}s to tags
-        """
-        m={}
-        for p in self.getAllPrimitives():
-           if isinstance(p, PropertySet): 
-              if p.getDim() == 0: m[ p.getTag() ] = p.getName()
-        return TagMap(m)
-    def getCurveTagMap(self):
-        """
-        returns a L{TagMap} to map the name of L{Manifold1D} L{PropertySet}s to tags
-        """
-        m={}
-        for p in self.getAllPrimitives():
-           if isinstance(p, PropertySet): 
-              if p.getDim() == 1: m[ p.getTag() ] = p.getName()
-        return TagMap(m)
     def getTagMap(self):
         """
-        returns a L{TagMap} to map the name of L{Manifold3D} L{PropertySet}s to tags
+        returns a L{TagMap} to map the names of L{PropertySet}s to tags
         """
         m={}
         for p in self.getAllPrimitives():

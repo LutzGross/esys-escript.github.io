@@ -10,18 +10,9 @@
 
 \chapter{The module \linearPDEs}
 
-\declaremodule{extension}{linearPDEs} \modulesynopsis{Linear partial pifferential equation handler}
-The module \linearPDEs provides an interface to define and solve linear partial
-differential equations within \escript. \linearPDEs does not provide any
-solver capabilities in itself but hands the PDE over to
-the PDE solver library defined through the \Domain of the PDE.
-The general interface is provided through the \LinearPDE class. The
-\AdvectivePDE which is derived from the \LinearPDE class
-provides an interface to PDE dominated by its advective terms. The \Poisson
-class which is also derived form the \LinearPDE class should be used
-to define the Poisson equation \index{Poisson}.
 
-\section{\LinearPDE Class}
+
+\section{Linear Partial Differential Equations}
 \label{SEC LinearPDE}
 
 The \LinearPDE class is used to define a general linear, steady, second order PDE
@@ -116,7 +107,21 @@ d^{contact}\hackscore{ik}=d^{contact}\hackscore{ki}
 Note that different from the scalar case~\eqn{LINEARPDE.SINGLE.4} now the coefficients $D$, $d$ abd $d^{contact}$
 have to be inspected.
 
-\section{\LinearPDE class}
+
+\subsection{Classes}
+\declaremodule{extension}{esys.escript.linearPDEs} 
+\modulesynopsis{Linear partial pifferential equation handler}
+The module \linearPDEs provides an interface to define and solve linear partial
+differential equations within \escript. \linearPDEs does not provide any
+solver capabilities in itself but hands the PDE over to
+the PDE solver library defined through the \Domain of the PDE.
+The general interface is provided through the \LinearPDE class. The
+\AdvectivePDE which is derived from the \LinearPDE class
+provides an interface to PDE dominated by its advective terms. The \Poisson
+class which is also derived form the \LinearPDE class should be used
+to define the Poisson equation \index{Poisson}.
+
+\subsection{\LinearPDE class}
 This is the general class to define a linear PDE in \escript. We list a selction of the most
 important methods of the class only and refer to reference guide \ReferenceGuide for a complete list.
 
@@ -348,7 +353,7 @@ Lumping does not use the linear system solver library.
 \begin{memberdesc}[LinearPDE]{PRES20}
 the GMRES method with truncation after five residuals and
 restart after 20 steps, see~\Ref{WEISS}.
-\end{memberdesc}[LinearPDE]{CR}
+\end{memberdesc}
 
 \begin{memberdesc}[LinearPDE]{CGS}
 conjugate gradient squared method, see~\Ref{WEISS}.
@@ -404,7 +409,7 @@ applies reordering before factorization using a nested dissection strategy. You 
 linear solver package if this is supported. In any case, it is advisable to apply reordering on the mesh to minimize fill-in.
 \end{memberdesc}
 
-\section{The \Poisson Class}
+\subsection{The \Poisson Class}
 The \Poisson class provides an easy way to define and solve the Poisson
 equation
 \begin{equation}\label{POISSON.1}
@@ -428,7 +433,7 @@ opens a Poisson equation on the \Domain domain. \Poisson is derived from \Linear
 assigns new values to \var{f} and \var{q}.
 \end{methoddesc}
 
-\section{The \Helmholtz Class}
+\subsection{The \Helmholtz Class}
 The \Helmholtz class defines the Helmholtz problem
 \begin{equation}\label{HZ.1}
 \omega \; u - (k\; u\hackscore{,j})\hackscore{,j} = f
@@ -452,7 +457,7 @@ opens a Helmholtz equation on the \Domain domain. \Helmholtz is derived from \Li
 assigns new values to \var{omega}, \var{k}, \var{f}, \var{alpha}, \var{g}, \var{r}, \var{q}. By default all values are set to be zero.
 \end{methoddesc}
 
-\section{The \Lame Class}
+\subsection{The \Lame Class}
 The \Lame class defines a Lame equation problem:
 \begin{equation}\label{LE.1}
 -\mu (u\hackscore{i,j}+u\hackscore{j,i})+\lambda u\hackscore{k,k})\hackscore{j} = F\hackscore{i}-\sigma\hackscore{ij,j}

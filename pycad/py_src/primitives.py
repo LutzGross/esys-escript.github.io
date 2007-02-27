@@ -1348,7 +1348,7 @@ class Volume(Manifold3D, Primitive):
 
 class PropertySet(Primitive, PrimitiveBase):
     """
-    defines a group L{Primitive} which can be accessed through a name
+    defines a group of L{Primitive} which can be accessed through a name
     """
     def __init__(self,name,*items):
        Primitive.__init__(self)
@@ -1386,7 +1386,7 @@ class PropertySet(Primitive, PrimitiveBase):
            return Manifold3D
     def getDim(self):
         """
-        returns the dimension of the 
+        returns the dimension of the items
         """ 
         return self.__dim
     def getName(self):
@@ -1394,11 +1394,12 @@ class PropertySet(Primitive, PrimitiveBase):
         returns the name of the set
         """
         return self.__name
-    def setName(self,name=None):
+    def setName(self,name):
         """
-        sets the name. If no name is given the id is used.
+        sets the name.
         """
         self.__name=str(name)
+        
     def addItem(self,*items): 
         """
         adds items. An item my be any L{Primitive} but no L{PropertySet}
@@ -1453,6 +1454,6 @@ class PropertySet(Primitive, PrimitiveBase):
 
     def getTag(self):
          """
-         returns the tag used for this 
+         returns the tag used for this property set
          """
          return self.getID()

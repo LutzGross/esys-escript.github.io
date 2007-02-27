@@ -1,55 +1,162 @@
 \chapter{The module \pyvisi}
 \label{PYVISI CHAP}
 
-\declaremodule{extension}{pyvisi}
-\modulesynopsis{Python visualization interface}
+\section{Introduction}
 
 \pyvisi provides an easy to use interface to the \VTK visualization 
-tool. \pyvisi provides the following modules:
+tool.  
 
-\begin{itemize}
-\item \Scene: Displays a scene in which objects are to be rendered on.
-\item \DataCollector: Deals with the source of data for visualization.
-\item \Map: Displays a scalar field using a domain surface.
-\item \MapOnPlaneCut: Displays a scalar field using a domain surface cut on a plane. 
-\item \MapOnPlaneClip: Displays a scalar field using a domain surface clipped 
+\section{Rendering}
+same word on rendering, off-line, on-line, how to rotate, zoom, close the window, ...
+
+\section{How to Make a Movie}
+
+\section{\pyvisi Classes}
+\declaremodule{extension}{esys.pyvisi}
+\modulesynopsis{A simple Python visualization interface for \VTK}
+
+In this section we give a brief overview over the important classes and their methods. Please
+check the \ReferenceGuide on details.
+%=====================================================================================
+\subsection{Scene Classes}
+\begin{classdesc}{Scene}{}
+Displays a scene in which objects are to be rendered on.
+\end{classdesc}
+
+\begin{classdesc}{Camera}{}
+ Controls the camera manipulation. 
+\end{classdesc}
+
+\begin{classdesc}{Light}{}
+ Controls the light manipulation.
+\end{classdesc}
+
+%============================================================================================================
+\subsection{Input Classes}
+
+\begin{classdesc}{Image}{}
+ Displays an image.
+\end{classdesc}
+
+\begin{classdesc}{Text}{}
+ Shows some 2D text.
+\end{classdesc}
+
+\begin{classdesc}{DataCollector}{}
+Deals with the source of data for visualization.
+\end{classdesc}
+
+%============================================================================================================
+\subsection{Data Visualization}
+\begin{classdesc}{Map}{}
+ Displays a scalar field using a domain surface.
+\end{classdesc}
+
+\begin{classdesc}{MapOnPlaneCut}{}
+ Displays a scalar field using a domain surface cut on a plane. 
+\end{classdesc}
+
+\begin{classdesc}{MapOnPlaneClip}{}
+ Displays a scalar field using a domain surface clipped 
 		on a plane.
-\item \MapOnScalarClip: Displays a scalar field using a domain surface clipped 
-		using a scalar value.
-\item \Velocity: Displays a vector field using arrows.
-\item \VelocityOnPlaneCut: Displays a vector field using arrows cut on a plane.
-\item \VelocityOnPlaneClip: Displays a vector field using arrows clipped on a 
-		plane.
-\item \Ellipsoid: Displays a tensor field using spheres.
-\item \EllipsoidOnPlaneCut: Displays a tensor field using spheres cut on a
-        plane.
-\item \EllipsoidOnPlaneClip: Displays a tensor field using spheres clipped 
-        on a plane.
-        
-\item \Contour: Shows a scalar field by contour surfaces. 
-\item \ContourOnPlane: Shows a scalar field by contour surfaces on 
-a given plane.
-\item \ContourOnClip: Shows a scalar field by contour surfaces on 
-a given clip.
+\end{classdesc}
 
-\item \Image: Displays an image.
-\item \Text: Shows some 2D text.
-\item \Camera: Controls the camera manipulation. 
-\item \Light: Controls the light manipulation.
-\item \IsoSurface: Shows a scalar field for a given value by 
+\begin{classdesc}{MapOnScalarClip}{}
+ Displays a scalar field using a domain surface clipped 
+		using a scalar value.
+\end{classdesc}
+
+\begin{classdesc}{Velocity}{}
+ Displays a vector field using arrows.
+\end{classdesc}
+
+\begin{classdesc}{VelocityOnPlaneCut}{}
+ Displays a vector field using arrows cut on a plane.
+\end{classdesc}
+
+\begin{classdesc}{VelocityOnPlaneClip}{}
+ Displays a vector field using arrows clipped on a 
+		plane.
+\end{classdesc}
+
+\begin{classdesc}{Ellipsoid}{}
+ Displays a tensor field using spheres.
+\end{classdesc}
+
+\begin{classdesc}{EllipsoidOnPlaneCut}{}
+ Displays a tensor field using spheres cut on a
+        plane.
+\end{classdesc}
+
+\begin{classdesc}{EllipsoidOnPlaneClip}{}
+ Displays a tensor field using spheres clipped 
+        on a plane.
+\end{classdesc}
+
+        
+\begin{classdesc}{Contour}{}
+ Shows a scalar field by contour surfaces. 
+\end{classdesc}
+
+\begin{classdesc}{ContourOnPlane}{}
+ Shows a scalar field by contour surfaces on 
+a given plane.
+\end{classdesc}
+
+\begin{classdesc}{ContourOnClip}{}
+ Shows a scalar field by contour surfaces on 
+a given clip.
+\end{classdesc}
+
+\begin{classdesc}{IsoSurface}{}
+ Shows a scalar field for a given value by 
 an isosurface.
-\item \IsoSurfaceOnPlane: Shows a scalar field for a given value by 
+\end{classdesc}
+
+\begin{classdesc}{IsoSurfaceOnPlane}{}
+ Shows a scalar field for a given value by 
 an isosurfaceon a given plane.
-\item \IsoSurfaceOnClip: Shows a scalar field for a given vlaue by 
+\end{classdesc}
+
+\begin{classdesc}{IsoSurfaceOnClip}{}
+ Shows a scalar field for a given vlaue by 
 an isosurface on a given clip.
-\item \StreamLines: Shows the path of particles in a vector field.
-\item \Carpet: Shows a scalar field as plane deformated along 
+\end{classdesc}
+
+\begin{classdesc}{StreamLines}{}
+ Shows the path of particles in a vector field.
+\end{classdesc}
+
+\begin{classdesc}{Carpet}{}
+ Shows a scalar field as plane deformated along 
 the plane normal.
-\item \Position: Defines the x,y and z coordinates rendered object.
-\item \Transform: Defines the orientation of rendered object.
-\item \Style: Defines the style of text.
-\item \BlueToRed: Defines a map spectrum from blue to red.
-\item \RedToBlue: Defines a map spectrum from red to blue.
-\item \Plane: Defines the cutting/clipping of rendered objects.
-\end{itemize}
+\end{classdesc}
+
+\section{Geometry}
+\begin{classdesc}{Position}{}
+ Defines the x,y and z coordinates rendered object.
+\end{classdesc}
+
+\begin{classdesc}{Transform}{}
+Defines the orientation of rendered object.
+\end{classdesc}
+
+\begin{classdesc}{Plane}{}
+Defines the cutting/clipping of rendered objects.
+\end{classdesc}
+
+
+\subsection{Beautification}
+\begin{classdesc}{Style}{}
+Defines the style of text.
+\end{classdesc}
+
+\begin{classdesc}{BlueToRed}{}
+ Defines a map spectrum from blue to red.
+\end{classdesc}
+
+\begin{classdesc}{RedToBlue}{}
+ Defines a map spectrum from red to blue.
+\end{classdesc}
+
 
