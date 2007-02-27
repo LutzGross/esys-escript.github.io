@@ -11,8 +11,6 @@
 \chapter{The module \escript}
 \label{ESCRIPT CHAP}
 
-\declaremodule{extension}{escript} 
-\modulesynopsis{Data manipulation}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{figures/EscriptDiagram1.eps}
@@ -259,7 +257,7 @@ processing the value for each individual sample point.
 \escript allows use of constant, tagged and expanded data in a single expression.
 
 The \var{dump} method provides a possibility to save \Data objects to a file, for instance to restart a simuation
-or to save data for visualization. The file format uses \netCDF~\cite{netCDF} which commonly is using the file extension
+or to save data for visualization. The file format uses \netCDF which commonly is using the file extension
 {\tt nc}. For instance to save the coordinates of the data points of the \FunctionSpace
 \ContinuousFunction to the file {\tt x.nc} one uses:
 \begin{python}
@@ -279,7 +277,11 @@ Moreover, the ordering of the value is checked using the reference identifiers p
 \FunctionSpace on the \Domain. In some cases, data points will be reordered.
 
 
-\section{\Domain class}
+\section{\escript Classes}
+\declaremodule{extension}{esys.escript} 
+\modulesynopsis{Data manipulation}
+
+\subsection{\Domain class}
 \begin{classdesc}{Domain}{}
 A \Domain object is used to describe a geometrical region together with 
 a way of representing functions over this region.
@@ -326,7 +328,7 @@ Otherwise \False is returned.
 returns string represention of the \Domain.
 \end{methoddesc}
 
-\section{\FunctionSpace class}
+\subsection{\FunctionSpace class}
 \begin{classdesc}{FunctionSpace}{}
 \FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
 are instantiated by generator functions. \Data objects in particular \FunctionSpace are
@@ -415,7 +417,7 @@ partial differential equations \index{partial differential equation} with a redu
 for the solution approximation.
 \end{funcdesc}
 
-\section{\Data Class}
+\subsection{\Data Class}
 \label{SEC ESCRIPT DATA}
 
 The following table shows binary and unitary operations that can be applied to
@@ -599,7 +601,7 @@ save the \Domain.
 returns a string representation of the object.
 \end{methoddesc}
 
-\section{Functions of \Data class objects}
+\subsection{Functions of \Data class objects}
 This section lists the most important functions for \Data class objects \var{a}.
 A complete list and a more detailed description of the functionality can be fond on \ReferenceGuide.
 \begin{funcdesc}{saveVTK}{filename,**kwdata}
@@ -1028,7 +1030,7 @@ returns the $L^2$-norm of \var{a} in its function space. This is
 \end{equation} 
 \end{funcdesc}
 
-\section{\Operator Class}
+\subsection{\Operator Class}
 The \Operator class provides an abstract access to operators build
 within the \LinearPDE class. \Operator objects are created 
 when a PDE is handed over to a PDE solver library and handled

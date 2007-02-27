@@ -3548,16 +3548,12 @@ class Test_PyCAD_Design(unittest.TestCase):
        self.failUnless(pl1 in p)
        self.failUnless(pl2 in p)
        # get tag maps:
-       m1=d.getCurveTagMap()
+       m1=d.getTagMap()
        mm1=m1.getMapping()
-       self.failUnless(len(mm1)==2)
+       self.failUnless(len(mm1)==3)
        self.failUnless(mm1[12]=="A")
        self.failUnless(mm1[13]=="B")
-       
-       m2=d.getSurfaceTagMap()
-       mm2=m2.getMapping()
-       self.failUnless(len(mm2)==1)
-       self.failUnless(mm2[11]=="XXXX")
+       self.failUnless(mm1[11]=="XXXX")
        # clear things:
        d.clearItems()
        i=d.getItems()
@@ -3584,13 +3580,13 @@ class Test_PyCAD_Design(unittest.TestCase):
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
-       d.setOptions(algorithm=d.ANISO,optimize_quality=False,smoothing=4)
+       d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -2 -algo aniso -smooth 4  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -2 -algo tetgen -clcurv -smooth 4  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
 
        d.setOptions(optimize_quality=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -2 -algo iso -smooth 3 -optimize  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -2 -algo iso -clcurv -smooth 1 -optimize  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)

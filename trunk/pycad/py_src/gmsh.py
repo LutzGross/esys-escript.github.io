@@ -30,9 +30,7 @@ class Design(design.Design):
     """
     design fo gmsh
     """
-    ISO="iso"
-    TRI="tri"
-    ANISO="aniso"
+    DELAUNAY="iso"
     NETGEN="netgen"
     TETGEN="tetgen"
     def __init__(self,dim=3,element_size=1.,order=1,keep_files=False):
@@ -80,7 +78,7 @@ class Design(design.Design):
         """
         sets options for the mesh generator
         """ 
-        if algorithm==None: algorithm=self.ISO
+        if algorithm==None: algorithm=self.DELAUNAY
         self.__algo=algorithm
         self.__optimize_quality=optimize_quality
         self.__smoothing=smoothing
@@ -108,7 +106,7 @@ class Design(design.Design):
               opt="-optimize "
         else:
               opt=""
-        exe="gmsh -%s -algo %s -smooth %s %s -v 0 -order %s -o %s %s"%(self.getDim(),
+        exe="gmsh -%s -algo %s -clcurv -smooth %s %s -v 0 -order %s -o %s %s"%(self.getDim(),
                                                                        self.__algo,
                                                                        self.__smoothing,
                                                                        opt,

@@ -57,11 +57,12 @@ class Translation(Transformation):
        applies translation to x
        """
        return numarray.array(x,_TYPE)+self.__b
+       
 class Rotatation(Transformation):
     """
     defines a rotation 
     """
-    def __init__(self,axis=numarray.zeros((3,),type=_TYPE),point=numarray.ones((3,),type=_TYPE),angle=0.*RAD):
+    def __init__(self,axis=numarray.ones((3,),type=_TYPE),point=numarray.zeros((3,),type=_TYPE),angle=0.*RAD):
        """
        creates a rotation using an axis and a point on the axis
        """
