@@ -25,7 +25,7 @@ sl1 = StreamLine(scene = s, data_collector = dc1,
 		color_mode = ColorMode.SCALAR)
 sl1.setTubeRadius(radius = 0.02)
 
-eopc1 = EllipsoidOnPlaneCut(scene = s, data_collector = dc1, tensor = None,
+eopc1 = EllipsoidOnPlaneCut(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 eopc1.setScaleFactor(scale_factor = 0.1)
 eopc1.setPlaneToXZ()
@@ -33,7 +33,7 @@ eopc1.rotateX(angle = -45)
 eopc1.translate(x_offset = 0, y_offset = 0.2, z_offset = 0)
 eopc1.setDimension(x = 1, y = 1, z = 1)
 
-ctropc1 = ContourOnPlaneClip(scene = s, data_collector = dc1, scalar = None,
+ctropc1 = ContourOnPlaneClip(scene = s, data_collector = dc1, 
         viewport  = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 ctropc1.setPlaneToXY()
 ctropc1.rotateY(angle = 10)

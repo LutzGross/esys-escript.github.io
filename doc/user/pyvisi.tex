@@ -1,25 +1,51 @@
 \chapter{The module \pyvisi}
 \label{PYVISI CHAP}
+\declaremodule{extension}{esys.pyvisi}
+\modulesynopsis{Python Visualization Interface}
 
 \section{Introduction}
+\pyvisi is a Python module that is used to generate 2D and 3D visualization 
+for escript and its PDE solvers: finley and bruce. This module provides 
+an easy to use interface to the \VTK library (\VTKUrl).  
 
-\pyvisi provides an easy to use interface to the \VTK visualization 
-tool.  
+The general rule of thumb when using \pyvisi is to perform the following 
+in sequence:
 
-\section{Rendering}
-same word on rendering, off-line, on-line, how to rotate, zoom, close the window, ...
+\begin{enumerate}
+\item Create a scene instance, in which objects are to be rendered on.
+\item Create an input instance, which deals with the source of data for 
+the visualization.
+\item Create a data visualization instance (i.e. Map, Velocity, Ellipsoid, 
+etc), which extracts and manipulates the data accordingly.
+\item Create a camera instance, which controls the lighting 
+source and view angle.
+\item Finally, render the object.
+\end{enumerate}
+\begin{center}
+\begin{math}
+scene \rightarrow input \rightarrow visualization \rightarrow 
+camera \rightarrow render
+\end{math}
+\end{center}
 
-\section{How to Make a Movie}
+The sequence in which instances are created is very important due to
+to the dependencies among them. For example, an input instance must 
+always be created BEFORE a data visualisation instance is created. 
+If the sequence is switched, the program will throw an error because a 
+source data needs to be specified before the data can be 
+manipulated. Similarly, a camera instance must always be created
+AFTER an input instance has been created. Otherwise, the program will throw 
+an error because the camera instance needs to calculate its 
+default position (automatically carried out in the background) based on 
+the source data. 
 
 \section{\pyvisi Classes}
-\declaremodule{extension}{esys.pyvisi}
-\modulesynopsis{A simple Python visualization interface for \VTK}
-
-In this section we give a brief overview over the important classes and their methods. Please
-check the \ReferenceGuide on details.
+This section gives a brief overview of the important classes and their 
+corresponding methods. Please refer to \ReferenceGuide for full details.
 %=====================================================================================
 \subsection{Scene Classes}
-\begin{classdesc}{Scene}{}
+\begin{classdesc}{Scene}{renderer = Renderer.ONLINE, num_viewport = 1, 
+x_size = 1152, y_size = 864}
 Displays a scene in which objects are to be rendered on.
 \end{classdesc}
 
@@ -158,5 +184,10 @@ Defines the style of text.
 \begin{classdesc}{RedToBlue}{}
  Defines a map spectrum from red to blue.
 \end{classdesc}
+%===========================================
 
+\section{Rendering}
+same word on rendering, off-line, on-line, how to rotate, zoom, close the window, ...
 
+%==============================================
+\section{How to Make a Movie}

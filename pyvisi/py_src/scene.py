@@ -179,22 +179,26 @@ class Scene:
 		@type image_name: String
 		@param image_name: Name of the saved image.
 		"""
-		
-		# NOTE: Render and Modified must be called everytime before writing 
-		# an image. Otherwise, only the first image will always be saved.
-		# This is due to the architecture of VTK.
-		self.__vtk_render_window.Render()
-		self.__vtk_window_to_image.Modified()
-		
-		# Retrieve rendered object from the window and convert it into an 
-		# image.
-		self.__vtk_image_writer.SetInput(
-				self.__vtk_window_to_image.GetOutput())
-		self.__vtk_image_writer.SetFileName(image_name)
-		self.__vtk_image_writer.Write() 	
+	
+		try:
+			# NOTE: Render and Modified must be called everytime before writing 
+			# an image. Otherwise, only the first image will always be saved.
+			# This is due to the architecture of VTK.
+			self.__vtk_render_window.Render()
+			self.__vtk_window_to_image.Modified()
+			
+			# Retrieve rendered object from the window and convert it into an 
+			# image.
+			self.__vtk_image_writer.SetInput(
+					self.__vtk_window_to_image.GetOutput())
+			self.__vtk_image_writer.SetFileName(image_name)
+			self.__vtk_image_writer.Write() 	
+		except AttributeError:
+			print "Sorry, incorrect use of the '" + self.__renderer + "' renderer. Kindly, switch to the 'offline'  renderer."
+
 
 	def animate(self):
-		"""
+		"""	
 		Render the object onto the scene on-the-fly. No interaction can occur.
 		"""
 
@@ -205,11 +209,14 @@ class Scene:
 		Render the object onto the scene.
 		"""	
 
-		self.__vtk_render_window.Render()
+		try:
+			self.__vtk_render_window.Render()
 
-		# NOTE: Once Start is executed, the driver will not further execute 
-		# any subsequent codes thereafter.
-		self.__vtk_render_window_interactor.Start()
+			# NOTE: Once Start is executed, the driver will not further execute 
+			# any subsequent codes thereafter.
+			self.__vtk_render_window_interactor.Start()
+		except AttributeError:
+			print "Sorry, incorrect use of the '" + self.__renderer + "' renderer. Kindly, switch to the 'online'  renderer."
 	
 	def _addActor3D(self, viewport, actor):
 		"""

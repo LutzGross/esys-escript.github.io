@@ -57,13 +57,11 @@ class Actor3D:
 		"""
 
 		# NOTE: Must be used before actor.GetProperty().SetColor()
-		# in order for the change of color of the rendered objects to take 
-		# effect.
+		# in order for the change of color to take effect.
 		self.__mapper.ScalarVisibilityOff()
 
 		# NOTE: Must be used after mapper.ScalarVisibilityOff()
-		# in order for the change of color of the rendered objects to take 
-		# effect.
+		# in order for the change of color to take effect.
 		self.__vtk_actor3D.GetProperty().SetColor(color) 
 
 	def setRepresentationToWireframe(self):
@@ -106,7 +104,7 @@ class Actor2D:
 		"""
 		Initialise the 2D actor.
 
-		@type mapper: vtkMapper2D, etc
+		@type mapper: vtkMapper2D
 		@param mapper: Mapped data
 		"""
 
@@ -124,7 +122,7 @@ class Actor2D:
 	def setPosition(self, position):
 		"""
 		Set the position of the 2D actor. Default position is the lower left
-		hand corner of the window.
+		hand corner of the window / viewport.
 
 		@type position: L{LocalPosition <position.LocalPosition>} object
 		@param position: Position of the 2D actor 
