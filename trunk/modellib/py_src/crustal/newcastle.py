@@ -19,10 +19,12 @@ __version__="$Revision$"
 __date__="$Date$"
 
 d=True
-from setups import MiningHistory, DensityChange, LinearElasticStressChange
+from setups import MiningHistory, DensityChange, LinearElasticStressChange, CoulombFailureStress
 from esys.modellib.geometry import FinleyReader,VectorConstrainerOverBox
 from esys.modellib.input import Sequencer
 from esys.escript.modelframe import Link,Simulation, DataSource
+import numarray
+from esys.modellib.visualization import WriteVTK
 
 dom=FinleyReader(debug=d)
 dom.source=DataSource("./newcastle_mines.msh","gmsh")
@@ -60,5 +62,18 @@ el.lame_mu=1.7e11
 el.location_of_fixed_displacement=Link(fix,"location_of_constraint")
 el.density_rate=Link(dens_dot,"density_rate")
 
-s=Simulation([sq, hist, dens_dot, fix, el], debug=d)
+cfs=CoulombFailureStress(debug=d)
+cfs.stress=Link(el,"stress")
+cfs.friction_coefficient=0.
+cfs.normal=numarray.array([-1,0,1])
+
+vis=WriteVTK()
+vis.t=Link(sq)
+vis.data0=Link(el,"displacement")
+vis.data1=Link(cfs,"cfs")
+vis.dt=10.
+vis.filename="out.xml"
+
+
+s=Simulation([sq, hist, dens_dot, fix, el, vis], debug=d)
 s.run()

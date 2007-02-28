@@ -18,10 +18,11 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision$"
 __date__="$Date$"
 
-from esys.escript.modelframe import Model
+from esys.escript.modelframe import Model, ParameterSet
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from mines import parse
+import numarray
 
 class MiningHistory(Model):
     """
@@ -204,3 +205,43 @@ class LinearElasticStressChange(Model):
         self.__displacement=self.displacement
         self.trace("displacement range : %s: %s"%(inf(self.displacement[2]),sup(self.displacement[2])))
         self.trace("stress range : %s: %s"%(inf(self.stress),sup(self.stress)))
+
+class CoulombFailureStress(ParameterSet):
+    """
+    calculates the Coulomb failure stress an planes of a given orientation.
+
+    @ivar domain: mining region
+    @type domain: L{Domian}
+    @ivar tag_map: a tagmap 
+    @type tag_map: L{TagMap}
+    @ivar displacement: displacement field
+    @type displacement: L{Vector} or C{None}
+    @ivar stress: displacement field 
+    @type stress: L{Vector}  or C{None}
+    @ivar density: initial density distribution
+    @type density: C{float} or L{Scalar}
+    @ivar density_rate: density rate by tag (may be changed of time)
+    @type density_rate:  C{dict}
+    @ivar lame_lambda: elasticity coefficient lambda (assumed to be constant over time)
+    @type lame_lambda: C{float} or L{Scalar}
+    @ivar lame_mu: elasticity coefficient mu (assumed to be constant over time)
+    @type lame_mu: C{float} or L{Scalar}
+    @ivar location_of_fixed_displacement: mask of locations and component with zero displacements
+    @type location_of_fixed_displacement: L{Vector} or C{None}
+    """
+    def __init__(self,**kwargs):
+        """
+        """
+        super(CoulombFailureStress,self).__init__(**kwargs)
+        self.declareParameter(stress=numarray.zeros((3,3)),
+                              friction_coefficient=0.,
+                              normal=numarray.array([1.,0.,0.]))
+    def cfs(self):
+        """
+        returns  Coulomb failure stress
+        """
+        sn=matrixmult(self.stress,self.normal)
+        nsn=inner(self.normal,sn)
+        nssn=inner(sn,sn)
+        return (sqrt(nssn-nsn**2)-self.friction_coefficient*nsn)/length(self.normal)
+
