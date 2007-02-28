@@ -23,7 +23,7 @@ class Camera:
 				object
 		@param data_collector: Deal with source of data for visualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which object are to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
 		self.__scene = scene
@@ -43,8 +43,8 @@ class Camera:
 		self.setFocalPoint(GlobalPosition(center[0], center[1], center[2]))
 
 		# Default camera position is the center of the object but with a slight
-		# distance on the z-axis.
-		self.setPosition(GlobalPosition(center[0], center[1], center[2] * 3))
+		# distance along the z-axis.
+		self.setPosition(GlobalPosition(center[0], center[1], center[2] * 4))
 
 		# Assign the camera to the appropriate renderer
 		self.__scene._setActiveCamera(self.__viewport, self.__vtk_camera)
@@ -133,6 +133,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.Roll(-angle)
+		self.__resetCamera()
 
 	def backView(self):
 		"""
@@ -176,7 +177,7 @@ class Camera:
 
 	def isometricView(self):
 		"""
-		Rotate the camera to view the isometric side of the rendered object.
+		Rotate the camera to view the isometric angle of the rendered object.
 		"""
 
 		self.roll(-45)
@@ -186,7 +187,7 @@ class Camera:
 		"""
 		Reposition the camera so that all actors can be seen. Needs to
 		be called whenever the camera's settings are modified in order for the
-		changes to take effect correctly.
+		changes to take effect.
 		"""
 
 		self.__scene._getRenderer()[self.__viewport].ResetCamera() 
