@@ -73,6 +73,7 @@ class DataCollector:
 		if self.__source == Source.ESCRIPT:
 			esys.escript.saveVTK(self.__tmp_file,**args)
 			self.__vtk_xml_reader.Update()
+			self.__get_attribute_lists()
 		else:
 			raise ValueError("source type %s does not support 'setData'." \
 					% self.__source)
