@@ -74,11 +74,12 @@ class Design(design.Design):
        returns the name of the file for the gmsh msh
        """
        return self.__mshname
-    def setOptions(self,algorithm=None,optimize_quality=True,smoothing=1):
+    def setOptions(self,algorithm=None,optimize_quality=True,smoothing=1, curvature_based_element_size=False):
         """
         sets options for the mesh generator
         """ 
         if algorithm==None: algorithm=self.DELAUNAY
+        self.__curvature_based_element_size=curvature_based_element_size
         self.__algo=algorithm
         self.__optimize_quality=optimize_quality
         self.__smoothing=smoothing
@@ -106,8 +107,14 @@ class Design(design.Design):
               opt="-optimize "
         else:
               opt=""
-        exe="gmsh -%s -algo %s -clcurv -smooth %s %s -v 0 -order %s -o %s %s"%(self.getDim(),
+        if self.__curvature_based_element_size:
+              clcurv="-clcurv "
+        else: 
+              clcurv=""
+ 
+        exe="gmsh -%s -algo %s %s-smooth %s %s-v 0 -order %s -o %s %s"%(self.getDim(),
                                                                        self.__algo,
+                                                                       clcurv,
                                                                        self.__smoothing,
                                                                        opt,
                                                                        self.getElementOrder(),

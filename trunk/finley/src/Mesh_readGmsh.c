@@ -234,7 +234,25 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          /* all elements have been read, now we have to identify the elements for finley */
      
          if (Finley_noError()) {
-            /* first we have to identify the elements to define Elementis and FaceElements */
+           /* first we have to identify the elements to define Elementis and FaceElements */
+           if (final_element_type == NoType) {
+              if (numDim==1) {
+                 final_element_type=Line2;
+              } else if (numDim==2) {
+                 final_element_type=Tri3;
+              } else if (numDim==2) {
+                 final_element_type=Tet4;
+              }
+           }
+           if (final_face_element_type == NoType) {
+              if (numDim==1) {
+                 final_face_element_type=Point1;
+              } else if (numDim==2) {
+                 final_face_element_type=Line2;
+              } else if (numDim==2) {
+                 final_face_element_type=Tri3;
+              }
+           }
            mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order);
            mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order);
            mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order);
