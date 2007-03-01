@@ -16,12 +16,12 @@ class Clipper:
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Input for the clipper
 		@type plane: vtkPlane
-		@param plane: Plane to clip the rendered object
+		@param plane: Plane to clip the rendered object (input)
 		"""
 
 		self.__object = object 
-		# True only if a plane is used to perform clipping. Will be false 
-		# for scalar clipping.
+		# True only if a plane is used to perform clipping. False for 
+		# scalar clipping.
 		if(plane != None): 
 			self.__plane = plane
 			
@@ -53,7 +53,7 @@ class Clipper:
 
 	def setInsideOutOn(self):
 		"""
-		Clips the one side of the rendered object.		
+		Clips one side of the rendered object.		
 		"""
 
 		self.__vtk_clipper.InsideOutOn()

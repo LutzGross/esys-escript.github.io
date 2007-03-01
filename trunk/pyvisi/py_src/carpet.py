@@ -24,18 +24,18 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 	# This saves the user from specifying the viewport when there is only one.
 	# If no warp_mode is specified, the data will be deformated using scalar
 	# data. If no lut is specified, the color scheme will be used. 
-	def __init__(self, scene, data_collector, warp_mode = WarpMode.SCALAR, 
-			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True):
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			warp_mode = WarpMode.SCALAR, lut = Lut.COLOR, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@param warp_mode: L{WarpMode <constant.WarpMode>} constant
-		@type warp_mode: Mode in which to deform the scalar data
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
+		@param warp_mode: L{WarpMode <constant.WarpMode>} constant
+		@type warp_mode: Mode in which to deform the scalar field 
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean

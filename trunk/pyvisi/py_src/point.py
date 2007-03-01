@@ -33,8 +33,8 @@ class PointSource:
 		self.setPointSourceCenter(
 				GlobalPosition(center[0], center[1], center[2]))
 
-		# Default radius of the sphere is 0.1.
-		self.setPointSourceRadius(0.1)
+		# Default radius of the sphere is 0.5.
+		self.setPointSourceRadius(0.5)
 		self.__vtk_point_source.Update()
 
 	def setPointSourceRadius(self, radius):
@@ -59,8 +59,8 @@ class PointSource:
 
 	def setPointSourceNumberOfPoints(self, points):
 		"""
-		Set the number of points to generate within the sphere. The larger the
-		number of points, the more streamlines are generated.
+		Set the number of points to generate within the sphere (the larger the
+		number of points, the more streamlines are generated)
 
 		@type points: Number
 		@param points: Number of points to generate
@@ -134,7 +134,7 @@ class StructuredPoints:
 		@param z1: Index of the last point on the z-axis
 		"""
 
-		#self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
+		self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
 
 	def __setUpdateExtent(self, x0, x1, y0, y1, z0, z1):
 		"""
@@ -177,9 +177,6 @@ class StructuredPoints:
 				self.__dims[2] - 1)
 		self.__setUpdateExtent(0, self.__dims[0] - 1, 0, self.__dims[1] - 1, 0,
 				self.__dims[2] - 1)
-
-		#self.__setWholeExtent(0, self.__dims[0] - 1, 0, self.__dims[1] - 1, 0, 
-		#		self.__dims[2] - 1)
 
 		self.__vtk_structured_points.SetDimensions(self.__dims)
 		self.__setSpacing()

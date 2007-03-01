@@ -16,7 +16,7 @@ class Scene:
 		Initialise the scene.
 
 		@type renderer: String
-		@param renderer: Type of rendering (i.e.Renderer.ONLINE, etc) 
+		@param renderer: Type of renderer (i.e.Renderer.ONLINE, etc) 
 		@type num_viewport: Number
 		@param num_viewport: Number of viewport(s) in the scene. Either 1 or 4 
 		@type x_size: Number
@@ -50,7 +50,6 @@ class Scene:
 			self.__setupOnlineRendering()
 		else: # True for offline rendering.
 			self.__setupOfflineRendering()
-
 
 	def __createViewport(self):
 		"""
@@ -133,7 +132,7 @@ class Scene:
 		"""
 
 		# Associate the window interactor with the render window.
-		self.__vtk_render_window_interactor = vtk.vtkRenderWindowInteractor(					)
+		self.__vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
 		self.__vtk_render_window_interactor.SetRenderWindow(
 				self.__vtk_render_window)
 		self.__vtk_render_window_interactor.Initialize()
@@ -194,12 +193,12 @@ class Scene:
 			self.__vtk_image_writer.SetFileName(image_name)
 			self.__vtk_image_writer.Write() 	
 		except AttributeError:
-			print "Sorry, incorrect use of the '" + self.__renderer + "' renderer. Kindly, switch to the 'offline'  renderer."
-
+			print "ERROR: Incorrect use of the '" + self.__renderer + \
+					"' renderer. Kindly, use the 'offline' renderer instead."
 
 	def animate(self):
 		"""	
-		Render the object onto the scene on-the-fly. No interaction can occur.
+		Animate the object onto the scene on-the-fly. No interaction can occur.
 		"""
 
 		self.__vtk_render_window.Render()
@@ -216,7 +215,8 @@ class Scene:
 			# any subsequent codes thereafter.
 			self.__vtk_render_window_interactor.Start()
 		except AttributeError:
-			print "Sorry, incorrect use of the '" + self.__renderer + "' renderer. Kindly, switch to the 'online'  renderer."
+			print "ERROR: Incorrect use of the '" + self.__renderer + \
+					"' renderer. Kindly, switch to the 'online'  renderer."
 	
 	def _addActor3D(self, viewport, actor):
 		"""

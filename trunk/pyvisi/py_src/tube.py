@@ -6,7 +6,7 @@ import vtk
 
 class Tube:
 	"""
-	Class that defines tubes that are wrapped around the streamlines.
+	Class that defines the tubes that are wrapped around the streamlines.
 	"""
 
 	def __init__(self, object):
@@ -29,7 +29,7 @@ class Tube:
 		self.setTubeRadius(0.02)
 		# Default number of sides for the tube is 12.
 		self.setTubeNumberOfSides(12)
-		#self.setRadiusToVaryByVector()
+		self.setRadiusToVaryByVector()
 		self.__vtk_tube.Update()
 
 	def __setInput(self):

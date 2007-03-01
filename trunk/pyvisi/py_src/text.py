@@ -60,21 +60,21 @@ class Text2D(Actor2D):
 
 	def setFontToTimes(self):
 		"""
-		Set the 2D text font type to times new roman.
+		Set the 2D text font type to Times New Roman.
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontFamilyToTimes()
 
 	def setFontToArial(self):
 		"""
-		Set the 2D text font type to arial.
+		Set the 2D text font type to Arial.
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontFamilyToArial()
 
 	def setFontToCourier(self):
 		"""
-		Set the 2D text front type to courier.
+		Set the 2D text front type to Courier.
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontFamilyToCourier()

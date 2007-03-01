@@ -20,7 +20,7 @@ from probe import Probe
 class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, 
 		StructuredPoints, Probe):
 	"""
-	Class that show a tensor field using ellipsoid.	
+	Class that shows a tensor field using ellipsoid.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -105,9 +105,9 @@ from cutter import Cutter
 # Cutter, StructuredPoints and Probe were inherited to allow access to 
 # their public methods from the driver.
 class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,  
-	TensorGlyph, Transform, Plane, Cutter, StructuredPoints, Probe):
+		TensorGlyph, Transform, Plane, Cutter, StructuredPoints, Probe):
 	"""
-	Class that show a tensor field using ellipsoids on a cut plane.	
+	Class that shows a tensor field using ellipsoids on a cut plane.	
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -180,7 +180,7 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		Normals.__init__(self, TensorGlyph._getOutput(self)) 
 
 		DataSetMapper.__init__(self, Normals._getOutput(self), 
-			lookup_table._getLookupTable())
+				lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
@@ -198,7 +198,7 @@ from clipper import Clipper
 class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,  
 	TensorGlyph, Transform, Plane, Clipper, StructuredPoints, Probe):
 	"""
-	Class that show a tensor field using ellipsoids on a clipped plane.	
+	Class that shows a tensor field using ellipsoids on a clipped plane.	
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.

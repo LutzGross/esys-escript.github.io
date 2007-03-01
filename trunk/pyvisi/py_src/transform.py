@@ -14,10 +14,10 @@ class Transform:
 		Initialise the transform object.
 		"""
 
-		# NOTE: VTK's values are not 100% accurate. Origin is not exaclty 
-		#(0,0,0) and normal is not exactly (0, 0, 1). There is a slight 
-		# variance. As a result, a slight alteration has to be done in order 
-		# for the plane to be displayed correctly. Otherwise, the 
+		# NOTE: VTK's coordinates are not 100% accurate. The origin is not 
+		# exaclty (0,0,0) and the normal is not exactly (0, 0, 1). There is a 
+		# slight variance. As a result, a slight alteration has to be done 
+		# in order for the plane to be displayed correctly. Otherwise, the 
 		# plane may just fall outside the bounding box and nothing 
 		# is displayed.  
 		self.__OFFSET_VARIANCE = 0.0000000001
@@ -42,7 +42,7 @@ class Transform:
 		Rotate the plane along the x-axis.
 
 		@type angle: Number
-		@param angle: Angle to rotate the camera
+		@param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateX(-angle)
@@ -52,7 +52,7 @@ class Transform:
 		Rotate the plane along the y-axis.
 
 		@type angle: Number
-		@param angle: Angle to rotate the camera
+		@param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateY(angle)
@@ -63,7 +63,7 @@ class Transform:
 		Rotate the plane along the z-axis.
 
 		@type angle: Number
-		@param angle: Angle to rotate the camera
+		@param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateZ(angle)

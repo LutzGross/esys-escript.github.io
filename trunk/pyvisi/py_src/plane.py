@@ -7,7 +7,7 @@ from position import GlobalPosition
 
 class Plane:
 	"""
-	Class that defines a plane that cuts through rendered objects. 
+	Class that defines a plane that cuts/clips rendered objects. 
 	"""
 
 	def __init__(self, transform):

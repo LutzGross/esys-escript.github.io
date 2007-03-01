@@ -34,7 +34,6 @@ s = Scene(renderer = Renderer.ONLINE, x_size = 800, y_size = 600)
 dc = DataCollector(source = Source.ESCRIPT)
 
 
-
 # ... start iteration:
 while t<tend:
       i+=1
@@ -42,11 +41,11 @@ while t<tend:
       print "time step :",t
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
-      #saveVTK("T.%d.xml"%i,temp=T)
+      saveVTK("T.%d.xml"%i,temp=T)
 
-      #dc.setData(temp=T)
-      #Map(scene = s, data_collector = dc)
-      #s.animate()
+      dc.setData(temp=T)
+      Map(scene = s, data_collector = dc)
+      s.animate()
 
       """
       print i

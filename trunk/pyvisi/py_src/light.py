@@ -70,12 +70,12 @@ class Light:
 
 		self.__vtk_light.SetPosition(position._getGlobalPosition())
 
-	# Elevation and azimuth was set to zero so that users do not necessarily 
-	# need to always change both at the same time.
+	# Elevation and azimuth is set to zero so that users do not necessarily 
+	# have to change both at the same time.
 	def setAngle(self, elevation = 0, azimuth = 0):
 		"""
-		Set the position and focal point of the light based on the specified
-		elevation and azimuth degrees.
+		An alternative to set the position and focal point of the light 
+		based on the specified elevation and azimuth degrees.
 
 		@type elevation: Number
 		@param elevation: Degree to rotate the light to the top and bottom

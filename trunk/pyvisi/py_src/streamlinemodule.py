@@ -70,15 +70,17 @@ class StreamLineModule:
 
 	def setStepLength(self, length):
 		"""
-		Set the length of the line segment expressed in elapsed time. A smaller
-		value results in a smoother streamline (but is more expensive). Setting
-		the step length usually goes hand-in-hand with setting the integration
-		step length. Otherwise, errors such as "... can't compute normals" may
-		arise. If such an error occurs try changing the value. However, it 
-		does not usually apply the other way around.
+		Set the length of the streamline segment expressed in elapsed time. 
+		A smaller value results in a smoother streamline 
+		(but is more expensive). Setting the step length usually goes 
+		hand-in-hand with setting the integration step length. Otherwise, 
+		errors such as "... can't compute normals" may arise. If such an 
+		error occurs try changing the value. However, it does not usually 
+		apply the other way around.
 
 		@type length: Number
-		@param length: Length of the line segment expressed in elapsed time
+		@param length: Length of the streamline segment expressed in 
+				elapsed time
 		"""
 
 		self.__vtk_stream_line.SetStepLength(length)	

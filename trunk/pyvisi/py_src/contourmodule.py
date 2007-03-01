@@ -31,7 +31,7 @@ class ContourModule:
 
 	# lower_range and upper_range by default is assigned to None. This allows
 	# the contours to be altered without necessarily having to alter the 
-	# lower_range and upper_range together.
+	# lower_range and upper_range at the same time.
 	def generateContours(self, contours, lower_range = None, 
 			upper_range = None):
 		"""

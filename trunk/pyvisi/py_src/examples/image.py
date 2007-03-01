@@ -12,7 +12,6 @@ ir.setFileName(file_name =
 # Create one image instance.
 i = Image(scene = s, image_reader = ir)
 i.setOpacity(opacity = 0.9)
-i.setPosition(GlobalPosition(-600,50.9,0.5))
 
 s.render()
 

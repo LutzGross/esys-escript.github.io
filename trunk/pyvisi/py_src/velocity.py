@@ -18,14 +18,14 @@ from point import StructuredPoints
 class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, 
 		StructuredPoints, Probe):
 	"""
-	Class that show a vector field using arrows.	
+	Class that shows a vector field using arrows.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
-	def __init__(self, scene, data_collector, arrow = Arrow.TWO_D, 
-			color_mode = ColorMode.VECTOR, viewport = Viewport.SOUTH_WEST, 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST,
+			color_mode = ColorMode.VECTOR, arrow = Arrow.TWO_D,  
 			lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -33,12 +33,12 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type arrow: L{Arrow <constant.Arrow>} constant 
-		@param arrow: Type of arrow (two dimensional or three dimensional)
-		@type color_mode: L{ColorMode <constant.ColorMode>} constant
-		@param color_mode: Type of color mode
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
+		@type color_mode: L{ColorMode <constant.ColorMode>} constant
+		@param color_mode: Type of color mode
+		@type arrow: L{Arrow <constant.Arrow>} constant 
+		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type outline: Boolean
@@ -119,12 +119,12 @@ from plane import Plane
 from cutter import Cutter
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, Transform, Plane,
-# Cutter, StructuredPoints and  Probe were inherited to allow access to 
+# Cutter, StructuredPoints and Probe were inherited to allow access to 
 # their public methods from the driver.
 class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  
 		Glyph3D, Transform, Plane, Cutter, StructuredPoints, Probe):
 	"""
-	Class that show a vector field using arrows on a plane.	
+	Class that shows a vector field using arrows on a plane.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -307,7 +307,6 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		# be incorrect.
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			#Glyph3D.__init__(self, data_collector._getOutput(), 
 			Glyph3D.__init__(self, Probe._getOutput(self), 
 					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
