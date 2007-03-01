@@ -39,4 +39,3 @@ class Normals:
 		"""
 
 		return self.__vtk_poly_data_normals.GetOutput()
-		

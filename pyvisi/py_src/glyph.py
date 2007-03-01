@@ -6,7 +6,7 @@ import vtk
 
 class Glyph3D:
 	"""
-	Class that defines 3D glyph.
+	Class that defines 3D glyphs.
 	"""
 
 	def __init__(self, object, source):
@@ -138,7 +138,7 @@ class Glyph3D:
 
 class TensorGlyph:
 	"""
-	Class that defines tensor glyph.
+	Class that defines tensor glyphs.
 	"""
 
 	def __init__(self, object, source):

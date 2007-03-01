@@ -12,7 +12,7 @@ except ImportError:
 
 class DataCollector:
 	"""
-	Class that defines a data collector which dealrs with the source 
+	Class that defines a data collector which deals with the source 
 	of data for the visualisation.
 	"""
 
@@ -21,19 +21,19 @@ class DataCollector:
 		Initialise the data collector.
 
 		@type source: L{Source <constant.Source>} constant
-		@param source: Source data type
+		@param source: Source type
 		"""
 
-		self.__source=source
+		self.__source = source
 
 		if(source == Source.XML): # Source is an XML file.
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
-		# This is a temporary solution using a file: 
+		# Source is a escript data object using a temp file in the background. 
 		elif (self.__source == Source.ESCRIPT):
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
-			self.__tmp_file=tempfile.mkstemp(suffix=".xml")[1]
+			# Create a temporary .xml file and retrieves its path.
+			self.__tmp_file = tempfile.mkstemp(suffix=".xml")[1]
 			self.__vtk_xml_reader.SetFileName(self.__tmp_file)
-			self.__output = self.__vtk_xml_reader.GetOutput()
 
 	def __del__(self):
 		"""
@@ -51,7 +51,7 @@ class DataCollector:
 		@param file_name: Name of the file to read
 		"""
 
-		if (self.__source == Source.XML):
+		if(self.__source == Source.XML):
 			self.__vtk_xml_reader.SetFileName(file_name)
 
 			# NOTE: Update must be called after SetFileName to make the reader 
@@ -60,22 +60,23 @@ class DataCollector:
 			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
 		else:
-			raise ValueError("Source type %s does not support 'setFileName'." \
+			raise ValueError("Source type %s does not support 'setFileName'\n" \
 					% self.__source)
 
 	def setData(self,**args):
 		"""
-		sets the data using. <name>=<data> sets the data tagged by <name> 
-		to the object <data>. It is expected that the data are given in 
-		an appropriate source type.
+		Sets the data using <name>=<data> name-value pair. This sets the data 
+		tagged by <name> to the object <data>. It is expected that the 
+		data is given in an appropriate source type.
 		"""
 
 		if self.__source == Source.ESCRIPT:
 			esys.escript.saveVTK(self.__tmp_file,**args)
 			self.__vtk_xml_reader.Update()
+			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
 		else:
-			raise ValueError("source type %s does not support 'setData'." \
+			raise ValueError("Source type %s does not support 'setData'\n" \
 					% self.__source)
 
 	def setActiveScalar(self, scalar):
@@ -96,8 +97,8 @@ class DataCollector:
 		elif scalar in self.__cell_attribute['scalars']:
 			self._getOutput().GetCellData().SetActiveScalars(scalar)
 		else:
-			print "\nSorry, no scalar called '%s' is available.\n" % scalar
-			sys.exit(0)	
+			print "\nERROR: No scalar called '%s' is available.\n" % scalar
+			sys.exit(1)	
 
 	def setActiveVector(self, vector):
 		"""
@@ -117,10 +118,9 @@ class DataCollector:
 		elif vector in self.__cell_attribute['vectors']:
 			self._getOutput().GetCellData().SetActiveVectors(vector)
 		else:
-			print "\nSorry, no vector called '%s' is available.\n" % vector
-			sys.exit(0)	
+			print "\nERROR: No vector called '%s' is available.\n" % vector
+			sys.exit(1)	
 			
-
 	def setActiveTensor(self, tensor):
 		"""
 		Specify the tensor field to load from the source file.
@@ -139,9 +139,8 @@ class DataCollector:
 		elif tensor in self.__cell_attribute['tensors']:
 			self._getOutput().GetCellData().SetActiveTensors(tensor)
 		else:
-			print "\nSorry, no tensor called '%s' is available.\n" % tensor
+			print "\nERROR: No tensor called '%s' is available.\n" % tensor
 			sys.exit(0)	
-
 
 	def __get_array_type(self, arr):
 		"""
@@ -216,8 +215,8 @@ class DataCollector:
 		elif(len(self.__cell_attribute['scalars']) != 0):
 			return self._getOutput().GetCellData().GetScalars().GetRange(-1)
 		else:
-			print "\nSorry, no scalar is available.\n"	
-			sys.exit(0)
+			print "\nERROR: No scalar is available.\n"	
+			sys.exit(1)
 
 	def _getVectorRange(self):
 		"""
@@ -237,7 +236,7 @@ class DataCollector:
 		# However, there are certain data sets where GetRange(-1) seems 
 		# to return incorrect mimimum vector although the maximum vector is 
 		# correct. As a result, the mimimum vector has been hard coded to 0.0
-		# to accommodate those incorrect cases.
+		# to accommodate the incorrect cases.
 		if(len(self.__point_attribute['vectors']) != 0):
 			vector_range = \
 					self._getOutput().GetPointData().GetVectors().GetRange(-1)
@@ -247,7 +246,7 @@ class DataCollector:
 					self._getOutput().GetCellData().GetVectors().GetRange(-1)
 			return (0.0, vector_range[1])
 		else:
-			print "\nSorry, no vector is available.\n"	
+			print "\nERROR: No vector is available.\n"	
 			sys.exit(0)
 
 	def _getTensorRange(self):
@@ -268,8 +267,8 @@ class DataCollector:
 		elif(len(self.__cell_attribute['tensors']) != 0): 
 			return self._getOutput().GetCellData().GetTensors().GetRange(-1)
 		else:
-			print "\nSorry, no tensor is available.\n"	
-			sys.exit(0)
+			print "\nERROR: No tensor is available.\n"	
+			sys.exit(1)
 
 	def _getOutput(self):
 		"""
@@ -278,10 +277,7 @@ class DataCollector:
 		@rtype: vtkUnstructuredGrid
 		@return: Unstructured grid
 		"""
-		#cell_to_point_data = vtk.vtkCellDataToPointData()
-		#cell_to_point_data.SetInput(self.__output)
-		#cell_to_point_data.Update()
-		#return (cell_to_point_data.GetOutput())
+
 		return self.__output
 
 	

@@ -74,7 +74,6 @@ class Map(DataSetMapper, Actor3D):
 				lookup_table._getLookupTable())	
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
-
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
@@ -90,7 +89,7 @@ from cutter import Cutter
 # to allow access to their public methods from the driver.
 class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 	"""
-	Class that show a scalar field on a plane.	
+	Class that shows a scalar field on a plane.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -255,7 +254,6 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
-
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
 			lut = Lut.COLOR, outline = True):
 		"""

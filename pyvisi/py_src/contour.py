@@ -71,10 +71,9 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-
 		ContourModule.__init__(self, data_collector._getOutput())	
 		# By default 10 contours are generated and the scalar range is based
-		# on the scalar data.
+		# on the scalar data range.
 		ContourModule.generateContours(self, 10, 
 				data_collector._getScalarRange()[0],
 				data_collector._getScalarRange()[1])
@@ -165,7 +164,7 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		ContourModule.__init__(self, Cutter._getOutput(self))
 
 		# By default 10 contours are generated and the scalar range is based
-		# on the scalar data.
+		# on the scalar data range.
 		ContourModule.generateContours(self, 10, 
 				data_collector._getScalarRange()[0],
 				data_collector._getScalarRange()[1])
@@ -255,7 +254,7 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 
 		ContourModule.__init__(self, Clipper._getOutput(self))
 		# By default 10 contours are generated and the scalar range is based
-		# on the scalar data.
+		# on the scalar data range.
 		ContourModule.generateContours(self, 10, 
 				data_collector._getScalarRange()[0],
 				data_collector._getScalarRange()[1])

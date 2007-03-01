@@ -17,14 +17,14 @@ from outline import Outline
 class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		
 	"""
-	Class that show a vector field using streamline.	
+	Class that shows a vector field using streamline.	
 	"""
 	
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-		lut = Lut.COLOR, color_mode = ColorMode.VECTOR, outline = True): 
+		color_mode = ColorMode.VECTOR, lut = Lut.COLOR, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -33,10 +33,10 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		@param data_collector: Deal with source of data for visualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which the object is to be rendered on
-		@type lut : L{Lut <constant.Lut>} constant
-		@param lut: Lookup table color scheme
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
 		@param color_mode: Type of color mode
+		@type lut : L{Lut <constant.Lut>} constant
+		@param lut: Lookup table color scheme
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
