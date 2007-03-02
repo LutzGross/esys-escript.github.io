@@ -127,5 +127,9 @@ class Design(design.Design):
         a mesh file name in gmsh format is returned.
         """
         open(self.getScriptFileName(),"w").write(self.getScriptString())
-        os.system(self.getCommandString())
-        return self.getMeshFileName()
+        cmd = self.getCommandString()
+        ret = os.system(cmd) / 256
+	if ret > 0:
+	  raise RuntimeError, "Could not build mesh: %s"%cmd
+	else:
+          return self.getMeshFileName()
