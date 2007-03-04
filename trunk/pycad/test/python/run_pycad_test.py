@@ -3580,13 +3580,13 @@ class Test_PyCAD_Design(unittest.TestCase):
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
-       d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4)
+       d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4,curvature_based_element_size=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -2 -algo tetgen -clcurv -smooth 4  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -2 -algo tetgen -clcurv -smooth 4 -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
 
-       d.setOptions(optimize_quality=True)
+       d.setOptions(optimize_quality=True,curvature_based_element_size=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -2 -algo iso -clcurv -smooth 1 -optimize  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -2 -algo iso -clcurv -smooth 1 -optimize -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)
