@@ -36,7 +36,7 @@
 void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,index_t* Nodes_Equa, dim_t num_Equa, 
                                                       dim_t NN_Sol,index_t* Nodes_Sol, dim_t num_Sol, double* array) {
   index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,index,k,iptr;
+  dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,index,k,iptr, irow, icol;
   dim_t row_block_size=in->row_block_size;
   dim_t col_block_size=in->col_block_size;
   dim_t block_size=in->block_size;
@@ -72,16 +72,18 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
          }
    } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
 #ifdef PASO_MPI
+          Finley_NodeDistribution* row_degreeOfFreedomDistribution=in->pattern->row_degreeOfFreedomDistribution;
+          Finley_NodeDistribution* col_degreeOfFreedomDistribution=in->pattern->col_degreeOfFreedomDistribution;
           for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Down columns of array */
             j_Equa=Nodes_Equa[k_Equa];
 	    if (j_Equa < row_degreeOfFreedomDistribution->numLocal) {
               for (k_Sol=0;k_Sol<NN_Sol;++k_Sol) { /* Across rows of array */
                 j_Sol=Nodes_Sol[k_Sol];
-	        j_Sol = Finley_IndexList_localToGlobal(col_degreeOfFreedomDistribution, my_CPU, j_Sol);
+	        j_Sol = Finley_IndexList_localToGlobal(col_degreeOfFreedomDistribution, j_Sol);
                 for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
                   irow=j_Equa*row_block_size+l_row;
-                  for (l_col=0;l_col<col_blocksize;++l_col) {
-                     icol=j_Sol*col_blocksize+index_offset+l_col;
+                  for (l_col=0;l_col<col_block_size;++l_col) {
+                     icol=j_Sol*col_block_size+index_offset+l_col;
 		     // irow is local and icol is global
 		     Trilinos_SumIntoMyValues(in->trilinos_data, irow, icol, array[INDEX4(l_row,l_col,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)]);
 	          }

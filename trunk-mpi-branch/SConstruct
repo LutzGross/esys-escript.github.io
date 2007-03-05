@@ -86,10 +86,10 @@ opts.AddOptions(
   ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas'),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
-  ('cc_flags_MPI','C compiler flags to use (Release MPI build)', '-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -fno-alias -c99 -w1 -fpic -wd161'),
-  ('cc_flags_debug_MPI', 'C compiler flags to use (Debug MPI build)', '-g -O0 -c99 -w1 -fpic -wd161'),
-  ('cxx_flags_MPI', 'C++ compiler flags to use (Release MPI build)', '-ansi -wd1563 -wd161'),
-  ('cxx_flags_debug_MPI', 'C++ compiler flags to use (Debug MPI build)', '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'),
+  ('cc_flags_MPI','C compiler flags to use (Release MPI build)', '-O3 -IPF_ftlacc- -IPF_fma -fno-alias -fno-alias -c99 -w1 -fpic'),
+  ('cc_flags_debug_MPI', 'C compiler flags to use (Debug MPI build)', '-g -O0 -c99 -w1 -fpic '),
+  ('cxx_flags_MPI', 'C++ compiler flags to use (Release MPI build)', '-ansi'),
+  ('cxx_flags_debug_MPI', 'C++ compiler flags to use (Debug MPI build)', '-ansi -DDOASSERT -DDOPROF'),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', None),
   ('tar_flags','flags for zip files','-c -z'),
@@ -137,6 +137,9 @@ opts.AddOptions(
   ('papi_libs', 'PAPI libraries to link with', None),
 # MPI
   BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
+  PathOption('mpi_path', 'Path to MPI includes', '/usr/include'),
+  PathOption('mpi_lib_path', 'Path to MPI libs','/usr/lib'),
+  ('mpi_libs', 'MPI libraries to link with', [ 'a', 'b' ]),
 )
 
 # Initialise Scons Build Environment

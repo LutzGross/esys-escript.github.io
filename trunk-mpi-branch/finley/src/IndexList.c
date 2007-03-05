@@ -26,13 +26,14 @@
 /* Translate from distributed/local array indices to global indices */
 
 #ifdef PASO_MPI
-int Finley_IndexList_localToGlobal(Finley_NodeDistribution *dofDistribution, int my_CPU, int localIndex) {
+int Finley_IndexList_localToGlobal(Finley_NodeDistribution *dofDistribution, int localIndex) {
   /*
     get global id of icol
     if icol is internal node (on this CPU): use icol+vtxdist[my_CPU]
     else use indexExternal[icol-numLocal] to get global index of node
     (actually DOF...the NodeDistribution structure should have been called DofDistribution)
   */
+  index_t my_CPU=dofDistribution->MPIInfo->rank;
   if (localIndex < dofDistribution->numLocal) {
     localIndex = localIndex + dofDistribution->vtxdist[my_CPU];
   }
@@ -120,9 +121,8 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* 
 		       /* Get the local col ID */
                        icol=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
 		       /* Convert to global col ID (row ID is saved as local value) */
-		       icol = Finley_IndexList_localToGlobal(col_degreeOfFreedomDistribution, my_CPU, icol);
+		       icol = Finley_IndexList_localToGlobal(col_degreeOfFreedomDistribution, icol);
                        Finley_IndexList_insertIndex(&(index_list[irow]),icol);
-		       printf("ksteube Finley_IndexList_insertIndex cpu= %d irow= %d icol= %d\n", my_CPU, irow, icol);
                     }
 		  }
                 }

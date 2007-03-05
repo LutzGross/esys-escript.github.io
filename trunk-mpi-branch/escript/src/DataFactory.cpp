@@ -73,7 +73,7 @@ load(const std::string fileName,
      const AbstractDomain& domain)
 {
    #ifdef PASO_MPI
-   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.")
+   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.");
    #endif
    NcAtt *type_att, *rank_att, *function_space_type_att;
    // netCDF error handler

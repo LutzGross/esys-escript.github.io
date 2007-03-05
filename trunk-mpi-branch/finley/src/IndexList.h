@@ -37,6 +37,7 @@ typedef struct Finley_IndexList {
   struct Finley_IndexList *extension;
 } Finley_IndexList;
 
+int Finley_IndexList_localToGlobal(Finley_NodeDistribution* dofDistribution, int localIndex);
 void Finley_IndexList_insertElements(Finley_IndexList*, Finley_Mesh*, Finley_ElementFile*,dim_t, index_t*,dim_t, index_t*);
 void Finley_IndexList_insertIndex(Finley_IndexList*, index_t);
 void Finley_IndexList_toArray(Finley_IndexList*, index_t*);

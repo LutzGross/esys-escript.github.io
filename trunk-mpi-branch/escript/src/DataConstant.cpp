@@ -268,8 +268,8 @@ void
 DataConstant::dump(const std::string fileName) const
 {
    #ifdef PASO_MPI
-   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.")
-   #endif
+   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.");
+   #else
    const NcDim* ncdims[DataArrayView::maxRank];
    NcVar* var;
    int rank = getPointDataView().getRank();
@@ -322,6 +322,7 @@ DataConstant::dump(const std::string fileName) const
 	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
    if (! (var->put(&m_data[0],dims)) )
 	throw DataException("Error - DataConstant:: copy data to netCDF buffer failed."); 
+   #endif
 }
 
 }  // end of namespace
