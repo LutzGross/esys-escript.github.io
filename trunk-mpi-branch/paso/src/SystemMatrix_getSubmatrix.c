@@ -38,7 +38,7 @@
 */
 
 
-Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row_sub,index_t* row_list,index_t* new_col_index){
+Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row_sub,int n_col_sub, index_t* row_list,index_t* new_col_index){
       Paso_SystemMatrixPattern* sub_pattern=NULL;
       Paso_SystemMatrix* out=NULL;
       index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
@@ -48,7 +48,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row
       if (A->type & MATRIX_FORMAT_CSC) {
           Paso_setError(TYPE_ERROR,"gathering submatrices supports CSR matrix format only.");
       } else {
-         sub_pattern=Paso_SystemMatrixPattern_getSubpattern(A->pattern,n_row_sub,row_list,new_col_index);
+         sub_pattern=Paso_SystemMatrixPattern_getSubpattern(A->pattern,n_row_sub,n_col_sub,row_list,new_col_index);
          if (Paso_noError()) {
             /* create the return object */
             out=Paso_SystemMatrix_alloc(type,sub_pattern,A->row_block_size,A->col_block_size);

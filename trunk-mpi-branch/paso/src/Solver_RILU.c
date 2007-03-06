@@ -71,7 +71,7 @@ to
 */
 Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SystemMatrix * A_p,bool_t verbose) {
   Paso_Solver_RILU* out=NULL;
-  dim_t n=A_p->num_rows;
+  dim_t n=A_p->myNumRows;
   dim_t n_block=A_p->row_block_size;
   index_t* mis_marker=NULL;  
   index_t* counter=NULL;  
@@ -223,13 +223,13 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SystemMatrix * A_p,bool_t verbose) {
                           }
                       } /* end parallel region */
                       /* get A_CF block: */
-                      out->A_CF=Paso_SystemMatrix_getSubmatrix(A_p,out->n_C,out->rows_in_C,out->mask_F);
+                      out->A_CF=Paso_SystemMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
                       if (Paso_noError()) {
                          /* get A_FC block: */
-                         out->A_FC=Paso_SystemMatrix_getSubmatrix(A_p,out->n_F,out->rows_in_F,out->mask_C);
+                         out->A_FC=Paso_SystemMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
                          /* get A_FF block: */
                          if (Paso_noError()) {
-                            schur=Paso_SystemMatrix_getSubmatrix(A_p,out->n_C,out->rows_in_C,out->mask_C);
+                            schur=Paso_SystemMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
                             time0=Paso_timer()-time0;
                             if (Paso_noError()) {
                                 time1=Paso_timer();

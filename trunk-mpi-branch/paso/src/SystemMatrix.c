@@ -24,7 +24,9 @@
 /**************************************************************/
 
 #include "Paso.h"
+#include "Paso_MPI.h"
 #include "SystemMatrix.h"
+#include "TRILINOS.h"
 
 /**************************************************************/
 
@@ -47,8 +49,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->solver_package=PASO_PASO;  
      out->solver=NULL;  
      out->val=NULL;  
+     out->trilinos_data=NULL;
      out->reference_counter=1;
      out->type=type;
+     /* ====== compressed sparse columns === */
      if (type & MATRIX_FORMAT_CSC) {
         if (type & MATRIX_FORMAT_SYM) {
            Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSC is not implemented yet.");
@@ -72,29 +76,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
               out->col_block_size=col_block_size;
            }
         }
-        out->num_rows=out->pattern->n_index;
-        out->num_cols=out->pattern->n_ptr;
-        n_norm = out->num_cols * out->col_block_size;
-     } else if (type & MATRIX_FORMAT_TRILINOS_CRS) {
-        if (type & MATRIX_FORMAT_SYM) {
-           Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSC is not implemented yet for TRILINOS.");
-           return NULL;
-        } else {
-#ifdef TRILINOS
-           Initialize_TrilinosData(out->trilinos_data, pattern);
-	   printf("ksteube paso/src/SystemMatrix.c row_block_size=%d col_block_size=%d numCPUs=%d\n", row_block_size, col_block_size, pattern->MPIInfo->size);
-           out->row_block_size=row_block_size;
-           out->col_block_size=col_block_size;
-#else
-           Paso_setError(TYPE_ERROR,"You need to recompile with -DTRILINOS in order to use setSolverPackage(mypde.TRILINOS).");
-           return NULL;
-#endif
-        }
-        out->pattern=Paso_SystemMatrixPattern_reference(pattern); /* Count number of references to pattern */
-        out->num_rows=pattern->numLocal;
-        out->num_cols=out->pattern->n_ptr;
-        n_norm = out->num_cols * out->col_block_size;	/* ksteube what is this used for? */
+        out->row_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
+        out->col_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
      } else {
+     /* ====== compressed sparse row === */
         if (type & MATRIX_FORMAT_SYM) {
            Paso_setError(TYPE_ERROR,"Generation of matrix pattern for symmetric CSR is not implemented yet.");
            return NULL;
@@ -117,28 +102,37 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
               out->col_block_size=col_block_size;
            }
         }
-        out->num_rows=out->pattern->n_index;
-        out->num_cols=out->pattern->n_ptr;
-        n_norm = out->num_cols * out->col_block_size;
-        out->num_rows=out->pattern->n_ptr;
-        out->num_cols=out->pattern->n_index;
-        n_norm = out->num_rows * out->row_block_size;
+        out->row_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
+        out->col_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
      }
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
      out->logical_block_size=out->logical_row_block_size*out->logical_block_size;
      out->block_size=out->row_block_size*out->col_block_size;
-     out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
+     out->myLen=(size_t)(out->pattern->myLen)*(size_t)(out->block_size);
+
+     out->numRows = out->row_distribution->myNumComponents;
+     out->myNumRows = out->row_distribution->numComponents;
+     out->numCols = out->col_distribution->myNumComponents;
+     out->myNumCols = out->col_distribution->numComponents;
+     out->mpi_info = Paso_MPIInfo_getReference(out->pattern->mpi_info);
      /* allocate memory for matrix entries */
-     out->val=MEMALLOC(out->len,double);
-     out->normalizer=MEMALLOC(n_norm,double);
-     out->normalizer_is_valid=FALSE;
-     if (! Paso_checkPtr(out->val)) {
-        Paso_SystemMatrix_setValues(out,DBLE(0));
-     }
-     if (! Paso_checkPtr(out->normalizer)) {
-         #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
+     if (type & MATRIX_FORMAT_TRILINOS_CRS) {
+         Paso_TRILINOS_alloc(out->trilinos_data, out->pattern,out->row_block_size,out->col_block_size);
+     } else {
+         if (type & MATRIX_FORMAT_CSC) {
+            n_norm = out->myNumCols * out->col_block_size;
+         } else {
+            n_norm = out->myNumRows * out->row_block_size;
+         }
+         out->val=MEMALLOC(out->myLen,double);
+         out->normalizer=MEMALLOC(n_norm,double);
+         out->normalizer_is_valid=FALSE;
+         if (! Paso_checkPtr(out->val)) Paso_SystemMatrix_setValues(out,DBLE(0));
+         if (! Paso_checkPtr(out->normalizer)) {
+             #pragma omp parallel for private(i) schedule(static)
+             for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
+         }
      }
   }
   /* all done: */
@@ -148,7 +142,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
   } else {
     #ifdef Paso_TRACE
     printf("timing: system matrix %.4e sec\n",Paso_timer()-time0);
-    printf("Paso_SystemMatrix_alloc: %ld x %ld system matrix has been allocated.\n",(long)out->num_rows,(long)out->num_cols);
+    printf("Paso_SystemMatrix_alloc: %ld x %ld system matrix has been allocated.\n",(long)out->numRows,(long)out->numCols);
     #endif
     return out;
   }
@@ -167,9 +161,13 @@ void Paso_SystemMatrix_dealloc(Paso_SystemMatrix* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
+        Paso_SystemMatrixPattern_dealloc(in->pattern);
+        Paso_Distribution_dealloc(in->row_distribution);
+        Paso_Distribution_dealloc(in->col_distribution);
+        Paso_MPIInfo_dealloc(in->mpi_info);
         MEMFREE(in->val);
         MEMFREE(in->normalizer);
-        Paso_SystemMatrixPattern_dealloc(in->pattern);
+        Paso_TRILINOS_free(in->trilinos_data);
         Paso_solve_free(in); 
         MEMFREE(in);
         #ifdef Paso_TRACE

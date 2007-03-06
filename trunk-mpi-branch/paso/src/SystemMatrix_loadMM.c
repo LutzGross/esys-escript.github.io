@@ -99,6 +99,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	MM_typecode matrixCode;
         Paso_resetError();
 
+        Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
+        if (mpi_info->size >1) {
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: support single processor only");
+		return NULL;
+        }
 	index_t *col_ind = NULL;
 	index_t *row_ind = NULL;
 	index_t *row_ptr = NULL;
@@ -112,6 +117,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	if( fileHandle_p == NULL )
 	{
 		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Cannot read file for reading.");
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
 	}
 
@@ -119,6 +125,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
 		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Error processing MM banner.");
+                Paso_MPIInfo_dealloc(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -126,6 +133,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	{
 
 		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
+                Paso_MPIInfo_dealloc(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -134,6 +142,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
 		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not parse matrix size");
+                Paso_MPIInfo_dealloc(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -149,6 +158,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	{
 		Paso_setError(MEMORY_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not allocate memory" );
 
+                Paso_MPIInfo_dealloc(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -175,19 +185,32 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	}
 	row_ptr[M] = nz;
 
+        /* create return value */
 	/* create F_SMP and F_SM */
-	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind, NULL ); /* NULL should be an MPIInfo if this is ever to be used */
-	if(! Paso_noError() )
+        index_t dist[2];
+        dist[0]=0;
+        dist[1]=M;
+        Paso_Distribution* output_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
+        dist[1]=N;
+        Paso_Distribution* input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
+        loc_pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,row_ptr,row_ind);
+
+	if(! Paso_noError() ) {
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
+        }
 
  	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1 );
- 	if(! Paso_noError() )
+ 	if(! Paso_noError() ) {
+                Paso_MPIInfo_dealloc(mpi_info);
  		return NULL;
+        }
 
 	/* copy values and cleanup temps */
 	for( i=0; i<nz; i++ )
 		out->val[i] = val[i];
 
+        Paso_MPIInfo_dealloc(mpi_info);
 	MEMFREE( val );
 	MEMFREE( row_ind );
 
@@ -200,6 +223,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 //	int curr_row;
 	int curr_col;
 	MM_typecode matrixCode;
+        Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
+        if (mpi_info->size >1) {
+		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSC: support single processor only");
+		return NULL;
+        }
 
 	index_t *col_ind = NULL;
 	index_t *row_ind = NULL;
@@ -217,6 +245,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	if( fileHandle_p == NULL )
 	{
 		Paso_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: File could not be opened for reading");
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
 	}
 
@@ -225,12 +254,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	{
 		Paso_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: Error processing MM banner");
 		fclose( fileHandle_p );
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
 	}
 	if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
 	{
 		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
 	}
 
@@ -239,6 +270,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	{
 		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
 	}
 
@@ -256,6 +288,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	{
 		Paso_setError(MEMORY_ERROR,"Could not allocate memory" );
 		fclose( fileHandle_p );
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
 	}
 
@@ -288,15 +321,24 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	col_ptr[N] = nz;
 
 	/* create F_SMP and F_SM */
-//	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind, NULL ); /* NULL should be an MPIInfo if this is ever to be used */
-	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, N, col_ptr, row_ind, NULL ); /* NULL should be an MPIInfo if this is ever to be used */
-	if(! Paso_noError() )
+        index_t dist[2];
+        dist[0]=0;
+        dist[1]=N;
+        Paso_Distribution* output_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
+        dist[1]=M;
+        Paso_Distribution* input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
+        loc_pattern=Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_CSC,output_dist,input_dist,col_ptr,col_ind);
+	if(! Paso_noError() ) {
+                Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
+        }
 
 //      out = Paso_SystemMatrix_alloc( MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1 );
  	out = Paso_SystemMatrix_alloc(  MATRIX_FORMAT_CSC, loc_pattern, 1, 1 );
- 	if(! Paso_noError() )
+ 	if(! Paso_noError() ) {
+                Paso_MPIInfo_dealloc(mpi_info);
  		return NULL;
+        }
 
 	/* copy values and cleanup temps */
 	for( i=0; i<nz; i++ )
@@ -305,6 +347,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	MEMFREE( val );
 //	MEMFREE( row_ind );
 	MEMFREE( col_ind );
+        Paso_MPIInfo_dealloc(mpi_info);
 
 	return out;
 }

@@ -31,7 +31,7 @@ if os.path.isdir('/opt/UMFPACK/Include') and os.path.isdir('/opt/UMFPACK/Lib'):
 else:
    umf_path_default=None
    umf_lib_path_default=None
-   umf_libs_default=None
+   umf_libs_default=[]
 
 if os.path.isdir('/opt/AMD/Include') and os.path.isdir('/opt/AMD/Lib'):
    amd_path_default='/opt/AMD/Include'
@@ -40,7 +40,7 @@ if os.path.isdir('/opt/AMD/Include') and os.path.isdir('/opt/AMD/Lib'):
 else:
    amd_path_default=None
    amd_lib_path_default=None
-   amd_libs_default=None
+   amd_libs_default=[]
 
 if os.path.isdir('/opt/UFconfig'):
    ufc_path_default='/opt/UFconfig'
@@ -86,10 +86,6 @@ opts.AddOptions(
   ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas'),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
-  ('cc_flags_MPI','C compiler flags to use (Release MPI build)', '-O3 -IPF_ftlacc- -IPF_fma -fno-alias -fno-alias -c99 -w1 -fpic'),
-  ('cc_flags_debug_MPI', 'C compiler flags to use (Debug MPI build)', '-g -O0 -c99 -w1 -fpic '),
-  ('cxx_flags_MPI', 'C++ compiler flags to use (Release MPI build)', '-ansi'),
-  ('cxx_flags_debug_MPI', 'C++ compiler flags to use (Debug MPI build)', '-ansi -DDOASSERT -DDOPROF'),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', None),
   ('tar_flags','flags for zip files','-c -z'),
@@ -97,11 +93,14 @@ opts.AddOptions(
   PathOption('mkl_path', 'Path to MKL includes', None),
   PathOption('mkl_lib_path', 'Path to MKL libs', None),
   ('mkl_libs', 'MKL libraries to link with', None),
+# TRILINOS
+  PathOption('trilinos_path', 'Path to TRILINOS includes', None),
+  PathOption('trilinos_lib_path', 'Path to TRILINOS libs', None),
+  ('trilinos_libs', 'TRILINOS libraries to link with', None),
 # SCSL
   PathOption('scsl_path', 'Path to SCSL includes', None),
   PathOption('scsl_lib_path', 'Path to SCSL libs', None),
   ('scsl_libs', 'SCSL libraries to link with', None),
-  ('scsl_libs_MPI', 'SCSL libraries to link with for MPI build', None),
 # UMFPACK
   PathOption('ufc_path', 'Path to UFconfig includes', ufc_path_default),
   PathOption('umf_path', 'Path to UMFPACK includes', umf_path_default),
@@ -123,11 +122,11 @@ opts.AddOptions(
 # locations of include files for python
   PathOption('python_path', 'Path to Python includes', '/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])),
   PathOption('python_lib_path', 'Path to Python libs', '/usr/lib'),
-  ('python_lib', 'Python libraries to link with', ["python%s.%s"%(sys.version_info[0],sys.version_info[1]),]),
+  ('python_libs', 'Python libraries to link with', ["python%s.%s"%(sys.version_info[0],sys.version_info[1]),]),
 # Boost
   PathOption('boost_path', 'Path to Boost includes', '/usr/include'),
   PathOption('boost_lib_path', 'Path to Boost libs', '/usr/lib'),
-  ('boost_lib', 'Boost libraries to link with', ['boost_python',]),
+  ('boost_libs', 'Boost libraries to link with', ['boost_python',]),
 # Doc building
 #  PathOption('doxygen_path', 'Path to Doxygen executable', None),
 #  PathOption('epydoc_path', 'Path to Epydoc executable', None),
@@ -236,53 +235,30 @@ if 'shake71' == socket.gethostname().split('.')[0]:
     env['CC'] = 'mpicc'
     env['CXX'] = 'mpiCC'
 
+# mpi?
+if useMPI:
+   env.Append(CPPDEFINES=['PASO_MPI',])
+   env.Append(CDEFINES=['PASO_MPI',])
+
 if dodebug:
-  if useMPI:
-    try:
-      flags = env['cc_flags_debug_MPI']
-      env.Append(CCFLAGS = flags)
-    except KeyError:
-      pass
-  else:
     try:
       flags = env['cc_flags_debug']
       env.Append(CCFLAGS = flags)
     except KeyError:
       pass
 else:
-  if useMPI:
-   try:
-     flags = env['cc_flags_MPI']
-     env.Append(CCFLAGS = flags)
-   except KeyError:
-      pass
-  else:
    try:
       flags = env['cc_flags']
       env.Append(CCFLAGS = flags)
    except KeyError:
       pass
 if dodebug:
-   if useMPI:
-     try:
-        flags = env['cxx_flags_debug_MPI']
-        env.Append(CXXFLAGS = flags)
-     except KeyError:
-        pass
-   else:
      try:
         flags = env['cxx_flags_debug']
         env.Append(CXXFLAGS = flags)
      except KeyError:
         pass
 else:
-   if useMPI:
-     try:
-        flags = env['cxx_flags_MPI']
-        env.Append(CXXFLAGS = flags)
-     except KeyError:
-        pass
-   else:
      try:
         flags = env['cxx_flags']
         env.Append(CXXFLAGS = flags)
@@ -304,95 +280,118 @@ try:
 except KeyError:
    pass
 
-try:
-   includes = env['mkl_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
 
-try:
-   lib_path = env['mkl_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
+# ============= set mkl (but only of no MPI) =====================================
+if not useMPI:
+   try:
+      includes = env['mkl_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-if useMPI:
-   mkl_libs = ''
-else:
+   try:
+      lib_path = env['mkl_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
    try:
       mkl_libs = env['mkl_libs']
    except KeyError:
-      mkl_libs = ''
-
-try:
-   includes = env['scsl_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
-
-try:
-   lib_path = env['scsl_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
-
-if useMPI:
-  try:
-    scsl_libs = env['scsl_libs_MPI']
-  except KeyError:
-    scsl_libs = ''
+      mkl_libs = []
 else:
-  try:
-    scsl_libs = env['scsl_libs']
-  except KeyError:
-    scsl_libs = ''
+     mkl_libs = []
 
-try:
-   includes = env['umf_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
+# ============= set scsl (but only of no MPI) =====================================
+if not useMPI:
+   try:
+      includes = env['scsl_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   lib_path = env['umf_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
+   try:
+      lib_path = env['scsl_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+   
+   try:
+      scsl_libs = env['scsl_libs']
+   except KeyError:
+      scsl_libs = [ ]
 
-if useMPI:
-    umf_libs = ''
 else:
+    scsl_libs =  []
+
+# ============= set TRILINOS (but only with MPI) =====================================
+if useMPI:
+   try:
+      includes = env['trilinos_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+
+   try:
+      lib_path = env['trilinos_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
+   try:
+      trilinos_libs = env['trilinos_libs']
+   except KeyError:
+      trilinos_libs = []
+else:
+     trilinos_libs = []
+
+
+# ============= set umfpack (but only without MPI) =====================================
+umfpack_libs=[ ] 
+if not useMPI:
+   try:
+      includes = env['umf_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+
+   try:
+      lib_path = env['umf_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
    try:
       umf_libs = env['umf_libs']
+      umfpack_libs+=umf_libs
    except KeyError:
-      umf_libs = ''
+      pass
 
-try:
-   includes = env['ufc_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
+   try:
+      includes = env['ufc_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   includes = env['amd_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
+   try:
+      includes = env['amd_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   lib_path = env['amd_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
+   try:
+      lib_path = env['amd_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
 
-if useMPI:
-    amd_libs = ''
-else:
    try:
       amd_libs = env['amd_libs']
+      umfpack_libs+=amd_libs
    except KeyError:
-      amd_libs = ''
+      pass
 
+# ============= set blas =====================================
 try:
    includes = env['blas_path']
    env.Append(CPPPATH = [includes,])
@@ -408,8 +407,9 @@ except KeyError:
 try:
    blas_libs = env['blas_libs']
 except KeyError:
-   blas_libs = ''
+   blas_libs = [ ]
 
+# ============= set netcdf =====================================
 try:
    includes = env['netCDF_path']
    env.Append(CPPPATH = [includes,])
@@ -427,6 +427,7 @@ try:
 except KeyError:
    netCDF_lib_cxx = [ ]
 
+# ============= set boost =====================================
 try:
    includes = env['boost_path']
    env.Append(CPPPATH = [includes,])
@@ -438,9 +439,10 @@ try:
 except KeyError:
    pass
 try:
-   boost_lib = env['boost_lib']
+   boost_libs = env['boost_libs']
 except KeyError:
-   boost_lib = None
+   boost_libs = [ ]
+# ============= set python =====================================
 try:
    includes = env['python_path']
    env.Append(CPPPATH = [includes,])
@@ -452,17 +454,29 @@ try:
 except KeyError:
    pass
 try:
-   python_lib = env['python_lib']
+   python_libs = env['python_lib']
 except KeyError:
-   python_lib = None
-try:
-   doxygen_path = env['doxygen_path']
-except KeyError:
-   doxygen_path = None
-try:
-   epydoc_path = env['epydoc_path']
-except KeyError:
-   epydoc_path = None
+   python_libs = []
+
+# ============= set mpi =====================================
+if useMPI:
+   try:
+      includes = env['mpi_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+   try:
+      lib_path = env['mpi_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+   try:
+      mpi_libs = env['mpi_libs']
+   except KeyError:
+      mpi_libs = []
+else:
+  mpi_libs=[]
+# ============= set papi =====================================
 try:
    includes = env['papi_path']
    env.Append(CPPPATH = [includes,])
@@ -479,6 +493,15 @@ except KeyError:
    papi_libs = None
 
 
+# ============= and some helpers =====================================
+try:
+   doxygen_path = env['doxygen_path']
+except KeyError:
+   doxygen_path = None
+try:
+   epydoc_path = env['epydoc_path']
+except KeyError:
+   epydoc_path = None
 try:
    src_zipfile = env.File(env['src_zipfile'])
 except KeyError:
@@ -520,6 +543,8 @@ try:
 except KeyError:
    api_epydoc = None
 
+   
+
 # Zipgets
 
 env.Default(libinstall)
@@ -544,8 +569,9 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs_cxx", 
-	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
+Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umfpack_libs", 
+        "blas_libs", "netCDF_libs_cxx", "trilinos_libs", "mpi_libs", 
+	"boost_libs", "python_libs", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])
 

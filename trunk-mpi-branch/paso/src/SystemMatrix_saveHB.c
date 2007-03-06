@@ -177,9 +177,18 @@ void generate_HB( FILE *fp, dim_t *col_ptr, dim_t *row_ind, double *val )
 
 void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 {
+        #ifdef PASO_MPI
+	Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveHB: MPI is currently supported.\n");
+        return;
+        #endif
+        if (A_p->val == NULL) {
+	   Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveHB: unsupported format detected.\n");
+           return;
+        }
         int i, curr_col,j ;
 	int iPtr, iCol, ir, ic;
         index_t index_offset=(A_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+	int nz = A_p->myLen;
 	/* open the file */
 	FILE *fileHandle_p = fopen( filename_p, "w" );
 	if( fileHandle_p == NULL )
@@ -195,24 +204,22 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 	if ( A_p->type & MATRIX_FORMAT_CSC) {
 				if( A_p->row_block_size == 1 && A_p->col_block_size == 1 )
 				{
-					M = A_p->num_rows;
-					N = A_p->num_cols;
-					nz = A_p->len;
+					M = A_p->numRows;
+					N = A_p->numCols;
 					generate_HB( fileHandle_p, A_p->pattern->ptr, A_p->pattern->index, A_p->val );
 				}
 				else
 				{
 
 // 					fprintf( fileHandle_p, "NEED unrolling!\n" );
-					M = A_p->num_rows*A_p->row_block_size;
-					N = A_p->num_cols*A_p->col_block_size;
-					nz = A_p->len;
+					M = A_p->numRows*A_p->row_block_size;
+					N = A_p->numCols*A_p->col_block_size;
 
 					dim_t *row_ind = MEMALLOC( nz, dim_t );
 					dim_t *col_ind = MEMALLOC( nz, dim_t );
 
 					i = 0;
-					for( iCol=0; iCol<A_p->pattern->n_ptr; iCol++ )
+					for( iCol=0; iCol<A_p->pattern->myNumOutput; iCol++ )
 						for( ic=0; ic<A_p->col_block_size; ic++)
 							for( iPtr=A_p->pattern->ptr[iCol]-index_offset; iPtr<A_p->pattern->ptr[iCol+1]-index_offset; iPtr++)
 								for( ir=0; ir<A_p->row_block_size; ir++ )

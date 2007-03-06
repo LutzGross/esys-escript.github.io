@@ -51,7 +51,7 @@ void Paso_solve(Paso_SystemMatrix* A,
                                Paso_Options* options) {
   Paso_Performance pp;
   Paso_resetError();
-  if (A->num_rows!=A->num_cols || A->col_block_size!=A->row_block_size) {
+  if (A->numRows!=A->numCols || A->col_block_size!=A->row_block_size) {
        Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
@@ -63,12 +63,20 @@ void Paso_solve(Paso_SystemMatrix* A,
 
         case PASO_PASO:
           printf("ksteube in paso/src/solve.c : Paso_solve PASO_PASO\n");
+          if (A->mpi_info->size>1) {
+              Paso_setError(VALUE_ERROR,"Paso_solve: Paso solver does not support MPI yet.");
+              return;
+          }
           Paso_Solver(A,out,in,options,&pp);
           A->solver_package=PASO_PASO;
           break;
 
         #ifdef SCSL
         case PASO_SCSL:
+          if (A->mpi_info->size>1) {
+              Paso_setError(VALUE_ERROR,"Paso_solve: SCSL package does not support MPI.");
+              return;
+          }
           Paso_SCSL(A,out,in,options,&pp);
           A->solver_package=PASO_SCSL;
           break;
@@ -77,6 +85,10 @@ void Paso_solve(Paso_SystemMatrix* A,
   
         #ifdef MKL
         case PASO_MKL:
+          if (A->mpi_info->size>1) {
+              Paso_setError(VALUE_ERROR,"Paso_solve: MKL package does not support MPI.");
+              return;
+          }
           Paso_MKL(A,out,in,options,&pp);
           A->solver_package=PASO_MKL;
           break;
@@ -84,6 +96,10 @@ void Paso_solve(Paso_SystemMatrix* A,
 
         #ifdef UMFPACK
         case PASO_UMFPACK:
+          if (A->mpi_info->size>1) {
+              Paso_setError(VALUE_ERROR,"Paso_solve: UMFPACK package does not support MPI.");
+              return;
+          }
           Paso_UMFPACK(A,out,in,options,&pp);
           A->solver_package=PASO_UMFPACK;
           break;

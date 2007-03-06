@@ -44,7 +44,7 @@ void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in) {
 
 Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
   Paso_Solver_Jacobi* out=NULL;
-  dim_t n = A_p->num_cols;
+  dim_t n = A_p->myNumCols;
   dim_t n_block=A_p->row_block_size;
   dim_t block_size=A_p->block_size;
   dim_t i;
@@ -71,7 +71,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
       if (! (Paso_checkPtr(out->values))) {
         if (n_block==1) {
            #pragma omp parallel for private(i, iPtr) schedule(static)
-           for (i = 0; i < A_p->pattern->n_ptr; i++) {
+           for (i = 0; i < A_p->pattern->myNumOutput; i++) {
               out->values[i]=1.;
               /* find main diagonal */
               for (iPtr = A_p->pattern->ptr[i]; iPtr < A_p->pattern->ptr[i + 1]; iPtr++) {
@@ -83,7 +83,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
            }
         } else if (n_block==2) {
            #pragma omp parallel for private(i, iPtr, A11,A12,A21,A22,D) schedule(static)
-           for (i = 0; i < A_p->pattern->n_ptr; i++) {
+           for (i = 0; i < A_p->pattern->myNumOutput; i++) {
               out->values[i*4+0]= 1.;
               out->values[i*4+1]= 0.;
               out->values[i*4+2]= 0.;
@@ -109,7 +109,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
            }
         } else if (n_block==3) {
            #pragma omp parallel for private(i, iPtr,A11,A12,A13,A21,A22,A23,A31,A32,A33,D) schedule(static)
-           for (i = 0; i < A_p->pattern->n_ptr; i++) {
+           for (i = 0; i < A_p->pattern->myNumOutput; i++) {
               out->values[i*9  ]=1.;
               out->values[i*9+1]=0.;
               out->values[i*9+2]=0.;

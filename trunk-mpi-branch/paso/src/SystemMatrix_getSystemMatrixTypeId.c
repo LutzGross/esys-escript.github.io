@@ -52,7 +52,7 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, 
       break;
 
     case PASO_TRILINOS:
-      out=MATRIX_FORMAT_TRILINOS_CRS; /* Distributed CRS */
+      out=MATRIX_FORMAT_TRILINOS_CRS + MATRIX_FORMAT_BLK1; /* Distributed CRS */
       break;
 
      default:

@@ -72,7 +72,7 @@ err_t Paso_Solver_PCG(
   dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
-  dim_t n = A->num_cols * A-> col_block_size;
+  dim_t n = A->myNumCols * A-> col_block_size;
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
   double norm_of_residual,norm_of_residual_global;

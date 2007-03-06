@@ -70,11 +70,11 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha,
 
   if (ABS(beta)>0.) {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] *= beta;
   } else {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] = 0;
   }
       
@@ -83,7 +83,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha,
     if (A ->col_block_size==1 && A->row_block_size ==1) {
         /* TODO: parallelize (good luck!) */
         #pragma omp single
-	for (icol=0;icol< A->pattern->n_ptr;++icol) {
+	for (icol=0;icol< A->pattern->myNumOutput;++icol) {
 	  for (iptr=A->pattern->ptr[icol];iptr<A->pattern->ptr[icol+1]; ++iptr) {
 	    out[A->pattern->index[iptr]]+= alpha * A->val[iptr] * in[icol];
 	  }
@@ -91,7 +91,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha,
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
         /* TODO: parallelize */
         #pragma omp single
-	for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	for (ic=0;ic< A->pattern->myNumOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic];iptr<A->pattern->ptr[ic+1]; iptr++) {
 	       ic=2*(A->pattern->index[iptr]);
 	       out[  2*ir] += alpha * ( A->val[iptr*4  ]*in[ic] + A->val[iptr*4+2]*in[1+ic] );
@@ -101,7 +101,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha,
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
         /* TODO: parallelize */
         #pragma omp single
-	for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	for (ic=0;ic< A->pattern->myNumOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic];iptr<A->pattern->ptr[ic+1]; iptr++) {
 	      ir=3*(A->pattern->index[iptr]);
               out[  3*ir] += alpha * ( A->val[iptr*9  ]*in[ic] + A->val[iptr*9+3]*in[1+ic] + A->val[iptr*9+6]*in[2+ic] );
@@ -112,7 +112,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha,
     } else {
         /* TODO: parallelize */
         #pragma omp single
-	for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	for (ic=0;ic< A->pattern->myNumOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic];iptr<A->pattern->ptr[ic+1]; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*(A->pattern->index[iptr]);
@@ -140,11 +140,11 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha,
 
   if (ABS(beta)>0.) {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] *= beta;
   } else {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] = 0;
   }
       
@@ -153,7 +153,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha,
     if (A ->col_block_size==1 && A->row_block_size ==1) {
         /* TODO: parallelize (good luck!) */
         #pragma omp single
-	for (icol=0;icol< A->pattern->n_ptr;++icol) {
+	for (icol=0;icol< A->pattern->myNumOutput;++icol) {
 	  for (iptr=A->pattern->ptr[icol]-1;iptr<A->pattern->ptr[icol+1]-1; ++iptr) {
 	    out[A->pattern->index[iptr]-1]+= alpha * A->val[iptr] * in[icol];
 	  }
@@ -161,7 +161,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha,
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
         /* TODO: parallelize */
         #pragma omp single
-	for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	for (ic=0;ic< A->pattern->myNumOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic]-1;iptr<A->pattern->ptr[ic+1]-1; iptr++) {
 	       ic=2*(A->pattern->index[iptr]-1);
 	       out[  2*ir] += alpha * ( A->val[iptr*4  ]*in[ic] + A->val[iptr*4+2]*in[1+ic] );
@@ -171,7 +171,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha,
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
         /* TODO: parallelize */
         #pragma omp single
-	for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	for (ic=0;ic< A->pattern->myNumOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic]-1;iptr<A->pattern->ptr[ic+1]-1; iptr++) {
 	      ir=3*(A->pattern->index[iptr]-1);
               out[  3*ir] += alpha * ( A->val[iptr*9  ]*in[ic] + A->val[iptr*9+3]*in[1+ic] + A->val[iptr*9+6]*in[2+ic] );
@@ -182,7 +182,7 @@ void  Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha,
     } else {
         /* TODO: parallelize */
         #pragma omp single
-	for (ic=0;ic< A->pattern->n_ptr;ic++) {
+	for (ic=0;ic< A->pattern->myNumOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic]-1;iptr<A->pattern->ptr[ic+1]-1; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*(A->pattern->index[iptr]-1);
@@ -209,18 +209,18 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   #pragma omp barrier
   if (ABS(beta)>0.) {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] *= beta;
   } else {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] = 0;
   }
   /*  do the operation: */
   if (ABS(alpha)>0) {
     if (A ->col_block_size==1 && A->row_block_size ==1) {
         #pragma omp for private(irow,iptr,reg) schedule(static)
-	for (irow=0;irow< A->pattern->n_ptr;++irow) {
+	for (irow=0;irow< A->pattern->myNumOutput;++irow) {
           reg=0.;
 	  for (iptr=(A->pattern->ptr[irow]);iptr<(A->pattern->ptr[irow+1]); ++iptr) {
 	      reg += A->val[iptr] * in[A->pattern->index[iptr]];
@@ -229,7 +229,7 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
 	}
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
         #pragma omp for private(ir,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11) schedule(static)
-	for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
           reg1=0.;
           reg2=0.;
 	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
@@ -249,7 +249,7 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
 	}
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
         #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
-	for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
           reg1=0.;
           reg2=0.;
           reg3=0.;
@@ -278,7 +278,7 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
 	}
     } else {
         #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
-	for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
 	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*ir;
@@ -308,18 +308,18 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 
   if (ABS(beta)>0.) {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] *= beta;
   } else {
     #pragma omp for private(irow) schedule(static)
-    for (irow=0;irow < A->num_rows * A->row_block_size;irow++) 
+    for (irow=0;irow < A->myNumRows * A->row_block_size;irow++) 
       out[irow] = 0;
   }
   /*  do the operation: */
   if (ABS(alpha)>0) {
     if (A ->col_block_size==1 && A->row_block_size ==1) {
         #pragma omp for private(irow,iptr,reg) schedule(static)
-	for (irow=0;irow< A->pattern->n_ptr;++irow) {
+	for (irow=0;irow< A->pattern->myNumOutput;++irow) {
           reg=0.;
 	  for (iptr=(A->pattern->ptr[irow])-1;iptr<(A->pattern->ptr[irow+1])-1; ++iptr) {
 	      reg += A->val[iptr] * in[A->pattern->index[iptr]-1];
@@ -328,7 +328,7 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 	}
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
         #pragma omp for private(ir,reg1,reg2,iptr,ic) schedule(static)
-	for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
           reg1=0.;
           reg2=0.;
 	  for (iptr=A->pattern->ptr[ir]-1;iptr<A->pattern->ptr[ir+1]-1; iptr++) {
@@ -341,7 +341,7 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 	}
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
         #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic) schedule(static)
-	for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
           reg1=0.;
           reg2=0.;
           reg3=0.;
@@ -357,7 +357,7 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 	}
     } else {
         #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
-	for (ir=0;ir< A->pattern->n_ptr;ir++) {
+	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
 	  for (iptr=A->pattern->ptr[ir]-1;iptr<A->pattern->ptr[ir+1]-1; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*ir;

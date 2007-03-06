@@ -25,6 +25,7 @@
 /**************************************************************/
 
 #include "paso/Paso.h"
+#include "paso/Paso_MPI.h"
 
 /**************************************************************/
 /*#define Finley_TRACE */
@@ -53,8 +54,8 @@ typedef int Finley_Status_t;
 
 #ifdef PASO_MPI
 #define FINLEY_INIT_ITEMSIZE (sizeof(double)*8)
-#define FINLEY_NODE_TAG 0;
-#define FINLEY_ELEMENT_TAG 10000;
+#define FINLEY_NODE_TAG 0
+#define FINLEY_ELEMENT_TAG 10000
 extern int __g_nodeTag;
 extern int __g_elementTag; 
 #endif
@@ -74,10 +75,7 @@ bool_t Finley_noError(void);
 Finley_ErrorCodeType Finley_getErrorType(void);
 char* Finley_getErrorMessage(void);
 void Finley_convertPasoError(void);
-
-#ifdef PASO_MPI
 bool_t Finley_MPI_noError( Paso_MPIInfo *mpi_info );
-#endif
 
 #endif /* #ifndef INC_FINLEY */
 

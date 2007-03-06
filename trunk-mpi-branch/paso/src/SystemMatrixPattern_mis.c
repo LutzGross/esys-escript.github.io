@@ -53,7 +53,7 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
   dim_t i;
   index_t naib,iptr;
   bool_t flag;
-  dim_t n=pattern_p->n_ptr;
+  dim_t n=pattern_p->myNumOutput;
   if (pattern_p->type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_mis: symmetric matrix pattern is not supported yet");
     return;

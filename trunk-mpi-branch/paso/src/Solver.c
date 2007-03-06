@@ -44,8 +44,8 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
      dim_t i,totIter,cntIter,method;
      bool_t finalizeIteration;
      err_t errorCode;
-     dim_t n_col = A->num_cols * A-> col_block_size;
-     dim_t n_row = A->num_rows * A-> row_block_size;
+     dim_t myNumSol = A->myNumCols * A-> col_block_size;
+     dim_t myNumEqua = A->myNumRows * A-> row_block_size;
  
      tolerance=MAX(options->tolerance,EPSILON);
      Paso_resetError();
@@ -57,7 +57,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
      if (A->col_block_size != A->row_block_size) {
         Paso_setError(TYPE_ERROR,"Iterative solver requires row and column block sizes to be equal.");
      }
-     if (A->num_cols != A->num_rows) {
+     if (A->numCols != A->numRows) {
         Paso_setError(TYPE_ERROR,"Iterative solver requires requires a square matrix.");
         return;
      }
@@ -74,7 +74,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                 norm2_of_b_local=0.;
                 norm_max_of_b_local=0.;
                 #pragma omp for private(i) schedule(static)
-                for (i = 0; i < n_row ; ++i) {
+                for (i = 0; i < myNumEqua ; ++i) {
                       norm2_of_b_local += b[i] * b[i];
                       norm_max_of_b_local = MAX(ABS(scaling[i]*b[i]),norm_max_of_b_local);
                 }
@@ -89,7 +89,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
            /* if norm2_of_b==0 we are ready: x=0 */
            if (norm2_of_b <=0.) {
                #pragma omp parallel for private(i) schedule(static)
-               for (i = 0; i < n_col; i++) x[i]=0.;
+               for (i = 0; i < myNumSol; i++) x[i]=0.;
                if (options->verbose) printf("right hand side is identical zero.\n");
            } else {
               if (options->verbose) {
@@ -127,7 +127,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
               Paso_Solver_solvePreconditioner(A,x,b);
               if (! Paso_noError()) return;
               /* start the iteration process :*/
-              r=TMPMEMALLOC(n_row,double);
+              r=TMPMEMALLOC(myNumEqua,double);
               if (Paso_checkPtr(r)) return;
               totIter = 0;
               finalizeIteration = FALSE;
@@ -142,14 +142,14 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                  #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
                  {
                     #pragma omp for private(i) schedule(static)
-                    for (i = 0; i < n_row; i++) r[i]=b[i];
+                    for (i = 0; i < myNumEqua; i++) r[i]=b[i];
           
                     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
           
                     norm2_of_residual_local = 0;
                     norm_max_of_residual_local = 0;
                     #pragma omp for private(i) schedule(static)
-                    for (i = 0; i < n_row; i++) {
+                    for (i = 0; i < myNumEqua; i++) {
                            norm2_of_residual_local+= r[i] * r[i];
                            norm_max_of_residual_local=MAX(ABS(scaling[i]*r[i]),norm_max_of_residual_local);
                     }

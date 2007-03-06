@@ -16,7 +16,7 @@
 /* Paso: SystemMatrixPatternPattern */
 
 /**************************************************************/
-
+ 
 /* Copyrights by ACcESS Australia 2003, 2004,2005 */
 /* Author: gross@access.edu.au */
 
@@ -29,39 +29,54 @@
 
 /* allocates a SystemMatrixPattern  */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, index_t* ptr,index_t* index, Paso_MPIInfo *mpi_info) {
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, 
+                                                         Paso_Distribution* output_distribution,
+                                                         Paso_Distribution* input_distribution,
+                                                         index_t* ptr,
+                                                         index_t* index) {
   Paso_SystemMatrixPattern*out;
+  Paso_MPIInfo* mpi_info=output_distribution->mpi_info;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
   dim_t i;
   Paso_resetError();
 
+  if (input_distribution->mpi_info != output_distribution->mpi_info) {
+    Paso_setError(VALUE_ERROR,"row and column distribution must base on the same communicator.");
+    return NULL;
+  }
+
   if (type & PATTERN_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"symmetric matrix pattern is not supported yet");
     return NULL;
   }
+  dim_t myNumOutput=output_distribution->myNumComponents;
   #pragma omp parallel private(loc_min_index,loc_max_index,i)
    {
       loc_min_index=index_offset;
       loc_max_index=index_offset-1;
       if (type & PATTERN_FORMAT_OFFSET1) {
          #pragma omp for schedule(static) 
-         for (i=0;i<n_ptr;++i) {
+         for (i=0;i<myNumOutput;++i) {
              if (ptr[i]<ptr[i+1]) {
-               qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
+               #ifdef USE_QSORTG
+                  qsortG(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
+               #else
+                  qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
+               #endif
                loc_min_index=MIN(loc_min_index,index[ptr[i]-1]);
                loc_max_index=MAX(loc_max_index,index[ptr[i+1]-2]);
              }
          }
       } else {
          #pragma omp for schedule(static) 
-         for (i=0;i<n_ptr;++i) {
+         for (i=0;i<myNumOutput;++i) {
              if (ptr[i]<ptr[i+1]) {
-#ifdef USE_QSORTG
-               qsortG(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-#else
-               qsort(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-#endif
+               #ifdef USE_QSORTG
+                  qsortG(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
+               #else
+                  qsort(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
+               #endif
                loc_min_index=MIN(loc_min_index,index[ptr[i]]);
                loc_max_index=MAX(loc_max_index,index[ptr[i+1]-1]);
              }
@@ -73,23 +88,42 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, in
          max_index=MAX(loc_max_index,max_index);
       }
   }
+  #ifdef Paso_MPI
+     loc_min_index=min_index;
+     loc_max_index=max_index;
+     MPI_Reduce (&loc_max_index,&max_index,1,PASO_MPI_INT,MPI_MAX,mpi_info->comm)
+     MPI_Reduce (&loc_min_index,&min_index,1,PASO_MPI_INT,MPI_MIN,mpi_info->comm)
+  #endif
   if (min_index<index_offset) {
-    Paso_setError(TYPE_ERROR,"Matrix pattern index out of range.");
+    Paso_setError(TYPE_ERROR,"Pattern index out of index offset range.");
+    return NULL;
+  }
+  if (min_index<input_distribution->firstComponent) {
+    Paso_setError(TYPE_ERROR,"Minimum pattern index out of input distribution range.");
+    return NULL;
+  }
+  if (input_distribution->firstComponent+input_distribution->numComponents <= max_index) {
+    Paso_setError(TYPE_ERROR,"Maximum pattern index out of input distribution range.");
     return NULL;
   }
 
   out=MEMALLOC(1,Paso_SystemMatrixPattern);
   if (Paso_checkPtr(out)) return NULL;
-  out->n_ptr=n_ptr;
-  out->n_index=max_index-index_offset+1;
+  out->type=type;
+  out->reference_counter=1;
+  out->myNumOutput=myNumOutput;
+  out->numOutput=output_distribution->numComponents;
+  out->myNumInput=input_distribution->myNumComponents;
+  out->numInput=input_distribution->numComponents;
+
+  out->myLen=ptr[myNumOutput]-ptr[0];
+
   out->ptr=ptr;
   out->index=index;
-  out->len=out->ptr[out->n_ptr]-index_offset;
-  out->reference_counter=1;
-  out->type=type;
-  out->MPIInfo = Paso_MPIInfo_getReference(mpi_info);
-  out->numLocal = n_ptr;
-  printf("ksteube Paso_SystemMatrixPattern_alloc cpu=%d numLocal=%d\n", mpi_info->rank, n_ptr);
+  out->input_distribution=Paso_Distribution_getReference(input_distribution);
+  out->output_distribution=Paso_Distribution_getReference(output_distribution);
+  out->mpi_info = Paso_MPIInfo_getReference(mpi_info);
+  printf("ksteube Paso_SystemMatrixPattern_alloc cpu=%d myNumOutput=%d\n", mpi_info->rank, myNumOutput);
   #ifdef Paso_TRACE
   printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been allocated.\n");
   #endif
@@ -111,6 +145,9 @@ void Paso_SystemMatrixPattern_dealloc(Paso_SystemMatrixPattern* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
+        Paso_Distribution_dealloc(in->output_distribution);
+        Paso_Distribution_dealloc(in->input_distribution);
+        Paso_MPIInfo__dealloc(in->mpi_info);
         MEMFREE(in->ptr);
         MEMFREE(in->index);
         MEMFREE(in);
@@ -140,15 +177,3 @@ int Paso_comparIndex(const void *index1,const void *index2){
       }
    }
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:47  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

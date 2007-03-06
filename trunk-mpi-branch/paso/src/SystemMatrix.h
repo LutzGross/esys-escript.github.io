@@ -23,15 +23,14 @@
 
 /**************************************************************/
 
-#ifndef INC_PASO_SYSTEM
-#define INC_PASO_SYSTEM
+#ifndef INC_PASO_SYSTEMMATRIX
+#define INC_PASO_SYSTEMMATRIX
 
 #include "Common.h"
 #include "SystemMatrixPattern.h"
 #include "Options.h"
-
-//#include "CommBuffer.h"
-//#include "Paso_MPI.h"
+#include "Paso_MPI.h"
+#include "Paso.h"
 
 /**************************************************************/
 
@@ -58,22 +57,24 @@ typedef struct Paso_SystemMatrix {
   dim_t col_block_size;
   dim_t block_size;
 
-  dim_t num_rows;
-  dim_t num_cols;
+  dim_t numRows;
+  dim_t myNumRows;
+  dim_t numCols;
+  dim_t myNumCols;
 
+  Paso_MPIInfo *mpi_info;
   Paso_SystemMatrixPattern* pattern;
+  Paso_Distribution *row_distribution;
+  Paso_Distribution *col_distribution;
 
-  dim_t len;
-  double *val;
+  dim_t myLen;
+  double *val;         /* this is used for classical CSR or CSC */
+  void *trilinos_data; /* this is only used for a trilinos matrix */
 
   double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
   bool_t normalizer_is_valid;
   index_t solver_package;  /* package controling the solver pointer */
   void* solver;  /* pointer to data needed by a solver */
-
-#ifdef TRILINOS
-  void *trilinos_data;
-#endif
 
 } Paso_SystemMatrix;
 
@@ -98,23 +99,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 void Paso_SystemMatrix_setDefaults(Paso_Options*);
 int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, bool_t symmetry);
-Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,dim_t,index_t*,index_t*);
+Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,dim_t,dim_t,index_t*,index_t*);
 double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
 
-#endif /* #ifndef INC_PASO_SYSTEM */
+void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+void Paso_solve_free(Paso_SystemMatrix* in);
 
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.2  2005/09/07 00:59:08  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:47  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */
+#endif /* #ifndef INC_PASO_SYSTEMMATRIX */
+

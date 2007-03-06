@@ -71,15 +71,13 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
             }
          }
    } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
-#ifdef PASO_MPI
-          Finley_NodeDistribution* row_degreeOfFreedomDistribution=in->pattern->row_degreeOfFreedomDistribution;
-          Finley_NodeDistribution* col_degreeOfFreedomDistribution=in->pattern->col_degreeOfFreedomDistribution;
+#ifdef TRILINOS
           for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Down columns of array */
             j_Equa=Nodes_Equa[k_Equa];
-	    if (j_Equa < row_degreeOfFreedomDistribution->numLocal) {
+	    if (j_Equa < in->row_distribution->myNumComponents) {
               for (k_Sol=0;k_Sol<NN_Sol;++k_Sol) { /* Across rows of array */
                 j_Sol=Nodes_Sol[k_Sol];
-	        j_Sol = Finley_IndexList_localToGlobal(col_degreeOfFreedomDistribution, j_Sol);
+	        j_Sol = Finley_IndexList_localToGlobal(in->col_distribution, j_Sol);
                 for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
                   irow=j_Equa*row_block_size+l_row;
                   for (l_col=0;l_col<col_block_size;++l_col) {

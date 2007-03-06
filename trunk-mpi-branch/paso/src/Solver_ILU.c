@@ -47,7 +47,7 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
 
 */
 Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A,bool_t verbose) {
-  dim_t n=A->num_rows;
+  dim_t n=A->myNumRows;
   dim_t n_block=A->row_block_size;
   index_t num_colors=0;
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
@@ -60,7 +60,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A,bool_t verbose) {
   if (Paso_checkPtr(out)) return NULL;
   index_t* mis_marker=TMPMEMALLOC(n,index_t);
   out->colorOf=MEMALLOC(n,index_t);
-  out->factors=MEMALLOC(A->len,double);
+  out->factors=MEMALLOC(A->myLen,double);
   out->main_iptr=MEMALLOC(n,index_t);
   out->pattern=Paso_SystemMatrixPattern_reference(A->pattern);
   out->n_block=n_block;

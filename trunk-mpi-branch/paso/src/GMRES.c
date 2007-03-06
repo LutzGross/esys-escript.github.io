@@ -85,7 +85,7 @@ err_t Paso_Solver_GMRES(
 
   /* adapt original routine parameters */
 
-  dim_t n=A->num_cols * A-> col_block_size;
+  dim_t n=A->myNumCols * A-> col_block_size;
   dim_t Length_of_mem=MAX(Length_of_recursion,0)+1;
 
   /*     Test the input parameters. */

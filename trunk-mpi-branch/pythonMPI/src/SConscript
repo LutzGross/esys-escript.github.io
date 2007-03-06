@@ -17,17 +17,18 @@ if useMPI:
 	if scsl_libs:
 		 local_env.Append(CPPDEFINES=['SCSL',])
 		 local_env.Append(LIBS = scsl_libs)
-	if umf_libs:
+	if umfpack_libs:
 		 local_env.Append(CPPDEFINES=['UMFPACK',])
-		 local_env.Append(LIBS = umf_libs)
+		 local_env.Append(LIBS = umfpack_libs)
+	if trilinos_libs:
+		 local_env.Append(CPPDEFINES=['TRILINOS',])
+		 local_env.Append(LIBS = trilinos_libs)
 	if papi_libs:
 		 local_env.Append(CPPDEFINES=['PAPI',])
 		 local_env.Append(LIBS = papi_libs)
 
-	local_env.Append(LIBS = ["python2.4", "paso", "finley", "aztecoo", "teuchos", "epetra", "lapack", "blas", "gfortran"])
-	local_env.Append(CPPPATH = ["/home/Work/trilinos-6/include"])
-	local_env.Append(LIBPATH = ["/home/Work/lib", "/home/Work/trilinos-6/lib"])
-## changed
+        local_env.Append(LIBS = python_libs+blas_libs)
+	local_env.Append(LIBS = [ "paso", "finley", "lapack", "gfortran"])
 	lib_name = 'pythonMPI'
 
 ## changed

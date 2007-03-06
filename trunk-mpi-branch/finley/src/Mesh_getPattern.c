@@ -60,7 +60,6 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_
          }
       }
    }  
-   out->MPIInfo = Paso_MPIInfo_getReference( mesh->MPIInfo );
    return out;
 }
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
@@ -173,7 +172,6 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
     MEMFREE(index);
     return NULL;
   } else {
-    Paso_SystemMatrixPattern *pattern = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,n,ptr,index,mesh->MPIInfo); /* add distr info */
     // Use a getReference method to get the DOF distributions to avoid memory leaks
     if (reduce_col_order) {
       col_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
@@ -187,41 +185,12 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
     else {
       row_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
     }
-    pattern->row_degreeOfFreedomDistribution = row_degreeOfFreedomDistribution;
-    pattern->col_degreeOfFreedomDistribution = col_degreeOfFreedomDistribution;
+    Paso_Distribution *row_distribution=Paso_Distribution_alloc(mesh->MPIInfo, row_degreeOfFreedomDistribution->vtxdist,1,0);
+    Paso_Distribution *col_distribution=Paso_Distribution_alloc(mesh->MPIInfo, col_degreeOfFreedomDistribution->vtxdist,1,0);
+    Paso_SystemMatrixPattern *pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
+                                  row_distribution,
+                                  col_distribution,
+                                  ptr,index); /* add distr info */
     return pattern;
   }
 }
-/*
- * $Log$
- * Revision 1.5  2005/09/15 03:44:22  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.4  2005/09/01 03:31:35  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-01
- *
- * Revision 1.3.2.2  2005/09/07 06:26:19  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.3.2.1  2005/08/24 02:02:18  gross
- * timing output switched off. solver output can be swiched through getSolution(verbose=True) now.
- *
- * Revision 1.3  2005/07/08 04:07:52  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.2  2004/12/15 07:08:33  jgs
- * *** empty log message ***
- *
- * Revision 1.1.2.5  2005/06/30 01:53:55  gross
- * a bug in coloring fixed
- *
- * Revision 1.1.2.4  2005/06/29 02:34:51  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.2.3  2004/11/24 01:37:14  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- * Revision 1.1.2.1  2004/11/15 01:01:09  gross
- * and anotther missing file
- *
- */

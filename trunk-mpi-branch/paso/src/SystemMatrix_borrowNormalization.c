@@ -41,7 +41,7 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
       } else {
           irow_failed=-1;
           #pragma omp parallel for private(ir,irb,irow,fac,iptr,icb) schedule(static)
-          for (ir=0;ir< A->pattern->n_ptr;ir++) {
+          for (ir=0;ir< A->pattern->myNumOutput;ir++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
 	      irow=irb+A->row_block_size*ir;
               fac=0.;
@@ -64,15 +64,3 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
    }
    return A->normalizer;
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:47  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

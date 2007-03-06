@@ -39,8 +39,8 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   }
   /*  check the dimensions of S and F */
   if (S!=NULL && !isEmpty(F)) {
-    printf("ksteube S->num_rows=%d S->row_block_size=%d S->logical_row_block_size=%d\n", S->num_rows, S->row_block_size, S->logical_row_block_size);
-    if (! numSamplesEqual(F,1,(S->num_rows*S->row_block_size)/S->logical_row_block_size)) {
+    printf("ksteube S->myNumRows=%d S->row_block_size=%d S->logical_row_block_size=%d\n", S->myNumRows, S->row_block_size, S->logical_row_block_size);
+    if (! numSamplesEqual(F,1,(S->myNumRows*S->row_block_size)/S->logical_row_block_size)) {
       Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows of matrix and length of right hand side don't match.");
       return;
     }
@@ -71,14 +71,14 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   parm->col_DOF=nodes->degreeOfFreedom;
   parm->row_DOF=nodes->degreeOfFreedom;
   /* get the information for the labeling of the degrees of freedom from matrix */
-  /* printf("ksteube in Assemble_getAssembleParameters cpu=%d NR=%d BS=%d DOF=%d\n", elements->elementDistribution->MPIInfo->rank, S->num_rows, S->row_block_size, parm->numEqu*nodes->degreeOfFreedomDistribution->numLocal); */
+  /* printf("ksteube in Assemble_getAssembleParameters cpu=%d NR=%d BS=%d DOF=%d\n", elements->elementDistribution->MPIInfo->rank, S->myNumRows, S->row_block_size, parm->numEqu*nodes->degreeOfFreedomDistribution->numLocal); */
   if (S!=NULL) {
       /* Make sure # rows in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
 #ifndef PASO_MPI
-      if (S->num_rows*S->row_block_size==parm->numEqu*nodes->numDegreesOfFreedom) {
+      if (S->myNumRows*S->row_block_size==parm->numEqu*nodes->numDegreesOfFreedom) {
            parm->row_DOF_UpperBound = nodes->numDegreesOfFreedom;
 #else
-      if (S->num_rows*S->row_block_size==parm->numEqu*nodes->degreeOfFreedomDistribution->numLocal) {
+      if (S->myNumRows*S->row_block_size==parm->numEqu*nodes->degreeOfFreedomDistribution->numLocal) {
            parm->row_DOF_UpperBound = nodes->degreeOfFreedomDistribution->numLocal;
 #endif
            parm->row_DOF=nodes->degreeOfFreedom;
@@ -86,10 +86,10 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
            parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
       } 
 #ifndef PASO_MPI
-      else if (S->num_rows*S->row_block_size==parm->numEqu*nodes->reducedNumDegreesOfFreedom) {
+      else if (S->myNumRows*S->row_block_size==parm->numEqu*nodes->reducedNumDegreesOfFreedom) {
            parm->row_DOF_UpperBound = nodes->reducedNumDegreesOfFreedom;
 #else
-      else if (S->num_rows*S->row_block_size==parm->numEqu*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
+      else if (S->myNumRows*S->row_block_size==parm->numEqu*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
            parm->row_DOF_UpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
 #endif
            parm->row_DOF=nodes->reducedDegreeOfFreedom;
@@ -100,10 +100,10 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
       }
       /* Make sure # cols in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
 #ifndef PASO_MPI      
-      if (S->num_cols*S->col_block_size==parm->numComp*nodes->numDegreesOfFreedom) {
+      if (S->myNumCols*S->col_block_size==parm->numComp*nodes->numDegreesOfFreedom) {
            parm->col_DOF_UpperBound = nodes->numDegreesOfFreedom;
 #else
-      if (S->num_cols*S->col_block_size==parm->numComp*nodes->degreeOfFreedomDistribution->numLocal) {
+      if (S->myNumCols*S->col_block_size==parm->numComp*nodes->degreeOfFreedomDistribution->numLocal) {
            parm->col_DOF_UpperBound = nodes->degreeOfFreedomDistribution->numLocal;
 #endif
            parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
@@ -111,10 +111,10 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
            parm->col_node=&(parm->id[0]);
       } 
 #ifndef PASO_MPI
-      else if (S->num_cols*S->col_block_size==parm->numComp*nodes->reducedNumDegreesOfFreedom) {
+      else if (S->myNumCols*S->col_block_size==parm->numComp*nodes->reducedNumDegreesOfFreedom) {
            parm->col_DOF_UpperBound = nodes->reducedNumDegreesOfFreedom;
 #else
-      else if (S->num_cols*S->col_block_size==parm->numComp*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
+      else if (S->myNumCols*S->col_block_size==parm->numComp*nodes->reducedDegreeOfFreedomDistribution->numLocal) {
            parm->col_DOF_UpperBound = nodes->reducedDegreeOfFreedomDistribution->numLocal;
 #endif
            parm->col_DOF=nodes->reducedDegreeOfFreedom;

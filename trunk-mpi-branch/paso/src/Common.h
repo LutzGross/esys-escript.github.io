@@ -14,8 +14,6 @@
 #ifndef INC_PASO_COMMON
 #define INC_PASO_COMMON
 
-
-
 /**************************************************************/
 
 /*    Finley finite element solver: common include file       */
@@ -101,16 +99,3 @@ typedef int err_t;
 #endif
 
 #endif /* #ifndef INC_PASO_COMMON */
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:46  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

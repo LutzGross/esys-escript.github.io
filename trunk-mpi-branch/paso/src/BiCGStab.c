@@ -91,7 +91,7 @@ err_t Paso_Solver_BiCGStab(
   dim_t status = SOLVER_NO_ERROR;
 
   /* adapt original routine parameters */
-  dim_t n = A->num_cols * A-> col_block_size;;
+  dim_t n = A->myNumCols * A-> col_block_size;;
   double * resid = tolerance;
 
   /* Executable Statements */

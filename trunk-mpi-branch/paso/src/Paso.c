@@ -95,21 +95,4 @@ Paso_ErrorCodeType Paso_getErrorType(void) {
 char* Paso_getErrorMessage(void) {
    return Paso_ErrorMsg_;
 }
-
-#ifdef PASO_MPI
-/* checks that there is no error accross all processes in a communicator */
-/* NOTE : does not make guarentee consistency of error string on each process */
-bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
-{
-  int errorLocal=0, errorGlobal=0;
-
-  errorLocal = (int)Paso_noError();
-  MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_LAND, mpi_info->comm  );
-
-	// take care of the case where the error was on another processor
-	if( errorLocal && !errorGlobal )
-		Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
-  return errorGlobal;
-}
-#endif 
 /**************************************************************/
