@@ -82,8 +82,8 @@ opts.AddOptions(
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
-  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas'),
-  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas'),
+  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fPIC -Wno-unknown-pragmas'),
+  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fPIC -Wno-unknown-pragmas'),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
   ('ar_flags', 'Static library archiver flags to use', None),
@@ -230,11 +230,6 @@ try:
 except KeyError:
    pass
 
-if 'shake71' == socket.gethostname().split('.')[0]:
-  if useMPI:
-    env['CC'] = 'mpicc'
-    env['CXX'] = 'mpiCC'
-
 # mpi?
 if useMPI:
    env.Append(CPPDEFINES=['PASO_MPI',])
@@ -272,7 +267,7 @@ except KeyError:
 try:
    sys_libs = env['sys_libs']
 except KeyError:
-   sys_libs = ''
+   sys_libs = []
 
 try:
    tar_flags = env['tar_flags']

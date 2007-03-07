@@ -9,6 +9,10 @@
 
 # flag the MPI settings
 # useMPI = 'yes' 
+trilinos_path="/home/Work/trilinos-6/include"
+trilinos_lib_path="/home/Work/trilinos-6/lib"
+trilinos_libs=["aztecoo", "teuchos", "epetra"]
+
 
 # TODO: Variables named *_path should be *_include
 
@@ -16,6 +20,10 @@
 # mkl_path = '/opt/intel/mkl80.019/include'
 # mkl_lib_path ='/opt/intel/mkl80.019/lib/64'
 # mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
+
+mpi_path = '/home/Work/mpich-1.2.7p1/include'
+mpi_lib_path = '/home/Work/mpich-1.2.7p1/lib'
+mpi_libs = ['mpi']
 
 # locations of libs etc used by SCSL
 # scsl_path = '/usr/include'
@@ -39,27 +47,33 @@ doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
 epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
 epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
 
+# locations of netcdf
+netCDF_path = "/home/Work/netcdf-3.6.1/include"
+netCDF_lib_path = "/home/Work/netcdf-3.6.1/lib"
+netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
+
 # locations of PAPI
 # papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
 # papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
 # papi_libs = [ 'papi' ]
 
+# Comment all this stuff
 # c flags to use
-cc_flags  = '-O -fPIC'
-cc_flags_debug  = '-g -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+# cc_flags  = '-O -fPIC'
+# cc_flags_debug  = '-g -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
 
 # c++ flags to use
-cxx_flags = '-fPIC'
-cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+# cxx_flags = '-fPIC'
+# cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
   	
 # c and c++ flags for MPI compilation
 # c flags to use
-cc_flags_MPI  = '-O -DPASO_MPI -fPIC'
-cc_flags_debug_MPI  = '-g -DPASO_MPI -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+# cc_flags_MPI  = '-O -DPASO_MPI -fPIC'
+# cc_flags_debug_MPI  = '-g -DPASO_MPI -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
 
 # c++ flags to use
-cxx_flags_MPI = '-fPIC'
-cxx_flags_debug_MPI = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
+# cxx_flags_MPI = '-fPIC'
+# cxx_flags_debug_MPI = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
 
 # system specific libraries to link with
-sys_libs = []
+# sys_libs = []
