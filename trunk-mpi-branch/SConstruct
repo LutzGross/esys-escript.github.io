@@ -138,7 +138,7 @@ opts.AddOptions(
   BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
   PathOption('mpi_path', 'Path to MPI includes', '/usr/include'),
   PathOption('mpi_lib_path', 'Path to MPI libs','/usr/lib'),
-  ('mpi_libs', 'MPI libraries to link with', [ 'a', 'b' ]),
+  ('mpi_libs', 'MPI libraries to link with', [ 'mpich' ]),
 )
 
 # Initialise Scons Build Environment
@@ -449,7 +449,7 @@ try:
 except KeyError:
    pass
 try:
-   python_libs = env['python_lib']
+   python_libs = env['python_libs']
 except KeyError:
    python_libs = []
 

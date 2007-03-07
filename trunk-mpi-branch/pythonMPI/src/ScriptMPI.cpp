@@ -4,8 +4,7 @@
 #include <stdexcept>
 
 extern "C"{
-#include "paso/Paso.h"
-#include "finley/Finley.h"
+#include "paso/Paso_MPI.h"
 }
 #ifdef PASO_MPI
 

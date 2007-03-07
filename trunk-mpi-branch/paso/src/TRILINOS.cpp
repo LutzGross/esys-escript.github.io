@@ -65,8 +65,10 @@ extern "C" {
 
 class ESCRIPT_DLL_API TrilinosData {
 
+  #ifdef TRILINOS
     Epetra_Map *epetra_map;
     Epetra_CrsMatrix *epetra_crs_matrix;
+  #endif
 
   public:
 
@@ -87,8 +89,10 @@ class ESCRIPT_DLL_API TrilinosData {
   }
 
   ~TrilinosData() {
+    #ifdef TRILINOS
       delete &epetra_map;
       delete &epetra_crs_matrix;
+    #endif
   }
 
   void SumIntoMyValues(int row, int num, double *value, int *col) {

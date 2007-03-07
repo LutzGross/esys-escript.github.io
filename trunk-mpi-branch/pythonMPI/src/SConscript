@@ -11,24 +11,10 @@ if useMPI:
 	sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 	headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
-	if mkl_libs:
-		 local_env.Append(CPPDEFINES=['MKL',])
-		 local_env.Append(LIBS = mkl_libs)
-	if scsl_libs:
-		 local_env.Append(CPPDEFINES=['SCSL',])
-		 local_env.Append(LIBS = scsl_libs)
-	if umfpack_libs:
-		 local_env.Append(CPPDEFINES=['UMFPACK',])
-		 local_env.Append(LIBS = umfpack_libs)
-	if trilinos_libs:
-		 local_env.Append(CPPDEFINES=['TRILINOS',])
-		 local_env.Append(LIBS = trilinos_libs)
-	if papi_libs:
-		 local_env.Append(CPPDEFINES=['PAPI',])
-		 local_env.Append(LIBS = papi_libs)
-
-        local_env.Append(LIBS = python_libs+blas_libs)
-	local_env.Append(LIBS = [ "paso", "finley", "lapack", "gfortran"])
+        if mpi_libs:
+               local_env.Append(CPPDEFINES=['MKL',])
+               local_env.Append(LIBS = mpi_libs)
+        local_env.Append(LIBS = [ "paso" ] + mpi_libs + python_libs)
 	lib_name = 'pythonMPI'
 
 ## changed

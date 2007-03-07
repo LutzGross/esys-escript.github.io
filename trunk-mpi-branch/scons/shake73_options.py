@@ -9,9 +9,9 @@
 
 # flag the MPI settings
 # useMPI = 'yes' 
-trilinos_path="/usr/local/trilinos-6/include"
-trilinos_lib_path="/usr/local/trilinos-6/lib"
-trilinos_libs=["aztecoo", "teuchos", "epetra"]
+# trilinos_path="/usr/local/trilinos-6/include"
+# trilinos_lib_path="/usr/local/trilinos-6/lib"
+# trilinos_libs=["aztecoo", "teuchos", "epetra"]
 
 
 # TODO: Variables named *_path should be *_include
