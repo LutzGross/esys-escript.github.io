@@ -27,9 +27,7 @@
 
 /**************************************************************/
 
-#ifdef PASO_MPI
-#include <mpi.h>
-#endif
+#include "mpi_C.h"
 #include "Paso.h"
 #include "PasoUtil.h"
 #include "SystemMatrixPattern.h"

@@ -28,7 +28,7 @@
 #include <omp.h>
 #else
 #ifdef PASO_MPI
-
+#include "mpi_C.h"
 #else
 #include <time.h>
 #endif

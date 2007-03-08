@@ -29,10 +29,7 @@ extern "C" {
 /* #include "paso/Paso.h" doesn't belong in this file...causes trouble for BruceFactory.cpp */
 }
 
-#ifndef PASO_MPI
-#define MPI_Comm long
-#endif
-
+#include "esysmpi.h"
 #include <string>
 #include <algorithm>
 

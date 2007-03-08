@@ -16,9 +16,6 @@
 
 #include "esysUtils/EsysAssert.h"
 
-#ifdef PASO_MPI
-#include <mpi.h>
-#endif
 #include <vector>
 #include <iostream>
 #include <fstream>

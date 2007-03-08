@@ -35,18 +35,18 @@ extern "C" {
 }
 
 #ifdef TRILINOS
-#include "Epetra_ConfigDefs.h"
-#ifdef PASO_MPI
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#else
-#include "Epetra_SerialComm.h"
-#endif
-#include "Epetra_Map.h"
-#include "Epetra_SerialDenseVector.h"
-#include "Epetra_Vector.h"
-#include "Epetra_CrsMatrix.h"
-#include "Epetra_IntSerialDenseVector.h"
+  #include "Epetra_ConfigDefs.h"
+  #ifdef PASO_MPI
+    #include "mpi.h"
+    #include "Epetra_MpiComm.h"
+  #else
+    #include "Epetra_SerialComm.h"
+  #endif
+  #include "Epetra_Map.h"
+  #include "Epetra_SerialDenseVector.h"
+  #include "Epetra_Vector.h"
+  #include "Epetra_CrsMatrix.h"
+  #include "Epetra_IntSerialDenseVector.h"
 #endif
 
 

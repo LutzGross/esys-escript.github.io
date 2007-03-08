@@ -136,8 +136,9 @@ opts.AddOptions(
   ('papi_libs', 'PAPI libraries to link with', None),
 # MPI
   BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
-  PathOption('mpi_path', 'Path to MPI includes', '/usr/include'),
-  PathOption('mpi_lib_path', 'Path to MPI libs','/usr/lib'),
+  ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
+  PathOption('mpi_path', 'Path to MPI includes', '/usr/local/include'),
+  PathOption('mpi_lib_path', 'Path to MPI libs','/usr/local/lib'),
   ('mpi_libs', 'MPI libraries to link with', [ 'mpich' ]),
 )
 
@@ -469,7 +470,14 @@ if useMPI:
       mpi_libs = env['mpi_libs']
    except KeyError:
       mpi_libs = []
+   try:
+       mpich_ignore_cxx_seek=env['MPICH_IGNORE_CXX_SEEK']
+       env.Append(CPPDEFINES = [ mpich_ignore_cxx_seek ] )
+   except KeyError:
+      pass
+   
 else:
+  
   mpi_libs=[]
 # ============= set papi =====================================
 try:

@@ -23,6 +23,7 @@
 /**************************************************************/
 
 #include "Paso.h"
+#include "Distribution.h"
 #include "PasoUtil.h"
 #include "SystemMatrixPattern.h"
 
