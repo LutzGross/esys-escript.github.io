@@ -162,8 +162,8 @@ void Paso_SystemMatrix_dealloc(Paso_SystemMatrix* in) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
         Paso_SystemMatrixPattern_dealloc(in->pattern);
-        Paso_Distribution_dealloc(in->row_distribution);
-        Paso_Distribution_dealloc(in->col_distribution);
+        Paso_Distribution_free(in->row_distribution);
+        Paso_Distribution_free(in->col_distribution);
         Paso_MPIInfo_dealloc(in->mpi_info);
         MEMFREE(in->val);
         MEMFREE(in->normalizer);

@@ -86,10 +86,10 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
      out=Paso_SystemMatrixPattern_alloc(type,output_dist,input_dist,ptr,index);
   }  
   if (! Paso_noError()) {
-     Paso_Distribution_dealloc(input_dist);
-     Paso_Distribution_dealloc(output_dist);
      MEMFREE(index);
      MEMFREE(ptr);
   }
+  Paso_Distribution_free(input_dist);
+  Paso_Distribution_free(output_dist);
   return out;
 }

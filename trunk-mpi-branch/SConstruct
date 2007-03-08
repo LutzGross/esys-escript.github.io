@@ -87,7 +87,7 @@ opts.AddOptions(
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
   ('ar_flags', 'Static library archiver flags to use', None),
-  ('sys_libs', 'System libraries to link with', None),
+  ('sys_libs', 'System libraries to link with', [ 'pthread' , 'rt' ] ),
   ('tar_flags','flags for zip files','-c -z'),
 # MKL
   PathOption('mkl_path', 'Path to MKL includes', None),
@@ -138,8 +138,8 @@ opts.AddOptions(
   BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
   PathOption('mpi_path', 'Path to MPI includes', '/usr/local/include'),
-  PathOption('mpi_lib_path', 'Path to MPI libs','/usr/local/lib'),
-  ('mpi_libs', 'MPI libraries to link with', [ 'mpich' ]),
+  PathOption('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)','/usr/local/lib'),
+  ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', [ 'mpich' ]),
 )
 
 # Initialise Scons Build Environment

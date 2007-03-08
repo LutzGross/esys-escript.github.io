@@ -49,7 +49,7 @@ typedef struct Paso_Distribution Paso_Distribution;
 ***************************************/
 
 Paso_Distribution*  Paso_Distribution_alloc( Paso_MPIInfo *mpi_info, index_t* first_component, index_t m, index_t b);
-void                Paso_Distribution_dealloc( Paso_Distribution *in );
+void                Paso_Distribution_free( Paso_Distribution *in );
 Paso_Distribution*  Paso_Distribution_getReference( Paso_Distribution *in );
 
 #endif
