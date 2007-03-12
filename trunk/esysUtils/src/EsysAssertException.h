@@ -52,6 +52,9 @@ class EsysAssertException:public EsysException {
   */
   EsysAssertException(const std::string &str) : EsysException(str) {}
 
+  /// Destructor
+  virtual ~EsysAssertException() throw();
+
   /**
      \brief
      Returns the name of the exception.

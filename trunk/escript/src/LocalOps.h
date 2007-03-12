@@ -14,10 +14,12 @@
 #if !defined escript_LocalOps_H
 #define escript_LocalOps_H
 #ifdef __INTEL_COMPILER
-#include <mathimf.h>
-# define M_PI           3.14159265358979323846  /* pi */
+#   include <mathimf.h>
 #else
-#include <math.h>
+#   include <math.h>
+#endif
+#ifndef M_PI
+#   define M_PI           3.14159265358979323846  /* pi */
 #endif
 
 namespace escript {

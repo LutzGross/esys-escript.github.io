@@ -1154,7 +1154,7 @@ class Simulation(Model):
             if isinstance(n, minidom.Text):
                 continue
             sims.append(esysxml.getComponent(n))
-        sims.sort(cmp=_comp)
+        sims.sort(_comp)
         sim=cls([s[1] for s in sims], debug=esysxml.debug)
         esysxml.registerLinkableObject(sim, node)
         return sim
