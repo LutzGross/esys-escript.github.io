@@ -53,6 +53,10 @@ class BruceException : public esysUtils::EsysException {
   BRUCE_DLL_API
   BruceException(const std::string &str) : EsysException(str) {}
 
+  /// Destructor
+  BRUCE_DLL_API
+  virtual ~BruceException() throw();
+
   /**
      \brief
      Returns the name of the exception.

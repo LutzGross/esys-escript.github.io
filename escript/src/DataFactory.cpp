@@ -175,26 +175,39 @@ load(const std::string fileName,
    } else if (type == 1) { 
       /* tagged data */
       if ( ! (ndims == rank + 1) )
-          throw DataException("Error - load:: illegal number of dimensions for tagged data in netCDF file.");
+         throw DataException("Error - load:: illegal number of dimensions for tagged data in netCDF file.");
       if (! (tags_dim=dataFile.get_dim("num_tags")) )
-          throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
+         throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
       ntags=tags_dim->size();
       dims[rank]=ntags;
-      int tags[ntags];
+      int *tags = (int *) malloc(ntags*sizeof(int));
       if (! ( tags_var = dataFile.get_var("tags")) )
+      {
+         free(tags);
          throw DataException("Error - load:: unable to find tags in netCDF file.");
+      }
       if (! tags_var->get(tags, ntags) ) 
-              throw DataException("Error - load:: unable to recover tags from netCDF file.");
+      {
+         free(tags);
+         throw DataException("Error - load:: unable to recover tags from netCDF file.");
+      }
 
       DataVector data(len_data_point*ntags,0.,len_data_point*ntags);
       if (!(var = dataFile.get_var("data")))
-              throw DataException("Error - load:: unable to find data in netCDF file.");
+      {
+         free(tags);
+         throw DataException("Error - load:: unable to find data in netCDF file.");
+      }
       if (! var->get(&(data[0]), dims) ) 
-              throw DataException("Error - load:: unable to recover data from netCDF file.");
+      {
+         free(tags);
+         throw DataException("Error - load:: unable to recover data from netCDF file.");
+      }
       out=Data(DataArrayView(data,shape,0),function_space);
       for (int t=1; t<ntags; ++t) {
          out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
       }
+      free(tags);
    } else if (type == 2) {
       /* expanded data */
       if ( ! (ndims == rank + 2) )
@@ -212,9 +225,12 @@ load(const std::string fileName,
       if (! ( ids_var = dataFile.get_var("id")) )
          throw DataException("Error - load:: unable to find reference ids in netCDF file.");
       const int* ids_p=function_space.borrowSampleReferenceIDs();
-      int ids_of_nc[num_samples];
+      int *ids_of_nc = (int *)malloc(num_samples*sizeof(int));
       if (! ids_var->get(ids_of_nc, (long) num_samples) ) 
-              throw DataException("Error - load:: unable to recover ids from netCDF file.");
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: unable to recover ids from netCDF file.");
+      }
       // check order:
       int failed=-1, local_failed=-1, i;
       #pragma omp parallel private(local_failed)
@@ -228,17 +244,27 @@ load(const std::string fileName,
           if (local_failed>=0) failed = local_failed;
       }
       if (failed>=0) 
-          throw DataException("Error - load:: data ordering in netCDF file does not match ordering of FunctionSpace.");
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: data ordering in netCDF file does not match ordering of FunctionSpace.");
+      }
       // get the data:
       dims[rank]=num_data_points_per_sample;
       dims[rank+1]=num_samples;
       out=Data(0,shape,function_space,true);
       if (!(var = dataFile.get_var("data")))
-              throw DataException("Error - load:: unable to find data in netCDF file.");
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: unable to find data in netCDF file.");
+      }
       if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
-              throw DataException("Error - load:: unable to recover data from netCDF file.");
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: unable to recover data from netCDF file.");
+      }
       // if (failed==-1)
       //   out->m_data.reorderByReferenceIDs(ids_of_nc)
+      free(ids_of_nc);
    } else {
        throw DataException("Error - load:: unknown escript data type in netCDF file.");
    }

@@ -49,6 +49,10 @@ class SystemMatrixException : public esysUtils::EsysException {
   */
   ESCRIPT_DLL_API
   SystemMatrixException(const std::string &str) : EsysException(str) {}
+
+  /// Destructor
+  ESCRIPT_DLL_API
+  virtual ~SystemMatrixException() throw();
   /**
      \brief
      Returns the name of the exception.

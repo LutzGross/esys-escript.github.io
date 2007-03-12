@@ -49,6 +49,10 @@ class DomainException:public esysUtils::EsysException {
   */
   ESCRIPT_DLL_API
   DomainException(const std::string &str) : EsysException(str) {}
+
+  /// Destructor
+  ESCRIPT_DLL_API
+  virtual ~DomainException() throw();
   /**
      \brief
      Returns the name of the exception.
