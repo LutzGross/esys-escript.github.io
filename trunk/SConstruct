@@ -62,6 +62,7 @@ else:
       else:
          hostname+="_"
    options_file = "scons/"+hostname+"_options.py"
+   print options_file
 
 opts = Options(options_file, ARGUMENTS)
 opts.AddOptions(

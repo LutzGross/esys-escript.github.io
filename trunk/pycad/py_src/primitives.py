@@ -75,17 +75,19 @@ class PrimitiveBase(object):
         """
         returns the points used to construct the primitive
         """
-        out=set()
+        out=[]
         for i in self.getPrimitives(): 
-           if isinstance(i,Point): out.add(i)
-        return list(out)
+           if isinstance(i,Point): out.append(i)
+        return out
 
     def getPrimitives(self):
         """
         returns a list of primitives used to construct the primitive with no double entries
         """
-        out=set()
-        return list(set([p for p in self.collectPrimitiveBases()]))
+        out=[]
+        for p in self.collectPrimitiveBases():
+		if not p  in out: out.append(p)
+        return out
 
     def copy(self):
        """
