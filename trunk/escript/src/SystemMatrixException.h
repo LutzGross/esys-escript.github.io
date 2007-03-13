@@ -52,7 +52,7 @@ class SystemMatrixException : public esysUtils::EsysException {
 
   /// Destructor
   ESCRIPT_DLL_API
-  virtual ~SystemMatrixException() throw();
+  virtual ~SystemMatrixException() throw() {}
   /**
      \brief
      Returns the name of the exception.

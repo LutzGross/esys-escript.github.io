@@ -52,7 +52,7 @@ class FinleyAdapterException:public esysUtils::EsysException {
 
   /// Destructor
   FINLEY_DLL_API
-  virtual ~FinleyAdapterException() throw();
+  virtual ~FinleyAdapterException() throw() {}
   /**
      \brief
      Returns the name of the exception.

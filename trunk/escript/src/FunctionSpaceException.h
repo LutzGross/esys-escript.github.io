@@ -51,7 +51,7 @@ class FunctionSpaceException:public esysUtils::EsysException {
 
   /// Destructor
   ESCRIPT_DLL_API
-  virtual ~FunctionSpaceException() throw();
+  virtual ~FunctionSpaceException() throw() {}
   /**
      \brief
      Returns the name of the exception.
