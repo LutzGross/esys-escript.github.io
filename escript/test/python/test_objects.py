@@ -59,541 +59,607 @@ class Test_Dump(unittest.TestCase):
 
    #===========================================================================
    def test_DumpAndLoad_Constant_Solution_Rank0(self):
-       file=os.path.join(self.filebase,"constant_solution_rank0.nc")
-       d=Data(self.arg0,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_solution_rank0.nc")
+          d=Data(self.arg0,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Solution_Rank1(self):
-       file=os.path.join(self.filebase,"constant_solution_rank1.nc")
-       d=Data(self.arg1,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_solution_rank1.nc")
+          d=Data(self.arg1,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Solution_Rank2(self):
-       file=os.path.join(self.filebase,"constant_solution_rank2.nc")
-       d=Data(self.arg2,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_solution_rank2.nc")
+          d=Data(self.arg2,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Solution_Rank3(self):
-       file=os.path.join(self.filebase,"constant_solution_rank3.nc")
-       d=Data(self.arg3,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_solution_rank3.nc")
+          d=Data(self.arg3,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Solution_Rank4(self):
-       file=os.path.join(self.filebase,"constant_solution_rank4.nc")
-       d=Data(self.arg4,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_solution_rank4.nc")
+          d=Data(self.arg4,Solution(self.domain))
+          self._diffDataObjects(d,file)
    #===========================================================================
    def test_DumpAndLoad_Constant_ReducedSolution_Rank0(self):
-       file=os.path.join(self.filebase,"constant_reduced_solution_rank0.nc")
-       d=Data(self.arg0,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_solution_rank0.nc")
+          d=Data(self.arg0,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ReducedSolution_Rank1(self):
-       file=os.path.join(self.filebase,"constant_reduced_solution_rank1.nc")
-       d=Data(self.arg1,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_solution_rank1.nc")
+          d=Data(self.arg1,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ReducedSolution_Rank2(self):
-       file=os.path.join(self.filebase,"constant_reduced_solution_rank2.nc")
-       d=Data(self.arg2,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_solution_rank2.nc")
+          d=Data(self.arg2,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ReducedSolution_Rank3(self):
-       file=os.path.join(self.filebase,"constant_reduced_solution_rank3.nc")
-       d=Data(self.arg3,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_solution_rank3.nc")
+          d=Data(self.arg3,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ReducedSolution_Rank4(self):
-       file=os.path.join(self.filebase,"constant_reduced_solution_rank4.nc")
-       d=Data(self.arg4,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_solution_rank4.nc")
+          d=Data(self.arg4,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
    #===========================================================================
    def test_DumpAndLoad_Constant_ContinuousFunction_Rank0(self):
-       file=os.path.join(self.filebase,"constant_continuous_function_rank0.nc")
-       d=Data(self.arg0,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_continuous_function_rank0.nc")
+          d=Data(self.arg0,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ContinuousFunction_Rank1(self):
-       file=os.path.join(self.filebase,"constant_continuous_function_rank1.nc")
-       d=Data(self.arg1,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_continuous_function_rank1.nc")
+          d=Data(self.arg1,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ContinuousFunction_Rank2(self):
-       file=os.path.join(self.filebase,"constant_continuous_function_rank2.nc")
-       d=Data(self.arg2,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_continuous_function_rank2.nc")
+          d=Data(self.arg2,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ContinuousFunction_Rank3(self):
-       file=os.path.join(self.filebase,"constant_continuous_function_rank3.nc")
-       d=Data(self.arg3,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_continuous_function_rank3.nc")
+          d=Data(self.arg3,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_ContinuousFunction_Rank4(self):
-       file=os.path.join(self.filebase,"constant_continuous_function_rank4.nc")
-       d=Data(self.arg4,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_continuous_function_rank4.nc")
+          d=Data(self.arg4,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Constant_Function_Rank0(self):
-       file=os.path.join(self.filebase,"constant_function_rank0.nc")
-       d=Data(self.arg0,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_rank0.nc")
+          d=Data(self.arg0,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Function_Rank1(self):
-       file=os.path.join(self.filebase,"constant_function_rank1.nc")
-       d=Data(self.arg1,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_rank1.nc")
+          d=Data(self.arg1,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Function_Rank2(self):
-       file=os.path.join(self.filebase,"constant_function_rank2.nc")
-       d=Data(self.arg2,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_rank2.nc")
+          d=Data(self.arg2,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Function_Rank3(self):
-       file=os.path.join(self.filebase,"constant_function_rank3.nc")
-       d=Data(self.arg3,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_rank3.nc")
+          d=Data(self.arg3,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_Function_Rank4(self):
-       file=os.path.join(self.filebase,"constant_function_rank4.nc")
-       d=Data(self.arg4,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_rank4.nc")
+          d=Data(self.arg4,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank0(self):
-       file=os.path.join(self.filebase,"constant_function_on_boundary_rank0.nc")
-       d=Data(self.arg0,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_on_boundary_rank0.nc")
+          d=Data(self.arg0,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank1(self):
-       file=os.path.join(self.filebase,"constant_function_on_boundary_rank1.nc")
-       d=Data(self.arg1,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_on_boundary_rank1.nc")
+          d=Data(self.arg1,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank2(self):
-       file=os.path.join(self.filebase,"constant_function_on_boundary_rank2.nc")
-       d=Data(self.arg2,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_on_boundary_rank2.nc")
+          d=Data(self.arg2,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank3(self):
-       file=os.path.join(self.filebase,"constant_function_on_boundary_rank3.nc")
-       d=Data(self.arg3,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_on_boundary_rank3.nc")
+          d=Data(self.arg3,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank4(self):
-       file=os.path.join(self.filebase,"constant_function_on_boundary_rank4.nc")
-       d=Data(self.arg4,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_function_on_boundary_rank4.nc")
+          d=Data(self.arg4,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Expanded_Solution_Rank0(self):
-       file=os.path.join(self.filebase,"expanded_solution_rank0.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Solution(self.domain).getX())*self.arg0,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_solution_rank0.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Solution(self.domain).getX())*self.arg0,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Solution_Rank1(self):
-       file=os.path.join(self.filebase,"expanded_solution_rank1.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Solution(self.domain).getX())*self.arg1,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_solution_rank1.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Solution(self.domain).getX())*self.arg1,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Solution_Rank2(self):
-       file=os.path.join(self.filebase,"expanded_solution_rank2.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Solution(self.domain).getX())*self.arg2,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_solution_rank2.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Solution(self.domain).getX())*self.arg2,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Solution_Rank3(self):
-       file=os.path.join(self.filebase,"expanded_solution_rank3.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Solution(self.domain).getX())*self.arg3,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_solution_rank3.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Solution(self.domain).getX())*self.arg3,Solution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Solution_Rank4(self):
-       file=os.path.join(self.filebase,"expanded_solution_rank4.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Solution(self.domain).getX())*self.arg4,Solution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_solution_rank4.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Solution(self.domain).getX())*self.arg4,Solution(self.domain))
+          self._diffDataObjects(d,file)
    #===========================================================================
    def test_DumpAndLoad_Expanded_ReducedSolution_Rank0(self):
-       file=os.path.join(self.filebase,"expanded_reduced_solution_rank0.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ReducedSolution(self.domain).getX())*self.arg0,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_solution_rank0.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedSolution(self.domain).getX())*self.arg0,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ReducedSolution_Rank1(self):
-       file=os.path.join(self.filebase,"expanded_reduced_solution_rank1.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ReducedSolution(self.domain).getX())*self.arg1,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_solution_rank1.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedSolution(self.domain).getX())*self.arg1,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ReducedSolution_Rank2(self):
-       file=os.path.join(self.filebase,"expanded_reduced_solution_rank2.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ReducedSolution(self.domain).getX())*self.arg2,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_solution_rank2.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedSolution(self.domain).getX())*self.arg2,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ReducedSolution_Rank3(self):
-       file=os.path.join(self.filebase,"expanded_reduced_solution_rank3.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ReducedSolution(self.domain).getX())*self.arg3,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_solution_rank3.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedSolution(self.domain).getX())*self.arg3,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ReducedSolution_Rank4(self):
-       file=os.path.join(self.filebase,"expanded_reduced_solution_rank4.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ReducedSolution(self.domain).getX())*self.arg4,ReducedSolution(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_solution_rank4.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedSolution(self.domain).getX())*self.arg4,ReducedSolution(self.domain))
+          self._diffDataObjects(d,file)
    #===========================================================================
    def test_DumpAndLoad_Expanded_ContinuousFunction_Rank0(self):
-       file=os.path.join(self.filebase,"expanded_continuous_function_rank0.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ContinuousFunction(self.domain).getX())*self.arg0,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_continuous_function_rank0.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ContinuousFunction(self.domain).getX())*self.arg0,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ContinuousFunction_Rank1(self):
-       file=os.path.join(self.filebase,"expanded_continuous_function_rank1.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ContinuousFunction(self.domain).getX())*self.arg1,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_continuous_function_rank1.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ContinuousFunction(self.domain).getX())*self.arg1,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ContinuousFunction_Rank2(self):
-       file=os.path.join(self.filebase,"expanded_continuous_function_rank2.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ContinuousFunction(self.domain).getX())*self.arg2,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_continuous_function_rank2.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ContinuousFunction(self.domain).getX())*self.arg2,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ContinuousFunction_Rank3(self):
-       file=os.path.join(self.filebase,"expanded_continuous_function_rank3.nc")
-       d=Data(length(ContinuousFunction(self.domain).getX())*self.arg3,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_continuous_function_rank3.nc")
+          d=Data(length(ContinuousFunction(self.domain).getX())*self.arg3,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_ContinuousFunction_Rank4(self):
-       file=os.path.join(self.filebase,"expanded_continuous_function_rank4.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(ContinuousFunction(self.domain).getX())*self.arg4,ContinuousFunction(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_continuous_function_rank4.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ContinuousFunction(self.domain).getX())*self.arg4,ContinuousFunction(self.domain))
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Expanded_Function_Rank0(self):
-       file=os.path.join(self.filebase,"expanded_function_rank0.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Function(self.domain).getX())*self.arg0,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_rank0.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Function(self.domain).getX())*self.arg0,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Function_Rank1(self):
-       file=os.path.join(self.filebase,"expanded_function_rank1.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Function(self.domain).getX())*self.arg1,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_rank1.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Function(self.domain).getX())*self.arg1,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Function_Rank2(self):
-       file=os.path.join(self.filebase,"expanded_function_rank2.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Function(self.domain).getX())*self.arg2,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_rank2.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Function(self.domain).getX())*self.arg2,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Function_Rank3(self):
-       file=os.path.join(self.filebase,"expanded_function_rank3.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Function(self.domain).getX())*self.arg3,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_rank3.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Function(self.domain).getX())*self.arg3,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_Function_Rank4(self):
-       file=os.path.join(self.filebase,"expanded_function_rank4.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(Function(self.domain).getX())*self.arg4,Function(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_rank4.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(Function(self.domain).getX())*self.arg4,Function(self.domain))
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank0(self):
-       file=os.path.join(self.filebase,"expanded_function_on_boundary_rank0.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg0,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_on_boundary_rank0.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg0,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank1(self):
-       file=os.path.join(self.filebase,"expanded_function_on_boundary_rank1.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg1,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_on_boundary_rank1.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg1,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank2(self):
-       file=os.path.join(self.filebase,"expanded_function_on_boundary_rank2.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg2,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_on_boundary_rank2.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg2,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank3(self):
-       file=os.path.join(self.filebase,"expanded_function_on_boundary_rank3.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg3,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_on_boundary_rank3.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg3,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank4(self):
-       file=os.path.join(self.filebase,"expanded_function_on_boundary_rank4.nc")
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
-       self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
-       d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg4,FunctionOnBoundary(self.domain))
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_function_on_boundary_rank4.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg4,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Tagged_Solution_Rank0(self):
-       file=os.path.join(self.filebase,"tagged_solution_rank0.nc")
-       d=Data(self.arg0,Solution(self.domain))
-       d.setTaggedValue(1,self.arg0*2)
-       d.setTaggedValue(10,self.arg0*3)
-       d.setTaggedValue(100,self.arg0*4)
-       self._diffDataObjects(d,file)
-
-   #===========================================================================
-   def test_DumpAndLoad_Tagged_Solution_Rank0(self):
-       file=os.path.join(self.filebase,"tagged_solution_rank0.nc")
-       d=Data(self.arg0,Solution(self.domain))
-       d.setTaggedValue(1,self.arg0*2)
-       d.setTaggedValue(10,self.arg0*3)
-       d.setTaggedValue(100,self.arg0*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_solution_rank0.nc")
+          d=Data(self.arg0,Solution(self.domain))
+          d.setTaggedValue(1,self.arg0*2)
+          d.setTaggedValue(10,self.arg0*3)
+          d.setTaggedValue(100,self.arg0*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Solution_Rank1(self):
-       file=os.path.join(self.filebase,"tagged_solution_rank1.nc")
-       d=Data(self.arg1,Solution(self.domain))
-       d.setTaggedValue(1,self.arg1*2)
-       d.setTaggedValue(10,self.arg1*3)
-       d.setTaggedValue(100,self.arg1*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_solution_rank1.nc")
+          d=Data(self.arg1,Solution(self.domain))
+          d.setTaggedValue(1,self.arg1*2)
+          d.setTaggedValue(10,self.arg1*3)
+          d.setTaggedValue(100,self.arg1*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Solution_Rank2(self):
-       file=os.path.join(self.filebase,"tagged_solution_rank2.nc")
-       d=Data(self.arg2,Solution(self.domain))
-       d.setTaggedValue(1,self.arg2*2)
-       d.setTaggedValue(10,self.arg2*3)
-       d.setTaggedValue(100,self.arg2*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_solution_rank2.nc")
+          d=Data(self.arg2,Solution(self.domain))
+          d.setTaggedValue(1,self.arg2*2)
+          d.setTaggedValue(10,self.arg2*3)
+          d.setTaggedValue(100,self.arg2*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Solution_Rank3(self):
-       file=os.path.join(self.filebase,"tagged_solution_rank3.nc")
-       d=Data(self.arg3,Solution(self.domain))
-       d.setTaggedValue(1,self.arg3*2)
-       d.setTaggedValue(10,self.arg3*3)
-       d.setTaggedValue(100,self.arg3*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_solution_rank3.nc")
+          d=Data(self.arg3,Solution(self.domain))
+          d.setTaggedValue(1,self.arg3*2)
+          d.setTaggedValue(10,self.arg3*3)
+          d.setTaggedValue(100,self.arg3*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Solution_Rank4(self):
-       file=os.path.join(self.filebase,"tagged_solution_rank4.nc")
-       d=Data(self.arg4,Solution(self.domain))
-       d.setTaggedValue(1,self.arg4*2)
-       d.setTaggedValue(10,self.arg4*3)
-       d.setTaggedValue(100,self.arg4*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_solution_rank4.nc")
+          d=Data(self.arg4,Solution(self.domain))
+          d.setTaggedValue(1,self.arg4*2)
+          d.setTaggedValue(10,self.arg4*3)
+          d.setTaggedValue(100,self.arg4*4)
+          self._diffDataObjects(d,file)
    #===========================================================================
    def test_DumpAndLoad_Tagged_ReducedSolution_Rank0(self):
-       file=os.path.join(self.filebase,"tagged_reduced_solution_rank0.nc")
-       d=Data(self.arg0,ReducedSolution(self.domain))
-       d.setTaggedValue(1,self.arg0*2)
-       d.setTaggedValue(10,self.arg0*3)
-       d.setTaggedValue(100,self.arg0*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_solution_rank0.nc")
+          d=Data(self.arg0,ReducedSolution(self.domain))
+          d.setTaggedValue(1,self.arg0*2)
+          d.setTaggedValue(10,self.arg0*3)
+          d.setTaggedValue(100,self.arg0*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ReducedSolution_Rank1(self):
-       file=os.path.join(self.filebase,"tagged_reduced_solution_rank1.nc")
-       d=Data(self.arg1,ReducedSolution(self.domain))
-       d.setTaggedValue(1,self.arg1*2)
-       d.setTaggedValue(10,self.arg1*3)
-       d.setTaggedValue(100,self.arg1*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_solution_rank1.nc")
+          d=Data(self.arg1,ReducedSolution(self.domain))
+          d.setTaggedValue(1,self.arg1*2)
+          d.setTaggedValue(10,self.arg1*3)
+          d.setTaggedValue(100,self.arg1*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ReducedSolution_Rank2(self):
-       file=os.path.join(self.filebase,"tagged_reduced_solution_rank2.nc")
-       d=Data(self.arg2,ReducedSolution(self.domain))
-       d.setTaggedValue(1,self.arg2*2)
-       d.setTaggedValue(10,self.arg2*3)
-       d.setTaggedValue(100,self.arg2*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_solution_rank2.nc")
+          d=Data(self.arg2,ReducedSolution(self.domain))
+          d.setTaggedValue(1,self.arg2*2)
+          d.setTaggedValue(10,self.arg2*3)
+          d.setTaggedValue(100,self.arg2*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ReducedSolution_Rank3(self):
-       file=os.path.join(self.filebase,"tagged_reduced_solution_rank3.nc")
-       d=Data(self.arg3,ReducedSolution(self.domain))
-       d.setTaggedValue(1,self.arg3*2)
-       d.setTaggedValue(10,self.arg3*3)
-       d.setTaggedValue(100,self.arg3*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_solution_rank3.nc")
+          d=Data(self.arg3,ReducedSolution(self.domain))
+          d.setTaggedValue(1,self.arg3*2)
+          d.setTaggedValue(10,self.arg3*3)
+          d.setTaggedValue(100,self.arg3*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ReducedSolution_Rank4(self):
-       file=os.path.join(self.filebase,"tagged_reduced_solution_rank4.nc")
-       d=Data(self.arg4,ReducedSolution(self.domain))
-       d.setTaggedValue(1,self.arg4*2)
-       d.setTaggedValue(10,self.arg4*3)
-       d.setTaggedValue(100,self.arg4*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_solution_rank4.nc")
+          d=Data(self.arg4,ReducedSolution(self.domain))
+          d.setTaggedValue(1,self.arg4*2)
+          d.setTaggedValue(10,self.arg4*3)
+          d.setTaggedValue(100,self.arg4*4)
+          self._diffDataObjects(d,file)
    #===========================================================================
    def test_DumpAndLoad_Tagged_ContinuousFunction_Rank0(self):
-       file=os.path.join(self.filebase,"tagged_continuous_function_rank0.nc")
-       d=Data(self.arg0,ContinuousFunction(self.domain))
-       d.setTaggedValue(1,self.arg0*2)
-       d.setTaggedValue(10,self.arg0*3)
-       d.setTaggedValue(100,self.arg0*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_continuous_function_rank0.nc")
+          d=Data(self.arg0,ContinuousFunction(self.domain))
+          d.setTaggedValue(1,self.arg0*2)
+          d.setTaggedValue(10,self.arg0*3)
+          d.setTaggedValue(100,self.arg0*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ContinuousFunction_Rank1(self):
-       file=os.path.join(self.filebase,"tagged_continuous_function_rank1.nc")
-       d=Data(self.arg1,ContinuousFunction(self.domain))
-       d.setTaggedValue(1,self.arg1*2)
-       d.setTaggedValue(10,self.arg1*3)
-       d.setTaggedValue(100,self.arg1*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_continuous_function_rank1.nc")
+          d=Data(self.arg1,ContinuousFunction(self.domain))
+          d.setTaggedValue(1,self.arg1*2)
+          d.setTaggedValue(10,self.arg1*3)
+          d.setTaggedValue(100,self.arg1*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ContinuousFunction_Rank2(self):
-       file=os.path.join(self.filebase,"tagged_continuous_function_rank2.nc")
-       d=Data(self.arg2,ContinuousFunction(self.domain))
-       d.setTaggedValue(1,self.arg2*2)
-       d.setTaggedValue(10,self.arg2*3)
-       d.setTaggedValue(100,self.arg2*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_continuous_function_rank2.nc")
+          d=Data(self.arg2,ContinuousFunction(self.domain))
+          d.setTaggedValue(1,self.arg2*2)
+          d.setTaggedValue(10,self.arg2*3)
+          d.setTaggedValue(100,self.arg2*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ContinuousFunction_Rank3(self):
-       file=os.path.join(self.filebase,"tagged_continuous_function_rank3.nc")
-       d=Data(self.arg3,ContinuousFunction(self.domain))
-       d.setTaggedValue(1,self.arg3*2)
-       d.setTaggedValue(10,self.arg3*3)
-       d.setTaggedValue(100,self.arg3*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_continuous_function_rank3.nc")
+          d=Data(self.arg3,ContinuousFunction(self.domain))
+          d.setTaggedValue(1,self.arg3*2)
+          d.setTaggedValue(10,self.arg3*3)
+          d.setTaggedValue(100,self.arg3*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_ContinuousFunction_Rank4(self):
-       file=os.path.join(self.filebase,"tagged_continuous_function_rank4.nc")
-       d=Data(self.arg4,ContinuousFunction(self.domain))
-       d.setTaggedValue(1,self.arg4*2)
-       d.setTaggedValue(10,self.arg4*3)
-       d.setTaggedValue(100,self.arg4*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_continuous_function_rank4.nc")
+          d=Data(self.arg4,ContinuousFunction(self.domain))
+          d.setTaggedValue(1,self.arg4*2)
+          d.setTaggedValue(10,self.arg4*3)
+          d.setTaggedValue(100,self.arg4*4)
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Tagged_Function_Rank0(self):
-       file=os.path.join(self.filebase,"tagged_function_rank0.nc")
-       d=Data(self.arg0,Function(self.domain))
-       d.setTaggedValue(1,self.arg0*2)
-       d.setTaggedValue(10,self.arg0*3)
-       d.setTaggedValue(100,self.arg0*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_rank0.nc")
+          d=Data(self.arg0,Function(self.domain))
+          d.setTaggedValue(1,self.arg0*2)
+          d.setTaggedValue(10,self.arg0*3)
+          d.setTaggedValue(100,self.arg0*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Function_Rank1(self):
-       file=os.path.join(self.filebase,"tagged_function_rank1.nc")
-       d=Data(self.arg1,Function(self.domain))
-       d.setTaggedValue(1,self.arg1*2)
-       d.setTaggedValue(10,self.arg1*3)
-       d.setTaggedValue(100,self.arg1*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_rank1.nc")
+          d=Data(self.arg1,Function(self.domain))
+          d.setTaggedValue(1,self.arg1*2)
+          d.setTaggedValue(10,self.arg1*3)
+          d.setTaggedValue(100,self.arg1*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Function_Rank2(self):
-       file=os.path.join(self.filebase,"tagged_function_rank2.nc")
-       d=Data(self.arg2,Function(self.domain))
-       d.setTaggedValue(1,self.arg2*2)
-       d.setTaggedValue(10,self.arg2*3)
-       d.setTaggedValue(100,self.arg2*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_rank2.nc")
+          d=Data(self.arg2,Function(self.domain))
+          d.setTaggedValue(1,self.arg2*2)
+          d.setTaggedValue(10,self.arg2*3)
+          d.setTaggedValue(100,self.arg2*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Function_Rank3(self):
-       file=os.path.join(self.filebase,"tagged_function_rank3.nc")
-       d=Data(self.arg3,Function(self.domain))
-       d.setTaggedValue(1,self.arg3*2)
-       d.setTaggedValue(10,self.arg3*3)
-       d.setTaggedValue(100,self.arg3*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_rank3.nc")
+          d=Data(self.arg3,Function(self.domain))
+          d.setTaggedValue(1,self.arg3*2)
+          d.setTaggedValue(10,self.arg3*3)
+          d.setTaggedValue(100,self.arg3*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_Function_Rank4(self):
-       file=os.path.join(self.filebase,"tagged_function_rank4.nc")
-       d=Data(self.arg4,Function(self.domain))
-       d.setTaggedValue(1,self.arg4*2)
-       d.setTaggedValue(10,self.arg4*3)
-       d.setTaggedValue(100,self.arg4*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_rank4.nc")
+          d=Data(self.arg4,Function(self.domain))
+          d.setTaggedValue(1,self.arg4*2)
+          d.setTaggedValue(10,self.arg4*3)
+          d.setTaggedValue(100,self.arg4*4)
+          self._diffDataObjects(d,file)
 
    #===========================================================================
    def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank0(self):
-       file=os.path.join(self.filebase,"tagged_function_on_boundary_rank0.nc")
-       d=Data(self.arg0,FunctionOnBoundary(self.domain))
-       d.setTaggedValue(1,self.arg0*2)
-       d.setTaggedValue(10,self.arg0*3)
-       d.setTaggedValue(100,self.arg0*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_on_boundary_rank0.nc")
+          d=Data(self.arg0,FunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg0*2)
+          d.setTaggedValue(10,self.arg0*3)
+          d.setTaggedValue(100,self.arg0*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank1(self):
-       file=os.path.join(self.filebase,"tagged_function_on_boundary_rank1.nc")
-       d=Data(self.arg1,FunctionOnBoundary(self.domain))
-       d.setTaggedValue(1,self.arg1*2)
-       d.setTaggedValue(10,self.arg1*3)
-       d.setTaggedValue(100,self.arg1*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_on_boundary_rank1.nc")
+          d=Data(self.arg1,FunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg1*2)
+          d.setTaggedValue(10,self.arg1*3)
+          d.setTaggedValue(100,self.arg1*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank2(self):
-       file=os.path.join(self.filebase,"tagged_function_on_boundary_rank2.nc")
-       d=Data(self.arg2,FunctionOnBoundary(self.domain))
-       d.setTaggedValue(1,self.arg2*2)
-       d.setTaggedValue(10,self.arg2*3)
-       d.setTaggedValue(100,self.arg2*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_on_boundary_rank2.nc")
+          d=Data(self.arg2,FunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg2*2)
+          d.setTaggedValue(10,self.arg2*3)
+          d.setTaggedValue(100,self.arg2*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank3(self):
-       file=os.path.join(self.filebase,"tagged_function_on_boundary_rank3.nc")
-       d=Data(self.arg3,FunctionOnBoundary(self.domain))
-       d.setTaggedValue(1,self.arg3*2)
-       d.setTaggedValue(10,self.arg3*3)
-       d.setTaggedValue(100,self.arg3*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_on_boundary_rank3.nc")
+          d=Data(self.arg3,FunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg3*2)
+          d.setTaggedValue(10,self.arg3*3)
+          d.setTaggedValue(100,self.arg3*4)
+          self._diffDataObjects(d,file)
 
    def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank4(self):
-       file=os.path.join(self.filebase,"tagged_function_on_boundary_rank4.nc")
-       d=Data(self.arg4,FunctionOnBoundary(self.domain))
-       d.setTaggedValue(1,self.arg4*2)
-       d.setTaggedValue(10,self.arg4*3)
-       d.setTaggedValue(100,self.arg4*4)
-       self._diffDataObjects(d,file)
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_function_on_boundary_rank4.nc")
+          d=Data(self.arg4,FunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg4*2)
+          d.setTaggedValue(10,self.arg4*3)
+          d.setTaggedValue(100,self.arg4*4)
+          self._diffDataObjects(d,file)
 

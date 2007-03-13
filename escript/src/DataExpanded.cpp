@@ -15,7 +15,9 @@
 #include "DataException.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
+#ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
 
 #include <boost/python/extract.hpp>
 
@@ -621,6 +623,7 @@ DataExpanded::dump(const std::string fileName) const
    #ifdef PASO_MPI
    throw DataException("Error - DataExpanded:: dump is not implemented for MPI yet.");
    #endif
+   #ifdef USE_NETCDF
    const int ldims=2+DataArrayView::maxRank;
    const NcDim* ncdims[ldims];
    NcVar *var, *ids;
@@ -681,5 +684,8 @@ DataExpanded::dump(const std::string fileName) const
         throw DataException("Error - DataExpanded:: appending variable to netCDF file failed.");
    if (! (var->put(&m_data[0],dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
+   #else
+   throw DataException("Error - DataExpanded:: dump is not configured with netCDF. Please contact your installation manager.");
+   #endif
 }
 }  // end of namespace

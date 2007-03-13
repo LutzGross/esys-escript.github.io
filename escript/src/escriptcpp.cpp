@@ -249,6 +249,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Factory methods for Data
   //
   def("load",escript::load);
+  def("loadIsConfigured",escript::loadConfigured);
   def("Scalar",escript::Scalar,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),

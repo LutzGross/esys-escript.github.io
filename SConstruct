@@ -62,7 +62,7 @@ else:
       else:
          hostname+="_"
    options_file = "scons/"+hostname+"_options.py"
-   print options_file
+print "option file is ",options_file
 
 opts = Options(options_file, ARGUMENTS)
 opts.AddOptions(
@@ -117,6 +117,7 @@ opts.AddOptions(
   PathOption('blas_lib_path', 'Path to BLAS libs', None),
   ('blas_libs', 'BLAS libraries to link with', None),
 # netCDF
+  ('useNetCDF', 'switch on/off the usage of netCDF', 'yes'),
   PathOption('netCDF_path', 'Path to netCDF includes', '/usr/local/include'),
   PathOption('netCDF_lib_path', 'Path to netCDF libs', '/usr/local/lib'),
   ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', [ 'netcdf_c++', 'netcdf'] ),
@@ -409,21 +410,33 @@ except KeyError:
    blas_libs = ''
 
 try:
-   includes = env['netCDF_path']
-   env.Append(CPPPATH = [includes,])
+   useNetCDF = env['useNetCDF']
 except KeyError:
+   useNetCDF = 'yes'
    pass
 
-try:
-   lib_path = env['netCDF_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
+if not useNetCDF == 'yes':
+   print "Warning: Installation is not configured with netCDF. Some I/O function may not be available."
+   
+if useNetCDF == 'yes': 
+   try:
+      includes = env['netCDF_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   netCDF_libs_cxx = env['netCDF_libs_cxx']
-except KeyError:
-   netCDF_lib_cxx = [ ]
+   try:
+      lib_path = env['netCDF_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
+   try:
+      netCDF_libs_cxx = env['netCDF_libs_cxx']
+   except KeyError:
+      netCDF_libs_cxx = [ ]
+else:
+   netCDF_libs_cxx=[ ]
 
 try:
    includes = env['boost_path']
@@ -542,7 +555,7 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs_cxx", 
+Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs_cxx", "useNetCDF",
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])
