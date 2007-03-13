@@ -15,7 +15,9 @@
 
 #include <boost/python/extract.hpp>
 #include <iostream>
+#ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
 
 using namespace boost::python;
 
@@ -73,8 +75,10 @@ load(const std::string fileName,
      const AbstractDomain& domain)
 {
    #ifdef PASO_MPI
-   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.")
+   throw DataException("Error - load :: not implemented for MPI yet.")
    #endif
+
+   #ifdef USE_NETCDF
    NcAtt *type_att, *rank_att, *function_space_type_att;
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
@@ -269,7 +273,19 @@ load(const std::string fileName,
        throw DataException("Error - load:: unknown escript data type in netCDF file.");
    }
    return out;
+   #else
+   throw DataException("Error - load:: is not compiled with netCFD. Please contact your insatllation manager.");
+   #endif
+}
 
+bool 
+loadConfigured()
+{
+   #ifdef USE_NETCDF
+   return true;
+   #else
+   return false;
+   #endif
 }
 
 Data

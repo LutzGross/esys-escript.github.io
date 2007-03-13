@@ -16,7 +16,9 @@
 
 #include "DataConstant.h"
 #include "DataException.h"
+#ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
 
 using namespace std;
 
@@ -557,6 +559,10 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 void
 DataTagged::dump(const std::string fileName) const
 {
+   #ifdef PASO_MPI
+   throw DataException("Error - DataTagged:: dump is not implemented for MPI yet.")
+   #endif
+   #ifdef USE_NETCDF
    const int ldims=DataArrayView::maxRank+1;
    const NcDim* ncdims[ldims];
    NcVar *var, *tags_var;
@@ -635,7 +641,8 @@ DataTagged::dump(const std::string fileName) const
 	free(tags);
         throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");
    }
+   #else
+   throw DataException("Error - DataTagged:: dump is not configured with netCDF. Please contact your installation manager.");
+   #endif
 }
-
-
 }  // end of namespace
