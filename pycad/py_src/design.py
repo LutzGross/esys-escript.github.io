@@ -271,9 +271,10 @@ class Design(object):
         each primitve appears once. The primitives are ordered by their
         order of generation
         """
-        prims=set()
-        for i in self.getItems(): prims|=set(i.getPrimitives())
-        prims=list(prims)
+        prims=[]
+        for i in self.getItems(): 
+            for p in i.getPrimitives():
+                if not p in prims: prims.append(p)
         prims.sort()
         return prims
 
