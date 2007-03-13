@@ -88,6 +88,9 @@ END_MSG
 }
 
 
+# set -x
+
+
 cd $WorkDir				|| finish FAILURE "Could not cd to WorkDir $WorkDir"
 
 # Create an empty out_file
@@ -111,6 +114,7 @@ module load esys/env	# Recommended modules
 module load doxygen/1.4.6
 module load boost/1.33.0/python-2.4.1
 module load gmsh-1.65.0
+module load epydoc/2.1/python-2.4.3
 
 # How many threads? One per CPU.
 export OMP_NUM_THREADS=\$NCPUS
@@ -119,6 +123,15 @@ export OMP_NUM_THREADS=\$NCPUS
 echo "Running the tests $target"
 cd trunk				|| finish FAILURE "Could not cd to trunk"
 scons -j \$NCPUS $target >> $out_file 2>&1		|| finish FAILURE "Could not run scons $target"
+
+# Run epydoc to create the python documentation
+echo "Running epydoc"
+export LD_LIBRARY_PATH="$PWD/lib:$LD_LIBRARY_PATH"
+mkdir release release/doc release/doc/epydoc
+scons api_epydoc >> $out_file 2>&1		|| finish FAILURE "Could not run scons api_epydoc"
+cd release/doc/epydoc
+tar cf - . | ssh shake200 "cd /home/www/esys/esys13/nightly/epydoc; tar xf -"	|| finish FAILURE "Could not copy epydoc to shake200"
+cd ../../..
 
 echo "Cleaning up after the tests"
 
