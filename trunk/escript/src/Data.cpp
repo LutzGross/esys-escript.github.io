@@ -1035,15 +1035,6 @@ Data::integrate() const
 }
 
 Data
-Data::erf() const
-{
-#if defined DOPROF
-  profData->unary++;
-#endif
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
-}
-
-Data
 Data::sin() const
 {
 #if defined DOPROF
@@ -1088,6 +1079,7 @@ Data::acos() const
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acos);
 }
 
+
 Data
 Data::atan() const
 {
@@ -1124,13 +1116,31 @@ Data::tanh() const
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tanh);
 }
 
+
+Data
+Data::erf() const
+{
+#if defined DOPROF
+  profData->unary++;
+#endif
+#ifndef _WIN32
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
+#else
+  return Data();
+#endif
+}
+
 Data
 Data::asinh() const
 {
 #if defined DOPROF
   profData->unary++;
 #endif
+#ifndef _WIN32
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
+#else
+  return Data();
+#endif
 }
 
 Data
@@ -1139,7 +1149,11 @@ Data::acosh() const
 #if defined DOPROF
   profData->unary++;
 #endif
+#ifndef _WIN32
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
+#else
+  return Data();
+#endif
 }
 
 Data
@@ -1148,7 +1162,11 @@ Data::atanh() const
 #if defined DOPROF
   profData->unary++;
 #endif
+#ifndef _WIN32
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
+#else
+  return Data();
+#endif
 }
 
 Data
