@@ -52,7 +52,7 @@ class DomainException:public esysUtils::EsysException {
 
   /// Destructor
   ESCRIPT_DLL_API
-  virtual ~DomainException() throw();
+  virtual ~DomainException() throw() {}
   /**
      \brief
      Returns the name of the exception.

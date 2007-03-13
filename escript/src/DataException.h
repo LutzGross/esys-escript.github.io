@@ -52,7 +52,7 @@ class DataException:public esysUtils::EsysException {
 
   /// Destructor
   ESCRIPT_DLL_API
-  virtual ~DataException() throw();
+  virtual ~DataException() throw() {}
 
   /**
      \brief

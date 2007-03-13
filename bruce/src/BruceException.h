@@ -55,7 +55,7 @@ class BruceException : public esysUtils::EsysException {
 
   /// Destructor
   BRUCE_DLL_API
-  virtual ~BruceException() throw();
+  virtual ~BruceException() throw() {}
 
   /**
      \brief
