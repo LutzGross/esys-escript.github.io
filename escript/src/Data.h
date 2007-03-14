@@ -254,21 +254,6 @@ class Data {
   ESCRIPT_DLL_API
   bool
   isProtected() const;
-  /**
-     \brief
-     Return the values of all data-points as a single python numarray object.
-  */
-  ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  convertToNumArray();
-
-  /**
-     \brief
-     Fills the expanded Data object from values of a python numarray object.
-  */
-  ESCRIPT_DLL_API
-  void
-  fillFromNumArray(const boost::python::numeric::array);
 
   /**
      \brief
@@ -280,11 +265,19 @@ class Data {
 
   /**
      \brief
-     sets the values of a data-point on this process
+     sets the values of a data-point from a python object on this process
   */
   ESCRIPT_DLL_API
   void
-  setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array);
+  setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object);
+
+  /**
+     \brief
+     sets the values of a data-point from a numarray object on this process
+  */
+  ESCRIPT_DLL_API
+  void
+  setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array&);
 
   /**
      \brief
