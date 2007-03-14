@@ -1220,7 +1220,6 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
   Finley_ElementFile* elements=NULL;
   ElementTypeId TypeId;
 
-printf("ddsafddfdafdf\n");
   /* open the file and check handle */
   if (mesh_p==NULL) return;
 
