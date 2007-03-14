@@ -30,9 +30,6 @@
 #include "SystemMatrixPattern.h"
 #include "Options.h"
 
-//#include "CommBuffer.h"
-//#include "Paso_MPI.h"
-
 /**************************************************************/
 
 /*  this struct holds a stiffness matrix: */

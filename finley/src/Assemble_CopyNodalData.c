@@ -97,12 +97,12 @@ static bool_t getExternalDOF( Finley_NodeFile *nodes, escriptDataC* in, double *
 
 
 void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in) {
-    if (nodes==NULL) return;
     dim_t n,i;
     dim_t numComps=getDataPointSize(out);
     type_t in_data_type=getFunctionSpaceType(in);
     type_t out_data_type=getFunctionSpaceType(out);
     Finley_resetError();
+    if (nodes==NULL) return;
 
     /* check out and in */
     if (numComps!=getDataPointSize(in)) {

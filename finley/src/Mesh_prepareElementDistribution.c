@@ -1,4 +1,3 @@
-#ifdef PASO_MPI
 #include "Mesh.h"
 
 /*
@@ -7,6 +6,7 @@
 	*/
 
 void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in ){
+#ifdef PASO_MPI
 	int i;
 	
 	if(!Finley_checkPtr(in) || !Finley_checkPtr(in->MPIInfo) ){
@@ -28,5 +28,5 @@ void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in ){
 		in->Points->elementDistribution->vtxdist[i]+=in->ContactElements->elementDistribution->vtxdist[in->MPIInfo->size];
 	for( i=0; i<in->Points->numElements; i++ )
 		in->Points->Id[i] += in->ContactElements->elementDistribution->vtxdist[in->MPIInfo->size];
-}
 #endif
+}

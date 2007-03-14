@@ -1,5 +1,5 @@
-#ifdef PASO_MPI
 
+#ifdef PASO_MPI
 #include "Distribution.h"
 
 /* note that numElementsThis is the number of elements assigned to this process */
@@ -18,5 +18,7 @@ void Finley_ElementDistribution_allocTable( Finley_ElementDistribution *in, dim_
 	for( i=0; i<in->MPIInfo->size; i++ )	
 		in->vtxdist[i+1] += in->vtxdist[i];
 }
-
+#else
+void Finley_ElementDistribution_allocTable(void){
+}
 #endif

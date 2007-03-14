@@ -1123,10 +1123,10 @@ Data::erf() const
 #if defined DOPROF
   profData->unary++;
 #endif
-#ifndef _WIN32
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
+#ifdef _WIN32
+  throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
-  return Data();
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
 #endif
 }
 
@@ -1136,10 +1136,10 @@ Data::asinh() const
 #if defined DOPROF
   profData->unary++;
 #endif
-#ifndef _WIN32
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
+#ifdef _WIN32
+  return escript::unaryOp(*this,escript::asinh_substitute);
 #else
-  return Data();
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
 #endif
 }
 
@@ -1149,10 +1149,10 @@ Data::acosh() const
 #if defined DOPROF
   profData->unary++;
 #endif
-#ifndef _WIN32
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
+#ifdef _WIN32
+  return escript::unaryOp(*this,escript::acosh_substitute);
 #else
-  return Data();
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
 #endif
 }
 
@@ -1162,10 +1162,10 @@ Data::atanh() const
 #if defined DOPROF
   profData->unary++;
 #endif
-#ifndef _WIN32
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
+#ifdef _WIN32
+  return escript::unaryOp(*this,escript::atanh_substitute);
 #else
-  return Data();
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
 #endif
 }
 

@@ -120,37 +120,47 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
 void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeights) {
   char error_msg[LenErrorMsg_MAX];
   int numQuadNodes1d,i,j,l;
-  double quadNodes1d[numQuadNodes],quadWeights1d[numQuadNodes];
+  double *quadNodes1d=NULL,*quadWeights1d=NULL;
+  bool_t set=FALSE;
   #define DIM 2
   
-  /*  find numQuadNodes1d with numQuadNodes1d**2==numQuadNodes: */
-  
-  for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
-    if (numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
+  quadNodes1d=TMPMEMALLOC(numQuadNodes,double);
+  quadWeights1d=TMPMEMALLOC(numQuadNodes,double);
+  if (! ( Finley_checkPtr(quadNodes1d) || Finley_checkPtr(quadWeights1d) ) ) {
+     /*  find numQuadNodes1d with numQuadNodes1d**2==numQuadNodes: */
+     
+     for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
+       if (numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
       
-      /*  get 1D scheme: */
+         /*  get 1D scheme: */
+         
+         Finley_Quad_getNodesLine(numQuadNodes1d,quadNodes1d,quadWeights1d);
       
-      Finley_Quad_getNodesLine(numQuadNodes1d,quadNodes1d,quadWeights1d);
+         /*  make 2D scheme: */
       
-      /*  make 2D scheme: */
-      
-      if (Finley_noError()) {
-        l=0;
-        for (i=0;i<numQuadNodes1d;i++) {
-          for (j=0;j<numQuadNodes1d;j++) {
-            QUADNODES(0,l)=quadNodes1d[i];
-            QUADNODES(1,l)=quadNodes1d[j];
-            QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j];
-            l++;
-          }
-        }
-      }
-      return;
-    }
-  }
-  sprintf(error_msg,"Finley_Quad_getNodesRec: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
-  Finley_setError(VALUE_ERROR,error_msg);
-  #undef DIM
+         if (Finley_noError()) {
+           l=0;
+           for (i=0;i<numQuadNodes1d;i++) {
+             for (j=0;j<numQuadNodes1d;j++) {
+               QUADNODES(0,l)=quadNodes1d[i];
+               QUADNODES(1,l)=quadNodes1d[j];
+               QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j];
+               l++;
+             }
+           }
+           set=TRUE;
+           break;
+         }
+       }
+     }
+     if (!set) {
+         sprintf(error_msg,"Finley_Quad_getNodesRec: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+         Finley_setError(VALUE_ERROR,error_msg);
+     }
+     TMPMEMFREE(quadNodes1d);
+     TMPMEMFREE(quadWeights1d);
+   }
+   #undef DIM
 }
 
 /**************************************************************/
@@ -161,40 +171,49 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
 void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeights) {
   char error_msg[LenErrorMsg_MAX];
   int numQuadNodes1d,i,j,k,l;
-  double quadNodes1d[numQuadNodes],quadWeights1d[numQuadNodes];
+  double *quadNodes1d=NULL,*quadWeights1d=NULL;
+  bool_t set;
   #define DIM 3
   
   /*  find numQuadNodes1d with numQuadNodes1d**3==numQuadNodes: */
   
-  for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
-    if (numQuadNodes1d*numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
+  quadNodes1d=TMPMEMALLOC(numQuadNodes,double);
+  quadWeights1d=TMPMEMALLOC(numQuadNodes,double);
+  if (! ( Finley_checkPtr(quadNodes1d) || Finley_checkPtr(quadWeights1d) ) ) {
+     for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
+       if (numQuadNodes1d*numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
       
-      /*  get 1D scheme: */
+         /*  get 1D scheme: */
       
-      Finley_Quad_getNodesLine(numQuadNodes1d,quadNodes1d,quadWeights1d);
+         Finley_Quad_getNodesLine(numQuadNodes1d,quadNodes1d,quadWeights1d);
       
-      /*  make 3D scheme: */
+         /*  make 3D scheme: */
       
-      if (Finley_noError()) {
-        l=0;
-        for (i=0;i<numQuadNodes1d;i++) {
-          for (j=0;j<numQuadNodes1d;j++) {
-            for (k=0;k<numQuadNodes1d;k++) {
-              QUADNODES(0,l)=quadNodes1d[i];
-              QUADNODES(1,l)=quadNodes1d[j];
-              QUADNODES(2,l)=quadNodes1d[k];
-              QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j]*quadWeights1d[k];
-              l++;
-            }
-          }
-        }
-      }
-      
-      return;
-    }
+         if (Finley_noError()) {
+           l=0;
+           for (i=0;i<numQuadNodes1d;i++) {
+             for (j=0;j<numQuadNodes1d;j++) {
+               for (k=0;k<numQuadNodes1d;k++) {
+                 QUADNODES(0,l)=quadNodes1d[i];
+                 QUADNODES(1,l)=quadNodes1d[j];
+                 QUADNODES(2,l)=quadNodes1d[k];
+                 QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j]*quadWeights1d[k];
+                 l++;
+               }
+             }
+           }
+           set=TRUE;
+           break;
+         }
+       }
+     }
+     if (!set) {
+          sprintf(error_msg,"Finley_Quad_getNodesHex: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
+          Finley_setError(VALUE_ERROR,error_msg);
+     }
+     TMPMEMFREE(quadNodes1d);
+     TMPMEMFREE(quadWeights1d);
   }
-  sprintf(error_msg,"Finley_Quad_getNodesHex: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
-  Finley_setError(VALUE_ERROR,error_msg);
   #undef DIM
 }
 
@@ -385,15 +404,19 @@ void Finley_Quad_getNodesPointOnFace(int numQuadNodes,double* quadNodes,double* 
 
 void Finley_Quad_makeNodesOnFace(int dim, int numQuadNodes,double* quadNodes,double* quadWeights, Finley_Quad_getNodes getFaceNodes) {
     int q,i;
-    double quadNodesOnFace[numQuadNodes*(dim-1)];
-
+    double *quadNodesOnFace=NULL;
     #define DIM dim
-    getFaceNodes(numQuadNodes,quadNodesOnFace,quadWeights);
-    if (! Finley_noError()) return;
-    
-    for (q=0;q<numQuadNodes;q++) {
-       for (i=0;i<dim-1;i++) QUADNODES(i,q)=quadNodesOnFace[INDEX2(i,q,dim-1)];
-       QUADNODES(dim-1,q)=0;
+    quadNodesOnFace=TMPMEMALLOC(numQuadNodes*(dim-1),double);
+
+    if (! Finley_checkPtr(quadNodesOnFace) ) {
+       getFaceNodes(numQuadNodes,quadNodesOnFace,quadWeights);
+       if (Finley_noError()) {
+          for (q=0;q<numQuadNodes;q++) {
+             for (i=0;i<dim-1;i++) QUADNODES(i,q)=quadNodesOnFace[INDEX2(i,q,dim-1)];
+             QUADNODES(dim-1,q)=0;
+          }
+       }
+       TMPMEMFREE(quadNodesOnFace);
     }
     #undef DIM
 }

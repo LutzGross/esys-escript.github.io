@@ -42,9 +42,9 @@ Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row
       Paso_SystemMatrixPattern* sub_pattern=NULL;
       Paso_SystemMatrix* out=NULL;
       index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-      Paso_resetError();
       int i,k,tmp,m,subpattern_row;
       int type=A->type;
+      Paso_resetError();
       if (A->type & MATRIX_FORMAT_CSC) {
           Paso_setError(TYPE_ERROR,"gathering submatrices supports CSR matrix format only.");
       } else {

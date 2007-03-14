@@ -38,9 +38,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
 
   double time0;
   Paso_SystemMatrix*out=NULL;
+  dim_t n_norm,i;
+
   Paso_resetError();
   time0=Paso_timer();
-  dim_t n_norm,i;
   out=MEMALLOC(1,Paso_SystemMatrix);
   if (! Paso_checkPtr(out)) {  
      out->pattern=NULL;  

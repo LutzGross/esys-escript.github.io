@@ -30,13 +30,14 @@
 
 
 void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escriptDataC* mask) {
-    if (self==NULL) return;
     register dim_t n,q;
-    dim_t numElements=self->numElements;
-    dim_t numQuad=self->ReferenceElement->numQuadNodes;
+    dim_t numElements, numQuad;
     register double *mask_array;
     register bool_t check;
     Finley_resetError();
+    if (self==NULL) return;
+    numElements=self->numElements;
+    numQuad=self->ReferenceElement->numQuadNodes;
 
     if (1!=getDataPointSize(mask)) {
        Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: number of components of mask is 1.");

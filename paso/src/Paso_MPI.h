@@ -26,6 +26,6 @@ void          Paso_MPIInfo_dealloc( Paso_MPIInfo* );
 Paso_MPIInfo *Paso_MPIInfo_getReference( Paso_MPIInfo* in );
 int           Paso_MPI_initialized( void );
 
-#endif // INC_PASO_MPI
+#endif /* INC_PASO_MPI */
 
-#endif // PASO_MPI
+#endif /* PASO_MPI */

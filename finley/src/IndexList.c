@@ -31,40 +31,43 @@
 void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
                                        bool_t reduce_row_order, index_t* row_Label,
                                        bool_t reduce_col_order, index_t* col_Label) {
-  index_t color;
-  dim_t e,kr,kc,NN_row,NN_col,i,icol,irow;
+  index_t color, *id=NULL;
+  dim_t e,kr,kc,NN_row,NN_col,i,icol,irow, NN, *row_node=NULL,*col_node=NULL;
 
   if (elements!=NULL) {
-    dim_t NN=elements->ReferenceElement->Type->numNodes;
-    index_t id[NN],*row_node,*col_node;
-    for (i=0;i<NN;i++) id[i]=i;
-    if (reduce_col_order) {
-       col_node=elements->ReferenceElement->Type->linearNodes;
-       NN_col=elements->LinearReferenceElement->Type->numNodes;
-    } else {
-       col_node=id;
-       NN_col=elements->ReferenceElement->Type->numNodes;
-    }
-    if (reduce_row_order) {
-       row_node=elements->ReferenceElement->Type->linearNodes;
-       NN_row=elements->LinearReferenceElement->Type->numNodes;
-    } else {
-       row_node=id;
-       NN_row=elements->ReferenceElement->Type->numNodes;
-    }
-    for (color=elements->minColor;color<=elements->maxColor;color++) {
-        #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
-        for (e=0;e<elements->numElements;e++) {
-            if (elements->Color[e]==color) {
-                for (kr=0;kr<NN_row;kr++) {
-                  irow=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-                  for (kc=0;kc<NN_col;kc++) {
-                       icol=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-                       Finley_IndexList_insertIndex(&(index_list[irow]),icol);
-                  }
+    NN=elements->ReferenceElement->Type->numNodes;
+    id=TMPMEMALLOC(NN, index_t);
+    if (! Finley_checkPtr(id) ) {
+        for (i=0;i<NN;i++) id[i]=i;
+        if (reduce_col_order) {
+           col_node=elements->ReferenceElement->Type->linearNodes;
+           NN_col=elements->LinearReferenceElement->Type->numNodes;
+        } else {
+           col_node=id;
+           NN_col=elements->ReferenceElement->Type->numNodes;
+        }
+        if (reduce_row_order) {
+           row_node=elements->ReferenceElement->Type->linearNodes;
+           NN_row=elements->LinearReferenceElement->Type->numNodes;
+        } else {
+           row_node=id;
+           NN_row=elements->ReferenceElement->Type->numNodes;
+        }
+        for (color=elements->minColor;color<=elements->maxColor;color++) {
+            #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
+            for (e=0;e<elements->numElements;e++) {
+                if (elements->Color[e]==color) {
+                    for (kr=0;kr<NN_row;kr++) {
+                      irow=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
+                      for (kc=0;kc<NN_col;kc++) {
+                           icol=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
+                           Finley_IndexList_insertIndex(&(index_list[irow]),icol);
+                      }
+                    }
                 }
             }
         }
+        TMPMEMFREE(id);
       }
   }
   return;

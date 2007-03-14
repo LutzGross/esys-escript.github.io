@@ -30,39 +30,42 @@
 
 void Finley_ElementFile_markNodes(index_t* mask,index_t offset,Finley_ElementFile* in,bool_t useLinear) {
    dim_t i,NN,NN2,e;
-   index_t color,*lin_node;
+   index_t color,*lin_node,*id=NULL;
    if (in!=NULL) {
-     index_t id[in->ReferenceElement->Type->numNodes];
-     for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
-     if (useLinear) {
-        NN=in->LinearReferenceElement->Type->numNodes;
-        lin_node=in->ReferenceElement->Type->linearNodes;
-     } else {
-        NN=in->ReferenceElement->Type->numNodes;
-        lin_node=id;
-     }
-     NN2=in->ReferenceElement->Type->numNodes;
-     if ((in->maxColor-in->minColor+1)*NN<in->numElements) {
-        #pragma omp parallel private(color)
-        {
-           for (color=in->minColor;color<=in->maxColor;color++) {
-             #pragma omp for private(e,i) schedule(static)
-             for (e=0;e<in->numElements;e++) {
-               if (in->Color[e]==color) {
-                  for (i=0;i<NN;i++) 
-                    mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
-               }
-             }
+     id=TMPMEMALLOC(in->ReferenceElement->Type->numNodes, index_t);
+     if (! Finley_checkPtr(id) ){
+        for (i=0;i<in->ReferenceElement->Type->numNodes;i++) id[i]=i;
+        if (useLinear) {
+           NN=in->LinearReferenceElement->Type->numNodes;
+           lin_node=in->ReferenceElement->Type->linearNodes;
+        } else {
+           NN=in->ReferenceElement->Type->numNodes;
+           lin_node=id;
+        }
+        NN2=in->ReferenceElement->Type->numNodes;
+        if ((in->maxColor-in->minColor+1)*NN<in->numElements) {
+           #pragma omp parallel private(color)
+           {
+              for (color=in->minColor;color<=in->maxColor;color++) {
+                #pragma omp for private(e,i) schedule(static)
+                for (e=0;e<in->numElements;e++) {
+                  if (in->Color[e]==color) {
+                     for (i=0;i<NN;i++) 
+                       mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
+                  }
+                }
+              }
+              #pragma omp barrier
            }
-           #pragma omp barrier
+        } else {
+           #pragma omp parallel for private(e,i) schedule(static)
+           for (e=0;e<in->numElements;e++) {
+              for (i=0;i<NN;i++) 
+                mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
+           }
         }
-      } else {
-        #pragma omp parallel for private(e,i) schedule(static)
-        for (e=0;e<in->numElements;e++) {
-           for (i=0;i<NN;i++) 
-             mask[in->Nodes[INDEX2(lin_node[i],e,NN2)]-offset]=1;
-        }
-      }
+        TMPMEMFREE(id);
+     }
    }
 }
 

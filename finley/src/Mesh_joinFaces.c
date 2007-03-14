@@ -32,7 +32,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    char error_msg[LenErrorMsg_MAX];
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
-   dim_t e,i,numPairs;
+   dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
@@ -45,8 +45,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
      return;
    }
 
-   int NN=self->FaceElements->ReferenceElement->Type->numNodes;
-   int NN_Contact=self->ContactElements->ReferenceElement->Type->numNodes;
+   NN=self->FaceElements->ReferenceElement->Type->numNodes;
+   NN_Contact=self->ContactElements->ReferenceElement->Type->numNodes;
 
    if (2*NN!=NN_Contact) {
      sprintf(error_msg,"Finley_Mesh_joinFaces:contact element file for %s cannot hold elements created from face elements %s",
@@ -72,7 +72,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
              elem_mask[elem0[e]]=0;
              elem_mask[elem1[e]]=0;
          }
-         dim_t new_numFaceElements=0;
+         new_numFaceElements=0;
          /* OMP */
          for(e=0;e<self->FaceElements->numElements;e++) {
              if (elem_mask[e]>0) {
@@ -98,7 +98,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
             Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
             /* get the Contact elements which are still in use:*/
             Finley_ElementFile_copyTable(0,newContactElementsFile,0,0,self->ContactElements);
-            dim_t c=self->ContactElements->numElements;
+            c=self->ContactElements->numElements;
             /* OMP */
             for (e=0;e<numPairs;e++) {
                  e0=elem0[e];

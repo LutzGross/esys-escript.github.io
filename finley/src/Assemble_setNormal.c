@@ -33,13 +33,13 @@
 void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* elements, escriptDataC* normal) {
   double *local_X=NULL, *dVdv=NULL,*normal_array;
   index_t sign,node_offset;
-  dim_t e,q;
+  dim_t e,q, NN, NS, numDim, numQuad, numDim_local;
   if (nodes==NULL || elements==NULL) return;
-  dim_t NN=elements->ReferenceElement->Type->numNodes;
-  dim_t NS=elements->ReferenceElement->Type->numShapes;
-  dim_t numDim=nodes->numDim;
-  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
-  dim_t numDim_local=elements->ReferenceElement->Type->numDim;
+  NN=elements->ReferenceElement->Type->numNodes;
+  NS=elements->ReferenceElement->Type->numShapes;
+  numDim=nodes->numDim;
+  numQuad=elements->ReferenceElement->numQuadNodes;
+  numDim_local=elements->ReferenceElement->Type->numDim;
   Finley_resetError();
 
   /* set some parameter */

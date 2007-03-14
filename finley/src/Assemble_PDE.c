@@ -61,6 +61,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   Assemble_Parameters p;
   double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
+  type_t funcspace;
 
   Finley_resetError();
 
@@ -76,7 +77,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   }
 
   /*  get the functionspace for this assemblage call */
-  type_t funcspace=UNKNOWN;
+  funcspace=UNKNOWN;
   updateFunctionSpaceType(funcspace,A);
   updateFunctionSpaceType(funcspace,B);
   updateFunctionSpaceType(funcspace,C);

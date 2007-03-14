@@ -110,8 +110,8 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order);
 Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, Paso_MPIInfo *mpi_info);
 void Finley_Mesh_resolveDegreeOfFreedomOrder( Finley_Mesh *in, bool_t doReduced );
 void print_mesh_statistics( Finley_Mesh *out, bool_t reduced  );
-void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in );
 #endif
+void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in );
 /*Finley_Mesh* Finley_Mesh_alloc(char*,int,int);*/
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
 void Finley_Mesh_dealloc(Finley_Mesh*);
