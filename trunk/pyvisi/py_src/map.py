@@ -13,7 +13,8 @@ from constant import Viewport, Color, Lut
 # public methods from the driver.
 class Map(DataSetMapper, Actor3D):
 	"""
-	Class that shows a scalar field on a domain surface.
+	Class that shows a scalar field on a domain surface. The domain surface
+	can either be colored or grey-scaled, depending on the lookup table used.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -89,9 +90,11 @@ from cutter import Cutter
 # to allow access to their public methods from the driver.
 class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 	"""
-	Class that shows a scalar field on a plane.	
+	This class works in a similar way to L{Map <map.Map>}, except that it
+	shows a scalar field on a plane. The plane can be translated and rotated
+	along the X, Y and Z axes.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
@@ -169,9 +172,10 @@ from clipper import Clipper
 # to allow access to their public methods from the driver.
 class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 	"""
-	Class that show a scalar field on a clipped plane.	
+	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	except that it shows a scalar field clipped using a plane.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
@@ -248,9 +252,10 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 # to allow access to their public methods from the driver.
 class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 	"""
-	Class that show a scalar field clipped using a scalar value.	
+	This class works in a similar way to L{Map <map.Map>}, except that it
+	shows a scalar field clipped using a scalar value.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.

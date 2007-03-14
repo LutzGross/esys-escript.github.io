@@ -146,3 +146,11 @@ class Lut:
 	
 	COLOR = "color"
 	GREY_SCALE = "grey_scale"
+
+class VizType:
+	VELOCITY = "Velocity"
+	CONTOUR = "Contour"
+	MAP = "Map"
+	ELLIPSOID = "Ellipsoid"
+	CARPET = "Carpet"
+	STREAMLINE = "Streamline"

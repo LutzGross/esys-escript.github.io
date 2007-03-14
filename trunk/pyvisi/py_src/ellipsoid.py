@@ -20,9 +20,10 @@ from probe import Probe
 class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, 
 		StructuredPoints, Probe):
 	"""
-	Class that shows a tensor field using ellipsoid.	
+	Class that shows a tensor field using ellipsoids. The ellipsoids can either
+	be colored or grey-scaled, depending on the lookup table used.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
@@ -107,7 +108,8 @@ from cutter import Cutter
 class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,  
 		TensorGlyph, Transform, Plane, Cutter, StructuredPoints, Probe):
 	"""
-	Class that shows a tensor field using ellipsoids on a cut plane.	
+	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	except that it shows a tensor field using ellipsoids cut using a plane.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -198,7 +200,8 @@ from clipper import Clipper
 class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,  
 	TensorGlyph, Transform, Plane, Clipper, StructuredPoints, Probe):
 	"""
-	Class that shows a tensor field using ellipsoids on a clipped plane.	
+	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>},
+	except that it shows a tensor field using ellipsoids clipped using a plane.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.

@@ -121,8 +121,8 @@ class Actor2D:
 
 	def setPosition(self, position):
 		"""
-		Set the position of the 2D actor. Default position is the lower left
-		hand corner of the window / viewport.
+		Set the position (XY) of the 2D actor. Default position is the lower 
+		left hand corner of the window / viewport.
 
 		@type position: L{LocalPosition <position.LocalPosition>} object
 		@param position: Position of the 2D actor 

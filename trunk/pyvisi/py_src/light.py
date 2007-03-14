@@ -8,7 +8,8 @@ from constant import Viewport
 
 class Light:
 	"""
-	Class that defines a light. 
+	Class that defines a light. A light controls the source of light for the
+	rendered object and works in a similar way to L{Camera <camera.Camera>}.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.

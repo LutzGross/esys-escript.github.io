@@ -18,9 +18,13 @@ from point import StructuredPoints
 class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, 
 		StructuredPoints, Probe):
 	"""
-	Class that shows a vector field using arrows.	
+	Class that shows a vector field using arrows. The arrows can either be
+	colored or grey-scaled, depending on the lookup table used. If the arrows
+	are colored, there are two possible coloring modes: (1) using vector data
+	or (2) using scalar data. Similarly, there are two possible types of
+	arrows: (1) using two-dimensional or (2) using three-dimensional.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
@@ -124,9 +128,10 @@ from cutter import Cutter
 class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  
 		Glyph3D, Transform, Plane, Cutter, StructuredPoints, Probe):
 	"""
-	Class that shows a vector field using arrows on a plane.	
+	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	except that it shows a vector field using arrows on a plane.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme willbe used.
@@ -234,9 +239,10 @@ from clipper import Clipper
 class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  
 		Glyph3D, Transform, Plane, Clipper, StructuredPoints, Probe):
 	"""
-	Class that show a vector field using arrows on a clipped plane.	
+	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>}
+	, except that it shows a vector field using arrows clipped using a plane.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.

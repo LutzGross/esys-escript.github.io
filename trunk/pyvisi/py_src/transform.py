@@ -113,3 +113,57 @@ class Transform:
 		"""
 
 		return self.__vtk_transform
+
+
+###############################################################################
+
+
+class TransformFilter:
+	"""
+	Class that defines a transform poly data filter.
+	"""
+
+	def __init__(self, plane_source, transform):
+		"""
+		Initialise the transoform poly data filter.
+
+		@type plane_source: vtkPolyData
+		@param plane_source: Polygonal data
+		@type transform: L{Transform <transform.Transform>} object
+		@param transform: Specifies the orientation of the plane source
+		"""
+
+		self.__plane_source = plane_source
+		self.__transform = transform
+
+		self.__vtk_transform_filter = vtk.vtkTransformPolyDataFilter()
+
+		self._setInput()
+		self._setTransform()
+
+	def _setInput(self):
+		"""
+		Set the input for the transform poly data filter.
+		"""
+
+		self.__vtk_transform_filter.SetInput(self.__plane_source)
+
+	def _setTransform(self):
+		"""
+		Set the transformation of the plane source.
+		"""
+
+		self.__vtk_transform_filter.SetTransform(self.__transform)
+
+	def _getOutput(self):
+		"""
+		Return the output of the transform poly data filter.
+		"""
+
+		return self.__vtk_transform_filter.GetOutput()
+
+
+
+
+
+
