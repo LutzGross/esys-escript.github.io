@@ -55,7 +55,7 @@ double IEEE_Infy()
 
 
 double
-acosh (const double x)
+acosh_substitute (const double x)
 {
   if (x > 1.0 / SQRT_DBL_EPSILON)
     {
@@ -84,7 +84,7 @@ acosh (const double x)
 //======================================================================
 
 double
-asinh (const double x)
+asinh_substitute (const double x)
 {
   double a = fabs (x);
   double s = (x < 0) ? -1 : 1;
@@ -112,7 +112,7 @@ asinh (const double x)
 //======================================================================
 
 double
-atanh (const double x)
+atanh_substitute (const double x)
 {
   double a = fabs (x);
   double s = (x < 0) ? -1 : 1;
@@ -150,28 +150,6 @@ fsign(double x)
   }
 }
 
-/* substitute functions for _WIN32 */
-inline
-double
-asinh_substitute(double x)
-{
-    return 0;
 }
 
-inline
-double
-acosh_substitute(double x)
-{
-    return 0;
-}
-
-inline
-double
-atanh_substitute(double x)
-{
-    return 0;
-}
-
-
-} // end of namespace
 #endif

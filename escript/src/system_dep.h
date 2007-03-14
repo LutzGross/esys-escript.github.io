@@ -41,13 +41,6 @@
 #   define M_LN2  0.69314718055994530942  /* log_e 2 */
 #endif
 
-#ifdef NO_INV_HYPER
-#   include "invhyp.h"
-#   define asinh asinh_substitute
-#   define acosh acosh_substitute
-#   define atanh atanh_substitute
-#endif
-
 #ifdef _WIN32
 
 #ifndef INTERFACE_STATIC_LIB
