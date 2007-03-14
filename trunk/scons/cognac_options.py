@@ -19,15 +19,27 @@ scsl_libs = ['scs_mp']
 
 # locations of include files for python
 python_path = '/usr/include/python2.3'
+python_lib_path = '/usr/lib'
 python_lib = 'python2.3'
 
 # locations of libraries for boost
-boost_path = '/opt/boost/python2.3/1.33.1/include'
-boost_lib_path = '/opt/boost/python2.3/1.33.1/lib'
-boost_lib = 'boost_python-gcc-mt-1_33_1'
+boost_path = '/opt/boost/python2.3/1.31.0/include'
+boost_lib_path = '/opt/boost/python2.3/1.31.0/lib'
+boost_lib = 'boost_python-il-mt-1_31'
+
+# locations of doc building executables
+doxygen_path = '/opt/doxygen-1.4.5/bin'
+epydoc_path = '/opt/epydoc-2.1/bin'
+epydoc_pythonpath = '/usr/lib/python2.3/site-packages'
+
+# locations of netcdf
+netCDF_path = "/opt/netcdf-3.6.0-p1/intel-9.0/include"
+netCDF_lib_path = "/opt/netcdf-3.6.0-p1/intel-9.0/lib"
+netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
 
 # c flags to use
-cc_flags  = '-O3 -fpic -ip -Ob2 -IPF-fma -ftz -parallel -openmp -mtune=itanium2 -mcpu=itanium2 -c99 -IPF-fltacc -IPF-fp-speculationsafe -ipo -fno-alias'
+#cc_flags  = '-O3 -fpic -ip -Ob2 -IPF-fma -ftz -parallel -openmp -mtune=itanium2 -mcpu=itanium2 -c99 -IPF-fltacc -IPF-fp-speculationsafe -ipo -fno-alias'
+cc_flags  = '-O3 -fpic -ip -Ob2 -IPF-fma -ftz -parallel -openmp -mtune=itanium2 -mcpu=itanium2 -c99 -IPF-fltacc -IPF-fp-speculationsafe -fno-alias'
 cc_flags_debug  = '-g -O0 -fpic -openmp -parallel -c99 -w1'
 
 # c++ flags to use - only need to list the additional ones compared with cc_flags
