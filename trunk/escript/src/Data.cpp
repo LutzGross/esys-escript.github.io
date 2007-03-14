@@ -1136,11 +1136,7 @@ Data::asinh() const
 #if defined DOPROF
   profData->unary++;
 #endif
-#ifdef _WIN32
-  return escript::unaryOp(*this,escript::asinh_substitute);
-#else
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
-#endif
 }
 
 Data
@@ -1149,11 +1145,7 @@ Data::acosh() const
 #if defined DOPROF
   profData->unary++;
 #endif
-#ifdef _WIN32
-  return escript::unaryOp(*this,escript::acosh_substitute);
-#else
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
-#endif
 }
 
 Data
@@ -1162,11 +1154,7 @@ Data::atanh() const
 #if defined DOPROF
   profData->unary++;
 #endif
-#ifdef _WIN32
-  return escript::unaryOp(*this,escript::atanh_substitute);
-#else
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
-#endif
 }
 
 Data
