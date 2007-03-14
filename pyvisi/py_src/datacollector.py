@@ -65,9 +65,8 @@ class DataCollector:
 
 	def setData(self,**args):
 		"""
-		Sets the data using <name>=<data> name-value pair. This sets the data 
-		tagged by <name> to the object <data>. It is expected that the 
-		data is given in an appropriate source type.
+		Create data using the <name>=<data> pairing. Assumption is made
+		that the data will be given in the appropriate format.
 		"""
 
 		if self.__source == Source.ESCRIPT:
@@ -81,7 +80,7 @@ class DataCollector:
 
 	def setActiveScalar(self, scalar):
 		"""
-		Specify the scalar field to load from the source file.
+		Specify the scalar field to load. 
 
 		@type scalar: String
 		@param scalar: Scalar field to load from the file. 
@@ -102,7 +101,7 @@ class DataCollector:
 
 	def setActiveVector(self, vector):
 		"""
-		Specify the vector field to load from the source file. 
+		Specify the vector field to load.
 
 		@type vector: String
 		@param vector: Vector field to load from the file. 
@@ -123,7 +122,7 @@ class DataCollector:
 			
 	def setActiveTensor(self, tensor):
 		"""
-		Specify the tensor field to load from the source file.
+		Specify the tensor field to load.
 
 		@type tensor: String
 		@param tensor: Tensor field to load from the file. 
@@ -279,66 +278,4 @@ class DataCollector:
 		"""
 
 		return self.__output
-
-	
-###############################################################################
-
-
-from constant import ImageFormat
-
-class ImageReader:
-	"""
-	Class that defines an image reader.
-	"""
-
-	def __init__(self, format):
-		"""	
-		Initialise the image reader.
-
-		@type format: String
-		@param format: Format of the image 
-		"""
-
-		self.__format = format
-		self.__vtk_image_reader = self.getImageReader()
-
-	def getImageReader(self):
-		"""
-		Return the appropriate image reader based on the supplied image 
-		format.
-
-		@rtype: vtkImageReader2 (i.e. vtkJPEGReader, etc)
-		@return: Image reader 
-		"""
-
-		if(self.__format == ImageFormat.JPG):
-			return vtk.vtkJPEGReader()	
-		elif(self.__format == ImageFormat.BMP):
-			return vtk.vtkBMPReader()
-		elif(self.__format == ImageFormat.PNM):
-			return vtk.vtkPNMReader()
-		elif(self.__format == ImageFormat.PNG):
-			return vtk.vtkPNGReader()
-		elif(self.__format == ImageFormat.TIF):
-			return vtk.vtkTIFFReader()
-
-	def setFileName(self, file_name):
-		"""
-		Set the image file name.
-
-		@type file_name: String
-		@param file_name: Image file name to be read 
-		"""
-
-		self.__vtk_image_reader.SetFileName(file_name)
-
-	def _getOutput(self):
-		"""
-		Return the output of the image reader.
-
-		@rtype: vtkImageData
-		@return Image data
-		"""
-
-		return self.__vtk_image_reader.GetOutput()
 

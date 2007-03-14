@@ -22,7 +22,7 @@ dc2.setActiveScalar(scalar = "scalar2")
 # Create a map instance for the first viewport.
 m1 = Map(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST, 
         lut = Lut.COLOR, outline = True)
-m1.setRepresentationToWireframe()
+#m1.setRepresentationToWireframe()
 
 # Create a map instance for the second viewport.
 m2 = Map(scene = s, data_collector = dc2, viewport = Viewport.NORTH_WEST, 
@@ -31,7 +31,7 @@ m2.setColor(color = Color.BLUE)
 
 # Create a map instance for the third viewport.
 m3 = Map(scene = s, data_collector = dc1, viewport = Viewport.NORTH_EAST, 
-        lut = Lut.GREY_SCALE, outline = True)
+        lut = Lut.COLOR, outline = True)
 
 # Create a map instance the fourth viewport.
 m4 = Map(scene = s, data_collector = dc2, viewport = Viewport.SOUTH_EAST, 

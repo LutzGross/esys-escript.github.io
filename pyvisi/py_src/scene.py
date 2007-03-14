@@ -7,9 +7,13 @@ from constant import Renderer, Color, Viewport
 
 class Scene:
 	"""
-	Class that defines a scene in which objects are to be rendered on.	
+	Class that defines a scene. A scene is a window in which objects are
+	to be rendered on. Only one scene needs to be created and can display
+	data from one source. However, a scene may be divided into four
+	smaller windows called viewports (if needed). The four viewports in
+	turn can display data from four different sources.
 	"""
-	
+
 	def __init__(self, renderer = Renderer.ONLINE, num_viewport = 1, 
 			x_size = 1152, y_size = 864):
 		"""

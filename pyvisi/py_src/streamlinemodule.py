@@ -34,10 +34,10 @@ class StreamLineModule:
 		self.__setSource()
 		# Default maximum propagation time is 100.
 		self.setMaximumPropagationTime(100)
-		# Default step length is 0.1
-		self.setStepLength(0.1)
-		# Default integration step length is 0.1
-		self.setIntegrationStepLength(0.1)
+		# Default step length is 0.01
+		self.setStepLength(0.01)
+		# Default integration step length is 0.01
+		self.setIntegrationStepLength(0.01)
 		# Default integration is set to both directions.
 		self.setIntegrationToBothDirections()
 		# Default integrator is set to vtkRungeKutta4

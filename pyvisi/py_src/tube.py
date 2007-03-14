@@ -29,7 +29,7 @@ class Tube:
 		self.setTubeRadius(0.02)
 		# Default number of sides for the tube is 12.
 		self.setTubeNumberOfSides(12)
-		self.setRadiusToVaryByVector()
+		self.setTubeRadiusToVaryByVector()
 		self.__vtk_tube.Update()
 
 	def __setInput(self):

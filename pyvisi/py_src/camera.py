@@ -8,7 +8,10 @@ from constant import Viewport
 
 class Camera:
 	"""
-	Class that defines a camera.
+	Class that defines a camera. A camera controls the display angle of
+	the rendered object and one is usually created for a
+	L{Scene <scene.Scene>}. However, if a L{Scene <scene.Scene>} has four
+	viewports, then a separate camera may be created for each viewport.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.

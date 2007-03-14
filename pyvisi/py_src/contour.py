@@ -14,7 +14,9 @@ from contourmodule import ContourModule
 # access to their public methods from the driver.
 class Contour(DataSetMapper, Actor3D, ContourModule):
 	"""
-	Class that shows a scalar field by contour surfaces.
+	Class that shows a scalar field by contour surfaces. The contour surfaces
+	can either be colored or grey-scaled, depending on the lookup table used.
+	This class can also be used to generate iso surfaces.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -98,9 +100,10 @@ from cutter import Cutter
 class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Cutter):
 	"""
-	Class that show a scalar field contoured on a cut plane.	
+	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
+	except that it shows a scalar field by contour surfaces on a plane.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
@@ -187,9 +190,11 @@ from clipper import Clipper
 class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Clipper):
 	"""
-	Class that show a scalar field contoured on a clipped plane.	
+	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>}
+	, except that it shows a scalar field by contour surfaces clipped using
+	a plane.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 

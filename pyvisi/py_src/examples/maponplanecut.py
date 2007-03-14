@@ -36,6 +36,7 @@ mopc2_2.setPlaneToXZ(offset = 1.5)
 mopc2_3 = MapOnPlaneCut(scene = s, data_collector = dc1, 
         viewport = Viewport.NORTH_WEST)
 mopc2_3.setPlaneToXY()
+mopc2_3.translate(0,0,0.5)
 
 c2 = Camera(scene = s, data_collector = dc2, viewport = Viewport.NORTH_WEST)
 c2.isometricView()

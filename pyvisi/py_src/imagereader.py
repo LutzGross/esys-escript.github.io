@@ -7,7 +7,8 @@ from constant import ImageFormat
 
 class ImageReader:
 	"""
-	Class that defines an image reader.
+	Class that defines an image reader. An image reader is used to read
+	data from an image in a variety of formats.
 	"""
 
 	def __init__(self, format):
@@ -41,19 +42,19 @@ class ImageReader:
 		elif(self.__format == ImageFormat.TIF):
 			return vtk.vtkTIFFReader()
 
-	def setFileName(self, file_name):
+	def setImageName(self, image_name):
 		"""
 		Set the image file name to be read.
 
-		@type file_name: String
-		@param file_name: Image file name from which data is to be read 
+		@type image_name: String
+		@param image_name: Image name from which data is to be read 
 		"""
 
-		self.__vtk_image_reader.SetFileName(file_name)
+		self.__vtk_image_reader.SetFileName(image_name)
 
 	def _getOutput(self):
 		"""
-		Return the output of hte image reader.
+		Return the output of the image reader.
 
 		@rtype: vtkImageData
 		@return: Image Data 

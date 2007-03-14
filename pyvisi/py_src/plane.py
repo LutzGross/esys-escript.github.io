@@ -80,19 +80,53 @@ class PlaneSource:
 
 	def __init__(self):
 		"""
-		Initialise the plane source.
+		Initialise the plane source. A plane source is defined by an origin
+		and two other points, which form the axes.
 		"""
 
 		self.__vtk_plane_source = vtk.vtkPlaneSource()
-	
+		self.__setOrigin(GlobalPosition(0, 0, 0))
+		self.setPoint1(GlobalPosition(1, 0, 0))
+		self.setPoint2(GlobalPosition(0, 1, 0))
+
+	def __setOrigin(self, position):
+		"""
+		Set the origin of the plane source.
+
+		@type position: L{GlobalPosition <position.GlobalPosition>} object
+		@param position: Plane source origin
+		"""
+
+		self.__vtk_plane_source.SetOrigin(position._getGlobalPosition())
+
+	def setPoint1(self, position):
+		"""
+		Set the first point from the origin of the plane source.
+
+		@type position: L{GlobalPosition <position.GlobalPosition>} object
+		@param position: Position of the first axis of the plane source
+		"""
+
+		self.__vtk_plane_source.SetPoint1(position._getGlobalPosition())
+
+	def setPoint2(self, position):
+		"""
+		Set the second point from the origin of the plane source.
+
+		@type position: L{GlobalPosition <position.GlobalPosition>} object
+		@param position: Position of the second axis of the plane source
+		"""
+
+		self.__vtk_plane_source.SetPoint2(position._getGlobalPosition())
+
+
 	def _getOutput(self):
 		"""
-		Return the output of the plance source.
+		Return the output of the plane source.
 
 		@rtype: vtkPolyData
 		@return: Polygonal data
 		"""
 
 		return self.__vtk_plane_source.GetOutput()
-
 

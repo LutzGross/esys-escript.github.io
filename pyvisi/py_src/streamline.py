@@ -15,11 +15,14 @@ from outline import Outline
 # NOTE: DataSetMapper, Actor3D, PointSource, StreamLineModule and Tube  were 
 # inherited to allow access to their public methods from the driver.
 class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
-		
 	"""
-	Class that shows a vector field using streamline.	
+	Class that shows the direction of particles of a vector field using
+	streamlines.The streamlines can either be colored or grey-scaled,
+	depending on the lookup table used. If the streamlines are colored,
+	there are two possible coloring modes: (1) using vector data or (2)
+	using scalar data.
 	"""
-	
+
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
