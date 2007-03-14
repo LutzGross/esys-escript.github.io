@@ -37,11 +37,11 @@ void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
 #else
      Finley_Util_ValueAndIndex* item_list=NULL;
      Finley_ElementFile* out=NULL;
-     dim_t e,i;
+     dim_t e,i, NN;
      index_t *index=NULL;
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
-        dim_t NN=(*in)->ReferenceElement->Type->numNodes;
+        NN=(*in)->ReferenceElement->Type->numNodes;
         item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
         index=TMPMEMALLOC((*in)->numElements,index_t);
         if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {

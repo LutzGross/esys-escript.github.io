@@ -1413,7 +1413,7 @@ Data::initialise(const IValueType& value,
 inline double rpow(double x,double y) 
 {
     return pow(y,x);
-};
+}
 
 /**
   \brief

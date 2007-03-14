@@ -97,18 +97,17 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 {
 	int i, curr_row;
 	MM_typecode matrixCode;
-        Paso_resetError();
-
 	index_t *col_ind = NULL;
 	index_t *row_ind = NULL;
 	index_t *row_ptr = NULL;
 	double *val = NULL;
-
+	FILE *fileHandle_p = NULL;
 	Paso_SystemMatrixPattern *loc_pattern = NULL;
 	Paso_SystemMatrix *out = NULL;
 
+        Paso_resetError();
 	/* open the file */
-	FILE *fileHandle_p = fopen( fileName_p, "r" );
+	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
 		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Cannot read file for reading.");
@@ -197,13 +196,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 {
 	int i;
-//	int curr_row;
+/*	int curr_row; */
 	int curr_col;
 	MM_typecode matrixCode;
 
+	FILE *fileHandle_p = NULL;
 	index_t *col_ind = NULL;
 	index_t *row_ind = NULL;
-//	index_t *row_ptr = NULL;
+/*	index_t *row_ptr = NULL; */
 	index_t *col_ptr = NULL;
 	double *val = NULL;
 
@@ -213,7 +213,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	Paso_resetError();
 
 	/* open the file */
-	FILE *fileHandle_p = fopen( fileName_p, "r" );
+	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
 		Paso_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: File could not be opened for reading");
@@ -247,11 +247,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	row_ind = MEMALLOC( nz, index_t );
 	val = MEMALLOC( nz, double );
 
-//	row_ptr = MEMALLOC( (M+1), index_t );
+/*	row_ptr = MEMALLOC( (M+1), index_t ); */
 	col_ptr = MEMALLOC( (N+1), index_t );
 
 
-//	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
+/*	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	if( col_ind == NULL || row_ind == NULL || val == NULL || col_ptr == NULL )
 	{
 		Paso_setError(MEMORY_ERROR,"Could not allocate memory" );
@@ -269,31 +269,31 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	fclose( fileHandle_p );
 
 	/* sort the entries */
-//	q_sort( row_ind, col_ind, val, 0, nz );
+/*	q_sort( row_ind, col_ind, val, 0, nz ); */
 	q_sort( col_ind, row_ind, val, 0, nz );
 
 	/* setup row_ptr */
-//	curr_row = 0;
+/*	curr_row = 0;
 	curr_col = 0;
-//	for( i=0; (i<nz && curr_row<M); curr_row++ )
+/*	for( i=0; (i<nz && curr_row<M); curr_row++ ) */
 	for( i=0; (i<nz && curr_col<N); curr_col++ )
 	{
-//		while( row_ind[i] != curr_row )
+/*		while( row_ind[i] != curr_row ) */
 		while( col_ind[i] != curr_col )
 			i++;
-//		row_ptr[curr_row] = i;
+/*		row_ptr[curr_row] = i; */
 		col_ptr[curr_col] = i;
 	}
-//	row_ptr[M] = nz;
+/*	row_ptr[M] = nz; */
 	col_ptr[N] = nz;
 
 	/* create F_SMP and F_SM */
-//	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind );
+/*	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, M, row_ptr, col_ind ); */
 	loc_pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT, N, col_ptr, row_ind );
 	if(! Paso_noError() )
 		return NULL;
 
-//      out = Paso_SystemMatrix_alloc( MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1 );
+/*      out = Paso_SystemMatrix_alloc( MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1 ); */
  	out = Paso_SystemMatrix_alloc(  MATRIX_FORMAT_CSC, loc_pattern, 1, 1 );
  	if(! Paso_noError() )
  		return NULL;
@@ -303,7 +303,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 		out->val[i] = val[i];
 
 	MEMFREE( val );
-//	MEMFREE( row_ind );
+/*	MEMFREE( row_ind ); */
 	MEMFREE( col_ind );
 
 	return out;

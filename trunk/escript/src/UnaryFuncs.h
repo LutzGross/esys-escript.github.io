@@ -28,5 +28,28 @@ fsign(double x)
   }
 }
 
+/* substitute functions for _WIN32 */
+inline
+double
+asinh_substitute(double x)
+{
+    return 0;
+}
+
+inline
+double
+acosh_substitute(double x)
+{
+    return 0;
+}
+
+inline
+double
+atanh_substitute(double x)
+{
+    return 0;
+}
+
+
 } // end of namespace
 #endif

@@ -30,20 +30,21 @@ void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {
 
   int iRow, iCol, iPtr,ir,ic;
   index_t index_offset=(A_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+  FILE * fileHandle_p = NULL;
+  MM_typecode matrixCode;
 
   if (A_p->type & MATRIX_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support symmetric storage scheme");
     return;
   }
   /* open the file */
-  FILE * fileHandle_p = fopen(fileName_p, "w");
+  fileHandle_p = fopen(fileName_p, "w");
   if (fileHandle_p==NULL) {
     Paso_setError(IO_ERROR,"file could not be opened for writing");
     return;
   }
 
   /* set the matrix code */
-  MM_typecode matrixCode;
   mm_initialize_typecode(&matrixCode);
   mm_set_matrix(&matrixCode);
   mm_set_coordinate(&matrixCode);

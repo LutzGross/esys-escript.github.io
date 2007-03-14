@@ -33,15 +33,16 @@
 void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elements,
                               escriptDataC* grad_data,escriptDataC* data) {
 
-  Finley_resetError();
-  if (nodes==NULL || elements==NULL) return;
-  dim_t numComps=getDataPointSize(data);
-  dim_t NN=elements->ReferenceElement->Type->numNodes;
-  dim_t numNodes, numShapes, numLocalNodes; 
-  index_t dof_offset, s_offset;
+  dim_t numNodes, numShapes, numLocalNodes, numComps, NN;
   type_t data_type=getFunctionSpaceType(data);
   type_t grad_data_type=getFunctionSpaceType(grad_data);
   bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
+  index_t dof_offset, s_offset;
+  Finley_ElementFile_Jacobeans* jac=NULL;
+  Finley_resetError();
+  if (nodes==NULL || elements==NULL) return;
+  numComps=getDataPointSize(data);
+  NN=elements->ReferenceElement->Type->numNodes;
 
   if (data_type==FINLEY_NODES) {
        reducedShapefunction=FALSE;
@@ -82,8 +83,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
        Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculated for requested location.");
   }
 
-  Finley_ElementFile_Jacobeans* jac=Finley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
-
+  jac=Finley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
   if (Finley_noError()) {
 
       if (grad_data_type==FINLEY_ELEMENTS) {

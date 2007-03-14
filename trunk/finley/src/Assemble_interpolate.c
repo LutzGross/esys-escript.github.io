@@ -32,21 +32,21 @@
 
 void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* elements,escriptDataC* data,escriptDataC* interpolated_data) {
   double* local_data=NULL,*S=NULL,*data_array; 
-  index_t dof_offset,*resort_nodes;
-  dim_t q,i,NS_DOF,NN_DOF,numNodes,e;
+  index_t dof_offset,*resort_nodesi, NN, NS;
+  dim_t q,i,NS_DOF,NN_DOF,numNodes,e, numQuad;
+  dim_t numComps=getDataPointSize(data);
+  index_t id[MAX_numNodes], *resort_nodes;
+  type_t data_type=getFunctionSpaceType(data);
   type_t type;
+  Finley_resetError();
   #define NODES 0
   #define DOF 1
   #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
-  dim_t NN=elements->ReferenceElement->Type->numNodes;
-  dim_t NS=elements->ReferenceElement->Type->numShapes;
-  dim_t numComps=getDataPointSize(data);
-  type_t data_type=getFunctionSpaceType(data);
-  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
-  index_t id[NN];
+  NN=elements->ReferenceElement->Type->numNodes;
+  NS=elements->ReferenceElement->Type->numShapes;
+  numQuad=elements->ReferenceElement->numQuadNodes;
   for (i=0;i<NN;i++) id[i]=i;
-  Finley_resetError();
 
   /* set some parameter */
 

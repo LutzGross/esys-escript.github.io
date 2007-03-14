@@ -33,23 +33,29 @@ static double  Finley_Mesh_lockingGridSize=0;
 
 Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   Finley_Mesh* out=NULL;
+  dim_t numNodes=0;
+  dim_t numElements=0;
+  dim_t numFaceElements=0;
+  dim_t numContactElements=0;
+  dim_t numPoints=0;
   dim_t i;
+  index_t order;
+  dim_t numDim;
+  ElementTypeId elementTypeId=NoType;
+  ElementTypeId faceElementTypeId=NoType;
+  ElementTypeId pointTypeId=NoType;
+  ElementTypeId contactTypeId=NoType;
+  index_t maxNodeID=0;
+  index_t maxDOF=0;
+  index_t maxElementID=0;
+  index_t maxElementID2=0;
   char newName[LenString_MAX];
   if (numMsh==0) {
      Finley_setError(VALUE_ERROR,"__FILE__: Empty mesh list");
   } else {
-    index_t order=msh[0]->order;
-    dim_t numDim=msh[0]->Nodes->numDim;
-    ElementTypeId elementTypeId=NoType;
-    ElementTypeId faceElementTypeId=NoType;
-    ElementTypeId pointTypeId=NoType;
-    ElementTypeId contactTypeId=NoType;
+    order=msh[0]->order;
+    numDim=msh[0]->Nodes->numDim;
     strcpy(newName,"");
-    dim_t numNodes=0;
-    dim_t numElements=0;
-    dim_t numFaceElements=0;
-    dim_t numContactElements=0;
-    dim_t numPoints=0;
     for (i=0;i<numMsh;i++) {
        /* check if all mesh have the same type and dimensions */
        order=MAX(order,msh[i]->order);
@@ -134,16 +140,11 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
     /* copy tables :*/
 
     if (Finley_noError()) {
-
-        dim_t numNodes=0;
-        dim_t numElements=0;
-        dim_t numFaceElements=0;
-        dim_t numContactElements=0;
-        dim_t numPoints=0;
-        index_t maxNodeID=0;
-        index_t maxDOF=0;
-        index_t maxElementID=0;
-        index_t maxElementID2=0;
+       numNodes=0;
+       numElements=0;
+       numFaceElements=0;
+       numContactElements=0;
+       numPoints=0;
 
         for (i=0;i<numMsh;i++) {
 

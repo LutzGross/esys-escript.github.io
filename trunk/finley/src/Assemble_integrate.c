@@ -34,11 +34,11 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     type_t datacase;
     index_t node_offset;
     bool_t reducedIntegrationOrder;
-    if (nodes==NULL || elements==NULL) return;
     type_t data_type=getFunctionSpaceType(data);
     dim_t numComps=getDataPointSize(data);
+    Finley_ElementFile_Jacobeans* jac=NULL;
     Finley_resetError();
-                                                                                                                                               
+    if (nodes==NULL || elements==NULL) return;
     /* set some parameter */
                                                                                                                                                
     if (data_type==FINLEY_ELEMENTS) {
@@ -54,7 +54,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     }
 
     /* get access to jacobean */
-    Finley_ElementFile_Jacobeans* jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+    jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
 
     if (Finley_noError()) {
 

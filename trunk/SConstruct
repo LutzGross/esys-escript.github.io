@@ -47,6 +47,14 @@ if os.path.isdir('/opt/UFconfig'):
 else:
    ufc_path_default=None
 
+if os.path.isdir('/usr/local/include') and os.path.isdir('/usr/local/lib'):
+  netCDF_path_default='/usr/local/include'
+  netCDF_lib_path_default='/usr/local/lib'
+  netCDF_libs_cxx_default=[ 'netcdf_c++', 'netcdf'] 
+else:
+  netCDF_path_default=None
+  netCDF_lib_path_default=None
+  netCDF_libs_cxx_default=None
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
 # if the options_file or ARGUMENTS do not exist then the ones listed as default here are used
@@ -62,7 +70,10 @@ else:
       else:
          hostname+="_"
    options_file = "scons/"+hostname+"_options.py"
-print "option file is ",options_file
+if os.path.isfile(options_file):
+   print "option file is ",options_file,"."
+else:
+   print "option file is ",options_file, "(not present)."
 
 opts = Options(options_file, ARGUMENTS)
 opts.AddOptions(
@@ -83,8 +94,8 @@ opts.AddOptions(
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
-  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas'),
-  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas'),
+  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'),
+  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
   ('cc_flags_MPI','C compiler flags to use (Release MPI build)', '-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -fno-alias -c99 -w1 -fpic -wd161'),
@@ -118,9 +129,9 @@ opts.AddOptions(
   ('blas_libs', 'BLAS libraries to link with', None),
 # netCDF
   ('useNetCDF', 'switch on/off the usage of netCDF', 'yes'),
-  PathOption('netCDF_path', 'Path to netCDF includes', '/usr/local/include'),
-  PathOption('netCDF_lib_path', 'Path to netCDF libs', '/usr/local/lib'),
-  ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', [ 'netcdf_c++', 'netcdf'] ),
+  PathOption('netCDF_path', 'Path to netCDF includes', netCDF_path_default),
+  PathOption('netCDF_lib_path', 'Path to netCDF libs', netCDF_lib_path_default),
+  ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', netCDF_libs_cxx_default),
 # Python
 # locations of include files for python
   PathOption('python_path', 'Path to Python includes', '/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])),

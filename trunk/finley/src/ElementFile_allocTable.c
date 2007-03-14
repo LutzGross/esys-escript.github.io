@@ -35,8 +35,8 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements) {
 	index_t *Dom2=NULL;
 #endif
   dim_t numNodes,e,i;
+
   Finley_resetError();
-  
   /*  allocate memory: */
 #ifdef PASO_MPI 
   Dom2=MEMALLOC(numElements,dim_t);

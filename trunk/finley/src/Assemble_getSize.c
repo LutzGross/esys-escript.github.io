@@ -36,17 +36,17 @@
 void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* elements, escriptDataC* element_size) {
 
   double *local_X=NULL,*element_size_array;
-  dim_t e,n0,n1,q,i;
+  dim_t e,n0,n1,q,i, NVertices, NN, NS, numQuad, numDim;
   index_t node_offset;
   double d,diff,min_diff;
   Finley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
-  dim_t NVertices=elements->ReferenceElement->Type->numVertices;
-  dim_t NN=elements->ReferenceElement->Type->numNodes;
-  dim_t NS=elements->ReferenceElement->Type->numShapes;
-  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
-  dim_t numDim=nodes->numDim;
+  NVertices=elements->ReferenceElement->Type->numVertices;
+  NN=elements->ReferenceElement->Type->numNodes;
+  NS=elements->ReferenceElement->Type->numShapes;
+  numQuad=elements->ReferenceElement->numQuadNodes;
+  numDim=nodes->numDim;
 
   /* set a few more parameters */
 

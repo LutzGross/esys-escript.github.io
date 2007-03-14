@@ -86,13 +86,12 @@ err_t Paso_Solver_BiCGStab(
   double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
   double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
   dim_t num_iter=0,maxit,num_iter_global;
-  dim_t i0;
+  dim_t i0,n;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;
-
+  double *resid = tolerance;
   /* adapt original routine parameters */
-  dim_t n = A->num_cols * A-> col_block_size;;
-  double * resid = tolerance;
+  n = A->num_cols * A-> col_block_size;;
 
   /* Executable Statements */
 

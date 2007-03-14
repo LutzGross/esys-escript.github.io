@@ -72,12 +72,14 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
     dim_t NN=faces->ReferenceElement->Type->numNodes;
     dim_t numDim=nodes->numDim;
     Finley_Mesh_findMatchingFaces_center *center;
-    index_t e_0,e_1,a1[NN],a2[NN],*perm,*perm_tmp;
+    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL;
     dim_t e,i,i0,i1,n;
 
     X=TMPMEMALLOC(NN*numDim*faces->numElements,double);
     center=TMPMEMALLOC(faces->numElements,Finley_Mesh_findMatchingFaces_center);
-    if (!(Finley_checkPtr(X) || Finley_checkPtr(center)) ) {
+    a1=TMPMEMALLOC(NN,int);
+    a2=TMPMEMALLOC(NN,int);
+    if (!(Finley_checkPtr(X) || Finley_checkPtr(center) || Finley_checkPtr(a1) || Finley_checkPtr(a2)) ) {
        /* OMP */
        for (e=0;e<faces->numElements;e++) {
             /* get the coordinates of the nodes */
@@ -183,6 +185,8 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
     /* clean up */
     TMPMEMFREE(X);
     TMPMEMFREE(center);
+    TMPMEMFREE(a1);
+    TMPMEMFREE(a1);
 
 #undef getDist
 #undef SWAP
