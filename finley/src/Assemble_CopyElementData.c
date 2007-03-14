@@ -32,6 +32,15 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
     dim_t n,q, numElements, numQuad;
     dim_t numComps=getDataPointSize(out);
     double *in_array,*out_array;
+
+    if( elements == NULL )
+    {
+       return;
+    }
+
+    numElements=elements->numElements;
+    numQuad=elements->ReferenceElement->numQuadNodes;
+
     Finley_resetError();
 
     if (elements==NULL) return;
