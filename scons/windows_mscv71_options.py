@@ -10,8 +10,8 @@ boost_lib = 'boost_python-vc71-mt-s-1_31'
 
 # locations of netcdf
 netCDF_path = "Q:/src/netcdf-3.6.1/src/include"
-netCDF_lib_path = "Q:/src/netcdf-3.6.1/src/win32/NET/debug"
-netCDF_libs_cxx = [ 'netcdf' ]
+netCDF_lib_path = "Q:/src/netcdf-3.6.1/src/win32/NET/release"
+netCDF_libs_cxx = [ 'netcdf', 'netcdf_cpp' ]
 
 cc_defines = ['_USE_MATH_DEFINES', 'BOOST_NO_INTRINSIC_WCHAR_T', 'DLL_NETCDF' ]
 # c flags to use
