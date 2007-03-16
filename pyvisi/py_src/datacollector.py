@@ -154,6 +154,20 @@ class DataCollector:
 
 	def _paramForUpdatingMultipleSources(self, viz_type, color_mode, mapper,
 			object = None):
+		"""
+		Parameters required to update the necessary range when two or more 
+		files are read.
+
+		@type viz_type: :
+		@param viz_type:
+		@type color_mode:
+		@param color_mode:
+		@type mapper:
+		@param mapper:
+		@type object:
+		@param object:
+		"""
+
 		self.__viz_type = viz_type
 		self.__color_mode = color_mode
 		self.__mapper = mapper
