@@ -6,20 +6,26 @@
 \section{Introduction}
 \pyvisi is a Python module that is used to generate 2D and 3D visualization 
 for escript and its PDE solvers: finley and bruce. This module provides 
-an easy to use interface to the \VTK library (\VTKUrl).  
+an easy to use interface to the \VTK library (\VTKUrl). There are three forms
+of rendering an object: (1) online: a single rendered object is displayed and  
+interaction (i.e. zoom and rotate) can occur, (2) offline: multiple rendered
+objects are not displayed but are instead saved as a series of images. No 
+interaction can occur and (3) animate: similar to offline except that multiple
+rendered objects are displayed one after another (animated on-the-fly) and 
+no images are saved.  No interaction can occur.
 
 The general rule of thumb when using \pyvisi is to perform the following 
 in sequence:
 
 \begin{enumerate}
-\item Create a scene instance, in which objects are to be rendered on.
-\item Create an input instance, which deals with the source of data for 
-the visualization.
-\item Create a data visualization instance (i.e. Map, Velocity, Ellipsoid, 
-etc), which extracts and manipulates the data accordingly.
-\item Create a camera instance, which controls the lighting 
-source and view angle.
-\item Finally, render the object.
+\item Create a scene instance (i.e. \Scene), which is a window in which objects are to be 
+rendered on.
+\item Create an input instance (i.e. \DataCollector), which reads and loads 
+the source data for visualization.
+\item Create a data visualization instance (i.e. \Map, \Velocity, \Ellipsoid, 
+\Contour and \Carpet), which proccesses and manipulates the source data.
+\item Create a camera (i.e. \Camera) instance, which controls the viewing angle.
+\item Lastly, render the object online, offline or animate.
 \end{enumerate}
 \begin{center}
 \begin{math}
@@ -40,153 +46,615 @@ default position (automatically carried out in the background) based on
 the source data. 
 
 \section{\pyvisi Classes}
-This section gives a brief overview of the important classes and their 
-corresponding methods. Please refer to \ReferenceGuide for full details.
-%=====================================================================================
+The following subsections give a brief overview of the important classes 
+and some of their corresponding methods. Please refer to \ReferenceGuide for 
+full details.
+
+
+%#############################################################################
+
+
 \subsection{Scene Classes}
+This subsection details the instances used to setup the viewing environment.
+
+\subsubsection{\Scene class}
+
 \begin{classdesc}{Scene}{renderer = Renderer.ONLINE, num_viewport = 1, 
 x_size = 1152, y_size = 864}
-Displays a scene in which objects are to be rendered on.
+A scene is a window in which objects are to be rendered on. Only 
+one scene needs to be created and can display data from one source. However, 
+a scene may be divided into four smaller windows called viewports (if needed). 
+The four viewports in turn can display data from four different sources.
 \end{classdesc}
 
-\begin{classdesc}{Camera}{}
- Controls the camera manipulation. 
+The following are some of the methods available:
+\begin{methoddesc}[Scene]{setBackground}{color}
+Set the background color of the scene.
+\end{methoddesc}
+
+\begin{methoddesc}[Scene]{saveImage}{image_name}
+Save the rendered object as an image offline. No interaction can occur.
+\end{methoddesc}
+
+\begin{methoddesc}[Scene]{animate}{}
+Animate the rendered object on-the-fly. No interaction can occur.
+\end{methoddesc}
+
+\begin{methoddesc}[Scene]{render}{}
+Render the object online. Interaction can occur.
+\end{methoddesc}
+
+\subsubsection{\Camera class}
+
+\begin{classdesc}{Camera}{scene, data_collector, viewport = Viewport.SOUTH_WEST}
+A camera controls the display angle of the rendered object and one is 
+usually created for a \Scene. However, if a \Scene has four viewports, then a 
+separate camera may be created for each viewport. 
 \end{classdesc}
 
-\begin{classdesc}{Light}{}
- Controls the light manipulation.
+The following are some of the methods available:
+\begin{methoddesc}[Camera]{setFocalPoint}{position}
+Set the focal point of the camera.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{setPosition}{position}
+Set the position of the camera.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{setClippingRange}{near_clipping, far_clipping}
+Set the near and far clipping plane of the camera.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{setViewUp}{position}
+Set the view up direction of the camera.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{azimuth}{angle}
+Rotate the camera to the left and right.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{elevation}{angle}
+Rotate the camera to the top and bottom (only between -90 and 90).
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{backView}{}
+Rotate the camera to view the back of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{topView}{}
+Rotate the camera to view the top of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{bottomView}{}
+Rotate the camera to view the bottom of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{leftView}{}
+Rotate the camera to view the left side of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{rightView}{position}
+Rotate the camera to view the right side of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{isometricView}{position}
+Rotate the camera to view the isometric angle of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Camera]{dolly}{distance}
+Move the camera towards (greater than 1) and away (less than 1) from
+the rendered object.
+\end{methoddesc}
+
+\subsubsection{\Light class}
+
+\begin{classdesc}{Light}{scene, data_collector, viewport = Viewport.SOUTH_WEST}
+A light controls the source of light for the rendered object and works in 
+a similar way to \Camera.
 \end{classdesc}
 
-%============================================================================================================
+The following are some of the methods available:
+\begin{methoddesc}[Light]{setColor}{color}
+Set the light color.
+\end{methoddesc}
+
+\begin{methoddesc}[Light]{setFocalPoint}{position}
+Set the focal point of the light.
+\end{methoddesc}
+
+\begin{methoddesc}[Light]{setPosition}{position}
+Set the position of the camera.
+\end{methoddesc}
+
+\begin{methoddesc}[Light]{setAngle}{elevation = 0, azimuth = 0}
+An alternative to set the position and focal point of the light using the 
+elevation and azimuth degrees.
+\end{methoddesc}
+
+
+%##############################################################################
+
+
 \subsection{Input Classes}
+This subsection details the instances used to read and load the source data
+for visualization.
 
-\begin{classdesc}{Image}{}
- Displays an image.
+\subsubsection{\DataCollector class}
+
+\begin{classdesc}{DataCollector}{source = Source.XML}
+% need to say something about the escript object not just d xml file.
+A data collector is used to read data from an XML file or from 
+an escript object directly. Please note that a separate data collector needs 
+to be created when two or more attributes of the same type from 
+the same file needs to be specified (i.e.two scalar attributes from a file).
 \end{classdesc}
 
-\begin{classdesc}{Text}{}
- Shows some 2D text.
+The following are some of the methods available:
+\begin{methoddesc}[DataCollector]{setFileName}{file_name}
+Set the XML source file name to be read.
+\end{methoddesc}
+
+\begin{methoddesc}[DataCollector]{setData}{**args}
+Create data using the \textless name\textgreater=\textless data\textgreater 
+pairing. Assumption is made that the data will be given in the 
+appropriate format.
+\end{methoddesc}
+
+\begin{methoddesc}[DataCollector]{setActiveScalar}{scalar}
+Specify the scalar field to load.
+\end{methoddesc}
+
+\begin{methoddesc}[DataCollector]{setActiveVector}{vector}
+Specify the vector field to load.
+\end{methoddesc}
+
+\begin{methoddesc}[DataCollector]{setActiveTensor}{tensor}
+Specify the tensor field to load.
+\end{methoddesc}
+
+\subsubsection{\ImageReader class}
+
+\begin{classdesc}{ImageReader}{format}
+An image reader is used to read data from an image in a variety of formats.
 \end{classdesc}
 
-\begin{classdesc}{DataCollector}{}
-Deals with the source of data for visualization.
+The following are some of the methods available:
+\begin{methoddesc}[ImageReader]{setImageName}{image_name}
+Set the image name to be read.
+\end{methoddesc}
+
+\subsubsection{\TextTwoD class}
+
+\begin{classdesc}{Text2D}{scene, text, viewport = Viewport.SOUTH_WEST}
+2D text is used to annotate the rendered object (i.e. adding titles, authors 
+and labels).
 \end{classdesc}
 
-%============================================================================================================
-\subsection{Data Visualization}
-\begin{classdesc}{Map}{}
- Displays a scalar field using a domain surface.
+The following are some of the methods available:
+\begin{methoddesc}[Text2D]{setFontSize}{size}
+Set the 2D text size.
+\end{methoddesc}
+
+\begin{methoddesc}[Text2D]{boldOn}{}
+Bold the 2D text.
+\end{methoddesc}
+
+\begin{methoddesc}[Text2D]{setColor}{color}
+Set the color of the 2D text.
+\end{methoddesc}
+
+Including methods from \ActorTwoD. 
+
+
+%##############################################################################
+
+
+\subsection{Data Visualization Classes}
+This subsection details the instances used to process and manipulate the source
+data.
+\subsubsection{\Map class}
+
+\begin{classdesc}{Map}{scene, data_collector, 
+viewport = Viewport.Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+Class that shows a scalar field on a domain surface. The domain surface 
+can either be colored or grey-scaled, depending on the lookup table used.
 \end{classdesc}
 
-\begin{classdesc}{MapOnPlaneCut}{}
- Displays a scalar field using a domain surface cut on a plane. 
+The following are some of the methods available:\\
+Methods from \ActorThreeD.
+
+\subsubsection{\MapOnPlaneCut class}
+
+\begin{classdesc}{MapOnPlaneCut}{scene, data_collector, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \Map, except that it shows a scalar 
+field on a plane. The plane can be translated and rotated along the X, Y and 
+Z axes.
 \end{classdesc}
 
-\begin{classdesc}{MapOnPlaneClip}{}
- Displays a scalar field using a domain surface clipped 
-		on a plane.
+The following are some of the methods available:\\
+Methods from \ActorThreeD and \Transform.
+
+\subsubsection{\MapOnPlaneClip class}
+
+\begin{classdesc}{MapOnPlaneClip}{scene, data_collector,
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \MapOnPlaneCut, except that it shows a 
+scalar field clipped using a plane. 
 \end{classdesc}
 
-\begin{classdesc}{MapOnScalarClip}{}
- Displays a scalar field using a domain surface clipped 
-		using a scalar value.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \Transform and \Clipper.
+
+\subsubsection{\MapOnScalarClip class}
+
+\begin{classdesc}{MapOnScalarClip}{scene, data_collector, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \Map, except that it shows a scalar 
+field clipped using a scalar value. 
 \end{classdesc}
 
-\begin{classdesc}{Velocity}{}
- Displays a vector field using arrows.
+The following are some of the methods available:\\
+Methods from \ActorThreeD and \Clipper.
+
+\subsubsection{\Velocity class}
+
+\begin{classdesc}{Velocity}{scene, data_collector, 
+viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR, 
+arrow = Arrow.TWO_D, lut = Lut.COLOR, outline = True}
+Class that shows a vector field using arrows. The arrows can either be 
+colored or grey-scaled, depending on the lookup table used. If the arrows 
+are colored, there are two possible coloring modes, either using vector data or 
+scalar data. Similarly, there are two possible types of arrows, either 
+using two-dimensional or three-dimensional.
 \end{classdesc}
 
-\begin{classdesc}{VelocityOnPlaneCut}{}
- Displays a vector field using arrows cut on a plane.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \GlyphThreeD and \StructuredPoints. 
+
+\subsubsection{\VelocityOnPlaneCut class}
+
+\begin{classdesc}{VelocityOnPlaneCut}{scene, data_collector, 
+arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \MapOnPlaneCut, except that 
+it shows a vector field using arrows on a plane.
 \end{classdesc}
 
-\begin{classdesc}{VelocityOnPlaneClip}{}
- Displays a vector field using arrows clipped on a 
-		plane.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \GlyphThreeD, \Transform and \StructuredPoints. 
+
+\subsubsection{\VelocityOnPlaneClip class}
+
+\begin{classdesc}{VelocityOnPlaneClip}{scene, data_collector, 
+arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, online = True}
+This class works in a similar way to \MapOnPlaneClip, except that it shows a 
+vector field using arrows clipped using a plane. 
 \end{classdesc}
 
-\begin{classdesc}{Ellipsoid}{}
- Displays a tensor field using spheres.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \GlyphThreeD, \Transform, \Clipper and 
+\StructuredPoints. 
+
+\subsubsection{\Ellipsoid class}
+
+\begin{classdesc}{Ellipsoid}{scene, data_collector, 
+viewport = Viewport = SOUTH_WEST, lut = Lut.COLOR, outline = True}
+Class that shows a tensor field using ellipsoids. The ellipsoids can either be 
+colored or grey-scaled, depending on the lookup table used. 
 \end{classdesc}
 
-\begin{classdesc}{EllipsoidOnPlaneCut}{}
- Displays a tensor field using spheres cut on a
-        plane.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \Sphere, \TensorGlyph and \StructuredPoints.
+
+\subsubsection{\EllipsoidOnPlaneCut class}
+
+\begin{classdesc}{EllipsoidOnPlaneCut}{scene, data_collector,
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \MapOnPlaneCut, except that it shows
+a tensor field using ellipsoids cut using a plane.
 \end{classdesc}
 
-\begin{classdesc}{EllipsoidOnPlaneClip}{}
- Displays a tensor field using spheres clipped 
-        on a plane.
-\end{classdesc}
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform and 
+\StructuredPoints.
 
+\subsubsection{\EllipsoidOnPlaneClip class}
+
+\begin{classdesc}{EllipsoidOnPlaneClip}{scene, data_collector,
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \MapOnPlaneClip, except that it shows a 
+tensor field using ellipsoids clipped using a plane.
+\end{classdesc}
         
-\begin{classdesc}{Contour}{}
- Shows a scalar field by contour surfaces. 
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform, \Clipper 
+and \StructuredPoints.
+
+\subsubsection{\Contour class}
+
+\begin{classdesc}{Contour}{scene, data_collector, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+Class that shows a scalar field by contour surfaces. The contour surfaces can
+either be colored or grey-scaled, depending on the lookup table used. This
+class can also be used to generate iso surfaces.
 \end{classdesc}
 
-\begin{classdesc}{ContourOnPlane}{}
- Shows a scalar field by contour surfaces on 
-a given plane.
+The following are some of the methods available:\\
+Methods from \ActorThreeD and \ContourModule. 
+
+\subsubsection{\ContourOnPlaneCut class}
+
+\begin{classdesc}{ContourOnPlaneCut}{scene, data_collector,
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \MapOnPlaneCut, except that it shows a
+scalar field by contour surfaces on a plane.
 \end{classdesc}
 
-\begin{classdesc}{ContourOnClip}{}
- Shows a scalar field by contour surfaces on 
-a given clip.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \ContourModule and \Transform. 
+
+\subsubsection{\ContourOnPlaneClip class}
+
+\begin{classdesc}{ContourOnPlaneClip}{scene, data_collector, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+This class works in a similar way to \MapOnPlaneClip, except that it shows a 
+scalar field by contour surfaces clipped using a plane.
 \end{classdesc}
 
-\begin{classdesc}{IsoSurface}{}
- Shows a scalar field for a given value by 
-an isosurface.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \ContourModule, \Transform and \Clipper. 
+
+\subsubsection{\StreamLine class}
+
+\begin{classdesc}{StreamLine}{scene, data_collector,
+viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR, lut = Lut.COLOR,
+outline = True}
+Class that shows the direction of particles of a vector field using streamlines.
+The streamlines can either be colored or grey-scaled, depending on the lookup
+table used. If the streamlines are colored, there are two possible coloring 
+modes, either using vector data or scalar data.
 \end{classdesc}
 
-\begin{classdesc}{IsoSurfaceOnPlane}{}
- Shows a scalar field for a given value by 
-an isosurfaceon a given plane.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \PointSource, \StreamLineModule and \Tube. 
+
+\subsubsection{\Carpet class}
+
+\begin{classdesc}{Carpet}{scene, data_collector,
+viewport = Viewport.Viewport.SOUTH_WEST, warp_mode = WarpMode.SCALAR, 
+lut = Lut.COLOR, outline = True}
+This class works in a similar way to \MapOnPlaneCut, except that it shows a 
+scalar field on a plane deformated (warp) along the normal. The plane can 
+either be colored or grey-scaled, depending on the lookup table used. 
+Similarly, the plane can be deformated either using scalar data or vector data.
 \end{classdesc}
 
-\begin{classdesc}{IsoSurfaceOnClip}{}
- Shows a scalar field for a given vlaue by 
-an isosurface on a given clip.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \Warp and \Transform.
+
+\subsubsection{\Image class}
+
+\begin{classdesc}{Image}{scene, image_reader, viewport = Viewport.SOUTH_WEST}
+Class that displays an image which can be scaled (upwards and downwards). The 
+image can also be translated and rotated along the X, Y and Z axes.
 \end{classdesc}
 
-\begin{classdesc}{StreamLines}{}
- Shows the path of particles in a vector field.
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \PlaneSource and \Transform.
+
+
+%##############################################################################
+
+
+\subsection{Coordiante Classes}
+This subsection details the instances used to position the rendered object.
+
+\begin{classdesc}{LocalPosition}{x_coor, y_coor}
+Class that defines the local positioning coordinate system (2D).
 \end{classdesc}
 
-\begin{classdesc}{Carpet}{}
- Shows a scalar field as plane deformated along 
-the plane normal.
-\end{classdesc}
-
-\section{Geometry}
-\begin{classdesc}{Position}{}
- Defines the x,y and z coordinates rendered object.
-\end{classdesc}
-
-\begin{classdesc}{Transform}{}
-Defines the orientation of rendered object.
-\end{classdesc}
-
-\begin{classdesc}{Plane}{}
-Defines the cutting/clipping of rendered objects.
+\begin{classdesc}{GlobalPosition}{x_coor, y_coor, z_coor}
+Class that defines the global positioning coordinate system (3D).
 \end{classdesc}
 
 
-\subsection{Beautification}
-\begin{classdesc}{Style}{}
-Defines the style of text.
-\end{classdesc}
+%##############################################################################
 
-\begin{classdesc}{BlueToRed}{}
- Defines a map spectrum from blue to red.
-\end{classdesc}
 
-\begin{classdesc}{RedToBlue}{}
- Defines a map spectrum from red to blue.
-\end{classdesc}
-%===========================================
+\subsection{Supporting Classes}
+This subsection details the supporting classes inherited by the data 
+visualization classes. These supporting 
 
-\section{Rendering}
+\subsubsection{\ActorThreeD class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[Actor3D]{setOpacity}{opacity}
+Set the opacity (transparency) of the 3D actor.
+\end{methoddesc}
+
+\begin{methoddesc}[Actor3D]{setColor}{color}
+Set the color of the 3D actor.
+\end{methoddesc}
+
+\begin{methoddesc}[Actor3D]{setRepresentationToWireframe}{}
+Set the representation of the 3D actor to wireframe.
+\end{methoddesc}
+
+\subsubsection{\ActorTwoD class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[Actor2D]{setPosition}{position}
+Set the position (XY) of the 2D actor. Default position is the lower left hand
+corner of the window / viewport.
+\end{methoddesc}
+
+\subsubsection{\Clipper class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[Clipper]{setInsideOutOn}{}
+Clips one side of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Clipper]{setInsideOutOff}{}
+Clips the other side of the rendered object.
+\end{methoddesc}
+
+\begin{methoddesc}[Clipper]{setClipValue}{value}
+Set the scalar clip value.
+\end{methoddesc}
+
+\subsubsection{\ContourModule class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[ContourModule]{generateContours}{contours, 
+lower_range = None, upper_range = None}
+Generate the specified number of contours within the specified range.
+\end{methoddesc}
+
+\subsubsection{\GlyphThreeD class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[Glyph3D]{setScaleModeByVector}{}
+Set the 3D glyph to scale according to the vector data.
+\end{methoddesc}
+
+\begin{methoddesc}[Glyph3D]{setScaleModeByScalar}{}
+Set the 3D glyph to scale according to the scalar data.
+\end{methoddesc}
+
+\begin{methoddesc}[Glyph3D]{setScaleFactor}{scale_factor}
+Set the 3D glyph scale factor.
+\end{methoddesc}
+
+\subsubsection{\TensorGlyph class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[TensorGlyph]{setScaleFactor}{scale_factor}
+Set the scale factor for the tensor glyph.
+\end{methoddesc}
+
+\subsubsection{\PlaneSource class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[PlaneSource]{setPoint1}{position}
+Set the first point from the origin of the plane source.
+\end{methoddesc}
+
+\begin{methoddesc}[PlaneSource]{setPoint2}{position}
+Set the second point from the origin of the plane source.
+\end{methoddesc}
+
+\subsubsection{\PointSource class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[PointSource]{setPointSourceRadius}{radius}
+Set the radius of the sphere.
+\end{methoddesc}
+
+\begin{methoddesc}[PointSource]{setPointSourceNumberOfPoints}{points}
+Set the number of points to generate within the sphere (the larger the
+number of points, the more streamlines are generated).
+\end{methoddesc}
+
+\subsubsection{\StructuredPoints class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[StructuredPoints]{setDimension}{x, y, z}
+Set the dimension on the x, y and z axes. The smaller the dimension, 
+the more points are populated.
+\end{methoddesc}
+
+\subsubsection{\Sphere class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[Sphere]{setThetaResolution}{resolution}
+Set the theta resolution of the sphere.
+\end{methoddesc}
+
+\begin{methoddesc}[Sphere]{setPhiResolution}{resolution}
+Set the phi resoluton of the sphere.
+\end{methoddesc}
+
+\subsubsection{\StreamLineModule class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[StreamLineModule]{setMaximumPropagationTime}{time}
+Set the maximum length of the streamline expressed in elapsed time.
+\end{methoddesc}
+
+\begin{methoddesc}[StreamLineModule]{setIntegrationToBothDirections}{}
+Set the integration to occur both sides: forward (where the streamline
+goes) and backward (where the streamline came from).
+\end{methoddesc}
+
+\subsubsection{\Transform class}
+
+\begin{methoddesc}[Transform]{translate}{x_offset, y_offset, z_offset}
+Translate the rendered object along the x, y and z-axes.
+\end{methoddesc}
+
+\begin{methoddesc}[Transform]{rotateX}{angle}
+Rotate the plane along the x-axis.
+\end{methoddesc}
+
+\begin{methoddesc}[Transform]{rotateY}{angle}
+Rotate the plane along the y-axis.
+\end{methoddesc}
+
+\begin{methoddesc}[Transform]{rotateZ}{angle}
+Rotate the plane along the z-axis.
+\end{methoddesc}
+
+\begin{methoddesc}[Transform]{setPlaneToXY}{offset = 0}
+Set the plane orthogonal to the z-axis.
+\end{methoddesc}
+
+\begin{methoddesc}[Transform]{setPlaneToYZ}{offset = 0}
+Set the plane orthogonal to the x-axis.
+\end{methoddesc}
+
+\begin{methoddesc}[Transform]{setPlaneToXZ}{offset = 0}
+Set the plane orthogonal to the y-axis.
+\end{methoddesc}
+
+\subsubsection{\Tube class}
+
+\begin{methoddesc}[Tube]{setTubeRadius}{radius}
+Set the radius of the tube.
+\end{methoddesc}
+
+\begin{methoddesc}[Tube]{setTubeRadiusToVaryByVector}{}
+Set the radius of the tube to vary by vector data.
+\end{methoddesc}
+
+\begin{methoddesc}[Tube]{setTubeRadiusToVaryByScalar}{}
+Set the radius of the tube to vary by scalar data.
+\end{methoddesc}
+
+\subsubsection{\Warp class}
+
+\begin{methoddesc}[Warp]{setScaleFactor}{scale_factor}
+Set the displacement scale factor.
+\end{methoddesc}
+
+
+\section{Online Rendering Mechnism}
+
+
+
 same word on rendering, off-line, on-line, how to rotate, zoom, close the window, ...
 
 %==============================================
