@@ -165,6 +165,7 @@ if os.name != "nt" and os.uname()[4]=='ia64':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
 elif os.name == "nt":
    env = Environment(tools = ['default', 'msvc'], options = opts)
+   #env = Environment(tools = ['default', 'intelc'], options = opts)
 else:
    env = Environment(tools = ['default'], options = opts)
 # Initialise Scons Build Environment
