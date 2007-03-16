@@ -13,7 +13,7 @@ netCDF_path = "Q:/src/netcdf-3.6.1/src/include"
 netCDF_lib_path = "Q:/src/netcdf-3.6.1/src/win32/NET/debug"
 netCDF_libs_cxx = [ 'netcdf' ]
 
-cc_defines = ['_USE_MATH_DEFINES', ]
+cc_defines = ['_USE_MATH_DEFINES', 'BOOST_NO_INTRINSIC_WCHAR_T', 'DLL_NETCDF' ]
 # c flags to use
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
