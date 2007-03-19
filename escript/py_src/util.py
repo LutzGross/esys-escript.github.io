@@ -31,6 +31,18 @@ from esys.escript import C_GeneralTensorProduct
 #=========================================================
 #   some helpers:
 #=========================================================
+def getTagNames(domain):
+    """
+    returns a list of the tag names used by the domain
+
+    
+    @param domain: a domain object
+    @type domain: C{escript.Domain}
+    @return: a list of the tag name used by the domain.
+    @rtype: C{list} of C{str}
+    """
+    return [n.strip() for n in domain.showTagNames().split(",") ]
+    
 def saveVTK(filename,domain=None,**data):
     """
     writes a L{Data} objects into a files using the the VTK XML file format.

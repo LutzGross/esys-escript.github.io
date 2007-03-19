@@ -691,7 +691,14 @@ class ParameterSet(LinkableObject):
             parameters[pname] = pvalue
 
         # Create the instance of ParameterSet
-        o = cls(debug=esysxml.debug)
+        try:
+           o = cls(debug=esysxml.debug)
+        except TypeError, inst:
+           print inst.args[0]
+           if inst.args[0]=="__init__() got an unexpected keyword argument 'debug'":
+              raise TypeError("The Model class %s __init__ needs to have argument 'debug'.")
+           else:
+              raise inst
         o.declareParameters(parameters)
         esysxml.registerLinkableObject(o, node)
         return o
