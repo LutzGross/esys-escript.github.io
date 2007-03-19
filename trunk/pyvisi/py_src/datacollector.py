@@ -34,7 +34,7 @@ class DataCollector:
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
 			# Create a temporary .xml file and retrieves its path.
 			self.__tmp_file = tempfile.mkstemp(suffix=".xml")[1]
-			self.__vtk_xml_reader.SetFileName(self.__tmp_file)
+			#self.__vtk_xml_reader.SetFileName(self.__tmp_file)
 
 	def __del__(self):
 		"""
@@ -55,7 +55,7 @@ class DataCollector:
 		if(self.__source == Source.XML):
 			self.__vtk_xml_reader.SetFileName(file_name)
 
-			# NOTE: Update must be called after SetFileName to make the reader 
+			# Update must be called after SetFileName to make the reader 
 			# up to date. Otherwise, some output values may be incorrect.
 			self.__vtk_xml_reader.Update() 
 			self.__output = self.__vtk_xml_reader.GetOutput()
@@ -82,6 +82,17 @@ class DataCollector:
 
 		if self.__source == Source.ESCRIPT:
 			esys.escript.saveVTK(self.__tmp_file,**args)
+			self.__vtk_xml_reader.SetFileName(self.__tmp_file)
+			# Modified must be called for setData but NOT for
+			# setFileName. If Modified is not called, only the first file 
+			# will always be displayed. The reason Modified is used is 
+			# because the same temporary file name is always used 
+			# (old file is overwritten). Modified MUST NOT be used in 
+			# setFileName, it can cause incorrect output such as map.
+			self.__vtk_xml_reader.Modified()
+			# Update must be called after Modified. If Update is called before
+			# Modified, then the first/second image(s) may not be updated
+			# correctly.
 			self.__vtk_xml_reader.Update()
 			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
@@ -104,8 +115,10 @@ class DataCollector:
 		# but is used only when a scalar attribute has been specified.
 		if scalar in self.__point_attribute['scalars']:
 			self._getOutput().GetPointData().SetActiveScalars(scalar)
+			print "SCALAR POINT DATA"
 		elif scalar in self.__cell_attribute['scalars']:
 			self._getOutput().GetCellData().SetActiveScalars(scalar)
+			print "SCALAR CELL DATA"
 		else:
 			print "\nERROR: No scalar called '%s' is available.\n" % scalar
 			sys.exit(1)	
@@ -125,8 +138,10 @@ class DataCollector:
 		# but is used only when a vector attribute has been specified.
 		if vector in self.__point_attribute['vectors']:
 			self._getOutput().GetPointData().SetActiveVectors(vector)
+			print "VECTOR POINT DATA" 
 		elif vector in self.__cell_attribute['vectors']:
 			self._getOutput().GetCellData().SetActiveVectors(vector)
+			print "VECTOR CELL DATA"
 		else:
 			print "\nERROR: No vector called '%s' is available.\n" % vector
 			sys.exit(1)	
@@ -152,20 +167,23 @@ class DataCollector:
 			print "\nERROR: No tensor called '%s' is available.\n" % tensor
 			sys.exit(0)	
 
+	# 'object' is set to 'None' because some types of visualization have
+	# two different ranges that need to be updated while others only have one.
 	def _paramForUpdatingMultipleSources(self, viz_type, color_mode, mapper,
 			object = None):
 		"""
 		Parameters required to update the necessary range when two or more 
 		files are read.
 
-		@type viz_type: :
-		@param viz_type:
-		@type color_mode:
-		@param color_mode:
-		@type mapper:
-		@param mapper:
-		@type object:
-		@param object:
+		@type viz_type: : L{VizType <constant.VizType>} constant
+		@param viz_type: Type if visualization (i.e. Map, Velocity, etc)
+		@type color_mode: L{ColorMode <constant.ColorMode>} constant
+		@param color_mode: Type of color mode
+		@type mapper: vtkDataSetMapper
+		@param mapper: Mapped data
+		@type object: vtkPolyDataAlgorith (i.e. vtkContourFilter, vtkGlyph3D, \
+				etc)
+		@param object: Poly data
 		"""
 
 		self.__viz_type = viz_type
@@ -174,6 +192,10 @@ class DataCollector:
 		self.__object = object
 
 	def _updateRange(self, range):
+		"""
+		Update the necessary range when two or more sources are read in.
+		"""
+
 		if self.__viz_type == VizType.MAP or \
 				self.__viz_type == VizType.ELLIPSOID or \
 				self.__viz_type == VizType.CARPET:

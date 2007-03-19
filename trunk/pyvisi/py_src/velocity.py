@@ -12,6 +12,7 @@ from glyph import  Glyph3D
 from outline import Outline
 from probe import Probe
 from point import StructuredPoints 
+from average import CellDataToPointData
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, StructuredPoints and
 # Probe were inherited to allow access to their public methods from the driver.
@@ -30,7 +31,7 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 	# If no lut is specified, the color scheme will be used.
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST,
 			color_mode = ColorMode.VECTOR, arrow = Arrow.TWO_D,  
-			lut = Lut.COLOR, outline = True): 
+			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -45,6 +46,8 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -84,6 +87,19 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
+		"""
+		if(cell_to_point == True): # Converts cell data to point data.
+			print "YES..."
+			c2p = CellDataToPointData(data_collector._getOutput())
+			StructuredPoints.__init__(self, c2p._getOutput())
+			Probe.__init__(self, c2p._getOutput(), 
+					StructuredPoints._getStructuredPoints(self))
+		elif(cell_to_point == False): # No conversion happens.	
+			print "NO..."
+			StructuredPoints.__init__(self, data_collector._getOutput())
+			Probe.__init__(self, data_collector._getOutput(), 
+					StructuredPoints._getStructuredPoints(self))
+		"""
 		StructuredPoints.__init__(self, data_collector._getOutput())
 		Probe.__init__(self, data_collector._getOutput(), 
 				StructuredPoints._getStructuredPoints(self))
@@ -94,8 +110,14 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
+			#Glyph3D.__init__(self, data_collector._getOutput(), 
 			Glyph3D.__init__(self, Probe._getOutput(self), 
 					Arrow3D._getOutput(self)) 
+
+		
+		#c2p = CellDataToPointData(Glyph3D._getOutput(self))
+		#DataSetMapper.__init__(self, c2p._getOutput(), 
+		#		lookup_table._getLookupTable())
 
 		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
@@ -225,11 +247,18 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.VECTOR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
+
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
 			Glyph3D._setColorModeByScalar(self)
-			Glyph3D._setRange(self, data_collector._getVectorRange())
+			Glyph3D._setRange(self, data_collector._getScalarRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
@@ -341,11 +370,18 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			Glyph3D._setRange(self, data_collector._getVectorRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getVectorRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.VECTOR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
+
 		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
 			Glyph3D._setColorModeByScalar(self)
-			Glyph3D._setRange(self, data_collector._getVectorRange())
+			Glyph3D._setRange(self, data_collector._getScalarRange())
 			DataSetMapper._setScalarRange(self, 
 					data_collector._getScalarRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))

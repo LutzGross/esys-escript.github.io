@@ -9,6 +9,7 @@ from lookuptable import LookupTable
 from outline import Outline
 from constant import Viewport, Color, Lut, VizType, ColorMode
 from contourmodule import ContourModule
+from average import CellDataToPointData
 
 # NOTE: DataSetMapper, Actor3D and ContourModule were inherited to allow 
 # access to their public methods from the driver.
@@ -23,7 +24,7 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True):
+			lut = Lut.COLOR, cell_to_point = False, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -34,6 +35,8 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		@param viewport: Viewport in which objects are to be rendered on 
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -73,7 +76,12 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		ContourModule.__init__(self, data_collector._getOutput())	
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			ContourModule.__init__(self, c2p._getOutput())	
+		elif(cell_to_point == False): # No conversion happens.	
+			ContourModule.__init__(self, data_collector._getOutput())	
+
 		# By default 10 contours are generated and the scalar range is based
 		# on the scalar data range.
 		ContourModule.generateContours(self, 10, 
@@ -112,7 +120,7 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True):
+			lut = Lut.COLOR, cell_to_point = False, outline = True):
 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -124,6 +132,8 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -166,8 +176,13 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		Cutter.__init__(self, data_collector._getOutput(), 
-				Plane._getPlane(self))
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self))
+		elif(cell_to_point == False): # No conversion happens.	
+			Cutter.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self))
+
 		ContourModule.__init__(self, Cutter._getOutput(self))
 
 		# By default 10 contours are generated and the scalar range is based
@@ -179,6 +194,10 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
 				lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
+
+		data_collector._paramForUpdatingMultipleSources(VizType.CONTOUR,
+				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
+				ContourModule._getContour(self))
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
@@ -203,7 +222,7 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True):
+			lut = Lut.COLOR, cell_to_point = False, outline = True):
 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
@@ -215,6 +234,8 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -257,8 +278,13 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		Clipper.__init__(self, data_collector._getOutput(), 
-				Plane._getPlane(self))
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			Clipper.__init__(self, c2p._getOutput(), Plane._getPlane(self))
+		elif(cell_to_point == False): # No conversion happens.	
+			Clipper.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self))
+
 		Clipper._setClipFunction(self)
 
 		ContourModule.__init__(self, Clipper._getOutput(self))
@@ -271,6 +297,10 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
 				lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
+
+		data_collector._paramForUpdatingMultipleSources(VizType.CONTOUR,
+				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
+				ContourModule._getContour(self))
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))

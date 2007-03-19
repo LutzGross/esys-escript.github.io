@@ -188,6 +188,9 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 				lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
+		data_collector._paramForUpdatingMultipleSources(VizType.ELLIPSOID,
+				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self))
+
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
@@ -284,6 +287,9 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 			lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
+
+		data_collector._paramForUpdatingMultipleSources(VizType.ELLIPSOID,
+				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self))
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
