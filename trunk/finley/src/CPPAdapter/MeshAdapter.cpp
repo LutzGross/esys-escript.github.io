@@ -1122,5 +1122,41 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
   return;
 }
 
+void MeshAdapter::setTagMap(const std::string& name,  int tag)
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  Finley_Mesh_addTagMap(mesh, name.c_str(),tag);
+  checkPasoError();
+  // throwStandardException("MeshAdapter::set TagMap is not implemented.");
+}
+
+int MeshAdapter::getTag(const std::string& name) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  int tag=0;
+  tag=Finley_Mesh_getTag(mesh, name.c_str());
+  checkPasoError();
+  // throwStandardException("MeshAdapter::getTag is not implemented.");
+  return tag;
+}
+
+bool MeshAdapter::isValidTagName(const std::string& name) const
+{
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  return Finley_Mesh_isValidTagName(mesh,name.c_str());
+}
+
+std::string MeshAdapter::showTagNames() const
+{
+  stringstream temp;
+  Finley_Mesh* mesh=m_finleyMesh.get();
+  Finley_TagMap* tag_map=mesh->TagMap;
+  while (tag_map) {
+     temp << tag_map->name;
+     tag_map=tag_map->next;
+     if (tag_map) temp << ", ";
+  }
+  return temp.str();
+}
 
 }  // end of namespace

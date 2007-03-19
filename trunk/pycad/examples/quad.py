@@ -22,6 +22,7 @@ __date__="$Date$"
 from esys.pycad import *
 from esys.pycad.gmsh import Design
 from esys.finley import MakeDomain
+from esys.escript import getTagNames
 p0=Point(0.,0.,0.)
 p1=Point(1.,0.,0.)
 p2=Point(1.,1.,0.)
@@ -32,17 +33,14 @@ l23=Line(p2,p3)
 l30=Line(p3,p0)
 c=CurveLoop(l01,l12,l23,l30)
 s=PlaneSurface(c)
-ps=PropertySet("The whole domain",s)
+ps=PropertySet("The_whole_domain",s)
 pl1=PropertySet("sides",l01,l23)
-pl2=PropertySet("top and bottom",l12,l30)
+pl2=PropertySet("top_and_bottom",l12,l30)
 d=Design(dim=2,element_size=0.2)
 d.addItems(pl1,pl2)
 d.addItems(ps)
 d.setScriptFileName("quad.geo")
 d.setMeshFileName("quad.msh")
 dom=MakeDomain(d,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
+print getTagNames(dom)
 dom.write("quad.fly")
-d.getTagMap().writeXML(open("quad_tags.xml","w")) 
-# recover tagmap
-#   m=TagMap()
-#   m.fillFromXML(open("quad_tags.xml","r"))

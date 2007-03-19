@@ -112,6 +112,13 @@ class TagMap(object):
         d=self.map(default=default,**kwargs)
         for t,v in d.items():
              data.setTaggedValue(t,v)
+    def passToDomain(self,domain):
+        """
+        passes the tag map to  L{esys.escript.Domain} domain.
+        """
+        for tag, name in self.__map.items():
+          domain.setTagMap(name,tag)
+         
     def toDOM(self,dom):
          """
          adds object to dom

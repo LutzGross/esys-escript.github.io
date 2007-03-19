@@ -15,7 +15,7 @@ import sys
 import os
 import unittest
 from esys.escript import *
-from esys.finley import Interval,Rectangle,Brick,JoinFaces, ReadGmsh
+from esys.finley import Interval,Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -211,10 +211,29 @@ class Test_GMSHReader(unittest.TestCase):
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
+class Test_Reader(unittest.TestCase):
+   def test_ReadWriteTagNames(self):
+       file="hex_2D_order2.msh"
+       test = FINLEY_WORKDIR+os.sep+"test.fly"
+       dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       insertTagNames(dom,A=1,B=2)
+       dom.write(test)
+       dom2 = ReadMesh(test,3)
+       t=getTagNames(dom)
+       self.failUnless(len(t)==2)
+       self.failUnless("A" in t)
+       self.failUnless("B" in t)
+       self.failUnless(dom2.getTag("A") == 1)
+       self.failUnless(dom2.getTag("B") == 2)
+       self.failUnless(dom2.isValidTagName("A"))
+       self.failUnless(dom2.isValidTagName("B"))
+       
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_Generators))
    suite.addTest(unittest.makeSuite(Test_GMSHReader))
+   suite.addTest(unittest.makeSuite(Test_Reader))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)

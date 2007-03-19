@@ -38,7 +38,6 @@ class FinleyReader(ParameterSet):
                                 integrationOrder=-1)
           self.__domain=None
           self.__tag_map=None
-          self.__surface_tag_map=None
 
 
        def domain(self):
@@ -60,6 +59,11 @@ class FinleyReader(ParameterSet):
              else:
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
+             self.__tag_map = TagMap()
+             if  self.tag_map_source != None:
+                   self.__tag_map.fillFromXML(open(self.tag_map_source.getLocalFileName()))
+             self.trace("tag map read from %s in %s format."%(self.tag_map_source.getLocalFileName(), self.tag_map_source.fileformat))           
+             self.__tag_map.passToDomain(self.__domain)
           return self.__domain
 
        def tag_map(self):
@@ -69,11 +73,6 @@ class FinleyReader(ParameterSet):
           @return: the tag map
           @rtype: L{TagMap}
           """
-          if self.__tag_map == None:
-               self.__tag_map = TagMap()
-               if  self.tag_map_source != None:
-                   self.__tag_map.fillFromXML(open(self.tag_map_source.getLocalFileName()))
-               self.trace("tag map read from %s in %s format."%(self.tag_map_source.getLocalFileName(), self.tag_map_source.fileformat))           
           return self.__tag_map
 
                        

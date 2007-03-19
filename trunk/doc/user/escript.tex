@@ -224,17 +224,19 @@ shows an example. In this case two rock types {\it white} and {\it gray} can be 
 is subdivided into triangular shaped cells. Each 
 cell has a tag indicating the rock type predominately found in this cell. Here $1$ is used to indicate
 rock type {\it white} and $2$ for rock type {\it gray}. The tags are assigned at the time when the cells are generated
-and stored in the \Domain class object. The following statements show how for the
+and stored in the \Domain class object. To allow easier usage of tags names can be used. These names are typically defined 
+at the time when the geometry is generated. 
+
+The following statements show how for the
 example of \fig{Figure: tag} and the stress calculation discussed before tagged values are used for
 \var{lam}:
 \begin{python}
 lam=Scalar(value=2.,what=Function(mydomain))
-lam.setTaggedValue(1,30.)
-lam.setTaggedValue(2,5000.)
+insertTaggedValue(lam,white=30.,gray=5000.)
 s=getStress(u,lam,2.)
 \end{python}
-In this example \var{lam} is set to $30$ for those cells with tag $1$ and to $5000.$ for those cells 
-with tag $2$. The initial value $2$ of \var{lam} is used as a default value for the case when a tag
+In this example \var{lam} is set to $30$ for those cells with tag {\it white} (=$1$) and to $5000.$ for those cells 
+with tag {\it gray} (=$2$_. The initial value $2$ of \var{lam} is used as a default value for the case when a tag
 is encountered which has not been linked with a value. Note that the \var{getStress} method
 is called without modification. \escript resolves the tags when \var{lam*trace(g)} is calculated.
 
@@ -314,6 +316,16 @@ returns the surface normals on the boundary of the \Domain as \Data object.
 returns the local sample size, e.g. the element diameter, as \Data object.
 \end{methoddesc}
 
+\begin{methoddesc}[Domain]{setTagMap}{tag_name, tag}
+defines a mapping of the tag name  \var{tag_name} to the \var{tag}. 
+\end{methoddesc}
+\begin{methoddesc}[Domain]{getTag}{tag_name}
+returns the tag associated with the tag name \var{tag_name}.
+\end{methoddesc}
+\begin{methoddesc}[Domain]{isValidTagName}{tag_name}
+return \True if \var{tag_name} is a valid tag name.
+\end{methoddesc}
+
 \begin{methoddesc}[Domain]{__eq__}{arg}
 returns \True of the \Domain \var{arg} describes the same domain. Otherwise
 \False is returned.
@@ -335,10 +347,12 @@ are instantiated by generator functions. \Data objects in particular \FunctionSp
 represented by their values at \DataSamplePoints which are defined by the type and the \Domain of the
 \FunctionSpace.
 \end{classdesc}
-The following methds are available:
+The following methods are available:
 \begin{methoddesc}[FunctionSpace]{getDim}{}
 returns the spatial dimension of the \Domain of the \FunctionSpace.
 \end{methoddesc}
+
+
 
 \begin{methoddesc}[FunctionSpace]{getX}{}
 returns the location of the \DataSamplePoints.
@@ -358,6 +372,13 @@ The size may be zero.
 
 \begin{methoddesc}[FunctionSpace]{getDomain}{}
 returns the \Domain of the \FunctionSpace.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionSpace]{setTags}{new_tag, mask}
+assigns a new tag \var{new_tag} to all data sample 
+where \var{mask} is positive for a least one data point. 
+\var{mask} must be defined on the this \FunctionSpace.
+Use the \var{setTagMap} to assign a tage name to \var{new_tag}.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{__eq__}{arg}
@@ -578,16 +599,16 @@ returns \True id the \Data object is the \EmptyData object.
 Otherwise \False is returned.
 \end{methoddesc}
 
-\begin{methoddesc}[Data]{setTaggedValue}{tag,value}
+\begin{methoddesc}[Data]{setTaggedValue}{tag_name,value}
 assigns the \var{value} to all \DataSamplePoints which have the tag
-\var{tag}. \var{value} must be an object of class
+assigned to \var{tag_name}. \var{value} must be an object of class
 \class{numarray.NumArray} or must be convertible into a
 \class{numarray.NumArray} object. \var{value} (or the corresponding
 \class{numarray.NumArray} object) must be of rank $0$ or must have the
 same rank like the object.
-If a value has already be defined for tag \var{tag} within the object
+If a value has already be defined for tag \var{tag_name} within the object
 it is overwritten by the new \var{value}.  If the object is expanded,
-the value assigned to \DataSamplePoints with tag \var{tag} is replaced by
+the value assigned to \DataSamplePoints with tag \var{tag_name} is replaced by
 \var{value}.
 \end{methoddesc}
 

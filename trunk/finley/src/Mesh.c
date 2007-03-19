@@ -49,6 +49,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, Paso_MPII
   out->FaceElements=NULL; 
   out->Points=NULL;      
   out->ContactElements=NULL;      
+  out->TagMap=NULL;      
   out->reference_counter=0;
 
   out->FullFullPattern=NULL;
@@ -120,6 +121,7 @@ void Finley_Mesh_dealloc(Finley_Mesh* in) {
        Finley_ElementFile_dealloc(in->FaceElements);
        Finley_ElementFile_dealloc(in->ContactElements);
        Finley_ElementFile_dealloc(in->Points);
+       Finley_TagMap_free(in->TagMap);
        Paso_SystemMatrixPattern_dealloc(in->FullFullPattern);
        Paso_SystemMatrixPattern_dealloc(in->FullReducedPattern);
        Paso_SystemMatrixPattern_dealloc(in->ReducedFullPattern);

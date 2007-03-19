@@ -41,6 +41,44 @@ import os
 import numarray
 from esys.escript import *
 
+class Test_Domain(unittest.TestCase):
+   def test_addTags(self):
+        tag1="A"
+        tag2="B"
+        tag3="C"
+        self.domain.setTagMap(tag1,1)
+        self.failUnless(self.domain.isValidTagName(tag1))
+        self.failUnless(not self.domain.isValidTagName(tag2))
+        self.domain.setTagMap(tag2,2)
+        self.failUnless(self.domain.isValidTagName(tag1))
+        self.failUnless(self.domain.isValidTagName(tag2))
+        self.failUnless(not self.domain.isValidTagName(tag3))
+        self.failUnless(self.domain.getTag(tag1)==1)
+        self.failUnless(self.domain.getTag(tag2)==2)
+        self.failUnlessRaises(RuntimeError,self.domain.getTag,tag3)
+
+        # set tag:
+        s=Scalar(0,Function(self.domain))
+        r=Scalar(0,Function(self.domain))
+        s.setTaggedValue(tag1,1.)
+        r.setTaggedValue(1,1.)
+        s.setTaggedValue(tag2,2.)
+        r.setTaggedValue(2,2.)
+        s.setTaggedValue(tag3,3.)
+        self.failUnless(Lsup(s-r)<=0.)
+        # get tag:
+        names=getTagNames(self.domain)
+        self.failUnless(len(names) == 2)
+        self.failUnless( tag1 in names )
+        self.failUnless( tag2 in names )
+        self.failUnless(self.domain.isValidTagName(tag1))
+        self.failUnless(self.domain.isValidTagName(tag2))
+        # insert tag shortcut:
+        s2=insertTaggedValues(Scalar(0,Function(self.domain)),**{ tag1 : 1., tag2 : 2.})
+        self.failUnless(Lsup(s2-r)<=0.)
+        
+
+
 class Test_Dump(unittest.TestCase):
    arg0=9.81
    arg1=numarray.array([3.098, -3.111])

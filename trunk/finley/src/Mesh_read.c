@@ -30,6 +30,7 @@
 Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   dim_t numNodes, numDim, numEle, i0, i1;
+  index_t tag_key;
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
   char error_msg[LenErrorMsg_MAX];
@@ -38,6 +39,10 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
 
   Finley_resetError();
+#ifdef PASO_MPI
+  /* TODO */
+  Finley_setError(SYSTEM_ERROR,"Finley_Mesh_read: MPI is not suporrted yet.");`
+#endif
 
   /* get file handle */
   fileHandle_p = fopen(fname, "r");
@@ -55,19 +60,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
   /* allocate mesh */
-#ifndef PASO_MPI
   mesh_p = Finley_Mesh_alloc(name,numDim,order);
   if (! Finley_noError()) return NULL;
-#else
-  /* TODO */
-#endif
 
-#ifndef PASO_MPI
   Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
   if (! Finley_noError()) return NULL;
-#else
-  /* TODO */
-#endif
 
   if (1 == numDim) {
       for (i0 = 0; i0 < numNodes; i0++)
@@ -99,11 +96,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     return NULL;
   }
   /* read the elements */
-#ifndef PASO_MPI
   mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order);
-#else
-  /* TODO */
-#endif
   Finley_ElementFile_allocTable(mesh_p->Elements, numEle);
   mesh_p->Elements->minColor=0;
   mesh_p->Elements->maxColor=numEle-1;
@@ -126,11 +119,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-#ifndef PASO_MPI
   mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order);
-#else
-  /* TODO */
-#endif
   Finley_ElementFile_allocTable(mesh_p->FaceElements, numEle);
   mesh_p->FaceElements->minColor=0;
   mesh_p->FaceElements->maxColor=numEle-1;
@@ -152,11 +141,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-#ifndef PASO_MPI
   mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order);
-#else
-  /* TODO */
-#endif
   Finley_ElementFile_allocTable(mesh_p->ContactElements, numEle);
   mesh_p->ContactElements->minColor=0;
   mesh_p->ContactElements->maxColor=numEle-1;
@@ -178,11 +163,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-#ifndef PASO_MPI
   mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order);
-#else
-  /* TODO */
-#endif
   Finley_ElementFile_allocTable(mesh_p->Points, numEle);
   mesh_p->Points->minColor=0;
   mesh_p->Points->maxColor=numEle-1;
@@ -195,8 +176,14 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     }	/* for i1 */
     fscanf(fileHandle_p, "\n");
   } /* for i0 */
-
-
+  /* get the name tags */
+  if (feof(fileHandle_p) == 0) {
+     fscanf(fileHandle_p, "%s\n", name);
+     while (feof(fileHandle_p) == 0) {
+       fscanf(fileHandle_p, "%s %d\n", name, &tag_key);
+       Finley_Mesh_addTagMap(mesh_p,name,tag_key);
+     }
+  }
   /* close file */
 
   fclose(fileHandle_p);

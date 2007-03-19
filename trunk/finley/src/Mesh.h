@@ -59,6 +59,7 @@
 #include "Finley.h"
 #include "NodeFile.h"
 #include "ElementFile.h"
+#include "TagMap.h"
 #include "paso/SystemMatrixPattern.h"
 #include "escript/DataC.h"
 
@@ -79,6 +80,7 @@ struct Finley_Mesh {
   Finley_ElementFile* FaceElements;     /* the table of the face elements */
   Finley_ElementFile* ContactElements;  /* the table of the contact elements */
   Finley_ElementFile* Points;           /* the table of points (treated as elements of dimension 0) */
+  Finley_TagMap* TagMap;                /* the tag map mapping names to tag keys */
 
   /* pointer to the sparse matrix pattern */
 
@@ -150,6 +152,9 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
 void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char*
 *names_p,escriptDataC* *data_pp);
 #endif
+void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p,const char* name, index_t tag_key);
+index_t Finley_Mesh_getTag(Finley_Mesh *mesh_p,const char* name);
+bool_t Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p,const char* name);
 
 
 

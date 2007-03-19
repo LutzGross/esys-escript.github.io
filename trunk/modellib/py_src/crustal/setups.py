@@ -64,8 +64,6 @@ class DensityChange(Model):
 
     @ivar domain: mining region
     @type domain: L{Domian}
-    @ivar tag_map: a tagmap 
-    @type tag_map: L{TagMap}
     @ivar mass_rate: rate of change mass in a tagged region
     @type mass_rate: C{dict}
     @ivar density_rate: density in each region
@@ -76,7 +74,6 @@ class DensityChange(Model):
         """
         super(DensityChange,self).__init__(**kwargs)
         self.declareParameter(domain=None,
-                              tag_map=None,
                               mass_rate={},
                               density_rate=None)
 
@@ -85,18 +82,15 @@ class DensityChange(Model):
         initialize time integration
         """
         self.__volumes={}
-        for i in self.tag_map.getNames():
-            c=Scalar(0.,Function(self.domain))
-            self.tag_map.insert(c,**{i : 1.})
-            c=integrate(c)
+        for i in getTagNames(self.domain):
+            c=integrate(insertTaggedValues(Function(self.domain),**{i : 1.}))
             if c>0: self.__volumes[i] = c
 
     def doStepPreprocessing(self, dt):
-         self.density_rate=Scalar(0.,Function(self.domain))
          d={}
          for i in self.__volumes:
             if self.mass_rate.has_key(i): d[i]=-self.mass_rate[i]/self.__volumes[i]
-         self.tag_map.insert(self.density_rate,**d)
+         self.density_rate=inserTaggedValues(Scalar(0.,Function(self.domain)),**d)
 
 class LinearElasticStressChange(Model):
     """
@@ -109,8 +103,6 @@ class LinearElasticStressChange(Model):
 
     @ivar domain: mining region
     @type domain: L{Domian}
-    @ivar tag_map: a tagmap 
-    @type tag_map: L{TagMap}
     @ivar displacement: displacement field
     @type displacement: L{Vector} or C{None}
     @ivar stress: displacement field 
@@ -131,7 +123,6 @@ class LinearElasticStressChange(Model):
         """
         super(LinearElasticStressChange,self).__init__(**kwargs)
         self.declareParameter(domain=None,
-                              tag_map=None,
                               displacement=None, \
                               stress=None, \
                               density=1., \
@@ -212,8 +203,6 @@ class CoulombFailureStress(ParameterSet):
 
     @ivar domain: mining region
     @type domain: L{Domian}
-    @ivar tag_map: a tagmap 
-    @type tag_map: L{TagMap}
     @ivar displacement: displacement field
     @type displacement: L{Vector} or C{None}
     @ivar stress: displacement field 
