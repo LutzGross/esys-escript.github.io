@@ -156,6 +156,38 @@ class AbstractDomain {
 
   /**
      \brief
+     sets a map from a clear tag name to a tag key
+     \param name Input - tag name.
+     \param tag Input - tag key.
+  */
+  ESCRIPT_DLL_API
+  virtual void setTagMap(const std::string& name,  int tag);
+
+  /**
+     \brief
+     Return the tag key for tag name.
+     \param name Input - tag name
+  */
+  ESCRIPT_DLL_API
+  virtual int getTag(const std::string& name) const;
+
+  /**
+     \brief
+     Returns True if name is a defined tag name
+     \param name Input - tag name
+  */
+  ESCRIPT_DLL_API
+  virtual bool isValidTagName(const std::string& name) const;
+
+  /**
+     \brief
+     Returns all tag names in a single string sperated by commas
+  */
+  ESCRIPT_DLL_API
+  virtual std::string showTagNames() const;
+
+  /**
+     \brief
      Return a borrowed pointer to the sample reference number id list
      \param functionSpaceType Input - The function space type.
   */

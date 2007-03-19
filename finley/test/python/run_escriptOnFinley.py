@@ -13,6 +13,7 @@ from esys.finley import Rectangle
 import sys
 import os
 from test_objects import Test_Dump as Test_Dump
+from test_objects import Test_Domain as Test_Domain
 
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
@@ -21,6 +22,11 @@ except KeyError:
 
 
 NE=4 # number elements, must be even
+class Test_DomainOnFinley(Test_Domain):
+   def setUp(self):
+       self.domain =Rectangle(NE,NE+1,2)
+   def tearDown(self):
+       del self.domain
 class Test_DumpOnFinley(Test_Dump):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
@@ -38,6 +44,7 @@ class Test_DumpOnFinley(Test_Dump):
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_DumpOnFinley))
+   suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)

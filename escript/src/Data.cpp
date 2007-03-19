@@ -1932,8 +1932,15 @@ Data::typeMatchRight(const Data& right)
   }
 }
 
-/* TODO */
-/* global reduction */
+void
+Data::setTaggedValueByName(std::string name,
+                           const boost::python::object& value) 
+{
+     if (getFunctionSpace().getDomain().isValidTagName(name)) {
+        int tagKey=getFunctionSpace().getDomain().getTag(name);
+        setTaggedValue(tagKey,value);
+     }
+}
 void
 Data::setTaggedValue(int tagKey,
                      const boost::python::object& value)
@@ -1958,8 +1965,6 @@ Data::setTaggedValue(int tagKey,
   m_data->setTaggedValue(tagKey,valueDataArray.getView());
 }
 
-/* TODO */
-/* global reduction */
 void
 Data::setTaggedValueFromCPP(int tagKey,
                             const DataArrayView& value)
@@ -1980,8 +1985,6 @@ Data::setTaggedValueFromCPP(int tagKey,
   m_data->setTaggedValue(tagKey,value);
 }
 
-/* TODO */
-/* global reduction */
 int
 Data::getTagNumber(int dpno)
 {

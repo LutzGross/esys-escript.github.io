@@ -575,6 +575,22 @@ class Data {
   DataArrayView::ValueType::size_type
   getLength() const;
 
+
+
+  /**
+     \brief
+     Assign the given value to the tag assocciated with name. Implicitly converts this
+     object to type DataTagged. Throws an exception if this object
+     cannot be converted to a DataTagged object or name cannot be mapped onto a tag key.
+     \param tagKey - Input - Integer key.
+     \param value - Input - Value to associate with given key.
+    ==>*
+  */
+  ESCRIPT_DLL_API
+  void
+  setTaggedValueByName(std::string name,
+                       const boost::python::object& value);
+
   /**
      \brief
      Assign the given value to the tag. Implicitly converts this

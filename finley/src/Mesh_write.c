@@ -31,6 +31,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   char error_msg[LenErrorMsg_MAX];
   FILE *f;
   int NN,i,j,numDim;
+  Finley_TagMap* tag_map=in->TagMap;
 
   /* open file */
   f=fopen(fname,"w");
@@ -107,7 +108,15 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   } else {
     fprintf(f,"Point1 0\n");
   }
-  
+
+  /*  write tags:*/
+  if (tag_map) {
+     fprintf(f,"Tags\n");
+     while (tag_map) {
+        fprintf(f,"%s %d\n",tag_map->name,tag_map->tag_key);
+        tag_map=tag_map->next;
+     }
+  }
   fclose(f);
   #ifdef Finley_TRACE
   printf("mesh %s has been written to file %s\n",in->Name,fname);

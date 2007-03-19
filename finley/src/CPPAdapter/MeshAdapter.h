@@ -282,6 +282,38 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     sets a map from a clear tag name to a tag key
+     \param name Input - tag name.
+     \param tag Input - tag key.
+  */
+  FINLEY_DLL_API
+  virtual void setTagMap(const std::string& name,  int tag);
+
+  /**
+     \brief
+     Return the tag key for tag name.
+     \param name Input - tag name
+  */
+  FINLEY_DLL_API
+  virtual int getTag(const std::string& name) const;
+
+  /**
+     \brief
+     Returns true if name is a defined tage name. 
+     \param name Input - tag name to be checked.
+  */
+  FINLEY_DLL_API
+  virtual bool isValidTagName(const std::string& name) const;
+
+  /**
+     \brief
+     Returns all tag names in a single string sperated by commas
+  */
+  FINLEY_DLL_API
+  virtual std::string showTagNames() const;
+
+  /**
+     \brief
      assigns new location to the domain
   */
   FINLEY_DLL_API

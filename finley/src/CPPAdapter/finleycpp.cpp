@@ -152,7 +152,11 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("getNormal",&finley::MeshAdapter::getNormal)
       .def("getSize",&finley::MeshAdapter::getSize)
       .def("saveDX",&finley::MeshAdapter::saveDX)
-      .def("saveVTK",&finley::MeshAdapter::saveVTK);
+      .def("saveVTK",&finley::MeshAdapter::saveVTK)
+      .def("setTagMap",&finley::MeshAdapter::setTagMap)
+      .def("getTag",&finley::MeshAdapter::getTag)
+      .def("isValidTagName",&finley::MeshAdapter::isValidTagName)
+      .def("showTagNames",&finley::MeshAdapter::showTagNames);
 
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >

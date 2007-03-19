@@ -189,6 +189,27 @@ AbstractDomain::StatusType AbstractDomain::getStatus() const
   throwStandardException("AbstractDomain::getStatus");
   return 0;
 }
+void AbstractDomain::setTagMap(const std::string& name,  int tag)
+{
+  throwStandardException("AbstractDomain::set TagMap is not implemented.");
+}
+int AbstractDomain::getTag(const std::string& name) const
+{
+  throwStandardException("AbstractDomain::getTag is not implemented.");
+  return 0;
+}
+
+bool AbstractDomain::isValidTagName(const std::string& name) const
+{
+  return false;
+}
+
+std::string AbstractDomain::showTagNames() const
+{
+  throwStandardException("AbstractDomain::showTagNames is not implemented.");
+  return string();
+}
+
 
 
 } // end of namespace
