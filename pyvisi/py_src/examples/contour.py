@@ -12,7 +12,7 @@ dc1.setActiveScalar(scalar = "temperature_cell")
 # Create one contour instance.
 ctr1 = Contour(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
         lut = Lut.COLOR, outline = True)
-ctr1.generateContours(contours = 1, lower_range = 0.5, upper_range = 0.5)
+#ctr1.generateContours(contours = 1, lower_range = 0.5, upper_range = 0.5)
 
 cam1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 cam1.elevation(angle = -40)

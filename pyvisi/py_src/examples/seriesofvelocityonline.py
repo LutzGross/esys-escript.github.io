@@ -10,9 +10,9 @@ dc1.setFileName(file_name =
         "/home/jongui/data/laurent/subduction/source/function.0001.vtk")
 
 v = Velocity(scene = s, data_collector = dc1, lut = Lut.COLOR, 
-        viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR, 
+        viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.SCALAR, 
 		arrow = Arrow.THREE_D)
-v.setScaleFactor(scale_factor = 80000)
+v.setScaleFactor(scale_factor = 800000)
 
 for i in range(1, 200):
     print i
