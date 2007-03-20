@@ -22,7 +22,7 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from esys.finley.finleybench import *
+from finleybench import *
 from esys.escript.benchmark import BenchmarkSuite,Benchmark
 
 type="all" 
@@ -1094,7 +1094,6 @@ if type in ["all"]:
    bms.addBenchmark(bm_CLA3D_o2_c2)
    bms.addBenchmark(bm_CLA3D_o2_c2_n45)
    
->>>>>>> .r489
 bms.run(scale=thlist)
 out=bms.getHTML(filter=ff)
 print out
