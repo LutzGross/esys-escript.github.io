@@ -217,14 +217,6 @@ class Primitive(object):
         """
         raise NotImplementedError("__neg__ is not implemented.")
 
-    def getGmshCommand(self, local_scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-
-        @note: this class is overwritten by subclass
-        """
-        raise NotImplementedError("getGmshCommand is not implemented.")
-
     def substitute(self,sub_dict):
         """
         returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
@@ -306,12 +298,6 @@ class ReversePrimitive(object):
           returns a view onto the curve with reversed ordering
           """
           return self.__primitive
-
-    def getGmshCommand(self, local_scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        return self.__primitive.getGmshCommand(local_scaling_factor)
 
     def collectPrimitiveBases(self):
         """
@@ -403,13 +389,6 @@ class Point(Primitive, PrimitiveBase):
         """
         self.setCoordinates(transformation(self.getCoordinates()))
 
-
-    def getGmshCommand(self, local_scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        c=self.getCoordinates()
-        return "Point(%s) = {%s , %s, %s , %s };"%(self.getID(),c[0],c[1],c[2], self.getLocalScale()*local_scaling_factor)
 
     def __neg__(self):
         """
@@ -574,50 +553,19 @@ class Spline(Curve):
     """
     a spline curve defined through a list of control points. 
     """
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the Curve
-        """
-        out=""
-        for i in self.getControlPoints():
-            if len(out)>0: 
-                out+=", %s"%i.getDirectedID()
-            else:
-                out="%s"%i.getDirectedID()
-        return "Spline(%s) = {%s};"%(self.getID(),out)
-    
+    pass
 
 class BezierCurve(Curve):
     """
     a Bezier curve
     """
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the Curve
-        """
-        out=""
-        for i in self.getControlPoints():
-            if len(out)>0: 
-                out+=", %s"%i.getDirectedID()
-            else:
-                out="%s"%i.getDirectedID()
-        return "Bezier(%s) = {%s};"%(self.getID(),out)
+    pass
 
 class BSpline(Curve):
     """
     a BSpline curve. Control points may be repeated.
     """
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the Curve
-        """
-        out=""
-        for i in self.getControlPoints():
-            if len(out)>0: 
-                out+=", %s"%i.getDirectedID()
-            else:
-                out="%s"%i.getDirectedID()
-        return "BSpline(%s) = {%s};"%(self.getID(),out)
+    pass
 
 class Line(Curve):
     """
@@ -630,12 +578,6 @@ class Line(Curve):
         if len(points)!=2:
            raise TypeError("Line needs two points")
         Curve.__init__(self,*points)
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the Curve
-        """
-        return "Line(%s) = {%s, %s};"%(self.getID(),self.getStartPoint().getDirectedID(),self.getEndPoint().getDirectedID())
-
 
 class ArcBase(Manifold1D):
     def __init__(self):
@@ -711,11 +653,6 @@ class Arc(ArcBase, Primitive):
             sub_dict[self]=Arc(self.getCenterPoint().substitute(sub_dict),self.getStartPoint().substitute(sub_dict),self.getEndPoint().substitute(sub_dict))
         return sub_dict[self]
 
-    def getGmshCommand(self,scaling_factor=1.):
-       """
-       returns the Gmsh command(s) to create the primitive
-       """
-       return "Circle(%s) = {%s, %s, %s};"%(self.getID(),self.getStartPoint().getDirectedID(),self.getCenterPoint().getDirectedID(),self.getEndPoint().getDirectedID())
 
     def isColocated(self,primitive):
        """
@@ -836,18 +773,6 @@ class CurveLoop(Primitive, PrimitiveBase):
                 return True
        return False
 
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        out=""
-        for i in self.getCurves():
-            if len(out)>0: 
-                out+=", %s"%i.getDirectedID()
-            else:
-                out="%s"%i.getDirectedID()
-        return "Line Loop(%s) = {%s};"%(self.getID(),out)
-
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
     """
     An oriented loop of one-dimensional manifolds (= curves and arcs)
@@ -926,12 +851,6 @@ class RuledSurface(Primitive, Manifold2D):
         returns a list of the one-dimensional manifolds forming the boundary of the Surface (including holes)
         """
         return self.getBoundaryLoop().getCurves()
-
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        return "Ruled Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getDirectedID())
 
     def substitute(self,sub_dict):
         """
@@ -1031,21 +950,6 @@ class PlaneSurface(Primitive, Manifold2D):
         returns the loop defining the boundary
         """
         return self.__loop
-
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        out=""
-        for i in self.getHoles():
-            if len(out)>0: 
-                out+=", %s"%i.getDirectedID()
-            else:
-                out="%s"%i.getDirectedID()
-        if len(out)>0:
-          return "Plane Surface(%s) = {%s, %s};"%(self.getID(),self.getBoundaryLoop().getDirectedID(), out)
-        else:
-          return "Plane Surface(%s) = {%s};"%(self.getID(),self.getBoundaryLoop().getDirectedID())
 
     def substitute(self,sub_dict):
         """
@@ -1173,18 +1077,6 @@ class SurfaceLoop(Primitive, PrimitiveBase):
        for c in self.getSurfaces(): out+=c.collectPrimitiveBases()
        return out
 
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        out=""
-        for i in self.getSurfaces():
-            if len(out)>0: 
-                out+=", %s"%i.getDirectedID()
-            else:
-                out="%s"%i.getDirectedID()
-        return "Surface Loop(%s) = {%s};"%(self.getID(),out)
-
     def substitute(self,sub_dict):
         """
         returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
@@ -1290,21 +1182,6 @@ class Volume(Manifold3D, Primitive):
        returns the loop forming the surface
        """
        return self.__loop
-
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        out=""
-        for i in self.getHoles():
-            if len(out)>0: 
-                out+=", %s"%i.getDirectedID()
-            else:
-                out="%s"%i.getDirectedID()
-        if len(out)>0:
-          return "Volume(%s) = {%s, %s};"%(self.getID(),self.getSurfaceLoop().getDirectedID(), out)
-        else:
-          return "Volume(%s) = {%s};"%(self.getID(),self.getSurfaceLoop().getDirectedID())
 
     def substitute(self,sub_dict):
         """
@@ -1429,29 +1306,6 @@ class PropertySet(Primitive, PrimitiveBase):
         """
         out=[self] 
         for i in self.getItems(): out+=i.collectPrimitiveBases()
-        return out
-
-    def getGmshCommand(self,scaling_factor=1.):
-        """
-        returns the Gmsh command(s) to create the primitive
-        """
-        k=self.getDim()
-        out="Physical "
-        if k==0: 
-            out+="Point"
-        elif k==1: 
-            out+="Line"
-        elif k==2: 
-            out+="Surface"
-        else:
-            out+="Volume"
-        out2=""
-        for i in self.getItems():
-            if len(out2)>0:
-                out2+=", %s"%i.getDirectedID()
-            else:
-                out2="%s"%i.getDirectedID()
-        out+="(" + str(self.getID()) + ") = {"+out2+"};"
         return out
 
     def getTag(self):
