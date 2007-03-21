@@ -255,7 +255,8 @@ data.
 \subsubsection{\Map class}
 
 \begin{classdesc}{Map}{scene, data_collector, 
-viewport = Viewport.Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
+outline = True}
 Class that shows a scalar field on a domain surface. The domain surface 
 can either be colored or grey-scaled, depending on the lookup table used.
 \end{classdesc}
@@ -266,7 +267,8 @@ Methods from \ActorThreeD.
 \subsubsection{\MapOnPlaneCut class}
 
 \begin{classdesc}{MapOnPlaneCut}{scene, data_collector, 
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
+outline = True}
 This class works in a similar way to \Map, except that it shows a scalar 
 field on a plane. The plane can be translated and rotated along the X, Y and 
 Z axes.
@@ -278,7 +280,8 @@ Methods from \ActorThreeD and \Transform.
 \subsubsection{\MapOnPlaneClip class}
 
 \begin{classdesc}{MapOnPlaneClip}{scene, data_collector,
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
+outline = True}
 This class works in a similar way to \MapOnPlaneCut, except that it shows a 
 scalar field clipped using a plane. 
 \end{classdesc}
@@ -289,7 +292,8 @@ Methods from \ActorThreeD, \Transform and \Clipper.
 \subsubsection{\MapOnScalarClip class}
 
 \begin{classdesc}{MapOnScalarClip}{scene, data_collector, 
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
+outline = True}
 This class works in a similar way to \Map, except that it shows a scalar 
 field clipped using a scalar value. 
 \end{classdesc}
@@ -375,7 +379,8 @@ and \StructuredPoints.
 \subsubsection{\Contour class}
 
 \begin{classdesc}{Contour}{scene, data_collector, 
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
+outline = True}
 Class that shows a scalar field by contour surfaces. The contour surfaces can
 either be colored or grey-scaled, depending on the lookup table used. This
 class can also be used to generate iso surfaces.
@@ -387,7 +392,8 @@ Methods from \ActorThreeD and \ContourModule.
 \subsubsection{\ContourOnPlaneCut class}
 
 \begin{classdesc}{ContourOnPlaneCut}{scene, data_collector,
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
+outline = True}
 This class works in a similar way to \MapOnPlaneCut, except that it shows a
 scalar field by contour surfaces on a plane.
 \end{classdesc}
@@ -398,7 +404,8 @@ Methods from \ActorThreeD, \ContourModule and \Transform.
 \subsubsection{\ContourOnPlaneClip class}
 
 \begin{classdesc}{ContourOnPlaneClip}{scene, data_collector, 
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
+outline = True}
 This class works in a similar way to \MapOnPlaneClip, except that it shows a 
 scalar field by contour surfaces clipped using a plane.
 \end{classdesc}

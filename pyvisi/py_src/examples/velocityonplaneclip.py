@@ -17,7 +17,7 @@ vopc1.setScaleFactor(scale_factor = 200000)
 vopc1.setPlaneToYZ()
 vopc1.rotateY(angle = -70)
 vopc1.translate(x_offset = 0, y_offset = 0, z_offset = 0.3)
-vopc1.setDimension(x = 7, y = 7, z = 7)
+#vopc1.setDimension(x = 7, y = 7, z = 7)
 
 c = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c.isometricView()
