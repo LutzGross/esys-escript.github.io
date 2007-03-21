@@ -10,14 +10,14 @@ from constant import Viewport, Color, Arrow, ColorMode, Lut, VizType
 from arrow import Arrow2D, Arrow3D
 from glyph import  Glyph3D
 from outline import Outline
-from probe import Probe
-from point import StructuredPoints 
+#from probe import Probe
+from point import MaskPoints
 from average import CellDataToPointData
 
-# NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, StructuredPoints and
-# Probe were inherited to allow access to their public methods from the driver.
-class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D, 
-		StructuredPoints, Probe):
+# NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D and
+# MaskPoints were inherited to allow access to their public 
+# methods from the driver.
+class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 	"""
 	Class that shows a vector field using arrows. The arrows can either be
 	colored or grey-scaled, depending on the lookup table used. If the arrows
@@ -86,38 +86,21 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  Glyph3D,
 		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
-
-		"""
+		
 		if(cell_to_point == True): # Converts cell data to point data.
-			print "YES..."
 			c2p = CellDataToPointData(data_collector._getOutput())
-			StructuredPoints.__init__(self, c2p._getOutput())
-			Probe.__init__(self, c2p._getOutput(), 
-					StructuredPoints._getStructuredPoints(self))
+			MaskPoints.__init__(self, c2p._getOutput())
 		elif(cell_to_point == False): # No conversion happens.	
-			print "NO..."
-			StructuredPoints.__init__(self, data_collector._getOutput())
-			Probe.__init__(self, data_collector._getOutput(), 
-					StructuredPoints._getStructuredPoints(self))
-		"""
-		StructuredPoints.__init__(self, data_collector._getOutput())
-		Probe.__init__(self, data_collector._getOutput(), 
-				StructuredPoints._getStructuredPoints(self))
-
+			MaskPoints.__init__(self, data_collector._getOutput())
+	
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			Glyph3D.__init__(self, Probe._getOutput(self), 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			#Glyph3D.__init__(self, data_collector._getOutput(), 
-			Glyph3D.__init__(self, Probe._getOutput(self), 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self)) 
-
-		
-		#c2p = CellDataToPointData(Glyph3D._getOutput(self))
-		#DataSetMapper.__init__(self, c2p._getOutput(), 
-		#		lookup_table._getLookupTable())
 
 		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
@@ -152,10 +135,10 @@ from plane import Plane
 from cutter import Cutter
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, Transform, Plane,
-# Cutter, StructuredPoints and Probe were inherited to allow access to 
+# Cutter and MaskPoints were inherited to allow access to 
 # their public methods from the driver.
 class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  
-		Glyph3D, Transform, Plane, Cutter, StructuredPoints, Probe):
+		Glyph3D, Transform, Plane, Cutter, MaskPoints):
 	"""
 	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
 	except that it shows a vector field using arrows on a plane.
@@ -166,7 +149,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	# If no lut is specified, the color scheme willbe used.
 	def __init__(self, scene, data_collector, arrow = Arrow.TWO_D, 
 			color_mode = ColorMode.VECTOR, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True): 
+			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -181,6 +164,8 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -223,23 +208,27 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		StructuredPoints.__init__(self, data_collector._getOutput())
-		Probe.__init__(self, data_collector._getOutput(), 
-				StructuredPoints._getStructuredPoints(self))
-
-		Cutter.__init__(self, Probe._getOutput(self), 
-				Plane._getPlane(self)) 	
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			MaskPoints.__init__(self, c2p._getOutput())
+		elif(cell_to_point == False): # No conversion happens.	
+			MaskPoints.__init__(self, data_collector._getOutput())
+		
 
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			Glyph3D.__init__(self, Cutter._getOutput(self), 
+			#Glyph3D.__init__(self, Cutter._getOutput(self), 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			Glyph3D.__init__(self, Cutter._getOutput(self), 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self)) 
 
-		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
+		Cutter.__init__(self, Glyph3D._getOutput(self), 
+				Plane._getPlane(self)) 	
+
+		DataSetMapper.__init__(self, Cutter._getOutput(self), 
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
@@ -270,10 +259,10 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 from clipper import Clipper
 
 # NOTE: DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, Transform, Plane,
-# Clipper, StructuredPoints and Probe  were inherited to allow access to 
+# Clipper and MaskPoints  were inherited to allow access to 
 # their public methods from the driver.
 class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,  
-		Glyph3D, Transform, Plane, Clipper, StructuredPoints, Probe):
+		Glyph3D, Transform, Plane, Clipper, MaskPoints):
 	"""
 	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>}
 	, except that it shows a vector field using arrows clipped using a plane.
@@ -284,7 +273,7 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 	# If no lut is specified, the color scheme will be used.
 	def __init__(self, scene, data_collector, arrow = Arrow.TWO_D, 
 			color_mode = ColorMode.VECTOR, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True): 
+			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -299,6 +288,8 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -341,19 +332,21 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		StructuredPoints.__init__(self, data_collector._getOutput())
-		Probe.__init__(self, data_collector._getOutput(), 
-				StructuredPoints._getStructuredPoints(self))
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			MaskPoints.__init__(self, c2p._getOutput())
+		elif(cell_to_point == False): # No conversion happens.	
+			MaskPoints.__init__(self, data_collector._getOutput())
 
 		# NOTE: Glyph3D must come before Clipper. Otherwise, the output will
 		# be incorrect.
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			Glyph3D.__init__(self, Probe._getOutput(self), 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			Glyph3D.__init__(self, Probe._getOutput(self), 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self)) 
 		
 		# NOTE: Clipper must come after Glyph3D. Otherwise, the output will

@@ -30,7 +30,7 @@ v1 = Velocity(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
 v1.setRepresentationToWireframe()
 v1.setScaleFactor(scale_factor = 0.3)
 v1.setScaleModeByScalar()
-v1.setDimension(x = 2, y = 2, z = 2)
+#v1.setDimension(x = 2, y = 2, z = 2)
 
 # Create a velocity instance in the second viewport.
 v2 = Velocity(scene = s, data_collector = dc2, viewport = Viewport.NORTH_WEST, 
@@ -46,7 +46,7 @@ v3 = Velocity(scene = s, data_collector = dc2, viewport = Viewport.NORTH_EAST,
         lut = Lut.COLOR, outline = True)
 v3.setScaleFactor(scale_factor = 0.2)
 v3.setScaleModeByVector()
-v3.setDimension(x = 1, y = 1, z = 1)
+#v3.setDimension(x = 1, y = 1, z = 1)
 
 # Create a velocity instance in the fourth viewport.
 v4 = Velocity(scene = s, data_collector = dc3, viewport = Viewport.SOUTH_EAST,  
