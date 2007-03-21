@@ -38,16 +38,17 @@ class TagMap(object):
     assert tm.map(x=10., a=20.) == { 5 : 10, 4: 10, 1 : 20 }
 
     """
-    def __init__(self, map={}):
+    def __init__(self, mapping={}):
       """
       initizlizes the mapping. map defines an initial mapping from tag to a name.
       """
-      for tag, name in map.items():
+      self.__mapping={}
+      for tag, name in mapping.items():
           if not isinstance(tag, int):
               raise TypeError("tag needs to be int")
           if not isinstance(name, str):
               raise TypeError("name needs to be a str.")
-      self.__map=map
+          self.__mapping[tag]=name
     def setMap(self,**kwargs):
       """
       set a new map where <name>=<tag> assigns the tag <tag> to name <name>. <tag> has to be integer.
@@ -57,16 +58,16 @@ class TagMap(object):
       for  name, tag in kwargs.items():
           if not isinstance(tag, int):
              raise TypeError("tag needs to be int")
-          self.__map[tag]=name
+          self.__mapping[tag]=name
     def getTags(self,name=None):
         """
         returns a list of the tags assigned to name. If name is not present a list of tags is returned.
         """
         if name == None:
-           out=self.__map.keys()
+           out=self.__mapping.keys()
         else:
            out=[]
-           for tag, arg in self.__map.items():
+           for tag, arg in self.__mapping.items():
              if arg == name: out.append(tag)
         return out
     def getName(self,tag=None):
@@ -74,15 +75,15 @@ class TagMap(object):
         returns the name of a tag. If tag is not present a list of names is returned.
         """
         if tag == None:
-           return list(set(self.__map.values()))
+           return list(set(self.__mapping.values()))
         else:
-            return self.__map[tag]
+            return self.__mapping[tag]
 
     def getMapping(self):
         """
         returns a dictionary where the tags define the keys and the values the corresposnding names.
         """
-        return self.__map
+        return self.__mapping
 
     def map(self,default=0,**kwargs):
         """
@@ -97,9 +98,9 @@ class TagMap(object):
         the default is used for tags which map onto name with unspecified values
         """
         out={}
-        for tag in self.__map:
-           if kwargs.has_key(self.__map[tag]):
-              out[tag]=kwargs[self.__map[tag]]
+        for tag in self.__mapping:
+           if kwargs.has_key(self.__mapping[tag]):
+              out[tag]=kwargs[self.__mapping[tag]]
            else:
               out[tag]=default
         return out
@@ -116,7 +117,7 @@ class TagMap(object):
         """
         passes the tag map to  L{esys.escript.Domain} domain.
         """
-        for tag, name in self.__map.items():
+        for tag, name in self.__mapping.items():
           domain.setTagMap(name,tag)
          
     def toDOM(self,dom):
