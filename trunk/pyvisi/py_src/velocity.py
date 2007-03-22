@@ -210,14 +210,16 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
-			MaskPoints.__init__(self, c2p._getOutput())
+			Cutter.__init__(self, c2p._getOutput(), 
+					Plane._getPlane(self)) 	
 		elif(cell_to_point == False): # No conversion happens.	
-			MaskPoints.__init__(self, data_collector._getOutput())
-		
+			Cutter.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self)) 	
+
+		MaskPoints.__init__(self, Cutter._getOutput(self))
 
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			#Glyph3D.__init__(self, Cutter._getOutput(self), 
 			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
@@ -225,10 +227,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self)) 
 
-		Cutter.__init__(self, Glyph3D._getOutput(self), 
-				Plane._getPlane(self)) 	
-
-		DataSetMapper.__init__(self, Cutter._getOutput(self), 
+		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.

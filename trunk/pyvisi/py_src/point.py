@@ -211,29 +211,70 @@ class StructuredPoints:
 
 
 class MaskPoints:
+	"""
+	Class that the masking of points. It is possible to mask every n'th point.
+	This is useful to prevent the rendered object from being cluttered with
+	arrows or ellipsoids.
+	"""
 
 	def __init__(self, object):
+		"""
+		Initialise the mask points.
+
+		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, etc)
+		@param object: Data source to mask points from
+		"""
+
 		self.__object = object
 		self.__vtk_mask_points = vtk.vtkMaskPoints()
 
 		self.__setupMaskPoints()
 
 	def __setupMaskPoints(self):
+		"""
+		Setup the mask points.
+		"""
 		self.__setInput()
 
 	def __setInput(self):
+		"""
+		Set the input for the mask points.
+		"""
+
 		self.__vtk_mask_points.SetInput(self.__object)
 
 	def setRatio(self, ratio):
+		"""
+		Mask every nth point.
+
+		@type ratio: Number
+		@param ratio: Masking ratio
+		"""
+
 		self.__vtk_mask_points.SetOnRatio(ratio)
 
 	def randomOn(self):
+		"""
+		Enables the randomization of the points selected for masking.
+		"""
+
 		self.__vtk_mask_points.RandomModeOn()
 
 	def randomOff(self):
+		"""
+		Disables the randomization of the points selected for masking.
+		"""
+
 		self.__vtk_mask_points.RandomModeOff()
 	
 	def _getOutput(self):
+		"""
+		Return the output of the masked points.
+
+		@rtype: vtkPolyData
+		@return: Polygonal datda
+		"""
+
 		return self.__vtk_mask_points.GetOutput()
 
 
