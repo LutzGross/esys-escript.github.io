@@ -11,14 +11,15 @@ from sphere import Sphere
 from normals import Normals
 from glyph import  TensorGlyph
 from outline import Outline
-from point import StructuredPoints
+from point import StructuredPoints, MaskPoints
 from probe import Probe
+from average import CellDataToPointData
 
-# NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, 
-# StructuredPoints and Probe  were inherited to allow access to their 
+# NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph 
+# and MaskPoints  were inherited to allow access to their 
 # public methods from the driver.
 class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, 
-		StructuredPoints, Probe):
+		MaskPoints):
 	"""
 	Class that shows a tensor field using ellipsoids. The ellipsoids can either
 	be colored or grey-scaled, depending on the lookup table used.
@@ -28,7 +29,7 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True): 
+			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -39,6 +40,8 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -78,12 +81,19 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		StructuredPoints.__init__(self, data_collector._getOutput())
-		Probe.__init__(self, data_collector._getOutput(),
-				StructuredPoints._getStructuredPoints(self))
+		#StructuredPoints.__init__(self, data_collector._getOutput())
+		#Probe.__init__(self, data_collector._getOutput(),
+		#		StructuredPoints._getStructuredPoints(self))
+
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			MaskPoints.__init__(self, c2p._getOutput())
+		elif(cell_to_point == False): # No conversion happens.	
+			MaskPoints.__init__(self, data_collector._getOutput())
 
 		Sphere.__init__(self)
-		TensorGlyph.__init__(self, Probe._getOutput(self), 
+		#TensorGlyph.__init__(self, Probe._getOutput(self), 
+		TensorGlyph.__init__(self, MaskPoints._getOutput(self), 
 				Sphere._getOutput(self)) 
 		Normals.__init__(self, TensorGlyph._getOutput(self))
 
