@@ -210,8 +210,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
-			Cutter.__init__(self, c2p._getOutput(), 
-					Plane._getPlane(self)) 	
+			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self)) 	
 		elif(cell_to_point == False): # No conversion happens.	
 			Cutter.__init__(self, data_collector._getOutput(), 
 					Plane._getPlane(self)) 	
@@ -333,9 +332,17 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
-			MaskPoints.__init__(self, c2p._getOutput())
+			#MaskPoints.__init__(self, c2p._getOutput())
+			Clipper.__init__(self, c2p._getOutput(), 
+					Plane._getPlane(self)) 	
+			Clipper._setClipFunction(self)
 		elif(cell_to_point == False): # No conversion happens.	
-			MaskPoints.__init__(self, data_collector._getOutput())
+			#MaskPoints.__init__(self, data_collector._getOutput())
+			Clipper.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self)) 	
+			Clipper._setClipFunction(self)
+
+		MaskPoints.__init__(self, Clipper._getOutput(self))
 
 		# NOTE: Glyph3D must come before Clipper. Otherwise, the output will
 		# be incorrect.
@@ -350,11 +357,12 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		
 		# NOTE: Clipper must come after Glyph3D. Otherwise, the output will
 		# be incorrect.
-		Clipper.__init__(self, Glyph3D._getOutput(self), 
-				Plane._getPlane(self)) 	
-		Clipper._setClipFunction(self)
+		#Clipper.__init__(self, Glyph3D._getOutput(self), 
+		#		Plane._getPlane(self)) 	
+		#Clipper._setClipFunction(self)
 
-		DataSetMapper.__init__(self, Clipper._getOutput(self), 
+		#DataSetMapper.__init__(self, Clipper._getOutput(self), 
+		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.

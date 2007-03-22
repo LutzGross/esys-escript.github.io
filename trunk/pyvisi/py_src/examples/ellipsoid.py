@@ -15,7 +15,9 @@ e1 = Ellipsoid(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
 e1.setScaleFactor(scale_factor = 0.1)
 e1.setPhiResolution(resolution = 10)
 e1.setThetaResolution(resolution = 10)
-e1.setDimension(x = 2, y = 2, z = 2)
+e1.setRatio(8)
+e1.randomOn()
+#e1.setDimension(x = 2, y = 2, z = 2)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
