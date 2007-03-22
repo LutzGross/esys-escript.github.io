@@ -13,10 +13,12 @@ dc1.setFileName(file_name = "/home/jongui/data/laurent/slab/source/slab.xml")
 # Create a velocity on plane clip instance.
 vopc1 = VelocityOnPlaneClip(scene = s, data_collector = dc1, 
         arrow = Arrow.THREE_D, color_mode = ColorMode.SCALAR)
-vopc1.setScaleFactor(scale_factor = 200000)
+vopc1.setScaleFactor(scale_factor = 800000)
 vopc1.setPlaneToYZ()
 vopc1.rotateY(angle = -70)
 vopc1.translate(x_offset = 0, y_offset = 0, z_offset = 0.3)
+vopc1.setRatio(10)
+vopc1.randomOn()
 #vopc1.setDimension(x = 7, y = 7, z = 7)
 
 c = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
