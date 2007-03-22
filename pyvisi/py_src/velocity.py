@@ -10,7 +10,6 @@ from constant import Viewport, Color, Arrow, ColorMode, Lut, VizType
 from arrow import Arrow2D, Arrow3D
 from glyph import  Glyph3D
 from outline import Outline
-#from probe import Probe
 from point import MaskPoints
 from average import CellDataToPointData
 

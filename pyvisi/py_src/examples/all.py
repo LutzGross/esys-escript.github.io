@@ -18,7 +18,8 @@ vopc1 = VelocityOnPlaneCut(scene = s, data_collector = dc1,
         arrow = Arrow.THREE_D, color_mode = ColorMode.SCALAR)
 vopc1.setScaleFactor(scale_factor = 0.2)
 vopc1.setPlaneToYZ(offset = 2.999)
-vopc1.setDimension(x = 1.5, y = 1.5, z = 1.5)
+#vopc1.setDimension(x = 1.5, y = 1.5, z = 1.5)
+vopc1.setRatio(2)
 
 sl1 = StreamLine(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True,
@@ -31,7 +32,8 @@ eopc1.setScaleFactor(scale_factor = 0.1)
 eopc1.setPlaneToXZ()
 eopc1.rotateX(angle = -40)
 eopc1.translate(x_offset = 0, y_offset = 0.2, z_offset = 0)
-eopc1.setDimension(x = 1, y = 1, z = 1)
+#eopc1.setDimension(x = 1, y = 1, z = 1)
+eopc1.setRatio(2)
 
 ctropc1 = ContourOnPlaneClip(scene = s, data_collector = dc1, 
         viewport  = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)

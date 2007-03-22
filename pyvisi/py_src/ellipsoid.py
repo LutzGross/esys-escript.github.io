@@ -11,8 +11,7 @@ from sphere import Sphere
 from normals import Normals
 from glyph import  TensorGlyph
 from outline import Outline
-from point import StructuredPoints, MaskPoints
-from probe import Probe
+from point import MaskPoints
 from average import CellDataToPointData
 
 # NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph 
@@ -179,10 +178,6 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		#StructuredPoints.__init__(self, data_collector._getOutput())
-		#Probe.__init__(self, data_collector._getOutput(),
-		#		StructuredPoints._getStructuredPoints(self))
-
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
 			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self)) 	
@@ -192,15 +187,14 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 
 		MaskPoints.__init__(self, Cutter._getOutput(self))
 
-		#Cutter.__init__(self, Probe._getOutput(self), 
-		#		Plane._getPlane(self)) 	
-
 		Sphere.__init__(self)
 
-		#TensorGlyph.__init__(self, Cutter._getOutput(self),
 		TensorGlyph.__init__(self, MaskPoints._getOutput(self),
 				Sphere._getOutput(self))
 		Normals.__init__(self, TensorGlyph._getOutput(self)) 
+
+
+
 
 		DataSetMapper.__init__(self, Normals._getOutput(self), 
 				lookup_table._getLookupTable())
