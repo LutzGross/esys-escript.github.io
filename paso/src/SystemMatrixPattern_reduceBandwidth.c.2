@@ -24,7 +24,7 @@
 /*    assigned_level_p(D2)             DECREASED FOR IBM 360 AND 370 COMPUTERS
 /*    forward_levels_p(D2)           BY REPLACING INTEGER pattern_p BY
 /*    backward_levels_p(D2)           INTEGER*2 pattern_p IN SUBROUTINES Finley_Reduce,
-/*    ConnectedComponents(D2)          Finley_Reduce_setCharacteristics, Finley_Reduce_findDiameter, Paso_SystemMatrixPattern_dropTree AND NUMBER.
+/*    ConnectedComponents_p(D2)          Finley_Reduce_setCharacteristics, Finley_Reduce_findDiameter, Paso_BandwidthReduction_dropTree AND NUMBER.
 /*  COMMON INFORMATION--THE FOLLOWING COMMON BLOCK MUST BE IN THE
 /*  CALLING ROUTINE.
 /*    COMMON/GRA/N,num_levels,ndeg_max
@@ -51,25 +51,25 @@
 /*    backward_levels_p[i]-  the level assigned to node i by Finley_Reduce.
 
 /*  WORKING STORAGE VARIABLE--
-/*    ConnectedComponents
+/*    ConnectedComponents_p
 /*  LOCAL STORAGE--
-/*    COMMON/CC/-SUBROUTINES Finley_Reduce, SORT2 AND PIKassigned_level_p ASSUME THAT
+/*    COMMON/CC/-SUBROUTINES Finley_Reduce, Paso_BandwidthReduction_sortConnectedComponentsInfos AND Paso_BandwidthReduction_chooseFinalLeveling ASSUME THAT
 /*               THE GRAPH HAS AT MOST 50 CONNECTED COMPONENTS.
 /*               SUBROUTINE Finley_Reduce_findDiameter ASSUMES THAT THERE ARE AT MOST
 /*               100 NODES IN THE LAST LEVEL.
-/*    COMMON/assigned_level_pW/-SUBROUTINES Finley_Reduce_setup AND PIKassigned_level_p ASSUME THAT THERE
+/*    COMMON/assigned_level_pW/-SUBROUTINES Paso_BandwidthReduction_setup AND Paso_BandwidthReduction_chooseFinalLeveling ASSUME THAT THERE
 /*               ARE AT MOST 100 LEVELS.
-      SUBROUTINE Finley_Reduce(pattern_p, N, label_p, new_label_p, degree_p, assigned_level_p, forward_levels_p,backward_levels_p, ConnectedComponents, newBandwidth, newProfile, NIN, ndeg_maxIN)
+      SUBROUTINE Finley_Reduce(pattern_p, N, label_p, new_label_p, degree_p, assigned_level_p, forward_levels_p,backward_levels_p, ConnectedComponents_p, newBandwidth, newProfile, NIN, ndeg_maxIN)
 /* USE INTEGER*2 pattern_p  WITH AN IBM 360 OR 370.
 	integer NIN, ndeg_maxIN
       INTEGER pattern_p
-      INTEGER start_node, end_node, new_label_p, ConnectedComponentCounter, SORT2, last_available_node_number, ConnectedComponents,
-     * SIZE, STPT, first_available_node_number
+      INTEGER start_node, end_node, new_label_p, connected_component_counter, Paso_BandwidthReduction_sortConnectedComponentsInfos, last_available_node_number, ConnectedComponents_p,
+     * connected_component_size_p, connected_component_ptr, first_available_node_number
       COMMON /GRA/ N, num_levels, ndeg_max
 /* IT IS ASSUMED THAT THE GRAPH HAS AT MOST 50 CONNECTED COMPONENTS.
-      COMMON /CC/ ConnectedComponentCounter, SIZE(50), STPT(50)
-      COMMON /assigned_level_pW/ NHIGH(100), NLOW(100), NACUM(100)
-      DIMENSION ConnectedComponents(1), label_p(1)
+      COMMON /CC/ connected_component_counter, connected_component_size_p(50), connected_component_ptr(50)
+      COMMON /assigned_level_pW/ NHIGH(100), NLOW(100), num_nodes_in_level_p(100)
+      DIMENSION ConnectedComponents_p(1), label_p(1)
       DIMENSION pattern_p(N,1), assigned_level_p(1), forward_levels_p(1), backward_levels_p(1), new_label_p(1),
      * degree_p(1)
       newBandwidth = 0
@@ -95,7 +95,7 @@ c
     /* COMPUTE degree_p OF EACH NODE AND ORIGINAL BANDWIDTH AND PROFILE*/
 
 ===============================
-Paso_SystemMatrixpattern_p* pattern_p, 
+Paso_BandwidthReduction_p* pattern_p, 
 
     
     long initial_bandwidth, initial_profile
@@ -150,8 +150,12 @@ Paso_SystemMatrixpattern_p* pattern_p,
      /* start_node and end_node are the ends of the diameter and 
         forward_levels_p and backward_levels_p are the respective level structures. */
 
-      Finley_Reduce_findDiameter(*start_node, end_node, pattern_p, degree_p, 
-                                 assigned_level_p, forward_levels_p,backward_levels_p, ConnectedComponents, IDFLT)
+      Finley_Reduce_findDiameter(*start_node, 
+                                 end_node, pattern_p, degree_p, 
+                                 assigned_level_p, 
+                                 forward_levels_p,backward_levels_p, 
+                                 ConnectedComponents_p, 
+                                 IDFLT)
       /* reverse_diameter_tree INDICATES THE END TO BEGIN NUMBERING ON */
       if (degree_p(start_node)>degree_p(end_node)) {
             reverse_diameter_tree = TRUE;
@@ -159,30 +163,50 @@ Paso_SystemMatrixpattern_p* pattern_p,
       } else {
             reverse_diameter_tree = FALSE;
       }
-#########
-      CALL Finley_Reduce_setup(assigned_level_p, forward_levels_p, backward_levels_p)
-      /* find all the connected components  (ConnectedComponentCounter counts them) */
-      ConnectedComponentCounter = 0;
+
+      Paso_BandwidthReduction_setup(assigned_level_p, forward_levels_p, backward_levels_p)
+      /* find all the connected components  */
+      connected_component_counter = 0;
       LROOT = 1
       first_available_in_list_of_tree_nodes = 1
       for (i=0,i<N,++i) {
         if (assigned_level_p[i]==0) {
-           ConnectedComponentCounter++;
-           STPT(ConnectedComponentCounter) = LROOT
-           CALL Paso_SystemMatrixPattern_dropTree(I, pattern_p, N, assigned_level_p, ConnectedComponents, degree_p, last_level_width, first_node_in_bottom_level,first_available_in_list_of_tree_nodes, max_level_width, N)
-           SIZE(ConnectedComponentCounter) = first_node_in_bottom_level + last_level_width - LROOT
-           LROOT = first_node_in_bottom_level + last_level_width
-           first_available_in_list_of_tree_nodes = LROOT
+           connected_component_counter++;
+           connected_component_ptr[connected_component_counter] = LROOT
+           Paso_BandwidthReduction_dropTree(I, pattern_p 
+                                       
+                                       assigned_level_p,
+                                       index_t *list_of_tree_nodes_p,
+                                       &last_level_width, 
+                                       &first_node_in_bottom_level,
+                                       &first_available_in_list_of_tree_nodes,
+                                       &num_levels,                   
+                                       &max_level_width, N)
+
+           connected_component_size_p[connected_component_counter] = 
+                  first_node_in_bottom_level + last_level_width - LROOT;
+           LROOT = first_node_in_bottom_level + last_level_width;
+           first_available_in_list_of_tree_nodes = LROOT;
         }
       }
-/* on return from PIKassigned_level_p, DirectionLargestComponent indicates the direction the largest component fell. */
-/* DirectionLargestComponent is modIFied now to indicate the numbering direction. num is set to the proper value for this direction. */
-      if (SORT2(DMY)!=0) PIKassigned_level_p(forward_levels_p, backward_levels_p, ConnectedComponents, IDFLT, DirectionLargestComponent)
+      /* on return from Paso_BandwidthReduction_chooseFinalLeveling, DirectionLargestComponent 
+         indicates the direction  the largest component fell.
+         DirectionLargestComponent is modIFied now to indicate the numbering direction. 
+         num is set to the proper value for this direction. */
+      if (Paso_BandwidthReduction_sortConnectedComponentsInfos(connected_component_counter,
+                                                               connected_component_size_p,
+                                                               connected_component_ptr) { 
+            Paso_BandwidthReduction_chooseFinalLeveling(forward_levels_p, 
+                                backward_levels_p, 
+                                ConnectedComponents_p, 
+                                IDFLT, 
+                                DirectionLargestComponent)
+      }
       DirectionLargestComponent = DirectionLargestComponent*reverse_diameter_tree;
       NUM= (DirectionLargestComponent<0) ?  last_available_node_number :first_available_node_number;
 
       CALL NUMBER(start_node, NUM, pattern_p, backward_levels_p, degree_p, new_label_p, forward_levels_p,
-     * assigned_level_p, N, reverse_diameter_tree, newBandwidth, newProfile, ConnectedComponents, DirectionLargestComponent)
+     * assigned_level_p, N, reverse_diameter_tree, newBandwidth, newProfile, ConnectedComponents_p, DirectionLargestComponent)
 
       /* update last_available_node_number or first_available_node_number after numbering */
 
@@ -194,17 +218,17 @@ Paso_SystemMatrixpattern_p* pattern_p,
    /* if original numbering is better than new one, set up to return it */
 
    if (newBandwidth > initial_bandwidth) {
-         for (i=0,i<N,++i)
-             new_label_p[i] = label_p[i];
+         for (i=0,i<N,++i) new_label_p[i] = label_p[i];
          *newBandwidth = initial_bandwidth;
          *newProfile = initial_profile;
    }
+   return;
 }
 ===============================================
 /*  Finley_Reduce_setCharacteristics computes the degree_p of each node and stores it in the array degree_p. */
 /*  the bandwidth and profile for the original or input numbering  of the graph is computed also. */
 
-void Finley_Reduce_setCharacteristics(Paso_SystemMatrixpattern_p *pattern_p, 
+void Finley_Reduce_setCharacteristics(Paso_BandwidthReduction_p *pattern_p, 
                                       dim_t *degree_p, 
                                       dim_t* label_p,
                                       long *bandwidth,long *initial_profile) {
@@ -223,16 +247,20 @@ void Finley_Reduce_setCharacteristics(Paso_SystemMatrixpattern_p *pattern_p,
         *bandwidth=MAX(*bandwidth,max_diff);
      }
 }
-void Paso_SystemMatrixPattern_sortByDegree(index_t* node_index1, index_t* node_index2, dim_t* num_nodes1, dim_t num_nodes2, dim_t* degree_p)
+void Paso_BandwidthReduction_sortByDegree(index_t* node_index1, 
+                                           index_t* node_index2, 
+                                           dim_t* num_nodes1, 
+                                           dim_t num_nodes2, 
+                                           dim_t* degree_p)
 {
-   /* Paso_SystemMatrixPattern_sortByDegree sorts node_index2 by degree_p of the NODE AND ADDS IT TO THE END
+   /* Paso_BandwidthReduction_sortByDegree sorts node_index2 by degree_p of the NODE AND ADDS IT TO THE END
       OF node_index1 IN ORDER OF LOWEST TO HIGHEST degree_p.  num_nodes1 AND num_nodes2 ARE THE
       NUMBER OF NODES IN node_index1 AND node_index2 RESPECTIVELY. 
    */
    register bool_t swapped=TRUE;
    register dim_t i, ipp;
    register index_t node_index2_i, node_index2_ipp, temp;
-   register dim_t j=num_nodes2;
+   register dim_t j=num_nodes2-1;
    while (swapped && j>1) {
          j--;
          swapped = FALSE;
@@ -295,10 +323,10 @@ void Finley_Reduce_findDiameter(index_t *start_node,
      /* find initial set of nodes as the end points of the tree created by root */
      while (find_new_starting_nodes) {
          num_tree_nodes = 0;
-         /* zero assigned_level_p to indicate all nodes are available to Paso_SystemMatrixPattern_dropTree */
+         /* zero assigned_level_p to indicate all nodes are available to Paso_BandwidthReduction_dropTree */
          for (i=0,i<N,++i) forward_levels_p[i] = -1;
 
-         Paso_SystemMatrixPattern_dropTree(*(start_node), 
+         Paso_BandwidthReduction_dropTree(*(start_node), 
                                            pattern_p, 
                                            forward_levels_p, 
                                            work2_p, 
@@ -309,7 +337,7 @@ void Finley_Reduce_findDiameter(index_t *start_node,
 
          node_list_len = 0;
          /* sort last level by degree_p  and store in node_list_p */
-         Paso_SystemMatrixPattern_sortByDegree(node_list_p, &(work2_p[first_node_in_bottom_level]), 
+         Paso_BandwidthReduction_sortByDegree(node_list_p, &(work2_p[first_node_in_bottom_level]), 
                                                *node_list_len, last_level_width, degree_p)
  
          find_new_starting_nodes=FALSE;
@@ -321,7 +349,7 @@ void Finley_Reduce_findDiameter(index_t *start_node,
        /* drop a tree from start_node2 */
        for (i=0;i<N;++i) assigned_level_p[i] = -1;
        num_tree_nodes = 0;
-       Paso_SystemMatrixPattern_dropTree(start_node2, 
+       Paso_BandwidthReduction_dropTree(start_node2, 
                                          pattern_p, 
                                          work1_p, 
                                          work2_p, 
@@ -350,7 +378,7 @@ void Finley_Reduce_findDiameter(index_t *start_node,
       return 
 }
 
-void Paso_SystemMatrixPattern_dropTree(index_t root, 
+void Paso_BandwidthReduction_dropTree(index_t root, 
                                        Paso_SystemMatrixPattern *pattern_p,
                                        index_t *assigned_level_p,
                                        index_t *list_of_tree_nodes_p,
@@ -361,10 +389,10 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
                                        dim_t *max_level_width, dim_t max_level_width_abort)
 
 /*  
-   Paso_SystemMatrixPattern_dropTree drops a tree in pattern_p from root 
+   Paso_BandwidthReduction_dropTree drops a tree in pattern_p from root 
 
    assigned_level_p-           array of length length pattern_p->N indicating available nodes with -1 entries. 
-                               Paso_SystemMatrixPattern_dropTree enters level numbers .
+                               Paso_BandwidthReduction_dropTree enters level numbers .
 
    list_of_tree_nodes_p -   on output contains node numbers used in tree (array of length pattern_p->N)
                                sorted by levels where list_of_tree_nodes_p[first_available_in_list_of_tree_nodes]  
@@ -422,92 +450,128 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
    }
 }
 
-      SUBROUTINE Finley_Reduce_setup(assigned_level_p, forward_levels_p, backward_levels_p)                               SET   10
-/* Finley_Reduce_setup COMPUTES THE REVERSE LEVELING INFO FROM backward_levels_p AND STORES
-/* IT INTO backward_levels_p.  NACUM[i] IS INITIALIZED TO NODES/ITH LEVEL FOR NODES
-/* ON THE PSEUDO-diameter OF THE GRAPH.  assigned_level_p IS INITIALIZED TO NON-
-/* ZERO FOR NODES ON THE PSEUDO-diameter AND NODES IN A DifFERENT
-/* COMPONENT OF THE GRAPH.
+void Paso_BandwidthReduction_setup(dim_t N, dim_t num_levels,
+                                   index_t* assigned_level_p, 
+                                   index_t* forward_levels_p, 
+                                   index_t* backward_levels_p,
+                                   dim_t* num_nodes_in_level_p)
+{
+   /* Paso_BandwidthReduction_setup COMPUTES THE REVERSE LEVELING INFO FROM backward_levels_p AND STORES
+      IT INTO backward_levels_p.  num_nodes_in_level_p[i] IS INITIALIZED TO NODES/ITH LEVEL FOR NODES
+      ON THE PSEUDO-diameter OF THE GRAPH.  assigned_level_p IS INITIALIZED TO NON-
+      ZERO FOR NODES ON THE PSEUDO-diameter AND NODES IN A DifFERENT
+      COMPONENT OF THE GRAPH.
       COMMON /GRA/ N, num_levels, ndeg_max
-/* IT IS ASSUMED THAT THERE ARE AT MOST 100 LEVELS.
-      COMMON /assigned_level_pW/ NHIGH(100), NLOW(100), NACUM(100)
-      DIMENSION assigned_level_p(1), forward_levels_p(1), backward_levels_p(1)
-      for (10 I=1,num_levels
-        NACUM[i] = 0
-   10 CONTINUE
-      for (30 i=0,i<N,++i)
-        assigned_level_p[i] = 1
-        backward_levels_p[i] = num_levels + 1 - backward_levels_p[i]
+      IT IS ASSUMED THAT THERE ARE AT MOST 100 LEVELS.
+      COMMON /assigned_level_pW/ NHIGH(100), NLOW(100), num_nodes_in_level_p(100)
+      DIMENSION assigned_level_p(1), forward_levels_p(1), backward_levels_p(1) 
+    */
+      register dim_t i, Itemp;  
+      for (i=0;i<num_levels;++i) num_nodes_in_level_p[i] = 0;
+      for (i=0;i<N;++i) {
+        assigned_level_p[i] = 1;
+        backward_levels_p[i] = num_levels - 1 - backward_levels_p[i];
         Itemp = backward_levels_p[i]
-        if (Itemp>num_levels) GO TO 30
-        if (Itemp!=forward_levels_p[i]) GO TO 20
-        NACUM(Itemp) = NACUM(Itemp) + 1
-        GO TO 30
-   20   assigned_level_p[i] = 0
-   30 CONTINUE
-      RETURN
-      END
-      INTEGER FUNCTION SORT2(DMY)                                       SOR   10
-/* SORT2 SORTS SIZE AND STPT INTO DESCENDING ORDER ACCORDING TO
-/* VALUES OF SIZE. ConnectedComponentCounter=NUMBER OF ENTRIES IN EACH ARRAY
-      INTEGER temp, ConnectedComponents, SIZE, STPT, ConnectedComponentCounter
-/* IT IS ASSUMED THAT THE GRAPH HAS AT MOST 50 CONNECTED COMPONENTS.
-      COMMON /CC/ ConnectedComponentCounter, SIZE(50), STPT(50)
-      SORT2 = 0
-      if (ConnectedComponentCounter.EQ.0) RETURN
-      SORT2 = 1
-      IND = ConnectedComponentCounter
-   10 ITEST = 0
-      IND = IND - 1
-      if (IND<1) RETURN
-      for (20 I=1,IND
-        J = I + 1
-        if (SIZE[i]>=SIZE(J)) GO TO 20
-        ITEST = 1
-        temp = SIZE[i]
-        SIZE[i] = SIZE(J)
-        SIZE(J) = temp
-        temp = STPT[i]
-        STPT[i] = STPT(J)
-        STPT(J) = temp
-   20 CONTINUE
-      if (ITEST.EQ.1) GO TO 10
-      RETURN
-      END
-      SUBROUTINE PIKassigned_level_p(forward_levels_p, backward_levels_p, ConnectedComponents, IDFLT, DirectionLargestComponent)             PIK   10
-/* PIKassigned_level_p CHOOSES THE LEVEL STRUCTURE  USED IN NUMBERING GRAPH
-/* forward_levels_p-       ON INPUT CONTAINS FORWARD LEVELING INFO
-/* backward_levels_p-       ON INPUT CONTAINS REVERSE LEVELING INFO
-/*              ON OUTPUT THE FINAL LEVEL STRUCTURE CHOSEN
-/* ConnectedComponents-      ON INPUT CONTAINS CONNECTED COMPONENT INFO
-/* IDFLT-       ON INPUT =1 if WDTH forward_levels_p<=WDTH backward_levels_p, =2 OTHERWISE
-/* NHIGH        KEEPS TRACK OF LEVEL WIDTHS FOR HIGH NUMBERING
-/* NLOW-        KEEPS TRACK OF LEVEL WIDTHS FOR LOW NUMBERING
-/* NACUM-       KEEPS TRACK OF LEVEL WIDTHS FOR CHOSEN LEVEL STRUCTURE
-/* ConnectedComponentCounter-          NUMBER OF CONNECTED COMPONENTS
-/* SIZE[i]-     SIZE OF ITH CONNECTED COMPONENT
-/* STPT[i]-     INDEX INTO ConnectedComponentsE OF 1ST NODE IN ITH CON COMPT
-/* DirectionLargestComponent-       reverse_diameter_tree WHICH INDICATES WHICH WAY THE LARGEST CONNECTED
-/*              COMPONENT FELL.  =+1 if LOW AND -1 if HIGH
-      INTEGER ConnectedComponents, SIZE, STPT, ConnectedComponentCounter, END
+        if (Itemp < num_levels) {
+            if (Itemp==forward_levels_p[i]) {
+              num_nodes_in_level_p[Itemp]++;
+          } else {
+             assigned_level_p[i] = 0;
+          }
+        }
+      }
+      return;
+}
+
+bool_t Paso_BandwidthReduction_sortConnectedComponentsInfos(                                                          dim_t connected_component_counter,
+                                                           dim_t *connected_component_size_p,
+                                                           index_t *connected_component_ptr) 
+
+{                                 
+/* 
+   Paso_BandwidthReduction_sortConnectedComponentsInfos sorts connected_component_size_p 
+   and connected_component_ptr into descending order according to the values
+   of connected_component_size_p. 
+   
+   connected_component_counter=number of entries in each array
+    
+      INTEGER temp, ConnectedComponents_p, connected_component_size_p, connected_component_ptr, connected_component_counter
+      IT IS ASSUMED THAT THE GRAPH HAS AT MOST 50 CONNECTED COMPONENTS.
+      COMMON /CC/ connected_component_counter, connected_component_size_p(50), connected_component_ptr(50)
+
+*/
+      bool_t swapped = TRUE;
+      bool_t out = FALSE;
+      if (connected_component_counter>0) {
+          out = TRUE;
+          j = connected_component_counter-1;
+          while (j>1 && swapped) {
+            swapped = FALSE;
+            j--; 
+            for (i=0; i<j; i++) {
+               ipp= i + 1;
+               if (connected_component_size_p[i]<connected_component_size_p[ipp]) {
+                  swapped = TRUE;
+                  temp = connected_component_size_p[i];
+                  connected_component_size_p[i] = connected_component_size_p[ipp];
+                  connected_component_size_p[ipp] = temp;
+                  temp = connected_component_ptr[i];
+                  connected_component_ptr[i] = connected_component_ptr[ipp];
+                  connected_component_ptr[ipp] = temp;
+               }
+            }
+         }
+      }
+      return out;
+}
+void Paso_BandwidthReduction_chooseFinalLeveling(
+                      index_t *forward_levels_p, 
+                      index_t *backward_levels_p, 
+                      index_t *ConnectedComponents_p, 
+                      IDFLT, 
+                      DirectionLargestComponent
+                      connected_component_counter
+                      connected_component_size_p
+                      connected_component_ptr) 
+/* 
+
+   Paso_BandwidthReduction_chooseFinalLeveling chooses the level structure  used in 
+   numbering graph
+   
+   forward_levels_p- on input contains forward leveling info
+   backward_levels_p- on input contains reverse leveling info
+                     on output the final level structure chosen
+  ConnectedComponents_p - ON INPUT CONTAINS CONNECTED COMPONENT INFO
+  IDFLT-       ON INPUT =1 if WDTH forward_levels_p<=WDTH backward_levels_p, =2 OTHERWISE
+  NHIGH        KEEPS TRACK OF LEVEL WIDTHS FOR HIGH NUMBERING
+  NLOW-        KEEPS TRACK OF LEVEL WIDTHS FOR LOW NUMBERING
+  num_nodes_in_level_p-       KEEPS TRACK OF LEVEL WIDTHS FOR CHOSEN LEVEL STRUCTURE
+  connected_component_counter-          NUMBER OF CONNECTED COMPONENTS
+ connected_component_size_p[i]-     connected_component_size_p OF ITH CONNECTED COMPONENT
+  connected_component_ptr[i]-     INDEX INTO ConnectedComponents_pE OF 1ST NODE IN ITH CON COMPT
+  DirectionLargestComponent-       reverse_diameter_tree WHICH INDICATES WHICH WAY THE LARGEST CONNECTED COMPONENT FELL.  =+1 if LOW AND -1 if HIGH
+  
+      INTEGER ConnectedComponents_p, connected_component_size_p, connected_component_ptr, connected_component_counter, END
       COMMON /GRA/ N, num_levels, ndeg_max
-/* IT IS ASSUMED THAT THE GRAPH HAS AT MOST 50 COMPONENTS AND
-/* THAT THERE ARE AT MOST 100 LEVELS.
-      COMMON /assigned_level_pW/ NHIGH(100), NLOW(100), NACUM(100)
-      COMMON /CC/ ConnectedComponentCounter, SIZE(50), STPT(50)
-      DIMENSION forward_levels_p(1), backward_levels_p(1), ConnectedComponents(1)
-/* FOR EACH CONNECTED COMPONENT DO
-      for (80 I=1,ConnectedComponentCounter
-        J = STPT[i]
-        END = SIZE[i] + J - 1
-/* SET NHIGH AND NLOW EQUAL TO NACUM
+  IT IS ASSUMED THAT THE GRAPH HAS AT MOST 50 COMPONENTS AND
+  THAT THERE ARE AT MOST 100 LEVELS.
+      COMMON /assigned_level_pW/ NHIGH(100), NLOW(100), num_nodes_in_level_p(100)
+      COMMON /CC/ connected_component_counter, connected_component_size_p(50), connected_component_ptr(50)
+      DIMENSION forward_levels_p(1), backward_levels_p(1), ConnectedComponents_p(1)
+      
+*/
+/* FOR EACH CONNECTED COMPONENT DO */
+      for (80 I=1,connected_component_counter
+        J = connected_component_ptr[i]
+        END = connected_component_size_p[i] + J - 1
+/* SET NHIGH AND NLOW EQUAL TO num_nodes_in_level_p */
         for (10 K=1,num_levels
-          NHIGH(K) = NACUM(K)
-          NLOW(K) = NACUM(K)
+          NHIGH(K) = num_nodes_in_level_p(K)
+          NLOW(K) = num_nodes_in_level_p(K)
    10   CONTINUE
-/* UPDATE NHIGH AND NLOW FOR EACH NODE IN CONNECTED COMPONENT
+/* UPDATE NHIGH AND NLOW FOR EACH NODE IN CONNECTED COMPONENT */
         for (20 K=J,END
-          INODE = ConnectedComponents(K)
+          INODE = ConnectedComponents_p(K)
           first_available_in_list_of_tree_nodesH = forward_levels_p(INODE)
           NHIGH(first_available_in_list_of_tree_nodesH) = NHIGH(first_available_in_list_of_tree_nodesH) + 1
           first_available_in_list_of_tree_nodesL = backward_levels_p(INODE)
@@ -515,46 +579,47 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
    20   CONTINUE
         MAnum_nodes1 = 0
         MAnum_nodes2 = 0
-/* SET MAnum_nodes1=LARGEST NEW NUMBER IN NHIGH
-/* SET MAnum_nodes2=LARGEST NEW NUMBER IN NLOW
+/* SET MAnum_nodes1=LARGEST NEW NUMBER IN NHIGH */
+/* SET MAnum_nodes2=LARGEST NEW NUMBER IN NLOW */
         for (30 K=1,num_levels
-          if (2*NACUM(K).EQ.NLOW(K)+NHIGH(K)) GO TO 30
+          if (2*num_nodes_in_level_p(K).EQ.NLOW(K)+NHIGH(K)) GO TO 30
           if (NHIGH(K)>MAnum_nodes1) MAnum_nodes1 = NHIGH(K)
           if (NLOW(K)>MAnum_nodes2) MAnum_nodes2 = NLOW(K)
    30   CONTINUE
-/* SET IT= NUMBER OF LEVEL STRUCTURE TO BE USED
+/* SET IT= NUMBER OF LEVEL STRUCTURE TO BE USED */
         IT = 1
         if (MAnum_nodes1>MAnum_nodes2) IT = 2
         if (MAnum_nodes1.EQ.MAnum_nodes2) IT = IDFLT
         if (IT.EQ.2) GO TO 60
         if (I.EQ.1) DirectionLargestComponent = -1
-/* COPY forward_levels_p INTO backward_levels_p FOR EACH NODE IN CONNECTED COMPONENT
+/* COPY forward_levels_p INTO backward_levels_p FOR EACH NODE IN CONNECTED COMPONENT */
         for (40 K=J,END
-          INODE = ConnectedComponents(K)
+          INODE = ConnectedComponents_p(K)
           backward_levels_p(INODE) = forward_levels_p(INODE)
    40   CONTINUE
-/* UPDATE NACUM TO BE THE SAME AS NHIGH
+/* UPDATE num_nodes_in_level_p TO BE THE SAME AS NHIGH */
         for (50 K=1,num_levels
-          NACUM(K) = NHIGH(K)
+          num_nodes_in_level_p(K) = NHIGH(K)
    50   CONTINUE
         GO TO 80
-/* UPDATE NACUM TO BE THE SAME AS NLOW
+/* UPDATE num_nodes_in_level_p TO BE THE SAME AS NLOW */
    60   for (70 K=1,num_levels
-          NACUM(K) = NLOW(K)
+          num_nodes_in_level_p(K) = NLOW(K)
    70   CONTINUE
    80 CONTINUE
-      RETURN
-      END
+   return;
+}
+
       SUBROUTINE NUMBER(start_node2, NUM, pattern_p, backward_levels_p, degree_p, new_label_p, assigned_level_pST,     NUM   10
-     * LSTPT, N, reverse_diameter_tree, newBandwidth, newProfile, IPFA, DirectionLargestComponent)
+     * Lconnected_component_ptr, N, reverse_diameter_tree, newBandwidth, newProfile, IPFA, DirectionLargestComponent)
 /*  NUMBER PRODUCES THE NUMBERING OF THE GRAPH FOR MIN BANDWIDTH
 /*  start_node2-         ON INPUT THE NODE TO BEGIN NUMBERING ON
 /*  NUM-         ON INPUT AND OUTPUT, THE NEXT AVAILABLE NUMBER
 /*  backward_levels_p-       THE LEVEL STRUCTURE TO BE USED IN NUMBERING
 /*  new_label_p-       THE ARRAY USED TO STORE THE NEW NUMBERING
 /*  assigned_level_pST-       ON OUTPUT CONTAINS LEVEL STRUCTURE
-/*  LSTPT[i]-    ON OUTPUT, INDEX INTO assigned_level_pST TO FIRST NODE IN ITH assigned_level_p
-/*               LSTPT(I+1) - LSTPT[i] = NUMBER OF NODES IN ITH assigned_level_p
+/*  Lconnected_component_ptr[i]-    ON OUTPUT, INDEX INTO assigned_level_pST TO FIRST NODE IN ITH assigned_level_p
+/*               Lconnected_component_ptr(I+1) - Lconnected_component_ptr[i] = NUMBER OF NODES IN ITH assigned_level_p
 /*  reverse_diameter_tree-        =+1 if start_node2 IS FORWARD END OF PSEUDO-diameter
 /*               =-1 if start_node2 IS REVERSE END OF PSEUDO-diameter
 /*  newBandwidth-        BANDWIDTH OF NEW NUMBERING COMPUTED BY NUMBER
@@ -563,7 +628,7 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
 /*  DirectionLargestComponent-       INDICATES STEP DIRECTION USED IN NUMBERING(+1 OR -1)
 /* USE INTEGER*2 pattern_p  WITH AN IBM 360 OR 370.
       INTEGER pattern_p
-      INTEGER start_node2, node_indexA, node_indexB, node_indexC, node_indexD, XA, XB, ConnectedComponentCounter, XD, CX, END,
+      INTEGER start_node2, node_indexA, node_indexB, node_indexC, node_indexD, XA, XB, connected_component_counter, XD, CX, END,
      * new_label_p, TEST
       COMMON /GRA/ N, num_levels, ndeg_max
 /* THE STORAGE IN COMMON BLOCKS CC AND assigned_level_pW IS NOW FREE AND CAN
@@ -572,35 +637,35 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
       COMMON /CC/ node_indexD(100)
       DIMENSION IPFA(1)
       DIMENSION pattern_p(N,1), backward_levels_p(1), degree_p(1), new_label_p(1), assigned_level_pST(1),
-     * LSTPT(1)
-/* SET UP assigned_level_pST AND LSTPT FROM backward_levels_p
+     * Lconnected_component_ptr(1)
+/* SET UP assigned_level_pST AND Lconnected_component_ptr FROM backward_levels_p
       for (10 i=0,i<N,++i)
         IPFA[i] = 0
    10 CONTINUE
-      NSTPT = 1
+      Nconnected_component_ptr = 1
       for (30 I=1,num_levels
-        LSTPT[i] = NSTPT
+        Lconnected_component_ptr[i] = Nconnected_component_ptr
         for (20 J=1,N
           if (backward_levels_p(J)!=I) GO TO 20
-          assigned_level_pST(NSTPT) = J
-          NSTPT = NSTPT + 1
+          assigned_level_pST(Nconnected_component_ptr) = J
+          Nconnected_component_ptr = Nconnected_component_ptr + 1
    20   CONTINUE
    30 CONTINUE
-      LSTPT(num_levels+1) = NSTPT
+      Lconnected_component_ptr(num_levels+1) = Nconnected_component_ptr
 /* node_indexA, node_indexB, node_indexC AND node_indexD ARE STACKS WITH POINTERS
-/* XA,XB,ConnectedComponentCounter, AND XD.  CX IS A SPECIAL POINTER INTO node_indexC WHICH
+/* XA,XB,connected_component_counter, AND XD.  CX IS A SPECIAL POINTER INTO node_indexC WHICH
 /* INDICATES THE PARTICULAR NODE BEING PROCESSED.
 /* first_available_in_list_of_tree_nodes KEEPS TRACK OF THE LEVEL WE ARE WORKING AT.
 /* INITIALLY node_indexC CONTAINS ONLY THE INITIAL NODE, start_node2.
       first_available_in_list_of_tree_nodes = 0
       if (reverse_diameter_tree<0) first_available_in_list_of_tree_nodes = num_levels + 1
-      ConnectedComponentCounter = 1
-      node_indexC(ConnectedComponentCounter) = start_node2
+      connected_component_counter = 1
+      node_indexC(connected_component_counter) = start_node2
    40 CX = 1
       XD = 0
       first_available_in_list_of_tree_nodes = first_available_in_list_of_tree_nodes + reverse_diameter_tree
-      LST = LSTPT(first_available_in_list_of_tree_nodes)
-      LND = LSTPT(first_available_in_list_of_tree_nodes+1) - 1
+      LST = Lconnected_component_ptr(first_available_in_list_of_tree_nodes)
+      LND = Lconnected_component_ptr(first_available_in_list_of_tree_nodes+1) - 1
 /* BEGIN PROCESSING NODE node_indexC(CX)
    50 IPRO = node_indexC(CX)
       new_label_p(IPRO) = NUM
@@ -633,19 +698,19 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
 /* AND node_indexB TO node_indexD
       if (XA.EQ.0) GO TO 100
       if (XA.EQ.1) GO TO 90
-      CALL Paso_SystemMatrixPattern_sortByDegree(node_indexC, node_indexA, ConnectedComponentCounter, XA, degree_p)
+      CALL Paso_BandwidthReduction_sortByDegree(node_indexC, node_indexA, connected_component_counter, XA, degree_p)
       GO TO 100
-   90 ConnectedComponentCounter = ConnectedComponentCounter + 1
-      node_indexC(ConnectedComponentCounter) = node_indexA(XA)
+   90 connected_component_counter = connected_component_counter + 1
+      node_indexC(connected_component_counter) = node_indexA(XA)
   100 if (XB.EQ.0) GO TO 120
       if (XB.EQ.1) GO TO 110
-      CALL Paso_SystemMatrixPattern_sortByDegree(node_indexD, node_indexB, XD, XB, degree_p)
+      CALL Paso_BandwidthReduction_sortByDegree(node_indexD, node_indexB, XD, XB, degree_p)
       GO TO 120
   110 XD = XD + 1
       node_indexD(XD) = node_indexB(XB)
 /* BE SURE TO PROCESS ALL NODES IN node_indexC
   120 CX = CX + 1
-      if (ConnectedComponentCounter>=CX) GO TO 50
+      if (connected_component_counter>=CX) GO TO 50
 /* WHEN node_indexC IS EXHAUSTED LOOK FOR MIN degree_p NODE IN SAME LEVEL
 /* WHICH HAS NOT BEEN PROCESSED
       MAX = ndeg_max + 1
@@ -660,8 +725,8 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
         start_node2 = TEST
   130 CONTINUE
       if (start_node2.EQ.N+1) GO TO 140
-      ConnectedComponentCounter = ConnectedComponentCounter + 1
-      node_indexC(ConnectedComponentCounter) = start_node2
+      connected_component_counter = connected_component_counter + 1
+      node_indexC(connected_component_counter) = start_node2
       GO TO 50
 /* if node_indexD IS EMPTY WE ARE DONE, OTHERWISE COPY node_indexD ONTO node_indexC
 /* AND BEGIN PROCESSING NEW node_indexC
@@ -669,7 +734,7 @@ void Paso_SystemMatrixPattern_dropTree(index_t root,
       for (150 I=1,XD
         node_indexC[i] = node_indexD[i]
   150 CONTINUE
-      ConnectedComponentCounter = XD
+      connected_component_counter = XD
       GO TO 40
 /* for (FINAL BANDWIDTH AND PROFILE CALCULATIONS
   160 for (170 i=0,i<N,++i)
