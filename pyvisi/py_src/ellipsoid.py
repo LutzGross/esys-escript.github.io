@@ -81,10 +81,6 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		#StructuredPoints.__init__(self, data_collector._getOutput())
-		#Probe.__init__(self, data_collector._getOutput(),
-		#		StructuredPoints._getStructuredPoints(self))
-
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
 			MaskPoints.__init__(self, c2p._getOutput())
@@ -92,7 +88,6 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 			MaskPoints.__init__(self, data_collector._getOutput())
 
 		Sphere.__init__(self)
-		#TensorGlyph.__init__(self, Probe._getOutput(self), 
 		TensorGlyph.__init__(self, MaskPoints._getOutput(self), 
 				Sphere._getOutput(self)) 
 		Normals.__init__(self, TensorGlyph._getOutput(self))
@@ -116,10 +111,10 @@ from plane import Plane
 from cutter import Cutter
 
 # NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, Transform, Plane,
-# Cutter, StructuredPoints and Probe were inherited to allow access to 
+# Cutter and MaskPoints were inherited to allow access to 
 # their public methods from the driver.
 class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,  
-		TensorGlyph, Transform, Plane, Cutter, StructuredPoints, Probe):
+		TensorGlyph, Transform, Plane, Cutter, MaskPoints):
 	"""
 	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
 	except that it shows a tensor field using ellipsoids cut using a plane.
@@ -129,7 +124,7 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True): 
+			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -140,6 +135,8 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -182,15 +179,26 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		StructuredPoints.__init__(self, data_collector._getOutput())
-		Probe.__init__(self, data_collector._getOutput(),
-				StructuredPoints._getStructuredPoints(self))
+		#StructuredPoints.__init__(self, data_collector._getOutput())
+		#Probe.__init__(self, data_collector._getOutput(),
+		#		StructuredPoints._getStructuredPoints(self))
 
-		Cutter.__init__(self, Probe._getOutput(self), 
-				Plane._getPlane(self)) 	
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self)) 	
+		elif(cell_to_point == False): # No conversion happens.	
+			Cutter.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self)) 	
+
+		MaskPoints.__init__(self, Cutter._getOutput(self))
+
+		#Cutter.__init__(self, Probe._getOutput(self), 
+		#		Plane._getPlane(self)) 	
+
 		Sphere.__init__(self)
 
-		TensorGlyph.__init__(self, Cutter._getOutput(self),
+		#TensorGlyph.__init__(self, Cutter._getOutput(self),
+		TensorGlyph.__init__(self, MaskPoints._getOutput(self),
 				Sphere._getOutput(self))
 		Normals.__init__(self, TensorGlyph._getOutput(self)) 
 
@@ -211,10 +219,10 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 from clipper import Clipper
 
 # NOTE: DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph, Transform, Plane,
-# Clipper, StructuredPoints and Probe were inherited to allow access to 
+# Clipper and MaskPoints were inherited to allow access to 
 # their public methods from the driver.
 class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,  
-	TensorGlyph, Transform, Plane, Clipper, StructuredPoints, Probe):
+	TensorGlyph, Transform, Plane, Clipper, MaskPoints):
 	"""
 	This class works in a similar way to L{MapOnPlaneClip <map.MapOnPlaneClip>},
 	except that it shows a tensor field using ellipsoids clipped using a plane.
@@ -224,7 +232,7 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used. 
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True): 
+			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -235,6 +243,8 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		@param viewport: Viewport in which object are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -277,24 +287,25 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		Transform.__init__(self)	
 		Plane.__init__(self, Transform._getTransform(self))
 
-		StructuredPoints.__init__(self, data_collector._getOutput())
-		Probe.__init__(self, data_collector._getOutput(),
-				StructuredPoints._getStructuredPoints(self))
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			Clipper.__init__(self, c2p._getOutput(), 
+					Plane._getPlane(self)) 	
+			Clipper._setClipFunction(self)
+		elif(cell_to_point == False): # No conversion happens.	
+			Clipper.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self)) 	
+			Clipper._setClipFunction(self)
 
-		# NOTE: TensorGlyph must come before Clipper. Otherwise the output
-		# will be incorrect.
+		MaskPoints.__init__(self, Clipper._getOutput(self))
+
 		Sphere.__init__(self)
-		TensorGlyph.__init__(self, Probe._getOutput(self),
+		TensorGlyph.__init__(self, MaskPoints._getOutput(self),
 				Sphere._getOutput(self))
 
 		Normals.__init__(self, TensorGlyph._getOutput(self))
-		# NOTE: Clipper must come after TensorGlyph. Otherwise the output 
-		# will be incorrect.
-		Clipper.__init__(self, Normals._getOutput(self), 
-				Plane._getPlane(self)) 	
-		Clipper._setClipFunction(self)
 
-		DataSetMapper.__init__(self, Clipper._getOutput(self), 
+		DataSetMapper.__init__(self, Normals._getOutput(self), 
 			lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
