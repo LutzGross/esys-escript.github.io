@@ -42,7 +42,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    t=0
 
    # define the location of the point source 
-   L=Locator(domain,xc)
+   L=Locator(domain,numarray.array(xc))
    # find potential at point source
    u_pc=L.getValue(u)
    print "u at point charge=",u_pc
@@ -70,7 +70,6 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
      t+=h
      n+=1
      print n,"-th time step t ",t
-     L=Locator(domain,xc)
      u_pc=L.getValue(u)
      print "u at point charge=",u_pc
      
