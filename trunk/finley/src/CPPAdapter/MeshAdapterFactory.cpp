@@ -29,7 +29,9 @@ using namespace escript;
 namespace finley {
 
   AbstractContinuousDomain* readMesh(const std::string& fileName,
-				     int integrationOrder) 
+  				     int integrationOrder,
+                                     int reducedIntegrationOrder,
+                                     bool optimizeLabeling)
   {
     //
     // create a copy of the filename to overcome the non-constness of call
@@ -94,6 +96,7 @@ namespace finley {
 		    int periodic0,int periodic1,
 		    int periodic2,
 		    int integrationOrder,
+                    int reducedIntegrationOrder,
 		    int useElementsOnFace) 
   {
 //     cout << "n0=" << n0 << " n1=" << n1 << " n2=" << n2
@@ -135,6 +138,7 @@ namespace finley {
 			double l0, double l1,
 			int periodic0,int periodic1,
 			int integrationOrder,
+                        int reducedIntegrationOrder,
 			int useElementsOnFace) 
   {
     int numElements[]={n0,n1};
@@ -163,6 +167,7 @@ namespace finley {
   }
   AbstractContinuousDomain*  interval(int n0,int order,double l0,int periodic0,
 		       int integrationOrder,
+                       int reducedIntegrationOrder,
 		       int useElementsOnFace) 
   {
     int numElements[]={n0};
@@ -221,7 +226,8 @@ namespace finley {
   }
   AbstractContinuousDomain*  glueFaces(const boost::python::list& meshList,
 			double safety_factor, 
-			double tolerance)
+			double tolerance,
+                        bool optimizeLabeling)
   {
     Finley_Mesh* fMesh=0;
 #ifndef PASO_MPI
@@ -254,7 +260,8 @@ namespace finley {
   }
   AbstractContinuousDomain*  joinFaces(const boost::python::list& meshList,
 			double safety_factor, 
-			double tolerance)
+			double tolerance,
+                        bool optimizeLabeling)
   {
     Finley_Mesh* fMesh=0;
     //

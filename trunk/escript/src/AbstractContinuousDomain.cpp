@@ -50,9 +50,21 @@ int AbstractContinuousDomain::getFunctionCode() const
   return 0;
 }
 
+int AbstractContinuousDomain::getReducedFunctionCode() const
+{
+  throwStandardException("AbstractContinuousDomain::getReducedFunctionCode");
+  return 0;
+}
+
 int AbstractContinuousDomain::getFunctionOnBoundaryCode() const
 {
   throwStandardException("AbstractContinuousDomain::getFunctionOnBoundaryCode");
+  return 0;
+}
+
+int AbstractContinuousDomain::getReducedFunctionOnBoundaryCode() const
+{
+  throwStandardException("AbstractContinuousDomain::getReducedFunctionOnBoundaryCode");
   return 0;
 }
 
@@ -62,9 +74,21 @@ int AbstractContinuousDomain::getFunctionOnContactZeroCode() const
   return 0;
 }
 
+int AbstractContinuousDomain::getReducedFunctionOnContactZeroCode() const
+{
+  throwStandardException("AbstractContinuousDomain::getReducedFunctionOnContactZeroCode");
+  return 0;
+}
+
 int AbstractContinuousDomain::getFunctionOnContactOneCode() const
 {
   throwStandardException("AbstractContinuousDomain::getFunctionOnContactOneCode");
+  return 0;
+}
+
+int AbstractContinuousDomain::getReducedFunctionOnContactOneCode() const
+{
+  throwStandardException("AbstractContinuousDomain::getReducedFunctionOnContactOneCode");
   return 0;
 }
 

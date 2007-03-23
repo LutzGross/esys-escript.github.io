@@ -75,10 +75,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   static const int ReducedDegreesOfFreedom;
   static const int Nodes;
   static const int Elements;
+  static const int ReducedElements;
   static const int FaceElements;
+  static const int ReducedFaceElements;
   static const int Points;
   static const int ContactElementsZero;
+  static const int ReducedContactElementsZero;
   static const int ContactElementsOne;
+  static const int ReducedContactElementsOne;
 
   /**
      \brief
@@ -205,10 +209,17 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     Return a functon FunctionSpace code
+     Return a function FunctionSpace code
   */
   FINLEY_DLL_API
   virtual int getFunctionCode() const;
+
+  /**
+     \brief
+     Return a function with reduced integration order FunctionSpace code
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionCode() const;
 
   /**
      \brief
@@ -219,6 +230,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Return a function on boundary with reduced integration order FunctionSpace code
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionOnBoundaryCode() const;
+
+  /**
+     \brief
      Return a FunctionOnContactZero code
   */
   FINLEY_DLL_API
@@ -226,10 +244,24 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Return a FunctionOnContactZero code  with reduced integration order
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionOnContactZeroCode() const;
+
+  /**
+     \brief
      Return a FunctionOnContactOne code
   */
   FINLEY_DLL_API
   virtual int getFunctionOnContactOneCode() const;
+
+  /**
+     \brief
+     Return a FunctionOnContactOne code  with reduced integration order
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionOnContactOneCode() const;
 
   /**
      \brief

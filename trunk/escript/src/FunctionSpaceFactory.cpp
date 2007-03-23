@@ -27,10 +27,22 @@ FunctionSpace function(const AbstractDomain& domain)
   return FunctionSpace(domain,temp.getFunctionCode());
 }
 
+FunctionSpace reducedfunction(const AbstractDomain& domain) 
+{
+  const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
+  return FunctionSpace(domain,temp.getReducedFunctionCode());
+}
+
 FunctionSpace functionOnBoundary(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getFunctionOnBoundaryCode());
+}
+
+FunctionSpace reducedfunctionOnBoundary(const AbstractDomain& domain) 
+{
+  const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
+  return FunctionSpace(domain,temp.getReducedFunctionOnBoundaryCode());
 }
 
 FunctionSpace functionOnContactZero(const AbstractDomain& domain) 
@@ -38,11 +50,23 @@ FunctionSpace functionOnContactZero(const AbstractDomain& domain)
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getFunctionOnContactZeroCode());
 }
+
+FunctionSpace reducedfunctionOnContactZero(const AbstractDomain& domain) 
+{
+  const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
+  return FunctionSpace(domain,temp.getReducedFunctionOnContactZeroCode());
+}
  
 FunctionSpace functionOnContactOne(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getFunctionOnContactOneCode());
+}
+
+FunctionSpace reducedfunctionOnContactOne(const AbstractDomain& domain) 
+{
+  const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
+  return FunctionSpace(domain,temp.getReducedFunctionOnContactOneCode());
 }
 
 FunctionSpace solution(const AbstractDomain& domain) 

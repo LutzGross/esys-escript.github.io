@@ -33,10 +33,14 @@ const int MeshAdapter::DegreesOfFreedom=FINLEY_DEGREES_OF_FREEDOM;
 const int MeshAdapter::ReducedDegreesOfFreedom=FINLEY_REDUCED_DEGREES_OF_FREEDOM;
 const int MeshAdapter::Nodes=FINLEY_NODES;
 const int MeshAdapter::Elements=FINLEY_ELEMENTS;
+const int MeshAdapter::ReducedElements=FINLEY_REDUCED_ELEMENTS;
 const int MeshAdapter::FaceElements=FINLEY_FACE_ELEMENTS;
+const int MeshAdapter::ReducedFaceElements=FINLEY_REDUCED_FACE_ELEMENTS;
 const int MeshAdapter::Points=FINLEY_POINTS;
 const int MeshAdapter::ContactElementsZero=FINLEY_CONTACT_ELEMENTS_1;
+const int MeshAdapter::ReducedContactElementsZero=FINLEY_REDUCED_CONTACT_ELEMENTS_1;
 const int MeshAdapter::ContactElementsOne=FINLEY_CONTACT_ELEMENTS_2;
+const int MeshAdapter::ReducedContactElementsOne=FINLEY_REDUCED_CONTACT_ELEMENTS_2;
 
 MeshAdapter::MeshAdapter(Finley_Mesh* finleyMesh)
 {
@@ -114,13 +118,21 @@ void MeshAdapter::setFunctionSpaceTypeNames()
   m_functionSpaceTypeNames.insert
     (FunctionSpaceNamesMapType::value_type(Elements,"Finley_Elements"));
   m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(ReducedElements,"Finley_Reduced_Elements"));
+  m_functionSpaceTypeNames.insert
     (FunctionSpaceNamesMapType::value_type(FaceElements,"Finley_Face_Elements"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(ReducedFaceElements,"Finley_Reduced_Face_Elements"));
   m_functionSpaceTypeNames.insert
     (FunctionSpaceNamesMapType::value_type(Points,"Finley_Points"));
   m_functionSpaceTypeNames.insert
     (FunctionSpaceNamesMapType::value_type(ContactElementsZero,"Finley_Contact_Elements_0"));
   m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(ReducedContactElementsZero,"Finley_Reduced_Contact_Elements_0"));
+  m_functionSpaceTypeNames.insert
     (FunctionSpaceNamesMapType::value_type(ContactElementsOne,"Finley_Contact_Elements_1"));
+  m_functionSpaceTypeNames.insert
+    (FunctionSpaceNamesMapType::value_type(ReducedContactElementsOne,"Finley_Reduced_Contact_Elements_1"));
 }
 
 int MeshAdapter::getContinuousFunctionCode() const
@@ -132,20 +144,36 @@ int MeshAdapter::getFunctionCode() const
 {
   return Elements;
 }
+int MeshAdapter::getReducedFunctionCode() const
+{
+  return ReducedElements;
+}
 
 int MeshAdapter::getFunctionOnBoundaryCode() const
 {
   return FaceElements;
+}
+int MeshAdapter::getReducedFunctionOnBoundaryCode() const
+{
+  return ReducedFaceElements;
 }
 
 int MeshAdapter::getFunctionOnContactZeroCode() const
 {
   return ContactElementsZero;
 }
+int MeshAdapter::getReducedFunctionOnContactZeroCode() const
+{
+  return ReducedContactElementsZero;
+}
 
 int MeshAdapter::getFunctionOnContactOneCode() const
 {
   return ContactElementsOne;
+}
+int MeshAdapter::getReducedFunctionOnContactOneCode() const
+{
+  return ReducedContactElementsOne;
 }
 
 int MeshAdapter::getSolutionCode() const

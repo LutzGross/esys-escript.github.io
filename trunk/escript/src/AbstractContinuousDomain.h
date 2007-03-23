@@ -97,10 +97,17 @@ class AbstractContinuousDomain : public AbstractDomain {
 
   /**
      \brief
-     Return a functon FunctionSpace code
+     Return a function FunctionSpace code
   */
   ESCRIPT_DLL_API 
   virtual int getFunctionCode() const;
+
+  /**
+     \brief
+     Return a function FunctionSpace code with reduced integration order
+  */
+  ESCRIPT_DLL_API 
+  virtual int getReducedFunctionCode() const;
 
   /**
      \brief
@@ -111,6 +118,14 @@ class AbstractContinuousDomain : public AbstractDomain {
 
   /**
      \brief
+     Return a code for a function on boundary FunctionSpace with reduced integration order
+  */
+  ESCRIPT_DLL_API 
+  virtual int getReducedFunctionOnBoundaryCode() const;
+
+
+  /**
+     \brief
      Return a FunctionOnContactZero code
   */
   ESCRIPT_DLL_API 
@@ -118,10 +133,24 @@ class AbstractContinuousDomain : public AbstractDomain {
 
   /**
      \brief
+     Return a FunctionOnContactZero for reduced integration order code 
+  */
+  ESCRIPT_DLL_API 
+  virtual int getReducedFunctionOnContactZeroCode() const;
+
+  /**
+     \brief
      Return a FunctionOnContactOne code
   */
   ESCRIPT_DLL_API 
   virtual int getFunctionOnContactOneCode() const;
+
+  /**
+     \brief
+     Return a FunctionOnContactOne for reduced integration order code
+  */
+  ESCRIPT_DLL_API 
+  virtual int getReducedFunctionOnContactOneCode() const;
 
   /**
      \brief
