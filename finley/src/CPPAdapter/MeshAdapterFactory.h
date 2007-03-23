@@ -44,10 +44,15 @@ namespace finley {
      \param fileName Input -  The name of the file.
      \param integrationOrder Input - order of the quadrature scheme.  
      If integrationOrder<0 the integration order is selected independently.
+     \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
+     If reducedIntegrationOrder<0 the integration order is selected independently.
+     \param optimizeLabeling Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
-				     int integrationOrder=-1);
+				     int integrationOrder=-1,
+                                     int reducedIntegrationOrder=-1,
+                                     bool optimizeLabeling=true);
   /**
      \brief
      Read a gmsh mesh file
@@ -73,7 +78,10 @@ namespace finley {
      \param n0,n1,n2 Input - number of elements in each dimension
      \param order Input - =1 or =2 gives the order of shape function
      \param l0,l1,l2 Input - length of each side of brick
-     \param integrationOrder Input - order of the quadrature scheme.
+     \param integrationOrder Input - order of the quadrature scheme.  
+     If integrationOrder<0 the integration order is selected independently.
+     \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
+     If reducedIntegrationOrder<0 the integration order is selected independently.
      \param useElementsOnFace Input - whether or not to use elements on face
      \param periodic0, periodic1, periodic2 Input - whether or not boundary 
      conditions of the dimension are periodic
@@ -84,6 +92,7 @@ namespace finley {
 		    int periodic0=0,int periodic1=0,
 		    int periodic2=0,
 		    int integrationOrder=-1,
+     	            int reducedIntegrationOrder=-1, 
 		    int useElementsOnFace=0);
   /**
      \brief
@@ -96,6 +105,8 @@ namespace finley {
      \param integrationOrder Input - order of the quadrature scheme. 
      If integrationOrder<0 the integration order is selected 
      independently.
+     \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
+     If reducedIntegrationOrder<0 the integration order is selected independently.
      \param periodic0, periodic1 Input - whether or not the boundary
      conditions of the dimension are periodic
      \param useElementsOnFace Input - whether or not to use elements on face
@@ -105,6 +116,7 @@ namespace finley {
 				      double l0=1.0, double l1=1.0,
 				      int periodic0=false,int periodic1=false,
 				      int integrationOrder=-1,
+     	                              int reducedIntegrationOrder=-1, 
 				      int useElementsOnFace=false);
   /**
      \brief
@@ -115,6 +127,8 @@ namespace finley {
      \param integrationOrder Input - order of the quadrature scheme. 
      If integrationOrder<0 the integration order is selected 
      independently.
+     \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
+     If reducedIntegrationOrder<0 the integration order is selected independently.
      \param periodic0 Input - whether or not the boundary conditions are
      periodic
      \param useElementsOnFace Input - whether or not to use the elements
@@ -124,6 +138,7 @@ namespace finley {
   escript::AbstractContinuousDomain* interval(int n0=1,int order=1,double l0=1.0,
 				     int periodic0=false,
 				     int integrationOrder=-1,
+     	                             int reducedIntegrationOrder=-1, 
 				     int useElementsOnFace=false);
   /**
      \brief
@@ -139,22 +154,26 @@ namespace finley {
      \param meshList Input - The list of meshes.
      \param safetyFactor Input - ??
      \param tolerance Input - ??
+     \param optimizeLabeling Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
-			   double tolerance=1.e-8);
+			   double tolerance=1.e-8,
+                           bool optimizeLabeling=true);
   /**
      \brief
      Detects matching faces in the mesh and replaces them by joint elements.
      \param meshList Input - The list of meshes.
      \param safetyFactor Input - ??
      \param tolerance Input - ??
+     \param optimizeLabeling Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
 			double safetyFactor=0.2, 
-			double tolerance=1.e-8);
+			double tolerance=1.e-8,
+                        bool optimizeLabeling=true);
  
 } // end of namespace
 #endif

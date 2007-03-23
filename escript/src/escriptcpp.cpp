@@ -242,9 +242,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   def("ContinuousFunction",escript::continuousFunction);
   def("Function",escript::function);
+  def("ReducedFunction",escript::function);
   def("FunctionOnBoundary",escript::functionOnBoundary);
+  def("ReducedFunctionOnBoundary",escript::reducedfunctionOnBoundary);
   def("FunctionOnContactZero",escript::functionOnContactZero);
+  def("ReducedFunctionOnContactZero",escript::reducedfunctionOnContactZero);
   def("FunctionOnContactOne",escript::functionOnContactOne);
+  def("ReducedFunctionOnContactOne",escript::reducedfunctionOnContactOne);
   def("Solution",escript::solution);
   def("ReducedSolution",escript::reducedSolution);
   def("DiracDeltaFunction",escript::diracDeltaFunction);

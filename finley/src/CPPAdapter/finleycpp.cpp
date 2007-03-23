@@ -90,7 +90,7 @@ BOOST_PYTHON_MODULE(finleycpp)
   // return pointers.
 
   def("ReadMesh",finley::readMesh,
-      (arg("fileName"),arg("integrationOrder")=-1),
+      (arg("fileName"),arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1),
       return_value_policy<manage_new_object>());
 
   def("ReadGmsh",finley::readGmsh,
@@ -102,7 +102,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,arg("periodic2")=false,
-      arg("integrationOrder")=-1,
+      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false),
       return_value_policy<manage_new_object>());
 
@@ -110,14 +110,14 @@ BOOST_PYTHON_MODULE(finleycpp)
       (arg("n0")=1,arg("n1")=1,arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,
-      arg("integrationOrder")=-1,
+      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false),
       return_value_policy<manage_new_object>());
 
   def("Interval",finley::interval,
       (arg("n1")=1,arg("order")=1,
       arg("l1")=1.0,arg("periodic0")=false,
-      arg("integrationOrder")=-1,
+      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false),
       return_value_policy<manage_new_object>());
 
