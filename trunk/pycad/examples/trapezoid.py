@@ -41,13 +41,20 @@ x12=Line(x1, x2)
 x20=Line(x2, x0)
 cutout=CurveLoop(x01, x12, x20)
 
+# Create the surface with cutout
 s=PlaneSurface(c, holes=[cutout])
 
+# Create a Design which can make the mesh
 d=Design(dim=2, element_size=0.05)
+
+# Add the trapezoid with cutout
 d.addItems(s)
 
+# Create the geometry, mesh and Escript domain
 d.setScriptFileName("trapezoid.geo")
 d.setMeshFileName("trapezoid.msh")
-dom=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
-dom.write("trapezoid.fly")
+domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
+
+# Create a file that can be read back in to python with mesh=ReadMesh(fileName)
+domain.write("trapezoid.fly")
 
