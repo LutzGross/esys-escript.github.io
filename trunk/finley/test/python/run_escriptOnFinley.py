@@ -20,7 +20,6 @@ try:
 except KeyError:
      FINLEY_WORKDIR='.'
 
-
 NE=4 # number elements, must be even
 class Test_DomainOnFinley(Test_Domain):
    def setUp(self):
