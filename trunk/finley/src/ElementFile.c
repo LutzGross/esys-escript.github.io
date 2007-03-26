@@ -29,27 +29,33 @@
 /**************************************************************/
 
 #ifndef PASO_MPI
-Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order)
+Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, index_t reduced_order)
 #else
-Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Paso_MPIInfo *MPIInfo)
+Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, index_t reduced_order, Paso_MPIInfo *MPIInfo)
 #endif
 {
   extern Finley_RefElementInfo Finley_RefElement_InfoList[];
-  dim_t NQ;
+  dim_t NQ, reduced_NQ;
   Finley_ElementFile *out;
   
   /*   get the number of quadrature nodes needed to achieve integration order order: */
   
-  if (order<0) order=2*Finley_RefElement_InfoList[id].numOrder;
+  if (order<0) order=MAX(2*Finley_RefElement_InfoList[id].numOrder,0);
+  if (reduced_order<0) reduced_order=MAX(2*(Finley_RefElement_InfoList[id].numOrder-1),0);
   NQ= Finley_RefElement_InfoList[id].getNumQuadNodes(order);
+  reduced_NQ= Finley_RefElement_InfoList[id].getNumQuadNodes(reduced_order);
   if (! Finley_noError()) return NULL;
   
   /*  allocate the return value */
   
   out=MEMALLOC(1,Finley_ElementFile);
   if (Finley_checkPtr(out)) return NULL;
+  out->order = order;
+  out->reduced_order = reduced_order;
   out->ReferenceElement=NULL;
   out->LinearReferenceElement=NULL;
+  out->ReferenceElementReducedOrder=NULL;
+  out->LinearReferenceElementReducedOrder=NULL;
   out->isPrepared=FINLEY_UNKNOWN;
   out->numElements=0;
   out->Id=NULL;
@@ -58,7 +64,6 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Pas
   out->Color=NULL;
   out->minColor=0;
   out->maxColor=-1;
-  out->order = order;
   out->jacobeans=NULL;
   out->jacobeans_reducedQ=NULL;
   out->jacobeans_reducedS=NULL;
@@ -74,11 +79,13 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id,index_t order, Pas
   
   out->ReferenceElement=Finley_RefElement_alloc(id,NQ);
   out->jacobeans=Finley_ElementFile_Jacobeans_alloc(out->ReferenceElement);
-  out->jacobeans_reducedQ=Finley_ElementFile_Jacobeans_alloc(out->ReferenceElement);
+  out->ReferenceElementReducedOrder=Finley_RefElement_alloc(id,reduced_NQ);
+  out->jacobeans_reducedQ=Finley_ElementFile_Jacobeans_alloc(out->ReferenceElementReducedOrder);
 
   out->LinearReferenceElement=Finley_RefElement_alloc(Finley_RefElement_InfoList[id].LinearTypeId,NQ);
   out->jacobeans_reducedS=Finley_ElementFile_Jacobeans_alloc(out->LinearReferenceElement);
-  out->jacobeans_reducedS_reducedQ=Finley_ElementFile_Jacobeans_alloc(out->LinearReferenceElement);
+  out->LinearReferenceElementReducedOrder=Finley_RefElement_alloc(Finley_RefElement_InfoList[id].LinearTypeId,reduced_NQ);
+  out->jacobeans_reducedS_reducedQ=Finley_ElementFile_Jacobeans_alloc(out->LinearReferenceElementReducedOrder);
   if (! Finley_noError()) {
      Finley_ElementFile_dealloc(out);
      return NULL;
@@ -94,7 +101,9 @@ void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
      if (in->ReferenceElement!=NULL) printf("element file for %s is deallocated.\n",in->ReferenceElement->Type->Name);
      #endif
      Finley_RefElement_dealloc(in->ReferenceElement);
+     Finley_RefElement_dealloc(in->ReferenceElementReducedOrder);
      Finley_RefElement_dealloc(in->LinearReferenceElement);
+     Finley_RefElement_dealloc(in->LinearReferenceElementReducedOrder);
      Finley_ElementFile_deallocTable(in);   
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS);

@@ -27,7 +27,7 @@
 
 /*  reads a mesh from a Finley file of name fname */
 
-Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
+Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize_labeling) {
 
   dim_t numNodes, numDim, numEle, i0, i1;
   index_t tag_key;
@@ -60,7 +60,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
   /* allocate mesh */
-  mesh_p = Finley_Mesh_alloc(name,numDim,order);
+  mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order);
   if (! Finley_noError()) return NULL;
 
   Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
@@ -96,7 +96,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     return NULL;
   }
   /* read the elements */
-  mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order);
+  mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order, mesh_p->reduced_order);
   Finley_ElementFile_allocTable(mesh_p->Elements, numEle);
   mesh_p->Elements->minColor=0;
   mesh_p->Elements->maxColor=numEle-1;
@@ -119,7 +119,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-  mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order);
+  mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order, mesh_p->reduced_order);
   Finley_ElementFile_allocTable(mesh_p->FaceElements, numEle);
   mesh_p->FaceElements->minColor=0;
   mesh_p->FaceElements->maxColor=numEle-1;
@@ -141,7 +141,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-  mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order);
+  mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order, mesh_p->reduced_order);
   Finley_ElementFile_allocTable(mesh_p->ContactElements, numEle);
   mesh_p->ContactElements->minColor=0;
   mesh_p->ContactElements->maxColor=numEle-1;
@@ -163,7 +163,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-  mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order);
+  mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order, mesh_p->reduced_order);
   Finley_ElementFile_allocTable(mesh_p->Points, numEle);
   mesh_p->Points->minColor=0;
   mesh_p->Points->maxColor=numEle-1;

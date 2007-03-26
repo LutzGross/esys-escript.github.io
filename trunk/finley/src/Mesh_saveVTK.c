@@ -26,6 +26,7 @@
 
 
 #include "Mesh.h"
+#include "Assemble.h"
 #include "vtkCellType.h"  /* copied from vtk source directory !!! */
 
 /*
@@ -201,6 +202,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         isCellCentered[i_data]=FALSE;
         break;
       case FINLEY_ELEMENTS:
+      case FINLEY_REDUCED_ELEMENTS:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS)
         {
@@ -214,6 +216,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         isCellCentered[i_data]=TRUE;
         break;
       case FINLEY_FACE_ELEMENTS:
+      case FINLEY_REDUCED_FACE_ELEMENTS:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS)
         {
@@ -242,6 +245,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         isCellCentered[i_data]=TRUE;
         break;
       case FINLEY_CONTACT_ELEMENTS_1:
+      case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1)
         {
@@ -256,6 +260,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
         isCellCentered[i_data]=TRUE;
         break;
       case FINLEY_CONTACT_ELEMENTS_2:
+      case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1)
         {
@@ -332,7 +337,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
   numInternalCells = elements->elementDistribution->numInternal;
   numBoundaryCells = elements->elementDistribution->numBoundary;
 
-  if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM)
+  if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM || nodetype==FINLEY_REDUCED_NODES)
   {
     TypeId = elements->LinearReferenceElement->Type->TypeId;
   }
@@ -1013,7 +1018,11 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
     {
       if (! isEmpty(data_pp[i_data]) && !isCellCentered[i_data])
       {
-        numPointsPerSample = elements->ReferenceElement->numQuadNodes;
+        if (Finley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
+           numPointsPerSample=elements->ReferenceElementReducedOrder->numQuadNodes;
+        } else {
+           numPointsPerSample=elements->ReferenceElement->numQuadNodes;
+        }
         rank = getDataPointRank(data_pp[i_data]);
         nComp = getDataPointSize(data_pp[i_data]);
         nCompReqd=1;   // the number of components required by vtk
@@ -1290,6 +1299,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
         isCellCentered[i_data]=FALSE;
         break;
       case FINLEY_ELEMENTS:
+      case FINLEY_REDUCED_ELEMENTS:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS)
         {
@@ -1305,6 +1315,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
         isCellCentered[i_data]=TRUE;
         break;
       case FINLEY_FACE_ELEMENTS:
+      case FINLEY_REDUCED_FACE_ELEMENTS:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS)
         {
@@ -1335,6 +1346,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
         isCellCentered[i_data]=TRUE;
         break;
       case FINLEY_CONTACT_ELEMENTS_1:
+      case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1)
         {
@@ -1350,6 +1362,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
         isCellCentered[i_data]=TRUE;
         break;
       case FINLEY_CONTACT_ELEMENTS_2:
+      case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
         nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
         if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1)
         {
@@ -1706,7 +1719,11 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
     {
       if (! isEmpty(data_pp[i_data]) && isCellCentered[i_data])
       {
-        numPointsPerSample = elements->ReferenceElement->numQuadNodes;
+        if (Finley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
+           numPointsPerSample=elements->ReferenceElementReducedOrder->numQuadNodes;
+        } else {
+           numPointsPerSample=elements->ReferenceElement->numQuadNodes;
+        }
         rank = getDataPointRank(data_pp[i_data]);
         nComp = getDataPointSize(data_pp[i_data]);
         nCompReqd=1;   /* the number of components required by vtk */
@@ -1847,7 +1864,11 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
     {
       if (! isEmpty(data_pp[i_data]) && !isCellCentered[i_data])
       {
-        numPointsPerSample = elements->ReferenceElement->numQuadNodes;
+        if (Finley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
+           numPointsPerSample=elements->ReferenceElementReducedOrder->numQuadNodes;
+        } else {
+           numPointsPerSample=elements->ReferenceElement->numQuadNodes;
+        }
         rank = getDataPointRank(data_pp[i_data]);
         nComp = getDataPointSize(data_pp[i_data]);
         nCompReqd=1;   /* the number of components required by vtk */

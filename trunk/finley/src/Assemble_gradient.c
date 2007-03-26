@@ -43,62 +43,41 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   if (nodes==NULL || elements==NULL) return;
   numComps=getDataPointSize(data);
   NN=elements->ReferenceElement->Type->numNodes;
+  reducedIntegrationOrder=Finley_Assemble_reducedIntegrationOrder(grad_data);
 
   if (data_type==FINLEY_NODES) {
        reducedShapefunction=FALSE;
        numNodes=nodes->numNodes;
-       numShapes=elements->ReferenceElement->Type->numShapes;
-       numLocalNodes=elements->ReferenceElement->Type->numNodes;
+  } else if (data_type==FINLEY_REDUCED_NODES) { /* TODO */
+       reducedShapefunction=FALSE;
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: FINLEY_REDUCED_NODES is not supported yet.");
   }
   /* lock these two options jac for the MPI version */
   #ifndef PASO_MPI
   else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
        reducedShapefunction=FALSE;
        numNodes=nodes->numDegreesOfFreedom;
-       numShapes=elements->ReferenceElement->Type->numShapes;
-       numLocalNodes=elements->ReferenceElement->Type->numNodes;
   } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
        reducedShapefunction=TRUE;
        numNodes=nodes->reducedNumDegreesOfFreedom;
-       numShapes=elements->LinearReferenceElement->Type->numShapes;
-       numLocalNodes=elements->LinearReferenceElement->Type->numNodes;
   } 
   #endif
   else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
   }
-  if (grad_data_type==FINLEY_ELEMENTS) {
-       reducedIntegrationOrder=FALSE;
-       dof_offset=0;
-  } else if (grad_data_type==FINLEY_FACE_ELEMENTS)  {
-       reducedIntegrationOrder=FALSE;
-       dof_offset=0;
-  } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_1)  {
-       reducedIntegrationOrder=FALSE;
-       dof_offset=0;
-  } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2)  {
-       reducedIntegrationOrder=FALSE;
-       /* don't reset offset */
-  } else {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculated for requested location.");
-  }
 
   jac=Finley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
   if (Finley_noError()) {
 
-      if (grad_data_type==FINLEY_ELEMENTS) {
-        dof_offset=0;
-        s_offset=0;
-      } else if (grad_data_type==FINLEY_FACE_ELEMENTS)  {
-       dof_offset=0;
-       s_offset=0;
-      } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_1)  {
-       dof_offset=0;
-       s_offset=0;
-      } else if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2)  {
+      if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2 || grad_data_type== FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
        dof_offset=numShapes;
        s_offset=jac->ReferenceElement->Type->numShapes;
+      } else {
+       dof_offset=0;
+       s_offset=0;
       }
+      numShapes=jac->ReferenceElement->Type->numShapes;
+      numLocalNodes=jac->ReferenceElement->Type->numNodes;
 
       /* check the dimensions of data */
 

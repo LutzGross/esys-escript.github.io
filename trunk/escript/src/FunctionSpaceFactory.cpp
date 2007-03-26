@@ -20,6 +20,12 @@ FunctionSpace continuousFunction(const AbstractDomain& domain)
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getContinuousFunctionCode());
 }
+
+FunctionSpace reducedContinuousFunction(const AbstractDomain& domain) 
+{
+  const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
+  return FunctionSpace(domain,temp.getReducedContinuousFunctionCode());
+}
  
 FunctionSpace function(const AbstractDomain& domain) 
 {
@@ -27,7 +33,7 @@ FunctionSpace function(const AbstractDomain& domain)
   return FunctionSpace(domain,temp.getFunctionCode());
 }
 
-FunctionSpace reducedfunction(const AbstractDomain& domain) 
+FunctionSpace reducedFunction(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getReducedFunctionCode());
@@ -39,7 +45,7 @@ FunctionSpace functionOnBoundary(const AbstractDomain& domain)
   return FunctionSpace(domain,temp.getFunctionOnBoundaryCode());
 }
 
-FunctionSpace reducedfunctionOnBoundary(const AbstractDomain& domain) 
+FunctionSpace reducedFunctionOnBoundary(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getReducedFunctionOnBoundaryCode());
@@ -51,7 +57,7 @@ FunctionSpace functionOnContactZero(const AbstractDomain& domain)
   return FunctionSpace(domain,temp.getFunctionOnContactZeroCode());
 }
 
-FunctionSpace reducedfunctionOnContactZero(const AbstractDomain& domain) 
+FunctionSpace reducedFunctionOnContactZero(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getReducedFunctionOnContactZeroCode());
@@ -63,7 +69,7 @@ FunctionSpace functionOnContactOne(const AbstractDomain& domain)
   return FunctionSpace(domain,temp.getFunctionOnContactOneCode());
 }
 
-FunctionSpace reducedfunctionOnContactOne(const AbstractDomain& domain) 
+FunctionSpace reducedFunctionOnContactOne(const AbstractDomain& domain) 
 {
   const AbstractContinuousDomain& temp=AbstractContinuousDomain::asAbstractContinuousDomain(domain);
   return FunctionSpace(domain,temp.getReducedFunctionOnContactOneCode());

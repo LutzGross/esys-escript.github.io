@@ -33,19 +33,22 @@
 void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* elements,escriptDataC* data,escriptDataC* interpolated_data) {
   double* local_data=NULL,*S=NULL,*data_array; 
   index_t dof_offset,*resort_nodesi, NN, NS;
+  bool_t reduced_integration=FALSE;
   dim_t q,i,NS_DOF,NN_DOF,numNodes,e, numQuad;
+  Finley_RefElement* reference_element=NULL;
   dim_t numComps=getDataPointSize(data);
   index_t id[MAX_numNodes], *resort_nodes;
   type_t data_type=getFunctionSpaceType(data);
   type_t type;
   Finley_resetError();
   #define NODES 0
+  #define REDUCED_NODES 3
   #define DOF 1
   #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
   NN=elements->ReferenceElement->Type->numNodes;
   NS=elements->ReferenceElement->Type->numShapes;
-  numQuad=elements->ReferenceElement->numQuadNodes;
+  reduced_integration = Finley_Assemble_reducedIntegrationOrder(interpolated_data);
   for (i=0;i<NN;i++) id[i]=i;
 
   /* set some parameter */
@@ -53,28 +56,46 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   if (data_type==FINLEY_NODES) {
        type=NODES;
        resort_nodes=id;
-       NN_DOF=elements->ReferenceElement->Type->numNodes;
-       NS_DOF=elements->ReferenceElement->Type->numShapes;
-       S=elements->ReferenceElement->S;
+       if (reduced_integration) {
+          reference_element=elements->ReferenceElementReducedOrder;
+       } else {
+          reference_element=elements->ReferenceElement;
+       } 
        numNodes=nodes->numNodes;
+  } else if (data_type==FINLEY_REDUCED_NODES) {
+       type=REDUCED_NODES;
+       if (reduced_integration) {
+           reference_element=elements->LinearReferenceElementReducedOrder;
+       } else {
+           reference_element=elements->LinearReferenceElement;
+       } 
+       /* TODO */
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: input from reduced nodes is not supported yet.");
   } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
        type=DOF;
        resort_nodes=id;
-       NN_DOF=elements->ReferenceElement->Type->numNodes;
-       NS_DOF=elements->ReferenceElement->Type->numShapes;
-       S=elements->ReferenceElement->S;
+       if (reduced_integration) {
+           reference_element=elements->ReferenceElementReducedOrder;
+       } else {
+           reference_element=elements->ReferenceElement;
+       }
        numNodes=nodes->numDegreesOfFreedom;
   } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
        type=REDUCED_DOF;
        resort_nodes=elements->ReferenceElement->Type->linearNodes;
-       NN_DOF=elements->LinearReferenceElement->Type->numNodes;
-       NS_DOF=elements->LinearReferenceElement->Type->numShapes;
-       S=elements->LinearReferenceElement->S;
+       if (reduced_integration) {
+           reference_element=elements->LinearReferenceElementReducedOrder;
+       } else {
+           reference_element=elements->LinearReferenceElement;
+       }
        numNodes=nodes->reducedNumDegreesOfFreedom;
    } else {
-       Finley_setError(TYPE_ERROR,"__FILE__: Cannot interpolate data");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: Cannot interpolate data");
   }
-
+  NN_DOF=reference_element->Type->numNodes;
+  NS_DOF=reference_element->Type->numShapes;
+  S=reference_element->S;
+  numQuad=reference_element->numQuadNodes;
   if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
        dof_offset=NN_DOF-NS_DOF;
   } else {
@@ -84,13 +105,13 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   /* check the dimensions of interpolated_data and data */
 
   if (! numSamplesEqual(interpolated_data,numQuad,elements->numElements)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: illegal number of samples of output Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: illegal number of samples of input Data object");
   } else if (numComps!=getDataPointSize(interpolated_data)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: number of components of input and interpolated Data do not match.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: number of components of input and interpolated Data do not match.");
   }  else if (!isExpanded(interpolated_data)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for output data.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: expanded Data object is expected for output data.");
   }
 
   /* now we can start */
@@ -113,6 +134,13 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
                         for (q=0;q<NS_DOF;q++) {
                            i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
                            data_array=getSampleData(data,i);
+                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
+                        }
+                        break;
+                 case REDUCED_NODES:
+                        for (q=0;q<NS_DOF;q++) {
+                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
+                           data_array=getSampleData(data,i); /* TODO */
                            Finley_copyDouble(numComps,data_array,local_data+q*numComps);
                         }
                         break;
@@ -143,6 +171,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
      } /* end of parallel region */
   }
   #undef NODES 
+  #undef REDUCED_NODES 
   #undef DOF 
   #undef REDUCED_DOF 
 }

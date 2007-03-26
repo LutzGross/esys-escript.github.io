@@ -30,32 +30,31 @@
 
 void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     dim_t n,q, numElements, numQuad;
-    dim_t numComps=getDataPointSize(out);
     double *in_array,*out_array;
+    dim_t numComps=getDataPointSize(out);
 
+    Finley_resetError();
     if( elements == NULL )
     {
        return;
     }
 
     numElements=elements->numElements;
-    numQuad=elements->ReferenceElement->numQuadNodes;
-
-    Finley_resetError();
-
-    if (elements==NULL) return;
-    numElements=elements->numElements;
-    numQuad=elements->ReferenceElement->numQuadNodes;
+    if (Finley_Assemble_reducedIntegrationOrder(in)) {
+       numQuad=elements->ReferenceElementReducedOrder->numQuadNodes;
+    } else {
+       numQuad=elements->ReferenceElement->numQuadNodes;
+    }
 
     /* check out and in */
     if (numComps!=getDataPointSize(in)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: number of components of input and output Data do not match.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!numSamplesEqual(in,numQuad,numElements)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of input Data object");
     } else if (!numSamplesEqual(out,numQuad,numElements)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of output Data object");
     } else if (!isExpanded(out)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for output data.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: expanded Data object is expected for output data.");
     }
 
     /* now we can start */

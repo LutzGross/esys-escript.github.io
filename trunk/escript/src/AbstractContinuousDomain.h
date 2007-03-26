@@ -97,6 +97,13 @@ class AbstractContinuousDomain : public AbstractDomain {
 
   /**
      \brief
+     Return a continuous on reduced order FunctionSpace code
+  */
+  ESCRIPT_DLL_API 
+  virtual int getReducedContinuousFunctionCode() const;
+
+  /**
+     \brief
      Return a function FunctionSpace code
   */
   ESCRIPT_DLL_API 

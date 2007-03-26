@@ -39,7 +39,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   dim_t numContactElements=0;
   dim_t numPoints=0;
   dim_t i;
-  index_t order;
+  index_t order, reduced_order;
   dim_t numDim;
   ElementTypeId elementTypeId=NoType;
   ElementTypeId faceElementTypeId=NoType;
@@ -54,11 +54,13 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
      Finley_setError(VALUE_ERROR,"__FILE__: Empty mesh list");
   } else {
     order=msh[0]->order;
+    reduced_order=msh[0]->reduced_order;
     numDim=msh[0]->Nodes->numDim;
     strcpy(newName,"");
     for (i=0;i<numMsh;i++) {
        /* check if all mesh have the same type and dimensions */
        order=MAX(order,msh[i]->order);
+       reduced_order=MIN(reduced_order,msh[i]->reduced_order);
        numNodes+=msh[i]->Nodes->numNodes;
        if (numDim!=msh[i]->Nodes->numDim) {
           Finley_setError(TYPE_ERROR,"__FILE__: Spatial dimensions of meshes don't match.");
@@ -116,12 +118,12 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
 #ifndef PASO_MPI
     if (Finley_noError())
-      out=Finley_Mesh_alloc(newName,numDim,order);
+      out=Finley_Mesh_alloc(newName,numDim,order,reduced_order);
 
-    out->Elements=Finley_ElementFile_alloc(elementTypeId,out->order);
-    out->FaceElements=Finley_ElementFile_alloc(faceElementTypeId,out->order);
-    out->Points=Finley_ElementFile_alloc(pointTypeId,out->order);
-    out->ContactElements=Finley_ElementFile_alloc(contactTypeId,out->order);
+    out->Elements=Finley_ElementFile_alloc(elementTypeId,out->order, out->reduced_order);
+    out->FaceElements=Finley_ElementFile_alloc(faceElementTypeId,out->order, out->reduced_order);
+    out->Points=Finley_ElementFile_alloc(pointTypeId,out->order, out->reduced_order);
+    out->ContactElements=Finley_ElementFile_alloc(contactTypeId,out->order, out->reduced_order);
 
     /* allocate new tables */
 

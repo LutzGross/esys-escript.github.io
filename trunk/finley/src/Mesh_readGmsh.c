@@ -55,7 +55,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 #else
   /* allocate mesh */
 
-  mesh_p = Finley_Mesh_alloc(fname,numDim,order);
+  mesh_p = Finley_Mesh_alloc(fname,numDim,order, reduced_order);
   if (! Finley_noError()) return NULL;
 
   /* get file handle */
@@ -258,10 +258,10 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                  final_face_element_type=Tri3;
               }
            }
-           mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order);
-           mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order);
-           mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order);
-           mesh_p->Points=Finley_ElementFile_alloc(Point1,mesh_p->order);
+           mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order, mesh_p->reduced_order);
+           mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order, mesh_p->reduced_order);
+           mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order, mesh_p->reduced_order);
+           mesh_p->Points=Finley_ElementFile_alloc(Point1,mesh_p->order, mesh_p->reduced_order);
            if (Finley_noError()) {
                Finley_ElementFile_allocTable(mesh_p->Elements, numElements);
                Finley_ElementFile_allocTable(mesh_p->FaceElements, numFaceElements);

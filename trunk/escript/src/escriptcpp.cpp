@@ -241,14 +241,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Factory methods for function space
   //
   def("ContinuousFunction",escript::continuousFunction);
+  def("ReducedContinuousFunction",escript::reducedContinuousFunction);
   def("Function",escript::function);
-  def("ReducedFunction",escript::function);
+  def("ReducedFunction",escript::reducedFunction);
   def("FunctionOnBoundary",escript::functionOnBoundary);
-  def("ReducedFunctionOnBoundary",escript::reducedfunctionOnBoundary);
+  def("ReducedFunctionOnBoundary",escript::reducedFunctionOnBoundary);
   def("FunctionOnContactZero",escript::functionOnContactZero);
-  def("ReducedFunctionOnContactZero",escript::reducedfunctionOnContactZero);
+  def("ReducedFunctionOnContactZero",escript::reducedFunctionOnContactZero);
   def("FunctionOnContactOne",escript::functionOnContactOne);
-  def("ReducedFunctionOnContactOne",escript::reducedfunctionOnContactOne);
+  def("ReducedFunctionOnContactOne",escript::reducedFunctionOnContactOne);
   def("Solution",escript::solution);
   def("ReducedSolution",escript::reducedSolution);
   def("DiracDeltaFunction",escript::diracDeltaFunction);
