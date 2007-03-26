@@ -63,6 +63,8 @@ struct Assemble_Parameters {
 typedef struct Assemble_Parameters Assemble_Parameters;
 
 
+#define Finley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == FINLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_FACE_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_1) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_2) )
+
 void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;
 void Assemble_getAssembleParameters(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,bool_t, Assemble_Parameters*);

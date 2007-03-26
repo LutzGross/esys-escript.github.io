@@ -45,8 +45,13 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   NVertices=elements->ReferenceElement->Type->numVertices;
   NN=elements->ReferenceElement->Type->numNodes;
   NS=elements->ReferenceElement->Type->numShapes;
-  numQuad=elements->ReferenceElement->numQuadNodes;
   numDim=nodes->numDim;
+  
+  if (Finley_Assemble_reducedIntegrationOrder(element_size)) {
+      numQuad=elements->ReferenceElement->numQuadNodes;
+  } else {
+      numQuad=elements->ReferenceElementReducedOrder->numQuadNodes;
+  }
 
   /* set a few more parameters */
 

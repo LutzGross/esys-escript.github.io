@@ -44,6 +44,12 @@ int AbstractContinuousDomain::getContinuousFunctionCode() const
   return 0;
 }
 
+int AbstractContinuousDomain::getReducedContinuousFunctionCode() const
+{
+  throwStandardException("AbstractContinuousDomain::getReducedContinuousFunctionCode");
+  return 0;
+}
+
 int AbstractContinuousDomain::getFunctionCode() const
 {
   throwStandardException("AbstractContinuousDomain::getFunctionCode");

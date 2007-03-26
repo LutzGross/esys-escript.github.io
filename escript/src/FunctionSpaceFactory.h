@@ -30,9 +30,15 @@ namespace escript {
 
   /**
      \brief
-     Return a continuous FunctionSpace
+     Return a continuous FunctionSpace (overlapped node values)
   */
   ESCRIPT_DLL_API FunctionSpace continuousFunction(const AbstractDomain& domain);
+
+  /**
+     \brief
+     Return a continuous with reduced order FunctionSpace (overlapped node values on reduced element order)
+  */
+  ESCRIPT_DLL_API FunctionSpace reducedContinuousFunction(const AbstractDomain& domain);
 
   /**
      \brief
@@ -43,7 +49,7 @@ namespace escript {
      \brief
      Return a function FunctionSpace with reduced integration order
   */
-  ESCRIPT_DLL_API FunctionSpace reducedfunction(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace reducedFunction(const AbstractDomain& domain);
   /**
      \brief
      Return a function on boundary FunctionSpace
@@ -53,7 +59,7 @@ namespace escript {
      \brief
      Return a function on boundary FunctionSpace
   */
-  ESCRIPT_DLL_API FunctionSpace reducedfunctionOnBoundary(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace reducedFunctionOnBoundary(const AbstractDomain& domain);
   /**
      \brief
      Return afunction on boundary FunctionSpace with reduced integration order
@@ -63,7 +69,7 @@ namespace escript {
      \brief
      Return a FunctionSpace on left side of contact
   */
-  ESCRIPT_DLL_API FunctionSpace reducedfunctionOnContactZero(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace reducedFunctionOnContactZero(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace  on left side of contact with reduced integration order
@@ -73,7 +79,7 @@ namespace escript {
      \brief
      Return a FunctionSpace on left side of contact
   */
-  ESCRIPT_DLL_API FunctionSpace reducedfunctionOnContactOne(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace reducedFunctionOnContactOne(const AbstractDomain& domain);
   /**
      \brief
      Return a FunctionSpace with reduced integration order

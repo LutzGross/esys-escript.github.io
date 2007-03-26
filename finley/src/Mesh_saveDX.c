@@ -23,6 +23,7 @@
 /**************************************************************/
 
 #include "Mesh.h"
+#include "Assemble.h"
 
 /**************************************************************/
 
@@ -38,7 +39,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                    };
   FILE * fileHandle_p = NULL;
   int i,j,k,i_data, nodetype, elementtype, numPoints = 0, nDim, *resortIndex=NULL, 
-      numDXNodesPerElement=0, numCells, NN, object_count, rank, nComp;
+      numDXNodesPerElement=0, numCells, NN, object_count, rank, nComp, numPointsPerSample;
   double* values,rtmp;
   bool_t *isCellCentered=NULL;
   Finley_ElementFile* elements=NULL;
@@ -101,6 +102,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              isCellCentered[i_data]=FALSE;
              break;
            case FINLEY_ELEMENTS:
+           case FINLEY_REDUCED_ELEMENTS:
              nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
                  elementtype=FINLEY_ELEMENTS;
@@ -113,6 +115,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              isCellCentered[i_data]=TRUE;
              break;
            case FINLEY_FACE_ELEMENTS:
+           case FINLEY_REDUCED_FACE_ELEMENTS:
              nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS) {
                  elementtype=FINLEY_FACE_ELEMENTS;
@@ -137,6 +140,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              isCellCentered[i_data]=TRUE;
              break;
            case FINLEY_CONTACT_ELEMENTS_1:
+           case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
              nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
@@ -149,6 +153,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              isCellCentered[i_data]=TRUE;
              break;
            case FINLEY_CONTACT_ELEMENTS_2:
+           case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
              nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
@@ -187,6 +192,9 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
       break;
     case FINLEY_POINTS:
       elements=mesh_p->Points;
+      break;
+    case FINLEY_CONTACT_ELEMENTS_2:
+      elements=mesh_p->ContactElements;
       break;
     case FINLEY_CONTACT_ELEMENTS_1:
       elements=mesh_p->ContactElements;
@@ -262,7 +270,11 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
             for (i = 0; i < rank; i++) fprintf(fileHandle_p, "%d ", getDataPointShape(data_pp[i_data],i));
          }
          if (isCellCentered[i_data]) {
-             int numPointsPerSample=elements->ReferenceElement->numQuadNodes;
+             if (Finley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
+                numPointsPerSample=elements->ReferenceElementReducedOrder->numQuadNodes;
+             } else {
+                numPointsPerSample=elements->ReferenceElement->numQuadNodes;
+             }
              if (numPointsPerSample>0) {
                 fprintf(fileHandle_p, "items %d data follows\n", numCells);
                 for (i=0;i<elements->numElements;i++) {

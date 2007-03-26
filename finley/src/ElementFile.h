@@ -43,14 +43,11 @@ struct Finley_ElementFile {
 #endif
 
   index_t isPrepared;                          /* UNKNOWN,  UNPREPARED, PREPARED to indicate that the element table has been pertpared for calculation (maybe not optimized) */
-  Finley_RefElement* ReferenceElement;           /* the reference element, see
-						    Reference element.c */
-
-  Finley_RefElement* LinearReferenceElement;     /* the reference element for
-						    the linear mesh. it is
-						    vital that both are using
-						    the same quadrature
-						    scheme */
+  Finley_RefElement* ReferenceElement;           /* the reference element, see Reference element.c */
+  Finley_RefElement* ReferenceElementReducedOrder;    /* the reference element with reduced integration order, see Reference element.c */
+  Finley_RefElement* LinearReferenceElement;     /* the reference element for the linear mesh. it is vital that it is using the same quadrature scheme like ReferenceElement*/
+  Finley_RefElement* LinearReferenceElementReducedOrder;  /* the reference element for the linear mesh. it is vital that it is using the same quadrature 
+\                                                                scheme like LinearReferenceElementReducedIntegration*/
 
   dim_t numElements;                             /* number of elements. */
   
@@ -84,7 +81,8 @@ struct Finley_ElementFile {
 				              /* are don't share a node so they can be processed simultaneously */
                                               /* at anytime Color must provide a valid value. In any case one can set  */
                                               /* Color[e]=e  for all e */
-  index_t order;			       /* order of the element */
+  index_t order;			       /* order of the element integration scheme*/
+  index_t reduced_order;			       /* order of the reduced element integration scheme*/
 
   Finley_ElementFile_Jacobeans* jacobeans;           /* element jacobeans */
   Finley_ElementFile_Jacobeans* jacobeans_reducedS;  /* element jacobeans for reduced order of shape function*/
@@ -96,9 +94,9 @@ struct Finley_ElementFile {
 typedef struct Finley_ElementFile Finley_ElementFile;
 
 #ifndef PASO_MPI
-Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId,dim_t);
+Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId, index_t, index_t);
 #else
-Finley_ElementFile* Finley_ElementFile_alloc( ElementTypeId, dim_t, Paso_MPIInfo* );
+Finley_ElementFile* Finley_ElementFile_alloc( ElementTypeId, index_t, index_t, Paso_MPIInfo* );
 void Finley_ElementFile_setDomainFlags( Finley_ElementFile *in  );
 #endif
 

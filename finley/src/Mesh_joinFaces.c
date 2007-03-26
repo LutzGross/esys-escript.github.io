@@ -27,7 +27,7 @@
 
 /**************************************************************/
 
-void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance) {
+void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t optimize_labeling) {
 
    char error_msg[LenErrorMsg_MAX];
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
@@ -82,8 +82,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
          }
          /*  allocate new face element and Contact element files */
 #ifndef PASO_MPI
-         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->ReferenceElement->Type->TypeId,self->ContactElements->order);
-         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order);
+         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->ReferenceElement->Type->TypeId,self->ContactElements->order,self->ContactElements->reduced_order);
+         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order,self->FaceElements->reduced_order);
 #else
   /* TODO */
   PASO_MPI_TODO;

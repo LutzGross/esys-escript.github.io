@@ -74,6 +74,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   static const int DegreesOfFreedom;
   static const int ReducedDegreesOfFreedom;
   static const int Nodes;
+  static const int ReducedNodes;
   static const int Elements;
   static const int ReducedElements;
   static const int FaceElements;
@@ -206,6 +207,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   FINLEY_DLL_API
   virtual int getContinuousFunctionCode() const;
+
+  /**
+     \brief
+     Return a continuous on reduced order nodes FunctionSpace code
+  */
+  FINLEY_DLL_API
+  virtual int getReducedContinuousFunctionCode() const;
 
   /**
      \brief
