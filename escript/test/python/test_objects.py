@@ -76,8 +76,102 @@ class Test_Domain(unittest.TestCase):
         # insert tag shortcut:
         s2=insertTaggedValues(Scalar(0,Function(self.domain)),**{ tag1 : 1., tag2 : 2.})
         self.failUnless(Lsup(s2-r)<=0.)
-        
+   def test_functionspace_ContinuousFunction(self):
+        fs=ContinuousFunction(self.domain)
+        self.failUnless(fs.getDomain()==self.domain)
+        self.failUnless(self.domain.getDim() == fs.getDim())
+        x=fs.getX()
+        self.failUnless(x.getFunctionSpace() == fs)
+        self.failUnless(x.getShape() == (fs.getDim(),))
+        self.failUnless(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
+        self.failUnless(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
 
+   def test_functionspace_Solution(self):
+        fs=Solution(self.domain)
+        self.failUnless(fs.getDomain()==self.domain)
+        self.failUnless(self.domain.getDim() == fs.getDim())
+        x=fs.getX()
+        self.failUnless(x.getFunctionSpace() == fs)
+        self.failUnless(x.getShape() == (fs.getDim(),))
+        self.failUnless(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
+        self.failUnless(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+
+   def test_functionspace_ReducedSolution(self):
+        fs=ReducedSolution(self.domain)
+        self.failUnless(fs.getDomain()==self.domain)
+        self.failUnless(self.domain.getDim() == fs.getDim())
+        x=fs.getX()
+        self.failUnless(x.getFunctionSpace() == fs)
+        self.failUnless(x.getShape() == (fs.getDim(),))
+        self.failUnless(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
+        self.failUnless(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+
+   def test_functionspace_Function(self):
+        fs=Function(self.domain)
+        self.failUnless(fs.getDomain()==self.domain)
+        self.failUnless(self.domain.getDim() == fs.getDim())
+        x=fs.getX()
+        self.failUnless(x.getFunctionSpace() == fs)
+        self.failUnless(x.getShape() == (fs.getDim(),))
+        self.failUnless(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
+        self.failUnless(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+
+   def test_functionspace_ReducedFunction(self):
+        fs=ReducedFunction(self.domain)
+        self.failUnless(fs.getDomain()==self.domain)
+        self.failUnless(self.domain.getDim() == fs.getDim())
+        x=fs.getX()
+        self.failUnless(x.getFunctionSpace() == fs)
+        self.failUnless(x.getShape() == (fs.getDim(),))
+        self.failUnless(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
+        self.failUnless(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+   def test_functionspace_FunctionOnBoundary(self):
+        fs=FunctionOnBoundary(self.domain)
+        self.failUnless(fs.getDomain()==self.domain)
+        self.failUnless(self.domain.getDim() == fs.getDim())
+        x=fs.getX()
+        self.failUnless(x.getFunctionSpace() == fs)
+        self.failUnless(x.getShape() == (fs.getDim(),))
+        self.failUnless(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
+        self.failUnless(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+
+   def test_functionspace_ReducedFunctionOnBoundary(self):
+        fs=ReducedFunctionOnBoundary(self.domain)
+        self.failUnless(fs.getDomain()==self.domain)
+        self.failUnless(self.domain.getDim() == fs.getDim())
+        x=fs.getX()
+        self.failUnless(x.getFunctionSpace() == fs)
+        self.failUnless(x.getShape() == (fs.getDim(),))
+        self.failUnless(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
+        self.failUnless(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
 
 class Test_Dump(unittest.TestCase):
    arg0=9.81
@@ -97,6 +191,7 @@ class Test_Dump(unittest.TestCase):
 
    #===========================================================================
    def test_DumpAndLoad_Constant_Solution_Rank0(self):
+       print loadIsConfigured()
        if loadIsConfigured():
           file=os.path.join(self.filebase,"constant_solution_rank0.nc")
           d=Data(self.arg0,Solution(self.domain))
@@ -211,10 +306,34 @@ class Test_Dump(unittest.TestCase):
           d=Data(self.arg3,Function(self.domain))
           self._diffDataObjects(d,file)
 
-   def test_DumpAndLoad_Constant_Function_Rank4(self):
+   #===========================================================================
+   def test_DumpAndLoad_Constant_ReducedFunction_Rank0(self):
        if loadIsConfigured():
-          file=os.path.join(self.filebase,"constant_function_rank4.nc")
-          d=Data(self.arg4,Function(self.domain))
+          file=os.path.join(self.filebase,"constant_reduced_function_rank0.nc")
+          d=Data(self.arg0,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Constant_ReducedFunction_Rank1(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_rank1.nc")
+          d=Data(self.arg1,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Constant_ReducedFunction_Rank2(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_rank2.nc")
+          d=Data(self.arg2,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Constant_ReducedFunction_Rank3(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_rank3.nc")
+          d=Data(self.arg3,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+   def test_DumpAndLoad_Constant_ReducedFunction_Rank4(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_rank4.nc")
+          d=Data(self.arg4,ReducedFunction(self.domain))
           self._diffDataObjects(d,file)
 
    #===========================================================================
@@ -246,6 +365,37 @@ class Test_Dump(unittest.TestCase):
        if loadIsConfigured():
           file=os.path.join(self.filebase,"constant_function_on_boundary_rank4.nc")
           d=Data(self.arg4,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   #===========================================================================
+   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank0(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_on_boundary_rank0.nc")
+          d=Data(self.arg0,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank1(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_on_boundary_rank1.nc")
+          d=Data(self.arg1,ReducedFunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank2(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_on_boundary_rank2.nc")
+          d=Data(self.arg2,ReducedFunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank3(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_on_boundary_rank3.nc")
+          d=Data(self.arg3,ReducedFunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank4(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"constant_reduced_function_on_boundary_rank4.nc")
+          d=Data(self.arg4,ReducedFunctionOnBoundary(self.domain))
           self._diffDataObjects(d,file)
 
    #===========================================================================
@@ -428,6 +578,52 @@ class Test_Dump(unittest.TestCase):
           self._diffDataObjects(d,file)
 
    #===========================================================================
+   def test_DumpAndLoad_Expanded_ReducedFunction_Rank0(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_rank0.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunction(self.domain).getX())*self.arg0,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunction_Rank1(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_rank1.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunction(self.domain).getX())*self.arg1,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunction_Rank2(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_rank2.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunction(self.domain).getX())*self.arg2,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunction_Rank3(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_rank3.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunction(self.domain).getX())*self.arg3,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunction_Rank4(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_rank4.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          # elements are not in different order: self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunction(self.domain).getX())*self.arg4,ReducedFunction(self.domain))
+          self._diffDataObjects(d,file)
+
+   #===========================================================================
    def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank0(self):
        if loadIsConfigured():
           file=os.path.join(self.filebase,"expanded_function_on_boundary_rank0.nc")
@@ -471,6 +667,52 @@ class Test_Dump(unittest.TestCase):
           self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
           self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
           d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg4,FunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   #===========================================================================
+   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank0(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_on_boundary_rank0.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg0,ReducedFunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank1(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_on_boundary_rank1.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg1,ReducedFunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank2(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_on_boundary_rank2.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg2,ReducedFunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank3(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_on_boundary_rank3.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg3,ReducedFunctionOnBoundary(self.domain))
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank4(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"expanded_reduced_function_on_boundary_rank4.nc")
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_samples)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_number_of_data_points_per_sample)
+          self.failUnlessRaises(RuntimeError, load, file, self.domain_with_different_sample_ordering)
+          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg4,ReducedFunctionOnBoundary(self.domain))
           self._diffDataObjects(d,file)
 
    #===========================================================================
@@ -701,6 +943,97 @@ class Test_Dump(unittest.TestCase):
           d.setTaggedValue(100,self.arg4*4)
           self._diffDataObjects(d,file)
    #===========================================================================
+   def test_DumpAndLoad_Tagged_ReducedFunction_Rank0(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_rank0.nc")
+          d=Data(self.arg0,ReducedFunction(self.domain))
+          d.setTaggedValue(1,self.arg0*2)
+          d.setTaggedValue(10,self.arg0*3)
+          d.setTaggedValue(100,self.arg0*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunction_Rank1(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_rank1.nc")
+          d=Data(self.arg1,ReducedFunction(self.domain))
+          d.setTaggedValue(1,self.arg1*2)
+          d.setTaggedValue(10,self.arg1*3)
+          d.setTaggedValue(100,self.arg1*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunction_Rank2(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_rank2.nc")
+          d=Data(self.arg2,ReducedFunction(self.domain))
+          d.setTaggedValue(1,self.arg2*2)
+          d.setTaggedValue(10,self.arg2*3)
+          d.setTaggedValue(100,self.arg2*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunction_Rank3(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_rank3.nc")
+          d=Data(self.arg3,ReducedFunction(self.domain))
+          d.setTaggedValue(1,self.arg3*2)
+          d.setTaggedValue(10,self.arg3*3)
+          d.setTaggedValue(100,self.arg3*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunction_Rank4(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_rank4.nc")
+          d=Data(self.arg4,ReducedFunction(self.domain))
+          d.setTaggedValue(1,self.arg4*2)
+          d.setTaggedValue(10,self.arg4*3)
+          d.setTaggedValue(100,self.arg4*4)
+          self._diffDataObjects(d,file)
+
+   #===========================================================================
+   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank0(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_on_boundary_rank0.nc")
+          d=Data(self.arg0,ReducedFunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg0*2)
+          d.setTaggedValue(10,self.arg0*3)
+          d.setTaggedValue(100,self.arg0*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank1(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_on_boundary_rank1.nc")
+          d=Data(self.arg1,ReducedFunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg1*2)
+          d.setTaggedValue(10,self.arg1*3)
+          d.setTaggedValue(100,self.arg1*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank2(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_on_boundary_rank2.nc")
+          d=Data(self.arg2,ReducedFunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg2*2)
+          d.setTaggedValue(10,self.arg2*3)
+          d.setTaggedValue(100,self.arg2*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank3(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_on_boundary_rank3.nc")
+          d=Data(self.arg3,ReducedFunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg3*2)
+          d.setTaggedValue(10,self.arg3*3)
+          d.setTaggedValue(100,self.arg3*4)
+          self._diffDataObjects(d,file)
+
+   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank4(self):
+       if loadIsConfigured():
+          file=os.path.join(self.filebase,"tagged_reduced_function_on_boundary_rank4.nc")
+          d=Data(self.arg4,ReducedFunctionOnBoundary(self.domain))
+          d.setTaggedValue(1,self.arg4*2)
+          d.setTaggedValue(10,self.arg4*3)
+          d.setTaggedValue(100,self.arg4*4)
+          self._diffDataObjects(d,file)
+   #===========================================================================
    def test_SetDataPointValue_Function_Rank0(self):
           d=Data(self.arg0,Function(self.domain))
           d.setValueOfDataPoint(0,self.arg0*2)
@@ -775,6 +1108,88 @@ class Test_Dump(unittest.TestCase):
           self.failUnless(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
    def test_SetDataPointValue_Function_Rank4_list(self):
           d=Data(self.arg4,Function(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
+          d.setValueOfDataPoint(0,numarray.array2list(self.arg4*2))
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
+   #===========================================================================
+   def test_SetDataPointValue_ReducedFunction_Rank0(self):
+          d=Data(self.arg0,ReducedFunction(self.domain))
+          d.setValueOfDataPoint(0,self.arg0*2)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg0)
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg0*2)<=Lsup(self.arg0*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg0)<=Lsup(self.arg0), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank1(self):
+          d=Data(self.arg1,ReducedFunction(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
+          d.setValueOfDataPoint(0,self.arg1*2)
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank1_list(self):
+          d=Data(self.arg1,ReducedFunction(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
+          d.setValueOfDataPoint(0,numarray.array2list(self.arg1*2))
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank2(self):
+          d=Data(self.arg2,ReducedFunction(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
+          d.setValueOfDataPoint(0,self.arg2*2)
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank2_list(self):
+          d=Data(self.arg2,ReducedFunction(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
+          d.setValueOfDataPoint(0,numarray.array2list(self.arg2*2))
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank3(self):
+          d=Data(self.arg3,ReducedFunction(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
+          d.setValueOfDataPoint(0,self.arg3*2)
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank3_list(self):
+          d=Data(self.arg3,ReducedFunction(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
+          d.setValueOfDataPoint(0,numarray.array2list(self.arg3*2))
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank4(self):
+          d=Data(self.arg4,ReducedFunction(self.domain))
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
+          d.setValueOfDataPoint(0,self.arg4*2)
+          d_0=d.getValueOfDataPoint(0)
+          d_1=d.getValueOfDataPoint(1)
+          self.failUnless(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
+          self.failUnless(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
+   def test_SetDataPointValue_ReducedFunction_Rank4_list(self):
+          d=Data(self.arg4,ReducedFunction(self.domain))
           self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
           self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
           d.setValueOfDataPoint(0,numarray.array2list(self.arg4*2))

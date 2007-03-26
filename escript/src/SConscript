@@ -25,9 +25,9 @@ local_env.Append(LIBS = [boost_lib, 'esysUtils', sys_libs ] )
 py_wrapper_local_env.Append(LIBS = [boost_lib, lib_name, 'esysUtils', sys_libs ] )
 if useNetCDF == 'yes':
     local_env.Append(LIBS = netCDF_libs_cxx)
-    local_env.Append(CPPDEFINES = [ 'USE_NETCFD' ])
+    local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
     py_wrapper_local_env.Append(LIBS = netCDF_libs_cxx)
-    py_wrapper_local_env.Append(CPPDEFINES = [ 'USE_NETCFD' ])
+    py_wrapper_local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
 
 local_env.Append(CPPDEFINES = [ 'ESCRIPT_EXPORTS'] )
 
