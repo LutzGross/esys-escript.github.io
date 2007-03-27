@@ -62,10 +62,12 @@ void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans* in)
 Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile* self, Finley_NodeFile* nodes, 
                                                                  bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
   Finley_ElementFile_Jacobeans *out = NULL;
+  Finley_RefElement *shape=NULL;
   
   if (reducedShapefunction) {
        if (reducedIntegrationOrder) {
            out=self->jacobeans_reducedS_reducedQ;
+           shape=self->ReferenceElement;
        } else {
            out=self->jacobeans_reducedS;
        }
@@ -78,9 +80,8 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
   }
   if (out->status < nodes->status) {
      dim_t numNodes=self->ReferenceElement->Type->numNodes;
-     Finley_RefElement *shape;
      if (reducedIntegrationOrder) {
-           shape=self->ReferenceElement;
+           shape=self->ReferenceElementReducedOrder;
      } else {
            shape=self->ReferenceElement;
      }

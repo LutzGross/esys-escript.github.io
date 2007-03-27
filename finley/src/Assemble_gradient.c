@@ -69,6 +69,8 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   jac=Finley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
   if (Finley_noError()) {
 
+      numShapes=jac->ReferenceElement->Type->numShapes;
+      numLocalNodes=jac->ReferenceElement->Type->numNodes;
       if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2 || grad_data_type== FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
        dof_offset=numShapes;
        s_offset=jac->ReferenceElement->Type->numShapes;
@@ -76,8 +78,6 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
        dof_offset=0;
        s_offset=0;
       }
-      numShapes=jac->ReferenceElement->Type->numShapes;
-      numLocalNodes=jac->ReferenceElement->Type->numNodes;
 
       /* check the dimensions of data */
 

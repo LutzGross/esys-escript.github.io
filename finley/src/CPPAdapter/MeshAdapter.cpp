@@ -723,6 +723,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
         break;
      case(ReducedElements):
         Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_arg,&integrals[0]);
+        break;
      case(FaceElements):
         Finley_Assemble_integrate(mesh->Nodes,mesh->FaceElements,&_arg,&integrals[0]);
         break;
