@@ -32,4 +32,5 @@ for i in range(90, 600):
     dc2.setFileName(file_name = 
         "/home/jongui/data/laurent/talus/source/phi_talus_lava.%04d.vtu" % i)
 
-    s.saveImage("output/%04d.jpg" % i)
+    #s.saveImage("output/%04d.jpg" % i)
+    s.render("output/%04d.jpg" % i)

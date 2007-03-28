@@ -12,6 +12,7 @@ from outline import Outline
 from transform import Transform
 from plane import Plane
 from cutter import Cutter
+from average import CellDataToPointData
 
 # NOTE: DataSetMapper, Actor3D, Warp, Transform, Plane and Cutter  were 
 # inherited to allow access to their public methods from the driver.
@@ -25,7 +26,8 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 	# If no warp_mode is specified, the data will be deformated using scalar
 	# data. If no lut is specified, the color scheme will be used. 
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-			warp_mode = WarpMode.SCALAR, lut = Lut.COLOR, outline = True):
+			warp_mode = WarpMode.SCALAR, lut = Lut.COLOR, 
+			cell_to_point = False, outline = True):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -38,6 +40,8 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		@type warp_mode: Mode in which to deform the scalar field 
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -80,8 +84,13 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		Transform.__init__(self)
 		Plane.__init__(self, Transform._getTransform(self))
 
-		Cutter.__init__(self, data_collector._getOutput(),
-				Plane._getPlane(self))
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self)) 	
+		elif(cell_to_point == False): # No conversion happens.	
+			Cutter.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self)) 	
+
 		Warp.__init__(self, Cutter._getOutput(self), warp_mode)
 			
 		DataSetMapper.__init__(self, Warp._getOutput(self),

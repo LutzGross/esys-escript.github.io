@@ -11,6 +11,7 @@ from streamlinemodule import  StreamLineModule
 from tube import Tube
 from point import PointSource
 from outline import Outline
+from average import CellDataToPointData
 
 # NOTE: DataSetMapper, Actor3D, PointSource, StreamLineModule and Tube  were 
 # inherited to allow access to their public methods from the driver.
@@ -27,7 +28,8 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
-		color_mode = ColorMode.VECTOR, lut = Lut.COLOR, outline = True): 
+		color_mode = ColorMode.VECTOR, lut = Lut.COLOR, cell_to_point = False, 
+		outline = True): 
 		"""
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -40,6 +42,8 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		@param color_mode: Type of color mode
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -78,9 +82,15 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		PointSource.__init__(self, data_collector._getOutput())
-		StreamLineModule.__init__(self, data_collector._getOutput(), 
-				PointSource._getOutput(self))
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			PointSource.__init__(self, c2p._getOutput())
+			StreamLineModule.__init__(self, c2p._getOutput(), 
+					PointSource._getOutput(self))
+		elif(cell_to_point == False): # No conversion happens.
+			PointSource.__init__(self, data_collector._getOutput())
+			StreamLineModule.__init__(self, data_collector._getOutput(), 
+					PointSource._getOutput(self))
 
 		Tube.__init__(self, StreamLineModule._getOutput(self))
 		DataSetMapper.__init__(self, Tube._getOutput(self), 

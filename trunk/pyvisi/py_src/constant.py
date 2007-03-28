@@ -72,13 +72,29 @@ class Renderer:
 	@cvar OFFLINE_PS: Constant representing the PS offline renderer
 	"""
 
-	ONLINE      = "online"
+	ONLINE     = "online"
+	ONLINE_JPG = "online_jpg"
+	ONLINE_BMP = "online_bmp"
+	ONLINE_PNM = "online_pnm"
+	ONLINE_PNG = "online_png"
+	ONLINE_TIF = "online_tif"
+	ONLINE_PS  = "online_ps"
+
 	OFFLINE_JPG = "offline_jpg"
 	OFFLINE_BMP = "offline_bmp"
 	OFFLINE_PNM = "offline_pnm"
 	OFFLINE_PNG = "offline_png"
-	OFFLINE_TIF = "offline_tiff"
+	OFFLINE_TIF = "offline_tif"
 	OFFLINE_PS  = "offline_ps"
+
+	DISPLAY     = "display"
+	DISPLAY_JPG = "display_jpg"
+	DISPLAY_BMP = "display_bmp"
+	DISPLAY_PNM = "display_pnm"
+	DISPLAY_PNG = "display_png"
+	DISPLAY_TIF = "display_tif"
+	DISPLAY_PS  = "display_ps"
+
 
 
 class Arrow:
@@ -148,6 +164,17 @@ class Lut:
 	GREY_SCALE = "grey_scale"
 
 class VizType:
+	"""
+	Constants that define the visualization types. 
+
+	@cvar VELOCITY: Constant representing the velocity
+	@cvar CONTOUR: Constant representing the contour
+	@cvar MAP: Constant representing the surface map
+	@cvar ELLIPSOID: Constant representing the ellipsoid
+	@cvar CARPET: Constant representing the carpet
+	@cvar STREAMLINE: Constant representing the streamline
+	"""
+
 	VELOCITY = "Velocity"
 	CONTOUR = "Contour"
 	MAP = "Map"

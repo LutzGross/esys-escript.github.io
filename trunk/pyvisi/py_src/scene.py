@@ -33,6 +33,14 @@ class Scene:
 		self.__num_viewport = num_viewport
 		self.__x_size = x_size
 		self.__y_size = y_size
+
+		self.__OFFLINE = "offline"
+		self.__JPG = "jpg"
+		self.__BMP = "bmp"
+		self.__PNM = "pnm"
+		self.__PNG = "png"
+		self.__TIF = "tif"
+		self.__PS  = "ps"
 	
 		self.__vtk_render_window = vtk.vtkRenderWindow()
 		self.__setupScene()
@@ -49,11 +57,23 @@ class Scene:
 		# Default title bar.
 		self.setTitleBar("Earth Systems Science Computational Centre (ESSCC)")
 		self.__setSize(self.__x_size, self.__y_size)
-		
-		if(self.__renderer == Renderer.ONLINE): # True for online rendering.
+
+		# True for online rendering.
+		if(self.__renderer.startswith(Renderer.ONLINE)): 
 			self.__setupOnlineRendering()
-		else: # True for offline rendering.
+			# True for all online renderers except Renderer.ONLINE.
+			if(self.__renderer != Renderer.ONLINE):
+				self.__setupWindowToImage()
+		# True for offline rendering.
+		elif(self.__renderer.startswith(self.__OFFLINE)): 
 			self.__setupOfflineRendering()
+			self.__setupWindowToImage()
+		# True for display rendering.
+		elif(self.__renderer.startswith(Renderer.DISPLAY)): 
+			# True for all display renderers except Renderer.DISPLAY.
+			if(self.__renderer != Renderer.DISPLAY):
+				self.__setupWindowToImage()
+			
 
 	def __createViewport(self):
 		"""
@@ -143,84 +163,98 @@ class Scene:
 
 	def __setupOfflineRendering(self):
 		"""
-		Setup the window to image filter for offline rendering.
+		Enables the offline rendering. This prevents a window from coming 
+		during the rendering process.
 		"""
 
 		# Enable offscreen rendering.
 		self.__vtk_render_window.OffScreenRenderingOn()
-		# Convert the output of the render window into an image.
+
+	def __setupWindowToImage(self):
+		"""	
+		Setup the window to image filter to convert the output of the render 
+		window into an image.
+		"""
+
 		self.__vtk_window_to_image = vtk.vtkWindowToImageFilter()
 		self.__vtk_window_to_image.SetInput(self.__vtk_render_window)
 		self.__vtk_image_writer = self.__getImageWriter()
+		
 
 	def __getImageWriter(self):
 		"""
-		Return the appropriate image writer based on the specified offline
+		Return the appropriate image writer based on the specified 
 		renderer.
 
 		@rtype: vtkImageWriter
 		@return: Image writer
 		"""
 
-		if(self.__renderer == Renderer.OFFLINE_JPG):
+		if(self.__renderer.endswith(self.__JPG)):
 			return vtk.vtkJPEGWriter() 
-		elif(self.__renderer == Renderer.OFFLINE_BMP):
+		elif(self.__renderer.endswith(self.__BMP)):
 			return vtk.vtkBMPWriter() 
-		elif(self.__renderer == Renderer.OFFLINE_PNM):
+		elif(self.__renderer.endswith(self.__PNM)):
 			return vtk.vtkPNMWriter()
-		elif(self.__renderer == Renderer.OFFLINE_PNG):
+		elif(self.__renderer.endswith(self.__PNG)):
 			return vtk.vtkPNGWriter()
-		elif(self.__renderer == Renderer.OFFLINE_TIF):
+		elif(self.__renderer.endswith(self.__TIF)):
 			return vtk.vtkTIFFWriter()
-		elif(self.__renderer == Renderer.OFFLINE_PS):
+		elif(self.__renderer.endswith(self.__PS)):
 			return vtk.vtkPostScriptWriter()
 	
-	def saveImage(self, image_name):
+	def __saveImage(self, image_name):
 		"""
 		Save the rendered object as an image.
 
 		@type image_name: String
 		@param image_name: Name of the saved image.
 		"""
-	
-		try:
-			# NOTE: Render and Modified must be called everytime before writing 
-			# an image. Otherwise, only the first image will always be saved.
-			# This is due to the architecture of VTK.
-			self.__vtk_render_window.Render()
-			self.__vtk_window_to_image.Modified()
-			
-			# Retrieve rendered object from the window and convert it into an 
-			# image.
-			self.__vtk_image_writer.SetInput(
-					self.__vtk_window_to_image.GetOutput())
-			self.__vtk_image_writer.SetFileName(image_name)
-			self.__vtk_image_writer.Write() 	
-		except AttributeError:
-			print "ERROR: Incorrect use of the '" + self.__renderer + \
-					"' renderer. Kindly, use the 'offline' renderer instead."
 
-	def animate(self):
+		# NOTE: Render and Modified must be called everytime before writing 
+		# an image. Otherwise, only the first image will always be saved.
+		# This is due to the architecture of VTK.
+		#self.__vtk_render_window.Render()
+		self.__vtk_window_to_image.Modified()
+		
+		# Retrieve rendered object from the window and convert it into an 
+		# image.
+		self.__vtk_image_writer.SetInput(
+				self.__vtk_window_to_image.GetOutput())
+		self.__vtk_image_writer.SetFileName(image_name)
+		self.__vtk_image_writer.Write() 	
+
+	def __animate(self):
 		"""	
 		Animate the object onto the scene on-the-fly. No interaction can occur.
 		"""
 
 		self.__vtk_render_window.Render()
 
-	def render(self):
+	def render(self, image_name = None):
 		"""
-		Render the object onto the scene.
+		Render the object either onto the scene or save it as an image or both.
+		(depending on the type of renderer).
 		"""	
 
-		try:
-			self.__vtk_render_window.Render()
+		# With Render() ONLY, the rendered object is animated onto the 
+		# scene on-the-fly and no interaction can occur.
+		self.__vtk_render_window.Render()
 
+		if(self.__renderer.startswith(Renderer.ONLINE)):
 			# NOTE: Once Start is executed, the driver will not further execute 
-			# any subsequent codes thereafter.
+			# any subsequent codes thereafter unless the 'q' or 'e' keys are
+			# pressed.
 			self.__vtk_render_window_interactor.Start()
-		except AttributeError:
-			print "ERROR: Incorrect use of the '" + self.__renderer + \
-					"' renderer. Kindly, switch to the 'online'  renderer."
+
+			# True for all online renderers except Renderer.ONLINE.
+			if(self.__renderer != Renderer.ONLINE):
+				self.__saveImage(image_name)					
+		# True for all display renderers except Renderer.DISPLAY.
+		elif(self.__renderer.startswith(self.__OFFLINE) or 
+				self.__renderer != Renderer.DISPLAY):
+			self.__saveImage(image_name)					
+
 	
 	def _addActor3D(self, viewport, actor):
 		"""
