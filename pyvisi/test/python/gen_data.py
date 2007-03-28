@@ -18,9 +18,12 @@ DIM=2
 L0=3
 L1=3.
 L2=1.
-NE0=15
-NE1=int(NE0/L0*L1)
-NE2=int(NE0/L0*L2)
+#NE0=15
+#NE1=int(NE0/L0*L1)
+#NE2=int(NE0/L0*L2)
+NE0=3
+NE1=3
+NE2=3
 #
 #  generate domains:
 #

@@ -115,10 +115,8 @@ class DataCollector:
 		# but is used only when a scalar attribute has been specified.
 		if scalar in self.__point_attribute['scalars']:
 			self._getOutput().GetPointData().SetActiveScalars(scalar)
-			print "SCALAR POINT DATA"
 		elif scalar in self.__cell_attribute['scalars']:
 			self._getOutput().GetCellData().SetActiveScalars(scalar)
-			print "SCALAR CELL DATA"
 		else:
 			print "\nERROR: No scalar called '%s' is available.\n" % scalar
 			sys.exit(1)	
@@ -138,10 +136,8 @@ class DataCollector:
 		# but is used only when a vector attribute has been specified.
 		if vector in self.__point_attribute['vectors']:
 			self._getOutput().GetPointData().SetActiveVectors(vector)
-			print "VECTOR POINT DATA" 
 		elif vector in self.__cell_attribute['vectors']:
 			self._getOutput().GetCellData().SetActiveVectors(vector)
-			print "VECTOR CELL DATA"
 		else:
 			print "\nERROR: No vector called '%s' is available.\n" % vector
 			sys.exit(1)	
