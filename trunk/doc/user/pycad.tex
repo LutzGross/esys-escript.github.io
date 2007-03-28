@@ -1,9 +1,102 @@
-\chapter{The module \pycad}
-\label{PYCAD CHAP}
-
+\chapter{The module \pycad} \label{PYCAD CHAP}
 
 
 \section{Introduction}
+
+\pycad provides a simple way to build a mesh for your finite element
+simulation.  You begin by building what we call a {\it Design} using
+primitive geometric objects, and then to go on to build a mesh from
+the {\it Design}.  The final step of generating the mesh from a {\it
+Design} uses freely available mesh generation software, such as \gmshextern.
+
+A {\it Design} is built by defining points, which are used to specify
+the corners of geometric objects and the vertices of curves.  Using
+points you construct more interesting objects such as lines,
+rectangles, and arcs.  By adding many of these objects into what we
+call a {\it Design}, you can build meshes for arbitrarily complex 2-D
+and 3-D structures.
+
+The example included below shows how to use {\it pycad} to create a 2-D mesh
+in the shape of a trapezoid with a cutout area.
+
+\begin{python}
+	from esys.pycad import *
+	from esys.pycad.gmsh import Design
+	from esys.finley import MakeDomain
+
+	# A trapezoid
+	p0=Point(0.0, 0.0, 0.0)
+	p1=Point(1.0, 0.0, 0.0)
+	p2=Point(1.0, 0.5, 0.0)
+	p3=Point(0.0, 1.0, 0.0)
+	l01=Line(p0, p1)
+	l12=Line(p1, p2)
+	l23=Line(p2, p3)
+	l30=Line(p3, p0)
+	c=CurveLoop(l01, l12, l23, l30)
+
+	# A small triangular cutout
+	x0=Point(0.1, 0.1, 0.0)
+	x1=Point(0.5, 0.1, 0.0)
+	x2=Point(0.5, 0.2, 0.0)
+	x01=Line(x0, x1)
+	x12=Line(x1, x2)
+	x20=Line(x2, x0)
+	cutout=CurveLoop(x01, x12, x20)
+
+	# Create the surface with cutout
+	s=PlaneSurface(c, holes=[cutout])
+
+	# Create a Design which can make the mesh
+	d=Design(dim=2, element_size=0.05)
+
+	# Add the trapezoid with cutout
+	d.addItems(s)
+
+	# Create the geometry, mesh and Escript domain
+	d.setScriptFileName("trapezoid.geo")
+	d.setMeshFileName("trapezoid.msh")
+	domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True)
+
+	# Create a file that can be read back in to python with mesh=ReadMesh(fileName)
+	domain.write("trapezoid.fly")
+\end{python}
+
+This example is included with the software in
+\code{pycad/examples/trapezoid.py}.  If you have gmsh installed you can
+run the example and view the geometry and mesh with:
+
+\begin{python}
+	python trapezoid.py
+	gmsh trapezoid.geo
+	gmsh trapezoid.msh
+\end{python}
+
+A \code{CurveLoop} is used to connect several lines into a single curve.
+It is used in the example above to create the trapezoidal outline for the grid
+and also for the triangular cutout area.
+You can use any number of lines when creating a \code{CurveLoop}, but
+the end of one line must be identical to the start of the next.
+
+Sometimes you might see us write \code{-c} where \code{c} is a
+\code{CurveLoop}.  This is the reverse curve of the curve \code{c}. 
+It is identical to the original except that its points are traversed
+in the opposite order.  This may make it easier to connect two curves
+in a \code{CurveLoop}.
+
+The example python script above calls both
+\code{d.setScriptFileName()} and \code{d.setMeshFileName()}.  You need
+only call these if you wish to save the gmsh geometry and mesh files.
+
+Note that the underlying mesh generation software will not accept all
+the geometries you can create with {\it pycad}.  For example, {\it
+pycad} will happily allow you to create a 2-D {\it Design} that is a
+closed loop with some additional points or lines lying outside of the
+enclosed area, but gmsh will fail to create a mesh for it.
+
+
+
+
 
 
 \section{\pycad Classes}
@@ -12,34 +105,68 @@
 
 \subsection{Primitives}
 
-\begin{classdesc}{Point}{}
+Some of the most commonly-used objects in {\it pycad} are listed here. For a more complete
+list see the full API documentation.
 
+\begin{classdesc}{Point}{x1, x2, x3}
+Create a point with from coordinates.
 \end{classdesc}
 
-\begin{classdesc}{Manifold1D}{}
-
+\begin{classdesc}{Line}{point1, point2}
+Create a line with between starting and ending points.
 \end{classdesc}
 
-\begin{classdesc}{Manifold2D}{}
-
+\begin{classdesc}{Curve}{point1, point2, ...}
+Create a \code{Curve}, which is simply a list of points.
 \end{classdesc}
 
-\begin{classdesc}{Manifold3D}{}
+\begin{classdesc}{Spline}{curve}
+Interpret a \code{Curve} using a spline.
+\end{classdesc}
 
+\begin{classdesc}{BSpline}{curve}
+Interpret a \code{Curve} using a b-spline.
+\end{classdesc}
+
+\begin{classdesc}{BezierCurve}{curve}
+Interpret a \code{Curve} using a Bezier curve.
+\end{classdesc}
+
+\begin{classdesc}{CurveLoop}{list}
+Create a closed \code{Curve} connecting the lines and/or points given in the \code{list}.
+\end{classdesc}
+
+\begin{classdesc}{Arc}{center_point, start_point, end_point}
+Create an arc by specifying a center for a circle and start and end points. An arc may subtend an angle of at most $\pi$ radians.
+\end{classdesc}
+
+\begin{classdesc}{PlaneSurface}{loop, \optional{holes=[list]}}
+Create a surface for a 2-D mesh, which may have one or more holes.
+\end{classdesc}
+
+\begin{classdesc}{RuledSurface}{list}
+Create a surface that can be interpolated using transfinite interpolation.
+\end{classdesc}
+
+\begin{classdesc}{SurfaceLoop}{list}
+Create a loop of 2D primitives, which defines the shell of a volume.
+\end{classdesc}
+
+\begin{classdesc}{Volume}{loop, \optional{holes=[list]}}
+Create a volume for a 3-D mesh given a SurfaceLoop, which may have one or more holes.
+\end{classdesc}
+
+\begin{classdesc}{PropertySet}{list}
+Create a PropertySet given a list of 1-D, 2-D or 3-D items. See the section on Properties below for more information.
 \end{classdesc}
 
 %============================================================================================================
 \subsection{Transformations}
 
-Transformations are used to move geometrical objects in the 3-dimensional space:
-
-\begin{datadesc}{DEG}
-The unit of degree. For instance use \code{90*DEG} for $90$ degrees.
-\end{datadesc}
-
-\begin{datadesc}{RAD}
-The unit of radiant. For instance use \code{math.pi*RAD} for $180$ degrees.
-\end{datadesc}
+Sometimes it's convenient to create an object and then make copies at
+different orientations and in different sizes.  Transformations are
+used to move geometrical objects in the 3-dimensional space and to
+resize them.
 
 \begin{classdesc}{Translation}{\optional{b=[0,0,0]}}
 defines a translation $x \to x+b$. \var{b} can be any object that can be converted 
@@ -70,13 +197,26 @@ into a \numarray object of shape $(3,)$.
 \var{normal} does not have to be normalized but must have positive length. 
 \end{classdesc}
 
+\begin{datadesc}{DEG}
+A constant to convert from degrees to an internal angle representation in radians. For instance use \code{90*DEG} for $90$ degrees.
+\end{datadesc}
+
 \subsection{Properties}
 
-Property sets are used to bundle a set of geometrical objects in a group. The group
-is identified by a name. Typically a property set is used to mark
-subregions with share the same material properties or to mark portions of the boundary. 
-For efficiency, the \Design class object assigns a integer to each of its property sets,
-a so-called tag \index{tag}. The appropriate tag is attached to the elements at generation time.
+If you are building a larger geometry you may find it convenient to
+create it in smaller pieces and then assemble them into the whole. 
+Property sets make this easy, and they allow you to name the smaller
+pieces for convenience.
+
+Property sets are used to bundle a set of geometrical objects in a
+group.  The group is identified by a name.  Typically a property set
+is used to mark subregions with share the same material properties or
+to mark portions of the boundary.  For efficiency, the \Design class
+object assigns a integer to each of its property sets, a so-called tag
+\index{tag}.  The appropriate tag is attached to the elements at
+generation time.
+
+See the file \code{pycad/examples/quad.py} for an example using a {\it PropertySet}.
 
 
 \begin{classdesc}{PropertySet}{name,*items}
@@ -119,9 +259,14 @@ clears the list of items
 returns the tag used for this property set
 \end{methoddesc}
 
-\section{Interface to \gmshextern}
+\section{Interface to the mesh generation software}
 \declaremodule{extension}{esys.pycad.gmsh}
 \modulesynopsis{Python geometry description and meshing interface}
+
+The class and methods described here provide an interface to the mesh
+generation software, which is currently gmsh.  This interface could be
+adopted to triangle or another mesh generation package if this is
+deemed to be desireable in the future.
 
 \begin{classdesc}{Design}{
 \optional{dim=3, \optional{element_size=1., \optional{order=1, \optional{keep_files=False}}}}}
@@ -161,7 +306,7 @@ returns the global element size.
 \end{methoddesc}
 
 \begin{memberdesc}[Design]{DELAUNAY}
-the \gmshextern Delauny triangulator.
+the gmsh Delauny triangulator.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{TETGEN}
@@ -185,16 +330,16 @@ returns \True if work files are kept. Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{setScriptFileName}{\optional{name=None}}
-set the filename for the \gmshextern input script. if no name is given a name with extension "geo" is generated.
+set the filename for the gmsh input script. if no name is given a name with extension "geo" is generated.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getScriptFileName}{}
-returns the name of the file for the \gmshextern script.
+returns the name of the file for the gmsh script.
 \end{methoddesc}
 
 
 \begin{methoddesc}[Design]{setMeshFileName}{\optional{name=None}}
-sets the name for the \gmshextern  mesh file. if no name is given a name with extension "msh" is generated.
+sets the name for the gmsh  mesh file. if no name is given a name with extension "msh" is generated.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getMeshFileName}{}
@@ -221,16 +366,15 @@ resets the items in design
 \begin{methoddesc}[Design]{getMeshHandler}{}
 returns a handle to the mesh. The call of this method generates the mesh from the geometry and
 returns a mechnism to access the mesh data. In the current implementation this
-is this method returns a file name for a \gmshextern file containing the mesh data but this may change in
-later versions.
+method returns a file name for a gmsh file containing the mesh data.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getScriptString}{}
-returns the \gmshextern script to generate the mesh as string.
+returns the gmsh script to generate the mesh as a string.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getCommandString}{}
-returns the \gmshextern command used to generate the mesh as string..
+returns the gmsh command used to generate the mesh as string.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{setOptions}{\optional{algorithm=None, \optional{ optimize_quality=True,\optional{ smoothing=1}}}}
@@ -241,5 +385,5 @@ or \var{Design.NETGEN}. By default \var{Design.DELAUNAY} is used. \var{optimize_
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getTagMap}{}
-returns a \class{TagMap} to map the name \class{PropertySet} in the class to tag numbers generated by \gmshextern.
+returns a \class{TagMap} to map the name \class{PropertySet} in the class to tag numbers generated by gmsh.
 \end{methoddesc}
