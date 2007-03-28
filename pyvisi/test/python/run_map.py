@@ -45,17 +45,8 @@ class TestMapOneViewport(unittest.TestCase, TestMap):
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
 
-	def testSetOpacity(self):
-		self.map.setOpacity(opacity = 0.5)
-		self.render("TestMapOneViewport_testSetOpacity.jpg")	
-
-	def testSetColor(self):
-		self.map.setColor(color = Color.ORANGE)
-		self.render("TestMapOneViewport_testSetColor.jpg")
-
-	def testSetRepresentationToWireframe(self):
-		self.map.setRepresentationToWireframe()
-		self.render("TestMapOneViewport_testSetRepresentationToWireframe.jpg")
+	def testOneViewport(self):
+		self.render("TestMapOneViewport.jpg")	
 
 class TestMapFourViewports(unittest.TestCase, TestMap):
 	def setUp(self):

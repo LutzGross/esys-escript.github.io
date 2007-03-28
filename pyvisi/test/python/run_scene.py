@@ -44,15 +44,11 @@ class TestSceneFourViewports(unittest.TestCase, TestScene):
 		self.scene = \
 				Scene(renderer = JPG_RENDERER, num_viewport = 4, x_size = 800, 
 				y_size = 800) 
+
 	def testRender(self):
 		file = "TestSceneFourViewport_testRender.jpg"
 		self.render(file)
 	
-	def testSetBackground(self):
-		self.setBackground(Color.BLUE)
-		file = "TestSceneFourViewport_testSetBackground.jpg"
-		self.render(file)
-
 
 ###############################################################################
 
