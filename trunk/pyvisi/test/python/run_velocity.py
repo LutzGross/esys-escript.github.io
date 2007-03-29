@@ -30,8 +30,8 @@ class TestVelocity:
 class TestVelocity2DArrowVectorColor(unittest.TestCase, TestVelocity):
 	def setUp(self):
 		self.scene = \
-			Scene(renderer = JPG_RENDERER, num_viewport = 1,
-					x_size = X_SIZE, y_size = Y_SIZE)
+				Scene(renderer = JPG_RENDERER, num_viewport = 1,
+						x_size = X_SIZE, y_size = Y_SIZE)
 
 		self.data_collector = DataCollector(source = Source.XML)
 		self.data_collector.setFileName(file_name = \
@@ -51,8 +51,8 @@ class TestVelocity2DArrowVectorColor(unittest.TestCase, TestVelocity):
 class TestVelocity2DArrowScalarColor(unittest.TestCase, TestVelocity):
 	def setUp(self):
 		self.scene = \
-			Scene(renderer = JPG_RENDERER, num_viewport = 1,
-					x_size = X_SIZE, y_size = Y_SIZE)
+				Scene(renderer = JPG_RENDERER, num_viewport = 1,
+						x_size = X_SIZE, y_size = Y_SIZE)
 
 		self.data_collector = DataCollector(source = Source.XML)
 		self.data_collector.setFileName(file_name = \

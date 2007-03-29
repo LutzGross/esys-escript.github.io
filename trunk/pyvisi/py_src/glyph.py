@@ -207,7 +207,7 @@ class TensorGlyph:
 		@param max_scale_factor: Maximum allowable scale factor.
 		"""
 
-		self.__vtk_tensor_glyph.SetMaxScaleFactor(scale_factor)
+		self.__vtk_tensor_glyph.SetMaxScaleFactor(max_scale_factor)
 
 	def _getOutput(self):
 		"""
