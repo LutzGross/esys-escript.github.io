@@ -86,7 +86,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   updateFunctionSpaceType(funcspace,Y);
   if (funcspace==UNKNOWN) return; /* all  data are empty */
 
-
   /* check if all function spaces are the same */
   if (! functionSpaceTypeEqual(funcspace,A) ) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: unexpected function space type for coefficient A");
@@ -117,6 +116,14 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
        reducedIntegrationOrder=FALSE;
   } else if (funcspace==FINLEY_CONTACT_ELEMENTS_2)  {
        reducedIntegrationOrder=FALSE;
+  } else if (funcspace==FINLEY_REDUCED_ELEMENTS) {
+       reducedIntegrationOrder=TRUE;
+  } else if (funcspace==FINLEY_REDUCED_FACE_ELEMENTS)  {
+       reducedIntegrationOrder=TRUE;
+  } else if (funcspace==FINLEY_REDUCED_CONTACT_ELEMENTS_1)  {
+       reducedIntegrationOrder=TRUE;
+  } else if (funcspace==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
+       reducedIntegrationOrder=TRUE;
   } else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: assemblage failed because of illegal function space.");
   }

@@ -457,7 +457,7 @@ int Finley_Quad_getNumNodesLine(int order) {
 
 int Finley_Quad_getNumNodesTri(int order) {
   int numQuadNodesLine;
-  if (order==1) {
+  if (order<=1) {
       return 1;
   } else {
       numQuadNodesLine=Finley_Quad_getNumNodesLine(order+1);
@@ -481,11 +481,15 @@ int Finley_Quad_getNumNodesRec(int order) {
 
 int Finley_Quad_getNumNodesTet(int order) {
   int numQuadNodesLine;
-  numQuadNodesLine=Finley_Quad_getNumNodesLine(order+2);
-  if (Finley_noError()) {
-      return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
+  if (order<=1) {
+      return 1;
   } else {
-      return -1;
+     numQuadNodesLine=Finley_Quad_getNumNodesLine(order+2);
+     if (Finley_noError()) {
+         return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
+     } else {
+         return -1;
+     }
   }
 }
 

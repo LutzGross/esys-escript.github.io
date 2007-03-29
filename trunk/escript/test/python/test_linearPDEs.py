@@ -36,8 +36,8 @@ __date__="$Date$"
 
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero
-from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar
-from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson
+from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data
+from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace
 import numarray
 import unittest
 
@@ -74,6 +74,16 @@ class Test_Poisson(Test_linearPDEs):
         self.failUnless(mypde.getCoefficientOfGeneralPDE("d").isEmpty(),"d is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("d_contact").isEmpty(),"d_contact is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
         self.failUnless(self.check(mypde.getCoefficientOfGeneralPDE("q"),q_ref),"q is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("r").isEmpty(),"r is not empty")
     def test_setCoefficient_f(self):
@@ -92,6 +102,44 @@ class Test_Poisson(Test_linearPDEs):
         self.failUnless(mypde.getCoefficientOfGeneralPDE("d").isEmpty(),"d is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("d_contact").isEmpty(),"d_contact is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("Y_reduced").isEmpty(),"Y_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("q").isEmpty(),"q is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("r").isEmpty(),"r is not empty")
+    def test_setCoefficient_f_reduced(self):
+        mypde=Poisson(self.domain,debug=self.DEBUG)
+        x=self.domain.getX()
+        Y_ref=interpolate(x[0],ReducedFunction(self.domain))
+        A_ref=kronecker(self.domain)
+        mypde.setValue(f_reduced=x[0])
+        self.failUnless(self.check(mypde.getCoefficientOfGeneralPDE("A"),A_ref),"A is not kronecker")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("B").isEmpty(),"B is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("C").isEmpty(),"C is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("D").isEmpty(),"D is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("X").isEmpty(),"X is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("Y").isEmpty(),"Y is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y").isEmpty(),"y is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d").isEmpty(),"d is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d_contact").isEmpty(),"d_contact is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y_contact").isEmpty(),"y_contact is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("A_reduced").isEmpty(),"A_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("B_reduced").isEmpty(),"B_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("C_reduced").isEmpty(),"C_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("D_reduced").isEmpty(),"D_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("X_reduced").isEmpty(),"X_reduced is not empty")
+        self.failUnless(self.check(mypde.getCoefficientOfGeneralPDE("Y_reduced"),Y_ref),"Y_reduced is not x[0]")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y_reduced").isEmpty(),"y_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d_reduced").isEmpty(),"d_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+        self.failUnless(mypde.getCoefficientOfGeneralPDE("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("q").isEmpty(),"q is not empty")
         self.failUnless(mypde.getCoefficientOfGeneralPDE("r").isEmpty(),"r is not empty")
     def test_solve(self):
@@ -128,7 +176,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         try: 
            success=True
            mypde.setValue(C=Vector(0.,FunctionOnBoundary(self.domain)))
-        except IllegalCoefficientValue:
+        except IllegalCoefficientFunctionSpace:
            success=False
         self.failUnless(not success,'inapropraite function space accepted')
         
@@ -225,6 +273,66 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.setValue(y_contact=1.)
         coeff=mypde.getCoefficientOfGeneralPDE("y_contact")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1))
+    def test_setCoefficient_A_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A_reduced=numarray.ones((d,d)))
+        coeff=mypde.getCoefficientOfGeneralPDE("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,d),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_B_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B_reduced=numarray.ones((d,)))
+        coeff=mypde.getCoefficientOfGeneralPDE("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_C_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C_reduced=numarray.ones((d,)))
+        coeff=mypde.getCoefficientOfGeneralPDE("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_D_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D_reduced=1.)
+        coeff=mypde.getCoefficientOfGeneralPDE("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_X_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X_reduced=numarray.ones((d,)))
+        coeff=mypde.getCoefficientOfGeneralPDE("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1))
+    def test_setCoefficient_Y_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y_reduced=1.)
+        coeff=mypde.getCoefficientOfGeneralPDE("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1))
+    def test_setCoefficient_y_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_reduced=1.)
+        coeff=mypde.getCoefficientOfGeneralPDE("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1))
+    def test_setCoefficient_d_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_reduced=1.)
+        coeff=mypde.getCoefficientOfGeneralPDE("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_d_contact_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact_reduced=1.)
+        coeff=mypde.getCoefficientOfGeneralPDE("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
+    def test_setCoefficient_y_contact_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact_reduced=1.)
+        coeff=mypde.getCoefficientOfGeneralPDE("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
     def test_setCoefficient_r_Scalar(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,numEquations=3,debug=self.DEBUG)
@@ -252,6 +360,66 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficientOfGeneralPDE("q")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((),ReducedSolution(self.domain),1))
 
+    def test_setCoefficient_A_reduced_Scalar_usingA(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=Data(numarray.ones((d,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,d),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_B_reduced_Scalar_usingB(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B=Data(numarray.ones((d,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_C_reduced_Scalar_usingC(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C=Data(numarray.ones((d,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_D_reduced_Scalar_usingD(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D=Scalar(1.,ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1,1))
+    def test_setCoefficient_X_reduced_Scalar_usingX(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X_reduced=Data(numarray.ones((d,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((d,),ReducedFunction(self.domain),1))
+    def test_setCoefficient_Y_reduced_Scalar_usingY(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y=Scalar(1.,ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunction(self.domain),1))
+    def test_setCoefficient_y_reduced_Scalar_using_y(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y=Scalar(1.,ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1))
+    def test_setCoefficient_d_reduced_Scalar_using_d(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d=Scalar(1.,ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
+    def test_setCoefficient_d_contact_reduced_Scalar_using_d_contact(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
+    def test_setCoefficient_y_contact_reduced_Scalar_using_y_contact(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
     #
     #  set coefficients for systems:
     #
@@ -315,6 +483,66 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.setValue(y_contact=numarray.ones((self.N,)))
         coeff=mypde.getCoefficientOfGeneralPDE("y_contact")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),FunctionOnContactZero(self.domain),self.N))
+    def test_setCoefficient_A_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A_reduced=numarray.ones((self.N,d,self.N,d)))
+        coeff=mypde.getCoefficientOfGeneralPDE("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_B_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B_reduced=numarray.ones((self.N,d,self.N)))
+        coeff=mypde.getCoefficientOfGeneralPDE("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_C_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C_reduced=numarray.ones((self.N,self.N,d)))
+        coeff=mypde.getCoefficientOfGeneralPDE("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_D_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficientOfGeneralPDE("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_X_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X_reduced=numarray.ones((self.N,d)))
+        coeff=mypde.getCoefficientOfGeneralPDE("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,d),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_Y_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y_reduced=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficientOfGeneralPDE("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_y_System_reduced(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_reduced=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficientOfGeneralPDE("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnBoundary(self.domain),self.N))
+    def test_setCoefficient_d_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficientOfGeneralPDE("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_contact_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact_reduced=numarray.ones((self.N,self.N)))
+        coeff=mypde.getCoefficientOfGeneralPDE("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
+    def test_setCoefficient_y_contact_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact_reduced=numarray.ones((self.N,)))
+        coeff=mypde.getCoefficientOfGeneralPDE("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
     def test_setCoefficient_r_System(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,numEquations=3,debug=self.DEBUG)
@@ -342,6 +570,66 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficientOfGeneralPDE("q")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions()),((self.N,),ReducedSolution(self.domain),self.N))
 
+    def test_setCoefficient_A_reduced_System_using_A(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=Data(numarray.ones((self.N,d,self.N,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("A_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_B_reduced_System_using_B(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(B=Data(numarray.ones((self.N,d,self.N)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("B_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,d,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_C_reduced_System_using_C(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(C=Data(numarray.ones((self.N,self.N,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("C_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N,d),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_D_System_reduced_using_D(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(D=Data(numarray.ones((self.N,self.N)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("D_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunction(self.domain),self.N,self.N))
+    def test_setCoefficient_X_System_reduced_using_X(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(X=Data(numarray.ones((self.N,d)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("X_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,d),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_Y_System_reduced_using_Y(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(Y=Data(numarray.ones((self.N,)),ReducedFunction(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("Y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunction(self.domain),self.N))
+    def test_setCoefficient_y_reduced_System_using_y(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y=Data(numarray.ones((self.N,)),ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("y_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnBoundary(self.domain),self.N))
+    def test_setCoefficient_d_reduced_System_using_d(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d=Data(numarray.ones((self.N,self.N)),ReducedFunctionOnBoundary(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("d_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
+    def test_setCoefficient_d_contact_reduced_System_using_d_contact(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(d_contact=Data(numarray.ones((self.N,self.N)),ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("d_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumSolutions(),mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
+    def test_setCoefficient_y_contact_reduced_System_using_y_contact(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+        mypde.setValue(y_contact=Data(numarray.ones((self.N,)),ReducedFunctionOnContactZero(self.domain)))
+        coeff=mypde.getCoefficientOfGeneralPDE("y_contact_reduced")
+        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(),mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
     def test_resetCoefficient_HomogeneousConstraint(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
@@ -375,7 +663,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         D=3*numarray.ones((self.N,self.N))
         d=4*numarray.ones((self.N,self.N))
         d_contact=5*numarray.ones((self.N,self.N))
-        mypde.setValue(A=A,B=B,C=C,D=D,d=d,d_contact=d_contact)
+        mypde.setValue(A=A,B=B,C=C,D=D,d=d,d_contact=d_contact,A_reduced=-A,B_reduced=-B,C_reduced=-C,D_reduced=-D,d_reduced=-d,d_contact_reduced=-d_contact)
         self.failUnless(mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_A_System(self):
@@ -415,6 +703,43 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.setValue(d_contact=d_contact)
         self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
 
+    def test_symmetryCheckFalse_A_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        A=numarray.ones((self.N,d,self.N,d))
+        A[1,1,1,0]=0.
+        mypde.setValue(A_reduced=A)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+    def test_symmetryCheckFalse_BC_reduced_System(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        C=2*numarray.ones((self.N,self.N,d))
+        B=2*numarray.ones((self.N,d,self.N))
+        B[0,0,1]=1.
+        mypde.setValue(B_reduced=B,C_reduced=C)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_D_reduced_System(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        D=3*numarray.ones((self.N,self.N))
+        D[0,1]=0.
+        mypde.setValue(D_reduced=D)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_d_reduced_System(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        d=4*numarray.ones((self.N,self.N))
+        d[0,1]=0.
+        mypde.setValue(d_reduced=d)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
+    def test_symmetryCheckFalse_d_contact_reduced_System(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        d_contact=5*numarray.ones((self.N,self.N))
+        d_contact[0,1]=0.
+        mypde.setValue(d_contact_reduced=d_contact)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+
     def test_symmetryCheckTrue_Scalar(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -424,7 +749,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         D=3
         d=4
         d_contact=5
-        mypde.setValue(A=A,B=B,C=C,D=D,d=d,d_contact=d_contact)
+        mypde.setValue(A=A,B=B,C=C,D=D,d=d,d_contact=d_contact,A_reduced=-A,B_reduced=-B,C_reduced=-C,D_reduced=-D,d_reduced=-d,d_contact_reduced=-d_contact)
         self.failUnless(mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_A_Scalar(self):
@@ -441,6 +766,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         B=2*numarray.ones((d,))
         B[0]=1.
         mypde.setValue(B=B,C=C)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+    def test_symmetryCheckFalse_A_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        A=numarray.ones((d,d))
+        A[1,0]=0.
+        mypde.setValue(A_reduced=A)
+        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+    def test_symmetryCheckFalse_BC_reduced_Scalar(self):
+        d=self.domain.getDim()
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        C=2*numarray.ones((d,))
+        B=2*numarray.ones((d,))
+        B[0]=1.
+        mypde.setValue(B_reduced=B,C_reduced=C)
         self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
     #
     #   solver checks:
@@ -564,6 +904,37 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
            success=True
 	   mypde.setSolverMethod(mypde.LUMPING)
            mypde.setValue(C=kronecker(self.domain)[0])
+           u=mypde.getSolution(verbose=self.VERBOSE)
+        except ValueError:
+           success=False
+        self.failUnless(not success,'error should be issued')
+        
+    def test_Lumping_attemptToSetA_reduced(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        try: 
+           success=True
+	   mypde.setSolverMethod(mypde.LUMPING)
+           mypde.setValue(A_reduced=kronecker(self.domain))
+           u=mypde.getSolution(verbose=self.VERBOSE)
+        except ValueError:
+           success=False
+        self.failUnless(not success,'error should be issued')
+    def test_Lumping_attemptToSetB_reduced(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        try: 
+           success=True
+	   mypde.setSolverMethod(mypde.LUMPING)
+           mypde.setValue(B_reduced=kronecker(self.domain)[0])
+           u=mypde.getSolution(verbose=self.VERBOSE)
+        except ValueError:
+           success=False
+        self.failUnless(not success,'error should be issued')
+    def test_Lumping_attemptToSetC_reduced(self):
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        try: 
+           success=True
+	   mypde.setSolverMethod(mypde.LUMPING)
+           mypde.setValue(C_reduced=kronecker(self.domain)[0])
            u=mypde.getSolution(verbose=self.VERBOSE)
         except ValueError:
            success=False
