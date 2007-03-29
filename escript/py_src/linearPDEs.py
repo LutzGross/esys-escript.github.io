@@ -38,16 +38,24 @@ class IllegalCoefficient(ValueError):
    """
    raised if an illegal coefficient of the general ar particular PDE is requested.
    """
+   pass
 
 class IllegalCoefficientValue(ValueError):
    """
    raised if an incorrect value for a coefficient is used.
+   """
+   pass
+
+class IllegalCoefficientFunctionSpace(ValueError):
+   """
+   raised if an incorrect function space for a coefficient is used.
    """
 
 class UndefinedPDEError(ValueError):
    """
    raised if a PDE is not fully defined yet.
    """
+   pass
 
 class PDECoefficient(object):
     """
@@ -56,6 +64,9 @@ class PDECoefficient(object):
     @cvar INTERIOR: indicator that coefficient is defined on the interior of the PDE domain
     @cvar BOUNDARY: indicator that coefficient is defined on the boundary of the PDE domain
     @cvar CONTACT: indicator that coefficient is defined on the contact region within the PDE domain
+    @cvar INTERIOR_REDUCED: indicator that coefficient is defined on the interior of the PDE domain using a reduced integration order
+    @cvar BOUNDARY_REDUCED: indicator that coefficient is defined on the boundary of the PDE domain using a reduced integration order
+    @cvar CONTACT_REDUCED: indicator that coefficient is defined on the contact region within the PDE domain using a reduced integration order
     @cvar SOLUTION: indicator that coefficient is defined trough a solution of the PDE
     @cvar REDUCED: indicator that coefficient is defined trough a reduced solution of the PDE
     @cvar BY_EQUATION: indicator that the dimension of the coefficient shape is defined by the number PDE equations
@@ -77,13 +88,17 @@ class PDECoefficient(object):
     OPERATOR=10
     RIGHTHANDSIDE=11
     BOTH=12
+    INTERIOR_REDUCED=13
+    BOUNDARY_REDUCED=14
+    CONTACT_REDUCED=15
 
-    def __init__(self,where,pattern,altering):
+    def __init__(self, where, pattern, altering):
        """
        Initialise a PDE Coefficient type
 
        @param where: describes where the coefficient lives
-       @type where: one of L{INTERIOR}, L{BOUNDARY}, L{CONTACT}, L{SOLUTION}, L{REDUCED}
+       @type where: one of L{INTERIOR}, L{BOUNDARY}, L{CONTACT}, L{SOLUTION}, L{REDUCED}, 
+                           L{INTERIOR_REDUCED}, L{BOUNDARY_REDUCED}, L{CONTACT_REDUCED}.
        @param pattern: describes the shape of the coefficient and how the shape is build for a given
               spatial dimension and numbers of equation and solution in then PDE. For instance,
               (L{BY_EQUATION},L{BY_SOLUTION},L{BY_DIM}) descrbes a rank 3 coefficient which
@@ -94,7 +109,8 @@ class PDECoefficient(object):
        @type pattern: C{tuple} of L{BY_EQUATION}, L{BY_SOLUTION}, L{BY_DIM}
        @param altering: indicates what part of the PDE is altered if the coefficiennt is altered
        @type altering: one of L{OPERATOR}, L{RIGHTHANDSIDE}, L{BOTH}
-
+       @param reduced: indicates if reduced 
+       @type reduced: C{bool}
        """
        super(PDECoefficient, self).__init__()
        self.what=where
@@ -123,10 +139,16 @@ class PDECoefficient(object):
        """
        if self.what==self.INTERIOR:
             return escript.Function(domain)
+       elif self.what==self.INTERIOR_REDUCED:
+            return escript.ReducedFunction(domain)
        elif self.what==self.BOUNDARY:
             return escript.FunctionOnBoundary(domain)
+       elif self.what==self.BOUNDARY_REDUCED:
+            return escript.ReducedFunctionOnBoundary(domain)
        elif self.what==self.CONTACT:
             return escript.FunctionOnContactZero(domain)
+       elif self.what==self.CONTACT_REDUCED:
+            return escript.ReducedFunctionOnContactZero(domain)
        elif self.what==self.SOLUTION:
             if reducedEquationOrder and reducedSolutionOrder:
                 return escript.ReducedSolution(domain)
@@ -161,15 +183,17 @@ class PDECoefficient(object):
        @param newValue: number of components of the PDE solution
        @type newValue: any object that can be converted into a L{Data<escript.Data>} object with the appropriate shape and L{FunctionSpace<escript.FunctionSpace>}
        @raise IllegalCoefficientValue: if the shape of the assigned value does not match the shape of the coefficient
+       @raise IllegalCoefficientFunctionSpace: if unable to interploate value to appropriate function space
        """
        if newValue==None:
            newValue=escript.Data()
        elif isinstance(newValue,escript.Data):
            if not newValue.isEmpty():
-              try:
-                 newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
-              except:
-                 raise IllegalCoefficientValue,"Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain)
+              if not newValue.getFunctionSpace() == self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder):
+                try:
+                  newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
+                except:
+                  raise IllegalCoefficientFunctionSpace,"Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain)
        else:
            newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
        if not newValue.isEmpty():
@@ -313,21 +337,22 @@ class LinearPDE(object):
 
    For a single PDE with a solution with a single component the linear PDE is defined in the following form:
 
-   M{-grad(A[j,l]*grad(u)[l]+B[j]u)[j]+C[l]*grad(u)[l]+D*u =-grad(X)[j,j]+Y}
+   M{-(grad(A[j,l]+A_reduced[j,l])*grad(u)[l]+(B[j]+B_reduced[j])u)[j]+(C[l]+C_reduced[l])*grad(u)[l]+(D+D_reduced)=-grad(X+X_reduced)[j,j]+(Y+Y_reduced)}
+
 
    where M{grad(F)} denotes the spatial derivative of M{F}. Einstein's summation convention,
    ie. summation over indexes appearing twice in a term of a sum is performed, is used.
    The coefficients M{A}, M{B}, M{C}, M{D}, M{X} and M{Y} have to be specified through L{Data<escript.Data>} objects in the
-   L{Function<escript.Function>} on the PDE or objects that can be converted into such L{Data<escript.Data>} objects.
-   M{A} is a rank two, M{B}, M{C} and M{X} are rank one and M{D} and M{Y} are scalar.
+   L{Function<escript.Function>} and the coefficients M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced} and M{Y_reduced} have to be specified through L{Data<escript.Data>} objects in the
+   L{ReducedFunction<escript.ReducedFunction>}. It is also allowd to use objects that can be converted into 
+   such L{Data<escript.Data>} objects. M{A} and M{A_reduced} are rank two, M{B_reduced}, M{C_reduced}, M{X_reduced} 
+   M{B_reduced}, M{C_reduced} and M{X_reduced} are rank one and M{D}, M{D_reduced} and M{Y_reduced} are scalar.
 
    The following natural boundary conditions are considered:
 
-   M{n[j]*(A[i,j]*grad(u)[l]+B[j]*u)+d*u=n[j]*X[j]+y}
+   M{n[j]*((A[i,j]+A_reduced[i,j])*grad(u)[l]+(B+B_reduced)[j]*u)+(d+d_reduced)*u=n[j]*(X[j]+X_reduced[j])+y}
 
-   where M{n} is the outer normal field calculated by L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
-   Notice that the coefficients M{A}, M{B} and M{X} are defined in the PDE. The coefficients M{d} and M{y} are
-   each a scalar in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
+   where M{n} is the outer normal field. Notice that the coefficients M{A}, M{A_reduced}, M{B}, M{B_reduced}, M{X} and M{X_reduced} are defined in the PDE. The coefficients M{d} and M{y} and are each a scalar in the L{FunctionOnBoundary<escript.FunctionOnBoundary>} and the coefficients M{d_reduced} and M{y_reduced} and are each a scalar in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
 
 
    Constraints for the solution prescribing the value of the solution at certain locations in the domain. They have the form
@@ -339,20 +364,21 @@ class LinearPDE(object):
 
    The PDE is symmetrical if
 
-   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]}
+   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j] 
 
    For a system of PDEs and a solution with several components the PDE has the form
 
-   M{-grad(A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]*u[k])[j]+C[i,k,l]*grad(u[k])[l]+D[i,k]*u[k] =-grad(X[i,j])[j]+Y[i] }
+   M{-grad((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])[j]+(C[i,k,l]+C_reduced[i,k,l])*grad(u[k])[l]+(D[i,k]+D_reduced[i,k]*u[k] =-grad(X[i,j]+X_reduced[i,j])[j]+Y[i]+Y_reduced[i] }
 
-   M{A} is a ramk four, M{B} and M{C} are each a rank three, M{D} and M{X} are each a rank two and M{Y} is a rank one.
+   M{A} and M{A_reduced} are of rank four, M{B}, M{B_reduced}, M{C} and M{C_reduced} are each of rank three, M{D}, M{D_reduced}, M{X_reduced} and M{X} are each a rank two and M{Y} and M{Y_reduced} are of rank one.
    The natural boundary conditions take the form:
 
-   M{n[j]*(A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]*u[k])+d[i,k]*u[k]=n[j]*X[i,j]+y[i]}
+   M{n[j]*((A[i,j,k,l]+A_reduced[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k])+(d[i,k]+d_reduced[i,k])*u[k]=n[j]*(X[i,j]+X_reduced[i,j])+y[i]+y_reduced[i]}
 
 
-   The coefficient M{d} is a rank two and M{y} is a  rank one both in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}. Constraints take the form
+   The coefficient M{d} is a rank two and M{y} is a rank one both in the L{FunctionOnBoundary<escript.FunctionOnBoundary>}. Constraints take the form and the coefficients M{d_reduced} is a rank two and M{y_reduced} is a rank one both in the L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}. 
 
+   Constraints take the form 
 
    M{u[i]=r[i]}  where  M{q[i]>0}
 
@@ -361,36 +387,40 @@ class LinearPDE(object):
    The system of PDEs is symmetrical if
 
         - M{A[i,j,k,l]=A[k,l,i,j]}
+        - M{A_reduced[i,j,k,l]=A_reduced[k,l,i,j]}
         - M{B[i,j,k]=C[k,i,j]}
+        - M{B_reduced[i,j,k]=C_reduced[k,i,j]}
         - M{D[i,k]=D[i,k]}
+        - M{D_reduced[i,k]=D_reduced[i,k]}
         - M{d[i,k]=d[k,i]}
+        - M{d_reduced[i,k]=d_reduced[k,i]}
 
    L{LinearPDE} also supports solution discontinuities over a contact region in the domain. To specify the conditions across the
    discontinuity we are using the generalised flux M{J} which is in the case of a systems of PDEs and several components of the solution
    defined as
 
-   M{J[i,j]=A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]*u[k]-X[i,j]}
+   M{J[i,j]=(A[i,j,k,l]+A_reduced[[i,j,k,l])*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])*u[k]-X[i,j]-X_reduced[i,j]}
 
    For the case of single solution component and single PDE M{J} is defined
 
-   M{J_{j}=A[i,j]*grad(u)[j]+B[i]*u-X[i]}
+   M{J_{j}=(A[i,j]+A_reduced[i,j])*grad(u)[j]+(B[i]+B_reduced[i])*u-X[i]-X_reduced[i]}
 
    In the context of discontinuities M{n} denotes the normal on the discontinuity pointing from side 0 towards side 1
    calculated from L{getNormal<escript.FunctionSpace.getNormal>} of L{FunctionOnContactZero<escript.FunctionOnContactZero>}. For a system of PDEs
    the contact condition takes the form
 
-   M{n[j]*J0[i,j]=n[j]*J1[i,j]=y_contact[i]- d_contact[i,k]*jump(u)[k]}
+   M{n[j]*J0[i,j]=n[j]*J1[i,j]=(y_contact[i]+y_contact_reduced[i])- (d_contact[i,k]+d_contact_reduced[i,k])*jump(u)[k]}
 
    where M{J0} and M{J1} are the fluxes on side 0 and side 1 of the discontinuity, respectively. M{jump(u)}, which is the difference
    of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calcualted by
    L{jump<util.jump>}.
    The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
+    The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
    In case of a single PDE and a single component solution the contact condition takes the form
 
-   M{n[j]*J0_{j}=n[j]*J1_{j}=y_contact-d_contact*jump(u)}
+   M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
 
-   In this case the the coefficient M{d_contact} and M{y_contact} are eaach scalar
-   both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
+   In this case the coefficient M{d_contact} and M{y_contact} are each scalar both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>} and the coefficient M{d_contact_reduced} and M{y_contact_reduced} are each scalar both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}
 
    @cvar DEFAULT: The default method used to solve the system of linear equations
    @cvar DIRECT: The direct solver based on LDU factorization
@@ -479,6 +509,16 @@ class LinearPDE(object):
        "y"         : PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
        "d_contact" : PDECoefficient(PDECoefficient.CONTACT,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
        "y_contact" : PDECoefficient(PDECoefficient.CONTACT,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "A_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM,PDECoefficient.BY_SOLUTION,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
+       "B_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
+       "C_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION,PDECoefficient.BY_DIM),PDECoefficient.OPERATOR),
+       "D_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
+       "X_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_DIM),PDECoefficient.RIGHTHANDSIDE),
+       "Y_reduced"         : PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "d_reduced"         : PDECoefficient(PDECoefficient.BOUNDARY_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
+       "y_reduced"         : PDECoefficient(PDECoefficient.BOUNDARY_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+       "d_contact_reduced" : PDECoefficient(PDECoefficient.CONTACT_REDUCED,(PDECoefficient.BY_EQUATION,PDECoefficient.BY_SOLUTION),PDECoefficient.OPERATOR),
+       "y_contact_reduced" : PDECoefficient(PDECoefficient.CONTACT_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
        "r"         : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_SOLUTION,),PDECoefficient.RIGHTHANDSIDE),
        "q"         : PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_SOLUTION,),PDECoefficient.BOTH)}
 
@@ -760,6 +800,71 @@ class LinearPDE(object):
                   if util.Lsup(d_contact[i,k]-d_contact[k,i])>tol:
                       if verbose: print "non-symmetric PDE because d_contact[%d,%d]!=d_contact[%d,%d]"%(i,k,k,i)
                       out=False
+         # and now the reduced coefficients
+         A_reduced=self.getCoefficientOfGeneralPDE("A_reduced")
+         if not A_reduced.isEmpty():
+            tol=util.Lsup(A_reduced)*self.SMALL_TOLERANCE
+            if self.getNumSolutions()>1:
+               for i in range(self.getNumEquations()):
+                  for j in range(self.getDim()):
+                     for k in range(self.getNumSolutions()):
+                        for l in range(self.getDim()):
+                            if util.Lsup(A_reduced[i,j,k,l]-A_reduced[k,l,i,j])>tol:
+                               if verbose: print "non-symmetric PDE because A_reduced[%d,%d,%d,%d]!=A_reduced[%d,%d,%d,%d]"%(i,j,k,l,k,l,i,j)
+                               out=False
+            else:
+               for j in range(self.getDim()):
+                  for l in range(self.getDim()):
+                     if util.Lsup(A_reduced[j,l]-A_reduced[l,j])>tol:
+                        if verbose: print "non-symmetric PDE because A_reduced[%d,%d]!=A_reduced[%d,%d]"%(j,l,l,j)
+                        out=False
+         B_reduced=self.getCoefficientOfGeneralPDE("B_reduced")
+         C_reduced=self.getCoefficientOfGeneralPDE("C_reduced")
+         if B_reduced.isEmpty() and not C_reduced.isEmpty():
+            if verbose: print "non-symmetric PDE because B_reduced is not present but C_reduced is"
+            out=False
+         elif not B_reduced.isEmpty() and C_reduced.isEmpty():
+            if verbose: print "non-symmetric PDE because C_reduced is not present but B_reduced is"
+            out=False
+         elif not B_reduced.isEmpty() and not C_reduced.isEmpty():
+            tol=(util.Lsup(B_reduced)+util.Lsup(C_reduced))*self.SMALL_TOLERANCE/2.
+            if self.getNumSolutions()>1:
+               for i in range(self.getNumEquations()):
+                   for j in range(self.getDim()):
+                      for k in range(self.getNumSolutions()):
+                         if util.Lsup(B_reduced[i,j,k]-C_reduced[k,i,j])>tol:
+                              if verbose: print "non-symmetric PDE because B_reduced[%d,%d,%d]!=C_reduced[%d,%d,%d]"%(i,j,k,k,i,j)
+                              out=False
+            else:
+               for j in range(self.getDim()):
+                  if util.Lsup(B_reduced[j]-C_reduced[j])>tol:
+                     if verbose: print "non-symmetric PDE because B_reduced[%d]!=C_reduced[%d]"%(j,j)
+                     out=False
+         if self.getNumSolutions()>1:
+           D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
+           if not D_reduced.isEmpty():
+             tol=util.Lsup(D_reduced)*self.SMALL_TOLERANCE
+             for i in range(self.getNumEquations()):
+                for k in range(self.getNumSolutions()):
+                  if util.Lsup(D_reduced[i,k]-D_reduced[k,i])>tol:
+                      if verbose: print "non-symmetric PDE because D_reduced[%d,%d]!=D_reduced[%d,%d]"%(i,k,k,i)
+                      out=False
+           d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
+           if not d_reduced.isEmpty():
+             tol=util.Lsup(d_reduced)*self.SMALL_TOLERANCE
+             for i in range(self.getNumEquations()):
+                for k in range(self.getNumSolutions()):
+                  if util.Lsup(d_reduced[i,k]-d_reduced[k,i])>tol:
+                      if verbose: print "non-symmetric PDE because d_reduced[%d,%d]!=d_reduced[%d,%d]"%(i,k,k,i)
+                      out=False
+           d_contact_reduced=self.getCoefficientOfGeneralPDE("d_contact_reduced")
+           if not d_contact_reduced.isEmpty():
+             tol=util.Lsup(d_contact_reduced)*self.SMALL_TOLERANCE
+             for i in range(self.getNumEquations()):
+                for k in range(self.getNumSolutions()):
+                  if util.Lsup(d_contact_reduced[i,k]-d_contact_reduced[k,i])>tol:
+                      if verbose: print "non-symmetric PDE because d_contact_reduced[%d,%d]!=d_contact_reduced[%d,%d]"%(i,k,k,i)
+                      out=False
       return out
 
    def getSolution(self,**options):
@@ -799,11 +904,11 @@ class LinearPDE(object):
      """
      returns the flux M{J} for a given M{u}
 
-     M{J[i,j]=A[i,j,k,l]*grad(u[k])[l]+B[i,j,k]u[k]-X[i,j]}
+     M{J[i,j]=(A[i,j,k,l]+A_reduced[A[i,j,k,l]]*grad(u[k])[l]+(B[i,j,k]+B_reduced[i,j,k])u[k]-X[i,j]-X_reduced[i,j]}
 
      or
 
-     M{J[j]=A[i,j]*grad(u)[l]+B[j]u-X[j]}
+     M{J[j]=(A[i,j]+A_reduced[i,j])*grad(u)[l]+(B[j]+B_reduced[j])u-X[j]-X_reduced[j]}
 
      @param u: argument in the flux. If u is not present or equals L{None} the current solution is used.
      @type u: L{Data<escript.Data>} or None
@@ -811,7 +916,12 @@ class LinearPDE(object):
      @rtype: L{Data<escript.Data>}
      """
      if u==None: u=self.getSolution()
-     return util.tensormult(self.getCoefficientOfGeneralPDE("A"),util.grad(u))+util.matrixmult(self.getCoefficientOfGeneralPDE("B"),u)-util.self.getCoefficientOfGeneralPDE("X")
+     return util.tensormult(self.getCoefficientOfGeneralPDE("A"),util.grad(u,Funtion(self.getDomain))) \
+           +util.matrixmult(self.getCoefficientOfGeneralPDE("B"),u) \
+           -util.self.getCoefficientOfGeneralPDE("X") \
+           +util.tensormult(self.getCoefficientOfGeneralPDE("A_reduced"),util.grad(u,ReducedFuntion(self.getDomain))) \
+           +util.matrixmult(self.getCoefficientOfGeneralPDE("B_reduced"),u) \
+           -util.self.getCoefficientOfGeneralPDE("X_reduced")
    # =============================================================================
    #   solver settings:
    # =============================================================================
@@ -1257,7 +1367,8 @@ class LinearPDE(object):
      @return: the value of the coefficient  name
      @rtype: L{Data<escript.Data>}
      @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
+                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
+                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
      """
      if self.hasCoefficientOfGeneralPDE(name):
         return self.getCoefficient(name)
@@ -1285,7 +1396,8 @@ class LinearPDE(object):
      @return: a coefficient name initialized to 0.
      @rtype: L{Data<escript.Data>}
      @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
+                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
+                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
      """
      if self.hasCoefficientOfGeneralPDE(name):
         return escript.Data(0,self.getShapeOfCoefficientOfGeneralPDE(name),self.getFunctionSpaceForCoefficientOfGeneralPDE(name))
@@ -1301,7 +1413,8 @@ class LinearPDE(object):
      @return: the function space to be used for coefficient name
      @rtype: L{FunctionSpace<escript.FunctionSpace>}
      @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
+                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
+                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
      """
      if self.hasCoefficientOfGeneralPDE(name):
         return self.__COEFFICIENTS_OF_GENEARL_PDE[name].getFunctionSpace(self.getDomain())
@@ -1317,7 +1430,8 @@ class LinearPDE(object):
      @return: the shape of the coefficient name
      @rtype: C{tuple} of C{int}
      @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
+                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, 
+                  M{A_reduced}, M{B_reduced}, M{C_reduced}, M{D_reduced}, M{X_reduced}, M{Y_reduced}, M{d_reduced}, M{y_reduced}, M{d_contact_reduced}, M{y_contact_reduced}, M{r} or M{q}.
      """
      if self.hasCoefficientOfGeneralPDE(name):
         return self.__COEFFICIENTS_OF_GENEARL_PDE[name].getShape(self.getDomain(),self.getNumEquations(),self.getNumSolutions())
@@ -1447,26 +1561,42 @@ class LinearPDE(object):
       @param coefficients: new values assigned to coefficients
       @keyword A: value for coefficient A.
       @type A: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword A_reduced: value for coefficient A_reduced.
+      @type A_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
       @keyword B: value for coefficient B
       @type B: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword B_reduced: value for coefficient B_reduced
+      @type B_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
       @keyword C: value for coefficient C
       @type C: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword C_reduced: value for coefficient C_reduced
+      @type C_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
       @keyword D: value for coefficient D
       @type D: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword D_reduced: value for coefficient D_reduced
+      @type D_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
       @keyword X: value for coefficient X
       @type X: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword X_reduced: value for coefficient X_reduced
+      @type X_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.ReducedFunction>}.
       @keyword Y: value for coefficient Y
       @type Y: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
+      @keyword Y_reduced: value for coefficient Y_reduced
+      @type Y_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunction<escript.Function>}.
       @keyword d: value for coefficient d
       @type d: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
+      @keyword d_reduced: value for coefficient d_reduced
+      @type d_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunctionOnBoundary<escript.ReducedFunctionOnBoundary>}.
       @keyword y: value for coefficient y
       @type y: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
       @keyword d_contact: value for coefficient d_contact
-      @type d_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-                       or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+      @type d_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+      @keyword d_contact_reduced: value for coefficient d_contact_reduced
+      @type d_contact_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>} or  L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>}.
       @keyword y_contact: value for coefficient y_contact
-      @type y_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-                       or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+      @type y_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>} or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
+      @keyword y_contact_reduced: value for coefficient y_contact_reduced
+      @type y_contact_reduced: any type that can be casted to L{Data<escript.Data>} object on L{ReducedFunctionOnContactOne<escript.FunctionOnContactOne>} or L{ReducedFunctionOnContactZero<escript.FunctionOnContactZero>}.
       @keyword r: values prescribed to the solution at the locations of constraints
       @type r: any type that can be casted to L{Data<escript.Data>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
                depending of reduced order is used for the solution.
@@ -1501,11 +1631,27 @@ class LinearPDE(object):
       # now we check the shape of the coefficient if numEquations and numSolutions are set:
       for i,d in coefficients.iteritems():
         try:
-           self.COEFFICIENTS[i].setValue(self.getDomain(),self.getNumEquations(),self.getNumSolutions(),self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
+           self.COEFFICIENTS[i].setValue(self.getDomain(),
+                                         self.getNumEquations(),self.getNumSolutions(),
+                                         self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
+           self.alteredCoefficient(i)
+        except IllegalCoefficientFunctionSpace,m:
+            # if the function space is wrong then we try the reduced version:
+            i_red=i+"_reduced"
+            if (not i_red in coefficients.keys()) and i_red in self.COEFFICIENTS.keys():
+                try:
+                    self.COEFFICIENTS[i_red].setValue(self.getDomain(),
+                                                      self.getNumEquations(),self.getNumSolutions(),
+                                                      self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
+                    self.alteredCoefficient(i_red)
+                except IllegalCoefficientValue,m:
+                    raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
+                except IllegalCoefficientFunctionSpace,m:
+                    raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
+            else:
+                raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
         except IllegalCoefficientValue,m:
            raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
-        self.alteredCoefficient(i)
-
       self.__altered_coefficients=True
       # check if the systrem is inhomogeneous:
       if len(coefficients)>0 and not self.isUsingLumping():
@@ -1532,13 +1678,18 @@ class LinearPDE(object):
                  if not self.getCoefficientOfGeneralPDE("A").isEmpty(): 
                       raise ValueError,"coefficient A in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("B").isEmpty():
-                      raise ValueError,"coefficient A in lumped matrix may not be present."
+                      raise ValueError,"coefficient B in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("C").isEmpty():
-                      raise ValueError,"coefficient A in lumped matrix may not be present."
+                      raise ValueError,"coefficient C in lumped matrix may not be present."
+                 if not self.getCoefficientOfGeneralPDE("A_reduced").isEmpty(): 
+                      raise ValueError,"coefficient A_reduced in lumped matrix may not be present."
+                 if not self.getCoefficientOfGeneralPDE("B_reduced").isEmpty():
+                      raise ValueError,"coefficient B_reduced in lumped matrix may not be present."
+                 if not self.getCoefficientOfGeneralPDE("C_reduced").isEmpty():
+                      raise ValueError,"coefficient C_reduced in lumped matrix may not be present."
                  D=self.getCoefficientOfGeneralPDE("D")
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
-                        #D_times_e=util.matrixmult(D,numarray.ones((self.getNumSolutions(),)))
                         D_times_e=util.matrix_mult(D,numarray.ones((self.getNumSolutions(),)))
                      else:
                         D_times_e=D
@@ -1547,7 +1698,6 @@ class LinearPDE(object):
                  d=self.getCoefficientOfGeneralPDE("d")
                  if not d.isEmpty():
                      if self.getNumSolutions()>1:
-                        #d_times_e=util.matrixmult(d,numarray.ones((self.getNumSolutions(),)))
                         d_times_e=util.matrix_mult(d,numarray.ones((self.getNumSolutions(),)))
                      else:
                         d_times_e=d
@@ -1568,6 +1718,42 @@ class LinearPDE(object):
                                               D_times_e, \
                                               d_times_e,\
                                               d_contact_times_e)
+                 D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
+                 if not D_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        D_reduced_times_e=util.matrix_mult(D_reduced,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        D_reduced_times_e=D_reduced
+                 else:
+                    D_reduced_times_e=escript.Data()
+                 d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
+                 if not d_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_reduced_times_e=util.matrix_mult(d_reduced,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_reduced_times_e=d_reduced
+                 else:
+                    d_reduced_times_e=escript.Data()
+                 d_contact_reduced=self.getCoefficientOfGeneralPDE("d_contact_reduced")
+                 if not d_contact_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_contact_reduced_times_e=util.matrixmult(d_contact_reduced,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_contact_reduced_times_e=d_contact_reduced
+                 else:
+                    d_contact_reduced_times_e=escript.Data()
+    
+                 self.__operator=self.__getNewRightHandSide()
+                 self.getDomain().addPDEToRHS(self.__operator, \
+                                              escript.Data(), \
+                                              D_times_e, \
+                                              d_times_e,\
+                                              d_contact_times_e)
+                 self.getDomain().addPDEToRHS(self.__operator, \
+                                              escript.Data(), \
+                                              D_reduced_times_e, \
+                                              d_reduced_times_e,\
+                                              d_contact_reduced_times_e)
                  self.__operator=1./self.__operator
                  self.trace("New lumped operator has been built.")
                  self.__operator_is_Valid=True
@@ -1577,6 +1763,11 @@ class LinearPDE(object):
                                self.getCoefficientOfGeneralPDE("Y"),\
                                self.getCoefficientOfGeneralPDE("y"),\
                                self.getCoefficientOfGeneralPDE("y_contact"))
+                 self.getDomain().addPDEToRHS(self.__righthandside, \
+                               self.getCoefficientOfGeneralPDE("X_reduced"), \
+                               self.getCoefficientOfGeneralPDE("Y_reduced"),\
+                               self.getCoefficientOfGeneralPDE("y_reduced"),\
+                               self.getCoefficientOfGeneralPDE("y_contact_reduced"))
                  self.trace("New right hand side as been built.")
                  self.__righthandside_isValid=True
           else:
@@ -1592,6 +1783,17 @@ class LinearPDE(object):
                                self.getCoefficientOfGeneralPDE("y"), \
                                self.getCoefficientOfGeneralPDE("d_contact"), \
                                self.getCoefficientOfGeneralPDE("y_contact"))
+                 self.getDomain().addPDEToSystem(self.__operator,self.__righthandside, \
+                               self.getCoefficientOfGeneralPDE("A_reduced"), \
+                               self.getCoefficientOfGeneralPDE("B_reduced"), \
+                               self.getCoefficientOfGeneralPDE("C_reduced"), \
+                               self.getCoefficientOfGeneralPDE("D_reduced"), \
+                               self.getCoefficientOfGeneralPDE("X_reduced"), \
+                               self.getCoefficientOfGeneralPDE("Y_reduced"), \
+                               self.getCoefficientOfGeneralPDE("d_reduced"), \
+                               self.getCoefficientOfGeneralPDE("y_reduced"), \
+                               self.getCoefficientOfGeneralPDE("d_contact_reduced"), \
+                               self.getCoefficientOfGeneralPDE("y_contact_reduced"))
                  self.__applyConstraint()
                  self.__righthandside=self.copyConstraint(self.__righthandside)
                  self.trace("New system has been built.")
@@ -1603,6 +1805,11 @@ class LinearPDE(object):
                                self.getCoefficientOfGeneralPDE("Y"),\
                                self.getCoefficientOfGeneralPDE("y"),\
                                self.getCoefficientOfGeneralPDE("y_contact"))
+                 self.getDomain().addPDEToRHS(self.__righthandside, \
+                               self.getCoefficientOfGeneralPDE("X_reduced"), \
+                               self.getCoefficientOfGeneralPDE("Y_reduced"),\
+                               self.getCoefficientOfGeneralPDE("y_reduced"),\
+                               self.getCoefficientOfGeneralPDE("y_contact_reduced"))
                  self.__righthandside=self.copyConstraint(self.__righthandside)
                  self.trace("New right hand side has been built.")
                  self.__righthandside_isValid=True
@@ -1617,6 +1824,17 @@ class LinearPDE(object):
                             self.getCoefficientOfGeneralPDE("d"), \
                             escript.Data(),\
                             self.getCoefficientOfGeneralPDE("d_contact"), \
+                            escript.Data())
+                 self.getDomain().addPDEToSystem(self.__operator,escript.Data(), \
+                            self.getCoefficientOfGeneralPDE("A_reduced"), \
+                            self.getCoefficientOfGeneralPDE("B_reduced"), \
+                            self.getCoefficientOfGeneralPDE("C_reduced"), \
+                            self.getCoefficientOfGeneralPDE("D_reduced"), \
+                            escript.Data(), \
+                            escript.Data(), \
+                            self.getCoefficientOfGeneralPDE("d_reduced"), \
+                            escript.Data(),\
+                            self.getCoefficientOfGeneralPDE("d_contact_reduced"), \
                             escript.Data())
                  self.__applyConstraint()
                  self.trace("New operator has been built.")
@@ -1651,7 +1869,8 @@ class Poisson(LinearPDE):
      """
      super(Poisson, self).__init__(domain,1,1,debug)
      self.COEFFICIENTS={"f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
-                          "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
+                        "f_reduced": PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+                        "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
      self.setSymmetryOn()
 
    def setValue(self,**coefficients):
@@ -1699,6 +1918,26 @@ class Poisson(LinearPDE):
          return escript.Data()
      elif name == "y_contact" :
          return escript.Data()
+     elif name == "A_reduced" :
+         return escript.Data()
+     elif name == "B_reduced" :
+         return escript.Data()
+     elif name == "C_reduced" :
+         return escript.Data()
+     elif name == "D_reduced" :
+         return escript.Data()
+     elif name == "X_reduced" :
+         return escript.Data()
+     elif name == "Y_reduced" :
+         return self.getCoefficient("f_reduced")
+     elif name == "d_reduced" :
+         return escript.Data()
+     elif name == "y_reduced" :
+         return escript.Data()
+     elif name == "d_contact_reduced" :
+         return escript.Data()
+     elif name == "y_contact_reduced" :
+         return escript.Data()
      elif name == "r" :
          return escript.Data()
      elif name == "q" :
@@ -1735,8 +1974,10 @@ class Helmholtz(LinearPDE):
      self.COEFFICIENTS={"omega": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
                         "k": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
                         "f": PDECoefficient(PDECoefficient.INTERIOR,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+                        "f_reduced": PDECoefficient(PDECoefficient.INTERIOR_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
                         "alpha": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.OPERATOR),
                         "g": PDECoefficient(PDECoefficient.BOUNDARY,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
+                        "g_reduced": PDECoefficient(PDECoefficient.BOUNDARY_REDUCED,(PDECoefficient.BY_EQUATION,),PDECoefficient.RIGHTHANDSIDE),
                         "r": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH),
                         "q": PDECoefficient(PDECoefficient.SOLUTION,(PDECoefficient.BY_EQUATION,),PDECoefficient.BOTH)}
      self.setSymmetryOn()
@@ -1797,6 +2038,26 @@ class Helmholtz(LinearPDE):
      elif name == "d_contact" :
          return escript.Data()
      elif name == "y_contact" :
+         return escript.Data()
+     elif name == "A_reduced" :
+         return escript.Data()
+     elif name == "B_reduced" :
+         return escript.Data()
+     elif name == "C_reduced" :
+         return escript.Data()
+     elif name == "D_reduced" :
+         return escript.Data()
+     elif name == "X_reduced" :
+         return escript.Data()
+     elif name == "Y_reduced" :
+         return self.getCoefficient("f_reduced")
+     elif name == "d_reduced" :
+         return escript.Data()
+     elif name == "y_reduced" :
+        return self.getCoefficient("g_reduced")
+     elif name == "d_contact_reduced" :
+         return escript.Data()
+     elif name == "y_contact_reduced" :
          return escript.Data()
      elif name == "r" :
          return self.getCoefficient("r")
@@ -1896,6 +2157,26 @@ class LameEquation(LinearPDE):
          return escript.Data()
      elif name == "y_contact" :
          return escript.Data()
+     elif name == "A_reduced" :
+         return escript.Data()
+     elif name == "B_reduced" :
+         return escript.Data()
+     elif name == "C_reduced" :
+         return escript.Data()
+     elif name == "D_reduced" :
+         return escript.Data()
+     elif name == "X_reduced" :
+         return escript.Data()
+     elif name == "Y_reduced" :
+         return escript.Data()
+     elif name == "d_reduced" :
+         return escript.Data()
+     elif name == "y_reduced" :
+         return escript.Data()
+     elif name == "d_contact_reduced" :
+         return escript.Data()
+     elif name == "y_contact_reduced" :
+         return escript.Data()
      elif name == "r" :
          return self.getCoefficient("r")
      elif name == "q" :
@@ -1903,552 +2184,3 @@ class LameEquation(LinearPDE):
      else:
         raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
 
-class AdvectivePDE(LinearPDE):
-   """
-   In cases of PDEs dominated by the advection terms M{B} and M{C} against the adevctive terms M{A}
-   up-winding has been used.  The L{AdvectivePDE} class applies SUPG upwinding to the advective terms.
-
-   In the following we set
-
-   M{Z[j]=C[j]-B[j]}
-
-   or
-
-   M{Z[i,k,l]=C[i,k,l]-B[i,l,k]}
-
-   To measure the dominance of the advective terms over the diffusive term M{A} the
-   X{Pelclet number} M{P} is used. It is defined as
-
-   M{P=h|Z|/(2|A|)}
-
-   where M{|.|} denotes the L{length<util.length>} of the arument and M{h} is the local cell size
-   from L{getSize<escript.Domain.getSize>}. Where M{|A|==0} M{P} is M{S{infinity}}.
-
-   From the X{Pelclet number} the stabilization parameters M{S{Xi}} and M{S{Xi}} are calculated:
-
-   M{S{Xi}=S{xi}(P) h/|Z|}
-
-   where M{S{xi}} is a suitable function of the Peclet number.
-
-   In the case of a single PDE the coefficient are up-dated in the following way:
-         - M{A[i,j] S{<-} A[i,j] + S{Xi} * Z[j] * Z[l]}
-         - M{B[j] S{<-} B[j] + S{Xi} * C[j] * D}
-         - M{C[j] S{<-} C[j] + S{Xi} * B[j] * D}
-         - M{X[j] S{<-} X[j] + S{Xi} * Z[j] * Y}
-
-   Similar for the case of a systems of PDEs:
-         - M{A[i,j,k,l] S{<-} A[i,j,k,l]+ S{delta}[p,m] * S{Xi} * Z[p,i,j] * Z[m,k,l]}
-         - M{B[i,j,k] S{<-} B[i,j,k] +  S{delta}[p,m] * S{Xi} * D[p,k] * C[m,i,j]}
-         - M{C[i,k,l] S{<-} C[i,k,l] +  S{delta}[p,m] * S{Xi} * D[p,k] * B[m,l,i]}
-         - M{X[i,j] S{<-} X[i,j] + S{delta}[p,m] * S{Xi}  * Y[p] * Z[m,i,j]}
-
-   where M{S{delta}} is L{kronecker}.
-   Using upwinding in this form, introduces an additonal error which is proprtional to the cell size M{h}
-   but with the intension to stabilize the solution.
-
-   """
-   def __init__(self,domain,numEquations=None,numSolutions=None,xi=None,debug=False):
-      """
-      creates a linear, steady, second order PDE on a L{Domain<escript.Domain>}
-
-      @param domain: domain of the PDE
-      @type domain: L{Domain<escript.Domain>}
-      @param numEquations: number of equations. If numEquations==None the number of equations
-                           is exracted from the PDE coefficients.
-      @param numSolutions: number of solution components. If  numSolutions==None the number of solution components
-                           is exracted from the PDE coefficients.
-      @param xi: defines a function which returns for any given Preclet number as L{Scalar<escript.Scalar>} object the
-                 M{S{xi}}-value used to define the stabilization parameters. If equal to None, L{ELMAN_RAMAGE} is used.
-      @type xi: callable object which returns a L{Scalar<escript.Scalar>} object.
-      @param debug: if True debug informations are printed.
-      """
-      super(AdvectivePDE, self).__init__(domain,\
-                                         numEquations,numSolutions,debug)
-      if xi==None:
-         self.__xi=AdvectivePDE.ELMAN_RAMAGE
-      else:
-         self.__xi=xi
-      self.__Xi=escript.Data()
-
-   def setValue(self,**coefficients):
-      """
-      sets new values to coefficients
-
-      @param coefficients: new values assigned to coefficients
-      @keyword A: value for coefficient A.
-      @type A: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
-      @keyword B: value for coefficient B
-      @type B: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
-      @keyword C: value for coefficient C
-      @type C: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
-      @keyword D: value for coefficient D
-      @type D: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
-      @keyword X: value for coefficient X
-      @type X: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
-      @keyword Y: value for coefficient Y
-      @type Y: any type that can be casted to L{Data<escript.Data>} object on L{Function<escript.Function>}.
-      @keyword d: value for coefficient d
-      @type d: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
-      @keyword y: value for coefficient y
-      @type y: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnBoundary<escript.FunctionOnBoundary>}.
-      @keyword d_contact: value for coefficient d_contact
-      @type d_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-                       or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
-      @keyword y_contact: value for coefficient y_contact
-      @type y_contact: any type that can be casted to L{Data<escript.Data>} object on L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-                       or  L{FunctionOnContactZero<escript.FunctionOnContactZero>}.
-      @keyword r: values prescribed to the solution at the locations of constraints
-      @type r: any type that can be casted to L{Data<escript.Data>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
-               depending of reduced order is used for the solution.
-      @keyword q: mask for location of constraints
-      @type q: any type that can be casted to L{Data<escript.Data>} object on L{Solution<escript.Solution>} or L{ReducedSolution<escript.ReducedSolution>}
-               depending of reduced order is used for the representation of the equation.
-      @raise IllegalCoefficient: if an unknown coefficient keyword is used.
-
-      """
-      if "A" in coefficients.keys()   or "B" in coefficients.keys() or "C" in coefficients.keys(): self.__Xi=escript.Data()
-      super(AdvectivePDE, self).setValue(**coefficients)
-
-   def ELMAN_RAMAGE(self,P):
-     """
-     Predefined function to set a values for M{S{xi}} from a Preclet number M{P}.
-     This function uses the method suggested by H.C. Elman and A. Ramage, I{SIAM J. Numer. Anal.}, B{40} (2002)
-          - M{S{xi}(P)=0} for M{P<1}
-          - M{S{xi}(P)=(1-1/P)/2} otherwise
-
-     @param P: Preclet number
-     @type P: L{Scalar<escript.Scalar>}
-     @return: up-wind weightimg factor
-     @rtype: L{Scalar<escript.Scalar>}
-     """
-     return util.wherePositive(P-1.)*0.5*(1.-1./(P+1.e-15))
-
-   def SIMPLIFIED_BROOK_HUGHES(self,P):
-     """
-     Predefined function to set a values for M{S{xi}} from a Preclet number M{P}.
-     The original methods is
-
-     M{S{xi}(P)=coth(P)-1/P}
-
-     As the evaluation of M{coth} is expensive we are using the approximation:
-
-         - M{S{xi}(P)=P/3} where M{P<3}
-         - M{S{xi}(P)=1/2} otherwise
-
-     @param P: Preclet number
-     @type P: L{Scalar<escript.Scalar>}
-     @return: up-wind weightimg factor
-     @rtype: L{Scalar<escript.Scalar>}
-     """
-     c=util.whereNegative(P-3.)
-     return P/6.*c+1./2.*(1.-c)
-
-   def HALF(self,P):
-     """
-     Predefined function to set value M{1/2} for M{S{xi}}
-
-     @param P: Preclet number
-     @type P: L{Scalar<escript.Scalar>}
-     @return: up-wind weightimg factor
-     @rtype: L{Scalar<escript.Scalar>}
-     """
-     return escript.Scalar(0.5,P.getFunctionSpace())
-
-   def __getXi(self):
-      if self.__Xi.isEmpty():
-         B=self.getCoefficient("B")
-         C=self.getCoefficient("C")
-         A=self.getCoefficient("A")
-         h=self.getDomain().getSize()
-         self.__Xi=escript.Scalar(0.,self.getFunctionSpaceForCoefficient("A"))
-         if not C.isEmpty() or not B.isEmpty():
-            if not C.isEmpty() and not B.isEmpty():
-                if self.getNumEquations()>1:
-                   if self.getNumSolutions()>1:
-                      flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
-                      for i in range(self.getNumEquations()):
-                         for k in range(self.getNumSolutions()):
-                            for l in range(self.getDim()): flux2+=(C[i,k,l]-B[i,l,k])**2
-                      length_of_flux=util.sqrt(flux2)
-                      # flux=C-util.reorderComponents(B,[0,2,1])
-                   else:
-                      flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
-                      for i in range(self.getNumEquations()):
-                         for l in range(self.getDim()): flux2+=(C[i,l]-B[i,l])**2
-                      length_of_flux=util.sqrt(flux2)
-                      # flux=C-B
-                else:
-                   if self.getNumSolutions()>1:
-                      flux2=escript.Scalar(0,self.getFunctionSpaceForCoefficient("A"))
-                      for k in range(self.getNumSolutions()):
-                         for l in range(self.getDim()): flux2+=(C[k,l]-B[l,k])**2
-                      # flux=C-util.reorderComponents(B,[1,0])
-                      length_of_flux=util.sqrt(flux2)
-                   else:
-                      length_of_flux=util.length(C-B)
-            elif C.isEmpty():
-              length_of_flux=util.length(B)
-            else:
-              length_of_flux=util.length(C)
-            flux_max=util.Lsup(length_of_flux)
-            if flux_max>0.:
-              if A.isEmpty():
-                  inv_A=1./self.SMALL_TOLERANCE
-                  peclet_number=escript.Scalar(inv_A,length_of_flux.getFunctionSpace())
-                  xi=self.__xi(self,peclet_number)
-              else:
-                  # length_of_A=util.inner(flux,util.tensormutiply(A,flux))
-                  length_of_A=util.length(A)
-                  A_max=util.Lsup(length_of_A)
-                  if A_max>0:
-                       inv_A=1./(length_of_A+A_max*self.SMALL_TOLERANCE)
-                  else:
-                       inv_A=1./self.SMALL_TOLERANCE
-                  peclet_number=length_of_flux*h/2*inv_A
-                  xi=self.__xi(self,peclet_number)
-              self.__Xi=h*xi/(length_of_flux+flux_max*self.SMALL_TOLERANCE)
-              self.trace("preclet number = %e"%util.Lsup(peclet_number))
-            else:
-              self.__Xi=escript.Scalar(0.,length_of_flux.getFunctionSpace())
-      return self.__Xi
-
-
-   def getCoefficientOfGeneralPDE(self,name):
-     """
-     return the value of the coefficient name of the general PDE
-
-     @param name: name of the coefficient requested.
-     @type name: C{string}
-     @return: the value of the coefficient name
-     @rtype: L{Data<escript.Data>}
-     @raise IllegalCoefficient: if name is not one of coefficients
-                  M{A}, M{B}, M{C}, M{D}, M{X}, M{Y}, M{d}, M{y}, M{d_contact}, M{y_contact}, M{r} or M{q}.
-     @note: This method is called by the assembling routine to map the Possion equation onto the general PDE.
-     """
-     if not self.getNumEquations() == self.getNumSolutions():
-          raise ValueError,"AdvectivePDE expects the number of solution componets and the number of equations to be equal."
-
-     if name == "A" :
-         A=self.getCoefficient("A")
-         B=self.getCoefficient("B")
-         C=self.getCoefficient("C")
-         if B.isEmpty() and C.isEmpty():
-            Aout=A
-         else:
-            if A.isEmpty():
-               Aout=self.createCoefficientOfGeneralPDE("A")
-            else:
-               Aout=A[:]
-            Xi=self.__getXi()
-            if self.getNumEquations()>1:
-                for i in range(self.getNumEquations()):
-                   for j in range(self.getDim()):
-                      for k in range(self.getNumSolutions()):
-                         for l in range(self.getDim()):
-                            if not C.isEmpty() and not B.isEmpty():
-                               # tmp=C-util.reorderComponents(B,[0,2,1])
-                               # Aout=Aout+Xi*util.generalTensorProduct(util.reorder(tmp,[1,2,0]),tmp,offset=1)
-                               for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*(C[p,i,j]-B[p,j,i])*(C[p,k,l]-B[p,l,k])
-                            elif C.isEmpty():
-                               for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*B[p,j,i]*B[p,l,k]
-                               # Aout=Aout+Xi*util.generalTensorProduct(util.reorder(B,[2,1,0]),util.reorder(B,[0,2,1]),offset=1)
-                            else:
-                               for p in range(self.getNumEquations()): Aout[i,j,k,l]+=Xi*C[p,i,j]*C[p,k,l]
-                               # Aout=Aout+Xi*util.generalTensorProduct(util.reorder(C,[1,2,0]),C,offset=1)
-            else:
-               if not C.isEmpty() and not B.isEmpty():
-                   delta=(C-B)
-                   Aout+=util.outer(Xi*delta,delta)
-               elif not B.isEmpty():
-                   Aout+=util.outer(Xi*B,B)
-               elif not C.isEmpty():
-                   Aout+=util.outer(Xi*C,C)
-         return Aout
-     elif name == "B" :
-         # return self.getCoefficient("B")
-         B=self.getCoefficient("B")
-         C=self.getCoefficient("C")
-         D=self.getCoefficient("D")
-         if C.isEmpty() or D.isEmpty():
-            Bout=B
-         else:
-            Xi=self.__getXi()
-            if B.isEmpty():
-                Bout=self.createCoefficientOfGeneralPDE("B")
-            else:
-                Bout=B[:]
-            if self.getNumEquations()>1:
-               for k in range(self.getNumSolutions()):
-                  for p in range(self.getNumEquations()):
-                     tmp=Xi*D[p,k]
-                     for i in range(self.getNumEquations()):
-                        for j in range(self.getDim()):
-                           Bout[i,j,k]+=tmp*C[p,i,j]
-                           # Bout=Bout+Xi*util.generalTensorProduct(util.reorder(C,[1,2,0]),D,offset=1)
-            else:
-               Bout+=(Xi*D)*C
-         return Bout
-     elif name == "C" :
-         # return self.getCoefficient("C")
-         B=self.getCoefficient("B")
-         C=self.getCoefficient("C")
-         D=self.getCoefficient("D")
-         if B.isEmpty() or D.isEmpty():
-            Cout=C
-         else:
-            Xi=self.__getXi()
-            if C.isEmpty():
-                Cout=self.createCoefficientOfGeneralPDE("C")
-            else:
-                Cout=C[:]
-            if self.getNumEquations()>1:
-               for k in range(self.getNumSolutions()):
-                   for p in range(self.getNumEquations()):
-                      tmp=Xi*D[p,k]
-                      for i in range(self.getNumEquations()):
-                        for l in range(self.getDim()):
-                                 Cout[i,k,l]+=tmp*B[p,l,i]
-                                 # Cout=Cout+Xi*B[p,l,i]*D[p,k]
-            else:
-               Cout+=(Xi*D)*B
-         return Cout
-     elif name == "D" :
-         return self.getCoefficient("D")
-     elif name == "X" :
-         # return self.getCoefficient("X")
-         X=self.getCoefficient("X")
-         Y=self.getCoefficient("Y")
-         B=self.getCoefficient("B")
-         C=self.getCoefficient("C")
-         if Y.isEmpty() or (B.isEmpty() and C.isEmpty()):
-            Xout=X
-         else:
-            if X.isEmpty():
-                Xout=self.createCoefficientOfGeneralPDE("X")
-            else:
-                Xout=X[:]
-            Xi=self.__getXi()
-            if self.getNumEquations()>1:
-                 for p in range(self.getNumEquations()):
-                    tmp=Xi*Y[p]
-                    for i in range(self.getNumEquations()):
-                       for j in range(self.getDim()):
-                          if not C.isEmpty() and not B.isEmpty():
-                             Xout[i,j]+=tmp*(C[p,i,j]-B[p,j,i])
-                             # Xout=X_out+Xi*util.inner(Y,C-util.reorderComponents(B,[0,2,1]),offset=1)
-                          elif C.isEmpty():
-                             Xout[i,j]-=tmp*B[p,j,i]
-                             # Xout=X_out-Xi*util.inner(Y,util.reorderComponents(B,[0,2,1]),offset=1)
-                          else:
-                             Xout[i,j]+=tmp*C[p,i,j]
-                             # Xout=X_out+Xi*util.inner(Y,C,offset=1)
-            else:
-              if not C.isEmpty() and not B.isEmpty():
-                Xout+=(Xi*Y)*(C-B)
-              elif C.isEmpty():
-                Xout-=(Xi*Y)*B
-              else:
-                Xout+=(Xi*Y)*C
-         return Xout
-     elif name == "Y" :
-         return self.getCoefficient("Y")
-     elif name == "d" :
-         return self.getCoefficient("d")
-     elif name == "y" :
-         return self.getCoefficient("y")
-     elif name == "d_contact" :
-         return self.getCoefficient("d_contact")
-     elif name == "y_contact" :
-         return self.getCoefficient("y_contact")
-     elif name == "r" :
-         return self.getCoefficient("r")
-     elif name == "q" :
-         return self.getCoefficient("q")
-     else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
-
-# $Log$
-# Revision 1.14  2005/09/22 01:54:57  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-09-22
-#
-# Revision 1.13  2005/09/15 03:44:19  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-09-15
-#
-# Revision 1.12  2005/09/01 03:31:28  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-09-01
-#
-# Revision 1.11  2005/08/23 01:24:28  jgs
-# Merge of development branch dev-02 back to main trunk on 2005-08-23
-#
-# Revision 1.10  2005/08/12 01:45:36  jgs
-# erge of development branch dev-02 back to main trunk on 2005-08-12
-#
-# Revision 1.9.2.17  2005/09/21 07:03:33  matt
-# PDECoefficient and LinearPDE are now new style classes (introduced in Python
-# 2.2). Classes Poisson, Helmholtz, LameEquation and AdvectivePDE have been
-# modified to instead use portable/cooperative "super" calls to extend base
-# class methods.
-#
-# Revision 1.9.2.16  2005/09/16 01:54:37  matt
-# Removed redundant if-loop.
-#
-# Revision 1.9.2.15  2005/09/14 08:09:18  matt
-# Added "REDUCED" solution PDECoefficient descriptors for LinearPDEs.
-#
-# Revision 1.9.2.14  2005/09/07 06:26:16  gross
-# the solver from finley are put into the standalone package paso now
-#
-# Revision 1.9.2.13  2005/08/31 08:45:03  gross
-# in the case of lumping no new system is allocated if the constraint is changed.
-#
-# Revision 1.9.2.12  2005/08/31 07:10:23  gross
-# test for Lumping added
-#
-# Revision 1.9.2.11  2005/08/30 01:53:45  gross
-# bug in format fixed.
-#
-# Revision 1.9.2.10  2005/08/26 07:14:17  gross
-# a few more bugs in linearPDE fixed. remaining problem are finley problems
-#
-# Revision 1.9.2.9  2005/08/26 06:30:45  gross
-# fix for reported bug  0000004. test_linearPDE passes a few more tests
-#
-# Revision 1.9.2.8  2005/08/26 04:30:13  gross
-# gneric unit testing for linearPDE
-#
-# Revision 1.9.2.7  2005/08/25 07:06:50  gross
-# linearPDE documentation is parsed now by epydoc. there is still a problem with links into escriptcpp.so
-#
-# Revision 1.9.2.6  2005/08/24 05:01:24  gross
-# problem with resetting the matrix in case of resetting its values to 0 fixed.
-#
-# Revision 1.9.2.5  2005/08/24 02:03:28  gross
-# epydoc mark up partially fixed
-#
-# Revision 1.9.2.4  2005/08/22 07:11:09  gross
-# some problems with LinearPDEs fixed.
-#
-# Revision 1.9.2.3  2005/08/18 04:48:48  gross
-# the methods SetLumping*() are removed. Lumping is set trough setSolverMethod(LinearPDE.LUMPING)
-#
-# Revision 1.9.2.2  2005/08/18 04:39:32  gross
-# the constants have been removed from util.py as they not needed anymore. PDE related constants are accessed through LinearPDE attributes now
-#
-# Revision 1.9.2.1  2005/07/29 07:10:27  gross
-# new functions in util and a new pde type in linearPDEs
-#
-# Revision 1.1.2.25  2005/07/28 04:21:09  gross
-# Lame equation: (linear elastic, isotropic) added
-#
-# Revision 1.1.2.24  2005/07/22 06:37:11  gross
-# some extensions to modellib and linearPDEs
-#
-# Revision 1.1.2.23  2005/05/13 00:55:20  cochrane
-# Fixed up some docstrings.  Moved module-level functions to top of file so
-# that epydoc and doxygen can pick them up properly.
-#
-# Revision 1.1.2.22  2005/05/12 11:41:30  gross
-# some basic Models have been added
-#
-# Revision 1.1.2.21  2005/05/12 07:16:12  cochrane
-# Moved ELMAN_RAMAGE, SIMPLIFIED_BROOK_HUGHES, and HALF functions to bottom of
-# file so that the AdvectivePDE class is picked up by doxygen.  Some
-# reformatting of docstrings.  Addition of code to make equations come out
-# as proper LaTeX.
-#
-# Revision 1.1.2.20  2005/04/15 07:09:08  gross
-# some problems with functionspace and linearPDEs fixed.
-#
-# Revision 1.1.2.19  2005/03/04 05:27:07  gross
-# bug in SystemPattern fixed.
-#
-# Revision 1.1.2.18  2005/02/08 06:16:45  gross
-# Bugs in AdvectivePDE fixed, AdvectiveTest is stable but more testing is needed
-#
-# Revision 1.1.2.17  2005/02/08 05:56:19  gross
-# Reference Number handling added
-#
-# Revision 1.1.2.16  2005/02/07 04:41:28  gross
-# some function exposed to python to make mesh merging running
-#
-# Revision 1.1.2.15  2005/02/03 00:14:44  gross
-# timeseries add and ESySParameter.py renames esysXML.py for consistence
-#
-# Revision 1.1.2.14  2005/02/01 06:44:10  gross
-# new implementation of AdvectivePDE which now also updates right hand side. systems of PDEs are still not working
-#
-# Revision 1.1.2.13  2005/01/25 00:47:07  gross
-# updates in the documentation
-#
-# Revision 1.1.2.12  2005/01/12 01:28:04  matt
-# Added createCoefficient method for linearPDEs.
-#
-# Revision 1.1.2.11  2005/01/11 01:55:34  gross
-# a problem in linearPDE class fixed
-#
-# Revision 1.1.2.10  2005/01/07 01:13:29  gross
-# some bugs in linearPDE fixed
-#
-# Revision 1.1.2.9  2005/01/06 06:24:58  gross
-# some bugs in slicing fixed
-#
-# Revision 1.1.2.8  2005/01/05 04:21:40  gross
-# FunctionSpace checking/matchig in slicing added
-#
-# Revision 1.1.2.7  2004/12/29 10:03:41  gross
-# bug in setValue fixed
-#
-# Revision 1.1.2.6  2004/12/29 05:29:59  gross
-# AdvectivePDE successfully tested for Peclet number 1000000. there is still a problem with setValue and Data()
-#
-# Revision 1.1.2.5  2004/12/29 00:18:41  gross
-# AdvectivePDE added
-#
-# Revision 1.1.2.4  2004/12/24 06:05:41  gross
-# some changes in linearPDEs to add AdevectivePDE
-#
-# Revision 1.1.2.3  2004/12/16 00:12:34  gross
-# __init__ of LinearPDE does not accept any coefficient anymore
-#
-# Revision 1.1.2.2  2004/12/14 03:55:01  jgs
-# *** empty log message ***
-#
-# Revision 1.1.2.1  2004/12/12 22:53:47  gross
-# linearPDE has been renamed LinearPDE
-#
-# Revision 1.1.1.1.2.7  2004/12/07 10:13:08  gross
-# GMRES added
-#
-# Revision 1.1.1.1.2.6  2004/12/07 03:19:50  gross
-# options for GMRES and PRES20 added
-#
-# Revision 1.1.1.1.2.5  2004/12/01 06:25:15  gross
-# some small changes
-#
-# Revision 1.1.1.1.2.4  2004/11/24 01:50:21  gross
-# Finley solves 4M unknowns now
-#
-# Revision 1.1.1.1.2.3  2004/11/15 06:05:26  gross
-# poisson solver added
-#
-# Revision 1.1.1.1.2.2  2004/11/12 06:58:15  gross
-# a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
-#
-# Revision 1.1.1.1.2.1  2004/10/28 22:59:22  gross
-# finley's RecTest.py is running now: problem in SystemMatrixAdapater fixed
-#
-# Revision 1.1.1.1  2004/10/26 06:53:56  jgs
-# initial import of project esys2
-#
-# Revision 1.3.2.3  2004/10/26 06:43:48  jgs
-# committing Lutz's and Paul's changes to brach jgs
-#
-# Revision 1.3.4.1  2004/10/20 05:32:51  cochrane
-# Added incomplete Doxygen comments to files, or merely put the docstrings that already exist into Doxygen form.
-#
-# Revision 1.3  2004/09/23 00:53:23  jgs
-# minor fixes
-#
-# Revision 1.1  2004/08/28 12:58:06  gross
-# SimpleSolve is not running yet: problem with == of functionsspace
-#

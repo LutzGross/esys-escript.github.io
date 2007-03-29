@@ -48,9 +48,9 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   numDim=nodes->numDim;
   
   if (Finley_Assemble_reducedIntegrationOrder(element_size)) {
-      numQuad=elements->ReferenceElement->numQuadNodes;
-  } else {
       numQuad=elements->ReferenceElementReducedOrder->numQuadNodes;
+  } else {
+      numQuad=elements->ReferenceElement->numQuadNodes;
   }
 
   /* set a few more parameters */
