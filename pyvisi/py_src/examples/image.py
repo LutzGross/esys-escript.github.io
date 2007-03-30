@@ -12,18 +12,18 @@ dc1.setFileName(file_name =
 # Create a map instance for the first viewport.
 m1 = Map(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST, 
         lut = Lut.COLOR, outline = True)
-m1.setOpacity(0.1)
+#m1.setOpacity(0.1)
 
 # Create one image reader instance (used in place of data collector).
 ir = ImageReader(ImageFormat.JPG)
 ir.setImageName(image_name = 
-        "/home/jongui/trunk/pyvisi/test/python/data_data/Flinders_eval.jpg")
+		"/home/jongui/trunk/pyvisi/test/python/data_meshes/flinders.jpg")
 	
 
 # Create one image instance.
 i = Image(scene = s, image_reader = ir)
-#i.setOpacity(opacity = 0.9)
-i.translate(0,0,1.)
+i.setOpacity(opacity = 0.9)
+i.translate(0,0,-1.)
 #i.rotateX(20)
 i.setPoint1(GlobalPosition(3,0,0))
 i.setPoint2(GlobalPosition(0,3,0))

@@ -35,7 +35,7 @@ class TestEllipsoid(unittest.TestCase):
 
 	def render(self, file):
 		self.scene.render(image_name = \
-		PYVISI_TEST_ELLIPSOID_IMAGES_PATH + file)
+				PYVISI_TEST_ELLIPSOID_IMAGES_PATH + file)
 
 		self.failUnless(os.stat(PYVISI_TEST_ELLIPSOID_IMAGES_PATH + \
 				file)[ST_SIZE] > MIN_IMAGE_SIZE)
