@@ -20,9 +20,9 @@ class ImageReader:
 		"""
 
 		self.__format = format
-		self.__vtk_image_reader = self.getImageReader()
+		self.__vtk_image_reader = self.__getImageReader()
 
-	def getImageReader(self):
+	def __getImageReader(self):
 		"""
 		Return the corresponding image reader based on the supplied image 
 		format.
