@@ -22,6 +22,10 @@
 #include <omp.h>
 #endif
 
+#ifdef PASO_MPI
+#include <mpi.h>
+#endif
+
 /*
 *
 *  Purpose
@@ -135,7 +139,16 @@ err_t Paso_Solver_PCG(
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* tau=v*r    */
            #pragma omp for private(i0) reduction(+:sum_1) schedule(static)
-           for (i0=0;i0<n;i0++) sum_1+=v[i0]*r[i0];
+           for (i0=0;i0<n;i0++) sum_1+=v[i0]*r[i0]; /* Limit to local values of v[] and r[] */
+#ifdef PASO_MPI
+	   /* In case we have many MPI processes, each of which may have several OMP threads:
+	      OMP master participates in an MPI reduction to get global sum_1 */
+           #pragma omp master
+	   {
+	     int loc_sum_1 = sum_1;
+	     MPI_Allreduce(&loc_sum_1, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	   }
+#endif
            tau_old=tau;
            tau=sum_1;
            /* p=v+beta*p */
@@ -156,6 +169,13 @@ err_t Paso_Solver_PCG(
            /* delta=p*v */
            #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
            for (i0=0;i0<n;i0++) sum_2+=v[i0]*p[i0];
+#ifdef PASO_MPI
+           #pragma omp master
+	   {
+	     int loc_sum_2 = sum_2;
+	     MPI_Allreduce(&loc_sum_2, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	   }
+#endif
            delta=sum_2;
 
    
@@ -169,7 +189,16 @@ err_t Paso_Solver_PCG(
                      d=r[i0]-rs[i0];
                      sum_3+=d*d;
                      sum_4+=d*rs[i0];
-                }
+               }
+#ifdef PASO_MPI
+               #pragma omp master
+	       {
+	         int loc_sum_3 = sum_3;
+	         MPI_Allreduce(&loc_sum_3, &sum_3, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	         int loc_sum_4 = sum_4;
+	         MPI_Allreduce(&loc_sum_4, &sum_4, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	       }
+#endif
                 gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
                 gamma_2= ONE-gamma_1;
                 #pragma omp for private(i0,x2_tmp,x_tmp,rs_tmp) schedule(static)
@@ -180,6 +209,13 @@ err_t Paso_Solver_PCG(
                 }
                 #pragma omp for private(i0) reduction(+:sum_5) schedule(static)
                 for (i0=0;i0<n;++i0) sum_5+=rs[i0]*rs[i0];
+#ifdef PASO_MPI
+           #pragma omp master
+	   {
+	     int loc_sum_5 = sum_5;
+	     MPI_Allreduce(&loc_sum_5, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	   }
+#endif
                 norm_of_residual=sqrt(sum_5);
                 convergeFlag = norm_of_residual <= tol;
                 maxIterFlag = num_iter == maxit;
