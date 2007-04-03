@@ -14,6 +14,18 @@ class DataCollector:
 	"""
 	Class that defines a data collector which deals with the source 
 	of data for the visualisation.
+
+	@attention: One DataCollector instance can only be used to specify one 
+	scalar, vector and tensor attribute from a source at any one time. If a 
+	second scalar, vector or tensor attribute needs to be specified from the 
+	same source, a second DataCollector instance must be created. 
+
+	@attention: When a series of XML files / ESCRIPT objects are read 
+	(using 'setFileName' in a for-loop), the 'setActiveScalar' / 
+	'setActiveVector' / 'setActiveTensor' have to be called after loading each 
+	new file (if a specific field needs to be loaded) as all active fields 
+	specified for the previous file goes back to the default once a new file 
+	is read.
 	"""
 
 	def __init__(self, source = Source.XML):

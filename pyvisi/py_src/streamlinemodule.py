@@ -6,12 +6,12 @@ import vtk
 
 class StreamLineModule:
 	"""
-	Class that defines streamlines.
+	Class that defines the streamline module.
 	"""
 
 	def __init__(self, object, source):
 		"""
-		Initialise the streamline.
+		Initialise the streamline module.
 
 		@type object: vtkUnstructuredGrid, etc 
 		@param object: Input for the streamline

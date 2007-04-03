@@ -19,4 +19,4 @@ for i in range(1, 200):
     dc1.setFileName(file_name = 
         "/home/jongui/data/laurent/subduction/source/function.%04d.vtk" % i)
 
-    s.animate()
+    s.render()

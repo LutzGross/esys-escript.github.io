@@ -7,6 +7,10 @@ import vtk
 class Transform:
 	"""
 	Class that defines the orientation of planes.
+	
+	@attention: There is a difference between performing rotation first 
+	followed by translation, and performing translation first followed 
+	by rotation.
 	"""
 
 	def __init__(self):

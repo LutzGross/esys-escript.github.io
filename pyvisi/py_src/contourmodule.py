@@ -6,12 +6,12 @@ import vtk
 
 class ContourModule:
 	"""
-	Class that defines contour.
+	Class that defines contour module.
 	"""
 
 	def __init__(self, object):
 		"""
-		Initliase the contour.
+		Initliase the contour module.
 
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Input for the contour
