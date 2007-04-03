@@ -174,6 +174,8 @@ class TensorGlyph:
 
 		self.__setInput()
 		self.__setSource()
+		self.__vtk_tensor_glyph.ClampScalingOn()
+
 
 	def __setInput(self):
 		"""

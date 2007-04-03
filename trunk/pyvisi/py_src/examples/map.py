@@ -1,14 +1,11 @@
-from esys.pyvisi import DataCollector, Map, Scene 
+# Import the necessary modules
+from esys.pyvisi import Scene, DataCollector, Map
 from esys.pyvisi.constant import *
 
-s = Scene(renderer = Renderer.ONLINE, num_viewport = 4, x_size = 1000, 
+# Create a scene with four viewports.
+s = Scene(renderer = Renderer.ONLINE_JPG, num_viewport = 4, x_size = 1000, 
         y_size = 800)
 
-# One DataCollector can be used to specify only one scalar, vector and tensor 
-# attribute from a source. If a second scalar, vector or tensor attribute 
-# needs to be specified from the same source, a second DataCollector must be 
-# created as shown below. In the case below, two scalar attributes 'scalar1' 
-# and 'scalar2' were specified.
 dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = 
         "/home/jongui/results.xml")

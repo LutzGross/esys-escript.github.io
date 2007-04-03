@@ -30,6 +30,14 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
 			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
+		Initialise the Ellipsoid.
+
+		@attention: The source can either be point or cell data. If the 
+		source is cell data, a conversion to point data may or may not be 
+		required, in order for the object to be rendered correctly. 
+		If a conversion is needed, the 'cell_to_point' flag must be set to 
+		'True', otherwise 'False' (which is the default).
+
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
@@ -125,6 +133,14 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
 			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
+		Initialise the EllipsoidOnPlaneCut.
+
+		@attention: The source can either be point or cell data. If the 
+		source is cell data, a conversion to point data may or may not be 
+		required, in order for the object to be rendered correctly. 
+		If a conversion is needed, the 'cell_to_point' flag must be set to 
+		'True', otherwise 'False' (which is the default).
+
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
@@ -228,6 +244,14 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
 			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
+		Initialise the EllipsoidOnPlaneClip.
+
+		@attention: The source can either be point or cell data. If the 
+		source is cell data, a conversion to point data may or may not be 
+		required, in order for the object to be rendered correctly. 
+		If a conversion is needed, the 'cell_to_point' flag must be set to 
+		'True', otherwise 'False' (which is the default).
+
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
