@@ -30,9 +30,8 @@ qH=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 
-s = Scene(renderer = Renderer.ONLINE, x_size = 800, y_size = 600)
+s = Scene(renderer = Renderer.DISPLAY, x_size = 800, y_size = 600)
 dc = DataCollector(source = Source.ESCRIPT)
-
 
 # ... start iteration:
 while t<tend:
@@ -41,11 +40,12 @@ while t<tend:
       print "time step :",t
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
-      saveVTK("T.%d.xml"%i,temp=T)
+      #saveVTK("T.%d.xml"%i,temp=T)
 
       dc.setData(temp=T)
-      Map(scene = s, data_collector = dc)
-      s.animate()
+      Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
+              lut = Lut.COLOR, cell_to_point = False, outline = True)
+      s.render(image_name = "%d.jpg" % i)
 
       """
       print i
