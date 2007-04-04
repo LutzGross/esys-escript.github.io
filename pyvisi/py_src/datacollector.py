@@ -90,6 +90,9 @@ class DataCollector:
 		"""
 		Create data using the <name>=<data> pairing. Assumption is made
 		that the data will be given in the appropriate format.
+
+		@bug: Reading source data directly from an ESCRIPT object is NOT 
+		work properly and should NOT be used. 
 		"""
 
 		if self.__source == Source.ESCRIPT:
