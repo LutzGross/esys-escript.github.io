@@ -8,6 +8,7 @@ PYVISI_TEST_MAP_IMAGES_PATH = "data_sample_images/map/"
 MIN_IMAGE_SIZE = 100
 FILE_2D = "interior_2D.xml"
 FILE_3D = "interior_3D.xml"
+FILE_SECOND_ORDER_3D = "temp-000585.vtu"
 
 X_SIZE = 400
 Y_SIZE = 400
@@ -197,6 +198,25 @@ class TestMap3DCellDataWithoutCellToPointConversion(unittest.TestCase, TestMap):
 	def test3DCellDataWithoutCellToPointConversion(self):
 		self.render("TestMap3DCellDataWithoutCellToPointConversion.jpg")
 
+class TestMap3DSecondOrder(unittest.TestCase, TestMap):
+	def setUp(self):
+		self.scene = \
+				Scene(renderer = JPG_RENDERER, num_viewport = 1,
+				x_size = X_SIZE, y_size = Y_SIZE)
+
+		self.data_collector = DataCollector(source = Source.XML)
+		self.data_collector.setFileName(file_name = \
+				PYVISI_TEST_MESHES_PATH + FILE_SECOND_ORDER_3D)
+		
+		self.map = Map(scene = self.scene, 
+				data_collector = self.data_collector,
+				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
+				cell_to_point = False, outline = True)
+
+	def test3DSecondOrder(self):
+		self.render("TestMap3DSecondOrder.jpg")
+
+
 class TestMapGreyScaleLut(unittest.TestCase, TestMap):
 	def setUp(self):
 		self.scene = \
@@ -318,5 +338,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClip))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClip))
 
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMap3DSecondOrder))
 	unittest.TextTestRunner(verbosity=2).run(suite)
 

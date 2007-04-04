@@ -83,8 +83,8 @@ class DataCollector:
 			self.__count+=1
 
 		else:
-			raise ValueError("Source type %s does not support 'setFileName'\n" \
-					% self.__source)
+			raise ValueError("Source type %s does not support \
+			'setFileName'\n" % self.__source)
 
 	def setData(self,**args):
 		"""
@@ -290,7 +290,7 @@ class DataCollector:
 		@return: Scalar range
 		"""
 
-		# Check whether any tensor is available in either point or cell data. 
+		# Check whether any scalar is available in either point or cell data. 
 		# If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _setActiveScalar 

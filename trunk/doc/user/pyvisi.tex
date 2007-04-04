@@ -7,43 +7,43 @@
 \pyvisi is a Python module that is used to generate 2D and 3D visualization 
 for escript and its PDE solvers: finley and bruce. This module provides 
 an easy to use interface to the \VTK library (\VTKUrl). There are three forms
-of rendering an object: (1) online: a single rendered object is displayed and  
-interaction (i.e. zoom and rotate) can occur, (2) offline: multiple rendered
-objects are not displayed but are instead saved as a series of images. No 
-interaction can occur and (3) animate: similar to offline except that multiple
-rendered objects are displayed one after another (animated on-the-fly) and 
-no images are saved.  No interaction can occur.
+of rendering an object. (1) Online - object is rendered on-screen with 
+interaction (i.e. zoom and rotate) capability, (2) Offline - object is rendered
+off-screen with no interation capability and (3) Display - object is rendered
+on-screen but with no interaction capability (able to procude on-the-fly 
+animation). All three approaches has the option to save the rendered object as
+an image.
 
-The general rule of thumb when using \pyvisi is to perform the following 
-in sequence:
+The following points outlines the general guidelines when using \pyvisi:
 
 \begin{enumerate}
-\item Create a scene instance (i.e. \Scene), which is a window in which objects are to be 
-rendered on.
-\item Create an input instance (i.e. \DataCollector), which reads and loads 
-the source data for visualization.
+\item Create a \Scene instance, a window in which objects are to be rendered on.
+\item Create a data input instance (i.e. \DataCollector or \ImageReader), which 
+reads and loads the source data for visualization.
 \item Create a data visualization instance (i.e. \Map, \Velocity, \Ellipsoid, 
-\Contour and \Carpet), which proccesses and manipulates the source data.
-\item Create a camera (i.e. \Camera) instance, which controls the viewing angle.
-\item Lastly, render the object online, offline or animate.
+\Contour, \Carpet, \StreamLine or \Image), which proccesses and manipulates the 
+source data.
+\item Create a \Camera or \Light instance, which controls the viewing angle and
+lighting effects.
+\item Lastly, render the object using either the Online, Offline or Display 
+option.
 \end{enumerate}
 \begin{center}
 \begin{math}
-scene \rightarrow input \rightarrow visualization \rightarrow 
-camera \rightarrow render
+scene \rightarrow data input \rightarrow data visualization \rightarrow 
+camera/light \rightarrow render
 \end{math}
 \end{center}
 
 The sequence in which instances are created is very important due to
-to the dependencies among them. For example, an input instance must 
-always be created BEFORE a data visualisation instance is created. 
+to the dependencies among them. For example, a data input instance must 
+always be created BEFORE a data visualisation instance. 
 If the sequence is switched, the program will throw an error because a 
-source data needs to be specified before the data can be 
-manipulated. Similarly, a camera instance must always be created
-AFTER an input instance has been created. Otherwise, the program will throw 
-an error because the camera instance needs to calculate its 
-default position (automatically carried out in the background) based on 
-the source data. 
+source data must to be specified before it can be 
+manipulated. Similarly, a camera and light instance must always be created
+AFTER an input instance, otherwise the program will throw 
+an error because the camera and light instance needs to calculates its 
+position based on the source data. 
 
 \section{\pyvisi Classes}
 The following subsections give a brief overview of the important classes 
@@ -455,7 +455,7 @@ Methods from \ActorThreeD, \PlaneSource and \Transform.
 %##############################################################################
 
 
-\subsection{Coordiante Classes}
+\subsection{Coordinate Classes}
 This subsection details the instances used to position the rendered object.
 
 \begin{classdesc}{LocalPosition}{x_coor, y_coor}
