@@ -24,7 +24,7 @@ class Camera:
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
+		@param data_collector: Deal with the source data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
@@ -40,14 +40,6 @@ class Camera:
 		"""
 		Setup the camera.
 		"""
-
-		# Default camera focal point is the center of the object.
-		center = self.__data_collector._getOutput().GetCenter()
-		#self.setFocalPoint(GlobalPosition(center[0], center[1], center[2]))
-
-		# Default camera position is the center of the object but with a slight
-		# distance along the z-axis.
-		#self.setPosition(GlobalPosition(center[0], center[1], center[2] * 4))
 
 		# Assign the camera to the appropriate renderer
 		self.__scene._setActiveCamera(self.__viewport, self.__vtk_camera)
@@ -118,7 +110,7 @@ class Camera:
 
 		self.__vtk_camera.Elevation(angle)
 		# Recompute the view up vector. If not used the elevation angle is  
-		# unable to exceed 87/-87 degrees. Also, a warning resetting the
+		# unable to exceed 87/-87 degrees. A warning resetting the
 		# view up will also be thrown and the rendered object may be incorrect.
 		# With the view up recomputed, the elevation angle can reach between
 		# 90/-90 degrees. Exceeding that, the rendered object may be incorrect.
@@ -185,7 +177,7 @@ class Camera:
 		the rendered object. 
 
 		@type distance: Number
-		@param distance: Amount to move towards or away
+		@param distance: Amount to move towards or away the rendered object
 		"""
 
 		self.__vtk_camera.Dolly(distance)
@@ -194,7 +186,7 @@ class Camera:
 	def __resetCameraClippingRange(self):
 		"""
 		Reset the camera clipping range based on the bounds of the visible 
-		actors. This ensures the rendered object is not cut off.
+		actors. This ensures the rendered object is not cut-off.
 		Needs to be called whenever the camera's settings are modified.
 		"""
 

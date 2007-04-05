@@ -20,9 +20,9 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 	"""
 	Class that shows a vector field using arrows. The arrows can either be
 	colored or grey-scaled, depending on the lookup table used. If the arrows
-	are colored, there are two possible coloring modes: (1) using vector data
-	or (2) using scalar data. Similarly, there are two possible types of
-	arrows: (1) using two-dimensional or (2) using three-dimensional.
+	are colored, there are two possible coloring modes, either using vector data
+	or scalar data. Similarly, there are two possible types of
+	arrows, either using two-dimensional or three-dimensional.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -355,12 +355,10 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
-			#MaskPoints.__init__(self, c2p._getOutput())
 			Clipper.__init__(self, c2p._getOutput(), 
 					Plane._getPlane(self)) 	
 			Clipper._setClipFunction(self)
 		elif(cell_to_point == False): # No conversion happens.	
-			#MaskPoints.__init__(self, data_collector._getOutput())
 			Clipper.__init__(self, data_collector._getOutput(), 
 					Plane._getPlane(self)) 	
 			Clipper._setClipFunction(self)
@@ -378,13 +376,6 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self)) 
 		
-		# NOTE: Clipper must come after Glyph3D. Otherwise, the output will
-		# be incorrect.
-		#Clipper.__init__(self, Glyph3D._getOutput(self), 
-		#		Plane._getPlane(self)) 	
-		#Clipper._setClipFunction(self)
-
-		#DataSetMapper.__init__(self, Clipper._getOutput(self), 
 		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
 

@@ -12,19 +12,19 @@ except ImportError:
 
 class DataCollector:
 	"""
-	Class that defines a data collector which deals with the source 
-	of data for the visualisation.
+	Class that defines a data collector. A data collector is used to read 
+	data from an XML file or from an escript object directly.
 
 	@attention: One DataCollector instance can only be used to specify one 
 	scalar, vector and tensor attribute from a source at any one time. If a 
 	second scalar, vector or tensor attribute needs to be specified from the 
 	same source, a second DataCollector instance must be created. 
 
-	@attention: When a series of XML files / ESCRIPT objects are read 
-	(using 'setFileName' in a for-loop), the 'setActiveScalar' / 
-	'setActiveVector' / 'setActiveTensor' have to be called after loading each 
-	new file (if a specific field needs to be loaded) as all active fields 
-	specified for the previous file goes back to the default once a new file 
+	@attention: When a series of XML files or escript objects are read 
+	(using 'setFileName' or 'setData' in a for-loop), the 'setActiveScalar' / 
+	'setActiveVector' / 'setActiveTensor' have to be called for each new file
+	(provided a specific field needs to be loaded) as all active fields 
+	specified from the previous file goes back to the default once a new file 
 	is read.
 	"""
 
@@ -44,9 +44,8 @@ class DataCollector:
 		# Source is a escript data object using a temp file in the background. 
 		elif (self.__source == Source.ESCRIPT):
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
-			# Create a temporary .xml file and retrieves its path.
+			# Create a temporary .xml file and retrieve its path.
 			self.__tmp_file = tempfile.mkstemp(suffix=".xml")[1]
-			#self.__vtk_xml_reader.SetFileName(self.__tmp_file)
 
 	def __del__(self):
 		"""
@@ -58,7 +57,7 @@ class DataCollector:
 
 	def setFileName(self, file_name):
 		"""
-		Set the source file name to read. 
+		Set the XML file name to read. 
 
 		@type file_name: String
 		@param file_name: Name of the file to read
@@ -68,7 +67,7 @@ class DataCollector:
 			self.__vtk_xml_reader.SetFileName(file_name)
 
 			# Update must be called after SetFileName to make the reader 
-			# up to date. Otherwise, some output values may be incorrect.
+			# up-to-date. Otherwise, some output values may be incorrect.
 			self.__vtk_xml_reader.Update() 
 			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
@@ -78,7 +77,7 @@ class DataCollector:
 			# instantiated. Therefore, the range of the mapper can only be
 			# updated after the first file/source has been read.
 			if(self.__count > 0):
-				self._updateRange(None)
+				self._updateRange()
 
 			self.__count+=1
 
@@ -91,8 +90,9 @@ class DataCollector:
 		Create data using the <name>=<data> pairing. Assumption is made
 		that the data will be given in the appropriate format.
 
-		@bug: Reading source data directly from an ESCRIPT object is NOT 
-		work properly and should NOT be used. 
+		@bug: Reading source data directly from an escript object is NOT 
+		work properly. Therefore this method should NOT be used at this 
+		stage. 
 		"""
 
 		if self.__source == Source.ESCRIPT:
@@ -102,7 +102,7 @@ class DataCollector:
 			# setFileName. If Modified is not called, only the first file 
 			# will always be displayed. The reason Modified is used is 
 			# because the same temporary file name is always used 
-			# (old file is overwritten). Modified MUST NOT be used in 
+			# (previous file is overwritten). Modified MUST NOT be used in 
 			# setFileName, it can cause incorrect output such as map.
 			self.__vtk_xml_reader.Modified()
 			# Update must be called after Modified. If Update is called before
@@ -127,7 +127,7 @@ class DataCollector:
 		# or cell data. If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _getScalarRange 
-		# but is used only when a scalar attribute has been specified.
+		# but this is used only when a scalar attribute has been specified.
 		if scalar in self.__point_attribute['scalars']:
 			self._getOutput().GetPointData().SetActiveScalars(scalar)
 		elif scalar in self.__cell_attribute['scalars']:
@@ -148,7 +148,7 @@ class DataCollector:
 		# or cell data. If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _getVectorRange 
-		# but is used only when a vector attribute has been specified.
+		# but this is used only when a vector attribute has been specified.
 		if vector in self.__point_attribute['vectors']:
 			self._getOutput().GetPointData().SetActiveVectors(vector)
 		elif vector in self.__cell_attribute['vectors']:
@@ -169,7 +169,7 @@ class DataCollector:
 		# or cell data. If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _getTensorRange 
-		# but is used only when a tensor attribute has been specified.
+		# but this is used only when a tensor attribute has been specified.
 		if tensor in self.__point_attribute['tensors']:
 			self._getOutput().GetPointData().SetActiveTensors(tensor)
 		elif tensor in self.__cell_attribute['tensors']:
@@ -179,22 +179,22 @@ class DataCollector:
 			sys.exit(0)	
 
 	# 'object' is set to 'None' because some types of visualization have
-	# two different ranges that need to be updated while others only have one.
+	# two ranges that needs to be updated while others only have one.
 	def _paramForUpdatingMultipleSources(self, viz_type, color_mode, mapper,
 			object = None):
 		"""
-		Parameters required to update the necessary range when two or more 
-		files are read.
+		Parameters required to update the necessary data when two or more 
+		files or escript objects are read.
 
 		@type viz_type: : L{VizType <constant.VizType>} constant
-		@param viz_type: Type if visualization (i.e. Map, Velocity, etc)
+		@param viz_type: Type if visualization 
 		@type color_mode: L{ColorMode <constant.ColorMode>} constant
 		@param color_mode: Type of color mode
 		@type mapper: vtkDataSetMapper
 		@param mapper: Mapped data
-		@type object: vtkPolyDataAlgorith (i.e. vtkContourFilter, vtkGlyph3D, \
+		@type object: vtkPolyDataAlgorithm (i.e. vtkContourFilter, vtkGlyph3D, \
 				etc)
-		@param object: Poly data
+		@param object: Polygonal data
 		"""
 
 		self.__viz_type = viz_type
@@ -202,9 +202,10 @@ class DataCollector:
 		self.__mapper = mapper
 		self.__object = object
 
-	def _updateRange(self, range):
+	def _updateRange(self):
 		"""
-		Update the necessary range when two or more sources are read in.
+		Update the necessary range(s) when two or more files or escript objects 
+		are read.
 		"""
 
 		if self.__viz_type == VizType.MAP or \
@@ -232,13 +233,13 @@ class DataCollector:
 
 	def __get_array_type(self, arr):
 		"""
-		Return if the array type is a scalar, vector or tensor by looking 
+		Return whether an array type is scalar, vector or tensor by looking 
 		at the number of components in the array.
 
 		@type arr: vtkDataArray
 		@param arr: An array from the source.
 		@rtype: String
-		@return: Array type ('scalar', vector', 'tensor')
+		@return: Array type ('scalar', vector' or 'tensor')
 		"""
 
 		# Number of components in an array.
@@ -297,7 +298,7 @@ class DataCollector:
 		# If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _setActiveScalar 
-		# but is used only when no scalar attribute has been specified.
+		# but this is used only when no scalar attribute has been specified.
 		if(len(self.__point_attribute['scalars']) != 0):
 			return self._getOutput().GetPointData().GetScalars().GetRange(-1)
 		elif(len(self.__cell_attribute['scalars']) != 0):
@@ -318,13 +319,13 @@ class DataCollector:
 		# If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _setActiveVector 
-		# but is used only when no vector attribute has been specified.
+		# but this is used only when no vector attribute has been specified.
 
 		# NOTE: Generally GetRange(-1) returns the correct vector range. 
 		# However, there are certain data sets where GetRange(-1) seems 
 		# to return incorrect mimimum vector although the maximum vector is 
 		# correct. As a result, the mimimum vector has been hard coded to 0.0
-		# to accommodate the incorrect cases.
+		# to accommodate for the incorrect cases.
 		if(len(self.__point_attribute['vectors']) != 0):
 			vector_range = \
 					self._getOutput().GetPointData().GetVectors().GetRange(-1)
@@ -341,7 +342,7 @@ class DataCollector:
 		"""
 		Return the tensor range.
 
-		@rtype: Two column table
+		@rtype: Two column tuple containing numbers
 		@return: Tensor range
 		"""
 
@@ -349,7 +350,7 @@ class DataCollector:
 		# If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _setActiveTensor 
-		# but is used only when no tensor attribute has been specified.
+		# but this is used only when no tensor attribute has been specified.
 		if(len(self.__point_attribute['tensors']) != 0):
 			return self._getOutput().GetPointData().GetTensors().GetRange(-1)
 		elif(len(self.__cell_attribute['tensors']) != 0): 
