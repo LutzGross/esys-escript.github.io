@@ -36,7 +36,7 @@ class Map(DataSetMapper, Actor3D):
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
+		@param data_collector: Deal with source of data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant  
 		@param viewport: Viewport in which objects are to be rendered on 
 		@type lut : L{Lut <constant.Lut>} constant

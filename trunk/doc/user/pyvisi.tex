@@ -6,15 +6,15 @@
 \section{Introduction}
 \pyvisi is a Python module that is used to generate 2D and 3D visualization 
 for escript and its PDE solvers: finley and bruce. This module provides 
-an easy to use interface to the \VTK library (\VTKUrl). There are three forms
-of rendering an object. (1) Online - object is rendered on-screen with 
-interaction (i.e. zoom and rotate) capability, (2) Offline - object is rendered
-off-screen with no interation capability and (3) Display - object is rendered
-on-screen but with no interaction capability (able to procude on-the-fly 
-animation). All three approaches has the option to save the rendered object as
-an image.
+an easy to use interface to the \VTK library (\VTKUrl). There are three 
+approaches of rendering an object. (1) Online - object is rendered on-screen 
+with interaction (i.e. zoom and rotate) capability, (2) Offline - object is 
+rendered off-screen (no window comes up) and (3) Display - object is rendered 
+on-screen but with no interaction capability (able to produce on-the-fly 
+animation). All three approaches have the option to save the rendered object 
+as an image.
 
-The following points outlines the general guidelines when using \pyvisi:
+The following points outline the general guidelines when using \pyvisi:
 
 \begin{enumerate}
 \item Create a \Scene instance, a window in which objects are to be rendered on.
@@ -25,8 +25,7 @@ reads and loads the source data for visualization.
 source data.
 \item Create a \Camera or \Light instance, which controls the viewing angle and
 lighting effects.
-\item Lastly, render the object using either the Online, Offline or Display 
-option.
+\item Render the object using either the Online, Offline or Display approach.
 \end{enumerate}
 \begin{center}
 \begin{math}
@@ -37,13 +36,12 @@ camera/light \rightarrow render
 
 The sequence in which instances are created is very important due to
 to the dependencies among them. For example, a data input instance must 
-always be created BEFORE a data visualisation instance. 
-If the sequence is switched, the program will throw an error because a 
-source data must to be specified before it can be 
-manipulated. Similarly, a camera and light instance must always be created
-AFTER an input instance, otherwise the program will throw 
-an error because the camera and light instance needs to calculates its 
-position based on the source data. 
+be created BEFORE a data visualization instance, because the source data must 
+be specified before it can be manipulated. If the sequence is switched, 
+the program will throw an error. Similarly, a camera and light instance must 
+be created AFTER a data input instance because the camera and light instance 
+calculates their position based on the source data. If the sequence is switched,
+the programthe will throw an error . 
 
 \section{\pyvisi Classes}
 The following subsections give a brief overview of the important classes 
@@ -62,9 +60,9 @@ This subsection details the instances used to setup the viewing environment.
 \begin{classdesc}{Scene}{renderer = Renderer.ONLINE, num_viewport = 1, 
 x_size = 1152, y_size = 864}
 A scene is a window in which objects are to be rendered on. Only 
-one scene needs to be created and can display data from one source. However, 
-a scene may be divided into four smaller windows called viewports (if needed). 
-The four viewports in turn can display data from four different sources.
+one scene needs to be created. However, a scene may be divided into four 
+smaller windows called viewports (if needed). Each viewport can 
+render a different object. 
 \end{classdesc}
 
 The following are some of the methods available:
@@ -72,16 +70,8 @@ The following are some of the methods available:
 Set the background color of the scene.
 \end{methoddesc}
 
-\begin{methoddesc}[Scene]{saveImage}{image_name}
-Save the rendered object as an image offline. No interaction can occur.
-\end{methoddesc}
-
-\begin{methoddesc}[Scene]{animate}{}
-Animate the rendered object on-the-fly. No interaction can occur.
-\end{methoddesc}
-
-\begin{methoddesc}[Scene]{render}{}
-Render the object online. Interaction can occur.
+\begin{methoddesc}[Scene]{render}{image_name = None}
+Render the object using either the Online, Offline or Display mode.
 \end{methoddesc}
 
 \subsubsection{\Camera class}
@@ -99,14 +89,6 @@ Set the focal point of the camera.
 
 \begin{methoddesc}[Camera]{setPosition}{position}
 Set the position of the camera.
-\end{methoddesc}
-
-\begin{methoddesc}[Camera]{setClippingRange}{near_clipping, far_clipping}
-Set the near and far clipping plane of the camera.
-\end{methoddesc}
-
-\begin{methoddesc}[Camera]{setViewUp}{position}
-Set the view up direction of the camera.
 \end{methoddesc}
 
 \begin{methoddesc}[Camera]{azimuth}{angle}
@@ -133,11 +115,11 @@ Rotate the camera to view the bottom of the rendered object.
 Rotate the camera to view the left side of the rendered object.
 \end{methoddesc}
 
-\begin{methoddesc}[Camera]{rightView}{position}
+\begin{methoddesc}[Camera]{rightView}{}
 Rotate the camera to view the right side of the rendered object.
 \end{methoddesc}
 
-\begin{methoddesc}[Camera]{isometricView}{position}
+\begin{methoddesc}[Camera]{isometricView}{}
 Rotate the camera to view the isometric angle of the rendered object.
 \end{methoddesc}
 
@@ -149,7 +131,7 @@ the rendered object.
 \subsubsection{\Light class}
 
 \begin{classdesc}{Light}{scene, data_collector, viewport = Viewport.SOUTH_WEST}
-A light controls the source of light for the rendered object and works in 
+A light controls the lighting for the rendered object and works in 
 a similar way to \Camera.
 \end{classdesc}
 
@@ -163,12 +145,12 @@ Set the focal point of the light.
 \end{methoddesc}
 
 \begin{methoddesc}[Light]{setPosition}{position}
-Set the position of the camera.
+Set the position of the light.
 \end{methoddesc}
 
 \begin{methoddesc}[Light]{setAngle}{elevation = 0, azimuth = 0}
-An alternative to set the position and focal point of the light using the 
-elevation and azimuth degrees.
+An alternative to set the position and focal point of the light by using the 
+elevation and azimuth.
 \end{methoddesc}
 
 
@@ -182,22 +164,22 @@ for visualization.
 \subsubsection{\DataCollector class}
 
 \begin{classdesc}{DataCollector}{source = Source.XML}
-% need to say something about the escript object not just d xml file.
 A data collector is used to read data from an XML file or from 
-an escript object directly. Please note that a separate data collector needs 
-to be created when two or more attributes of the same type from 
-the same file needs to be specified (i.e.two scalar attributes from a file).
+an escript object directly. 
 \end{classdesc}
 
 The following are some of the methods available:
 \begin{methoddesc}[DataCollector]{setFileName}{file_name}
-Set the XML source file name to be read.
+Set the XML file name to read.
 \end{methoddesc}
 
 \begin{methoddesc}[DataCollector]{setData}{**args}
 Create data using the \textless name\textgreater=\textless data\textgreater 
 pairing. Assumption is made that the data will be given in the 
 appropriate format.
+
+BUG: Reading source data directly from an escript object is NOT
+work properly. Therefore this method should NOT be used at this stage.
 \end{methoddesc}
 
 \begin{methoddesc}[DataCollector]{setActiveScalar}{scalar}
@@ -226,8 +208,8 @@ Set the image name to be read.
 \subsubsection{\TextTwoD class}
 
 \begin{classdesc}{Text2D}{scene, text, viewport = Viewport.SOUTH_WEST}
-2D text is used to annotate the rendered object (i.e. adding titles, authors 
-and labels).
+A two-dimensional text is used to annotate the rendered object 
+(i.e. adding titles, authors and labels).
 \end{classdesc}
 
 The following are some of the methods available:
@@ -252,6 +234,13 @@ Including methods from \ActorTwoD.
 \subsection{Data Visualization Classes}
 This subsection details the instances used to process and manipulate the source
 data.
+
+One point to note is that the source can either be point or cell data. If the
+source is cell data, a conversion to point data may or may not be
+required, in order for the object to be rendered correctly.
+If a conversion is needed, the 'cell_to_point' flag (see below) must be set to
+'True', otherwise 'False' (which is the default).
+
 \subsubsection{\Map class}
 
 \begin{classdesc}{Map}{scene, data_collector, 
@@ -305,7 +294,7 @@ Methods from \ActorThreeD and \Clipper.
 
 \begin{classdesc}{Velocity}{scene, data_collector, 
 viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR, 
-arrow = Arrow.TWO_D, lut = Lut.COLOR, outline = True}
+arrow = Arrow.TWO_D, lut = Lut.COLOR, cell_to_point = False, outline = True}
 Class that shows a vector field using arrows. The arrows can either be 
 colored or grey-scaled, depending on the lookup table used. If the arrows 
 are colored, there are two possible coloring modes, either using vector data or 
@@ -314,32 +303,34 @@ using two-dimensional or three-dimensional.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \GlyphThreeD and \StructuredPoints. 
+Methods from \ActorThreeD, \GlyphThreeD and \MaskPoints. 
 
 \subsubsection{\VelocityOnPlaneCut class}
 
 \begin{classdesc}{VelocityOnPlaneCut}{scene, data_collector, 
 arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+cell_to_point = False, outline = True}
 This class works in a similar way to \MapOnPlaneCut, except that 
 it shows a vector field using arrows on a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \GlyphThreeD, \Transform and \StructuredPoints. 
+Methods from \ActorThreeD, \GlyphThreeD, \Transform and \MaskPoints. 
 
 \subsubsection{\VelocityOnPlaneClip class}
 
 \begin{classdesc}{VelocityOnPlaneClip}{scene, data_collector, 
 arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, online = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+cell_to_point = False, online = True}
 This class works in a similar way to \MapOnPlaneClip, except that it shows a 
 vector field using arrows clipped using a plane. 
 \end{classdesc}
 
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \GlyphThreeD, \Transform, \Clipper and 
-\StructuredPoints. 
+\MaskPoints. 
 
 \subsubsection{\Ellipsoid class}
 

@@ -8,7 +8,7 @@ from constant import Viewport
 
 class Light:
 	"""
-	Class that defines a light. A light controls the source of light for the
+	Class that defines a light. A light controls the lighting for the
 	rendered object and works in a similar way to L{Camera <camera.Camera>}.
 	"""
 
@@ -22,7 +22,7 @@ class Light:
 		@param scene: Scene in which components are to be added to	
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 			object
-		@param data_collector: Source of data for visualization
+		@param data_collector: Source of data for vizualization
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
@@ -71,12 +71,12 @@ class Light:
 
 		self.__vtk_light.SetPosition(position._getGlobalPosition())
 
-	# Elevation and azimuth is set to zero so that users do not necessarily 
+	# Elevation and azimuth is set to zero so that users do not 
 	# have to change both at the same time.
 	def setAngle(self, elevation = 0, azimuth = 0):
 		"""
 		An alternative to set the position and focal point of the light 
-		based on the specified elevation and azimuth degrees.
+		by using the elevation and azimuth.	
 
 		@type elevation: Number
 		@param elevation: Degree to rotate the light to the top and bottom
@@ -84,7 +84,7 @@ class Light:
 		@param azimuth: Degree to rotate the light to the left and right
 		"""
 
-		# NOTE: The elevation angle of light does not seem to suffer the same
+		# NOTE: The elevation angle of light does not appear to suffer the same
 		# constraint as the elevation angle of camera where the elevation
 		# angle is constraint between 90/-90.
 		self.__vtk_light.SetDirectionAngle(elevation, azimuth)

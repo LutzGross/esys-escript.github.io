@@ -15,7 +15,7 @@ class ImageReader:
 		"""	
 		Initialise the image reader.
 
-		@type format: String
+		@type format:  L{ImageFormat <constant.ImageFormat>} constant
 		@param format: Format of the image 
 		"""
 

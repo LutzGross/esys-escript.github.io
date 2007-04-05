@@ -96,7 +96,7 @@ class Text2D(Actor2D):
 
 	def setColor(self, color):
 		"""
-		Set the color of the text.
+		Set the color of the 2D text.
 
 		@type color: L{Color <constant.Color>} constant
 		@param color: 2D text color
