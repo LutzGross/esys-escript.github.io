@@ -15,7 +15,7 @@ class DataCollector:
 	Class that defines a data collector. A data collector is used to read 
 	data from an XML file or from an escript object directly.
 
-	@attention: One DataCollector instance can only be used to specify one 
+	@attention: A DataCollector instance can only be used to specify one 
 	scalar, vector and tensor attribute from a source at any one time. If a 
 	second scalar, vector or tensor attribute needs to be specified from the 
 	same source, a second DataCollector instance must be created. 
@@ -26,6 +26,11 @@ class DataCollector:
 	(provided a specific field needs to be loaded) as all active fields 
 	specified from the previous file goes back to the default once a new file 
 	is read.
+
+	@attention: A DataCollector instance can only be used to read either 
+	point or cell data but not both. If a file contains a combination of both
+	point and cell data, two DataCollector instances needs to be created, one
+	used to read point data and the other used to read cell data.
 	"""
 
 	def __init__(self, source = Source.XML):

@@ -22,6 +22,13 @@ class Glyph3D:
 		self.__object = object
 		self.__source = source
 		self.__vtk_glyph3D = vtk.vtkGlyph3D()
+		
+		self.__setupGlyph3D()
+
+	def __setupGlyph3D(self):
+		"""
+		Setup the 3D glyph.
+		"""
 
 		self.__setInput()
 		self.__setSource()
@@ -62,14 +69,14 @@ class Glyph3D:
 
 	def _setColorModeByVector(self):
 		"""
-		Set the 3D glyph color according to the vector.
+		Set the 3D glyph to color according to the vector.
 		"""
 
 		self.__vtk_glyph3D.SetColorModeToColorByVector()
 
 	def _setColorModeByScalar(self):
 		"""
-		Set the 3D glyph color according to the scalar.
+		Set the 3D glyph to color according to the scalar.
 		"""
 
 		self.__vtk_glyph3D.SetColorModeToColorByScalar()

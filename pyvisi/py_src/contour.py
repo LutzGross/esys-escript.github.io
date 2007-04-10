@@ -200,7 +200,6 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 					Plane._getPlane(self))
 
 		ContourModule.__init__(self, Cutter._getOutput(self))
-
 		# By default 10 contours are generated and the scalar range is based
 		# on the scalar data range.
 		ContourModule.generateContours(self, 10, 

@@ -81,11 +81,15 @@ class PlaneSource:
 	def __init__(self):
 		"""
 		Initialise the plane source. A plane source is defined by an origin
-		and two other points, which form the axes.
+		and two other points, which form the axes. By default the origin is 
+		set to (0, 0, 0) and the two points are set to (1, 0, 0) and (0, 1, 0).
 		"""
 
 		self.__vtk_plane_source = vtk.vtkPlaneSource()
+		# Default origin of the plane source is (0, 0, 0).
 		self.__setOrigin(GlobalPosition(0, 0, 0))
+		# Default position of the two point from the origin is (1, 0, 0) and 
+		# (0, 1, 0).
 		self.setPoint1(GlobalPosition(1, 0, 0))
 		self.setPoint2(GlobalPosition(0, 1, 0))
 

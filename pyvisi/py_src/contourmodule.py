@@ -36,6 +36,8 @@ class ContourModule:
 			upper_range = None):
 		"""
 		Generate the specified number of contours within the specified range.
+		In order to generate an iso surface, the 'lower_range' and 
+		'upper_range' must be equal.
 
 		@type contours: Number
 		@param contours: Number of contours to generate

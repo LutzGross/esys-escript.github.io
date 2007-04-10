@@ -259,8 +259,8 @@ Methods from \ActorThreeD.
 viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
 outline = True}
 This class works in a similar way to \Map, except that it shows a scalar 
-field on a plane. The plane can be translated and rotated along the X, Y and 
-Z axes.
+field cut using a plane. The plane can be translated and rotated along the 
+X, Y and Z axes.
 \end{classdesc}
 
 The following are some of the methods available:\\
@@ -312,7 +312,7 @@ arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR,
 viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
 cell_to_point = False, outline = True}
 This class works in a similar way to \MapOnPlaneCut, except that 
-it shows a vector field using arrows on a plane.
+it shows a vector field using arrows cut using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
@@ -335,44 +335,47 @@ Methods from \ActorThreeD, \GlyphThreeD, \Transform, \Clipper and
 \subsubsection{\Ellipsoid class}
 
 \begin{classdesc}{Ellipsoid}{scene, data_collector, 
-viewport = Viewport = SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport = SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
+outline = True}
 Class that shows a tensor field using ellipsoids. The ellipsoids can either be 
 colored or grey-scaled, depending on the lookup table used. 
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \Sphere, \TensorGlyph and \StructuredPoints.
+Methods from \ActorThreeD, \Sphere, \TensorGlyph and \MaskPoints.
 
 \subsubsection{\EllipsoidOnPlaneCut class}
 
 \begin{classdesc}{EllipsoidOnPlaneCut}{scene, data_collector,
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
+outline = True}
 This class works in a similar way to \MapOnPlaneCut, except that it shows
 a tensor field using ellipsoids cut using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform and 
-\StructuredPoints.
+\MaskPoints.
 
 \subsubsection{\EllipsoidOnPlaneClip class}
 
 \begin{classdesc}{EllipsoidOnPlaneClip}{scene, data_collector,
-viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True}
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
+outline = True}
 This class works in a similar way to \MapOnPlaneClip, except that it shows a 
 tensor field using ellipsoids clipped using a plane.
 \end{classdesc}
         
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform, \Clipper 
-and \StructuredPoints.
+and \MaskPoints.
 
 \subsubsection{\Contour class}
 
 \begin{classdesc}{Contour}{scene, data_collector, 
 viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
 outline = True}
-Class that shows a scalar field by contour surfaces. The contour surfaces can
+Class that shows a scalar field using contour surfaces. The contour surfaces can
 either be colored or grey-scaled, depending on the lookup table used. This
 class can also be used to generate iso surfaces.
 \end{classdesc}
@@ -386,7 +389,7 @@ Methods from \ActorThreeD and \ContourModule.
 viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
 outline = True}
 This class works in a similar way to \MapOnPlaneCut, except that it shows a
-scalar field by contour surfaces on a plane.
+scalar field using contour surfaces cut using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
@@ -398,7 +401,7 @@ Methods from \ActorThreeD, \ContourModule and \Transform.
 viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False, 
 outline = True}
 This class works in a similar way to \MapOnPlaneClip, except that it shows a 
-scalar field by contour surfaces clipped using a plane.
+scalar field using contour surfaces clipped using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
@@ -424,8 +427,8 @@ Methods from \ActorThreeD, \PointSource, \StreamLineModule and \Tube.
 viewport = Viewport.Viewport.SOUTH_WEST, warp_mode = WarpMode.SCALAR, 
 lut = Lut.COLOR, outline = True}
 This class works in a similar way to \MapOnPlaneCut, except that it shows a 
-scalar field on a plane deformated (warp) along the normal. The plane can 
-either be colored or grey-scaled, depending on the lookup table used. 
+scalar field cut on a plane and deformated (warp) along the normal. The 
+plane can either be colored or grey-scaled, depending on the lookup table used. 
 Similarly, the plane can be deformated either using scalar data or vector data.
 \end{classdesc}
 
@@ -463,7 +466,7 @@ Class that defines the global positioning coordinate system (3D).
 
 \subsection{Supporting Classes}
 This subsection details the supporting classes inherited by the data 
-visualization classes. These supporting 
+visualization classes and their available methods. 
 
 \subsubsection{\ActorThreeD class}
 
@@ -503,7 +506,7 @@ Clips the other side of the rendered object.
 \end{methoddesc}
 
 \begin{methoddesc}[Clipper]{setClipValue}{value}
-Set the scalar clip value.
+Set the scalar clip value (instead of using a plane) for the clipper.
 \end{methoddesc}
 
 \subsubsection{\ContourModule class}
@@ -513,6 +516,8 @@ The following are some of the methods available:
 \begin{methoddesc}[ContourModule]{generateContours}{contours, 
 lower_range = None, upper_range = None}
 Generate the specified number of contours within the specified range.
+In order to generate an iso surface, the 'lower_range' and 'upper_range' 
+must be equal.
 \end{methoddesc}
 
 \subsubsection{\GlyphThreeD class}
@@ -539,6 +544,10 @@ The following are some of the methods available:
 Set the scale factor for the tensor glyph.
 \end{methoddesc}
 
+\begin{methoddesc}[TensorGlyph]{setMaxScaleFactor}{max_scale_factor}
+Set the maximum allowable scale factor for the tensor glyph.
+\end{methoddesc}
+
 \subsubsection{\PlaneSource class}
 
 The following are some of the methods available:
@@ -559,18 +568,13 @@ The following are some of the methods available:
 Set the radius of the sphere.
 \end{methoddesc}
 
+\begin{methoddesc}[PointSource]{setPointSourceCenter}{position}
+Set the center of the sphere.
+\end{methoddesc}
+
 \begin{methoddesc}[PointSource]{setPointSourceNumberOfPoints}{points}
 Set the number of points to generate within the sphere (the larger the
 number of points, the more streamlines are generated).
-\end{methoddesc}
-
-\subsubsection{\StructuredPoints class}
-
-The following are some of the methods available:
-
-\begin{methoddesc}[StructuredPoints]{setDimension}{x, y, z}
-Set the dimension on the x, y and z axes. The smaller the dimension, 
-the more points are populated.
 \end{methoddesc}
 
 \subsubsection{\Sphere class}
@@ -647,6 +651,19 @@ Set the radius of the tube to vary by scalar data.
 \begin{methoddesc}[Warp]{setScaleFactor}{scale_factor}
 Set the displacement scale factor.
 \end{methoddesc}
+
+\subsubsection{\MaskPoints class}
+
+\begin{methoddesc}[MaskPoints]{setRatio}{ratio}
+Mask every nth point.
+\end{methoddesc}
+
+\begin{methoddesc}[MaskPoints]{randomOn}{}
+Enables the randomization of the points selected for masking.
+\end{methoddesc}
+
+
+
 
 
 \section{Online Rendering Mechnism}
