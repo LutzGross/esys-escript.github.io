@@ -42,7 +42,7 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
+		@param data_collector: Deal with source of data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -145,7 +145,7 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
+		@param data_collector: Deal with source of data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		@type lut : L{Lut <constant.Lut>} constant
@@ -202,15 +202,11 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 					Plane._getPlane(self)) 	
 
 		MaskPoints.__init__(self, Cutter._getOutput(self))
-
 		Sphere.__init__(self)
 
 		TensorGlyph.__init__(self, MaskPoints._getOutput(self),
 				Sphere._getOutput(self))
 		Normals.__init__(self, TensorGlyph._getOutput(self)) 
-
-
-
 
 		DataSetMapper.__init__(self, Normals._getOutput(self), 
 				lookup_table._getLookupTable())
@@ -316,13 +312,11 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 			Clipper._setClipFunction(self)
 
 		MaskPoints.__init__(self, Clipper._getOutput(self))
-
 		Sphere.__init__(self)
 		TensorGlyph.__init__(self, MaskPoints._getOutput(self),
 				Sphere._getOutput(self))
 
 		Normals.__init__(self, TensorGlyph._getOutput(self))
-
 		DataSetMapper.__init__(self, Normals._getOutput(self), 
 			lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())

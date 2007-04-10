@@ -53,7 +53,7 @@ class StreamLineModule:
 
 	def __setSource(self):
 		"""
-		Set the source to generate the starting points for the streamlines.
+		Set the source to generate the starting points for the streamline.
 		"""
 
 		self.__vtk_stream_line.SetSource(self.__source)
@@ -80,7 +80,7 @@ class StreamLineModule:
 
 		@type length: Number
 		@param length: Length of the streamline segment expressed in 
-				elapsed time
+		elapsed time
 		"""
 
 		self.__vtk_stream_line.SetStepLength(length)	
@@ -93,6 +93,7 @@ class StreamLineModule:
 
 		@type length: Number
 		@param length: Length of the integration step expressed as a fraction 
+		of the size of each cell
 		"""
 
 		self.__vtk_stream_line.SetIntegrationStepLength(length)

@@ -26,7 +26,7 @@ class PointSource:
 		Setup the point source.
 		"""
 
-		# Default number of points to generate is 10.
+		# Default number of points to generate within the sphere is 10.
 		self.setPointSourceNumberOfPoints(10)
 		# Default center of the sphere is the center of the data object.
 		center = self.__object.GetCenter()
@@ -85,6 +85,9 @@ class PointSource:
 class StructuredPoints:
 	"""
 	Class that defines the structured points.
+
+	@status: This class is currently not included because it does NOT appear
+	to work with second-order elements.
 	"""
 	
 	# NOTE: The algorithm of this class was extracted from Mayavi's 
@@ -212,9 +215,9 @@ class StructuredPoints:
 
 class MaskPoints:
 	"""
-	Class that the masking of points. It is possible to mask every n'th point.
-	This is useful to prevent the rendered object from being cluttered with
-	arrows or ellipsoids.
+	Class that defines the masking of points. It is possible to mask 
+	every n'th point.  This is useful to prevent the rendered object 
+	from being cluttered with arrows or ellipsoids.
 	"""
 
 	def __init__(self, object):
@@ -222,7 +225,7 @@ class MaskPoints:
 		Initialise the mask points.
 
 		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, etc)
-		@param object: Data source to mask points from
+		@param object: Data source from which to mask points 
 		"""
 
 		self.__object = object
@@ -234,6 +237,7 @@ class MaskPoints:
 		"""
 		Setup the mask points.
 		"""
+
 		self.__setInput()
 
 	def __setInput(self):
