@@ -1283,7 +1283,7 @@ int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
       throw FinleyAdapterException("Error -  ReducedNodes not supported yet.");
       break;
     case(Elements):
-      out=mesh->FaceElements->Id;
+      out=mesh->Elements->Id;
       break;
     case(ReducedElements):
       out=mesh->Elements->Id;
