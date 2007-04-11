@@ -16,8 +16,9 @@ eopc1 = EllipsoidOnPlaneCut(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 eopc1.setScaleFactor(scale_factor = 0.1)
 eopc1.setPlaneToXY()
-eopc1.rotateX(angle = 20)
-eopc1.setRatio(10)
+eopc1.rotateX(angle = 10)
+eopc1.setRatio(5)
+eopc1.setInsideOutOn()
 #eopc1.setDimension(x = 2, y = 2, z = 2)
 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)

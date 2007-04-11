@@ -21,7 +21,7 @@ vopc1.setScaleFactor(scale_factor = 100000)
 vopc1.setPlaneToXY()
 vopc1.setRatio(3)
 vopc1.randomOn()
-vopc1.setRatio(25)
+#vopc1.setRatio(25)
 #vopc1.setDimension(x = 4, y = 4, z = 4)
 
 

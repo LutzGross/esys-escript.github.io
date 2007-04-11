@@ -23,7 +23,7 @@ dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FILE_3D)
 dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA)
 
-# Create Map for the first viewport.
+# Create a  Map for the first viewport.
 m1 = Map(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST, 
         lut = Lut.COLOR, cell_to_point = False, outline = True)
 m1.setRepresentationToWireframe()
@@ -38,7 +38,7 @@ dc2 = DataCollector(source = Source.XML)
 dc2.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FILE_3D)
 dc2.setActiveScalar(scalar = SCALAR_FIELD_CELL_DATA)
 
-# Create Map for the third viewport.
+# Create a Map for the third viewport.
 m2 = Map(scene = s, data_collector = dc2, viewport = Viewport.NORTH_EAST, 
         lut = Lut.COLOR, cell_to_point = True, outline = True)
 

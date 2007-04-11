@@ -1,4 +1,4 @@
-# Iport the necessary modules.
+# Import the necessary modules.
 from esys.pyvisi import Scene, DataCollector, StreamLine, Camera 
 from esys.pyvisi.constant import *
 
@@ -21,7 +21,7 @@ s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE,
 dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FILE_3D)
 
-# Create Streamlines.
+# Create a Streamline.
 sl1 = StreamLine(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.SCALAR, 
         lut = Lut.COLOR, cell_to_point = False, outline = True)

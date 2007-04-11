@@ -10,7 +10,7 @@ dc1.setFileName(file_name =
 dc1.setActiveScalar(scalar = "temperature_cell")
 
 # Create one carpet instance.
-cpt1 = Carpet(scene = s, data_collector = dc1, warp_mode = WarpMode.VECTOR, 
+cpt1 = Carpet(scene = s, data_collector = dc1, warp_mode = WarpMode.SCALAR, 
         lut = Lut.COLOR)
 cpt1.setPlaneToXY(0.5)
 cpt1.setScaleFactor(0.5)
