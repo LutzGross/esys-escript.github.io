@@ -16,7 +16,7 @@ eopc = EllipsoidOnPlaneClip(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
 eopc.setScaleFactor(scale_factor = 0.1)
 eopc.setPlaneToXY()
-eopc.rotateX(angle = 30)
+eopc.rotateX(angle = 10)
 #eopc.setRatio(10)
 #eopc.setDimension(x = 2,y = 2, z = 2)
 

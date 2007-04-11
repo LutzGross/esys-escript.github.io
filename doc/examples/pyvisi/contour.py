@@ -22,7 +22,7 @@ dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FILE_3D)
 dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA)
 
-# Create Contours.
+# Create a Contour.
 ctr1 = Contour(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
         lut = Lut.COLOR, cell_to_point = False, outline = True)
 ctr1.generateContours(contours = 3)
