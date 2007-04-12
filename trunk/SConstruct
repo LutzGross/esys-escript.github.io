@@ -59,6 +59,11 @@ else:
 # These are defaults and can be overridden using command line arguments or an options file.
 # if the options_file or ARGUMENTS do not exist then the ones listed as default here are used
 # DO NOT CHANGE THEM HERE
+
+# Where to install?
+prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
+print "Install prefix is: ", prefix
+
 if ARGUMENTS.get('options_file',0):
    options_file = ARGUMENTS.get('options_file',0)
 else:
@@ -78,18 +83,18 @@ else:
 opts = Options(options_file, ARGUMENTS)
 opts.AddOptions(
 # Where to install esys stuff
-  ('incinstall', 'where the esys headers will be installed', Dir('#.').abspath+'/include'),
-  ('libinstall', 'where the esys libraries will be installed', Dir('#.').abspath+'/lib'),
-  ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath),
-  ('src_zipfile', 'the source zip file will be installed.', Dir('#.').abspath+"/release/escript_src.zip"),
-  ('test_zipfile', 'the test zip file will be installed.', Dir('#.').abspath+"/release/escript_tests.zip"),
-  ('src_tarfile', 'the source tar file will be installed.', Dir('#.').abspath+"/release/escript_src.tar.gz"),
-  ('test_tarfile', 'the test tar file will be installed.', Dir('#.').abspath+"/release/escript_tests.tar.gz"),
-  ('examples_tarfile', 'the examples tar file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.tar.gz"),
-  ('examples_zipfile', 'the examples zip file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.zip"),
-  ('guide_pdf', 'name of the user guide in pdf format', Dir('#.').abspath+"/release/doc/user/guide.pdf"),
-  ('api_epydoc', 'name of the epydoc api docs directory',Dir('#.').abspath+"/release/doc/epydoc"),
-  ('guide_html', 'name of the directory for user guide in html format', Dir('#.').abspath+"/release/doc/user/html"),
+  ('incinstall', 'where the esys headers will be installed', prefix+'/include'),
+  ('libinstall', 'where the esys libraries will be installed', prefix+'/lib'),
+  ('pyinstall', 'where the esys python modules will be installed', prefix),
+  ('src_zipfile', 'the source zip file will be installed.', prefix+"/release/escript_src.zip"),
+  ('test_zipfile', 'the test zip file will be installed.', prefix+"/release/escript_tests.zip"),
+  ('src_tarfile', 'the source tar file will be installed.', prefix+"/release/escript_src.tar.gz"),
+  ('test_tarfile', 'the test tar file will be installed.', prefix+"/release/escript_tests.tar.gz"),
+  ('examples_tarfile', 'the examples tar file will be installed.', prefix+"/release/doc/escript_examples.tar.gz"),
+  ('examples_zipfile', 'the examples zip file will be installed.', prefix+"/release/doc/escript_examples.zip"),
+  ('guide_pdf', 'name of the user guide in pdf format', prefix+"/release/doc/user/guide.pdf"),
+  ('api_epydoc', 'name of the epydoc api docs directory',prefix+"/release/doc/epydoc"),
+  ('guide_html', 'name of the directory for user guide in html format', prefix+"/release/doc/user/html"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
@@ -212,7 +217,7 @@ except KeyError:
    incinstall = None
 try:
    libinstall = env['libinstall']
-   env.Append(LIBPATH = [libinstall,])
+   env.Append(LIBPATH = [libinstall,]) # ksteube adds -L for building of libescript.so libfinley.so escriptcpp.so finleycpp.so
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
    if env['PLATFORM'] == "win32":
       env.PrependENVPath('PATH', libinstall)
