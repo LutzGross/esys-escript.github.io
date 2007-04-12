@@ -42,5 +42,8 @@ dc2.setActiveScalar(scalar = SCALAR_FIELD_CELL_DATA)
 m2 = Map(scene = s, data_collector = dc2, viewport = Viewport.NORTH_EAST, 
         lut = Lut.COLOR, cell_to_point = True, outline = True)
 
+# Create a Camera for the third viewport
+c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.NORTH_EAST)
+
 # Render the object.
 s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME)
