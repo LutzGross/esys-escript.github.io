@@ -46,6 +46,9 @@ mosc2 = Contour(scene = s, data_collector = dc2,
         outline = True)
 mosc2.generateContours(0)
 
+# Create a Camera.
+cam1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
+
 # Read in one file one after another and render the object. 
 for i in range(99, 104):
     dc1.setFileName(file_name =  PYVISI_EXAMPLE_MESHES_PATH + FILE_2D +
