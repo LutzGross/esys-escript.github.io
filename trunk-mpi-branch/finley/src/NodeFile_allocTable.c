@@ -38,15 +38,15 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
   dim_t n,i;
   
   /*  allocate memory: */
-#ifdef PASO_MPI
-  Dom2=MEMALLOC(numNodes,index_t);
-#endif
   Id2=MEMALLOC(numNodes,index_t);
   Coordinates2=MEMALLOC(numNodes*in->numDim,double);
   Tag2=MEMALLOC(numNodes,index_t);
   degreeOfFreedom2=MEMALLOC(numNodes,index_t);
   reducedDegreeOfFreedom2=MEMALLOC(numNodes,index_t);
   toReduced2=MEMALLOC(numNodes,index_t);
+#ifdef PASO_MPI
+  Dom2=MEMALLOC(numNodes,index_t);
+#endif
   
   /*  if fine, deallocate the old table and replace by new: */
 #ifdef PASO_MPI 

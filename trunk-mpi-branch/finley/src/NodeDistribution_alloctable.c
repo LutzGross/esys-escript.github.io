@@ -46,7 +46,7 @@ void Finley_NodeDistribution_allocTable( Finley_NodeDistribution *in, dim_t numL
       indexExternal[i] = -1;
 
     /* MPI Communication to determine global info from local info */
-    MPI_Allreduce( &numLocal, &in->numGlobal, 1, MPI_INT, MPI_SUM, in->MPIInfo->comm );
+    MPI_Allreduce( &numLocal, &(in->numGlobal), 1, MPI_INT, MPI_SUM, in->MPIInfo->comm );
     vtxdist[0] = 0;
     MPI_Allgather( &numLocal, 1, MPI_INT, vtxdist+1, 1, MPI_INT, in->MPIInfo->comm );
     for( i=1; i<in->MPIInfo->size+1; i++ )

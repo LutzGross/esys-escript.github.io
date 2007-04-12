@@ -72,7 +72,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        S=elements->LinearReferenceElement->S;
        numNodes=nodes->reducedNumDegreesOfFreedom;
    } else {
-       Finley_setError(TYPE_ERROR,"__FILE__: Cannot interpolate data");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: Cannot interpolate data");
   }
 
   if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
@@ -84,13 +84,13 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   /* check the dimensions of interpolated_data and data */
 
   if (! numSamplesEqual(interpolated_data,numQuad,elements->numElements)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of output Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: illegal number of samples of output Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: illegal number of samples of input Data object");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: illegal number of samples of input Data object");
   } else if (numComps!=getDataPointSize(interpolated_data)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: number of components of input and interpolated Data do not match.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: number of components of input and interpolated Data do not match.");
   }  else if (!isExpanded(interpolated_data)) {
-       Finley_setError(TYPE_ERROR,"__FILE__: expanded Data object is expected for output data.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: expanded Data object is expected for output data.");
   }
 
   /* now we can start */

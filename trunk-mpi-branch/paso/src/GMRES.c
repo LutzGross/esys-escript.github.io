@@ -69,6 +69,7 @@ err_t Paso_Solver_GMRES(
     double * x,
     dim_t *iter,
     double * tolerance,dim_t Length_of_recursion,dim_t restart,
+    double* buffer0, double* buffer1,
     Paso_Performance* pp) {
 
   /* Local variables */
@@ -155,7 +156,7 @@ err_t Paso_Solver_GMRES(
          *** apply A to P to get AP 
          ***/
          #pragma omp barrier
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &P_PRES[0][0],ZERO, &AP[0]);
+	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &P_PRES[0][0],ZERO, &AP[0],buffer0,buffer1);
          /***                                                                 
          ***** calculation of the norm of R and the scalar products of       
          ***   the residuals and A*P:                                        

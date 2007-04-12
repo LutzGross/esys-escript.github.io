@@ -83,7 +83,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
                                         input_block_size, -index_offset_in*input_block_size+index_offset_out);
      output_dist=Paso_Distribution_alloc(mpi_info,pattern->output_distribution->first_component,
                                          output_block_size, -index_offset_in*output_block_size+index_offset_out);
-     out=Paso_SystemMatrixPattern_alloc(type,output_dist,input_dist,ptr,index);
+     out=Paso_SystemMatrixPattern_alloc(type,output_dist,input_dist,ptr,index,pattern->numHops,pattern->hop);
   }  
   if (! Paso_noError()) {
      MEMFREE(index);

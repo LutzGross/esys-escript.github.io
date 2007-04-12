@@ -78,11 +78,12 @@ err_t Paso_Solver_BiCGStab(
     double * x,
     dim_t *iter,
     double * tolerance,
+    double *buffer0, double *buffer1,
     Paso_Performance* pp) {
 
 
   /* Local variables */
-  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;
+  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL, *buf1=NULL, *buf0=NULL;
   double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
   double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
   dim_t num_iter=0,maxit,num_iter_global;
@@ -91,20 +92,20 @@ err_t Paso_Solver_BiCGStab(
   dim_t status = SOLVER_NO_ERROR;
 
   /* adapt original routine parameters */
+  dim_t l = A->maxNumCols * A-> col_block_size;;
   dim_t n = A->myNumCols * A-> col_block_size;;
   double * resid = tolerance;
 
   /* Executable Statements */
 
   /*     allocate memory: */
-  rtld=TMPMEMALLOC(n,double);
-  p=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  t=TMPMEMALLOC(n,double);
-  phat=TMPMEMALLOC(n,double);
-  shat=TMPMEMALLOC(n,double);
-  s=TMPMEMALLOC(n,double);
-
+  rtld=TMPMEMALLOC(l,double);
+  p=TMPMEMALLOC(l,double);
+  v=TMPMEMALLOC(l,double);
+  t=TMPMEMALLOC(l,double);
+  phat=TMPMEMALLOC(l,double);
+  shat=TMPMEMALLOC(l,double);
+  s=TMPMEMALLOC(l,double);
   /*     Test the input parameters. */
 
   if (n < 0) {
@@ -173,7 +174,7 @@ err_t Paso_Solver_BiCGStab(
 	/*        Compute direction adjusting vector PHAT and scalar ALPHA. */
    
         Paso_Solver_solvePreconditioner(A,&phat[0], &p[0]);
-	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &phat[0],ZERO, &v[0]);
+	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &phat[0],ZERO, &v[0], buffer0, buffer1);
    
         #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
 	for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
@@ -197,7 +198,7 @@ err_t Paso_Solver_BiCGStab(
 	   } else {
 	     /*           Compute stabilizer vector SHAT and scalar OMEGA. */
              Paso_Solver_solvePreconditioner(A,&shat[0], &s[0]);
-	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &shat[0],ZERO,&t[0]);
+	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &shat[0],ZERO,&t[0], buffer0, buffer1);
    
              #pragma omp for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
 	     for (i0 = 0; i0 < n; i0++) {

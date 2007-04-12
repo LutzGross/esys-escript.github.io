@@ -94,8 +94,7 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* 
             }
         }
       }
-    }
-    else {	/* More than one CPU (what's below should also work for one CPU, but let's build confidence in it first) */
+    } else {	/* More than one CPU (what's below should also work for one CPU, but let's build confidence in it first) */
 #ifdef PASO_MPI
     Finley_NodeDistribution *row_degreeOfFreedomDistribution;
     Finley_NodeDistribution *col_degreeOfFreedomDistribution;

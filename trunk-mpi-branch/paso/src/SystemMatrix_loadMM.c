@@ -193,14 +193,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Paso_Distribution* output_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         dist[1]=N;
         Paso_Distribution* input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
-        loc_pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,row_ptr,row_ind);
+        dist[0]=1;
+        loc_pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,row_ptr,row_ind,1,dist);
 
 	if(! Paso_noError() ) {
                 Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;
         }
 
- 	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1 );
+        dist[0]=1;
+ 	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, loc_pattern, 1, 1);
  	if(! Paso_noError() ) {
                 Paso_MPIInfo_dealloc(mpi_info);
  		return NULL;
@@ -327,7 +329,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         Paso_Distribution* output_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         dist[1]=M;
         Paso_Distribution* input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
-        loc_pattern=Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_CSC,output_dist,input_dist,col_ptr,col_ind);
+        dist[0]=1;
+        loc_pattern=Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_CSC,output_dist,input_dist,col_ptr,col_ind,1,dist);
 	if(! Paso_noError() ) {
                 Paso_MPIInfo_dealloc(mpi_info);
 		return NULL;

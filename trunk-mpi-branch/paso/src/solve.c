@@ -62,11 +62,6 @@ void Paso_solve(Paso_SystemMatrix* A,
      switch(package) {
 
         case PASO_PASO:
-          printf("ksteube in paso/src/solve.c : Paso_solve PASO_PASO\n");
-          if (A->mpi_info->size>1) {
-              Paso_setError(VALUE_ERROR,"Paso_solve: Paso solver does not support MPI yet.");
-              return;
-          }
           Paso_Solver(A,out,in,options,&pp);
           A->solver_package=PASO_PASO;
           break;

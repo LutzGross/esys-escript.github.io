@@ -49,7 +49,7 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
 	          for (icb=0;icb< A->col_block_size;icb++) 
                     fac+=ABS(A->val[iptr*A->block_size+irb+A->row_block_size*icb]);
               }
-              if (fac>0) {
+              if (ABS(fac)>0) {
                  A->normalizer[irow]=1./fac;
               } else {
                  A->normalizer[irow]=1.;
@@ -61,6 +61,7 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
              Paso_setError(ZERO_DIVISION_ERROR,"There is a row containing zero entries only.");
           A->normalizer_is_valid=TRUE;
       }
+      Paso_MPI_noError(A->mpi_info );
    }
    return A->normalizer;
 }

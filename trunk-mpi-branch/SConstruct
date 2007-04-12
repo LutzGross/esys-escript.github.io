@@ -139,7 +139,7 @@ opts.AddOptions(
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
   PathOption('mpi_path', 'Path to MPI includes', '/usr/local/include'),
   PathOption('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)','/usr/local/lib'),
-  ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', [ 'mpich' ]),
+  ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', [ 'mpich' , 'pthread', 'rt' ]),
 )
 
 # Initialise Scons Build Environment

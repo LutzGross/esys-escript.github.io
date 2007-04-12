@@ -40,12 +40,14 @@ void Paso_Solver_free(Paso_SystemMatrix* A) {
 void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,Paso_Performance* pp) {
     double norm2_of_b,tol,tolerance,time_iter,*r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b,
            norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local,norm_max_of_residual_local,norm_max_of_residual,
-           last_norm_max_of_residual,*scaling;
+           last_norm_max_of_residual,*scaling, *buffer0, *buffer1, loc_norm;
      dim_t i,totIter,cntIter,method;
      bool_t finalizeIteration;
      err_t errorCode;
      dim_t myNumSol = A->myNumCols * A-> col_block_size;
+     dim_t maxNumSol = A->maxNumCols * A-> col_block_size;
      dim_t myNumEqua = A->myNumRows * A-> row_block_size;
+     dim_t maxNumEqua = A->maxNumRows * A-> row_block_size;
  
      tolerance=MAX(options->tolerance,EPSILON);
      Paso_resetError();
@@ -84,6 +86,15 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                    norm_max_of_b = MAX(norm_max_of_b_local,norm_max_of_b);
                 }
            }
+           /* TODO: use one call */
+           #ifdef PASO_MPI
+           {
+               loc_norm = norm2_of_b;
+               MPI_Allreduce(&loc_norm,&norm2_of_b, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+               loc_norm = norm_max_of_b;
+               MPI_Allreduce(&loc_norm,&norm_max_of_b, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
+           }
+           #endif
            norm2_of_b=sqrt(norm2_of_b);
     
            /* if norm2_of_b==0 we are ready: x=0 */
@@ -124,11 +135,26 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
               /* get an initial guess by evaluating the preconditioner */
               time_iter=Paso_timer();
               #pragma omp parallel
-              Paso_Solver_solvePreconditioner(A,x,b);
+              {
+                 Paso_Solver_solvePreconditioner(A,x,b);
+              }
               if (! Paso_noError()) return;
               /* start the iteration process :*/
-              r=TMPMEMALLOC(myNumEqua,double);
+              r=TMPMEMALLOC(maxNumEqua,double);
               if (Paso_checkPtr(r)) return;
+              if (A->mpi_info->size>1) {
+                  buffer1=TMPMEMALLOC(maxNumSol,double);
+                  buffer0=TMPMEMALLOC(maxNumSol,double);
+                  if (Paso_checkPtr(buffer1) || Paso_checkPtr(buffer0)) {
+                     TMPMEMFREE(r);
+                     MEMFREE(buffer0);
+                     MEMFREE(buffer1);
+                     return;
+                  }
+              } else {
+                  buffer0=NULL;
+                  buffer1=NULL;
+              }
               totIter = 0;
               finalizeIteration = FALSE;
               last_norm2_of_residual=norm2_of_b;
@@ -144,7 +170,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                     #pragma omp for private(i) schedule(static)
                     for (i = 0; i < myNumEqua; i++) r[i]=b[i];
           
-                    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
+                    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r, buffer0, buffer1);
           
                     norm2_of_residual_local = 0;
                     norm_max_of_residual_local = 0;
@@ -159,6 +185,15 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                        norm_max_of_residual = MAX(norm_max_of_residual_local,norm_max_of_residual);
                     }
                  }
+                 /* TODO: use one call */
+                 #ifdef PASO_MPI
+                 {
+                     loc_norm = norm2_of_residual;
+                     MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                     loc_norm = norm_max_of_residual;
+                     MPI_Allreduce(&loc_norm,&norm_max_of_residual, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
+                 }
+                 #endif
                  norm2_of_residual =sqrt(norm2_of_residual);
           
                  if (options->verbose) printf("Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
@@ -175,16 +210,16 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                        /* call the solver */
                        switch (method) {
                               case PASO_BICGSTAB:
-                                  errorCode = Paso_Solver_BiCGStab(A, r, x, &cntIter, &tol,pp); 
+                                  errorCode = Paso_Solver_BiCGStab(A, r, x, &cntIter, &tol,buffer0, buffer1, pp); 
                                   break;
                               case PASO_PCG:
-                                  errorCode = Paso_Solver_PCG(A, r, x, &cntIter, &tol,pp); 
+                                  errorCode = Paso_Solver_PCG(A, r, x, &cntIter, &tol, buffer0, buffer1, pp); 
                                   break;
                               case PASO_PRES20:
-                                  errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,5,20,pp); 
+                                  errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,5,20, buffer0, buffer1, pp); 
                                   break;
                               case PASO_GMRES:
-                                  errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,options->truncation,options->restart,pp); 
+                                  errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,options->truncation,options->restart, buffer0, buffer1, pp); 
                                   break;
                         }
                         totIter += cntIter;
@@ -219,6 +254,8 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                 }
               } /* while */
               MEMFREE(r);
+              MEMFREE(buffer0);
+              MEMFREE(buffer1);
               time_iter=Paso_timer()-time_iter;
               if (options->verbose)  {
                  printf("timing: solver: %.4e sec\n",time_iter);

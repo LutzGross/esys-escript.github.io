@@ -111,19 +111,23 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->block_size=out->row_block_size*out->col_block_size;
      out->myLen=(size_t)(out->pattern->myLen)*(size_t)(out->block_size);
 
-     out->numRows = out->row_distribution->myNumComponents;
-     out->myNumRows = out->row_distribution->numComponents;
-     out->numCols = out->col_distribution->myNumComponents;
-     out->myNumCols = out->col_distribution->numComponents;
+     out->numRows = out->row_distribution->numComponents;
+     out->myNumRows = out->row_distribution->myNumComponents;
+     out->myFirstRow = out->row_distribution->myFirstComponent;
+     out->maxNumRows = out->row_distribution->maxNumComponents;
+     out->numCols = out->col_distribution->numComponents;
+     out->myNumCols = out->col_distribution->myNumComponents;
+     out->myFirstCol = out->col_distribution->myFirstComponent;
+     out->maxNumCols = out->col_distribution->maxNumComponents;
      out->mpi_info = Paso_MPIInfo_getReference(out->pattern->mpi_info);
      /* allocate memory for matrix entries */
      if (type & MATRIX_FORMAT_TRILINOS_CRS) {
          Paso_TRILINOS_alloc(out->trilinos_data, out->pattern,out->row_block_size,out->col_block_size);
      } else {
          if (type & MATRIX_FORMAT_CSC) {
-            n_norm = out->myNumCols * out->col_block_size;
+            n_norm = out->maxNumCols * out->col_block_size;
          } else {
-            n_norm = out->myNumRows * out->row_block_size;
+            n_norm = out->maxNumRows * out->row_block_size;
          }
          out->val=MEMALLOC(out->myLen,double);
          out->normalizer=MEMALLOC(n_norm,double);

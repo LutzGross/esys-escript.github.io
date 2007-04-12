@@ -33,21 +33,23 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
                                                          Paso_Distribution* output_distribution,
                                                          Paso_Distribution* input_distribution,
                                                          index_t* ptr,
-                                                         index_t* index) {
+                                                         index_t* index,
+                                                         dim_t numHops,
+                                                         index_t *hop) {
   Paso_SystemMatrixPattern*out;
   Paso_MPIInfo* mpi_info=output_distribution->mpi_info;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
-  dim_t i;
+  dim_t i, sum=0;
   Paso_resetError();
 
   if (input_distribution->mpi_info != output_distribution->mpi_info) {
-    Paso_setError(VALUE_ERROR,"row and column distribution must base on the same communicator.");
+    Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: row and column distribution must base on the same communicator.");
     return NULL;
   }
 
   if (type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"symmetric matrix pattern is not supported yet");
+    Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_alloc: symmetric matrix pattern is not supported yet");
     return NULL;
   }
   dim_t myNumOutput=output_distribution->myNumComponents;
@@ -95,35 +97,53 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
      MPI_Reduce (&loc_min_index,&min_index,1,PASO_MPI_INT,MPI_MIN,mpi_info->comm)
   #endif
   if (min_index<index_offset) {
-    Paso_setError(TYPE_ERROR,"Pattern index out of index offset range.");
+    Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_alloc: Pattern index out of index offset range.");
     return NULL;
   }
   if (min_index<input_distribution->firstComponent) {
-    Paso_setError(TYPE_ERROR,"Minimum pattern index out of input distribution range.");
+    Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_alloc: Minimum pattern index out of input distribution range.");
     return NULL;
   }
   if (input_distribution->firstComponent+input_distribution->numComponents <= max_index) {
-    Paso_setError(TYPE_ERROR,"Maximum pattern index out of input distribution range.");
+    Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_alloc: Maximum pattern index out of input distribution range.");
+    return NULL;
+  }
+  sum=0;
+  for (i=0;i<numHops;++i) sum+=hop[i];
+  if (! (sum == output_distribution->mpi_info->size) ) {
+    Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrixPattern_alloc: processor hops do not define a closed loop.");
     return NULL;
   }
 
   out=MEMALLOC(1,Paso_SystemMatrixPattern);
   if (Paso_checkPtr(out)) return NULL;
+  out->hop=MEMALLOC((output_distribution->mpi_info->size),index_t);
+  if (Paso_checkPtr(hop)) {
+     MEMFREE(out);
+     return NULL;
+  }
+ 
   out->type=type;
   out->reference_counter=1;
   out->myNumOutput=myNumOutput;
+  out->maxNumOutput=output_distribution->maxNumComponents;
   out->numOutput=output_distribution->numComponents;
   out->myNumInput=input_distribution->myNumComponents;
+  out->maxNumInput=input_distribution->maxNumComponents;
   out->numInput=input_distribution->numComponents;
-
   out->myLen=ptr[myNumOutput]-ptr[0];
-
   out->ptr=ptr;
   out->index=index;
   out->input_distribution=Paso_Distribution_getReference(input_distribution);
   out->output_distribution=Paso_Distribution_getReference(output_distribution);
   out->mpi_info = Paso_MPIInfo_getReference(mpi_info);
-  printf("ksteube Paso_SystemMatrixPattern_alloc cpu=%d myNumOutput=%d\n", mpi_info->rank, myNumOutput);
+  out->numHops=numHops;
+  for (i=0;i<out->numHops;++i) out->hop[i]=hop[i];
+  /* this has to go */
+  #ifdef PASO_MPI
+      out->output_node_distribution=NULL;
+      out->input_node_distribution=NULL;
+  #endif
   #ifdef Paso_TRACE
   printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been allocated.\n");
   #endif
@@ -150,6 +170,12 @@ void Paso_SystemMatrixPattern_dealloc(Paso_SystemMatrixPattern* in) {
         Paso_MPIInfo_dealloc(in->mpi_info);
         MEMFREE(in->ptr);
         MEMFREE(in->index);
+        MEMFREE(in->hop);
+        /* this has to go */
+        #ifdef PASO_MPI
+           Finley_NodeDistribution_dealloc(in->output_node_distribution);
+           Finley_NodeDistribution_dealloc(in->input_node_distribution);
+        #endif
         MEMFREE(in);
         #ifdef Paso_TRACE
         printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been deallocated.\n");

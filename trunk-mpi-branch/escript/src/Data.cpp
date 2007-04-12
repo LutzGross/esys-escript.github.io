@@ -19,7 +19,6 @@
 #include "DataEmpty.h"
 #include "DataArray.h"
 #include "DataArrayView.h"
-#include "DataProf.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
@@ -38,12 +37,6 @@ using namespace boost::python;
 using namespace boost;
 using namespace escript;
 
-#if defined DOPROF
-//
-// global table of profiling data for all Data objects
-DataProf dataProfTable;
-#endif
-
 Data::Data()
 {
   //
@@ -52,10 +45,6 @@ Data::Data()
   shared_ptr<DataAbstract> temp_data(temp);
   m_data=temp_data;
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(double value,
@@ -70,10 +59,6 @@ Data::Data(double value,
   DataArray temp(dataPointShape,value);
   initialise(temp.getView(),what,expanded);
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(double value,
@@ -85,20 +70,12 @@ Data::Data(double value,
   pair<int,int> dataShape=what.getDataShape();
   initialise(temp.getView(),what,expanded);
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const Data& inData)
 {
   m_data=inData.m_data;
   m_protected=inData.isProtected();
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const Data& inData,
@@ -110,25 +87,14 @@ Data::Data(const Data& inData,
   shared_ptr<DataAbstract> temp_data(tmp);
   m_data=temp_data;
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const Data& inData,
            const FunctionSpace& functionspace)
 {
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
   if (inData.getFunctionSpace()==functionspace) {
     m_data=inData.m_data;
   } else {
-    #if defined DOPROF
-    profData->interpolate++;
-    #endif
     Data tmp(0,inData.getPointDataView().getShape(),functionspace,true);
     // Note: Must use a reference or pointer to a derived object
     // in order to get polymorphic behaviour. Shouldn't really
@@ -158,10 +124,6 @@ Data::Data(const DataTagged::TagListType& tagKeys,
   if (expanded) {
     expand();
   }
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const numeric::array& value,
@@ -170,10 +132,6 @@ Data::Data(const numeric::array& value,
 {
   initialise(value,what,expanded);
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const DataArrayView& value,
@@ -182,10 +140,6 @@ Data::Data(const DataArrayView& value,
 {
   initialise(value,what,expanded);
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const object& value,
@@ -195,10 +149,6 @@ Data::Data(const object& value,
   numeric::array asNumArray(value);
   initialise(asNumArray,what,expanded);
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::Data(const object& value,
@@ -220,10 +170,6 @@ Data::Data(const object& value,
     initialise(temp.getView(),other.getFunctionSpace(),false);
   }
   m_protected=false;
-#if defined DOPROF
-  // create entry in global profiling table for this object
-  profData = dataProfTable.newData();
-#endif
 }
 
 Data::~Data()
@@ -423,54 +369,36 @@ Data::tag()
 Data
 Data::oneOver() const
 {
-#if defined DOPROF
-  profData->where++;
-#endif
   return escript::unaryOp(*this,bind1st(divides<double>(),1.));
 }
 
 Data
 Data::wherePositive() const
 {
-#if defined DOPROF
-  profData->where++;
-#endif
   return escript::unaryOp(*this,bind2nd(greater<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
-#if defined DOPROF
-  profData->where++;
-#endif
   return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
-#if defined DOPROF
-  profData->where++;
-#endif
   return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
-#if defined DOPROF
-  profData->where++;
-#endif
   return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0));
 }
 
 Data
 Data::whereZero(double tol) const
 {
-#if defined DOPROF
-  profData->where++;
-#endif
   Data dataAbs=abs();
   return escript::unaryOp(dataAbs,bind2nd(less_equal<double>(),tol));
 }
@@ -478,9 +406,6 @@ Data::whereZero(double tol) const
 Data
 Data::whereNonZero(double tol) const
 {
-#if defined DOPROF
-  profData->where++;
-#endif
   Data dataAbs=abs();
   return escript::unaryOp(dataAbs,bind2nd(greater<double>(),tol));
 }
@@ -488,9 +413,6 @@ Data::whereNonZero(double tol) const
 Data
 Data::interpolate(const FunctionSpace& functionspace) const
 {
-#if defined DOPROF
-  profData->interpolate++;
-#endif
   return Data(*this,functionspace);
 }
 
@@ -512,9 +434,6 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
-#if defined DOPROF
-  profData->grad++;
-#endif
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
   DataArrayView::ShapeType grad_shape=getPointDataView().getShape();
@@ -970,10 +889,6 @@ Data::integrate() const
   int rank = getDataPointRank();
   DataArrayView::ShapeType shape = getDataPointShape();
 
-#if defined DOPROF
-  profData->integrate++;
-#endif
-
   //
   // calculate the integral values
   vector<double> integrals(getDataPointSize());
@@ -1037,171 +952,114 @@ Data::integrate() const
 Data
 Data::erf() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
 }
 
 Data
 Data::sin() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sin);
 }
 
 Data
 Data::cos() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cos);
 }
 
 Data
 Data::tan() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tan);
 }
 
 Data
 Data::asin() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asin);
 }
 
 Data
 Data::acos() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acos);
 }
 
 Data
 Data::atan() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atan);
 }
 
 Data
 Data::sinh() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sinh);
 }
 
 Data
 Data::cosh() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cosh);
 }
 
 Data
 Data::tanh() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tanh);
 }
 
 Data
 Data::asinh() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
 }
 
 Data
 Data::acosh() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
 }
 
 Data
 Data::atanh() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
 }
 
 Data
 Data::log10() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log10);
 }
 
 Data
 Data::log() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log);
 }
 
 Data
 Data::sign() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,escript::fsign);
 }
 
 Data
 Data::abs() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::fabs);
 }
 
 Data
 Data::neg() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,negate<double>());
 }
 
 Data
 Data::pos() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   Data result;
   // perform a deep copy
   result.copy(*this);
@@ -1211,18 +1069,12 @@ Data::pos() const
 Data
 Data::exp() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::exp);
 }
 
 Data
 Data::sqrt() const
 {
-#if defined DOPROF
-  profData->unary++;
-#endif
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sqrt);
 }
 
@@ -1230,9 +1082,6 @@ double
 Data::Lsup() const
 {
   double localValue, globalValue;
-#if defined DOPROF
-  profData->reduction1++;
-#endif
   //
   // set the initial absolute maximum value to zero
 
@@ -1250,9 +1099,6 @@ double
 Data::Linf() const
 {
   double localValue, globalValue;
-#if defined DOPROF
-  profData->reduction1++;
-#endif
   //
   // set the initial absolute minimum value to max double
   AbsMin abs_min_func;
@@ -1270,9 +1116,6 @@ double
 Data::sup() const
 {
   double localValue, globalValue;
-#if defined DOPROF
-  profData->reduction1++;
-#endif
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
@@ -1289,9 +1132,6 @@ double
 Data::inf() const
 {
   double localValue, globalValue;
-#if defined DOPROF
-  profData->reduction1++;
-#endif
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
@@ -1309,9 +1149,6 @@ Data::inf() const
 Data
 Data::maxval() const
 {
-#if defined DOPROF
-  profData->reduction2++;
-#endif
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
@@ -1321,9 +1158,6 @@ Data::maxval() const
 Data
 Data::minval() const
 {
-#if defined DOPROF
-  profData->reduction2++;
-#endif
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
@@ -1334,9 +1168,6 @@ Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
      int axis0_tmp,axis1_tmp;
-     #if defined DOPROF
-     profData->unary++;
-     #endif
      DataArrayView::ShapeType s=getDataPointShape();
      DataArrayView::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
@@ -1380,9 +1211,6 @@ Data::swapaxes(const int axis0, const int axis1) const
 Data
 Data::symmetric() const
 {
-     #if defined DOPROF
-        profData->unary++;
-     #endif
      // check input
      DataArrayView::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
@@ -1405,9 +1233,6 @@ Data::symmetric() const
 Data
 Data::nonsymmetric() const
 {
-     #if defined DOPROF
-        profData->unary++;
-     #endif
      // check input
      DataArrayView::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
@@ -1442,9 +1267,6 @@ Data::nonsymmetric() const
 Data
 Data::trace(int axis_offset) const
 {
-     #if defined DOPROF
-        profData->unary++;
-     #endif
      DataArrayView::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
         DataArrayView::ShapeType ev_shape;
@@ -1495,9 +1317,6 @@ Data::trace(int axis_offset) const
 Data
 Data::transpose(int axis_offset) const
 {
-     #if defined DOPROF
-     profData->unary++;
-     #endif
      DataArrayView::ShapeType s=getDataPointShape();
      DataArrayView::ShapeType ev_shape;
      // Here's the equivalent of python s_out=s[axis_offset:]+s[:axis_offset]
@@ -1519,9 +1338,6 @@ Data::transpose(int axis_offset) const
 Data
 Data::eigenvalues() const
 {
-     #if defined DOPROF
-        profData->unary++;
-     #endif
      // check input
      DataArrayView::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2) 
@@ -1539,9 +1355,6 @@ Data::eigenvalues() const
 const boost::python::tuple
 Data::eigenvalues_and_eigenvectors(const double tol) const
 {
-     #if defined DOPROF
-        profData->unary++;
-     #endif
      DataArrayView::ShapeType s=getDataPointShape();
      if (getDataPointRank()!=2) 
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for rank 2 object.");
@@ -1955,9 +1768,6 @@ Data::getItem(const boost::python::object& key) const
 Data
 Data::getSlice(const DataArrayView::RegionType& region) const
 {
-#if defined DOPROF
-  profData->slicing++;
-#endif
   return Data(*this,region);
 }
 
@@ -1999,9 +1809,6 @@ Data::setSlice(const Data& value,
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
   }
-#if defined DOPROF
-  profData->slicing++;
-#endif
   Data tempValue(value);
   typeMatchLeft(tempValue);
   typeMatchRight(tempValue);
@@ -2441,10 +2248,6 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 {
   // General tensor product: res(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
   // SM is the product of the last axis_offset entries in arg_0.getShape().
-
-  #if defined DOPROF
-    // profData->binary++;
-  #endif
 
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;

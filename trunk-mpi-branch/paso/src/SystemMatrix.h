@@ -59,8 +59,12 @@ typedef struct Paso_SystemMatrix {
 
   dim_t numRows;
   dim_t myNumRows;
+  dim_t myFirstRow;
+  dim_t maxNumRows;
   dim_t numCols;
   dim_t myNumCols;
+  dim_t myFirstCol;
+  dim_t maxNumCols;
 
   Paso_MPIInfo *mpi_info;
   Paso_SystemMatrixPattern* pattern;
@@ -90,13 +94,23 @@ void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_
 void Paso_SystemMatrix_MatrixVector(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
 void Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
 void Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
-void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out, double* buffer0, double* buffer1);
+void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_S(double alpha, Paso_SystemMatrix* A, double* in, double* out);
+void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_P(double alpha, Paso_SystemMatrix* A, double* in, index_t min_index, index_t max_index, double* out);
 void Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
 void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+void Paso_SystemMatrix_nullifyRowsAndCols_CSC_BLK1(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+void Paso_SystemMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+void Paso_SystemMatrix_nullifyRowsAndCols_CSC(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+void Paso_SystemMatrix_nullifyRowsAndCols_CSR(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+void Paso_SystemMatrix_nullifyRows_CSR(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
+void Paso_SystemMatrix_nullifyRows_CSR_BLK1(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
+void Paso_SystemMatrix_nullifyCols_CSR(Paso_SystemMatrix* A, double* mask_col, double main_diagonal_value, index_t min_index, index_t max_index);
+void Paso_SystemMatrix_nullifyCols_CSR_BLK1(Paso_SystemMatrix* A, double* mask_col, double main_diagonal_value, index_t min_index, index_t max_index);
 void Paso_SystemMatrix_setDefaults(Paso_Options*);
 int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, bool_t symmetry);
 Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,dim_t,dim_t,index_t*,index_t*);

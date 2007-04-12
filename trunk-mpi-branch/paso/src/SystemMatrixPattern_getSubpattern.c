@@ -82,7 +82,8 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
         Paso_Distribution* row_dist=Paso_Distribution_alloc(pattern->mpi_info, dist,1,0);
         dist[1]=newNumCols;
         Paso_Distribution* col_dist=Paso_Distribution_alloc(pattern->mpi_info, dist,1,0);
-        out=Paso_SystemMatrixPattern_alloc(pattern->type,row_dist,col_dist,ptr,index);
+        dist[0]=1;
+        out=Paso_SystemMatrixPattern_alloc(pattern->type,row_dist,col_dist,ptr,index,1,dist);
         if (! Paso_noError()) {
           MEMFREE(index);
           MEMFREE(ptr);

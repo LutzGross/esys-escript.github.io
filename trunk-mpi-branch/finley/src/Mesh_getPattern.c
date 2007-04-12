@@ -64,12 +64,15 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_
 }
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
   double time0;
-  dim_t i,n;
-  index_t s,itmp,*rowLabel=NULL,*colLabel=NULL, *ptr=NULL, *index=NULL;
+  Paso_SystemMatrixPattern *pattern = NULL;
+  dim_t i,n, numHops;
+  index_t s,itmp,*rowLabel=NULL,*colLabel=NULL, *ptr=NULL, *index=NULL, *hop=NULL;
   Finley_IndexList* index_list=NULL;
   Finley_resetError();
-  Finley_NodeDistribution *row_degreeOfFreedomDistribution;
-  Finley_NodeDistribution *col_degreeOfFreedomDistribution;
+  Finley_NodeDistribution *row_degreeOfFreedomDistribution=NULL;
+  Finley_NodeDistribution *col_degreeOfFreedomDistribution=NULL;
+  Paso_Distribution *row_distribution=NULL;
+  Paso_Distribution *col_distribution=NULL;
 
   time0=Finley_timer();
 
@@ -110,6 +113,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   index_list=TMPMEMALLOC(n,Finley_IndexList);
   ptr=MEMALLOC(n+1,index_t);
   if (! (Finley_checkPtr(index_list) || Finley_checkPtr(ptr)) ) {
+  
       #pragma omp parallel private(i,s,itmp)
       {
         #pragma omp for schedule(static)
@@ -167,30 +171,43 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   #ifdef Finley_TRACE
   printf("timing: mesh to matrix pattern: %.4e sec\n",Finley_timer()-time0);
   #endif
-  if (! Finley_noError()) {
-    MEMFREE(ptr);
-    MEMFREE(index);
-    return NULL;
-  } else {
+  if (Finley_noError()) {
     // Use a getReference method to get the DOF distributions to avoid memory leaks
     if (reduce_col_order) {
       col_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
+    } else {
       col_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
     }
     if (reduce_row_order) {
       row_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
+    } else {
       row_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
     }
-    Paso_Distribution *row_distribution=Paso_Distribution_alloc(mesh->MPIInfo, row_degreeOfFreedomDistribution->vtxdist,1,0);
-    Paso_Distribution *col_distribution=Paso_Distribution_alloc(mesh->MPIInfo, col_degreeOfFreedomDistribution->vtxdist,1,0);
-    Paso_SystemMatrixPattern *pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
-                                  row_distribution,
-                                  col_distribution,
-                                  ptr,index); /* add distr info */
-    return pattern;
+    row_distribution=Paso_Distribution_alloc(mesh->MPIInfo, row_degreeOfFreedomDistribution->vtxdist,1,0);
+    col_distribution=Paso_Distribution_alloc(mesh->MPIInfo, col_degreeOfFreedomDistribution->vtxdist,1,0);
+    
+    if (Finley_noError()) {
+       Paso_SystemMatrixPattern_makeHops(PATTERN_FORMAT_DEFAULT,col_distribution,ptr,index,&numHops,&hop);
+       if (Finley_noError()) {
+          pattern = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
+                                                   row_distribution,
+                                                   col_distribution,
+                                                   ptr,index,numHops, hop); 
+          if (Finley_noError()) {
+            #ifdef PASO_MPI
+            pattern->output_node_distribution=Finley_NodeDistribution_getReference(row_degreeOfFreedomDistribution);
+            pattern->input_node_distribution=Finley_NodeDistribution_getReference(col_degreeOfFreedomDistribution);
+            #endif
+          }
+      }
+    }
+    Paso_Distribution_free(row_distribution);
+    Paso_Distribution_free(col_distribution);
   }
+  MEMFREE(hop);
+  if (! Finley_noError()) {
+    MEMFREE(ptr);
+    MEMFREE(index);
+  }
+  return pattern;
 }

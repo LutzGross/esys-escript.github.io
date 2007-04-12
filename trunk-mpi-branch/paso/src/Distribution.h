@@ -35,10 +35,11 @@ struct Paso_Distribution
   dim_t reference_counter;
   Paso_MPIInfo *mpi_info;
   index_t *first_component;  /* process i has nodes with global indices
-                             first_component[i] to first_component[i]-1. */
+                             first_component[i+1] to first_component[i]. */
   dim_t numComponents;
   index_t firstComponent;
   dim_t myNumComponents;
+  dim_t maxNumComponents;
   index_t myFirstComponent;
 };
 

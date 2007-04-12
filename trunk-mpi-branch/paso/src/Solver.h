@@ -87,9 +87,9 @@ typedef struct Paso_Solver_Preconditioner {
 
 void Paso_Solver(Paso_SystemMatrix*,double*,double*,Paso_Options*,Paso_Performance* pp);
 void Paso_Solver_free(Paso_SystemMatrix*);
-err_t Paso_Solver_BiCGStab( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance,Paso_Performance* pp);
-err_t Paso_Solver_PCG( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance,Paso_Performance* pp);
-err_t Paso_Solver_GMRES(Paso_SystemMatrix * A, double * r, double * x, dim_t *num_iter, double * tolerance,dim_t length_of_recursion,dim_t restart,Paso_Performance* pp);
+err_t Paso_Solver_BiCGStab( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, double* buffer0, double* buffer1, Paso_Performance* pp);
+err_t Paso_Solver_PCG( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, double* buffer0, double* buffer1, Paso_Performance* pp);
+err_t Paso_Solver_GMRES(Paso_SystemMatrix * A, double * r, double * x, dim_t *num_iter, double * tolerance,dim_t length_of_recursion,dim_t restart, double* buffer0, double* buffer1, Paso_Performance* pp);
 void Paso_Preconditioner_free(Paso_Solver_Preconditioner*);
 void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double*,double*);

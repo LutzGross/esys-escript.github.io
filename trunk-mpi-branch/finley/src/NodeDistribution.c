@@ -35,7 +35,7 @@ void Finley_NodeDistribution_dealloc( Finley_NodeDistribution *in )
 {
   index_t i;
 
-  if( in && !(--in->reference_counter) )
+  if( in && !(--(in->reference_counter)) )
   {
     Paso_MPIInfo_dealloc( in->MPIInfo );
 
@@ -52,8 +52,9 @@ void Finley_NodeDistribution_dealloc( Finley_NodeDistribution *in )
 
 Finley_NodeDistribution* Finley_NodeDistribution_getReference( Finley_NodeDistribution *in )
 {
+
   if( in ) 
-    in->reference_counter++;
+    (in->reference_counter)++;
   
   return in;
 }
