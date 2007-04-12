@@ -23,5 +23,5 @@ c1.isometricView()
 
 # Animate multiple cuts from the translation.
 for i in range(0, 60):
-    s.animate()
+    s.render()
     mopc1.translate(0.05,0,0)

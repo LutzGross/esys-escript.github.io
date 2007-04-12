@@ -233,7 +233,7 @@ Including methods from \ActorTwoD.
 
 \subsection{Data Visualization Classes}
 This subsection details the instances used to process and manipulate the source
-data.
+data. The typical usage of the classes is also shown. 
 
 One point to note is that the source can either be point or cell data. If the
 source is cell data, a conversion to point data may or may not be
@@ -253,8 +253,7 @@ can either be colored or grey-scaled, depending on the lookup table used.
 The following are some of the methods available:\\
 Methods from \ActorThreeD.
 
-A typical usage of \Map is shown below, which can be found in 
-\texttt{\PyvisiExampleDirectory}.
+A typical usage of \Map is shown below.
 
 \begin{python}
 # Import the necessary modules.
@@ -359,7 +358,7 @@ Methods from \ActorThreeD, \GlyphThreeD and \MaskPoints.
 
 \subsubsection{\VelocityOnPlaneCut class}
 
-\begin{classdesc}{VelocityOnPlaneCut}{scene, data_collector, 
+\begin{classdesc}{VelocityOnPlaneCut}{scene, data_collector,
 arrow = Arrow.TWO_D, color_mode = ColorMode.VECTOR, 
 viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
 cell_to_point = False, outline = True}
@@ -370,8 +369,7 @@ it shows a vector field using arrows cut using a plane.
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \GlyphThreeD, \Transform and \MaskPoints. 
 
-A typical usage of \VelocityOnPlaneCut is shown below, which can be found in 
-\texttt{\PyvisiExampleDirectory}.
+A typical usage of \VelocityOnPlaneCut is shown below.
 
 \begin{python}
 # Import the necessary modules
@@ -469,8 +467,7 @@ The following are some of the methods available:\\
 Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform, \Clipper 
 and \MaskPoints.
 
-A typical usage of \EllipsoidOnPlaneClip is shown below, which can be found in 
-\texttt{\PyvisiExampleDirectory}.
+A typical usage of \EllipsoidOnPlaneClip is shown below.
 
 \begin{python}
 # Import the necessary modules
@@ -527,8 +524,7 @@ class can also be used to generate iso surfaces.
 The following are some of the methods available:\\
 Methods from \ActorThreeD and \ContourModule. 
 
-A typical usage of \Contour is shown below, which can be found in 
-\texttt{\PyvisiExampleDirectory}.
+A typical usage of \Contour is shown below.
 
 \begin{python}
 # Import the necessary modules
@@ -606,8 +602,7 @@ modes, either using vector data or scalar data.
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \PointSource, \StreamLineModule and \Tube. 
 
-A typical usage of \StreamLine is shown below, which can be found in 
-\texttt{\PyvisiExampleDirectory}.
+A typical usage of \StreamLine is shown below.
 
 \begin{python}
 # Import the necessary modules.
@@ -661,8 +656,7 @@ Similarly, the plane can be deformated either using scalar data or vector data.
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \Warp and \Transform.
 
-A typical usage of \Carpet is shown below, which can be found in 
-\texttt{\PyvisiExampleDirectory}.
+A typical usage of \Carpet is shown below.
 
 \begin{python}
 # Import the necessary modules.
@@ -707,14 +701,14 @@ s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME)
 
 \begin{classdesc}{Image}{scene, image_reader, viewport = Viewport.SOUTH_WEST}
 Class that displays an image which can be scaled (upwards and downwards). The 
-image can also be translated and rotated along the X, Y and Z axes.
+image can also be translated and rotated along the X, Y and Z axes. One of 
+the most common use of this feature is pasting an image on a surface map.
 \end{classdesc}
 
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \PlaneSource and \Transform.
 
-A typical usage of \Image is shown below, which can be found in 
-\texttt{\PyvisiExampleDirectory}.
+A typical usage of \Image is shown below.
 
 \begin{python}
 # Import the necessary modules.
@@ -971,36 +965,149 @@ Mask every nth point.
 Enables the randomization of the points selected for masking.
 \end{methoddesc}
 
-\section{Online Rendering Mechnism}
 
-%\begin{table}
-%\begin{tabular}{c c c}
-%\includegraphics[width=\thumbnailwidth]{figures/Map} &
-%\includegraphics[width=\thumbnailwidth]{figures/MapOnPlaneCut} &
-%\includegraphics[width=\thumbnailwidth]{figures/MapOnPlaneClip} \\
-%1 & 2 & 3 \\
-%\includegraphics[width=\thumbnailwidth]{figures/MapOnScalarClip}  \\
-%4
-%\end{tabular}
-%\end{table}
+% ############################################################################
 
 
+\section{Sample Output}
+The following section displays a list of sample outputs.  
+
+\begin{table}[h]
+\begin{tabular}{c c c}
+\includegraphics[width=\thumbnailwidth]{figures/Map} &
+\includegraphics[width=\thumbnailwidth]{figures/MapOnPlaneCut} &
+\includegraphics[width=\thumbnailwidth]{figures/MapOnPlaneClip} \\
+Map & MapOnPlaneCut & MapOnPlaneClip \\
+\includegraphics[width=\thumbnailwidth]{figures/MapOnScalarClip} & 
+\includegraphics[width=\thumbnailwidth]{figures/Velocity} & 
+\includegraphics[width=\thumbnailwidth]{figures/VelocityOnPlaneCut}  \\
+MapOnScalarClip & Velocity & VelocityOnPlaneCut \\
+\includegraphics[width=\thumbnailwidth]{figures/VelocityOnPlaneClip} & 
+\includegraphics[width=\thumbnailwidth]{figures/Ellipsoid} & 
+\includegraphics[width=\thumbnailwidth]{figures/EllipsoidOnPlaneCut}  \\
+VelocityOnPlaneClip & Ellipsoid & EllipsoidOnPlaneCut \\
+\includegraphics[width=\thumbnailwidth]{figures/EllipsoidOnPlaneClip} & 
+\includegraphics[width=\thumbnailwidth]{figures/Contour} & 
+\includegraphics[width=\thumbnailwidth]{figures/ContourOnPlaneCut}  \\
+EllipsoidOnPlaneClip & Contour & ContourOnPlaneCut \\
+\includegraphics[width=\thumbnailwidth]{figures/ContourOnPlaneClip} & 
+\includegraphics[width=\thumbnailwidth]{figures/StreamLine} & 
+\includegraphics[width=\thumbnailwidth]{figures/Carpet}  \\
+ContourOnPlaneClip & StreamLine & Carpet \\
+\end{tabular}
+\caption{Sample output}
+\end{table}
 
 
+% ############################################################################# 
 
 
+\section{Complex Examples}
+The following scripts show some of the more complex examples.
+
+\textsf{Reading A Series of Files}
+
+\begin{python}
+# Import the necessary modules.
+from esys.pyvisi import Scene, DataCollector, Contour, Camera 
+from esys.pyvisi.constant import *
+
+PYVISI_EXAMPLE_MESHES_PATH = "data_meshes/"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+X_SIZE = 400
+Y_SIZE = 300
+
+SCALAR_FIELD_POINT_DATA_1 = "lava"
+SCALAR_FIELD_POINT_DATA_2 = "talus"
+FILE_2D = "phi_talus_lava."
+FIRST_FILE_NAME = "phi_talus_lava.0099.vtu"
+
+IMAGE_NAME = "seriesofreads"
+JPG_RENDERER = Renderer.ONLINE_JPG
 
 
-%\begin{tabular}{c c c c}
-%\includegraphics[scale = 0.1]{figures/EscriptDiagram1} & 
-%\includegraphics[scale = 0.1]{figures/EscriptDiagram1} & 
-%\includegraphics[scale = 0.1]{figures/EscriptDiagram1} & 
-%\includegraphics[scale = 0.1]{figures/EscriptDiagram1} \\ 
-%1 & 2 & 3 & 4
-%\end{tabular}
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
+        y_size = Y_SIZE)
+
+# Create a DataCollector reading from a XML file. An initial file must always
+# be assigned when the DataCollector is created, although the same file is 
+# read again in the for-loop.   
+dc1 = DataCollector(source = Source.XML)
+dc1.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FIRST_FILE_NAME)
+dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_1)
+
+# Create a Contour.
+mosc1 = Contour(scene = s, data_collector = dc1, 
+        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
+        outline = True)
+mosc1.generateContours(0)
+
+# Create a second DataCollector reading from the same XML file. An initial 
+# file must always be assigned when the DataCollector is created, 
+# although the same file is read again in the for-loop.   
+dc2 = DataCollector(source = Source.XML)
+dc2.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FIRST_FILE_NAME)
+dc2.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_2)
+
+# Create a second Contour.
+mosc2 = Contour(scene = s, data_collector = dc2, 
+        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
+        outline = True)
+mosc2.generateContours(0)
+
+# Read in one file one after another and render the object. 
+for i in range(99, 104):
+    dc1.setFileName(file_name =  PYVISI_EXAMPLE_MESHES_PATH + FILE_2D +
+	        "%04d.vtu" % i)
+    dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_1)
+    dc2.setFileName(file_name =  PYVISI_EXAMPLE_MESHES_PATH + FILE_2D +
+	        "%04d.vtu" % i)
+    dc2.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_2)
+
+    s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME + "%04d.jpg" % i)
+\end{python}
+
+\textsf{Manipulating A Single File with A Series of Translation}
+
+\begin{python}
+# Import the necessary modules.
+from esys.pyvisi import Scene, DataCollector, MapOnPlaneCut, Camera
+from esys.pyvisi.constant import *
+
+PYVISI_EXAMPLE_MESHES_PATH = "data_meshes/"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+X_SIZE = 400
+Y_SIZE = 400
+
+SCALAR_FIELD_POINT_DATA = "temperature"
+FILE_3D = "interior_3D.xml"
+IMAGE_NAME = "seriesofcuts"
+JPG_RENDERER = Renderer.ONLINE_JPG
 
 
-same word on rendering, off-line, on-line, how to rotate, zoom, close the window, ...
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
+        y_size = Y_SIZE)
 
-%==============================================
-\section{How to Make a Movie}
+# Create a DataCollector reading from a XML file.
+dc1 = DataCollector(source = Source.XML)
+dc1.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FILE_3D)
+dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA)
+
+# Create a MapOnPlaneCut.
+mopc1 = MapOnPlaneCut(scene = s, data_collector = dc1, 
+        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
+        outline = True)
+mopc1.setPlaneToYZ(offset = 0.1)
+
+# Create a Camera.
+c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
+c1.isometricView()
+
+# Render the object with multiple cuts from a series of translation.
+for i in range(0, 5):
+    s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME + "%02d.jpg" % i)
+    mopc1.translate(0.6,0,0)
+\end{python}
+

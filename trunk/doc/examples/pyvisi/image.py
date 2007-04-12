@@ -1,5 +1,5 @@
 # Import the necessary modules.
-from esys.pyvisi import Scene, DataCollector, Map, ImageReader, Image
+from esys.pyvisi import Scene, DataCollector, Map, ImageReader, Image, Camera
 from esys.pyvisi import GlobalPosition
 from esys.pyvisi.constant import *
 
@@ -36,6 +36,9 @@ i.setOpacity(opacity = 0.9)
 i.translate(0,0,-1)
 i.setPoint1(GlobalPosition(2,0,0))
 i.setPoint2(GlobalPosition(0,2,0))
+
+# Create a Camera. 
+c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 
 # Render the object.
 s.render(PYVISI_EXAMPLE_IMAGES_PATH + SAVE_IMAGE_NAME)
