@@ -1388,10 +1388,6 @@ class Data {
   // pointer to the actual data object
   boost::shared_ptr<DataAbstract> m_data;
 
-  //
-  // pointer to the internal profiling data
-  struct profDataEntry *profData;
-
 };
 
 template <class IValueType>
@@ -1611,9 +1607,6 @@ Data::binaryOp(const Data& right,
      EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
      escript::binaryOp(*leftC,*rightC,operation);
    }
-   #if defined DOPROF
-   profData->binary++;
-   #endif
 }
 
 /**

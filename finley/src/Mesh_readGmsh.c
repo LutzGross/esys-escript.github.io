@@ -245,7 +245,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                  final_element_type=Line2;
               } else if (numDim==2) {
                  final_element_type=Tri3;
-              } else if (numDim==2) {
+              } else if (numDim==3) {
                  final_element_type=Tet4;
               }
            }
@@ -254,7 +254,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                  final_face_element_type=Point1;
               } else if (numDim==2) {
                  final_face_element_type=Line2;
-              } else if (numDim==2) {
+              } else if (numDim==3) {
                  final_face_element_type=Tri3;
               }
            }
