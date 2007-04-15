@@ -11,6 +11,13 @@ class Transform:
 	@attention: There is a difference between performing rotation first 
 	followed by translation, and performing translation first followed 
 	by rotation.
+
+	@attention: VTK's coordinate system and translation is NOT 100% accurate. 
+	Consequently, performing maximum rotation and translation can potentially
+	yield incorrect results. For instance, rotating a XY plane along the x-axis 
+	90 degrees may NOT produce any results (as it is possible that the XY 
+	plane has just fallen outside the visible range). However, rotating the 
+	XY plane 89.9 degrees instead should produce the correct resutls.
 	"""
 
 	def __init__(self):

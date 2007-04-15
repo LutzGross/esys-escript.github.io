@@ -303,21 +303,24 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
-			Clipper.__init__(self, c2p._getOutput(), 
-					Plane._getPlane(self)) 	
-			Clipper._setClipFunction(self)
+			MaskPoints.__init__(self, c2p._getOutput())
 		elif(cell_to_point == False): # No conversion happens.	
-			Clipper.__init__(self, data_collector._getOutput(), 
-					Plane._getPlane(self)) 	
-			Clipper._setClipFunction(self)
+			MaskPoints.__init__(self, data_collector._getOutput())
 
-		MaskPoints.__init__(self, Clipper._getOutput(self))
+		# NOTE: TensorGlyph must come before Clipper. Otherwise clipping
+		# may not work correctly.
 		Sphere.__init__(self)
 		TensorGlyph.__init__(self, MaskPoints._getOutput(self),
 				Sphere._getOutput(self))
-
 		Normals.__init__(self, TensorGlyph._getOutput(self))
-		DataSetMapper.__init__(self, Normals._getOutput(self), 
+
+		# NOTE: Clipper must come after TensorGlyph. Otherwise clipping
+		# may not work correctly.
+		Clipper.__init__(self, Normals._getOutput(self), 
+				Plane._getPlane(self)) 	
+		Clipper._setClipFunction(self)
+
+		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 			lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
