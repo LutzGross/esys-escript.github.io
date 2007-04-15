@@ -355,18 +355,12 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		if(cell_to_point == True): # Converts cell data to point data.
 			c2p = CellDataToPointData(data_collector._getOutput())
-			Clipper.__init__(self, c2p._getOutput(), 
-					Plane._getPlane(self)) 	
-			Clipper._setClipFunction(self)
+			MaskPoints.__init__(self, c2p._getOutput())
 		elif(cell_to_point == False): # No conversion happens.	
-			Clipper.__init__(self, data_collector._getOutput(), 
-					Plane._getPlane(self)) 	
-			Clipper._setClipFunction(self)
+			MaskPoints.__init__(self, data_collector._getOutput())
 
-		MaskPoints.__init__(self, Clipper._getOutput(self))
-
-		# NOTE: Glyph3D must come before Clipper. Otherwise, the output will
-		# be incorrect.
+		# NOTE: Glyph3D must come before Clipper. Otherwise clipping may not
+		# work correctly.
 		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
 			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
@@ -376,7 +370,13 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
 					Arrow3D._getOutput(self)) 
 		
-		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
+		Clipper.__init__(self, Glyph3D._getOutput(self), 
+				Plane._getPlane(self)) 	
+		Clipper._setClipFunction(self)
+
+		# NOTE: Clipper must come after Glyph. Otherwise clipping
+        # may not work correctly.
+		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 				lookup_table._getLookupTable())
 
 		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
