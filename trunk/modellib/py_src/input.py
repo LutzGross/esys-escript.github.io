@@ -207,8 +207,6 @@ class ScalarDistributionFromTags(ParameterSet):
             
     @ivar domain: domain
     @type domain: L{esys.escript.Domain}
-    @ivar tag_map: maping from names to tags
-    @type tag_map: L{esys.pycad.TagMap}
     @ivar default: default value 
     @ivar tag0: tag 0
     @type tag0: C{int}
@@ -254,7 +252,6 @@ class ScalarDistributionFromTags(ParameterSet):
     def __init__(self,**kwargs):
         super(ScalarDistributionFromTags, self).__init__(**kwargs)
         self.declareParameter(domain=None,
-                              tag_map=None,
                               default=0.,
                               tag0=None,
                               value0=0.,
@@ -284,30 +281,16 @@ class ScalarDistributionFromTags(ParameterSet):
         Link against this method to get the output of this model.
         """
         d=Scalar(self.default,Function(self.domain))
-        if self.tag_map == None:
-            if not self.tag0 == None: d.setTaggedValue(self.tag0,self.value0)
-            if not self.tag1 == None: d.setTaggedValue(self.tag1,self.value1)
-            if not self.tag2 == None: d.setTaggedValue(self.tag2,self.value2)
-            if not self.tag3 == None: d.setTaggedValue(self.tag3,self.value3)
-            if not self.tag4 == None: d.setTaggedValue(self.tag4,self.value4)
-            if not self.tag5 == None: d.setTaggedValue(self.tag5,self.value5)
-            if not self.tag6 == None: d.setTaggedValue(self.tag6,self.value6)
-            if not self.tag7 == None: d.setTaggedValue(self.tag7,self.value7)
-            if not self.tag8 == None: d.setTaggedValue(self.tag8,self.value8)
-            if not self.tag9 == None: d.setTaggedValue(self.tag9,self.value9)
-        else:
-            args={}
-            if not self.tag0 == None: args[self.tag0]=self.value0
-            if not self.tag1 == None: args[self.tag1]=self.value1
-            if not self.tag2 == None: args[self.tag2]=self.value2
-            if not self.tag3 == None: args[self.tag3]=self.value3
-            if not self.tag4 == None: args[self.tag4]=self.value4
-            if not self.tag5 == None: args[self.tag5]=self.value5
-            if not self.tag6 == None: args[self.tag6]=self.value6
-            if not self.tag7 == None: args[self.tag7]=self.value7
-            if not self.tag8 == None: args[self.tag8]=self.value8
-            if not self.tag9 == None: args[self.tag9]=self.value9
-            self.tag_map.insert(d,**args)
+        if not self.tag0 == None: d.setTaggedValue(self.tag0,self.value0)
+        if not self.tag1 == None: d.setTaggedValue(self.tag1,self.value1)
+        if not self.tag2 == None: d.setTaggedValue(self.tag2,self.value2)
+        if not self.tag3 == None: d.setTaggedValue(self.tag3,self.value3)
+        if not self.tag4 == None: d.setTaggedValue(self.tag4,self.value4)
+        if not self.tag5 == None: d.setTaggedValue(self.tag5,self.value5)
+        if not self.tag6 == None: d.setTaggedValue(self.tag6,self.value6)
+        if not self.tag7 == None: d.setTaggedValue(self.tag7,self.value7)
+        if not self.tag8 == None: d.setTaggedValue(self.tag8,self.value8)
+        if not self.tag9 == None: d.setTaggedValue(self.tag9,self.value9)
         return d
 
 class SmoothScalarDistributionFromTags(ParameterSet):
@@ -316,8 +299,6 @@ class SmoothScalarDistributionFromTags(ParameterSet):
             
     @ivar domain: domain
     @type domain: L{esys.escript.Domain}
-    @ivar tag_map: maping from names to tags
-    @type tag_map: L{esys.pycad.TagMap}
     @ivar default: default value 
     @ivar tag0: tag 0
     @type tag0: C{int}
@@ -390,10 +371,7 @@ class SmoothScalarDistributionFromTags(ParameterSet):
         if self.__pde==None:
            self.__pde=LinearPDE(self.domain,numSolutions=1)
         mask=Scalar(0.,Function(self.domain))
-        if self.tag_map == None:
-           mask.setTaggedValue(tag,1.)
-        else:
-           self.tag_map.insert(mask,**{tag:tag_value})
+        mask.setTaggedValue(tag,1.)
         self.__pde.setValue(Y=mask)
         mask=wherePositive(abs(self.__pde.getRightHandSide()))
         value*=(1.-mask)
