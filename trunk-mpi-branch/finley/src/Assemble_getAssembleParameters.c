@@ -39,7 +39,6 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   }
   /*  check the dimensions of S and F */
   if (S!=NULL && !isEmpty(F)) {
-    printf("ksteube S->myNumRows=%d S->row_block_size=%d S->logical_row_block_size=%d\n", S->myNumRows, S->row_block_size, S->logical_row_block_size);
     if (! numSamplesEqual(F,1,(S->myNumRows*S->row_block_size)/S->logical_row_block_size)) {
       Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows of matrix and length of right hand side don't match.");
       return;
@@ -71,7 +70,6 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   parm->col_DOF=nodes->degreeOfFreedom;
   parm->row_DOF=nodes->degreeOfFreedom;
   /* get the information for the labeling of the degrees of freedom from matrix */
-  /* printf("ksteube in Assemble_getAssembleParameters cpu=%d NR=%d BS=%d DOF=%d\n", elements->elementDistribution->MPIInfo->rank, S->myNumRows, S->row_block_size, parm->numEqu*nodes->degreeOfFreedomDistribution->numLocal); */
   if (S!=NULL) {
       /* Make sure # rows in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
 #ifndef PASO_MPI

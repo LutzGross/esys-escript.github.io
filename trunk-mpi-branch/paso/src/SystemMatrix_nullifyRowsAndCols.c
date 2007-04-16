@@ -309,7 +309,7 @@ void Paso_SystemMatrix_nullifyCols_CSR(Paso_SystemMatrix* A,
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t myFirstRow=A->myFirstRow;
   index_t ir,icol,iptr,icb,irb,irow,ic,l, icol_global, irow_global, ic_global;
-  #pragma omp parallel for private(itmp, l,irow, iptr,icol,ir,irb,icb, icol_global, irow_global, ic_global) schedule(static)
+  #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb, icol_global, irow_global, ic_global) schedule(static)
   for (ir=0;ir< A->pattern->myNumOutput;ir++) {
       for (iptr=A->pattern->ptr[ir]-index_offset;iptr<A->pattern->ptr[ir+1]-index_offset; iptr++) {
 	  ic_global=A->pattern->index[iptr]-index_offset;

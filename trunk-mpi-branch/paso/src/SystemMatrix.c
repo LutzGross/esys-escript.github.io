@@ -49,7 +49,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->solver_package=PASO_PASO;  
      out->solver=NULL;  
      out->val=NULL;  
-     out->trilinos_data=NULL;
      out->reference_counter=1;
      out->type=type;
      /* ====== compressed sparse columns === */
@@ -121,22 +120,18 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->maxNumCols = out->col_distribution->maxNumComponents;
      out->mpi_info = Paso_MPIInfo_getReference(out->pattern->mpi_info);
      /* allocate memory for matrix entries */
-     if (type & MATRIX_FORMAT_TRILINOS_CRS) {
-         Paso_TRILINOS_alloc(out->trilinos_data, out->pattern,out->row_block_size,out->col_block_size);
+     if (type & MATRIX_FORMAT_CSC) {
+        n_norm = out->maxNumCols * out->col_block_size;
      } else {
-         if (type & MATRIX_FORMAT_CSC) {
-            n_norm = out->maxNumCols * out->col_block_size;
-         } else {
-            n_norm = out->maxNumRows * out->row_block_size;
-         }
-         out->val=MEMALLOC(out->myLen,double);
-         out->normalizer=MEMALLOC(n_norm,double);
-         out->normalizer_is_valid=FALSE;
-         if (! Paso_checkPtr(out->val)) Paso_SystemMatrix_setValues(out,DBLE(0));
-         if (! Paso_checkPtr(out->normalizer)) {
-             #pragma omp parallel for private(i) schedule(static)
-             for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
-         }
+        n_norm = out->maxNumRows * out->row_block_size;
+     }
+     out->val=MEMALLOC(out->myLen,double);
+     out->normalizer=MEMALLOC(n_norm,double);
+     out->normalizer_is_valid=FALSE;
+     if (! Paso_checkPtr(out->val)) Paso_SystemMatrix_setValues(out,DBLE(0));
+     if (! Paso_checkPtr(out->normalizer)) {
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
      }
   }
   /* all done: */
@@ -171,7 +166,6 @@ void Paso_SystemMatrix_dealloc(Paso_SystemMatrix* in) {
         Paso_MPIInfo_dealloc(in->mpi_info);
         MEMFREE(in->val);
         MEMFREE(in->normalizer);
-        Paso_TRILINOS_free(in->trilinos_data);
         Paso_solve_free(in); 
         MEMFREE(in);
         #ifdef Paso_TRACE

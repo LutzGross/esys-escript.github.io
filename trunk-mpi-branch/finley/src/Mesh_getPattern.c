@@ -122,19 +122,14 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
              index_list[i].n=0;
         }
         /*  insert contributions from element matrices into colums index index_list: */
-	printf("ksteube mesh->Elements\n");
         Finley_IndexList_insertElements(index_list,mesh,mesh->Elements,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube mesh->FaceElements\n");
         Finley_IndexList_insertElements(index_list,mesh,mesh->FaceElements,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube mesh->ContactElements\n");
         Finley_IndexList_insertElements(index_list,mesh,mesh->ContactElements,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube mesh->Points\n");
         Finley_IndexList_insertElements(index_list,mesh,mesh->Points,
                                         reduce_row_order,rowLabel,reduce_col_order,colLabel);
-	printf("ksteube done with 4 calls to Finley_IndexList_insertElements\n");
         /* get the number of connections per row */
         #pragma omp for schedule(static)
         for(i=0;i<n;++i) {

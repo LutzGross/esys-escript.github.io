@@ -39,10 +39,6 @@
 #include "UMFPACK.h"
 #endif
 
-#ifdef TRILINOS
-#include "TRILINOS.h"
-#endif
-
 /**************************************************************/
 
 void Paso_solve(Paso_SystemMatrix* A,
@@ -56,7 +52,6 @@ void Paso_solve(Paso_SystemMatrix* A,
        return;
   }
   Performance_open(&pp,options->verbose);
-  printf("ksteube in paso/src/solve.c : Paso_solve\n");
   index_t package=Paso_Options_getPackage(options->method,options->package,options->symmetric);
   if (Paso_noError()) {
      switch(package) {
@@ -100,14 +95,6 @@ void Paso_solve(Paso_SystemMatrix* A,
           break;
         #endif
 
-        #ifdef TRILINOS
-        case PASO_TRILINOS:
-          printf("ksteube in paso/src/solve.c : Paso_solve PASO_TRILINOS\n");
-          Paso_TRILINOS(A,out,in,options,&pp);
-          A->solver_package=PASO_TRILINOS;
-          break;
-        #endif
-
         default:
            Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
            break;
@@ -146,11 +133,6 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
           break;
         #endif
 
-        #ifdef TRILINOS
-        case PASO_TRILINOS:
-          Paso_TRILINOS_free(in); 
-          break;
-        #endif
    }
 }
 /*

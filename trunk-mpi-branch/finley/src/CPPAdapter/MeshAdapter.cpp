@@ -839,12 +839,10 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
     
     Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceRowOrder,reduceColOrder);
     checkFinleyError();
-    printf("ksteube in finley/src/CPPAdapter/MeshAdapter.cpp newSystemMatrix\n");
     Paso_SystemMatrix* fsystemMatrix;
     int trilinos = 0;
     if (trilinos) {
 #ifdef TRILINOS
-      /* printf("ksteube newSystemMatrix package=%d\n", row_functionspace.domain.package); */
       /* Allocation Epetra_VrbMatrix here */
 #endif
     }

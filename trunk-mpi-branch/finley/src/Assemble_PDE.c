@@ -69,9 +69,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
 #ifdef Paso_MPI
   iam = elements->elementDistribution->MPIInfo->rank;
   numCPUs = elements->elementDistribution->MPIInfo->size;
-  printf("ksteube finley/src/Assemble_PDE.c : Finley_Assemble_PDE\n");
-  printf("ksteube size=%d iam=%d\n", numCPUs,  iam);
-  printf("ksteube iam=%d #elements: L=%d I=%d B=%d\n", iam, elements->elementDistribution->numLocal, elements->elementDistribution->numInternal, elements->elementDistribution->numBoundary);
 #endif
   }
 

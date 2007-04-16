@@ -49,6 +49,10 @@ netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
 # papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
 # papi_libs = [ 'papi' ]
 
+mpi_path = '/usr/include'
+mpi_lib_path = '/usr/lib'
+mpi_libs = [ 'mpi' ]
+
 # c flags to use
 cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report2 -c99 -w1 -fpic -ivdep-parallel"
 cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
