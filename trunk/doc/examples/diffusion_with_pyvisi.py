@@ -30,7 +30,7 @@ qH=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 
-s = Scene(renderer = Renderer.DISPLAY, x_size = 800, y_size = 600)
+s = Scene(renderer = Renderer.DISPLAY, x_size = 500, y_size = 500)
 dc = DataCollector(source = Source.ESCRIPT)
 
 # ... start iteration:

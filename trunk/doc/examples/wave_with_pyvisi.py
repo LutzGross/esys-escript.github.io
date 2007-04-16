@@ -88,7 +88,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
      # ... save current acceleration in units of gravity and displacements 
      if n==1 or n%10==0: 
 	     #saveVTK("./data/usoln.%i.vtu"%(n/10), acceleration=length(a)/9.81, 
-         #displacement = u, tensor = stress, Ux = u[0])
+         #        displacement = u, tensor = stress, Ux = u[0])
 
          dc.setData(acceleration = length(a)/9.81, displacement = u, 
                  tensor = stress, Ux = u[0])
