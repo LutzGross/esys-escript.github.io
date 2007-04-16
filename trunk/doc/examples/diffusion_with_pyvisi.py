@@ -47,15 +47,3 @@ while t<tend:
               lut = Lut.COLOR, cell_to_point = False, outline = True)
       s.render(image_name = "%d.jpg" % i)
 
-      """
-      print i
-      if(i == 10):
-        dc.setData(temp=T)
-        Map(scene = s, data_collector = dc)
-        s.animate()
-      elif(i == 20):
-        dc.setData(temp=T)
-        Map(scene = s, data_collector = dc)
-        s.animate()
-      """
-	 
