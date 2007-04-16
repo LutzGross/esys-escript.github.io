@@ -9,7 +9,6 @@ __license__="""Licensed under the Open Software License version 3.0
 
 from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
-from esys.pycad import TagMap
 from esys import finley
 
 class FinleyReader(ParameterSet):
@@ -32,12 +31,10 @@ class FinleyReader(ParameterSet):
           super(FinleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
                                 dim=None,
-                                tag_map_source=None,
                                 optimizeLabeling=True,
                                 reducedIntegrationOrder=-1,
                                 integrationOrder=-1)
           self.__domain=None
-          self.__tag_map=None
 
 
        def domain(self):
@@ -59,23 +56,7 @@ class FinleyReader(ParameterSet):
              else:
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
-             self.__tag_map = TagMap()
-             if  self.tag_map_source != None:
-                   self.__tag_map.fillFromXML(open(self.tag_map_source.getLocalFileName()))
-             self.trace("tag map read from %s in %s format."%(self.tag_map_source.getLocalFileName(), self.tag_map_source.fileformat))           
-             self.__tag_map.passToDomain(self.__domain)
           return self.__domain
-
-       def tag_map(self):
-          """
-          returns the map from regional tag names to tag integers used in the mesh
-
-          @return: the tag map
-          @rtype: L{TagMap}
-          """
-          return self.__tag_map
-
-                       
 class RectangularDomain(ParameterSet):
        """
        Generates a mesh over a rectangular domain finley.
