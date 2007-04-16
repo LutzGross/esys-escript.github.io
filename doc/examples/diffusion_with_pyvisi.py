@@ -42,8 +42,9 @@ while t<tend:
       T=mypde.getSolution()
       #saveVTK("T.%d.xml"%i,temp=T)
 
-      dc.setData(temp=T)
+      dc.setData(temp = T)
       Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
               lut = Lut.COLOR, cell_to_point = False, outline = True)
-      s.render(image_name = "%d.jpg" % i)
+
+      s.render(image_name = "diffusion_%2d.jpg" % i)
 
