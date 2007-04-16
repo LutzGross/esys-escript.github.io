@@ -25,6 +25,7 @@ dc1.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FILE_3D)
 # Create a Map.
 m1 = Map(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
         lut = Lut.COLOR, cell_to_point = False, outline = True)
+m1.setOpacity(0.3)
 
 # Create an ImageReader (in place of DataCollector).
 ir = ImageReader(ImageFormat.JPG)

@@ -69,8 +69,12 @@ class DataCollector:
 		"""
 
 		if(self.__source == Source.XML):
-			self.__vtk_xml_reader.SetFileName(file_name)
+			# Check whether the specified file exists, otherwise exit.
+			if not(os.access(file_name, os.F_OK)):
+				print "\nERROR: '%s' file does NOT exists.\n" % file_name
+				sys.exit(1)			
 
+			self.__vtk_xml_reader.SetFileName(file_name)
 			# Update must be called after SetFileName to make the reader 
 			# up-to-date. Otherwise, some output values may be incorrect.
 			self.__vtk_xml_reader.Update() 
@@ -94,10 +98,6 @@ class DataCollector:
 		"""
 		Create data using the <name>=<data> pairing. Assumption is made
 		that the data will be given in the appropriate format.
-
-		@bug: Reading source data directly from an escript object is NOT 
-		work properly. Therefore this method should NOT be used at this 
-		stage. 
 		"""
 
 		if self.__source == Source.ESCRIPT:
@@ -116,6 +116,11 @@ class DataCollector:
 			self.__vtk_xml_reader.Update()
 			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
+
+			if(self.__count > 0):
+				self._updateRange()
+
+			self.__count+=1
 		else:
 			raise ValueError("Source type %s does not support 'setData'\n" \
 					% self.__source)
