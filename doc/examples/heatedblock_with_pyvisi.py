@@ -43,10 +43,11 @@ sigma_mises=sqrt(((sigma[0,0]-sigma[1,1])**2+(sigma[1,1]-sigma[2,2])**2+ \
 #... output ...
 #saveVTK("deform.xml",disp=u,stress=sigma_mises)
  
-s = Scene(renderer = Renderer.ONLINE, x_size = 800, y_size = 600)
-dc = DataCollector(source = Source.ESCRIPT)
+s = Scene(renderer = Renderer.ONLINE, x_size = 500, y_size = 500)
 
+dc = DataCollector(source = Source.ESCRIPT)
 dc.setData(disp = u,stress = sigma_mises)
+
 Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
 	  lut = Lut.COLOR, cell_to_point = True, outline = True)
 
