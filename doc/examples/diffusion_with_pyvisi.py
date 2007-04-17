@@ -2,7 +2,7 @@
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
-from esys.pyvisi import Scene, DataCollector, Map
+from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
 
 #... set some parameters ...
@@ -30,7 +30,7 @@ qH=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 
-s = Scene(renderer = Renderer.DISPLAY, x_size = 500, y_size = 500)
+s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 500, y_size = 500)
 dc = DataCollector(source = Source.ESCRIPT)
 
 # ... start iteration:
@@ -46,5 +46,7 @@ while t<tend:
       Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
               lut = Lut.COLOR, cell_to_point = False, outline = True)
 
-      s.render(image_name = "diffusion_%2d.jpg" % i)
+      c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
+
+      s.render(image_name = "diffusion_%02d.jpg" % i)
 

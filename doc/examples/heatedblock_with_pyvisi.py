@@ -2,7 +2,7 @@
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
-from esys.pyvisi import Scene, DataCollector, Map
+from esys.pyvisi import Scene, DataCollector, Velocity, Camera
 from esys.pyvisi.constant import *
 #... set some parameters ...
 lam=1.
@@ -43,12 +43,17 @@ sigma_mises=sqrt(((sigma[0,0]-sigma[1,1])**2+(sigma[1,1]-sigma[2,2])**2+ \
 #... output ...
 #saveVTK("deform.xml",disp=u,stress=sigma_mises)
  
-s = Scene(renderer = Renderer.ONLINE, x_size = 500, y_size = 500)
+s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 500, y_size = 500)
 
 dc = DataCollector(source = Source.ESCRIPT)
 dc.setData(disp = u,stress = sigma_mises)
 
-Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
-	  lut = Lut.COLOR, cell_to_point = True, outline = True)
+v = Velocity(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST,
+        arrow = Arrow.THREE_D, color_mode = ColorMode.SCALAR,
+        lut = Lut.COLOR, cell_to_point = True, outline = True)
+v.setScaleFactor(scale_factor = 0.3)
+
+c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
+c.isometricView()
 
 s.render(image_name = "heatedblock.jpg")
