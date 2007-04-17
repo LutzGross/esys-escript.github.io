@@ -67,7 +67,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    # Create a DataCollector reading directly from escript objects.
    dc = DataCollector(source = Source.ESCRIPT)
 
-   while t<tend:
+   while t<0.4:
      # ... get current stress ....
      g=grad(u)
      stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
@@ -115,7 +115,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
          s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "wave_%02d.jpg" % \
                  (n/10))
 
-   u_pc_data.close()
+   #u_pc_data.close()
   
 mydomain=Brick(ne,ne,10,l0=width,l1=width,l2=10.*width/32.)
 wavePropagation(mydomain,h,tend,lam,mu,rho,U0)

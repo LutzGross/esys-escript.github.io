@@ -41,7 +41,7 @@ s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 dc = DataCollector(source = Source.ESCRIPT)
 
 # ... start iteration:
-while t<tend:
+while t<0.4:
       i+=1
       t+=h
       print "time step :",t
