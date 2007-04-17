@@ -2,7 +2,7 @@
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
-from esys.pyvisi import Scene, DataCollector, Map
+from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
 
 #... set some parameters ...
@@ -24,12 +24,14 @@ print "error is ",Lsup(u-x[0])
 # output should be similar to "error is 1.e-7"
 #saveVTK("x0.xml",sol=u)
  
-s = Scene(renderer = Renderer.ONLINE, x_size = 800, y_size = 600)
+s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 800, y_size = 600)
 
 dc = DataCollector(source = Source.ESCRIPT)
 dc.setData(sol = u)
 
 Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
 	  lut = Lut.COLOR, cell_to_point = False, outline = True)
+
+c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
 
 s.render(image_name = "helmholtz.jpg")

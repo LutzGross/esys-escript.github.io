@@ -3,7 +3,7 @@ from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from numarray import identity,zeros,ones
-from esys.pyvisi import Scene, DataCollector, Velocity
+from esys.pyvisi import Scene, DataCollector, Ellipsoid, Camera
 from esys.pyvisi.constant import *
 
 ne=32          # number of cells in x_0 and x_1 directions
@@ -57,7 +57,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    u_pc_data=open('./data/U_pc.out','w')
    u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
  
-   s = Scene(renderer = Renderer.DISPLAY, x_size = 500, y_size = 500)
+   s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 500, y_size = 500)
    dc = DataCollector(source = Source.ESCRIPT)
 
    while t<tend:
@@ -87,19 +87,24 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
  
      # ... save current acceleration in units of gravity and displacements 
      if n==1 or n%10==0: 
-	     #saveVTK("./data/usoln.%i.vtu"%(n/10), acceleration=length(a)/9.81, 
-         #        displacement = u, tensor = stress, Ux = u[0])
+	 #saveVTK("./data/usoln.%i.vtu"%(n/10), acceleration=length(a)/9.81, 
+         #     displacement = u, tensor = stress, Ux = u[0])
 
          dc.setData(acceleration = length(a)/9.81, displacement = u, 
                  tensor = stress, Ux = u[0])
 
-         v = Velocity(scene = s, data_collector = dc, 
-                 viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR, 
-                 arrow = Arrow.THREE_D, lut = Lut.COLOR, cell_to_point = False, 
-                 outline = True)
-         v.setScaleFactor(scale_factor = 2000)
+         e = Ellipsoid(scene = s, data_collector = dc, 
+                 viewport = Viewport.SOUTH_WEST,
+                 lut = Lut.COLOR, cell_to_point = True, outline = True)
+         e.setScaleFactor(scale_factor = 0.7)
+         e.setMaxScaleFactor(max_scale_factor = 1000)
+         e.setRatio(ratio = 10)
 
-         s.render(image_name = "wave_%2d.jpg" % (n/10))
+         c = Camera(scene = s, data_collector = dc, 
+                 viewport = Viewport.SOUTH_WEST)
+         c.isometricView()
+
+         s.render(image_name = "wave_%02d.jpg" % (n/10))
 
    u_pc_data.close()
   
