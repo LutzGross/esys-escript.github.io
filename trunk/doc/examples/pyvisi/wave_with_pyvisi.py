@@ -1,3 +1,4 @@
+# Import the necessary modules.
 from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
@@ -5,6 +6,11 @@ from esys.finley import Brick
 from numarray import identity,zeros,ones
 from esys.pyvisi import Scene, DataCollector, Ellipsoid, Camera
 from esys.pyvisi.constant import *
+
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+X_SIZE = 400
+Y_SIZE = 300
+JPG_RENDERER = Renderer.ONLINE_JPG
 
 ne=32          # number of cells in x_0 and x_1 directions
 width=10000.  # length in x_0 and x_1 directions
@@ -31,7 +37,6 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    # Lsup(x) returns the maximum value of the argument x
    src_radius = 0.1*Lsup(domain.getSize())
    print "src_radius = ",src_radius
-
    dunit=numarray.array([1.,0.,0.]) # defines direction of point source
 
    mypde.setValue(D=kronecker*rho)
@@ -54,10 +59,12 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
    u_pc_z = u_pc[2]
 
    # open file to save displacement at point source
-   u_pc_data=open('./data/U_pc.out','w')
-   u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
+   #u_pc_data=open('./data/U_pc.out','w')
+   #u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
  
-   s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 500, y_size = 500)
+   # Create a Scene.
+   s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
+   # Create a DataCollector reading directly from escript objects.
    dc = DataCollector(source = Source.ESCRIPT)
 
    while t<tend:
@@ -83,16 +90,15 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
      u_pc_z=u_pc[2]
       
      # save displacements at point source to file for t > 0
-     u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
+     #u_pc_data.write("%f %f %f %f\n"%(t,u_pc_x,u_pc_y,u_pc_z))
  
      # ... save current acceleration in units of gravity and displacements 
      if n==1 or n%10==0: 
-	 #saveVTK("./data/usoln.%i.vtu"%(n/10), acceleration=length(a)/9.81, 
-         #     displacement = u, tensor = stress, Ux = u[0])
 
          dc.setData(acceleration = length(a)/9.81, displacement = u, 
                  tensor = stress, Ux = u[0])
-
+        
+         # Create an Ellipsoid.
          e = Ellipsoid(scene = s, data_collector = dc, 
                  viewport = Viewport.SOUTH_WEST,
                  lut = Lut.COLOR, cell_to_point = True, outline = True)
@@ -100,11 +106,14 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
          e.setMaxScaleFactor(max_scale_factor = 1000)
          e.setRatio(ratio = 10)
 
+         # Create a Camera.
          c = Camera(scene = s, data_collector = dc, 
                  viewport = Viewport.SOUTH_WEST)
          c.isometricView()
 
-         s.render(image_name = "wave_%02d.jpg" % (n/10))
+         # Render the object.
+         s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "wave_%02d.jpg" % \
+                 (n/10))
 
    u_pc_data.close()
   

@@ -1,9 +1,14 @@
-# $Id: poisson.py 567 2006-02-28 03:58:05Z gross $
+# Import the necesary modules.
 from esys.escript import *
 from esys.escript.linearPDEs import Poisson
 from esys.finley import Rectangle
 from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
+
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+X_SIZE = 400
+Y_SIZE = 300
+JPG_RENDERER = Renderer.ONLINE_JPG
 
 # generate domain:
 mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
@@ -14,17 +19,20 @@ gammaD = whereZero(x[0])+whereZero(x[1])
 mypde = Poisson(domain=mydomain)
 mypde.setValue(f=1,q=gammaD)
 u = mypde.getSolution()
-# write u to an external file
-#saveVTK("u.xml",sol=u)
 
-s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 500, y_size = 500)
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 
+# Create a DataCollector reading directly from an escript object.
 dc = DataCollector(source = Source.ESCRIPT)
 dc.setData(sol = u)
 
+# Create a Map.
 Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
 	  lut = Lut.COLOR, cell_to_point = True, outline = True)
 
+# Create a Camera.
 c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
 
-s.render(image_name = "poisson.jpg")
+# Render the object.
+s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "poisson.jpg")

@@ -1,9 +1,15 @@
-# $Id$
+# Import the necessary modules. 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from esys.pyvisi import Scene, DataCollector, Velocity, Camera
 from esys.pyvisi.constant import *
+
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+X_SIZE = 400
+Y_SIZE = 400
+JPG_RENDERER = Renderer.ONLINE_JPG
+
 #... set some parameters ...
 lam=1.
 mu=0.1
@@ -40,20 +46,24 @@ sigma=mu*(g+transpose(g))+lam*trace(g)*kronecker(mydomain)-sigma0
 sigma_mises=sqrt(((sigma[0,0]-sigma[1,1])**2+(sigma[1,1]-sigma[2,2])**2+ \
                   (sigma[2,2]-sigma[0,0])**2)/6. \
                    +sigma[0,1]**2 + sigma[1,2]**2 + sigma[2,0]**2)
-#... output ...
-#saveVTK("deform.xml",disp=u,stress=sigma_mises)
  
-s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 500, y_size = 500)
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 
+# Create a DataCollector reading directly from an escript object.
 dc = DataCollector(source = Source.ESCRIPT)
 dc.setData(disp = u,stress = sigma_mises)
 
+# Create a Velocity.
 v = Velocity(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST,
         arrow = Arrow.THREE_D, color_mode = ColorMode.SCALAR,
         lut = Lut.COLOR, cell_to_point = True, outline = True)
 v.setScaleFactor(scale_factor = 0.3)
 
+# Create a Camera.
 c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
 c.isometricView()
 
-s.render(image_name = "heatedblock.jpg")
+# Render the object.
+s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "heatedblock.jpg")
+
