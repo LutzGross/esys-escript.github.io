@@ -1,9 +1,14 @@
-# $Id: diffusion.py 575 2006-03-03 03:33:07Z lkettle $
+# Import the necessary modules.
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
+
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+X_SIZE = 400
+Y_SIZE = 400
+JPG_RENDERER = Renderer.ONLINE_JPG
 
 #... set some parameters ...
 xc=[0.02,0.002]
@@ -30,7 +35,9 @@ qH=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
 T=Tref
 
-s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 500, y_size = 500)
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
+# Create a DataCollector reading directly from escript objects.
 dc = DataCollector(source = Source.ESCRIPT)
 
 # ... start iteration:
@@ -40,13 +47,18 @@ while t<tend:
       print "time step :",t
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
-      #saveVTK("T.%d.xml"%i,temp=T)
 
       dc.setData(temp = T)
-      Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
-              lut = Lut.COLOR, cell_to_point = False, outline = True)
+      # Create a Map.
+      Map(scene = s, data_collector = dc, 
+              viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+              cell_to_point = False, outline = True)
 
-      c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
-
-      s.render(image_name = "diffusion_%02d.jpg" % i)
+      # Create a Camera.
+      c= Camera(scene = s, data_collector = dc, 
+              viewport = Viewport.SOUTH_WEST)
+      
+      # Render the object.
+      s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH +  
+              "diffusion_%02d.jpg" % i)
 

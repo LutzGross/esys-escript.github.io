@@ -26,11 +26,6 @@ class DataCollector:
 	(provided a specific field needs to be loaded) as all active fields 
 	specified from the previous file goes back to the default once a new file 
 	is read.
-
-	@attention: A DataCollector instance can only be used to read either 
-	point or cell data but not both. If a file contains a combination of both
-	point and cell data, two DataCollector instances needs to be created, one
-	used to read point data and the other used to read cell data.
 	"""
 
 	def __init__(self, source = Source.XML):

@@ -1,9 +1,14 @@
-# $Id: helmholtz.py 575 2006-03-03 03:33:07Z lkettle $
+# Import the necessary moduels.
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
+
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+X_SIZE = 400
+Y_SIZE = 300
+JPG_RENDERER = Renderer.ONLINE_JPG
 
 #... set some parameters ...
 kappa=1.
@@ -21,17 +26,20 @@ mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
 #... calculate error of the PDE solution ...
 u=mypde.getSolution()
 print "error is ",Lsup(u-x[0])
-# output should be similar to "error is 1.e-7"
-#saveVTK("x0.xml",sol=u)
  
-s = Scene(renderer = Renderer.OFFLINE_JPG, x_size = 800, y_size = 600)
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 
+# Create a DataCollector reading directly from an escript object.
 dc = DataCollector(source = Source.ESCRIPT)
 dc.setData(sol = u)
 
+# Create a Map.
 Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
 	  lut = Lut.COLOR, cell_to_point = False, outline = True)
 
+# Create a Camera.
 c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
 
-s.render(image_name = "helmholtz.jpg")
+# Render the object.
+s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "helmholtz.jpg")
