@@ -3,8 +3,8 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle, Brick
 from esys.pyvisi import Scene, DataCollector, Map, Camera, Velocity, Ellipsoid
 from esys.pyvisi.constant import *
-import unittest, os
-from stat import ST_SIZE
+import unittest
+#from stat import ST_SIZE
 
 PYVISI_TEST_ESCRIPT_IMAGES_PATH = "data_sample_images/escript/"
 MIN_IMAGE_SIZE = 100
@@ -13,17 +13,7 @@ X_SIZE = 400
 Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
-class TestReadingEscriptObject:
-	def tearDown(self):
-		self.s
-
-	def render(self, file):
-		self.s.render(image_name = PYVISI_TEST_ESCRIPT_IMAGES_PATH + file)
-			
-		self.failUnless(os.stat(PYVISI_TEST_ESCRIPT_IMAGES_PATH + \
-				file)[ST_SIZE] > MIN_IMAGE_SIZE)
-
-class TestEscriptWithPointData(unittest.TestCase, TestReadingEscriptObject):
+class TestPointData(unittest.TestCase):
 	def testPointData(self):
 		#... set some parameters ...
 		xc=[0.02,0.002]
@@ -51,9 +41,7 @@ class TestEscriptWithPointData(unittest.TestCase, TestReadingEscriptObject):
 		T=Tref
 
 		# Create a Scene.
-		self.s  = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, \
-				y_size = Y_SIZE)
-		s  = self.s
+		s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 		# Create a DataCollector reading directly from escript objects.
 		dc = DataCollector(source = Source.ESCRIPT)
 
@@ -76,14 +64,13 @@ class TestEscriptWithPointData(unittest.TestCase, TestReadingEscriptObject):
 					  viewport = Viewport.SOUTH_WEST)
 			  
 			  # Render the object.
-			  self.render("diffusion_%02d.jpg" % i)
+			  s.render(image_name = PYVISI_TEST_ESCRIPT_IMAGES_PATH +  
+					  "diffusion%02d.jpg" % i)
 
-
-#class TestEscriptWithPointAndCellData(unittest.TestCase, TestReadingEscriptObject):
-#	def testPointAndCellData(self):
-		
 ###############################################################################
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEscriptWithPointData))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPointData))
+	#suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPointAndCellData))
+	#suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCellAndPointData))
 	unittest.TextTestRunner(verbosity=2).run(suite)
