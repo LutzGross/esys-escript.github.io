@@ -112,7 +112,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
          c.isometricView()
 
          # Render the object.
-         s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "wave_%02d.jpg" % \
+         s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "wave%02d.jpg" % \
                  (n/10))
 
    #u_pc_data.close()

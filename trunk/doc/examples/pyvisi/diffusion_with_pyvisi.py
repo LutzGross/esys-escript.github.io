@@ -41,7 +41,7 @@ s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 dc = DataCollector(source = Source.ESCRIPT)
 
 # ... start iteration:
-while t<0.4:
+while t<0.4*100:
       i+=1
       t+=h
       print "time step :",t
@@ -60,5 +60,5 @@ while t<0.4:
       
       # Render the object.
       s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH +  
-              "diffusion_%02d.jpg" % i)
+              "diffusion%02d.jpg" % i)
 

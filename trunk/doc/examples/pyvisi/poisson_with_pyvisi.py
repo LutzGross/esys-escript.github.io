@@ -29,7 +29,7 @@ dc.setData(sol = u)
 
 # Create a Map.
 Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST, 
-	  lut = Lut.COLOR, cell_to_point = True, outline = True)
+	  lut = Lut.COLOR, cell_to_point = False, outline = True)
 
 # Create a Camera.
 c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
