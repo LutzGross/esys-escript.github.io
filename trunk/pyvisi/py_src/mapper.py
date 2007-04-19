@@ -76,25 +76,62 @@ class DataSetMapper:
 
 
 class ImageMapper:
+	"""
+	Class that defines a image mapper.
+	"""
+
 	def __init__(self, object):
+		"""
+		Initialise the image mapper.
+		
+		@type object: vtkImageData
+		@param object: Image data
+		"""
+
 		self.__object = object
 		self.__vtk_image_mapper = vtk.vtkImageMapper()
 
 		self.__setupImageMapper()
 
 	def __setupImageMapper(self):
+		"""
+		Setup the image mapper.
+		"""
+
 		self.__setInput()
+		# Both color window and color level needs to be set, otherwise only 
+		# a black image will be produced. Both values were obtained from 
+		# an example found on the VTK site.
 		self.__setColorWindow(255)
 		self.__setColorLevel(127.5)
 
 	def __setInput(self):
+		"""
+		Set the input for the image mapper.
+		"""
+
 		self.__vtk_image_mapper.SetInput(self.__object)
 
 	def __setColorWindow(self, color):
+		"""
+		Set the color of the window.
+		"""
+
 		self.__vtk_image_mapper.SetColorWindow(color)
 
 	def __setColorLevel(self, color):
+		"""
+		Set the color level of the window.
+		"""
+
 		self.__vtk_image_mapper.SetColorLevel(color)
 
 	def _getImageMapper(self):
+		"""
+		Return the image mapper.
+
+		@rtype: vtkImageMapper
+		@return: Image mapper
+		"""
+
 		return self.__vtk_image_mapper

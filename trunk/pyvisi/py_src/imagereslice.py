@@ -43,7 +43,7 @@ class ImageReslice:
 		image in its original size (which is the default).  
 
 		@type size: Number
-		@param object: Size of the static image
+		@param size: Size of the static image
 		"""
 
 		# By default, with image reslice, the larger the output spacing, the
