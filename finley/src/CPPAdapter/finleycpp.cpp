@@ -90,11 +90,11 @@ BOOST_PYTHON_MODULE(finleycpp)
   // return pointers.
 
   def("ReadMesh",finley::readMesh,
-      (arg("fileName"),arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimizeLabeling")=true),
+      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimizeLabeling")=true),
       return_value_policy<manage_new_object>());
 
   def("ReadGmsh",finley::readGmsh,
-      (arg("fileName"),arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimizeLabeling")=true),
+      (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimizeLabeling")=true),
       return_value_policy<manage_new_object>());
 
   def ("Brick",finley::brick,

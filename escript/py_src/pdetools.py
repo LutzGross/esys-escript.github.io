@@ -132,9 +132,6 @@ class Projector:
     self.__pde.setValue(D = 1.)
     return
 
-  def __del__(self):
-    return
-
   def __call__(self, input_data):
     """
     Projects input_data onto a continuous function
@@ -420,6 +417,8 @@ class SaddlePointProblem(object):
        @type verbose: C{bool}
        @note: this method may be overwritten by a particular saddle point problem
        """
+       if not isinstance(verbose,bool):
+            raise TypeError("verbose needs to be of type bool.")
        self.__verbose=verbose
        self.relaxation=1.
 
