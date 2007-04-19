@@ -420,7 +420,10 @@ class SaddlePointProblem(object):
        @type verbose: C{bool}
        @note: this method may be overwritten by a particular saddle point problem
        """
-       self.__verbose=verbose
+       if verbose:
+          self.__verbose=True
+       else:
+          self.__verbose=False
        self.relaxation=1.
 
    def trace(self,text):
