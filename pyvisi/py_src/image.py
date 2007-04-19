@@ -16,8 +16,9 @@ from transform import Transform, TransformFilter
 class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 		TransformFilter):
 	"""
-	Class that displays an image which can be scaled (upwards and downwards). 
-	The image can also be translated and rotated along the X, Y and Z axes.
+	Class that displays an image which can be scaled (upwards and downwards)
+	and has interaction capability. The image can also be translated and 
+	rotated along the X, Y and Z axes.
 
 	@bug: Translating an image works differently (opposite) compared to 
 	translating a plane. For example, a positive translation along the 
@@ -30,12 +31,12 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 	def __init__(self, scene, image_reader, viewport = Viewport.SOUTH_WEST):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		@param scene: Scene in which the image is to be displayed
 		@type image_reader: L{ImageReader <imagereader.ImageReader>}
 				object
-		@param image_reader: Deal with source of image for vizualisation
+		@param image_reader: Deal with source of data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which objects are to be rendered on 
+		@param viewport: Viewport in which the image is to be displayed
 		"""
 
 		# ----- Image -----

@@ -41,6 +41,6 @@ i.setPoint2(GlobalPosition(0,2,0))
 # Create a Camera. 
 c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
 
-# Render the object.
+# Render the image.
 s.render(PYVISI_EXAMPLE_IMAGES_PATH + SAVE_IMAGE_NAME)
 
