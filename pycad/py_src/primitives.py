@@ -86,7 +86,7 @@ class PrimitiveBase(object):
         """
         out=[]
         for p in self.collectPrimitiveBases():
-		if not p  in out: out.append(p)
+            if not p  in out: out.append(p)
         return out
 
     def copy(self):
