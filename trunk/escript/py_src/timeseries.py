@@ -427,9 +427,6 @@ class Controler(TimeSeries):
         self.setFlushRate()   
         self.__update_time_series=list()
       
-   def __del__(self):
-       self.flush()
-
    def getControler(self):
        """returns the Controler of the time series (overwrites method of by TimeSeries)"""
        return self
