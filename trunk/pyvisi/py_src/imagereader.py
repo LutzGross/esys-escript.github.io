@@ -57,7 +57,7 @@ class ImageReader:
 		Return the output of the image reader.
 
 		@rtype: vtkImageData
-		@return: Image Data 
+		@return: Image data 
 		"""
 
 		return self.__vtk_image_reader.GetOutput()

@@ -12,13 +12,8 @@ from constant import Viewport
 # to their public methods from the driver.
 class Logo(ImageMapper, ImageReslice, Actor2D):
 	"""
-	Class that displays an image which can be scaled (upwards and downwards). 
-	The image can also be translated and rotated along the X, Y and Z axes.
-
-	@bug: Translating an image works differently (opposite) compared to 
-	translating a plane. For example, a positive translation along the 
-	z-axis moves a plane up. However, if the identical translation is applied on
-	an image, the image moves down.
+	Class that displays a static image in particular a logo 
+	(i.e. company symbol) which has NO interaction capability. 
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -26,15 +21,15 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 	def __init__(self, scene, image_reader, viewport = Viewport.SOUTH_WEST):
 		"""
 		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
+		@param scene: Scene in which the logo is to be displayed
 		@type image_reader: L{ImageReader <imagereader.ImageReader>}
 				object
-		@param image_reader: Deal with source of image for vizualisation
+		@param image_reader: Deal with source of data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant  
-		@param viewport: Viewport in which objects are to be rendered on 
+		@param viewport: Viewport in which the logo is to be displayed
 		"""
 
-		# ----- Image -----
+		# ----- Logo -----
 
 		ImageReslice.__init__(self, image_reader._getOutput())
 		ImageMapper.__init__(self, ImageReslice._getOutput(self))

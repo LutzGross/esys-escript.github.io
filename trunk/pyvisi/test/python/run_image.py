@@ -30,7 +30,7 @@ class TestImage:
 		self.failUnless(os.stat(PYVISI_TEST_IMAGE_IMAGES_PATH + \
 				file)[ST_SIZE] > MIN_IMAGE_SIZE)
 
-class TestImage(unittest.TestCase, TestImage):
+class TestImageOnAMap(unittest.TestCase, TestImage):
 	def setUp(self):
 		self.scene = \
 				Scene(renderer = JPG_RENDERER, num_viewport = 1,
@@ -63,6 +63,6 @@ class TestImage(unittest.TestCase, TestImage):
 
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestImage))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestImageOnAMap))
 	unittest.TextTestRunner(verbosity=2).run(suite)
 
