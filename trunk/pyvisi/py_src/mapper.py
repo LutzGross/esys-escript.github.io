@@ -84,16 +84,16 @@ class ImageMapper:
 
 	def __setupImageMapper(self):
 		self.__setInput()
-		self.setColorWindow(255)
-		self.setColorLevel(127.5)
+		self.__setColorWindow(255)
+		self.__setColorLevel(127.5)
 
 	def __setInput(self):
 		self.__vtk_image_mapper.SetInput(self.__object)
 
-	def setColorWindow(self, color):
+	def __setColorWindow(self, color):
 		self.__vtk_image_mapper.SetColorWindow(color)
 
-	def setColorLevel(self, color):
+	def __setColorLevel(self, color):
 		self.__vtk_image_mapper.SetColorLevel(color)
 
 	def _getImageMapper(self):
