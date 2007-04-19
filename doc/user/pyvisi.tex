@@ -164,8 +164,9 @@ for visualization.
 \subsubsection{\DataCollector class}
 
 \begin{classdesc}{DataCollector}{source = Source.XML}
-A data collector is used to read data from an XML file or from 
-an escript object directly. 
+A data collector is used to read data either from an XML file (using 
+\texttt{setFileName()}) or from an escript object directly (using 
+\texttt{setData()}). 
 \end{classdesc}
 
 The following are some of the methods available:
@@ -177,9 +178,6 @@ Set the XML file name to read.
 Create data using the \textless name\textgreater=\textless data\textgreater 
 pairing. Assumption is made that the data will be given in the 
 appropriate format.
-
-BUG: Reading source data directly from an escript object is NOT
-work properly. Therefore this method should NOT be used at this stage.
 \end{methoddesc}
 
 \begin{methoddesc}[DataCollector]{setActiveScalar}{scalar}

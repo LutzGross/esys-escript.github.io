@@ -71,4 +71,30 @@ class DataSetMapper:
 
 		return self.__vtk_data_set_mapper
 
-	
+
+###############################################################################
+
+
+class ImageMapper:
+	def __init__(self, object):
+		self.__object = object
+		self.__vtk_image_mapper = vtk.vtkImageMapper()
+
+		self.__setupImageMapper()
+
+	def __setupImageMapper(self):
+		self.__setInput()
+		self.setColorWindow(255)
+		self.setColorLevel(127.5)
+
+	def __setInput(self):
+		self.__vtk_image_mapper.SetInput(self.__object)
+
+	def setColorWindow(self, color):
+		self.__vtk_image_mapper.SetColorWindow(color)
+
+	def setColorLevel(self, color):
+		self.__vtk_image_mapper.SetColorLevel(color)
+
+	def _getImageMapper(self):
+		return self.__vtk_image_mapper
