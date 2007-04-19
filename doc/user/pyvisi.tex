@@ -698,9 +698,10 @@ s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME)
 \subsubsection{\Image class}
 
 \begin{classdesc}{Image}{scene, image_reader, viewport = Viewport.SOUTH_WEST}
-Class that displays an image which can be scaled (upwards and downwards). The 
-image can also be translated and rotated along the X, Y and Z axes. One of 
-the most common use of this feature is pasting an image on a surface map.
+Class that displays an image which can be scaled (upwards and downwards) and
+has interaction capability. The image can also be translated and rotated along 
+the X, Y and Z axes. One of the most common use of this feature is pasting an 
+image on a surface map.
 \end{classdesc}
 
 The following are some of the methods available:\\
@@ -745,6 +746,16 @@ c1.isometricView()
 # Render the object.
 s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME)
 \end{python}
+
+\subsubsection{\Logo class}
+
+\begin{classdesc}{Logo}{scene, image_reader, viewport = Viewport.SOUTH_WEST}
+Class that displays a static image in particular a logo
+(i.e. company symbol) and has NO interaction capability.
+\end{classdesc}
+
+The following are some of the methods available:\\
+Methods from \ImageReslice and \ActorTwoD.
 
 
 %##############################################################################
@@ -905,6 +916,8 @@ goes) and backward (where the streamline came from).
 
 \subsubsection{\Transform class}
 
+The following are some of the methods available:
+
 \begin{methoddesc}[Transform]{translate}{x_offset, y_offset, z_offset}
 Translate the rendered object along the x, y and z-axes.
 \end{methoddesc}
@@ -935,6 +948,8 @@ Set the plane orthogonal to the y-axis.
 
 \subsubsection{\Tube class}
 
+The following are some of the methods available:
+
 \begin{methoddesc}[Tube]{setTubeRadius}{radius}
 Set the radius of the tube.
 \end{methoddesc}
@@ -949,11 +964,15 @@ Set the radius of the tube to vary by scalar data.
 
 \subsubsection{\Warp class}
 
+The following are some of the methods available:
+
 \begin{methoddesc}[Warp]{setScaleFactor}{scale_factor}
 Set the displacement scale factor.
 \end{methoddesc}
 
 \subsubsection{\MaskPoints class}
+
+The following are some of the methods available:
 
 \begin{methoddesc}[MaskPoints]{setRatio}{ratio}
 Mask every nth point.
@@ -961,6 +980,15 @@ Mask every nth point.
 
 \begin{methoddesc}[MaskPoints]{randomOn}{}
 Enables the randomization of the points selected for masking.
+\end{methoddesc}
+
+\subsubsection{\ImageReslice class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[ImageReslice]{setSize}{size}
+Set the size of the image, between 0 and 2. Size 1 (one) displays the
+image in its original size (which is the default).
 \end{methoddesc}
 
 

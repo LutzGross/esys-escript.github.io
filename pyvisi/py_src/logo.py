@@ -13,7 +13,7 @@ from constant import Viewport
 class Logo(ImageMapper, ImageReslice, Actor2D):
 	"""
 	Class that displays a static image in particular a logo 
-	(i.e. company symbol) which has NO interaction capability. 
+	(i.e. company symbol) and has NO interaction capability. 
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
