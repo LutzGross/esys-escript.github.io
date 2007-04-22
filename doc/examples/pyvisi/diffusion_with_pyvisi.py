@@ -8,7 +8,7 @@ from esys.pyvisi.constant import *
 PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
 X_SIZE = 400
 Y_SIZE = 400
-JPG_RENDERER = Renderer.ONLINE_JPG
+JPG_RENDERER = Renderer.DISPLAY
 
 #... set some parameters ...
 xc=[0.02,0.002]
@@ -40,6 +40,10 @@ s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 # Create a DataCollector reading directly from escript objects.
 dc = DataCollector(source = Source.ESCRIPT)
 
+Map(scene = s, data_collector = dc, 
+        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+        cell_to_point = False, outline = True)
+
 # ... start iteration:
 while t<0.4*100:
       i+=1
@@ -50,13 +54,13 @@ while t<0.4*100:
 
       dc.setData(temp = T)
       # Create a Map.
-      Map(scene = s, data_collector = dc, 
-              viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
-              cell_to_point = False, outline = True)
+      #Map(scene = s, data_collector = dc, 
+              #viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+              #cell_to_point = False, outline = True)
 
       # Create a Camera.
-      c= Camera(scene = s, data_collector = dc, 
-              viewport = Viewport.SOUTH_WEST)
+      #c= Camera(scene = s, data_collector = dc, 
+      #        viewport = Viewport.SOUTH_WEST)
       
       # Render the object.
       s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH +  

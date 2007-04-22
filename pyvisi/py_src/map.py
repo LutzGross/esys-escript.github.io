@@ -47,56 +47,72 @@ class Map(DataSetMapper, Actor3D):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		# NOTE: Actor3D is inherited and there are two instances declared here.
-		# As a result, when methods from Actor3D is invoked from the driver,
-		# only the methods associated with the latest instance (which in this
-		# case is the Actor3D for the  map) can be executed. Actor3D 
-		# methods associated with Outline cannot be invoked from the driver. 
-		# They can only be called within here, which is why Outline must
-		# be place before map as there is unlikely to be any changes
-		# made to the Outline's Actor3D.
+		self.__scene = scene
+		self.__data_collector = data_collector
+		self.__viewport = viewport
+		self.__lut = lut
+		self.__cell_to_point = cell_to_point
+		self.__outline = outline
 
-		# ----- Outline -----
+		self.__modified = True
+		scene._addModules(self)
 
-		if(outline == True):
-			outline = Outline(data_collector._getOutput())
-			DataSetMapper.__init__(self, outline._getOutput())
+	def _render(self):
+		if self.__modified == True:
+			# NOTE: Actor3D is inherited and there are two instances declared here.
+			# As a result, when methods from Actor3D is invoked from the driver,
+			# only the methods associated with the latest instance (which in this
+			# case is the Actor3D for the  map) can be executed. Actor3D 
+			# methods associated with Outline cannot be invoked from the driver. 
+			# They can only be called within here, which is why Outline must
+			# be place before map as there is unlikely to be any changes
+			# made to the Outline's Actor3D.
+
+
+			# ----- Outline -----
+
+			if(self.__outline == True):
+				outline = Outline(self.__data_collector._getOutput())
+				DataSetMapper.__init__(self, outline._getOutput())
+
+				Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+				# Default outline color is black.
+				Actor3D.setColor(self, Color.BLACK)
+
+				# Default line width is 1.
+				Actor3D._setLineWidth(self, 1)
+				self.__scene._addActor3D(self.__viewport, Actor3D._getActor3D(self))
+
+			# ----- Map -----
+
+			# NOTE: Lookup table color mapping (color or grey scale) MUST be set
+			# before DataSetMapper. If it is done after DataSetMapper, no effect
+			# will take place.
+			if(self.__lut == Lut.COLOR): # Colored lookup table.
+				lookup_table = LookupTable() 
+				lookup_table._setTableValue()
+			elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+				lookup_table = LookupTable() 
+				lookup_table._setLookupTableToGreyScale()
+
+			if(self.__cell_to_point == True): # Converts cell data to point data.
+				c2p = CellDataToPointData(self.__data_collector._getOutput())
+				DataSetMapper.__init__(self, c2p._getOutput(), 
+						lookup_table._getLookupTable())	
+			elif(self.__cell_to_point == False): # No conversion happens.
+				DataSetMapper.__init__(self, self.__data_collector._getOutput(), 
+						lookup_table._getLookupTable())	
+
+			DataSetMapper._setScalarRange(self, self.__data_collector._getScalarRange())
+
+			self.__data_collector._paramForUpdatingMultipleSources(VizType.MAP,
+					ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self))
 
 			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-			# Default outline color is black.
-			Actor3D.setColor(self, Color.BLACK)
+			self.__scene._addActor3D(self.__viewport, Actor3D._getActor3D(self))
 
-			# Default line width is 1.
-			Actor3D._setLineWidth(self, 1)
-			scene._addActor3D(viewport, Actor3D._getActor3D(self))
+			self.__modified = False
 
-		# ----- Map -----
-
-		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
-		# before DataSetMapper. If it is done after DataSetMapper, no effect
-		# will take place.
-		if(lut == Lut.COLOR): # Colored lookup table.
-			lookup_table = LookupTable() 
-			lookup_table._setTableValue()
-		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
-			lookup_table = LookupTable() 
-			lookup_table._setLookupTableToGreyScale()
-
-		if(cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(data_collector._getOutput())
-			DataSetMapper.__init__(self, c2p._getOutput(), 
-					lookup_table._getLookupTable())	
-		elif(cell_to_point == False): # No conversion happens.
-			DataSetMapper.__init__(self, data_collector._getOutput(), 
-					lookup_table._getLookupTable())	
-
-		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
-
-		data_collector._paramForUpdatingMultipleSources(VizType.MAP,
-				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self))
-
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 ###############################################################################
 
