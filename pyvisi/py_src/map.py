@@ -98,7 +98,6 @@ class Map(DataSetMapper, Actor3D):
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
-
 ###############################################################################
 
 

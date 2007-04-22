@@ -307,3 +307,4 @@ class Scene:
 		"""
 	
 		return self.__vtk_renderer
+
