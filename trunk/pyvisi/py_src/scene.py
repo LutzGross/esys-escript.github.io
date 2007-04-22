@@ -32,6 +32,7 @@ class Scene:
 		self.__num_viewport = num_viewport
 		self.__x_size = x_size
 		self.__y_size = y_size
+		self.__modules = []
 
 		self.__OFFLINE = "offline"
 		self.__JPG = "jpg"
@@ -234,6 +235,9 @@ class Scene:
 		Render the object using either the online, offline or display mode.
 		"""	
 
+		for i in range(0, len(self.__modules)):
+			self.__modules[i]._render()	
+
 		self.__vtk_render_window.Render()
 
 		if(self.__renderer.startswith(Renderer.ONLINE)):
@@ -308,3 +312,6 @@ class Scene:
 	
 		return self.__vtk_renderer
 
+	def _addModules(self, module):
+		print "Module: ", module
+		self.__modules.append(module)
