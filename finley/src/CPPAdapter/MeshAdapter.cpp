@@ -454,6 +454,8 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
      case(Elements):
         if (target.getFunctionSpace().getTypeCode()==Elements) {
            Finley_Assemble_CopyElementData(mesh->Elements,&_target,&_in);
+        } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
+           Finley_Assemble_AverageElementData(mesh->Elements,&_target,&_in);
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on elements possible.");
         }
@@ -468,6 +470,8 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
      case(FaceElements):
         if (target.getFunctionSpace().getTypeCode()==FaceElements) {
            Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
+        } else if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
+           Finley_Assemble_AverageElementData(mesh->FaceElements,&_target,&_in);
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on face elements possible.");
        }
@@ -490,6 +494,8 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
      case(ContactElementsOne):
         if (target.getFunctionSpace().getTypeCode()==ContactElementsZero || target.getFunctionSpace().getTypeCode()==ContactElementsOne) {
            Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
+        } else if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
+           Finley_Assemble_AverageElementData(mesh->ContactElements,&_target,&_in);
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on contact elements possible.");
            break;
@@ -1131,6 +1137,8 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
      case(Elements):
         if (functionSpaceType_target==Elements) {
            return true;
+        } else if (functionSpaceType_target==ReducedElements) {
+           return true;
         } else {
            return false;
         }
@@ -1142,6 +1150,8 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
         }
      case(FaceElements):
         if (functionSpaceType_target==FaceElements) {
+           return true;
+        } else if (functionSpaceType_target==ReducedFaceElements) {
            return true;
         } else {
            return false;
@@ -1161,6 +1171,8 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
      case(ContactElementsZero):
      case(ContactElementsOne):
         if (functionSpaceType_target==ContactElementsZero || functionSpaceType_target==ContactElementsOne) {
+           return true;
+        } else if (functionSpaceType_target==ReducedContactElementsZero || functionSpaceType_target==ReducedContactElementsOne) {
            return true;
         } else {
            return false;
