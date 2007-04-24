@@ -180,6 +180,15 @@ class DataTagged : public DataAbstract {
   void
   dump(const std::string fileName) const;
 
+ /**
+     \brief
+    sets all values to zero
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  setToZero();
+
   /**
      \brief
      Return the tag number associated with the given data-point number

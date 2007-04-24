@@ -634,6 +634,15 @@ class Data {
 
   /**
      \brief
+     set all values to zero
+     *
+  */
+  ESCRIPT_DLL_API
+  void
+  setToZero();
+
+  /**
+     \brief
      Interpolates this onto the given functionspace and returns
      the result as a Data object.
      *
@@ -641,7 +650,6 @@ class Data {
   ESCRIPT_DLL_API
   Data
   interpolate(const FunctionSpace& functionspace) const;
-
   /**
      \brief
      Calculates the gradient of the data at the data points of functionspace.

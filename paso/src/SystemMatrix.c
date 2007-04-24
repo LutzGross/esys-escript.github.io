@@ -147,8 +147,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix* in) {
 
 void Paso_SystemMatrix_dealloc(Paso_SystemMatrix* in) {
   if (in!=NULL) {
+     printf("Paso_SystemMatrix_dealloc %d: %d\n",in,in->reference_counter);
      in->reference_counter--;
      if (in->reference_counter<=0) {
+        printf("Paso_SystemMatrix_dealloc %d: system matrix as been deallocated.\n",in);
         MEMFREE(in->val);
         MEMFREE(in->normalizer);
         Paso_SystemMatrixPattern_dealloc(in->pattern);

@@ -618,6 +618,24 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 }
 
 void
+DataExpanded::setToZero(){
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView::ValueType::size_type n = thisView.noValues();
+  double* p;
+  int  sampleNo,dataPointNo, i;
+  #pragma omp parallel for private(sampleNo,dataPointNo,p,i) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+        p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
+        for (int i=0; i<n ;++i) p[i]=0.;
+    }
+  }
+}
+
+
+void
 DataExpanded::dump(const std::string fileName) const
 {
    #ifdef PASO_MPI
