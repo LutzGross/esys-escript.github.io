@@ -86,6 +86,8 @@ opts.AddOptions(
   ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fPIC -Wno-unknown-pragmas'),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
+  ('omp_flags', 'OpenMP compiler flags to use (Release build)', ''),
+  ('omp_flags_debug', 'OpenMP compiler flags to use (Debug build)', ''),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', [ 'pthread' , 'rt' ] ),
   ('tar_flags','flags for zip files','-c -z'),
@@ -236,15 +238,28 @@ if useMPI:
    env.Append(CPPDEFINES=['PASO_MPI',])
    env.Append(CDEFINES=['PASO_MPI',])
 
+try:
+  omp_flags = env['omp_flags']
+  omp_flags_debug = env['omp_flags_debug']
+except KeyError:
+  print "omp_flags = ''"
+  print "omp_flags_debug = ''"
+
+# OpenMP and MPI conflict on the Altix, maybe can fix this for mixed mode programming
+# This disables both OpenMP and MPI on all systems but is an OK fix for now
+if useMPI:
+  omp_flags = ''
+  omp_flags_debug = ''
+
 if dodebug:
     try:
-      flags = env['cc_flags_debug']
+      flags = env['cc_flags_debug'] + ' ' + omp_flags_debug
       env.Append(CCFLAGS = flags)
     except KeyError:
       pass
 else:
    try:
-      flags = env['cc_flags']
+      flags = env['cc_flags'] + ' ' + omp_flags
       env.Append(CCFLAGS = flags)
    except KeyError:
       pass

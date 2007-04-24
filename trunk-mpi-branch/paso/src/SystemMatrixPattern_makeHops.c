@@ -118,6 +118,7 @@ void Paso_SystemMatrixPattern_makeHops(int type,
              }
           }
 { int q;
+printf("numHops: ");
 for (q=0;q<*numHops;++q) printf(" %d",(*hop)[q]);
 printf("\n");
 }

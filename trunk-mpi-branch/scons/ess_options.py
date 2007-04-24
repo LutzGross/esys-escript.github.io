@@ -53,9 +53,12 @@ mpi_path = '/usr/include'
 mpi_lib_path = '/usr/lib'
 mpi_libs = [ 'mpi' ]
 
+omp_flags = '-openmp -openmp_report2 '
+omp_flags_debug = '-openmp -openmp_report0'
+
 # c flags to use
-cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report2 -c99 -w1 -fpic -ivdep-parallel"
-cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
+cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -c99 -w1 -fpic -ivdep-parallel"
+cc_flags_debug  = '-g -O0 -c99 -w1 -fpic'
 
 # c++ flags to use
 cxx_flags = '-ansi'
