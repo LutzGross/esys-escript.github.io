@@ -213,7 +213,6 @@ Data::getShapeTuple() const
         throw DataException("Error - illegal Data rank.");
   }
 }
-
 void
 Data::copy(const Data& other)
 {
@@ -264,6 +263,34 @@ Data::copy(const Data& other)
     }
   }
   throw DataException("Error - Copy not implemented for this Data type.");
+}
+
+
+void
+Data::setToZero()
+{
+  {
+    DataExpanded* temp=dynamic_cast<DataExpanded*>(m_data.get());
+    if (temp!=0) {
+       temp->setToZero();
+       return;
+    }
+  }
+  {
+    DataTagged* temp=dynamic_cast<DataTagged*>(m_data.get());
+    if (temp!=0) {
+      temp->setToZero();
+      return;
+    }
+  }
+  {
+    DataConstant* temp=dynamic_cast<DataConstant*>(m_data.get());
+    if (temp!=0) {
+      temp->setToZero();
+      return;
+    }
+  }
+  throw DataException("Error - Data can not be set to zero.");
 }
 
 void

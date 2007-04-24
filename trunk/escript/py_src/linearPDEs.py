@@ -1317,7 +1317,7 @@ class LinearPDE(object):
        if self.__righthandside.isEmpty():
            self.__righthandside=self.__getNewRightHandSide()
        else:
-           self.__righthandside*=0
+           self.__righthandside.setToZero()
            self.trace("Right hand side is reset to zero.")
        return self.__righthandside
 

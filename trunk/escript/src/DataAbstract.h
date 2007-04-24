@@ -404,6 +404,15 @@ class DataAbstract {
 
   /**
      \brief
+     sets values to zero
+
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  setToZero();
+
+  /**
+     \brief
      solves the eigenvalue problem this*V=ev*V for the eigenvalues ev and eigenvectors V
 
      \param ev - Output - eigenvalues in increasing order at each data point

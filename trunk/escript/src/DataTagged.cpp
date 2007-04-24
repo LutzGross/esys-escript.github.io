@@ -557,6 +557,12 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 }
 
 void
+DataTagged::setToZero(){
+    DataArrayView::ValueType::size_type n=m_data.size();
+    for (int i=0; i<n ;++i) m_data[i]=0.;
+}
+
+void
 DataTagged::dump(const std::string fileName) const
 {
    #ifdef PASO_MPI
