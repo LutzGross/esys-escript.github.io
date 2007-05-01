@@ -173,6 +173,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   if (Finley_noError()) {
     // Use a getReference method to get the DOF distributions to avoid memory leaks
 #ifndef PASO_MPI
+    /* Create row and column distributions for serial matrix, i.e. not distributed */
     tmp[0] = 0;
     if (reduce_col_order) {
       tmp[1] = mesh->Nodes->reducedNumDegreesOfFreedom;
