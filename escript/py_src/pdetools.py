@@ -139,6 +139,7 @@ class Projector:
     @param input_data: The input_data to be projected.
     """
     out=escript.Data(0.,input_data.getShape(),self.__pde.getFunctionSpaceForSolution())
+    self.__pde.setValue(Y = escript.Data(), Y_reduced = escript.Data())
     if input_data.getRank()==0:
         self.__pde.setValue(Y = input_data)
         out=self.__pde.getSolution()
