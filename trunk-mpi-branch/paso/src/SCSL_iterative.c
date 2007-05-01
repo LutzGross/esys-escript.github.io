@@ -105,7 +105,7 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
        drop_storage=options->drop_storage;
        DIterative_DropStorage(drop_storage);
        time0=Paso_timer();
-       DIterative(A->num_rows,A->pattern->ptr,A->pattern->index,A->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
+       DIterative(A->numRows,A->pattern->ptr,A->pattern->index,A->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
        options->iter=iters;
        options->final_residual=finalres;
        time0=Paso_timer()-time0;

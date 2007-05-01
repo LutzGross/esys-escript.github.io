@@ -25,7 +25,6 @@
 
 /* Translate from distributed/local array indices to global indices */
 
-#ifdef PASO_MPI
 int Finley_IndexList_localToGlobal(Finley_NodeDistribution *dofDistribution, int localIndex) {
   /*
     get global id of icol
@@ -42,7 +41,6 @@ int Finley_IndexList_localToGlobal(Finley_NodeDistribution *dofDistribution, int
   }
   return(localIndex);
 }
-#endif
 
 /**************************************************************/
 /* inserts the contributions from the element matrices of elements

@@ -6,8 +6,6 @@
 
 #include "Finley.h"
 
-#ifdef PASO_MPI
-
 #include "./paso/CommBuffer.h"
 
 #define NODE_INTERNAL 1
@@ -124,5 +122,4 @@ void                        Finley_ElementDistribution_dealloc( Finley_ElementDi
 Finley_ElementDistribution* Finley_ElementDistribution_getReference( Finley_ElementDistribution* in );
 void 												Finley_ElementDistribution_allocTable( Finley_ElementDistribution *in, dim_t numElements, dim_t numElementsThis );
 
-#endif
 #endif

@@ -25,7 +25,7 @@ Paso_MPIInfo* Paso_MPIInfo_alloc( MPI_Comm comm )
   #else
      out->rank=0;
      out->size=1;
-     out->comm 0;
+     out->comm=NULL;
   #endif
   out->reference_counter++;
 

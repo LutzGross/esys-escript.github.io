@@ -64,7 +64,7 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
      umfpack_di_defaults(control);
 
      if (pt==NULL) {
-        int n = A->num_rows;
+        int n = A->numRows;
         pt=MEMALLOC(1,Paso_UMFPACK_Handler);
         if (Paso_checkPtr(pt)) return;
         A->solver=(void*) pt;

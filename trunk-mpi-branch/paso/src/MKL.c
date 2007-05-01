@@ -38,7 +38,7 @@ void Paso_MKL_free(Paso_SystemMatrix* A) {
       if (A->solver!=NULL) {
            _INTEGER_t mtype = MKL_MTYPE_UNSYM;
            if (A->type & MATRIX_FORMAT_SYM) mtype=MKL_MTYPE_SYM;
-          _INTEGER_t n = A->num_rows;
+          _INTEGER_t n = A->numRows;
           _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
           _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
           _INTEGER_t msglvl=0; /* message level */
@@ -76,7 +76,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
      Performance_startMonitor(pp,PERFORMANCE_ALL);
      _INTEGER_t mtype = MKL_MTYPE_UNSYM;
      if (A->type & MATRIX_FORMAT_SYM) mtype=MKL_MTYPE_SYM;
-     _INTEGER_t n = A->num_rows;
+     _INTEGER_t n = A->numRows;
      _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
      _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
      _INTEGER_t msglvl=0; /* message level */

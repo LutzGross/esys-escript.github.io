@@ -28,9 +28,7 @@
 #include "Distribution.h"
 #include "Common.h"
 #include "Paso_MPI.h"
-#ifdef PASO_MPI
 #include "finley/Distribution.h"
-#endif
 
 /**************************************************************/
 
@@ -56,11 +54,9 @@ typedef struct Paso_SystemMatrixPattern {
   Paso_Distribution *output_distribution; 
   Paso_Distribution *input_distribution; 
 
-  #ifdef PASO_MPI
   /* this will go */
   Finley_NodeDistribution *output_node_distribution;
   Finley_NodeDistribution *input_node_distribution;
-  #endif
 
 } Paso_SystemMatrixPattern;
 

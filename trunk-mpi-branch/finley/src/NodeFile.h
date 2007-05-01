@@ -20,13 +20,10 @@
 #include "Finley.h"
 #include "escript/DataC.h"
 
-#ifdef PASO_MPI
 #include "Distribution.h"
 #include "./paso/CommBuffer.h"
-#endif
 
 struct Finley_NodeFile {
-#ifdef PASO_MPI
   Paso_MPIInfo *MPIInfo;              /* MPI information */
   Finley_NodeDistribution *degreeOfFreedomDistribution;  /* information about the distribution of degrees of freedom
                                               on this subdomain and over other subdomains */
@@ -37,7 +34,6 @@ struct Finley_NodeFile {
 	index_t *Dom;													/* flags whether a node references an internal/boundary/external DOF. Is one of
 																					 either NODE_INTERNAL, NODE_BOUNDARY or NODE_EXTERNAL, as defined in
 																					 Mesh.h	*/ 
-#endif
   index_t isPrepared;                   /* UNKNOWN,  UNPREPARED, PREPAED  to indicate that the Nodes are ready for calculation */
   dim_t numNodes;                      /* number of nodes */
   dim_t numDim;                        /* spatial dimension */

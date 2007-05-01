@@ -1,5 +1,3 @@
-#ifdef PASO_MPI
-
 #ifndef INC_COMMBUFFER
 #define INC_COMMBUFFER
 
@@ -30,10 +28,12 @@ typedef struct Paso_CommBuffer
   index_t *domains;
   index_t *indexDomains;
 
+#ifdef PASO_MPI
   MPI_Status  *statusForward;  
   MPI_Request *requestForward;
   MPI_Status  *statusBackward;  
   MPI_Request *requestBackward;
+#endif
 
   int tag; /* tag used for sends a receives for this buffer */
 } Paso_CommBuffer;
@@ -58,7 +58,5 @@ bool_t Paso_CommBuffer_waitRecv( Paso_CommBuffer *in, index_t dom );
 void   Paso_CommBuffer_pack( Paso_CommBuffer *in, index_t dom, index_t *index, void *data, size_t itemSize, dim_t offset );
 void   Paso_CommBuffer_unpack( Paso_CommBuffer *in, index_t dom, index_t *index, void *data, size_t itemSize, dim_t offset );
 bool_t Paso_CommBuffer_validate( Paso_CommBuffer *in );
-
-#endif
 
 #endif
