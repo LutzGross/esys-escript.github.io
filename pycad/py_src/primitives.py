@@ -1231,20 +1231,27 @@ class PropertySet(Primitive, PrimitiveBase):
     """
     def __init__(self,name,*items):
        Primitive.__init__(self)
-       if len(items)==0:
-          raise ValueError("at least one item must be give.")
-       if isinstance(items[0] ,Manifold1D): 
-            dim=1
-       elif isinstance(items[0] ,Manifold2D): 
-            dim=2
-       elif isinstance(items[0] ,Manifold3D): 
-           dim=3
-       else:
-           dim=0
-       self.__dim=dim
+       self.__dim=None
        self.clearItems()
        self.addItem(*items)
        self.setName(name)
+
+    def getDim(self):
+       """
+       returns the dimension of the items
+       """ 
+       if self.__dim == None:
+           items=self.getItems()
+           if len(items)>0:
+                if isinstance(items[0] ,Manifold1D): 
+                     self.__dim=1
+                elif isinstance(items[0] ,Manifold2D): 
+                     self.__dim=2
+                elif isinstance(items[0] ,Manifold3D): 
+                    self.__dim=3
+                else:
+                    self.__dim=0
+       return self.__dim
     def __repr__(self):
        """
        returns a string representation
@@ -1255,19 +1262,18 @@ class PropertySet(Primitive, PrimitiveBase):
         returns the manifold class expected from items
         """
         d=self.getDim()
-        if d==0:
-           return Point
-        elif d==1:
-           return Manifold1D
-        elif d==2:
-           return Manifold2D
+        if d == None:
+           raise ValueError("undefined spatial diemnsion.")
         else:
-           return Manifold3D
-    def getDim(self):
-        """
-        returns the dimension of the items
-        """ 
-        return self.__dim
+           if d==0:
+              return Point
+           elif d==1:
+              return Manifold1D
+           elif d==2:
+              return Manifold2D
+           else:
+              return Manifold3D
+
     def getName(self):
         """
         returns the name of the set
@@ -1278,17 +1284,30 @@ class PropertySet(Primitive, PrimitiveBase):
         sets the name.
         """
         self.__name=str(name)
-        
+
+    def addItems(self,*items):
+        """
+        adds items. An item my be any L{Primitive} but no L{PropertySet}
+        """
+        self.addItem(*items)
+
     def addItem(self,*items): 
         """
         adds items. An item my be any L{Primitive} but no L{PropertySet}
         """
-        m=self.getManifoldClass()
         for i in items: 
             if not i in self.__items: 
-               if not isinstance(i, m):
-                  raise TypeError("argument %s is not a %s class object."%(i, m.__name__))
+               if len(self.__items)>0:
+                  m=self.getManifoldClass()
+                  if not isinstance(i, m):
+                     raise TypeError("argument %s is not a %s class object."%(i, m.__name__))
                self.__items.append(i)
+    def getNumItems(self):
+        """
+        returns the number of items in the property set
+        """ 
+        return len(self.__items)
+
     def getItems(self):
         """
         returns the list of items

@@ -177,17 +177,18 @@ class Design(design.Design):
                  out+="Volume(%s) = {%s};\n"%(p.getID(),p.getSurfaceLoop().getDirectedID())
 
            elif isinstance(p, PropertySet):
-	       dim=p.getDim()
-               line="Physical "
-               if dim==0: 
-                   line+="Point"
-               elif dim==1: 
-                   line+="Line"
-               elif dim==2: 
-                   line+="Surface"
-               else:
-                   line+="Volume"
-               out+=line+"(" + str(p.getID()) + ") = {"+self.__mkArgs(p.getItems())+"};\n"
+               if p.getNumItems()>0: 
+	          dim=p.getDim()
+                  line="Physical "
+                  if dim==0: 
+                      line+="Point"
+                  elif dim==1: 
+                      line+="Line"
+                  elif dim==2: 
+                      line+="Surface"
+                  else:
+                      line+="Volume"
+                  out+=line+"(" + str(p.getID()) + ") = {"+self.__mkArgs(p.getItems())+"};\n"
 
            else:
                raise TypeError("unable to pass %s object to gmsh."%str(type(p)))
