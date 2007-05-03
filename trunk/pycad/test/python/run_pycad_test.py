@@ -3042,7 +3042,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        p4=Point(8.,6,-6,local_scale=9.)
        
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",p0, Line(p0,p1))
 
        ps=PropertySet("test0",p0, p1)
@@ -3052,7 +3051,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 8, "wrong tag")
+       self.failUnless(ps.getTag() == 7, "wrong tag")
        
        self.failUnlessRaises(TypeError,ps.addItem, Line(p0,p1))
        ps.addItem(p3,p4)
@@ -3085,7 +3084,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        l1=Arc(p3,p1,p4)
        l2=Line(p4,p0)
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",l0, p0)
 
        ps=PropertySet("test0", l0, l1)
@@ -3095,7 +3093,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 10, "wrong tag")
+       self.failUnless(ps.getTag() == 9, "wrong tag")
        
        self.failUnlessRaises(TypeError,ps.addItem, p0)
        ps.addItem(l2)
@@ -3143,7 +3141,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        s=PlaneSurface(cl,holes=[h])
 
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",s, p0)
 
        ps=PropertySet("test0", s)
@@ -3153,7 +3150,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 20, "wrong tag")
+       self.failUnless(ps.getTag() == 19, "wrong tag")
        
        pp=ps.getPrimitives()
        self.failUnless(len(pp) == 18, "wrong number of items")
@@ -3258,7 +3255,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        v=Volume(s_out,holes=[s_inner])
           
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",v, p0)
 
        ps=PropertySet("test0", v)
@@ -3268,7 +3264,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 70, "wrong tag")
+       self.failUnless(ps.getTag() == 69, "wrong tag")
        
        pp=ps.getPrimitives()
        self.failUnless(len(pp) == 68, "too many primitives.")
