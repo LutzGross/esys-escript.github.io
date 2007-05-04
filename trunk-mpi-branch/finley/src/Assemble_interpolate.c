@@ -63,14 +63,22 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        NN_DOF=elements->ReferenceElement->Type->numNodes;
        NS_DOF=elements->ReferenceElement->Type->numShapes;
        S=elements->ReferenceElement->S;
+#ifndef PASO_MPI
        numNodes=nodes->numDegreesOfFreedom;
+#else
+       numNodes=nodes->degreeOfFreedomDistribution->numLocal;
+#endif
   } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
        type=REDUCED_DOF;
        resort_nodes=elements->ReferenceElement->Type->linearNodes;
        NN_DOF=elements->LinearReferenceElement->Type->numNodes;
        NS_DOF=elements->LinearReferenceElement->Type->numShapes;
        S=elements->LinearReferenceElement->S;
+#ifndef PASO_MPI
        numNodes=nodes->reducedNumDegreesOfFreedom;
+#else
+       numNodes=nodes->reducedDegreeOfFreedomDistribution->numLocal;
+#endif
    } else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: Cannot interpolate data");
   }
