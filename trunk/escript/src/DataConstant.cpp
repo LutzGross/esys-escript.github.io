@@ -18,7 +18,7 @@
 #include <iostream>
 #include <boost/python/extract.hpp>
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "netcdfcpp.h"
 #endif
 
 using namespace std;

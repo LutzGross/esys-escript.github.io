@@ -13,8 +13,12 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
-local_env.Append(LIBS=[ python_lib, boost_lib, 'escript', 'esysUtils', 'CppUnitTest', sys_libs])
-
+local_env.Append(LIBS= python_libs + boost_libs + ['escript', 'esysUtils', 'CppUnitTest'] + sys_libs )
+if useNetCDF == 'yes':
+    local_env.Append(LIBS = netCDF_libs)
+    local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
+    if IS_WINDOWS_PLATFORM: local_env.Append(CPPDEFINES = [ 'DLL_NETCDF' ])
+    
 program = local_env.Program(program_name, sources)
 
 #Add Unit Test to target alias
@@ -29,9 +33,11 @@ Alias("run_tests", test_targets)
 release_srcfiles = [ env.File("SConscript"), ]
 release_testfiles = [ env.File(x) for x in  filenames ]
 env.Zip(src_zipfile, release_srcfiles)
-env.Tar(src_tarfile, release_srcfiles)
 env.Zip(test_zipfile, release_testfiles)
-env.Tar(test_tarfile, release_testfiles)
-
+try:
+  env.Tar(src_tarfile, release_srcfiles)
+  env.Tar(test_tarfile, release_testfiles)
+except AttributeError:
+  pass
 
 local_env.SConscript(dirs = ['#/escript/test/python'], build_dir='python', duplicate=0)

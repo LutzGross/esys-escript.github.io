@@ -16,7 +16,7 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "netcdfcpp.h"
 #endif
 
 #include <boost/python/extract.hpp>
