@@ -18,9 +18,10 @@ cc_defines = ['_USE_MATH_DEFINES', 'BOOST_NO_INTRINSIC_WCHAR_T', 'DLL_NETCDF' ]
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
 # 161 - openmp pargmas are unknown when not compiling with openmp
-cc_flags  = '/FD /EHsc /GR /O2 /Op /MT /W3'
+cc_common_flags = '/FD /EHsc /GR /wd4068 '
+cc_flags  = cc_common_flags + '/O2 /Op /MT /W3'
 
-cc_flags_debug  = '/FD /EHsc /GR /Od /RTC1 /MTd /ZI'
+cc_flags_debug  = cc_common_flags + '/Od /RTC1 /MTd /ZI'
 
 # c++ flags to use
 cxx_flags = ''
