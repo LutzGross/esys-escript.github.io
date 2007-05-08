@@ -27,8 +27,10 @@ for x in os.listdir(src_dir):
       else:
          example_files+=[ env.File(f) ]
 env.Zip(examples_zipfile, example_files)
-env.Tar(examples_tarfile, example_files)
-
+try:
+  env.Tar(examples_tarfile, example_files)
+except AttributeError:
+  pass
 # Call the doc build using SConscript
 local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)
 

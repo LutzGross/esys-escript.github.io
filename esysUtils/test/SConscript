@@ -29,7 +29,9 @@ Alias("run_tests", test_targets)
 release_srcfiles = [ env.File("SConscript"), ]
 release_testfiles = [ env.File(x) for x in  filenames ]
 env.Zip(src_zipfile, release_srcfiles)
-env.Tar(src_tarfile, release_srcfiles)
 env.Zip(test_zipfile, release_testfiles)
-env.Tar(test_tarfile, release_testfiles)
-
+try: 
+  env.Tar(src_tarfile, release_srcfiles)
+  env.Tar(test_tarfile, release_testfiles)
+except AttributeError:
+  pass

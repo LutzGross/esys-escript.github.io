@@ -16,8 +16,11 @@ local_env.Install(pyinstall+'/modellib', pyc)
 # get all the python files in the release tar file
 release_py = [ env.File("SConscript"), ] + [ env.File(x) for x in python_src ]
 env.Zip(src_zipfile, release_py)
-env.Tar(src_tarfile, release_py)
-
+try:
+   env.Tar(src_tarfile, release_py)
+except AttributeError:
+   pass
+   
 # Call the unit tests SConscript
 local_env.SConscript(dirs = ['#/modellib/test/python'], build_dir='#/build/$PLATFORM/modellib/test/python', duplicate=0)
 

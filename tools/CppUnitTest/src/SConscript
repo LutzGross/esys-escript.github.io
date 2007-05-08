@@ -22,5 +22,7 @@ local_env.Install(libinstall, lib)
 # add source files to release
 release_srcfiles = [ env.File(x) for x in filenames ] + [env.File("SConscript"), ]
 env.Zip(src_zipfile, release_srcfiles)
-env.Tar(src_tarfile, release_srcfiles)
-
+try:
+  env.Tar(src_tarfile, release_srcfiles)
+except AttributeError:
+  pass
