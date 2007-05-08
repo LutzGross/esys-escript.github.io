@@ -4,9 +4,6 @@
 #       Primary Business: Queensland, Australia
 #  Licensed under the Open Software License version 3.0
 #     http://www.opensource.org/licenses/osl-3.0.php
-#
-#
-#
 
 # top-level Scons configuration file for all esys13 modules
 # Begin initialisation Section
@@ -15,7 +12,8 @@
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
 
-# import tools:
+#===============================================================
+#   import tools:
 import glob
 import sys, os
 import socket
@@ -23,47 +21,32 @@ import socket
 if sys.path.count('scons')==0: sys.path.append('scons')
 import scons_extensions
 
-# check if UMFPACK is installed on the system:
-if os.path.isdir('/opt/UMFPACK/Include') and os.path.isdir('/opt/UMFPACK/Lib'):
-   umf_path_default='/opt/UMFPACK/Include'
-   umf_lib_path_default='/opt/UMFPACK/Lib'
-   umf_libs_default=['umfpack']
-else:
-   umf_path_default=None
-   umf_lib_path_default=None
-   umf_libs_default=None
+#===============================================================
+#   check on windows or linux platform
+#
+IS_WINDOWS_PLATFORM = (os.name== "nt")
 
-if os.path.isdir('/opt/AMD/Include') and os.path.isdir('/opt/AMD/Lib'):
-   amd_path_default='/opt/AMD/Include'
-   amd_lib_path_default='/opt/AMD/Lib'
-   amd_libs_default=['amd']
+if IS_WINDOWS_PLATFORM:
+   tools_prefix="C:\\Program Files\\"
 else:
-   amd_path_default=None
-   amd_lib_path_default=None
-   amd_libs_default=None
+   tools_prefix="/usr/local/"
 
-if os.path.isdir('/opt/UFconfig'):
-   ufc_path_default='/opt/UFconfig'
-else:
-   ufc_path_default=None
+#==============================================================================================     
+#    
+#    get the iinstallation prefix
+#
+prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
+print "Install prefix is: ", prefix
 
-if os.path.isdir('/usr/local/include') and os.path.isdir('/usr/local/lib'):
-  netCDF_path_default='/usr/local/include'
-  netCDF_lib_path_default='/usr/local/lib'
-  netCDF_libs_cxx_default=[ 'netcdf_c++', 'netcdf'] 
-else:
-  netCDF_path_default=None
-  netCDF_lib_path_default=None
-  netCDF_libs_cxx_default=None
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
 # if the options_file or ARGUMENTS do not exist then the ones listed as default here are used
 # DO NOT CHANGE THEM HERE
-
 # Where to install?
-prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
-print "Install prefix is: ", prefix
-
+#==============================================================================================     
+#    
+#    get the options file if present:
+#
 if ARGUMENTS.get('options_file',0):
    options_file = ARGUMENTS.get('options_file',0)
 else:
@@ -74,13 +57,112 @@ else:
          hostname+=s
       else:
          hostname+="_"
-   options_file = "scons/"+hostname+"_options.py"
+   options_file = "scons"+os.sep+hostname+"_options.py"
+   
 if os.path.isfile(options_file):
    print "option file is ",options_file,"."
 else:
    print "option file is ",options_file, "(not present)."
-
+# and load it
 opts = Options(options_file, ARGUMENTS)
+#================================================================
+#
+#   check if UMFPACK is installed on the system:
+#
+umf_path_default=None
+umf_lib_path_default=None
+umf_libs_default=None
+if IS_WINDOWS_PLATFORM:
+   pass
+else:
+   if os.path.isdir('/opt/UMFPACK/Include') and os.path.isdir('/opt/UMFPACK/Lib'):
+      umf_path_default='/opt/UMFPACK/Include'
+      umf_lib_path_default='/opt/UMFPACK/Lib'
+      umf_libs_default=['umfpack']
+
+amd_path_default=None
+amd_lib_path_default=None
+amd_libs_default=None
+if IS_WINDOWS_PLATFORM:
+   pass
+else:
+   if os.path.isdir('/opt/AMD/Include') and os.path.isdir('/opt/AMD/Lib'):
+      amd_path_default='/opt/AMD/Include'
+      amd_lib_path_default='/opt/AMD/Lib'
+      amd_libs_default=['amd']
+
+ufc_path_default=None
+if IS_WINDOWS_PLATFORM:
+   pass
+else:
+   if os.path.isdir('/opt/UFconfig'):
+        ufc_path_default='/opt/UFconfig'
+#==========================================================================
+#
+#    python installation:
+#
+if IS_WINDOWS_PLATFORM:
+   python_path_default='C:\\Program Files\\python%s%s'%(sys.version_info[0],sys.version_info[1])+"\\include"
+   python_lib_path_default='C:\\Program Files\\python%s%s'%(sys.version_info[0],sys.version_info[1])+"\\libs"
+   python_libs_default=["python%s%s"%(sys.version_info[0],sys.version_info[1])]
+else:
+   python_path_default='/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])
+   python_lib_path_default='/usr/lib'
+   python_libs_default=["python%s.%s"%(sys.version_info[0],sys.version_info[1])]
+#==========================================================================
+#
+#    boost installation:
+#
+if IS_WINDOWS_PLATFORM:
+   boost_libs_path_default='C:\\Program Files\\boost\\lib\\'
+   boost_libs_default=None
+   for i in os.listdir(boost_libs_path_default): 
+      name=os.path.splitext(i)
+      if name[1] == ".dll" and name[0].startswith("boost_python"):
+          if boost_libs_default == None: 
+	     boost_libs_default= [ name[0] ] 
+	  else:
+	     if not name[0].find("-gd-"): boost_libs_default=[ name[0] ]
+   boost_path_default='C:\\Program Files\\boost\\include\\boost-%s'%(boost_libs_default[0].split("-")[-1],)
+else:
+   boost_path_default='/usr/include'
+   boost_libs_path_default='/usr/lib'
+   boost_libs_default=['boost_python']
+#==========================================================================
+#
+#    check if netCDF is installed on the system:
+#
+netCDF_path_default=None
+netCDF_lib_path_default=None
+netCDF_libs_default=None
+useNetCDF_default='yes'
+if os.path.isdir(tools_prefix+'netcdf'+os.sep+'include') and os.path.isdir(tools_prefix+'netcdf'+os.sep+'lib'):
+     netCDF_path_default=tools_prefix+'netcdf'+os.sep+'include'
+     netCDF_lib_path_default=tools_prefix+'netcdf'+os.sep+'lib'
+     netCDF_libs_default=['netcdf_cpp',  'netcdf' ] 
+     useNetCDF_default='yes'
+#==========================================================================
+#
+#    compile:
+#
+if IS_WINDOWS_PLATFORM:
+    # cc_flags_default  = '/GR /EHsc /MD /Qc99 /Qopenmp /Qopenmp-report1 /O3 /G7 /Qprec /Qpar-report1 /QxP /QaxP'
+    # cc_flags_debug_default  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp /Qopenmp-report1 /Qprec'
+    cc_flags_default  = '/FD /EHsc /GR  /wd4068 /O2 /Op /MT /W3'
+    cc_flags_debug_default  ='/FD /EHsc /GR  /wd4068 /Od /RTC1 /MTd /ZI'
+    cxx_flags_default = ''
+    cxx_flags_debug_default = ''
+    cc_common_flags = '/FD /EHsc /GR /wd4068 '
+else:
+   cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+   cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+   cxx_flags_default='--no-warn -ansi'
+   cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
+#==============================================================================================     
+# Default options and options help text
+# These are defaults and can be overridden using command line arguments or an options file.
+# if the options_file or ARGUMENTS do not exist then the ones listed as default here are used
+# DO NOT CHANGE THEM HERE
 opts.AddOptions(
 # Where to install esys stuff
   ('incinstall', 'where the esys headers will be installed', prefix+'/include'),
@@ -97,16 +179,12 @@ opts.AddOptions(
   ('guide_html', 'name of the directory for user guide in html format', prefix+"/release/doc/user/html"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
-  ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
+  ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/<hostname>_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
-  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'),
-  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'),
-  ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
-  ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
-  ('cc_flags_MPI','C compiler flags to use (Release MPI build)', '-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -fno-alias -c99 -w1 -fpic -wd161'),
-  ('cc_flags_debug_MPI', 'C compiler flags to use (Debug MPI build)', '-g -O0 -c99 -w1 -fpic -wd161'),
-  ('cxx_flags_MPI', 'C++ compiler flags to use (Release MPI build)', '-ansi -wd1563 -wd161'),
-  ('cxx_flags_debug_MPI', 'C++ compiler flags to use (Debug MPI build)', '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'),
+  ('cc_flags','C compiler flags to use (Release build)', cc_flags_default),
+  ('cc_flags_debug', 'C compiler flags to use (Debug build)', cc_flags_debug_default),
+  ('cxx_flags', 'C++ compiler flags to use (Release build)', cxx_flags_default),
+  ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', cxx_flags_debug_default),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', None),
   ('tar_flags','flags for zip files','-c -z'),
@@ -133,19 +211,19 @@ opts.AddOptions(
   PathOption('blas_lib_path', 'Path to BLAS libs', None),
   ('blas_libs', 'BLAS libraries to link with', None),
 # netCDF
-  ('useNetCDF', 'switch on/off the usage of netCDF', 'yes'),
+  ('useNetCDF', 'switch on/off the usage of netCDF', useNetCDF_default),
   PathOption('netCDF_path', 'Path to netCDF includes', netCDF_path_default),
   PathOption('netCDF_lib_path', 'Path to netCDF libs', netCDF_lib_path_default),
-  ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', netCDF_libs_cxx_default),
+  ('netCDF_libs', 'netCDF C++ libraries to link with', netCDF_libs_default),
 # Python
 # locations of include files for python
-  PathOption('python_path', 'Path to Python includes', '/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])),
-  PathOption('python_lib_path', 'Path to Python libs', '/usr/lib'),
-  ('python_lib', 'Python libraries to link with', ["python%s.%s"%(sys.version_info[0],sys.version_info[1]),]),
+  PathOption('python_path', 'Path to Python includes', python_path_default),
+  PathOption('python_lib_path', 'Path to Python libs', python_lib_path_default),
+  ('python_libs', 'Python libraries to link with', python_libs_default),
 # Boost
-  PathOption('boost_path', 'Path to Boost includes', '/usr/include'),
-  PathOption('boost_lib_path', 'Path to Boost libs', '/usr/lib'),
-  ('boost_lib', 'Boost libraries to link with', ['boost_python',]),
+  PathOption('boost_path', 'Path to Boost includes', boost_path_default),
+  PathOption('boost_libs_path', 'Path to Boost libs', boost_libs_path_default),
+  ('boost_libs', 'Boost libraries to link with', boost_libs_default),
 # Doc building
 #  PathOption('doxygen_path', 'Path to Doxygen executable', None),
 #  PathOption('epydoc_path', 'Path to Epydoc executable', None),
@@ -156,25 +234,30 @@ opts.AddOptions(
 # MPI
   BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
 )
-# Note: On the Altix the intel compilers are not automatically
-# detected by scons intelc.py script. The Altix has a different directory
-# path and in some locations the "modules" facility is used to support
-# multiple compiler versions. This forces the need to import the users PATH
-# environment which isn't the "scons way"
-# This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
-# FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
-
-if os.name != "nt" and os.uname()[4]=='ia64':
-   env = Environment(tools = ['default', 'intelc'], options = opts)
-   if env['CXX'] == 'icpc':
-      env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
-elif os.name == "nt":
-   env = Environment(tools = ['default', 'msvc'], options = opts)
-   #env = Environment(tools = ['default', 'intelc'], options = opts)
+#=================================================================================================
+#
+#   Note: On the Altix the intel compilers are not automatically
+#   detected by scons intelc.py script. The Altix has a different directory
+#   path and in some locations the "modules" facility is used to support
+#   multiple compiler versions. This forces the need to import the users PATH
+#   environment which isn't the "scons way"
+#   This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
+#   FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
+#
+if IS_WINDOWS_PLATFORM:
+      env = Environment(tools = ['default', 'msvc'], options = opts)
 else:
-   env = Environment(tools = ['default'], options = opts)
-# Initialise Scons Build Environment
-# check for user environment variables we are interested in
+   if os.uname()[4]=='ia64':
+      env = Environment(tools = ['default', 'intelc'], options = opts)
+      if env['CXX'] == 'icpc':
+         env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
+   else:
+      env = Environment(tools = ['default'], options = opts)
+Help(opts.GenerateHelpText(env))
+#=================================================================================================
+#
+#     Initialise Scons Build Environment
+#     check for user environment variables we are interested in
 try:
    python_path = os.environ['PYTHONPATH']
    env['ENV']['PYTHONPATH'] = python_path
@@ -191,16 +274,14 @@ try:
    env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
 except KeyError:
    ld_library_path = ''
-
-
-# Setup help for options
-Help(opts.GenerateHelpText(env))
-
-# Add some customer builders
+#==========================================================================
+#
+#    Add some customer builders
+#
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
-if env['PLATFORM'] == "win32":
+if IS_WINDOWS_PLATFORM:
    runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix='.exe', single_source=True)
 else:
    runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
@@ -221,7 +302,7 @@ try:
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
    if env['PLATFORM'] == "win32":
       env.PrependENVPath('PATH', libinstall)
-      env.PrependENVPath('PATH', env['boost_lib_path'])
+      env.PrependENVPath('PATH', env['boost_libs_path'])
 except KeyError:
    libinstall = None
 try:
@@ -242,11 +323,6 @@ try:
    env.Append(CPPDEFINES = cc_defines)
 except KeyError:
    pass
-
-if 'shake71' == socket.gethostname().split('.')[0]:
-  if useMPI:
-    env['CC'] = 'mpicc'
-    env['CXX'] = 'mpiCC'
 
 if dodebug:
   if useMPI:
@@ -308,7 +384,7 @@ except KeyError:
 try:
    sys_libs = env['sys_libs']
 except KeyError:
-   sys_libs = ''
+   sys_libs = []
 
 try:
    tar_flags = env['tar_flags']
@@ -329,12 +405,12 @@ except KeyError:
    pass
 
 if useMPI:
-   mkl_libs = ''
+   mkl_libs = []
 else:
    try:
       mkl_libs = env['mkl_libs']
    except KeyError:
-      mkl_libs = ''
+      mkl_libs = []
 
 try:
    includes = env['scsl_path']
@@ -352,12 +428,12 @@ if useMPI:
   try:
     scsl_libs = env['scsl_libs_MPI']
   except KeyError:
-    scsl_libs = ''
+    scsl_libs = []
 else:
   try:
     scsl_libs = env['scsl_libs']
   except KeyError:
-    scsl_libs = ''
+    scsl_libs = []
 
 try:
    includes = env['umf_path']
@@ -372,12 +448,12 @@ except KeyError:
    pass
 
 if useMPI:
-    umf_libs = ''
+    umf_libs = []
 else:
    try:
       umf_libs = env['umf_libs']
    except KeyError:
-      umf_libs = ''
+      umf_libs = []
 
 try:
    includes = env['ufc_path']
@@ -398,12 +474,12 @@ except KeyError:
    pass
 
 if useMPI:
-    amd_libs = ''
+    amd_libs = []
 else:
    try:
       amd_libs = env['amd_libs']
    except KeyError:
-      amd_libs = ''
+      amd_libs = []
 
 try:
    includes = env['blas_path']
@@ -420,7 +496,7 @@ except KeyError:
 try:
    blas_libs = env['blas_libs']
 except KeyError:
-   blas_libs = ''
+   blas_libs = []
 
 try:
    useNetCDF = env['useNetCDF']
@@ -440,16 +516,17 @@ if useNetCDF == 'yes':
 
    try:
       lib_path = env['netCDF_lib_path']
-      env.Append(LIBPATH = [lib_path,])
+      if IS_WINDOWS_PLATFORM: env['ENV']['PATH']+=";"+lib_path
+      env.Append(LIBPATH = [ lib_path, ])
    except KeyError:
       pass
 
    try:
-      netCDF_libs_cxx = env['netCDF_libs_cxx']
+      netCDF_libs = env['netCDF_libs']
    except KeyError:
-      netCDF_libs_cxx = [ ]
+      netCDF_libs = [ ]
 else:
-   netCDF_libs_cxx=[ ]
+   netCDF_libs=[ ]
 
 try:
    includes = env['boost_path']
@@ -457,14 +534,14 @@ try:
 except KeyError:
    pass
 try:
-   lib_path = env['boost_lib_path']
+   lib_path = env['boost_libs_path']
    env.Append(LIBPATH = [lib_path,])
 except KeyError:
    pass
 try:
-   boost_lib = env['boost_lib']
+   boost_libs = env['boost_libs']
 except KeyError:
-   boost_lib = None
+   boost_libs = None
 try:
    includes = env['python_path']
    env.Append(CPPPATH = [includes,])
@@ -476,9 +553,9 @@ try:
 except KeyError:
    pass
 try:
-   python_lib = env['python_lib']
+   python_libs = env['python_libs']
 except KeyError:
-   python_lib = None
+   python_libs = None
 try:
    doxygen_path = env['doxygen_path']
 except KeyError:
@@ -545,7 +622,6 @@ except KeyError:
    api_epydoc = None
 
 # Zipgets
-
 env.Default(libinstall)
 env.Default(incinstall)
 env.Default(pyinstall)
@@ -568,10 +644,10 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs_cxx", "useNetCDF",
-	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
+Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs", "useNetCDF",
+	"boost_libs", "python_libs", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
-        "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])
+        "guide_pdf", "guide_html_index", "api_epydoc", "useMPI" ])
 
 # End initialisation section
 # Begin configuration section
@@ -580,9 +656,11 @@ release_srcfiles=[env.File('SConstruct'),]+[ env.File(x) for x in glob.glob('sco
 release_testfiles=[env.File('README_TESTS'),]
 env.Zip(src_zipfile, release_srcfiles)
 env.Zip(test_zipfile, release_testfiles)
-env.Tar(src_tarfile, release_srcfiles)
-env.Tar(test_tarfile, release_testfiles)
-
+try:
+   env.Tar(src_tarfile, release_srcfiles)
+   env.Tar(test_tarfile, release_testfiles)
+except AttributeError:
+   pass
 # Insert new components to be build here
 # FIXME: might be nice to replace this verbosity with a list of targets and some
 # FIXME: nifty python to create the lengthy but very similar env.Sconscript lines

@@ -35,7 +35,7 @@ def runUnitTest(target, source, env):
 def runPyUnitTest(target, source, env): 
    time_start = time.time()
    print "Executing test: " + str(source[0].abspath)
-   app = 'python '+str(source[0].abspath)
+   app = 'python '+'"'+str(source[0].abspath)+'"'
    if not env.Execute(app):
       open(str(target[0]),'w').write("PASSED\n")
    else:
