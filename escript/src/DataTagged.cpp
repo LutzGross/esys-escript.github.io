@@ -17,7 +17,7 @@
 #include "DataConstant.h"
 #include "DataException.h"
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "netcdfcpp.h"
 #endif
 
 using namespace std;
