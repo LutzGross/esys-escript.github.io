@@ -27,25 +27,26 @@ try:
 except KeyError:
      FINLEY_WORKDIR='.'
 
-FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
-if os.name == "nt":
-   FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
-FINLEY_WORKDIR_PATH=FINLEY_WORKDIR+"/"
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
+FINLEY_WORKDIR_PATH=FINLEY_WORKDIR
 
 TEST_FILE_EXT=".test"
 class Test_Generators(unittest.TestCase):
 
    def checker(self,dom,reference):
-      dom_file=FINLEY_WORKDIR_PATH+TEST_FILE_EXT
+      dom_file=os.path.join(FINLEY_WORKDIR_PATH,TEST_FILE_EXT)
       dom.write(dom_file)
 # Uncomment this section to dump the files for regression testing
 #      if True:
-#         dom.write(FINLEY_TEST_MESH_PATH+reference)
+#         dom.write(os.path.join(FINLEY_TEST_MESH_PATH,reference))
       dom_string=open(dom_file).read().splitlines()
-      ref_string=open(FINLEY_TEST_MESH_PATH+reference).read().splitlines()
+      ref_string=open(os.path.join(FINLEY_TEST_MESH_PATH,reference)).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
-         self.failUnlessEqual(dom_string[l].strip(),ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),dom_string[l].strip()))
+         line=dom_string[l].strip()
+         if os.name == "nt":
+              line=line.replace("e+00","e+0").replace("e-00","e-0")
+         self.failUnlessEqual(line,ref_string[l].strip(),"line %d=""%s"" in mesh file does not match line ""%s"" in reference %s" %(l,ref_string[l].strip(),line,os.path.join(FINLEY_TEST_MESH_PATH,reference)))
 
    def test_hex_1D_order1(self):
       file="hex_1D_order1.msh"
@@ -177,45 +178,48 @@ class Test_GMSHReader(unittest.TestCase):
       ref_string=open(reference_file).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
-         self.failUnlessEqual(dom_string[l].strip(),ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),dom_string[l].strip()))
+         line=dom_string[l].strip()
+         if os.name == "nt":
+              line=line.replace("e+00","e+0").replace("e-00","e-0")
+         self.failUnlessEqual(line,ref_string[l].strip(),"line %d=""%s"" in mesh file does not match line ""%s"" in reference %s" %(l,ref_string[l].strip(),line,reference_file))
 
    def test_Tri3(self):
        file="tri3_gmsh.msh"
        ref ="tri3.fly"
-       test = FINLEY_WORKDIR+os.sep+"tri3_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
+       test = os.path.join(FINLEY_WORKDIR,"tri3_test.fly")
+       dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),2)
        dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
    def test_Tri6(self):
        file="tri6_gmsh.msh"
        ref="tri6.fly"
-       test = FINLEY_WORKDIR+os.sep+"tri8_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
+       test = os.path.join(FINLEY_WORKDIR,"tri8_test.fly")
+       dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),2)
        dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
    def test_Tet4(self):
        file="tet4_gmsh.msh"
        ref="tet4.fly"
-       test = FINLEY_WORKDIR+os.sep+"tet4_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       test = os.path.join(FINLEY_WORKDIR,"tet4_test.fly")
+       dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),3)
        dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
    def test_Tet(self):
        file="tet10_gmsh.msh"
        ref="tet10.fly"
-       test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       test = os.path.join(FINLEY_WORKDIR,"tet10_test.fly")
+       dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),3)
        dom.write(test)
-       self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
+       self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
 class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
        file="hex_2D_order2.msh"
-       test = FINLEY_WORKDIR+os.sep+"test.fly"
-       dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       test = os.path.join(FINLEY_WORKDIR,"test.fly")
+       dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,file),3)
        insertTagNames(dom,A=1,B=2)
        dom.write(test)
        dom2 = ReadMesh(test,3)
