@@ -214,6 +214,7 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 // 					fprintf( fileHandle_p, "NEED unrolling!\n" );
 					M = A_p->numRows*A_p->row_block_size;
 					N = A_p->numCols*A_p->col_block_size;
+					nz = A_p->len;
 
 					dim_t *row_ind = MEMALLOC( nz, dim_t );
 					dim_t *col_ind = MEMALLOC( nz, dim_t );
