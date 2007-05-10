@@ -89,8 +89,11 @@ class Design(design.Design):
         clean up
         """
         if not self.keepFiles():
+            try:
                os.unlink(self.getScriptFileName())
                os.unlink(self.getMeshFileName())
+            except OSError:
+               pass
     def getCommandString(self):
         """
         returns the gmsh comand

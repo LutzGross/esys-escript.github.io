@@ -87,7 +87,7 @@ void MeshAdapter::write(const std::string& fileName) const
 
 string MeshAdapter::getDescription() const
 {
-  return "FinleyMesh";
+  return string("FinleyMesh");
 }
 
 string MeshAdapter::functionSpaceTypeAsString(int functionSpaceType) const
@@ -97,7 +97,7 @@ string MeshAdapter::functionSpaceTypeAsString(int functionSpaceType) const
   if (loc==m_functionSpaceTypeNames.end()) {
     return "Invalid function space type code.";
   } else {
-    return loc->second;
+    return string(loc->second);
   }
 }
 
@@ -1476,7 +1476,7 @@ std::string MeshAdapter::showTagNames() const
      tag_map=tag_map->next;
      if (tag_map) temp << ", ";
   }
-  return temp.str();
+  return string(temp.str());
 }
 
 }  // end of namespace

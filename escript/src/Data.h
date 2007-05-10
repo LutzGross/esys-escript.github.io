@@ -333,6 +333,13 @@ class Data {
   {
     return m_data->toString();
   }
+  
+  /**
+     \brief
+     Return a description for this domain for python.
+  */
+  ESCRIPT_DLL_API
+  const boost::python::str str() const;
 
   /**
      \brief

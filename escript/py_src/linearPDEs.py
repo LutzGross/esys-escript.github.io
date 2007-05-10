@@ -112,6 +112,7 @@ class PDECoefficient(object):
        @param reduced: indicates if reduced 
        @type reduced: C{bool}
        """
+       
        super(PDECoefficient, self).__init__()
        self.what=where
        self.pattern=pattern

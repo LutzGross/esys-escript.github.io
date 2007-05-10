@@ -13,7 +13,6 @@
 #include "DataCTestCase.h"
 #include "DataAlgorithmAdapterTestCase.h"
 #include "FunctionSpaceTestCase.h"
-#include "DataProfTestCase.h"
 #include "DataTestCase.h"
 
 #include "tools/CppUnitTest/TestRunner.h"
@@ -40,7 +39,6 @@ int main(int argc, char* argv[])
 	runner.addTest ("DataC", DataCTestCase::suite());
 	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
 	runner.addTest ("FunctionSpace", FunctionSpaceTestCase::suite());
-	runner.addTest ("DataProf", DataProfTestCase::suite());
 	runner.addTest ("Data", DataTestCase::suite());
 
 	// actually run the unit tests.

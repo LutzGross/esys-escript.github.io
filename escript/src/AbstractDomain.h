@@ -20,6 +20,7 @@
 #include <string>
 #include <map>
 #include <boost/python/dict.hpp>
+#include <boost/python/str.hpp>
 
 namespace escript {
 // class forward declarations
@@ -36,19 +37,19 @@ class AbstractDomain {
 
  public:
 
-
+   
    // structure holding values for X, size and normal
    typedef int StatusType;
-   struct ValueBuffer
-   {
-       StatusType m_status;
-       boost::shared_ptr<Data> m_data;
-   };
-   typedef struct ValueBuffer ValueBuffer;
+   // struct ValueBuffer
+   // {
+   //    StatusType m_status;
+   //    boost::shared_ptr<Data> m_data;
+   //};
+   // typedef struct ValueBuffer ValueBuffer;
 
    // 
    // map from function space type code to value buffer
-   typedef std::map<int, ValueBuffer> BufferMapType;
+   // typedef std::map<int, ValueBuffer> BufferMapType;
 
 
   /**
@@ -99,6 +100,13 @@ class AbstractDomain {
   ESCRIPT_DLL_API
   virtual std::string getDescription() const;
 
+  /**
+     \brief
+     Return a description for this domain for python.
+  */
+  ESCRIPT_DLL_API
+  const boost::python::str str() const;
+  
   /**
      \brief
      Return a description for the given function space type code.
@@ -355,13 +363,13 @@ class AbstractDomain {
  private:
 
    // buffer for coordinates used by function spaces
-   BufferMapType m_x_buffer;
+   //BufferMapType m_x_buffer;
 
    // buffer for normal vectors used by function spaces
-   BufferMapType m_normal_buffer;
+   //BufferMapType m_normal_buffer;
 
    // buffer for normal element size used by function spaces
-   BufferMapType m_size_buffer;
+   //BufferMapType m_size_buffer;
 
 };
 

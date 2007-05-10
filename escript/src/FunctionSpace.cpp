@@ -69,10 +69,17 @@ std::string
 FunctionSpace::toString() const
 {
   std::stringstream temp;
-  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
-       << " on " << m_domain->getDescription();
+  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType) << " on " << m_domain->getDescription();
   return temp.str();
 }
+
+const
+boost::python::str
+FunctionSpace::str() const
+{
+  return boost::python::str(toString().c_str());
+}
+
 
 int
 FunctionSpace::getTagFromSampleNo(int sampleNo) const

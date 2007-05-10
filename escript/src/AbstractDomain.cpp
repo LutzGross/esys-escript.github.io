@@ -42,6 +42,13 @@ std::string AbstractDomain::getDescription() const
   return "";
 }
 
+const
+boost::python::str
+AbstractDomain::str() const
+{
+  return boost::python::str(getDescription().c_str());
+}
+
 std::string AbstractDomain::functionSpaceTypeAsString(int functionSpaceType) const
 {
   throwStandardException("AbstractDomain::functionSpaceTypeAsString");

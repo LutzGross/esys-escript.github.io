@@ -226,7 +226,7 @@ DataArrayView::createShapeErrorMessage(const string& messagePrefix,
   temp << messagePrefix
        << " This shape: " << shapeToString(m_shape)
        << " Other shape: " << shapeToString(other);
-  return temp.str();
+  return string(temp.str());
 }
 
 DataArrayView::ValueType::size_type
@@ -708,7 +708,7 @@ DataArrayView::toString(const string& suffix) const
       mess << "Error - (toString) Invalid rank: " << getRank();
       throw DataException(mess.str());
     }
-    return temp.str();
+    return string(temp.str());
 }
 
 string
@@ -723,7 +723,7 @@ DataArrayView::shapeToString(const DataArrayView::ShapeType& shape)
       }
     }
     temp << ")";
-    return temp.str();
+    return string(temp.str());
 }
 
 void
