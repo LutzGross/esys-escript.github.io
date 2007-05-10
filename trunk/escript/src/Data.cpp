@@ -19,7 +19,6 @@
 #include "DataEmpty.h"
 #include "DataArray.h"
 #include "DataArrayView.h"
-#include "DataProf.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
@@ -213,6 +212,14 @@ Data::getShapeTuple() const
         throw DataException("Error - illegal Data rank.");
   }
 }
+
+const
+boost::python::str
+Data::str() const
+{
+  return boost::python::str(toString().c_str());
+}
+
 void
 Data::copy(const Data& other)
 {
@@ -1014,7 +1021,7 @@ Data::Lsup() const
   localValue = algorithm(abs_max_func,0);
 #ifdef PASO_MPI
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
-  return globalValue;
+ return globalValue;
 #else
   return localValue;
 #endif

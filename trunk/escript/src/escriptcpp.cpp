@@ -77,6 +77,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Interface for AbstractDomain
   //
   class_<escript::AbstractDomain>("Domain",no_init)
+     .def("__str__",&escript::AbstractDomain::str)
      .def("setTagMap",&escript::AbstractDomain::setTagMap)
      .def("getTag",&escript::AbstractDomain::getTag)
      .def("isValidTagName",&escript::AbstractDomain::isValidTagName)
@@ -106,7 +107,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getSize",&escript::FunctionSpace::getSize)
      .def("setTags",&escript::FunctionSpace::setTags)
      .def("getTagFromDataPointNo",&escript::FunctionSpace::getTagFromDataPointNo)
-     .def("__str__",&escript::FunctionSpace::toString)
+     .def("__str__",&escript::FunctionSpace::str)
      .def(self == self)
      .def(self != self);
   //
@@ -121,7 +122,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def(init<const escript::Data&>())
     // Note for Lutz, Need to specify the call policy in order to return a
     // reference. In this case return_internal_reference.
-    .def("__str__",&escript::Data::toString)
+    .def("__str__",&escript::Data::str)
     .def("getDomain",&escript::Data::getDomain,return_internal_reference<>())
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_internal_reference<>())
     .def("isEmpty",&escript::Data::isEmpty)

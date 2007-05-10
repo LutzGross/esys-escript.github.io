@@ -271,7 +271,7 @@ DataExpanded::toString() const
       }
     }
   }
-  return temp.str();
+  return string(temp.str());
 }
 
 DataArrayView::ValueType::size_type

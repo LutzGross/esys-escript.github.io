@@ -29,12 +29,6 @@ alltestruns = testruns + localtestruns
 test_pyc = env.PyCompile(testfiles)
 env.Alias('build_py_tests', test_pyc)
 
-#Add Unit Test to target alias
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/pyvisi/test/python')))
-local_env['ENV']['ESCRIPT_TEST_DATA_ROOT']=env.Dir('#/pyvisi/test/python').srcnode().abspath
-local_env['ENV']['ESCRIPT_WORKDIR']=env.Dir('#/build/$PLATFORM/pyvisi/test/python').srcnode().abspath
-env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
-env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 
 # get all the python files in the release tar file
 release_pyfiles = [ env.File("SConscript"), ]
@@ -52,8 +46,23 @@ except AttributeError:
 #
 # run all tests:
 #
-program = local_env.RunPyUnitTest(alltestruns)
+try:
+   import vtk
+   VTK_AVAILABLE = True
+except ImportError:
+      VTK_AVAILABLE =False
+      print "Warning: vtk is not installed on your system. pyvisi tests are skipped."
+       
+if VTK_AVAILABLE: 
+   #Add Unit Test to target alias
+   local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/pyvisi/test/python')))
+   local_env['ENV']['ESCRIPT_TEST_DATA_ROOT']=env.Dir('#/pyvisi/test/python').srcnode().abspath
+   local_env['ENV']['ESCRIPT_WORKDIR']=env.Dir('#/build/$PLATFORM/pyvisi/test/python').srcnode().abspath
 
-Depends(program, pyinstall)
-Depends(program, dep_lib) 
-Depends(program, 'build_py_tests') 
+   env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
+   env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
+   program = local_env.RunPyUnitTest(alltestruns)
+ 
+   Depends(program, pyinstall)
+   # Depends(program, dep_lib) 
+   Depends(program, 'build_py_tests') 

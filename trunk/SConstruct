@@ -140,7 +140,7 @@ if os.path.isdir(tools_prefix+'netcdf'+os.sep+'include') and os.path.isdir(tools
      netCDF_path_default=tools_prefix+'netcdf'+os.sep+'include'
      netCDF_lib_path_default=tools_prefix+'netcdf'+os.sep+'lib'
      netCDF_libs_default=['netcdf_cpp',  'netcdf' ] 
-     useNetCDF_default='yes'
+     useNetCDF_default='no'
 #==========================================================================
 #
 #    compile:

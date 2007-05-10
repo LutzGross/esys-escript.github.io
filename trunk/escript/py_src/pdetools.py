@@ -130,7 +130,6 @@ class Projector:
     self.__pde.setSymmetryOn()
     self.__pde.setReducedOrderTo(reduce)
     self.__pde.setValue(D = 1.)
-    return
 
   def __call__(self, input_data):
     """

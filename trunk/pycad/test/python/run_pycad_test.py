@@ -26,8 +26,8 @@ try:
 except KeyError:
      PYCAD_WORKDIR='.'
 
-PYCAD_TEST_MESH_PATH=PYCAD_TEST_DATA+os.sep+"data_meshes"+os.sep
-PYCAD_WORKDIR_PATH=PYCAD_WORKDIR+os.sep
+PYCAD_TEST_MESH_PATH=os.path.join(PYCAD_TEST_DATA,"data_meshes")
+PYCAD_WORKDIR_PATH=PYCAD_WORKDIR
 
 def _cross(x, y):
     return numarray.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]])
@@ -3498,14 +3498,14 @@ class Test_PyCAD_Design(unittest.TestCase):
        script_name=d.getScriptFileName()
        self.failUnless(isinstance(script_name,str))
        self.failUnless(script_name.split(".")[-1] == "geo")
-       script_name=PYCAD_WORKDIR+os.sep+"script.geo"
+       script_name=os.path.join(PYCAD_WORKDIR,"script.geo")
        d.setScriptFileName(script_name)
        self.failUnless(script_name == d.getScriptFileName())
 
        mesh_name=d.getMeshFileName()
        self.failUnless(isinstance(mesh_name,str))
        self.failUnless(mesh_name.split(".")[-1] == "msh")
-       mesh_name=PYCAD_WORKDIR+os.sep+"mesh.msh"
+       mesh_name=os.path.join(PYCAD_WORKDIR,"mesh.msh")
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
@@ -3559,13 +3559,13 @@ Physical Line(13) = {6, 7};
        script_name=d.getScriptFileName()
        self.failUnless(isinstance(script_name,str))
        self.failUnless(script_name.split(".")[-1] == "poly")
-       script_name=PYCAD_WORKDIR+os.sep+"script.poly"
+       script_name=os.path.join(PYCAD_WORKDIR,"script.poly")
        d.setScriptFileName(script_name)
        self.failUnless(script_name == d.getScriptFileName())
 
        mesh_name=d.getMeshFileName()
        self.failUnless(isinstance(mesh_name,str))
-       mesh_name=PYCAD_WORKDIR+os.sep+"mesh"
+       mesh_name=os.path.join(PYCAD_WORKDIR,"mesh")
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
@@ -3994,7 +3994,7 @@ Line Loop(23) = {10, 11, 12, 13};
 Line Loop(24) = {16, 17, 18};
 Plane Surface(29) = {23, 24};
 """
-        self.failUnless(scrpt == ref )
+        self.failUnless(scrpt.replace("e-00","e-0") == ref )
 
    def test_generate_SurfaceLoop(self):
         d=GMSHDesign(dim=3, element_size=0.01)
@@ -4546,7 +4546,7 @@ Line Loop(16) = {12, 13, 14};
 Plane Surface(17) = {15, 16};
 Physical Surface(18) = {17};
 """
-       self.failUnless(scrpt == ref )
+       self.failUnless(scrpt.replace("e-00","e-0") == ref )
 
    def test_generate_PropertySet3D(self):
        d=GMSHDesign(dim=3, element_size=0.01)

@@ -364,7 +364,7 @@ DataTagged::toString() const
     tempView.setOffset(i->second);
     temp << tempView.toString() << endl;
   }
-  return temp.str();
+  return string(temp.str());
 }
 
 DataArrayView::ValueType::size_type 

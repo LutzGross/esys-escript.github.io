@@ -16,6 +16,7 @@
 
 #include "AbstractDomain.h"
 #include "NullDomain.h"
+#include <boost/python/str.hpp>
 
 #include <string>
 
@@ -124,11 +125,17 @@ class ESCRIPT_DLL_API FunctionSpace {
 
   /**
    \brief
+   Return a text description of the function space for python.
+  */
+  const boost::python::str
+  str() const;
+  
+  /**
+   \brief
    Return a text description of the function space.
   */
   std::string
   toString() const;
-
   /**
    \brief
    Return the tag associated with the given sample number.
