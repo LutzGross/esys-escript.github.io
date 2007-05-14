@@ -3,8 +3,13 @@ from esys.pyvisi.constant import *
 import unittest, os
 from stat import ST_SIZE
 
-PYVISI_TEST_MESHES_PATH = "data_meshes/"
-PYVISI_TEST_CAMERA_IMAGES_PATH = "data_sample_images/camera/"
+try:
+     PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
+except KeyError:
+     PYVISI_WORKDIR='.'
+     
+PYVISI_TEST_MESHES_PATH = s.path.join(PYVISI_WORKDIR,"data_meshes")
+PYVISI_TEST_CAMERA_IMAGES_PATH = os.path.join(PYVISI_WORKDIR,"data_sample_images","camera")
 MIN_IMAGE_SIZE = 100
 FILE_2D = "interior_2D.xml"
 FILE_3D = "interior_3D.xml"
