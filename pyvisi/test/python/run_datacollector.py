@@ -2,7 +2,7 @@ from esys.pyvisi import DataCollector
 from esys.pyvisi.constant import *
 import unittest
 
-PYVISI_TEST_MESHES_PATH = "data_meshes/"
+PYVISI_TEST_MESHES_PATH = "data_meshes"
 FILE_2D = "interior_2D.xml"
 FILE_3D = "interior_3D.xml"
 
@@ -20,7 +20,7 @@ class TestSourceXml:
 
 	def setFileName(self, file):
 		self.data_collector.setFileName(file_name = \
-				PYVISI_TEST_MESHES_PATH + file)
+				os.path.join(PYVISI_TEST_MESHES_PATH, file))
 
 	def setActiveScalar(self, s):
 		self.data_collector.setActiveScalar(scalar = s)

@@ -66,8 +66,7 @@ class DataCollector:
 		if(self.__source == Source.XML):
 			# Check whether the specified file exists, otherwise exit.
 			if not(os.access(file_name, os.F_OK)):
-				print "\nERROR: '%s' file does NOT exists.\n" % file_name
-				sys.exit(1)			
+				raise IOError("ERROR: '%s' file does NOT exists." % file_name)		
 
 			self.__vtk_xml_reader.SetFileName(file_name)
 			# Update must be called after SetFileName to make the reader 
@@ -138,8 +137,7 @@ class DataCollector:
 		elif scalar in self.__cell_attribute['scalars']:
 			self._getOutput().GetCellData().SetActiveScalars(scalar)
 		else:
-			print "\nERROR: No scalar called '%s' is available.\n" % scalar
-			sys.exit(1)	
+			raise IOError("ERROR: No scalar called '%s' is available." % scalar)
 
 	def setActiveVector(self, vector):
 		"""
@@ -159,8 +157,7 @@ class DataCollector:
 		elif vector in self.__cell_attribute['vectors']:
 			self._getOutput().GetCellData().SetActiveVectors(vector)
 		else:
-			print "\nERROR: No vector called '%s' is available.\n" % vector
-			sys.exit(1)	
+			raise IOError("ERROR: No vector called '%s' is available." % vector)
 			
 	def setActiveTensor(self, tensor):
 		"""
@@ -180,8 +177,7 @@ class DataCollector:
 		elif tensor in self.__cell_attribute['tensors']:
 			self._getOutput().GetCellData().SetActiveTensors(tensor)
 		else:
-			print "\nERROR: No tensor called '%s' is available.\n" % tensor
-			sys.exit(0)	
+			raise IOError("ERROR: No tensor called '%s' is available." % tensor)
 
 	# 'object' is set to 'None' because some types of visualization have
 	# two ranges that needs to be updated while others only have one.
@@ -309,8 +305,7 @@ class DataCollector:
 		elif(len(self.__cell_attribute['scalars']) != 0):
 			return self._getOutput().GetCellData().GetScalars().GetRange(-1)
 		else:
-			print "\nERROR: No scalar is available.\n"	
-			sys.exit(1)
+			raise IOError("ERROR: No scalar is available.")
 
 	def _getVectorRange(self):
 		"""
