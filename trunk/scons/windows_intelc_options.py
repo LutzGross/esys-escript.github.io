@@ -5,8 +5,8 @@ python_lib = 'python23'
 
 # locations of libraries for boost
 boost_path = 'Q:/src/boost'
-boost_lib_path = 'Q:/src/boost/windows_binary/lib'
-boost_lib = 'boost_python-vc71-mt-s-1_31'
+boost_libs_path = 'Q:/src/boost/windows_binary/lib'
+boost_libs = 'boost_python-vc71-mt-s-1_31'
 
 # locations of netcdf
 netCDF_path = "Q:/src/netcdf/src/include"
