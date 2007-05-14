@@ -31,8 +31,8 @@
 
 # locations of libraries for boost
 # boost_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/include'
-# boost_lib_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/lib'
-# boost_lib = 'boost_python-mt'
+# boost_libs_path = '/data/raid2/toolspp4/boost/1.33.1/python-2.4.1/gcc-3.3.6/lib'
+# boost_libs = 'boost_python-mt'
 
 # locations of doc building executables
 doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'

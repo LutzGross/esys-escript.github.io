@@ -17,8 +17,8 @@ python_lib = "python%s.%s"%(sys.version_info[0],sys.version_info[1])
 
 # locations of libraries for boost
 boost_path = '/usr/include'
-boost_lib_path = '/usr/lib'
-boost_lib = 'boost_python'
+boost_libs_path = '/usr/lib'
+boost_libs = 'boost_python'
 
 # locations of doc building executables
 doxygen_path = '/usr/bin'

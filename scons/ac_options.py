@@ -25,8 +25,8 @@ python_lib = 'python2.3'
 
 # locations of libraries for boost
 boost_path = '/opt/boost-1.33.0/gcc/include/boost-1_33'
-boost_lib_path = '/opt/boost-1.33.0/gcc/lib'
-boost_lib = 'boost_python-gcc-mt-d'
+boost_libs_path = '/opt/boost-1.33.0/gcc/lib'
+boost_libs = 'boost_python-gcc-mt-d'
 
 # locations of doc building executables
 #doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
