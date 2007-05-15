@@ -29,13 +29,13 @@
 /**************************************************************/
 
 void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes, index_t* degreeOfFreedom) {
-    if (in==NULL) return;
-    dim_t NN=in->ReferenceElement->Type->numNodes;
-    dim_t e,i,numUncoloredElements,n,len;
+    dim_t e,i,numUncoloredElements,n,len,NN;
     index_t *maskDOF,*old_Color,color,min_id,max_id,old_maxColor,old_minColor;
     bool_t independent;
     Finley_resetError();
 
+    if (in==NULL) return;
+    NN=in->ReferenceElement->Type->numNodes;
     if (in->numElements<1) return;
 
     min_id=Finley_Util_getMinInt(1,numNodes,degreeOfFreedom);

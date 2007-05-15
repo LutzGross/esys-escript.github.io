@@ -15,7 +15,9 @@
 #include "DataException.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
+#ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
 
 #include <boost/python/extract.hpp>
 
@@ -616,11 +618,30 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 }
 
 void
+DataExpanded::setToZero(){
+  int numSamples = getNumSamples();
+  int numDataPointsPerSample = getNumDPPSample();
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView::ValueType::size_type n = thisView.noValues();
+  double* p;
+  int  sampleNo,dataPointNo, i;
+  #pragma omp parallel for private(sampleNo,dataPointNo,p,i) schedule(static)
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+    for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+        p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
+        for (int i=0; i<n ;++i) p[i]=0.;
+    }
+  }
+}
+
+
+void
 DataExpanded::dump(const std::string fileName) const
 {
    #ifdef PASO_MPI
    throw DataException("Error - DataExpanded:: dump is not implemented for MPI yet.");
    #endif
+   #ifdef USE_NETCDF
    const int ldims=2+DataArrayView::maxRank;
    const NcDim* ncdims[ldims];
    NcVar *var, *ids;
@@ -681,7 +702,8 @@ DataExpanded::dump(const std::string fileName) const
         throw DataException("Error - DataExpanded:: appending variable to netCDF file failed.");
    if (! (var->put(&m_data[0],dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
+   #else
+   throw DataException("Error - DataExpanded:: dump is not configured with netCDF. Please contact your installation manager.");
+   #endif
 }
-
-
 }  // end of namespace

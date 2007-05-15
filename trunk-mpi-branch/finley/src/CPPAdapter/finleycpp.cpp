@@ -90,11 +90,11 @@ BOOST_PYTHON_MODULE(finleycpp)
   // return pointers.
 
   def("ReadMesh",finley::readMesh,
-      (arg("fileName"),arg("integrationOrder")=-1),
+      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimizeLabeling")=true),
       return_value_policy<manage_new_object>());
 
   def("ReadGmsh",finley::readGmsh,
-      (arg("fileName"),arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimizeLabeling")=true),
+      (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimizeLabeling")=true),
       return_value_policy<manage_new_object>());
 
   def ("Brick",finley::brick,
@@ -102,7 +102,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,arg("periodic2")=false,
-      arg("integrationOrder")=-1,
+      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false),
       return_value_policy<manage_new_object>());
 
@@ -110,14 +110,14 @@ BOOST_PYTHON_MODULE(finleycpp)
       (arg("n0")=1,arg("n1")=1,arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,
-      arg("integrationOrder")=-1,
+      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false),
       return_value_policy<manage_new_object>());
 
   def("Interval",finley::interval,
       (arg("n1")=1,arg("order")=1,
       arg("l1")=1.0,arg("periodic0")=false,
-      arg("integrationOrder")=-1,
+      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false),
       return_value_policy<manage_new_object>());
 
@@ -126,12 +126,14 @@ BOOST_PYTHON_MODULE(finleycpp)
 
   def("GlueFaces",finley::glueFaces,
       (arg("safetyFactor")=0.2,
-      arg("tolerance")=1.e-8),
+      arg("tolerance")=1.e-8,
+      arg("optimizeLabeling")=true),
       return_value_policy<manage_new_object>());
 
   def("JoinFaces",finley::joinFaces,
       (arg("safetyFactor")=0.2,
-      arg("tolerance")=1.e-8),
+      arg("tolerance")=1.e-8,
+      arg("optimizeLabeling")=true),
       return_value_policy<manage_new_object>());
 
   register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
@@ -152,7 +154,11 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("getNormal",&finley::MeshAdapter::getNormal)
       .def("getSize",&finley::MeshAdapter::getSize)
       .def("saveDX",&finley::MeshAdapter::saveDX)
-      .def("saveVTK",&finley::MeshAdapter::saveVTK);
+      .def("saveVTK",&finley::MeshAdapter::saveVTK)
+      .def("setTagMap",&finley::MeshAdapter::setTagMap)
+      .def("getTag",&finley::MeshAdapter::getTag)
+      .def("isValidTagName",&finley::MeshAdapter::isValidTagName)
+      .def("showTagNames",&finley::MeshAdapter::showTagNames);
 
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >

@@ -164,13 +164,17 @@ void
 DataAbstract::eigenvalues(DataAbstract* ev) 
 {
     throw DataException("Error - DataAbstract::eigenvalues is not supported.");
-
 }
 void
 DataAbstract::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
 {
     throw DataException("Error - DataAbstract::eigenvalues_and_eigenvectors is not supported.");
 
+}
+void
+DataAbstract::setToZero() 
+{
+    throw DataException("Error - DataAbstract:: cannot set values to zero.");
 }
 
 

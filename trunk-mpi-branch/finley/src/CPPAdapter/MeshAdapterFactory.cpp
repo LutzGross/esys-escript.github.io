@@ -29,7 +29,9 @@ using namespace escript;
 namespace finley {
 
   AbstractContinuousDomain* readMesh(const std::string& fileName,
-				     int integrationOrder) 
+  				     int integrationOrder,
+                                     int reducedIntegrationOrder,
+                                     bool optimizeLabeling)
   {
     //
     // create a copy of the filename to overcome the non-constness of call
@@ -40,7 +42,7 @@ namespace finley {
     strcpy(fName,fileName.c_str());
 
 #ifndef PASO_MPI
-    fMesh=Finley_Mesh_read(fName,integrationOrder);
+    fMesh=Finley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimizeLabeling ? TRUE : FALSE));
 #else
     {
       stringstream temp;
@@ -72,7 +74,7 @@ namespace finley {
     strcpy(fName,fileName.c_str());
 
 #ifndef PASO_MPI
-    fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, optimizeLabeling);
+    fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimizeLabeling ? TRUE : FALSE));
 #else
     {
       stringstream temp;
@@ -94,6 +96,7 @@ namespace finley {
 		    int periodic0,int periodic1,
 		    int periodic2,
 		    int integrationOrder,
+                    int reducedIntegrationOrder,
 		    int useElementsOnFace) 
   {
 //     cout << "n0=" << n0 << " n1=" << n1 << " n2=" << n2
@@ -114,11 +117,11 @@ namespace finley {
     Finley_Mesh* fMesh=NULL;
 
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					useElementsOnFace) ;
     } 
 		else if (order==2) {
-      fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					 useElementsOnFace) ;
     } else {
       stringstream temp;
@@ -135,6 +138,7 @@ namespace finley {
 			double l0, double l1,
 			int periodic0,int periodic1,
 			int integrationOrder,
+                        int reducedIntegrationOrder,
 			int useElementsOnFace) 
   {
     int numElements[]={n0,n1};
@@ -143,11 +147,11 @@ namespace finley {
 
     Finley_Mesh* fMesh=0;
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
 					useElementsOnFace);
     }
     else if (order==2) {
-      fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					useElementsOnFace);
     }
     else {
@@ -163,6 +167,7 @@ namespace finley {
   }
   AbstractContinuousDomain*  interval(int n0,int order,double l0,int periodic0,
 		       int integrationOrder,
+                       int reducedIntegrationOrder,
 		       int useElementsOnFace) 
   {
     int numElements[]={n0};
@@ -170,11 +175,11 @@ namespace finley {
     int periodic[]={periodic0};
     Finley_Mesh* fMesh;
     if (order==1) {
-      fMesh=Finley_RectangularMesh_Line2(numElements, length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Line2(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
 					 useElementsOnFace);
     } 
     else if (order==2) {
-      fMesh=Finley_RectangularMesh_Line3(numElements,length,periodic,integrationOrder,
+      fMesh=Finley_RectangularMesh_Line3(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					 useElementsOnFace);
     } 
     else {
@@ -188,6 +193,7 @@ namespace finley {
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp;
   }
+
   AbstractContinuousDomain* meshMerge(const boost::python::list& meshList)
   {
     Finley_Mesh* fMesh=0;
@@ -220,8 +226,9 @@ namespace finley {
     return temp;
   }
   AbstractContinuousDomain*  glueFaces(const boost::python::list& meshList,
-			double safety_factor, 
-			double tolerance)
+                 		double safety_factor, 
+			double tolerance,
+                        bool optimizeLabeling)
   {
     Finley_Mesh* fMesh=0;
 #ifndef PASO_MPI
@@ -232,7 +239,7 @@ namespace finley {
     // glue the faces:
     const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes);
     fMesh=merged_finley_meshes->getFinley_Mesh();
-    Finley_Mesh_glueFaces(fMesh,safety_factor,tolerance);
+    Finley_Mesh_glueFaces(fMesh,safety_factor,tolerance,(optimizeLabeling ? TRUE : FALSE));
 
     //
     // Convert any finley errors into a C++ exception
@@ -254,7 +261,8 @@ namespace finley {
   }
   AbstractContinuousDomain*  joinFaces(const boost::python::list& meshList,
 			double safety_factor, 
-			double tolerance)
+			double tolerance,
+                        bool optimizeLabeling)
   {
     Finley_Mesh* fMesh=0;
     //
@@ -265,7 +273,7 @@ namespace finley {
     // join the faces:
     const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes);
     fMesh=merged_finley_meshes->getFinley_Mesh();
-    Finley_Mesh_joinFaces(fMesh,safety_factor,tolerance);
+    Finley_Mesh_joinFaces(fMesh,safety_factor,tolerance, (optimizeLabeling ? TRUE : FALSE));
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
@@ -284,4 +292,6 @@ namespace finley {
 #endif
   }
 
-}  // end of namespace
+  // end of namespace
+
+}

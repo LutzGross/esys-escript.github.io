@@ -26,15 +26,15 @@ class PointSource:
 		Setup the point source.
 		"""
 
-		# Default number of points to generate is 10.
+		# Default number of points to generate within the sphere is 10.
 		self.setPointSourceNumberOfPoints(10)
 		# Default center of the sphere is the center of the data object.
 		center = self.__object.GetCenter()
 		self.setPointSourceCenter(
 				GlobalPosition(center[0], center[1], center[2]))
 
-		# Default radius of the sphere is 0.1.
-		self.setPointSourceRadius(0.1)
+		# Default radius of the sphere is 0.5.
+		self.setPointSourceRadius(0.5)
 		self.__vtk_point_source.Update()
 
 	def setPointSourceRadius(self, radius):
@@ -59,8 +59,8 @@ class PointSource:
 
 	def setPointSourceNumberOfPoints(self, points):
 		"""
-		Set the number of points to generate within the sphere. The larger the
-		number of points, the more streamlines are generated.
+		Set the number of points to generate within the sphere (the larger the
+		number of points, the more streamlines are generated)
 
 		@type points: Number
 		@param points: Number of points to generate
@@ -85,6 +85,9 @@ class PointSource:
 class StructuredPoints:
 	"""
 	Class that defines the structured points.
+
+	@status: This class is currently not included because it does NOT appear
+	to work with second-order elements.
 	"""
 	
 	# NOTE: The algorithm of this class was extracted from Mayavi's 
@@ -134,7 +137,7 @@ class StructuredPoints:
 		@param z1: Index of the last point on the z-axis
 		"""
 
-		#self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
+		self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
 
 	def __setUpdateExtent(self, x0, x1, y0, y1, z0, z1):
 		"""
@@ -178,9 +181,6 @@ class StructuredPoints:
 		self.__setUpdateExtent(0, self.__dims[0] - 1, 0, self.__dims[1] - 1, 0,
 				self.__dims[2] - 1)
 
-		#self.__setWholeExtent(0, self.__dims[0] - 1, 0, self.__dims[1] - 1, 0, 
-		#		self.__dims[2] - 1)
-
 		self.__vtk_structured_points.SetDimensions(self.__dims)
 		self.__setSpacing()
 
@@ -208,4 +208,77 @@ class StructuredPoints:
 		"""
 
 		return self.__vtk_structured_points
+
+
+##############################################################################
+
+
+class MaskPoints:
+	"""
+	Class that defines the masking of points. It is possible to mask 
+	every n'th point.  This is useful to prevent the rendered object 
+	from being cluttered with arrows or ellipsoids.
+	"""
+
+	def __init__(self, object):
+		"""
+		Initialise the mask points.
+
+		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, etc)
+		@param object: Data source from which to mask points 
+		"""
+
+		self.__object = object
+		self.__vtk_mask_points = vtk.vtkMaskPoints()
+
+		self.__setupMaskPoints()
+
+	def __setupMaskPoints(self):
+		"""
+		Setup the mask points.
+		"""
+
+		self.__setInput()
+
+	def __setInput(self):
+		"""
+		Set the input for the mask points.
+		"""
+
+		self.__vtk_mask_points.SetInput(self.__object)
+
+	def setRatio(self, ratio):
+		"""
+		Mask every nth point.
+
+		@type ratio: Number
+		@param ratio: Masking ratio
+		"""
+
+		self.__vtk_mask_points.SetOnRatio(ratio)
+
+	def randomOn(self):
+		"""
+		Enables the randomization of the points selected for masking.
+		"""
+
+		self.__vtk_mask_points.RandomModeOn()
+
+	def randomOff(self):
+		"""
+		Disables the randomization of the points selected for masking.
+		"""
+
+		self.__vtk_mask_points.RandomModeOff()
+	
+	def _getOutput(self):
+		"""
+		Return the output of the masked points.
+
+		@rtype: vtkPolyData
+		@return: Polygonal datda
+		"""
+
+		return self.__vtk_mask_points.GetOutput()
+
 

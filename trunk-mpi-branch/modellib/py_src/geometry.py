@@ -9,7 +9,6 @@ __license__="""Licensed under the Open Software License version 3.0
 
 from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
-from esys.pycad import TagMap
 from esys import finley
 
 class FinleyReader(ParameterSet):
@@ -31,14 +30,11 @@ class FinleyReader(ParameterSet):
           """
           super(FinleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
-                                region_tag_map_source=None,
-                                surface_tag_map_source=None,
+                                dim=None,
                                 optimizeLabeling=True,
                                 reducedIntegrationOrder=-1,
                                 integrationOrder=-1)
           self.__domain=None
-          self.__region_tag_map=None
-          self.__surface_tag_map=None
 
 
        def domain(self):
@@ -52,41 +48,15 @@ class FinleyReader(ParameterSet):
              if  self.source.fileformat == "fly":
                 self.__domain=finley.ReadMesh(self.source.getLocalFileName(),self.integrationOrder) 
              elif self.source.fileformat == "gmsh":
-                self.__domain=finley.ReadGmsh(self.source.getLocalFileName(),self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling) 
+                if self.dim==None:
+                   dim=3
+                else:
+                   dim=self.dim
+                self.__domain=finley.ReadGmsh(self.source.getLocalFileName(),dim,self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling) 
              else:
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
-
-       def region_tag_map(self):
-          """
-          returns the map from regional tag names to tag integers used in the mesh
-
-          @return: the tag map
-          @rtype: L{TagMap}
-          """
-          if self.__region_tag_map == None:
-               self.__region_tag_map = TagMap()
-               if  self.region_tag_map_source != None:
-                   self.__region_tag_map.fillFromXML(open(self.region_tag_map_source.getLocalFileName()))
-               self.trace("region tag map read from %s in %s format."%(self.region_tag_map_source.getLocalFileName(), self.region_tag_map_source.fileformat))           
-          return self.__region_tag_map
-
-       def surface_tag_map(self):
-          """
-          returns the map from surface tag names to tag integers used in the mesh
-
-          @return: the tag map
-          @rtype: L{TagMap}
-          """
-          if self.__surface_tag_map == None:
-               self.__surface_tag_map = TagMap()
-               if  self.surface_tag_map_source != None:
-                   self.__surface_tag_map.fillFromXML(open(self.surface_tag_map_source.getLocalFileName()))
-               self.trace("surface tag map read from %s in %s format."%(self.surface_tag_map_source.getLocalFileName(), self.surface_tag_map_source.fileformat))           
-          return self.__surface_tag_map
-          
-                       
 class RectangularDomain(ParameterSet):
        """
        Generates a mesh over a rectangular domain finley.
@@ -248,32 +218,36 @@ class ConstrainerOverBox(Model):
           return self.__value_of_constraint
          
       def __setOutput(self):
-          x=self.domain.getX()
-          val=self.value
-          if isinstance(val, int) or isinstance(val, float):
-             shape=()
-          elif isinstance(val, list) or isinstance(val, tuple) :
-             shape=(len(val),)
-          elif isinstance(val, numarray.NumArray):
-              shape=val.shape
-          else: 
-              shape=val.getShape()
-          self.__location_of_constraint=Data(0,shape,x.getFunctionSpace())
-          if self.domain.getDim()==3:
-                x0,x1,x2=x[0],x[1],x[2]
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-                if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol)
-                if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol)
-          else:
-                x0,x1=x[0],x[1]
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-          self.__value_of_constraint=self.__location_of_constraint*self.value
+          if self.__location_of_constraint == None:
+             x=self.domain.getX()
+             val=self.value
+             if isinstance(val, int) or isinstance(val, float):
+                shape=()
+             elif isinstance(val, list) or isinstance(val, tuple) :
+                shape=(len(val),)
+             elif isinstance(val, numarray.NumArray):
+                 shape=val.shape
+             elif val == None:
+                  shape=()
+             else: 
+                 shape=val.getShape()
+             self.__location_of_constraint=Data(0,shape,x.getFunctionSpace())
+             if self.domain.getDim()==3:
+                   x0,x1,x2=x[0],x[1],x[2]
+                   if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                   if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                   if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                   if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+                   if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol)
+                   if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol)
+             else:
+                   x0,x1=x[0],x[1]
+                   if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
+                   if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
+                   if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
+                   if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+             if not self.value == None:
+                   self.__value_of_constraint=self.__location_of_constraint*self.value
 class ScalarConstrainerOverBox(Model):
       """
       Creates a characteristic function for the location of constraints 
@@ -342,7 +316,7 @@ class ScalarConstrainerOverBox(Model):
                 if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
                 if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
                 if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-          if self.value:
+          if not self.value == None:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
 class VectorConstrainerOverBox(Model):
@@ -430,7 +404,7 @@ class VectorConstrainerOverBox(Model):
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.,0.]
              if self.top[2]: self.__location_of_constraint+=top_mask*[0.,0.,1.]
-             if self.value:
+             if not self.value == None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value
           else:
              x0,x1=x[0],x[1]
@@ -446,7 +420,7 @@ class VectorConstrainerOverBox(Model):
              top_mask=whereZero(x1-sup(x1),self.tol)
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.]
-             if self.value:
+             if not self.value == None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value[:2]
 
 # vim: expandtab shiftwidth=4:

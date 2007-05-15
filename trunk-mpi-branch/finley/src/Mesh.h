@@ -59,6 +59,7 @@
 #include "Finley.h"
 #include "NodeFile.h"
 #include "ElementFile.h"
+#include "TagMap.h"
 #include "paso/SystemMatrixPattern.h"
 #include "escript/DataC.h"
 
@@ -73,12 +74,14 @@
 struct Finley_Mesh {
   char* Name;                           /* the name of the mesh */
   index_t order;                        /* integration order */
+  index_t reduced_order;                /* reduced integration order */
   dim_t reference_counter;              /* counts the number of references to the mesh; */
   Finley_NodeFile* Nodes;               /* the table of the nodes */
   Finley_ElementFile* Elements;         /* the table of the elements */
   Finley_ElementFile* FaceElements;     /* the table of the face elements */
   Finley_ElementFile* ContactElements;  /* the table of the contact elements */
   Finley_ElementFile* Points;           /* the table of points (treated as elements of dimension 0) */
+  Finley_TagMap* TagMap;                /* the tag map mapping names to tag keys */
 
   /* pointer to the sparse matrix pattern */
 
@@ -103,13 +106,13 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 
 /*  interfaces: */
 #ifndef PASO_MPI
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order);
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t reduced_order);
 #else
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, Paso_MPIInfo *mpi_info);
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t reduced_order, Paso_MPIInfo *mpi_info);
 void Finley_Mesh_resolveDegreeOfFreedomOrder( Finley_Mesh *in, bool_t doReduced );
 void print_mesh_statistics( Finley_Mesh *out, bool_t reduced  );
-void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in );
 #endif
+void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in );
 /*Finley_Mesh* Finley_Mesh_alloc(char*,int,int);*/
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
 void Finley_Mesh_dealloc(Finley_Mesh*);
@@ -120,7 +123,7 @@ dim_t Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh*);
 Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 void Finley_Mesh_write(Finley_Mesh*,char*);
-Finley_Mesh* Finley_Mesh_read(char*,index_t);
+Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t);
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 
@@ -135,8 +138,8 @@ Finley_Mesh* Finley_Mesh_merge(dim_t, Finley_Mesh**);
 void Finley_Mesh_relableElementNodes(int*,int,Finley_Mesh*);
 void Finley_Mesh_markNodes(int*,int,Finley_Mesh*,int);
 
-void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance);
-void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance);
+void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t);
+void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t);
 
 int Finley_Mesh_findMatchingFaces_compar(const void*,const void*);
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
@@ -148,6 +151,9 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
 void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char*
 *names_p,escriptDataC* *data_pp);
 #endif
+void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p,const char* name, index_t tag_key);
+index_t Finley_Mesh_getTag(Finley_Mesh *mesh_p,const char* name);
+bool_t Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p,const char* name);
 
 
 

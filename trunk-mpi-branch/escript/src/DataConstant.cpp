@@ -17,7 +17,9 @@
 
 #include <iostream>
 #include <boost/python/extract.hpp>
+#ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
 
 using namespace std;
 
@@ -265,11 +267,19 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 }
 
 void
+DataConstant::setToZero()
+{
+    DataArrayView::ValueType::size_type n=m_data.size();
+    for (int i=0; i<n ;++i) m_data[i]=0.;
+}
+
+void
 DataConstant::dump(const std::string fileName) const
 {
    #ifdef PASO_MPI
    throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.");
-   #else
+   #endif
+   #ifdef USE_NETCDF
    const NcDim* ncdims[DataArrayView::maxRank];
    NcVar* var;
    int rank = getPointDataView().getRank();
@@ -322,6 +332,8 @@ DataConstant::dump(const std::string fileName) const
 	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
    if (! (var->put(&m_data[0],dims)) )
 	throw DataException("Error - DataConstant:: copy data to netCDF buffer failed."); 
+   #else
+   throw DataException("Error - DataConstant:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif
 }
 

@@ -66,21 +66,29 @@ echo ""
 START=\`date '+%Y/%m/%d %H:%M'\`
 
 finish () {
+  # state will be 'FAILURE' or 'SUCCESS'
+  state="\$1"
   date
   # Clean up the sandbox
   cd $WorkDir
   /bin/rm -rf sandbox.$RunDate
   END=\`date '+%Y/%m/%d %H:%M'\`
-  cat << END_MSG | mail -s "ESYS_TESTS $target $RunDate \$1" $MAIL_RECIPIENTS
+  cat << END_MSG | mail -s "ESYS_TESTS $target $RunDate \$state" $MAIL_RECIPIENTS
 \$2.
 The tests ran from \$START to \$END on \$NCPUS CPUs
 See the log files in $WorkDir/Logs/$RunDate*
 This mail was sent by $SCRIPT_NAME
 running as \$USER on \`hostname\`.
 END_MSG
-  test "x\$1" = "FAILURE" && exit 1
+  if [ "x\$state" = "xFAILURE" ]; then
+    touch Logs/$RunDate.FAILURE
+    exit 1
+  fi
   exit 0
 }
+
+
+# set -x
 
 
 cd $WorkDir				|| finish FAILURE "Could not cd to WorkDir $WorkDir"
@@ -105,6 +113,8 @@ module use /usr/share/modules/modulefiles
 module load esys/env	# Recommended modules
 module load doxygen/1.4.6
 module load boost/1.33.0/python-2.4.1
+module load gmsh-1.65.0
+module load epydoc/2.1/python-2.4.3
 
 # How many threads? One per CPU.
 export OMP_NUM_THREADS=\$NCPUS
@@ -114,10 +124,19 @@ echo "Running the tests $target"
 cd trunk				|| finish FAILURE "Could not cd to trunk"
 scons -j \$NCPUS $target >> $out_file 2>&1		|| finish FAILURE "Could not run scons $target"
 
+# Run epydoc to create the python documentation
+echo "Running epydoc"
+export LD_LIBRARY_PATH="$PWD/lib:$LD_LIBRARY_PATH"
+mkdir release release/doc release/doc/epydoc
+scons api_epydoc >> $out_file 2>&1		|| finish FAILURE "Could not run scons api_epydoc"
+cd release/doc/epydoc
+tar cf - . | ssh shake200 "cd /home/www/esys/esys13/nightly/epydoc; tar xf -"	|| finish FAILURE "Could not copy epydoc to shake200"
+cd ../../..
+
 echo "Cleaning up after the tests"
 
-# Delete files older than 21 days
-find $WorkDir -atime +21 -exec rm -f {} \;
+# Delete files older than 60 days
+find $WorkDir -atime +60 -exec rm -f {} \;
 
 finish SUCCESS "Successfully ran 'scons $target' on \`hostname\`"
 

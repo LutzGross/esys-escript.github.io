@@ -34,36 +34,19 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     type_t datacase;
     index_t node_offset;
     bool_t reducedIntegrationOrder;
-    if (nodes==NULL || elements==NULL) return;
     type_t data_type=getFunctionSpaceType(data);
     dim_t numComps=getDataPointSize(data);
+    Finley_ElementFile_Jacobeans* jac=NULL;
     Finley_resetError();
-                                                                                                                                               
+    if (nodes==NULL || elements==NULL) return;
     /* set some parameter */
-                                                                                                                                               
-    if (data_type==FINLEY_ELEMENTS) {
-        reducedIntegrationOrder=FALSE;
-    } else if (data_type==FINLEY_FACE_ELEMENTS)  {
-        reducedIntegrationOrder=FALSE;
-    } else if (data_type==FINLEY_CONTACT_ELEMENTS_1)  {
-        reducedIntegrationOrder=FALSE;
-    } else if (data_type==FINLEY_CONTACT_ELEMENTS_2)  {
-        reducedIntegrationOrder=FALSE;
-    } else {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_integrate: integration of data is not possible.");
-    }
-
-    /* get access to jacobean */
-    Finley_ElementFile_Jacobeans* jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
-
+    jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Finley_Assemble_reducedIntegrationOrder(data));
     if (Finley_noError()) {
 
         /* check the shape of the data  */
         if (! numSamplesEqual(data,jac->ReferenceElement->numQuadNodes,elements->numElements)) {
            Finley_setError(TYPE_ERROR,"Finley_Assemble_integrate: illegal number of samples of integrant kernel Data object");
         }
-
-
         /* now we can start */
 
         if (Finley_noError()) {

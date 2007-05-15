@@ -28,7 +28,7 @@ struct escriptDataC {
   void* m_dataPtr;
 };
 
-typedef struct escriptDataC escriptDataC;
+typedef struct escriptDataC escriptDataC; 
 
 /**
    \brief

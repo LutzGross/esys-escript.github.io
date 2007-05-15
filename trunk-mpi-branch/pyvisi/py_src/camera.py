@@ -8,7 +8,10 @@ from constant import Viewport
 
 class Camera:
 	"""
-	Class that defines a camera.
+	Class that defines a camera. A camera controls the display angle of
+	the rendered object and one is usually created for a
+	L{Scene <scene.Scene>}. However, if a L{Scene <scene.Scene>} has four
+	viewports, then a separate camera may be created for each viewport.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -21,9 +24,9 @@ class Camera:
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
-		@param data_collector: Deal with source of data for visualisation
+		@param data_collector: Deal with the source data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant
-		@param viewport: Viewport in which object are to be rendered on
+		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
 		self.__scene = scene
@@ -38,14 +41,6 @@ class Camera:
 		Setup the camera.
 		"""
 
-		# Default camera focal point is the center of the object.
-		center = self.__data_collector._getOutput().GetCenter()
-		self.setFocalPoint(GlobalPosition(center[0], center[1], center[2]))
-
-		# Default camera position is the center of the object but with a slight
-		# distance on the z-axis.
-		self.setPosition(GlobalPosition(center[0], center[1], center[2] * 3))
-
 		# Assign the camera to the appropriate renderer
 		self.__scene._setActiveCamera(self.__viewport, self.__vtk_camera)
 		self.__resetCamera()	
@@ -59,7 +54,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.SetFocalPoint(position._getGlobalPosition())		
-		self.__resetCamera()
+		self.__resetCameraClippingRange()
 
 	def setPosition(self, position):
 		"""
@@ -70,7 +65,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.SetPosition(position._getGlobalPosition())
-		self.__resetCamera()
+		self.__resetCameraClippingRange()
 
 	def setClippingRange(self, near_clipping, far_clipping):
 		"""
@@ -82,8 +77,7 @@ class Camera:
 		@param far_clipping: Distance to the far clipping plane
 		"""
 	
-		self.vtk__camera.SetClippingRange(near_clipping, far_clipping)
-		self.__resetCamera()
+		self.__vtk_camera.SetClippingRange(near_clipping, far_clipping)
 
 	def setViewUp(self, position):
 		"""
@@ -94,7 +88,6 @@ class Camera:
 		"""
 
 		self.__vtk_camera.SetViewUp(position._getGlobalPosition())
-		self.__resetCamera()
 
 	def azimuth(self, angle):
 		"""
@@ -105,7 +98,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.Azimuth(angle)
-		self.__resetCamera()		
+		self.__resetCameraClippingRange()
 
 	def elevation(self, angle):
 		"""
@@ -117,12 +110,12 @@ class Camera:
 
 		self.__vtk_camera.Elevation(angle)
 		# Recompute the view up vector. If not used the elevation angle is  
-		# unable to exceed 87/-87 degrees. Also, a warning resetting the
+		# unable to exceed 87/-87 degrees. A warning resetting the
 		# view up will also be thrown and the rendered object may be incorrect.
 		# With the view up recomputed, the elevation angle can reach between
 		# 90/-90 degrees. Exceeding that, the rendered object may be incorrect.
 		self.__vtk_camera.OrthogonalizeViewUp()
-		self.__resetCamera()
+		self.__resetCameraClippingRange()
 
 	def roll(self, angle):
 		"""
@@ -133,6 +126,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.Roll(-angle)
+		self.__resetCameraClippingRange()
 
 	def backView(self):
 		"""
@@ -140,7 +134,6 @@ class Camera:
 		"""
 
 		self.azimuth(180)
-		self.__resetCamera()
 
 	def topView(self):
 		"""
@@ -148,7 +141,6 @@ class Camera:
 		"""
 		
 		self.elevation(90)
-		self.__resetCamera()
 
 	def bottomView(self):
 		"""
@@ -156,7 +148,6 @@ class Camera:
 		"""
 
 		self.elevation(-90)
-		self.__resetCamera()
 
 	def leftView(self):
 		"""
@@ -164,7 +155,6 @@ class Camera:
 		"""
 
 		self.azimuth(-90)
-		self.__resetCamera()
 
 	def rightView(self):
 		"""
@@ -172,21 +162,39 @@ class Camera:
 		"""
 
 		self.azimuth(90)
-		self.__resetCamera()
 
 	def isometricView(self):
 		"""
-		Rotate the camera to view the isometric side of the rendered object.
+		Rotate the camera to view the isometric angle of the rendered object.
 		"""
 
 		self.roll(-45)
 		self.elevation(-45)
 		
+	def dolly(self, distance):
+		"""
+		Move the camera towards (greater than 1) and away (less than 1) from 
+		the rendered object. 
+
+		@type distance: Number
+		@param distance: Amount to move towards or away the rendered object
+		"""
+
+		self.__vtk_camera.Dolly(distance)
+		self.__resetCameraClippingRange()
+
+	def __resetCameraClippingRange(self):
+		"""
+		Reset the camera clipping range based on the bounds of the visible 
+		actors. This ensures the rendered object is not cut-off.
+		Needs to be called whenever the camera's settings are modified.
+		"""
+
+		self.__scene._getRenderer()[self.__viewport].ResetCameraClippingRange() 
+
 	def __resetCamera(self):
 		"""
-		Reposition the camera so that all actors can be seen. Needs to
-		be called whenever the camera's settings are modified in order for the
-		changes to take effect correctly.
+		Repositions the camera to view the center point of the actors.
 		"""
 
 		self.__scene._getRenderer()[self.__viewport].ResetCamera() 

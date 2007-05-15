@@ -6,12 +6,12 @@ import vtk
 
 class ContourModule:
 	"""
-	Class that defines contour.
+	Class that defines contour module.
 	"""
 
 	def __init__(self, object):
 		"""
-		Initliase the contour.
+		Initliase the contour module.
 
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Input for the contour
@@ -31,11 +31,13 @@ class ContourModule:
 
 	# lower_range and upper_range by default is assigned to None. This allows
 	# the contours to be altered without necessarily having to alter the 
-	# lower_range and upper_range together.
+	# lower_range and upper_range at the same time.
 	def generateContours(self, contours, lower_range = None, 
 			upper_range = None):
 		"""
 		Generate the specified number of contours within the specified range.
+		In order to generate an iso surface, the 'lower_range' and 
+		'upper_range' must be equal.
 
 		@type contours: Number
 		@param contours: Number of contours to generate
@@ -52,6 +54,16 @@ class ContourModule:
 
 		self.__vtk_contour.GenerateValues(contours, self.__lower_range, 
 				self.__upper_range)
+
+	def _getContour(self):
+		"""
+		Return the contour.
+
+		@rtype: vtkContourFilter
+		@return: Contour filter
+		"""
+
+		return self.__vtk_contour
 
 	def _getOutput(self):
 		"""

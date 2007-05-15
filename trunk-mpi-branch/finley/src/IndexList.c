@@ -51,8 +51,8 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* 
                                        bool_t reduce_row_order, index_t* row_Label,
                                        bool_t reduce_col_order, index_t* col_Label) {
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
-  index_t color, num_CPUs = 1, my_CPU = 0;
-  dim_t e,kr,kc,NN_row,NN_col,i,icol,irow;
+  index_t color, *id=NULL, num_CPUs = 1, my_CPU = 0;
+  dim_t e,kr,kc,NN_row,NN_col,i,icol,irow, NN, *row_node=NULL,*col_node=NULL;
 #ifdef PASO_MPI
     num_CPUs = mesh->MPIInfo->size;
     my_CPU = mesh->MPIInfo->rank;
@@ -61,7 +61,9 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* 
 
   if (elements!=NULL) {
     dim_t NN=elements->ReferenceElement->Type->numNodes;
-    index_t id[NN],*row_node,*col_node;
+    index_t *row_node,*col_node;
+    id=TMPMEMALLOC(NN, index_t);
+    if (! Finley_checkPtr(id) ) {
     for (i=0;i<NN;i++) id[i]=i;
     if (reduce_col_order) {
        col_node=elements->ReferenceElement->Type->linearNodes;
@@ -127,6 +129,8 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* 
       }
 #endif
     }	/* More than one CPU */
+    TMPMEMFREE(id);
+  }
   }
   return;
 }

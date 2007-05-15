@@ -6,12 +6,12 @@ import vtk
 
 class StreamLineModule:
 	"""
-	Class that defines streamlines.
+	Class that defines the streamline module.
 	"""
 
 	def __init__(self, object, source):
 		"""
-		Initialise the streamline.
+		Initialise the streamline module.
 
 		@type object: vtkUnstructuredGrid, etc 
 		@param object: Input for the streamline
@@ -34,10 +34,10 @@ class StreamLineModule:
 		self.__setSource()
 		# Default maximum propagation time is 100.
 		self.setMaximumPropagationTime(100)
-		# Default step length is 0.1
-		self.setStepLength(0.1)
-		# Default integration step length is 0.1
-		self.setIntegrationStepLength(0.1)
+		# Default step length is 0.01
+		self.setStepLength(0.01)
+		# Default integration step length is 0.01
+		self.setIntegrationStepLength(0.01)
 		# Default integration is set to both directions.
 		self.setIntegrationToBothDirections()
 		# Default integrator is set to vtkRungeKutta4
@@ -53,7 +53,7 @@ class StreamLineModule:
 
 	def __setSource(self):
 		"""
-		Set the source to generate the starting points for the streamlines.
+		Set the source to generate the starting points for the streamline.
 		"""
 
 		self.__vtk_stream_line.SetSource(self.__source)
@@ -70,14 +70,17 @@ class StreamLineModule:
 
 	def setStepLength(self, length):
 		"""
-		Set the length of the line segment expressed in elapsed time. A smaller
-		value results in a smoother streamline (but is more expensive). Setting
-		the step length usually goes hand-in-hand with setting the integration
-		step length. Otherwise, errors such as "... can't compute normals" may
-		arise. However, it does not usually apply the other way around.
+		Set the length of the streamline segment expressed in elapsed time. 
+		A smaller value results in a smoother streamline 
+		(but is more expensive). Setting the step length usually goes 
+		hand-in-hand with setting the integration step length. Otherwise, 
+		errors such as "... can't compute normals" may arise. If such an 
+		error occurs try changing the value. However, it does not usually 
+		apply the other way around.
 
 		@type length: Number
-		@param length: Length of the line segment expressed in elapsed time
+		@param length: Length of the streamline segment expressed in 
+		elapsed time
 		"""
 
 		self.__vtk_stream_line.SetStepLength(length)	
@@ -90,6 +93,7 @@ class StreamLineModule:
 
 		@type length: Number
 		@param length: Length of the integration step expressed as a fraction 
+		of the size of each cell
 		"""
 
 		self.__vtk_stream_line.SetIntegrationStepLength(length)
@@ -111,6 +115,21 @@ class StreamLineModule:
 		"""
 
 		self.__vtk_stream_line.SetIntegrator(integrator)
+	
+	def _setSpeedScalarsOn(self):
+		"""
+		Turn on the creation of scalar data from velocity magnitude. 
+		"""
+
+		self.__vtk_stream_line.SpeedScalarsOn()
+
+	def _setSpeedScalarsOff(self):
+		"""
+		Turn off the creation of scalar data from velocity magnitude. If
+		input dataset has scalars, input dataset scalars are used.
+		"""
+
+		self.__vtk_stream_line.SpeedScalarsOff()
 
 	def _getOutput(self):
 		"""

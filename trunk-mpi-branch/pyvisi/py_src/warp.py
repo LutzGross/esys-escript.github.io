@@ -15,7 +15,7 @@ class Warp:
 		Initialise the warp scalar/vector.
 
 		@type object: vtkPolyData, etc
-		@param object: Input for the warp scalar
+		@param object: Input for the warp scalar/vector
 		@type warp_mode: L{WarpMode <constant.WarpMode>} constant
 		@param warp_mode: Mode in which to deform the data
 		"""

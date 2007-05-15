@@ -52,7 +52,7 @@ class LookupTable:
 
 	def __setValueRange(self, lower_range, upper_range):
 		"""
-		Set value range (brighness) for the lookup table (between 0 and 1).
+		Set the value range (brightness) for the lookup table (between 0 and 1).
 
 		@type lower_range: Number
 		@param lower_range:Lower value range 
@@ -64,7 +64,7 @@ class LookupTable:
 
 	def __setHueRange(self, lower_range, upper_range):
 		"""
-		Set hue (color) range for the lookup table (between 0 and 1).
+		Set the hue (color) range for the lookup table (between 0 and 1).
 
 		@type lower_range: Number
 		@param lower_range:Lower hue range 
@@ -76,7 +76,8 @@ class LookupTable:
 
 	def __setSaturationRange(self, lower_range, upper_range):
 		"""
-		Set saturation (vibrancy) range for the lookup table (between 0 and 1).
+		Set the saturation (vibrancy) range for the lookup table \
+		(between 0 and 1).
 
 		@type lower_range: Number
 		@param lower_range:Lower saturantion range 
@@ -98,7 +99,7 @@ class LookupTable:
 		Set the number of values (i.e. colors) in the lookup table.	
 
 		@type table_values: Number
-		@param table_values: Number of values in the lookup table.
+		@param table_values: Number of colors in the lookup table.
 		"""
 
 		self.__vtk_lookup_table.SetNumberOfTableValues(table_values)

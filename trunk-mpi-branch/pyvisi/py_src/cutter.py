@@ -43,7 +43,7 @@ class Cutter:
 
 	def __setCutFunction(self):
 		"""
-		Set the cut functions (using a plance).
+		Set the cut function (using a plane).
 		"""
 
 		self.__vtk_cutter.SetCutFunction(self.__plane)

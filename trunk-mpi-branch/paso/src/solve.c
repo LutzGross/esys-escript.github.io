@@ -46,13 +46,14 @@ void Paso_solve(Paso_SystemMatrix* A,
                                double* in,
                                Paso_Options* options) {
   Paso_Performance pp;
+  index_t package;
   Paso_resetError();
   if (A->numRows!=A->numCols || A->col_block_size!=A->row_block_size) {
        Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
   Performance_open(&pp,options->verbose);
-  index_t package=Paso_Options_getPackage(options->method,options->package,options->symmetric);
+  package=Paso_Options_getPackage(options->method,options->package,options->symmetric);
   if (Paso_noError()) {
      switch(package) {
 

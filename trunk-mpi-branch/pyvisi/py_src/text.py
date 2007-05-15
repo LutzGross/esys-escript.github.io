@@ -10,7 +10,8 @@ from constant import Viewport, Color
 # the driver.
 class Text2D(Actor2D):
 	"""
-	Class that defines a 2D text actor.
+	Class that defines a 2D text actor. A two-dimensional text is used to
+	annotate the rendered object (i.e. adding titles, authors and labels).
 	"""
 
 	def __init__(self, scene, text, viewport = Viewport.SOUTH_WEST):
@@ -60,21 +61,21 @@ class Text2D(Actor2D):
 
 	def setFontToTimes(self):
 		"""
-		Set the 2D text font type to times new roman.
+		Set the 2D text font type to Times New Roman.
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontFamilyToTimes()
 
 	def setFontToArial(self):
 		"""
-		Set the 2D text font type to arial.
+		Set the 2D text font type to Arial.
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontFamilyToArial()
 
 	def setFontToCourier(self):
 		"""
-		Set the 2D text front type to courier.
+		Set the 2D text front type to Courier.
 		"""
 
 		self._vtk_actor2D.GetTextProperty().SetFontFamilyToCourier()
@@ -95,7 +96,7 @@ class Text2D(Actor2D):
 
 	def setColor(self, color):
 		"""
-		Set the color of the text.
+		Set the color of the 2D text.
 
 		@type color: L{Color <constant.Color>} constant
 		@param color: 2D text color

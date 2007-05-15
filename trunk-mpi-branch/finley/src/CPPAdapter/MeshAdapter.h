@@ -74,11 +74,16 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   static const int DegreesOfFreedom;
   static const int ReducedDegreesOfFreedom;
   static const int Nodes;
+  static const int ReducedNodes;
   static const int Elements;
+  static const int ReducedElements;
   static const int FaceElements;
+  static const int ReducedFaceElements;
   static const int Points;
   static const int ContactElementsZero;
+  static const int ReducedContactElementsZero;
   static const int ContactElementsOne;
+  static const int ReducedContactElementsOne;
 
   /**
      \brief
@@ -205,10 +210,24 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     Return a functon FunctionSpace code
+     Return a continuous on reduced order nodes FunctionSpace code
+  */
+  FINLEY_DLL_API
+  virtual int getReducedContinuousFunctionCode() const;
+
+  /**
+     \brief
+     Return a function FunctionSpace code
   */
   FINLEY_DLL_API
   virtual int getFunctionCode() const;
+
+  /**
+     \brief
+     Return a function with reduced integration order FunctionSpace code
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionCode() const;
 
   /**
      \brief
@@ -219,6 +238,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Return a function on boundary with reduced integration order FunctionSpace code
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionOnBoundaryCode() const;
+
+  /**
+     \brief
      Return a FunctionOnContactZero code
   */
   FINLEY_DLL_API
@@ -226,10 +252,24 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Return a FunctionOnContactZero code  with reduced integration order
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionOnContactZeroCode() const;
+
+  /**
+     \brief
      Return a FunctionOnContactOne code
   */
   FINLEY_DLL_API
   virtual int getFunctionOnContactOneCode() const;
+
+  /**
+     \brief
+     Return a FunctionOnContactOne code  with reduced integration order
+  */
+  FINLEY_DLL_API
+  virtual int getReducedFunctionOnContactOneCode() const;
 
   /**
      \brief
@@ -279,6 +319,38 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   FINLEY_DLL_API
   virtual void setToX(escript::Data& arg) const;
+
+  /**
+     \brief
+     sets a map from a clear tag name to a tag key
+     \param name Input - tag name.
+     \param tag Input - tag key.
+  */
+  FINLEY_DLL_API
+  virtual void setTagMap(const std::string& name,  int tag);
+
+  /**
+     \brief
+     Return the tag key for tag name.
+     \param name Input - tag name
+  */
+  FINLEY_DLL_API
+  virtual int getTag(const std::string& name) const;
+
+  /**
+     \brief
+     Returns true if name is a defined tage name. 
+     \param name Input - tag name to be checked.
+  */
+  FINLEY_DLL_API
+  virtual bool isValidTagName(const std::string& name) const;
+
+  /**
+     \brief
+     Returns all tag names in a single string sperated by commas
+  */
+  FINLEY_DLL_API
+  virtual std::string showTagNames() const;
 
   /**
      \brief

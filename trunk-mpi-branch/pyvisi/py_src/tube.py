@@ -6,7 +6,7 @@ import vtk
 
 class Tube:
 	"""
-	Class that defines tubes that are wrapped around the streamlines.
+	Class that defines the tube wrapped around the streamlines.
 	"""
 
 	def __init__(self, object):
@@ -29,7 +29,7 @@ class Tube:
 		self.setTubeRadius(0.02)
 		# Default number of sides for the tube is 12.
 		self.setTubeNumberOfSides(12)
-		#self.setRadiusToVaryByVector()
+		self.setTubeRadiusToVaryByVector()
 		self.__vtk_tube.Update()
 
 	def __setInput(self):
@@ -52,7 +52,7 @@ class Tube:
 	def setTubeNumberOfSides(self, sides):
 		"""
 		Set the number of sides for the tube. Minimum number of sides is 3.
-		The larger the number of sides, the higher quality the steramlines are.
+		The larger the number of sides, the higher the quality.
 		
 		@type sides: Number
 		@param sides: Number of sides for the tube

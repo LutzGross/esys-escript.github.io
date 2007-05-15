@@ -205,7 +205,7 @@ void Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,double* 
               }
               D_0=dXdv00_0*dXdv00_0+dXdv10_0*dXdv10_0;
               D_1=dXdv00_1*dXdv00_1+dXdv10_1*dXdv10_1;
-              if (D_0 == 0.i || D_1 == 0.) {
+              if (D_0 == 0.  || D_1 == 0.) {
                   sprintf(error_msg,"Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {

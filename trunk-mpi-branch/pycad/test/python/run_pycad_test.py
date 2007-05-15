@@ -14,6 +14,7 @@ import numarray
 from esys.pycad import *
 from esys.pycad.design import Design as Design0
 from esys.pycad.gmsh import Design as GMSHDesign
+from esys.pycad.Triangle import Design as TriangleDesign
 
 try:
      PYCAD_TEST_DATA=os.environ['PYCAD_TEST_DATA']
@@ -750,10 +751,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        p*=Dilation(2)
        self.failUnless(p.isColocated(Point(8,16,24)),"applying in-place Dilation factor failed")
 
-       # get gmsh code
-       code=p.getGmshCommand(2.)
-       self.failUnless("Point(1) = {8.0 , 16.0, 24.0 , 6.0 };"== code, "wrong gmsh code")
- 
    def test_Spline(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
@@ -790,9 +787,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
         self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
         self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
-
-        code=c.getGmshCommand()
-        self.failUnless(code == "Spline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
 
         h=c.getPrimitives()
         self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
@@ -868,9 +862,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
         self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
 
-        code=c.getGmshCommand()
-        self.failUnless(code == "Spline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
-
         h=c.getPrimitives()
         self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
         self.failUnless(p0 in h, "missing p0 in history.")
@@ -938,9 +929,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
         self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
         self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
-
-        code=c.getGmshCommand()
-        self.failUnless(code == "Bezier(6) = {1, 2, 3, 4};", "gmsh command wrong.")
 
         h=c.getPrimitives()
         self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
@@ -1011,9 +999,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
         self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
         self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
-
-        code=c.getGmshCommand()
-        self.failUnless(code == "BSpline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
 
         h=c.getPrimitives()
         self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
@@ -1089,9 +1074,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(co[2].getLocalScale() == 3., "new local scale of 3rd control point is wrong.")
         self.failUnless(co[3].getLocalScale() == 3., "new local scale of 4th control point is wrong.")
 
-        code=c.getGmshCommand()
-        self.failUnless(code == "BSpline(6) = {1, 2, 3, 4};", "gmsh command wrong.")
-
         h=c.getPrimitives()
         self.failUnless(len(h) == 5, "number of primitives in history is wrong.")
         self.failUnless(p0 in h, "missing p0 in history.")
@@ -1161,9 +1143,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
         self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
 
-        code=c.getGmshCommand()
-        self.failUnless(code == "Line(4) = {1, 2};", "gmsh command wrong.")
-
         h=c.getPrimitives()
         self.failUnless(len(h) == 3, "number of primitives in history is wrong.")
         self.failUnless(p0 in h, "missing p0 in history.")
@@ -1224,9 +1203,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(co[0].getLocalScale() == 3., "new local scale of 1st control point is wrong.")
         self.failUnless(co[1].getLocalScale() == 3., "new local scale of 2nd control point is wrong.")
 
-        code=c.getGmshCommand()
-        self.failUnless(code == "Line(4) = {1, 2};", "gmsh command wrong.")
-
         h=c.getPrimitives()
         self.failUnless(len(h) == 3, "number of primitives in history is wrong.")
         self.failUnless(p0 in h, "missing p0 in history.")
@@ -1270,9 +1246,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
         self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
-
-        code=c.getGmshCommand() 
-        self.failUnless(code == "Circle(6) = {2, 1, 3};", "gmsh command wrong.")
 
         self.failUnless(not c.isColocated(p4),"spline is colocated with point.")
         self.failUnless(not c.isColocated(Arc(p4,p_start,p_end)),"spline is colocated with spline with differnt center point.")
@@ -1335,9 +1308,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
         self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
-
-        code=c.getGmshCommand() 
-        self.failUnless(code == "Circle(6) = {2, 1, 3};", "gmsh command wrong.")
 
         self.failUnless(not c.isColocated(p4),"spline is colocated with point.")
         self.failUnless(not c.isColocated(Arc(p4,p_start,p_end)),"spline is colocated with spline with differnt center point.")
@@ -1407,9 +1377,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         c=CurveLoop(l01,l20,l12)
         self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
         self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
-
-        code=c.getGmshCommand() 
-        self.failUnless(code == "Line Loop(14) = {8, 10, 9};", "gmsh command wrong.")
 
         self.failUnless(not c.isColocated(p4),"CurveLoop is colocated with point.")
         self.failUnless(c.isColocated(c),"CurveLoop is not colocated with its self.")
@@ -1504,10 +1471,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         self.failUnless(c.hasSameOrientation(c),"has not same orientation like itself")
         self.failUnless(not c.hasSameOrientation(-c),"has same orientation like -itself")
-
-        code=c.getGmshCommand() 
-        self.failUnless(code == "Line Loop(13) = {8, 10, 9};", "gmsh command wrong.")
-
 
         self.failUnless(not c.isColocated(p4),"-CurveLoop is colocated with point.")
         self.failUnless(c.isColocated(c),"-CurveLoop is not colocated with its self.")
@@ -1621,9 +1584,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(l20 in crvs, "l20 is missing in boundary")
         self.failUnless(crvs[crvs.index(l20)].hasSameOrientation(l20),"l12_1 has incorrect orientation.")
                
-
-        code=s.getGmshCommand() 
-        self.failUnless(code == "Ruled Surface(17) = {14};", "gmsh command wrong.")
 
         self.failUnless(not s.isColocated(p4),"RuledSurface is colocated with point.")
         self.failUnless(s.isColocated(s),"RuledSurface is not colocated with its self.")
@@ -1763,9 +1723,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(l20 in crvs, "l20 is missing in boundary")
         self.failUnless(crvs[crvs.index(l20)].hasSameOrientation(-l20),"l12_1 has incorrect orientation.")
                
-
-        code=s.getGmshCommand() 
-        self.failUnless(code == "Ruled Surface(17) = {14};", "gmsh command wrong.")
 
         self.failUnless(not s.isColocated(p4),"RuledSurface is colocated with point.")
         self.failUnless(s.isColocated(s),"RuledSurface is not colocated with its self.")
@@ -1935,9 +1892,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(l6 in crvs, "l6 is missing in boundary")
         self.failUnless(crvs[crvs.index(l6)].hasSameOrientation(l6),"l6 has incorrect orientation.")
                
-        code=s.getGmshCommand() 
-        self.failUnless(code == "Plane Surface(29) = {23, 24};", "gmsh command wrong.")
-
         self.failUnless(not s.isColocated(p4),"PlaneSurface is colocated with point.")
         self.failUnless(s.isColocated(s),"PlaneSurface is not colocated with its self.")
         self.failUnless(s.isColocated(PlaneSurface(cl,holes=[h])),"PlaneSurface is not colocated with its copy.")
@@ -2184,9 +2138,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(s8 in cc, "s8 is missing")
         self.failUnless(s9 in cc, "s9 is missing")
         self.failUnless(s10 in cc, "s10 is missing")
-
-        code=s.getGmshCommand() 
-        self.failUnless(code == "Surface Loop(65) = {43, 46, 49, 52, 54, 56, -58, -60, -62, -64};", "gmsh command wrong.")
 
         self.failUnless(not s.isColocated(p4),"SurfaceLoop is colocated with point.")
         self.failUnless(s.isColocated(s),"SurfaceLoop is not colocated with its self.")
@@ -2512,9 +2463,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(s9 in cc, "s9 is missing")
         self.failUnless(s10 in cc, "s10 is missing")
 
-        code=s.getGmshCommand() 
-        self.failUnless(code == "Surface Loop(65) = {43, 46, 49, 52, 54, 56, -58, -60, -62, -64};", "gmsh command wrong.")
-
         self.failUnless(not s.isColocated(p4),"SurfaceLoop is colocated with point.")
         self.failUnless(s.isColocated(s),"SurfaceLoop is not colocated with its self.")
         self.failUnless(s.isColocated(-s),"SurfaceLoop is not colocated with its reverse.")
@@ -2833,9 +2781,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.failUnless(s5_i in cc, "s5_i is missing")
         self.failUnless(s6_i in cc, "s6_i is missing")
 
-        code=v.getGmshCommand() 
-        self.failUnless(code == "Volume(67) = {33, 66};", "gmsh command wrong.")
-
         self.failUnless(not v.isColocated(p4),"Volume is colocated with point.")
         self.failUnless(v.isColocated(v),"Volume is not colocated with its self.")
         self.failUnless(v.isColocated(Volume(s_out,holes=[s_inner])),"Volume is not colocated with its copy.")
@@ -3097,7 +3042,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        p4=Point(8.,6,-6,local_scale=9.)
        
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",p0, Line(p0,p1))
 
        ps=PropertySet("test0",p0, p1)
@@ -3107,7 +3051,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 8, "wrong tag")
+       self.failUnless(ps.getTag() == 7, "wrong tag")
        
        self.failUnlessRaises(TypeError,ps.addItem, Line(p0,p1))
        ps.addItem(p3,p4)
@@ -3118,9 +3062,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.failUnless(p3 in pp, "p3 missing in items.")
        self.failUnless(p4 in pp, "p4 missing in items.")
 
-       code=ps.getGmshCommand()
-       self.failUnless(code == "Physical Point(8) = {1, 2, 3, 4};","wrong gmsh code")
- 
        pp=ps.getPrimitives()
        self.failUnless(len(pp) == 5, "wrong number of items")
        self.failUnless(ps in pp, "ps missing in items.")
@@ -3143,7 +3084,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        l1=Arc(p3,p1,p4)
        l2=Line(p4,p0)
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",l0, p0)
 
        ps=PropertySet("test0", l0, l1)
@@ -3153,7 +3093,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 10, "wrong tag")
+       self.failUnless(ps.getTag() == 9, "wrong tag")
        
        self.failUnlessRaises(TypeError,ps.addItem, p0)
        ps.addItem(l2)
@@ -3163,9 +3103,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.failUnless(l1 in pp, "l1 missing in items.")
        self.failUnless(l2 in pp, "l2 missing in items.")
 
-       code=ps.getGmshCommand()
-       self.failUnless(code == "Physical Line(10) = {5, 6, 7};","wrong gmsh code")
- 
        pp=ps.getPrimitives()
        self.failUnless(len(pp) == 8, "wrong number of items")
        self.failUnless(ps in pp, "ps missing in items.")
@@ -3204,7 +3141,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        s=PlaneSurface(cl,holes=[h])
 
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",s, p0)
 
        ps=PropertySet("test0", s)
@@ -3214,11 +3150,8 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 20, "wrong tag")
+       self.failUnless(ps.getTag() == 19, "wrong tag")
        
-       code=ps.getGmshCommand()
-       self.failUnless(code == "Physical Surface(20) = {17};","wrong gmsh code")
- 
        pp=ps.getPrimitives()
        self.failUnless(len(pp) == 18, "wrong number of items")
        self.failUnless(ps in pp, "ps missing in items.")
@@ -3322,7 +3255,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        v=Volume(s_out,holes=[s_inner])
           
        # create property set with dim:
-       self.failUnlessRaises(ValueError,PropertySet,"test0")
        self.failUnlessRaises(TypeError,PropertySet,"test0",v, p0)
 
        ps=PropertySet("test0", v)
@@ -3332,11 +3264,8 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        ps.setName("test1")
        self.failUnless(ps.getName() == "test1", "wrong new name")
 
-       self.failUnless(ps.getTag() == 70, "wrong tag")
+       self.failUnless(ps.getTag() == 69, "wrong tag")
        
-       code=ps.getGmshCommand()
-       self.failUnless(code == "Physical Volume(70) = {67};","wrong gmsh code")
- 
        pp=ps.getPrimitives()
        self.failUnless(len(pp) == 68, "too many primitives.")
        self.failUnless(ps in pp, "ps is missing")
@@ -3548,16 +3477,12 @@ class Test_PyCAD_Design(unittest.TestCase):
        self.failUnless(pl1 in p)
        self.failUnless(pl2 in p)
        # get tag maps:
-       m1=d.getCurveTagMap()
+       m1=d.getTagMap()
        mm1=m1.getMapping()
-       self.failUnless(len(mm1)==2)
+       self.failUnless(len(mm1)==3)
        self.failUnless(mm1[12]=="A")
        self.failUnless(mm1[13]=="B")
-       
-       m2=d.getSurfaceTagMap()
-       mm2=m2.getMapping()
-       self.failUnless(len(mm2)==1)
-       self.failUnless(mm2[11]=="XXXX")
+       self.failUnless(mm1[11]=="XXXX")
        # clear things:
        d.clearItems()
        i=d.getItems()
@@ -3584,13 +3509,13 @@ class Test_PyCAD_Design(unittest.TestCase):
        d.setMeshFileName(mesh_name)
        self.failUnless(mesh_name == d.getMeshFileName())
        
-       d.setOptions(algorithm=d.ANISO,optimize_quality=False,smoothing=4)
+       d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4,curvature_based_element_size=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -2 -algo aniso -smooth 4  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -2 -algo tetgen -clcurv -smooth 4 -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
 
-       d.setOptions(optimize_quality=True)
+       d.setOptions(optimize_quality=True,curvature_based_element_size=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -2 -algo iso -smooth 3 -optimize  -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
+       self.failUnless("gmsh -2 -algo iso -clcurv -smooth 1 -optimize -v 0 -order 1 -o .%smesh.msh .%sscript.geo"%(os.sep,os.sep) == cmd)
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)
@@ -3607,7 +3532,7 @@ class Test_PyCAD_Design(unittest.TestCase):
        pl2=PropertySet("B",l12,l23)
        d.addItems(s,pl1,pl2)
        d.addItems(ps)
-       srpt=d.getScriptString()
+       scrpt=d.getScriptString()
        ref = \
 """// generated by esys.pycad
 Point(1) = {0.0 , 0.0, 0.0 , 0.01 };
@@ -3624,8 +3549,1151 @@ Physical Surface(11) = {10};
 Physical Line(12) = {5, 8};
 Physical Line(13) = {6, 7};
 """
-       self.failUnless(srpt == ref )
+       self.failUnless(scrpt == ref )
+
        
+   def test_Triangle(self):
+     
+       d=TriangleDesign(dim=2, keep_files=False)
+
+       script_name=d.getScriptFileName()
+       self.failUnless(isinstance(script_name,str))
+       self.failUnless(script_name.split(".")[-1] == "poly")
+       script_name=PYCAD_WORKDIR+os.sep+"script.poly"
+       d.setScriptFileName(script_name)
+       self.failUnless(script_name == d.getScriptFileName())
+
+       mesh_name=d.getMeshFileName()
+       self.failUnless(isinstance(mesh_name,str))
+       mesh_name=PYCAD_WORKDIR+os.sep+"mesh"
+       d.setMeshFileName(mesh_name)
+       self.failUnless(mesh_name == d.getMeshFileName())
+       
+       d.setOptions(cmdLineArgs="-Qpqa7.5")
+       cmd=d.getCommandString()
+       self.failUnless("triangle -Qpqa7.5 .%sscript.poly"%(os.sep) == cmd)
+
+       p0=Point(0.,0.,0.)
+       p1=Point(1.,0.,0.)
+       p2=Point(1.,1.,0.)
+       p3=Point(0.,1.,0.)
+       l01=Line(p0,p1)
+       l12=Line(p1,p2)
+       l23=Line(p2,p3)
+       l30=Line(p3,p0)
+       c=CurveLoop(l01,l12,l23,l30)
+       s=PlaneSurface(c)
+       ps=PropertySet("XXXX",s)
+       d.addItems(ps)
+
+       scrpt=d.getScriptString()
+       ref = \
+"""# generated by esys.pycad
+# vertices #
+4 2 0 1
+1 0.0 0.0 11
+2 1.0 0.0 11
+3 1.0 1.0 11
+4 0.0 1.0 11
+# segments #
+4 1
+1 1 2 11
+2 2 3 11
+3 3 4 11
+4 4 1 11
+# holes #
+0
+"""
+       self.failUnless(scrpt == ref )
+
+   def test_generate_Point(self):
+       d=GMSHDesign(dim=2, element_size=0.01)
+       d.addItems(Point(1.,2.,3.,local_scale=9.))
+
+       scrpt=d.getScriptString()
+       ref = \
+"""// generated by esys.pycad
+Point(1) = {1.0 , 2.0, 3.0 , 0.09 };
+"""
+       self.failUnless(scrpt == ref )
+  
+ 
+   def test_generate_Spline(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+ 
+        d.addItems(Spline(p0,p1,p2,p3))
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+Spline(5) = {1, 2, 3, 4};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_ReverseSpline(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+ 
+        CC0=Spline(p0,p1,p2,p3)
+        d.addItems(-CC0)
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+Spline(5) = {1, 2, 3, 4};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_BezierCurve(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+ 
+        d.addItems(BezierCurve(p0,p1,p2,p3))
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+Bezier(5) = {1, 2, 3, 4};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_BSpline(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+ 
+        self.failUnlessRaises(ValueError,BSpline,p0)
+        d.addItems(BSpline(p0,p1,p2,p3))
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+BSpline(5) = {1, 2, 3, 4};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_ReverseBSpline(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+ 
+        CC0=BSpline(p0,p1,p2,p3)
+        d.addItems(-CC0)
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+BSpline(6) = {1, 2, 3, 4};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_LineSegment(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+ 
+        d.addItems(Line(p0,p1))
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Line(3) = {1, 2};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_ReverseLineSegment(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+ 
+        CC0=Line(p0,p1)
+        d.addItems(-CC0)
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Line(3) = {1, 2};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_Arc(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        center=Point(0,0,0,0.1)
+        p_start=Point(1,1,1,0.2)
+        p_end=Point(1,2,3)
+ 
+        d.addItems(Arc(center,p_start,p_end))
+
+        scrpt=d.getScriptString() 
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {1.0 , 2.0, 3.0 , 0.01 };
+Circle(4) = {2, 1, 3};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_ReverseArc(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        center=Point(0,0,0,0.1)
+        p_start=Point(1,1,1,0.2)
+        p_end=Point(1,2,3)
+ 
+        CC0=Arc(center,p_start,p_end)
+        d.addItems(-CC0)
+
+        scrpt=d.getScriptString() 
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {1.0 , 2.0, 3.0 , 0.01 };
+Circle(4) = {2, 1, 3};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_CurveLoop(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+
+        l01=Line(p0,p1)
+        l12=Arc(p3,p1,p2)
+        l20=Spline(p2,p4,p0)
+
+        lx=Line(p2,p3)
+        ly=Line(p3,p1)
+
+        d.addItems(CurveLoop(l01,l12,l20))
+
+        scrpt=d.getScriptString() 
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+Point(5) = {1.0 , 2.0, 3.0 , 0.01 };
+Line(6) = {1, 2};
+Circle(7) = {2, 4, 3};
+Spline(8) = {3, 5, 1};
+Line Loop(11) = {6, 7, 8};
+"""
+        self.failUnless(scrpt == ref )
+
+      
+   def test_generate_ReverseCurveLoop(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+
+        l01=Line(p0,p1)
+        l12=Arc(p3,p1,p2)
+        l20=Spline(p2,p4,p0)
+
+        lx=Line(p2,p3)
+        ly=Line(p3,p1)
+
+        CC0=CurveLoop(l01,l20,l12)
+        d.addItems(-CC0)
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+Point(5) = {1.0 , 2.0, 3.0 , 0.01 };
+Line(6) = {1, 2};
+Circle(7) = {2, 4, 3};
+Spline(8) = {3, 5, 1};
+Line Loop(11) = {6, 8, 7};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_RuledSurface(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+        p5=Point(10,20,3)
+
+        l01=Line(p0,p1)
+        l12_1=Arc(p3,p1,p2)
+        l12_2_1=Spline(p1,p3,p4)
+        l12_2_2=Spline(p4,p5,p2)
+        l12_3=Line(p1,p2)
+        l20=Spline(p2,p4,p0)
+
+        cl1=CurveLoop(l01,l12_1,l20) 
+        cl2=CurveLoop(l01,l12_2_1,l12_2_2,l20)
+        cl3=CurveLoop(l01,l12_3,l20)
+
+        d.addItems(RuledSurface(cl1))
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+Point(5) = {1.0 , 2.0, 3.0 , 0.01 };
+Line(7) = {1, 2};
+Circle(8) = {2, 4, 3};
+Spline(12) = {3, 5, 1};
+Line Loop(13) = {7, 8, 12};
+Ruled Surface(16) = {13};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_ReverseRuledSurface(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(1,1,1,0.2)
+        p2=Point(2,2,2,0.3)
+        p3=Point(3,3,3,0.4)
+        p4=Point(1,2,3)
+        p5=Point(10,20,3)
+
+        l01=Line(p0,p1)
+        l12_1=Arc(p3,p1,p2)
+        l12_2_1=Spline(p1,p3,p4)
+        l12_2_2=Spline(p4,p5,p2)
+        l12_3=Line(p1,p2)
+        l20=Spline(p2,p4,p0)
+
+        cl1=CurveLoop(l01,l12_1,l20) 
+        cl2=CurveLoop(l01,l12_2_1,l12_2_2,l20)
+        cl3=CurveLoop(l01,l12_3,l20)
+
+        CC0=RuledSurface(cl1)
+        d.addItems(-CC0)
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {1.0 , 1.0, 1.0 , 0.002 };
+Point(3) = {2.0 , 2.0, 2.0 , 0.003 };
+Point(4) = {3.0 , 3.0, 3.0 , 0.004 };
+Point(5) = {1.0 , 2.0, 3.0 , 0.01 };
+Line(7) = {1, 2};
+Circle(8) = {2, 4, 3};
+Spline(12) = {3, 5, 1};
+Line Loop(13) = {7, 8, 12};
+Ruled Surface(16) = {13};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_PlaneSurface(self):
+        d=GMSHDesign(dim=2, element_size=0.01)
+        p0=Point(0,0,0,0.1)
+        p1=Point(10,0,0,0.2)
+        p2=Point(10,10,0,0.3)
+        p3=Point(0,10,3,0.4)
+        p4=Point(5,5,0,0.001)
+        p5=Point(7,5,0,0.001)
+        p6=Point(5,7,0,0.001)
+        p7=Point(8,8,0,0.001)
+        p8=Point(9,9,0,0.001)
+
+        l0=Line(p0,p1)
+        l1=Line(p1,p2)
+        l2=Line(p2,p3)
+        l3=Line(p3,p0)
+
+        l9=Line(p1,p8)
+        l10=Line(p8,p3)
+
+        l4=Line(p4,p5)
+        l5=Line(p5,p6)
+        l6=Line(p6,p4)
+        l7=Line(p6,p7)
+        l8=Line(p7,p4)
+
+        a1=Arc(p4,p3,p1)
+        a2=Arc(p7,p5,p6)
+
+        cl=CurveLoop(l0,l1,l2,l3)
+        h=CurveLoop(l4,l5,l6)
+        cl_s=CurveLoop(l0,l9,l10,l3)
+        h2=CurveLoop(l4,l5,l7,l8)
+        cl_a=CurveLoop(a1,l1,l2)
+        h_a=CurveLoop(a2,l6,l4)
+
+        d.addItems(PlaneSurface(cl,holes=[h]))
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {10.0 , 0.0, 0.0 , 0.002 };
+Point(3) = {10.0 , 10.0, 0.0 , 0.003 };
+Point(4) = {0.0 , 10.0, 3.0 , 0.004 };
+Point(5) = {5.0 , 5.0, 0.0 , 1e-05 };
+Point(6) = {7.0 , 5.0, 0.0 , 1e-05 };
+Point(7) = {5.0 , 7.0, 0.0 , 1e-05 };
+Line(10) = {1, 2};
+Line(11) = {2, 3};
+Line(12) = {3, 4};
+Line(13) = {4, 1};
+Line(16) = {5, 6};
+Line(17) = {6, 7};
+Line(18) = {7, 5};
+Line Loop(23) = {10, 11, 12, 13};
+Line Loop(24) = {16, 17, 18};
+Plane Surface(29) = {23, 24};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_SurfaceLoop(self):
+        d=GMSHDesign(dim=3, element_size=0.01)
+        p0=Point( 0, 0, 0,0.1)
+        p1=Point(10, 0, 0,0.1)
+        p2=Point( 0,10, 0,0.1)
+        p3=Point(10,10, 0,0.1)
+        p4=Point( 0, 0,10,0.1)
+        p5=Point(10, 0,10,0.1)
+        p6=Point( 0,10,10,0.1)
+        p7=Point(10,10,10,0.1)
+
+        q0=Point( 4, 0, 4,0.1)
+        q1=Point( 6, 0, 4,0.1)
+        q2=Point( 4,10, 4,0.1)
+        q3=Point( 6,10, 4,0.1)
+        q4=Point( 4, 0, 6,0.1)
+        q5=Point( 6, 0, 6,0.1)
+        q6=Point( 4,10, 6,0.1)
+        q7=Point( 6,10, 6,0.1)
+
+        l01=Line(p0,p1)
+        l15=Line(p1,p5)
+        l54=Line(p5,p4)
+        l04=Line(p4,p0)
+
+        l13=Line(p1,p3)
+        l37=Line(p3,p7)
+        l75=Line(p7,p5)
+        l67=Line(p6,p7)
+        l26=Line(p2,p6)
+        l32=Line(p3,p2)
+        l20=Line(p2,p0)
+        l46=Line(p4,p6)
+
+        m01=Line(q0,q1)
+        m15=Line(q1,q5)
+        m54=Line(q5,q4)
+        m40=Line(q4,q0)
+        m23=Line(q2,q3)
+        m37=Line(q3,q7)
+        m76=Line(q7,q6)
+        m62=Line(q6,q2)
+
+        m02=Line(q0,q2)
+        m13=Line(q1,q3)
+        m46=Line(q4,q6)
+        m57=Line(q5,q7)
+
+        cl_l1=CurveLoop(l01,l15,l54,l04)
+        cl_m1=CurveLoop(m01,m15,m54,m40)
+        s1=PlaneSurface(cl_l1,holes=[cl_m1])
+        s1_v=PlaneSurface(cl_l1)
+
+        cl_l2=CurveLoop(-l15,l13,l37,l75)
+        s2=PlaneSurface(cl_l2)
+
+        cl_l3=CurveLoop(l32,-l37,l67,l26)
+        cl_m3=CurveLoop(-m23,-m37,-m76,-m62)
+        s3=PlaneSurface(cl_l3,holes=[cl_m3])
+        s3_v=PlaneSurface(cl_l3)
+     
+     
+        cl_l4=CurveLoop(l20,-l26,l46,-l04)
+        s4=PlaneSurface(cl_l4)
+
+        cl_l5=CurveLoop(l32,l20,l01,l13)
+        s5=PlaneSurface(-cl_l5)
+
+        cl_l6=CurveLoop(l67,l75,l54,l46)
+        s6=PlaneSurface(-cl_l6)
+
+        cl_m7=CurveLoop(m13,m37,-m57,-m15)
+        s7=PlaneSurface(cl_m7)
+        
+        cl_m8=CurveLoop(m57,m76,-m46,-m54)
+        s8=PlaneSurface(cl_m8)
+
+        cl_m9=CurveLoop(m46,m62,-m02,-m40)
+        s9=PlaneSurface(cl_m9)
+
+        cl_m10=CurveLoop(-m01,m02,m23,-m13)
+        s10=PlaneSurface(cl_m10)
+
+        d.addItems(SurfaceLoop(s1,s2,s3,s4,s5,s6,-s7,-s8,-s9,-s10))
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {10.0 , 0.0, 0.0 , 0.001 };
+Point(3) = {0.0 , 10.0, 0.0 , 0.001 };
+Point(4) = {10.0 , 10.0, 0.0 , 0.001 };
+Point(5) = {0.0 , 0.0, 10.0 , 0.001 };
+Point(6) = {10.0 , 0.0, 10.0 , 0.001 };
+Point(7) = {0.0 , 10.0, 10.0 , 0.001 };
+Point(8) = {10.0 , 10.0, 10.0 , 0.001 };
+Point(9) = {4.0 , 0.0, 4.0 , 0.001 };
+Point(10) = {6.0 , 0.0, 4.0 , 0.001 };
+Point(11) = {4.0 , 10.0, 4.0 , 0.001 };
+Point(12) = {6.0 , 10.0, 4.0 , 0.001 };
+Point(13) = {4.0 , 0.0, 6.0 , 0.001 };
+Point(14) = {6.0 , 0.0, 6.0 , 0.001 };
+Point(15) = {4.0 , 10.0, 6.0 , 0.001 };
+Point(16) = {6.0 , 10.0, 6.0 , 0.001 };
+Line(17) = {1, 2};
+Line(18) = {2, 6};
+Line(19) = {6, 5};
+Line(20) = {5, 1};
+Line(21) = {2, 4};
+Line(22) = {4, 8};
+Line(23) = {8, 6};
+Line(24) = {7, 8};
+Line(25) = {3, 7};
+Line(26) = {4, 3};
+Line(27) = {3, 1};
+Line(28) = {5, 7};
+Line(29) = {9, 10};
+Line(30) = {10, 14};
+Line(31) = {14, 13};
+Line(32) = {13, 9};
+Line(33) = {11, 12};
+Line(34) = {12, 16};
+Line(35) = {16, 15};
+Line(36) = {15, 11};
+Line(37) = {9, 11};
+Line(38) = {10, 12};
+Line(39) = {13, 15};
+Line(40) = {14, 16};
+Line Loop(41) = {17, 18, 19, 20};
+Line Loop(42) = {29, 30, 31, 32};
+Plane Surface(43) = {41, 42};
+Line Loop(45) = {-18, 21, 22, 23};
+Plane Surface(46) = {45};
+Line Loop(47) = {26, -22, 24, 25};
+Line Loop(48) = {-33, -34, -35, -36};
+Plane Surface(49) = {47, 48};
+Line Loop(51) = {27, -25, 28, -20};
+Plane Surface(52) = {51};
+Line Loop(53) = {26, 27, 17, 21};
+Plane Surface(54) = {-53};
+Line Loop(55) = {24, 23, 19, 28};
+Plane Surface(56) = {-55};
+Line Loop(57) = {38, 34, -40, -30};
+Plane Surface(58) = {57};
+Line Loop(59) = {40, 35, -39, -31};
+Plane Surface(60) = {59};
+Line Loop(61) = {39, 36, -37, -32};
+Plane Surface(62) = {61};
+Line Loop(63) = {-29, 37, 33, -38};
+Plane Surface(64) = {63};
+Surface Loop(65) = {43, 46, 49, 52, 54, 56, -58, -60, -62, -64};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_ReverseSurfaceLoop(self):
+        d=GMSHDesign(dim=3, element_size=0.01)
+        p0=Point( 0, 0, 0,0.1)
+        p1=Point(10, 0, 0,0.1)
+        p2=Point( 0,10, 0,0.1)
+        p3=Point(10,10, 0,0.1)
+        p4=Point( 0, 0,10,0.1)
+        p5=Point(10, 0,10,0.1)
+        p6=Point( 0,10,10,0.1)
+        p7=Point(10,10,10,0.1)
+
+        q0=Point( 4, 0, 4,0.1)
+        q1=Point( 6, 0, 4,0.1)
+        q2=Point( 4,10, 4,0.1)
+        q3=Point( 6,10, 4,0.1)
+        q4=Point( 4, 0, 6,0.1)
+        q5=Point( 6, 0, 6,0.1)
+        q6=Point( 4,10, 6,0.1)
+        q7=Point( 6,10, 6,0.1)
+
+        l01=Line(p0,p1)
+        l15=Line(p1,p5)
+        l54=Line(p5,p4)
+        l04=Line(p4,p0)
+
+        l13=Line(p1,p3)
+        l37=Line(p3,p7)
+        l75=Line(p7,p5)
+        l67=Line(p6,p7)
+        l26=Line(p2,p6)
+        l32=Line(p3,p2)
+        l20=Line(p2,p0)
+        l46=Line(p4,p6)
+
+        m01=Line(q0,q1)
+        m15=Line(q1,q5)
+        m54=Line(q5,q4)
+        m40=Line(q4,q0)
+        m23=Line(q2,q3)
+        m37=Line(q3,q7)
+        m76=Line(q7,q6)
+        m62=Line(q6,q2)
+
+        m02=Line(q0,q2)
+        m13=Line(q1,q3)
+        m46=Line(q4,q6)
+        m57=Line(q5,q7)
+
+        cl_l1=CurveLoop(l01,l15,l54,l04)
+        cl_m1=CurveLoop(m01,m15,m54,m40)
+        s1=PlaneSurface(cl_l1,holes=[cl_m1])
+        s1_v=PlaneSurface(cl_l1)
+
+        cl_l2=CurveLoop(-l15,l13,l37,l75)
+        s2=PlaneSurface(cl_l2)
+
+        cl_l3=CurveLoop(l32,-l37,l67,l26)
+        cl_m3=CurveLoop(-m23,-m37,-m76,-m62)
+        s3=PlaneSurface(cl_l3,holes=[cl_m3])
+        s3_v=PlaneSurface(cl_l3)
+     
+     
+        cl_l4=CurveLoop(l20,-l26,l46,-l04)
+        s4=PlaneSurface(cl_l4)
+
+        cl_l5=CurveLoop(l32,l20,l01,l13)
+        s5=PlaneSurface(-cl_l5)
+
+        cl_l6=CurveLoop(l67,l75,l54,l46)
+        s6=PlaneSurface(-cl_l6)
+
+        cl_m7=CurveLoop(m13,m37,-m57,-m15)
+        s7=PlaneSurface(cl_m7)
+        
+        cl_m8=CurveLoop(m57,m76,-m46,-m54)
+        s8=PlaneSurface(cl_m8)
+
+        cl_m9=CurveLoop(m46,m62,-m02,-m40)
+        s9=PlaneSurface(cl_m9)
+
+        cl_m10=CurveLoop(-m01,m02,m23,-m13)
+        s10=PlaneSurface(cl_m10)
+
+        CC0=SurfaceLoop(s1,s2,s3,s4,s5,s6,-s7,-s8,-s9,-s10)
+        s=-CC0
+        d.addItems(-CC0)
+
+        scrpt=d.getScriptString()
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {10.0 , 0.0, 0.0 , 0.001 };
+Point(3) = {0.0 , 10.0, 0.0 , 0.001 };
+Point(4) = {10.0 , 10.0, 0.0 , 0.001 };
+Point(5) = {0.0 , 0.0, 10.0 , 0.001 };
+Point(6) = {10.0 , 0.0, 10.0 , 0.001 };
+Point(7) = {0.0 , 10.0, 10.0 , 0.001 };
+Point(8) = {10.0 , 10.0, 10.0 , 0.001 };
+Point(9) = {4.0 , 0.0, 4.0 , 0.001 };
+Point(10) = {6.0 , 0.0, 4.0 , 0.001 };
+Point(11) = {4.0 , 10.0, 4.0 , 0.001 };
+Point(12) = {6.0 , 10.0, 4.0 , 0.001 };
+Point(13) = {4.0 , 0.0, 6.0 , 0.001 };
+Point(14) = {6.0 , 0.0, 6.0 , 0.001 };
+Point(15) = {4.0 , 10.0, 6.0 , 0.001 };
+Point(16) = {6.0 , 10.0, 6.0 , 0.001 };
+Line(17) = {1, 2};
+Line(18) = {2, 6};
+Line(19) = {6, 5};
+Line(20) = {5, 1};
+Line(21) = {2, 4};
+Line(22) = {4, 8};
+Line(23) = {8, 6};
+Line(24) = {7, 8};
+Line(25) = {3, 7};
+Line(26) = {4, 3};
+Line(27) = {3, 1};
+Line(28) = {5, 7};
+Line(29) = {9, 10};
+Line(30) = {10, 14};
+Line(31) = {14, 13};
+Line(32) = {13, 9};
+Line(33) = {11, 12};
+Line(34) = {12, 16};
+Line(35) = {16, 15};
+Line(36) = {15, 11};
+Line(37) = {9, 11};
+Line(38) = {10, 12};
+Line(39) = {13, 15};
+Line(40) = {14, 16};
+Line Loop(41) = {17, 18, 19, 20};
+Line Loop(42) = {29, 30, 31, 32};
+Plane Surface(43) = {41, 42};
+Line Loop(45) = {-18, 21, 22, 23};
+Plane Surface(46) = {45};
+Line Loop(47) = {26, -22, 24, 25};
+Line Loop(48) = {-33, -34, -35, -36};
+Plane Surface(49) = {47, 48};
+Line Loop(51) = {27, -25, 28, -20};
+Plane Surface(52) = {51};
+Line Loop(53) = {26, 27, 17, 21};
+Plane Surface(54) = {-53};
+Line Loop(55) = {24, 23, 19, 28};
+Plane Surface(56) = {-55};
+Line Loop(57) = {38, 34, -40, -30};
+Plane Surface(58) = {57};
+Line Loop(59) = {40, 35, -39, -31};
+Plane Surface(60) = {59};
+Line Loop(61) = {39, 36, -37, -32};
+Plane Surface(62) = {61};
+Line Loop(63) = {-29, 37, 33, -38};
+Plane Surface(64) = {63};
+Surface Loop(65) = {43, 46, 49, 52, 54, 56, -58, -60, -62, -64};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_Volume(self):
+        d=GMSHDesign(dim=3, element_size=0.01)
+        p0=Point(-2,-2,-2,0.1)
+        p1=Point(2,-2,-2,0.1)
+        p2=Point(-2,2,-2,0.1)
+        p3=Point(2,2,-2,0.1)
+        p4=Point(-2,-2,2,0.1)
+        p5=Point(2,-2,2,0.1)
+        p6=Point(-2,2,2,0.1)
+        p7=Point(2,2,2,0.1)
+        l01=Line(p0,p1)
+        l15=Line(p1,p5)
+        l54=Line(p5,p4)
+        l40=Line(p4,p0)
+        l23=Line(p2,p3)
+        l37=Line(p3,p7)
+        l76=Line(p7,p6)
+        l62=Line(p6,p2)
+        l13=Line(p1,p3)
+        l57=Line(p5,p7)
+        l02=Line(p0,p2)
+        l46=Line(p4,p6)
+        cl1=CurveLoop(l01,l15,l54,l40)
+        s1=PlaneSurface(cl1)
+        cl2=CurveLoop(l23,l37,l76,l62)
+        s2=PlaneSurface(-cl2)
+        cl3=CurveLoop(l13,l37,-l57,-l15)
+        s3=PlaneSurface(cl3)
+        cl4=CurveLoop(l46,l62,-l02,-l40)
+        s4=PlaneSurface(-cl4)
+        cl5=CurveLoop(-l01,l02,l23,-l13)
+        s5=PlaneSurface(-cl5)
+        cl6=CurveLoop(-l54,l57,l76,-l46)
+        s6=PlaneSurface(-cl6)
+        s_out=SurfaceLoop(s1,s2,s3,s4,s5,s6)
+ 
+        p0_i=Point(-1,-1,-1,0.1)
+        p1_i=Point(1,-1,-1,0.1)
+        p2_i=Point(-1,1,-1,0.1)
+        p3_i=Point(1,1,-1,0.1)
+        p4_i=Point(-1,-1,1,0.1)
+        p5_i=Point(1,-1,1,0.1)
+        p6_i=Point(-1,1,1,0.1)
+        p7_i=Point(1,1,1,0.1)
+        l01_i=Line(p0_i,p1_i)
+        l15_i=Line(p1_i,p5_i)
+        l54_i=Line(p5_i,p4_i)
+        l40_i=Line(p4_i,p0_i)
+        l23_i=Line(p2_i,p3_i)
+        l37_i=Line(p3_i,p7_i)
+        l76_i=Line(p7_i,p6_i)
+        l62_i=Line(p6_i,p2_i)
+        l13_i=Line(p1_i,p3_i)
+        l57_i=Line(p5_i,p7_i)
+        l02_i=Line(p0_i,p2_i)
+        l46_i=Line(p4_i,p6_i)
+        cl1_i=CurveLoop(l01_i,l15_i,l54_i,l40_i)
+        s1_i=PlaneSurface(cl1_i)
+        cl2_i=CurveLoop(l23_i,l37_i,l76_i,l62_i)
+        s2_i=PlaneSurface(-cl2_i)
+        cl3_i=CurveLoop(l13_i,l37_i,-l57_i,-l15_i)
+        s3_i=PlaneSurface(cl3_i)
+        cl4_i=CurveLoop(l46_i,l62_i,-l02_i,-l40_i)
+        s4_i=PlaneSurface(-cl4_i)
+        cl5_i=CurveLoop(-l01_i,l02_i,l23_i,-l13_i)
+        s5_i=PlaneSurface(-cl5_i)
+        cl6_i=CurveLoop(-l54_i,l57_i,l76_i,-l46_i)
+        s6_i=PlaneSurface(-cl6_i)
+        s_inner=SurfaceLoop(s1_i,s2_i,s3_i,s4_i,s5_i,s6_i)
+
+        d.addItems(Volume(s_out,holes=[s_inner]))
+
+        scrpt=d.getScriptString(); 
+        ref = \
+"""// generated by esys.pycad
+Point(1) = {-2.0 , -2.0, -2.0 , 0.001 };
+Point(2) = {2.0 , -2.0, -2.0 , 0.001 };
+Point(3) = {-2.0 , 2.0, -2.0 , 0.001 };
+Point(4) = {2.0 , 2.0, -2.0 , 0.001 };
+Point(5) = {-2.0 , -2.0, 2.0 , 0.001 };
+Point(6) = {2.0 , -2.0, 2.0 , 0.001 };
+Point(7) = {-2.0 , 2.0, 2.0 , 0.001 };
+Point(8) = {2.0 , 2.0, 2.0 , 0.001 };
+Line(9) = {1, 2};
+Line(10) = {2, 6};
+Line(11) = {6, 5};
+Line(12) = {5, 1};
+Line(13) = {3, 4};
+Line(14) = {4, 8};
+Line(15) = {8, 7};
+Line(16) = {7, 3};
+Line(17) = {2, 4};
+Line(18) = {6, 8};
+Line(19) = {1, 3};
+Line(20) = {5, 7};
+Line Loop(21) = {9, 10, 11, 12};
+Plane Surface(22) = {21};
+Line Loop(23) = {13, 14, 15, 16};
+Plane Surface(24) = {-23};
+Line Loop(25) = {17, 14, -18, -10};
+Plane Surface(26) = {25};
+Line Loop(27) = {20, 16, -19, -12};
+Plane Surface(28) = {-27};
+Line Loop(29) = {-9, 19, 13, -17};
+Plane Surface(30) = {-29};
+Line Loop(31) = {-11, 18, 15, -20};
+Plane Surface(32) = {-31};
+Surface Loop(33) = {22, 24, 26, 28, 30, 32};
+Point(34) = {-1.0 , -1.0, -1.0 , 0.001 };
+Point(35) = {1.0 , -1.0, -1.0 , 0.001 };
+Point(36) = {-1.0 , 1.0, -1.0 , 0.001 };
+Point(37) = {1.0 , 1.0, -1.0 , 0.001 };
+Point(38) = {-1.0 , -1.0, 1.0 , 0.001 };
+Point(39) = {1.0 , -1.0, 1.0 , 0.001 };
+Point(40) = {-1.0 , 1.0, 1.0 , 0.001 };
+Point(41) = {1.0 , 1.0, 1.0 , 0.001 };
+Line(42) = {34, 35};
+Line(43) = {35, 39};
+Line(44) = {39, 38};
+Line(45) = {38, 34};
+Line(46) = {36, 37};
+Line(47) = {37, 41};
+Line(48) = {41, 40};
+Line(49) = {40, 36};
+Line(50) = {35, 37};
+Line(51) = {39, 41};
+Line(52) = {34, 36};
+Line(53) = {38, 40};
+Line Loop(54) = {42, 43, 44, 45};
+Plane Surface(55) = {54};
+Line Loop(56) = {46, 47, 48, 49};
+Plane Surface(57) = {-56};
+Line Loop(58) = {50, 47, -51, -43};
+Plane Surface(59) = {58};
+Line Loop(60) = {53, 49, -52, -45};
+Plane Surface(61) = {-60};
+Line Loop(62) = {-42, 52, 46, -50};
+Plane Surface(63) = {-62};
+Line Loop(64) = {-44, 51, 48, -53};
+Plane Surface(65) = {-64};
+Surface Loop(66) = {55, 57, 59, 61, 63, 65};
+Volume(67) = {33, 66};
+"""
+        self.failUnless(scrpt == ref )
+
+   def test_generate_PropertySet0D(self):
+       d=GMSHDesign(dim=2, element_size=0.01)
+       p0=Point(1.,2.,3.,local_scale=9.)
+       p1=Point(0.,0.,0.,local_scale=9.)
+       p3=Point(8.,6,6,local_scale=9.)
+       p4=Point(8.,6,-6,local_scale=9.)
+       
+       d.addItems(PropertySet("test0",p0, p1, p3, p4))
+
+       scrpt=d.getScriptString()
+       ref = \
+"""// generated by esys.pycad
+Point(1) = {1.0 , 2.0, 3.0 , 0.09 };
+Point(2) = {0.0 , 0.0, 0.0 , 0.09 };
+Point(3) = {8.0 , 6.0, 6.0 , 0.09 };
+Point(4) = {8.0 , 6.0, -6.0 , 0.09 };
+Physical Point(5) = {1, 2, 3, 4};
+"""
+       self.failUnless(scrpt == ref )
+       
+   def test_generate_PropertySet1D(self):
+       d=GMSHDesign(dim=2, element_size=0.01)
+       p0=Point(1.,2.,3.,local_scale=9.)
+       p1=Point(0.,0.,0.,local_scale=9.)
+       p3=Point(8.,6,6,local_scale=9.)
+       p4=Point(8.,6,-6,local_scale=9.)
+       
+       l0=Line(p0,p1)
+       l1=Arc(p3,p1,p4)
+       l2=Line(p4,p0)
+
+       d.addItems(PropertySet("test0", l0, l1, l2))
+
+       scrpt=d.getScriptString()
+       ref = \
+"""// generated by esys.pycad
+Point(1) = {1.0 , 2.0, 3.0 , 0.09 };
+Point(2) = {0.0 , 0.0, 0.0 , 0.09 };
+Point(3) = {8.0 , 6.0, 6.0 , 0.09 };
+Point(4) = {8.0 , 6.0, -6.0 , 0.09 };
+Line(5) = {1, 2};
+Circle(6) = {2, 3, 4};
+Line(7) = {4, 1};
+Physical Line(8) = {5, 6, 7};
+"""
+       self.failUnless(scrpt == ref )
+ 
+   def test_generate_PropertySet2D(self):
+       d=GMSHDesign(dim=2, element_size=0.01)
+       p0=Point(0,0,0,0.1)
+       p1=Point(10,0,0,0.2)
+       p2=Point(10,10,0,0.3)
+       p3=Point(0,10,3,0.4)
+       p4=Point(5,5,0,0.001)
+       p5=Point(7,5,0,0.001)
+       p6=Point(5,7,0,0.001)
+
+       l0=Line(p0,p1)
+       l1=Line(p1,p2)
+       l2=Line(p2,p3)
+       l3=Line(p3,p0)
+
+       l4=Line(p4,p5)
+       l5=Line(p5,p6)
+       l6=Line(p6,p4)
+
+       cl=CurveLoop(l0,l1,l2,l3)
+       h=CurveLoop(l4,l5,l6)
+
+       s=PlaneSurface(cl,holes=[h])
+
+       d.addItems(PropertySet("test0", s))
+
+       scrpt=d.getScriptString()
+       ref = \
+"""// generated by esys.pycad
+Point(1) = {0.0 , 0.0, 0.0 , 0.001 };
+Point(2) = {10.0 , 0.0, 0.0 , 0.002 };
+Point(3) = {10.0 , 10.0, 0.0 , 0.003 };
+Point(4) = {0.0 , 10.0, 3.0 , 0.004 };
+Point(5) = {5.0 , 5.0, 0.0 , 1e-05 };
+Point(6) = {7.0 , 5.0, 0.0 , 1e-05 };
+Point(7) = {5.0 , 7.0, 0.0 , 1e-05 };
+Line(8) = {1, 2};
+Line(9) = {2, 3};
+Line(10) = {3, 4};
+Line(11) = {4, 1};
+Line(12) = {5, 6};
+Line(13) = {6, 7};
+Line(14) = {7, 5};
+Line Loop(15) = {8, 9, 10, 11};
+Line Loop(16) = {12, 13, 14};
+Plane Surface(17) = {15, 16};
+Physical Surface(18) = {17};
+"""
+       self.failUnless(scrpt == ref )
+
+   def test_generate_PropertySet3D(self):
+       d=GMSHDesign(dim=3, element_size=0.01)
+       p0=Point(-2,-2,-2,0.1)
+       p1=Point(2,-2,-2,0.1)
+       p2=Point(-2,2,-2,0.1)
+       p3=Point(2,2,-2,0.1)
+       p4=Point(-2,-2,2,0.1)
+       p5=Point(2,-2,2,0.1)
+       p6=Point(-2,2,2,0.1)
+       p7=Point(2,2,2,0.1)
+       l01=Line(p0,p1)
+       l15=Line(p1,p5)
+       l54=Line(p5,p4)
+       l40=Line(p4,p0)
+       l23=Line(p2,p3)
+       l37=Line(p3,p7)
+       l76=Line(p7,p6)
+       l62=Line(p6,p2)
+       l13=Line(p1,p3)
+       l57=Line(p5,p7)
+       l02=Line(p0,p2)
+       l46=Line(p4,p6)
+       cl1=CurveLoop(l01,l15,l54,l40)
+       s1=PlaneSurface(cl1)
+       cl2=CurveLoop(l23,l37,l76,l62)
+       s2=PlaneSurface(-cl2)
+       cl3=CurveLoop(l13,l37,-l57,-l15)
+       s3=PlaneSurface(cl3)
+       cl4=CurveLoop(l46,l62,-l02,-l40)
+       s4=PlaneSurface(-cl4)
+       cl5=CurveLoop(-l01,l02,l23,-l13)
+       s5=PlaneSurface(-cl5)
+       cl6=CurveLoop(-l54,l57,l76,-l46)
+       s6=PlaneSurface(-cl6)
+       s_out=SurfaceLoop(s1,s2,s3,s4,s5,s6)
+
+       p0_i=Point(-1,-1,-1,0.1)
+       p1_i=Point(1,-1,-1,0.1)
+       p2_i=Point(-1,1,-1,0.1)
+       p3_i=Point(1,1,-1,0.1)
+       p4_i=Point(-1,-1,1,0.1)
+       p5_i=Point(1,-1,1,0.1)
+       p6_i=Point(-1,1,1,0.1)
+       p7_i=Point(1,1,1,0.1)
+       l01_i=Line(p0_i,p1_i)
+       l15_i=Line(p1_i,p5_i)
+       l54_i=Line(p5_i,p4_i)
+       l40_i=Line(p4_i,p0_i)
+       l23_i=Line(p2_i,p3_i)
+       l37_i=Line(p3_i,p7_i)
+       l76_i=Line(p7_i,p6_i)
+       l62_i=Line(p6_i,p2_i)
+       l13_i=Line(p1_i,p3_i)
+       l57_i=Line(p5_i,p7_i)
+       l02_i=Line(p0_i,p2_i)
+       l46_i=Line(p4_i,p6_i)
+       cl1_i=CurveLoop(l01_i,l15_i,l54_i,l40_i)
+       s1_i=PlaneSurface(cl1_i)
+       cl2_i=CurveLoop(l23_i,l37_i,l76_i,l62_i)
+       s2_i=PlaneSurface(-cl2_i)
+       cl3_i=CurveLoop(l13_i,l37_i,-l57_i,-l15_i)
+       s3_i=PlaneSurface(cl3_i)
+       cl4_i=CurveLoop(l46_i,l62_i,-l02_i,-l40_i)
+       s4_i=PlaneSurface(-cl4_i)
+       cl5_i=CurveLoop(-l01_i,l02_i,l23_i,-l13_i)
+       s5_i=PlaneSurface(-cl5_i)
+       cl6_i=CurveLoop(-l54_i,l57_i,l76_i,-l46_i)
+       s6_i=PlaneSurface(-cl6_i)
+       s_inner=SurfaceLoop(s1_i,s2_i,s3_i,s4_i,s5_i,s6_i)
+
+       v=Volume(s_out,holes=[s_inner])
+       d.addItems(PropertySet("test0", v))
+       
+       scrpt=d.getScriptString()
+       ref = \
+"""// generated by esys.pycad
+Point(1) = {-2.0 , -2.0, -2.0 , 0.001 };
+Point(2) = {2.0 , -2.0, -2.0 , 0.001 };
+Point(3) = {-2.0 , 2.0, -2.0 , 0.001 };
+Point(4) = {2.0 , 2.0, -2.0 , 0.001 };
+Point(5) = {-2.0 , -2.0, 2.0 , 0.001 };
+Point(6) = {2.0 , -2.0, 2.0 , 0.001 };
+Point(7) = {-2.0 , 2.0, 2.0 , 0.001 };
+Point(8) = {2.0 , 2.0, 2.0 , 0.001 };
+Line(9) = {1, 2};
+Line(10) = {2, 6};
+Line(11) = {6, 5};
+Line(12) = {5, 1};
+Line(13) = {3, 4};
+Line(14) = {4, 8};
+Line(15) = {8, 7};
+Line(16) = {7, 3};
+Line(17) = {2, 4};
+Line(18) = {6, 8};
+Line(19) = {1, 3};
+Line(20) = {5, 7};
+Line Loop(21) = {9, 10, 11, 12};
+Plane Surface(22) = {21};
+Line Loop(23) = {13, 14, 15, 16};
+Plane Surface(24) = {-23};
+Line Loop(25) = {17, 14, -18, -10};
+Plane Surface(26) = {25};
+Line Loop(27) = {20, 16, -19, -12};
+Plane Surface(28) = {-27};
+Line Loop(29) = {-9, 19, 13, -17};
+Plane Surface(30) = {-29};
+Line Loop(31) = {-11, 18, 15, -20};
+Plane Surface(32) = {-31};
+Surface Loop(33) = {22, 24, 26, 28, 30, 32};
+Point(34) = {-1.0 , -1.0, -1.0 , 0.001 };
+Point(35) = {1.0 , -1.0, -1.0 , 0.001 };
+Point(36) = {-1.0 , 1.0, -1.0 , 0.001 };
+Point(37) = {1.0 , 1.0, -1.0 , 0.001 };
+Point(38) = {-1.0 , -1.0, 1.0 , 0.001 };
+Point(39) = {1.0 , -1.0, 1.0 , 0.001 };
+Point(40) = {-1.0 , 1.0, 1.0 , 0.001 };
+Point(41) = {1.0 , 1.0, 1.0 , 0.001 };
+Line(42) = {34, 35};
+Line(43) = {35, 39};
+Line(44) = {39, 38};
+Line(45) = {38, 34};
+Line(46) = {36, 37};
+Line(47) = {37, 41};
+Line(48) = {41, 40};
+Line(49) = {40, 36};
+Line(50) = {35, 37};
+Line(51) = {39, 41};
+Line(52) = {34, 36};
+Line(53) = {38, 40};
+Line Loop(54) = {42, 43, 44, 45};
+Plane Surface(55) = {54};
+Line Loop(56) = {46, 47, 48, 49};
+Plane Surface(57) = {-56};
+Line Loop(58) = {50, 47, -51, -43};
+Plane Surface(59) = {58};
+Line Loop(60) = {53, 49, -52, -45};
+Plane Surface(61) = {-60};
+Line Loop(62) = {-42, 52, 46, -50};
+Plane Surface(63) = {-62};
+Line Loop(64) = {-44, 51, 48, -53};
+Plane Surface(65) = {-64};
+Surface Loop(66) = {55, 57, 59, 61, 63, 65};
+Volume(67) = {33, 66};
+Physical Volume(68) = {67};
+"""
+       self.failUnless(scrpt == ref )
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

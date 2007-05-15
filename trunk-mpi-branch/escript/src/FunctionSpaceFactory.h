@@ -30,15 +30,26 @@ namespace escript {
 
   /**
      \brief
-     Return a continuous FunctionSpace
+     Return a continuous FunctionSpace (overlapped node values)
   */
   ESCRIPT_DLL_API FunctionSpace continuousFunction(const AbstractDomain& domain);
 
   /**
      \brief
-     Return a functon FunctionSpace
+     Return a continuous with reduced order FunctionSpace (overlapped node values on reduced element order)
+  */
+  ESCRIPT_DLL_API FunctionSpace reducedContinuousFunction(const AbstractDomain& domain);
+
+  /**
+     \brief
+     Return a function FunctionSpace
   */
   ESCRIPT_DLL_API FunctionSpace function(const AbstractDomain& domain);
+  /**
+     \brief
+     Return a function FunctionSpace with reduced integration order
+  */
+  ESCRIPT_DLL_API FunctionSpace reducedFunction(const AbstractDomain& domain);
   /**
      \brief
      Return a function on boundary FunctionSpace
@@ -46,17 +57,32 @@ namespace escript {
   ESCRIPT_DLL_API FunctionSpace functionOnBoundary(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace
+     Return a function on boundary FunctionSpace
+  */
+  ESCRIPT_DLL_API FunctionSpace reducedFunctionOnBoundary(const AbstractDomain& domain);
+  /**
+     \brief
+     Return afunction on boundary FunctionSpace with reduced integration order
   */
   ESCRIPT_DLL_API FunctionSpace functionOnContactZero(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace on left side of contact
+  */
+  ESCRIPT_DLL_API FunctionSpace reducedFunctionOnContactZero(const AbstractDomain& domain);
+  /**
+     \brief
+     Return a FunctionSpace  on left side of contact with reduced integration order
   */
   ESCRIPT_DLL_API FunctionSpace functionOnContactOne(const AbstractDomain& domain);
   /**
      \brief
-     Return a FunctionSpace
+     Return a FunctionSpace on left side of contact
+  */
+  ESCRIPT_DLL_API FunctionSpace reducedFunctionOnContactOne(const AbstractDomain& domain);
+  /**
+     \brief
+     Return a FunctionSpace with reduced integration order
   */
   ESCRIPT_DLL_API FunctionSpace solution(const AbstractDomain& domain);
   /**

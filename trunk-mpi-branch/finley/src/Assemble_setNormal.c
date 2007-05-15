@@ -33,14 +33,20 @@
 void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* elements, escriptDataC* normal) {
   double *local_X=NULL, *dVdv=NULL,*normal_array;
   index_t sign,node_offset;
-  dim_t e,q;
+  Finley_RefElement* reference_element=NULL;
+  dim_t e,q, NN, NS, numDim, numQuad, numDim_local;
   if (nodes==NULL || elements==NULL) return;
-  dim_t NN=elements->ReferenceElement->Type->numNodes;
-  dim_t NS=elements->ReferenceElement->Type->numShapes;
-  dim_t numDim=nodes->numDim;
-  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
-  dim_t numDim_local=elements->ReferenceElement->Type->numDim;
+  NN=elements->ReferenceElement->Type->numNodes;
+  NS=elements->ReferenceElement->Type->numShapes;
+  numDim=nodes->numDim;
   Finley_resetError();
+  if (Finley_Assemble_reducedIntegrationOrder(normal)) {
+     reference_element=elements->ReferenceElementReducedOrder;
+  } else {
+     reference_element=elements->ReferenceElement;
+  }
+  numQuad=reference_element->numQuadNodes;
+  numDim_local=reference_element->Type->numDim;
 
   /* set some parameter */
 
@@ -79,7 +85,7 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                           /* gather local coordinates of nodes into local_X: */
                           Finley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(node_offset,e,NN)]),numDim,nodes->Coordinates,local_X);
                           /*  calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q) */
-                          Finley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,elements->ReferenceElement->dSdv);
+                          Finley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,reference_element->dSdv);
                           /* get normalized vector:  */
                           normal_array=getSampleData(normal,e);
                           Finley_NormalVector(numQuad,numDim,numDim_local,dVdv,normal_array);

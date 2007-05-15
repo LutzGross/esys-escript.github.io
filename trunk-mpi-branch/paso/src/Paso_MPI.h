@@ -34,4 +34,4 @@ int           Paso_MPI_initialized( void );
 bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info);
 index_t PASO_MPI_mod(index_t k, index_t n);
 
-#endif // INC_PASO_MPI
+#endif /* INC_PASO_MPI */

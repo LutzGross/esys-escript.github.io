@@ -212,7 +212,6 @@ Data::getShapeTuple() const
         throw DataException("Error - illegal Data rank.");
   }
 }
-
 void
 Data::copy(const Data& other)
 {
@@ -263,6 +262,34 @@ Data::copy(const Data& other)
     }
   }
   throw DataException("Error - Copy not implemented for this Data type.");
+}
+
+
+void
+Data::setToZero()
+{
+  {
+    DataExpanded* temp=dynamic_cast<DataExpanded*>(m_data.get());
+    if (temp!=0) {
+       temp->setToZero();
+       return;
+    }
+  }
+  {
+    DataTagged* temp=dynamic_cast<DataTagged*>(m_data.get());
+    if (temp!=0) {
+      temp->setToZero();
+      return;
+    }
+  }
+  {
+    DataConstant* temp=dynamic_cast<DataConstant*>(m_data.get());
+    if (temp!=0) {
+      temp->setToZero();
+      return;
+    }
+  }
+  throw DataException("Error - Data can not be set to zero.");
 }
 
 void
@@ -469,138 +496,6 @@ Data::getDataPointShape() const
 
 
 
-void
-Data::fillFromNumArray(const boost::python::numeric::array num_array) 
-{
-  if (isProtected()) {
-        throw DataException("Error - attempt to update protected Data object.");
-  }
-  //
-  // check rank
-  if (num_array.getrank()<getDataPointRank()) 
-      throw DataException("Rank of numarray does not match Data object rank");
-
-  //
-  // check shape of num_array
-  for (int i=0; i<getDataPointRank(); i++) {
-    if (extract<int>(num_array.getshape()[i+1])!=getDataPointShape()[i])
-       throw DataException("Shape of numarray does not match Data object rank");
-  }
-
-  //
-  // make sure data is expanded:
-  if (!isExpanded()) {
-    expand();
-  }
-
-  //
-  // and copy over
-  m_data->copyAll(num_array);
-}
-
-const
-boost::python::numeric::array
-Data::convertToNumArray()
-{
-  //
-  // determine the total number of data points
-  int numSamples = getNumSamples();
-  int numDataPointsPerSample = getNumDataPointsPerSample();
-  int numDataPoints = numSamples * numDataPointsPerSample;
-
-  //
-  // determine the rank and shape of each data point
-  int dataPointRank = getDataPointRank();
-  DataArrayView::ShapeType dataPointShape = getDataPointShape();
-
-  //
-  // create the numeric array to be returned
-  boost::python::numeric::array numArray(0.0);
-
-  //
-  // the rank of the returned numeric array will be the rank of
-  // the data points, plus one. Where the rank of the array is n,
-  // the last n-1 dimensions will be equal to the shape of the
-  // data points, whilst the first dimension will be equal to the
-  // total number of data points. Thus the array will consist of
-  // a serial vector of the data points.
-  int arrayRank = dataPointRank + 1;
-  DataArrayView::ShapeType arrayShape;
-  arrayShape.push_back(numDataPoints);
-  for (int d=0; d<dataPointRank; d++) {
-     arrayShape.push_back(dataPointShape[d]);
-  }
-
-  //
-  // resize the numeric array to the shape just calculated
-  if (arrayRank==1) {
-    numArray.resize(arrayShape[0]);
-  }
-  if (arrayRank==2) {
-    numArray.resize(arrayShape[0],arrayShape[1]);
-  }
-  if (arrayRank==3) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2]);
-  }
-  if (arrayRank==4) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3]);
-  }
-  if (arrayRank==5) {
-    numArray.resize(arrayShape[0],arrayShape[1],arrayShape[2],arrayShape[3],arrayShape[4]);
-  }
-
-  //
-  // loop through each data point in turn, loading the values for that data point
-  // into the numeric array.
-  int dataPoint = 0;
-  for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-      DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNo);
-      if (dataPointRank==0) {
-        numArray[dataPoint]=dataPointView();
-      }
-      if (dataPointRank==1) {
-        for (int i=0; i<dataPointShape[0]; i++) {
-          numArray[make_tuple(dataPoint,i)]=dataPointView(i);
-        }
-      }
-      if (dataPointRank==2) {
-        for (int i=0; i<dataPointShape[0]; i++) {
-          for (int j=0; j<dataPointShape[1]; j++) {
-            numArray[make_tuple(dataPoint,i,j)] = dataPointView(i,j);
-          }
-        }
-      }
-      if (dataPointRank==3) {
-        for (int i=0; i<dataPointShape[0]; i++) {
-          for (int j=0; j<dataPointShape[1]; j++) {
-            for (int k=0; k<dataPointShape[2]; k++) {
-              numArray[make_tuple(dataPoint,i,j,k)]=dataPointView(i,j,k);
-            }
-          }
-        }
-      }
-      if (dataPointRank==4) {
-        for (int i=0; i<dataPointShape[0]; i++) {
-          for (int j=0; j<dataPointShape[1]; j++) {
-            for (int k=0; k<dataPointShape[2]; k++) {
-              for (int l=0; l<dataPointShape[3]; l++) {
-                numArray[make_tuple(dataPoint,i,j,k,l)]=dataPointView(i,j,k,l);
-              }
-            }
-          }
-        }
-      }
-      dataPoint++;
-    }
-  }
-
-  //
-  // return the loaded array
-  return numArray;
-}
-
-
 const 
 boost::python::numeric::array
 Data:: getValueOfDataPoint(int dataPointNo) 
@@ -692,7 +587,17 @@ Data:: getValueOfDataPoint(int dataPointNo)
 
 }
 void
-Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array num_array)
+Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object) 
+{
+    // this will throw if the value cannot be represented
+    boost::python::numeric::array num_array(py_object);
+    setValueOfDataPointToArray(dataPointNo,num_array);
+
+
+}
+
+void
+Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array& num_array)
 {
   if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -956,12 +861,6 @@ Data::integrate() const
 }
 
 Data
-Data::erf() const
-{
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
-}
-
-Data
 Data::sin() const
 {
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sin);
@@ -991,6 +890,7 @@ Data::acos() const
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acos);
 }
 
+
 Data
 Data::atan() const
 {
@@ -1015,22 +915,45 @@ Data::tanh() const
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tanh);
 }
 
+
+Data
+Data::erf() const
+{
+#ifdef _WIN32
+  throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
+#else
+  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
+#endif
+}
+
 Data
 Data::asinh() const
 {
+#ifdef _WIN32
+  return escript::unaryOp(*this,escript::asinh_substitute);
+#else
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
+#endif
 }
 
 Data
 Data::acosh() const
 {
+#ifdef _WIN32
+  return escript::unaryOp(*this,escript::acosh_substitute);
+#else
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
+#endif
 }
 
 Data
 Data::atanh() const
 {
+#ifdef _WIN32
+  return escript::unaryOp(*this,escript::atanh_substitute);
+#else
   return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
+#endif
 }
 
 Data
@@ -1849,8 +1772,15 @@ Data::typeMatchRight(const Data& right)
   }
 }
 
-/* TODO */
-/* global reduction */
+void
+Data::setTaggedValueByName(std::string name,
+                           const boost::python::object& value) 
+{
+     if (getFunctionSpace().getDomain().isValidTagName(name)) {
+        int tagKey=getFunctionSpace().getDomain().getTag(name);
+        setTaggedValue(tagKey,value);
+     }
+}
 void
 Data::setTaggedValue(int tagKey,
                      const boost::python::object& value)
@@ -1875,8 +1805,6 @@ Data::setTaggedValue(int tagKey,
   m_data->setTaggedValue(tagKey,valueDataArray.getView());
 }
 
-/* TODO */
-/* global reduction */
 void
 Data::setTaggedValueFromCPP(int tagKey,
                             const DataArrayView& value)
@@ -1897,8 +1825,6 @@ Data::setTaggedValueFromCPP(int tagKey,
   m_data->setTaggedValue(tagKey,value);
 }
 
-/* TODO */
-/* global reduction */
 int
 Data::getTagNumber(int dpno)
 {

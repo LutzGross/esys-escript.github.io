@@ -6,12 +6,12 @@ import vtk
 
 class Arrow2D:
 	"""
-	Class that defines 2D arrow.
+	Class that defines 2D arrows.
 	"""
 	
 	def __init__(self):
 		"""
-		Initialise the 2D arrow.
+		Initialise the 2D arrows.
 		"""
 
 		self.__vtk_arrow2D = vtk.vtkGlyphSource2D()
@@ -19,17 +19,17 @@ class Arrow2D:
 
 	def __setupArrow2D(self):
 		"""
-		Setup the 2D arrow.
+		Setup the 2D arrows.
 		"""
 
-		# Use arrow instead of cone or sphere.
+		# Use arrows instead of cone or sphere.
 		self.__vtk_arrow2D.SetGlyphTypeToArrow()
-		# Fill the inside of the arrow.
+		# Fill the inside of the arrows.
 		self.__vtk_arrow2D.SetFilled(0)
 	
 	def _getOutput(self):
 		"""
-		Return the output of the 2D arrow.
+		Return the output of the 2D arrows.
 
 		@rtype: vtkPolyData
 		@return: Polygonal data
@@ -43,19 +43,19 @@ class Arrow2D:
 
 class Arrow3D:
 	"""
-	Class that defines 3D arrow.
+	Class that defines 3D arrows.
 	"""
 
 	def __init__(self):	
 		"""
-		Initialise the 3D arrow.
+		Initialise the 3D arrows.
 		"""
 
 		self.__vtk_arrow3D = vtk.vtkArrowSource()
 		
 	def _getOutput(self):
 		"""
-		Return the output of the 3D arrow.
+		Return the output of the 3D arrows.
 
 		@rtype: vtkPolyData
 		@return Polygonal data

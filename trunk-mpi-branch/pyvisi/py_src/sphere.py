@@ -6,7 +6,7 @@ import vtk
 
 class Sphere:
 	"""
-	Class that defines spheres.
+	Class that defines a sphere.
 	"""
 
 	def __init__(self):

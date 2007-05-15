@@ -49,6 +49,7 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
 
   index_t index_offset=(pattern_p->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i;
+  double *value;
   index_t naib,iptr;
   bool_t flag;
   dim_t n=pattern_p->myNumOutput;
@@ -56,7 +57,7 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
     Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_mis: symmetric matrix pattern is not supported yet");
     return;
   }
-  double *value=TMPMEMALLOC(n,double);
+  value=TMPMEMALLOC(n,double);
   if (!Paso_checkPtr(value)) {
 
    

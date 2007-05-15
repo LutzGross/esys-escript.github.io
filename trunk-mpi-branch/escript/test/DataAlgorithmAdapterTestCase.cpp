@@ -12,7 +12,7 @@
  *                                                                           *
  *****************************************************************************
 */
-#ifdef _WIN32 && __INTEL_COMPILER
+#if (defined _WIN32) && (defined __INTEL_COMPILER)
 #include <mathimf.h>
 #else
 #include <math.h>

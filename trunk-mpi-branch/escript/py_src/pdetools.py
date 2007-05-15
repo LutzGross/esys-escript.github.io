@@ -132,9 +132,6 @@ class Projector:
     self.__pde.setValue(D = 1.)
     return
 
-  def __del__(self):
-    return
-
   def __call__(self, input_data):
     """
     Projects input_data onto a continuous function
@@ -142,6 +139,7 @@ class Projector:
     @param input_data: The input_data to be projected.
     """
     out=escript.Data(0.,input_data.getShape(),self.__pde.getFunctionSpaceForSolution())
+    self.__pde.setValue(Y = escript.Data(), Y_reduced = escript.Data())
     if input_data.getRank()==0:
         self.__pde.setValue(Y = input_data)
         out=self.__pde.getSolution()
@@ -404,7 +402,7 @@ class SaddlePointProblem(object):
 
    for u and p. The problem is solved with an inexact Uszawa scheme for p:
 
-   M{Q_f (u^{k+1}-u^{k}) = - f(u^{k},p^{k})
+   M{Q_f (u^{k+1}-u^{k}) = - f(u^{k},p^{k})}
    M{Q_g (p^{k+1}-p^{k}) =   g(u^{k+1})}
 
    where Q_f is an approximation of the Jacobiean A_f of f with respect to u  and Q_f is an approximation of
@@ -416,10 +414,12 @@ class SaddlePointProblem(object):
        """
        initializes the problem
 
-       @parm verbose: switches on the printing out some information
+       @param verbose: switches on the printing out some information
        @type verbose: C{bool}
        @note: this method may be overwritten by a particular saddle point problem
        """
+       if not isinstance(verbose,bool):
+            raise TypeError("verbose needs to be of type bool.")
        self.__verbose=verbose
        self.relaxation=1.
 
@@ -427,7 +427,7 @@ class SaddlePointProblem(object):
        """
        prints text if verbose has been set
 
-       @parm text: a text message
+       @param text: a text message
        @type text: C{str}
        """
        if self.__verbose: print "%s: %s"%(str(self),text)

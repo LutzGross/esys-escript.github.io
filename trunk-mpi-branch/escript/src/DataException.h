@@ -49,6 +49,11 @@ class DataException:public esysUtils::EsysException {
   */
   ESCRIPT_DLL_API
   DataException(const std::string &str) : esysUtils::EsysException(str) {}
+
+  /// Destructor
+  ESCRIPT_DLL_API
+  virtual ~DataException() throw() {}
+
   /**
      \brief
      Returns the name of the exception.

@@ -37,11 +37,14 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   int format = 0, size = sizeof(double);
   dim_t numNodes, totalNumElements=0, numTags=0, numNodesPerElement, numNodesPerElement2, element_dim;
   index_t e, i0, j, gmsh_type, partition_id, itmp, final_element_type,  elementary_id;
+  index_t numElements=0, numFaceElements=0, *id=NULL, *tag=NULL, *vertices=NULL;
   Finley_Mesh *mesh_p=NULL;
-  char name[LenString_MAX],element_type[LenString_MAX],frm[20], line[LenString_MAX+1];
+  char line[LenString_MAX+1];
   char error_msg[LenErrorMsg_MAX];
   double rtmp0, rtmp1;
   double time0=Finley_timer();
+  FILE * fileHandle_p = NULL;
+  ElementTypeId* element_type=NULL;
 
   Finley_resetError();
  #if PASO_MPI
@@ -51,11 +54,12 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 
 #else
   /* allocate mesh */
-  mesh_p = Finley_Mesh_alloc(fname,numDim,order);
+
+  mesh_p = Finley_Mesh_alloc(fname,numDim,order, reduced_order);
   if (! Finley_noError()) return NULL;
 
   /* get file handle */
-  FILE * fileHandle_p = fopen(fname, "r");
+  fileHandle_p = fopen(fname, "r");
   if (fileHandle_p==NULL) {
     sprintf(error_msg,"Opening Gmsh file %s for reading failed.",fname);
     Finley_setError(IO_ERROR,error_msg);
@@ -116,14 +120,16 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 
       ElementTypeId final_element_type = NoType;
       ElementTypeId final_face_element_type = NoType;
-      index_t numElements=0;
-      index_t numFaceElements=0;
+      numElements=0;
+      numFaceElements=0;
       fscanf(fileHandle_p, "%d", &totalNumElements);
 
-      index_t* id=TMPMEMALLOC(totalNumElements,index_t);
-      index_t* tag=TMPMEMALLOC(totalNumElements,index_t);
-      ElementTypeId* element_type=TMPMEMALLOC(totalNumElements,ElementTypeId);
-      index_t* vertices=TMPMEMALLOC(totalNumElements*MAX_numNodes_gmsh,index_t);
+      id=TMPMEMALLOC(totalNumElements,index_t);
+      tag=TMPMEMALLOC(totalNumElements,index_t);
+
+
+      element_type=TMPMEMALLOC(totalNumElements,ElementTypeId);
+      vertices=TMPMEMALLOC(totalNumElements*MAX_numNodes_gmsh,index_t);
       if (! (Finley_checkPtr(id) || Finley_checkPtr(tag) || Finley_checkPtr(element_type) || Finley_checkPtr(vertices) ) ) {
          /* read all in */
          for(e = 0; e < totalNumElements; e++) {
@@ -224,19 +230,38 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 	       } else if (j == 2) {
 	         partition_id = itmp;
                }
-	       // ignore any other tags 
+	       /* ignore any other tags */
 	     }
 	   }
            if (! Finley_noError()) break;
            for(j = 0; j < numNodesPerElement; j++) fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
          }
          /* all elements have been read, now we have to identify the elements for finley */
+     
          if (Finley_noError()) {
-            /* first we have to identify the elements to define Elementis and FaceElements */
-           mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order);
-           mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order);
-           mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order);
-           mesh_p->Points=Finley_ElementFile_alloc(Point1,mesh_p->order);
+           /* first we have to identify the elements to define Elementis and FaceElements */
+           if (final_element_type == NoType) {
+              if (numDim==1) {
+                 final_element_type=Line2;
+              } else if (numDim==2) {
+                 final_element_type=Tri3;
+              } else if (numDim==3) {
+                 final_element_type=Tet4;
+              }
+           }
+           if (final_face_element_type == NoType) {
+              if (numDim==1) {
+                 final_face_element_type=Point1;
+              } else if (numDim==2) {
+                 final_face_element_type=Line2;
+              } else if (numDim==3) {
+                 final_face_element_type=Tri3;
+              }
+           }
+           mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order, mesh_p->reduced_order);
+           mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order, mesh_p->reduced_order);
+           mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order, mesh_p->reduced_order);
+           mesh_p->Points=Finley_ElementFile_alloc(Point1,mesh_p->order, mesh_p->reduced_order);
            if (Finley_noError()) {
                Finley_ElementFile_allocTable(mesh_p->Elements, numElements);
                Finley_ElementFile_allocTable(mesh_p->FaceElements, numFaceElements);

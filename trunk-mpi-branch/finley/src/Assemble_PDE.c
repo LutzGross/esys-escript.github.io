@@ -61,6 +61,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   Assemble_Parameters p;
   double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
+  type_t funcspace;
 
   Finley_resetError();
 
@@ -84,7 +85,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   }
 
   /*  get the functionspace for this assemblage call */
-  type_t funcspace=UNKNOWN;
+  funcspace=UNKNOWN;
   updateFunctionSpaceType(funcspace,A);
   updateFunctionSpaceType(funcspace,B);
   updateFunctionSpaceType(funcspace,C);
@@ -92,7 +93,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   updateFunctionSpaceType(funcspace,X);
   updateFunctionSpaceType(funcspace,Y);
   if (funcspace==UNKNOWN) return; /* all  data are empty */
-
 
   /* check if all function spaces are the same */
   if (! functionSpaceTypeEqual(funcspace,A) ) {
@@ -124,6 +124,14 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
        reducedIntegrationOrder=FALSE;
   } else if (funcspace==FINLEY_CONTACT_ELEMENTS_2)  {
        reducedIntegrationOrder=FALSE;
+  } else if (funcspace==FINLEY_REDUCED_ELEMENTS) {
+       reducedIntegrationOrder=TRUE;
+  } else if (funcspace==FINLEY_REDUCED_FACE_ELEMENTS)  {
+       reducedIntegrationOrder=TRUE;
+  } else if (funcspace==FINLEY_REDUCED_CONTACT_ELEMENTS_1)  {
+       reducedIntegrationOrder=TRUE;
+  } else if (funcspace==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
+       reducedIntegrationOrder=TRUE;
   } else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: assemblage failed because of illegal function space.");
   }

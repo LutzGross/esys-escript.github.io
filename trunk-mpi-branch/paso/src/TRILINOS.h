@@ -39,4 +39,3 @@ void Paso_TRILINOS(Paso_SystemMatrix* A,
 void Paso_TRILINOS_free(void* in);
 
 #endif /* ifndef INC_PASO_TRILINOS */
-

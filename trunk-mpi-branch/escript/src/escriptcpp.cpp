@@ -77,6 +77,10 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Interface for AbstractDomain
   //
   class_<escript::AbstractDomain>("Domain",no_init)
+     .def("setTagMap",&escript::AbstractDomain::setTagMap)
+     .def("getTag",&escript::AbstractDomain::getTag)
+     .def("isValidTagName",&escript::AbstractDomain::isValidTagName)
+     .def("showTagNames",&escript::AbstractDomain::showTagNames)
      .def("getX",&escript::AbstractDomain::getX)
      .def("getNormal",&escript::AbstractDomain::getNormal)
      .def("getSize",&escript::AbstractDomain::getSize)
@@ -128,16 +132,17 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("dump",&escript::Data::dump)
     .def("copyWithMask",&escript::Data::copyWithMask)
     .def("setTaggedValue",&escript::Data::setTaggedValue)
+    .def("setTaggedValue",&escript::Data::setTaggedValueByName)
     .def("getNumberOfDataPoints",&escript::Data::getNumDataPoints)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
     .def("copy",&escript::Data::copy)
-    .def("convertToNumArray",&escript::Data::convertToNumArray)
-    .def("fillFromNumArray",&escript::Data::fillFromNumArray)
-    .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)
+    .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
+    .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint)
     .def("getValueOfDataPoint",&escript::Data::getValueOfDataPoint)
     .def("getValueOfGlobalDataPoint",&escript::Data::getValueOfGlobalDataPoint)
+    .def("setToZero",&escript::Data::setToZero)
     .def("interpolate",&escript::Data::interpolate)
     .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint)
     .def("saveDX",&escript::Data::saveDX)
@@ -237,10 +242,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Factory methods for function space
   //
   def("ContinuousFunction",escript::continuousFunction);
+  def("ReducedContinuousFunction",escript::reducedContinuousFunction);
   def("Function",escript::function);
+  def("ReducedFunction",escript::reducedFunction);
   def("FunctionOnBoundary",escript::functionOnBoundary);
+  def("ReducedFunctionOnBoundary",escript::reducedFunctionOnBoundary);
   def("FunctionOnContactZero",escript::functionOnContactZero);
+  def("ReducedFunctionOnContactZero",escript::reducedFunctionOnContactZero);
   def("FunctionOnContactOne",escript::functionOnContactOne);
+  def("ReducedFunctionOnContactOne",escript::reducedFunctionOnContactOne);
   def("Solution",escript::solution);
   def("ReducedSolution",escript::reducedSolution);
   def("DiracDeltaFunction",escript::diracDeltaFunction);
@@ -249,6 +259,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Factory methods for Data
   //
   def("load",escript::load);
+  def("loadIsConfigured",escript::loadConfigured);
   def("Scalar",escript::Scalar,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),

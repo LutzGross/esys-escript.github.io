@@ -7,16 +7,19 @@ from constant import Renderer, Color, Viewport
 
 class Scene:
 	"""
-	Class that defines a scene in which objects are to be rendered on.	
+	Class that defines a scene. A scene is a window in which objects are to 
+	be rendered on. Only one scene needs to be created. However, a scene may 
+	be divided into four smaller windows called viewports (if needed). 
+	Each viewport can render a different object.  
 	"""
-	
+
 	def __init__(self, renderer = Renderer.ONLINE, num_viewport = 1, 
 			x_size = 1152, y_size = 864):
 		"""
 		Initialise the scene.
 
-		@type renderer: String
-		@param renderer: Type of rendering (i.e.Renderer.ONLINE, etc) 
+		@type renderer: L{Renderer <constant.Renderer>} constant
+		@param renderer: Type of renderer 
 		@type num_viewport: Number
 		@param num_viewport: Number of viewport(s) in the scene. Either 1 or 4 
 		@type x_size: Number
@@ -29,6 +32,15 @@ class Scene:
 		self.__num_viewport = num_viewport
 		self.__x_size = x_size
 		self.__y_size = y_size
+		self.__modules = []
+
+		self.__OFFLINE = "offline"
+		self.__JPG = "jpg"
+		self.__BMP = "bmp"
+		self.__PNM = "pnm"
+		self.__PNG = "png"
+		self.__TIF = "tif"
+		self.__PS  = "ps"
 	
 		self.__vtk_render_window = vtk.vtkRenderWindow()
 		self.__setupScene()
@@ -45,12 +57,22 @@ class Scene:
 		# Default title bar.
 		self.setTitleBar("Earth Systems Science Computational Centre (ESSCC)")
 		self.__setSize(self.__x_size, self.__y_size)
-		
-		if(self.__renderer == Renderer.ONLINE): # True for online rendering.
-			self.__setupOnlineRendering()
-		else: # True for offline rendering.
-			self.__setupOfflineRendering()
 
+		# True for Online rendering.
+		if(self.__renderer.startswith(Renderer.ONLINE)): 
+			self.__setupOnlineRendering()
+			# True for all Online renderers except Renderer.ONLINE.
+			if(self.__renderer != Renderer.ONLINE):
+				self.__setupWindowToImage()
+		# True for Offline rendering.
+		elif(self.__renderer.startswith(self.__OFFLINE)): 
+			self.__setupOfflineRendering()
+			self.__setupWindowToImage()
+		# True for Display rendering.
+		elif(self.__renderer.startswith(Renderer.DISPLAY)): 
+			# True for all Display renderers except Renderer.DISPLAY.
+			if(self.__renderer != Renderer.DISPLAY):
+				self.__setupWindowToImage()
 
 	def __createViewport(self):
 		"""
@@ -63,7 +85,7 @@ class Scene:
 			self.__vtk_renderer.append(vtk.vtkRenderer())
 			
 		if(self.__num_viewport == 4): 
-			# Renderer for the entire scene (background to the viewports).	
+			# Renderer for the entire scene (background).	
 			self.__vtk_renderer_background = vtk.vtkRenderer()
 
 			# Specify the positioning of the four viewports (between 0 and 1).
@@ -97,7 +119,8 @@ class Scene:
 		"""
 		Add the renderer(s) to the render window.
 		"""
-		# Renderer for the black scene (background).
+
+		# Add the renderer for the black scene (background).
 		if(self.__num_viewport == 4): 
 			self.__vtk_render_window.AddRenderer(
 					self.__vtk_renderer_background)
@@ -133,91 +156,111 @@ class Scene:
 		"""
 
 		# Associate the window interactor with the render window.
-		self.__vtk_render_window_interactor = vtk.vtkRenderWindowInteractor(					)
+		self.__vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
 		self.__vtk_render_window_interactor.SetRenderWindow(
 				self.__vtk_render_window)
 		self.__vtk_render_window_interactor.Initialize()
 
 	def __setupOfflineRendering(self):
 		"""
-		Setup the window to image filter for offline rendering.
+		Enables the offline rendering (no window comes up).
 		"""
 
-		# Enable offscreen rendering.
+		# Enables the offscreen rendering.
 		self.__vtk_render_window.OffScreenRenderingOn()
-		# Convert the output of the render window into an image.
+
+	def __setupWindowToImage(self):
+		"""	
+		Setup the window to image filter to convert the output from the render 
+		window into an image.
+		"""
+
 		self.__vtk_window_to_image = vtk.vtkWindowToImageFilter()
 		self.__vtk_window_to_image.SetInput(self.__vtk_render_window)
 		self.__vtk_image_writer = self.__getImageWriter()
-
+		
 	def __getImageWriter(self):
 		"""
-		Return the appropriate image writer based on the specified offline
-		renderer.
+		Return the appropriate image writer based on the specified renderer.
 
 		@rtype: vtkImageWriter
 		@return: Image writer
 		"""
 
-		if(self.__renderer == Renderer.OFFLINE_JPG):
+		if(self.__renderer.endswith(self.__JPG)):
 			return vtk.vtkJPEGWriter() 
-		elif(self.__renderer == Renderer.OFFLINE_BMP):
+		elif(self.__renderer.endswith(self.__BMP)):
 			return vtk.vtkBMPWriter() 
-		elif(self.__renderer == Renderer.OFFLINE_PNM):
+		elif(self.__renderer.endswith(self.__PNM)):
 			return vtk.vtkPNMWriter()
-		elif(self.__renderer == Renderer.OFFLINE_PNG):
+		elif(self.__renderer.endswith(self.__PNG)):
 			return vtk.vtkPNGWriter()
-		elif(self.__renderer == Renderer.OFFLINE_TIF):
+		elif(self.__renderer.endswith(self.__TIF)):
 			return vtk.vtkTIFFWriter()
-		elif(self.__renderer == Renderer.OFFLINE_PS):
+		elif(self.__renderer.endswith(self.__PS)):
 			return vtk.vtkPostScriptWriter()
 	
-	def saveImage(self, image_name):
+	def __saveImage(self, image_name):
 		"""
 		Save the rendered object as an image.
 
 		@type image_name: String
 		@param image_name: Name of the saved image.
 		"""
-		
+
 		# NOTE: Render and Modified must be called everytime before writing 
 		# an image. Otherwise, only the first image will always be saved.
 		# This is due to the architecture of VTK.
 		self.__vtk_render_window.Render()
 		self.__vtk_window_to_image.Modified()
 		
-		# Retrieve rendered object from the window and convert it into an 
+		# Retrieve the rendered object from the window and convert it into an 
 		# image.
 		self.__vtk_image_writer.SetInput(
 				self.__vtk_window_to_image.GetOutput())
 		self.__vtk_image_writer.SetFileName(image_name)
 		self.__vtk_image_writer.Write() 	
 
-	def animate(self):
-		"""
-		Render the object onto the scene on-the-fly. No interaction can occur.
+	def __animate(self):
+		"""	
+		Animate the rendered object on-the-fly.
 		"""
 
+		# With Render() ONLY, the rendered object is animated onto the 
+		# scene on-the-fly and no interaction can occur.
 		self.__vtk_render_window.Render()
 
-	def render(self):
+	def render(self, image_name = None):
 		"""
-		Render the object onto the scene.
+		Render the object using either the online, offline or display mode.
 		"""	
 
+		for i in range(0, len(self.__modules)):
+			self.__modules[i]._render()	
+
 		self.__vtk_render_window.Render()
 
-		# NOTE: Once Start is executed, the driver will not further execute 
-		# any subsequent codes thereafter.
-		self.__vtk_render_window_interactor.Start()
+		if(self.__renderer.startswith(Renderer.ONLINE)):
+			# NOTE: Once Start() is executed, the driver will not further 
+			# execute any subsequent codes thereafter unless the 'q' or 
+			# 'e' keys are pressed.
+			self.__vtk_render_window_interactor.Start()
+
+			# True for all online renderers except Renderer.ONLINE.
+			if(self.__renderer != Renderer.ONLINE):
+				self.__saveImage(image_name)					
+		# True for all display renderers except Renderer.DISPLAY.
+		elif(self.__renderer.startswith(self.__OFFLINE) or 
+				self.__renderer != Renderer.DISPLAY):
+			self.__saveImage(image_name)					
 	
 	def _addActor3D(self, viewport, actor):
 		"""
 		Add the actor3D to the appropriate viewport.
 
 		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport which the actor3D is to be added to 
-		@type actor: L{Actor3D <actor.Actor3D>} object
+		@param viewport: Viewport in which the actor3D is to be added to 
+		@type actor: vtkActor
 		@param actor: Actor3D which is to be added to the viewport 
 		"""
 
@@ -228,8 +271,8 @@ class Scene:
 		Add the actor2D to the appropriate viewport.
 
 		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport which the actor2D is to be added to 
-		@type actor: L{Actor2D <actor.Actor2D>} object
+		@param viewport: Viewport in which the actor2D is to be added to 
+		@type actor: vtkActor2D
 		@param actor: Actor2D which is to be added to the viewport 
 		"""
 
@@ -240,8 +283,8 @@ class Scene:
 		Set the camera to the appropriate viewport.	
 
 		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport which the camera is to be added to 
-		@type camera: L{Camera <camera.Camera>} object
+		@param viewport: Viewport in which the camera is to be added to 
+		@type camera: vtkCamera
 		@param camera: Camera which is to be assigned to the viewport
 		"""
 
@@ -252,8 +295,8 @@ class Scene:
 		Add the light to the appropriate viewport.
 
 		@type viewport: L{Viewport <constant.Viewport>} constant 
-		@param viewport: Viewport which the camera is to be added to 
-		@type light: L{Light <light.Light>} object
+		@param viewport: Viewport in which the camera is to be added to 
+		@type light: vtkLight
 		@param light: Light which is to be assigned to the viewport
 		"""
 
@@ -263,8 +306,12 @@ class Scene:
 		"""
 		Return the renderer(s)
 
-		@rtype: One or more column tuple of vtkRenderer
-		@return: Renderer(s)
+		@rtype: List 
+		@return: A list of renderer(s)
 		"""
 	
 		return self.__vtk_renderer
+
+	def _addModules(self, module):
+		print "Module: ", module
+		self.__modules.append(module)

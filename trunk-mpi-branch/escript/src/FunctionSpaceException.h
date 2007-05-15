@@ -48,6 +48,10 @@ class FunctionSpaceException:public esysUtils::EsysException {
   */
   ESCRIPT_DLL_API
   FunctionSpaceException(const std::string &str) : EsysException(str) {}
+
+  /// Destructor
+  ESCRIPT_DLL_API
+  virtual ~FunctionSpaceException() throw() {}
   /**
      \brief
      Returns the name of the exception.

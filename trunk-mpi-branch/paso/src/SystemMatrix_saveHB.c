@@ -188,6 +188,7 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
         int i, curr_col,j ;
 	int iPtr, iCol, ir, ic;
         index_t index_offset=(A_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+	dim_t *row_ind=NULL, *col_ind = NULL, *col_ptr=NULL;
 	int nz = A_p->myLen;
 	/* open the file */
 	FILE *fileHandle_p = fopen( filename_p, "w" );
@@ -211,13 +212,12 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 				else
 				{
 
-// 					fprintf( fileHandle_p, "NEED unrolling!\n" );
+/* 					fprintf( fileHandle_p, "NEED unrolling!\n" ); */
 					M = A_p->numRows*A_p->row_block_size;
 					N = A_p->numCols*A_p->col_block_size;
-					nz = A_p->len;
 
-					dim_t *row_ind = MEMALLOC( nz, dim_t );
-					dim_t *col_ind = MEMALLOC( nz, dim_t );
+					row_ind = MEMALLOC( nz, dim_t );
+					col_ind = MEMALLOC( nz, dim_t );
 
 					i = 0;
 					for( iCol=0; iCol<A_p->pattern->myNumOutput; iCol++ )
@@ -231,7 +231,7 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p )
 								}
 
 					/* get the col_ptr */
-					dim_t *col_ptr = MEMALLOC( (N+1), dim_t );
+					col_ptr = MEMALLOC( (N+1), dim_t );
 
 					curr_col = 0;
 					for(j=0; (j<nz && curr_col<N); curr_col++ )

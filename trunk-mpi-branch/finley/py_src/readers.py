@@ -35,7 +35,7 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
         @param reducedIntegrationOrder: reduced integration order. If -1 the default is used.
         @type reducedIntegrationOrder: C{int}
         @param optimizeLabeling: if set the labeling of the mesh nodes is optimized
-        @type: C{bool}
+        @type optimizeLabeling: C{bool}
         @return: the Finley domain defined by the designs 
         @rtype: L{Domain}
         """
@@ -48,4 +48,6 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
                            optimizeLabeling)
         else: 
             raise TypeError("Finley does not support %s designs."%design.__class__.__name__)
+        # fill in the tag map
+        design.getTagMap().passToDomain(dom)
         return dom

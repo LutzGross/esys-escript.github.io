@@ -49,6 +49,10 @@ class FinleyAdapterException:public esysUtils::EsysException {
   */
   FINLEY_DLL_API
   FinleyAdapterException(const std::string &str) : EsysException(str) {}
+
+  /// Destructor
+  FINLEY_DLL_API
+  virtual ~FinleyAdapterException() throw() {}
   /**
      \brief
      Returns the name of the exception.

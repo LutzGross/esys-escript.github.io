@@ -28,11 +28,11 @@
 /**************************************************************/
 
 
-void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance) { 
+void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize_labeling) { 
    char error_msg[LenErrorMsg_MAX];
    Finley_NodeFile *newNodeFile=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL;
-   dim_t numPairs,e,i,n;
+   dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
    index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL;
 
    if (self->FaceElements==NULL) return;
@@ -43,9 +43,9 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
      return;
    }
 
-   dim_t NNFace=self->FaceElements->ReferenceElement->Type->numNodesOnFace;
-   dim_t NN=self->FaceElements->ReferenceElement->Type->numNodes;
-   dim_t numDim=self->Nodes->numDim;
+   NNFace=self->FaceElements->ReferenceElement->Type->numNodesOnFace;
+   NN=self->FaceElements->ReferenceElement->Type->numNodes;
+   numDim=self->Nodes->numDim;
    /* allocate work arrays */
    elem1=TMPMEMALLOC(self->FaceElements->numElements,index_t);
    elem0=TMPMEMALLOC(self->FaceElements->numElements,index_t);
@@ -70,7 +70,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /* create an index of face elements */
-         dim_t new_numFaceElements=0;
+         new_numFaceElements=0;
          for(e=0;e<self->FaceElements->numElements;e++) {
              if (elem_mask[e]<1) {
                elem_mask[new_numFaceElements]=e;
@@ -78,7 +78,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /* get the new number of nodes */
-         dim_t newNumNodes=0;
+         newNumNodes=0;
          for (n=0;n<self->Nodes->numNodes;n++) new_node_mask[n]=-1;
          for (n=0;n<self->Nodes->numNodes;n++) new_node_mask[new_node_label[n]]=1;
          for (n=0;n<self->Nodes->numNodes;n++) {
@@ -96,7 +96,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          if (Finley_noError()) {
              Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
              if (Finley_noError()) {
-                newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order);
+                newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order, self->FaceElements->reduced_order);
                 if (Finley_noError()) {
                    Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
                  }

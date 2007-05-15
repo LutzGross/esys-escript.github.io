@@ -90,11 +90,10 @@ err_t Paso_Solver_BiCGStab(
   dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;
-
+  double *resid = tolerance;
   /* adapt original routine parameters */
   dim_t l = A->maxNumCols * A-> col_block_size;;
   dim_t n = A->myNumCols * A-> col_block_size;;
-  double * resid = tolerance;
 
   /* Executable Statements */
 

@@ -74,20 +74,20 @@ err_t Paso_Solver_GMRES(
 
   /* Local variables */
 
-  double *AP,*X_PRES[MAX(Length_of_recursion,0)+1],*R_PRES[MAX(Length_of_recursion,0)+1],*P_PRES[MAX(Length_of_recursion,0)+1];
-  double P_PRES_dot_AP[MAX(Length_of_recursion,0)],R_PRES_dot_P_PRES[MAX(Length_of_recursion,0)+1],BREAKF[MAX(Length_of_recursion,0)+1],ALPHA[MAX(Length_of_recursion,0)];
+  double *AP,**X_PRES,**R_PRES,**P_PRES;
+  double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
   double P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,abs_RP,breakf0;
   double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual,diff,L2_R,Norm_of_residual_global;
   double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
   dim_t maxit,Num_iter_global,num_iter_restart,num_iter;
-  dim_t i,z,order;
+  dim_t i,z,order,n, Length_of_mem;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
   err_t Status=SOLVER_NO_ERROR;
 
+  
   /* adapt original routine parameters */
-
-  dim_t n=A->myNumCols * A-> col_block_size;
-  dim_t Length_of_mem=MAX(Length_of_recursion,0)+1;
+  n=A->myNumCols * A-> col_block_size;
+  Length_of_mem=MAX(Length_of_recursion,0)+1;
 
   /*     Test the input parameters. */
   if (restart>0) restart=MAX(Length_of_recursion,restart);
@@ -96,14 +96,24 @@ err_t Paso_Solver_GMRES(
   }
 
   /*     allocate memory: */
-
+  X_PRES=TMPMEMALLOC(Length_of_mem,double*);
+  R_PRES=TMPMEMALLOC(Length_of_mem,double*);
+  P_PRES=TMPMEMALLOC(Length_of_mem,double*);
+  P_PRES_dot_AP=TMPMEMALLOC(Length_of_mem,double);
+  R_PRES_dot_P_PRES=TMPMEMALLOC(Length_of_mem,double);
+  BREAKF=TMPMEMALLOC(Length_of_mem,double);
+  ALPHA=TMPMEMALLOC(Length_of_mem,double);
   AP=TMPMEMALLOC(n,double);
-  if (AP==NULL) Status=SOLVER_MEMORY_ERROR;
-  for (i=0;i<Length_of_mem;i++) {
-    X_PRES[i]=TMPMEMALLOC(n,double);
-    R_PRES[i]=TMPMEMALLOC(n,double);
-    P_PRES[i]=TMPMEMALLOC(n,double);
-    if (X_PRES[i]==NULL || R_PRES[i]==NULL ||  P_PRES[i]==NULL) Status=SOLVER_MEMORY_ERROR;
+  if (AP==NULL || X_PRES ==NULL || R_PRES == NULL || P_PRES == NULL || 
+         P_PRES_dot_AP == NULL || R_PRES_dot_P_PRES ==NULL || BREAKF == NULL || ALPHA == NULL) {
+     Status=SOLVER_MEMORY_ERROR;
+  } else {
+     for (i=0;i<Length_of_mem;i++) {
+       X_PRES[i]=TMPMEMALLOC(n,double);
+       R_PRES[i]=TMPMEMALLOC(n,double);
+       P_PRES[i]=TMPMEMALLOC(n,double);
+       if (X_PRES[i]==NULL || R_PRES[i]==NULL ||  P_PRES[i]==NULL) Status=SOLVER_MEMORY_ERROR;
+     }
   }
   if ( Status ==SOLVER_NO_ERROR ) {
 
@@ -568,12 +578,19 @@ err_t Paso_Solver_GMRES(
 	  }
         }
     }  /* end of parallel region */
-    TMPMEMFREE(AP);
     for (i=0;i<Length_of_recursion;i++) {
        TMPMEMFREE(X_PRES[i]);
        TMPMEMFREE(R_PRES[i]);
        TMPMEMFREE(P_PRES[i]);
     }
+    TMPMEMFREE(AP);
+    TMPMEMFREE(X_PRES);
+    TMPMEMFREE(R_PRES);
+    TMPMEMFREE(P_PRES);
+    TMPMEMFREE(P_PRES_dot_AP);
+    TMPMEMFREE(R_PRES_dot_P_PRES);
+    TMPMEMFREE(BREAKF);
+    TMPMEMFREE(ALPHA);
     *iter=Num_iter_global;
     *tolerance=Norm_of_residual_global;
   }

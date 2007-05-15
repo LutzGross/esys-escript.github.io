@@ -31,6 +31,46 @@ from esys.escript import C_GeneralTensorProduct
 #=========================================================
 #   some helpers:
 #=========================================================
+def getTagNames(domain):
+    """
+    returns a list of the tag names used by the domain
+
+    
+    @param domain: a domain object
+    @type domain: L{escript.Domain}
+    @return: a list of the tag name used by the domain.
+    @rtype: C{list} of C{str}
+    """
+    return [n.strip() for n in domain.showTagNames().split(",") ]
+
+def insertTagNames(domain,**kwargs):
+    """
+    inserts tag names into the domain
+
+    @param domain: a domain object
+    @type domain: C{escript.Domain}
+    @keyword <tag name>: tag key assigned to <tag name>
+    @type <tag name>: C{int}
+    """
+    for  k in kwargs:
+         domain.setTagMap(k,kwargs[k])
+
+def insertTaggedValues(target,**kwargs):
+    """
+    inserts tagged values into the tagged using tag names
+
+    @param target: data to be filled by tagged values
+    @type target: L{escript.Data}
+    @keyword <tag name>: value to be used for <tag name>
+    @type <tag name>: C{float} or {numarray.NumArray}
+    @return: C{target}
+    @rtype: L{escript.Data}
+    """
+    for k in kwargs:
+        target.setTaggedValue(k,kwargs[k])
+    return target
+
+    
 def saveVTK(filename,domain=None,**data):
     """
     writes a L{Data} objects into a files using the the VTK XML file format.

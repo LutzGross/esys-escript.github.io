@@ -251,21 +251,6 @@ class Data {
   ESCRIPT_DLL_API
   bool
   isProtected() const;
-  /**
-     \brief
-     Return the values of all data-points as a single python numarray object.
-  */
-  ESCRIPT_DLL_API
-  const boost::python::numeric::array
-  convertToNumArray();
-
-  /**
-     \brief
-     Fills the expanded Data object from values of a python numarray object.
-  */
-  ESCRIPT_DLL_API
-  void
-  fillFromNumArray(const boost::python::numeric::array);
 
   /**
      \brief
@@ -277,11 +262,19 @@ class Data {
 
   /**
      \brief
-     sets the values of a data-point on this process
+     sets the values of a data-point from a python object on this process
   */
   ESCRIPT_DLL_API
   void
-  setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array);
+  setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object);
+
+  /**
+     \brief
+     sets the values of a data-point from a numarray object on this process
+  */
+  ESCRIPT_DLL_API
+  void
+  setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::array&);
 
   /**
      \brief
@@ -579,6 +572,22 @@ class Data {
   DataArrayView::ValueType::size_type
   getLength() const;
 
+
+
+  /**
+     \brief
+     Assign the given value to the tag assocciated with name. Implicitly converts this
+     object to type DataTagged. Throws an exception if this object
+     cannot be converted to a DataTagged object or name cannot be mapped onto a tag key.
+     \param tagKey - Input - Integer key.
+     \param value - Input - Value to associate with given key.
+    ==>*
+  */
+  ESCRIPT_DLL_API
+  void
+  setTaggedValueByName(std::string name,
+                       const boost::python::object& value);
+
   /**
      \brief
      Assign the given value to the tag. Implicitly converts this
@@ -622,6 +631,15 @@ class Data {
 
   /**
      \brief
+     set all values to zero
+     *
+  */
+  ESCRIPT_DLL_API
+  void
+  setToZero();
+
+  /**
+     \brief
      Interpolates this onto the given functionspace and returns
      the result as a Data object.
      *
@@ -629,7 +647,6 @@ class Data {
   ESCRIPT_DLL_API
   Data
   interpolate(const FunctionSpace& functionspace) const;
-
   /**
      \brief
      Calculates the gradient of the data at the data points of functionspace.
@@ -1406,7 +1423,7 @@ Data::initialise(const IValueType& value,
 inline double rpow(double x,double y) 
 {
     return pow(y,x);
-};
+}
 
 /**
   \brief

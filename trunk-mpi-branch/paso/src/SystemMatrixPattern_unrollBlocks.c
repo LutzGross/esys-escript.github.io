@@ -31,6 +31,9 @@
 
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern, \
                                            int type, dim_t output_block_size,dim_t input_block_size) {
+  Paso_SystemMatrixPattern*out=NULL;
+  index_t *ptr=NULL,*index=NULL,iPtr;
+  dim_t i,j,k,l, block_size, new_n_ptr, new_len;
   index_t index_offset_in=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   
@@ -39,12 +42,9 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
       return NULL;
   }
   Paso_MPIInfo* mpi_info=pattern->mpi_info;
-  Paso_SystemMatrixPattern*out=NULL;
   Paso_Distribution *input_dist=NULL,*output_dist=NULL;
-  index_t *ptr=NULL,*index=NULL,iPtr;
-  dim_t i,j,k,l;
   Paso_resetError();
-  dim_t block_size=output_block_size*input_block_size;
+  block_size=output_block_size*input_block_size;
   dim_t new_myNumOutput=(pattern->myNumOutput)*output_block_size;
   dim_t new_myLen=(pattern->myLen)*block_size;
 

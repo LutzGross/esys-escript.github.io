@@ -15,7 +15,9 @@
 
 #include <boost/python/extract.hpp>
 #include <iostream>
+#ifdef USE_NETCDF
 #include <netcdfcpp.h>
+#endif
 
 using namespace boost::python;
 
@@ -73,8 +75,10 @@ load(const std::string fileName,
      const AbstractDomain& domain)
 {
    #ifdef PASO_MPI
-   throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.");
+   throw DataException("Error - load :: not implemented for MPI yet.");
    #endif
+
+   #ifdef USE_NETCDF
    NcAtt *type_att, *rank_att, *function_space_type_att;
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
@@ -115,7 +119,7 @@ load(const std::string fileName,
    delete type_str;
    /* recover dimension */
    int ndims=dataFile.num_dims();
-   int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0;
+   int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0, len_data_point=1;
    NcDim *d_dim, *tags_dim, *num_samples_dim, *num_data_points_per_sample_dim;
    /* recover shape */
    DataArrayView::ShapeType shape;
@@ -126,6 +130,7 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[0]=d;
+      len_data_point*=d;
    }
    if (rank>1) {
      if (! (d_dim=dataFile.get_dim("d1")) )
@@ -133,6 +138,7 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[1]=d;
+      len_data_point*=d;
    }
    if (rank>2) {
      if (! (d_dim=dataFile.get_dim("d2")) )
@@ -140,6 +146,7 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[2]=d;
+      len_data_point*=d;
    }
    if (rank>3) {
      if (! (d_dim=dataFile.get_dim("d3")) )
@@ -147,10 +154,11 @@ load(const std::string fileName,
       d=d_dim->size();
       shape.push_back(d);
       dims[3]=d;
+      len_data_point*=d;
    }
    /* recover stuff */
    Data out;
-   NcVar *var;
+   NcVar *var, *ids_var, *tags_var;
    if (type == 0) {
       /* constant data */
       if ( ! ( (ndims == rank && rank >0) || ( ndims ==1 && rank == 0 ) ) )
@@ -171,11 +179,39 @@ load(const std::string fileName,
    } else if (type == 1) { 
       /* tagged data */
       if ( ! (ndims == rank + 1) )
-          throw DataException("Error - load:: illegal number of dimensions for tagged data in netCDF file.");
-      if (! (tags_dim=dataFile.get_dim("tags")) )
-          throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
+         throw DataException("Error - load:: illegal number of dimensions for tagged data in netCDF file.");
+      if (! (tags_dim=dataFile.get_dim("num_tags")) )
+         throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
       ntags=tags_dim->size();
-      out=Data(0,shape,function_space);
+      dims[rank]=ntags;
+      int *tags = (int *) malloc(ntags*sizeof(int));
+      if (! ( tags_var = dataFile.get_var("tags")) )
+      {
+         free(tags);
+         throw DataException("Error - load:: unable to find tags in netCDF file.");
+      }
+      if (! tags_var->get(tags, ntags) ) 
+      {
+         free(tags);
+         throw DataException("Error - load:: unable to recover tags from netCDF file.");
+      }
+
+      DataVector data(len_data_point*ntags,0.,len_data_point*ntags);
+      if (!(var = dataFile.get_var("data")))
+      {
+         free(tags);
+         throw DataException("Error - load:: unable to find data in netCDF file.");
+      }
+      if (! var->get(&(data[0]), dims) ) 
+      {
+         free(tags);
+         throw DataException("Error - load:: unable to recover data from netCDF file.");
+      }
+      out=Data(DataArrayView(data,shape,0),function_space);
+      for (int t=1; t<ntags; ++t) {
+         out.setTaggedValueFromCPP(tags[t],DataArrayView(data,shape,t*len_data_point));
+      }
+      free(tags);
    } else if (type == 2) {
       /* expanded data */
       if ( ! (ndims == rank + 2) )
@@ -186,21 +222,70 @@ load(const std::string fileName,
       if ( ! (num_data_points_per_sample_dim = dataFile.get_dim("num_data_points_per_sample") ) )
           throw DataException("Error - load:: unable to recover number of data points per sample from netCDF file.");
       num_data_points_per_sample=num_data_points_per_sample_dim->size();
-      // add checks!
+      // check shape:
       if ( ! (num_samples == function_space.getNumSamples() && num_data_points_per_sample == function_space.getNumDataPointsPerSample()) )
           throw DataException("Error - load:: data sample layout of file does not match data layout of function space.");
+      // get ids
+      if (! ( ids_var = dataFile.get_var("id")) )
+         throw DataException("Error - load:: unable to find reference ids in netCDF file.");
+      const int* ids_p=function_space.borrowSampleReferenceIDs();
+      int *ids_of_nc = (int *)malloc(num_samples*sizeof(int));
+      if (! ids_var->get(ids_of_nc, (long) num_samples) ) 
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: unable to recover ids from netCDF file.");
+      }
+      // check order:
+      int failed=-1, local_failed=-1, i;
+      #pragma omp parallel private(local_failed)
+      {
+          local_failed=-1;
+          #pragma omp for private(i) schedule(static)
+          for (i=0;i < num_samples; ++i) {
+              if (ids_of_nc[i]!=ids_p[i]) local_failed=i;
+          }
+          #pragma omp critical
+          if (local_failed>=0) failed = local_failed;
+      }
+      if (failed>=0) 
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: data ordering in netCDF file does not match ordering of FunctionSpace.");
+      }
+      // get the data:
       dims[rank]=num_data_points_per_sample;
       dims[rank+1]=num_samples;
       out=Data(0,shape,function_space,true);
       if (!(var = dataFile.get_var("data")))
-              throw DataException("Error - load:: unable to find data in netCDF file.");
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: unable to find data in netCDF file.");
+      }
       if (! var->get(&(out.getDataPoint(0,0).getData()[0]), dims) ) 
-              throw DataException("Error - load:: unable to recover data from netCDF file.");
+      {
+         free(ids_of_nc);
+         throw DataException("Error - load:: unable to recover data from netCDF file.");
+      }
+      // if (failed==-1)
+      //   out->m_data.reorderByReferenceIDs(ids_of_nc)
+      free(ids_of_nc);
    } else {
        throw DataException("Error - load:: unknown escript data type in netCDF file.");
    }
    return out;
+   #else
+   throw DataException("Error - load:: is not compiled with netCFD. Please contact your insatllation manager.");
+   #endif
+}
 
+bool 
+loadConfigured()
+{
+   #ifdef USE_NETCDF
+   return true;
+   #else
+   return false;
+   #endif
 }
 
 Data

@@ -23,8 +23,13 @@ sources.remove(py_wrapper_source) # FIXME: should probably refactor the source t
 
 local_env.Append(LIBS = boost_libs + [ 'esysUtils'] + sys_libs + netCDF_libs_cxx + mpi_libs)
 py_wrapper_local_env.Append(LIBS = boost_libs + [ lib_name, 'esysUtils'] + sys_libs + netCDF_libs_cxx)
+if useNetCDF == 'yes':
+    local_env.Append(LIBS = netCDF_libs_cxx)
+    local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
+    py_wrapper_local_env.Append(LIBS = netCDF_libs_cxx)
+    py_wrapper_local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
 
-local_env.Append(CPPDEFINES = 'ESCRIPT_EXPORTS')
+local_env.Append(CPPDEFINES = [ 'ESCRIPT_EXPORTS'] )
 
 lib = local_env.SharedLibrary(lib_name, sources)
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary( py_wrapper_lib_name, py_wrapper_source)

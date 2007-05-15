@@ -7,6 +7,17 @@ import vtk
 class Transform:
 	"""
 	Class that defines the orientation of planes.
+	
+	@attention: There is a difference between performing rotation first 
+	followed by translation, and performing translation first followed 
+	by rotation.
+
+	@attention: VTK's coordinate system and translation is NOT 100% accurate. 
+	Consequently, performing maximum rotation and translation can potentially
+	yield incorrect results. For instance, rotating a XY plane along the x-axis 
+	90 degrees may NOT produce any results (as it is possible that the XY 
+	plane has just fallen outside the visible range). However, rotating the 
+	XY plane 89.9 degrees instead should produce the correct resutls.
 	"""
 
 	def __init__(self):
@@ -14,10 +25,10 @@ class Transform:
 		Initialise the transform object.
 		"""
 
-		# NOTE: VTK's values are not 100% accurate. Origin is not exaclty 
-		#(0,0,0) and normal is not exactly (0, 0, 1). There is a slight 
-		# variance. As a result, a slight alteration has to be done in order 
-		# for the plane to be displayed correctly. Otherwise, the 
+		# NOTE: VTK's coordinates are not 100% accurate. The origin is not 
+		# exaclty (0,0,0) and the normal is not exactly (0, 0, 1). There is a 
+		# slight variance. As a result, a slight alteration has to be done 
+		# in order for the plane to be displayed correctly. Otherwise, the 
 		# plane may just fall outside the bounding box and nothing 
 		# is displayed.  
 		self.__OFFSET_VARIANCE = 0.0000000001
@@ -42,7 +53,7 @@ class Transform:
 		Rotate the plane along the x-axis.
 
 		@type angle: Number
-		@param angle: Angle to rotate the camera
+		@param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateX(-angle)
@@ -52,7 +63,7 @@ class Transform:
 		Rotate the plane along the y-axis.
 
 		@type angle: Number
-		@param angle: Angle to rotate the camera
+		@param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateY(angle)
@@ -63,7 +74,7 @@ class Transform:
 		Rotate the plane along the z-axis.
 
 		@type angle: Number
-		@param angle: Angle to rotate the camera
+		@param angle: Angle to rotate the plane
 		"""
 
 		self.__vtk_transform.RotateZ(angle)
@@ -113,3 +124,57 @@ class Transform:
 		"""
 
 		return self.__vtk_transform
+
+
+###############################################################################
+
+
+class TransformFilter:
+	"""
+	Class that defines a transform poly data filter.
+	"""
+
+	def __init__(self, plane_source, transform):
+		"""
+		Initialise the transoform poly data filter.
+
+		@type plane_source: vtkPolyData
+		@param plane_source: Polygonal data
+		@type transform: L{Transform <transform.Transform>} object
+		@param transform: Specifies the orientation of the plane source
+		"""
+
+		self.__plane_source = plane_source
+		self.__transform = transform
+
+		self.__vtk_transform_filter = vtk.vtkTransformPolyDataFilter()
+
+		self._setInput()
+		self._setTransform()
+
+	def _setInput(self):
+		"""
+		Set the input for the transform poly data filter.
+		"""
+
+		self.__vtk_transform_filter.SetInput(self.__plane_source)
+
+	def _setTransform(self):
+		"""
+		Set the transformation of the plane source.
+		"""
+
+		self.__vtk_transform_filter.SetTransform(self.__transform)
+
+	def _getOutput(self):
+		"""
+		Return the output of the transform poly data filter.
+		"""
+
+		return self.__vtk_transform_filter.GetOutput()
+
+
+
+
+
+

@@ -28,12 +28,12 @@
 
 /**************************************************************/
 
-Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t*,double*,bool_t*,dim_t,dim_t);
-Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t*,double*,bool_t*,dim_t,dim_t);
-Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t*,double*,bool_t*,dim_t,dim_t);
-Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t*,double*,bool_t*,dim_t,dim_t);
-Finley_Mesh* Finley_RectangularMesh_Line3(dim_t*,double*,bool_t*,dim_t,dim_t);
-Finley_Mesh* Finley_RectangularMesh_Line2(dim_t*,double*,bool_t*,index_t,bool_t);
+Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t*,double*,bool_t*,index_t,index_t,bool_t);
+Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t*,double*,bool_t*,index_t,index_t,bool_t);
+Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t*,double*,bool_t*,index_t,index_t,bool_t);
+Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t*,double*,bool_t*,index_t,index_t,bool_t);
+Finley_Mesh* Finley_RectangularMesh_Line3(dim_t*,double*,bool_t*,index_t,index_t,bool_t);
+Finley_Mesh* Finley_RectangularMesh_Line2(dim_t*,double*,bool_t*,index_t,index_t,bool_t);
 
 #define COLOR_MOD(_I_) ((_I_%2)+((_I_==0) ? 2 : 0))
 

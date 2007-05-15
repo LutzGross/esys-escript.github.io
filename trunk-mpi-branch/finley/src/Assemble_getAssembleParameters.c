@@ -28,9 +28,9 @@
 
 void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, 
                                         escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
+  dim_t i;
   Finley_resetError();
 
-  dim_t i;
   for (i=0;i<MAX_numNodes;i++) parm->id[i]=i;
 
   if (!isEmpty(F) && !isExpanded(F) ) {

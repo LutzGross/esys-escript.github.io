@@ -127,9 +127,9 @@ static void domain_calculateDimension( index_t rank, dim_t size, dim_t numElemen
 /**************************************************************/
 
 #ifdef PASO_MPI
-Finley_Mesh* Finley_RectangularMesh_Rec8_singleCPU(int* numElements,double* Length,int* periodic,int order,int useElementsOnFace, Paso_MPIInfo *mpi_info) 
+Finley_Mesh* Finley_RectangularMesh_Rec8_singleCPU(int* numElements,double* Length,int* periodic,int order, index_t reduced_order, int useElementsOnFace, Paso_MPIInfo *mpi_info) 
 #else
-Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* periodic,int order,int useElementsOnFace) 
+Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* periodic,int order, index_t reduced_order, int useElementsOnFace) 
 #endif
 {
   dim_t N0,N1,NE0,NE1,i0,i1,totalNECount,faceNECount,NDOF0,NDOF1,NFaceElements,NUMNODES,M0,M1;
@@ -173,32 +173,32 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* pe
   
   sprintf(name,"Rectangular %d x %d mesh",N0,N1);
 #ifdef PASO_MPI
-  out=Finley_Mesh_alloc(name,2,order,mpi_info);
+  out=Finley_Mesh_alloc(name,2,order, reduced_order,mpi_info);
 #else
-  out=Finley_Mesh_alloc(name,2,order);
+  out=Finley_Mesh_alloc(name,2,order, reduced_order);
 #endif
   if (! Finley_noError()) return NULL;
 
 #ifdef PASO_MPI
-  out->Elements=Finley_ElementFile_alloc(Rec8,out->order,mpi_info);
+  out->Elements=Finley_ElementFile_alloc(Rec8,out->order, out->reduced_order,mpi_info);
   if (useElementsOnFace) {
-     out->FaceElements=Finley_ElementFile_alloc(Rec8Face,out->order,mpi_info);
-     out->ContactElements=Finley_ElementFile_alloc(Rec8Face_Contact,out->order,mpi_info);
+     out->FaceElements=Finley_ElementFile_alloc(Rec8Face,out->order, out->reduced_order,mpi_info);
+     out->ContactElements=Finley_ElementFile_alloc(Rec8Face_Contact,out->order, out->reduced_order,mpi_info);
   } else {
-     out->FaceElements=Finley_ElementFile_alloc(Line3,out->order,mpi_info);
-     out->ContactElements=Finley_ElementFile_alloc(Line3_Contact,out->order,mpi_info);
+     out->FaceElements=Finley_ElementFile_alloc(Line3,out->order, out->reduced_order,mpi_info);
+     out->ContactElements=Finley_ElementFile_alloc(Line3_Contact,out->order, out->reduced_order,mpi_info);
   }
-  out->Points=Finley_ElementFile_alloc(Point1,out->order,mpi_info);
+  out->Points=Finley_ElementFile_alloc(Point1,out->order, out->reduced_order,mpi_info);
 #else
-  out->Elements=Finley_ElementFile_alloc(Rec8,out->order);
+  out->Elements=Finley_ElementFile_alloc(Rec8,out->order, out->reduced_order);
   if (useElementsOnFace) {
-     out->FaceElements=Finley_ElementFile_alloc(Rec8Face,out->order);
-     out->ContactElements=Finley_ElementFile_alloc(Rec8Face_Contact,out->order);
+     out->FaceElements=Finley_ElementFile_alloc(Rec8Face,out->order, out->reduced_order);
+     out->ContactElements=Finley_ElementFile_alloc(Rec8Face_Contact,out->order, out->reduced_order);
   } else {
-     out->FaceElements=Finley_ElementFile_alloc(Line3,out->order);
-     out->ContactElements=Finley_ElementFile_alloc(Line3_Contact,out->order);
+     out->FaceElements=Finley_ElementFile_alloc(Line3,out->order, out->reduced_order);
+     out->ContactElements=Finley_ElementFile_alloc(Line3_Contact,out->order, out->reduced_order);
   }
-  out->Points=Finley_ElementFile_alloc(Point1,out->order);
+  out->Points=Finley_ElementFile_alloc(Point1,out->order, out->reduced_order);
 #endif
 
   if (! Finley_noError()) {
@@ -458,7 +458,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* pe
 }
 
 #ifdef PASO_MPI
-Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* periodic,int order,int useElementsOnFace) {
+Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* periodic,int order, index_t reduced_order ,int useElementsOnFace) {
   dim_t N0,N1,NE0,NE1,i0,i1,totalNECount,faceNECount,NDOF0,NDOF1,NFaceElements,NUMNODES, numNodesLocal, numDOFLocal, numElementsLocal, numElementsInternal, nodesExternal[2], DOFExternal[2], numNodesExternal, DOFBoundary[2];
 	dim_t N0t, NDOF0t;
   index_t *numForward=NULL, *numBackward=NULL;
@@ -497,7 +497,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* pe
 
 	// use the serial method for the single CPU case
 	if( mpi_info->size==1 ){
-		out = Finley_RectangularMesh_Rec8_singleCPU( numElements,Length,periodic,order,useElementsOnFace, mpi_info);
+		out = Finley_RectangularMesh_Rec8_singleCPU( numElements,Length,periodic,order, reduced_order,useElementsOnFace, mpi_info);
 		return out;
 	}
 	
@@ -535,19 +535,19 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(int* numElements,double* Length,int* pe
   /*  allocate mesh: */
   
   sprintf(name,"Rectangular %d x %d mesh",N0,N1);
-  out=Finley_Mesh_alloc(name,2,order,mpi_info);
+  out=Finley_Mesh_alloc(name,2,order,reduced_order,mpi_info);
 
   if (! Finley_noError()) return NULL;
 
-  out->Elements=Finley_ElementFile_alloc(Rec8,out->order,mpi_info);
+  out->Elements=Finley_ElementFile_alloc(Rec8,out->order, out->reduced_order,mpi_info);
   if (useElementsOnFace) {
-     out->FaceElements=Finley_ElementFile_alloc(Rec8Face,out->order,mpi_info);
-     out->ContactElements=Finley_ElementFile_alloc(Rec8Face_Contact,out->order,mpi_info);
+     out->FaceElements=Finley_ElementFile_alloc(Rec8Face,out->order, out->reduced_order,mpi_info);
+     out->ContactElements=Finley_ElementFile_alloc(Rec8Face_Contact,out->order, out->reduced_order,mpi_info);
   } else {
-     out->FaceElements=Finley_ElementFile_alloc(Line3,out->order,mpi_info);
-     out->ContactElements=Finley_ElementFile_alloc(Line3_Contact,out->order,mpi_info);
+     out->FaceElements=Finley_ElementFile_alloc(Line3,out->order, out->reduced_order,mpi_info);
+     out->ContactElements=Finley_ElementFile_alloc(Line3_Contact,out->order, out->reduced_order,mpi_info);
   }
-  out->Points=Finley_ElementFile_alloc(Point1,out->order,mpi_info);
+  out->Points=Finley_ElementFile_alloc(Point1,out->order, out->reduced_order,mpi_info);
 
   if (! Finley_noError()) {
        Finley_Mesh_dealloc(out);

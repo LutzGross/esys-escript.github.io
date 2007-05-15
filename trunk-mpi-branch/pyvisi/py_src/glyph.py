@@ -6,10 +6,10 @@ import vtk
 
 class Glyph3D:
 	"""
-	Class that defines 3D glyph.
+	Class that defines 3D glyphs.
 	"""
 
-	def __init__(self, object, source, range):
+	def __init__(self, object, source):
 		"""
 		Initialise the 3D glyph.
 
@@ -17,14 +17,18 @@ class Glyph3D:
 		@param object: Input for the 3D glyph 
 		@type source: vtkPolyData 	
 		@param source: Source for the 3D glyph (i.e. Arrow2D, Arrow3D, etc)
-		@type range: Two column tuple containing numbers
-		@param range: Range to map scalar values 
 		"""
 
 		self.__object = object
 		self.__source = source
-		self.__range = range
 		self.__vtk_glyph3D = vtk.vtkGlyph3D()
+		
+		self.__setupGlyph3D()
+
+	def __setupGlyph3D(self):
+		"""
+		Setup the 3D glyph.
+		"""
 
 		self.__setInput()
 		self.__setSource()
@@ -34,7 +38,6 @@ class Glyph3D:
 
 		self.__setScalingOn()
 		self.__setOrientOn()
-		self.__setRange()
 
 	def __setInput(self):
 		"""
@@ -66,14 +69,14 @@ class Glyph3D:
 
 	def _setColorModeByVector(self):
 		"""
-		Set the 3D glyph color according to the vector.
+		Set the 3D glyph to color according to the vector.
 		"""
 
 		self.__vtk_glyph3D.SetColorModeToColorByVector()
 
 	def _setColorModeByScalar(self):
 		"""
-		Set the 3D glyph color according to the scalar.
+		Set the 3D glyph to color according to the scalar.
 		"""
 
 		self.__vtk_glyph3D.SetColorModeToColorByScalar()
@@ -116,12 +119,25 @@ class Glyph3D:
 
 		self.__vtk_glyph3D.OrientOn()
 		
-	def __setRange(self):
+	def _setRange(self, range):
 		"""
 		Set the range to map scalar values.
+
+		@type range: Two column tuple containing numbers
+		@param range: Range to map scalar values 
 		"""
 
-		self.__vtk_glyph3D.SetRange(self.__range)
+		self.__vtk_glyph3D.SetRange(range)
+
+	def _getGlyph3D(self):
+		"""
+		Return the 3D glyph.
+
+		@rtype: vtkGlyph3D
+		@return: 3D glyph
+		"""
+
+		return self.__vtk_glyph3D
 
 	def _getOutput(self):
 		"""
@@ -139,7 +155,7 @@ class Glyph3D:
 
 class TensorGlyph:
 	"""
-	Class that defines tensor glyph.
+	Class that defines tensor glyphs.
 	"""
 
 	def __init__(self, object, source):
@@ -165,6 +181,8 @@ class TensorGlyph:
 
 		self.__setInput()
 		self.__setSource()
+		self.__vtk_tensor_glyph.ClampScalingOn()
+
 
 	def __setInput(self):
 		"""
@@ -198,7 +216,7 @@ class TensorGlyph:
 		@param max_scale_factor: Maximum allowable scale factor.
 		"""
 
-		self.__vtk_tensor_glyph.SetMaxScaleFactor(scale_factor)
+		self.__vtk_tensor_glyph.SetMaxScaleFactor(max_scale_factor)
 
 	def _getOutput(self):
 		"""

@@ -6,12 +6,13 @@ import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D
-from constant import Viewport, Color, Lut, WarpMode
+from constant import Viewport, Color, Lut, WarpMode, VizType, ColorMode
 from warp import Warp
 from outline import Outline
 from transform import Transform
 from plane import Plane
 from cutter import Cutter
+from average import CellDataToPointData
 
 # NOTE: DataSetMapper, Actor3D, Warp, Transform, Plane and Cutter  were 
 # inherited to allow access to their public methods from the driver.
@@ -23,26 +24,32 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no warp_mode is specified, the data will be deformated using scalar
-	# data. If no scalar field is specified, the first encountered in the 
-	# file will be loaded automatically. If no lut is specified, the 
-	# color scheme will be used. 
-	def __init__(self, scene, data_collector, scalar = None, 
-			warp_mode = WarpMode.SCALAR, viewport = Viewport.SOUTH_WEST, 
-			lut = Lut.COLOR, outline = True):
+	# data. If no lut is specified, the color scheme will be used. 
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST, 
+			warp_mode = WarpMode.SCALAR, lut = Lut.COLOR, 
+			cell_to_point = False, outline = True):
 		"""
+		Initialise the Carpet.
+
+		@attention: The source can either be point or cell data. If the 
+		source is cell data, a conversion to point data may or may not be 
+		required, in order for the object to be rendered correctly. 
+		If a conversion is needed, the 'cell_to_point' flag must be set to 
+		'True', otherwise 'False' (which is the default).
+
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type scalar: String
-		@param scalar: Scalar field to load from the source file
-		@param warp_mode: L{WarpMode <constant.WarpMode>} constant
-		@type warp_mode: Mode in which to deform the scalar data
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
+		@param warp_mode: L{WarpMode <constant.WarpMode>} constant
+		@type warp_mode: Mode in which to deform the scalar field 
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
+		@type cell_to_point: Boolean
+		@param cell_to_point: Converts cell data to point data (by averaging)
 		@type outline: Boolean
 		@param outline: Places an outline around the domain surface
 		"""
@@ -72,9 +79,6 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 
 		# ----- Carpet -----
 
-		if(scalar != None):
-			data_collector._setActiveScalar(scalar)
-				
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
@@ -88,13 +92,21 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		Transform.__init__(self)
 		Plane.__init__(self, Transform._getTransform(self))
 
-		Cutter.__init__(self, data_collector._getOutput(),
-				Plane._getPlane(self))
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self)) 	
+		elif(cell_to_point == False): # No conversion happens.	
+			Cutter.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self)) 	
+
 		Warp.__init__(self, Cutter._getOutput(self), warp_mode)
 			
 		DataSetMapper.__init__(self, Warp._getOutput(self),
 				lookup_table._getLookupTable())
 		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
+
+		data_collector._paramForUpdatingMultipleSources(VizType.CARPET,
+				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self))
 
 		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 		scene._addActor3D(viewport, Actor3D._getActor3D(self))

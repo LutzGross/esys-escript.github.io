@@ -380,6 +380,7 @@ Finley_RefElementInfo Finley_RefElement_InfoList[]={
 
 Finley_RefElement* Finley_RefElement_alloc(ElementTypeId id,int numQuadNodes) {
   Finley_RefElement *out=NULL;
+  int Ndim, NS;
   
   /*  allocate the Finley_RefElement to be returned: */
   
@@ -394,8 +395,8 @@ Finley_RefElement* Finley_RefElement_alloc(ElementTypeId id,int numQuadNodes) {
   
   /*  allocate memory: */
   
-  int Ndim=Finley_RefElement_InfoList[id].numDim;
-  int NS=Finley_RefElement_InfoList[id].numShapes;
+  Ndim=Finley_RefElement_InfoList[id].numDim;
+  NS=Finley_RefElement_InfoList[id].numShapes;
   out->QuadNodes=MEMALLOC(numQuadNodes*Ndim,double);
   out->QuadWeights=MEMALLOC(numQuadNodes,double);
   out->S=MEMALLOC(NS*numQuadNodes,double);

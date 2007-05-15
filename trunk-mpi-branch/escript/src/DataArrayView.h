@@ -678,7 +678,6 @@ class DataArrayView {
                   Operation to apply. Operation must be a pointer to a function.
   */
   template <class UnaryFunction>
-  ESCRIPT_DLL_API
   void
   unaryOp(UnaryFunction operation);
 
@@ -696,7 +695,6 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class UnaryFunction>
-  ESCRIPT_DLL_API
   void
   unaryOp(ValueType::size_type offset,
           UnaryFunction operation);
@@ -716,7 +714,6 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
-  ESCRIPT_DLL_API
   void
   binaryOp(const DataArrayView& right,
            BinaryFunction operation);
@@ -740,7 +737,6 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
-  ESCRIPT_DLL_API
   void
   binaryOp(ValueType::size_type leftOffset,
            const DataArrayView& right,
@@ -762,7 +758,6 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
-  ESCRIPT_DLL_API
   void
   binaryOp(double right,
            BinaryFunction operation);
@@ -784,7 +779,6 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
-  ESCRIPT_DLL_API
   void
   binaryOp(ValueType::size_type offset,
            double right,
@@ -803,7 +797,6 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
-  ESCRIPT_DLL_API
   double
   reductionOp(BinaryFunction operation,
               double initial_value) const;
@@ -823,7 +816,6 @@ class DataArrayView {
                   Operation to apply. Must be a pointer to a function.
   */
   template <class BinaryFunction>
-  ESCRIPT_DLL_API
   double
   reductionOp(ValueType::size_type offset,
               BinaryFunction operation,
@@ -1314,7 +1306,7 @@ class DataArrayView {
    } else if ( in.getRank() == 2) {
      int s0=ev.getShape()[0];
      int s1=ev.getShape()[1];
-     int i0, i1, i2;
+     int i0, i1;
      if (axis0==0) {
         if (axis1==1) {
            for (i0=0; i0<s0; i0++) {

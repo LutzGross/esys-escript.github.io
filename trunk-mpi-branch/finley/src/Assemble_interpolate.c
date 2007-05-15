@@ -32,37 +32,53 @@
 
 void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* elements,escriptDataC* data,escriptDataC* interpolated_data) {
   double* local_data=NULL,*S=NULL,*data_array; 
-  index_t dof_offset,*resort_nodes;
-  dim_t q,i,NS_DOF,NN_DOF,numNodes,e;
+  index_t dof_offset,*resort_nodesi, NN, NS;
+  bool_t reduced_integration=FALSE;
+  dim_t q,i,NS_DOF,NN_DOF,numNodes,e, numQuad;
+  Finley_RefElement* reference_element=NULL;
+  dim_t numComps=getDataPointSize(data);
+  index_t id[MAX_numNodes], *resort_nodes;
+  type_t data_type=getFunctionSpaceType(data);
   type_t type;
+  Finley_resetError();
   #define NODES 0
+  #define REDUCED_NODES 3
   #define DOF 1
   #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
-  dim_t NN=elements->ReferenceElement->Type->numNodes;
-  dim_t NS=elements->ReferenceElement->Type->numShapes;
-  dim_t numComps=getDataPointSize(data);
-  type_t data_type=getFunctionSpaceType(data);
-  dim_t numQuad=elements->ReferenceElement->numQuadNodes;
-  index_t id[NN];
+  NN=elements->ReferenceElement->Type->numNodes;
+  NS=elements->ReferenceElement->Type->numShapes;
+  reduced_integration = Finley_Assemble_reducedIntegrationOrder(interpolated_data);
   for (i=0;i<NN;i++) id[i]=i;
-  Finley_resetError();
 
   /* set some parameter */
 
   if (data_type==FINLEY_NODES) {
        type=NODES;
        resort_nodes=id;
-       NN_DOF=elements->ReferenceElement->Type->numNodes;
-       NS_DOF=elements->ReferenceElement->Type->numShapes;
-       S=elements->ReferenceElement->S;
+       if (reduced_integration) {
+          reference_element=elements->ReferenceElementReducedOrder;
+       } else {
+          reference_element=elements->ReferenceElement;
+       } 
        numNodes=nodes->numNodes;
+  } else if (data_type==FINLEY_REDUCED_NODES) {
+       type=REDUCED_NODES;
+       if (reduced_integration) {
+           reference_element=elements->LinearReferenceElementReducedOrder;
+       } else {
+           reference_element=elements->LinearReferenceElement;
+       } 
+       /* TODO */
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: input from reduced nodes is not supported yet.");
   } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
        type=DOF;
        resort_nodes=id;
-       NN_DOF=elements->ReferenceElement->Type->numNodes;
-       NS_DOF=elements->ReferenceElement->Type->numShapes;
-       S=elements->ReferenceElement->S;
+       if (reduced_integration) {
+           reference_element=elements->ReferenceElementReducedOrder;
+       } else {
+           reference_element=elements->ReferenceElement;
+       }
 #ifndef PASO_MPI
        numNodes=nodes->numDegreesOfFreedom;
 #else
@@ -71,9 +87,11 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
        type=REDUCED_DOF;
        resort_nodes=elements->ReferenceElement->Type->linearNodes;
-       NN_DOF=elements->LinearReferenceElement->Type->numNodes;
-       NS_DOF=elements->LinearReferenceElement->Type->numShapes;
-       S=elements->LinearReferenceElement->S;
+       if (reduced_integration) {
+           reference_element=elements->LinearReferenceElementReducedOrder;
+       } else {
+           reference_element=elements->LinearReferenceElement;
+       }
 #ifndef PASO_MPI
        numNodes=nodes->reducedNumDegreesOfFreedom;
 #else
@@ -82,7 +100,10 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
    } else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: Cannot interpolate data");
   }
-
+  NN_DOF=reference_element->Type->numNodes;
+  NS_DOF=reference_element->Type->numShapes;
+  S=reference_element->S;
+  numQuad=reference_element->numQuadNodes;
   if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
        dof_offset=NN_DOF-NS_DOF;
   } else {
@@ -124,6 +145,13 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
                            Finley_copyDouble(numComps,data_array,local_data+q*numComps);
                         }
                         break;
+                 case REDUCED_NODES:
+                        for (q=0;q<NS_DOF;q++) {
+                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
+                           data_array=getSampleData(data,i); /* TODO */
+                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
+                        }
+                        break;
                  case DOF:
                         for (q=0;q<NS_DOF;q++) {
                            i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
@@ -151,6 +179,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
      } /* end of parallel region */
   }
   #undef NODES 
+  #undef REDUCED_NODES 
   #undef DOF 
   #undef REDUCED_DOF 
 }

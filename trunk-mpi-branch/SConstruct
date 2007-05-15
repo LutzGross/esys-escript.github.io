@@ -47,10 +47,22 @@ if os.path.isdir('/opt/UFconfig'):
 else:
    ufc_path_default=None
 
+if os.path.isdir('/usr/local/include') and os.path.isdir('/usr/local/lib'):
+  netCDF_path_default='/usr/local/include'
+  netCDF_lib_path_default='/usr/local/lib'
+  netCDF_libs_cxx_default=[ 'netcdf_c++', 'netcdf'] 
+else:
+  netCDF_path_default=None
+  netCDF_lib_path_default=None
+  netCDF_libs_cxx_default=None
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
 # if the options_file or ARGUMENTS do not exist then the ones listed as default here are used
 # DO NOT CHANGE THEM HERE
+
+# Where to install?
+prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
+
 if ARGUMENTS.get('options_file',0):
    options_file = ARGUMENTS.get('options_file',0)
 else:
@@ -62,30 +74,34 @@ else:
       else:
          hostname+="_"
    options_file = "scons/"+hostname+"_options.py"
+if os.path.isfile(options_file):
+   print "option file is ",options_file,"."
+else:
+   print "option file is ",options_file, "(not present)."
 
 opts = Options(options_file, ARGUMENTS)
 opts.AddOptions(
 # Where to install esys stuff
-  ('incinstall', 'where the esys headers will be installed', Dir('#.').abspath+'/include'),
-  ('libinstall', 'where the esys libraries will be installed', Dir('#.').abspath+'/lib'),
-  ('pyinstall', 'where the esys python modules will be installed', Dir('#.').abspath),
-  ('src_zipfile', 'the source zip file will be installed.', Dir('#.').abspath+"/release/escript_src.zip"),
-  ('test_zipfile', 'the test zip file will be installed.', Dir('#.').abspath+"/release/escript_tests.zip"),
-  ('src_tarfile', 'the source tar file will be installed.', Dir('#.').abspath+"/release/escript_src.tar.gz"),
-  ('test_tarfile', 'the test tar file will be installed.', Dir('#.').abspath+"/release/escript_tests.tar.gz"),
-  ('examples_tarfile', 'the examples tar file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.tar.gz"),
-  ('examples_zipfile', 'the examples zip file will be installed.', Dir('#.').abspath+"/release/doc/escript_examples.zip"),
-  ('guide_pdf', 'name of the user guide in pdf format', Dir('#.').abspath+"/release/doc/user/guide.pdf"),
-  ('api_epydoc', 'name of the epydoc api docs directory',Dir('#.').abspath+"/release/doc/epydoc"),
-  ('guide_html', 'name of the directory for user guide in html format', Dir('#.').abspath+"/release/doc/user/html"),
+  ('incinstall', 'where the esys headers will be installed', prefix+'/include'),
+  ('libinstall', 'where the esys libraries will be installed', prefix+'/lib'),
+  ('pyinstall', 'where the esys python modules will be installed', prefix),
+  ('src_zipfile', 'the source zip file will be installed.', prefix+"/release/escript_src.zip"),
+  ('test_zipfile', 'the test zip file will be installed.', prefix+"/release/escript_tests.zip"),
+  ('src_tarfile', 'the source tar file will be installed.', prefix+"/release/escript_src.tar.gz"),
+  ('test_tarfile', 'the test tar file will be installed.', prefix+"/release/escript_tests.tar.gz"),
+  ('examples_tarfile', 'the examples tar file will be installed.', prefix+"/release/doc/escript_examples.tar.gz"),
+  ('examples_zipfile', 'the examples zip file will be installed.', prefix+"/release/doc/escript_examples.zip"),
+  ('guide_pdf', 'name of the user guide in pdf format', prefix+"/release/doc/user/guide.pdf"),
+  ('api_epydoc', 'name of the epydoc api docs directory',prefix+"/release/doc/epydoc"),
+  ('guide_html', 'name of the directory for user guide in html format', prefix+"/release/doc/user/html"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/hostname_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
-  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fPIC -Wno-unknown-pragmas'),
-  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fPIC -Wno-unknown-pragmas'),
+  ('cc_flags','C compiler flags to use (Release build)', '-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'),
+  ('cc_flags_debug', 'C compiler flags to use (Debug build)', '-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', '--no-warn -ansi'),
-  ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF'),
+  ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', '--no-warn -ansi -DDOASSERT -DDOPROF -DHAVE_MPI_OFFSET'),
   ('omp_flags', 'OpenMP compiler flags to use (Release build)', ''),
   ('omp_flags_debug', 'OpenMP compiler flags to use (Debug build)', ''),
   ('ar_flags', 'Static library archiver flags to use', None),
@@ -117,9 +133,10 @@ opts.AddOptions(
   PathOption('blas_lib_path', 'Path to BLAS libs', None),
   ('blas_libs', 'BLAS libraries to link with', None),
 # netCDF
-  PathOption('netCDF_path', 'Path to netCDF includes', '/usr/local/include'),
-  PathOption('netCDF_lib_path', 'Path to netCDF libs', '/usr/local/lib'),
-  ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', [ 'netcdf_c++', 'netcdf'] ),
+  ('useNetCDF', 'switch on/off the usage of netCDF', 'yes'),
+  PathOption('netCDF_path', 'Path to netCDF includes', netCDF_path_default),
+  PathOption('netCDF_lib_path', 'Path to netCDF libs', netCDF_lib_path_default),
+  ('netCDF_libs_cxx', 'netCDF C++ libraries to link with', netCDF_libs_cxx_default),
 # Python
 # locations of include files for python
   PathOption('python_path', 'Path to Python includes', '/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])),
@@ -143,22 +160,6 @@ opts.AddOptions(
   PathOption('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)','/usr/local/lib'),
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', [ 'mpich' , 'pthread', 'rt' ]),
 )
-
-# Initialise Scons Build Environment
-# check for user environment variables we are interested in
-try:
-   python_path = os.environ['PYTHONPATH']
-except KeyError:
-   python_path = ''
-try:
-   path = os.environ['PATH']
-except KeyError:
-   path = ''
-try:
-   ld_library_path = os.environ['LD_LIBRARY_PATH']
-except KeyError:
-   ld_library_path = ''
-
 # Note: On the Altix the intel compilers are not automatically
 # detected by scons intelc.py script. The Altix has a different directory
 # path and in some locations the "modules" facility is used to support
@@ -168,20 +169,33 @@ except KeyError:
 # FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
 
 if os.name != "nt" and os.uname()[4]=='ia64':
-   env = Environment(ENV = {'PATH':path}, tools = ['default', 'intelc'], options = opts)
-   env['ENV']['PATH'] = path
-   env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
-   env['ENV']['PYTHONPATH'] = python_path
+   env = Environment(tools = ['default', 'intelc'], options = opts)
    if env['CXX'] == 'icpc':
       env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
 elif os.name == "nt":
-   env = Environment(tools = ['default', 'intelc'], options = opts)
-   env['ENV']['PYTHONPATH'] = python_path
+   env = Environment(tools = ['default', 'msvc'], options = opts)
+   #env = Environment(tools = ['default', 'intelc'], options = opts)
 else:
    env = Environment(tools = ['default'], options = opts)
-   env['ENV']['PATH'] = path
-   env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
+# Initialise Scons Build Environment
+# check for user environment variables we are interested in
+try:
+   python_path = os.environ['PYTHONPATH']
    env['ENV']['PYTHONPATH'] = python_path
+except KeyError:
+   python_path = ''
+
+try:
+   path = os.environ['PATH']
+   env['ENV']['PATH'] = path
+except KeyError:
+   path = ''
+try:
+   ld_library_path = os.environ['LD_LIBRARY_PATH']
+   env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
+except KeyError:
+   ld_library_path = ''
+
 
 # Setup help for options
 Help(opts.GenerateHelpText(env))
@@ -207,7 +221,7 @@ except KeyError:
    incinstall = None
 try:
    libinstall = env['libinstall']
-   env.Append(LIBPATH = [libinstall,])
+   env.Append(LIBPATH = [libinstall,]) # ksteube adds -L for building of libescript.so libfinley.so escriptcpp.so finleycpp.so
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
    if env['PLATFORM'] == "win32":
       env.PrependENVPath('PATH', libinstall)
@@ -422,21 +436,33 @@ except KeyError:
 
 # ============= set netcdf =====================================
 try:
-   includes = env['netCDF_path']
-   env.Append(CPPPATH = [includes,])
+   useNetCDF = env['useNetCDF']
 except KeyError:
+   useNetCDF = 'yes'
    pass
 
-try:
-   lib_path = env['netCDF_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
+if not useNetCDF == 'yes':
+   print "Warning: Installation is not configured with netCDF. Some I/O function may not be available."
+   
+if useNetCDF == 'yes': 
+   try:
+      includes = env['netCDF_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   netCDF_libs_cxx = env['netCDF_libs_cxx']
-except KeyError:
-   netCDF_lib_cxx = [ ]
+   try:
+      lib_path = env['netCDF_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
+   try:
+      netCDF_libs_cxx = env['netCDF_libs_cxx']
+   except KeyError:
+      netCDF_libs_cxx = [ ]
+else:
+   netCDF_libs_cxx=[ ]
 
 # ============= set boost =====================================
 try:
@@ -587,9 +613,9 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umfpack_libs", 
-        "blas_libs", "netCDF_libs_cxx", "trilinos_libs", "mpi_libs", 
-	"boost_libs", "python_libs", "doxygen_path", "epydoc_path", "papi_libs",
+Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umfpack_libs",
+	"blas_libs", "netCDF_libs_cxx", "trilinos_libs", "useNetCDF", "mpi_libs", "boost_libs", "python_libs",
+	"doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])
 

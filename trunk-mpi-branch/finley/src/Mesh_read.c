@@ -27,20 +27,27 @@
 
 /*  reads a mesh from a Finley file of name fname */
 
-Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
+Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize_labeling) {
 
   dim_t numNodes, numDim, numEle, i0, i1;
+  index_t tag_key;
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
   char error_msg[LenErrorMsg_MAX];
   double time0=Finley_timer();
+  FILE *fileHandle_p = NULL;
+  ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
 
   Finley_resetError();
+#ifdef PASO_MPI
+  /* TODO */
+  Finley_setError(SYSTEM_ERROR,"Finley_Mesh_read: MPI is not suporrted yet.");
+#endif
 
   /* get file handle */
-  FILE * fileHandle_p = fopen(fname, "r");
+  fileHandle_p = fopen(fname, "r");
   if (fileHandle_p==NULL) {
-    sprintf(error_msg,"%s: Opening file %s for reading failed.",__FILE__,fname);
+    sprintf(error_msg,"Finley_Mesh_read: Opening file %s for reading failed.",fname);
     Finley_setError(IO_ERROR,error_msg);
     return NULL;
   }
@@ -53,19 +60,15 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
   /* allocate mesh */
-#ifndef PASO_MPI
-  mesh_p = Finley_Mesh_alloc(name,numDim,order);
-  if (! Finley_noError()) return NULL;
+#ifdef PASO_MPI
+  mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order,NULL); /* NULL should to be replaced by mpi_info before use */
 #else
-  /* TODO */
+  mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order);
 #endif
+  if (! Finley_noError()) return NULL;
 
-#ifndef PASO_MPI
   Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
   if (! Finley_noError()) return NULL;
-#else
-  /* TODO */
-#endif
 
   if (1 == numDim) {
       for (i0 = 0; i0 < numNodes; i0++)
@@ -90,17 +93,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
   /* get the element type */
 
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-  ElementTypeId typeID=Finley_RefElement_getTypeId(element_type);
+  typeID=Finley_RefElement_getTypeId(element_type);
   if (typeID==NoType) {
-    sprintf(error_msg,"%s :Unidentified element type %s",__FILE__,element_type);
+    sprintf(error_msg,"Finley_Mesh_read :Unidentified element type %s",element_type);
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
   /* read the elements */
-#ifndef PASO_MPI
-  mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order);
+#ifdef PASO_MPI
+  mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order, mesh_p->reduced_order, NULL); /* NULL should be replaced by mpi_info before use */
 #else
-  /* TODO */
+  mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order, mesh_p->reduced_order);
 #endif
   Finley_ElementFile_allocTable(mesh_p->Elements, numEle);
   mesh_p->Elements->minColor=0;
@@ -117,16 +120,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   /* get the face elements */
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-  ElementTypeId faceTypeID=Finley_RefElement_getTypeId(element_type);
+  faceTypeID=Finley_RefElement_getTypeId(element_type);
+  faceTypeID=Finley_RefElement_getTypeId(element_type);
   if (faceTypeID==NoType) {
-    sprintf(error_msg,"%s :Unidentified element type %s for face elements",__FILE__,element_type);
+    sprintf(error_msg,"Finley_Mesh_read :Unidentified element type %s for face elements",element_type);
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-#ifndef PASO_MPI
-  mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order);
+#ifdef PASO_MPI
+  mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order, mesh_p->reduced_order, NULL); /* NULL should be replaced by mpi_info before use */
 #else
-  /* TODO */
+  mesh_p->FaceElements=Finley_ElementFile_alloc(faceTypeID,mesh_p->order, mesh_p->reduced_order);
 #endif
   Finley_ElementFile_allocTable(mesh_p->FaceElements, numEle);
   mesh_p->FaceElements->minColor=0;
@@ -143,16 +147,16 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   /* get the Contact face element */
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-  ElementTypeId contactTypeID=Finley_RefElement_getTypeId(element_type);
+  contactTypeID=Finley_RefElement_getTypeId(element_type);
   if (contactTypeID==NoType) {
-    sprintf(error_msg,"%s: Unidentified element type %s for contact elements",__FILE__,element_type);
+    sprintf(error_msg,"Finley_Mesh_read: Unidentified element type %s for contact elements",element_type);
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-#ifndef PASO_MPI
-  mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order);
+#ifdef PASO_MPI
+  mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order, mesh_p->reduced_order, NULL); /* NULL should be replaced by mpi_info before use */
 #else
-  /* TODO */
+  mesh_p->ContactElements=Finley_ElementFile_alloc(contactTypeID,mesh_p->order, mesh_p->reduced_order);
 #endif
   Finley_ElementFile_allocTable(mesh_p->ContactElements, numEle);
   mesh_p->ContactElements->minColor=0;
@@ -169,16 +173,16 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
 
   /* get the nodal element */
   fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-  ElementTypeId pointTypeID=Finley_RefElement_getTypeId(element_type);
+  pointTypeID=Finley_RefElement_getTypeId(element_type);
   if (pointTypeID==NoType) {
-    sprintf(error_msg,"%s: Unidentified element type %s for points",__FILE__,element_type);
+    sprintf(error_msg,"Finley_Mesh_read: Unidentified element type %s for points",element_type);
     Finley_setError(VALUE_ERROR,error_msg);
     return NULL;
   }
-#ifndef PASO_MPI
-  mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order);
+#ifdef PASO_MPI
+  mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order, mesh_p->reduced_order, NULL); /* NULL should be replaced by mpi_info before use */
 #else
-  /* TODO */
+  mesh_p->Points=Finley_ElementFile_alloc(pointTypeID,mesh_p->order, mesh_p->reduced_order);
 #endif
   Finley_ElementFile_allocTable(mesh_p->Points, numEle);
   mesh_p->Points->minColor=0;
@@ -192,8 +196,14 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order) {
     }	/* for i1 */
     fscanf(fileHandle_p, "\n");
   } /* for i0 */
-
-
+  /* get the name tags */
+  if (feof(fileHandle_p) == 0) {
+     fscanf(fileHandle_p, "%s\n", name);
+     while (feof(fileHandle_p) == 0) {
+       fscanf(fileHandle_p, "%s %d\n", name, &tag_key);
+       Finley_Mesh_addTagMap(mesh_p,name,tag_key);
+     }
+  }
   /* close file */
 
   fclose(fileHandle_p);
