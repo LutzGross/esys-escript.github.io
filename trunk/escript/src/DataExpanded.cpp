@@ -649,6 +649,7 @@ DataExpanded::dump(const std::string fileName) const
    int type=  getFunctionSpace().getTypeCode();
    int ndims =0;
    long dims[ldims];
+   const double* d_ptr=&(m_data[0]);
    DataArrayView::ShapeType shape = getPointDataView().getShape();
 
    // netCDF error handler
@@ -658,7 +659,7 @@ DataExpanded::dump(const std::string fileName) const
    // check if writing was successful
    if (!dataFile.is_valid())
         throw DataException("Error - DataExpanded:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type","expanded") )
+   if (!dataFile.add_att("type_id",2) )
         throw DataException("Error - DataExpanded:: appending data type to netCDF file failed.");
    if (!dataFile.add_att("rank",rank) )
         throw DataException("Error - DataExpanded:: appending rank attribute to netCDF file failed.");
@@ -700,7 +701,7 @@ DataExpanded::dump(const std::string fileName) const
 
    if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
         throw DataException("Error - DataExpanded:: appending variable to netCDF file failed.");
-   if (! (var->put(&m_data[0],dims)) )
+   if (! (var->put(d_ptr,dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
    #else
    throw DataException("Error - DataExpanded:: dump is not configured with netCDF. Please contact your installation manager.");

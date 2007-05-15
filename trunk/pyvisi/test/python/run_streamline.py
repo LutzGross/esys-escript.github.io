@@ -3,7 +3,7 @@ from esys.pyvisi.constant import *
 import unittest, os
 from stat import ST_SIZE
 
-PYVISI_TEST_MESHES_PATH = "data_meshes/"
+PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,"data_meshes")
 PYVISI_TEST_STREAMLINE_IMAGES_PATH = "data_sample_images/streamline/"
 MIN_IMAGE_SIZE = 100
 FILE_3D = "interior_3D.xml"

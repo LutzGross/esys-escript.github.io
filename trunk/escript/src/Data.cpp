@@ -2558,6 +2558,18 @@ Data::print()
     printf( "\n" );
   }
 }
+void
+Data::dump(const std::string fileName) const
+{
+  try
+     {
+        return m_data->dump(fileName);
+     }
+     catch (exception& e)
+     {
+        cout << e.what() << endl;
+     }
+}
 
 int
 Data::get_MPISize() const

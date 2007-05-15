@@ -12,8 +12,8 @@ from esys.escript import *
 from esys.finley import Rectangle
 import sys
 import os
-from test_objects import Test_Dump as Test_Dump
-from test_objects import Test_Domain as Test_Domain
+from test_objects import Test_Dump, Test_SetDataPointValue
+from test_objects import Test_Domain
 
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
@@ -26,13 +26,13 @@ class Test_DomainOnFinley(Test_Domain):
        self.domain =Rectangle(NE,NE+1,2)
    def tearDown(self):
        del self.domain
-class Test_DumpOnFinley(Test_Dump):
+class Test_DataOpsOnFinley(Test_Dump): # , Test_SetDataPointValue):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
        self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,2,integrationOrder=2)
        self.domain_with_different_sample_ordering =Rectangle(1,(NE+1)*NE,2)
-       self.filebase=FINLEY_WORKDIR
+       self.filename_base=FINLEY_WORKDIR
 
    def tearDown(self):
        del self.domain
@@ -42,8 +42,8 @@ class Test_DumpOnFinley(Test_Dump):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_DumpOnFinley))
-   suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
+   suite.addTest(unittest.makeSuite(Test_DataOpsOnFinley))
+   # suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)

@@ -154,8 +154,8 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, co
     EXTRACT("iter_max",iter_max,int);
     EXTRACT("drop_tolerance",drop_tolerance,double);
     EXTRACT("drop_storage",drop_storage,double);
-    EXTRACT("truncation",truncation,double);
-    EXTRACT("restart",restart,double);
+    EXTRACT("truncation",truncation,int);
+    EXTRACT("restart",restart,int);
     #undef EXTRACT
     #undef EXTRACT_OPTION
     if ( out.getDataPointSize()  != getColumnBlockSize()) {

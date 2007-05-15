@@ -497,13 +497,8 @@ class Data {
      dumps the object into a netCDF file 
   */
   ESCRIPT_DLL_API
-  inline
   void
-  dump(const std::string fileName) const
-  {
-    return m_data->dump(fileName);
-  }
-
+  dump(const std::string fileName) const;
   /**
      \brief
      Return the sample data for the given sample no. This is not the
