@@ -576,6 +576,7 @@ DataTagged::dump(const std::string fileName) const
    int type=  getFunctionSpace().getTypeCode();
    int ndims =0;
    long dims[ldims];
+   const double* d_ptr=&(m_data[0]);
    DataArrayView::ShapeType shape = getPointDataView().getShape();
 
    // netCDF error handler
@@ -585,7 +586,7 @@ DataTagged::dump(const std::string fileName) const
    // check if writing was successful
    if (!dataFile.is_valid())
         throw DataException("Error - DataTagged:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type","tagged") )
+   if (!dataFile.add_att("type_id",1) )
         throw DataException("Error - DataTagged:: appending data type to netCDF file failed.");
    if (!dataFile.add_att("rank",rank) )
         throw DataException("Error - DataTagged:: appending rank attribute to netCDF file failed.");
@@ -642,7 +643,7 @@ DataTagged::dump(const std::string fileName) const
 	free(tags);
         throw DataException("Error - DataTagged:: appending variable to netCDF file failed.");
    }
-   if (! (var->put(&m_data[0],dims)) )
+   if (! (var->put(d_ptr,dims)) )
    {
 	free(tags);
         throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");

@@ -4,7 +4,7 @@ from esys.pyvisi.constant import *
 import unittest, os
 from stat import ST_SIZE
 
-PYVISI_TEST_MESHES_PATH = "data_meshes/"
+PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,"data_meshes")
 PYVISI_TEST_LOGO_IMAGES_PATH = "data_sample_images/logo/"
 MIN_IMAGE_SIZE = 100
 LOGO = "access_logo.jpg"

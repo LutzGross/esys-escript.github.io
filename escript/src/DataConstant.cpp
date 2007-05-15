@@ -54,8 +54,7 @@ DataConstant::DataConstant(const DataArrayView& value,
 
 DataConstant::DataConstant(const DataConstant& other)
   : DataAbstract(other.getFunctionSpace())
-{
-  // 
+{  // 
   // copy the data in the correct format
   m_data=other.m_data;
   //
@@ -263,7 +262,7 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   DataArrayView evView=ev->getPointDataView();
   DataArrayView VView=V->getPointDataView();
 
-  DataArrayView::eigenvalues_and_eigenvectors(thisView,0,evView,0,VView,tol);
+  DataArrayView::eigenvalues_and_eigenvectors(thisView,0,evView,0,VView,0,tol);
 }
 
 void
@@ -279,13 +278,14 @@ DataConstant::dump(const std::string fileName) const
    #ifdef PASO_MPI
    throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.")
    #endif
-   #ifdef USE_NETCDF
+   #ifdef USE_NETCD
    const NcDim* ncdims[DataArrayView::maxRank];
    NcVar* var;
    int rank = getPointDataView().getRank();
    int type=  getFunctionSpace().getTypeCode();
    int ndims =0;
    long dims[DataArrayView::maxRank];
+   const double* d_ptr=&(m_data[0]);
    DataArrayView::ShapeType shape = getPointDataView().getShape();
    
    // netCDF error handler
@@ -295,7 +295,7 @@ DataConstant::dump(const std::string fileName) const
    // check if writing was successful
    if (!dataFile.is_valid()) 
 	throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type","constant") ) 
+   if (!dataFile.add_att("type_id",0) ) 
 	throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
    if (!dataFile.add_att("rank",rank) ) 
 	throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
@@ -328,10 +328,11 @@ DataConstant::dump(const std::string fileName) const
 		throw DataException("Error - DataConstant:: appending ncdimsion 3 to netCDF file failed.");
        }
    }
+   
    if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
 	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
-   if (! (var->put(&m_data[0],dims)) )
-	throw DataException("Error - DataConstant:: copy data to netCDF buffer failed."); 
+   if (! (var->put(d_ptr,dims)) )
+         throw DataException("Error - DataConstant:: copy data to netCDF buffer failed."); 
    #else
    throw DataException("Error - DataConstant:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif

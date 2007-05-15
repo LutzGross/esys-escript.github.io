@@ -2,7 +2,7 @@ from esys.pyvisi import DataCollector
 from esys.pyvisi.constant import *
 import unittest
 
-PYVISI_TEST_MESHES_PATH = "data_meshes"
+PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,"data_meshes")
 FILE_2D = "interior_2D.xml"
 FILE_3D = "interior_3D.xml"
 

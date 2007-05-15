@@ -10,6 +10,15 @@ try:
 except ImportError:
 	print "Warning: importing esys.escript failed."
 
+try:
+     PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
+except KeyError:
+     PYVISI_WORKDIR='.'
+try:
+     PYVISI_TEST_DATA_ROOT=os.environ['PYVISI_TEST_DATA_ROOT']
+except KeyError:
+     PYVISI_TEST_DATA_ROOT='.'
+	
 class DataCollector:
 	"""
 	Class that defines a data collector. A data collector is used to read 

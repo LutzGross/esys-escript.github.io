@@ -57,7 +57,7 @@ else:
          hostname+=s
       else:
          hostname+="_"
-   options_file = "scons"+os.sep+hostname+"_options.py"
+   options_file = os.path.join("scons",hostname+"_options.py")
    
 if os.path.isfile(options_file):
    print "option file is ",options_file,"."
@@ -135,12 +135,16 @@ else:
 netCDF_path_default=None
 netCDF_lib_path_default=None
 netCDF_libs_default=None
-useNetCDF_default='yes'
-if os.path.isdir(tools_prefix+'netcdf'+os.sep+'include') and os.path.isdir(tools_prefix+'netcdf'+os.sep+'lib'):
-     netCDF_path_default=tools_prefix+'netcdf'+os.sep+'include'
-     netCDF_lib_path_default=tools_prefix+'netcdf'+os.sep+'lib'
+useNetCDF_default='no'
+netcdf_dir=os.path.join(tools_prefix,'netcdf')
+if os.path.isdir(os.path.join(netcdf_dir,'include')) and os.path.isdir(os.path.join(netcdf_dir,'lib')):
+     netCDF_path_default=os.path.join(netcdf_dir,'include')
+     netCDF_lib_path_default=os.path.join(netcdf_dir,'lib')
      netCDF_libs_default=['netcdf_cpp',  'netcdf' ] 
-     useNetCDF_default='no'
+     if IS_WINDOWS_PLATFORM: 
+        useNetCDF_default='no' # be default netcdf is not supported on windows. 
+     else:
+        useNetCDF_default='yes'
 #==========================================================================
 #
 #    compile:
@@ -148,8 +152,11 @@ if os.path.isdir(tools_prefix+'netcdf'+os.sep+'include') and os.path.isdir(tools
 if IS_WINDOWS_PLATFORM:
     # cc_flags_default  = '/GR /EHsc /MD /Qc99 /Qopenmp /Qopenmp-report1 /O3 /G7 /Qprec /Qpar-report1 /QxP /QaxP'
     # cc_flags_debug_default  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp /Qopenmp-report1 /Qprec'
-    cc_flags_default  = '/FD /EHsc /GR  /wd4068 /O2 /Op /MT /W3'
-    cc_flags_debug_default  ='/FD /EHsc /GR  /wd4068 /Od /RTC1 /MTd /ZI'
+    cc_flags_default  = '/nologo /EHsc /GR  /wd4068 /O2 /Op /MT /W3 /Ob0 /Z7'
+    cc_flags_debug_default  ='/nologo /EHsc /GR  /wd4068 /Od /RTC1 /MTd /ZI /Ob0 /Z7'
+    
+    cc_flags_default  = '/nologo /EHsc /GR  /O2 /MT /W3 /Ob0 /Z7 /wd4068'
+    cc_flags_debug_default  ='/nologo /EHsc /GR /Od /RTC1 /MTd /W3 /Ob0 /Z7/wd4068'
     cxx_flags_default = ''
     cxx_flags_debug_default = ''
     cc_common_flags = '/FD /EHsc /GR /wd4068 '
