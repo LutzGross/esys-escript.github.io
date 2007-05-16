@@ -793,14 +793,19 @@ Data::integrate() const
   int index;
   int rank = getDataPointRank();
   DataArrayView::ShapeType shape = getDataPointShape();
+  int dataPointSize = getDataPointSize();
 
   //
   // calculate the integral values
-  vector<double> integrals(getDataPointSize());
-  vector<double> integrals_local(getDataPointSize());
+  vector<double> integrals(dataPointSize);
+  vector<double> integrals_local(dataPointSize);
 #ifdef PASO_MPI
   AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals_local,*this);
-  MPI_Allreduce( &integrals_local[0], &integrals[0], getDataPointSize(), MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+  // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
+  double tmp[dataPointSize], tmp_local[dataPointSize];
+  for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
+  MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+  for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
 #else
   AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals,*this);
 #endif
