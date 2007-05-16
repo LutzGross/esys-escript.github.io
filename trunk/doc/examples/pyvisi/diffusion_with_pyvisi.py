@@ -4,11 +4,12 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
+import os
 
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
 X_SIZE = 400
 Y_SIZE = 400
-JPG_RENDERER = Renderer.DISPLAY
+JPG_RENDERER = Renderer.ONLINE_JPG
 
 #... set some parameters ...
 xc=[0.02,0.002]
@@ -37,32 +38,28 @@ T=Tref
 
 # Create a Scene.
 s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
+
 # Create a DataCollector reading directly from escript objects.
 dc = DataCollector(source = Source.ESCRIPT)
 
-Map(scene = s, data_collector = dc, 
+# Create a Map.
+m = Map(scene = s, data_collector = dc, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
         cell_to_point = False, outline = True)
 
+# Create a Camera.
+c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
+
 # ... start iteration:
-while t<0.4*100:
+while t<0.4:
       i+=1
       t+=h
-      print "time step :",t
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
 
       dc.setData(temp = T)
-      # Create a Map.
-      #Map(scene = s, data_collector = dc, 
-              #viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
-              #cell_to_point = False, outline = True)
-
-      # Create a Camera.
-      #c= Camera(scene = s, data_collector = dc, 
-      #        viewport = Viewport.SOUTH_WEST)
       
       # Render the object.
-      s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH +  
-              "diffusion%02d.jpg" % i)
+      s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH,  
+              "diffusion%02d.jpg") % i)
 

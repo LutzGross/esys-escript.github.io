@@ -4,15 +4,31 @@ from esys.pyvisi.constant import *
 import unittest, os
 from stat import ST_SIZE
 
+<<<<<<< .mine
+try:
+	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
+except KeyError:
+	PYVISI_WORKDIR='.'
+try:
+	PYVISI_TEST_DATA_ROOT=os.environ['PYVISI_TEST_DATA_ROOT']
+except KeyError:
+	PYVISI_TEST_DATA_ROOT='.'
+
+PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, "data_meshes")
+PYVISI_TEST_IMAGE_REFERENCE_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, \
+		"data_reference_images", "image")
+PYVISI_TEST_IMAGE_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
+		"data_sample_images", "image")
+
+=======
 PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,"data_meshes")
 PYVISI_TEST_IMAGE_IMAGES_PATH = "data_sample_images/image/"
+>>>>>>> .r1142
 MIN_IMAGE_SIZE = 100
 FILE_3D = "interior_3D.xml"
 IMAGE = "flinders.jpg"
-
 X_SIZE = 400
 Y_SIZE = 400
-
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestImage:
@@ -25,10 +41,10 @@ class TestImage:
 
 	def render(self, file):
 		self.scene.render(image_name = \
-				PYVISI_TEST_IMAGE_IMAGES_PATH + file)
+				os.path.join(PYVISI_TEST_IMAGE_IMAGES_PATH, file))
 
-		self.failUnless(os.stat(PYVISI_TEST_IMAGE_IMAGES_PATH + \
-				file)[ST_SIZE] > MIN_IMAGE_SIZE)
+		self.failUnless(os.stat(os.path.join(PYVISI_TEST_IMAGE_IMAGES_PATH, \
+				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestImageOnAMap(unittest.TestCase, TestImage):
 	def setUp(self):
@@ -38,7 +54,7 @@ class TestImageOnAMap(unittest.TestCase, TestImage):
 	
 		self.data_collector = DataCollector(source = Source.XML)
 		self.data_collector.setFileName(file_name = \
-				PYVISI_TEST_MESHES_PATH + FILE_3D)
+				os.path.join(PYVISI_TEST_MESHES_PATH, FILE_3D))
 		
 		self.map = Map(scene = self.scene, 
 				data_collector = self.data_collector,
@@ -46,7 +62,8 @@ class TestImageOnAMap(unittest.TestCase, TestImage):
 				cell_to_point = False, outline = True)
 
 		self.image_reader = ImageReader(ImageFormat.JPG)
-		self.image_reader.setImageName(PYVISI_TEST_MESHES_PATH + IMAGE)
+		self.image_reader.setImageName(os.path.join(PYVISI_TEST_MESHES_PATH,\
+				IMAGE))
 
 		self.image = Image(scene = self.scene, image_reader = self.image_reader)
 

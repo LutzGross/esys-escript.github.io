@@ -34,15 +34,6 @@ camer \, / \, light \rightarrow render
 \end{math}
 \end{center}
 
-The sequence in which instances are created is very important due to
-to the dependencies among them. For example, a data input instance must 
-be created BEFORE a data visualization instance, because the source data must 
-be specified before it can be manipulated. If the sequence is switched, 
-the program will throw an error. Similarly, a camera and light instance must 
-be created AFTER a data input instance because the camera and light instance 
-calculates their position based on the source data. If the sequence is switched,
-the programthe will throw an error . 
-
 \section{\pyvisi Classes}
 The following subsections give a brief overview of the important classes 
 and some of their corresponding methods. Please refer to \ReferenceGuide for 
@@ -76,7 +67,7 @@ Render the object using either the Online, Offline or Display mode.
 
 \subsubsection{\Camera class}
 
-\begin{classdesc}{Camera}{scene, data_collector, viewport = Viewport.SOUTH_WEST}
+\begin{classdesc}{Camera}{scene, viewport = Viewport.SOUTH_WEST}
 A camera controls the display angle of the rendered object and one is 
 usually created for a \Scene. However, if a \Scene has four viewports, then a 
 separate camera may be created for each viewport. 
@@ -166,7 +157,9 @@ for visualization.
 \begin{classdesc}{DataCollector}{source = Source.XML}
 A data collector is used to read data either from an XML file (using 
 \texttt{setFileName()}) or from an escript object directly (using 
-\texttt{setData()}). 
+\texttt{setData()}). Writing XML files are expensive, but this approach has 
+the advantage given that the results can be analyzed easily after the 
+simulation has completed.   
 \end{classdesc}
 
 The following are some of the methods available:
@@ -825,7 +818,7 @@ Set the scalar clip value (instead of using a plane) for the clipper.
 
 The following are some of the methods available:
 
-\begin{methoddesc}[ContourModule]{generateContours}{contours, 
+\begin{methoddesc}[ContourModule]{generateContours}{contours = None, 
 lower_range = None, upper_range = None}
 Generate the specified number of contours within the specified range.
 In order to generate an iso surface, the 'lower_range' and 'upper_range' 
@@ -880,7 +873,7 @@ The following are some of the methods available:
 Set the radius of the sphere.
 \end{methoddesc}
 
-\begin{methoddesc}[PointSource]{setPointSourceCenter}{position}
+\begin{methoddesc}[PointSource]{setPointSourceCenter}{center}
 Set the center of the sphere.
 \end{methoddesc}
 
@@ -1049,14 +1042,15 @@ mosc2 = Contour(scene = s, data_collector = dc2,
         outline = True)
 mosc2.generateContours(0)
 
-# Read in one file one after another and render the object. 
+# Create a Camera.
+cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
+
+# Read in one file one after another and render the object.
 for i in range(99, 104):
     dc1.setFileName(file_name =  PYVISI_EXAMPLE_MESHES_PATH + FILE_2D +
-	        "%04d.vtu" % i)
-    dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_1)
+            "%04d.vtu" % i)
     dc2.setFileName(file_name =  PYVISI_EXAMPLE_MESHES_PATH + FILE_2D +
-	        "%04d.vtu" % i)
-    dc2.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_2)
+            "%04d.vtu" % i)
 
     s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME + "%04d.jpg" % i)
 \end{python}
