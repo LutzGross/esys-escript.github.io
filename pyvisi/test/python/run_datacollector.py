@@ -1,8 +1,17 @@
 from esys.pyvisi import DataCollector
 from esys.pyvisi.constant import *
-import unittest
+import unittest, os
 
-PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,"data_meshes")
+try:
+	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
+except KeyError:
+	PYVISI_WORKDIR='.'
+try:
+	PYVISI_TEST_DATA_ROOT=os.environ['PYVISI_TEST_DATA_ROOT']
+except KeyError:
+	PYVISI_TEST_DATA_ROOT='.'
+
+PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, "data_meshes")
 FILE_2D = "interior_2D.xml"
 FILE_3D = "interior_3D.xml"
 
@@ -32,22 +41,22 @@ class TestSourceXml:
 		self.data_collector.setActiveTensor(tensor = t)
 	
 	def checkScalarFieldPointData(self, f):
-		self.failUnlessEqual(self.data_collector._getOutput().GetPointData().GetScalars().GetName(), f)
+		self.failUnlessEqual(self.data_collector._getDataCollectorOutput().GetPointData().GetScalars().GetName(), f)
 		
 	def checkVectorFieldPointData(self, f):
-		self.failUnlessEqual(self.data_collector._getOutput().GetPointData().GetVectors().GetName(), f)
+		self.failUnlessEqual(self.data_collector._getDataCollectorOutput().GetPointData().GetVectors().GetName(), f)
 
 	def checkTensorFieldPointData(self, f):
-		self.failUnlessEqual(self.data_collector._getOutput().GetPointData().GetTensors().GetName(), f)
+		self.failUnlessEqual(self.data_collector._getDataCollectorOutput().GetPointData().GetTensors().GetName(), f)
 
 	def checkScalarFieldCellData(self, f):
-		self.failUnlessEqual(self.data_collector._getOutput().GetCellData().GetScalars().GetName(), f)
+		self.failUnlessEqual(self.data_collector._getDataCollectorOutput().GetCellData().GetScalars().GetName(), f)
 		
 	def checkVectorFieldCellData(self, f):
-		self.failUnlessEqual(self.data_collector._getOutput().GetCellData().GetVectors().GetName(), f)
+		self.failUnlessEqual(self.data_collector._getDataCollectorOutput().GetCellData().GetVectors().GetName(), f)
 
 	def checkTensorFieldCellData(self, f):
-		self.failUnlessEqual(self.data_collector._getOutput().GetCellData().GetTensors().GetName(), f)
+		self.failUnlessEqual(self.data_collector._getDataCollectorOutput().GetCellData().GetTensors().GetName(), f)
 
 
 class TestSourceXml2DPointData(unittest.TestCase, TestSourceXml):

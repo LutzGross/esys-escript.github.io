@@ -7,7 +7,7 @@ from mapper import DataSetMapper
 from actor import Actor3D
 from lookuptable import LookupTable
 from outline import Outline
-from constant import Viewport, Color, Lut, VizType, ColorMode
+from constant import Viewport, Color, Lut, ColorMode
 from contourmodule import ContourModule
 from average import CellDataToPointData
 
@@ -49,63 +49,100 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		# NOTE: Actor3D is inherited and there are two instances declared here.
-		# As a result, when methods from Actor3D is invoked from the driver,
-		# only the methods associated with the latest instance (which in this
-		# case is the Actor3D for the contour) can be executed. Actor3D 
-		# methods associated with Outline cannot be invoked from the driver. 
-		# They can only be called within here, which is why Outline must
-		# be place before the contour as there is unlikely to be any changes
-		# made to the Outline's Actor3D.
+		self.__scene = scene
+		self.__data_collector = data_collector
+		self.__viewport = viewport
+		self.__lut = lut
+		self.__cell_to_point = cell_to_point
+		self.__outline = outline
+		
+		self.__modified = True # Keeps track whether Contour has been modified.
+		ContourModule.__init__(self)
+		DataSetMapper.__init__(self)
+		Actor3D.__init__(self)
+		scene._addVisualizationModules(self)
 
 		# ----- Outline -----
 
-		if(outline == True):
-			outline = Outline(data_collector._getOutput())
-			DataSetMapper.__init__(self, outline._getOutput())
+		# NOTE: Changes cannot be made to the Outline's properties from the 
+		# driver.
+		if(self.__outline == True):
+			outline = Outline(self.__data_collector._getDataCollectorOutput())
+			mapper = DataSetMapper()
+			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
 
-			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+			actor3D = Actor3D()
+			actor3D._setupActor3D(mapper._getDataSetMapper())
 			# Default outline color is black.
-			Actor3D.setColor(self, Color.BLACK)
+			actor3D.setColor(Color.BLACK)
 
 			# Default line width is 1.
-			Actor3D._setLineWidth(self, 1)
-			scene._addActor3D(viewport, Actor3D._getActor3D(self))
+			actor3D._setLineWidth(1)
+			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Contour -----
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
-		if(lut == Lut.COLOR): # Colored lookup table.
+		if(self.__lut == Lut.COLOR): # Colored lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setTableValue()
-		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+		elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		if(cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(data_collector._getOutput())
-			ContourModule.__init__(self, c2p._getOutput())	
-		elif(cell_to_point == False): # No conversion happens.	
-			ContourModule.__init__(self, data_collector._getOutput())	
+		if(self.__cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(
+					self.__data_collector._getDataCollectorOutput())
+			self._setupContourModule(c2p._getCellToPointOutput())	
+		elif(self.__cell_to_point == False): # No conversion happens.	
+			self._setupContourModule(
+					self.__data_collector._getDataCollectorOutput())	
 
-		# By default 10 contours are generated and the scalar range is based
-		# on the scalar data range.
-		ContourModule.generateContours(self, 10, 
-				data_collector._getScalarRange()[0],
-				data_collector._getScalarRange()[1])
-
-		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
+		self._setupDataSetMapper(self._getContourModuleOutput(), 
 				lookup_table._getLookupTable())	
-		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
-		data_collector._paramForUpdatingMultipleSources(VizType.CONTOUR,
-				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
-				ContourModule._getContour(self))
+		self._setupActor3D(self._getDataSetMapper())
+		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+	
+	def _isModified(self):	
+		"""
+		Return whether the Contour or DataCollector has been modified.
 
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__modified or self.__data_collector._isModified()
+
+	def _render(self):
+		"""
+		Render the contour.
+		"""
+
+		if (self._isModified() == True):
+			if(self.__data_collector._isScalarSet() == True):
+				self.__data_collector._setActiveScalar()
+
+			# By default 10 contours are generated and the scalar range is based
+			# on the scalar data range.
+			contours = 10
+			lower_range = self.__data_collector._getScalarRange()[0]
+			upper_range = self.__data_collector._getScalarRange()[1]
+
+			if(self._isContoursSet() == True):
+				contours = None	
+			if(self._isLowerRangeSet() == True):
+				lower_range = None
+			if(self._isUpperRangeSet() == True):
+				upper_range = None
+
+			self.generateContours(contours, lower_range, upper_range)
+			self._generateContours()
+						
+			self._setScalarRange(self.__data_collector._getScalarRange())
+			self.__modified = False
 
 
 ###############################################################################
@@ -121,7 +158,7 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		Plane, Cutter):
 	"""
 	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
-	except that it shows a scalar field by contour surfaces on a plane.
+	except that it shows a scalar field by contour surfaces cut using a plane.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -154,68 +191,106 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		# NOTE: Actor3D is inherited and there are two instances declared here.
-		# As a result, when methods from Actor3D is invoked from the driver,
-		# only the methods associated with the latest instance (which in this
-		# case is the Actor3D for the contour) can be executed. Actor3D
-		# methods associated with Outline cannot be invoked from the driver.
-		# They can only be called within here, which is why Outline must
-		# be place before the contour as there is unlikely to be any changes
-		# made to the Outline's Actor3D.
+		self.__scene = scene
+		self.__data_collector = data_collector
+		self.__viewport = viewport
+		self.__lut = lut
+		self.__cell_to_point = cell_to_point
+		self.__outline = outline
+		
+		# Keeps track whether ContourOnPlaneCut has been modified.
+		self.__modified = True 		
+		Transform.__init__(self)
+		Plane.__init__(self)
+		Cutter.__init__(self)
+		ContourModule.__init__(self)
+		DataSetMapper.__init__(self)
+		Actor3D.__init__(self)
+		scene._addVisualizationModules(self)
 
- 		# ----- Outline -----
+		# ----- Outline -----
 
-		if(outline == True):
-			outline = Outline(data_collector._getOutput())
-			DataSetMapper.__init__(self, outline._getOutput())
+		# NOTE: Changes cannot be made to the Outline's properties from the 
+		# driver.
+		if(self.__outline == True):
+			outline = Outline(self.__data_collector._getDataCollectorOutput())
+			mapper = DataSetMapper()
+			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
 
-			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+			actor3D = Actor3D()
+			actor3D._setupActor3D(mapper._getDataSetMapper())
 			# Default outline color is black.
-			Actor3D.setColor(self, Color.BLACK)
+			actor3D.setColor(Color.BLACK)
 
 			# Default line width is 1.
-			Actor3D._setLineWidth(self, 1)
-			scene._addActor3D(viewport, Actor3D._getActor3D(self))
+			actor3D._setLineWidth(1)
+			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Contour on a cut plane -----
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
-		if(lut == Lut.COLOR): # Colored lookup table.
+		if(self.__lut == Lut.COLOR): # Colored lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setTableValue()
-		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+		elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		Transform.__init__(self)	
-		Plane.__init__(self, Transform._getTransform(self))
+		self._setupPlane(self._getTransform())
 
-		if(cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(data_collector._getOutput())
-			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self))
-		elif(cell_to_point == False): # No conversion happens.	
-			Cutter.__init__(self, data_collector._getOutput(), 
-					Plane._getPlane(self))
+		if(self.__cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(self.__data_collector._getOutput())
+			self._setupCutter(c2p._getCellToPointOutput(), self._getPlane())
+		elif(self.__cell_to_point == False): # No conversion happens.	
+			self._setupCutter(self.__data_collector._getDataCollectorOutput(), 
+					self._getPlane())
 
-		ContourModule.__init__(self, Cutter._getOutput(self))
-		# By default 10 contours are generated and the scalar range is based
-		# on the scalar data range.
-		ContourModule.generateContours(self, 10, 
-				data_collector._getScalarRange()[0],
-				data_collector._getScalarRange()[1])
-
-		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
+		self._setupContourModule(self._getCutterOutput())
+		self._setupDataSetMapper(self._getContourModuleOutput(), 
 				lookup_table._getLookupTable())
-		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
 
-		data_collector._paramForUpdatingMultipleSources(VizType.CONTOUR,
-				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
-				ContourModule._getContour(self))
+		self._setupActor3D(self._getDataSetMapper())
+		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+	
+	def _isModified(self):	
+		"""
+		Return whether the ContourOnPlaneCut or DataCollector has been modified.
 
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__modified or self.__data_collector._isModified()
+
+	def _render(self):
+		"""
+		Render the contour cut using a plane.
+		"""
+
+		if (self._isModified() == True):
+			if(self.__data_collector._isScalarSet() == True):
+				self.__data_collector._setActiveScalar()
+
+			# By default 10 contours are generated and the scalar range is based
+			# on the scalar data range.
+			contours = 10
+			lower_range = self.__data_collector._getScalarRange()[0]
+			upper_range = self.__data_collector._getScalarRange()[1]
+
+			if(self._isContoursSet() == True):
+				contours = None	
+			if(self._isLowerRangeSet() == True):
+				lower_range = None
+			if(self._isUpperRangeSet() == True):
+				upper_range = None
+
+			self.generateContours(contours, lower_range, upper_range)
+			self._generateContours()
+						
+			self._setScalarRange(self.__data_collector._getScalarRange())
+			self.__modified = False
 
 
 ###############################################################################
@@ -263,68 +338,108 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		# NOTE: Actor3D is inherited and there are two instances declared here.
-		# As a result, when methods from Actor3D is invoked from the driver,
-		# only the methods associated with the latest instance (which in this
-		# case is the Actor3D for the contour) can be executed. Actor3D
-		# methods associated with Outline cannot be invoked from the driver.
-		# They can only be called within here, which is why Outline must
-		# be place before the contour as there is unlikely to be any changes
-		# made to the Outline's Actor3D.
+		self.__scene = scene
+		self.__data_collector = data_collector
+		self.__viewport = viewport
+		self.__lut = lut
+		self.__cell_to_point = cell_to_point
+		self.__outline = outline
+		
+		# Keeps track whether ContourOnPlaneClip has been modified.
+		self.__modified = True 		
+		Transform.__init__(self)
+		Plane.__init__(self)
+		Clipper.__init__(self)
+		ContourModule.__init__(self)
+		DataSetMapper.__init__(self)
+		Actor3D.__init__(self)
+		scene._addVisualizationModules(self)
 
- 		# ----- Outline -----
+		# ----- Outline -----
 
-		if(outline == True):
-			outline = Outline(data_collector._getOutput())
-			DataSetMapper.__init__(self, outline._getOutput())
+		# NOTE: Changes cannot be made to the Outline's properties from the 
+		# driver.
+		if(self.__outline == True):
+			outline = Outline(self.__data_collector._getDataCollectorOutput())
+			mapper = DataSetMapper()
+			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
 
-			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+			actor3D = Actor3D()
+			actor3D._setupActor3D(mapper._getDataSetMapper())
 			# Default outline color is black.
-			Actor3D.setColor(self, Color.BLACK)
+			actor3D.setColor(Color.BLACK)
 
 			# Default line width is 1.
-			Actor3D._setLineWidth(self, 1)
-			scene._addActor3D(viewport, Actor3D._getActor3D(self))
+			actor3D._setLineWidth(1)
+			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Contour on a clipped plane -----
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
-		if(lut == Lut.COLOR): # Colored lookup table.
+		if(self.__lut == Lut.COLOR): # Colored lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setTableValue()
-		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+		elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		Transform.__init__(self)	
-		Plane.__init__(self, Transform._getTransform(self))
+		self._setupPlane(self._getTransform())
 
-		if(cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(data_collector._getOutput())
-			Clipper.__init__(self, c2p._getOutput(), Plane._getPlane(self))
-		elif(cell_to_point == False): # No conversion happens.	
-			Clipper.__init__(self, data_collector._getOutput(), 
-					Plane._getPlane(self))
+		if(self.__cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(
+					self.__data_collector._getDataCollectorOutput())
+			self._setupClipper(c2p._getCellToPointOutput(), self._getPlane())
+		elif(self.__cell_to_point == False): # No conversion happens.	
+			self._setupClipper(self.__data_collector._getDataCollectorOutput(), 
+					self._getPlane())
 
-		Clipper._setClipFunction(self)
+		self._setClipFunction()
+		self._setupContourModule(self._getClipperOutput())
 
-		ContourModule.__init__(self, Clipper._getOutput(self))
-		# By default 10 contours are generated and the scalar range is based
-		# on the scalar data range.
-		ContourModule.generateContours(self, 10, 
-				data_collector._getScalarRange()[0],
-				data_collector._getScalarRange()[1])
-
-		DataSetMapper.__init__(self, ContourModule._getOutput(self), 
+		self._setupDataSetMapper(self._getContourModuleOutput(), 
 				lookup_table._getLookupTable())
-		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())	
 
-		data_collector._paramForUpdatingMultipleSources(VizType.CONTOUR,
-				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
-				ContourModule._getContour(self))
+		self._setupActor3D(self._getDataSetMapper())
+		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+	
+	def _isModified(self):	
+		"""
+		Return whether the ContourOnPlaneClip or DataCollector has been modified.
 
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__modified or self.__data_collector._isModified()
+
+	def _render(self):
+		"""
+		Render the contour clip using a plane.
+		"""
+
+		if (self._isModified() == True):
+			if(self.__data_collector._isScalarSet() == True):
+				self.__data_collector._setActiveScalar()
+
+			# By default 10 contours are generated and the scalar range is based
+			# on the scalar data range.
+			contours = 10
+			lower_range = self.__data_collector._getScalarRange()[0]
+			upper_range = self.__data_collector._getScalarRange()[1]
+
+			if(self._isContoursSet() == True):
+				contours = None	
+			if(self._isLowerRangeSet() == True):
+				lower_range = None
+			if(self._isUpperRangeSet() == True):
+				upper_range = None
+
+			self.generateContours(contours, lower_range, upper_range)
+			self._generateContours()
+						
+			self._setScalarRange(self.__data_collector._getScalarRange())
+			self.__modified = False
+
 

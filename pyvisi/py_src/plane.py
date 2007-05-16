@@ -10,22 +10,22 @@ class Plane:
 	Class that defines a plane that cuts/clips rendered objects. 
 	"""
 
-	def __init__(self, transform):
+	def __init__(self):
 		"""
 		Initialise the plane.	
+		"""
+
+		self.__vtk_plane = vtk.vtkPlane()
+	
+	def _setupPlane(self, transform):	
+		"""
+		Setup the plane.
 
 		@type transform: L{Transform <transform.Transform>} object
 		@param transform: Specifies the orientation of the plane
 		"""
 
 		self.__transform = transform
-		self.__vtk_plane = vtk.vtkPlane()
-		self.__setupPlane()
-	
-	def __setupPlane(self):	
-		"""
-		Setup the plane.
-		"""
 
 		# Default origin of the of the plane is (0,0,0).
 		self.__setOrigin(GlobalPosition(0,0,0))
@@ -123,8 +123,7 @@ class PlaneSource:
 
 		self.__vtk_plane_source.SetPoint2(position._getGlobalPosition())
 
-
-	def _getOutput(self):
+	def _getPlaneSourceOutput(self):
 		"""
 		Return the output of the plane source.
 

@@ -32,7 +32,9 @@ class Scene:
 		self.__num_viewport = num_viewport
 		self.__x_size = x_size
 		self.__y_size = y_size
-		self.__modules = []
+		# Stores the visualization modules (i.e. Map, Velocity, Ellipsoid, etc)
+		# which needs to be rendered.
+		self.__visualization_modules = []
 
 		self.__OFFLINE = "offline"
 		self.__JPG = "jpg"
@@ -235,8 +237,8 @@ class Scene:
 		Render the object using either the online, offline or display mode.
 		"""	
 
-		for i in range(0, len(self.__modules)):
-			self.__modules[i]._render()	
+		for i in range(0, len(self.__visualization_modules)):
+			self.__visualization_modules[i]._render()	
 
 		self.__vtk_render_window.Render()
 
@@ -312,6 +314,14 @@ class Scene:
 	
 		return self.__vtk_renderer
 
-	def _addModules(self, module):
-		print "Module: ", module
-		self.__modules.append(module)
+	def _addVisualizationModules(self, module):
+		"""
+		Store visualization modules (i.e. Map, Velocity, Ellipsoid, etc) 
+		which needs to be rendered.
+		
+		@type module: Visualization object
+		@param module: Visualization object to be rendered
+		"""
+
+		self.__visualization_modules.append(module)
+

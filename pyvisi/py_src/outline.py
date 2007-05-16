@@ -27,9 +27,8 @@ class Outline:
 		"""
 
 		self.__vtk_outline.SetInput(self.__object)
-		
 	
-	def _getOutput(self):
+	def _getOutlineOutput(self):
 		"""
 		Return the output of the outline.
 

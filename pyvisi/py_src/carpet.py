@@ -6,7 +6,7 @@ import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D
-from constant import Viewport, Color, Lut, WarpMode, VizType, ColorMode
+from constant import Viewport, Color, Lut, WarpMode, ColorMode
 from warp import Warp
 from outline import Outline
 from transform import Transform
@@ -54,60 +54,90 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		# NOTE: Actor3D is inherited and there are two instances declared here.
-		# As a result, when methods from Actor3D is invoked from the driver,
-		# only the methods associated with the latest instance (which in this
-		# case is the Actor3D for the carpet) can be executed. Actor3D 
-		# methods associated with Outline cannot be invoked from the driver. 
-		# They can only be called within here, which is why Outline must
-		# be place before the carpet as there is unlikely to be any changes
-		# made to the Outline's Actor3D.
+		self.__scene = scene
+		self.__data_collector = data_collector
+		self.__viewport = viewport
+		self.__warp_mode = warp_mode
+		self.__lut = lut
+		self.__cell_to_point = cell_to_point
+		self.__outline = outline
+		
+		# Keeps track whether Carpet has been modified.
+		self.__modified = True 
+		Transform.__init__(self)	
+		Plane.__init__(self)
+		Cutter.__init__(self)
+		Warp.__init__(self, self.__warp_mode)
+		DataSetMapper.__init__(self)
+		Actor3D.__init__(self)
+		scene._addVisualizationModules(self)
 
 		# ----- Outline -----
 
-		if(outline == True):
-			outline = Outline(data_collector._getOutput())
-			DataSetMapper.__init__(self, outline._getOutput())
+		# NOTE: Changes cannot be made to the Outline's properties from the 
+		# driver.
+		if(self.__outline == True):
+			outline = Outline(self.__data_collector._getDataCollectorOutput())
+			mapper = DataSetMapper()
+			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
 
-			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+			actor3D = Actor3D()
+			actor3D._setupActor3D(mapper._getDataSetMapper())
 			# Default outline color is black.
-			Actor3D.setColor(self, Color.BLACK)
+			actor3D.setColor(Color.BLACK)
 
 			# Default line width is 1.
-			Actor3D._setLineWidth(self, 1)
-			scene._addActor3D(viewport, Actor3D._getActor3D(self))
+			actor3D._setLineWidth(1)
+			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Carpet -----
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
-		if(lut == Lut.COLOR): # Colored lookup table.
+		if(self.__lut == Lut.COLOR): # Colored lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setTableValue()
-		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+		elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		Transform.__init__(self)
-		Plane.__init__(self, Transform._getTransform(self))
+		self._setupPlane(self._getTransform())
 
-		if(cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(data_collector._getOutput())
-			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self)) 	
-		elif(cell_to_point == False): # No conversion happens.	
-			Cutter.__init__(self, data_collector._getOutput(), 
-					Plane._getPlane(self)) 	
+		if(self.__cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(\
+					self.__data_collector._getDataCollectorOutput())
+			self._setupCutter(c2p._getCellToPointOutput(), self._getPlane()) 	
+		elif(self.__cell_to_point == False): # No conversion happens.	
+			self._setupCutter(self.__data_collector._getDataCollectorOutput(), 
+					self._getPlane()) 	
 
-		Warp.__init__(self, Cutter._getOutput(self), warp_mode)
-			
-		DataSetMapper.__init__(self, Warp._getOutput(self),
+		self._setupWarp(self._getCutterOutput())
+		self._setupDataSetMapper(self._getWarpOutput(),
 				lookup_table._getLookupTable())
-		DataSetMapper._setScalarRange(self, data_collector._getScalarRange())
 
-		data_collector._paramForUpdatingMultipleSources(VizType.CARPET,
-				ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self))
+		self._setupActor3D(self._getDataSetMapper())
+		self.__scene._addActor3D(self.__viewport, self._getActor3D())
 
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+	def _isModified(self):	
+		"""
+		Return whether the Carpet or DataCollector has been modified.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__modified or self.__data_collector._isModified()
+
+	def _render(self):
+		"""
+		Render the carpet.
+		"""
+
+		if (self._isModified() == True):
+			if(self.__data_collector._isScalarSet() == True):
+				self.__data_collector._setActiveScalar()
+			self._setScalarRange(self.__data_collector._getScalarRange())
+			self.__modified = False
+
 

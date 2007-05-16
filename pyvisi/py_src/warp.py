@@ -10,23 +10,28 @@ class Warp:
 	Class that defines the deformation of a scalar field.
 	"""
 
-	def __init__(self, object, warp_mode):
+	def __init__(self,  warp_mode):
 		"""
 		Initialise the warp scalar/vector.
 
-		@type object: vtkPolyData, etc
-		@param object: Input for the warp scalar/vector
 		@type warp_mode: L{WarpMode <constant.WarpMode>} constant
 		@param warp_mode: Mode in which to deform the data
 		"""
-
-		self.__object = object
 
 		if(warp_mode == WarpMode.SCALAR): # Deform data with scalar data.
 			self.__vtk_warp = vtk.vtkWarpScalar()
 		elif(warp_mode == WarpMode.VECTOR): # Deform data with vector data.
 			self.__vtk_warp = vtk.vtkWarpVector()
 
+	def _setupWarp(self, object):
+		"""
+		Setup the warp.
+
+		@type object: vtkPolyData, etc
+		@param object: Input for the warp scalar/vector
+		"""
+
+		self.__object = object
 		self.__setInput()
 
 	def __setInput(self):
@@ -46,7 +51,7 @@ class Warp:
 
 		self.__vtk_warp.SetScaleFactor(scale_factor)
 
-	def _getOutput(self):
+	def _getWarpOutput(self):
 		"""
 		Return the output of the deformed data. 
 		

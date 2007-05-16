@@ -11,31 +11,28 @@ class PointSource:
 	generated within the radius of a sphere.
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the point source.
 		"""
 
-		self.__object = object
 		self.__vtk_point_source = vtk.vtkPointSource()
+		self.__center = None
 
-		self.__setupPointSource()
-
-	def __setupPointSource(self):
+	def _setupPointSource(self, object):
 		"""
 		Setup the point source.
+
+		@type object: vtkPolyData, etc
+		@param object: Used to define the location of the sphere 
 		"""
+
+		self.__object = object
 
 		# Default number of points to generate within the sphere is 10.
 		self.setPointSourceNumberOfPoints(10)
-		# Default center of the sphere is the center of the data object.
-		center = self.__object.GetCenter()
-		self.setPointSourceCenter(
-				GlobalPosition(center[0], center[1], center[2]))
-
 		# Default radius of the sphere is 0.5.
 		self.setPointSourceRadius(0.5)
-		self.__vtk_point_source.Update()
 
 	def setPointSourceRadius(self, radius):
 		"""
@@ -47,15 +44,24 @@ class PointSource:
 
 		self.__vtk_point_source.SetRadius(radius)
 
-	def setPointSourceCenter(self, position):
+	# This method is used to delay the execution of setting the point source
+	# center.
+	def setPointSourceCenter(self, center):
 		"""
-		Set the center of the sphere.
+		Save the sphere's center.
 		
-		@type position: L{GLobalPosition <position.GlobalPosition>} object
-		@param position: Center of the sphere
+		@type center: L{GLobalPosition <position.GlobalPosition>} object
+		@param center: Center of the sphere
+		"""
+		
+		self.__center = center
+
+	def _setPointSourceCenter(self):
+		"""
+		Set the sphere's center.
 		"""
 
-		self.__vtk_point_source.SetCenter(position._getGlobalPosition())
+		self.__vtk_point_source.SetCenter(self.__center._getGlobalPosition())
 
 	def setPointSourceNumberOfPoints(self, points):
 		"""
@@ -68,7 +74,7 @@ class PointSource:
 
 		self.__vtk_point_source.SetNumberOfPoints(points)	
 
-	def _getOutput(self):
+	def _getPointSourceOutput(self):
 		"""
 		Return the output of the point source.
 
@@ -78,136 +84,18 @@ class PointSource:
 
 		return self.__vtk_point_source.GetOutput()
 
-
-###############################################################################
-
-
-class StructuredPoints:
-	"""
-	Class that defines the structured points.
-
-	@status: This class is currently not included because it does NOT appear
-	to work with second-order elements.
-	"""
-	
-	# NOTE: The algorithm of this class was extracted from Mayavi's 
-	# online source code. Does NOT work for second-order (non-linear) elements.
-	def __init__(self, object):
+	def _isPointSourceCenterSet(self):
 		"""
-		Initialise the structured points.
+		Return whether the center has been specified.
 
-		@type object: vtkUnstructuredGrid, etc
-		@param object: Input for the structured points
+		@rtype: Boolean
+		@return: True or False
 		"""
 
-		self.__object = object
-		self.__vtk_structured_points = vtk.vtkStructuredPoints()
-		self.__setupStructuredPoints()
-
-	def __setupStructuredPoints(self):
-		"""
-		Setup the structured points.
-		"""
-
-		b = self.__object.GetBounds()
-		self.__vtk_structured_points.SetOrigin(b[0], b[2], b[4])
-		self.__l = [b[1] - b[0], b[3] - b[2], b[5] - b[4]]
-		tot_len = float(self.__l[0] + self.__l[1] + self.__l[2])
-		npnt = pow(self.__object.GetNumberOfPoints(), 1. / 3.) + 0.5
-		self.__fac = 3.0*npnt / tot_len
-
-		# Default dimension is 1, 1, 1.
-		self.setDimension(1, 1, 1)
-
-	def __setExtent(self, x0, x1, y0, y1, z0, z1):
-		"""
-		Set the extent in the order of x, y and z axes. 
-
-		@type x0: Number
-		@param x0: Index of the first point on the x-axis
-		@type x1: Number
-		@param x1: Index of the last point on the x-axis
-		@type y0: Number
-		@param y0: Index of the first point on the y-axis
-		@type y1: Number
-		@param y1: Index of the last point on the y-axis
-		@type z0: Number
-		@param z0: Index of the first point on the z-axis
-		@type z1: Number
-		@param z1: Index of the last point on the z-axis
-		"""
-
-		self.__vtk_structured_points.SetExtent(x0, x1, y0, y1, z0, z1)
-
-	def __setUpdateExtent(self, x0, x1, y0, y1, z0, z1):
-		"""
-		Set the update extent in the oder of x, y and z axes.
-
-		@type x0: Number
-		@param x0: Index of the first point on the x-axis
-		@type x1: Number
-		@param x1: Index of the last point on the x-axis
-		@type y0: Number
-		@param y0: Index of the first point on the y-axis
-		@type y1: Number
-		@param y1: Index of the last point on the y-axis
-		@type z0: Number
-		@param z0: Index of the first point on the z-axis
-		@type z1: Number
-		@param z1: Index of the last point on the z-axis
-		"""
-
-		self.__vtk_structured_points.SetUpdateExtent(x0, x1, y0, y1, z0, z1)
-
-	def setDimension(self, x, y, z):
-		"""
-		Set the dimension on the x, y and z axes. The
-		smaller the dimension, the more points are populated.
-
-		@type x: Number
-		@param x: Dimension on the x-axis
-		@type y: Number
-		@param y: Dimension on the y-axis
-		@type z: Number
-		@param z: Dimension on the z-axis
-		"""
-
-		self.__dims = [int((self.__l[0]*self.__fac)/x) + 1, 
-				int((self.__l[1] * self.__fac) / y) + 1, 
-				int((self.__l[2] * self.__fac) / z) + 1]
-
-		self.__setExtent(0, self.__dims[0] - 1, 0, self.__dims[1] - 1, 0, 
-				self.__dims[2] - 1)
-		self.__setUpdateExtent(0, self.__dims[0] - 1, 0, self.__dims[1] - 1, 0,
-				self.__dims[2] - 1)
-
-		self.__vtk_structured_points.SetDimensions(self.__dims)
-		self.__setSpacing()
-
-	def __setSpacing(self):
-		"""
-		Set the spacing (width, height and length) of the cells that make up
-		the dataset.
-		"""
-
-		self.__dims = [max(1, x - 1) for x in self.__dims]
-		self.__l = [max(1e-3, x) for x in self.__l]
-		sp = [self.__l[0] / self.__dims[0], self.__l[1] / self.__dims[1], 
-				self.__l[2] / self.__dims[2]]
-
-		self.__vtk_structured_points.SetSpacing(sp)
-		# Update the changes made.
-		self.__vtk_structured_points.Update()
-
-	def _getStructuredPoints(self):
-		"""
-		Return the structured points.
-
-		@rtype: vtkStructuredPoints
-		@return: Structured points
-		"""
-
-		return self.__vtk_structured_points
+		if(self.__center != None):
+			return True
+		else:
+			return False
 
 
 ##############################################################################
@@ -220,24 +108,22 @@ class MaskPoints:
 	from being cluttered with arrows or ellipsoids.
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the mask points.
+		"""
+
+		self.__vtk_mask_points = vtk.vtkMaskPoints()
+
+	def _setupMaskPoints(self, object):
+		"""
+		Setup the mask points.
 
 		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, etc)
 		@param object: Data source from which to mask points 
 		"""
 
 		self.__object = object
-		self.__vtk_mask_points = vtk.vtkMaskPoints()
-
-		self.__setupMaskPoints()
-
-	def __setupMaskPoints(self):
-		"""
-		Setup the mask points.
-		"""
-
 		self.__setInput()
 
 	def __setInput(self):
@@ -271,7 +157,7 @@ class MaskPoints:
 
 		self.__vtk_mask_points.RandomModeOff()
 	
-	def _getOutput(self):
+	def _getMaskPointsOutput(self):
 		"""
 		Return the output of the masked points.
 

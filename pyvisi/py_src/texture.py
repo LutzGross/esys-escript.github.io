@@ -9,17 +9,22 @@ class Texture:
 	Class that defines the texture for the rendered object.
 	"""
 
-	def __init__(self, image):
+	def __init__(self):
 		"""
 		Initialise the texture.
+		"""
+
+		self.__vtk_texture = vtk.vtkTexture()
+
+	def _setupTexture(self, image):
+		"""
+		Setup the texture.
 
 		@type image: vtkImageData
 		@param image: Image from which data is to be read
 		"""
 
 		self.__image = image
-		self.__vtk_texture = vtk.vtkTexture()
-
 		self.__setInput()	
 
 	def __setInput(self):

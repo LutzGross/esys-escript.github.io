@@ -27,7 +27,7 @@ class Arrow2D:
 		# Fill the inside of the arrows.
 		self.__vtk_arrow2D.SetFilled(0)
 	
-	def _getOutput(self):
+	def _getArrow2DOutput(self):
 		"""
 		Return the output of the 2D arrows.
 
@@ -53,7 +53,7 @@ class Arrow3D:
 
 		self.__vtk_arrow3D = vtk.vtkArrowSource()
 		
-	def _getOutput(self):
+	def _getArrow3DOutput(self):
 		"""
 		Return the output of the 3D arrows.
 

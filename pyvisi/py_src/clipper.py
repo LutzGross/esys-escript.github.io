@@ -9,9 +9,16 @@ class Clipper:
 	Class that defines a clipper.
 	"""
 	
-	def __init__(self, object, plane):
+	def __init__(self):
 		"""
 		Initialise the clipper.
+		"""
+		
+		self.__vtk_clipper = vtk.vtkClipDataSet()
+
+	def _setupClipper(self, object, plane):
+		"""
+		Setup the clipper.
 
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Input for the clipper
@@ -24,18 +31,9 @@ class Clipper:
 		# scalar clipping.
 		if(plane != None): 
 			self.__plane = plane
-			
-		self.__vtk_clipper = vtk.vtkClipDataSet()
-		self.__setupClipper()
-
-	def __setupClipper(self):
-		"""
-		Setup the clipper.
-		"""
-
+		
 		self.__setInput()
 		self.setInsideOutOn()
-		self.__vtk_clipper.Update()
 
 	def __setInput(self):
 		"""
@@ -75,7 +73,7 @@ class Clipper:
 
 		self.__vtk_clipper.SetValue(value)
 
-	def _getOutput(self):
+	def _getClipperOutput(self):
 		"""
 		Return the output of the clipper.
 

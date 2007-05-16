@@ -30,7 +30,7 @@ class CellDataToPointData:
 
 		self.__vtk_cell_to_point.SetInput(self.__object)
 
-	def _getOutput(self):
+	def _getCellToPointOutput(self):
 		"""
 		Return the output of the cell to point data filter.
 

@@ -106,6 +106,8 @@ class LookupTable:
 
 	def _getLookupTable(self):
 		"""
+		Return the lookup table.
+
 		@rtype: vtkLookupTable
 		@return: Lookup table
 		"""

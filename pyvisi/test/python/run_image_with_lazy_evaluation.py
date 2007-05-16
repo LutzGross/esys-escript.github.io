@@ -26,13 +26,9 @@ X_SIZE = 400
 Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
-class TestImage:
+class TestImageWithLazyEvaluation:
 	def tearDown(self):
 		self.scene
-		self.data_collector
-		self.map
-		self.image
-		self.image_reader
 
 	def render(self, file):
 		self.scene.render(image_name = \
@@ -41,40 +37,42 @@ class TestImage:
 		self.failUnless(os.stat(os.path.join(PYVISI_TEST_IMAGE_IMAGES_PATH, \
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
-class TestImageOnAMap(unittest.TestCase, TestImage):
-	def setUp(self):
-		self.scene = \
-				Scene(renderer = JPG_RENDERER, num_viewport = 1,
-				x_size = X_SIZE, y_size = Y_SIZE)
-	
-		self.data_collector = DataCollector(source = Source.XML)
-		self.data_collector.setFileName(file_name = \
-				os.path.join(PYVISI_TEST_MESHES_PATH, FILE_3D))
-		
-		self.map = Map(scene = self.scene, 
-				data_collector = self.data_collector,
-				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
-				cell_to_point = False, outline = True)
-
-		self.image_reader = ImageReader(ImageFormat.JPG)
-		self.image_reader.setImageName(os.path.join(PYVISI_TEST_MESHES_PATH,\
-				IMAGE))
-
-		self.image = Image(scene = self.scene, image_reader = self.image_reader)
-
+class TestImage(unittest.TestCase, TestImageWithLazyEvaluation):
 	def testImage(self):
-		self.image.translate(0, 0, -1)
-		self.image.setPoint1(GlobalPosition(2, 0, 0))
-		self.image.setPoint2(GlobalPosition(0, 2, 0))
-		self.image.setOpacity(0.6)
-		self.render("TestImage.jpg")
-		
+		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
+				y_size = Y_SIZE)
+		self.scene = s
+
+		dc1 = DataCollector(source = Source.XML)
+
+		# Create a map instance for the first viewport.
+		m1 = Map(scene = s, data_collector = dc1, 
+				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, outline = True)
+
+		# Create one image reader instance (used in place of data collector).
+		ir = ImageReader(ImageFormat.JPG)
+			
+
+		# Create one image instance.
+		i = Image(scene = s, image_reader = ir)
+		i.setOpacity(opacity = 0.9)
+		i.translate(0,0,-1.)
+		i.setPoint1(GlobalPosition(2,0,0))
+		i.setPoint2(GlobalPosition(0,2,0))
+
+		ir.setImageName(image_name = os.path.join(PYVISI_TEST_MESHES_PATH, \
+				IMAGE)) 
+		dc1.setFileName(file_name = os.path.join(PYVISI_TEST_MESHES_PATH, \
+				FILE_3D))
+
+		self.render("TestImageWithLazyEvaluation.jpg")
+
 
 ###############################################################################
 
 
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestImageOnAMap))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestImage))
 	unittest.TextTestRunner(verbosity=2).run(suite)
 

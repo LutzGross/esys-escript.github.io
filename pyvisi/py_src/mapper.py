@@ -9,10 +9,17 @@ class DataSetMapper:
 	Class that defines a data set mapper.
 	"""
 
-	# 'lookup_table = None' is used only by the outline.
-	def __init__(self, object, lookup_table = None):
+	# 'lookup_table = None' is used only by the Outline.
+	def __init__(self):
 		"""
 		Initialise the data set mapper.
+		"""
+
+		self.__vtk_data_set_mapper = vtk.vtkDataSetMapper()
+
+	def _setupDataSetMapper(self, object, lookup_table = None): 
+		"""
+		Setup the data set mapper.	
 
 		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, vtkPolyData, etc) 
 		@param object: Data source map
@@ -21,7 +28,6 @@ class DataSetMapper:
 		"""
 
 		self.__object = object
-		self.__vtk_data_set_mapper = vtk.vtkDataSetMapper()
 		self.__setInput()
 
 		if(lookup_table != None): # False for the outline.
@@ -80,24 +86,22 @@ class ImageMapper:
 	Class that defines a image mapper.
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the image mapper.
+		"""
+
+		self.__vtk_image_mapper = vtk.vtkImageMapper()
+
+	def _setupImageMapper(self, object):
+		"""
+		Setup the image mapper.
 		
 		@type object: vtkImageData
 		@param object: Image data
 		"""
 
 		self.__object = object
-		self.__vtk_image_mapper = vtk.vtkImageMapper()
-
-		self.__setupImageMapper()
-
-	def __setupImageMapper(self):
-		"""
-		Setup the image mapper.
-		"""
-
 		self.__setInput()
 		# Both color window and color level needs to be set, otherwise only 
 		# a black image will be produced. Both values were obtained from 
