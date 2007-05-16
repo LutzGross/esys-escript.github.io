@@ -9,20 +9,22 @@ class Tube:
 	Class that defines the tube wrapped around the streamlines.
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the tube.
 		"""
 
-		self.__object = object
 		self.__vtk_tube = vtk.vtkTubeFilter()
 
-		self.__setupTube()
-
-	def __setupTube(self):
+	def _setupTube(self, object):
 		"""
 		Setup the tube.
+
+		@type object: vtkPolyData, etc
+		@param object: Input for the tube
 		"""
+
+		self.__object = object
 
 		self.__setInput()
 		# Default radius of the tube is 0.02.
@@ -30,7 +32,6 @@ class Tube:
 		# Default number of sides for the tube is 12.
 		self.setTubeNumberOfSides(12)
 		self.setTubeRadiusToVaryByVector()
-		self.__vtk_tube.Update()
 
 	def __setInput(self):
 		"""
@@ -74,7 +75,7 @@ class Tube:
 
 		self.__vtk_tube.SetVaryRadiusToVaryRadiusByScalar()
 
-	def _getOutput(self):
+	def _getTubeOutput(self):
 		"""
 		Return the output of the tube.
 

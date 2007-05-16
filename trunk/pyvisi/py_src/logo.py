@@ -23,17 +23,47 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which the logo is to be displayed
 		@type image_reader: L{ImageReader <imagereader.ImageReader>}
-				object
+		object
 		@param image_reader: Deal with source of data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant  
 		@param viewport: Viewport in which the logo is to be displayed
 		"""
 
+		self.__scene = scene
+		self.__image_reader = image_reader
+		self.__viewport = viewport
+
+		self.__modified = True # Keeps track whether Logo has been modified.
+		ImageReslice.__init__(self)
+		ImageMapper.__init__(self)
+		Actor2D.__init__(self)
+		scene._addVisualizationModules(self)
+
 		# ----- Logo -----
 
-		ImageReslice.__init__(self, image_reader._getOutput())
-		ImageMapper.__init__(self, ImageReslice._getOutput(self))
+		self._setupImageReslice(self.__image_reader._getImageReaderOutput())
+		self._setupImageMapper(self._getImageResliceOutput())
 
-		Actor2D.__init__(self, ImageMapper._getImageMapper(self))
-		scene._addActor2D(viewport, Actor2D._getActor2D(self))
+		self._setupActor2D(self._getImageMapper())
+		self.__scene._addActor2D(self.__viewport, self._getActor2D())
+
+	def _isModified(self):	
+		"""
+		Return whether the Logo or DataCollector has been modified.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__modified or self.__data_collector._isModified()
+
+	def _render(self):
+		"""
+		Render the logo.
+		"""
+
+		if (self._isModified() == True):
+			self.__modified = False
+
+
 

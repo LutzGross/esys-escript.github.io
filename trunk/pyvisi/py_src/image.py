@@ -39,19 +39,51 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 		@param viewport: Viewport in which the image is to be displayed
 		"""
 
+		self.__scene = scene
+		self.__image_reader = image_reader
+		self.__viewport = viewport
+
+		# Keeps track whether Image has been modified.
+		self.__modified = True 
+		Texture.__init__(self)
+		PlaneSource.__init__(self)
+		Transform.__init__(self)
+		TransformFilter.__init__(self)
+		DataSetMapper.__init__(self)
+		Actor3D.__init__(self)
+		scene._addVisualizationModules(self)
+
 		# ----- Image -----
 
-		Texture.__init__(self, image_reader._getOutput())
-		PlaneSource.__init__(self)
+		self._setupTexture(image_reader._getImageReaderOutput())
+		self._setupTransformFilter(self._getPlaneSourceOutput(),
+				self._getTransform())
 
-		Transform.__init__(self)
-		TransformFilter.__init__(self, PlaneSource._getOutput(self),
-				Transform._getTransform(self))
+		self._setupDataSetMapper(self._getTransformFilterOutput())
+		self._setupActor3D(self._getDataSetMapper())
 
-		DataSetMapper.__init__(self, TransformFilter._getOutput(self))
+		self._setTexture(self._getTexture())
+		self.__scene._addActor3D(self.__viewport, self._getActor3D())
 
-		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
-		Actor3D._setTexture(self, Texture._getTexture(self))
+	def _isModified(self):
+		"""
+		Return whether the Image has been modified.
 
-		scene._addActor3D(viewport, Actor3D._getActor3D(self))
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		if (self.__modified == True):
+			return True
+		else:
+			return False
+
+	def _render(self):
+		"""
+		Render the image.
+		"""
+
+		if(self._isModified() == True):
+			self.__isModified = False
+			
 

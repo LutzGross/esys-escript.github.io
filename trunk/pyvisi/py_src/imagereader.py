@@ -52,7 +52,7 @@ class ImageReader:
 
 		self.__vtk_image_reader.SetFileName(image_name)
 
-	def _getOutput(self):
+	def _getImageReaderOutput(self):
 		"""
 		Return the output of the image reader.
 

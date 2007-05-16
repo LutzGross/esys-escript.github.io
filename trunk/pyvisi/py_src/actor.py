@@ -9,18 +9,24 @@ class Actor3D:
 	Class that defines a 3D actor.
 	"""
 	
-	def __init__(self, mapper):
+	def __init__(self):
 		"""
 		Initialise the 3D actor.
+		"""
+
+		self.__vtk_actor3D = vtk.vtkActor()
+
+	def _setupActor3D(self, mapper):
+		"""
+		Setup the 3D actor.
 
 		@type mapper: vtkDataSetMapper
 		@param mapper: Mapped data
 		"""
 
 		self.__mapper = mapper
-		self.__vtk_actor3D = vtk.vtkActor()
 		self.__setMapper()
-
+		
 	def __setMapper(self):
 		"""
 		Set the mapper of the 3D actor.
@@ -100,16 +106,22 @@ class Actor2D:
 	Class that defines a 2D actor.
 	"""
 
-	def __init__(self, mapper):
+	def __init__(self):
 		"""
 		Initialise the 2D actor.
+		"""
+
+		self._vtk_actor2D = vtk.vtkActor2D()
+
+	def _setupActor2D(self, mapper):
+		"""
+		Setup the 2D actor.
 
 		@type mapper: vtkMapper2D
 		@param mapper: Mapped data
 		"""
 
 		self.__mapper = mapper
-		self._vtk_actor2D = vtk.vtkActor2D()
 		self.__setMapper()
 
 	def __setMapper(self):

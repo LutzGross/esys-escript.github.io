@@ -1,9 +1,10 @@
 # Import the necessary modules.
 from esys.pyvisi import Scene, DataCollector, MapOnPlaneCut, Camera
 from esys.pyvisi.constant import *
+import os
 
-PYVISI_EXAMPLE_MESHES_PATH = "data_meshes/"
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
 X_SIZE = 400
 Y_SIZE = 400
 
@@ -19,7 +20,7 @@ s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE,
 
 # Create a DataCollector reading from a XML file.
 dc1 = DataCollector(source = Source.XML)
-dc1.setFileName(file_name = PYVISI_EXAMPLE_MESHES_PATH + FILE_3D)
+dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, FILE_3D))
 dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA)
 
 # Create a MapOnPlaneCut.
@@ -29,10 +30,11 @@ mopc1 = MapOnPlaneCut(scene = s, data_collector = dc1,
 mopc1.setPlaneToYZ(offset = 0.1)
 
 # Create a Camera.
-c1 = Camera(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST)
+c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
 
 # Render the object with multiple cuts from a series of translation.
 for i in range(0, 5):
-    s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME + "%02d.jpg" % i)
+    s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, IMAGE_NAME +
+			"%02d.jpg") % i)
     mopc1.translate(0.6,0,0)

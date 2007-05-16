@@ -4,19 +4,25 @@ import unittest, os
 from stat import ST_SIZE
 
 try:
-     PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
+	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
 except KeyError:
-     PYVISI_WORKDIR='.'
-     
-PYVISI_TEST_MESHES_PATH = s.path.join(PYVISI_WORKDIR,"data_meshes")
-PYVISI_TEST_CAMERA_IMAGES_PATH = os.path.join(PYVISI_WORKDIR,"data_sample_images","camera")
+	PYVISI_WORKDIR='.'
+try:
+	PYVISI_TEST_DATA_ROOT=os.environ['PYVISI_TEST_DATA_ROOT']
+except KeyError:
+	PYVISI_TEST_DATA_ROOT='.'
+
+PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, "data_meshes")
+PYVISI_TEST_CAMERA_REFERENCE_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, \
+		"data_reference_images", "camera")
+PYVISI_TEST_CAMERA_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
+		"data_sample_images", "camera")
+
 MIN_IMAGE_SIZE = 100
 FILE_2D = "interior_2D.xml"
 FILE_3D = "interior_3D.xml"
-
 X_SIZE = 400
 Y_SIZE = 400
-
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestCamera:
@@ -28,10 +34,10 @@ class TestCamera:
 
 	def render(self, file):
 		self.scene.render(image_name = \
-				PYVISI_TEST_CAMERA_IMAGES_PATH + file)
+				os.path.join(PYVISI_TEST_CAMERA_IMAGES_PATH, file))
 
-		self.failUnless(os.stat(PYVISI_TEST_CAMERA_IMAGES_PATH + \
-				file)[ST_SIZE] > MIN_IMAGE_SIZE)
+		self.failUnless(os.stat(os.path.join(PYVISI_TEST_CAMERA_IMAGES_PATH,\
+				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestCamera2D(unittest.TestCase, TestCamera):
 	def setUp(self):
@@ -41,16 +47,14 @@ class TestCamera2D(unittest.TestCase, TestCamera):
 
 		self.data_collector = DataCollector(source = Source.XML)
 		self.data_collector.setFileName(file_name = \
-				PYVISI_TEST_MESHES_PATH + FILE_2D)
+				os.path.join(PYVISI_TEST_MESHES_PATH,  FILE_2D))
 
 		self.map = Map(scene = self.scene,
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
 
-		self.camera = Camera(scene = self.scene,
-				data_collector = self.data_collector,
-				viewport = Viewport.SOUTH_WEST)
+		self.camera = Camera(scene = self.scene, viewport = Viewport.SOUTH_WEST)
 
 	def test2D(self):
 		self.camera.azimuth(20)
@@ -67,7 +71,7 @@ class TestCamera3D(unittest.TestCase, TestCamera):
 
 		self.data_collector = DataCollector(source = Source.XML)
 		self.data_collector.setFileName(file_name = \
-				PYVISI_TEST_MESHES_PATH + FILE_3D)
+				os.path.join(PYVISI_TEST_MESHES_PATH, FILE_3D))
 
 		self.map = Map(scene = self.scene,
 				data_collector = self.data_collector,
@@ -75,7 +79,6 @@ class TestCamera3D(unittest.TestCase, TestCamera):
 				cell_to_point = False, outline = True)
 
 		self.camera = Camera(scene = self.scene,
-				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST)
 
 	def test3D(self):

@@ -3,12 +3,23 @@ from esys.pyvisi.constant import *
 import unittest, os
 from stat import ST_SIZE
 
-PYVISI_TEST_TEXT_IMAGES_PATH = "data_sample_images/text/"
-MIN_IMAGE_SIZE = 100
+try:
+	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
+except KeyError:
+	PYVISI_WORKDIR='.'
+try:
+	PYVISI_TEST_DATA_ROOT=os.environ['PYVISI_TEST_DATA_ROOT']
+except KeyError:
+	PYVISI_TEST_DATA_ROOT='.'
 
+PYVISI_TEST_TEXT_REFERENCE_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, \
+		"data_reference_images", "text")
+PYVISI_TEST_TEXT_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
+		"data_sample_images", "text")
+
+MIN_IMAGE_SIZE = 100
 X_SIZE = 400
 Y_SIZE = 400
-
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestText2D(unittest.TestCase):
@@ -26,11 +37,10 @@ class TestText2D(unittest.TestCase):
 
 	def render(self, file):
 		self.scene.render(image_name = \
-				PYVISI_TEST_TEXT_IMAGES_PATH + file)
+				os.path.join(PYVISI_TEST_TEXT_IMAGES_PATH, file))
 
-		self.failUnless(os.stat(PYVISI_TEST_TEXT_IMAGES_PATH + \
-				file)[ST_SIZE] > MIN_IMAGE_SIZE)
-
+		self.failUnless(os.stat(os.path.join(PYVISI_TEST_TEXT_IMAGES_PATH, \
+				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 	def testText(self):
 		self.text2D.setFontSize(35)

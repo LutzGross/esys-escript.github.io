@@ -36,7 +36,7 @@ class Sphere:
 
 		self.__vtk_sphere.SetPhiResolution(resolution)
 
-	def _getOutput(self):
+	def _getSphereOutput(self):
 		"""
 		Return the output of the sphere.
 

@@ -16,26 +16,27 @@ class Camera:
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
-	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST):
+	def __init__(self, scene, viewport = Viewport.SOUTH_WEST):
 		"""
 		Initialise the camera.
 
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
-		@type data_collector: L{DataCollector <datacollector.DataCollector>}
-				object
-		@param data_collector: Deal with the source data for vizualisation
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
 		self.__scene = scene
-		self.__data_collector = data_collector
 		self.__viewport = viewport
-
 		self.__vtk_camera = vtk.vtkCamera()
-		self.__setupCamera()
-		
+
+		# Keeps track whether camera has been modified.
+		self.__modified = True 
+		# Keeps track whether the modification to the camera was due to the 
+		# instantiation. If it is, then __setupCamera() method is called.
+		self.__initialization = True
+		self.__scene._addVisualizationModules(self)
+
 	def __setupCamera(self):
 		"""
 		Setup the camera.
@@ -54,7 +55,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.SetFocalPoint(position._getGlobalPosition())		
-		self.__resetCameraClippingRange()
+		self.__modified = True 
 
 	def setPosition(self, position):
 		"""
@@ -65,7 +66,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.SetPosition(position._getGlobalPosition())
-		self.__resetCameraClippingRange()
+		self.__modified = True 
 
 	def setClippingRange(self, near_clipping, far_clipping):
 		"""
@@ -98,7 +99,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.Azimuth(angle)
-		self.__resetCameraClippingRange()
+		self.__modified = True 
 
 	def elevation(self, angle):
 		"""
@@ -115,7 +116,7 @@ class Camera:
 		# With the view up recomputed, the elevation angle can reach between
 		# 90/-90 degrees. Exceeding that, the rendered object may be incorrect.
 		self.__vtk_camera.OrthogonalizeViewUp()
-		self.__resetCameraClippingRange()
+		self.__modified = True 
 
 	def roll(self, angle):
 		"""
@@ -126,7 +127,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.Roll(-angle)
-		self.__resetCameraClippingRange()
+		self.__modified = True 
 
 	def backView(self):
 		"""
@@ -181,7 +182,7 @@ class Camera:
 		"""
 
 		self.__vtk_camera.Dolly(distance)
-		self.__resetCameraClippingRange()
+		self.__modified = True 
 
 	def __resetCameraClippingRange(self):
 		"""
@@ -198,4 +199,32 @@ class Camera:
 		"""
 
 		self.__scene._getRenderer()[self.__viewport].ResetCamera() 
-		
+
+	def _isModified(self):
+		"""
+		Return whether the Camera has been modified.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		if (self.__modified == True):
+			return True
+		else:
+			return False
+
+	def _render(self):
+		"""
+		Render the camera.
+		"""
+
+		if(self._isModified() == True):
+			# Will only be true once only when the camera is instantiated.
+			if(self.__initialization == True): 
+				self.__setupCamera()
+				self.__initialization == False
+
+			self.__resetCameraClippingRange()
+			self.__isModified = False
+			
+

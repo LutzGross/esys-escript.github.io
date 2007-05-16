@@ -4,8 +4,9 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
 from esys.pyvisi import Scene, DataCollector, Map, Camera
 from esys.pyvisi.constant import *
+import os
 
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
 X_SIZE = 400
 Y_SIZE = 300
 JPG_RENDERER = Renderer.ONLINE_JPG
@@ -39,7 +40,8 @@ Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST,
 	  lut = Lut.COLOR, cell_to_point = False, outline = True)
 
 # Create a Camera.
-c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
+c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
+
 
 # Render the object.
-s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "helmholtz.jpg")
+s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "helmholtz.jpg"))

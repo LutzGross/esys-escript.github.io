@@ -11,16 +11,22 @@ class Normals:
 	avoids the tensors from appearing black in color).
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the normals.
+		"""
+
+		self.__vtk_poly_data_normals = vtk.vtkPolyDataNormals()
+
+	def _setupNormals(self, object):
+		"""
+		Setup the normals.
 
 		@type object: vtkPolyData, etc
 		@param object: Input for the normals
 		"""
 
 		self.__object = object
-		self.__vtk_poly_data_normals = vtk.vtkPolyDataNormals()
 		self.__setInput()
 
 	def __setInput(self):
@@ -30,7 +36,7 @@ class Normals:
 
 		self.__vtk_poly_data_normals.SetInput(self.__object)
 
-	def _getOutput(self):
+	def _getNormalsOutput(self):
 		"""
 		Return the output of the normals.
 

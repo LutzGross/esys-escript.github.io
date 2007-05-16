@@ -4,37 +4,23 @@
 
 import vtk
 import tempfile, os, sys
-from constant import Source, VizType, ColorMode
+from constant import Source, ColorMode
 try:
 	import esys.escript 
 except ImportError:
 	print "Warning: importing esys.escript failed."
 
-try:
-     PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
-except KeyError:
-     PYVISI_WORKDIR='.'
-try:
-     PYVISI_TEST_DATA_ROOT=os.environ['PYVISI_TEST_DATA_ROOT']
-except KeyError:
-     PYVISI_TEST_DATA_ROOT='.'
-	
 class DataCollector:
 	"""
 	Class that defines a data collector. A data collector is used to read 
-	data from an XML file or from an escript object directly.
+	data from an XML file or from an escript object directly. Writing XML 
+	files are expensive, but this approach has the advantage given that the 
+	results can be analyzed easily after the simulation has completed.   
 
 	@attention: A DataCollector instance can only be used to specify one 
 	scalar, vector and tensor attribute from a source at any one time. If a 
 	second scalar, vector or tensor attribute needs to be specified from the 
 	same source, a second DataCollector instance must be created. 
-
-	@attention: When a series of XML files or escript objects are read 
-	(using 'setFileName' or 'setData' in a for-loop), the 'setActiveScalar' / 
-	'setActiveVector' / 'setActiveTensor' have to be called for each new file
-	(provided a specific field needs to be loaded) as all active fields 
-	specified from the previous file goes back to the default once a new file 
-	is read.
 	"""
 
 	def __init__(self, source = Source.XML):
@@ -46,7 +32,13 @@ class DataCollector:
 		"""
 
 		self.__source = source
-		self.__count = 0 # Keeps track of the number of files/sources read.
+		# Keeps track on whether DataCollector have been modified.
+		self.__modified = True
+		# Keeps track on whether any specific scalar, vector or tensor 
+		# field have been specified.
+		self.__set_scalar = False
+		self.__set_vector= False
+		self.__set_tensor= False
 
 		if(source == Source.XML): # Source is an XML file.
 			self.__vtk_xml_reader = vtk.vtkXMLUnstructuredGridReader()
@@ -72,27 +64,19 @@ class DataCollector:
 		@param file_name: Name of the file to read
 		"""
 
+		self.__modified = True
+
 		if(self.__source == Source.XML):
 			# Check whether the specified file exists, otherwise exit.
 			if not(os.access(file_name, os.F_OK)):
-				raise IOError("ERROR: '%s' file does NOT exists." % file_name)		
+				raise IOError("\nERROR: '%s' file does NOT exists.\n" % \
+						file_name)
 
 			self.__vtk_xml_reader.SetFileName(file_name)
 			# Update must be called after SetFileName to make the reader 
 			# up-to-date. Otherwise, some output values may be incorrect.
 			self.__vtk_xml_reader.Update() 
-			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
-			
-			# Count has to be larger than zero because when setFileName is 
-			# called for the first time, the data set mapper has not yet been
-			# instantiated. Therefore, the range of the mapper can only be
-			# updated after the first file/source has been read.
-			if(self.__count > 0):
-				self._updateRange()
-
-			self.__count+=1
-
 		else:
 			raise ValueError("Source type %s does not support \
 			'setFileName'\n" % self.__source)
@@ -103,9 +87,12 @@ class DataCollector:
 		that the data will be given in the appropriate format.
 		"""
 
+		self.__modified = True
+
 		if self.__source == Source.ESCRIPT:
 			esys.escript.saveVTK(self.__tmp_file,**args)
 			self.__vtk_xml_reader.SetFileName(self.__tmp_file)
+
 			# Modified must be called for setData but NOT for
 			# setFileName. If Modified is not called, only the first file 
 			# will always be displayed. The reason Modified is used is 
@@ -113,21 +100,18 @@ class DataCollector:
 			# (previous file is overwritten). Modified MUST NOT be used in 
 			# setFileName, it can cause incorrect output such as map.
 			self.__vtk_xml_reader.Modified()
+
 			# Update must be called after Modified. If Update is called before
 			# Modified, then the first/second image(s) may not be updated
 			# correctly.
 			self.__vtk_xml_reader.Update()
-			self.__output = self.__vtk_xml_reader.GetOutput()
 			self.__get_attribute_lists()
-
-			if(self.__count > 0):
-				self._updateRange()
-
-			self.__count+=1
 		else:
 			raise ValueError("Source type %s does not support 'setData'\n" \
 					% self.__source)
 
+	# This method is used to delay the execution of setting the active scalar
+	# until 'setFileName' or 'setData' have been executed.
 	def setActiveScalar(self, scalar):
 		"""
 		Specify the scalar field to load. 
@@ -135,19 +119,32 @@ class DataCollector:
 		@type scalar: String
 		@param scalar: Scalar field to load from the file. 
 		"""
-		
+
+		self.__set_scalar = True
+		self.__active_scalar = scalar
+
+	def _setActiveScalar(self):
+		"""
+		Load the specified scalar field. 
+		"""
+
 		# Check whether the specified scalar is available in either point
 		# or cell data. If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _getScalarRange 
 		# but this is used only when a scalar attribute has been specified.
-		if scalar in self.__point_attribute['scalars']:
-			self._getOutput().GetPointData().SetActiveScalars(scalar)
-		elif scalar in self.__cell_attribute['scalars']:
-			self._getOutput().GetCellData().SetActiveScalars(scalar)
+		if self.__active_scalar in self.__point_attribute['scalars']:
+			self._getDataCollectorOutput().GetPointData().SetActiveScalars(
+					self.__active_scalar)
+		elif self.__active_scalar in self.__cell_attribute['scalars']:
+			self._getDataCollectorOutput().GetCellData().SetActiveScalars(
+					self.__active_scalar)
 		else:
-			raise IOError("ERROR: No scalar called '%s' is available." % scalar)
+			raise IOError("ERROR: No scalar called '%s' is available." % \
+					self.__active_scalar)
 
+	# This method is used to delay the execution of setting the active vector
+	# until 'setFileName' or 'setData' have been executed.
 	def setActiveVector(self, vector):
 		"""
 		Specify the vector field to load.
@@ -155,19 +152,32 @@ class DataCollector:
 		@type vector: String
 		@param vector: Vector field to load from the file. 
 		"""
-		
+
+		self.__set_vector = True
+		self.__active_vector = vector
+
+	def _setActiveVector(self):
+		"""
+		Load the specified vector field.
+		"""
+
 		# Check whether the specified vector is available in either point
 		# or cell data. If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _getVectorRange 
 		# but this is used only when a vector attribute has been specified.
-		if vector in self.__point_attribute['vectors']:
-			self._getOutput().GetPointData().SetActiveVectors(vector)
-		elif vector in self.__cell_attribute['vectors']:
-			self._getOutput().GetCellData().SetActiveVectors(vector)
+		if self.__active_vector in self.__point_attribute['vectors']:
+			self._getDataCollectorOutput().GetPointData().SetActiveVectors(
+					self.__active_vector)
+		elif self.__active_vector in self.__cell_attribute['vectors']:
+			self._getDataCollectorOutput().GetCellData().SetActiveVectors(
+					self.__active_vector)
 		else:
-			raise IOError("ERROR: No vector called '%s' is available." % vector)
-			
+			raise IOError("ERROR: No vector called '%s' is available." % \
+					self.__active_vector)
+
+	# This method is used to delay the execution of setting the active tensor
+	# until 'setFileName' or 'setData' have been executed.
 	def setActiveTensor(self, tensor):
 		"""
 		Specify the tensor field to load.
@@ -176,70 +186,28 @@ class DataCollector:
 		@param tensor: Tensor field to load from the file. 
 		"""
 
+		self.__set_tensor = True
+		self.__active_tensor = tensor
+
+	def _setActiveTensor(self):
+		"""
+		Load the the specified tensor field.
+		"""
+
 		# Check whether the specified tensor is available in either point
 		# or cell data. If not available, program exits.
 
 		# NOTE: This check is similar to the check used in _getTensorRange 
 		# but this is used only when a tensor attribute has been specified.
-		if tensor in self.__point_attribute['tensors']:
-			self._getOutput().GetPointData().SetActiveTensors(tensor)
-		elif tensor in self.__cell_attribute['tensors']:
-			self._getOutput().GetCellData().SetActiveTensors(tensor)
+		if self.__active_tensor in self.__point_attribute['tensors']:
+			self._getDataCollectorOutput().GetPointData().SetActiveTensors(
+					self.__active_tensor)
+		elif self.__active_tensor in self.__cell_attribute['tensors']:
+			self._getDataCollectorOutput().GetCellData().SetActiveTensors(
+					self.__active_tensor)
 		else:
-			raise IOError("ERROR: No tensor called '%s' is available." % tensor)
-
-	# 'object' is set to 'None' because some types of visualization have
-	# two ranges that needs to be updated while others only have one.
-	def _paramForUpdatingMultipleSources(self, viz_type, color_mode, mapper,
-			object = None):
-		"""
-		Parameters required to update the necessary data when two or more 
-		files or escript objects are read.
-
-		@type viz_type: : L{VizType <constant.VizType>} constant
-		@param viz_type: Type if visualization 
-		@type color_mode: L{ColorMode <constant.ColorMode>} constant
-		@param color_mode: Type of color mode
-		@type mapper: vtkDataSetMapper
-		@param mapper: Mapped data
-		@type object: vtkPolyDataAlgorithm (i.e. vtkContourFilter, vtkGlyph3D, \
-				etc)
-		@param object: Polygonal data
-		"""
-
-		self.__viz_type = viz_type
-		self.__color_mode = color_mode
-		self.__mapper = mapper
-		self.__object = object
-
-	def _updateRange(self):
-		"""
-		Update the necessary range(s) when two or more files or escript objects 
-		are read.
-		"""
-
-		if self.__viz_type == VizType.MAP or \
-				self.__viz_type == VizType.ELLIPSOID or \
-				self.__viz_type == VizType.CARPET:
-			self.__mapper.SetScalarRange(self._getScalarRange())
-		elif self.__viz_type == VizType.VELOCITY:
-			if self.__color_mode == ColorMode.VECTOR:
-				self.__object.SetRange(self._getVectorRange())
-				self.__mapper.SetScalarRange(self._getVectorRange())
-			elif self.__color_mode == ColorMode.SCALAR:
-				self.__object.SetRange(self._getScalarRange())
-				self.__mapper.SetScalarRange(self._getScalarRange())
-		elif self.__viz_type == VizType.CONTOUR:
-			self.__object.GenerateValues(
-					self.__object.GetNumberOfContours(),
-					self._getScalarRange()[0],
-					self._getScalarRange()[1])
-			self.__mapper.SetScalarRange(self._getScalarRange())
-		elif self.__viz_type == VizType.STREAMLINE:
-			if self.__color_mode == ColorMode.VECTOR:
-				self.__mapper.SetScalarRange(self._getVectorRange())
-			elif self.__color_mode == ColorMode.SCALAR:
-				self.__mapper.SetScalarRange(self._getScalarRange())
+			raise IOError("ERROR: No tensor called '%s' is available." % \
+					self.__active_tensor)
 
 	def __get_array_type(self, arr):
 		"""
@@ -291,10 +259,13 @@ class DataCollector:
 
 		# Get all the available point data attributes into a list.
 		self.__point_attribute = \
-				self.__get_attribute_list(self._getOutput().GetPointData())
+				self.__get_attribute_list(
+				self._getDataCollectorOutput().GetPointData())
+
 		# Get all the available cell data attribute into another list.	
 		self.__cell_attribute = \
-				self.__get_attribute_list(self._getOutput().GetCellData())
+				self.__get_attribute_list(
+				self._getDataCollectorOutput().GetCellData())
 
 	def _getScalarRange(self):
 		"""
@@ -310,11 +281,13 @@ class DataCollector:
 		# NOTE: This check is similar to the check used in _setActiveScalar 
 		# but this is used only when no scalar attribute has been specified.
 		if(len(self.__point_attribute['scalars']) != 0):
-			return self._getOutput().GetPointData().GetScalars().GetRange(-1)
+			return self._getDataCollectorOutput().GetPointData().\
+					GetScalars().GetRange(-1)
 		elif(len(self.__cell_attribute['scalars']) != 0):
-			return self._getOutput().GetCellData().GetScalars().GetRange(-1)
+			return self._getDataCollectorOutput().GetCellData().\
+					GetScalars().GetRange(-1)
 		else:
-			raise IOError("ERROR: No scalar is available.")
+			raise IOError("\nERROR: No scalar is available.\n")	
 
 	def _getVectorRange(self):
 		"""
@@ -337,15 +310,16 @@ class DataCollector:
 		# to accommodate for the incorrect cases.
 		if(len(self.__point_attribute['vectors']) != 0):
 			vector_range = \
-					self._getOutput().GetPointData().GetVectors().GetRange(-1)
+					self._getDataCollectorOutput().GetPointData().\
+					GetVectors().GetRange(-1)
 			return (0.0, vector_range[1])
 		elif(len(self.__cell_attribute['vectors']) != 0): 
 			vector_range = \
-					self._getOutput().GetCellData().GetVectors().GetRange(-1)
+					self._getDataCollectorOutput().GetCellData().\
+					GetVectors().GetRange(-1)
 			return (0.0, vector_range[1])
 		else:
-			print "\nERROR: No vector is available.\n"	
-			sys.exit(0)
+			raise IOError("\nERROR: No vector is available.\n")	
 
 	def _getTensorRange(self):
 		"""
@@ -361,20 +335,74 @@ class DataCollector:
 		# NOTE: This check is similar to the check used in _setActiveTensor 
 		# but this is used only when no tensor attribute has been specified.
 		if(len(self.__point_attribute['tensors']) != 0):
-			return self._getOutput().GetPointData().GetTensors().GetRange(-1)
+			return self._getDataCollectorOutput().GetPointData().\
+					GetTensors().GetRange(-1)
 		elif(len(self.__cell_attribute['tensors']) != 0): 
-			return self._getOutput().GetCellData().GetTensors().GetRange(-1)
+			return self._getDataCollectorOutput().GetCellData().\
+					GetTensors().GetRange(-1)
 		else:
-			print "\nERROR: No tensor is available.\n"	
-			sys.exit(1)
+			raise IOError("\nERROR: No tensor is available.\n")	
 
-	def _getOutput(self):
+	def _getDataCollectorOutput(self):
 		"""
 		Return the output of the data collector.
 
 		@rtype: vtkUnstructuredGrid
 		@return: Unstructured grid
 		"""
+		return self.__vtk_xml_reader.GetOutput()
 
-		return self.__output
+	def _isModified(self):
+		"""
+		Return whether the DataCollector has been modified.
 
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		if(self.__modified == True):
+			self.__modified = False
+			return True
+		else:
+			return False
+	
+	def _isScalarSet(self):
+		"""
+		Return whether a specific scalar field has been specified.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__set_scalar
+
+	def _isVectorSet(self):
+		"""
+		Return whether a specific vector field has been specified.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__set_vector 
+
+	def _isTensorSet(self):
+		"""
+		Return whether a specific tensor field has been specified.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__set_tensor 
+
+	def _getCenter(self):
+		"""
+		Return the center of the rendered object.
+
+		@rtype: Three column tuple containing numbers
+		@return: Center of the rendered object
+		"""
+
+		return self._getDataCollectorOutput().GetCenter()
+		

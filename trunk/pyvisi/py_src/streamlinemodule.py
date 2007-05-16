@@ -9,9 +9,16 @@ class StreamLineModule:
 	Class that defines the streamline module.
 	"""
 
-	def __init__(self, object, source):
+	def __init__(self):
 		"""
 		Initialise the streamline module.
+		"""
+
+		self.__vtk_stream_line = vtk.vtkStreamLine()
+
+	def _setupStreamLineModule(self, object, source):
+		"""
+		Setup the streamline.
 
 		@type object: vtkUnstructuredGrid, etc 
 		@param object: Input for the streamline
@@ -21,14 +28,6 @@ class StreamLineModule:
 
 		self.__object = object
 		self.__source = source
-		self.__vtk_stream_line = vtk.vtkStreamLine()
-
-		self.__setupStreamLineModule()
-
-	def __setupStreamLineModule(self):
-		"""
-		Setup the streamline.
-		"""
 
 		self.__setInput()
 		self.__setSource()
@@ -42,7 +41,6 @@ class StreamLineModule:
 		self.setIntegrationToBothDirections()
 		# Default integrator is set to vtkRungeKutta4
 		self.setIntegrator(vtk.vtkRungeKutta4())	
-		self.__vtk_stream_line.Update()
 
 	def __setInput(self):
 		"""
@@ -104,7 +102,8 @@ class StreamLineModule:
 		goes) and backward (where the streamline came from).
 		"""
 
-		self.__vtk_stream_line.SetIntegrationDirectionToIntegrateBothDirections()
+		self.__vtk_stream_line.\
+				SetIntegrationDirectionToIntegrateBothDirections()
 
 	def setIntegrator(self, integrator):
 		"""
@@ -131,7 +130,7 @@ class StreamLineModule:
 
 		self.__vtk_stream_line.SpeedScalarsOff()
 
-	def _getOutput(self):
+	def _getStreamLineModuleOutput(self):
 		"""
 		Return the output of the streamline.
 

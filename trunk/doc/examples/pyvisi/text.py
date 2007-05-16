@@ -1,9 +1,10 @@
 # Import the necessary modules.
 from esys.pyvisi import Scene, Text2D, LocalPosition
 from esys.pyvisi.constant import *
+import os
 
-PYVISI_EXAMPLE_MESHES_PATH = "data_meshes/"
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
 X_SIZE = 600
 Y_SIZE = 600
 
@@ -31,5 +32,5 @@ t2.setFontToArial()
 t2.shadowOn()
 
 # Render the object.
-s.render(PYVISI_EXAMPLE_IMAGES_PATH + IMAGE_NAME)
+s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, IMAGE_NAME))
 

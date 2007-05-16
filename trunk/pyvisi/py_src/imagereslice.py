@@ -10,24 +10,22 @@ class ImageReslice:
 	(no interaction capability) images.
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the image reslice.
+		"""
+
+		self.__vtk_image_reslice = vtk.vtkImageReslice()
+
+	def _setupImageReslice(self, object):
+		"""
+		Setup the image reslice.
 
 		@type object: vtkImageData
 		@param object: Image Data
 		"""
 
 		self.__object = object
-		self.__vtk_image_reslice = vtk.vtkImageReslice()
-
-		self.__setupImageReslice()
-
-	def __setupImageReslice(self):
-		"""
-		Setup the image reslice.
-		"""
-
 		self.__setInput()
 
 	def __setInput(self):
@@ -58,7 +56,7 @@ class ImageReslice:
 			size = (1 - size) + 1
 			self.__vtk_image_reslice.SetOutputSpacing(size, size, size)
 
-	def _getOutput(self):
+	def _getImageResliceOutput(self):
 		"""
 		Return the output of the image reslice.
 

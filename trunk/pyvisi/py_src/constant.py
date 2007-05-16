@@ -96,7 +96,6 @@ class Renderer:
 	DISPLAY_PS  = "display_ps"
 
 
-
 class Arrow:
 	"""
 	Constants that define the arrow type.
@@ -163,21 +162,3 @@ class Lut:
 	COLOR = "color"
 	GREY_SCALE = "grey_scale"
 
-class VizType:
-	"""
-	Constants that define the visualization types. 
-
-	@cvar VELOCITY: Constant representing the velocity
-	@cvar CONTOUR: Constant representing the contour
-	@cvar MAP: Constant representing the surface map
-	@cvar ELLIPSOID: Constant representing the ellipsoid
-	@cvar CARPET: Constant representing the carpet
-	@cvar STREAMLINE: Constant representing the streamline
-	"""
-
-	VELOCITY = "Velocity"
-	CONTOUR = "Contour"
-	MAP = "Map"
-	ELLIPSOID = "Ellipsoid"
-	CARPET = "Carpet"
-	STREAMLINE = "Streamline"
