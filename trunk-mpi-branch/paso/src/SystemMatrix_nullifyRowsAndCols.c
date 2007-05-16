@@ -125,7 +125,6 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
              }
              rank_of_snd_buf=fromRank;
          }
-printf("RRRRRR\n");
          TMPMEMFREE(buffer0);
          TMPMEMFREE(buffer1);
      }
