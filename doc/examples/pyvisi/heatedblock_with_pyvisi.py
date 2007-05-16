@@ -4,8 +4,9 @@ from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from esys.pyvisi import Scene, DataCollector, Velocity, Camera
 from esys.pyvisi.constant import *
+import os
 
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images/"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
 X_SIZE = 400
 Y_SIZE = 400
 JPG_RENDERER = Renderer.ONLINE_JPG
@@ -52,7 +53,7 @@ s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 
 # Create a DataCollector reading directly from an escript object.
 dc = DataCollector(source = Source.ESCRIPT)
-dc.setData(disp = u,stress = sigma_mises)
+dc.setData(disp = u, stress = sigma_mises)
 
 # Create a Velocity.
 v = Velocity(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST,
@@ -61,9 +62,10 @@ v = Velocity(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST,
 v.setScaleFactor(scale_factor = 0.3)
 
 # Create a Camera.
-c = Camera(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST)
+c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 c.isometricView()
 
-# Render the object.
-s.render(image_name = PYVISI_EXAMPLE_IMAGES_PATH + "heatedblock.jpg")
 
+# Render the object.
+s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH,\
+        "heatedblock.jpg"))

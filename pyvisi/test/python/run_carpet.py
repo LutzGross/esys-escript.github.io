@@ -3,6 +3,23 @@ from esys.pyvisi.constant import *
 import unittest, os
 from stat import ST_SIZE
 
+<<<<<<< .mine
+try:
+	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
+except KeyError:
+	PYVISI_WORKDIR='.'
+try:
+	PYVISI_TEST_DATA_ROOT=os.environ['PYVISI_TEST_DATA_ROOT']
+except KeyError:
+	PYVISI_TEST_DATA_ROOT='.'
+
+PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, "data_meshes")
+PYVISI_TEST_CARPET_REFERENCE_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, \
+		"data_reference_images", "carpet")
+PYVISI_TEST_CARPET_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
+		"data_sample_images", "carpet")
+
+=======
 try:
      PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']
 except KeyError:
@@ -14,26 +31,24 @@ except KeyError:
      
 PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,"data_meshes")
 PYVISI_TEST_CARPET_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,"data_sample_images","carpet")
+>>>>>>> .r1142
 MIN_IMAGE_SIZE = 100
 FILE_3D = "interior_3D.xml"
-
 X_SIZE = 400
 Y_SIZE = 400
-
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestCarpet:
 	def tearDown(self):
 		self.scene
 		self.data_collector
-		self.contour
 
 	def render(self, file):
 		self.scene.render(image_name = \
-				PYVISI_TEST_CARPET_IMAGES_PATH + file)
+				os.path.join(PYVISI_TEST_CARPET_IMAGES_PATH, file))
 
-		self.failUnless(os.stat(PYVISI_TEST_CARPET_IMAGES_PATH + \
-				file)[ST_SIZE] > MIN_IMAGE_SIZE)
+		self.failUnless(os.stat(os.path.join(PYVISI_TEST_CARPET_IMAGES_PATH,\
+				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestCarpetScalarWarp(unittest.TestCase, TestCarpet):
 	def setUp(self):
@@ -64,7 +79,11 @@ class TestCarpetVectorWarp(unittest.TestCase, TestCarpet):
 
 		self.data_collector = DataCollector(source = Source.XML)
 		self.data_collector.setFileName(file_name = \
+<<<<<<< .mine
+				os.path.join(PYVISI_TEST_MESHES_PATH,  FILE_3D))
+=======
 				os.path.join(PYVISI_TEST_MESHES_PATH, FILE_3D))
+>>>>>>> .r1142
 
 		self.carpet = Carpet(scene = self.scene,
 				data_collector = self.data_collector,
