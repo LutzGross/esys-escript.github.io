@@ -13,7 +13,7 @@ JPG_RENDERER = Renderer.ONLINE_JPG
 
 # generate domain:
 mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
-# define characteristic function of Gamma^D
+# define characteristic function of Gamma
 x = mydomain.getX()
 gammaD = whereZero(x[0])+whereZero(x[1])
 # define PDE and get its solution u

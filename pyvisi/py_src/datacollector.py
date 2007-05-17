@@ -129,7 +129,7 @@ class DataCollector:
 		"""
 
 		# Check whether the specified scalar is available in either point
-		# or cell data. If not available, program exits.
+		# or cell data. If not available, error is raised.
 
 		# NOTE: This check is similar to the check used in _getScalarRange 
 		# but this is used only when a scalar attribute has been specified.
@@ -162,7 +162,7 @@ class DataCollector:
 		"""
 
 		# Check whether the specified vector is available in either point
-		# or cell data. If not available, program exits.
+		# or cell data. If not available, error is raised.
 
 		# NOTE: This check is similar to the check used in _getVectorRange 
 		# but this is used only when a vector attribute has been specified.
@@ -195,7 +195,7 @@ class DataCollector:
 		"""
 
 		# Check whether the specified tensor is available in either point
-		# or cell data. If not available, program exits.
+		# or cell data. If not available, error is raised.
 
 		# NOTE: This check is similar to the check used in _getTensorRange 
 		# but this is used only when a tensor attribute has been specified.

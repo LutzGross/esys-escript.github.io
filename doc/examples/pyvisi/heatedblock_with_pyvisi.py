@@ -19,6 +19,7 @@ xc=[0.3,0.3,1.]
 beta=8.
 T_ref=0.
 T_0=1.
+
 #... generate domain ...
 mydomain = Brick(l0=1.,l1=1., l2=1.,n0=10, n1=10, n2=10)
 x=mydomain.getX()
@@ -27,6 +28,7 @@ T=T_0*exp(-beta*length(x-xc))
 #... open symmetric PDE ...
 mypde=LinearPDE(mydomain)
 mypde.setSymmetryOn()
+
 #... set coefficients ...
 C=Tensor4(0.,Function(mydomain))
 for i in range(mydomain.getDim()):
@@ -39,6 +41,7 @@ msk=whereZero(x[0])*[1.,0.,0.] \
    +whereZero(x[2])*[0.,0.,1.]
 sigma0=(lam+2./3.*mu)*alpha*(T-T_ref)*kronecker(mydomain)
 mypde.setValue(A=C,X=sigma0,q=msk)
+
 #... solve pde ...
 u=mypde.getSolution()
 #... calculate von-Misses
@@ -64,7 +67,6 @@ v.setScaleFactor(scale_factor = 0.3)
 # Create a Camera.
 c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 c.isometricView()
-
 
 # Render the object.
 s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH,\

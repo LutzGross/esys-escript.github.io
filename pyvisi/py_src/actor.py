@@ -66,8 +66,6 @@ class Actor3D:
 		# in order for the change of color to take effect.
 		self.__mapper.ScalarVisibilityOff()
 
-		# NOTE: Must be used after mapper.ScalarVisibilityOff()
-		# in order for the change of color to take effect.
 		self.__vtk_actor3D.GetProperty().SetColor(color) 
 
 	def setRepresentationToWireframe(self):

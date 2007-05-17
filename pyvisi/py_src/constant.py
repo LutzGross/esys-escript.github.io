@@ -27,7 +27,6 @@ class Color:
 	GREY   = [0.6602, 0.6602, 0.6602]
 	BROWN  = [0.5430, 0.2700, 0.0742]
 
-
 class Viewport:
 	"""
 	Constants that define the four viewports in a window.
@@ -46,7 +45,6 @@ class Viewport:
 	NORTH_EAST = 2
 	SOUTH_EAST = 3
 
-
 class Source:
 	"""
 	Constants that define the source type.
@@ -57,7 +55,6 @@ class Source:
 	
 	XML = "xml"
 	ESCRIPT = "escript"
-
 
 class Renderer:
 	"""
@@ -95,7 +92,6 @@ class Renderer:
 	DISPLAY_TIF = "display_tif"
 	DISPLAY_PS  = "display_ps"
 
-
 class Arrow:
 	"""
 	Constants that define the arrow type.
@@ -106,7 +102,6 @@ class Arrow:
 
 	TWO_D = "2d"
 	THREE_D = "3d"
-
 
 class ColorMode:
 	"""
@@ -119,7 +114,6 @@ class ColorMode:
 	VECTOR = "vector"
 	SCALAR = "scalar"
 
-
 class WarpMode:
 	"""
 	Constants that define the warp mode used to deform the scalar data.
@@ -130,7 +124,6 @@ class WarpMode:
 
 	VECTOR = "vector"
 	SCALAR = "scalar"
-
 
 class ImageFormat:
 	"""
@@ -148,7 +141,6 @@ class ImageFormat:
 	PNM = "pnm"
 	PNG = "png"
 	TIF = "tif"
-	
 
 class Lut:
 	"""
