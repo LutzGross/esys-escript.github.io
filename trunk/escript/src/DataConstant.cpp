@@ -278,7 +278,7 @@ DataConstant::dump(const std::string fileName) const
    #ifdef PASO_MPI
    throw DataException("Error - DataConstant:: dump is not implemented for MPI yet.")
    #endif
-   #ifdef USE_NETCD
+   #ifdef USE_NETCDF
    const NcDim* ncdims[DataArrayView::maxRank];
    NcVar* var;
    int rank = getPointDataView().getRank();

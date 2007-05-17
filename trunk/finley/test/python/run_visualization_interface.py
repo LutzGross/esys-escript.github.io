@@ -400,7 +400,7 @@ class Test_VTKFiles(Test_VisualizationInterface):
      dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"hex_contact_2D_order1_onFace.msh"))
      x=FunctionOnContactOne(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"hex_contact_2D_order1_onFace_FunctionOnContactOne_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
-     self.check_vtk("hex_contact_2D_order1_onFace_ReducedFunctionOnContactOne_Tensor.xml",reference)
+     self.check_vtk("hex_contact_2D_order1_onFace_FunctionOnContactOne_Tensor.xml",reference)
   def test_hex_contact_2D_order1_onFace_ReducedFunctionOnContactOne_Scalar_vtk(self):
 	reference="hex_2D_o1_contact_s.xml"
 	dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"hex_contact_2D_order1_onFace.msh"))
