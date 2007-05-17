@@ -17,6 +17,7 @@ omega=0.1
 eta=10.
 #... generate domain ...
 mydomain = Rectangle(l0=5.,l1=1.,n0=50, n1=10)
+
 #... open PDE and set coefficients ...
 mypde=LinearPDE(mydomain)
 mypde.setSymmetryOn()
@@ -40,7 +41,6 @@ Map(scene = s, data_collector = dc, viewport = Viewport.SOUTH_WEST,
 
 # Create a Camera.
 c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
-
 
 # Render the object.
 s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "helmholtz.jpg"))

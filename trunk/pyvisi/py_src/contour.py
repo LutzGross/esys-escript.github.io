@@ -406,7 +406,8 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 	
 	def _isModified(self):	
 		"""
-		Return whether the ContourOnPlaneClip or DataCollector has been modified.
+		Return whether the ContourOnPlaneClip or DataCollector has been 
+		modified.
 
 		@rtype: Boolean
 		@return: True or False

@@ -16,7 +16,6 @@ FIRST_FILE_NAME = "phi_talus_lava.0099.vtu"
 IMAGE_NAME = "seriesofreads"
 JPG_RENDERER = Renderer.ONLINE_JPG
 
-
 # Create a Scene.
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         y_size = Y_SIZE)
@@ -35,9 +34,7 @@ mosc1 = Contour(scene = s, data_collector = dc1,
         outline = True)
 mosc1.generateContours(0)
 
-# Create a second DataCollector reading from the same XML file. An initial 
-# file must always be assigned when the DataCollector is created, 
-# although the same file is read again in the for-loop.   
+# Create a second DataCollector reading from the same XML file. 
 dc2 = DataCollector(source = Source.XML)
 dc2.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
         FIRST_FILE_NAME))

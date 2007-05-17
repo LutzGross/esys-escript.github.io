@@ -24,6 +24,7 @@ tend=5.
 t=0
 h=0.1
 i=0
+
 #... generate domain ...
 mydomain = Rectangle(l0=0.05,l1=0.01,n0=250, n1=50)
 #... open PDE ...

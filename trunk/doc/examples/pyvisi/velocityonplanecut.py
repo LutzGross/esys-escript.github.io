@@ -13,7 +13,6 @@ FILE_3D = "interior_3D.xml"
 IMAGE_NAME = "velocity.jpg"
 JPG_RENDERER = Renderer.ONLINE_JPG
 
-
 # Create a Scene with four viewports
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         y_size = Y_SIZE)
