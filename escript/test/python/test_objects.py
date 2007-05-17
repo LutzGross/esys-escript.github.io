@@ -351,14 +351,8 @@ class Test_Dump(unittest.TestCase):
    arg4=numarray.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]], [[-4.8902, -4.714, 1.520, -1.931], [-3.8847, 4.3867, 1.894030, 2.432], [-1.2082, -0.8304, 2.2612, 4.6399]]], [[[-4.5922, -3.309, -0.8171, -0.7210], [2.8051, -4.93047, 0.08450, 4.3824], [0.43204, 2.1908, 4.512633, -1.8218]], [[2.2493, -4.190, -2.3893, -4.147], [-2.104, -4.635, -4.2767, -3.53151], [-2.351, -1.6614, 2.9385, 4.099]]], [[[1.710, 0.2235, -3.4917, 0.8713], [-0.2881, 4.6278, 3.603, -2.1211], [-0.565, 4.294, -2.210827, -0.37651]], [[0.6578, -2.869, -2.490, -4.789], [3.232, 2.483, 0.9531, 2.260], [-1.785, 0.42156, -1.8379, 4.212]]]])
 
    def _diffDataObjects(self,d_ref,filemame):
-       
-       if d_ref.isTagged() or d_ref.isExpanded(): return
-       print "dumped", filemame
-       for i in range(1000):
-          d_ref.dump(filemame)
-          # d=load(filemame, self.domain)
-	  pass
-       return
+       d_ref.dump(filemame)
+       d=load(filemame, self.domain)
        self.failUnless(not d.isEmpty(),"data in %s are empty."%filemame)
        self.failUnless(d_ref.getFunctionSpace() == d.getFunctionSpace(), "wrong function space in %s."%filemame)
        self.failUnless(d_ref.getRank() == d.getRank(), "different rank in %s. "%filemame)

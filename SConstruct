@@ -29,7 +29,7 @@ IS_WINDOWS_PLATFORM = (os.name== "nt")
 if IS_WINDOWS_PLATFORM:
    tools_prefix="C:\\Program Files\\"
 else:
-   tools_prefix="/usr/local/"
+   tools_prefix="/usr"
 
 #==============================================================================================     
 #    
@@ -69,52 +69,48 @@ opts = Options(options_file, ARGUMENTS)
 #
 #   check if UMFPACK is installed on the system:
 #
-umf_path_default=None
-umf_lib_path_default=None
-umf_libs_default=None
-if IS_WINDOWS_PLATFORM:
-   pass
+uf_root=None
+for i in [ 'UMFPACK', 'umfpack', 'ufsparse', 'UFSPARSE']:
+   if os.path.isdir(os.path.join(tools_prefix,'include',i)): 
+       uf_root=i
+       print i," is used form ",tools_prefix
+       break
+if not uf_root==None:
+   umf_path_default=os.path.join(tools_prefix,'include',uf_root)
+   umf_lib_path_default=os.path.join(tools_prefix,'lib')
+   umf_libs_default=['umfpack']
+   amd_path_default=os.path.join(tools_prefix,'include',uf_root)
+   amd_lib_path_default=os.path.join(tools_prefix,'lib')
+   amd_libs_default=['amd']
+   ufc_path_default=os.path.join(tools_prefix,'include',uf_root)
 else:
-   if os.path.isdir('/opt/UMFPACK/Include') and os.path.isdir('/opt/UMFPACK/Lib'):
-      umf_path_default='/opt/UMFPACK/Include'
-      umf_lib_path_default='/opt/UMFPACK/Lib'
-      umf_libs_default=['umfpack']
-
-amd_path_default=None
-amd_lib_path_default=None
-amd_libs_default=None
-if IS_WINDOWS_PLATFORM:
-   pass
-else:
-   if os.path.isdir('/opt/AMD/Include') and os.path.isdir('/opt/AMD/Lib'):
-      amd_path_default='/opt/AMD/Include'
-      amd_lib_path_default='/opt/AMD/Lib'
-      amd_libs_default=['amd']
-
-ufc_path_default=None
-if IS_WINDOWS_PLATFORM:
-   pass
-else:
-   if os.path.isdir('/opt/UFconfig'):
-        ufc_path_default='/opt/UFconfig'
+   umf_path_default=None
+   umf_lib_path_default=None
+   umf_libs_default=None
+   amd_path_default=None
+   amd_lib_path_default=None
+   amd_libs_default=None
+   ufc_path_default=None
+#
 #==========================================================================
 #
 #    python installation:
 #
 if IS_WINDOWS_PLATFORM:
-   python_path_default='C:\\Program Files\\python%s%s'%(sys.version_info[0],sys.version_info[1])+"\\include"
-   python_lib_path_default='C:\\Program Files\\python%s%s'%(sys.version_info[0],sys.version_info[1])+"\\libs"
+   python_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1]),"include")
+   python_lib_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1])+"libs")
    python_libs_default=["python%s%s"%(sys.version_info[0],sys.version_info[1])]
 else:
-   python_path_default='/usr/include/python%s.%s'%(sys.version_info[0],sys.version_info[1])
-   python_lib_path_default='/usr/lib'
+   python_path_default=os.path.join(tools_prefix,'include','python%s.%s'%(sys.version_info[0],sys.version_info[1]))
+   python_lib_path_default=os.path.join(tools_prefix,'lib')
    python_libs_default=["python%s.%s"%(sys.version_info[0],sys.version_info[1])]
+
 #==========================================================================
 #
 #    boost installation:
 #
 if IS_WINDOWS_PLATFORM:
-   boost_libs_path_default='C:\\Program Files\\boost\\lib\\'
+   boost_libs_path_default=os.path.join(tools_prefix,'boost','lib')
    boost_libs_default=None
    for i in os.listdir(boost_libs_path_default): 
       name=os.path.splitext(i)
@@ -123,28 +119,34 @@ if IS_WINDOWS_PLATFORM:
 	     boost_libs_default= [ name[0] ] 
 	  else:
 	     if not name[0].find("-gd-"): boost_libs_default=[ name[0] ]
-   boost_path_default='C:\\Program Files\\boost\\include\\boost-%s'%(boost_libs_default[0].split("-")[-1],)
+   boost_path_default=os.path.join(tools_prefix,'boost','include','boost-%s'%(boost_libs_default[0].split("-")[-1],))
 else:
-   boost_path_default='/usr/include'
-   boost_libs_path_default='/usr/lib'
+   boost_path_default=os.path.join(tools_prefix,'include')
+   boost_libs_path_default=os.path.join(tools_prefix,'lib')
    boost_libs_default=['boost_python']
 #==========================================================================
 #
 #    check if netCDF is installed on the system:
 #
-netCDF_path_default=None
-netCDF_lib_path_default=None
-netCDF_libs_default=None
-useNetCDF_default='no'
-netcdf_dir=os.path.join(tools_prefix,'netcdf')
-if os.path.isdir(os.path.join(netcdf_dir,'include')) and os.path.isdir(os.path.join(netcdf_dir,'lib')):
-     netCDF_path_default=os.path.join(netcdf_dir,'include')
-     netCDF_lib_path_default=os.path.join(netcdf_dir,'lib')
-     netCDF_libs_default=['netcdf_cpp',  'netcdf' ] 
-     if IS_WINDOWS_PLATFORM: 
+if IS_WINDOWS_PLATFORM:
+    netcdf_dir=os.path.join(tools_prefix,'netcdf')
+    netCDF_path_default=os.path.join(netcdf_dir,'include')
+    netCDF_lib_path_default=os.path.join(netcdf_dir,'lib')
+else:
+    netCDF_path_default=os.path.join(tools_prefix,'include','netcdf-3')
+    netCDF_lib_path_default=os.path.join(tools_prefix,'lib','netcdf-3')
+
+if os.path.isdir(netCDF_path_default) and os.path.isdir(netCDF_lib_path_default):
+     useNetCDF_default='yes'
+     netCDF_libs_default=[ 'netcdf_c++', 'netcdf' ]
+else:
+     useNetCDF_default='no'
+     netCDF_path_default=None
+     netCDF_lib_path_default=None
+     netCDF_libs_default=None
+
+if IS_WINDOWS_PLATFORM: 
         useNetCDF_default='no' # be default netcdf is not supported on windows. 
-     else:
-        useNetCDF_default='yes'
 #==========================================================================
 #
 #    compile:
