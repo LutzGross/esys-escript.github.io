@@ -349,7 +349,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClip))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClip))
-
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMap3DSecondOrder))
 	unittest.TextTestRunner(verbosity=2).run(suite)
 
