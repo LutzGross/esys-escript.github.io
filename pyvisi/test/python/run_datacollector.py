@@ -128,11 +128,6 @@ class TestSourceXml3DCellData(unittest.TestCase, TestSourceXml):
 		self.checkTensorFieldCellData(TENSOR_FIELD_CELL_DATA)
 
 
-class TestSourceEscript(unittest.TestCase):
-	def setUp(self):
-		self.data_collector = DataCollector(source = Source.ESCRIPT)
-	
-
 ###############################################################################
 
 

@@ -41,8 +41,8 @@ class TestMapWithLazyEvaluation:
 		self.failUnless(os.stat(os.path.join(PYVISI_TEST_MAP_IMAGES_PATH, \
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
-class TestMap(unittest.TestCase, TestMapWithLazyEvaluation):
-	def testMap(self):
+class TestMapLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def testMapLazy(self):
 
 		# Create a scene with four viewports.
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 4, x_size = X_SIZE, 
@@ -81,8 +81,8 @@ class TestMap(unittest.TestCase, TestMapWithLazyEvaluation):
 	
 		self.render("TestMapWithLazyEvaluation.jpg")
 
-class TestMapOnPlaneCut(unittest.TestCase, TestMapWithLazyEvaluation):
-	def testMapOnPlaneCut(self):
+class TestMapOnPlaneCutLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def testMapOnPlaneCutLazy(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 4, x_size = X_SIZE, 
 				y_size = Y_SIZE)
 		self.scene = s
@@ -121,8 +121,8 @@ class TestMapOnPlaneCut(unittest.TestCase, TestMapWithLazyEvaluation):
 		self.render("TestMapOnPlaneCutWithLazyEvaluation.jpg")
 
 
-class TestMapOnPlaneClip(unittest.TestCase, TestMapWithLazyEvaluation):
-	def testMapOnPlaneClip(self):
+class TestMapOnPlaneClipLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def testMapOnPlaneClipLazy(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)
 		self.scene = s
@@ -155,8 +155,8 @@ class TestMapOnPlaneClip(unittest.TestCase, TestMapWithLazyEvaluation):
 		self.render("TestMapOnPlaneClipWithLazyEvaluation.jpg")
 
 
-class TestMapOnScalarClip(unittest.TestCase, TestMapWithLazyEvaluation):
-	def testMapOnScalarClip(self):
+class TestMapOnScalarClipLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def testMapOnScalarClipLazy(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)
 		self.scene = s
@@ -177,8 +177,8 @@ class TestMapOnScalarClip(unittest.TestCase, TestMapWithLazyEvaluation):
 ##############################################################################
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMap))
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneCut))
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClip))
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClip))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapLazy))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneCutLazy))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClipLazy))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipLazy))
 	unittest.TextTestRunner(verbosity=2).run(suite)

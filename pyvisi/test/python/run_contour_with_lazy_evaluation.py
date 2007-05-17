@@ -36,8 +36,8 @@ class TestContourWithLazyEvaluation:
 		self.failUnless(os.stat(os.path.join(PYVISI_TEST_CONTOUR_IMAGES_PATH, \
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
-class TestContour(unittest.TestCase, TestContourWithLazyEvaluation):
-	def testContour(self):
+class TestContourGenerate(unittest.TestCase, TestContourWithLazyEvaluation):
+	def testContourGenerate(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 					y_size = Y_SIZE)
 		self.scene = s
@@ -108,7 +108,7 @@ class TestContourOnPlaneClip(unittest.TestCase, TestContourWithLazyEvaluation):
 
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestContour))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestContourGenerate))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestContourOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestContourOnPlaneClip))
 	unittest.TextTestRunner(verbosity=2).run(suite)

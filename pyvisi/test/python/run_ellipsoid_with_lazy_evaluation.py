@@ -37,8 +37,8 @@ class TestEllipsoidWithLazyEvaluation:
 		self.failUnless(os.stat(os.path.join(PYVISI_TEST_ELLIPSOID_IMAGES_PATH,\
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
-class TestEllipsoid(unittest.TestCase, TestEllipsoidWithLazyEvaluation):
-	def testEllipsoid(self):
+class TestEllipsoidScaleResolution(unittest.TestCase, TestEllipsoidWithLazyEvaluation):
+	def testEllipsoidScaleResolution(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         		y_size = Y_SIZE)
 		self.scene = s
@@ -115,7 +115,7 @@ class TestEllipsoidOnPlaneClip(unittest.TestCase, TestEllipsoidWithLazyEvaluatio
 
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEllipsoid))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEllipsoidScaleResolution))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEllipsoidOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEllipsoidOnPlaneClip))
 	unittest.TextTestRunner(verbosity=2).run(suite)
