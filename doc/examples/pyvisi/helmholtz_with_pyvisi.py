@@ -26,7 +26,6 @@ mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
                d=eta,y=kappa*n[0]+eta*x[0])
 #... calculate error of the PDE solution ...
 u=mypde.getSolution()
-print "error is ",Lsup(u-x[0])
  
 # Create a Scene.
 s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
