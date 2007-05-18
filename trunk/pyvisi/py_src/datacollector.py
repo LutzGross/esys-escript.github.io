@@ -13,7 +13,7 @@ except ImportError:
 class DataCollector:
 	"""
 	Class that defines a data collector. A data collector is used to read 
-	data from an XML file or from an escript object directly. Writing XML 
+	data from a XML file or from an escript object directly. Writing XML 
 	files are expensive, but this approach has the advantage given that the 
 	results can be analyzed easily after the simulation has completed.   
 

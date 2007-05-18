@@ -37,8 +37,9 @@ class ImageReslice:
 
 	def setSize(self, size):
 		"""
-		Set the size of the image, between 0 and 2. Size 1 (one) displays the 
-		image in its original size (which is the default).  
+		Set the size of the image (logo in particular), between 0 and 2. 
+		Size 1 (one) displays the image in its original size 
+		(which is the default).  
 
 		@type size: Number
 		@param size: Size of the static image

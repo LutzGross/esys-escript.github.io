@@ -12,8 +12,9 @@ from constant import Viewport
 # to their public methods from the driver.
 class Logo(ImageMapper, ImageReslice, Actor2D):
 	"""
-	Class that displays a static image in particular a logo 
-	(i.e. company symbol) and has NO interaction capability. 
+	Class that displays a static image, in particular a logo 
+	(i.e. company symbol) and has NO interaction capability. The position and
+	size of the logo can be specified.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
