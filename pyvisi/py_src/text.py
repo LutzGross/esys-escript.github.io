@@ -11,7 +11,7 @@ from constant import Viewport, Color
 class Text2D(Actor2D):
 	"""
 	Class that defines a 2D text actor. A two-dimensional text is used to
-	annotate the rendered object (i.e. adding titles, authors and labels).
+	annotate the rendered object (i.e. inserting titles, authors and labels).
 	"""
 
 	def __init__(self, scene, text, viewport = Viewport.SOUTH_WEST):
