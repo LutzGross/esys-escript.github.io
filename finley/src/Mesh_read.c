@@ -42,6 +42,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 #ifdef PASO_MPI
   /* TODO */
   Finley_setError(SYSTEM_ERROR,"Finley_Mesh_read: MPI is not suporrted yet.");`
+  return NULL;
 #endif
 
   /* get file handle */
@@ -190,11 +191,21 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
   /*   resolve id's : */
 
-  Finley_Mesh_resolveNodeIds(mesh_p);
+  if (Finley_noError()) {
+     Finley_Mesh_resolveNodeIds(mesh_p);
+  }
 
   /* rearrange elements: */
 
-  Finley_Mesh_prepare(mesh_p);
+  if (Finley_noError()) {
+     Finley_Mesh_prepare(mesh_p);
+  }
+
+  /* optimize node labeling*/
+
+  if (Finley_noError()) {
+      if (optimize_labeling) Finley_Mesh_optimizeNodeLabeling(mesh_p);
+  }
 
   /* that's it */
   #ifdef Finley_TRACE
