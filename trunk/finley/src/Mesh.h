@@ -156,6 +156,7 @@ void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, cons
 void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p,const char* name, index_t tag_key);
 index_t Finley_Mesh_getTag(Finley_Mesh *mesh_p,const char* name);
 bool_t Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p,const char* name);
+void Finley_Mesh_optimizeNodeLabeling(Finley_Mesh* mesh_p);
 
 
 

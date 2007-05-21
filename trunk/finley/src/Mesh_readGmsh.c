@@ -51,7 +51,6 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
     sprintf(error_msg,"reading GMSH with MPI is not supported yet.");
     Finley_setError(IO_ERROR,error_msg);
     return NULL;
-
 #else
   /* allocate mesh */
 
@@ -258,6 +257,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                  final_face_element_type=Tri3;
               }
            }
+printf("ELEMENTS READ\n");
            mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order, mesh_p->reduced_order);
            mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order, mesh_p->reduced_order);
            mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order, mesh_p->reduced_order);
@@ -301,6 +301,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
            }
          }
       }
+printf("ELEMENTS reordered\n");
       /* and clean up */
       TMPMEMFREE(id);
       TMPMEMFREE(tag);
@@ -323,15 +324,19 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 
   /* close file */
   fclose(fileHandle_p);
-  /* clean up */
-  if (! Finley_noError()) {
-     Finley_Mesh_dealloc(mesh_p);
-     return NULL;
-  }
   /*   resolve id's : */
-  Finley_Mesh_resolveNodeIds(mesh_p);
+  if (Finley_noError()) {
+      Finley_Mesh_resolveNodeIds(mesh_p);
+  }
   /* rearrange elements: */
-  Finley_Mesh_prepare(mesh_p);
+  if (Finley_noError()) {
+     Finley_Mesh_prepare(mesh_p);
+  }
+
+  /* optimize node labeling*/
+  if (Finley_noError()) {
+      if (optimize_labeling) Finley_Mesh_optimizeNodeLabeling(mesh_p);
+  }
   /* that's it */
   #ifdef Finley_TRACE
   printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
@@ -341,6 +346,8 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
        if (  ! Finley_Mesh_isPrepared(mesh_p)) {
           Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
        }
+  } else {
+     Finley_Mesh_dealloc(mesh_p);
   }
   return mesh_p;
 }
