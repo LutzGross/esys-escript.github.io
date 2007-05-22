@@ -27,9 +27,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestStreamLineWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_STREAMLINE_IMAGES_PATH, file))
@@ -39,6 +36,9 @@ class TestStreamLineWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestStreamLine(unittest.TestCase, TestStreamLineWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testStreamLine(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)

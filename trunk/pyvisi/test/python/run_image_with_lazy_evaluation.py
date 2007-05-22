@@ -27,9 +27,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestImageWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_IMAGE_IMAGES_PATH, file))
@@ -38,6 +35,9 @@ class TestImageWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestImage(unittest.TestCase, TestImageWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testImage(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)

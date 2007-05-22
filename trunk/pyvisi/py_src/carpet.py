@@ -54,7 +54,6 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__warp_mode = warp_mode
@@ -88,7 +87,7 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Carpet -----
 
@@ -117,7 +116,7 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -129,9 +128,12 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the carpet.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):

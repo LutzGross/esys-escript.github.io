@@ -26,9 +26,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestLogoWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_LOGO_IMAGES_PATH, file))
@@ -37,6 +34,9 @@ class TestLogoWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestLogo(unittest.TestCase, TestLogoWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testLogo(self):
 
 		# Create a Scene.

@@ -24,9 +24,6 @@ VECTOR_FIELD_CELL_DATA = "velocity_cell"
 TENSOR_FIELD_CELL_DATA = "stress_cell"
 
 class TestSourceXml:
-	def tearDown(self):
-		del self.data_collector
-
 	def setFileName(self, file):
 		self.data_collector.setFileName(file_name = \
 				os.path.join(PYVISI_TEST_MESHES_PATH, file))
@@ -64,6 +61,9 @@ class TestSourceXml2DPointData(unittest.TestCase, TestSourceXml):
 		self.data_collector = DataCollector(source = Source.XML)
 		self.setFileName(FILE_2D)
 
+	def tearDown(self):
+		del self.data_collector
+
 	def testSetActiveScalar(self):
 		self.setActiveScalar(SCALAR_FIELD_POINT_DATA)
 		self.checkScalarFieldPointData(SCALAR_FIELD_POINT_DATA)
@@ -80,6 +80,9 @@ class TestSourceXml2DCellData(unittest.TestCase, TestSourceXml):
 	def setUp(self):
 		self.data_collector = DataCollector(source = Source.XML)
 		self.setFileName(FILE_2D)
+
+	def tearDown(self):
+		del self.data_collector
 
 	def testSetActiveScalar(self):
 		self.setActiveScalar(SCALAR_FIELD_CELL_DATA)
@@ -98,6 +101,9 @@ class TestSourceXml3DPointData(unittest.TestCase, TestSourceXml):
 		self.data_collector = DataCollector(source = Source.XML)
 		self.setFileName(FILE_3D)
 
+	def tearDown(self):
+		del self.data_collector
+
 	def testSetActiveScalar(self):
 		self.setActiveScalar(SCALAR_FIELD_POINT_DATA)
 		self.checkScalarFieldPointData(SCALAR_FIELD_POINT_DATA)
@@ -114,6 +120,9 @@ class TestSourceXml3DCellData(unittest.TestCase, TestSourceXml):
 	def setUp(self):
 		self.data_collector = DataCollector(source = Source.XML)
 		self.setFileName(FILE_3D)
+
+	def tearDown(self):
+		del self.data_collector
 
 	def testSetActiveScalar(self):
 		self.setActiveScalar(SCALAR_FIELD_CELL_DATA)

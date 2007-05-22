@@ -26,6 +26,9 @@ sl1 = StreamLine(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.SCALAR, 
         lut = Lut.COLOR, cell_to_point = False, outline = True)
 sl1.setTubeRadius(radius = 0.02)
+sl1.setTubeNumberOfSides(3)
+sl1.setTubeRadiusToVaryByVector()
+sl1.setTubeRadiusToVaryByScalar()
 
 # Create a Camera.
 c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)

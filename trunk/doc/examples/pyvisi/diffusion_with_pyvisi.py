@@ -44,8 +44,8 @@ s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 dc = DataCollector(source = Source.ESCRIPT)
 
 # Create a Map.
-m = Map(scene = s, data_collector = dc, 
-        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+m = Map(scene = s, data_collector = dc, \
+        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, \
         cell_to_point = False, outline = True)
 
 # Create a Camera.
@@ -61,6 +61,6 @@ while t<0.4:
       dc.setData(temp = T)
       
       # Render the object.
-      s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH,  
+      s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, \
               "diffusion%02d.jpg") % i)
 

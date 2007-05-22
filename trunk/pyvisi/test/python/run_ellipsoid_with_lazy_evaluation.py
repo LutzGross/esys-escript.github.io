@@ -27,9 +27,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestEllipsoidWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_ELLIPSOID_IMAGES_PATH, file))
@@ -38,6 +35,9 @@ class TestEllipsoidWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestEllipsoidScaleResolution(unittest.TestCase, TestEllipsoidWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testEllipsoidScaleResolution(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         		y_size = Y_SIZE)
@@ -61,6 +61,9 @@ class TestEllipsoidScaleResolution(unittest.TestCase, TestEllipsoidWithLazyEvalu
 		self.render("TestEllipsoidWithLazyEvaluation.jpg")
 
 class TestEllipsoidOnPlaneCut(unittest.TestCase, TestEllipsoidWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testEllipsoidOnPlaneCut(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)
@@ -85,6 +88,9 @@ class TestEllipsoidOnPlaneCut(unittest.TestCase, TestEllipsoidWithLazyEvaluation
 		self.render("TestEllipsoidOnPlaneCutWithLazyEvaluation.jpg")
 
 class TestEllipsoidOnPlaneClip(unittest.TestCase, TestEllipsoidWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testEllipsoidOnPlaneClip(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)

@@ -26,9 +26,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestContourWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_CONTOUR_IMAGES_PATH, file))
@@ -37,6 +34,9 @@ class TestContourWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestContourGenerate(unittest.TestCase, TestContourWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testContourGenerate(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 					y_size = Y_SIZE)
@@ -58,6 +58,9 @@ class TestContourGenerate(unittest.TestCase, TestContourWithLazyEvaluation):
 
 
 class TestContourOnPlaneCut(unittest.TestCase, TestContourWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testContourOnPlaneCut(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)
@@ -80,6 +83,9 @@ class TestContourOnPlaneCut(unittest.TestCase, TestContourWithLazyEvaluation):
 		self.render("TestContourOnPlaneCutWithLazyEvaluation.jpg")
 
 class TestContourOnPlaneClip(unittest.TestCase, TestContourWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testContourOnPlaneClip(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)

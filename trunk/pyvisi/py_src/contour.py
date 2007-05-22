@@ -49,7 +49,6 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -78,7 +77,7 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Contour -----
 
@@ -104,7 +103,7 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 				lookup_table._getLookupTable())	
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 	
 	def _isModified(self):	
 		"""
@@ -116,9 +115,12 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the contour.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -191,7 +193,6 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -224,7 +225,7 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Contour on a cut plane -----
 
@@ -252,7 +253,7 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 	
 	def _isModified(self):	
 		"""
@@ -264,9 +265,12 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the contour cut using a plane.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -338,7 +342,6 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -371,7 +374,7 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Contour on a clipped plane -----
 
@@ -402,7 +405,7 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 	
 	def _isModified(self):	
 		"""
@@ -415,9 +418,12 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the contour clip using a plane.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):

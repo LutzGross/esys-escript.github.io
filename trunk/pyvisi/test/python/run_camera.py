@@ -1,6 +1,6 @@
 from esys.pyvisi import DataCollector, Scene, Camera, GlobalPosition, Map
 from esys.pyvisi.constant import *
-import unittest, os
+import unittest, os, gc
 from stat import ST_SIZE
 
 try:
@@ -26,12 +26,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestCamera:
-	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.map
-		self.camera
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_CAMERA_IMAGES_PATH, file))
@@ -55,6 +49,12 @@ class TestCamera2D(unittest.TestCase, TestCamera):
 				cell_to_point = False, outline = True)
 
 		self.camera = Camera(scene = self.scene, viewport = Viewport.SOUTH_WEST)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+		del self.camera
 
 	def test2D(self):
 		self.camera.azimuth(20)
@@ -80,6 +80,12 @@ class TestCamera3D(unittest.TestCase, TestCamera):
 
 		self.camera = Camera(scene = self.scene,
 				viewport = Viewport.SOUTH_WEST)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+		del self.camera
 
 	def test3D(self):
 		self.camera.setFocalPoint(GlobalPosition(1, 1, 0.3))

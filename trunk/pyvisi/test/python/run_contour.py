@@ -40,9 +40,9 @@ class TestContour(unittest.TestCase):
 				cell_to_point = False, outline = True)
 
 	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.contour
+		del self.scene
+		del self.data_collector
+		del self.contour
 
 	def render(self, file):
 		self.scene.render(image_name = \

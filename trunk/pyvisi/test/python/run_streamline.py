@@ -26,11 +26,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestStreamLine:
-	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.streamline
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_STREAMLINE_IMAGES_PATH, file))
@@ -54,10 +49,15 @@ class TestStreamLinePointSource(unittest.TestCase, TestStreamLine):
 				viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR,
 				lut = Lut.COLOR, cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.streamline
+
 	def testPointSource(self):
-		self.streamline.setPointSourceRadius(0.3)
+		self.streamline.setPointSourceRadius(0.1)
 		self.streamline.setPointSourceCenter(GlobalPosition(1.3, 1.3, 0.4))
-		self.streamline.setPointSourceNumberOfPoints(5)
+		self.streamline.setPointSourceNumberOfPoints(2)
 		self.render("TestStreamLinePointSource.jpg")
 
 class TestStreamLineModule(unittest.TestCase, TestStreamLine):	
@@ -74,6 +74,11 @@ class TestStreamLineModule(unittest.TestCase, TestStreamLine):
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR,
 				lut = Lut.COLOR, cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.streamline
 
 	def testStreamLineModule(self):
 		self.streamline.setMaximumPropagationTime(20)
@@ -94,16 +99,21 @@ class TestStreamLineTube(unittest.TestCase, TestStreamLine):
 
 		self.streamline = StreamLine(scene = self.scene,
 				data_collector = self.data_collector,
-				viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR,
+				viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.SCALAR,
 				lut = Lut.COLOR, cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.streamline
+
 	def testSetTubeRadiusToVaryByVector(self):
-		self.streamline.setTubeRadius(0.05)
-		self.streamline.setTubeNumberOfSides(3)
+		#self.streamline.setTubeRadius(0.005)
+		#self.streamline.setTubeNumberOfSides(3)
 		self.streamline.setTubeRadiusToVaryByVector()
 		self.render("TestStreamLineTube_testSetTubeRadiusToVaryByVector.jpg")
 
-	def testSetTubeRadiusToVaryBeScalar(self):
+	def testSetTubeRadiusToVaryByScalar(self):
 		self.streamline.setTubeRadiusToVaryByScalar()
 		self.render("TestStreamLineTube_testSetTubeRadiusToVaryByScalar.jpg")
 		

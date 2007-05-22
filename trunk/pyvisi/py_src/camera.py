@@ -26,7 +26,6 @@ class Camera:
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
-		self.__scene = scene
 		self.__viewport = viewport
 		self.__vtk_camera = vtk.vtkCamera()
 
@@ -35,16 +34,19 @@ class Camera:
 		# Keeps track whether the modification to the camera was due to the 
 		# instantiation. If it is, then __setupCamera() method is called.
 		self.__initialization = True
-		self.__scene._addVisualizationModules(self)
+		scene._addVisualizationModules(self)
 
-	def __setupCamera(self):
+	def __setupCamera(self, scene):
 		"""
 		Setup the camera.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		# Assign the camera to the appropriate renderer
-		self.__scene._setActiveCamera(self.__viewport, self.__vtk_camera)
-		self.__resetCamera()	
+		scene._setActiveCamera(self.__viewport, self.__vtk_camera)
+		self.__resetCamera(scene)	
 
 	def setFocalPoint(self, position):
 		"""
@@ -184,21 +186,27 @@ class Camera:
 		self.__vtk_camera.Dolly(distance)
 		self.__modified = True 
 
-	def __resetCameraClippingRange(self):
+	def __resetCameraClippingRange(self, scene):
 		"""
 		Reset the camera clipping range based on the bounds of the visible 
 		actors. This ensures the rendered object is not cut-off.
 		Needs to be called whenever the camera's settings are modified.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
-		self.__scene._getRenderer()[self.__viewport].ResetCameraClippingRange() 
+		scene._getRenderer()[self.__viewport].ResetCameraClippingRange() 
 
-	def __resetCamera(self):
+	def __resetCamera(self, scene):
 		"""
 		Repositions the camera to view the center point of the actors.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
-		self.__scene._getRenderer()[self.__viewport].ResetCamera() 
+		scene._getRenderer()[self.__viewport].ResetCamera() 
 
 	def _isModified(self):
 		"""
@@ -213,18 +221,21 @@ class Camera:
 		else:
 			return False
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the camera.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if(self._isModified() == True):
 			# Will only be true once only when the camera is instantiated.
 			if(self.__initialization == True): 
-				self.__setupCamera()
+				self.__setupCamera(scene)
 				self.__initialization == False
 
-			self.__resetCameraClippingRange()
+			self.__resetCameraClippingRange(scene)
 			self.__isModified = False
 			
 

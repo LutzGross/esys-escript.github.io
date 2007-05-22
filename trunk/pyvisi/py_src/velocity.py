@@ -59,7 +59,6 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__arrow = arrow
 		self.__color_mode = color_mode
@@ -91,7 +90,7 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Velocity -----
 
@@ -125,7 +124,7 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -137,9 +136,12 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the velocity.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -213,7 +215,6 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__arrow = arrow
 		self.__color_mode = color_mode
@@ -249,7 +250,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Velocity on a cut plane -----
 
@@ -288,7 +289,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 	
 	def _isModified(self):	
 		"""
@@ -301,9 +302,12 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
-		Render the velocity cut using a plane..
+		Render the velocity cut using a plane.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -372,7 +376,6 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__arrow = arrow
 		self.__color_mode = color_mode
@@ -408,7 +411,7 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Velocity on a clipped plane -----
 
@@ -452,7 +455,7 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 	
 	def _isModified(self):	
 		"""
@@ -465,9 +468,12 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the velocity clip using a plane..
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):

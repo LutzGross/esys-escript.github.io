@@ -39,7 +39,6 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 		@param viewport: Viewport in which the image is to be displayed
 		"""
 
-		self.__scene = scene
 		self.__image_reader = image_reader
 		self.__viewport = viewport
 
@@ -63,7 +62,7 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 		self._setupActor3D(self._getDataSetMapper())
 
 		self._setTexture(self._getTexture())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):
 		"""
@@ -78,9 +77,12 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 		else:
 			return False
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the image.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which the image is to be displayed
 		"""
 
 		if(self._isModified() == True):

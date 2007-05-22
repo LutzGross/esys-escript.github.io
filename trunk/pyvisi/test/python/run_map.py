@@ -31,11 +31,6 @@ VECTOR_FIELD_CELL_DATA = "velocity_cell"
 TENSOR_FIELD_CELL_DATA = "stress_cell"
 
 class TestMap:
-	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.map
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_MAP_IMAGES_PATH, file))
@@ -57,6 +52,11 @@ class TestMapOneViewport(unittest.TestCase, TestMap):
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
 
 	def testOneViewport(self):
 		self.render("TestMapOneViewport.jpg")	
@@ -92,12 +92,12 @@ class TestMapFourViewports(unittest.TestCase, TestMap):
 				cell_to_point = False, outline = True)
 
 	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.map1
-		self.map2
-		self.map3
-		self.map4
+		del self.scene
+		del self.data_collector
+		del self.map1
+		del self.map2
+		del self.map3
+		del self.map4
 
 	def testSetOpacity(self):
 		self.map1.setOpacity(0.2)
@@ -132,6 +132,11 @@ class TestMap2DCellDataWithCellToPointConversion(unittest.TestCase, TestMap):
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = True, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+
 	def test2DCellDataWithCellToPointConversion(self):
 		self.render("TestMap2DCellDataWithCellToPointConversion.jpg")
 
@@ -151,6 +156,11 @@ class TestMap2DCellDataWithoutCellToPointConversion(unittest.TestCase, TestMap):
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+
 	def test2DCellDataWithoutCellToPointConversion(self):
 		self.render("TestMap2DCellDataWithoutCellToPointConversion.jpg")
 
@@ -168,6 +178,11 @@ class TestMap3DPointData(unittest.TestCase, TestMap):
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
 
 	def test3DPointData(self):
 		self.render("TestMap3DPointData.jpg")
@@ -188,6 +203,11 @@ class TestMap3DCellDataWithCellToPointConversion(unittest.TestCase, TestMap):
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = True, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+
 	def test3DCellDataWithCellToPointConversion(self):
 		self.render("TestMap3DCellDataWithCellToPointConversion.jpg")
 
@@ -207,6 +227,11 @@ class TestMap3DCellDataWithoutCellToPointConversion(unittest.TestCase, TestMap):
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+
 	def test3DCellDataWithoutCellToPointConversion(self):
 		self.render("TestMap3DCellDataWithoutCellToPointConversion.jpg")
 
@@ -224,6 +249,11 @@ class TestMap3DSecondOrder(unittest.TestCase, TestMap):
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
 
 	def test3DSecondOrder(self):
 		self.render("TestMap3DSecondOrder.jpg")
@@ -244,6 +274,11 @@ class TestMapGreyScaleLut(unittest.TestCase, TestMap):
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, lut = Lut.GREY_SCALE,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
 
 	def testGreyScaleLut(self):
 		self.render("TestMapGreyScaleLut.jpg")
@@ -268,6 +303,11 @@ class TestMapOnPlaneCut(unittest.TestCase, TestMap):
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
 
 	def testTranslate(self):
 		self.map.setPlaneToXZ()
@@ -301,6 +341,11 @@ class TestMapOnPlaneClip(unittest.TestCase, TestMap):
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+
 	def testSetInsideOutOff(self):
 		self.map.setPlaneToYZ()
 		self.map.rotateZ(20)
@@ -327,6 +372,11 @@ class TestMapOnScalarClip(unittest.TestCase, TestMap):
 				data_collector = self.data_collector,
 				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
 
 	def testSetClipValue(self):
 		self.map.setClipValue(0)

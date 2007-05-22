@@ -47,7 +47,6 @@ class Map(DataSetMapper, Actor3D):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -75,7 +74,7 @@ class Map(DataSetMapper, Actor3D):
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Map -----
 
@@ -100,7 +99,7 @@ class Map(DataSetMapper, Actor3D):
 					lookup_table._getLookupTable())	
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 	
 	def _isModified(self):	
 		"""
@@ -112,9 +111,12 @@ class Map(DataSetMapper, Actor3D):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the surface map.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -169,7 +171,6 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -201,7 +202,7 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Map on a plane -----
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
@@ -230,7 +231,7 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -242,9 +243,12 @@ class MapOnPlaneCut(DataSetMapper, Actor3D, Transform, Plane, Cutter):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the surface map cut using a plane.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -296,7 +300,6 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -328,7 +331,7 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Map on a clipped plane -----
 
@@ -356,7 +359,7 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -368,9 +371,12 @@ class MapOnPlaneClip(DataSetMapper, Actor3D, Transform, Plane, Clipper):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the surface map clip using a plane.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -420,7 +426,6 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -450,7 +455,7 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Map clipped using a scalar value -----
 
@@ -478,7 +483,7 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -490,9 +495,12 @@ class MapOnScalarClip(DataSetMapper, Actor3D, Clipper):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the surface map clip using scalar data.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):

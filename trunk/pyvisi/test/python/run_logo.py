@@ -26,11 +26,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestLogo:
-	def tearDown(self):
-		self.scene
-		self.image_reader
-		self.logo
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_LOGO_IMAGES_PATH, file))
@@ -49,6 +44,11 @@ class TestAccessLogo(unittest.TestCase, TestLogo):
 				LOGO))
 
 		self.logo = Logo(scene = self.scene, image_reader = self.image_reader)
+
+	def tearDown(self):
+		del self.scene
+		del self.image_reader
+		del self.logo
 
 	def testImage(self):
 		self.logo.setPosition(position = LocalPosition(20,50))

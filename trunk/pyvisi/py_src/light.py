@@ -24,7 +24,6 @@ class Light:
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
-		self.__scene = scene
 		self.__viewport = viewport
 		self.__vtk_light = vtk.vtkLight()
 
@@ -33,14 +32,17 @@ class Light:
 		# Keeps track whether the modification to the light was due to the
 		# instantiation. If it is, then __setupLight() method is called.
 		self.__initialization = True
-		self.__scene._addVisualizationModules(self)
+		scene._addVisualizationModules(self)
 
-	def __setupLight(self):
+	def __setupLight(self, scene):
 		"""
 		Set up the light and associate it with the renderer.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
-		self.__scene._addLight(self.__viewport, self.__vtk_light)
+		scene._addLight(self.__viewport, self.__vtk_light)
 
 	def setColor(self, color):
 		"""
@@ -118,15 +120,18 @@ class Light:
 		else:
 			return False
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the light.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if(self._isModified() == True):
 			# Will only be true once only when the light is instantiated.
 			if(self.__initialization == True): 
-				self.__setupLight()
+				self.__setupLight(scene)
 				self.__initialization == False
 
 			self.__isModified = False

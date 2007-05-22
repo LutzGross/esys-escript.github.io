@@ -25,10 +25,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestCarpet:
-	def tearDown(self):
-		self.scene
-		self.data_collector
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_CARPET_IMAGES_PATH, file))
@@ -51,6 +47,10 @@ class TestCarpetScalarWarp(unittest.TestCase, TestCarpet):
 				viewport = Viewport.SOUTH_WEST, warp_mode = WarpMode.SCALAR,
 				lut = Lut.COLOR, cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.carpet
 
 	def testScalarWarp(self):
 		self.carpet.setScaleFactor(1)
@@ -72,6 +72,10 @@ class TestCarpetVectorWarp(unittest.TestCase, TestCarpet):
 				viewport = Viewport.SOUTH_WEST, warp_mode = WarpMode.VECTOR,
 				lut = Lut.COLOR, cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.carpet
 
 	def testVectorWarp(self):
 		self.carpet.setScaleFactor(1)
