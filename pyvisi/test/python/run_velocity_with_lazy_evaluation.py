@@ -32,9 +32,6 @@ VECTOR_FIELD_POINT_DATA_1 = "vector"
 VECTOR_FIELD_POINT_DATA_2 = "vector2"
 
 class TestVelocityWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_VELOCITY_IMAGES_PATH, file))
@@ -43,6 +40,9 @@ class TestVelocityWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestVelocity(unittest.TestCase, TestVelocityWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testVelocity(self):
 
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 4, x_size = X_SIZE, 
@@ -107,6 +107,9 @@ class TestVelocity(unittest.TestCase, TestVelocityWithLazyEvaluation):
 
 
 class TestVelocityOnPlaneCut(unittest.TestCase, TestVelocityWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testVelocityOnPlaneCut(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)
@@ -128,6 +131,9 @@ class TestVelocityOnPlaneCut(unittest.TestCase, TestVelocityWithLazyEvaluation):
 
 
 class TestVelocityOnPlaneClip(unittest.TestCase, TestVelocityWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testVelocityOnPlaneClip(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)

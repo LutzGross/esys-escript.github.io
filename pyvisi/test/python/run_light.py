@@ -26,12 +26,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestLight:
-	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.map
-		self.light
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_LIGHT_IMAGES_PATH, file))
@@ -57,6 +51,12 @@ class TestLight2D(unittest.TestCase, TestLight):
 		self.light = Light(scene = self.scene,
 				viewport = Viewport.SOUTH_WEST)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+		del self.light
+
 	def test2D(self):
 		self.light.setColor(Color.BLUE)
 		self.light.setFocalPoint(GlobalPosition(0.2, 1, 0.4))
@@ -81,6 +81,12 @@ class TestLight3D(unittest.TestCase, TestLight):
 
 		self.light = Light(scene = self.scene,
 				viewport = Viewport.SOUTH_WEST)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+		del self.light
 
 	def test3D(self):
 		self.light.setColor(Color.RED)

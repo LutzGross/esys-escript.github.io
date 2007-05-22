@@ -28,11 +28,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestVelocity:
-	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.velocity
-
 	def render(self, file):
 		self.scene.render(image_name = \
 		os.path.join(PYVISI_TEST_VELOCITY_IMAGES_PATH, file))
@@ -56,6 +51,11 @@ class TestVelocity2DArrowVectorColor(unittest.TestCase, TestVelocity):
 				color_mode = ColorMode.VECTOR, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
 
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.velocity
+
 	def testVelocityVectorScale(self):
 		self.velocity.setScaleModeByVector()
 		self.velocity.setScaleFactor(0.5)
@@ -76,6 +76,11 @@ class TestVelocity2DArrowScalarColor(unittest.TestCase, TestVelocity):
 				viewport = Viewport.SOUTH_WEST, arrow = Arrow.TWO_D, 
 				color_mode = ColorMode.SCALAR, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.velocity
 
 	def testScalarScale(self):
 		self.velocity.setScaleModeByScalar()
@@ -102,6 +107,11 @@ class TestVelocity3DSecondOrder(unittest.TestCase, TestVelocity):
 				viewport = Viewport.SOUTH_WEST, arrow = Arrow.THREE_D, 
 				color_mode = ColorMode.VECTOR, lut = Lut.COLOR,
 				cell_to_point = False, outline = True)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.velocity
 
 	def testVelocity3DSecondOrder(self):
 		self.velocity.setScaleFactor(0.5)

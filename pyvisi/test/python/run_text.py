@@ -32,8 +32,8 @@ class TestText2D(unittest.TestCase):
 				viewport = Viewport.SOUTH_WEST)
 
 	def tearDown(self):
-		self.scene
-		self.text2D
+		del self.scene
+		del self.text2D
 
 	def render(self, file):
 		self.scene.render(image_name = \

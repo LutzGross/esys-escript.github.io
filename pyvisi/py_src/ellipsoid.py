@@ -53,7 +53,6 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -86,7 +85,7 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Ellipsoid -----
 
@@ -116,7 +115,7 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -128,9 +127,12 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the ellipsoids.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -189,7 +191,6 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -225,7 +226,7 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Ellipsoid on a cut plane -----
 
@@ -259,7 +260,7 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -272,9 +273,12 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the ellipsoids cut using a plane.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):
@@ -330,7 +334,6 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__scene = scene
 		self.__data_collector = data_collector
 		self.__viewport = viewport
 		self.__lut = lut
@@ -366,7 +369,7 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 
 			# Default line width is 1.
 			actor3D._setLineWidth(1)
-			self.__scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			scene._addActor3D(self.__viewport, actor3D._getActor3D())
 
 		# ----- Ellipsoid on a clipped plane -----
 
@@ -406,7 +409,7 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 				lookup_table._getLookupTable())
 
 		self._setupActor3D(self._getDataSetMapper())
-		self.__scene._addActor3D(self.__viewport, self._getActor3D())
+		scene._addActor3D(self.__viewport, self._getActor3D())
 
 	def _isModified(self):	
 		"""
@@ -419,9 +422,12 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the ellipsoids clip using a plane.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		if (self._isModified() == True):

@@ -41,9 +41,9 @@ class TestEllipsoid(unittest.TestCase):
 				cell_to_point = False, outline = True)
 
 	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.ellipsoid
+		del self.scene
+		del self.data_collector
+		del self.ellipsoid
 
 	def render(self, file):
 		self.scene.render(image_name = \

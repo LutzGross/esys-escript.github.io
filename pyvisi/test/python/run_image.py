@@ -27,13 +27,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestImage:
-	def tearDown(self):
-		self.scene
-		self.data_collector
-		self.map
-		self.image
-		self.image_reader
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_IMAGE_IMAGES_PATH, file))
@@ -61,6 +54,13 @@ class TestImageOnAMap(unittest.TestCase, TestImage):
 				IMAGE))
 
 		self.image = Image(scene = self.scene, image_reader = self.image_reader)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+		del self.image
+		del self.image_reader
 
 	def testImage(self):
 		self.image.translate(0, 0, -1)

@@ -31,9 +31,6 @@ SCALAR_FIELD_POINT_DATA_1 = "scalar1"
 SCALAR_FIELD_POINT_DATA_2 = "scalar2"
 
 class TestMapWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_MAP_IMAGES_PATH, file))
@@ -42,6 +39,9 @@ class TestMapWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestMapLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testMapLazy(self):
 
 		# Create a scene with four viewports.
@@ -82,6 +82,9 @@ class TestMapLazy(unittest.TestCase, TestMapWithLazyEvaluation):
 		self.render("TestMapWithLazyEvaluation.jpg")
 
 class TestMapOnPlaneCutLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testMapOnPlaneCutLazy(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 4, x_size = X_SIZE, 
 				y_size = Y_SIZE)
@@ -122,6 +125,9 @@ class TestMapOnPlaneCutLazy(unittest.TestCase, TestMapWithLazyEvaluation):
 
 
 class TestMapOnPlaneClipLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testMapOnPlaneClipLazy(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)
@@ -156,6 +162,9 @@ class TestMapOnPlaneClipLazy(unittest.TestCase, TestMapWithLazyEvaluation):
 
 
 class TestMapOnScalarClipLazy(unittest.TestCase, TestMapWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testMapOnScalarClipLazy(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)

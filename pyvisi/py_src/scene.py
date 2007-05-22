@@ -238,7 +238,8 @@ class Scene:
 		"""	
 
 		for i in range(0, len(self.__visualization_modules)):
-			self.__visualization_modules[i]._render()	
+			#self.__visualization_modules[i]._render()	
+			self.__visualization_modules[i]._render(self)	
 
 		self.__vtk_render_window.Render()
 

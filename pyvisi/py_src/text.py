@@ -26,21 +26,23 @@ class Text2D(Actor2D):
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
-		self.__scene = scene
 		self.__text = text
 		self.__viewport = viewport
 		self._vtk_actor2D = vtk.vtkTextActor()
 
-		self.__setupText2D()
+		self.__setupText2D(scene)
 	
-	def __setupText2D(self):
+	def __setupText2D(self, scene):
 		"""
 		Setup the 2D text.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		self.__setInput()
 		# Add the 2D text to the appropriate renderer.
-		self.__scene._addActor2D(self.__viewport, self._vtk_actor2D)
+		scene._addActor2D(self.__viewport, self._vtk_actor2D)
 
 	def __setInput(self):
 		"""

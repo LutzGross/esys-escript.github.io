@@ -30,7 +30,6 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 		@param viewport: Viewport in which the logo is to be displayed
 		"""
 
-		self.__scene = scene
 		self.__image_reader = image_reader
 		self.__viewport = viewport
 
@@ -46,7 +45,7 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 		self._setupImageMapper(self._getImageResliceOutput())
 
 		self._setupActor2D(self._getImageMapper())
-		self.__scene._addActor2D(self.__viewport, self._getActor2D())
+		scene._addActor2D(self.__viewport, self._getActor2D())
 
 	def _isModified(self):	
 		"""
@@ -58,9 +57,12 @@ class Logo(ImageMapper, ImageReslice, Actor2D):
 
 		return self.__modified or self.__data_collector._isModified()
 
-	def _render(self):
+	def _render(self, scene):
 		"""
 		Render the logo.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which the logo is to be displayed
 		"""
 
 		if (self._isModified() == True):

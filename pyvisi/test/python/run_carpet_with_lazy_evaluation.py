@@ -25,9 +25,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestCarpetWithLazyEvaluation:
-	def tearDown(self):
-		self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_CARPET_IMAGES_PATH, file))
@@ -36,6 +33,9 @@ class TestCarpetWithLazyEvaluation:
 				file))[ST_SIZE] > MIN_IMAGE_SIZE)
 
 class TestCarpet(unittest.TestCase, TestCarpetWithLazyEvaluation):
+	def tearDown(self):
+		del self.scene
+
 	def testCarpet(self):
 		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
 				y_size = Y_SIZE)
