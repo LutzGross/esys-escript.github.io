@@ -108,8 +108,8 @@ class TestStreamLineTube(unittest.TestCase, TestStreamLine):
 		del self.streamline
 
 	def testSetTubeRadiusToVaryByVector(self):
-		#self.streamline.setTubeRadius(0.005)
-		#self.streamline.setTubeNumberOfSides(3)
+		self.streamline.setTubeRadius(0.02)
+		self.streamline.setTubeNumberOfSides(3)
 		self.streamline.setTubeRadiusToVaryByVector()
 		self.render("TestStreamLineTube_testSetTubeRadiusToVaryByVector.jpg")
 

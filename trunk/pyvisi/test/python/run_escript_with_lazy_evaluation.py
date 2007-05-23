@@ -83,7 +83,7 @@ class TestEscriptMap(unittest.TestCase, TestEscript):
 		c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
 		# ... start iteration:
-		while t<0.5:
+		while t<0.2:
 			i+=1
 			t+=h
 			mypde.setValue(Y=qH+rhocp/h*T)
@@ -228,14 +228,14 @@ class TestEscriptEllipsoid(unittest.TestCase, TestEscript):
 			   viewport = Viewport.SOUTH_WEST,
 			   lut = Lut.COLOR, cell_to_point = True, outline = True)
 		e.setScaleFactor(scale_factor = 0.7)
-		e.setMaxScaleFactor(max_scale_factor = 1000)
+		e.setMaxScaleFactor(max_scale_factor = 100)
 		e.setRatio(ratio = 10)
 
 		# Create a Camera.
 		c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 		c.isometricView()
 
-		while t<0.4:
+		while t<0.2:
 			# ... get current stress ....
 			g=grad(u)
 			stress=lam*trace(g)*kronecker+mu*(g+transpose(g))

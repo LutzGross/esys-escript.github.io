@@ -19,24 +19,26 @@ class Tube:
 	def _setupTube(self, object):
 		"""
 		Setup the tube.
+
+		@type object: vtkPolyData, etc
+		@param object: Input for the tube
 		"""
 
-		self.__setInput(object)
+		self.__object = object 
+
+		self.__setInput()
 		# Default radius of the tube is 0.02.
 		self.setTubeRadius(0.02)
 		# Default number of sides for the tube is 12.
 		self.setTubeNumberOfSides(12)
 		self.setTubeRadiusToVaryByVector()
 
-	def __setInput(self, object):
+	def __setInput(self):
 		"""
 		Set the input for the tube.
-
-		@type object: vtkPolyData, etc
-		@param object: Input for the tube
 		"""
 
-		self.__vtk_tube.SetInput(object)
+		self.__vtk_tube.SetInput(self.__object)
 
 	def setTubeRadius(self, radius):
 		"""
