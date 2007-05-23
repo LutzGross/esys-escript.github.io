@@ -56,6 +56,7 @@ class Scene:
 		self.__addRenderer()
 		self.setBackground(Color.WHITE) # Default background color is white.
 
+
 		# Default title bar.
 		self.setTitleBar("Earth Systems Science Computational Centre (ESSCC)")
 		self.__setSize(self.__x_size, self.__y_size)
@@ -167,7 +168,6 @@ class Scene:
 		"""
 		Enables the offline rendering (no window comes up).
 		"""
-
 		# Enables the offscreen rendering.
 		self.__vtk_render_window.OffScreenRenderingOn()
 
@@ -176,7 +176,6 @@ class Scene:
 		Setup the window to image filter to convert the output from the render 
 		window into an image.
 		"""
-
 		self.__vtk_window_to_image = vtk.vtkWindowToImageFilter()
 		self.__vtk_window_to_image.SetInput(self.__vtk_render_window)
 		self.__vtk_image_writer = self.__getImageWriter()
@@ -236,7 +235,6 @@ class Scene:
 		"""
 		Render the object using either the online, offline or display mode.
 		"""	
-
 		for i in range(0, len(self.__visualization_modules)):
 			#self.__visualization_modules[i]._render()	
 			self.__visualization_modules[i]._render(self)	

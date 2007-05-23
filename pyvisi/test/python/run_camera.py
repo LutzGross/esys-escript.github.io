@@ -41,12 +41,12 @@ class TestCamera2D(unittest.TestCase, TestCamera):
 
 		self.data_collector = DataCollector(source = Source.XML)
 		self.data_collector.setFileName(file_name = \
-				os.path.join(PYVISI_TEST_MESHES_PATH,  FILE_2D))
+	    			os.path.join(PYVISI_TEST_MESHES_PATH,  FILE_2D))
 
-		self.map = Map(scene = self.scene,
-				data_collector = self.data_collector,
-				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
-				cell_to_point = False, outline = True)
+	 	self.map = Map(scene = self.scene,
+	 			data_collector = self.data_collector,
+	 			viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
+	 			cell_to_point = False, outline = True)
 
 		self.camera = Camera(scene = self.scene, viewport = Viewport.SOUTH_WEST)
 
@@ -57,10 +57,10 @@ class TestCamera2D(unittest.TestCase, TestCamera):
 		del self.camera
 
 	def test2D(self):
-		self.camera.azimuth(20)
-		self.camera.elevation(40)
-		self.camera.roll(30)
-		self.camera.dolly(1.5)
+	 	self.camera.azimuth(20)
+	 	self.camera.elevation(40)
+	 	self.camera.roll(30)
+	 	self.camera.dolly(1.5)
 		self.render("TestCamera2D_test2D.jpg")
 
 class TestCamera3D(unittest.TestCase, TestCamera):
