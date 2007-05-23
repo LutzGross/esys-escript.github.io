@@ -274,6 +274,12 @@ except KeyError:
    python_path = ''
 
 try:
+   omp_num_threads = os.environ['OMP_NUM_THREADS']
+except KeyError:
+   omp_num_threads = 1
+env['ENV']['OMP_NUM_THREADS'] = omp_num_threads
+
+try:
    path = os.environ['PATH']
    env['ENV']['PATH'] = path
 except KeyError:

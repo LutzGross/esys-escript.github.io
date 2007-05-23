@@ -9,9 +9,10 @@ boost_libs_path = 'Q:/src/boost/windows_binary/lib'
 boost_libs = 'boost_python-vc71-mt-s-1_31'
 
 # locations of netcdf
+useNetCDF="yes"
 netCDF_path = "Q:/src/netcdf/src/include"
 netCDF_lib_path = "Q:/src/netcdf/src/win32/NET/release"
-netCDF_libs_cxx = [ 'netcdf', 'netcdf_cpp' ]
+netCDF_libs = [ 'netcdf', 'netcdf_cpp' ]
 
 cc_defines = ['_USE_MATH_DEFINES', 'BOOST_NO_INTRINSIC_WCHAR_T', 'DLL_NETCDF' ]
 # c flags to use
