@@ -280,6 +280,11 @@ except KeyError:
 env['ENV']['OMP_NUM_THREADS'] = omp_num_threads
 
 try:
+   env['ENV']['DISPLAY'] = os.environ['DISPLAY']
+except KeyError:
+   pass
+
+try:
    path = os.environ['PATH']
    env['ENV']['PATH'] = path
 except KeyError:
