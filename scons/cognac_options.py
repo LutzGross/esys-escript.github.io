@@ -33,9 +33,10 @@ epydoc_path = '/opt/epydoc-2.1/bin'
 epydoc_pythonpath = '/usr/lib/python2.3/site-packages'
 
 # locations of netcdf
+useNetCDF="yes"
 netCDF_path = "/opt/netcdf-3.6.0-p1/intel-9.0/include"
 netCDF_lib_path = "/opt/netcdf-3.6.0-p1/intel-9.0/lib"
-netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
+netCDF_libs = [ 'netcdf_c++', 'netcdf']
 
 # c flags to use
 #cc_flags  = '-O3 -fpic -ip -Ob2 -IPF-fma -ftz -parallel -openmp -mtune=itanium2 -mcpu=itanium2 -c99 -IPF-fltacc -IPF-fp-speculationsafe -ipo -fno-alias'
