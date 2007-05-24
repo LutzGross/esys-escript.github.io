@@ -75,15 +75,15 @@ class TestEscriptMap(unittest.TestCase, TestEscript):
 		dc = DataCollector(source = Source.ESCRIPT)
 
 		# Create a Map.
-		m = Map(scene = s, data_collector = dc, 
-				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, 
+		m = Map(scene = s, data_collector = dc, \
+				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, \
 				cell_to_point = False, outline = True)
 
 		# Create a Camera.
 		c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
 		# ... start iteration:
-		while t<0.2:
+		while t<0.4:
 			i+=1
 			t+=h
 			mypde.setValue(Y=qH+rhocp/h*T)
@@ -107,6 +107,7 @@ class TestEscriptVelocity(unittest.TestCase, TestEscript):
 		beta=8.
 		T_ref=0.
 		T_0=1.
+
 		#... generate domain ...
 		mydomain = Brick(l0=1.,l1=1., l2=1.,n0=10, n1=10, n2=10)
 		x=mydomain.getX()
@@ -115,43 +116,43 @@ class TestEscriptVelocity(unittest.TestCase, TestEscript):
 		#... open symmetric PDE ...
 		mypde=LinearPDE(mydomain)
 		mypde.setSymmetryOn()
+
 		#... set coefficients ...
 		C=Tensor4(0.,Function(mydomain))
 		for i in range(mydomain.getDim()):
-		  for j in range(mydomain.getDim()):
-			 C[i,i,j,j]+=lam
-			 C[j,i,j,i]+=mu
-			 C[j,i,i,j]+=mu
+			for j in range(mydomain.getDim()):
+				C[i,i,j,j]+=lam
+				C[j,i,j,i]+=mu
+				C[j,i,i,j]+=mu
+
 		msk=whereZero(x[0])*[1.,0.,0.] \
-		   +whereZero(x[1])*[0.,1.,0.] \
-		   +whereZero(x[2])*[0.,0.,1.]
+				+whereZero(x[1])*[0.,1.,0.] \
+				+whereZero(x[2])*[0.,0.,1.]
 		sigma0=(lam+2./3.*mu)*alpha*(T-T_ref)*kronecker(mydomain)
 		mypde.setValue(A=C,X=sigma0,q=msk)
+
 		#... solve pde ...
 		u=mypde.getSolution()
-		#==============
-		# ... calculate von-Misses
-		u=mydomain.getX()
+		#... calculate von-Misses
 		g=grad(u)
 		sigma=mu*(g+transpose(g))+lam*trace(g)*kronecker(mydomain)-sigma0
-		sigma_mises=\
-				sqrt(((sigma[0,0]-sigma[1,1])**2+(sigma[1,1]-sigma[2,2])**2+ \
+		sigma_mises=sqrt(((sigma[0,0]-sigma[1,1])**2+\
+				(sigma[1,1]-sigma[2,2])**2+ \
 				(sigma[2,2]-sigma[0,0])**2)/6. \
 				+sigma[0,1]**2 + sigma[1,2]**2 + sigma[2,0]**2)
-		 
+
 		# Create a Scene.
 		s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
 		self.scene = s
 
 		# Create a DataCollector reading directly from an escript object.
 		dc = DataCollector(source = Source.ESCRIPT)
-		T=length(mydomain.getX())
 		dc.setData(disp = u, stress = sigma_mises)
 
 		# Create a Velocity.
-		v = Velocity(scene = s, data_collector = dc, 
-				viewport = Viewport.SOUTH_WEST,
-				arrow = Arrow.THREE_D, color_mode = ColorMode.SCALAR,
+		v = Velocity(scene = s, data_collector = dc, \
+				viewport = Viewport.SOUTH_WEST, \
+				arrow = Arrow.THREE_D, color_mode = ColorMode.SCALAR, \
 				lut = Lut.COLOR, cell_to_point = True, outline = True)
 		v.setScaleFactor(scale_factor = 0.3)
 
@@ -197,8 +198,8 @@ class TestEscriptEllipsoid(unittest.TestCase, TestEscript):
 		mypde.setValue(D=kronecker*rho)
 		# ... set initial values ....
 		n=0
-		# initial value of displacement at point source is constant 
-		# (U0=0.01) for first two time steps
+		# initial value of displacement at point source is constant (U0=0.01)
+		# for first two time steps
 		u=U0*whereNegative(length(x-xc)-src_radius)*dunit
 		u_last=U0*whereNegative(length(x-xc)-src_radius)*dunit
 		t=0
@@ -225,17 +226,17 @@ class TestEscriptEllipsoid(unittest.TestCase, TestEscript):
 
 		# Create an Ellipsoid.
 		e = Ellipsoid(scene = s, data_collector = dc, 
-			   viewport = Viewport.SOUTH_WEST,
-			   lut = Lut.COLOR, cell_to_point = True, outline = True)
+		viewport = Viewport.SOUTH_WEST,
+		lut = Lut.COLOR, cell_to_point = True, outline = True)
 		e.setScaleFactor(scale_factor = 0.7)
-		e.setMaxScaleFactor(max_scale_factor = 100)
+		e.setMaxScaleFactor(max_scale_factor = 1000)
 		e.setRatio(ratio = 10)
 
 		# Create a Camera.
 		c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 		c.isometricView()
 
-		while t<0.2:
+		while t<0.5:
 			# ... get current stress ....
 			g=grad(u)
 			stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
@@ -255,15 +256,14 @@ class TestEscriptEllipsoid(unittest.TestCase, TestEscript):
 			u_pc_y=u_pc[1]
 			u_pc_z=u_pc[2]
 
-			# ... save current acceleration in units of gravity and displacements 
-			# === syntetic data
-			u=domain.getX()
+			# ... save current acceleration in units of gravity and 
+			# displacements 
 			if n==1 or n%10==0: 
-			 	dc.setData(acceleration = length(a)/9.81, displacement = u, 
-					 tensor = stress, Ux = u[0])
+				dc.setData(acceleration = length(a)/9.81, displacement = u, 
+						tensor = stress, Ux = u[0])
 
-			 # Render the object.
-			self.render("TestEscriptEllipsoid%02d.jpg" % (t/10))
+				# Render the object.
+				self.render("TestEscriptEllipsoid%02d.jpg" % (n/10))
 
 
 if __name__ == '__main__':
