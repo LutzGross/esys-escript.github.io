@@ -497,94 +497,123 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_P(
            index_t min_index, index_t max_index,
            double* out) 
 {
-    register index_t ir,icol,iptr,icb,irb,irow,ic,Aiptr, itmp;
+    register index_t iptr,icb,irb,irow,ic,Aiptr,itmp,irtmp,ictmp;
     register double reg,reg1,reg2,reg3,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22;
     if (A ->col_block_size==1 && A->row_block_size ==1) {
-        #pragma omp for private(irow,iptr,reg) schedule(static)
+	int iptr0;
+        #pragma omp for private(irow,iptr,reg,itmp,iptr0) schedule(static)
 	for (irow=0;irow< A->pattern->myNumOutput;++irow) {
           reg=0.;
           #pragma ivdep
-	  for (iptr=(A->pattern->ptr[irow]);iptr<(A->pattern->ptr[irow+1]); ++iptr) {
+	  /* index[] is an increasing sequence, can find min first */
+	  for (iptr0=(A->pattern->ptr[irow]);iptr0<(A->pattern->ptr[irow+1]); ++iptr0) {
+              itmp=A->pattern->index[iptr0];
+              if ( min_index<= itmp) { break; }
+	  }
+          #pragma ivdep
+	  for (iptr=iptr0;iptr<(A->pattern->ptr[irow+1]); ++iptr) {
               itmp=A->pattern->index[iptr];
-              if (( min_index<= itmp) && (itmp<max_index) ) {
-	         reg += A->val[iptr] * in[itmp-min_index];
-              }
+	      /* index[] is an increasing sequence, can quit loop if at max */
+	      if (itmp >= max_index) { break; }
+	      reg += A->val[iptr] * in[itmp-min_index];
 	  }
 	  out[irow] += alpha * reg;
 	}
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
-        #pragma omp for private(ir,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11) schedule(static)
-	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
+	int iptr0;
+        #pragma omp for private(irow,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11,itmp,iptr0) schedule(static)
+	for (irow=0;irow< A->pattern->myNumOutput;++irow) {
           reg1=0.;
           reg2=0.;
           #pragma ivdep
-	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-              itmp=A->pattern->index[iptr];
-              if (( min_index<= itmp) && (itmp<max_index) ) {
-	          ic=2*(itmp-min_index);
-                  Aiptr=iptr*4;
-                  in1=in[ic];
-                  in2=in[1+ic];
-                  A00=A->val[Aiptr  ];
-                  A10=A->val[Aiptr+1];
-                  A01=A->val[Aiptr+2];
-                  A11=A->val[Aiptr+3];
-	          reg1 += A00*in1 + A01*in2;
-	          reg2 += A10*in1 + A11*in2;
-              }
+	  /* index[] is an increasing sequence, can find min first */
+	  for (iptr0=(A->pattern->ptr[irow]);iptr0<(A->pattern->ptr[irow+1]); ++iptr0) {
+              itmp=A->pattern->index[iptr0];
+              if ( min_index<= itmp) { break; }
 	  }
-	  out[  2*ir] += alpha * reg1;
-	  out[1+2*ir] += alpha * reg2;
+          #pragma ivdep
+	  for (iptr=iptr0;iptr<(A->pattern->ptr[irow+1]); ++iptr) {
+              itmp=A->pattern->index[iptr];
+	      /* index[] is an increasing sequence, can quit loop if at max */
+	      if (itmp >= max_index) { break; }
+	      ic=2*(itmp-min_index);
+              Aiptr=iptr*4;
+              in1=in[ic];
+              in2=in[1+ic];
+              A00=A->val[Aiptr  ];
+              A10=A->val[Aiptr+1];
+              A01=A->val[Aiptr+2];
+              A11=A->val[Aiptr+3];
+	      reg1 += A00*in1 + A01*in2;
+	      reg2 += A10*in1 + A11*in2;
+	  }
+	  out[  2*irow] += alpha * reg1;
+	  out[1+2*irow] += alpha * reg2;
 	}
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
-        #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
-	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
+	int iptr0;
+        #pragma omp for private(irow,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22,itmp,iptr0) schedule(static)
+	for (irow=0;irow< A->pattern->myNumOutput;irow++) {
           reg1=0.;
           reg2=0.;
           reg3=0.;
           #pragma ivdep
-	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-              itmp=A->pattern->index[iptr];
-              if (( min_index<= itmp) && (itmp<max_index) ) {
-	          ic=3*(itmp-min_index);
-                  Aiptr=iptr*9;
-                  in1=in[ic];
-                  in2=in[1+ic];
-                  in3=in[2+ic];
-                  A00=A->val[Aiptr  ];
-                  A10=A->val[Aiptr+1];
-                  A20=A->val[Aiptr+2];
-                  A01=A->val[Aiptr+3];
-                  A11=A->val[Aiptr+4];
-                  A21=A->val[Aiptr+5];
-                  A02=A->val[Aiptr+6];
-                  A12=A->val[Aiptr+7];
-                  A22=A->val[Aiptr+8];
-	          reg1 += A00*in1 + A01*in2 + A02*in3;
-	          reg2 += A10*in1 + A11*in2 + A12*in3;
-	          reg3 += A20*in1 + A21*in2 + A22*in3;
-              }
+	  /* index[] is an increasing sequence, can find min first */
+	  for (iptr0=(A->pattern->ptr[irow]);iptr0<(A->pattern->ptr[irow+1]); ++iptr0) {
+              itmp=A->pattern->index[iptr0];
+              if ( min_index<= itmp) { break; }
 	  }
-	  out[  3*ir] += alpha * reg1;
-	  out[1+3*ir] += alpha * reg2;
-	  out[2+3*ir] += alpha * reg3;
+          #pragma ivdep
+	  for (iptr=iptr0;iptr<(A->pattern->ptr[irow+1]); ++iptr) {
+              itmp=A->pattern->index[iptr];
+	      /* index[] is an increasing sequence, can quit loop if at max */
+	      if (itmp >= max_index) { break; }
+	      ic=3*(itmp-min_index);
+              Aiptr=iptr*9;
+              in1=in[ic];
+              in2=in[1+ic];
+              in3=in[2+ic];
+              A00=A->val[Aiptr  ];
+              A10=A->val[Aiptr+1];
+              A20=A->val[Aiptr+2];
+              A01=A->val[Aiptr+3];
+              A11=A->val[Aiptr+4];
+              A21=A->val[Aiptr+5];
+              A02=A->val[Aiptr+6];
+              A12=A->val[Aiptr+7];
+              A22=A->val[Aiptr+8];
+	      reg1 += A00*in1 + A01*in2 + A02*in3;
+	      reg2 += A10*in1 + A11*in2 + A12*in3;
+	      reg3 += A20*in1 + A21*in2 + A22*in3;
+	  }
+	  out[  3*irow] += alpha * reg1;
+	  out[1+3*irow] += alpha * reg2;
+	  out[2+3*irow] += alpha * reg3;
 	}
     } else {
-        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
-	for (ir=0;ir< A->pattern->myNumOutput;ir++) {
-	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+	int iptr0;
+        #pragma omp for private(irow,iptr,irb,icb,irtmp,ictmp,reg,itmp,iptr0) schedule(static)
+	for (irow=0;irow< A->pattern->myNumOutput;irow++) {
+          #pragma ivdep
+	  /* index[] is an increasing sequence, can find min first */
+	  for (iptr0=(A->pattern->ptr[irow]);iptr0<(A->pattern->ptr[irow+1]); ++iptr0) {
+              itmp=A->pattern->index[iptr0];
+              if ( min_index<= itmp) { break; }
+	  }
+          #pragma ivdep
+	  for (iptr=iptr0;iptr<(A->pattern->ptr[irow+1]); ++iptr) {
               itmp=A->pattern->index[iptr];
-              if (( min_index<= itmp) && (itmp<max_index) ) {
-	         for (irb=0;irb< A->row_block_size;irb++) {
-	           irow=irb+A->row_block_size*ir;
-                   reg=0.;
-	           for (icb=0;icb< A->col_block_size;icb++) {
-		     icol=icb+A->col_block_size*(itmp-min_index);
-		     reg += A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
-	           }
-	           out[irow] += alpha * reg;
-	         }
-	     }
+	      /* index[] is an increasing sequence, can quit loop if at max */
+	      if (itmp >= max_index) { break; }
+	      for (irb=0;irb< A->row_block_size;irb++) {
+	        irtmp=irb+A->row_block_size*irow;
+                reg=0.;
+	        for (icb=0;icb< A->col_block_size;icb++) {
+		  ictmp=icb+A->col_block_size*(itmp-min_index);
+		  reg += A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[ictmp];
+	        }
+	        out[irtmp] += alpha * reg;
+	      }
           }
         }
     }
