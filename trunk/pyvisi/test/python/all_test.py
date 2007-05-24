@@ -34,6 +34,7 @@ from run_text import TestText2D
 from run_velocity import TestVelocity2DArrowVectorColor, \
 		TestVelocity2DArrowScalarColor, TestVelocity3DSecondOrder
 from run_velocity_with_lazy_evaluation import TestVelocity, TestVelocityOnPlaneCut, TestVelocityOnPlaneClip
+from run_exporter import TestVRMLExporter, TestIVExporter
 
 import unittest
 
@@ -94,6 +95,8 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEscriptMap))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEscriptVelocity))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEscriptEllipsoid))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVRMLExporter))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestIVExporter))
 
 
 	unittest.TextTestRunner(verbosity=2).run(suite)
