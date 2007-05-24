@@ -61,12 +61,33 @@ class Renderer:
 	Constants that define the renderer type.
 
 	@cvar ONLINE: Constant representing the online renderer
+	@cvar ONLINE_JPG: Constant representing the JPG online renderer
+	@cvar ONLINE_BMP: Constant representing the BMP online renderer
+	@cvar ONLINE_PNM: Constant representing the PNM online renderer
+	@cvar ONLINE_PNG: Constant representing the PNG online renderer
+	@cvar ONLINE_TIF: Constant representing the TIF online renderer
+	@cvar ONLINE_PS: Constant representing the PS online renderer
+	@cvar ONLINE_VRML: Constant representing the VRML online renderer
+	@cvar ONLINE_IV: Constant representing the OpenInventor online renderer
+
 	@cvar OFFLINE_JPG: Constant representing the JPG offline renderer
 	@cvar OFFLINE_BMP: Constant representing the BMP offline renderer
 	@cvar OFFLINE_PNM: Constant representing the PNM offline renderer
 	@cvar OFFLINE_PNG: Constant representing the PNG offline renderer
 	@cvar OFFLINE_TIF: Constant representing the TIF offline renderer
 	@cvar OFFLINE_PS: Constant representing the PS offline renderer
+	@cvar OFFLINE_VRML: Constant representing the VRML offline renderer
+	@cvar OFFLINE_IV: Constant representing the OpenInventor offline renderer
+
+	@cvar DISPLAY: Constant representing the display renderer
+	@cvar DISPLAY_JPG: Constant representing the JPG display renderer
+	@cvar DISPLAY_BMP: Constant representing the BMP display renderer
+	@cvar DISPLAY_PNM: Constant representing the PNM display renderer
+	@cvar DISPLAY_PNG: Constant representing the PNG display renderer
+	@cvar DISPLAY_TIF: Constant representing the TIF display renderer
+	@cvar DISPLAY_PS: Constant representing the PS display renderer
+	@cvar DISPLAY_VRML: Constant representing the VRML display renderer
+	@cvar DISPLAY_IV: Constant representing the OpenInventor display renderer
 	"""
 
 	ONLINE     = "online"
@@ -76,6 +97,8 @@ class Renderer:
 	ONLINE_PNG = "online_png"
 	ONLINE_TIF = "online_tif"
 	ONLINE_PS  = "online_ps"
+	ONLINE_VRML  = "online_vrml"
+	ONLINE_IV  = "online_iv"
 
 	OFFLINE_JPG = "offline_jpg"
 	OFFLINE_BMP = "offline_bmp"
@@ -83,6 +106,8 @@ class Renderer:
 	OFFLINE_PNG = "offline_png"
 	OFFLINE_TIF = "offline_tif"
 	OFFLINE_PS  = "offline_ps"
+	OFFLINE_VRML  = "offline_vrml"
+	OFFLINE_IV  = "offline_iv"
 
 	DISPLAY     = "display"
 	DISPLAY_JPG = "display_jpg"
@@ -91,6 +116,8 @@ class Renderer:
 	DISPLAY_PNG = "display_png"
 	DISPLAY_TIF = "display_tif"
 	DISPLAY_PS  = "display_ps"
+	DISPLAY_VRML  = "display_vrml"
+	DISPLAY_IV  = "display_iv"
 
 class Arrow:
 	"""

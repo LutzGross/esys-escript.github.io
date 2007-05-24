@@ -43,6 +43,8 @@ class Scene:
 		self.__PNG = "png"
 		self.__TIF = "tif"
 		self.__PS  = "ps"
+		self.__VRML = "vrml"
+		self.__IV = "iv"
 	
 		self.__vtk_render_window = vtk.vtkRenderWindow()
 		self.__setupScene()
@@ -182,10 +184,11 @@ class Scene:
 		
 	def __getImageWriter(self):
 		"""
-		Return the appropriate image writer based on the specified renderer.
+		Return the appropriate image writer or exporter based on the 
+		specified renderer.
 
-		@rtype: vtkImageWriter
-		@return: Image writer
+		@rtype: vtkImageWriter or vtkExporter
+		@return: Image writer or exporter
 		"""
 
 		if(self.__renderer.endswith(self.__JPG)):
@@ -200,6 +203,10 @@ class Scene:
 			return vtk.vtkTIFFWriter()
 		elif(self.__renderer.endswith(self.__PS)):
 			return vtk.vtkPostScriptWriter()
+		elif(self.__renderer.endswith(self.__VRML)):
+			return vtk.vtkVRMLExporter() # Generates VRML files (.wrl).
+		elif(self.__renderer.endswith(self.__IV)):
+			return vtk.vtkIVExporter() # Generate OpenInventor files (.iv).
 	
 	def __saveImage(self, image_name):
 		"""
@@ -217,8 +224,16 @@ class Scene:
 		
 		# Retrieve the rendered object from the window and convert it into an 
 		# image.
-		self.__vtk_image_writer.SetInput(
-				self.__vtk_window_to_image.GetOutput())
+		# True for all writers besides VRML.
+		if(not(self.__renderer.endswith(self.__VRML)) and \
+				not(self.__renderer.endswith(self.__IV))): 
+			self.__vtk_image_writer.SetInput(
+					self.__vtk_window_to_image.GetOutput())
+		# True only for VRML and IV.
+		elif(self.__renderer.endswith(self.__VRML) or \
+				self.__renderer.endswith(self.__IV)):
+			self.__vtk_image_writer.SetInput(
+					self.__vtk_render_window)
 		self.__vtk_image_writer.SetFileName(image_name)
 		self.__vtk_image_writer.Write() 	
 
@@ -236,7 +251,6 @@ class Scene:
 		Render the object using either the online, offline or display mode.
 		"""	
 		for i in range(0, len(self.__visualization_modules)):
-			#self.__visualization_modules[i]._render()	
 			self.__visualization_modules[i]._render(self)	
 
 		self.__vtk_render_window.Render()
