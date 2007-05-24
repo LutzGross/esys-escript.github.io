@@ -281,6 +281,7 @@ env['ENV']['OMP_NUM_THREADS'] = omp_num_threads
 
 try:
    env['ENV']['DISPLAY'] = os.environ['DISPLAY']
+   env['ENV']['XAUTHORITY'] = os.environ['XAUTHORITY']
 except KeyError:
    pass
 
