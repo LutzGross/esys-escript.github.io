@@ -23,9 +23,6 @@ Y_SIZE = 400
 JPG_RENDERER = Renderer.OFFLINE_JPG
 
 class TestScene:
-	def tearDown(self):
-		del self.scene
-
 	def render(self, file):
 		self.scene.render(image_name = \
 				os.path.join(PYVISI_TEST_SCENE_IMAGES_PATH, file))
@@ -41,6 +38,9 @@ class TestSceneOneViewport(unittest.TestCase, TestScene):
 		self.scene = \
 				Scene(renderer = JPG_RENDERER, num_viewport = 1, 
 				x_size = X_SIZE, y_size = Y_SIZE)
+
+	def tearDown(self):
+		del self.scene
 		
 	def testRender(self):
 		file = "TestSceneOneViewport_testRender.jpg"
@@ -56,6 +56,9 @@ class TestSceneFourViewports(unittest.TestCase, TestScene):
 		self.scene = \
 				Scene(renderer = JPG_RENDERER, num_viewport = 4, x_size = 800, 
 				y_size = 800) 
+
+	def tearDown(self):
+		del self.scene
 
 	def testRender(self):
 		file = "TestSceneFourViewport_testRender.jpg"
