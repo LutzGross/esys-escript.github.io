@@ -157,6 +157,8 @@ void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p,const char* name, index_t tag_key
 index_t Finley_Mesh_getTag(Finley_Mesh *mesh_p,const char* name);
 bool_t Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p,const char* name);
 void Finley_Mesh_optimizeNodeLabeling(Finley_Mesh* mesh_p);
+dim_t Finley_Mesh_FindMinDegreeNode(Paso_SystemMatrixPattern* pattern_p,index_t* available,index_t indicator);
+index_t Finley_Mesh_getDegree(Paso_SystemMatrixPattern* pattern_p, index_t *label);
 
 
 
