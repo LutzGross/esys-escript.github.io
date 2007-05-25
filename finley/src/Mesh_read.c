@@ -37,7 +37,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
   double time0=Finley_timer();
   FILE *fileHandle_p = NULL;
   ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
-
+  
   Finley_resetError();
 #ifdef PASO_MPI
   /* TODO */
