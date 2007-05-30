@@ -6,6 +6,11 @@
 #     http://www.opensource.org/licenses/osl-3.0.php       
 #                                                          
 
+# This is the magic combination for ac as of 30 May 2007:
+#	module load boost/1.33.1-intel-9.1
+#	module unload intel-cc/8.1.035          # Doesn't have libirc.so, remove it
+#	module load intel-cc/9.1.047
+#	module load scsl/1.6.1.0
 
 
 # locations of libs etc used by mkl
@@ -19,14 +24,14 @@ scsl_lib_path = '/opt/scsl-1.6.1.0/lib'
 scsl_libs = ['scs_mp']
 
 # locations of include files for python
-python_path = '/usr/include/python2.3/'
-python_lib_path = '/usr/lib/python2.3/'
-python_lib = 'python2.3'
+python_path = '/opt/python-2.4.3/include/python2.4'
+python_lib_path = '/opt/python-2.4.3/lib'
+python_lib = 'python2.4'
 
-# locations of libraries for boost
-boost_path = '/opt/boost-1.33.0/gcc/include/boost-1_33'
-boost_lib_path = '/opt/boost-1.33.0/gcc/lib'
-boost_lib = 'boost_python-gcc-mt-d'
+# locations of libraries for boost (on ac use module load something/boost)
+boost_path = '/opt/boost-1.33.1/intel-9.1/include/boost-1_33_1'
+boost_libs_path = '/opt/boost-1.33.1/intel-9.1/lib'
+boost_libs = 'boost_python-il-d'
 
 # locations of doc building executables
 #doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
