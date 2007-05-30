@@ -257,7 +257,6 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                  final_face_element_type=Tri3;
               }
            }
-printf("ELEMENTS READ\n");
            mesh_p->Elements=Finley_ElementFile_alloc(final_element_type,mesh_p->order, mesh_p->reduced_order);
            mesh_p->FaceElements=Finley_ElementFile_alloc(final_face_element_type,mesh_p->order, mesh_p->reduced_order);
            mesh_p->ContactElements=Finley_ElementFile_alloc(Point1_Contact,mesh_p->order, mesh_p->reduced_order);
@@ -301,7 +300,6 @@ printf("ELEMENTS READ\n");
            }
          }
       }
-printf("ELEMENTS reordered\n");
       /* and clean up */
       TMPMEMFREE(id);
       TMPMEMFREE(tag);
