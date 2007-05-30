@@ -323,13 +323,17 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   /* close file */
   fclose(fileHandle_p);
   /*   resolve id's : */
+printf("resolve nodes\n");
   if (Finley_noError()) {
       Finley_Mesh_resolveNodeIds(mesh_p);
   }
+printf("resolve nodes\n");
   /* rearrange elements: */
+printf("prepare\n");
   if (Finley_noError()) {
      Finley_Mesh_prepare(mesh_p);
   }
+printf("prepare\n");
 
   /* optimize node labeling*/
   if (Finley_noError()) {
