@@ -5,10 +5,10 @@ Separator {
     PerspectiveCamera
     {
         heightAngle 0.523599
-        nearDistance 6.548067
-        farDistance 13.141380
-        focalDistance 9.456922
-        position 1.500000 -5.187053 7.187053
+        nearDistance 5.522253
+        farDistance 12.089662
+        focalDistance 8.420746
+        position 1.500000 -4.454367 6.454367
         orientation -1 0 0 0.785398
         }
 # The following environment information is disabled
