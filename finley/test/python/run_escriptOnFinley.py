@@ -43,7 +43,7 @@ class Test_DataOpsOnFinley(Test_Dump): # , Test_SetDataPointValue):
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_DataOpsOnFinley))
-   # suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
+   suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if s.wasSuccessful():
      sys.exit(0)

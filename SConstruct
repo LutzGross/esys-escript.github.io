@@ -98,7 +98,7 @@ else:
 #
 if IS_WINDOWS_PLATFORM:
    python_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1]),"include")
-   python_lib_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1])+"libs")
+   python_lib_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1]),"libs")
    python_libs_default=["python%s%s"%(sys.version_info[0],sys.version_info[1])]
 else:
    python_path_default=os.path.join(tools_prefix,'include','python%s.%s'%(sys.version_info[0],sys.version_info[1]))

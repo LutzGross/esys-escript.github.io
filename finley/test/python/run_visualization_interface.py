@@ -36,7 +36,7 @@ class Test_VisualizationInterface(unittest.TestCase):
            line=out_string[c].strip()
 	   if os.name == "nt":
 	       line=line.replace("e+00","e+0").replace("e-00","e-0")
-	   line=line.replace("e-00","e+00")
+	   line=line.replace("e-00","e+00").replace("-0.000000e+00","0.000000e+00")
            self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in vtk files does not match reference (%s)"%(c,line,ref_string[l].strip()))
            c+=1
 
@@ -49,7 +49,7 @@ class Test_VisualizationInterface(unittest.TestCase):
 	   line=out_string[c].strip()
 	   if os.name == "nt":
 	       line=line.replace("e+00","e+0").replace("e-00","e-0")
-	   line=line.replace("e-00","e+00")
+	   line=line.replace("e-00","e+00").replace("-0.000000e+00","0.000000e+00")
            self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in dx file does not match reference (%s)"%(c,line,ref_string[l].strip()))
            c+=1
 
