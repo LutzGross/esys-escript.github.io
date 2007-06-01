@@ -12,6 +12,9 @@
 #	module load intel-cc/9.1.047
 #	module load scsl/1.6.1.0
 
+mpi_path = '/opt/anupack/1.0/include'
+mpi_lib_path = '/opt/anupack/1.0/lib'
+mpi_libs = ['mpi']
 
 # locations of libs etc used by mkl
 mkl_path = '/opt/intel-mkl/8.0/include'
@@ -31,12 +34,15 @@ python_lib = 'python2.4'
 # locations of libraries for boost (on ac use module load something/boost)
 boost_path = '/opt/boost-1.33.1/intel-9.1/include/boost-1_33_1'
 boost_libs_path = '/opt/boost-1.33.1/intel-9.1/lib'
-boost_libs = 'boost_python-il-d'
+boost_libs = ['boost_python-il-d']
 
 # locations of doc building executables
 #doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
 #epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
 #epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
+
+# locations of netcdf
+useNetCDF = 0
 
 # locations of PAPI
 # papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
