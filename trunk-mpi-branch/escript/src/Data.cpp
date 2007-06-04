@@ -13,6 +13,7 @@
 */
 #include "Data.h"
 
+#include "paso/Common.h"
 #include "DataExpanded.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
@@ -802,10 +803,14 @@ Data::integrate() const
 #ifdef PASO_MPI
   AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals_local,*this);
   // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
-  double tmp[dataPointSize], tmp_local[dataPointSize];
+  double *tmp, *tmp_local;
+  tmp       = MEMALLOC(dataPointSize,double);
+  tmp_local = MEMALLOC(dataPointSize,double);
   for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
   MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
   for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
+  MEMFREE(tmp);
+  MEMFREE(tmp_local);
 #else
   AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals,*this);
 #endif
