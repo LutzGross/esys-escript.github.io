@@ -143,7 +143,11 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 			self.generateContours(contours, lower_range, upper_range)
 			self._generateContours()
 						
-			self._setScalarRange(self.__data_collector._getScalarRange())
+			# self._isScalarRangeSet checks whether the scalar range has been
+			# specified by the user. If it has, then the scalar range
+			# read from the source will be ignored.
+			if(not(self._isScalarRangeSet())): 
+				self._setScalarRange(self.__data_collector._getScalarRange())
 			self.__modified = False
 
 
@@ -293,7 +297,11 @@ class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform,
 			self.generateContours(contours, lower_range, upper_range)
 			self._generateContours()
 						
-			self._setScalarRange(self.__data_collector._getScalarRange())
+			# self._isScalarRangeSet checks whether the scalar range has been
+			# specified by the user. If it has, then the scalar range
+			# read from the source will be ignored.
+			if(not(self._isScalarRangeSet())): 
+				self._setScalarRange(self.__data_collector._getScalarRange())
 			self.__modified = False
 
 
@@ -446,7 +454,11 @@ class ContourOnPlaneClip(DataSetMapper, Actor3D, ContourModule, Transform,
 			self.generateContours(contours, lower_range, upper_range)
 			self._generateContours()
 						
-			self._setScalarRange(self.__data_collector._getScalarRange())
+			# self._isScalarRangeSet checks whether the scalar range has been
+			# specified by the user. If it has, then the scalar range
+			# read from the source will be ignored.
+			if(not(self._isScalarRangeSet())): 
+				self._setScalarRange(self.__data_collector._getScalarRange())
 			self.__modified = False
 
 

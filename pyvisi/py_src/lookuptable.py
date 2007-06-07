@@ -113,5 +113,6 @@ class LookupTable:
 		"""
 
 		return self.__vtk_lookup_table
+	
 
 

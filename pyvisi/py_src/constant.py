@@ -181,3 +181,6 @@ class Lut:
 	COLOR = "color"
 	GREY_SCALE = "grey_scale"
 
+class LegendType:
+	SCALAR = "scalar"
+	VECTOR = "vector"

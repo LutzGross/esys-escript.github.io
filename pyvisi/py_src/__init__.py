@@ -13,3 +13,4 @@ from text import *
 from velocity import *
 from imagereader import *
 from logo import *
+from legend import *

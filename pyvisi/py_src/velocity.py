@@ -153,13 +153,30 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 			# Color velocity by vector.
 			if(self.__color_mode == ColorMode.VECTOR): 				
 				self._setColorModeByVector()
-				self._setRange(self.__data_collector._getVectorRange())
-				self._setScalarRange(self.__data_collector._getVectorRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# been specified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setRange(self.__data_collector._getVectorRange())
+					self._setScalarRange(\
+							self.__data_collector._getVectorRange())
+				else:
+					self._setRange(self._getDataSetMapperRange())
+					
 			# Color velocity by scalar.
 			elif(self.__color_mode == ColorMode.SCALAR): 				
 				self._setColorModeByScalar()
-				self._setRange(self.__data_collector._getScalarRange())
-				self._setScalarRange(self.__data_collector._getScalarRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# been specified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setRange(self.__data_collector._getScalarRange())
+					self._setScalarRange(\
+							self.__data_collector._getScalarRange())
+				else:
+					self._setRange(self._getDataSetMapperRange())
 
 			self.__modified = False
 
@@ -316,13 +333,30 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			# Color velocity by vector.
 			if(self.__color_mode == ColorMode.VECTOR): 				
 				self._setColorModeByVector()
-				self._setRange(self.__data_collector._getVectorRange())
-				self._setScalarRange(self.__data_collector._getVectorRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# been specified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setRange(self.__data_collector._getVectorRange())
+					self._setScalarRange(\
+							self.__data_collector._getVectorRange())
+				else:
+					self._setRange(self._getDataSetMapperRange())
+
 			# Color velocity by scalar.
 			elif(self.__color_mode == ColorMode.SCALAR): 				
 				self._setColorModeByScalar()
-				self._setRange(self.__data_collector._getScalarRange())
-				self._setScalarRange(self.__data_collector._getScalarRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# been specified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setRange(self.__data_collector._getScalarRange())
+					self._setScalarRange(\
+							self.__data_collector._getScalarRange())
+				else:
+					self._setRange(self._getDataSetMapperRange())
 
 			self.__modified = False
 
@@ -482,13 +516,30 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			# Color velocity by vector.
 			if(self.__color_mode == ColorMode.VECTOR): 				
 				self._setColorModeByVector()
-				self._setRange(self.__data_collector._getVectorRange())
-				self._setScalarRange(self.__data_collector._getVectorRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# been specified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setRange(self.__data_collector._getVectorRange())
+					self._setScalarRange(\
+							self.__data_collector._getVectorRange())
+				else:
+					self._setRange(self._getDataSetMapperRange())
+
 			# Color velocity by scalar.
 			elif(self.__color_mode == ColorMode.SCALAR): 				
 				self._setColorModeByScalar()
-				self._setRange(self.__data_collector._getScalarRange())
-				self._setScalarRange(self.__data_collector._getScalarRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# been specified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setRange(self.__data_collector._getScalarRange())
+					self._setScalarRange(\
+							self.__data_collector._getScalarRange())
+				else:
+					self._setRange(self._getDataSetMapperRange())
 
 			self.__modified = False
 

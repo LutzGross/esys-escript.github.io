@@ -141,7 +141,11 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 			if(self.__data_collector._isTensorSet() == True):
 				self.__data_collector._setActiveTensor()
 
-			self._setScalarRange(self.__data_collector._getScalarRange())
+			# self._isScalarRangeSet checks whether the scalar range has been
+			# specified by the user. If it has, then the scalar range
+			# read from the source will be ignored.
+			if(not(self._isScalarRangeSet())): 
+				self._setScalarRange(self.__data_collector._getScalarRange())
 			self.__modified = False
 
 
@@ -286,7 +290,12 @@ class EllipsoidOnPlaneCut(DataSetMapper, Actor3D, Sphere, Normals,
 				self.__data_collector._setActiveScalar()
 			if(self.__data_collector._isTensorSet() == True):
 				self.__data_collector._setActiveTensor()
-			self._setScalarRange(self.__data_collector._getScalarRange())
+
+			# self._isScalarRangeSet checks whether the scalar range has been
+			# specified by the user. If it has, then the scalar range
+			# read from the source will be ignored.
+			if(not(self._isScalarRangeSet())): 
+				self._setScalarRange(self.__data_collector._getScalarRange())
 			self.__modified = False
 
 
@@ -435,7 +444,12 @@ class EllipsoidOnPlaneClip(DataSetMapper, Actor3D, Sphere, Normals,
 				self.__data_collector._setActiveScalar()
 			if(self.__data_collector._isTensorSet() == True):
 				self.__data_collector._setActiveTensor()
-			self._setScalarRange(self.__data_collector._getScalarRange())
+
+			# self._isScalarRangeSet checks whether the scalar range has been
+			# specified by the user. If it has, then the scalar range
+			# read from the source will be ignored.
+			if(not(self._isScalarRangeSet())): 
+				self._setScalarRange(self.__data_collector._getScalarRange())
 			self.__modified = False
 
 

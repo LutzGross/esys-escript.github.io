@@ -20,12 +20,8 @@ JPG_RENDERER = Renderer.ONLINE_JPG
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         y_size = Y_SIZE)
 
-# Create a DataCollector reading from a XML file. An initial file must always
-# be assigned when the DataCollector is created, although the same file is 
-# read again in the for-loop.   
+# Create a DataCollector reading from a XML file. 
 dc1 = DataCollector(source = Source.XML)
-dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
-        FIRST_FILE_NAME))
 dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_1)
 
 # Create a Contour.
@@ -36,8 +32,6 @@ mosc1.generateContours(0)
 
 # Create a second DataCollector reading from the same XML file. 
 dc2 = DataCollector(source = Source.XML)
-dc2.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
-        FIRST_FILE_NAME))
 dc2.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_2)
 
 # Create a second Contour.

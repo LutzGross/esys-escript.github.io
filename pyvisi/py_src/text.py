@@ -41,6 +41,7 @@ class Text2D(Actor2D):
 		"""
 
 		self.__setInput()
+		self.setColor(Color.BLACK)
 		# Add the 2D text to the appropriate renderer.
 		scene._addActor2D(self.__viewport, self._vtk_actor2D)
 

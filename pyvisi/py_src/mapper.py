@@ -9,14 +9,17 @@ class DataSetMapper:
 	Class that defines a data set mapper.
 	"""
 
-	# 'lookup_table = None' is used only by the Outline.
 	def __init__(self):
 		"""
 		Initialise the data set mapper.
 		"""
 
 		self.__vtk_data_set_mapper = vtk.vtkDataSetMapper()
+		# Keeps track whether the scalar range has been specified
+		# by the user.
+		self.__scalar_range_set = False
 
+	# 'lookup_table = None' is used only by the Outline and ScalarBar.
 	def _setupDataSetMapper(self, object, lookup_table = None): 
 		"""
 		Setup the data set mapper.	
@@ -50,9 +53,26 @@ class DataSetMapper:
 
 		self.__vtk_data_set_mapper.SetLookupTable(lookup_table)
 
+	def setScalarRange(self, lower_range, upper_range):
+		"""
+		Set the minimum and maximium scalar range for the data set mapper. This
+		method is called when the range has been specified by the user. 
+		Therefore, the scalar range read from the source will be ignored. 
+		
+		@type lower_range: Lower range of scalar value
+		@param lower_range: Number
+		@type upper_range: Upper range of scalar value
+		@param upper_range: Number
+		"""
+
+		self.__scalar_range_set = True
+		self.__vtk_data_set_mapper.SetScalarRange(lower_range, upper_range) 
+
 	def _setScalarRange(self, range):
 		"""
-		Set the minimum and maximum scalar range for the data set mapper.
+		Set the minimum and maximum scalar range for the data set mapper. This
+		method is called when the range has NOT been specified by the user. 
+		Therefore, the scalar range read from the source will be used instead. 
 		
 		@type range: Two column tuple containing numbers
 		@param range: Minimum and maximum data set mapper scalar range
@@ -76,6 +96,37 @@ class DataSetMapper:
 		"""
 
 		return self.__vtk_data_set_mapper
+	
+	def _getDataSetMapperLookupTable(self):
+		"""
+		Return the data set mapper's lookup table.
+
+		@rtype: vtkScalarsToColors 	
+		@return: Converts scalar data to colors
+		"""
+
+		return self.__vtk_data_set_mapper.GetLookupTable()
+	
+	def _isScalarRangeSet(self):
+		"""
+		Return whether the data set mapper's scalar range has been specified \
+		by the user.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__scalar_range_set 
+	
+	def _getDataSetMapperRange(self):
+		"""
+		Return the mapper's scalar range.
+
+		@rtype: Two column tuple containing numbers
+		@return: Minimum and maximum data set mapper scalar range
+		"""
+
+		return self.__vtk_data_set_mapper.GetScalarRange()
 
 
 ###############################################################################
@@ -139,3 +190,4 @@ class ImageMapper:
 		"""
 
 		return self.__vtk_image_mapper
+	
