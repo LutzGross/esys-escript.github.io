@@ -139,7 +139,12 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		if (self._isModified() == True):
 			if(self.__data_collector._isScalarSet() == True):
 				self.__data_collector._setActiveScalar()
-			self._setScalarRange(self.__data_collector._getScalarRange())
+
+			# self._isScalarRangeSet checks whether the scalar range has been
+			# specified by the user. If it has, then the scalar range
+			# read from the source will be ignored.
+			if(not(self._isScalarRangeSet())): 
+				self._setScalarRange(self.__data_collector._getScalarRange())
 			self.__modified = False
 
 

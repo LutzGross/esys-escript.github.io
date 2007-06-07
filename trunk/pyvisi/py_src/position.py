@@ -17,7 +17,29 @@ class LocalPosition:
 		@param y_coor: y coordinate
 		"""
 
+		self.__x_coor = x_coor
+		self.__y_coor = y_coor
 		self.__position = [x_coor, y_coor]
+
+	def _getXCoor(self):
+		"""
+		Return the X coordinate.
+
+		@rtype: Number
+		@return: X coordinate
+		"""
+
+		return self.__x_coor
+
+	def _getYCoor(self):
+		"""
+		Return the Y coordinate.
+
+		@rtype: Number
+		@return: Y coordinate
+		"""
+
+		return self.__y_coor
 
 	def _getLocalPosition(self):
 		"""

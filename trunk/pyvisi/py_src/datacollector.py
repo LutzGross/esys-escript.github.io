@@ -361,7 +361,7 @@ class DataCollector:
 		"""
 
 		if(self.__modified == True):
-			self.__modified = False
+			#self.__modified = False
 			return True
 		else:
 			return False

@@ -158,12 +158,24 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 			if(self.__color_mode == ColorMode.VECTOR): 				
 				self._setScalarVisibilityOn()
 				self._setSpeedScalarsOn()
-				self._setScalarRange(self.__data_collector._getVectorRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# beenspecified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setScalarRange(\
+							self.__data_collector._getVectorRange())
 			# Color streamline by scalar.
 			elif(self.__color_mode == ColorMode.SCALAR): 				
 				self._setScalarVisibilityOn()
 				self._setSpeedScalarsOff()
-				self._setScalarRange(self.__data_collector._getScalarRange())
+
+				# self._isScalarRangeSet checks whether the scalar range has 
+				# beenspecified by the user. If it has, then the scalar range
+				# read from the source will be ignored.
+				if(not(self._isScalarRangeSet())): 
+					self._setScalarRange(\
+							self.__data_collector._getScalarRange())
 
 			self.__modified = False
 
