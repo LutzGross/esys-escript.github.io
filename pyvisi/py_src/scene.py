@@ -3,7 +3,7 @@
 """
 
 import vtk
-from constant import Renderer, Color, Viewport
+from constant import Renderer, Color, Viewport, ImageFormat
 
 class Scene:
 	"""
@@ -37,12 +37,6 @@ class Scene:
 		self.__visualization_modules = []
 
 		self.__OFFLINE = "offline"
-		self.__JPG = "jpg"
-		self.__BMP = "bmp"
-		self.__PNM = "pnm"
-		self.__PNG = "png"
-		self.__TIF = "tif"
-		self.__PS  = "ps"
 		self.__VRML = "vrml"
 		self.__IV = "iv"
 	
@@ -191,17 +185,17 @@ class Scene:
 		@return: Image writer or exporter
 		"""
 
-		if(self.__renderer.endswith(self.__JPG)):
+		if(self.__renderer.endswith(ImageFormat.JPG)):
 			return vtk.vtkJPEGWriter() 
-		elif(self.__renderer.endswith(self.__BMP)):
+		elif(self.__renderer.endswith(ImageFormat.BMP)):
 			return vtk.vtkBMPWriter() 
-		elif(self.__renderer.endswith(self.__PNM)):
+		elif(self.__renderer.endswith(ImageFormat.PNM)):
 			return vtk.vtkPNMWriter()
-		elif(self.__renderer.endswith(self.__PNG)):
+		elif(self.__renderer.endswith(ImageFormat.PNG)):
 			return vtk.vtkPNGWriter()
-		elif(self.__renderer.endswith(self.__TIF)):
+		elif(self.__renderer.endswith(ImageFormat.TIF)):
 			return vtk.vtkTIFFWriter()
-		elif(self.__renderer.endswith(self.__PS)):
+		elif(self.__renderer.endswith(ImageFormat.PS)):
 			return vtk.vtkPostScriptWriter()
 		elif(self.__renderer.endswith(self.__VRML)):
 			return vtk.vtkVRMLExporter() # Generates VRML files (.wrl).
