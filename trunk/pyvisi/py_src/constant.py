@@ -168,6 +168,7 @@ class ImageFormat:
 	PNM = "pnm"
 	PNG = "png"
 	TIF = "tif"
+	PS  = "ps"
 
 class Lut:
 	"""
