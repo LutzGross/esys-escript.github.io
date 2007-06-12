@@ -52,7 +52,7 @@ m = Map(scene = s, data_collector = dc, \
 c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
 # ... start iteration:
-while t<tend:
+while t<0.4:
       i+=1
       t+=h
       mypde.setValue(Y=qH+rhocp/h*T)

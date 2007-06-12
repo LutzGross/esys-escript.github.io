@@ -11,7 +11,6 @@ Y_SIZE = 300
 SCALAR_FIELD_POINT_DATA_1 = "lava"
 SCALAR_FIELD_POINT_DATA_2 = "talus"
 FILE_2D = "phi_talus_lava."
-FIRST_FILE_NAME = "phi_talus_lava.0099.vtu"
 
 IMAGE_NAME = "seriesofreads"
 JPG_RENDERER = Renderer.ONLINE_JPG

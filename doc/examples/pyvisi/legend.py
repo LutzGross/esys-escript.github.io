@@ -30,7 +30,7 @@ ctr1 = Contour(scene = s, data_collector = dc1,
 ctr1.generateContours(8, -4.963259999999998, 86.277230000000003)
 ctr1.setScalarRange(-4.963259999999998, 86.277230000000003)
 
-# Create a Legend.
+# Create a scalar Legend.
 lg1 =Legend(scene = s, data_collector= dc1, viewport = Viewport.SOUTH_WEST,
         lut = Lut.COLOR, legend = LegendType.SCALAR)
 lg1.setOrientationToHorizontal()
