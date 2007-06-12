@@ -14,3 +14,4 @@ from velocity import *
 from imagereader import *
 from logo import *
 from legend import *
+from movie import *
