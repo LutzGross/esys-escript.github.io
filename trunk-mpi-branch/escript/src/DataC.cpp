@@ -133,3 +133,9 @@ double* getSampleData(struct escriptDataC* data, int sampleNo)
      }
   }
 }
+
+double* getSampleDataFast(struct escriptDataC* data, int sampleNo)
+{
+  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+  return temp->getSampleData(sampleNo);
+}

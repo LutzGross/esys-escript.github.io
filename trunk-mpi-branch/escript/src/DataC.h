@@ -124,4 +124,12 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param sampleNo Input - The sample number.
 */
 ESCRIPT_DLL_API double* getSampleData(escriptDataC* data, int sampleNo);
+/**
+   \brief
+   Return a pointer to the data for the given sample number.
+   Fast version of getSampledata: does no error checking.
+  \param data Input - C wrapper for Data.
+  \param sampleNo Input - The sample number.
+*/
+ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);
 #endif
