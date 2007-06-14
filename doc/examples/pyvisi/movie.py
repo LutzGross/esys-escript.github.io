@@ -27,25 +27,6 @@ m1 = Map(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
         outline = True)
 
-# Create a Velocity.
-vopc1 = Velocity(scene = s, data_collector = dc1, 
-        viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.VECTOR, 
-        arrow = Arrow.TWO_D, lut = Lut.COLOR, cell_to_point = False, 
-        outline = True)
-vopc1.setScaleFactor(scale_factor = 0.07)
-vopc1.setRatio(ratio = 8)
-vopc1.setColor(color = Color.BLACK)
-
-# Create a scalar Legend.
-sb = Legend(scene = s, data_collector= dc1, viewport = Viewport.SOUTH_WEST,
-        lut = Lut.COLOR, legend = LegendType.SCALAR)
-sb.setOrientationToHorizontal()
-sb.setPosition(LocalPosition(85,5))
-sb.setScalarRange(0, 1) 
-sb.setLabelColor(color = Color.BLACK)
-sb.setTitleColor(Color.BLACK)
-sb.setTitle("Temperature")
-
 # Create a Camera.
 cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
@@ -63,6 +44,6 @@ for i in range(938, 949):
 # Generate the movie from the rendered images.
 mov.makeMovie(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, 
         first_image = IMAGE_NAME + "000938.jpg", 
-        last_image = IMAGE_NAME + "000949.jpg", 
+        last_image = IMAGE_NAME + "000948.jpg", 
         movie = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "movie.mpg"))
 

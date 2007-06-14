@@ -29,6 +29,8 @@ class ScalarBar:
 		# Set the default color of the scalar bar's title and label to black.
 		self.setTitleColor(Color.BLACK)
 		self.setLabelColor(Color.BLACK)
+		self.titleBoldOff()
+		self.labelBoldOff()
 
 	def _setScalarBarLookupTable(self, lookup_table):	
 		"""
@@ -78,7 +80,7 @@ class ScalarBar:
 
 		self.__vtk_scalar_bar.SetOrientationToHorizontal()
 		self.setWidth(0.8)
-		self.setHeight(0.14)
+		self.setHeight(0.10)
 		self.setPosition(LocalPosition(130,5))
 
 	def setOrientationToVertical(self):

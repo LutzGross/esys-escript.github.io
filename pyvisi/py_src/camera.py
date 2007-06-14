@@ -176,15 +176,31 @@ class Camera:
 		
 	def dolly(self, distance):
 		"""
-		Move the camera towards (greater than 1) and away (less than 1) from 
-		the rendered object. 
+		Move the camera towards (greater than 1) the rendered object. However,
+		the camera is unable to be moved away from the rendered object.
 
 		@type distance: Number
-		@param distance: Amount to move towards or away the rendered object
+		@param distance: Amount to move towards the rendered object
 		"""
 
 		self.__vtk_camera.Dolly(distance)
 		self.__modified = True 
+
+	def parallelProjectionOn(self):
+		"""
+		Enable camera parallel projection.
+		"""
+
+		self.__vtk_camera.ParallelProjectionOn()
+		self.__modified = True 
+
+	def parallelProjectionOff(self):
+		"""
+		Disable camera parallel projection.
+		"""
+
+		self.__vtk_camera.ParallelProjectionOff()
+		self.__modified = True
 
 	def __resetCameraClippingRange(self, scene):
 		"""
@@ -236,6 +252,6 @@ class Camera:
 				self.__initialization == False
 
 			self.__resetCameraClippingRange(scene)
-			self.__isModified = False
+			self.__modified = False
 			
 

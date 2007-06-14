@@ -63,12 +63,24 @@ class Movie:
 		image name (i.e. temp-0001) and image format (i.e. jpg).
 		"""
 
+		first_image_split = self.__first_image.split('.')
 		# Image format (i.e. jpg)
-		self.__image_format = self.__first_image.split('.')[1]
+		self.__image_format = first_image_split[len(first_image_split) - 1]
 		# First image name.
-		self.__first_image = self.__first_image.split('.')[0]
+		self.__first_image = \
+				self.__first_image.rstrip('.' + self.__image_format)
+
 		# Last image name.
-		self.__last_image = self.__last_image.split('.')[0]
+		self.__last_image = \
+				self.__last_image.rstrip('.' + self.__image_format)
+
+
+
+		#self.__image_format = self.__first_image.split('.')[1]
+		# First image name.
+		#self.__first_image = self.__first_image.split('.')[0]
+		# Last image name.
+		#self.__last_image = self.__last_image.split('.')[0]
 
 	def __retrieveFirstImageDetails(self):
 		"""
@@ -120,7 +132,7 @@ class Movie:
 		elif(self.__image_format.endswith(ImageFormat.PNG)):
 			self.__command = ImageFormat.PNG
 		elif(self.__image_format.endswith(ImageFormat.TIF)):
-			self.__command = ImageFormat.TIF
+			self.__command = 'tiff'
 		else:
 			raise IOError("ERROR: Invalid image format.")
 

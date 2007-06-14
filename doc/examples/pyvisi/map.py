@@ -43,7 +43,7 @@ m2 = Map(scene = s, data_collector = dc2, viewport = Viewport.NORTH_EAST,
         lut = Lut.COLOR, cell_to_point = True, outline = True)
 
 # Create a Camera for the third viewport
-c1 = Camera(scene = s, viewport = Viewport.NORTH_EAST)
+c2 = Camera(scene = s, viewport = Viewport.NORTH_EAST)
 
 # Render the object.
 s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, IMAGE_NAME))

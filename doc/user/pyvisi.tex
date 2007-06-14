@@ -115,8 +115,8 @@ Rotate the camera to view the isometric angle of the rendered object.
 \end{methoddesc}
 
 \begin{methoddesc}[Camera]{dolly}{distance}
-Move the camera towards (greater than 1) and away (less than 1) from
-the rendered object.
+Move the camera towards (greater than 1) the rendered object. However,
+the camera is unable to be moved away from the rendered object.
 \end{methoddesc}
 
 \subsubsection{\Light class}
@@ -242,7 +242,7 @@ can either be colored or grey-scaled, depending on the lookup table used.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD.
+Methods from \ActorThreeD and \DataSetMapper.
 
 A typical usage of \Map is shown below.
 
@@ -292,7 +292,7 @@ m2 = Map(scene = s, data_collector = dc2, viewport = Viewport.NORTH_EAST,
         lut = Lut.COLOR, cell_to_point = True, outline = True)
 
 # Create a Camera for the third viewport
-c1 = Camera(scene = s, viewport = Viewport.NORTH_EAST)
+c2 = Camera(scene = s, viewport = Viewport.NORTH_EAST)
 
 # Render the object.
 s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, IMAGE_NAME))
@@ -309,7 +309,7 @@ X, Y and Z axes.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD and \Transform.
+Methods from \ActorThreeD, \Transform and \DataSetMapper.
 
 \subsubsection{\MapOnPlaneClip class}
 
@@ -321,7 +321,7 @@ scalar field clipped using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \Transform and \Clipper.
+Methods from \ActorThreeD, \Transform, \Clipper and \DataSetMapper.
 
 \subsubsection{\MapOnScalarClip class}
 
@@ -333,7 +333,7 @@ field clipped using a scalar value.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD and \Clipper.
+Methods from \ActorThreeD, \Clipper and \DataSetMapper.
 
 \subsubsection{\Velocity class}
 
@@ -348,7 +348,7 @@ using two-dimensional or three-dimensional.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \GlyphThreeD and \MaskPoints. 
+Methods from \ActorThreeD, \GlyphThreeD, \MaskPoints and \DataSetMapper. 
 
 \subsubsection{\VelocityOnPlaneCut class}
 
@@ -361,7 +361,8 @@ it shows a vector field using arrows cut using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \GlyphThreeD, \Transform and \MaskPoints. 
+Methods from \ActorThreeD, \GlyphThreeD, \Transform, \MaskPoints and 
+\DataSetMapper. 
 
 A typical usage of \VelocityOnPlaneCut is shown below.
 
@@ -420,8 +421,8 @@ vector field using arrows clipped using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \GlyphThreeD, \Transform, \Clipper and 
-\MaskPoints. 
+Methods from \ActorThreeD, \GlyphThreeD, \Transform, \Clipper, 
+\MaskPoints and \DataSetMapper. 
 
 \subsubsection{\Ellipsoid class}
 
@@ -433,7 +434,8 @@ colored or grey-scaled, depending on the lookup table used.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \Sphere, \TensorGlyph and \MaskPoints.
+Methods from \ActorThreeD, \Sphere, \TensorGlyph, \MaskPoints and 
+\DataSetMapper.
 
 \subsubsection{\EllipsoidOnPlaneCut class}
 
@@ -445,8 +447,8 @@ a tensor field using ellipsoids cut using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform and 
-\MaskPoints.
+Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform,
+\MaskPoints and \DataSetMapper.
 
 \subsubsection{\EllipsoidOnPlaneClip class}
 
@@ -458,8 +460,8 @@ tensor field using ellipsoids clipped using a plane.
 \end{classdesc}
         
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform, \Clipper 
-and \MaskPoints.
+Methods from \ActorThreeD, \Sphere, \TensorGlyph, \Transform, \Clipper,
+\MaskPoints and \DataSetMapper.
 
 A typical usage of \EllipsoidOnPlaneClip is shown below.
 
@@ -517,7 +519,7 @@ class can also be used to generate iso surfaces.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD and \ContourModule. 
+Methods from \ActorThreeD, \ContourModule and \DataSetMapper. 
 
 A typical usage of \Contour is shown below.
 
@@ -569,7 +571,7 @@ scalar field using contour surfaces cut using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \ContourModule and \Transform. 
+Methods from \ActorThreeD, \ContourModule, \Transform and \DataSetMapper. 
 
 \subsubsection{\ContourOnPlaneClip class}
 
@@ -581,7 +583,8 @@ scalar field using contour surfaces clipped using a plane.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \ContourModule, \Transform and \Clipper. 
+Methods from \ActorThreeD, \ContourModule, \Transform, \Clipper and 
+\DataSetMapper. 
 
 \subsubsection{\StreamLine class}
 
@@ -595,7 +598,8 @@ modes, either using vector data or scalar data.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \PointSource, \StreamLineModule and \Tube. 
+Methods from \ActorThreeD, \PointSource, \StreamLineModule, \Tube and 
+\DataSetMapper. 
 
 A typical usage of \StreamLine is shown below.
 
@@ -628,6 +632,8 @@ sl1 = StreamLine(scene = s, data_collector = dc1,
         viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.SCALAR, 
         lut = Lut.COLOR, cell_to_point = False, outline = True)
 sl1.setTubeRadius(radius = 0.02)
+sl1.setTubeNumberOfSides(3)
+sl1.setTubeRadiusToVaryByScalar()
 
 # Create a Camera.
 c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
@@ -649,7 +655,7 @@ Similarly, the plane can be deformated either using scalar data or vector data.
 \end{classdesc}
 
 The following are some of the methods available:\\
-Methods from \ActorThreeD, \Warp and \Transform.
+Methods from \ActorThreeD, \Warp, \Transform and \DataSetMapper.
 
 A typical usage of \Carpet is shown below.
 
@@ -692,6 +698,17 @@ c1.isometricView()
 # Render the object.
 s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, IMAGE_NAME))
 \end{python}
+
+\subsubsection{\Legend class}
+
+\begin{classdesc}{Legend}{scene, data_collector, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, legend = LegendType.SCALAR}
+Class that shows a scalar field on a domain surface. The domain surface
+can either be colored or grey-scaled, depending on the lookup table used
+\end{classdesc}
+
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \ScalarBar and \DataSetMapper.
 
 \subsubsection{\Image class}
 
@@ -767,6 +784,73 @@ of the logo can be specified.
 
 The following are some of the methods available:\\
 Methods from \ImageReslice and \ActorTwoD.
+
+\subsubsection{\Movie class}
+
+\begin{classdesc}{Movie}{parameter_file = "make_movie"}
+Class that creates a file called 'make_movie' by default (if a parameter
+file name is not speficied) which contains a list of parameters required
+by the 'ppmtompeg' command to generate a movie from a series of images.
+\end{classdesc}
+
+The following are some of the methods available:\\
+\begin{methoddesc}[Movie]{makeMovie}{input_directory, first_image, last_image,
+movie}
+Generate the movie.
+\end{methoddesc}
+
+A typical usage of \Image is shown below.
+
+\begin{python}
+# Import the necessary modules.
+from esys.pyvisi import Scene, DataCollector, Map, Camera, Velocity, Legend 
+from esys.pyvisi import Movie, LocalPosition
+from esys.pyvisi.constant import *
+import os
+
+PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
+X_SIZE = 800
+Y_SIZE = 800
+
+SCALAR_FIELD_POINT_DATA = "temp"
+FILE_2D = "tempvel-"
+IMAGE_NAME = "movie"
+JPG_RENDERER = Renderer.ONLINE_JPG
+
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
+        y_size = Y_SIZE)
+
+# Create a DataCollector reading from a XML file. 
+dc1 = DataCollector(source = Source.XML)
+dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA)
+
+# Create a Map.
+m1 = Map(scene = s, data_collector = dc1, 
+        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
+        outline = True)
+
+# Create a Camera.
+cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
+
+# Create a movie.
+mov = Movie()
+
+# Read in one file one after another and render the object. 
+for i in range(938, 949):
+    dc1.setFileName(file_name =  os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
+	        FILE_2D + "%06d.vtu") % i)
+
+    s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, \
+            IMAGE_NAME + "%06d.jpg") % i)
+
+# Generate the movie from the rendered images.
+mov.makeMovie(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, 
+        first_image = IMAGE_NAME + "000938.jpg", 
+        last_image = IMAGE_NAME + "000948.jpg", 
+        movie = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "movie.mpg"))
+\end{python}
 
 
 %##############################################################################
@@ -994,6 +1078,43 @@ Mask every nth point.
 Enables the randomization of the points selected for masking.
 \end{methoddesc}
 
+
+\subsubsection{\ScalarBar class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[ScalarBar]{setTitle}{title}
+Set the title of the scalar bar.
+\end{methoddesc}
+
+\begin{methoddesc}[ScalarBar]{setPosition}{position}
+Set the local position of the scalar bar.
+\end{methoddesc}
+
+\begin{methoddesc}[ScalarBar]{setOrientationToHorizontal}{}
+Set the orientation of the scalar bar to horizontal.
+\end{methoddesc}
+
+\begin{methoddesc}[ScalarBar]{setOrientationToVertical}{}
+Set the orientation of the scalar bar to vertical.
+\end{methoddesc}
+
+\begin{methoddesc}[ScalarBar]{setHeight}{height}
+Set the height of the scalar bar.
+\end{methoddesc}
+
+\begin{methoddesc}[ScalarBar]{setWidth}{width}
+Set the width of the scalar bar.
+\end{methoddesc}
+
+\begin{methoddesc}[ScalarBar]{setLabelColor}{color}
+Set the color of the scalar bar's label.
+\end{methoddesc}
+
+\begin{methoddesc}[ScalarBar]{setTitleColor}{color}
+Set the color of the scalar bar's title.
+\end{methoddesc}
+
 \subsubsection{\ImageReslice class}
 
 The following are some of the methods available:
@@ -1003,6 +1124,15 @@ Set the size of the image (logo in particular), between 0 and 2. Size 1 (one)
 displays the image in its original size (which is the default).
 \end{methoddesc}
 
+\subsubsection{\DataSetMapper class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[DataSetMapper]{setScalarRange}{lower_range, upper_range}
+Set the minimum and maximium scalar range for the data set mapper. This
+method is called when the range has been specified by the user.
+Therefore, the scalar range read from the source will be ignored.
+\end{methoddesc}
 
 % ############################################################################# 
 
@@ -1026,7 +1156,6 @@ Y_SIZE = 300
 SCALAR_FIELD_POINT_DATA_1 = "lava"
 SCALAR_FIELD_POINT_DATA_2 = "talus"
 FILE_2D = "phi_talus_lava."
-FIRST_FILE_NAME = "phi_talus_lava.0099.vtu"
 
 IMAGE_NAME = "seriesofreads"
 JPG_RENDERER = Renderer.ONLINE_JPG
@@ -1035,12 +1164,8 @@ JPG_RENDERER = Renderer.ONLINE_JPG
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         y_size = Y_SIZE)
 
-# Create a DataCollector reading from a XML file. An initial file must always
-# be assigned when the DataCollector is created, although the same file is 
-# read again in the for-loop.   
+# Create a DataCollector reading from a XML file. 
 dc1 = DataCollector(source = Source.XML)
-dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
-        FIRST_FILE_NAME))
 dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_1)
 
 # Create a Contour.
@@ -1051,8 +1176,6 @@ mosc1.generateContours(0)
 
 # Create a second DataCollector reading from the same XML file. 
 dc2 = DataCollector(source = Source.XML)
-dc2.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
-        FIRST_FILE_NAME))
 dc2.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_2)
 
 # Create a second Contour.
@@ -1078,45 +1201,7 @@ for i in range(99, 104):
 \textsf{Manipulating A Single File with A Series of Translation}
 
 \begin{python}
-# Import the necessary modules.
-from esys.pyvisi import Scene, DataCollector, MapOnPlaneCut, Camera
-from esys.pyvisi.constant import *
-import os
 
-PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
-PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
-X_SIZE = 400
-Y_SIZE = 400
-
-SCALAR_FIELD_POINT_DATA = "temperature"
-FILE_3D = "interior_3D.xml"
-IMAGE_NAME = "seriesofcuts"
-JPG_RENDERER = Renderer.ONLINE_JPG
-
-# Create a Scene.
-s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
-        y_size = Y_SIZE)
-
-# Create a DataCollector reading from a XML file.
-dc1 = DataCollector(source = Source.XML)
-dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, FILE_3D))
-dc1.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA)
-
-# Create a MapOnPlaneCut.
-mopc1 = MapOnPlaneCut(scene = s, data_collector = dc1, 
-        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False,
-        outline = True)
-mopc1.setPlaneToYZ(offset = 0.1)
-
-# Create a Camera.
-c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
-c1.isometricView()
-
-# Render the object with multiple cuts from a series of translation.
-for i in range(0, 5):
-    s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, IMAGE_NAME +
-			"%02d.jpg") % i)
-    mopc1.translate(0.6,0,0)
 \end{python}
 
 \textsf{Reading Data Directly from Escript Objects}
@@ -1135,7 +1220,7 @@ X_SIZE = 400
 Y_SIZE = 400
 JPG_RENDERER = Renderer.ONLINE_JPG
 
-#... Set some parameters ...
+#... set some parameters ...
 xc=[0.02,0.002]
 r=0.001
 qc=50.e6
@@ -1144,18 +1229,18 @@ rhocp=2.6e6
 eta=75.
 kappa=240.
 tend=5.
-# ... Time, time step size and counter ...
+# ... time, time step size and counter ...
 t=0
 h=0.1
 i=0
 
-#... Generate domain ...
+#... generate domain ...
 mydomain = Rectangle(l0=0.05,l1=0.01,n0=250, n1=50)
 #... open PDE ...
 mypde=LinearPDE(mydomain)
 mypde.setSymmetryOn()
 mypde.setValue(A=kappa*kronecker(mydomain),D=rhocp/h,d=eta,y=eta*Tref)
-# ... Set heat source: ....
+# ... set heat source: ....
 x=mydomain.getX()
 qH=qc*whereNegative(length(x-xc)-r)
 # ... set initial temperature ....
@@ -1175,8 +1260,8 @@ m = Map(scene = s, data_collector = dc, \
 # Create a Camera.
 c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
-# ... Start iteration:
-while t<tend:
+# ... start iteration:
+while t<0.4:
       i+=1
       t+=h
       mypde.setValue(Y=qH+rhocp/h*T)
