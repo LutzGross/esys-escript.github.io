@@ -134,6 +134,6 @@ class Light:
 				self.__setupLight(scene)
 				self.__initialization == False
 
-			self.__isModified = False
+			self.__modified = False
 			
 

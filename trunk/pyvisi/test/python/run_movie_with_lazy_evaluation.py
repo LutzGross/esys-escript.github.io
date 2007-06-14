@@ -85,7 +85,7 @@ class TestGenerateMovie(unittest.TestCase, TestMovie):
 
 		self.mov.makeMovie(input_directory = PYVISI_TEST_MOVIE_IMAGES_PATH, 
 				first_image = IMAGE_NAME + "000938.jpg", 
-				last_image = IMAGE_NAME + "000949.jpg", 
+				last_image = IMAGE_NAME + "000948.jpg", 
 				movie = os.path.join(PYVISI_TEST_MOVIE_IMAGES_PATH, "movie.mpg"))
 
 ###############################################################################
