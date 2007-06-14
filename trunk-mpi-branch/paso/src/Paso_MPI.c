@@ -69,7 +69,11 @@ bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
   int errorGlobal=errorLocal;
   if (mpi_info->size>1) {
      #ifdef PASO_MPI
+#if 0 /* ksteube disable error checking during benchmarking activities */
      MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_LAND, mpi_info->comm  );
+#else
+     errorGlobal=errorLocal;
+#endif
      #else
      errorGlobal=errorLocal;
      #endif

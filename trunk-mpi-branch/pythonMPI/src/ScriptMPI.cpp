@@ -26,7 +26,7 @@ int main( int argc, char **argv ) {
     if( mpi_info->rank )
     {
       char fname[256];
-      sprintf( fname, "log_P%d.txt", mpi_info->rank );
+      sprintf( fname, "stdout_cpu_%04d.txt", mpi_info->rank );
       FILE *fp = freopen( fname, "w+", stdout );
     }
     /*
