@@ -46,6 +46,7 @@
 
 #include "Assemble.h"
 #include "Util.h"
+#include "escript/blocktimer.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -62,6 +63,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
   type_t funcspace;
+  double blocktimer_start = blocktimer_time();
 
   Finley_resetError();
 
@@ -361,6 +363,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
      printf("timing: assemblage PDE: %.4e sec\n",Finley_timer()-time0);
      #endif
   }
+  blocktimer_increment("Finley_Assemble_PDE()", blocktimer_start);
 }
 /*
  * $Log$

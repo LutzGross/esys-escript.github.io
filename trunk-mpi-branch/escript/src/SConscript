@@ -29,6 +29,12 @@ if useNetCDF == 'yes':
     py_wrapper_local_env.Append(LIBS = netCDF_libs_cxx)
     py_wrapper_local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
 
+if papi_instrument_solver:
+   local_env.Append(CPPDEFINES=['PAPI',])
+if papi_libs:
+   local_env.Append(LIBS = papi_libs)
+   local_env.Append(CPPDEFINES=['BLOCKPAPI',])
+
 local_env.Append(CPPDEFINES = [ 'ESCRIPT_EXPORTS'] )
 
 lib = local_env.SharedLibrary(lib_name, sources)

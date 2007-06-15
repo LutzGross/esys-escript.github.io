@@ -23,6 +23,9 @@
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "UnaryFuncs.h"
+extern "C" {
+#include "escript/blocktimer.h"
+}
 
 #include <fstream>
 #include <algorithm>
@@ -462,12 +465,14 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
+  double blocktimer_start = blocktimer_time();
   if (functionspace.getDomain()!=getDomain())
     throw DataException("Error - gradient cannot be calculated on different domains.");
   DataArrayView::ShapeType grad_shape=getPointDataView().getShape();
   grad_shape.push_back(functionspace.getDim());
   Data out(0.0,grad_shape,functionspace,true);
   getDomain().setToGradient(out,*this);
+  blocktimer_increment("grad()", blocktimer_start);
   return out;
 }
 

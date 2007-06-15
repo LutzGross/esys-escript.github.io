@@ -20,6 +20,9 @@
 
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
+extern "C" {
+#include "escript/blocktimer.h"
+}
 
 using namespace std;
 using namespace escript;
@@ -721,6 +724,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
   if (argDomain!=*this) 
      throw FinleyAdapterException("Error - Illegal domain of integration kernel");
 
+  double blocktimer_start = blocktimer_time();
   Finley_Mesh* mesh=m_finleyMesh.get();
   escriptDataC _arg=arg.getDataC();
   switch(arg.getFunctionSpace().getTypeCode()) {
@@ -772,6 +776,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
         break;
   }
   checkFinleyError();
+  blocktimer_increment("integrate()", blocktimer_start);
 }
 
 //

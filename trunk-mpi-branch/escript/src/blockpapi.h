@@ -1,6 +1,4 @@
 
-#define BLOCKPAPI
-
 void blockpapi_addEvent(int event, char *description);
 void blockpapi_start();
 void blockpapi_stop();

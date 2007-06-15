@@ -153,6 +153,7 @@ opts.AddOptions(
   PathOption('papi_path', 'Path to PAPI includes', None),
   PathOption('papi_lib_path', 'Path to PAPI libs', None),
   ('papi_libs', 'PAPI libraries to link with', None),
+  ('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', None),
 # MPI
   BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
@@ -535,6 +536,10 @@ try:
    papi_libs = env['papi_libs']
 except KeyError:
    papi_libs = None
+try:
+   papi_instrument_solver = env['papi_instrument_solver']
+except KeyError:
+   papi_instrument_solver = None
 
 
 # ============= and some helpers =====================================
@@ -615,7 +620,7 @@ env.Alias(init_target)
 # Allow sconscripts to see the env
 Export(["env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umfpack_libs",
 	"blas_libs", "netCDF_libs_cxx", "trilinos_libs", "useNetCDF", "mpi_libs", "boost_libs", "python_libs",
-	"doxygen_path", "epydoc_path", "papi_libs",
+	"doxygen_path", "epydoc_path", "papi_libs", "papi_instrument_solver",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "useMPI"])
 

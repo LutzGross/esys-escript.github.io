@@ -20,9 +20,11 @@ if scsl_libs:
 if umfpack_libs:
    local_env.Append(CPPDEFINES=['UMFPACK',])
    local_env.Append(LIBS = umf_libs)
-if papi_libs:
+if papi_instrument_solver:
    local_env.Append(CPPDEFINES=['PAPI',])
+if papi_libs:
    local_env.Append(LIBS = papi_libs)
+   local_env.Append(CPPDEFINES=['BLOCKPAPI',])
 if trilinos_libs:
    local_env.Append(CPPDEFINES=['TRILINOS',])
    local_env.Append(LIBS = trilinos_libs)

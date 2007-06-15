@@ -26,6 +26,7 @@
 #include "Paso.h"
 #include "SystemMatrix.h"
 #include "Solver.h"
+#include "escript/blocktimer.h"
 
 /***********************************************************************************/
 
@@ -48,6 +49,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
      dim_t maxNumSol = A->maxNumCols * A-> col_block_size;
      dim_t myNumEqua = A->myNumRows * A-> row_block_size;
      dim_t maxNumEqua = A->maxNumRows * A-> row_block_size;
+     double blocktimer_start = blocktimer_time();
  
      tolerance=MAX(options->tolerance,EPSILON);
      Paso_resetError();
@@ -265,4 +267,5 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
         }
       }
       Performance_stopMonitor(pp,PERFORMANCE_ALL);
+      blocktimer_increment("Paso_Solver()", blocktimer_start);
 }
