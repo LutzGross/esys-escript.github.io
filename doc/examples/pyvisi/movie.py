@@ -32,6 +32,7 @@ cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
 # Create a movie.
 mov = Movie()
+#lst = []
 
 # Read in one file one after another and render the object. 
 for i in range(938, 949):
@@ -41,9 +42,16 @@ for i in range(938, 949):
     s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, \
             IMAGE_NAME + "%06d.jpg") % i)
 
-# Generate the movie from the rendered images.
-mov.makeMovie(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, 
+    #lst.append(IMAGE_NAME + "%06d.jpg" % i)
+
+# Images (first and last inclusive) from which the movie is to be generated.
+mov.imageRange(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, 
         first_image = IMAGE_NAME + "000938.jpg", 
-        last_image = IMAGE_NAME + "000948.jpg", 
-        movie = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "movie.mpg"))
+        last_image = IMAGE_NAME + "000948.jpg")
+
+# Alternatively, a list of images can be specified.
+#mov.imageList(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, image_list = lst)
+
+# Generate the movie.
+mov.makeMovie(os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "movie.mpg"))
 

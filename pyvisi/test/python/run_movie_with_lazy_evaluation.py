@@ -64,6 +64,7 @@ class TestGenerateMovie(unittest.TestCase, TestMovie):
 		self.velocity.setColor(color = Color.BLACK)
 
 		self.mov = Movie()
+		self.lst = []
 		self.cam = Camera(scene = self.scene, viewport = Viewport.SOUTH_WEST)
 
 	def tearDown(self):
@@ -73,8 +74,9 @@ class TestGenerateMovie(unittest.TestCase, TestMovie):
 		del self.map
 		del self.cam
 		del self.mov
+		del self.lst
 
-	def testMovie(self):
+	def testMovieRange(self):
 
 		for i in range(938, 949):
 			self.data_collector.setFileName(file_name = \
@@ -83,10 +85,36 @@ class TestGenerateMovie(unittest.TestCase, TestMovie):
 			
 			self.render(IMAGE_NAME + "%06d.jpg" % i)
 
-		self.mov.makeMovie(input_directory = PYVISI_TEST_MOVIE_IMAGES_PATH, 
+		self.mov.imageRange(input_directory = PYVISI_TEST_MOVIE_IMAGES_PATH, 
 				first_image = IMAGE_NAME + "000938.jpg", 
-				last_image = IMAGE_NAME + "000948.jpg", 
-				movie = os.path.join(PYVISI_TEST_MOVIE_IMAGES_PATH, "movie.mpg"))
+				last_image = IMAGE_NAME + "000948.jpg")
+
+		self.mov.makeMovie(os.path.join(PYVISI_TEST_MOVIE_IMAGES_PATH, \
+				"movie_testMovieRange.mpg"))
+
+		self.failUnless(os.stat(os.path.join(PYVISI_TEST_MOVIE_IMAGES_PATH,\
+				"movie_testMovieRange.mpg"))[ST_SIZE] > MIN_IMAGE_SIZE)
+
+
+	def testMovieList(self):
+
+		for i in range(938, 949):
+			self.data_collector.setFileName(file_name = \
+					os.path.join(PYVISI_TEST_MESHES_PATH, FILE_2D + "%06d.vtu")
+					% i)
+			
+			self.render(IMAGE_NAME + "%06d.jpg" % i)
+			self.lst.append(IMAGE_NAME + "%06d.jpg" % i)
+
+		self.mov.imageList(input_directory = PYVISI_TEST_MOVIE_IMAGES_PATH, 
+				image_list = self.lst)
+
+		self.mov.makeMovie(os.path.join(PYVISI_TEST_MOVIE_IMAGES_PATH, \
+				"movie_testMovieList.mpg"))
+
+		self.failUnless(os.stat(os.path.join(PYVISI_TEST_MOVIE_IMAGES_PATH,\
+				"movie_testMovieList.mpg"))[ST_SIZE] > MIN_IMAGE_SIZE)
+
 
 ###############################################################################
 

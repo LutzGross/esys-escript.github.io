@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 import tempfile, os, sys
@@ -34,6 +50,9 @@ class DataCollector:
 		self.__source = source
 		# Keeps track on whether DataCollector have been modified.
 		self.__modified = True
+		# Keeps track of the number of times the 'setFileName' or 'setData' 
+		# method have been executed.
+		self.__count = 0
 		# Keeps track on whether any specific scalar, vector or tensor 
 		# field have been specified.
 		self.__set_scalar = False
@@ -65,6 +84,7 @@ class DataCollector:
 		"""
 
 		self.__modified = True
+		self.__count += 1
 
 		if(self.__source == Source.XML):
 			# Check whether the specified file exists, otherwise exit.
@@ -88,6 +108,7 @@ class DataCollector:
 		"""
 
 		self.__modified = True
+		self.__count += 1
 
 		if self.__source == Source.ESCRIPT:
 			esys.escript.saveVTK(self.__tmp_file,**args)
@@ -361,7 +382,14 @@ class DataCollector:
 		"""
 
 		if(self.__modified == True):
-			#self.__modified = False
+			# 'self.__modified' is set to False only if the 'setFileName' or 
+			# 'setData' method have been called once. This is to prevent
+			# the scalar range and active field (i.e. scalar, vector or tensor)
+			# from being updated as no changes has taken place (for performance
+			# reasons). However if the 'setFileName' or 'setData' method is 
+			# called more than once, then 'self.__modified' remains True.
+			if(self.__count == 1):
+				self.__modified = False
 			return True
 		else:
 			return False

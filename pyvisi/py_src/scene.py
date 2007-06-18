@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 from constant import Renderer, Color, Viewport, ImageFormat
@@ -164,6 +180,7 @@ class Scene:
 		"""
 		Enables the offline rendering (no window comes up).
 		"""
+
 		# Enables the offscreen rendering.
 		self.__vtk_render_window.OffScreenRenderingOn()
 
@@ -172,6 +189,7 @@ class Scene:
 		Setup the window to image filter to convert the output from the render 
 		window into an image.
 		"""
+
 		self.__vtk_window_to_image = vtk.vtkWindowToImageFilter()
 		self.__vtk_window_to_image.SetInput(self.__vtk_render_window)
 		self.__vtk_image_writer = self.__getImageWriter()
@@ -243,7 +261,11 @@ class Scene:
 	def render(self, image_name = None):
 		"""
 		Render the object using either the online, offline or display mode.
+
+		@type image_name: String
+		@param image_name: Name of the saved image.
 		"""	
+
 		for i in range(0, len(self.__visualization_modules)):
 			self.__visualization_modules[i]._render(self)	
 			self.__vtk_render_window.Render()
