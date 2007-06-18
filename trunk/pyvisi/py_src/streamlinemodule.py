@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -78,7 +94,7 @@ class StreamLineModule:
 
 		@type length: Number
 		@param length: Length of the streamline segment expressed in 
-		elapsed time
+				elapsed time
 		"""
 
 		self.__vtk_stream_line.SetStepLength(length)	
@@ -91,7 +107,7 @@ class StreamLineModule:
 
 		@type length: Number
 		@param length: Length of the integration step expressed as a fraction 
-		of the size of each cell
+				of the size of each cell
 		"""
 
 		self.__vtk_stream_line.SetIntegrationStepLength(length)

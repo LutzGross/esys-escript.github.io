@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 from esys.pyvisi.constant import ImageFormat
 from os import system
@@ -23,9 +39,10 @@ class Movie:
 
 		self.__parameter_file = parameter_file
 
-	def makeMovie(self, input_directory, first_image, last_image, movie):
+
+	def imageRange(self, input_directory, first_image, last_image):
 		"""
-		Coordinate the generation of the movie.
+		The image range from which the movie is to be generated from.
 
 		@type input_directory: String
 		@param input_directory: Directory in which the series of images can 
@@ -34,19 +51,51 @@ class Movie:
 		@param first_image: First image name (including the extension)
 		@type last_image: String
 		@param last_image: Last image name (including the extension)
-		@type movie : String
-		@param movie: Movie name (including the extension)
 		"""
 
+		# Keeps track whether an image range or image list was provided as
+		# the source for generating the movie.
+		self.__image_range_used = True
 		self.__input_directory = input_directory
 		self.__first_image = first_image
 		self.__last_image = last_image
-		self.__movie = movie
 
 		self.__splitInput()
 		self.__retrieveFirstImageDetails()
 		self.__retrieveLastImageDetails()
 		self.__retrieveConversionCommand()
+
+	def imageList(self, input_directory, image_list):
+		"""
+		The image list from which the movie is to be generated from.
+
+		@type input_directory: String
+		@param input_directory: Directory in which the series of images can 
+		        be found
+		@type image_list: List
+		@type image_list: List of images name
+		"""
+
+		self.__image_range_used = False 
+		self.__input_directory = input_directory
+		self.__images = ""
+
+		self.__first_image = image_list[0] # Get first image in the list.		
+		self.__splitInput()
+		self.__retrieveConversionCommand()
+
+		for i in image_list:
+			self.__images += i  + '\n'
+
+	def makeMovie(self, movie):
+		"""
+		Coordinate the generation of the movie.
+
+		@type movie : String
+		@param movie: Movie name (including the extension)
+		"""
+
+		self.__movie = movie
 		self.__generateParameterFile()
 
 		# If a parameter file name was not specified, then the default file 
@@ -70,17 +119,10 @@ class Movie:
 		self.__first_image = \
 				self.__first_image.rstrip('.' + self.__image_format)
 
-		# Last image name.
-		self.__last_image = \
-				self.__last_image.rstrip('.' + self.__image_format)
-
-
-
-		#self.__image_format = self.__first_image.split('.')[1]
-		# First image name.
-		#self.__first_image = self.__first_image.split('.')[0]
-		# Last image name.
-		#self.__last_image = self.__last_image.split('.')[0]
+		if(self.__image_range_used == True):
+			# Last image name.
+			self.__last_image = \
+					self.__last_image.rstrip('.' + self.__image_format)
 
 	def __retrieveFirstImageDetails(self):
 		"""
@@ -112,17 +154,12 @@ class Movie:
 				self.__last_image_number = \
 						self.__last_image_number + self.__last_image[i]
 
-		# The last image number is deducted by one. This allows the user
-		# to use the same image range when generating a movie as the 
-		# ones used for the for-loop.
-		#self.__last_image_number = unicode(int(self.__last_image_number) - 1)
-		
 	def __retrieveConversionCommand(self):
 		"""
 		Retrieve the conversion command (depending on the image format)
 		required by the 'ppmtompeg' command.
 		"""
-		print "-----", self.__image_format
+
 		if(self.__image_format.endswith(ImageFormat.JPG)):
 			self.__command = 'jpeg'
 		elif(self.__image_format.endswith(ImageFormat.BMP)):
@@ -142,6 +179,13 @@ class Movie:
 		Write the list of parameters into the file. 
 		"""
 
+		if(self.__image_range_used == True): # Image range was provided.
+			input = self.__image_prefix + '*.' + self.__image_format + ' [' + \
+					self.__first_image_number + '-' + \
+					self.__last_image_number + ']\n'
+		else: # Image list was provided
+			input = self.__images
+
 		parameter_file = open(self.__parameter_file, 'w')
 
 		parameter_file.write('PATTERN IBBPBBPBBPBBPBBP\n' +
@@ -152,9 +196,7 @@ class Movie:
 			'SLICES_PER_FRAME 10\n' +
 			'INPUT_DIR ' + self.__input_directory + '\n' +
 			'INPUT\n' +
-			self.__image_prefix + '*.' + self.__image_format + ' [' + \
-					self.__first_image_number + '-' + \
-					self.__last_image_number + ']\n'
+			input +
 			'END_INPUT\n' +
 			'PIXEL HALF\n' +
 			'RANGE 10\n' +

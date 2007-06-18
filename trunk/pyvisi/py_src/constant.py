@@ -1,3 +1,23 @@
+"""
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
+"""
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
+
 class Color:
 	"""
 	Constants that define the colors using RGB values.
@@ -53,7 +73,7 @@ class Source:
 	@cvar ESCRIPT: Constant representing escript data objects as source
 	"""
 	
-	XML = "xml"
+	XML     = "xml"
 	ESCRIPT = "escript"
 
 class Renderer:
@@ -90,34 +110,34 @@ class Renderer:
 	@cvar DISPLAY_IV: Constant representing the OpenInventor display renderer
 	"""
 
-	ONLINE     = "online"
-	ONLINE_JPG = "online_jpg"
-	ONLINE_BMP = "online_bmp"
-	ONLINE_PNM = "online_pnm"
-	ONLINE_PNG = "online_png"
-	ONLINE_TIF = "online_tif"
-	ONLINE_PS  = "online_ps"
+	ONLINE       = "online"
+	ONLINE_JPG   = "online_jpg"
+	ONLINE_BMP   = "online_bmp"
+	ONLINE_PNM   = "online_pnm"
+	ONLINE_PNG   = "online_png"
+	ONLINE_TIF   = "online_tif"
+	ONLINE_PS    = "online_ps"
 	ONLINE_VRML  = "online_vrml"
-	ONLINE_IV  = "online_iv"
+	ONLINE_IV    = "online_iv"
 
-	OFFLINE_JPG = "offline_jpg"
-	OFFLINE_BMP = "offline_bmp"
-	OFFLINE_PNM = "offline_pnm"
-	OFFLINE_PNG = "offline_png"
-	OFFLINE_TIF = "offline_tif"
-	OFFLINE_PS  = "offline_ps"
+	OFFLINE_JPG   = "offline_jpg"
+	OFFLINE_BMP   = "offline_bmp"
+	OFFLINE_PNM   = "offline_pnm"
+	OFFLINE_PNG   = "offline_png"
+	OFFLINE_TIF   = "offline_tif"
+	OFFLINE_PS    = "offline_ps"
 	OFFLINE_VRML  = "offline_vrml"
-	OFFLINE_IV  = "offline_iv"
+	OFFLINE_IV    = "offline_iv"
 
-	DISPLAY     = "display"
-	DISPLAY_JPG = "display_jpg"
-	DISPLAY_BMP = "display_bmp"
-	DISPLAY_PNM = "display_pnm"
-	DISPLAY_PNG = "display_png"
-	DISPLAY_TIF = "display_tif"
-	DISPLAY_PS  = "display_ps"
+	DISPLAY       = "display"
+	DISPLAY_JPG   = "display_jpg"
+	DISPLAY_BMP   = "display_bmp"
+	DISPLAY_PNM   = "display_pnm"
+	DISPLAY_PNG   = "display_png"
+	DISPLAY_TIF   = "display_tif"
+	DISPLAY_PS    = "display_ps"
 	DISPLAY_VRML  = "display_vrml"
-	DISPLAY_IV  = "display_iv"
+	DISPLAY_IV    = "display_iv"
 
 class Arrow:
 	"""
@@ -127,7 +147,7 @@ class Arrow:
 	@cvar THREE_D: Constant representing the three dimensional arrow type
 	"""
 
-	TWO_D = "2d"
+	TWO_D   = "2d"
 	THREE_D = "3d"
 
 class ColorMode:
@@ -156,11 +176,12 @@ class ImageFormat:
 	"""
 	Constants that define the image formats.
 
-	@cvar JPG: Constant representing the JPG image format
-	@cvar BMP: Constant representing the BMP image format
-	@cvar PNM: Constant representing the PNM image format
-	@cvar PNG: Constant representing the PNG image format
-	@cvar TIF: Constant representing the TIF image format
+	@cvar JPG: Constant representing the JPG image format (.jpg)
+	@cvar BMP: Constant representing the BMP image format (.bmp)
+	@cvar PNM: Constant representing the PNM image format (.pnm)
+	@cvar PNG: Constant representing the PNG image format (.png)
+	@cvar TIF: Constant representing the TIF image format (.tif)
+	@cvar PS:  Constant representing the PS image format  (.ps)
 	"""
 
 	JPG = "jpg"
@@ -179,7 +200,7 @@ class Lut:
 	@cvar GREY_SCALE: Constant representing the grey scale scheme
 	"""
 	
-	COLOR = "color"
+	COLOR      = "color"
 	GREY_SCALE = "grey_scale"
 
 class LegendType:
