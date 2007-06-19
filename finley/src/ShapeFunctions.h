@@ -56,6 +56,7 @@ Finley_Shape_Function Finley_Shape_Tet10;
 Finley_Shape_Function Finley_Shape_Tet16;
 Finley_Shape_Function Finley_Shape_Hex8;
 Finley_Shape_Function Finley_Shape_Hex20;
+Finley_Shape_Function Finley_Shape_Hex27;
 Finley_Shape_Function Finley_Shape_Hex32;
 
 #endif /* #ifndef INC_FINLEY_SHAPEFUNCTIONS */
