@@ -35,7 +35,7 @@ class DataSetMapper:
 		# by the user.
 		self.__scalar_range_set = False
 
-	# 'lookup_table = None' is used only by the Outline and ScalarBar.
+	# 'lookup_table = None' is used only by the Outline.
 	def _setupDataSetMapper(self, object, lookup_table = None): 
 		"""
 		Setup the data set mapper.	
@@ -139,7 +139,7 @@ class DataSetMapper:
 		Return the mapper's scalar range.
 
 		@rtype: Two column tuple containing numbers
-		@return: Minimum and maximum data set mapper scalar range
+		@return: Minimum and maximum range of the data set mapper's scalar range
 		"""
 
 		return self.__vtk_data_set_mapper.GetScalarRange()
@@ -150,7 +150,7 @@ class DataSetMapper:
 
 class ImageMapper:
 	"""
-	Class that defines a image mapper.
+	Class that defines an image mapper.
 	"""
 
 	def __init__(self):

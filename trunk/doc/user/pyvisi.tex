@@ -6,31 +6,35 @@
 \section{Introduction}
 \pyvisi is a Python module that is used to generate 2D and 3D visualization 
 for escript and its PDE solvers: finley and bruce. This module provides 
-an easy to use interface to the \VTK library (\VTKUrl). There are three 
+an easy to use interface to the \VTK library (\VTKUrl). Pyvisi can be used to 
+render (generate) surface maps and contours for scalar fields, arrows and 
+streamlines for vector fields, and ellipsoids for tensor fields.  
+There are three 
 approaches for rendering an object. (1) Online - object is rendered on-screen 
 with interaction capability (i.e. zoom and rotate), (2) Offline - object is 
 rendered off-screen (no pop-up window) and (3) Display - object is rendered 
-on-screen but with no interaction capability (able to produce on-the-fly 
+on-screen but with no interaction capability (on-the-fly 
 animation). All three approaches have the option to save the rendered object 
 as an image (i.e. jpg).
 
-The following outlines the general guidelines when using Pyvisi:
+The following outlines the general steps to use Pyvisi:
 
 \begin{enumerate}
-\item Create a \Scene instance, a window in which objects are to be rendered on.
-\item Create a data input instance (i.e. \DataCollector or \ImageReader), which 
+\item Create a \Scene instance - a window in which objects are to be 
+rendered on.
+\item Create a data input instance (i.e. \DataCollector or \ImageReader) - 
 reads and loads the source data for visualization.
 \item Create a data visualization instance (i.e. \Map, \Velocity, \Ellipsoid, 
-\Contour, \Carpet, \StreamLine or \Image), which proccesses and manipulates the 
-source data.
-\item Create a \Camera or \Light instance, which controls the viewing angle and
+\Contour, \Carpet, \StreamLine or \Image) -  proccesses and manipulates 
+the source data.
+\item Create a \Camera or \Light instance - controls the viewing angle and
 lighting effects.
-\item Render the object using either the Online, Offline or Display approach.
+\item Render the object - using either the Online, Offline or Display approach.
 \end{enumerate}
 \begin{center}
 \begin{math}
 scene \rightarrow data \; input \rightarrow data \; visualization \rightarrow 
-camer \, / \, light \rightarrow render
+camera \, / \, light \rightarrow render
 \end{math}
 \end{center}
 
@@ -149,11 +153,11 @@ elevation and azimuth.
 
 
 \subsection{Input Classes}
+\label{INPUT SEC}
 This subsection details the instances used to read and load the source data
 for visualization.
 
 \subsubsection{\DataCollector class}
-\label{DATACOLLECTOR SEC}
 \begin{classdesc}{DataCollector}{source = Source.XML}
 A data collector is used to read data either from a XML file (using 
 \texttt{setFileName()}) or from an escript object directly (using 
@@ -223,6 +227,7 @@ Including methods from \ActorTwoD.
 
 
 \subsection{Data Visualization Classes}
+\label{DATAVIS SEC}
 This subsection details the instances used to process and manipulate the source
 data. The typical usage of some of the classes are also shown. 
 
@@ -230,7 +235,8 @@ One point to note is that the source can either be point or cell data. If the
 source is cell data, a conversion to point data may or may not be
 required, in order for the object to be rendered correctly.
 If a conversion is needed, the 'cell_to_point' flag (see below) must 
-be set to 'True', otherwise 'False' (which is the default).
+be set to 'True', otherwise 'False' (which is the default). On occasions, an
+inaccurate object may be rendered from cell data even after conversion.
 
 \subsubsection{\Map class}
 
@@ -794,12 +800,19 @@ by the 'ppmtompeg' command to generate a movie from a series of images.
 \end{classdesc}
 
 The following are some of the methods available:\\
-\begin{methoddesc}[Movie]{makeMovie}{input_directory, first_image, last_image,
-movie}
+\begin{methoddesc}[Movie]{imageRange}{input_directory, first_image, last_image}
+The image range from which the movie is to be generated from.
+\end{methoddesc}
+
+\begin{methoddesc}[Movie]{imageList}{input_directory, image_list}
+The image list from which the movie is to be generated from.
+\end{methoddesc}
+
+\begin{methoddesc}[Movie]{makeMovie}{movie}
 Generate the movie.
 \end{methoddesc}
 
-A typical usage of \Image is shown below.
+A typical usage of \Movie is shown below.
 
 \begin{python}
 # Import the necessary modules.
@@ -836,6 +849,7 @@ cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
 # Create a movie.
 mov = Movie()
+#lst = []
 
 # Read in one file one after another and render the object. 
 for i in range(938, 949):
@@ -845,11 +859,18 @@ for i in range(938, 949):
     s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, \
             IMAGE_NAME + "%06d.jpg") % i)
 
-# Generate the movie from the rendered images.
-mov.makeMovie(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, 
+    #lst.append(IMAGE_NAME + "%06d.jpg" % i)
+
+# Images (first and last inclusive) from which the movie is to be generated.
+mov.imageRange(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, 
         first_image = IMAGE_NAME + "000938.jpg", 
-        last_image = IMAGE_NAME + "000948.jpg", 
-        movie = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "movie.mpg"))
+        last_image = IMAGE_NAME + "000948.jpg")
+
+# Alternatively, a list of images can be specified.
+#mov.imageList(input_directory = PYVISI_EXAMPLE_IMAGES_PATH, image_list = lst)
+
+# Generate the movie.
+mov.makeMovie(os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "movie.mpg"))
 \end{python}
 
 
@@ -860,11 +881,11 @@ mov.makeMovie(input_directory = PYVISI_EXAMPLE_IMAGES_PATH,
 This subsection details the instances used to position the rendered object.
 
 \begin{classdesc}{LocalPosition}{x_coor, y_coor}
-Class that defines the local positioning coordinate system (2D).
+Class that defines the local positioning (X and Y) coordinate system (2D).
 \end{classdesc}
 
 \begin{classdesc}{GlobalPosition}{x_coor, y_coor, z_coor}
-Class that defines the global positioning coordinate system (3D).
+Class that defines the global positioning (X, Y and Z) coordinate system (3D).
 \end{classdesc}
 
 
@@ -872,9 +893,9 @@ Class that defines the global positioning coordinate system (3D).
 
 
 \subsection{Supporting Classes}
-This subsection details the supporting classes inherited by the data 
-visualization classes (see Section \ref{DATACOLLECTOR SEC}) and their 
-available methods. 
+This subsection details the supporting classes and their corresponding methods 
+inherited by the input (see Section \ref{INPUT SEC}) and data 
+visualization classes (see Section \ref{DATAVIS SEC}).
 
 \subsubsection{\ActorThreeD class}
 
@@ -1071,7 +1092,7 @@ Set the displacement scale factor.
 The following are some of the methods available:
 
 \begin{methoddesc}[MaskPoints]{setRatio}{ratio}
-Mask every nth point.
+Mask every n'th point.
 \end{methoddesc}
 
 \begin{methoddesc}[MaskPoints]{randomOn}{}
@@ -1278,7 +1299,7 @@ while t<0.4:
 
 \section{Useful Keys}
 This section shows some of the useful keys when interacting with the rendered
-object.
+object (in the Online approach).
 
 \begin{table}[ht]
 \begin{center}
@@ -1316,7 +1337,7 @@ Keypress 'w' & Modify the representation of the rendered object to wireframe.
 \newpage
 
 \section{Sample Output}
-This section displays thumbnails of sample output.  
+This section displays some of the sample output.  
 
 \begin{table}[ht]
 \begin{tabular}{c c c}

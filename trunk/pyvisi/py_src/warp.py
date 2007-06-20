@@ -44,7 +44,7 @@ class Warp:
 		Setup the warp.
 
 		@type object: vtkPolyData, etc
-		@param object: Input for the warp scalar/vector
+		@param object: Input for the warp scalar or warp vector
 		"""
 
 		self.__object = object
@@ -62,7 +62,7 @@ class Warp:
 		Set the displacement scale factor.
 
 		@type scale_factor: Number
-		@param scale_factor: Scale factor of the displacement
+		@param scale_factor: Scale factor for the displacement
 		"""
 
 		self.__vtk_warp.SetScaleFactor(scale_factor)

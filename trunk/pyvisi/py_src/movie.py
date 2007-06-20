@@ -26,11 +26,16 @@ class Movie:
 	Class that creates a file called 'make_movie' by default (if a parameter 
 	file name is not speficied) which contains a list of parameters required 
 	by the 'ppmtompeg' command to generate a movie from a series of images.
+
+	@attention: A movie cannot be generated from postscript (.ps) images.
 	"""
 	
 	def __init__(self, parameter_file = "make_movie"):	
 		"""
-		Initialise the generation of the movie.
+		Initialise the generation of the movie. If a parameter file name
+		is supplied, the file will not be deleted once the movie has been 
+		generated. Otherwise, the temporary parameter file created will 
+		automatically be removed at the end.
 
 		@type parameter_file: String
 		@param parameter_file: Name of the file containing the list of 
@@ -73,7 +78,7 @@ class Movie:
 		@param input_directory: Directory in which the series of images can 
 		        be found
 		@type image_list: List
-		@type image_list: List of images name
+		@type image_list: List of images name (including the extension)
 		"""
 
 		self.__image_range_used = False 
@@ -89,10 +94,10 @@ class Movie:
 
 	def makeMovie(self, movie):
 		"""
-		Coordinate the generation of the movie.
+		Generate the movie.
 
 		@type movie : String
-		@param movie: Movie name (including the extension)
+		@param movie: Movie name (including the .mpg extension)
 		"""
 
 		self.__movie = movie
@@ -171,7 +176,8 @@ class Movie:
 		elif(self.__image_format.endswith(ImageFormat.TIF)):
 			self.__command = 'tiff'
 		else:
-			raise IOError("ERROR: Invalid image format.")
+			raise IOError("ERROR: '" + self.__image_format + \
+					"' is an invalid image format.")
 
 
 	def __generateParameterFile(self):

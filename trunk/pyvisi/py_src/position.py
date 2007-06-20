@@ -20,7 +20,7 @@ __date__="$Date$"
 
 class LocalPosition:
 	"""
-	Class that defines the local positioning coordiante system (2D).
+	Class that defines the local positioning (X and Y)coordiante system (2D).
 	"""
 
 	def __init__(self, x_coor, y_coor):
@@ -73,7 +73,8 @@ class LocalPosition:
 
 class GlobalPosition:
 	"""
-	Class that defines the global positioning coordinate system (3D)
+	Class that defines the global positioning (X, Y and Z) coordinate system 
+	(3D)
 	"""
 	
 	def __init__(self, x_coor, y_coor, z_coor):

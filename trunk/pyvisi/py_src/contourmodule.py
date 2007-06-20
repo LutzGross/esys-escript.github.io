@@ -22,7 +22,7 @@ import vtk
 
 class ContourModule:
 	"""
-	Class that defines contour module.
+	Class that defines the contour module.
 	"""
 
 	def __init__(self):
@@ -83,22 +83,13 @@ class ContourModule:
 	def _generateContours(self):
 		"""
 		Generate the specified number of contours within the specified range.
-		In order to generate an iso surface, the 'lower_range' and 
+
+		@attention: In order to generate an iso surface, the 'lower_range' and 
 		'upper_range' must be equal.
 		"""
 
 		self.__vtk_contour.GenerateValues(self.__contours, self.__lower_range, 
 				self.__upper_range)
-
-	def _getContour(self):
-		"""
-		Return the contour.
-
-		@rtype: vtkContourFilter
-		@return: Contour filter
-		"""
-
-		return self.__vtk_contour
 
 	def _getContourModuleOutput(self):
 		"""

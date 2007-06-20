@@ -64,7 +64,7 @@ class PointSource:
 	# center.
 	def setPointSourceCenter(self, center):
 		"""
-		Save the sphere's center.
+		Specity the sphere's center.
 		
 		@type center: L{GLobalPosition <position.GlobalPosition>} object
 		@param center: Center of the sphere
@@ -151,7 +151,7 @@ class MaskPoints:
 
 	def setRatio(self, ratio):
 		"""
-		Mask every nth point.
+		Mask every n'th point.
 
 		@type ratio: Number
 		@param ratio: Masking ratio

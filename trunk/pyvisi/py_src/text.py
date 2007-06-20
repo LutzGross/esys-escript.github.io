@@ -57,6 +57,7 @@ class Text2D(Actor2D):
 		"""
 
 		self.__setInput()
+		# Set the color of the 2D text to black by default.
 		self.setColor(Color.BLACK)
 		# Add the 2D text to the appropriate renderer.
 		scene._addActor2D(self.__viewport, self._vtk_actor2D)

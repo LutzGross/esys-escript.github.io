@@ -14,8 +14,6 @@ except KeyError:
 	PYVISI_TEST_DATA_ROOT='.'
 
 PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, "data_meshes")
-PYVISI_TEST_CONTOUR_REFERENCE_IMAGES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT,\
-		"data_reference_images", "contour")
 PYVISI_TEST_CONTOUR_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
 		"data_sample_images", "contour")
 

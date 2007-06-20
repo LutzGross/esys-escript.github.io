@@ -28,12 +28,13 @@ class Transform:
 	followed by translation, and performing translation first followed 
 	by rotation.
 
-	@attention: VTK's coordinate system and translation is NOT 100% accurate. 
+	@attention: VTK's coordinate system and translation is NOT 100% precise. 
 	Consequently, performing maximum rotation and translation can potentially
 	yield incorrect results. For instance, rotating a XY plane along the x-axis 
 	90 degrees may NOT produce any results (as it is possible that the XY 
-	plane has just fallen outside the visible range). However, rotating the 
-	XY plane 89.9 degrees instead should produce the correct resutls.
+	plane has just fallen outside the visible range). Therefore, rotating the 
+	XY plane 89.9 degrees instead, should be a better option in order to 
+	produce the correct results.
 	"""
 
 	def __init__(self):
@@ -41,7 +42,7 @@ class Transform:
 		Initialise the transform object.
 		"""
 
-		# NOTE: VTK's coordinates are not 100% accurate. The origin is not 
+		# NOTE: VTK's coordinates are not 100% precise. The origin is not 
 		# exaclty (0,0,0) and the normal is not exactly (0, 0, 1). There is a 
 		# slight variance. As a result, a slight alteration has to be done 
 		# in order for the plane to be displayed correctly. Otherwise, the 
@@ -192,9 +193,6 @@ class TransformFilter:
 		"""
 
 		return self.__vtk_transform_filter.GetOutput()
-
-
-
 
 
 

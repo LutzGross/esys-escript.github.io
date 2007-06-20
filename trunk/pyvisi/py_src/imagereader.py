@@ -63,7 +63,7 @@ class ImageReader:
 		Set the image file name to be read.
 
 		@type image_name: String
-		@param image_name: Image name from which data is to be read 
+		@param image_name: Image name from which image data is to be read 
 		"""
 
 		self.__vtk_image_reader.SetFileName(image_name)

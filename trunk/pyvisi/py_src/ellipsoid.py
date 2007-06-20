@@ -52,7 +52,8 @@ class Ellipsoid(DataSetMapper, Actor3D, Sphere, Normals, TensorGlyph,
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default).
+		'True', otherwise 'False' (which is the default). On occasions, an
+		inaccurate object may be rendered from cell data even after conversion.
 
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
