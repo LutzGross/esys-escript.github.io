@@ -144,16 +144,6 @@ class Glyph3D:
 
 		self.__vtk_glyph3D.SetRange(range)
 
-	def _getGlyph3D(self):
-		"""
-		Return the 3D glyph.
-
-		@rtype: vtkGlyph3D
-		@return: 3D glyph
-		"""
-
-		return self.__vtk_glyph3D
-
 	def _getGlyph3DOutput(self):
 		"""
 		Return the output of the 3D glyph.

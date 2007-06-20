@@ -38,8 +38,8 @@ class Image(DataSetMapper, Actor3D, Texture, PlaneSource, Transform,
 
 	@attention: Translating an image works differently (opposite) compared to 
 	translating a plane. For example, a positive translation along the 
-	z-axis moves a plane up. However, if the identical translation is applied on
-	an image, the image moves down.
+	z-axis moves a plane up. However, if the identical translation is applied 
+	on an image, the image moves down.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.

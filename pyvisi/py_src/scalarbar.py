@@ -41,6 +41,7 @@ class ScalarBar:
 		"""
 
 		self.__vtk_scalar_bar.GetPositionCoordinate().SetCoordinateSystemToViewport()
+		# Set the default number of labels on the scalar bar to 8.
 		self.setNumberOfLabels(8)
 		# Set the default color of the scalar bar's title and label to black.
 		self.setTitleColor(Color.BLACK)
@@ -60,7 +61,7 @@ class ScalarBar:
 
 	def setNumberOfLabels(self, labels):
 		"""
-		Set the number of lables on the scalar bar.
+		Set the number of labels on the scalar bar.
 
 		@type labels: Number
 		@param labels: Number of labels on the scalar bar
@@ -95,6 +96,7 @@ class ScalarBar:
 		"""
 
 		self.__vtk_scalar_bar.SetOrientationToHorizontal()
+		# Default width, height and position for a horizontal scalar bar.
 		self.setWidth(0.8)
 		self.setHeight(0.10)
 		self.setPosition(LocalPosition(130,5))
@@ -105,6 +107,7 @@ class ScalarBar:
 		"""
 
 		self.__vtk_scalar_bar.SetOrientationToVertical()
+		# Default width, height and position for a vertical scalar bar.
 		self.setWidth(0.14)
 		self.setHeight(0.85)
 		self.setPosition(LocalPosition(5,150))

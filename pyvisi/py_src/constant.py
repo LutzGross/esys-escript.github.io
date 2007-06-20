@@ -67,10 +67,10 @@ class Viewport:
 
 class Source:
 	"""
-	Constants that define the source type.
+	Constants that define the data source type.
 
 	@cvar XML: Constant representing xml as the source type
-	@cvar ESCRIPT: Constant representing escript data objects as source
+	@cvar ESCRIPT: Constant representing escript data objects the source type
 	"""
 	
 	XML     = "xml"
@@ -193,8 +193,7 @@ class ImageFormat:
 
 class Lut:
 	"""
-	Constants that define the type of color mapping scheme for the lookup 
-	table.
+	Constants that define the type of mapping scheme for the lookup table.
 
 	@cvar COLOR: Constant representing the color scheme
 	@cvar GREY_SCALE: Constant representing the grey scale scheme
@@ -204,5 +203,12 @@ class Lut:
 	GREY_SCALE = "grey_scale"
 
 class LegendType:
+	"""
+	Constants that define the type of legend for the scalar bar.
+
+	@cvar SCALAR: Constant representing the legend using scalar data
+	@cvar VECTOR: Constant representing the legend using  vector data
+	"""
+
 	SCALAR = "scalar"
 	VECTOR = "vector"

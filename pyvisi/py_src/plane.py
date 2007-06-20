@@ -23,7 +23,7 @@ from position import GlobalPosition
 
 class Plane:
 	"""
-	Class that defines a plane that cuts/clips rendered objects. 
+	Class that defines a plane that cuts or clips rendered objects. 
 	"""
 
 	def __init__(self):
@@ -97,8 +97,9 @@ class PlaneSource:
 	def __init__(self):
 		"""
 		Initialise the plane source. A plane source is defined by an origin
-		and two other points, which form the axes. By default the origin is 
-		set to (0, 0, 0) and the two points are set to (1, 0, 0) and (0, 1, 0).
+		and two other points, which form the axes (X and Y). By default the 
+		origin is set to (0, 0, 0) and the two points are set to (1, 0, 0) 
+		and (0, 1, 0).
 		"""
 
 		self.__vtk_plane_source = vtk.vtkPlaneSource()

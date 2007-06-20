@@ -27,6 +27,10 @@ class Scene:
 	be rendered on. Only one scene needs to be created. However, a scene may 
 	be divided into four smaller windows called viewports (if needed). 
 	Each viewport can render a different object.  
+
+	@attention: If the IV or VRML renderer type is used, then only one 
+	viewport can be used (four viewports are not supported for these two 
+	cases). 
 	"""
 
 	def __init__(self, renderer = Renderer.ONLINE, num_viewport = 1, 
@@ -187,7 +191,7 @@ class Scene:
 	def __setupWindowToImage(self):
 		"""	
 		Setup the window to image filter to convert the output from the render 
-		window into an image.
+		window into an image, vrml or open inventor file.
 		"""
 
 		self.__vtk_window_to_image = vtk.vtkWindowToImageFilter()
@@ -222,20 +226,20 @@ class Scene:
 	
 	def __saveImage(self, image_name):
 		"""
-		Save the rendered object as an image.
+		Save the rendered object as an image, vrml or open inventor file.
 
 		@type image_name: String
-		@param image_name: Name of the saved image.
+		@param image_name: Name of the saved image, vrml or open inventor file
 		"""
 
 		# NOTE: Render and Modified must be called everytime before writing 
-		# an image. Otherwise, only the first image will always be saved.
-		# This is due to the architecture of VTK.
+		# an image, vrml or open inventor file. Otherwise, only the first 
+		# object will always be saved. This is due to the architecture of VTK.
 		self.__vtk_render_window.Render()
 		self.__vtk_window_to_image.Modified()
 		
 		# Retrieve the rendered object from the window and convert it into an 
-		# image.
+		# image, vrml or open inventor file.
 		# True for all writers besides VRML.
 		if(not(self.__renderer.endswith(self.__VRML)) and \
 				not(self.__renderer.endswith(self.__IV))): 
@@ -263,7 +267,7 @@ class Scene:
 		Render the object using either the online, offline or display mode.
 
 		@type image_name: String
-		@param image_name: Name of the saved image.
+		@param image_name: Name of the saved image, vrml or open inventor file
 		"""	
 
 		for i in range(0, len(self.__visualization_modules)):
@@ -349,8 +353,8 @@ class Scene:
 		Store visualization modules (i.e. Map, Velocity, Ellipsoid, etc) 
 		which needs to be rendered.
 		
-		@type module: Visualization object
-		@param module: Visualization object to be rendered
+		@type module: Visualization modules
+		@param module: Visualization modules to be rendered
 		"""
 
 		self.__visualization_modules.append(module)

@@ -23,7 +23,7 @@ import vtk
 class ImageReslice:
 	"""
 	Class that defines an image reslice used to resize static 
-	(no interaction capability) images.
+	(no interaction capability) images (i.e. logo).
 	"""
 
 	def __init__(self):
@@ -53,7 +53,7 @@ class ImageReslice:
 
 	def setSize(self, size):
 		"""
-		Set the size of the image (logo in particular), between 0 and 2. 
+		Set the size of the image, between 0 and 2. 
 		Size 1 (one) displays the image in its original size 
 		(which is the default).  
 
@@ -64,8 +64,8 @@ class ImageReslice:
 		# By default, with image reslice, the larger the output spacing, the
 		# smaller the image. Similarly, the smaller the output spacing, the 
 		# larger the image. This behaviour is reversed so that the larger the 
-		# size the image. Similarly, the smaller the size, the smaller the
-		# image.
+		# size the larger the image. Similarly, the smaller the size, the 
+		# smaller the image.
 		if(size > 1):
 			size = 1 - (size - 1)
 			self.__vtk_image_reslice.SetOutputSpacing(size, size, size)

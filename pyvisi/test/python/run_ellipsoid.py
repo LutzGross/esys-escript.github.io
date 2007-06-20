@@ -13,9 +13,6 @@ except KeyError:
 	PYVISI_TEST_DATA_ROOT='.'
 
 PYVISI_TEST_MESHES_PATH = os.path.join(PYVISI_TEST_DATA_ROOT, "data_meshes")
-PYVISI_TEST_ELLIPSOID_REFERENCE_IMAGES_PATH = \
-		os.path.join(PYVISI_TEST_DATA_ROOT, "data_reference_images", \
-		"ellipsoid")
 PYVISI_TEST_ELLIPSOID_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
 		"data_sample_images", "ellipsoid")
 

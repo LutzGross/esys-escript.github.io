@@ -89,8 +89,7 @@ class StreamLineModule:
 		(but is more expensive). Setting the step length usually goes 
 		hand-in-hand with setting the integration step length. Otherwise, 
 		errors such as "... can't compute normals" may arise. If such an 
-		error occurs try changing the value. However, it does not usually 
-		apply the other way around.
+		error occurs try changing the values. 
 
 		@type length: Number
 		@param length: Length of the streamline segment expressed in 

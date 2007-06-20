@@ -85,7 +85,7 @@ class Actor3D:
 
 	def setRepresentationToWireframe(self):
 		"""
-		Set the representation of the 3D actor to Wireframe.
+		Set the representation of the 3D actor to wireframe.
 		"""
 
 		self.__vtk_actor3D.GetProperty().SetRepresentationToWireframe()

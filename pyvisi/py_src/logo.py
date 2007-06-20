@@ -24,7 +24,7 @@ from imagereslice import ImageReslice
 from actor import Actor2D
 from constant import Viewport
 
-# NOTE: ImageMapper, ImageReslice and Actor2D were inherited to  allow access 
+# NOTE: ImageMapper, ImageReslice and Actor2D were inherited to allow access 
 # to their public methods from the driver.
 class Logo(ImageMapper, ImageReslice, Actor2D):
 	"""

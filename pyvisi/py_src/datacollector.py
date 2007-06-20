@@ -87,7 +87,8 @@ class DataCollector:
 		self.__count += 1
 
 		if(self.__source == Source.XML):
-			# Check whether the specified file exists, otherwise exit.
+			# Check whether the specified file exists, otherwise an error is 
+			# raised.
 			if not(os.access(file_name, os.F_OK)):
 				raise IOError("\nERROR: '%s' file does NOT exists.\n" % \
 						file_name)
@@ -119,7 +120,7 @@ class DataCollector:
 			# will always be displayed. The reason Modified is used is 
 			# because the same temporary file name is always used 
 			# (previous file is overwritten). Modified MUST NOT be used in 
-			# setFileName, it can cause incorrect output such as map.
+			# setFileName, as it can cause incorrect output such as map.
 			self.__vtk_xml_reader.Modified()
 
 			# Update must be called after Modified. If Update is called before
@@ -150,7 +151,7 @@ class DataCollector:
 		"""
 
 		# Check whether the specified scalar is available in either point
-		# or cell data. If not available, error is raised.
+		# or cell data. If not available, an error is raised.
 
 		# NOTE: This check is similar to the check used in _getScalarRange 
 		# but this is used only when a scalar attribute has been specified.
@@ -283,7 +284,7 @@ class DataCollector:
 				self.__get_attribute_list(
 				self._getDataCollectorOutput().GetPointData())
 
-		# Get all the available cell data attribute into another list.	
+		# Get all the available cell data attributes into another list.	
 		self.__cell_attribute = \
 				self.__get_attribute_list(
 				self._getDataCollectorOutput().GetCellData())
@@ -297,7 +298,7 @@ class DataCollector:
 		"""
 
 		# Check whether any scalar is available in either point or cell data. 
-		# If not available, program exits.
+		# If not available, an error is raised.
 
 		# NOTE: This check is similar to the check used in _setActiveScalar 
 		# but this is used only when no scalar attribute has been specified.
@@ -319,7 +320,7 @@ class DataCollector:
 		"""
 		
 		# Check whether any vector is available in either point or cell data. 
-		# If not available, program exits.
+		# If not available, an error is raised.
 
 		# NOTE: This check is similar to the check used in _setActiveVector 
 		# but this is used only when no vector attribute has been specified.
@@ -351,7 +352,7 @@ class DataCollector:
 		"""
 
 		# Check whether any tensor is available in either point or cell data. 
-		# If not available, program exits.
+		# If not available, an error is raised.
 
 		# NOTE: This check is similar to the check used in _setActiveTensor 
 		# but this is used only when no tensor attribute has been specified.
