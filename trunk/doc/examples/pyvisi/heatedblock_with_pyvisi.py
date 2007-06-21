@@ -1,3 +1,8 @@
+"""
+Author: Lutz Gross, l.gross@uq.edu.au
+Author: John Ngui, john.ngui@uq.edu.au
+"""
+
 # Import the necessary modules. 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE

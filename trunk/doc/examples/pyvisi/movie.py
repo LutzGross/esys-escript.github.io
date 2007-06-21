@@ -1,3 +1,7 @@
+"""
+Author: John Ngui, john.ngui@uq.edu.au
+"""
+
 # Import the necessary modules.
 from esys.pyvisi import Scene, DataCollector, Map, Camera, Velocity, Legend 
 from esys.pyvisi import Movie, LocalPosition
