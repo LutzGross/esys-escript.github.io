@@ -78,7 +78,7 @@ class Movie:
 		@param input_directory: Directory in which the series of images can 
 		        be found
 		@type image_list: List
-		@type image_list: List of images name (including the extension)
+		@param image_list: List of images name (including the extension)
 		"""
 
 		self.__image_range_used = False 
