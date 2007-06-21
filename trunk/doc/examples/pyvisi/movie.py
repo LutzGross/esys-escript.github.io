@@ -31,7 +31,7 @@ m1 = Map(scene = s, data_collector = dc1,
 cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
 # Create a movie.
-mov = Movie()
+mov = Movie("config_temp")
 #lst = []
 
 # Read in one file one after another and render the object. 
