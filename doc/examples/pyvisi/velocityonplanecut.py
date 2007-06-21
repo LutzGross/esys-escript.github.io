@@ -1,3 +1,7 @@
+"""
+Author: John Ngui, john.ngui@uq.edu.au
+"""
+
 # Import the necessary modules
 from esys.pyvisi import Scene, DataCollector, VelocityOnPlaneCut, Camera
 from esys.pyvisi.constant import *
