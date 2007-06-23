@@ -344,6 +344,24 @@ void MeshAdapter::addPDEToSystem(
    checkFinleyError();
 }
 
+void  MeshAdapter::addPDEToLumpedSystem(
+                     escript::Data& mat,
+                     const escript::Data& D, 
+                     const escript::Data& d) const
+{
+   escriptDataC _mat=mat.getDataC();
+   escriptDataC _D=D.getDataC();
+   escriptDataC _d=d.getDataC();
+
+   Finley_Mesh* mesh=m_finleyMesh.get();
+   
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_mat, &_D);
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d);
+
+   checkFinleyError();
+}
+
+
 //
 // adds linear PDE of second order into the right hand side only
 //
