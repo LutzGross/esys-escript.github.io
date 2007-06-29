@@ -36,6 +36,7 @@ rect1.setCenter(GlobalPosition(1.5,1.5,0.8))
 rect1.setXLength(3)
 rect1.setYLength(1)
 rect1.setZLength(0.3)
+rect1.setColor(Color.GREY)
 
 # Create a Camera for the first viewport
 c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
