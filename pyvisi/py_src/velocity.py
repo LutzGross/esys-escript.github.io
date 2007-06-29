@@ -314,7 +314,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		if(self.__arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
 			self._setupGlyph3D(self._getMaskPointsOutput(), 
-					self._getActor2DOutput()) 
+					self._getArrow2DOutput()) 
 		elif(self.__arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
 			self._setupGlyph3D(self._getMaskPointsOutput(), 

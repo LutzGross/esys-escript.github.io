@@ -716,6 +716,15 @@ can either be colored or grey-scaled, depending on the lookup table used
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \ScalarBar and \DataSetMapper.
 
+\subsubsection{\Rectangle class}
+
+\begin{classdesc}{Rectangle}{scene, viewport = Viewport.SOUTH_WEST}
+Class that generates a rectangle box.
+\end{classdesc}
+
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \CubeSource and \DataSetMapper.
+
 \subsubsection{\Image class}
 
 \begin{classdesc}{Image}{scene, image_reader, viewport = Viewport.SOUTH_WEST}
@@ -880,9 +889,13 @@ mov.makeMovie(os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, "movie.mpg"))
 \subsection{Coordinate Classes}
 This subsection details the instances used to position the rendered object.
 
+\subsubsection{\LocalPosition class}
+
 \begin{classdesc}{LocalPosition}{x_coor, y_coor}
 Class that defines the local positioning (X and Y) coordinate system (2D).
 \end{classdesc}
+
+\subsubsection{\GlobalPosition class}
 
 \begin{classdesc}{GlobalPosition}{x_coor, y_coor, z_coor}
 Class that defines the global positioning (X, Y and Z) coordinate system (3D).
@@ -1155,6 +1168,27 @@ method is called when the range has been specified by the user.
 Therefore, the scalar range read from the source will be ignored.
 \end{methoddesc}
 
+\subsubsection{\CubeSource class}
+
+The following are some of the methods available:
+
+\begin{methoddesc}[CubeSource]{setCenter}{center}
+Set the cube source center.
+\end{methoddesc}
+
+\begin{methoddesc}[CubeSource]{setXLength}{length}
+Set the cube source length along the x-axis.
+\end{methoddesc}
+
+\begin{methoddesc}[CubeSource]{setYLength}{length}
+Set the cube source length along the y-axis.
+\end{methoddesc}
+
+\begin{methoddesc}[CubeSource]{setZLength}{length}
+Set the cube source length along the z-axis.
+\end{methoddesc}
+
+
 % ############################################################################# 
 
 
@@ -1324,6 +1358,8 @@ read and display the next file if multiple files are to be read. \\ \hline
 Keypress 's' & Modify the representation of the rendered object to surfaces.
 \\ \hline
 Keypress 'w' & Modify the representation of the rendered object to wireframe.
+\\ \hline
+Keypress 'r' & Reset the position of the rendered object to the center.
 \\ \hline
 \end{tabular}
 \caption{Useful keys}
