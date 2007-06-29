@@ -3,21 +3,21 @@ Author: John Ngui, john.ngui@uq.edu.au
 """
 
 # Import the necessary modules.
-from esys.pyvisi import Scene, DataCollector, StreamLine, Camera 
+from esys.pyvisi import Scene, DataCollector, Map, Camera, Rectangle
+from esys.pyvisi import GlobalPosition
 from esys.pyvisi.constant import *
 import os
 
 PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
 PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
-X_SIZE = 400
-Y_SIZE = 400
+X_SIZE = 800
+Y_SIZE = 800
 
-VECTOR_FIELD_CELL_DATA = "temperature"
 FILE_3D = "interior_3D.xml"
-IMAGE_NAME = "streamline.jpg"
+IMAGE_NAME = "rectangle.jpg"
 JPG_RENDERER = Renderer.ONLINE_JPG
 
-# Create a Scene.
+# Create a Scene with four viewports.
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         y_size = Y_SIZE)
 
@@ -25,16 +25,19 @@ s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE,
 dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, FILE_3D))
 
-# Create a Streamline.
-sl1 = StreamLine(scene = s, data_collector = dc1,
-        viewport = Viewport.SOUTH_WEST, color_mode = ColorMode.SCALAR, 
+# Create a  Map.
+m1 = Map(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST, 
         lut = Lut.COLOR, cell_to_point = False, outline = True)
-sl1.setTubeRadius(radius = 0.02)
-sl1.setTubeNumberOfSides(3)
-sl1.setTubeRadiusToVaryByVector()
-sl1.setPointSourceRadius(0.9)
+m1.setOpacity(0.2)
 
-# Create a Camera.
+# Create a rectangle.
+rect1 = Rectangle(scene = s, viewport = Viewport.SOUTH_WEST)
+rect1.setCenter(GlobalPosition(1.5,1.5,0.8))
+rect1.setXLength(3)
+rect1.setYLength(1)
+rect1.setZLength(0.3)
+
+# Create a Camera for the first viewport
 c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
 

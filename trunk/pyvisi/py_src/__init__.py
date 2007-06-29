@@ -35,3 +35,4 @@ from imagereader import *
 from logo import *
 from legend import *
 from movie import *
+from rectangle import *

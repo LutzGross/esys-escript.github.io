@@ -38,6 +38,7 @@ from run_exporter import TestVRMLExporter, TestIVExporter
 from run_legend import TestLegend
 from run_legend_with_lazy_evaluation import TestLegendWithLazyEvaluation
 from run_movie_with_lazy_evaluation import TestGenerateMovie
+from run_rectangle import TestRectangleOnAMap
 
 import unittest
 
@@ -103,6 +104,7 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestLegend))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestLegendWithLazyEvaluation))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGenerateMovie))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestRectangleOnAMap))
 
 
 	unittest.TextTestRunner(verbosity=2).run(suite)
