@@ -33,7 +33,8 @@ mosc1 = Contour(scene = s, data_collector = dc1,
         outline = True)
 mosc1.generateContours(0)
 
-# Create a second DataCollector reading from the same XML file. 
+# Create a second DataCollector reading from the same XML file
+# but specifying a different scalar field. 
 dc2 = DataCollector(source = Source.XML)
 dc2.setActiveScalar(scalar = SCALAR_FIELD_POINT_DATA_2)
 

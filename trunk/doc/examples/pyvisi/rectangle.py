@@ -17,7 +17,7 @@ FILE_3D = "interior_3D.xml"
 IMAGE_NAME = "rectangle.jpg"
 JPG_RENDERER = Renderer.ONLINE_JPG
 
-# Create a Scene with four viewports.
+# Create a Scene.
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         y_size = Y_SIZE)
 
@@ -38,7 +38,7 @@ rect1.setYLength(1)
 rect1.setZLength(0.3)
 rect1.setColor(Color.GREY)
 
-# Create a Camera for the first viewport
+# Create a Camera.
 c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
 

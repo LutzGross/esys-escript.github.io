@@ -14,7 +14,6 @@ X_SIZE = 500
 Y_SIZE = 500
 
 FILE_NAME = "phi_talus_lava.0099.vtu"
-
 IMAGE_NAME = "legend.jpg"
 JPG_RENDERER = Renderer.ONLINE_JPG
 
@@ -45,6 +44,6 @@ lg1.setPosition(LocalPosition(50, 5))
 # Create a Camera.
 cam1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 
-# Read in one file one after another and render the object. 
+# Render the object. 
 s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, 
         IMAGE_NAME))
