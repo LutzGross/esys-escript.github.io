@@ -159,7 +159,8 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 		if(self.__modified):
 			# Get the bounds of the object in the form of
 			# (xmin, xmax, ymin, ymax, zmin, zmax).
-			bounds = self.__data_collector._getDataCollectorOutput().GetBounds()
+			bounds = \
+					self.__data_collector._getDataCollectorOutput().GetBounds()
 			# Length of the z-axis (max - min). Assumption is made that if the
 			# length of the z-axis is equal to zero, the the data set is 2D.
 			# Otherwise, the data set is 3D. However, there are exceptions 
@@ -167,7 +168,7 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 			# of non-zero, but such exceptions are not taken into account here.
 			z_axis_length = bounds[5] - bounds[4]
 
-			if(self.__cell_to_point == True): #Converts cell data to point data.
+			if(self.__cell_to_point == True): #Convert cell data to point data.
 				c2p = CellDataToPointData(\
 						self.__data_collector._getDataCollectorOutput())
 				if(z_axis_length != 0): # A cutter is used for 3D data.
@@ -176,6 +177,7 @@ class Carpet(DataSetMapper, Actor3D, Warp, Transform, Plane, Cutter):
 					self._setupWarp(self._getCutterOutput())
 				elif(z_axis_length == 0): # A cutter is not used for 2D data.
 					self._setupWarp(c2p._getCellToPointOutput())
+
 			elif(self.__cell_to_point == False): # No conversion happens.	
 				if(z_axis_length != 0): # A cutter is used for 3D data.
 					self._setupCutter(\

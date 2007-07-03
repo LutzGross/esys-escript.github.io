@@ -144,8 +144,8 @@ class Contour(DataSetMapper, Actor3D, ContourModule):
 			if(self.__data_collector._isScalarSet() == True):
 				self.__data_collector._setActiveScalar()
 
-			# By default 10 contours are generated and the scalar range is based
-			# on the scalar data range.
+			# By default 10 contours are generated and the scalar range is 
+			# based on the scalar data range.
 			contours = 10
 			lower_range = self.__data_collector._getScalarRange()[0]
 			upper_range = self.__data_collector._getScalarRange()[1]
@@ -175,8 +175,8 @@ from transform import Transform
 from plane import Plane
 from cutter import Cutter
 
-# NOTE: DataSetMapper, Actor3D, ContourModule, Transform, Plane and Cutter were 
-# inherited to allow access to their public methods from the driver.
+# NOTE: DataSetMapper, Actor3D, ContourModule, Transform, Plane and Cutter 
+# were inherited to allow access to their public methods from the driver.
 class ContourOnPlaneCut(DataSetMapper, Actor3D, ContourModule, Transform, 
 		Plane, Cutter):
 	"""

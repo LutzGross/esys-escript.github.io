@@ -26,7 +26,7 @@ dc1 = DataCollector(source = Source.XML)
 dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, FILE_3D))
 dc1.setActiveTensor(tensor = TENSOR_FIELD_CELL_DATA)
 
-# Create a EllipsoidOnPlaneClip.
+# Create an EllipsoidOnPlaneClip.
 eopc1 = EllipsoidOnPlaneClip(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = True, 
         outline = True)
@@ -34,7 +34,7 @@ eopc1.setPlaneToXY()
 eopc1.setScaleFactor(scale_factor = 0.2)
 eopc1.rotateX(angle = 10)
 
-# Create a camera.
+# Create a Camera.
 c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 c1.bottomView()
 c1.azimuth(angle = -90)

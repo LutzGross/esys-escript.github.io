@@ -26,7 +26,7 @@ ir = ImageReader(ImageFormat.JPG)
 ir.setImageName(image_name =  os.path.join(PYVISI_EXAMPLE_MESHES_PATH, \
         LOAD_LOGO_NAME))
 
-# Create an Image.
+# Create an Logo.
 l = Logo(scene = s, image_reader = ir, viewport = Viewport.SOUTH_WEST)
 l.setPosition(position = LocalPosition(10,10))
 l.setSize(size = 0.7)

@@ -36,7 +36,7 @@ mopc1.setPlaneToYZ(offset = 0.1)
 c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
 c1.isometricView()
 
-# Render the object with multiple cuts from a series of translation.
+# Render the object with multiple cuts using a series of translation.
 for i in range(0, 5):
     s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, IMAGE_NAME +
 			"%02d.jpg") % i)
