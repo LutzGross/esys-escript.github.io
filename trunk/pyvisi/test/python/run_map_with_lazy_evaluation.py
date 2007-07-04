@@ -1,6 +1,6 @@
 # Import the necessary modules
 from esys.pyvisi import DataCollector, Scene, Map, MapOnPlaneCut, MapOnPlaneClip
-from esys.pyvisi import Camera, MapOnScalarClip
+from esys.pyvisi import Camera, MapOnScalarClip, MapOnScalarClipWithRotation
 from esys.pyvisi.constant import *
 import unittest, os
 from stat import ST_SIZE
@@ -21,6 +21,7 @@ PYVISI_TEST_MAP_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
 MIN_IMAGE_SIZE = 100
 FILE_3D_1 = "results.xml"
 FILE_3D_2 = "interior_3D.xml"
+FILE_2D_ROTATION = "without_st.0700.xml"
 X_SIZE = 400
 Y_SIZE = 400
 
@@ -181,6 +182,35 @@ class TestMapOnScalarClipLazy(unittest.TestCase, TestMapWithLazyEvaluation):
 				FILE_3D_2))
 		self.render("TestMapOnScalarClipWithLazyEvaluation.jpg")
 
+class TestMapOnScalarClipWithRotationLazy(unittest.TestCase, 
+		TestMapWithLazyEvaluation):
+
+	def tearDown(self):
+		del self.scene
+
+	def testMapOnScalarClipWithRotationLazy(self):
+		s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
+				y_size = Y_SIZE)
+		self.scene = s
+
+		dc1 = DataCollector(source = Source.XML)
+
+		# Create a map on scalar clip instance.
+		mosc1_1 = MapOnScalarClipWithRotation(scene = s, data_collector = dc1, 
+				lut = Lut.GREY_SCALE)
+		mosc1_1.setAngle(200)
+		
+		c1 = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
+		c1.isometricView()
+
+		dc1.setFileName(file_name = os.path.join(PYVISI_TEST_MESHES_PATH, \
+				FILE_2D_ROTATION))
+		self.render("TestMapOnScalarClipWithRotationWithLazyEvaluation.jpg")
+
+
+
+
+
 ##############################################################################
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
@@ -188,4 +218,5 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneCutLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClipLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipLazy))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipWithRotationLazy))
 	unittest.TextTestRunner(verbosity=2).run(suite)

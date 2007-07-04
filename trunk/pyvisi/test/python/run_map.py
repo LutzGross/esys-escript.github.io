@@ -19,6 +19,7 @@ PYVISI_TEST_MAP_IMAGES_PATH = os.path.join(PYVISI_WORKDIR, \
 MIN_IMAGE_SIZE = 100
 FILE_2D = "interior_2D.xml"
 FILE_3D = "interior_3D.xml"
+FILE_2D_ROTATION = "without_st.0700.xml"
 FILE_SECOND_ORDER_3D = "temp-000585.vtu"
 X_SIZE = 400
 Y_SIZE = 400
@@ -384,6 +385,36 @@ class TestMapOnScalarClip(unittest.TestCase, TestMap):
 ###############################################################################
 
 
+from esys.pyvisi import MapOnScalarClipWithRotation
+
+class TestMapOnScalarClipWithRotation(unittest.TestCase, TestMap):
+	def setUp(self):
+		self.scene = \
+				Scene(renderer = JPG_RENDERER, num_viewport = 1,
+				x_size = X_SIZE, y_size = Y_SIZE)
+	
+		self.data_collector = DataCollector(source = Source.XML)
+		self.data_collector.setFileName(file_name = \
+				os.path.join(PYVISI_TEST_MESHES_PATH, FILE_2D_ROTATION))
+		
+		self.map = MapOnScalarClipWithRotation(scene = self.scene, 
+				data_collector = self.data_collector,
+				viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR,
+				cell_to_point = False)
+
+	def tearDown(self):
+		del self.scene
+		del self.data_collector
+		del self.map
+
+	def testSetAngle(self):
+		self.map.setAngle(200)
+		self.render("TestMapOnScalarClipWithRotation_testSetAngle.jpg")
+
+
+###############################################################################
+
+
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOneViewport))
@@ -397,6 +428,7 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClip))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClip))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipWithRotation))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMap3DSecondOrder))
 	unittest.TextTestRunner(verbosity=2).run(suite)
 
