@@ -119,7 +119,7 @@ class PointSource:
 
 class MaskPoints:
 	"""
-	Class that defines the masking of points. It is possible to mask 
+	Class that defines the masking of points 
 	every n'th point.  This is useful to prevent the rendered object 
 	from being cluttered with arrows or ellipsoids.
 	"""

@@ -345,6 +345,19 @@ field clipped using a scalar value.
 The following are some of the methods available:\\
 Methods from \ActorThreeD, \Clipper and \DataSetMapper.
 
+\subsubsection{\MapOnScalarClipWithRotation class}
+
+\begin{classdesc}{MapOnScalarClipWithRotation}{scene, data_collector, 
+viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False}
+This class works in a similar way to \Map except that it
+shows a 2D scalar field clipped using a scalar value and subsequently
+rotated around the z-axis to create a  3D looking effect. This class should
+only be used with 2D data sets and NOT 3D.
+\end{classdesc}
+
+The following are some of the methods available:\\
+Methods from \ActorThreeD, \Clipper, \Rotation and \DataSetMapper.
+
 \subsubsection{\Velocity class}
 
 \begin{classdesc}{Velocity}{scene, data_collector, arrow = Arrow.TWO_D, 
@@ -944,6 +957,7 @@ inherited by the input (see Section \ref{INPUT SEC}) and data
 visualization classes (see Section \ref{DATAVIS SEC}).
 
 \subsubsection{\ActorThreeD class}
+Class that defines a 3D actor. \\
 
 The following are some of the methods available:
 
@@ -960,6 +974,7 @@ Set the representation of the 3D actor to wireframe.
 \end{methoddesc}
 
 \subsubsection{\ActorTwoD class}
+Class that defines a 2D actor. \\
 
 The following are some of the methods available:
 
@@ -969,6 +984,7 @@ corner of the window / viewport.
 \end{methoddesc}
 
 \subsubsection{\Clipper class}
+Class that defines a clipper. \\
 
 The following are some of the methods available:
 
@@ -985,6 +1001,7 @@ Set the scalar clip value (instead of using a plane) for the clipper.
 \end{methoddesc}
 
 \subsubsection{\ContourModule class}
+Class that defines the contour module. \\
 
 The following are some of the methods available:
 
@@ -996,6 +1013,7 @@ must be equal.
 \end{methoddesc}
 
 \subsubsection{\GlyphThreeD class}
+Class that defines 3D glyphs. \\
 
 The following are some of the methods available:
 
@@ -1012,6 +1030,7 @@ Set the 3D glyph scale factor.
 \end{methoddesc}
 
 \subsubsection{\TensorGlyph class}
+Class that defines tensor glyphs. \\
 
 The following are some of the methods available:
 
@@ -1024,6 +1043,8 @@ Set the maximum allowable scale factor for the tensor glyph.
 \end{methoddesc}
 
 \subsubsection{\PlaneSource class}
+Class that defines a plane source.  A plane source is defined by an origin
+and two other points, which form the axes (X and Y). \\
 
 The following are some of the methods available:
 
@@ -1036,6 +1057,8 @@ Set the second point from the origin of the plane source.
 \end{methoddesc}
 
 \subsubsection{\PointSource class}
+Class that defines the source (location) to generate points. The points are
+generated within the radius of a sphere. \\
 
 The following are some of the methods available:
 
@@ -1053,6 +1076,7 @@ number of points, the more streamlines are generated).
 \end{methoddesc}
 
 \subsubsection{\Sphere class}
+Class that defines a sphere. \\
 
 The following are some of the methods available:
 
@@ -1065,6 +1089,7 @@ Set the phi resolution of the sphere.
 \end{methoddesc}
 
 \subsubsection{\StreamLineModule class}
+Class that defines the streamline module. \\
 
 The following are some of the methods available:
 
@@ -1078,6 +1103,7 @@ goes) and backward (where the streamline came from).
 \end{methoddesc}
 
 \subsubsection{\Transform class}
+Class that defines the orientation of planes. \\
 
 The following are some of the methods available:
 
@@ -1110,6 +1136,7 @@ Set the plane orthogonal to the y-axis.
 \end{methoddesc}
 
 \subsubsection{\Tube class}
+Class that defines the tube wrapped around the streamlines. \\
 
 The following are some of the methods available:
 
@@ -1126,6 +1153,7 @@ Set the radius of the tube to vary by scalar data.
 \end{methoddesc}
 
 \subsubsection{\Warp class}
+Class that defines the deformation of a scalar field. \\
 
 The following are some of the methods available:
 
@@ -1134,6 +1162,9 @@ Set the displacement scale factor.
 \end{methoddesc}
 
 \subsubsection{\MaskPoints class}
+Class that defines the masking of points 
+every n'th point.  This is useful to prevent the rendered object
+from being cluttered with arrows or ellipsoids. \\
 
 The following are some of the methods available:
 
@@ -1145,8 +1176,8 @@ Mask every n'th point.
 Enables the randomization of the points selected for masking.
 \end{methoddesc}
 
-
 \subsubsection{\ScalarBar class}
+Class that defines a scalar bar. \\
 
 The following are some of the methods available:
 
@@ -1183,6 +1214,8 @@ Set the color of the scalar bar's title.
 \end{methoddesc}
 
 \subsubsection{\ImageReslice class}
+Class that defines an image reslice used to resize static
+(no interaction capability) images (i.e. logo). \\
 
 The following are some of the methods available:
 
@@ -1192,6 +1225,7 @@ displays the image in its original size (which is the default).
 \end{methoddesc}
 
 \subsubsection{\DataSetMapper class}
+Class that defines a data set mapper. \\
 
 The following are some of the methods available:
 
@@ -1202,6 +1236,11 @@ Therefore, the scalar range read from the source will be ignored.
 \end{methoddesc}
 
 \subsubsection{\CubeSource class}
+Class that defines a cube source. The center of the cube souce defines
+the point from which the cube is to be generated and the X, Y
+and Z lengths define the length of the cube from the center point. If
+X length is 3, then the X length to the left and right of the center
+point is 1.5 respectively.\\ 
 
 The following are some of the methods available:
 
@@ -1219,6 +1258,20 @@ Set the cube source length along the y-axis.
 
 \begin{methoddesc}[CubeSource]{setZLength}{length}
 Set the cube source length along the z-axis.
+\end{methoddesc}
+
+\subsubsection{\Rotation class}
+Class that sweeps 2D data around the z-axis to create a 3D looking effect. \\
+
+The following are some of the methods available:
+
+\begin{methoddesc}[Rotation]{setResolution}{resolution}
+Set the resolution of the sweep for the rotation, which controls the
+number of intermediate points
+\end{methoddesc}
+
+\begin{methoddesc}[Rotation]{setAngle}{angle}
+Set the angle of rotation.
 \end{methoddesc}
 
 

@@ -23,9 +23,11 @@ from run_map import TestMapOneViewport, TestMapFourViewports, \
 		TestMap3DCellDataWithCellToPointConversion, \
 		TestMap3DCellDataWithoutCellToPointConversion, TestMap3DSecondOrder, \
 		TestMapGreyScaleLut, TestMapOnPlaneCut, TestMapOnPlaneClip, \
-		TestMapOnScalarClip
+		TestMapOnScalarClip, \
+		TestMapOnScalarClipWithRotation
 from run_map_with_lazy_evaluation import TestMapLazy, TestMapOnPlaneCutLazy, \
-		TestMapOnPlaneClipLazy, TestMapOnScalarClipLazy
+		TestMapOnPlaneClipLazy, TestMapOnScalarClipLazy, \
+		TestMapOnScalarClipWithRotationLazy
 from run_scene import TestSceneOneViewport, TestSceneFourViewports
 from run_streamline import TestStreamLinePointSource, TestStreamLineModule, \
 		TestStreamLineTube
@@ -39,6 +41,7 @@ from run_legend import TestLegend
 from run_legend_with_lazy_evaluation import TestLegendWithLazyEvaluation
 from run_movie_with_lazy_evaluation import TestGenerateMovie
 from run_rectangle import TestRectangleOnAMap
+
 
 import unittest
 
@@ -78,11 +81,13 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClip))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClip))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipWithRotation))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMap3DSecondOrder))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneCutLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClipLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipLazy))
+	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipWithRotationLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSceneOneViewport))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSceneFourViewports))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestText2D))

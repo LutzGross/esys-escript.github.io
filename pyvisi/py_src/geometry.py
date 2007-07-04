@@ -18,22 +18,34 @@ __version__="$Revision$"
 __date__="$Date$"
 
 
-from camera import *
-from carpet import *
-from contour import *
-from datacollector import *
-from ellipsoid import *
-from image import *
-from light import *
-from map import *
-from position import *
-from scene import *
-from streamline import *
-from text import *
-from velocity import *
-from imagereader import *
-from logo import *
-from legend import *
-from movie import *
-from rectangle import *
-from rotation import *
+import vtk
+
+class Geometry:
+	"""
+	Class that extracts geometry from data and convert it to polygonal type.	
+	"""
+
+	def __init__(self, object):	
+		"""
+		Initialise the geometry filter.
+		"""
+
+		self.__vtk_geometry_filter = vtk.vtkGeometryFilter()
+		self.__object = object
+		self.__setInput()
+
+	def __setInput(self):
+		"""
+		Set the input for the geometry filter
+		"""
+
+		self.__vtk_geometry_filter.SetInput(self.__object)
+
+	def _getGeometryOutput(self):
+		"""
+		Return the output of the rotation.
+
+		@rtype: vtkPolyData
+		@return: Polygonal data
+		"""
+		return self.__vtk_geometry_filter.GetOutput()
