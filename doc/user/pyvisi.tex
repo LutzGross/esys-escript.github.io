@@ -15,7 +15,8 @@ with interaction capability (i.e. zoom and rotate), (2) Offline - object is
 rendered off-screen (no pop-up window) and (3) Display - object is rendered 
 on-screen but with no interaction capability (on-the-fly 
 animation). All three approaches have the option to save the rendered object 
-as an image (i.e. jpg).
+as an image (i.e. jpg) and subsequently converting a series of images into a 
+movie (.mpg).
 
 The following outlines the general steps to use Pyvisi:
 
@@ -30,11 +31,12 @@ the source data.
 \item Create a \Camera or \Light instance - controls the viewing angle and
 lighting effects.
 \item Render the object - using either the Online, Offline or Display approach.
+\item Generate movie - converts a series of images into a movie.
 \end{enumerate}
 \begin{center}
 \begin{math}
 scene \rightarrow data \; input \rightarrow data \; visualization \rightarrow 
-camera \, / \, light \rightarrow render
+camera \, / \, light \rightarrow render \rightarrow movie
 \end{math}
 \end{center}
 
@@ -1518,36 +1520,38 @@ This section displays some of the sample output by Pyvisi.
 \includegraphics[width=\thumbnailwidth]{figures/Map} &
 \includegraphics[width=\thumbnailwidth]{figures/MapOnPlaneCut} &
 \includegraphics[width=\thumbnailwidth]{figures/MapOnPlaneClip} \\
-Map & MapOnPlaneCut & MapOnPlaneClip \\
+Map & MapOnPlaneCut & MapOnPlaneClip \\ 
 \includegraphics[width=\thumbnailwidth]{figures/MapOnScalarClip} & 
-\includegraphics[width=\thumbnailwidth]{figures/Velocity} & 
-\includegraphics[width=\thumbnailwidth]{figures/VelocityOnPlaneCut}  \\
-MapOnScalarClip & Velocity & VelocityOnPlaneCut \\
+\includegraphics[width=\thumbnailwidth]{figures/MapOnScalarClipWithRotation} & 
+\includegraphics[width=\thumbnailwidth]{figures/Velocity} \\ 
+MapOnScalarClip & MapOnScalarClipWithRotation & Velocity \\ \\ \\ \\
+\includegraphics[width=\thumbnailwidth]{figures/VelocityOnPlaneCut} & 
 \includegraphics[width=\thumbnailwidth]{figures/VelocityOnPlaneClip} & 
-\includegraphics[width=\thumbnailwidth]{figures/Ellipsoid} & 
-\includegraphics[width=\thumbnailwidth]{figures/EllipsoidOnPlaneCut}  \\
-VelocityOnPlaneClip & Ellipsoid & EllipsoidOnPlaneCut \\
-\includegraphics[width=\thumbnailwidth]{figures/EllipsoidOnPlaneClip} & 
-\includegraphics[width=\thumbnailwidth]{figures/Contour} & 
-\includegraphics[width=\thumbnailwidth]{figures/ContourOnPlaneCut}  \\
-EllipsoidOnPlaneClip & Contour & ContourOnPlaneCut \\
+\includegraphics[width=\thumbnailwidth]{figures/Ellipsoid} \\ 
+VelocityOnPlaneCut & VelocityOnPlaneClip & Ellipsoid \\ \\ \\ \\
+\includegraphics[width=\thumbnailwidth]{figures/EllipsoidOnPlaneCut} & 
+\includegraphics[width=\thumbnailwidth]{figures/EllipsoidOnPlaneClip} \\ 
+EllipsoidOnPlaneCut & EllipsoidOnPlaneClip \\ \\ \\ \\
 \end{tabular}
 \caption{Sample output}
 \end{table}
 
 \begin{table}[t]
 \begin{tabular}{c c c}
-\includegraphics[width=\thumbnailwidth]{figures/ContourOnPlaneClip} & 
+\includegraphics[width=\thumbnailwidth]{figures/Contour} & 
+\includegraphics[width=\thumbnailwidth]{figures/ContourOnPlaneCut} & 
+\includegraphics[width=\thumbnailwidth]{figures/ContourOnPlaneClip} \\ 
+Contour & ContourOnPlaneCut & ContourOnPlaneClip\\ \\  
 \includegraphics[width=\thumbnailwidth]{figures/StreamLine} & 
-\includegraphics[width=\thumbnailwidth]{figures/Carpet}  \\
-ContourOnPlaneClip & StreamLine & Carpet \\
-\includegraphics[width=\thumbnailwidth]{figures/Rectangle} &
+\includegraphics[width=\thumbnailwidth]{figures/Carpet} & 
+\includegraphics[width=\thumbnailwidth]{figures/Rectangle} \\ 
+Streamline & Carpet & Rectangle \\ \\ \\
 \includegraphics[width=\thumbnailwidth]{figures/Text} & 
-\includegraphics[width=\thumbnailwidth]{figures/Logo} \\
-Rectangle & Text & Logo \\
-\includegraphics[width=\thumbnailwidth]{figures/Image} &
-\includegraphics[width=\thumbnailwidth]{figures/Legend} \\ 
-Image & Legend \\
+\includegraphics[width=\thumbnailwidth]{figures/Logo} & 
+\includegraphics[width=\thumbnailwidth]{figures/Image} \\ 
+Text & Logo & Image \\ \\
+\includegraphics[width=\thumbnailwidth]{figures/Legend} \\
+Legend \\ \\
 \end{tabular}
 \caption{Sample Output}
 \end{table}
