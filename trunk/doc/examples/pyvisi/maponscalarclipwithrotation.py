@@ -28,7 +28,7 @@ dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, FILE_2D))
 # Create a MapOnScalarClipWithRotation.
 m1 = MapOnScalarClipWithRotation(scene = s, data_collector = dc1, 
         viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, cell_to_point = False)
-m1.setAngle(200)
+m1.setAngle(220)
 m1.setResolution(50)
 
 # Create a Camera.
