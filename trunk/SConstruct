@@ -33,7 +33,7 @@ else:
 
 #==============================================================================================     
 #    
-#    get the iinstallation prefix
+#    get the installation prefix
 #
 prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
 print "Install prefix is: ", prefix
@@ -185,6 +185,7 @@ opts.AddOptions(
   ('examples_zipfile', 'the examples zip file will be installed.', prefix+"/release/doc/escript_examples.zip"),
   ('guide_pdf', 'name of the user guide in pdf format', prefix+"/release/doc/user/guide.pdf"),
   ('api_epydoc', 'name of the epydoc api docs directory',prefix+"/release/doc/epydoc"),
+  ('api_doxygen', 'name of the doxygen api docs directory',prefix+"/release/doc/doxygen"),
   ('guide_html', 'name of the directory for user guide in html format', prefix+"/release/doc/user/html"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
@@ -234,7 +235,7 @@ opts.AddOptions(
   PathOption('boost_libs_path', 'Path to Boost libs', boost_libs_path_default),
   ('boost_libs', 'Boost libraries to link with', boost_libs_default),
 # Doc building
-#  PathOption('doxygen_path', 'Path to Doxygen executable', None),
+  PathOption('doxygen_path', 'Path to Doxygen executable', None),
 #  PathOption('epydoc_path', 'Path to Epydoc executable', None),
 # PAPI
   PathOption('papi_path', 'Path to PAPI includes', None),
@@ -319,7 +320,7 @@ except KeyError:
    incinstall = None
 try:
    libinstall = env['libinstall']
-   env.Append(LIBPATH = [libinstall,]) # ksteube adds -L for building of libescript.so libfinley.so escriptcpp.so finleycpp.so
+   env.Append(LIBPATH = [libinstall,]) # Adds -L for building of libescript.so libfinley.so escriptcpp.so finleycpp.so
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
    if env['PLATFORM'] == "win32":
       env.PrependENVPath('PATH', libinstall)
@@ -642,6 +643,11 @@ try:
 except KeyError:
    api_epydoc = None
 
+try:
+   api_doxygen = env.Dir(env['api_doxygen'])
+except KeyError:
+   api_doxygen = None
+
 # Zipgets
 env.Default(libinstall)
 env.Default(incinstall)
@@ -649,9 +655,13 @@ env.Default(pyinstall)
 env.Alias('release_src',[ src_zipfile, src_tarfile ])
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
+env.Alias('examples_zipfile',examples_zipfile)
+env.Alias('examples_tarfile',examples_tarfile)
 env.Alias('api_epydoc',api_epydoc)
+env.Alias('api_doxygen',api_doxygen)
+env.Alias('guide_html_index',guide_html_index)
 env.Alias('guide_pdf', guide_pdf)
-env.Alias('docs',[ 'release_examples', 'guide_pdf', guide_html_index, api_epydoc])
+env.Alias('docs',[ 'release_examples', 'guide_pdf', api_epydoc, api_doxygen])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
 env.Alias('build_tests')    # target to build all C++ tests
 env.Alias('build_py_tests') # target to build all python tests
@@ -668,7 +678,7 @@ env.Alias(init_target)
 Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs", "useNetCDF",
 	"boost_libs", "python_libs", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
-        "guide_pdf", "guide_html_index", "api_epydoc", "useMPI" ])
+        "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI" ])
 
 # End initialisation section
 # Begin configuration section

@@ -30,7 +30,6 @@ boost_libs = 'boost_python-il-mt-1_31'
 # locations of doc building executables
 doxygen_path = '/opt/doxygen-1.4.5/bin'
 epydoc_path = '/opt/epydoc-2.1/bin'
-epydoc_pythonpath = '/usr/lib/python2.3/site-packages'
 
 # locations of netcdf
 useNetCDF="yes"

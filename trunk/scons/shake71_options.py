@@ -35,9 +35,8 @@
 # boost_libs = 'boost_python-mt'
 
 # locations of doc building executables
-doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
-epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
-epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
+doxygen_path = '/usr/bin'
+epydoc_path = '/usr/bin'
 
 # locations of netcdf
 useNetCDF="yes"

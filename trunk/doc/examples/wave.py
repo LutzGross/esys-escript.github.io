@@ -1,8 +1,15 @@
+
+# You can shorten the execution time by reducing variable tend from 60 to 0.5
+
 from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from numarray import identity,zeros,ones
+
+if not os.path.isdir("data"):
+   print "\nCreating subdirectory 'data'\n"
+   os.mkdir("data")
 
 ne=32          # number of cells in x_0 and x_1 directions
 width=10000.  # length in x_0 and x_1 directions
