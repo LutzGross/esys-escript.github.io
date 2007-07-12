@@ -1,4 +1,4 @@
-# Scons configuration file for documentation
+# Scons configuration file for epydoc python docs
 
 #          Copyright 2006 by ACcESS MNRF                   
 #                                                          
@@ -9,14 +9,9 @@
 #                                                          
 #
 #
-# builds the user's guide
-
-# command to run:
-# epydoc --html -o doc/epydoc -n esys esys > /tmp/epydoc_msgs.txt 2>&1
 
 import os
 Import('*')
 
-#local_env.PrependENVPath('PYTHONPATH',str(pyinstall))
-env.Command(api_epydoc, pyinstall,"epydoc --html -o $TARGET esys esys")
+env.Command(api_epydoc, pyinstall, "epydoc --html -o $TARGET esys esys")
 

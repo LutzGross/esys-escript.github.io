@@ -16,22 +16,15 @@ Import('*')
 
 local_env=env.Copy()
 
-# get all the examples:
+# get all the file names in doc/examples:
 src_dir = local_env.Dir('examples').srcnode().abspath
-example_files=[]
-for x in os.listdir(src_dir):
-   if not x.startswith("."):
-      f = "examples/"+x
-      if os.path.isdir(src_dir+'/'+f):
-         example_files+=[ env.File(f+"/"+y) for y in os.listdir(src_dir+'/'+f) if not y.startswith('.')]
-      else:
-         example_files+=[ env.File(f) ]
+example_files = os.popen("find " + src_dir + " -name .svn -prune -o -type f -print").read().split(None)
+
 env.Zip(examples_zipfile, example_files)
-try:
-  env.Tar(examples_tarfile, example_files)
-except AttributeError:
-  pass
+env.Tar(examples_tarfile, example_files)
+
 # Call the doc build using SConscript
 local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)
 
 local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/doxygen'], build_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)

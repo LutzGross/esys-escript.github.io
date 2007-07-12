@@ -63,7 +63,6 @@ netCDF_libs = [ 'netcdf_c++', 'netcdf' ]
 # locations of doc building executables
 doxygen_path = ''
 epydoc_path = ''
-epydoc_pythonpath = ''
 
 # names of c and c++ compilers to use
 cc = 'gcc'
