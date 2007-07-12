@@ -235,7 +235,7 @@ opts.AddOptions(
   PathOption('boost_libs_path', 'Path to Boost libs', boost_libs_path_default),
   ('boost_libs', 'Boost libraries to link with', boost_libs_default),
 # Doc building
-  PathOption('doxygen_path', 'Path to Doxygen executable', None),
+#  PathOption('doxygen_path', 'Path to Doxygen executable', None),
 #  PathOption('epydoc_path', 'Path to Epydoc executable', None),
 # PAPI
   PathOption('papi_path', 'Path to PAPI includes', None),
@@ -661,7 +661,7 @@ env.Alias('api_epydoc',api_epydoc)
 env.Alias('api_doxygen',api_doxygen)
 env.Alias('guide_html_index',guide_html_index)
 env.Alias('guide_pdf', guide_pdf)
-env.Alias('docs',[ 'release_examples', 'guide_pdf', api_epydoc, api_doxygen])
+env.Alias('docs',[ 'release_examples', 'guide_pdf', api_epydoc, api_doxygen, guide_html_index])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
 env.Alias('build_tests')    # target to build all C++ tests
 env.Alias('build_py_tests') # target to build all python tests
