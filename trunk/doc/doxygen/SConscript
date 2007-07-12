@@ -13,5 +13,5 @@
 import os
 Import('*')
 
-env.Command(api_doxygen, pyinstall, doxygen_path + "/doxygen doc/doxygen/doxygen_esys")
+env.Command(api_doxygen, pyinstall, "doxygen doc/doxygen/doxygen_esys")
 
