@@ -36,7 +36,37 @@ else:
 #    get the installation prefix
 #
 prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
+
+# We may also need to know where python's site-packages subdirectory lives
+python_version = 'python%s.%s'%(sys.version_info[0],sys.version_info[1])
+
+if prefix == "/usr":
+   # Install as a standard python package in /usr/lib64 if available, else in /usr/lib
+   if os.path.isdir(  prefix+"/lib64/"+python_version+"/site-packages"):
+      dir_packages =  prefix+"/lib64/"+python_version+"/site-packages"
+      dir_libraries = prefix+"/lib64"
+   elif os.path.isdir(prefix+"/lib/"+python_version+"/site-packages"):
+      dir_packages =  prefix+"/lib/"+python_version+"/site-packages"
+      dir_libraries = prefix+"/lib"
+   else:
+      print "Install prefix is /usr but couldn't find python package directory in either"
+      print "/usr/lib64/"+python_version+"/site-packages or /usr/lib/"+python_version+"/site-packages"
+      sys.exit(1)
+   dir_examples = prefix+"/share/doc/esys"
+else:
+   # Install using the usual escript directory structure
+   dir_packages = prefix
+   dir_libraries = prefix+"/lib"
+   dir_examples = prefix
+dir_packages += "/esys"
+dir_examples += "/examples"
+
 print "Install prefix is: ", prefix
+print "	python packages will be installed in:	", dir_packages
+print "	libraries will be installed in:		", dir_libraries
+print "	examples will be installed in:		", dir_examples
+
+#==============================================================================================     
 
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
@@ -174,19 +204,20 @@ else:
 # DO NOT CHANGE THEM HERE
 opts.AddOptions(
 # Where to install esys stuff
-  ('incinstall', 'where the esys headers will be installed', prefix+'/include'),
-  ('libinstall', 'where the esys libraries will be installed', prefix+'/lib'),
-  ('pyinstall', 'where the esys python modules will be installed', prefix),
-  ('src_zipfile', 'the source zip file will be installed.', prefix+"/release/escript_src.zip"),
-  ('test_zipfile', 'the test zip file will be installed.', prefix+"/release/escript_tests.zip"),
-  ('src_tarfile', 'the source tar file will be installed.', prefix+"/release/escript_src.tar.gz"),
-  ('test_tarfile', 'the test tar file will be installed.', prefix+"/release/escript_tests.tar.gz"),
-  ('examples_tarfile', 'the examples tar file will be installed.', prefix+"/release/doc/escript_examples.tar.gz"),
-  ('examples_zipfile', 'the examples zip file will be installed.', prefix+"/release/doc/escript_examples.zip"),
-  ('guide_pdf', 'name of the user guide in pdf format', prefix+"/release/doc/user/guide.pdf"),
-  ('api_epydoc', 'name of the epydoc api docs directory',prefix+"/release/doc/epydoc"),
+  ('incinstall', 'where the esys headers will be installed',             Dir('#.').abspath+'/include'),
+  ('libinstall', 'where the esys libraries will be installed',           dir_libraries),
+  ('pyinstall', 'where the esys python modules will be installed',       dir_packages),
+  ('exinstall', 'where the esys examples will be installed',             dir_examples),
+  ('src_zipfile', 'the source zip file will be installed.',              Dir('#.').abspath+"/release/escript_src.zip"),
+  ('test_zipfile', 'the test zip file will be installed.',               Dir('#.').abspath+"/release/escript_tests.zip"),
+  ('src_tarfile', 'the source tar file will be installed.',              Dir('#.').abspath+"/release/escript_src.tar.gz"),
+  ('test_tarfile', 'the test tar file will be installed.',               Dir('#.').abspath+"/release/escript_tests.tar.gz"),
+  ('examples_tarfile', 'the examples tar file will be installed.',       Dir('#.').abspath+"/release/doc/escript_examples.tar.gz"),
+  ('examples_zipfile', 'the examples zip file will be installed.',       Dir('#.').abspath+"/release/doc/escript_examples.zip"),
+  ('guide_pdf', 'name of the user guide in pdf format',                  Dir('#.').abspath+"/release/doc/user/guide.pdf"),
+  ('api_epydoc', 'name of the epydoc api docs directory',                Dir('#.').abspath+"/release/doc/epydoc"),
+  ('guide_html', 'name of the directory for user guide in html format',  Dir('#.').abspath+"/release/doc/user/html"),
   ('api_doxygen', 'name of the doxygen api docs directory',prefix+"/release/doc/doxygen"),
-  ('guide_html', 'name of the directory for user guide in html format', prefix+"/release/doc/user/html"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/<hostname>_options.py)", options_file),
@@ -328,10 +359,14 @@ try:
 except KeyError:
    libinstall = None
 try:
-   pyinstall = env['pyinstall']+'/esys' # all targets will install into pyinstall/esys but PYTHONPATH points at straight pyinstall so you go import esys.escript etc
+   pyinstall = env['pyinstall'] # all targets will install into pyinstall/esys but PYTHONPATH points at straight pyinstall so you go import esys.escript etc
    env.PrependENVPath('PYTHONPATH', env['pyinstall'])
 except KeyError:
    pyinstall = None
+try:
+   exinstall = env['exinstall']
+except KeyError:
+   exinstall = None
 try:
    dodebug = env['dodebug']
 except KeyError:
@@ -652,6 +687,7 @@ except KeyError:
 env.Default(libinstall)
 env.Default(incinstall)
 env.Default(pyinstall)
+### env.Default(exinstall) # ksteube this causes dependency error
 env.Alias('release_src',[ src_zipfile, src_tarfile ])
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
@@ -675,7 +711,7 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs", "useNetCDF",
+Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "exinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs", "useNetCDF",
 	"boost_libs", "python_libs", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI" ])
