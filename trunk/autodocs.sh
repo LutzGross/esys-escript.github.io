@@ -17,6 +17,9 @@
 DIR="/home/Work/Documentation_Escript"
 
 START=`date '+%Y/%m/%d %H:%M'`
+RunDate=`date '+%Y_%m_%d'`
+
+scons='/home/Work/scons-0.96.92/bin/scons'
 
 finish () {
   # state will be 'FAILURE' or 'SUCCESS'
@@ -26,11 +29,12 @@ finish () {
   cd $DIR
   ### /bin/rm -rf sandbox
   END=`date '+%Y/%m/%d %H:%M'`
-  cat << END_MSG | mail -s "ESYS_TESTS docs $START $state" k.steube@uq.edu.au
+  cat << END_MSG | mail -s "ESYS_TESTS docs $RunDate $state" k.steube@uq.edu.au
 $2.
 The tests ran from $START to $END
+See the log file /home/Work/Documentation_Escript/log for info
 This mail was sent by $0
-running as $USER on `hostname`.
+running via cron as $USER on `hostname`.
 END_MSG
   if [ "x$state" = "xFAILURE" ]; then
     exit 1
@@ -42,7 +46,7 @@ umask 022
 
 cd $DIR			|| finish FAILURE "Could not cd to $DIR"
 
-test -d sandbox		&& finish FAILURE "The documentation sandbox already exists in $DIR/sandbox"
+/bin/rm -rf sandbox
 mkdir sandbox		|| finish FAILURE "Could not mkdir sandbox"
 cd sandbox		|| finish FAILURE "Could not cd to sandbox"
 
@@ -58,7 +62,7 @@ echo "Generating documentation"
 
 cd trunk							|| finish FAILURE "Could not cd to trunk"
 mkdir release release/doc					|| finish FAILURE "Could not create release directory"
-scons dodebug=yes useMPI=no docs				|| finish FAILURE "Could not run scons docs"
+$scons dodebug=yes useMPI=no docs				|| finish FAILURE "Could not run scons docs"
 scp -r release/doc/* shake200:/home/www/esys/esys13/nightly	|| finish FAILURE "Could not copy documentation to nightly area"
 
 echo "Cleaning up"
