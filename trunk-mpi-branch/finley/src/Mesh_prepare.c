@@ -81,10 +81,10 @@ bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
 /*  tries to reduce the coloring for all element files: */
 /*                                                      */
 void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map) {
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->Elements,node_localDOF_map);
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->FaceElements,node_localDOF_map);
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->Points,node_localDOF_map);
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->ContactElements,node_localDOF_map);
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->Elements,in->Nodes->numNodes,node_localDOF_map);
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->FaceElements,in->Nodes->numNodes,node_localDOF_map);
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->Points,in->Nodes->numNodes,node_localDOF_map);
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->ContactElements,in->Nodes->numNodes,node_localDOF_map);
 }
 /*                                                                    */
 /*  redistribute elements to minimize communication during assemblage */

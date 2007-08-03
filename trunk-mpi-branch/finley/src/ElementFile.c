@@ -109,3 +109,76 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
      MEMFREE(in);      
   }
 }
+void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution) {
+  dim_t local_num_elements,e,out,num_elements, size;
+  Paso_MPI_rank myRank;
+  if (in == NULL) {
+      distribution[0]=num_elements;
+  } else {
+      if (in->MPIInfo->size>1) {
+         num_elements=0;
+         myRank=in->MPIInfo->rank;
+         size=in->MPIInfo->size;
+         #pragma omp parallel private(local_num_elements)
+         {
+            local_num_elements=0;
+            #pragma omp for private(e)
+            for (e=0;e<in->numElements;e++) {
+               if (in->numElements == myRank) local_num_elements++;
+            }
+            #pragma omp critical
+            num_elements+=local_num_elements;
+         }
+         #ifdef PASO_MPI
+          MPI_Allgather(&num_elements,1,MPI_INT,distribution,size,MPI_INT,in->MPIInfo->comm);
+         #else
+           distribution[0]=num_elements;
+         #endif
+      } else {
+        distribution[0]=num_elements;
+      }
+  }
+}
+
+dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in) {
+  dim_t size, *distribution=NULL, out, p;
+  if (in == NULL) {
+      return 0;
+  } else {
+    size=in->MPIInfo->size;
+    distribution=TMPMEMALLOC(size,dim_t);
+    Finley_ElementFile_setElementDistribution(in,distribution);
+    out=0;
+    for (p=0;p<size;++p) out+=distribution[p];
+    TMPMEMFREE(distribution);
+    return out;
+  }
+}
+dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in) {
+  dim_t size, *distribution=NULL, out, p;
+  if (in == NULL) {
+      return 0;
+  } else {
+    size=in->MPIInfo->size;
+    distribution=TMPMEMALLOC(size,dim_t);
+    Finley_ElementFile_setElementDistribution(in,distribution);
+    out=distribution[in->MPIInfo->rank];
+    TMPMEMFREE(distribution);
+    return out;
+  }
+
+}
+index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in){
+  dim_t size, *distribution=NULL, out, p;
+  if (in == NULL) {
+      return 0;
+  } else {
+    size=in->MPIInfo->size;
+    distribution=TMPMEMALLOC(size,dim_t);
+    Finley_ElementFile_setElementDistribution(in,distribution);
+    out=0;
+    for (p=0;p<in->MPIInfo->rank;++p) out+=distribution[p];
+    TMPMEMFREE(distribution);
+    return out;
+  }
+}
