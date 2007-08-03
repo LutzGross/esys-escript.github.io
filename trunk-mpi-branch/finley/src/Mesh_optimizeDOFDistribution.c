@@ -25,14 +25,17 @@
 /**************************************************************/
 
 #include "Mesh.h"
+#include "IndexList.h"
 
 /**************************************************************/
 
 void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Paso_MPI_rank* mpiRankOfDOF) {
-     dim_t dim, i,j,k, myNumVertices,p, mpiSize, len;
+     dim_t dim, i,j,k, myNumVertices,p, mpiSize, len, globalNumVertices;
      index_t myFirstVertex, myLastVertex, firstVertex, lastVertex;
      index_t* partition=NULL;
+     Paso_Pattern *pattern=NULL;
      Paso_MPI_rank myRank,dest,source,current_rank;
+     Finley_IndexList* index_list=NULL;
      float *xyz=NULL;
      #ifdef PASO_MPI
      MPI_Status status;
@@ -49,6 +52,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
      myFirstVertex=distribution[myRank];
      myLastVertex=distribution[myRank+1];
      myNumVertices=myLastVertex-myFirstVertex;
+     globalNumVertices=distribution[mpiSize];
      len=0;
      for (p=0;p<mpiSize;++p) len=MAX(len,distribution[p+1]-distribution[p]);
      partition=TMPMEMALLOC(len,index_t); /* len is used for the sending around of partition later on */
@@ -64,14 +68,48 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
                 for (j=0;j<dim;++j) xyz[k*dim+j]=(float)(in->Nodes->Coordinates[INDEX2(j,i,dim)]); 
              }
          }
+
+         index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
+         /* create the adjacency structure xadj and adjncy */
+         if (! Finley_checkPtr(index_list)) {
+            #pragma omp parallel private(i)
+            {
+              #pragma omp for schedule(static)
+              for(i=0;i<myNumVertices;++i) {
+                   index_list[i].extension=NULL;
+                   index_list[i].n=0;
+              }
+              /*  insert contributions from element matrices into colums index index_list: */
+              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                          in->Elements,in->Nodes->globalDegreesOfFreedom,
+                                                          in->Nodes->globalDegreesOfFreedom);
+              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                          in->FaceElements,in->Nodes->globalDegreesOfFreedom,
+                                                          in->Nodes->globalDegreesOfFreedom);
+              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                          in->ContactElements,in->Nodes->globalDegreesOfFreedom,
+                                                          in->Nodes->globalDegreesOfFreedom);
+              Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                          in->Points,in->Nodes->globalDegreesOfFreedom,
+                                                          in->Nodes->globalDegreesOfFreedom);
+           }
+           
+           /* create the matrix pattern */
+           pattern=Finley_IndexList_createPattern(myNumVertices,index_list,0,globalNumVertices);
+
+           /* clean up index list */
+           if (index_list!=NULL) {
+              #pragma omp parallel for private(i) 
+              for(i=0;i<myNumVertices;++i) Finley_IndexList_free(index_list[i].extension);
+           }
+
+           if (Finley_noError()) {
+
 /*
-         xadj
-         adjncy
-         
 
         ParMETIS_V3_PartGeomKway(distribution,
-                                 xadj,
-                                 adjncy,
+                                 pattern->ptr,
+                                 pattern->index,
                                  idxtype *vwgt, +
                                  idxtype *adjwgt, +
                                  int *wgtﬂag, +
@@ -87,7 +125,11 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
                                  partition,
                                  in->MPIInfo->comm);
 */
-           for (i=0;i<myNumVertices;++i) partition[i]=myRank; /* remove */
+               for (i=0;i<myNumVertices;++i) partition[i]=myRank; /* remove */
+           }
+
+           Paso_Pattern_free(pattern);
+           
 
            /* now the overlap needs to be created by sending the partition around*/
 
@@ -114,7 +156,9 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
                   in->MPIInfo->msg_tag_counter++;
                   current_rank=Paso_MPIInfo_mod(mpiSize, current_rank-1);
               }
-          }
+           }
+         }
+         TMPMEMFREE(index_list);
      }
      TMPMEMFREE(partition);
      TMPMEMFREE(xyz);

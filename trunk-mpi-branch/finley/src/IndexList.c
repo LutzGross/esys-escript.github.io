@@ -75,6 +75,33 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
   return;
 }
 
+void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
+                                                 Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
+{
+  index_t color;
+  dim_t e,kr,kc,i,icol,irow, NN;
+  if (elements!=NULL) {
+    NN=elements->numNodes;
+    for (color=elements->minColor;color<=elements->maxColor;color++) {
+           #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
+           for (e=0;e<elements->numElements;e++) {
+               if (elements->Color[e]==color) {
+                   for (kr=0;kr<NN;kr++) {
+                     irow=row_map[elements->Nodes[INDEX2(kr,e,NN)]];
+                     if ((firstRow<=irow) && (irow < lastRow)) {
+                          irow-=firstRow;
+                          for (kc=0;kc<NN;kc++) {
+                              icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
+                              Finley_IndexList_insertIndex(&(index_list[irow]),icol);
+                          }
+                      }
+                  }
+               }
+           }
+    }
+  }
+}
+
 /* inserts row index row into the Finley_IndexList in if it does not exist */
 
 void Finley_IndexList_insertIndex(Finley_IndexList* in, index_t index) {

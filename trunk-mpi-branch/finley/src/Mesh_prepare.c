@@ -72,9 +72,6 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      }
 return;
 
-      /* set the labeling vectors in node files: */
-       Finley_Mesh_prepareNodes(in);
-
        /* rearrange elements: */
        Finley_Mesh_optimizeElementOrdering(in);
 }

@@ -49,8 +49,7 @@ FAC_OFFDIAG=-0.4
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,2, optimize=True)
-        return
+        domain=Rectangle(NE0,NE1,1, optimize=True)
 
         x=Solution(domain).getX()
         # --- set exact solution ----
@@ -115,7 +114,8 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,2)
+        domain=Rectangle(NE0,NE1,2,optimize=True)
+        return
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[0]**2+5.*x[1]*x[0]+6.*x[1]**2
@@ -322,9 +322,9 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
    # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
    # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi))
    # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi))
    # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
