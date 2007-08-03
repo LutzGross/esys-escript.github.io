@@ -33,7 +33,8 @@
 #endif
 
 
-#define NEW_LUMPING /* */
+/* Disabled until the tests pass */
+/* #define NEW_LUMPING */ /* */
 
 /**************************************************************/
 
