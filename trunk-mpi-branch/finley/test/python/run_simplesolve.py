@@ -49,10 +49,7 @@ FAC_OFFDIAG=-0.4
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,2)
-        print "PY"*20
-        del domain
-        print "PY"*20
+        domain=Rectangle(NE0,NE1,2, optimize=True)
         return
 
         x=Solution(domain).getX()

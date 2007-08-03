@@ -28,7 +28,7 @@
 /**************************************************************/
 
 
-void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize_labeling) { 
+void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize) { 
    char error_msg[LenErrorMsg_MAX];
    Finley_NodeFile *newNodeFile=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL;
@@ -126,7 +126,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
             /* assign new node ids to elements */
             Finley_Mesh_relableElementNodes(new_node_label,0,self);
 
-            Finley_Mesh_prepare(self);
+            Finley_Mesh_prepare(self, optimize);
          } 
          else 
          {

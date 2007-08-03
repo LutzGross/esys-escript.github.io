@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-void Finley_Mesh_prepare(Finley_Mesh* in) {
+void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
 
      dim_t newGlobalNumDOFs=0;
      Paso_MPI_rank* mpiRankOfDOF=NULL;
@@ -51,12 +51,25 @@ void Finley_Mesh_prepare(Finley_Mesh* in) {
         if (Finley_noError()) Finley_Mesh_distributeByRankOfDOF(in,mpiRankOfDOF);
      }
      TMPMEMFREE(mpiRankOfDOF);
-     TMPMEMFREE(distribution);
-     if (!Finley_noError()) return;
 
      /* at this stage we are able to start an optimization of the DOF distribution using ParaMetis */
-     
+     /* on return mpiRankOfDOF has been assigns a new rank to each node/DOF. It needs to include   */
+     /* the overlap                                                                                */
+     if (Finley_noError() && optimize && in->MPIInfo->size>1) {
+         mpiRankOfDOF=TMPMEMALLOC(in->Nodes->numNodes,Paso_MPI_rank);
+         if (!Finley_checkPtr(mpiRankOfDOF)) {
+
+             Finley_Mesh_optimizeDOFDistribution(in,distribution,mpiRankOfDOF);
+
+             if (Finley_noError()) Finley_Mesh_distributeByRankOfDOF(in,mpiRankOfDOF); 
+         }
+         TMPMEMFREE(mpiRankOfDOF);
+     }
+     TMPMEMFREE(distribution);
      /* now a local labeling of the DOF is introduced */
+     if (Finley_noError() && optimize) {
+       printf("Warning: no local node labeling optimization implemented yet.\n");
+     }
 return;
 
       /* set the labeling vectors in node files: */

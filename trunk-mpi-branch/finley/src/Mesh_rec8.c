@@ -33,7 +33,8 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
                                           index_t order, 
                                           index_t reduced_order, 
                                           bool_t useElementsOnFace,
-                                          bool_t useFullElementOrder) 
+                                          bool_t useFullElementOrder,
+                                          bool_t optimize) 
 {
   #define N_PER_E 2
   #define DIM 2
@@ -338,7 +339,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
          Finley_Mesh_resolveNodeIds(out);
      }
      if (Finley_noError()) {
-         Finley_Mesh_prepare(out);
+         Finley_Mesh_prepare(out, optimize);
      }
   }
   if (!Finley_noError()) {

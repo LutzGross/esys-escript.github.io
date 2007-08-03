@@ -211,7 +211,6 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
             self->Owner[e]=myRank;
         }
      }
-printf("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\n");
      return;
 }
 

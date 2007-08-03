@@ -124,8 +124,8 @@ void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setFaceElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setContactElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setPoints(Finley_Mesh* self,Finley_ElementFile *elements);
-
-void Finley_Mesh_prepare(Finley_Mesh* in);
+void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Paso_MPI_rank* mpiRankOfDOF);
+void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize);
 bool_t Finley_Mesh_isPrepared(Finley_Mesh*);
 void Finley_Mesh_prepareNodes(Finley_Mesh* in);
 void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map);

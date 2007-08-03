@@ -82,4 +82,3 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, Paso_MPI_rank* mpiRank
      TMPMEMFREE(tmp_node_localDOF_map);
      return;
 }
-

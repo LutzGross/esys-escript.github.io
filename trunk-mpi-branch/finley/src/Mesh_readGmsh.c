@@ -31,7 +31,7 @@
 
 #define MAX_numNodes_gmsh 10
 
-Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize_labeling) {
+Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize) {
 
   double version = 1.0;
   int format = 0, size = sizeof(double);
@@ -333,7 +333,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
      /*   resolve id's : */
      Finley_Mesh_resolveNodeIds(mesh_p);
      /* rearrange elements: */
-     Finley_Mesh_prepare(mesh_p);
+     Finley_Mesh_prepare(mesh_p, optimize);
      /* that's it */
      #ifdef Finley_TRACE
      printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);

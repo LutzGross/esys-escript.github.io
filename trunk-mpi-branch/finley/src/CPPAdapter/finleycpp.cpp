@@ -90,11 +90,11 @@ BOOST_PYTHON_MODULE(finleycpp)
   // return pointers.
 
   def("ReadMesh",finley::readMesh,
-      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimizeLabeling")=true),
+      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true),
       return_value_policy<manage_new_object>());
 
   def("ReadGmsh",finley::readGmsh,
-      (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimizeLabeling")=true),
+      (arg("fileName")="file.msh",arg("numDim"), arg("integrationOrder")=-1, arg("reducedIntegrationOrder")=-1, arg("optimize")=true),
       return_value_policy<manage_new_object>());
 
   def ("Brick",finley::brick,
@@ -104,7 +104,8 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("periodic0")=false,arg("periodic1")=false,arg("periodic2")=false,
       arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false,
-      arg("useFullElementOrder")=false),
+      arg("useFullElementOrder")=false,
+      arg("optimize")=false),
       return_value_policy<manage_new_object>());
 
   def ("Rectangle",finley::rectangle,
@@ -113,7 +114,8 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("periodic0")=false,arg("periodic1")=false,
       arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
       arg("useElementsOnFace")=false,
-      arg("useFullElementOrder")=false),
+      arg("useFullElementOrder")=false,
+      arg("optimize")=false),
       return_value_policy<manage_new_object>());
 
   def("Merge",finley::meshMerge,
@@ -122,13 +124,13 @@ BOOST_PYTHON_MODULE(finleycpp)
   def("GlueFaces",finley::glueFaces,
       (arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
-      arg("optimizeLabeling")=true),
+      arg("optimize")=true),
       return_value_policy<manage_new_object>());
 
   def("JoinFaces",finley::joinFaces,
       (arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
-      arg("optimizeLabeling")=true),
+      arg("optimize")=true),
       return_value_policy<manage_new_object>());
 
   register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));

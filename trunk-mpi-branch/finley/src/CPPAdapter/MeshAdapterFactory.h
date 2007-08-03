@@ -46,13 +46,13 @@ namespace finley {
      If integrationOrder<0 the integration order is selected independently.
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
-     \param optimizeLabeling Input - switches on the optimization of node labels 
+     \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
 				     int integrationOrder=-1,
                                      int reducedIntegrationOrder=-1,
-                                     bool optimizeLabeling=true);
+                                     int optimize=0);
   /**
      \brief
      Read a gmsh mesh file
@@ -62,14 +62,14 @@ namespace finley {
      If integrationOrder<0 the integration order is selected independently.
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
-     \param optimizeLabeling Input - switches on the optimization of node labels 
+     \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
 				     int numDim, 
 				     int integrationOrder=-1,
 				     int reducedIntegrationOrder=-1, 
-				     bool optimizeLabeling=true);
+				     int optimize=0);
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
@@ -94,7 +94,8 @@ namespace finley {
 		    int integrationOrder=-1,
      	            int reducedIntegrationOrder=-1, 
 		    int useElementsOnFace=0,
-                    int useFullElementOrder=false);
+                    int useFullElementOrder=0,
+                    int optimize=0);
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 elements over the brick 
@@ -118,8 +119,9 @@ namespace finley {
 				      int periodic0=false,int periodic1=false,
 				      int integrationOrder=-1,
      	                              int reducedIntegrationOrder=-1, 
-				      int useElementsOnFace=false,
-                                      int useFullElementOrder=false);
+				      int useElementsOnFace=0,
+                                      int useFullElementOrder=0,
+                                      int optimize=0);
   /**
      \brief
      Merges a list of meshes into one list.
@@ -134,26 +136,26 @@ namespace finley {
      \param meshList Input - The list of meshes.
      \param safetyFactor Input - ??
      \param tolerance Input - ??
-     \param optimizeLabeling Input - switches on the optimization of node labels 
+     \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
 			   double tolerance=1.e-8,
-                           bool optimizeLabeling=true);
+                           int optimize=0);
   /**
      \brief
      Detects matching faces in the mesh and replaces them by joint elements.
      \param meshList Input - The list of meshes.
      \param safetyFactor Input - ??
      \param tolerance Input - ??
-     \param optimizeLabeling Input - switches on the optimization of node labels 
+     \param optimize Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
 			double safetyFactor=0.2, 
 			double tolerance=1.e-8,
-                        bool optimizeLabeling=true);
+                        int optimize=0);
  
 } // end of namespace
 #endif

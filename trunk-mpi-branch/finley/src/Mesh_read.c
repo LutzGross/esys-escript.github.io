@@ -27,7 +27,7 @@
 
 /*  reads a mesh from a Finley file of name fname */
 
-Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize_labeling) 
+Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize) 
 
 {
 
@@ -215,7 +215,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
      /* rearrange elements: */
    
      if (Finley_noError()) Finley_Mesh_resolveNodeIds(mesh_p);
-     if (Finley_noError()) Finley_Mesh_prepare(mesh_p);
+     if (Finley_noError()) Finley_Mesh_prepare(mesh_p, optimize);
    
      /* that's it */
      #ifdef Finley_TRACE

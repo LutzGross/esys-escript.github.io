@@ -190,7 +190,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
     if (! Finley_noError()) {
        Finley_Mesh_free(out);
     } else {
-       Finley_Mesh_prepare(out);
+       Finley_Mesh_prepare(out, FALSE);
        #ifdef Finley_TRACE
        printf("%d meshes merged.\n",numMsh);
        #endif

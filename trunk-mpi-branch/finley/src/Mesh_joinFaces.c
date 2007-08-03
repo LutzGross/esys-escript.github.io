@@ -27,7 +27,7 @@
 
 /**************************************************************/
 
-void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t optimize_labeling) {
+void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t optimize) {
 
    char error_msg[LenErrorMsg_MAX];
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
@@ -121,7 +121,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
             self->FaceElements=newFaceElementsFile;
             Finley_ElementFile_free(self->ContactElements);
             self->ContactElements=newContactElementsFile;
-            Finley_Mesh_prepare(self);
+            Finley_Mesh_prepare(self, optimize);
 
          } else {
             Finley_ElementFile_free(newFaceElementsFile);
