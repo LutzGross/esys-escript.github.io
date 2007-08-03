@@ -28,7 +28,7 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in) {
+void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in) {
      Finley_Util_ValueAndIndex* item_list=NULL;
      Finley_ElementFile* out=NULL;
      dim_t e,i, NN;

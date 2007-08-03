@@ -14,7 +14,7 @@
 
 /*   Finley: Mesh: this will redistribute the Nodes and Elements including overlap and */
 /*   will create an element coloring but will not create any mappings. The distribution is done */
-/*   according to the rank assigned to each node/DOF via mpiRankOfDOF (length in->Nodes->numNodes) */
+/*   according to the rank assigned to each node/DOF via mpiRankOfDOF (length self->Nodes->numNodes) */
 
 /**************************************************************/
 
@@ -28,6 +28,10 @@
 /**************************************************************/
 
 void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, Paso_MPI_rank* mpiRankOfDOF) {
+
+     index_t min_id, max_id, *tmp_node_localDOF_map=NULL, *tmp_node_localDOF_mask=NULL;
+     register index_t k;
+     dim_t len,n,numDOFs;
 
      if (self==NULL) return;
 
@@ -45,38 +49,37 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, Paso_MPI_rank* mpiRank
 
      Finley_ElementFile_distributeByRankOfDOF(self->Points,mpiRankOfDOF, self->Nodes->Id);
      if (!Finley_noError()) return;
+
      /* resolve the node ids */
      Finley_Mesh_resolveNodeIds(self);
      if (!Finley_noError()) return;
 
      /* create a local labeling of the DOFs */
-  /* allocate mappings for new local node labeling to global node labeling (newLocalToGlobalNodeLabels)
-     and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 
-     new local id of global node i) */
-  
-  len=max_id-min_id+1;
-  globalToNewLocalNodeLabels=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
-  newLocalToGlobalNodeLabels=TMPMEMALLOC(len,index_t);
-  if (! ( (Finley_checkPtr(globalToNewLocalNodeLabels) && Finley_checkPtr(newLocalToGlobalNodeLabels) ) ) ) {
+     Finley_NodeFile_setDOFRange(&min_id,&max_id,self->Nodes);
+     len=max_id-min_id+1;
+     tmp_node_localDOF_mask=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
+     tmp_node_localDOF_map=TMPMEMALLOC(len,index_t);
+     if (! ( (Finley_checkPtr(tmp_node_localDOF_mask) && Finley_checkPtr(tmp_node_localDOF_map) ) ) ) {
 
-       #pragma omp parallel
-       {
-           #pragma omp for private(n) schedule(static)
-           for (n=0;n<in->Nodes->numNodes;n++) newLocalToGlobalNodeLabels[n]=-1;
-           #pragma omp for private(n) schedule(static)
-           for (n=0;n<len;n++) globalToNewLocalNodeLabels[n]=-1;
+       #pragma omp parallel for private(n) schedule(static)
+       for (n=0;n<len;n++) tmp_node_localDOF_mask[n]=-1;
+       #pragma omp parallell for private(n) schedule(static)
+       for (n=0;n<self->Nodes->numNodes;n++) tmp_node_localDOF_mask[self->Nodes->globalDegreesOfFreedom[n]-min_id]=n;
+
+       numDOFs=0;
+       for  (n=0;n<len;n++) {
+           k=tmp_node_localDOF_mask[n];
+           if (k>=0) {
+              tmp_node_localDOF_map[k]=numDOFs;
+              numDOFs++;
+           }
        }
-
-       /*  mark the nodes referred by elements in globalToNewLocalNodeLabels which is currently used as a mask: */
-
-       Finley_Mesh_markNodes(globalToNewLocalNodeLabels,min_id,in,FALSE);
-
-
-     
-     /* create a element pre-coloring */
-
-     /* refine element coloring */
-
+       /* create element coloring */
+       if (Finley_noError()) Finley_Mesh_createColoring(self,tmp_node_localDOF_map);
+  
+     }
+     TMPMEMFREE(tmp_node_localDOF_mask);
+     TMPMEMFREE(tmp_node_localDOF_map);
      return;
 }
 

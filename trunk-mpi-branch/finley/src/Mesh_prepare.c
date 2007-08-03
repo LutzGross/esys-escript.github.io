@@ -63,11 +63,7 @@ return;
        Finley_Mesh_prepareNodes(in);
 
        /* rearrange elements: */
-       Finley_Mesh_optimizeElementDistribution(in);
-
-       /* improve coloring */
-       /* precoloring! */
-       Finley_Mesh_improveColoring(in);
+       Finley_Mesh_optimizeElementOrdering(in);
 }
 
 bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
@@ -84,18 +80,18 @@ bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
 /*                                                      */
 /*  tries to reduce the coloring for all element files: */
 /*                                                      */
-void Finley_Mesh_improveColoring(Finley_Mesh* in) {
-  Finley_ElementFile_improveColoring(in->Elements,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
-  Finley_ElementFile_improveColoring(in->FaceElements,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
-  Finley_ElementFile_improveColoring(in->Points,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
-  Finley_ElementFile_improveColoring(in->ContactElements,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
+void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map) {
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->Elements,node_localDOF_map);
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->FaceElements,node_localDOF_map);
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->Points,node_localDOF_map);
+  if (Finley_noError()) Finley_ElementFile_createColoring(in->ContactElements,node_localDOF_map);
 }
 /*                                                                    */
 /*  redistribute elements to minimize communication during assemblage */
 /*                                                                    */
-void Finley_Mesh_optimizeElementDistribution(Finley_Mesh* in) {
-  Finley_ElementFile_optimizeDistribution(&(in->Elements));
-  Finley_ElementFile_optimizeDistribution(&(in->FaceElements));
-  Finley_ElementFile_optimizeDistribution(&(in->Points));
-  Finley_ElementFile_optimizeDistribution(&(in->ContactElements));
+void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in) {
+  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->Elements));
+  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->FaceElements));
+  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->Points));
+  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->ContactElements));
 }

@@ -92,15 +92,13 @@ Finley_ElementFile* Finley_ElementFile_alloc( ElementTypeId, index_t, index_t, P
 void Finley_ElementFile_free(Finley_ElementFile*);
 void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
 void Finley_ElementFile_freeTable(Finley_ElementFile*);
-dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in);
+/* dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in);
 dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in);
-index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in);
+index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in); */
 void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t *Id);
 
-/*=================== */
-void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
-void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in);
-/*=================== */
+void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
+void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in);
 void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
 void Finley_ElementFile_relableNodes(dim_t*,dim_t,Finley_ElementFile*);
 void Finley_ElementFile_markNodes(dim_t*,dim_t,Finley_ElementFile*,dim_t);

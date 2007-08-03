@@ -109,26 +109,3 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
      MEMFREE(in);      
   }
 }
-
-dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in) {
-    if (in) {
-    } else {
-      return 0;
-    }
-}
-dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in) {
-    return  Finley_ElementFile_getLastElement(in)-Finley_ElementFile_getFirstElement(in);
-}
-index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in) {
-    if (in) {
-    } else {
-      return 0;
-    }
-}
-index_t Finley_ElementFile_getLastElement(Finley_ElementFile* in) {
-    if (in) {
-    } else {
-      return 0;
-    }
-}
-

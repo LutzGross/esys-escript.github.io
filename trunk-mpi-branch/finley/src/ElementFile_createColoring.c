@@ -19,7 +19,7 @@
 /**************************************************************/
 
 /*  Author: gross@access.edu.au */
-/*  Version: $Id$ */
+/*  Version: $Id: ElementFile_createColoring.c 1140 2007-05-15 03:23:17Z ksteube $ */
 
 /**************************************************************/
 
@@ -28,7 +28,7 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes, index_t* degreeOfFreedom) {
+void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, index_t* degreeOfFreedom) {
     dim_t e,i,numUncoloredElements,n,len,NN;
     index_t *maskDOF,*old_Color,color,min_id,max_id,old_maxColor,old_minColor;
     bool_t independent;
