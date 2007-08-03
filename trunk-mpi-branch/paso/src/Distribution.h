@@ -32,25 +32,24 @@
 ****************************************************/
 struct Paso_Distribution
 {
+  index_t *first_component;  /* process i has nodes with global indices first_component[i+1] to first_component[i]. */
   dim_t reference_counter;
   Paso_MPIInfo *mpi_info;
-  index_t *first_component;  /* process i has nodes with global indices
-                             first_component[i+1] to first_component[i]. */
-  dim_t numComponents;
-  index_t firstComponent;
-  dim_t myNumComponents;
-  dim_t maxNumComponents;
-  index_t myFirstComponent;
 };
 
 typedef struct Paso_Distribution Paso_Distribution;
 
 /***************************************
  Function prototypes 
-***************************************/
+**************************************/
 
 Paso_Distribution*  Paso_Distribution_alloc( Paso_MPIInfo *mpi_info, index_t* first_component, index_t m, index_t b);
 void                Paso_Distribution_free( Paso_Distribution *in );
 Paso_Distribution*  Paso_Distribution_getReference( Paso_Distribution *in );
-
+index_t Paso_Distribution_getFirstComponent(Paso_Distribution *in );
+index_t Paso_Distribution_getLastComponent(Paso_Distribution *in );
+dim_t Paso_Distribution_getGlobalNumComponents(Paso_Distribution *in );
+dim_t Paso_Distribution_getMyNumComponents(Paso_Distribution *in );
+dim_t Paso_Distribution_getMinGlobalComponents(Paso_Distribution *in );
+dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in );
 #endif

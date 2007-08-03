@@ -51,14 +51,6 @@ typedef int Finley_Status_t;
 #define Finley_increaseStatus(self) ((self)->status)++
 #define FINLEY_INITIAL_STATUS 0
 
-#ifdef PASO_MPI
-#define FINLEY_INIT_ITEMSIZE (sizeof(double)*8)
-#define FINLEY_NODE_TAG 0
-#define FINLEY_ELEMENT_TAG 10000
-extern int __g_nodeTag;
-extern int __g_elementTag; 
-#endif
-
 /* error codes */
 
 

@@ -13,7 +13,8 @@
 
 /**************************************************************/
 
-/*   writes data and mesh in an opendx file */
+/*   writes data and mesh in an opendx file                      */
+/*   the input data needs to be cell centered or on reducedNodes */
 
 /**************************************************************/
 
@@ -38,7 +39,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                     {3,0,7,4,2,1,6,5}, /* hexahedron */
                    };
   FILE * fileHandle_p = NULL;
-  int i,j,k,i_data, nodetype, elementtype, numPoints = 0, nDim, *resortIndex=NULL, 
+  int i,j,k,i_data, elementtype, numPoints = 0, nDim, *resortIndex=NULL, p,
       numDXNodesPerElement=0, numCells, NN, object_count, rank, nComp, numPointsPerSample;
   double* values,rtmp;
   bool_t *isCellCentered=NULL;
@@ -60,37 +61,11 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
     return;
   }
   /* find the mesh type to be written */
-  nodetype=FINLEY_DEGREES_OF_FREEDOM;
   elementtype=FINLEY_UNKNOWN;
   for (i_data=0;i_data<num_data;++i_data) {
      if (! isEmpty(data_pp[i_data])) {
         switch(getFunctionSpaceType(data_pp[i_data])) {
-           case FINLEY_DEGREES_OF_FREEDOM:
-             nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
-                 elementtype=FINLEY_ELEMENTS;
-             } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
-                 MEMFREE(isCellCentered);
-                 fclose(fileHandle_p);
-                 return;
-             }
-             isCellCentered[i_data]=FALSE;
-             break;
-           case FINLEY_REDUCED_DEGREES_OF_FREEDOM:
-             nodetype = FINLEY_REDUCED_DEGREES_OF_FREEDOM;
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
-                 elementtype=FINLEY_ELEMENTS;
-             } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
-                 MEMFREE(isCellCentered);
-                 fclose(fileHandle_p);
-                 return;
-             }
-             isCellCentered[i_data]=FALSE;
-             break;
-           case FINLEY_NODES:
-             nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
+           case FINLEY_REDUCED_NODES:
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
                  elementtype=FINLEY_ELEMENTS;
              } else {
@@ -103,7 +78,6 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              break;
            case FINLEY_ELEMENTS:
            case FINLEY_REDUCED_ELEMENTS:
-             nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
                  elementtype=FINLEY_ELEMENTS;
              } else {
@@ -116,7 +90,6 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              break;
            case FINLEY_FACE_ELEMENTS:
            case FINLEY_REDUCED_FACE_ELEMENTS:
-             nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS) {
                  elementtype=FINLEY_FACE_ELEMENTS;
              } else {
@@ -128,7 +101,6 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              isCellCentered[i_data]=TRUE;
              break;
            case FINLEY_POINTS:
-             nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_POINTS) {
                  elementtype=FINLEY_POINTS;
              } else {
@@ -141,7 +113,6 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              break;
            case FINLEY_CONTACT_ELEMENTS_1:
            case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
-             nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
              } else {
@@ -154,7 +125,6 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              break;
            case FINLEY_CONTACT_ELEMENTS_2:
            case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
-             nodetype = (nodetype == FINLEY_REDUCED_DEGREES_OF_FREEDOM) ? FINLEY_REDUCED_DEGREES_OF_FREEDOM : FINLEY_DEGREES_OF_FREEDOM;
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
              } else {
@@ -166,7 +136,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              isCellCentered[i_data]=TRUE;
              break;
            default:
-             sprintf(error_msg,"saveDX: Finley does not know anything about function space type %d",getFunctionSpaceType(data_pp[i_data]));
+             sprintf(error_msg,"saveDX: I don't know how to handel function space type %d",getFunctionSpaceType(data_pp[i_data]));
              Finley_setError(TYPE_ERROR,error_msg);
              MEMFREE(isCellCentered);
              fclose(fileHandle_p);
@@ -175,13 +145,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
      }
   }
   /* select number of points and the mesh component */
-  numPoints = mesh_p->Nodes->numNodes;
+  numPoints = mesh_p->Nodes->reducedNodesMapping->numTargets;
   nDim = mesh_p->Nodes->numDim; 
-  if (nodetype==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-       numPoints = mesh_p->Nodes->reducedNumNodes;
-  } else {
-       numPoints = mesh_p->Nodes->numNodes;
-  }
   if (elementtype==FINLEY_UNKNOWN) elementtype=FINLEY_ELEMENTS;
   switch(elementtype) {
     case FINLEY_ELEMENTS:
@@ -240,18 +205,18 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
    } 
 
   /* positions */
-  fprintf(fileHandle_p, "object 1 class array type float rank 1 shape %d items %d data follows\n",nDim, mesh_p->Nodes->reducedNumNodes);
-  for (i = 0; i < mesh_p->Nodes->numNodes; i++) {
-    if (mesh_p->Nodes->toReduced[i]>=0) {
-       for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %g",mesh_p->Nodes->Coordinates[INDEX2(j, i, nDim)]);
+  fprintf(fileHandle_p, "object 1 class array type float rank 1 shape %d items %d data follows\n",nDim, numPoints);
+  for (i = 0; i < numPoints; i++) {
+       p=mesh_p->Nodes->reducedNodesMapping->map[i];
+       for (j = 0; j < nDim; j++) fprintf(fileHandle_p, " %g",mesh_p->Nodes->Coordinates[INDEX2(j, p, nDim)]);
        fprintf(fileHandle_p, "\n");
-    }
   } 
   /* connection table */
-  NN=elements->ReferenceElement->Type->numNodes;
+  NN=elements->numNodes;
   fprintf(fileHandle_p, "object 2 class array type int rank 1 shape %d items %d data follows\n",numDXNodesPerElement, numCells);
   for (i = 0; i < numCells; i++) {
-      for (j = 0; j < numDXNodesPerElement; j++) fprintf(fileHandle_p," %d",mesh_p->Nodes->toReduced[elements->Nodes[INDEX2(resortIndex[j], i, NN)]]);
+      for (j = 0; j < numDXNodesPerElement; j++) 
+            fprintf(fileHandle_p," %d",mesh_p->Nodes->reducedNodesMapping->target[elements->Nodes[INDEX2(resortIndex[j], i, NN)]]);
       fprintf(fileHandle_p, "\n");
   } 
   fprintf(fileHandle_p, "attribute \"element type\" string \"%s\"\n",elemTypeStr);
@@ -293,23 +258,10 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
                 fprintf(fileHandle_p, "attribute \"dep\" string \"connections\"\n");
             }
          } else {
-             fprintf(fileHandle_p, "items %d data follows\n", mesh_p->Nodes->reducedNumNodes);
-             for (i=0;i<mesh_p->Nodes->numNodes;i++) {
-                 if (mesh_p->Nodes->toReduced[i]>=0) {
-                    switch (getFunctionSpaceType(data_pp[i_data])) {
-                       case FINLEY_DEGREES_OF_FREEDOM:
-                          values=getSampleData(data_pp[i_data],mesh_p->Nodes->degreeOfFreedom[i]);
-                          break;
-                       case FINLEY_REDUCED_DEGREES_OF_FREEDOM:
-                          values=getSampleData(data_pp[i_data],mesh_p->Nodes->reducedDegreeOfFreedom[i]);
-                          break;
-                       case FINLEY_NODES:
-                          values=getSampleData(data_pp[i_data],i);
-                          break;
-                    }
-                    for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", values[k]);
-	            fprintf(fileHandle_p, "\n");
-                 }
+             fprintf(fileHandle_p, "items %d data follows\n", numPoints);
+             for (i=0;i<numPoints;i++) {
+                   values=getSampleData(data_pp[i_data],i);
+	           fprintf(fileHandle_p, "\n");
              }
              fprintf(fileHandle_p, "attribute \"dep\" string \"positions\"\n");
          }

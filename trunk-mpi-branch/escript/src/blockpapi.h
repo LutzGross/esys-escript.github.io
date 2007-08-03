@@ -1,9 +1,11 @@
 
+typedef long long_long_t;
+
 void blockpapi_addEvent(int event, char *description);
 void blockpapi_start();
 void blockpapi_stop();
 void blockpapi_writeReport();
-long long *blockpapi_getValues();
+long_long_t *blockpapi_getValues();
 void blockpapi_writeSystemInfo();
 
 /* These define NATV_the event codes for all the native events listed by native_avail */

@@ -2,7 +2,6 @@ import os
 Import('*')
 
 local_env=env.Copy()
-
 if useMPI:
 # get the relevant file names:
 	src_dir = local_env.Dir('.').srcnode().abspath

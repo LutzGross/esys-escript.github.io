@@ -86,6 +86,22 @@ class AbstractDomain {
 
   /**
      \brief
+     return the number of processors used for this domain
+  */
+  ESCRIPT_DLL_API
+  virtual int getMPISize() const;
+  /**
+     \brief
+     return the number MPI rank of this processor
+  */
+
+  ESCRIPT_DLL_API
+  virtual int getMPIRank() const;
+
+
+
+  /**
+     \brief
      Returns true if the given integer is a valid function space type
      for this domain.
   */

@@ -32,6 +32,7 @@
 /**************************************************************/
 
 void Finley_Mesh_prepareNodes(Finley_Mesh* in) {
+#if 0
   dim_t n,len;
   index_t id,max_id,min_id,*maskReducedDOF=NULL,*maskDOF=NULL,*reducedNodesMask=NULL,*index=NULL;
 #ifdef PASO_MPI
@@ -265,5 +266,6 @@ clean:
   TMPMEMFREE(maskReducedDOF);
   TMPMEMFREE(index);
   if (Finley_noError()) in->Nodes->isPrepared=TRUE;
+#endif
 }
 

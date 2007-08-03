@@ -49,7 +49,7 @@ SystemMatrixAdapter::~SystemMatrixAdapter()
 { 
     if (m_system_matrix.unique()) {
         Paso_SystemMatrix* mat=m_system_matrix.get();
-        Paso_SystemMatrix_dealloc(mat);
+        Paso_SystemMatrix_free(mat);
     }
 }
 

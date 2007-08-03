@@ -93,7 +93,8 @@ namespace finley {
 		    int periodic2=0,
 		    int integrationOrder=-1,
      	            int reducedIntegrationOrder=-1, 
-		    int useElementsOnFace=0);
+		    int useElementsOnFace=0,
+                    int useFullElementOrder=false);
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 elements over the brick 
@@ -117,29 +118,8 @@ namespace finley {
 				      int periodic0=false,int periodic1=false,
 				      int integrationOrder=-1,
      	                              int reducedIntegrationOrder=-1, 
-				      int useElementsOnFace=false);
-  /**
-     \brief
-     Creates an equidistant mesh with n elements over the interval [0,l].
-     \param n0 Input - number of elements
-     \param order Input - =1 or =2 gives the order of shape function.
-     \param l0 Input - length of the brick
-     \param integrationOrder Input - order of the quadrature scheme. 
-     If integrationOrder<0 the integration order is selected 
-     independently.
-     \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
-     If reducedIntegrationOrder<0 the integration order is selected independently.
-     \param periodic0 Input - whether or not the boundary conditions are
-     periodic
-     \param useElementsOnFace Input - whether or not to use the elements
-     on the face
-  */
-  FINLEY_DLL_API
-  escript::AbstractContinuousDomain* interval(int n0=1,int order=1,double l0=1.0,
-				     int periodic0=false,
-				     int integrationOrder=-1,
-     	                             int reducedIntegrationOrder=-1, 
-				     int useElementsOnFace=false);
+				      int useElementsOnFace=false,
+                                      int useFullElementOrder=false);
   /**
      \brief
      Merges a list of meshes into one list.

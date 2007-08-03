@@ -27,16 +27,47 @@
 
 void Finley_Mesh_prepare(Finley_Mesh* in) {
 
-       /* set the labeling vectors in node files: */
+     dim_t newGlobalNumDOFs=0;
+     Paso_MPI_rank* mpiRankOfDOF=NULL;
+     index_t* distribution=NULL;
+     if (in==NULL) return;
+     if (in->Nodes == NULL) return;
+
+     /* first step is to distribute the elements according to a global distribution of DOF */
+
+     mpiRankOfDOF=TMPMEMALLOC(in->Nodes->numNodes,Paso_MPI_rank);
+     distribution=TMPMEMALLOC(in->MPIInfo->size+1,index_t);
+     if (!(Finley_checkPtr(mpiRankOfDOF) || Finley_checkPtr(distribution))) {
+        /* first we create dense labeling for the DOFs */
+        newGlobalNumDOFs=Finley_NodeFile_createDenseDOFLabeling(in->Nodes);
+        /* create a distribution of the global DOFs and determine
+           the MPI_rank controling the DOFs on this processor      */
+        Paso_MPIInfo_setDistribution(in->MPIInfo,0,newGlobalNumDOFs-1,distribution);
+        Finley_NodeFile_assignMPIRankToDOFs(in->Nodes,mpiRankOfDOF,distribution);
+
+        /* now the mesh is re-distributed according to the mpiRankOfDOF vector */
+        /* this will redistribute the Nodes and Elements including overlap and will create an element coloring 
+           but will not create any mappings (see later in this function)                                   */
+        if (Finley_noError()) Finley_Mesh_distributeByRankOfDOF(in,mpiRankOfDOF);
+     }
+     TMPMEMFREE(mpiRankOfDOF);
+     TMPMEMFREE(distribution);
+     if (!Finley_noError()) return;
+
+     /* at this stage we are able to start an optimization of the DOF distribution using ParaMetis */
+     
+     /* now a local labeling of the DOF is introduced */
+return;
+
+      /* set the labeling vectors in node files: */
        Finley_Mesh_prepareNodes(in);
 
-#ifndef PASO_MPI
        /* rearrange elements: */
        Finley_Mesh_optimizeElementDistribution(in);
 
        /* improve coloring */
+       /* precoloring! */
        Finley_Mesh_improveColoring(in);
-#endif
 }
 
 bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
@@ -54,10 +85,10 @@ bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
 /*  tries to reduce the coloring for all element files: */
 /*                                                      */
 void Finley_Mesh_improveColoring(Finley_Mesh* in) {
-  Finley_ElementFile_improveColoring(in->Elements,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
-  Finley_ElementFile_improveColoring(in->FaceElements,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
-  Finley_ElementFile_improveColoring(in->Points,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
-  Finley_ElementFile_improveColoring(in->ContactElements,in->Nodes->numNodes,in->Nodes->degreeOfFreedom);
+  Finley_ElementFile_improveColoring(in->Elements,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
+  Finley_ElementFile_improveColoring(in->FaceElements,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
+  Finley_ElementFile_improveColoring(in->Points,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
+  Finley_ElementFile_improveColoring(in->ContactElements,in->Nodes->degreesOfFreedomMapping->numNodes,in->Nodes->degreesOfFreedomMapping->target);
 }
 /*                                                                    */
 /*  redistribute elements to minimize communication during assemblage */
@@ -68,21 +99,3 @@ void Finley_Mesh_optimizeElementDistribution(Finley_Mesh* in) {
   Finley_ElementFile_optimizeDistribution(&(in->Points));
   Finley_ElementFile_optimizeDistribution(&(in->ContactElements));
 }
-
-/*
-* $Log$
-* Revision 1.2  2005/09/15 03:44:22  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.1.1.1.6.1  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
-

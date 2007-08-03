@@ -40,6 +40,20 @@ int isDataPointShapeEqual(struct escriptDataC* data, int rank, int* dimensions)
   }
 }
 
+int  getNumDataPointsPerSample(struct escriptDataC* data) 
+{
+  if (data == (struct escriptDataC*)0) {
+       return 0;
+  } else {
+     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
+     if (temp->isEmpty()) {
+        return 0;
+     } else {
+          return (temp->getNumDataPointsPerSample());
+     }
+  }
+}
+
 int numSamplesEqual(struct escriptDataC* data, int numDataPointsPerSample,
 		    int numSamples)
 {

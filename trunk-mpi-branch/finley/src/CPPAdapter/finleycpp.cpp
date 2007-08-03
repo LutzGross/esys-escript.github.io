@@ -103,7 +103,8 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,arg("periodic2")=false,
       arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
-      arg("useElementsOnFace")=false),
+      arg("useElementsOnFace")=false,
+      arg("useFullElementOrder")=false),
       return_value_policy<manage_new_object>());
 
   def ("Rectangle",finley::rectangle,
@@ -111,14 +112,8 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("l0")=1.0,arg("l1")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,
       arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
-      arg("useElementsOnFace")=false),
-      return_value_policy<manage_new_object>());
-
-  def("Interval",finley::interval,
-      (arg("n1")=1,arg("order")=1,
-      arg("l1")=1.0,arg("periodic0")=false,
-      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
-      arg("useElementsOnFace")=false),
+      arg("useElementsOnFace")=false,
+      arg("useFullElementOrder")=false),
       return_value_policy<manage_new_object>());
 
   def("Merge",finley::meshMerge,
@@ -146,6 +141,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("getDim",&finley::MeshAdapter::getDim)
       .def("getDataShape",&finley::MeshAdapter::getDataShape)
       .def("addPDEToSystem",&finley::MeshAdapter::addPDEToSystem)
+      .def("addPDEToLumpedSystem",&finley::MeshAdapter::addPDEToLumpedSystem)
       .def("addPDEToRHS",&finley::MeshAdapter::addPDEToRHS)
       .def("newOperator",&finley::MeshAdapter::newSystemMatrix)
       .def("getSystemMatrixTypeId",&finley::MeshAdapter::getSystemMatrixTypeId)
@@ -158,8 +154,9 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("setTagMap",&finley::MeshAdapter::setTagMap)
       .def("getTag",&finley::MeshAdapter::getTag)
       .def("isValidTagName",&finley::MeshAdapter::isValidTagName)
-      .def("showTagNames",&finley::MeshAdapter::showTagNames);
-
+      .def("showTagNames",&finley::MeshAdapter::showTagNames)
+      .def("getMPISize",&finley::MeshAdapter::getMPISize)
+      .def("getMPIRank",&finley::MeshAdapter::getMPIRank);
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter",no_init)

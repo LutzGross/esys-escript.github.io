@@ -48,7 +48,8 @@ void Paso_solve(Paso_SystemMatrix* A,
   Paso_Performance pp;
   index_t package;
   Paso_resetError();
-  if (A->numRows!=A->numCols || A->col_block_size!=A->row_block_size) {
+  if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)
+                || A->col_block_size!=A->row_block_size) {
        Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }

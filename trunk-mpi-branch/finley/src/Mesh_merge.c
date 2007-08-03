@@ -32,6 +32,7 @@
 static double  Finley_Mesh_lockingGridSize=0;
 
 Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
+  Paso_MPIInfo *mpi_info=NULL;
   Finley_Mesh* out=NULL;
   dim_t numNodes=0;
   dim_t numElements=0;
@@ -51,19 +52,27 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   index_t maxElementID2=0;
   char newName[LenString_MAX];
   if (numMsh==0) {
-     Finley_setError(VALUE_ERROR,"__FILE__: Empty mesh list");
+     Finley_setError(VALUE_ERROR,"Finley_Mesh_merge: Empty mesh list");
   } else {
     order=msh[0]->order;
     reduced_order=msh[0]->reduced_order;
     numDim=msh[0]->Nodes->numDim;
+    mpi_info=msh[0]->MPIInfo;
+    if (mpi_info->size > 1) {
+         Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: more than processor is not supported yet.");
+         return NULL;
+    }
     strcpy(newName,"");
     for (i=0;i<numMsh;i++) {
        /* check if all mesh have the same type and dimensions */
        order=MAX(order,msh[i]->order);
        reduced_order=MIN(reduced_order,msh[i]->reduced_order);
        numNodes+=msh[i]->Nodes->numNodes;
+       if (mpi_info->comm!=msh[i]->MPIInfo->comm) {
+          Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: MPI communicators of meshes don't match.");
+       }
        if (numDim!=msh[i]->Nodes->numDim) {
-          Finley_setError(TYPE_ERROR,"__FILE__: Spatial dimensions of meshes don't match.");
+          Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: Spatial dimensions of meshes don't match.");
        }
 
        if (msh[i]->Elements!=NULL) {
@@ -72,7 +81,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              elementTypeId=msh[i]->Elements->ReferenceElement->Type->TypeId;
 	  } else {
              if (elementTypeId!=msh[i]->Elements->ReferenceElement->Type->TypeId ) {
-               Finley_setError(TYPE_ERROR,"__FILE__: element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: element types of meshes don't match.");
              }
           }
        }
@@ -83,7 +92,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              faceElementTypeId=msh[i]->FaceElements->ReferenceElement->Type->TypeId;
 	  } else {
              if (faceElementTypeId!=msh[i]->FaceElements->ReferenceElement->Type->TypeId ) {
-               Finley_setError(TYPE_ERROR,"__FILE__: face element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: face element types of meshes don't match.");
              }
           }
        }
@@ -94,7 +103,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              contactTypeId=msh[i]->ContactElements->ReferenceElement->Type->TypeId;
 	  } else {
              if (contactTypeId!=msh[i]->ContactElements->ReferenceElement->Type->TypeId ) {
-               Finley_setError(TYPE_ERROR,"__FILE__: contact element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: contact element types of meshes don't match.");
              }
           }
        }
@@ -105,7 +114,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
              pointTypeId=msh[i]->Points->ReferenceElement->Type->TypeId;
 	  } else {
              if (pointTypeId!=msh[i]->Points->ReferenceElement->Type->TypeId ) {
-               Finley_setError(TYPE_ERROR,"__FILE__: point element types of meshes don't match.");
+               Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: point element types of meshes don't match.");
              }
           }
        }
@@ -114,16 +123,18 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
        strncat(newName,msh[i]->Name,LenString_MAX-strlen(newName)-1);
     }
 
+    if (mpi_info->size >1 ) {
+        Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: only single processor runs are supported.");
+    }
     /* allocate */
 
-#ifndef PASO_MPI
     if (Finley_noError())
-      out=Finley_Mesh_alloc(newName,numDim,order,reduced_order);
+      out=Finley_Mesh_alloc(newName,numDim,order,reduced_order,mpi_info);
 
-    out->Elements=Finley_ElementFile_alloc(elementTypeId,out->order, out->reduced_order);
-    out->FaceElements=Finley_ElementFile_alloc(faceElementTypeId,out->order, out->reduced_order);
-    out->Points=Finley_ElementFile_alloc(pointTypeId,out->order, out->reduced_order);
-    out->ContactElements=Finley_ElementFile_alloc(contactTypeId,out->order, out->reduced_order);
+    out->Elements=Finley_ElementFile_alloc(elementTypeId,out->order, out->reduced_order,mpi_info);
+    out->FaceElements=Finley_ElementFile_alloc(faceElementTypeId,out->order, out->reduced_order,mpi_info);
+    out->Points=Finley_ElementFile_alloc(pointTypeId,out->order, out->reduced_order,mpi_info);
+    out->ContactElements=Finley_ElementFile_alloc(contactTypeId,out->order, out->reduced_order,mpi_info);
 
     /* allocate new tables */
 
@@ -135,9 +146,6 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
         Finley_ElementFile_allocTable(out->ContactElements,numContactElements);
         Finley_ElementFile_allocTable(out->Points,numPoints);
     }
-#else
-/* TODO */
-#endif
 
     /* copy tables :*/
 
@@ -164,7 +172,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
            if (msh[i]->Nodes->numNodes>0) 
               maxNodeID+=Finley_Util_getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->Id)+1;
-              maxDOF+=Finley_Util_getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->degreeOfFreedom)+1;
+              maxDOF+=Finley_Util_getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->globalDegreesOfFreedom)+1;
            maxElementID2=0;
            if (msh[i]->Elements->numElements>0) 
               maxElementID2=MAX(maxElementID2,Finley_Util_getMaxInt(1,msh[i]->Elements->numElements,msh[i]->Elements->Id));
@@ -180,7 +188,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
     /* all done  */
 
     if (! Finley_noError()) {
-       Finley_Mesh_dealloc(out);
+       Finley_Mesh_free(out);
     } else {
        Finley_Mesh_prepare(out);
        #ifdef Finley_TRACE
@@ -190,30 +198,3 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   }
   return out;
 }
-
-/*
-* $Log$
-* Revision 1.3  2005/09/15 03:44:22  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.2.2.1  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.2  2005/07/08 04:07:53  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.1.1.1.2.1  2005/06/29 02:34:52  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.2  2004/07/30 04:37:06  gross
-* escript and finley are linking now and RecMeshTest.py has been passed
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
-

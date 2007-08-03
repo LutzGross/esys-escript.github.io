@@ -27,6 +27,7 @@
 #define INC_PASO_SYSTEMMATRIX
 
 #include "Common.h"
+#include "SparseMatrix.h"
 #include "SystemMatrixPattern.h"
 #include "Options.h"
 #include "Paso_MPI.h"
@@ -47,6 +48,8 @@ typedef int Paso_SystemMatrixType;
 
 typedef struct Paso_SystemMatrix {
   Paso_SystemMatrixType type;
+  Paso_SystemMatrixPattern *pattern;
+
   dim_t reference_counter;
 
   dim_t logical_row_block_size;
@@ -57,28 +60,21 @@ typedef struct Paso_SystemMatrix {
   dim_t col_block_size;
   dim_t block_size;
 
-  dim_t numRows;
-  dim_t myNumRows;
-  dim_t myFirstRow;
-  dim_t maxNumRows;
-  dim_t numCols;
-  dim_t myNumCols;
-  dim_t myFirstCol;
-  dim_t maxNumCols;
-
-  Paso_MPIInfo *mpi_info;
-  Paso_SystemMatrixPattern* pattern;
   Paso_Distribution *row_distribution;
   Paso_Distribution *col_distribution;
 
-  dim_t myLen;
-  double *val;         /* this is used for classical CSR or CSC */
-  void *trilinos_data; /* this is only used for a trilinos matrix */
+  Paso_MPIInfo *mpi_info;
 
-  double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
+  /* this comes into play when PASO is used */
+  Paso_SparseMatrix* mainBlock;
+  Paso_SparseMatrix* coupleBlock;
   bool_t normalizer_is_valid;
+  double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
   index_t solver_package;  /* package controling the solver pointer */
   void* solver;  /* pointer to data needed by a solver */
+
+  /* this is only used for a trilinos matrix */
+  void *trilinos_data; 
 
 } Paso_SystemMatrix;
 
@@ -86,38 +82,28 @@ typedef struct Paso_SystemMatrix {
 
 Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t);
 Paso_SystemMatrix* Paso_SystemMatrix_reference(Paso_SystemMatrix*);
-void Paso_SystemMatrix_dealloc(Paso_SystemMatrix*);
+void Paso_SystemMatrix_free(Paso_SystemMatrix*);
 
-void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
-void Paso_SystemMatrix_copy(Paso_SystemMatrix*,double*);
-void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 void Paso_SystemMatrix_MatrixVector(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
-void Paso_SystemMatrix_MatrixVector_CSC_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
-void Paso_SystemMatrix_MatrixVector_CSC_OFFSET1(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
-void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out, double* buffer0, double* buffer1);
-void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_S(double alpha, Paso_SystemMatrix* A, double* in, double* out);
-void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_P(double alpha, Paso_SystemMatrix* A, double* in, index_t min_index, index_t max_index, double* out);
-void Paso_SystemMatrix_MatrixVector_CSR_OFFSET1(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
+void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
+void Paso_solve_free(Paso_SystemMatrix* in);
+void Paso_SystemMatrix_allocBuffer(Paso_SystemMatrix* A);
+void Paso_SystemMatrix_freeBuffer(Paso_SystemMatrix* A);
+void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,double* in);
+double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A);
+void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
+dim_t Paso_SystemMatrix_getTotalNumRows(Paso_SystemMatrix* A);
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
 void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
-void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-void Paso_SystemMatrix_nullifyRowsAndCols_CSC_BLK1(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-void Paso_SystemMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-void Paso_SystemMatrix_nullifyRowsAndCols_CSC(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-void Paso_SystemMatrix_nullifyRowsAndCols_CSR(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-void Paso_SystemMatrix_nullifyRows_CSR(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
-void Paso_SystemMatrix_nullifyRows_CSR_BLK1(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
-void Paso_SystemMatrix_nullifyCols_CSR(Paso_SystemMatrix* A, double* mask_col, double main_diagonal_value, index_t min_index, index_t max_index);
-void Paso_SystemMatrix_nullifyCols_CSR_BLK1(Paso_SystemMatrix* A, double* mask_col, double main_diagonal_value, index_t min_index, index_t max_index);
 void Paso_SystemMatrix_setDefaults(Paso_Options*);
 int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, bool_t symmetry);
-Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,dim_t,dim_t,index_t*,index_t*);
-double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
 
-void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
-void Paso_solve_free(Paso_SystemMatrix* in);
+void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
+void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */
 

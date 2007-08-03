@@ -1684,13 +1684,20 @@ class LinearPDE(object):
                       raise ValueError,"coefficient B in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("C").isEmpty():
                       raise ValueError,"coefficient C in lumped matrix may not be present."
+                 if not self.getCoefficientOfGeneralPDE("d_contact").isEmpty():
+                      raise ValueError,"coefficient d_contact in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("A_reduced").isEmpty(): 
                       raise ValueError,"coefficient A_reduced in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("B_reduced").isEmpty():
                       raise ValueError,"coefficient B_reduced in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("C_reduced").isEmpty():
                       raise ValueError,"coefficient C_reduced in lumped matrix may not be present."
+                 if not self.getCoefficientOfGeneralPDE("d_contact_reduced").isEmpty():
+                      raise ValueError,"coefficient d_contact_reduced in lumped matrix may not be present."
                  D=self.getCoefficientOfGeneralPDE("D")
+                 d=self.getCoefficientOfGeneralPDE("d")
+                 D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
+                 d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
                         D_times_e=util.matrix_mult(D,numarray.ones((self.getNumSolutions(),)))
@@ -1698,7 +1705,6 @@ class LinearPDE(object):
                         D_times_e=D
                  else:
                     D_times_e=escript.Data()
-                 d=self.getCoefficientOfGeneralPDE("d")
                  if not d.isEmpty():
                      if self.getNumSolutions()>1:
                         d_times_e=util.matrix_mult(d,numarray.ones((self.getNumSolutions(),)))
@@ -1706,22 +1712,7 @@ class LinearPDE(object):
                         d_times_e=d
                  else:
                     d_times_e=escript.Data()
-                 d_contact=self.getCoefficientOfGeneralPDE("d_contact")
-                 if not d_contact.isEmpty():
-                     if self.getNumSolutions()>1:
-                        d_contact_times_e=util.matrixmult(d_contact,numarray.ones((self.getNumSolutions(),)))
-                     else:
-                        d_contact_times_e=d_contact
-                 else:
-                    d_contact_times_e=escript.Data()
-    
-                 self.__operator=self.__getNewRightHandSide()
-                 self.getDomain().addPDEToRHS(self.__operator, \
-                                              escript.Data(), \
-                                              D_times_e, \
-                                              d_times_e,\
-                                              d_contact_times_e)
-                 D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
+      
                  if not D_reduced.isEmpty():
                      if self.getNumSolutions()>1:
                         D_reduced_times_e=util.matrix_mult(D_reduced,numarray.ones((self.getNumSolutions(),)))
@@ -1729,7 +1720,6 @@ class LinearPDE(object):
                         D_reduced_times_e=D_reduced
                  else:
                     D_reduced_times_e=escript.Data()
-                 d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
                  if not d_reduced.isEmpty():
                      if self.getNumSolutions()>1:
                         d_reduced_times_e=util.matrix_mult(d_reduced,numarray.ones((self.getNumSolutions(),)))
@@ -1737,26 +1727,22 @@ class LinearPDE(object):
                         d_reduced_times_e=d_reduced
                  else:
                     d_reduced_times_e=escript.Data()
-                 d_contact_reduced=self.getCoefficientOfGeneralPDE("d_contact_reduced")
-                 if not d_contact_reduced.isEmpty():
-                     if self.getNumSolutions()>1:
-                        d_contact_reduced_times_e=util.matrixmult(d_contact_reduced,numarray.ones((self.getNumSolutions(),)))
-                     else:
-                        d_contact_reduced_times_e=d_contact_reduced
-                 else:
-                    d_contact_reduced_times_e=escript.Data()
-    
+
                  self.__operator=self.__getNewRightHandSide()
-                 self.getDomain().addPDEToRHS(self.__operator, \
-                                              escript.Data(), \
-                                              D_times_e, \
-                                              d_times_e,\
-                                              d_contact_times_e)
-                 self.getDomain().addPDEToRHS(self.__operator, \
-                                              escript.Data(), \
-                                              D_reduced_times_e, \
-                                              d_reduced_times_e,\
-                                              d_contact_reduced_times_e)
+                 if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
+                    self.getDomain().addPDEToLumpedSystem(self.__operator, D_times_e, d_times_e)
+                    self.getDomain().addPDEToLumpedSystem(self.__operator, D_reduced_times_e, d_reduced_times_e)
+                 else:
+                    self.getDomain().addPDEToRHS(self.__operator, \
+                                                 escript.Data(), \
+                                                 D_times_e, \
+                                                 d_times_e,\
+                                                 escript.Data())
+                    self.getDomain().addPDEToRHS(self.__operator, \
+                                                 escript.Data(), \
+                                                 D_reduced_times_e, \
+                                                 d_reduced_times_e,\
+                                                 escript.Data())
                  self.__operator=1./self.__operator
                  self.trace("New lumped operator has been built.")
                  self.__operator_is_Valid=True

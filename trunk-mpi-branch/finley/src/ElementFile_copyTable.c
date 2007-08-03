@@ -31,28 +31,22 @@
 
 void Finley_ElementFile_copyTable(index_t offset,Finley_ElementFile* out,index_t node_offset, index_t idOffset,Finley_ElementFile* in) {
     dim_t i,n;
-    dim_t NN=out->ReferenceElement->Type->numNodes;
+    dim_t NN=out->numNodes;
     if (in==NULL) return;
-    /* check dimension and file size */
     if (out->ReferenceElement->Type->TypeId!=in->ReferenceElement->Type->TypeId) {
         Finley_setError(TYPE_ERROR,"Finley_ElementFile_copyTable: dimensions of element files don't match");
     }
-    if (out->numElements<in->numElements+offset) {
-        Finley_setError(MEMORY_ERROR,"Finley_ElementFile_copyTable: element table is too small.");
+    if (out->MPIInfo->comm!=in->MPIInfo->comm) {
+        Finley_setError(TYPE_ERROR,"Finley_ElementFile_copyTable: MPI communicators of element files don't match");
     }
     if (Finley_noError()) {
        #pragma omp parallel for private(i,n) schedule(static)
        for(n=0;n<in->numElements;n++) {
-#ifdef PASO_MPI
-          out->Dom[offset+n]=in->Dom[n]+idOffset;
-#endif	
+          out->Owner[offset+n]=out->Owner[n];
           out->Id[offset+n]=in->Id[n]+idOffset;
           out->Tag[offset+n]=in->Tag[n];
-          out->Color[offset+n]=in->Color[n]+out->maxColor+1;
           for(i=0;i<NN;i++) out->Nodes[INDEX2(i,offset+n,NN)]=in->Nodes[INDEX2(i,n,in->ReferenceElement->Type->numNodes)]+node_offset;
        }
-       out->minColor=MIN(out->minColor,in->minColor+out->maxColor+1);
-       out->maxColor=MAX(out->maxColor,in->maxColor+out->maxColor+1);
-       out->isPrepared=MIN(out->isPrepared,in->isPrepared);
+       out->isPrepared=FINLEY_UNPREPARED;
     }
 }

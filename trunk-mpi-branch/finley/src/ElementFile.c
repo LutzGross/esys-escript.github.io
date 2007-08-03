@@ -15,7 +15,7 @@
 /*   Finley: ElementFile */
 
 /*   allocates an element file to hold elements of type id and with integration order order. */
-/*   use Finley_Mesh_allocElementTable to allocate the element table (Id,Nodes,Tag). */
+/*   use Finley_Mesh_allocElementTable to allocate the element table (Id,Nodes,Tag,Owner). */
 
 /**************************************************************/
 
@@ -28,11 +28,7 @@
 
 /**************************************************************/
 
-#ifndef PASO_MPI
-Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, index_t reduced_order)
-#else
 Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, index_t reduced_order, Paso_MPIInfo *MPIInfo)
-#endif
 {
   extern Finley_RefElementInfo Finley_RefElement_InfoList[];
   dim_t NQ, reduced_NQ;
@@ -69,11 +65,8 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, in
   out->jacobeans_reducedS=NULL;
   out->jacobeans_reducedS_reducedQ=NULL;
 
-#ifdef PASO_MPI
-  out->Dom=NULL;                
+  out->Owner=NULL;                
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
-  out->elementDistribution = Finley_ElementDistribution_alloc( MPIInfo );
-#endif
 
   /*  allocate the reference element: */
   
@@ -86,8 +79,11 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, in
   out->jacobeans_reducedS=Finley_ElementFile_Jacobeans_alloc(out->LinearReferenceElement);
   out->LinearReferenceElementReducedOrder=Finley_RefElement_alloc(Finley_RefElement_InfoList[id].LinearTypeId,reduced_NQ);
   out->jacobeans_reducedS_reducedQ=Finley_ElementFile_Jacobeans_alloc(out->LinearReferenceElementReducedOrder);
+
+  out->numNodes=out->ReferenceElement->Type->numNodes;
+
   if (! Finley_noError()) {
-     Finley_ElementFile_dealloc(out);
+     Finley_ElementFile_free(out);
      return NULL;
   }
   return out;
@@ -95,47 +91,44 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, in
 
 /*  deallocates an element file: */
 
-void Finley_ElementFile_dealloc(Finley_ElementFile* in) {
+void Finley_ElementFile_free(Finley_ElementFile* in) {
   if (in!=NULL) {
      #ifdef Finley_TRACE
      if (in->ReferenceElement!=NULL) printf("element file for %s is deallocated.\n",in->ReferenceElement->Type->Name);
      #endif
+     Finley_ElementFile_freeTable(in);   
      Finley_RefElement_dealloc(in->ReferenceElement);
      Finley_RefElement_dealloc(in->ReferenceElementReducedOrder);
      Finley_RefElement_dealloc(in->LinearReferenceElement);
      Finley_RefElement_dealloc(in->LinearReferenceElementReducedOrder);
-     Finley_ElementFile_deallocTable(in);   
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS_reducedQ);
-#ifdef PASO_MPI
-     MEMFREE(in->Dom);     
-     Paso_MPIInfo_dealloc( in->MPIInfo );
-     Finley_ElementDistribution_dealloc( in->elementDistribution );
-#endif           
+     Paso_MPIInfo_free( in->MPIInfo );
      MEMFREE(in);      
   }
 }
-/* 
-* $Log$
-* Revision 1.6  2005/09/15 03:44:21  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.5.2.1  2005/09/07 06:26:18  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.5  2005/07/08 04:07:48  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.4  2004/12/15 07:08:32  jgs
-* *** empty log message ***
-* Revision 1.1.1.1.2.2  2005/06/29 02:34:49  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:13  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
-*
-*
-*
-*/
+
+dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in) {
+    if (in) {
+    } else {
+      return 0;
+    }
+}
+dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in) {
+    return  Finley_ElementFile_getLastElement(in)-Finley_ElementFile_getFirstElement(in);
+}
+index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in) {
+    if (in) {
+    } else {
+      return 0;
+    }
+}
+index_t Finley_ElementFile_getLastElement(Finley_ElementFile* in) {
+    if (in) {
+    } else {
+      return 0;
+    }
+}
+

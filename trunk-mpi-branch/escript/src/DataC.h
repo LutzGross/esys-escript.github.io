@@ -82,6 +82,13 @@ ESCRIPT_DLL_API int numSamplesEqual(escriptDataC* data, int numDataPointsPerSamp
 
 /**
    \brief
+   Returns the number of data points per sample
+   \param data Input - C wrapper for Data.
+*/
+ESCRIPT_DLL_API int getNumDataPointsPerSample(escriptDataC* data);
+
+/**
+   \brief
    Returns the rank of the point data for the data. 
    \param data Input - C wrapper for Data.
 */

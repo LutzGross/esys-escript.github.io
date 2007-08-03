@@ -68,7 +68,6 @@ err_t Paso_Solver_PCG(
     double * x,
     dim_t *iter,
     double * tolerance,
-    double * buffer0, double * buffer1,
     Paso_Performance* pp) {
 
 
@@ -77,7 +76,7 @@ err_t Paso_Solver_PCG(
   dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
-  dim_t n = A->myNumCols * A-> col_block_size;
+  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
   double norm_of_residual,norm_of_residual_global, loc_sum[2], sum[2];
@@ -164,7 +163,7 @@ err_t Paso_Solver_PCG(
            /* v=A*p */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
-	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v, buffer0, buffer1);
+	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* delta=p*v */

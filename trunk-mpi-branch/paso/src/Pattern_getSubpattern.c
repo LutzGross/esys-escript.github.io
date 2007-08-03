@@ -13,7 +13,7 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrixPatternPattern */
+/* Paso: PatternPattern */
 
 /**************************************************************/
 
@@ -23,18 +23,16 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "Distribution.h"
-#include "PasoUtil.h"
-#include "SystemMatrixPattern.h"
+#include "Pattern.h"
 
 /**************************************************************/
 
-/* creates SystemMatrixPattern  */
+/* creates Pattern  */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatrixPattern* pattern, \
+Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern, \
                                            int newNumRows, int newNumCols, index_t* row_list,index_t* new_col_index) {
   index_t index_offset=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
-  Paso_SystemMatrixPattern*out=NULL;
+  Paso_Pattern*out=NULL;
   index_t *ptr=NULL,*index=NULL,k,j,subpattern_row,tmp;
   dim_t i;
   Paso_resetError();
@@ -51,6 +49,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
         for (i=0;i<newNumRows;++i) {
             j=0;
             subpattern_row=row_list[i];
+            #pragma ivdep
             for (k=pattern->ptr[subpattern_row]-index_offset;k<pattern->ptr[subpattern_row+1]-index_offset;++k) 
                if (new_col_index[pattern->index[k]-index_offset]>-1) j++;
             ptr[i]=j;
@@ -67,6 +66,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
         for (i=0;i<newNumRows;++i) {
              j=ptr[i];
              subpattern_row=row_list[i];
+             #pragma ivdep
              for (k=pattern->ptr[subpattern_row]-index_offset;k<pattern->ptr[subpattern_row+1]-index_offset;++k) {
                 tmp=new_col_index[pattern->index[k]-index_offset];
                 if (tmp>-1) {
@@ -76,20 +76,11 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getSubpattern(Paso_SystemMatr
              }
         }
         /* create return value */
-        index_t dist[2];
-        dist[0]=0;
-        dist[1]=newNumRows;
-        Paso_Distribution* row_dist=Paso_Distribution_alloc(pattern->mpi_info, dist,1,0);
-        dist[1]=newNumCols;
-        Paso_Distribution* col_dist=Paso_Distribution_alloc(pattern->mpi_info, dist,1,0);
-        dist[0]=1;
-        out=Paso_SystemMatrixPattern_alloc(pattern->type,row_dist,col_dist,ptr,index,1,dist);
+        out=Paso_Pattern_alloc(pattern->type,newNumRows,ptr,index);
         if (! Paso_noError()) {
           MEMFREE(index);
           MEMFREE(ptr);
         }
-        Paso_Distribution_free(row_dist);
-        Paso_Distribution_free(col_dist);
      }
   }
   return out;

@@ -124,6 +124,20 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     return the number of processors used for this domain
+  */
+  FINLEY_DLL_API
+  virtual int getMPISize() const;
+  /**
+     \brief
+     return the number MPI rank of this processor
+  */
+
+  FINLEY_DLL_API
+  virtual int getMPIRank() const;
+
+  /**
+     \brief
      return this as an AbstractContinuousDomain.
   */
   inline const AbstractContinuousDomain& asAbstractContinuousDomain() const 
@@ -465,6 +479,15 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
                      const escript::Data& d_contact, const escript::Data& y_contact) const;
+  /**
+     \brief
+     adds a PDE onto the lumped stiffness matrix matrix
+  */
+  FINLEY_DLL_API
+  virtual void addPDEToLumpedSystem(
+                     escript::Data& mat,
+                     const escript::Data& D, 
+                     const escript::Data& d) const;
 
   /**
      \brief

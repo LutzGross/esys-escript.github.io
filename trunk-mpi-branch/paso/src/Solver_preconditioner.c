@@ -56,21 +56,21 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
            default:
            case PASO_JACOBI:
               if (options->verbose) printf("Jacobi preconditioner is used.\n");
-              prec->jacobi=Paso_Solver_getJacobi(A);
+              prec->jacobi=Paso_Solver_getJacobi(A->mainBlock);
               prec->type=PASO_JACOBI;
               break;
            case PASO_ILU0:
               if (options->verbose) printf("ILU preconditioner is used.\n");
-              prec->ilu=Paso_Solver_getILU(A,options->verbose);
+              prec->ilu=Paso_Solver_getILU(A->mainBlock,options->verbose);
               prec->type=PASO_ILU0;
               break;
            case PASO_RILU:
               if (options->verbose) printf("RILU preconditioner is used.\n");
-              prec->rilu=Paso_Solver_getRILU(A,options->verbose);
+              prec->rilu=Paso_Solver_getRILU(A->mainBlock,options->verbose);
               prec->type=PASO_RILU;
               break;
         }
-        if (! Paso_noError()) {
+        if (! Paso_MPIInfo_noError(A->mpi_info ) ){
            Paso_Preconditioner_free(prec);
            A->solver=NULL;
         }
@@ -96,19 +96,3 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
            break;
     }
 }
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.2  2005/09/07 00:59:09  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

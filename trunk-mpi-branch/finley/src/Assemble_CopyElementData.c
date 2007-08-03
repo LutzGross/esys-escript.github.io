@@ -32,6 +32,7 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
     dim_t n,q, numElements, numQuad;
     double *in_array,*out_array;
     dim_t numComps=getDataPointSize(out);
+    size_t len_size;
 
     Finley_resetError();
     if( elements == NULL )
@@ -61,48 +62,19 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
 
     if (Finley_noError()) {
          if (isExpanded(in)) {
+             len_size=numComps*numQuad*sizeof(double);
              # pragma omp parallel for private(n) schedule(static)
              for (n=0;n<numElements;n++) 
-                 Finley_copyDouble(numComps*numQuad,getSampleData(in,n),getSampleData(out,n));
+                 memcpy(getSampleData(out,n),getSampleData(in,n), len_size);
          } else {
+             len_size=numComps*sizeof(double);
              # pragma omp parallel for private(q,n,out_array,in_array) schedule(static)
              for (n=0;n<numElements;n++) {
                  in_array=getSampleData(in,n);
                  out_array=getSampleData(out,n);
-                 for (q=0;q<numQuad;q++) Finley_copyDouble(numComps,in_array,out_array+q*numComps);
+                 for (q=0;q<numQuad;q++) memcpy(out_array+q*numComps,in_array,len_size);
              }
          }
     }
     return;
 }
-/*
- * $Log$
- * Revision 1.4  2005/09/15 03:44:21  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.3  2005/08/12 01:45:42  jgs
- * erge of development branch dev-02 back to main trunk on 2005-08-12
- *
- * Revision 1.2.2.2  2005/09/07 06:26:17  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.2.2.1  2005/08/02 05:29:11  gross
- * bug in finley/src/Assemble_CopyElementData fixed
- *
- * Revision 1.2  2005/07/08 04:07:45  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.1  2005/06/29 02:34:46  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1  2004/10/26 06:53:56  jgs
- * initial import of project esys2
- *
- * Revision 1.2  2004/07/21 05:00:54  gross
- * name changes in DataC
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
- *
- *
- */

@@ -105,6 +105,8 @@ void Assemble_jacobeans_3D_M2D_E3D(double*, dim_t,double*, dim_t, dim_t, dim_t, 
 void Assemble_jacobeans_3D_M2D_E3D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
 void Assemble_jacobeans_3D_M2D_E2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
 void Assemble_jacobeans_3D_M2D_E2D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* elements, escriptDataC* lumpedMat, escriptDataC* D);
+
 
 #endif /* #ifndef INC_FINLEY_ASSEMBLE */
 

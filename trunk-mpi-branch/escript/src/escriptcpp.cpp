@@ -96,6 +96,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getSize",&escript::AbstractDomain::getSize)
      .def("saveVTK",&escript::AbstractDomain::saveVTK)
      .def("saveDX",&escript::AbstractDomain::saveDX)
+     .def("getMPISize",&escript::AbstractDomain::getMPISize)
+     .def("getMPIRank",&escript::AbstractDomain::getMPIRank)
+
      .def(self == self)
      .def(self != self);
 

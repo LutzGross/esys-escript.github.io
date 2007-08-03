@@ -22,7 +22,6 @@
 
 #ifdef PASO_MPI
 #include "paso/Paso_MPI.h"
-#include "Distribution.h"
 #endif
 
 struct Finley_ElementFile_Jacobeans {
@@ -36,11 +35,8 @@ struct Finley_ElementFile_Jacobeans {
 typedef struct Finley_ElementFile_Jacobeans Finley_ElementFile_Jacobeans;
 
 struct Finley_ElementFile {
-#ifdef PASO_MPI
   Paso_MPIInfo *MPIInfo;
-  Finley_ElementDistribution *elementDistribution;
-	index_t *Dom;
-#endif
+  Paso_MPI_rank *Owner;
 
   index_t isPrepared;                          /* UNKNOWN,  UNPREPARED, PREPARED to indicate that the element table has been pertpared for calculation (maybe not optimized) */
   Finley_RefElement* ReferenceElement;           /* the reference element, see Reference element.c */
@@ -64,8 +60,8 @@ struct Finley_ElementFile {
   index_t *Tag;                                /* Tag[i] is the tag of
 						    element i. */
 
-  index_t *Nodes;                              /* Nodes[INDEX(k, i,
-						    ReferenceElement.Type.numNodes)
+  dim_t numNodes;                              /* number of nodes per element = ReferenceElement.Type.numNodes */
+  index_t *Nodes;                              /* Nodes[INDEX(k, i, numNodes)]
 						    is the k-the node in the
 						    i-the element. note that
 						    in the way the nodes are
@@ -92,26 +88,26 @@ struct Finley_ElementFile {
 };
 
 typedef struct Finley_ElementFile Finley_ElementFile;
-
-#ifndef PASO_MPI
-Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId, index_t, index_t);
-#else
 Finley_ElementFile* Finley_ElementFile_alloc( ElementTypeId, index_t, index_t, Paso_MPIInfo* );
-void Finley_ElementFile_setDomainFlags( Finley_ElementFile *in  );
-#endif
+void Finley_ElementFile_free(Finley_ElementFile*);
+void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
+void Finley_ElementFile_freeTable(Finley_ElementFile*);
+dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in);
+dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in);
+index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in);
+void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t *Id);
 
-void Finley_ElementFile_dealloc(Finley_ElementFile*);
+/*=================== */
 void Finley_ElementFile_improveColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
 void Finley_ElementFile_optimizeDistribution(Finley_ElementFile** in);
+/*=================== */
 void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
 void Finley_ElementFile_relableNodes(dim_t*,dim_t,Finley_ElementFile*);
 void Finley_ElementFile_markNodes(dim_t*,dim_t,Finley_ElementFile*,dim_t);
 void Finley_ElementFile_scatter(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_gather(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_ElementFile*);
-void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
-void Finley_ElementFile_deallocTable(Finley_ElementFile*);
-void Finley_ElementFile_prepare(Finley_ElementFile** in,dim_t numNodes,dim_t* degreeOfFreedom);
+
 void Finley_ElementFile_setTags(Finley_ElementFile*,const int,escriptDataC*);
 Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_RefElement*);
 void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans*);
@@ -120,25 +116,3 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
 
 #endif /* #ifndef INC_FINLEY_ELEMENTFILE */
 
-/*
- * $Log$
- * Revision 1.3  2005/09/15 03:44:21  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.2.2.1  2005/09/07 06:26:18  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.2  2005/07/08 04:07:49  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.1  2005/06/29 02:34:49  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
- *
- *
-*/

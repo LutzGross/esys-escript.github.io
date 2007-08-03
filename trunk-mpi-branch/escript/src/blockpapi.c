@@ -48,11 +48,11 @@
 
 int		 g_numCounters=0;
 int		 g_events[MAX_COUNTERS];
-long long	 g_values[MAX_COUNTERS];
+long_long_t	 g_values[MAX_COUNTERS];
 char		*g_descriptions[MAX_COUNTERS];
 int		 g_numPasses = 0;
 double		 g_totalMicroSecs = 0.0;
-long long	 g_numFpOps = -1;
+long_long_t	 g_numFpOps = -1;
 
 void blockpapi_addEvent(int event, char *description) {
 #ifdef BLOCKPAPI
@@ -64,7 +64,7 @@ void blockpapi_addEvent(int event, char *description) {
     fprintf(stderr, "blockpapi_addEvent: CPU does not support this many counters, cannot add '%s'\n", description);
     exit(1);
   }
-  g_values[g_numCounters] = (long long) 0;
+  g_values[g_numCounters] = (long_long_t) 0;
   g_events[g_numCounters] = event;
   g_descriptions[g_numCounters] = strdup(description);
   g_numCounters++;
@@ -87,7 +87,7 @@ void blockpapi_start() {
 
 void blockpapi_stop() {
 #ifdef BLOCKPAPI
-  long long g_values_tmp[MAX_COUNTERS];
+  long_long_t g_values_tmp[MAX_COUNTERS];
   if (g_numCounters == 0) { return; }
   g_totalMicroSecs += PAPI_get_real_usec();
   /* Add the the latest counts to the running total */
@@ -124,7 +124,7 @@ void blockpapi_writeReport() {
 #endif
 }
 
-long long *blockpapi_getValues() {
+long_long_t *blockpapi_getValues() {
   return(g_values);
 }
 

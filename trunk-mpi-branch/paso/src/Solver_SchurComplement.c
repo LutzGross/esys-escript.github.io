@@ -25,20 +25,19 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "SystemMatrix.h"
+#include "SparseMatrix.h"
 #include "Solver.h"
 
 /**************************************************************/
 
 
 
-void Paso_Solver_updateIncompleteSchurComplement(Paso_SystemMatrix* A_CC,Paso_SystemMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,Paso_SystemMatrix *A_FC) {
-  if (A_CC->mpi_info->size != 1) return;
+void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,Paso_SparseMatrix *A_FC) {
 
   index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
   dim_t index_CC_len;
   bool_t set_A;
-  dim_t n_loc_rows=A_CC->myNumRows;
+  dim_t n_loc_rows=A_CC->numRows;
   dim_t n_block=A_CC->row_block_size;
   register double A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,
          invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,

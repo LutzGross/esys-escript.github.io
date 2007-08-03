@@ -33,6 +33,7 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
     double *in_array,*out_array, vol, volinv, *wq;
     register double rtmp;
     dim_t numComps=getDataPointSize(out);
+    size_t numComps_size;
 
     Finley_resetError();
     if( elements == NULL )
@@ -84,11 +85,12 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
                  }
              }
          } else {
+             numComps_size=numComps*sizeof(double);
              # pragma omp parallel for private(q,n,out_array,in_array) schedule(static)
              for (n=0;n<numElements;n++) {
                  in_array=getSampleData(in,n);
                  out_array=getSampleData(out,n);
-                 for (q=0;q<numQuad_out;q++) Finley_copyDouble(numComps,in_array,out_array+q*numComps);
+                 for (q=0;q<numQuad_out;q++) memcpy(out_array+q*numComps,in_array,numComps_size);
              }
          }
     }

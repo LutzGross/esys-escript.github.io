@@ -25,112 +25,52 @@
 
 /* Translate from distributed/local array indices to global indices */
 
-int Finley_IndexList_localToGlobal(Finley_NodeDistribution *dofDistribution, int localIndex) {
-  /*
-    get global id of icol
-    if icol is internal node (on this CPU): use icol+vtxdist[my_CPU]
-    else use indexExternal[icol-numLocal] to get global index of node
-    (actually DOF...the NodeDistribution structure should have been called DofDistribution)
-  */
-  index_t my_CPU=dofDistribution->MPIInfo->rank;
-  if (localIndex < dofDistribution->numLocal) {
-    localIndex = localIndex + dofDistribution->vtxdist[my_CPU];
-  }
-  else {
-    localIndex = dofDistribution->indexExternal[localIndex-dofDistribution->numLocal];
-  }
-  return(localIndex);
-}
-
 /**************************************************************/
 /* inserts the contributions from the element matrices of elements
    into the row index col. If symmetric is set, only the upper
    triangle of the matrix is stored. */
 
-void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Mesh* mesh, Finley_ElementFile* elements,
-                                       bool_t reduce_row_order, index_t* row_Label,
-                                       bool_t reduce_col_order, index_t* col_Label) {
+void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
+                                       bool_t reduce_row_order, index_t* row_map,
+                                       bool_t reduce_col_order, index_t* col_map) {
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
-  index_t color, *id=NULL, num_CPUs = 1, my_CPU = 0;
+  index_t color, *id=NULL;
   dim_t e,kr,kc,NN_row,NN_col,i,icol,irow, NN, *row_node=NULL,*col_node=NULL;
-#ifdef PASO_MPI
-    num_CPUs = mesh->MPIInfo->size;
-    my_CPU = mesh->MPIInfo->rank;
-#endif
-  /* print_mesh_statistics( mesh, TRUE ); */
-
   if (elements!=NULL) {
-    dim_t NN=elements->ReferenceElement->Type->numNodes;
-    index_t *row_node,*col_node;
+    NN=elements->numNodes;
     id=TMPMEMALLOC(NN, index_t);
     if (! Finley_checkPtr(id) ) {
-    for (i=0;i<NN;i++) id[i]=i;
-    if (reduce_col_order) {
-       col_node=elements->ReferenceElement->Type->linearNodes;
-       NN_col=elements->LinearReferenceElement->Type->numNodes;
-    } else {
-       col_node=id;
-       NN_col=elements->ReferenceElement->Type->numNodes;
+       for (i=0;i<NN;i++) id[i]=i;
+       if (reduce_col_order) {
+          col_node=elements->ReferenceElement->Type->linearNodes;
+          NN_col=elements->LinearReferenceElement->Type->numNodes;
+       } else {
+          col_node=id;
+          NN_col=elements->ReferenceElement->Type->numNodes;
+       }
+       if (reduce_row_order) {
+          row_node=elements->ReferenceElement->Type->linearNodes;
+          NN_row=elements->LinearReferenceElement->Type->numNodes;
+       } else {
+          row_node=id;
+          NN_row=elements->ReferenceElement->Type->numNodes;
+       }
+       for (color=elements->minColor;color<=elements->maxColor;color++) {
+           #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
+           for (e=0;e<elements->numElements;e++) {
+               if (elements->Color[e]==color) {
+                   for (kr=0;kr<NN_row;kr++) {
+                     irow=row_map[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
+                     for (kc=0;kc<NN_col;kc++) {
+                          icol=col_map[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
+                          Finley_IndexList_insertIndex(&(index_list[irow]),icol);
+                     }
+                   }
+               }
+           }
+       }
+       TMPMEMFREE(id);
     }
-    if (reduce_row_order) {
-       row_node=elements->ReferenceElement->Type->linearNodes;
-       NN_row=elements->LinearReferenceElement->Type->numNodes;
-    } else {
-       row_node=id;
-       NN_row=elements->ReferenceElement->Type->numNodes;
-    }
-    if (num_CPUs == 1) {
-    for (color=elements->minColor;color<=elements->maxColor;color++) {
-        #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
-        for (e=0;e<elements->numElements;e++) {
-            if (elements->Color[e]==color) {
-                for (kr=0;kr<NN_row;kr++) {
-                  irow=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-                  for (kc=0;kc<NN_col;kc++) {
-                       icol=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-                       Finley_IndexList_insertIndex(&(index_list[irow]),icol);
-                  }
-                }
-            }
-        }
-      }
-    } else {	/* More than one CPU (what's below should also work for one CPU, but let's build confidence in it first) */
-#ifdef PASO_MPI
-    Finley_NodeDistribution *row_degreeOfFreedomDistribution;
-    Finley_NodeDistribution *col_degreeOfFreedomDistribution;
-    if (reduce_col_order) {
-      col_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
-      col_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
-    }
-    if (reduce_row_order) {
-      row_degreeOfFreedomDistribution = mesh->Nodes->reducedDegreeOfFreedomDistribution;
-    }
-    else {
-      row_degreeOfFreedomDistribution = mesh->Nodes->degreeOfFreedomDistribution;
-    }
-    /* Not using loop over colors as above */ {
-        #pragma omp for private(e,irow,kr,kc,icol) schedule(static)
-	for (e=0;e<elements->numElements;e++) {
-                for (kr=0;kr<NN_row;kr++) {
-                  irow=row_Label[elements->Nodes[INDEX2(row_node[kr],e,NN)]];
-		  if (irow < row_degreeOfFreedomDistribution->numLocal) {
-                    for (kc=0;kc<NN_col;kc++) {
-		       /* Get the local col ID */
-                       icol=col_Label[elements->Nodes[INDEX2(col_node[kc],e,NN)]];
-		       /* Convert to global col ID (row ID is saved as local value) */
-		       icol = Finley_IndexList_localToGlobal(col_degreeOfFreedomDistribution, icol);
-                       Finley_IndexList_insertIndex(&(index_list[irow]),icol);
-                    }
-		  }
-                }
-        }
-      }
-#endif
-    }	/* More than one CPU */
-    TMPMEMFREE(id);
-  }
   }
   return;
 }
@@ -162,21 +102,32 @@ void Finley_IndexList_insertIndex(Finley_IndexList* in, index_t index) {
 
 /* counts the number of row indices in the Finley_IndexList in */
 
-dim_t Finley_IndexList_count(Finley_IndexList* in) {
+dim_t Finley_IndexList_count(Finley_IndexList* in, index_t range_min,index_t range_max) {
+  dim_t i;
+  dim_t out=0;
+  register index_t itmp;
   if (in==NULL) {
      return 0;
   } else {
-     return (in->n)+Finley_IndexList_count(in->extension);
+    for (i=0;i<in->n;i++) {
+          itmp=in->index[i];
+          if ((itmp>=range_min) && (range_max>itmp)) ++out;
+    }
+     return out+Finley_IndexList_count(in->extension, range_min,range_max);
   }
 }
 
 /* count the number of row indices in the Finley_IndexList in */
 
-void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array) {
+void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array, index_t range_min,index_t range_max) {
   dim_t i;
+  register index_t itmp;
   if (in!=NULL) {
-    for (i=0;i<in->n;i++) array[i]=in->index[i];
-    Finley_IndexList_toArray(in->extension,&(array[in->n]));
+    for (i=0;i<in->n;i++) {
+          itmp=in->index[i];
+          if ((itmp>=range_min) && (range_max>itmp)) array[i]=itmp;
+    }
+    Finley_IndexList_toArray(in->extension,&(array[in->n]), range_min, range_max);
   }
 }
 
@@ -189,25 +140,68 @@ void Finley_IndexList_free(Finley_IndexList* in) {
   }
 }
 
+/* creates a Paso_pattern from a range of indices */
+Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max)
+{
+   dim_t *ptr=NULL;
+   register dim_t s,i,itmp;
+   index_t *index=NULL;
+   Paso_Pattern* out=NULL;
+
+   ptr=MEMALLOC(n+1,index_t);
+   if (! Finley_checkPtr(ptr) ) {
+       /* get the number of connections per row */
+       #pragma omp parallel for schedule(static) private(i)
+       for(i=0;i<n;++i) {
+              ptr[i]=Finley_IndexList_count(&index_list[i],range_min,range_max);
+       }
+       /* accumulate ptr */
+       s=0;
+       for(i=0;i<n;++i) {
+               itmp=ptr[i];
+               ptr[i]=s;
+               s+=itmp;
+       }
+       ptr[n]=s;
+       /* fill index */
+       index=MEMALLOC(ptr[n],index_t);
+       if (! Finley_checkPtr(index)) {
+              #pragma omp parallel for schedule(static)
+              for(i=0;i<n;++i) Finley_IndexList_toArray(&index_list[i],&index[ptr[i]],range_min,range_max);
+
+              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n,ptr,index);
+       }
+  }
+  if (! Finley_noError()) {
+        MEMFREE(ptr);
+        MEMFREE(index);
+        Paso_Pattern_free(out);
+  }
+  return out;
+}
+
+Paso_Coupler* Finley_IndexList_createCoupler(Finley_IndexList *index_list)
+{
+    Paso_Coupler* out=NULL;
+    index_t *sharedInput=NULL, *offsetInSharedInput=NULL, *offsetInRemoteInput=NULL;
 /*
- * $Log$
- * Revision 1.6  2005/09/15 03:44:22  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.5.2.1  2005/09/07 06:26:18  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.5  2005/07/08 04:07:51  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.4  2004/12/15 07:08:32  jgs
- * *** empty log message ***
- * Revision 1.1.1.1.2.3  2005/06/29 02:34:50  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1.2.2  2004/11/24 01:37:13  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- *
- *
- */
+
+    if (! (rowMap->MPIInfo->comm == colMap->MPIInfo->comm ) ) {
+        Finley_setError(SYSTEM_ERROR,"Finley_IndexList_createCoupler: communicator for row and column DOFMap must be identical.");
+        return NULL;
+    }
+    if (! (rowMap->numNeighbours == colMap->numNeighbours ) ) {
+        Finley_setError(SYSTEM_ERROR,"Finley_IndexList_createCoupler: number of neighbours for row and column DOFMap must be identical.");
+        return NULL;
+    }
+    
+
+    out=Paso_Coupler_alloc(rowMap->numNeighbours,
+                           rowMap->neighbours,
+                           sharedInput,
+                           offsetInSharedInput,
+                           offsetInRemoteInput,
+                           rowMap->MPIInfo);
+*/
+   return out;
+}

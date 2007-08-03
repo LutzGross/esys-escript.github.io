@@ -37,8 +37,11 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     type_t data_type=getFunctionSpaceType(data);
     dim_t numComps=getDataPointSize(data);
     Finley_ElementFile_Jacobeans* jac=NULL;
+    Paso_MPI_rank my_mpi_rank;
+    
     Finley_resetError();
     if (nodes==NULL || elements==NULL) return;
+    my_mpi_rank = nodes->MPIInfo->rank;
     /* set some parameter */
     jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Finley_Assemble_reducedIntegrationOrder(data));
     if (Finley_noError()) {
@@ -66,18 +69,22 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
                    if (isExpanded(data)) {
                        #pragma omp for private(e) schedule(static)
                        for(e=0;e<elements->numElements;e++) {
+                          if (elements->Owner[e] == my_mpi_rank) {
                             data_array=getSampleData(data,e);
                             for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) {
                                   for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
                             }
+                         }
                        }
                    } else {
                       #pragma omp for private(e) schedule(static)
                       for(e=0;e<elements->numElements;e++) {
+                          if (elements->Owner[e] == my_mpi_rank) {
                            data_array=getSampleData(data,e);
                            rtmp=0.;
                            for (q=0;q<jac->ReferenceElement->numQuadNodes;q++) rtmp+=jac->volume[INDEX2(q,e,jac->ReferenceElement->numQuadNodes)];
                            for (i=0;i<numComps;i++) out_local[i]+=data_array[i]*rtmp;
+                          }
                       }
                    }
                    /* add local results to global result */

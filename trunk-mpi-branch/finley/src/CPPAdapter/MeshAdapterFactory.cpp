@@ -97,7 +97,8 @@ namespace finley {
 		    int periodic2,
 		    int integrationOrder,
                     int reducedIntegrationOrder,
-		    int useElementsOnFace) 
+		    int useElementsOnFace,
+		    int useFullElementOrder) 
   {
 //     cout << "n0=" << n0 << " n1=" << n1 << " n2=" << n2
 // 	 << " order=" << order 
@@ -118,11 +119,11 @@ namespace finley {
 
     if (order==1) {
       fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					useElementsOnFace) ;
+					useElementsOnFace,useFullElementOrder) ;
     } 
 		else if (order==2) {
       fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					 useElementsOnFace) ;
+					 useElementsOnFace,useFullElementOrder) ;
     } else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
@@ -139,7 +140,8 @@ namespace finley {
 			int periodic0,int periodic1,
 			int integrationOrder,
                         int reducedIntegrationOrder,
-			int useElementsOnFace) 
+			int useElementsOnFace,
+		        int useFullElementOrder) 
   {
     int numElements[]={n0,n1};
     double length[]={l0,l1};
@@ -148,40 +150,12 @@ namespace finley {
     Finley_Mesh* fMesh=0;
     if (order==1) {
       fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
-					useElementsOnFace);
+					useElementsOnFace,useFullElementOrder);
     }
     else if (order==2) {
       fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					useElementsOnFace);
+					useElementsOnFace,useFullElementOrder);
     }
-    else {
-      stringstream temp;
-      temp << "Illegal interpolation order: " << order;
-      setFinleyError(VALUE_ERROR,temp.str().c_str());
-    }
-    //
-    // Convert any finley errors into a C++ exception
-    checkFinleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    return temp;
-  }
-  AbstractContinuousDomain*  interval(int n0,int order,double l0,int periodic0,
-		       int integrationOrder,
-                       int reducedIntegrationOrder,
-		       int useElementsOnFace) 
-  {
-    int numElements[]={n0};
-    double length[]={l0};
-    int periodic[]={periodic0};
-    Finley_Mesh* fMesh;
-    if (order==1) {
-      fMesh=Finley_RectangularMesh_Line2(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
-					 useElementsOnFace);
-    } 
-    else if (order==2) {
-      fMesh=Finley_RectangularMesh_Line3(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					 useElementsOnFace);
-    } 
     else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;

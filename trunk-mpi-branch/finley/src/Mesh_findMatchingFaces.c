@@ -46,7 +46,7 @@ int Finley_Mesh_findMatchingFaces_compar(const void *arg1 , const void *arg2 ) {
    if ( e1->refId < e2->refId ) {
        return -1;
    } else if ( e1->refId > e2->refId ) {
-       return -1;
+       return 1;
    } else {
        return 0;
    }

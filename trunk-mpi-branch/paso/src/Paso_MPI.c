@@ -25,7 +25,7 @@ Paso_MPIInfo* Paso_MPIInfo_alloc( MPI_Comm comm )
   #else
      out->rank=0;
      out->size=1;
-     out->comm=NULL;
+     out->comm=-1;
   #endif
   out->reference_counter++;
 
@@ -33,7 +33,7 @@ Paso_MPIInfo* Paso_MPIInfo_alloc( MPI_Comm comm )
 }
 
 /* free memory for an mpi_comm */
-void Paso_MPIInfo_dealloc( Paso_MPIInfo *in )
+void Paso_MPIInfo_free( Paso_MPIInfo *in )
 {
   if( in && !(--in->reference_counter) )
     MEMFREE( in );
@@ -46,7 +46,7 @@ Paso_MPIInfo *Paso_MPIInfo_getReference( Paso_MPIInfo* in )
   
   return in;
 }
-index_t PASO_MPI_mod(index_t k, index_t n) 
+index_t Paso_MPIInfo_mod(index_t n, index_t k) 
 {
     index_t q, out=0;
     if (n>0) {
@@ -60,10 +60,48 @@ index_t PASO_MPI_mod(index_t k, index_t n)
     return out;
 }
 
+void Paso_MPIInfo_Split( Paso_MPIInfo *mpi_info, dim_t N, dim_t* local_N,index_t* offset) 
+{
+   int rest=0;
+   int s=mpi_info->size;
+   int r=mpi_info->rank;
+   *local_N=N/s;
+   rest=N-(*local_N)*s;
+   if (r<rest) {
+       (*local_N)++;
+       (*offset)=(*local_N)*r;
+   } else {
+       (*offset)=(*local_N)*r+rest;
+   }
+}
+
+
+dim_t Paso_MPIInfo_setDistribution(Paso_MPIInfo* mpi_info ,index_t min_id,index_t max_id,index_t* distribution) {
+   int rest=0, p;
+   dim_t out;
+   int s=mpi_info->size;
+   dim_t N=max_id-min_id+1;
+   int local_N=N/s;
+   rest=N-local_N*s;
+   for (p=0; p<s; ++p) {
+      if (p<rest) {
+          distribution[p]=min_id+(local_N+1)*p;
+          out=local_N+1;
+      } else {
+          distribution[p]=min_id+rest+local_N*p;
+      }
+   }
+   distribution[s]=max_id+1;
+   if (rest==0) {
+      return local_N;
+   } else {
+      return local_N+1;
+   }
+}
 
 /* checks that there is no error accross all processes in a communicator */
 /* NOTE : does not make guarentee consistency of error string on each process */
-bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
+bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info )
 {
   int errorLocal = (int)Paso_noError();
   int errorGlobal=errorLocal;
@@ -77,7 +115,7 @@ bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
      #else
      errorGlobal=errorLocal;
      #endif
-     // take care of the case where the error was on another processor
+     /* take care of the case where the error was on another processor */
      if( errorLocal && !errorGlobal )
                    Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
   }
@@ -89,7 +127,7 @@ bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
                  WRAPPERS 
 **************************************************/
 
-int Paso_MPI_initialized( void )
+int Paso_MPIInfo_initialized( void )
 {
   int error=0, initialised=0;
 

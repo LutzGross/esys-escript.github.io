@@ -80,7 +80,6 @@ void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,do
    for (s=0;s<len;s++) {
        for(i=0;i<numData;i++) {
           if( index[s]<upperBound ) {
-            #pragma omp atomic
             out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
 	  }
        }
@@ -477,10 +476,6 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    return out;
 }
 
-void Finley_copyDouble(dim_t n,double* source, double* target) {
-  dim_t i;
-  for (i=0;i<n;i++) target[i]=source[i];
-}
 
 #ifdef PASO_MPI
 void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  )
@@ -529,42 +524,3 @@ void Finley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  )
   fprintf( fid, "]\n" );
 }
 #endif
-
-/*
- * Revision 1.8  2005/08/12 01:45:43  jgs
- *
- * Revision 1.7.2.2  2005/09/07 06:26:22  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.7.2.1  2005/08/04 22:41:11  gross
- * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)
- *
- * Revision 1.7  2005/07/08 04:07:59  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.4  2005/06/29 02:34:57  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1.2.3  2005/03/02 23:35:06  gross
- * reimplementation of the ILU in Finley. block size>1 still needs some testing
- *
- * Revision 1.1.1.1.2.2  2005/02/18 02:27:31  gross
- * two function that will be used for a reimplementation of the ILU preconditioner
- *
- * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
- * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.3  2004/08/26 12:03:52  gross
- * Some other bug in Finley_Assemble_gradient fixed.
- *
- * Revision 1.2  2004/07/02 04:21:13  gross
- * Finley C code has been included
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
- *
- *
- */

@@ -105,27 +105,25 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 /**************************************************************/
 
 /*  interfaces: */
-#ifndef PASO_MPI
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t reduced_order);
-#else
 Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, index_t order, index_t reduced_order, Paso_MPIInfo *mpi_info);
-void Finley_Mesh_resolveDegreeOfFreedomOrder( Finley_Mesh *in, bool_t doReduced );
-void print_mesh_statistics( Finley_Mesh *out, bool_t reduced  );
-#endif
-void Finley_Mesh_prepareElementDistribution( Finley_Mesh *in );
-/*Finley_Mesh* Finley_Mesh_alloc(char*,int,int);*/
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
-void Finley_Mesh_dealloc(Finley_Mesh*);
 dim_t Finley_Mesh_getDim(Finley_Mesh*);
-dim_t Finley_Mesh_getNumNodes(Finley_Mesh*);
-dim_t Finley_Mesh_getNumDegreesOfFreedom(Finley_Mesh*);
-dim_t Finley_Mesh_getReducedNumDegreesOfFreedom(Finley_Mesh*);
+void Finley_Mesh_free(Finley_Mesh*);
+
+void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p,const char* name, index_t tag_key);
+index_t Finley_Mesh_getTag(Finley_Mesh *mesh_p,const char* name);
+bool_t Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p,const char* name);
+void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* in, Paso_MPI_rank* mpiRankOfDOF);
 Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 void Finley_Mesh_write(Finley_Mesh*,char*);
 Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t);
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
+void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);
+void Finley_Mesh_setFaceElements(Finley_Mesh* self,Finley_ElementFile *elements);
+void Finley_Mesh_setContactElements(Finley_Mesh* self,Finley_ElementFile *elements);
+void Finley_Mesh_setPoints(Finley_Mesh* self,Finley_ElementFile *elements);
 
 void Finley_Mesh_prepare(Finley_Mesh* in);
 bool_t Finley_Mesh_isPrepared(Finley_Mesh*);
@@ -145,17 +143,9 @@ int Finley_Mesh_findMatchingFaces_compar(const void*,const void*);
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
 void Finley_Mesh_print(Finley_Mesh *in);
 void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
-#ifndef PASO_MPI
+
+
 void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
-#else
-void Finley_Mesh_saveVTK_MPIO(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char*
-*names_p,escriptDataC* *data_pp);
-#endif
-void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p,const char* name, index_t tag_key);
-index_t Finley_Mesh_getTag(Finley_Mesh *mesh_p,const char* name);
-bool_t Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p,const char* name);
-
-
 
 #endif /* #ifndef INC_FINLEY_MESH */
 

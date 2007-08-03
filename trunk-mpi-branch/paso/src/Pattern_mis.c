@@ -13,7 +13,7 @@
 
 /**********************************************************************/
 
-/* Paso: SystemMatrixPattern: Paso_SystemMatrixPattern_mis 
+/* Paso: Pattern: Paso_Pattern_mis 
 
    searches for a maximal independent set MIS in the matrix pattern 
    vertices in the maximal independent set are marked in mis_marker
@@ -30,12 +30,12 @@
 #include "mpi_C.h"
 #include "Paso.h"
 #include "PasoUtil.h"
-#include "SystemMatrixPattern.h"
+#include "Pattern.h"
 
 
 /* used to generate pseudo random numbers: */
 
-static double Paso_SystemMatrixPattern_mis_seed=.4142135623730951;
+static double Paso_Pattern_mis_seed=.4142135623730951;
 
 
 /***************************************************************/
@@ -45,16 +45,16 @@ static double Paso_SystemMatrixPattern_mis_seed=.4142135623730951;
 #define IS_IN_MIS -3
 #define IS_CONNECTED_TO_MIS -4
 
-void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* mis_marker) {
+void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
 
   index_t index_offset=(pattern_p->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   dim_t i;
   double *value;
   index_t naib,iptr;
   bool_t flag;
-  dim_t n=pattern_p->myNumOutput;
+  dim_t n=pattern_p->numOutput;
   if (pattern_p->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_mis: symmetric matrix pattern is not supported yet");
+    Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
     return;
   }
   value=TMPMEMALLOC(n,double);
@@ -74,13 +74,13 @@ void Paso_SystemMatrixPattern_mis(Paso_SystemMatrixPattern* pattern_p, index_t* 
            #pragma omp parallel for private(i) schedule(static)
            for (i=0;i<n;++i) {
                  if (mis_marker[i]==IS_AVAILABLE) {
-                    value[i]=fmod(Paso_SystemMatrixPattern_mis_seed*(i+1),1.);
+                    value[i]=fmod(Paso_Pattern_mis_seed*(i+1),1.);
                  } else {
                     value[i]=2.;
                  }
            }
            /* update the seed */
-           /* Paso_SystemMatrixPattern_mis_seed=fmod(sqrt(Paso_SystemMatrixPattern_mis_seed*(n+1)),1.); */
+           /* Paso_Pattern_mis_seed=fmod(sqrt(Paso_Pattern_mis_seed*(n+1)),1.); */
            /* detect independent vertices as those vertices that have a value less than all values of its naigbours */
            #pragma omp parallel for private(naib,i,iptr,flag) schedule(static) 
            for (i=0;i<n;++i) {

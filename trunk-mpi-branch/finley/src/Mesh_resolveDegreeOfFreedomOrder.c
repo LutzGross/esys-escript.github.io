@@ -9,10 +9,13 @@
 #include "Util.h"
 
 #ifdef PASO_MPI	 
+#ifdef LUTZ
 #include "Distribution.h"
+#endif
 
 void Finley_Mesh_resolveDegreeOfFreedomOrder( Finley_Mesh *in, bool_t doReduced )
 {
+#ifdef LUTZ
 	index_t *mask;	
 	index_t i, n, iI=0, iB=0, iE=0, minDOF, maxDOF, len;
 	dim_t numInternal, numBoundary, numLocal, numExternal, totalDOF;
@@ -104,6 +107,7 @@ clean:
 	/* make the global error status local on each MPI process */
 	Finley_MPI_noError(in->MPIInfo);
   MEMFREE( mask);
+#endif
 }
 #endif
 

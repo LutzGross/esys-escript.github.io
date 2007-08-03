@@ -33,6 +33,11 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
    dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
+
+   if (self->MPIInfo->size>1) {
+     Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: MPI is not supported yet.");
+     return;
+   }
    if (self->FaceElements==NULL) return;
 
    if (self->FaceElements->ReferenceElement->Type->numNodesOnFace<=0) {
@@ -81,13 +86,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /*  allocate new face element and Contact element files */
-#ifndef PASO_MPI
-         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->ReferenceElement->Type->TypeId,self->ContactElements->order,self->ContactElements->reduced_order);
-         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order,self->FaceElements->reduced_order);
-#else
-  /* TODO */
-  PASO_MPI_TODO;
-#endif
+         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->ReferenceElement->Type->TypeId,self->ContactElements->order,self->ContactElements->reduced_order, self->MPIInfo);
+         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order,self->FaceElements->reduced_order, self->MPIInfo);
          if (Finley_noError()) {
                Finley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
                Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
@@ -117,19 +117,15 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
          /* set new face and Contact elements */
          if (Finley_noError()) {
 
-            Finley_ElementFile_dealloc(self->FaceElements);
+            Finley_ElementFile_free(self->FaceElements);
             self->FaceElements=newFaceElementsFile;
-            Finley_ElementFile_prepare(&(self->FaceElements),self->Nodes->numNodes,self->Nodes->degreeOfFreedom);
-
-            Finley_ElementFile_dealloc(self->ContactElements);
+            Finley_ElementFile_free(self->ContactElements);
             self->ContactElements=newContactElementsFile;
-            Finley_ElementFile_prepare(&(self->ContactElements),self->Nodes->numNodes,self->Nodes->degreeOfFreedom);
-
             Finley_Mesh_prepare(self);
 
          } else {
-            Finley_ElementFile_dealloc(newFaceElementsFile);
-            Finley_ElementFile_dealloc(newContactElementsFile);
+            Finley_ElementFile_free(newFaceElementsFile);
+            Finley_ElementFile_free(newContactElementsFile);
          }
       }
    }

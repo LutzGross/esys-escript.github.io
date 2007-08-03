@@ -13,16 +13,13 @@
  ******************************************************************************
 */
 
-#ifdef PASO_MPI
-#include <mpi.h>
-#endif
 #include "MeshAdapter.h"
-
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
 extern "C" {
 #include "escript/blocktimer.h"
 }
+#include <vector>
 
 using namespace std;
 using namespace escript;
@@ -50,7 +47,7 @@ MeshAdapter::MeshAdapter(Finley_Mesh* finleyMesh)
 {
   setFunctionSpaceTypeNames();
   //
-  // need to use a null_deleter as Finley_Mesh_dealloc deletes the pointer
+  // need to use a null_deleter as Finley_Mesh_free deletes the pointer
   // for us.
   m_finleyMesh.reset(finleyMesh,null_deleter());
 }
@@ -69,11 +66,19 @@ MeshAdapter::~MeshAdapter()
   // I hope the case for the pointer being zero has been taken care of.
   //  cout << "In MeshAdapter destructor." << endl;
   if (m_finleyMesh.unique()) {
-    //   cout << "Calling dealloc." << endl;
-    Finley_Mesh_dealloc(m_finleyMesh.get());
-    //   cout << "Finished dealloc." << endl;
+    Finley_Mesh_free(m_finleyMesh.get());
   }
 }
+
+int MeshAdapter::getMPISize() const
+{
+   return m_finleyMesh.get()->MPIInfo->size;
+}
+int MeshAdapter::getMPIRank() const
+{
+   return m_finleyMesh.get()->MPIInfo->rank;
+}
+
 
 Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
    return m_finleyMesh.get();
@@ -223,13 +228,11 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
    switch (functionSpaceCode) {
       case(Nodes):
            numDataPointsPerSample=1;
-           if (mesh->Nodes!=NULL) numSamples=mesh->Nodes->numNodes;
+           numSamples=Finley_NodeFile_getNumNodes(mesh->Nodes);
            break;
       case(ReducedNodes):
-           /* TODO: add ReducedNodes */
            numDataPointsPerSample=1;
-           if (mesh->Nodes!=NULL) numSamples=mesh->Nodes->numNodes;
-           throw FinleyAdapterException("Error - ReducedNodes is not supported yet.");
+           numSamples=Finley_NodeFile_getNumReducedNodes(mesh->Nodes);
            break;
       case(Elements):
            if (mesh->Elements!=NULL) {
@@ -288,21 +291,13 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
       case(DegreesOfFreedom):
            if (mesh->Nodes!=NULL) {
              numDataPointsPerSample=1;
-#ifndef PASO_MPI
-             numSamples=mesh->Nodes->numDegreesOfFreedom;
-#else
-             numSamples=mesh->Nodes->degreeOfFreedomDistribution->numLocal;
-#endif
+             numSamples=Finley_NodeFile_getNumDegreesOfFreedom(mesh->Nodes);
            }
            break;
       case(ReducedDegreesOfFreedom):
            if (mesh->Nodes!=NULL) {
              numDataPointsPerSample=1;
-#ifndef PASO_MPI
-             numSamples=mesh->Nodes->reducedNumDegreesOfFreedom;
-#else
-             numSamples=mesh->Nodes->reducedDegreeOfFreedomDistribution->numLocal;
-#endif
+             numSamples=Finley_NodeFile_getNumReducedDegreesOfFreedom(mesh->Nodes);
            }
            break;
       default:
@@ -346,6 +341,24 @@ void MeshAdapter::addPDEToSystem(
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, mat.getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkFinleyError();
 }
+
+void  MeshAdapter::addPDEToLumpedSystem(
+                     escript::Data& mat,
+                     const escript::Data& D,
+                     const escript::Data& d) const
+{
+   escriptDataC _mat=mat.getDataC();
+   escriptDataC _D=D.getDataC();
+   escriptDataC _d=d.getDataC();
+
+   Finley_Mesh* mesh=m_finleyMesh.get();
+
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_mat, &_D);
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d);
+
+   checkFinleyError();
+}
+
 
 //
 // adds linear PDE of second order into the right hand side only
@@ -521,7 +534,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
            case(ReducedNodes):
               Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
               break;
-#ifndef PASO_MPI
            case(Elements):
            case(ReducedElements):
               Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
@@ -539,38 +551,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
            case(ReducedContactElementsOne):
               Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
              break;
-#else
-           /* need to copy Degrees of freedom data to nodal data so that the external values are available */
-           case(Elements):
-           case(ReducedElements):
-	      { /* limit scope for variable nodeTemp */
-              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&(nodeTemp.getDataC()),&_target);
-	      }
-              break;
-           case(FaceElements):
-           case(ReducedFaceElements):
-	      {
-              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&(nodeTemp.getDataC()),&_target);
-	      }
-              break;
-           case(Points):
-	      {
-              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&(nodeTemp.getDataC()),&_target);
-	      }
-              break;
-           case(ContactElementsZero):
-           case(ContactElementsOne):
-           case(ReducedContactElementsZero):
-           case(ReducedContactElementsOne):
-	      {
-              escript::Data nodeTemp( in, continuousFunction(asAbstractContinuousDomain()) );
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&(nodeTemp.getDataC()),&_target);
-	      }
-             break;
-#endif
            default:
              stringstream temp;
              temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
@@ -726,15 +706,19 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
 
   double blocktimer_start = blocktimer_time();
   Finley_Mesh* mesh=m_finleyMesh.get();
+  escriptDataC _temp;
+  escript::Data temp;
   escriptDataC _arg=arg.getDataC();
   switch(arg.getFunctionSpace().getTypeCode()) {
      case(Nodes):
-        /* TODO */
-        throw FinleyAdapterException("Error - Integral of data on nodes is not supported.");
+        temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+        _temp=temp.getDataC();
+        Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
         break;
      case(ReducedNodes):
-        /* TODO */
-        throw FinleyAdapterException("Error - Integral of data on reduced nodes is not supported.");
+        temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+        _temp=temp.getDataC();
+        Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
         break;
      case(Elements):
         Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_arg,&integrals[0]);
@@ -764,10 +748,14 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
         Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
         break;
      case(DegreesOfFreedom):
-        throw FinleyAdapterException("Error - Integral of data on degrees of freedom is not supported.");
+        temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+        _temp=temp.getDataC();
+        Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
         break;
      case(ReducedDegreesOfFreedom):
-        throw FinleyAdapterException("Error - Integral of data on reduced degrees of freedom is not supported.");
+        temp=escript::Data( arg, function(asAbstractContinuousDomain()) );
+        _temp=temp.getDataC();
+        Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
         break;
      default:
         stringstream temp;
@@ -794,18 +782,20 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
   Finley_Mesh* mesh=m_finleyMesh.get();
   escriptDataC _grad=grad.getDataC();
   escriptDataC nodeDataC;
-#ifdef PASO_MPI
-  escript::Data nodeTemp( arg, continuousFunction(asAbstractContinuousDomain()) );
-  if( arg.getFunctionSpace().getTypeCode() != Nodes )
-  {
-    Finley_Assemble_CopyNodalData(mesh->Nodes,&(nodeTemp.getDataC()),&(arg.getDataC()));
-    nodeDataC = nodeTemp.getDataC();
+  escript::Data temp;
+  if (getMPISize()>1) {
+      if( arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom ) {
+        temp=escript::Data( arg,  continuousFunction(asAbstractContinuousDomain()) );
+        nodeDataC = temp.getDataC();
+      } else if( arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom ) {
+        temp=escript::Data( arg,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+        nodeDataC = temp.getDataC();
+      } else {
+        nodeDataC = arg.getDataC();
+      }
+  } else {
+     nodeDataC = arg.getDataC();
   }
-  else
-    nodeDataC = arg.getDataC();
-#else
-  nodeDataC = arg.getDataC();
-#endif
   switch(grad.getFunctionSpace().getTypeCode()) {
        case(Nodes):
           throw FinleyAdapterException("Error - Gradient at nodes is not supported.");
@@ -935,13 +925,21 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
   char* *c_names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
   escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
   escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
+  std::vector<escript::Data> data_in;
 
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
-         escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
-         if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
+         data_in[i]=boost::python::extract<escript::Data&>(arg[keys[i]]);
+         if (dynamic_cast<const MeshAdapter&>(data_in[i].getFunctionSpace().getDomain()) !=*this) 
              throw FinleyAdapterException("Error  in saveDX: Data must be defined on same Domain");
-         data[i]=d.getDataC();
+         if ( (data_in[i].getFunctionSpace().getTypeCode() == DegreesOfFreedom) || 
+              (data_in[i].getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) || 
+              (data_in[i].getFunctionSpace().getTypeCode() == Nodes)  ) {
+            data_in[i]=escript::Data(data_in[i],reducedContinuousFunction(asAbstractContinuousDomain()));
+            data[i]=data_in[i].getDataC();
+         } else {
+            data[i]=data_in[i].getDataC();
+         }
          ptr_data[i]=&(data[i]);
          std::string n=boost::python::extract<std::string>(keys[i]);
          c_names[i]=&(names[i][0]);
@@ -1000,13 +998,9 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
             strcpy(c_names[i],n.c_str());
          }
     }
-#ifndef PASO_MPI    
     Finley_Mesh_saveVTK(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
-#else
-    Finley_Mesh_saveVTK_MPIO(filename.c_str(),m_finleyMesh.get(),num_data,c_names,ptr_data);
-#endif
 
-checkFinleyError();
+  checkFinleyError();
   /* win32 refactor */
   TMPMEMFREE(c_names);
   TMPMEMFREE(data);
@@ -1068,7 +1062,7 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
       fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize);
     }
     checkPasoError();
-    Paso_SystemMatrixPattern_dealloc(fsystemMatrixPattern);
+    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
     return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
 
@@ -1309,12 +1303,10 @@ int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch (functionSpaceType) {
     case(Nodes):
-      if (mesh->Nodes!=NULL) {
-        out=mesh->Nodes->Id;
-        break;
-      }
+      out=mesh->Nodes->Id;
+      break;
     case(ReducedNodes):
-      throw FinleyAdapterException("Error -  ReducedNodes not supported yet.");
+      out=mesh->Nodes->reducedNodesId;
       break;
     case(Elements):
       out=mesh->Elements->Id;
@@ -1344,10 +1336,10 @@ int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
       out=mesh->ContactElements->Id;
       break;
     case(DegreesOfFreedom):
-      out=mesh->Nodes->degreeOfFreedomId;
+      out=mesh->Nodes->degreesOfFreedomId;
       break;
     case(ReducedDegreesOfFreedom):
-      out=mesh->Nodes->reducedDegreeOfFreedomId;
+      out=mesh->Nodes->reducedDegreesOfFreedomId;
       break;
     default:
       stringstream temp;

@@ -41,12 +41,6 @@ Paso_Distribution* Paso_Distribution_alloc( Paso_MPIInfo *mpi_info,
   }
   for (i=0; i<(mpi_info->size)+1; ++i) out->first_component[i]=m*first_component[i]+b;
   out->reference_counter++;
-  out->numComponents=first_component[mpi_info->size]-first_component[0];
-  out->firstComponent=first_component[0];
-  out->myNumComponents=first_component[(mpi_info->rank)+1]-first_component[mpi_info->rank];
-  out->maxNumComponents=out->myNumComponents;
-  for (i=0; i< mpi_info->size; ++i) out->maxNumComponents=MAX(out->maxNumComponents,first_component[i+1]-first_component[i]);
-  out->myFirstComponent=first_component[mpi_info->rank];
   return out;
 }
 
@@ -56,7 +50,7 @@ void Paso_Distribution_free( Paso_Distribution *in )
 
   if ( in && !(--in->reference_counter) )
   {
-    Paso_MPIInfo_dealloc( in->mpi_info );
+    Paso_MPIInfo_free( in->mpi_info );
     MEMFREE( in->first_component );
     MEMFREE( in );
   } 
@@ -66,6 +60,43 @@ Paso_Distribution* Paso_Distribution_getReference( Paso_Distribution *in )
 {
   if ( in ) 
     in->reference_counter++;
-  
   return in;
 }
+
+index_t Paso_Distribution_getFirstComponent(Paso_Distribution *in ) {
+ if (in !=NULL) {
+   return in->first_component[in->mpi_info->rank];
+ } else {
+   return 0;
+ }
+}
+index_t Paso_Distribution_getLastComponent(Paso_Distribution *in ){
+ if (in !=NULL) {
+   return in->first_component[(in->mpi_info->rank)+1];
+ } else {
+   return 0;
+ }
+}
+
+dim_t Paso_Distribution_getGlobalNumComponents(Paso_Distribution *in ){
+   return Paso_Distribution_getMaxGlobalComponents(in)-Paso_Distribution_getMinGlobalComponents(in);
+}
+dim_t Paso_Distribution_getMyNumComponents(Paso_Distribution *in ) {
+   return Paso_Distribution_getLastComponent(in)-Paso_Distribution_getFirstComponent(in);
+}
+
+dim_t Paso_Distribution_getMinGlobalComponents(Paso_Distribution *in ){
+ if (in !=NULL) {
+   return in->first_component[0];
+ } else {
+   return 0;
+ }
+}
+dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in ){
+ if (in !=NULL) {
+   return in->first_component[in->mpi_info->size];
+ } else {
+   return 0;
+ }
+}
+

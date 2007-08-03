@@ -25,6 +25,16 @@ AbstractDomain::AbstractDomain() {
 AbstractDomain::~AbstractDomain() {
 }
 
+int AbstractDomain::getMPISize() const
+{
+   return 1;
+}
+int AbstractDomain::getMPIRank() const
+{
+   return 0;
+}
+
+
 void AbstractDomain::throwStandardException(const std::string& functionName) const
 {
   throw DomainException("Error - Base class function: " + functionName + " should not be called. Programming error.");

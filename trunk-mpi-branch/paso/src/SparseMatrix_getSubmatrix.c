@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrix */
+/* Paso: SparseMatrix */
 
 /**************************************************************/
 
@@ -24,9 +24,8 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "SystemMatrix.h"
+#include "SparseMatrix.h"
 #include "PasoUtil.h"
-
 
 /**************************************************************
 
@@ -38,9 +37,9 @@
 */
 
 
-Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row_sub,int n_col_sub, index_t* row_list,index_t* new_col_index){
-      Paso_SystemMatrixPattern* sub_pattern=NULL;
-      Paso_SystemMatrix* out=NULL;
+Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,int n_row_sub,int n_col_sub, index_t* row_list,index_t* new_col_index){
+      Paso_Pattern* sub_pattern=NULL;
+      Paso_SparseMatrix* out=NULL;
       index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
       int i,k,tmp,m,subpattern_row;
       int type=A->type;
@@ -48,10 +47,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row
       if (A->type & MATRIX_FORMAT_CSC) {
           Paso_setError(TYPE_ERROR,"gathering submatrices supports CSR matrix format only.");
       } else {
-         sub_pattern=Paso_SystemMatrixPattern_getSubpattern(A->pattern,n_row_sub,n_col_sub,row_list,new_col_index);
+         sub_pattern=Paso_Pattern_getSubpattern(A->pattern,n_row_sub,n_col_sub,row_list,new_col_index);
          if (Paso_noError()) {
             /* create the return object */
-            out=Paso_SystemMatrix_alloc(type,sub_pattern,A->row_block_size,A->col_block_size);
+            out=Paso_SparseMatrix_alloc(type,sub_pattern,A->row_block_size,A->col_block_size);
             if (Paso_noError()) {
                  #pragma omp parallel for private(i,k,m,subpattern_row,tmp) schedule(static)
                  for (i=0;i<n_row_sub;++i) {
@@ -59,6 +58,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row
                      for (k=A->pattern->ptr[subpattern_row]-index_offset;k<A->pattern->ptr[subpattern_row+1]-index_offset;++k) {
                         tmp=new_col_index[A->pattern->index[k]-index_offset];
                         if (tmp>-1) {
+                           #pragma ivdep
                            for (m=out->pattern->ptr[i]-index_offset;m<out->pattern->ptr[i+1]-index_offset;++m) {
                                if (out->pattern->index[m]==tmp+index_offset) {
                                    Paso_copyDouble(A->block_size,&(A->val[k*A->block_size]),&(out->val[m*A->block_size]));
@@ -70,19 +70,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_getSubmatrix(Paso_SystemMatrix* A,int n_row
                  }
             }
          }
-         Paso_SystemMatrixPattern_dealloc(sub_pattern);
+         Paso_Pattern_free(sub_pattern);
       }
       return out;
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:48  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

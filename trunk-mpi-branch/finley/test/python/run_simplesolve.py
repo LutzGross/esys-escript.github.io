@@ -37,8 +37,8 @@ except KeyError:
 FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
 
 # number of elements in the spatial directions
-NE0=15
-NE1=15
+NE0=12
+NE1=12
 NE2=8
 
 SOLVER_TOL=1.e-8
@@ -49,7 +49,12 @@ FAC_OFFDIAG=-0.4
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,1)
+        domain=Rectangle(NE0,NE1,2)
+        print "PY"*20
+        del domain
+        print "PY"*20
+        return
+
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(0,Solution(domain))
@@ -320,16 +325,12 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Interval_Order1_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Interval_Order1_SystemPDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Interval_Order2_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Interval_Order2_SystemPDE_Paso_PCG_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi))
+   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi))
    s=unittest.TextTestRunner(verbosity=2).run(suite)

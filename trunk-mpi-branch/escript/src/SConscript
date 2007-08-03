@@ -21,12 +21,12 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 # Filter out sources that should not be in the list automatically
 sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
 
-local_env.Append(LIBS = boost_libs + [ 'esysUtils'] + sys_libs + netCDF_libs_cxx + mpi_libs)
-py_wrapper_local_env.Append(LIBS = boost_libs + [ lib_name, 'esysUtils'] + sys_libs + netCDF_libs_cxx)
+local_env.Append(LIBS = boost_libs + [ 'esysUtils'] + sys_libs + netCDF_libs + mpi_libs)
+py_wrapper_local_env.Append(LIBS = boost_libs + [ lib_name, 'esysUtils'] + sys_libs + netCDF_libs)
 if useNetCDF == 'yes':
-    local_env.Append(LIBS = netCDF_libs_cxx)
+    local_env.Append(LIBS = netCDF_libs)
     local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
-    py_wrapper_local_env.Append(LIBS = netCDF_libs_cxx)
+    py_wrapper_local_env.Append(LIBS = netCDF_libs)
     py_wrapper_local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
 
 if papi_instrument_solver:

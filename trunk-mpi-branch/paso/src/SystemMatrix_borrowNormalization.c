@@ -32,36 +32,48 @@
 #include "SystemMatrix.h"
 
 double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
-   dim_t ir,irow,ic,icb,icol,irb;
-   index_t iptr,icol_failed,irow_failed;
-   double fac;
+   dim_t irow, nrow;
+   index_t irow_failed, irow_failed_local;
+   register double fac;
    if (!A->normalizer_is_valid) {
       if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_SYM) || (A->type & MATRIX_FORMAT_OFFSET1)) {
-        Paso_setError(TYPE_ERROR,"No normalization available for compressed sparse column, symmetric storage scheme or index offset 1.");
+        Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_borrowNormalization: No normalization available for compressed sparse column, symmetric storage scheme or index offset 1.");
       } else {
-          irow_failed=-1;
-          #pragma omp parallel for private(ir,irb,irow,fac,iptr,icb) schedule(static)
-          for (ir=0;ir< A->pattern->myNumOutput;ir++) {
-	    for (irb=0;irb< A->row_block_size;irb++) {
-	      irow=irb+A->row_block_size*ir;
-              fac=0.;
-	      for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-	          for (icb=0;icb< A->col_block_size;icb++) 
-                    fac+=ABS(A->val[iptr*A->block_size+irb+A->row_block_size*icb]);
-              }
-              if (ABS(fac)>0) {
-                 A->normalizer[irow]=1./fac;
-              } else {
-                 A->normalizer[irow]=1.;
-                 irow_failed=irow;
-              }
-            }
+          if (Paso_checkPtr(A->normalizer)) {
+              Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_borrowNormalization: no memory alloced for normalizer.");
+
+          } else {
+             nrow=A->mainBlock->numRows*A->row_block_size;
+             #pragma omp parallel for private(irow) schedule(static)
+             for (irow=0; irow<nrow ; ++irow) {
+                  A->normalizer[irow]=0;
+             }
+             Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(A->mainBlock,A->normalizer);
+             Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(A->coupleBlock,A->normalizer);
+   
+             #pragma omp parallel
+             {
+                irow_failed_local=-1;
+                #pragma omp for private(irow,fac) schedule(static)
+                for (irow=0; irow<nrow ; ++irow) {
+                    fac=A->normalizer[irow];
+                    if (ABS(fac)>0) {
+                       A->normalizer[irow]=1./fac;
+                    } else {
+                       A->normalizer[irow]=1.;
+                       irow_failed=irow;
+                    }
+                }
+                #pragma omp critical
+                irow_failed=irow_failed_local;
+             }
+             if (irow_failed>=0) {
+                Paso_setError(ZERO_DIVISION_ERROR,"There is a row containing zero entries only.");
+             }
+             A->normalizer_is_valid=TRUE;
           }
-          if (irow_failed>=0) 
-             Paso_setError(ZERO_DIVISION_ERROR,"There is a row containing zero entries only.");
-          A->normalizer_is_valid=TRUE;
       }
-      Paso_MPI_noError(A->mpi_info );
+      Paso_MPIInfo_noError(A->mpi_info );
    }
    return A->normalizer;
 }
