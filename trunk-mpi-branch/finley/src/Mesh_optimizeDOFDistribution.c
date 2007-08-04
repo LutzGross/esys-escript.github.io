@@ -13,9 +13,8 @@
 /**************************************************************/
 
 /*   Finley: Mesh: optimizes the distribution of DOFs across processors */
-/*   using ParMETIS. On return the mpiRankOfDOF (includes overlap for the current distribution) */
-/*   giving the new processor rank assigned to a DOF. distribution specifies the current distribution of */
-/*   DOFs                                                                                                */
+/*   using ParMETIS. On return a new distribution is given and the globalDOF are relabled */
+/*   accordingly but the mesh has not been redesitributed yet                             */
 
 /**************************************************************/
 
@@ -29,14 +28,18 @@
 
 /**************************************************************/
 
-void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Paso_MPI_rank* mpiRankOfDOF) {
-     dim_t dim, i,j,k, myNumVertices,p, mpiSize, len, globalNumVertices;
-     index_t myFirstVertex, myLastVertex, firstVertex, lastVertex;
+void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
+
+     dim_t dim, i,j,k, myNumVertices,p, mpiSize, len, globalNumVertices,*partition_count=NULL, *new_distribution=NULL, *loc_partition_count=NULL;
+     bool_t *setNewDOFId=NULL;
+     index_t myFirstVertex, myLastVertex, firstVertex, lastVertex, *newGlobalDOFID=NULL;
+     size_t mpiSize_size;
      index_t* partition=NULL;
      Paso_Pattern *pattern=NULL;
-     Paso_MPI_rank myRank,dest,source,current_rank;
+     Paso_MPI_rank myRank,dest,source,current_rank, rank;
      Finley_IndexList* index_list=NULL;
      float *xyz=NULL;
+     
      #ifdef PASO_MPI
      MPI_Status status;
      #endif
@@ -46,6 +49,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
 
      myRank=in->MPIInfo->rank;
      mpiSize=in->MPIInfo->size;
+     mpiSize_size=mpiSize*sizeof(dim_t);
      dim=in->Nodes->numDim;
      /* first step is to distribute the elements according to a global X of DOF */
 
@@ -57,7 +61,11 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
      for (p=0;p<mpiSize;++p) len=MAX(len,distribution[p+1]-distribution[p]);
      partition=TMPMEMALLOC(len,index_t); /* len is used for the sending around of partition later on */
      xyz=TMPMEMALLOC(myNumVertices*dim,float);
-     if (!(Finley_checkPtr(partition) || Finley_checkPtr(xyz))) {
+     partition_count=TMPMEMALLOC(mpiSize+1,dim_t);
+     new_distribution=TMPMEMALLOC(mpiSize+1,dim_t);
+     newGlobalDOFID=TMPMEMALLOC(len,index_t);
+     setNewDOFId=TMPMEMALLOC(in->Nodes->numNodes,bool_t);
+     if (!(Finley_checkPtr(partition) || Finley_checkPtr(xyz) || Finley_checkPtr(partition_count) || Finley_checkPtr(partition_count) || Finley_checkPtr(newGlobalDOFID) || Finley_checkPtr(setNewDOFId))) {
 
          /* set the coordinates: *?
          /* it is assumed that at least one node on this processor provides a coordinate */
@@ -130,12 +138,43 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
 
            Paso_Pattern_free(pattern);
            
-
+           /* create a new distributioin and labeling of the DOF */
+           memset(new_distribution,0,mpiSize_size);
+           #pragma omp parallel private(loc_partition_count)
+           {
+               loc_partition_count=THREAD_MEMALLOC(mpiSize,dim_t);
+               memset(loc_partition_count,0,mpiSize_size);
+               #pragma omp for private(i)
+               for (i=0;i<myNumVertices;++i) loc_partition_count[partition[i]]++ ;
+               #pragma omp critical
+               {
+                  for (i=0;i<mpiSize;++i) new_distribution[i]+=loc_partition_count[i];
+               }
+               THREAD_MEMFREE(loc_partition_count);
+           }
+           #ifdef PASO_MPI
+              MPI_Allreduce( new_distribution, partition_count, mpiSize, MPI_INT, MPI_SUM, in->MPIInfo->comm );
+           #else
+               for (i=0;i<mpiSize;++i) partition_count[i]=new_distribution[i];
+           #endif
+           new_distribution[0]=0;
+           for (i=0;i<mpiSize;++i) {
+               new_distribution[i+1]=new_distribution[i]+partition_count[i];
+               partition_count[i]=0;
+           }
+           for (i=0;i<myNumVertices;++i) {
+              rank=partition[i];
+              newGlobalDOFID[i]=new_distribution[rank]+partition_count[rank];
+              partition_count[rank]++;
+           }
            /* now the overlap needs to be created by sending the partition around*/
 
            dest=Paso_MPIInfo_mod(mpiSize, myRank + 1);
            source=Paso_MPIInfo_mod(mpiSize, myRank - 1);
            current_rank=myRank;
+           #pragma omp parallel for private(i);
+           for (i=0;i<in->Nodes->numNodes;++i) setNewDOFId[i]=TRUE;
+
            for (p=0; p< mpiSize; ++p) {
 
                firstVertex=distribution[current_rank];
@@ -143,12 +182,15 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
                #pragma omp parallel for private(i,j,k);
                for (i=0;i<in->Nodes->numNodes;++i) {
                    k=in->Nodes->globalDegreesOfFreedom[i];
-                   if ((firstVertex<=k) && (k<lastVertex)) mpiRankOfDOF[i]=partition[k-firstVertex];
+                   if (setNewDOFId[i] && (firstVertex<=k) && (k<lastVertex)) {
+                        in->Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
+                        setNewDOFId[i]=FALSE;
+                   }
                }
 
                if (p<mpiSize-1) {  /* the final send can be skipped */
                   #ifdef PASO_MPI
-                  MPI_Sendrecv_replace(partition,len, MPI_INT,
+                  MPI_Sendrecv_replace(newGlobalDOFID,len, MPI_INT,
                                        dest, in->MPIInfo->msg_tag_counter,
                                        source, in->MPIInfo->msg_tag_counter,
                                        in->MPIInfo->comm,&status);
@@ -157,9 +199,16 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution,Pas
                   current_rank=Paso_MPIInfo_mod(mpiSize, current_rank-1);
               }
            }
+           for (i=0;i<mpiSize+1;++i) distribution[i]=new_distribution[i];
+
+           
          }
          TMPMEMFREE(index_list);
      }
+     TMPMEMFREE(newGlobalDOFID);
+     TMPMEMFREE(setNewDOFId);
+     TMPMEMFREE(new_distribution);
+     TMPMEMFREE(partition_count);
      TMPMEMFREE(partition);
      TMPMEMFREE(xyz);
      return;
