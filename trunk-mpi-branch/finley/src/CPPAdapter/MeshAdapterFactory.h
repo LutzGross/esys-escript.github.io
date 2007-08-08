@@ -40,6 +40,13 @@ namespace finley {
  
   /**
      \brief
+     recovers mesg from a dump file
+     \param fileName Input -  The name of the file.
+  */
+  FINLEY_DLL_API
+  escript::AbstractContinuousDomain* loadMesh(const std::string& fileName);
+  /**
+     \brief
      Read a mesh from a file
      \param fileName Input -  The name of the file.
      \param integrationOrder Input - order of the quadrature scheme.  

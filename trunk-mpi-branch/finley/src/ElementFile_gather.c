@@ -32,8 +32,8 @@
 void Finley_ElementFile_gather(index_t* index, Finley_ElementFile* in, Finley_ElementFile* out) {
    index_t k;
    dim_t e,j;
-   dim_t NN_in=in->ReferenceElement->Type->numNodes;
-   dim_t NN_out=out->ReferenceElement->Type->numNodes;
+   dim_t NN_in=in->numNodes;
+   dim_t NN_out=out->numNodes;
    if (in!=NULL) {
      /*OMP */
      #pragma omp parallel for private(e,k,j) schedule(static)

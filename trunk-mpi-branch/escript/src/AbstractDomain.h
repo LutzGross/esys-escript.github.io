@@ -151,6 +151,15 @@ class AbstractDomain {
 
   /**
      \brief
+     dumps the domain to an external file filename.
+
+     This has to be implemented by the actual Domain adapter.
+  */
+  ESCRIPT_DLL_API
+  virtual void dump(const std::string& filename) const;
+
+  /**
+     \brief
      Return the number of data points per sample, and the number of samples as a pair.
 
      This has to be implemented by the actual Domain adapter.

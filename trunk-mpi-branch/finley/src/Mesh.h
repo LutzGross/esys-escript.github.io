@@ -131,6 +131,9 @@ void Finley_Mesh_prepareNodes(Finley_Mesh* in);
 void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map);
 void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in);
 void  Finley_Mesh_resolveNodeIds(Finley_Mesh*);
+void Finley_Mesh_dump(Finley_Mesh *in,char* fname);
+Finley_Mesh* Finley_Mesh_load(char* fname);
+
 Finley_Mesh* Finley_Mesh_merge(dim_t, Finley_Mesh**);
 
 void Finley_Mesh_relableElementNodes(int*,int,Finley_Mesh*);

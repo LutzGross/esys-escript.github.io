@@ -62,11 +62,15 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
        printf("Warning: no local node labeling optimization implemented yet.\n");
      }
      TMPMEMFREE(distribution);
+
+     /* rearrange elements with the attempt to bring elements closer to memory locations of the nodes (distributed shared memory!): */
+     Finley_Mesh_optimizeElementOrdering(in);
+
 return;
 
-       /* rearrange elements: */
-       Finley_Mesh_optimizeElementOrdering(in);
 }
+
+
 
 bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
      /* returns true if nodes and elements have been prepared for calculation */

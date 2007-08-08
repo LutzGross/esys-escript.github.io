@@ -89,6 +89,9 @@ BOOST_PYTHON_MODULE(finleycpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
 
+  def("load",finley::loadMesh,
+      (arg("fileName")="file.nc"),
+      return_value_policy<manage_new_object>());
   def("ReadMesh",finley::readMesh,
       (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true),
       return_value_policy<manage_new_object>());
@@ -139,6 +142,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       ("MeshAdapter",init<optional <Finley_Mesh*> >())
       .def(init<const finley::MeshAdapter&>())
       .def("write",&finley::MeshAdapter::write)
+      .def("dump",&finley::MeshAdapter::write)
       .def("getDescription",&finley::MeshAdapter::getDescription)
       .def("getDim",&finley::MeshAdapter::getDim)
       .def("getDataShape",&finley::MeshAdapter::getDataShape)

@@ -28,6 +28,26 @@ using namespace escript;
 
 namespace finley {
 
+  AbstractContinuousDomain* loadMesh(const std::string& fileName) 
+  {
+    //
+    // create a copy of the filename to overcome the non-constness of call
+    // to Finley_Mesh_read
+    Finley_Mesh* fMesh=0;
+    // Win32 refactor
+    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
+    strcpy(fName,fileName.c_str());
+
+    fMesh=Finley_Mesh_load(fName);
+    checkFinleyError();
+    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
+    
+    /* win32 refactor */
+    TMPMEMFREE(fName);
+    
+    return temp;
+  }
+
   AbstractContinuousDomain* readMesh(const std::string& fileName,
   				     int integrationOrder,
                                      int reducedIntegrationOrder,

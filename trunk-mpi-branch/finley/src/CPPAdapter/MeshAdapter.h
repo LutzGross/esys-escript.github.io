@@ -164,6 +164,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     dumps the mesh to a file with the given name.
+     \param fileName Input - The name of the file
+  */
+  FINLEY_DLL_API
+  void dump(const std::string& fileName) const;
+
+  /**
+     \brief
      return the pointer to the underlying finley mesh structure
   */
   FINLEY_DLL_API

@@ -69,6 +69,11 @@ void AbstractDomain::write(const std::string& filename) const
   throwStandardException("AbstractDomain::write");
   return;
 }
+void AbstractDomain::dump(const std::string& filename) const
+{
+  throwStandardException("AbstractDomain::dump");
+  return;
+}
 
 std::pair<int,int> AbstractDomain::getDataShape(int functionSpaceCode) const
 {
