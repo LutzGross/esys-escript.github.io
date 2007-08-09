@@ -130,7 +130,7 @@ void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* di
             num_elements+=local_num_elements;
          }
          #ifdef PASO_MPI
-          MPI_Allgather(&num_elements,1,MPI_INT,distribution,size,MPI_INT,in->MPIInfo->comm);
+          MPI_Allgather(&num_elements,1,MPI_INT,distribution,1,MPI_INT,in->MPIInfo->comm);
          #else
            distribution[0]=num_elements;
          #endif

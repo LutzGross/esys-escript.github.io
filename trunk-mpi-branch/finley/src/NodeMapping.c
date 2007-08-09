@@ -25,8 +25,8 @@ Finley_NodeMapping* Finley_NodeMapping_alloc(dim_t numNodes, index_t* target, in
   index_t min_target, numTargets;
   Finley_NodeMapping* out=NULL;
   /*  allocate the return value */
-  min_target=Finley_Util_getMinInt(1,numNodes,target);
-  numTargets=Finley_Util_getMaxInt(1,numNodes,target);
+  min_target=Finley_Util_getFlaggedMinInt(1,numNodes,target,unused);
+  numTargets=Finley_Util_getFlaggedMaxInt(1,numNodes,target,unused);
   if (min_target<0) {
      Finley_setError(VALUE_ERROR,"Finley_NodeMapping_alloc: target has negative entry.");
      return NULL;
@@ -52,7 +52,7 @@ Finley_NodeMapping* Finley_NodeMapping_alloc(dim_t numNodes, index_t* target, in
            #pragma omp for private(i)
            for (i=0; i<numTargets; ++i) {
                if (out->map[i]==-1) {
-                  Finley_setError(VALUE_ERROR,"Finley_NodeMapping_alloc: target does not define a continuous labelxling.");
+                  Finley_setError(VALUE_ERROR,"Finley_NodeMapping_alloc: target does not define a continuous labeling.");
                }
            }
         }

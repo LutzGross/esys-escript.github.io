@@ -41,6 +41,8 @@ void Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,dou
 void Finley_Util_InvertMap(dim_t, index_t*,dim_t, index_t*);
 index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values);
 index_t Finley_Util_getMinInt(dim_t dim,dim_t N,index_t* values);
+index_t Finley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values,index_t ignore);
+index_t Finley_Util_getFlaggedMinInt(dim_t dim,dim_t N,index_t* values,index_t ignore);
 dim_t Finley_Util_packMask(dim_t N,bool_t* mask,index_t* index);
 bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value);
 index_t Finley_Util_cumsum(dim_t,index_t*);

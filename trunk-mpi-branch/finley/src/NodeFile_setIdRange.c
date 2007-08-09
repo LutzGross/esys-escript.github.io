@@ -77,4 +77,50 @@ void Finley_NodeFile_setDOFRange(index_t* min_id,index_t* max_id,Finley_NodeFile
    *min_id=Finley_Util_getMinInt(1,in->numNodes,in->globalDegreesOfFreedom);
    *max_id=Finley_Util_getMaxInt(1,in->numNodes,in->globalDegreesOfFreedom);
 }
+void Finley_NodeFile_setReducedDOFRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
+   *min_id=Finley_Util_getFlaggedMinInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
+   *max_id=Finley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
+}
 
+index_t Finley_NodeFile_maxGlobalDegreeOfFreedomIndex(Finley_NodeFile* in) {
+  index_t loc_out, out;
+  loc_out=Finley_Util_getMaxInt(1,in->numNodes,in->globalNodesIndex);
+  #ifdef PASO_MPI
+  MPI_Allreduce(&loc_out, &out, 1, MPI_INT, MPI_MAX, in->MPIInfo->comm );
+  #else
+  out=loc_out;
+  #endif
+  return out;
+}
+index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile* in) {
+  index_t loc_out, out;
+  loc_out=Finley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
+  #ifdef PASO_MPI
+  MPI_Allreduce(&loc_out, &out, 1, MPI_INT, MPI_MAX, in->MPIInfo->comm );
+  #else
+  out=loc_out;
+  #endif
+  return out;
+
+}
+
+index_t Finley_NodeFile_maxGlobalNodeIDIndex(Finley_NodeFile* in) {
+  index_t loc_out, out;
+  loc_out=Finley_Util_getMaxInt(1,in->numNodes,in->globalDegreesOfFreedom);
+  #ifdef PASO_MPI
+  MPI_Allreduce(&loc_out, &out, 1, MPI_INT, MPI_MAX, in->MPIInfo->comm );
+  #else
+  out=loc_out;
+  #endif
+  return out;
+}
+index_t Finley_NodeFile_maxGlobalReducedNodeIDIndex(Finley_NodeFile* in) {
+  index_t loc_out, out;
+  loc_out=Finley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedNodesIndex,-1);
+  #ifdef PASO_MPI
+  MPI_Allreduce(&loc_out, &out, 1, MPI_INT, MPI_MAX, in->MPIInfo->comm );
+  #else
+  out=loc_out;
+  #endif
+  return out;
+}

@@ -37,6 +37,12 @@ struct Finley_NodeFile {
                                        /* the same degreesOfFreedom to the same node */
   double *Coordinates;                 /* Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of the */
                                        /* node i. */
+  index_t *globalReducedDOFIndex;    /* assigns each local node a global unique Id in a dens labeling of reduced DOF*/
+                                     /* value <0 indicates that the DOF is not used */
+  index_t *globalReducedNodesIndex;    /* assigns each local node a global unique Id in a dens labeling */
+                                     /* value <0 indicates that the DOF is not used */
+  index_t *globalNodesIndex;           /* assigns each local reduced node a global unique Id in a dens labeling */
+
 
  Finley_NodeMapping *nodesMapping;
  Finley_NodeMapping *reducedNodesMapping;
@@ -50,14 +56,12 @@ struct Finley_NodeFile {
 
  Paso_Coupler* degreesOfFreedomCoupler;
  Paso_Coupler *reducedDegreesOfFreedomCoupler;
+  
+                     /* these a the packed versions of Id */
+ index_t *reducedNodesId;        
+ index_t *degreesOfFreedomId;
+ index_t *reducedDegreesOfFreedomId;
 
- index_t* reducedNodesId; /* id assigned to reduced nodes (length Finley_NodeFile_getNumReducedNodes()) */
- index_t* degreesOfFreedomId; /* id assigned to reduced nodes (length Finley_NodeFile_getNumdDegreesOfFeedom()) */
- index_t* reducedDegreesOfFreedomId; /* id assigned to reduced nodes (length Finley_NodeFile_getNumReducedDegreesOfFeedom()) */
-
-
- index_t * globalReducedNodesIndex;
- index_t * globalNodesIndex;
 
  int status; /* the status counts the updates done on the node coordinates */
               /* the value of status is increased by when the node coordinates are updated.*/
@@ -74,6 +78,10 @@ index_t Finley_NodeFile_getFirstReducedNode(Finley_NodeFile* in);
 index_t Finley_NodeFile_getLastReducedNode(Finley_NodeFile* in);
 dim_t Finley_NodeFile_getGlobalNumReducedNodes(Finley_NodeFile* in);
 index_t* Finley_NodeFile_borrowGlobalReducedNodesIndex(Finley_NodeFile* in);
+index_t Finley_NodeFile_maxGlobalNodeIDIndex(Finley_NodeFile* in);
+index_t Finley_NodeFile_maxGlobalReducedNodeIDIndex(Finley_NodeFile* in);
+index_t Finley_NodeFile_GlobalDegreeOfFreedomIndex(Finley_NodeFile* in);
+index_t Finley_NodeFile_GlobalReducedDegreeOfFreedomIndex(Finley_NodeFile* in);
 
 index_t Finley_NodeFile_getFirstNode(Finley_NodeFile* in);
 index_t Finley_NodeFile_getLastNode(Finley_NodeFile* in);
@@ -104,7 +112,11 @@ void Finley_NodeFile_setIdGlobalRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setIdRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setDOFGlobalRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setDOFRange(index_t*,index_t*,Finley_NodeFile*);
+void Finley_NodeFile_setReducedDOFRange(index_t*,index_t*,Finley_NodeFile*);
 dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile*);
+dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in);
+dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
+dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
 void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Paso_MPI_rank* mpiRankOfDOF, index_t *distribution);
 void Finley_NodeFile_gather(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_gather_global(index_t*,Finley_NodeFile*,Finley_NodeFile*);
@@ -113,6 +125,7 @@ void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFil
 void Finley_NodeFile_scatter(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_scatterEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
 void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
+void Finley_NodeFile_createMappings(Finley_NodeFile* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component);
 
 /* ===================== */
 void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);

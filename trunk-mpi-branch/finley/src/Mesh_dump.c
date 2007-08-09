@@ -36,8 +36,11 @@ dump:
   in->Nodes;              
           Id;    
           Tag;  
-          globalDegreesOfFreedom;  
-          Coordinates;             
+          globalDegreesOfFreedom  
+          globalReducedDOFIndex
+          globalReducedNodesIndex
+          globalNodesIndex    
+          Coordinates             
           degreesOfFreedomDistribution->distribution
   in->Elements;        
           ReferenceElement->ElementTypeId
@@ -77,7 +80,9 @@ dump:
     return;
 }
 Finley_Mesh* Finley_Mesh_load(char* fname) {
-
+  Finley_Mesh* out=NULL;
+  index_t *distribution=NULL;
   Finley_setError(IO_ERROR,"Mesh_load: not implemented yet.");
-  return NULL;
+  /* call Finley_Mesh_createMappings(out,distribution); */
+  return out;
 }

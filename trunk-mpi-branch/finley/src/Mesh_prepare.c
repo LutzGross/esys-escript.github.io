@@ -26,8 +26,8 @@
 /**************************************************************/
 
 void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
-     dim_t newGlobalNumDOFs=0;
-     index_t* distribution=NULL;
+     dim_t newGlobalNumDOFs=0, numReducedNodes=0,i;
+     index_t* distribution=NULL, *maskReducedNodes=NULL, *indexReducedNodes=NULL;
      if (in==NULL) return;
      if (in->Nodes == NULL) return;
 
@@ -61,16 +61,39 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      if (Finley_noError() && optimize) {
        printf("Warning: no local node labeling optimization implemented yet.\n");
      }
+     /* rearrange elements with the attempt to bring elements closer to memory locations of the nodes (distributed shared memory!): */
+     if (Finley_noError()) Finley_Mesh_optimizeElementOrdering(in);
+
+
+     /* create the global indices */
+     if (Finley_noError()) {
+        maskReducedNodes=TMPMEMALLOC(in->Nodes->numNodes,index_t);
+        indexReducedNodes=TMPMEMALLOC(in->Nodes->numNodes,index_t);
+        if (! ( Finley_checkPtr(maskReducedNodes) ||  Finley_checkPtr(indexReducedNodes) ) ) {
+
+
+           #pragma omp parallel for private(i) schedule(static)
+           for (i=0;i<in->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
+
+           Finley_Mesh_markNodes(maskReducedNodes,0,in,1);
+   
+          numReducedNodes=Finley_Util_packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
+
+          Finley_NodeFile_createDenseNodeLabeling(in->Nodes); 
+          Finley_NodeFile_createDenseReducedNodeLabeling(in->Nodes,maskReducedNodes); 
+          Finley_NodeFile_createDenseReducedDOFLabeling(in->Nodes,maskReducedNodes); 
+          /* create the missing mappings */
+          if (Finley_noError()) Finley_NodeFile_createMappings(in->Nodes,numReducedNodes,indexReducedNodes,distribution);
+        }
+
+        TMPMEMFREE(maskReducedNodes);
+        TMPMEMFREE(indexReducedNodes);
+     }
+
      TMPMEMFREE(distribution);
 
-     /* rearrange elements with the attempt to bring elements closer to memory locations of the nodes (distributed shared memory!): */
-     Finley_Mesh_optimizeElementOrdering(in);
-
-return;
-
+     return;
 }
-
-
 
 bool_t Finley_Mesh_isPrepared(Finley_Mesh* in) {
      /* returns true if nodes and elements have been prepared for calculation */

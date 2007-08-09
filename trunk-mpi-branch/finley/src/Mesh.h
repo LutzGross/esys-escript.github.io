@@ -117,6 +117,8 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* in, dim_t *distribution);
 Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order);
 void Finley_Mesh_write(Finley_Mesh*,char*);
+void Finley_Mesh_dump(Finley_Mesh *in,char* fname);
+Finley_Mesh* Finley_Mesh_load(char* fname);
 Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t);
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
@@ -127,12 +129,10 @@ void Finley_Mesh_setPoints(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution);
 void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize);
 bool_t Finley_Mesh_isPrepared(Finley_Mesh*);
-void Finley_Mesh_prepareNodes(Finley_Mesh* in);
 void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map);
 void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in);
 void  Finley_Mesh_resolveNodeIds(Finley_Mesh*);
-void Finley_Mesh_dump(Finley_Mesh *in,char* fname);
-Finley_Mesh* Finley_Mesh_load(char* fname);
+void  Finley_Mesh_createMappings(Finley_Mesh* in, index_t *distribution);
 
 Finley_Mesh* Finley_Mesh_merge(dim_t, Finley_Mesh**);
 

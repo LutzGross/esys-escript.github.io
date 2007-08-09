@@ -411,6 +411,51 @@ index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
    }
    return out;
 }
+/**************************************************************/
+
+/* calculates the minimum value from a dim X N integer array */
+
+index_t Finley_Util_getFlaggedMinInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
+   dim_t i,j;
+   index_t out,out_local;
+   out=INDEX_T_MAX;
+   if (values!=NULL && dim*N>0 ) {
+     out=values[0];
+     #pragma omp parallel private(out_local)
+     {
+         out_local=out;
+         #pragma omp for private(i,j) schedule(static)
+         for (j=0;j<N;j++) {
+           for (i=0;i<dim;i++) if (values[INDEX2(i,j,dim)]!=ignore) out_local=MIN(out_local,values[INDEX2(i,j,dim)]);
+         }
+         #pragma omp critical
+         out=MIN(out_local,out);
+     }
+   }
+   return out;
+}
+                                                                                                                                                   
+/* calculates the maximum value from a dim X N integer array */
+
+index_t Finley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
+   dim_t i,j;
+   index_t out,out_local;
+   out=-INDEX_T_MAX;
+   if (values!=NULL && dim*N>0 ) {
+     out=values[0];
+     #pragma omp parallel private(out_local)
+     {
+         out_local=out;
+         #pragma omp for private(i,j) schedule(static)
+         for (j=0;j<N;j++) {
+             for (i=0;i<dim;i++) if (values[INDEX2(i,j,dim)]!=ignore) out_local=MAX(out_local,values[INDEX2(i,j,dim)]);
+         }
+         #pragma omp critical
+         out=MAX(out_local,out);
+      }
+   }
+   return out;
+}
 
 /* set the index of the positive entries in mask. The length of index is returned. */
 

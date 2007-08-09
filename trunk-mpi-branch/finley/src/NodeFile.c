@@ -52,6 +52,20 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
   out->degreesOfFreedomMapping=NULL;
   out->reducedDegreesOfFreedomMapping=NULL;
 
+  out->globalReducedDOFIndex=NULL;
+  out->globalReducedNodesIndex=NULL;
+  out->globalNodesIndex=NULL;
+  out->reducedNodesId=NULL;
+  out->degreesOfFreedomId=NULL;
+  out->reducedDegreesOfFreedomId=NULL;
+  out->nodesDistribution=NULL;
+  out->reducedNodesDistribution=NULL;
+  out->degreesOfFreedomDistribution=NULL;
+  out->reducedDegreesOfFreedomDistribution=NULL;
+  out->degreesOfFreedomCoupler=NULL;
+  out->reducedDegreesOfFreedomCoupler=NULL;
+                                                           
+
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
   return out;
 }
