@@ -22,14 +22,8 @@ if sys.path.count('scons')==0: sys.path.append('scons')
 import scons_extensions
 
 #===============================================================
-#   check on windows or linux platform
-#
-IS_WINDOWS_PLATFORM = (os.name== "nt")
 
-if IS_WINDOWS_PLATFORM:
-   tools_prefix="C:\\Program Files\\"
-else:
-   tools_prefix="/usr"
+tools_prefix="/usr"
 
 #==============================================================================================     
 #    
@@ -126,45 +120,23 @@ else:
 #
 #    python installation:
 #
-if IS_WINDOWS_PLATFORM:
-   python_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1]),"include")
-   python_lib_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1]),"libs")
-   python_libs_default=["python%s%s"%(sys.version_info[0],sys.version_info[1])]
-else:
-   python_path_default=os.path.join(tools_prefix,'include','python%s.%s'%(sys.version_info[0],sys.version_info[1]))
-   python_lib_path_default=os.path.join(tools_prefix,'lib')
-   python_libs_default=["python%s.%s"%(sys.version_info[0],sys.version_info[1])]
+python_path_default=os.path.join(tools_prefix,'include','python%s.%s'%(sys.version_info[0],sys.version_info[1]))
+python_lib_path_default=os.path.join(tools_prefix,'lib')
+python_libs_default=["python%s.%s"%(sys.version_info[0],sys.version_info[1])]
 
 #==========================================================================
 #
 #    boost installation:
 #
-if IS_WINDOWS_PLATFORM:
-   boost_libs_path_default=os.path.join(tools_prefix,'boost','lib')
-   boost_libs_default=None
-   for i in os.listdir(boost_libs_path_default): 
-      name=os.path.splitext(i)
-      if name[1] == ".dll" and name[0].startswith("boost_python"):
-          if boost_libs_default == None: 
-	     boost_libs_default= [ name[0] ] 
-	  else:
-	     if not name[0].find("-gd-"): boost_libs_default=[ name[0] ]
-   boost_path_default=os.path.join(tools_prefix,'boost','include','boost-%s'%(boost_libs_default[0].split("-")[-1],))
-else:
-   boost_path_default=os.path.join(tools_prefix,'include')
-   boost_libs_path_default=os.path.join(tools_prefix,'lib')
-   boost_libs_default=['boost_python']
+boost_path_default=os.path.join(tools_prefix,'include')
+boost_libs_path_default=os.path.join(tools_prefix,'lib')
+boost_libs_default=['boost_python']
 #==========================================================================
 #
 #    check if netCDF is installed on the system:
 #
-if IS_WINDOWS_PLATFORM:
-    netcdf_dir=os.path.join(tools_prefix,'netcdf')
-    netCDF_path_default=os.path.join(netcdf_dir,'include')
-    netCDF_lib_path_default=os.path.join(netcdf_dir,'lib')
-else:
-    netCDF_path_default=os.path.join(tools_prefix,'include','netcdf-3')
-    netCDF_lib_path_default=os.path.join(tools_prefix,'lib','netcdf-3')
+netCDF_path_default=os.path.join(tools_prefix,'include','netcdf-3')
+netCDF_lib_path_default=os.path.join(tools_prefix,'lib','netcdf-3')
 
 if os.path.isdir(netCDF_path_default) and os.path.isdir(netCDF_lib_path_default):
      useNetCDF_default='yes'
@@ -175,28 +147,14 @@ else:
      netCDF_lib_path_default=None
      netCDF_libs_default=None
 
-if IS_WINDOWS_PLATFORM: 
-        useNetCDF_default='no' # be default netcdf is not supported on windows. 
 #==========================================================================
 #
 #    compile:
 #
-if IS_WINDOWS_PLATFORM:
-    # cc_flags_default  = '/GR /EHsc /MD /Qc99 /Qopenmp /Qopenmp-report1 /O3 /G7 /Qprec /Qpar-report1 /QxP /QaxP'
-    # cc_flags_debug_default  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp /Qopenmp-report1 /Qprec'
-    cc_flags_default  = '/nologo /EHsc /GR  /wd4068 /O2 /Op /MT /W3 /Ob0 /Z7'
-    cc_flags_debug_default  ='/nologo /EHsc /GR  /wd4068 /Od /RTC1 /MTd /ZI /Ob0 /Z7'
-    
-    cc_flags_default  = '/nologo /EHsc /GR  /O2 /MT /W3 /Ob0 /Z7 /wd4068'
-    cc_flags_debug_default  ='/nologo /EHsc /GR /Od /RTC1 /MTd /W3 /Ob0 /Z7/wd4068'
-    cxx_flags_default = ''
-    cxx_flags_debug_default = ''
-    cc_common_flags = '/FD /EHsc /GR /wd4068 '
-else:
-   cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
-   cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
-   cxx_flags_default='--no-warn -ansi'
-   cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
+cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+cxx_flags_default='--no-warn -ansi'
+cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
 #==============================================================================================     
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
@@ -285,6 +243,8 @@ opts.AddOptions(
 #   This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
 #   FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
 #
+IS_WINDOWS_PLATFORM = (os.name== "nt")
+
 if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
 else:
@@ -295,6 +255,7 @@ else:
    else:
       env = Environment(tools = ['default'], options = opts)
 Help(opts.GenerateHelpText(env))
+
 #=================================================================================================
 #
 #     Initialise Scons Build Environment
@@ -334,6 +295,7 @@ except KeyError:
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
+# TODO: use the inbuilt scons suffix variable.
 if IS_WINDOWS_PLATFORM:
    runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix='.exe', single_source=True)
 else:
