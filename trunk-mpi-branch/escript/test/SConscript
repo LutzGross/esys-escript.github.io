@@ -13,7 +13,7 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
-local_env.Append(LIBS=python_libs + boost_libs + [ 'escript', 'esysUtils', 'CppUnitTest'] + sys_libs)
+local_env.Append(LIBS=python_libs + [boost_libs] + [ 'escript', 'esysUtils', 'CppUnitTest'] + sys_libs)
 
 program = local_env.Program(program_name, sources)
 

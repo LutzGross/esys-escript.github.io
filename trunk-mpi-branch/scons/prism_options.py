@@ -30,8 +30,8 @@ python_lib = 'python2.3'
 
 # locations of libraries for boost
 boost_path = '/opt/tools/boost_1_31-gcc3.4/include/boost-1_31'
-boost_lib_path = '/opt/tools/boost_1_31-gcc3.4/lib'
-boost_lib = 'boost_python-gcc-1_31'
+boost_libs_path = '/opt/tools/boost_1_31-gcc3.4/lib'
+boost_libs = 'boost_python-gcc-1_31'
 
 # locations of doc building executables
 doxygen_path = ''

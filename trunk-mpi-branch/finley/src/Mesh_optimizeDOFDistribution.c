@@ -69,7 +69,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 
          /* set the coordinates: *?
          /* it is assumed that at least one node on this processor provides a coordinate */
-         #pragma omp parallel for private(i,j,k);
+         #pragma omp parallel for private(i,j,k)
          for (i=0;i<in->Nodes->numNodes;++i) {
              k=in->Nodes->globalDegreesOfFreedom[i]-myFirstVertex;
              if ((k>=0) && (k<myNumVertices)) {
@@ -172,14 +172,14 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
            dest=Paso_MPIInfo_mod(mpiSize, myRank + 1);
            source=Paso_MPIInfo_mod(mpiSize, myRank - 1);
            current_rank=myRank;
-           #pragma omp parallel for private(i);
+           #pragma omp parallel for private(i)
            for (i=0;i<in->Nodes->numNodes;++i) setNewDOFId[i]=TRUE;
 
            for (p=0; p< mpiSize; ++p) {
 
                firstVertex=distribution[current_rank];
                lastVertex=distribution[current_rank+1];
-               #pragma omp parallel for private(i,j,k);
+               #pragma omp parallel for private(i,j,k)
                for (i=0;i<in->Nodes->numNodes;++i) {
                    k=in->Nodes->globalDegreesOfFreedom[i];
                    if (setNewDOFId[i] && (firstVertex<=k) && (k<lastVertex)) {

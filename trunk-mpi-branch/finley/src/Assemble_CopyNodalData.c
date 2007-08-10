@@ -25,9 +25,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#ifdef PASO_MPI
-#include "./paso/CommBuffer.h"
-#endif
 
 void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in) {
     dim_t n,i,k,l;
