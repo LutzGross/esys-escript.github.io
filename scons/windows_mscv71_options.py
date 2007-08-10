@@ -1,20 +1,22 @@
+import os
+
 # locations of include files for python
 python_path = 'C:/python23/include'
 python_lib_path = 'C:/python23/libs'
 python_lib = 'python23'
 
 # locations of libraries for boost
-boost_path = 'Q:/src/boost'
-boost_libs_path = 'Q:/src/boost/windows_binary/lib'
+boost_path = os.path.realpath('../boost')
+boost_libs_path = os.path.realpath('../boost/windows_binary/lib')
 boost_libs = 'boost_python-vc71-mt-s-1_31'
 
 # locations of netcdf
-useNetCDF="yes"
-netCDF_path = "Q:/src/netcdf/src/include"
-netCDF_lib_path = "Q:/src/netcdf/src/win32/NET/release"
-netCDF_libs = [ 'netcdf', 'netcdf_cpp' ]
+useNetCDF = "no"
+netCDF_path = os.path.realpath("..//netcdf/src/include")
+netCDF_lib_path = os.path.realpath("../netcdf/src/win32/NET/release")
+netCDF_libs_cxx = [ 'netcdf', 'netcdf_cpp' ]
 
-cc_defines = ['_USE_MATH_DEFINES', 'BOOST_NO_INTRINSIC_WCHAR_T', 'DLL_NETCDF' ]
+cc_defines = ['_USE_MATH_DEFINES', 'DLL_NETCDF' ]
 # c flags to use
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
