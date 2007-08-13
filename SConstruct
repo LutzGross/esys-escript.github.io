@@ -16,7 +16,6 @@ EnsurePythonVersion(2,3)
 #   import tools:
 import glob
 import sys, os
-import socket
 # Add our extensions
 if sys.path.count('scons')==0: sys.path.append('scons')
 import scons_extensions
@@ -69,9 +68,13 @@ print "	Default example system installation:	", sys_dir_examples
 #    
 #    get the options file if present:
 #
-if ARGUMENTS.get('options_file',0):
-   options_file = ARGUMENTS.get('options_file',0)
-else:
+options_file = ARGUMENTS.get('options_file','')
+
+if not os.path.isfile(options_file) :
+    options_file = False
+
+if not options_file :
+   import socket
    from string import ascii_letters,digits
    hostname=""
    for s in socket.gethostname().split('.')[0]:
@@ -79,12 +82,21 @@ else:
          hostname+=s
       else:
          hostname+="_"
-   options_file = os.path.join("scons",hostname+"_options.py")
-   
-if os.path.isfile(options_file):
-   print "option file is ",options_file,"."
-else:
-   print "option file is ",options_file, "(not present)."
+   tmp = os.path.join("scons",hostname+"_options.py")
+
+   if os.path.isfile(tmp) :
+      options_file = tmp
+
+IS_WINDOWS_PLATFORM = (os.name== "nt")
+
+# If you're not going to tell me then......
+# FIXME: add one for the altix too.
+if not options_file :
+   if IS_WINDOWS_PLATFORM :
+      options_file = "scons/windows_mscv71_options.py"
+   else:
+      options_file = "scons/linux_gcc_eg_options.py"
+
 # and load it
 opts = Options(options_file, ARGUMENTS)
 #================================================================
@@ -246,7 +258,6 @@ opts.AddOptions(
 #   This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
 #   FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
 #
-IS_WINDOWS_PLATFORM = (os.name== "nt")
 
 if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
@@ -358,6 +369,7 @@ try:
    env.Append(CPPDEFINES = cc_defines)
 except KeyError:
    pass
+
 
 if dodebug:
   if useMPI:
@@ -539,10 +551,14 @@ except KeyError:
    useNetCDF = 'yes'
    pass
 
-if not useNetCDF == 'yes':
-   print "Warning: Installation is not configured with netCDF. Some I/O function may not be available."
-   
 if useNetCDF == 'yes': 
+   try:
+      netCDF_libs = env['netCDF_libs']
+   except KeyError:
+      pass
+
+   env.Append(LIBS = netCDF_libs)
+   env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
    try:
       includes = env['netCDF_path']
       env.Append(CPPPATH = [includes,])
@@ -555,12 +571,8 @@ if useNetCDF == 'yes':
       env.Append(LIBPATH = [ lib_path, ])
    except KeyError:
       pass
-
-   try:
-      netCDF_libs = env['netCDF_libs']
-   except KeyError:
-      netCDF_libs = [ ]
 else:
+   print "Warning: Installation is not configured with netCDF. Some I/O function may not be available."
    netCDF_libs=[ ]
 
 try:
@@ -661,9 +673,11 @@ try:
 except KeyError:
    api_doxygen = None
 
+# Python install - esys __init__.py
+init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 
 # FIXME: exinstall and friends related to examples are not working.
-build_target = env.Alias('build',[libinstall,incinstall,pyinstall])
+build_target = env.Alias('build',[libinstall,incinstall,pyinstall,init_target])
 
 env.Default(build_target)
 
@@ -680,22 +694,23 @@ env.Alias('guide_pdf', guide_pdf)
 env.Alias('docs',[ 'release_examples', 'guide_pdf', api_epydoc, api_doxygen, guide_html_index])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
 
-env.Alias('build_tests')    # target to build all C++ tests
-env.Alias('build_py_tests') # target to build all python tests
+env.Alias('build_tests',build_target)    # target to build all C++ tests
+env.Alias('build_py_tests',build_target) # target to build all python tests
 env.Alias('build_all_tests', [ 'build_tests', 'build_py_tests' ] ) # target to build all python tests
 env.Alias('run_tests', 'build_tests')   # target to run all C++ test
 env.Alias('py_tests', 'build_py_tests') # taget to run all released python tests
 env.Alias('all_tests', ['run_tests', 'py_tests']) # target to run all C++ and released python tests
 
-# Python install - esys __init__.py
-init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
-env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "exinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs", "useNetCDF",
+Export(["env", "incinstall", "libinstall", "pyinstall", "exinstall", "dodebug",
+        "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs",
+        "netCDF_libs", 
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
-        "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
-        "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI" ])
+        "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile",
+        "src_tarfile", "examples_tarfile", "examples_zipfile",
+        "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI"
+        ])
 
 # End initialisation section
 # Begin configuration section
