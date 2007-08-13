@@ -78,6 +78,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
          }
 
          index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
+	 /* ksteube CSR of DOF IDs */
          /* create the adjacency structure xadj and adjncy */
          if (! Finley_checkPtr(index_list)) {
             #pragma omp parallel private(i)
@@ -87,6 +88,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                    index_list[i].extension=NULL;
                    index_list[i].n=0;
               }
+	      /* ksteube build CSR format */
               /*  insert contributions from element matrices into colums index index_list: */
               Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
                                                           in->Elements,in->Nodes->globalDegreesOfFreedom,
@@ -102,7 +104,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                                                           in->Nodes->globalDegreesOfFreedom);
            }
            
-           /* create the matrix pattern */
+           /* create the local matrix pattern */
            pattern=Finley_IndexList_createPattern(myNumVertices,index_list,0,globalNumVertices);
 
            /* clean up index list */

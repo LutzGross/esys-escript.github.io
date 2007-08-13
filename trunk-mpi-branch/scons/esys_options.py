@@ -52,8 +52,8 @@ papi_libs = []
 
 # locations of libraries for boost
 boost_path = '/usr/include'
-boost_libs_path = '/usr/lib'
-boost_libs = 'boost_python'
+boost_lib_path = '/usr/lib'
+boost_lib = 'boost_python'
 
 # locations of libraries for netCDF:
 netCDF_path = '/usr/local/include'

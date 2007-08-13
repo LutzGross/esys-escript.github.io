@@ -33,8 +33,8 @@ python_lib = 'python2.4'
 
 # locations of libraries for boost (on ac use module load something/boost)
 boost_path = '/opt/boost-1.33.1/intel-9.1/include/boost-1_33_1'
-boost_libs_path = '/opt/boost-1.33.1/intel-9.1/lib'
-boost_libs = ['boost_python-il-d']
+boost_lib_path = '/opt/boost-1.33.1/intel-9.1/lib'
+boost_lib = ['boost_python-il-d']
 
 # locations of doc building executables
 #doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
