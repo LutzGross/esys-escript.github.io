@@ -302,11 +302,9 @@ except KeyError:
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
-# FIXME: use the inbuilt scons suffix variable.
-if IS_WINDOWS_PLATFORM:
-   runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix='.exe', single_source=True)
-else:
-   runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed',
+                              src_suffix=env['PROGSUFFIX'], single_source=True)
+
 env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 
 runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
