@@ -10,7 +10,7 @@ if useMPI:
 	sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 	headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
-        local_env.Append(LIBS = [ "paso" ] + mpi_libs + python_libs + sys_libs)
+        local_env.Append(LIBS = [ "paso" ] + mpi_libs + python_lib + sys_libs)
 	lib_name = 'pythonMPI'
 
 ## changed
