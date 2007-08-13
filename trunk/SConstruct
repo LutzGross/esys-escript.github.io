@@ -29,36 +29,34 @@ tools_prefix="/usr"
 #    
 #    get the installation prefix
 #
-prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
+prefix = ARGUMENTS.get('prefix', '/usr')
 
 # We may also need to know where python's site-packages subdirectory lives
 python_version = 'python%s.%s'%(sys.version_info[0],sys.version_info[1])
 
-if prefix == "/usr":
-   # Install as a standard python package in /usr/lib64 if available, else in /usr/lib
-   if os.path.isdir(  prefix+"/lib64/"+python_version+"/site-packages"):
-      dir_packages =  prefix+"/lib64/"+python_version+"/site-packages"
-      dir_libraries = prefix+"/lib64"
-   elif os.path.isdir(prefix+"/lib/"+python_version+"/site-packages"):
-      dir_packages =  prefix+"/lib/"+python_version+"/site-packages"
-      dir_libraries = prefix+"/lib"
-   else:
-      print "Install prefix is /usr but couldn't find python package directory in either"
-      print "/usr/lib64/"+python_version+"/site-packages or /usr/lib/"+python_version+"/site-packages"
-      sys.exit(1)
-   dir_examples = prefix+"/share/doc/esys"
+# Install as a standard python package in /usr/lib64 if available, else in /usr/lib
+if os.path.isdir(  prefix+"/lib64/"+python_version+"/site-packages"):
+   sys_dir_packages =  prefix+"/lib64/"+python_version+"/site-packages/esys"
+   sys_dir_libraries = prefix+"/lib64"
 else:
-   # Install using the usual escript directory structure
-   dir_packages = prefix
-   dir_libraries = prefix+"/lib"
-   dir_examples = prefix
-dir_packages += "/esys"
-dir_examples += "/examples"
+   sys_dir_packages =  prefix+"/lib/"+python_version+"/site-packages/esys"
+   sys_dir_libraries = prefix+"/lib"
 
+sys_dir_examples = prefix+"/share/doc/esys"
+
+source_root = Dir('#.').abspath
+
+dir_packages = os.path.join(source_root,"esys")
+dir_examples = os.path.join(source_root,"examples")
+dir_libraries = os.path.join(source_root,"lib")
+
+print "	Default packages local installation:	", dir_packages
+print "	Default library local installation 	", dir_libraries
+print "	Default example local  installation:	", dir_examples
 print "Install prefix is: ", prefix
-print "	python packages will be installed in:	", dir_packages
-print "	libraries will be installed in:		", dir_libraries
-print "	examples will be installed in:		", dir_examples
+print "	Default packages system installation:	", sys_dir_packages
+print "	Default library system installation 	", sys_dir_libraries
+print "	Default example system installation:	", sys_dir_examples
 
 #==============================================================================================     
 
@@ -166,6 +164,9 @@ opts.AddOptions(
   ('libinstall', 'where the esys libraries will be installed',           dir_libraries),
   ('pyinstall', 'where the esys python modules will be installed',       dir_packages),
   ('exinstall', 'where the esys examples will be installed',             dir_examples),
+  ('sys_libinstall', 'where the system esys libraries will be installed',       sys_dir_libraries),
+  ('sys_pyinstall', 'where the system esys python modules will be installed',   sys_dir_packages),
+  ('sys_exinstall', 'where the system esys examples will be installed',         sys_dir_examples),
   ('src_zipfile', 'the source zip file will be installed.',              Dir('#.').abspath+"/release/escript_src.zip"),
   ('test_zipfile', 'the test zip file will be installed.',               Dir('#.').abspath+"/release/escript_tests.zip"),
   ('src_tarfile', 'the source tar file will be installed.',              Dir('#.').abspath+"/release/escript_src.tar.gz"),
@@ -216,9 +217,11 @@ opts.AddOptions(
   ('netCDF_libs', 'netCDF C++ libraries to link with', netCDF_libs_default),
 # Python
 # locations of include files for python
+# FIXME: python_path should be python_inc_path and the same for boost etc.
   PathOption('python_path', 'Path to Python includes', python_path_default),
   PathOption('python_lib_path', 'Path to Python libs', python_lib_path_default),
   ('python_lib', 'Python libraries to link with', python_lib_default),
+  ('python_cmd', 'Python command', 'python'),
 # Boost
   PathOption('boost_path', 'Path to Boost includes', boost_path_default),
   PathOption('boost_lib_path', 'Path to Boost libs', boost_lib_path_default),
@@ -261,15 +264,18 @@ Help(opts.GenerateHelpText(env))
 #     Initialise Scons Build Environment
 #     check for user environment variables we are interested in
 try:
-   python_path = os.environ['PYTHONPATH']
-   env['ENV']['PYTHONPATH'] = python_path
+   tmp = os.environ['PYTHONPATH']
+   env['ENV']['PYTHONPATH'] = tmp
 except KeyError:
-   python_path = ''
+   pass
+
+env.PrependENVPath('PYTHONPATH', source_root)
 
 try:
    omp_num_threads = os.environ['OMP_NUM_THREADS']
 except KeyError:
    omp_num_threads = 1
+
 env['ENV']['OMP_NUM_THREADS'] = omp_num_threads
 
 try:
@@ -279,15 +285,16 @@ except KeyError:
    pass
 
 try:
-   path = os.environ['PATH']
-   env['ENV']['PATH'] = path
+   tmp = os.environ['PATH']
+   env['ENV']['PATH'] = tmp
 except KeyError:
-   path = ''
+   pass
+
 try:
-   ld_library_path = os.environ['LD_LIBRARY_PATH']
-   env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
+   tmp = os.environ['LD_LIBRARY_PATH']
+   env['ENV']['LD_LIBRARY_PATH'] = tmp
 except KeyError:
-   ld_library_path = ''
+   pass
 #==========================================================================
 #
 #    Add some customer builders
@@ -295,7 +302,7 @@ except KeyError:
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
-# TODO: use the inbuilt scons suffix variable.
+# FIXME: use the inbuilt scons suffix variable.
 if IS_WINDOWS_PLATFORM:
    runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix='.exe', single_source=True)
 else:
@@ -322,13 +329,24 @@ except KeyError:
    libinstall = None
 try:
    pyinstall = env['pyinstall'] # all targets will install into pyinstall/esys but PYTHONPATH points at straight pyinstall so you go import esys.escript etc
-   env.PrependENVPath('PYTHONPATH', env['pyinstall'])
 except KeyError:
    pyinstall = None
 try:
    exinstall = env['exinstall']
 except KeyError:
    exinstall = None
+try:
+   sys_libinstall = env['sys_libinstall']
+except KeyError:
+   sys_libinstall = None
+try:
+   sys_pyinstall = env['sys_pyinstall']
+except KeyError:
+   sys_pyinstall = None
+try:
+   sys_exinstall = env['sys_exinstall']
+except KeyError:
+   sys_exinstall = None
 try:
    dodebug = env['dodebug']
 except KeyError:
@@ -645,11 +663,13 @@ try:
 except KeyError:
    api_doxygen = None
 
+
+# FIXME: exinstall and friends related to examples are not working.
+build_target = env.Alias('build',[libinstall,incinstall,pyinstall])
+
+env.Default(build_target)
+
 # Zipgets
-env.Default(libinstall)
-env.Default(incinstall)
-env.Default(pyinstall)
-### env.Default(exinstall) # ksteube this causes dependency error
 env.Alias('release_src',[ src_zipfile, src_tarfile ])
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
@@ -661,6 +681,7 @@ env.Alias('guide_html_index',guide_html_index)
 env.Alias('guide_pdf', guide_pdf)
 env.Alias('docs',[ 'release_examples', 'guide_pdf', api_epydoc, api_doxygen, guide_html_index])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
+
 env.Alias('build_tests')    # target to build all C++ tests
 env.Alias('build_py_tests') # target to build all python tests
 env.Alias('build_all_tests', [ 'build_tests', 'build_py_tests' ] ) # target to build all python tests
@@ -710,3 +731,9 @@ env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', dupli
 # added by Ben Cumming
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 #env.SConscript(dirs = ['../test'], build_dir='../test/build', duplicate=0)
+
+
+syslib_install_target = env.installDirectory(sys_libinstall,libinstall)
+syspy_install_target = env.installDirectory(sys_pyinstall,pyinstall,recursive=True)
+
+install_target = env.Alias("install", env.Flatten([syslib_install_target, syspy_install_target]) )
