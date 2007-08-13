@@ -192,7 +192,7 @@ def runUnitTest(target, source, env):
     return 0
 
 def runPyUnitTest(target, source, env): 
-    app = env['python_path'] + ' "' + str(source[0].abspath) + '"'
+    app = env['python_cmd'] + ' "' + str(source[0].abspath) + '"'
 
     olddir = os.getcwd()
     newdir = os.path.dirname(str(source[0]))
