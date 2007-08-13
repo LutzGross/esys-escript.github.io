@@ -1,20 +1,31 @@
+import os
+
+source_root = os.path.realpath('.')
+
+pyinstall = os.path.join(source_root,'esys')
+incinstall = os.path.join(source_root,'include')
+libinstall = os.path.join(source_root,'lib')
+exinstall = os.path.join(source_root,'examples')
+
 # locations of include files for python
-python_path = 'C:/python23/include'
-python_lib_path = 'C:/python23/libs'
+python_root = 'C:/python23'
+python_cmd = os.path.join(python_root,'python')
+python_path =  os.path.join(python_root,'include')
+python_lib_path = os.path.join(python_root,'libs')
 python_lib = 'python23'
 
 # locations of libraries for boost
-boost_path = '../boost'
-boost_libs_path = '../boost/windows_binary/lib'
-boost_libs = 'boost_python-vc71-mt-s-1_31'
+boost_path = os.path.realpath('../boost')
+boost_lib_path = os.path.realpath('../boost/windows_binary/lib')
+boost_lib = 'boost_python-vc71-mt-s-1_31'
 
 # locations of netcdf
 useNetCDF = "no"
-netCDF_path = "..//netcdf/src/include"
-netCDF_lib_path = "../netcdf/src/win32/NET/release"
+netCDF_path = os.path.realpath("../netcdf/src/include")
+netCDF_lib_path = os.path.realpath("../netcdf/src/win32/NET/release")
 netCDF_libs_cxx = [ 'netcdf', 'netcdf_cpp' ]
 
-cc_defines = ['_USE_MATH_DEFINES', 'BOOST_NO_INTRINSIC_WCHAR_T', 'DLL_NETCDF' ]
+cc_defines = ['_USE_MATH_DEFINES', 'DLL_NETCDF' ]
 # c flags to use
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
