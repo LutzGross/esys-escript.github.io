@@ -1,18 +1,27 @@
 import os
 
+source_root = os.path.realpath('.')
+
+pyinstall = os.path.join(source_root,'esys')
+incinstall = os.path.join(source_root,'include')
+libinstall = os.path.join(source_root,'lib')
+exinstall = os.path.join(source_root,'examples')
+
 # locations of include files for python
-python_path = 'C:/python23/include'
-python_lib_path = 'C:/python23/libs'
+python_root = 'C:/python23'
+python_cmd = os.path.join(python_root,'python')
+python_path =  os.path.join(python_root,'include')
+python_lib_path = os.path.join(python_root,'libs')
 python_lib = 'python23'
 
 # locations of libraries for boost
 boost_path = os.path.realpath('../boost')
-boost_libs_path = os.path.realpath('../boost/windows_binary/lib')
-boost_libs = 'boost_python-vc71-mt-s-1_31'
+boost_lib_path = os.path.realpath('../boost/windows_binary/lib')
+boost_lib = 'boost_python-vc71-mt-s-1_31'
 
 # locations of netcdf
 useNetCDF = "no"
-netCDF_path = os.path.realpath("..//netcdf/src/include")
+netCDF_path = os.path.realpath("../netcdf/src/include")
 netCDF_lib_path = os.path.realpath("../netcdf/src/win32/NET/release")
 netCDF_libs_cxx = [ 'netcdf', 'netcdf_cpp' ]
 
