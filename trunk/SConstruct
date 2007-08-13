@@ -122,15 +122,15 @@ else:
 #
 python_path_default=os.path.join(tools_prefix,'include','python%s.%s'%(sys.version_info[0],sys.version_info[1]))
 python_lib_path_default=os.path.join(tools_prefix,'lib')
-python_libs_default=["python%s.%s"%(sys.version_info[0],sys.version_info[1])]
+python_lib_default="python%s.%s"%(sys.version_info[0],sys.version_info[1])
 
 #==========================================================================
 #
 #    boost installation:
 #
 boost_path_default=os.path.join(tools_prefix,'include')
-boost_libs_path_default=os.path.join(tools_prefix,'lib')
-boost_libs_default=['boost_python']
+boost_lib_path_default=os.path.join(tools_prefix,'lib')
+boost_lib_default=['boost_python']
 #==========================================================================
 #
 #    check if netCDF is installed on the system:
@@ -218,11 +218,11 @@ opts.AddOptions(
 # locations of include files for python
   PathOption('python_path', 'Path to Python includes', python_path_default),
   PathOption('python_lib_path', 'Path to Python libs', python_lib_path_default),
-  ('python_libs', 'Python libraries to link with', python_libs_default),
+  ('python_lib', 'Python libraries to link with', python_lib_default),
 # Boost
   PathOption('boost_path', 'Path to Boost includes', boost_path_default),
-  PathOption('boost_libs_path', 'Path to Boost libs', boost_libs_path_default),
-  ('boost_libs', 'Boost libraries to link with', boost_libs_default),
+  PathOption('boost_lib_path', 'Path to Boost libs', boost_lib_path_default),
+  ('boost_lib', 'Boost libraries to link with', boost_lib_default),
 # Doc building
 #  PathOption('doxygen_path', 'Path to Doxygen executable', None),
 #  PathOption('epydoc_path', 'Path to Epydoc executable', None),
@@ -317,7 +317,7 @@ try:
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
    if env['PLATFORM'] == "win32":
       env.PrependENVPath('PATH', libinstall)
-      env.PrependENVPath('PATH', env['boost_libs_path'])
+      env.PrependENVPath('PATH', env['boost_lib_path'])
 except KeyError:
    libinstall = None
 try:
@@ -553,14 +553,14 @@ try:
 except KeyError:
    pass
 try:
-   lib_path = env['boost_libs_path']
+   lib_path = env['boost_lib_path']
    env.Append(LIBPATH = [lib_path,])
 except KeyError:
    pass
 try:
-   boost_libs = env['boost_libs']
+   boost_lib = env['boost_lib']
 except KeyError:
-   boost_libs = None
+   boost_lib = None
 try:
    includes = env['python_path']
    env.Append(CPPPATH = [includes,])
@@ -572,9 +572,9 @@ try:
 except KeyError:
    pass
 try:
-   python_libs = env['python_libs']
+   python_lib = env['python_lib']
 except KeyError:
-   python_libs = None
+   python_lib = None
 try:
    doxygen_path = env['doxygen_path']
 except KeyError:
@@ -674,7 +674,7 @@ env.Alias(init_target)
 
 # Allow sconscripts to see the env
 Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "exinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs", "netCDF_libs", "useNetCDF",
-	"boost_libs", "python_libs", "doxygen_path", "epydoc_path", "papi_libs",
+	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile",
         "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI" ])
 

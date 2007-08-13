@@ -31,8 +31,8 @@ sources += [ x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp
 cppadapter_headers = [x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
 
 sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
-local_env.Append(LIBS = [boost_libs] +  python_libs + sys_libs + ['escript', 'esysUtils', 'paso'])
-py_wrapper_local_env.Append(LIBS = [boost_libs] + python_libs + sys_libs + [lib_name, 'escript', 'esysUtils', 'paso'])
+local_env.Append(LIBS = [boost_lib, python_lib, 'escript', 'esysUtils', 'paso'] + sys_libs)
+py_wrapper_local_env.Append(LIBS = [boost_lib, python_lib, lib_name, 'escript', 'esysUtils', 'paso'] + sys_libs)
 
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
