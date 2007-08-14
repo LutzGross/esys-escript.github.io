@@ -27,6 +27,7 @@ import numarray
 import escript
 import os
 from esys.escript import C_GeneralTensorProduct
+from esys.escript import getVersion
 
 #=========================================================
 #   some helpers:
