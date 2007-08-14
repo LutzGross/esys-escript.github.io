@@ -331,9 +331,8 @@ try:
    libinstall = env['libinstall']
    env.Append(LIBPATH = [libinstall,]) # Adds -L for building of libescript.so libfinley.so escriptcpp.so finleycpp.so
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
-   if env['PLATFORM'] == "win32":
+   if IS_WINDOWS_PLATFORM :
       env.PrependENVPath('PATH', libinstall)
-      env.PrependENVPath('PATH', env['boost_lib_path'])
 except KeyError:
    libinstall = None
 try:
@@ -567,8 +566,9 @@ if useNetCDF == 'yes':
 
    try:
       lib_path = env['netCDF_lib_path']
-      if IS_WINDOWS_PLATFORM: env['ENV']['PATH']+=";"+lib_path
       env.Append(LIBPATH = [ lib_path, ])
+      if IS_WINDOWS_PLATFORM :
+         env.PrependENVPath('PATH', lib_path)
    except KeyError:
       pass
 else:
@@ -583,6 +583,8 @@ except KeyError:
 try:
    lib_path = env['boost_lib_path']
    env.Append(LIBPATH = [lib_path,])
+   if IS_WINDOWS_PLATFORM :
+      env.PrependENVPath('PATH', lib_path)
 except KeyError:
    pass
 try:
