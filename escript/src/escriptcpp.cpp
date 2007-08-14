@@ -71,6 +71,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("setNumberOfThreads",escript::setNumberOfThreads);
   def("getNumberOfThreads",escript::getNumberOfThreads);
   def("releaseUnusedMemory",escript::releaseUnusedMemory);
+  def("getVersion",escript::getSvnVersion);
 
 
   //

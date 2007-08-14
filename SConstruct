@@ -15,7 +15,7 @@ EnsurePythonVersion(2,3)
 #===============================================================
 #   import tools:
 import glob
-import sys, os
+import sys, os, re
 # Add our extensions
 if sys.path.count('scons')==0: sys.path.append('scons')
 import scons_extensions
@@ -672,6 +672,15 @@ try:
    api_doxygen = env.Dir(env['api_doxygen'])
 except KeyError:
    api_doxygen = None
+
+try:
+   svn_pipe = os.popen("svn info | grep '^Revision'")
+   rev = svn_pipe.readlines()
+   svn_pipe.close()
+   svn_version = re.sub("[^0-9]", "", rev[0])
+except:
+   svn_version = "0"
+env.Append(CPPDEFINES = "SVN_VERSION="+svn_version)
 
 # Python install - esys __init__.py
 init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
