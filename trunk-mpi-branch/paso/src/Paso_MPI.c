@@ -46,10 +46,11 @@ Paso_MPIInfo *Paso_MPIInfo_getReference( Paso_MPIInfo* in )
   
   return in;
 }
+/* N = #CPUs, k is a CPU number but out of range or even negative. Return a CPU number in 0...n-1. */
 index_t Paso_MPIInfo_mod(index_t n, index_t k) 
 {
     index_t q, out=0;
-    if (n>0) {
+    if (n>1) {
         q=k/n;
         if (k>0) {
            out=k-n*q;

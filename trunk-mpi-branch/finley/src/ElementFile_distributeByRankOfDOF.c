@@ -144,6 +144,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
 
               /* start to receive new elements */
               numRequests=0;
+#ifdef PASO_MPI
               for (p=0;p<size;++p) {
                  if (recv_count[p]>0) {
                     MPI_Irecv(&(self->Id[recv_offset[p]]), recv_count[p], 
@@ -188,9 +189,8 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
               }
               self->MPIInfo->msg_tag_counter+=4*size;
               /* wait for the requests to be finalized */
-              #ifdef PASO_MPI
               MPI_Waitall(numRequests,mpi_requests,mpi_stati);
-              #endif
+#endif
            }
            /* clear buffer */
            TMPMEMFREE(Id_buffer);
@@ -201,8 +201,10 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            TMPMEMFREE(recv_offset);
            TMPMEMFREE(proc_mask);
         }
+#ifdef PASO_MPI
         TMPMEMFREE(mpi_requests);
         TMPMEMFREE(mpi_stati);
+#endif
         TMPMEMFREE(send_count);
         TMPMEMFREE(recv_count);
         TMPMEMFREE(newOwner);

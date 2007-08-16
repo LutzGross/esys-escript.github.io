@@ -158,7 +158,7 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
             #pragma omp parallel for private(n) schedule(static)
             for (n=0; n< out->numNodes; ++n) {
                 if (out->Id[n] == undefined_node ) {
-                 sprintf(error_msg,"Finley_NodeFile_gather_global: Node id %d is referenced by an element but is not defined.",out->Id[n]);
+                 sprintf(error_msg,"Finley_NodeFile_gather_global: Node id %d is referenced by an element (n=%d) but is not defined.",out->Id[n], n);
                  Finley_setError(VALUE_ERROR,error_msg);
                }
              }
