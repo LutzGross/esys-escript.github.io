@@ -5,8 +5,8 @@ python_lib = 'python23'
 
 # locations of libraries for boost
 boost_path = 'c:/woo409/development/boost_1_33'
-boost_libs_path = 'c:/woo409/development/boost_1_33/windows_binary/lib'
-boost_libs = 'boost_python-vc71-mt-gd'
+boost_lib_path = 'c:/woo409/development/boost_1_33/windows_binary/lib'
+boost_lib = 'boost_python-vc71-mt-gd'
 
 cc_defines = ['_USE_MATH_DEFINES', ]
 # c flags to use

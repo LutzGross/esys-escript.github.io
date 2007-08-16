@@ -75,13 +75,7 @@ if not os.path.isfile(options_file) :
 
 if not options_file :
    import socket
-   from string import ascii_letters,digits
-   hostname=""
-   for s in socket.gethostname().split('.')[0]:
-      if s in ascii_letters+digits:
-         hostname+=s
-      else:
-         hostname+="_"
+   hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
    tmp = os.path.join("scons",hostname+"_options.py")
 
    if os.path.isfile(tmp) :
@@ -676,13 +670,13 @@ except KeyError:
    api_doxygen = None
 
 try:
-   svn_pipe = os.popen("svn info | grep '^Revision'")
-   rev = svn_pipe.readlines()
+   svn_pipe = os.popen("svnversion -n")
+   global_revision = svn_pipe.readlines()
    svn_pipe.close()
-   svn_version = re.sub("[^0-9]", "", rev[0])
+   global_revision = re.sub("[^0-9]", "", global_revision)
 except:
-   svn_version = "0"
-env.Append(CPPDEFINES = "SVN_VERSION="+svn_version)
+   global_revision = "0"
+env.Append(CPPDEFINES = "SVN_VERSION="+global_revision[0])
 
 # Python install - esys __init__.py
 init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
