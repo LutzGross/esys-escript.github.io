@@ -84,7 +84,7 @@ DataVector::resize(const DataVector::size_type newSize,
   assert(m_size >= 0);
 
   if ( newBlockSize == 0) {
-    throw DataException("DataVector: invalid blockSize specified");
+    throw DataException("DataVector: invalid blockSize specified (newBlockSize)");
   }
 
   if ( (newSize % newBlockSize) != 0) {
