@@ -138,19 +138,16 @@ void Finley_NodeFile_createMappings(Finley_NodeFile* in, dim_t numReducedNodes, 
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<numReducedNodes;++i) nodeMask[indexReducedNodes[i]]=i;
     in->reducedNodesMapping=Finley_NodeMapping_alloc(in->numNodes,nodeMask,UNUSED);
-printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC^^^ crash!\n");
-return;
 
     /* ==== mapping between nodes and DOFs ========== */
     /* the trick is to count the local DOFs first and then the romote DOFs grouped by processor */
-    dof_first_component=in->degreesOfFreedomDistribution->first_component;
     p_min=mpiSize;
     p_max=-1;
     Finley_NodeFile_setDOFRange(&min_DOF,&max_DOF,in);
 
     for (p=0; p<in->MPIInfo->size; ++p) {
-         if (dof_first_component[p]<=min_DOF) p_min=p;
-         if (dof_first_component[p]<=max_DOF) p_max=p;
+         if (in->degreesOfFreedomDistribution->first_component[p]<=min_DOF) p_min=p;
+         if (in->degreesOfFreedomDistribution->first_component[p]<=max_DOF) p_max=p;
     }
     n=0;
     for (i=0;i<in->numNodes;++i) {
@@ -161,14 +158,15 @@ return;
        }
     }
     for (p=p_min;p<=p_max;++p) {
-       firstDOF=dof_first_component[p];
-       lastDOF=dof_first_component[p+1];
-       for (i=0;i<in->numNodes;++i) {
-           k=in->globalDegreesOfFreedom[i];
-           if ( (k>=firstDOF) && (lastDOF>k) ) {
-             nodeMask[i]=n;
-             n++;
-             break;
+       firstDOF=in->degreesOfFreedomDistribution->first_component[p];
+       lastDOF=in->degreesOfFreedomDistribution->first_component[p+1];
+       if (p != myRank) {
+           for (i=0;i<in->numNodes;++i) {
+               k=in->globalDegreesOfFreedom[i];
+               if ( (k>=firstDOF) && (lastDOF>k) ) {
+                 nodeMask[i]=n;
+                 n++;
+               }
            }
        }
     }
@@ -176,22 +174,22 @@ return;
 
     /* ==== mapping between nodes and DOFs ========== */
     /* the trick is to count the local DOFs first and then the romote DOFs grouped by processor */
-    reduced_dof_first_component=in->reducedDegreesOfFreedomDistribution->first_component;
     p_min=mpiSize;
     p_max=-1;
     Finley_NodeFile_setReducedDOFRange(&min_DOF,&max_DOF,in); 
 
+
     for (p=0; p<in->MPIInfo->size; ++p) {
-         if (reduced_dof_first_component[p]<=min_DOF) p_min=p;
-         if (reduced_dof_first_component[p]<=max_DOF) p_max=p;
+         if (in->reducedDegreesOfFreedomDistribution->first_component[p]<=min_DOF) p_min=p;
+         if (in->reducedDegreesOfFreedomDistribution->first_component[p]<=max_DOF) p_max=p;
     }
-    myFirstReducedDOF=reduced_dof_first_component[myRank];
-    myLastReducedDOF=reduced_dof_first_component[myRank+1];
+    myFirstReducedDOF=in->reducedDegreesOfFreedomDistribution->first_component[myRank];
+    myLastReducedDOF=in->reducedDegreesOfFreedomDistribution->first_component[myRank+1];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<in->numNodes;++i) nodeMask[i]=UNUSED;
 
     n=0;
-    for (i=0;i<numReducedNodes;++i) {
+    for (i=0;i<in->numNodes;++i) {
        k=in->globalReducedDOFIndex[i];
        if ( (k>=myFirstReducedDOF) && (myLastReducedDOF>k) ) {
           nodeMask[i]=n;
@@ -199,20 +197,19 @@ return;
        }
     }
     for (p=p_min;p<=p_max;++p) {
-       firstDOF=reduced_dof_first_component[p];
-       lastDOF=reduced_dof_first_component[p+1];
-       for (i=0;i<in->numNodes;++i) {
-           k=in->globalReducedDOFIndex[i];
-           if ( (k>=firstDOF) && (lastDOF>k) ) {
-             nodeMask[i]=n;
-             n++;
-             break;
+       firstDOF=in->reducedDegreesOfFreedomDistribution->first_component[p];
+       lastDOF=in->reducedDegreesOfFreedomDistribution->first_component[p+1];
+       if (p != myRank) {
+           for (i=0;i<in->numNodes;++i) {
+               k=in->globalReducedDOFIndex[i];
+               if ( (k>=firstDOF) && (lastDOF>k) ) {
+                 nodeMask[i]=n;
+                 n++;
+               }
            }
        }
     }
     in->reducedDegreesOfFreedomMapping=Finley_NodeMapping_alloc(in->numNodes,nodeMask,UNUSED);
-    
-
   }
   TMPMEMFREE(nodeMask);
    

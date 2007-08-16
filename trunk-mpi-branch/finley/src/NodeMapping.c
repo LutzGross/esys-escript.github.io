@@ -26,7 +26,7 @@ Finley_NodeMapping* Finley_NodeMapping_alloc(dim_t numNodes, index_t* target, in
   Finley_NodeMapping* out=NULL;
   /*  allocate the return value */
   min_target=Finley_Util_getFlaggedMinInt(1,numNodes,target,unused);
-  numTargets=Finley_Util_getFlaggedMaxInt(1,numNodes,target,unused);
+  numTargets=Finley_Util_getFlaggedMaxInt(1,numNodes,target,unused)+1;
   if (min_target<0) {
      Finley_setError(VALUE_ERROR,"Finley_NodeMapping_alloc: target has negative entry.");
      return NULL;
