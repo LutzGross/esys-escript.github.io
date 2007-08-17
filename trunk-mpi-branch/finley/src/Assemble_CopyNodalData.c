@@ -162,7 +162,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                                        numComps_size);
                            } else {
                                 memcpy(getSampleDataFast(out,n),
-                                       &recv_buffer[k-upperBound],
+                                       &recv_buffer[(k-upperBound)*numComps],
                                        numComps_size);
                            }
                     }
@@ -185,7 +185,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                                        numComps_size);
                            } else {
                                 memcpy(getSampleDataFast(out,n),
-                                       &recv_buffer[k-upperBound],
+                                       &recv_buffer[(k-upperBound)*numComps],
                                        numComps_size);
                            }
                     }
@@ -228,7 +228,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                                        numComps_size);
                            } else {
                                 memcpy(getSampleDataFast(out,n),
-                                       &recv_buffer[k-upperBound],
+                                       &recv_buffer[(k-upperBound)*numComps],
                                        numComps_size);
                            }
                     }

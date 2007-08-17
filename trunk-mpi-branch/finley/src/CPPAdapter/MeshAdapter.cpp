@@ -545,20 +545,44 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
               break;
            case(Elements):
            case(ReducedElements):
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+              }
               break;
            case(FaceElements):
            case(ReducedFaceElements):
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
+
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+              }
               break;
            case(Points):
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+              }
               break;
            case(ContactElementsZero):
            case(ContactElementsOne):
            case(ReducedContactElementsZero):
            case(ReducedContactElementsOne):
-              Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+              }
              break;
            default:
              stringstream temp;
@@ -583,20 +607,44 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
              break;
           case(Elements):
           case(ReducedElements):
-             Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+             }
              break;
           case(FaceElements):
           case(ReducedFaceElements):
-             Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+              }
              break;
           case(Points):
-             Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+             }
              break;
           case(ContactElementsZero):
           case(ContactElementsOne):
           case(ReducedContactElementsZero):
           case(ReducedContactElementsOne):
-             Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+              if (getMPISize()>1) {
+                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escriptDataC _in2 = temp.getDataC();
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
+              } else {
+                 Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+             }
              break;
           default:
              stringstream temp;

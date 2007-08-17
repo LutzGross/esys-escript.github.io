@@ -77,7 +77,7 @@ void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,in
                   for (i=0;i<NN;i++) {
                      k=dofIndex[in->Nodes[INDEX2(lin_node[i],e,NN2)]];
                      if ( (firstDOF<=k) && (k<lastDOF) ) {
-                        for (j=0;j<NN;j++) mask[dofIndex[in->Nodes[INDEX2(lin_node[i],e,NN2)]]-offset]=marker;
+                        for (j=0;j<NN;j++) mask[dofIndex[in->Nodes[INDEX2(lin_node[j],e,NN2)]]-offset]=marker;
                         break;
                      }
                   }

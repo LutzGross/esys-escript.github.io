@@ -170,7 +170,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   if (Finley_noError()) {
      if (use_reduced_elements) {
         in->Nodes->reducedDegreesOfFreedomMapping=this_mapping;
-        in->Nodes->degreesOfFreedomCoupler=this_coupler;
+        in->Nodes->reducedDegreesOfFreedomCoupler=this_coupler;
      } else {
         in->Nodes->degreesOfFreedomMapping=this_mapping;
         in->Nodes->degreesOfFreedomCoupler=this_coupler;

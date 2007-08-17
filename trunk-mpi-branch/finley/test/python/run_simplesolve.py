@@ -114,8 +114,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,2,optimize=True)
-        return
+        domain=Rectangle(NE0,NE1,2,l0=2*NE0,l1=2*NE1,optimize=True)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[0]**2+5.*x[1]*x[0]+6.*x[1]**2
@@ -125,6 +124,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[1]=3.+5.*x[0]+12.*x[1]
         # -------- test gradient --------------------------------
         self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        return 
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
