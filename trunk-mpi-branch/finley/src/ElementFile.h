@@ -106,6 +106,7 @@ void Finley_ElementFile_markNodes(dim_t*,dim_t,Finley_ElementFile*,dim_t);
 void Finley_ElementFile_scatter(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_gather(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
 void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_ElementFile*);
+void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Finley_ElementFile*in ,bool_t useLinear);
 
 void Finley_ElementFile_setTags(Finley_ElementFile*,const int,escriptDataC*);
 Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_RefElement*);

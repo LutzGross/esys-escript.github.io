@@ -125,7 +125,6 @@ void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFil
 void Finley_NodeFile_scatter(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_scatterEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
 void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
-void Finley_NodeFile_createMappings(Finley_NodeFile* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component);
 
 /* ===================== */
 void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);

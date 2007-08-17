@@ -206,29 +206,3 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_lis
   }
   return out;
 }
-
-Paso_Coupler* Finley_IndexList_createCoupler(Finley_IndexList *index_list)
-{
-    Paso_Coupler* out=NULL;
-    index_t *sharedInput=NULL, *offsetInSharedInput=NULL, *offsetInRemoteInput=NULL;
-/*
-
-    if (! (rowMap->MPIInfo->comm == colMap->MPIInfo->comm ) ) {
-        Finley_setError(SYSTEM_ERROR,"Finley_IndexList_createCoupler: communicator for row and column DOFMap must be identical.");
-        return NULL;
-    }
-    if (! (rowMap->numNeighbours == colMap->numNeighbours ) ) {
-        Finley_setError(SYSTEM_ERROR,"Finley_IndexList_createCoupler: number of neighbours for row and column DOFMap must be identical.");
-        return NULL;
-    }
-    
-
-    out=Paso_Coupler_alloc(rowMap->numNeighbours,
-                           rowMap->neighbours,
-                           sharedInput,
-                           offsetInSharedInput,
-                           offsetInRemoteInput,
-                           rowMap->MPIInfo);
-*/
-   return out;
-}

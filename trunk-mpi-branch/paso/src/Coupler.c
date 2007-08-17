@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 /*
 ********************************************************************************
@@ -38,12 +38,11 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_SharedComponents* send,
   Paso_Coupler*out=NULL;
   Paso_resetError();
   out=MEMALLOC(1,Paso_Coupler);
-  if ( send->distribution != recv->distribution ) {
-     Paso_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv distribution need to match.");
+  if ( send->mpi_info != recv->mpi_info ) {
+     Paso_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv mpi communicator don't match.");
      return NULL;
   }
   if (!Paso_checkPtr(out)) {
-      out->distribution=Paso_Distribution_getReference(send->distribution);
       out->send=Paso_SharedComponents_getReference(send);
       out->send_buffer=NULL;
       out->recv= Paso_SharedComponents_getReference(recv);
@@ -194,16 +193,25 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
 Paso_Coupler* Paso_Coupler_unroll(Paso_Coupler* in, index_t block_size) {
      Paso_SharedComponents *new_send_shcomp=NULL, *new_recv_shcomp=NULL;
      Paso_Coupler *out=NULL;
-     Paso_Distribution*new_distribution;
-     new_distribution=Paso_Distribution_alloc(in->mpi_info,
-                                              in->distribution->first_component,
-                                              block_size,0);
      if (Paso_noError()) {
-        new_send_shcomp=Paso_SharedComponents_alloc(in->send->numComponents,in->send->globalComponent,block_size,0,new_distribution);
-        new_recv_shcomp=Paso_SharedComponents_alloc(in->recv->numComponents,in->recv->globalComponent,block_size,0,new_distribution);
+        if (block_size>1) {
+            new_send_shcomp=Paso_SharedComponents_alloc(in->send->numNeighbors,
+                                                        in->send->neighbor,
+                                                        in->send->shared,
+                                                        in->send->offsetInShared,
+                                                        block_size,0,in->mpi_info);
+
+            new_recv_shcomp=Paso_SharedComponents_alloc(in->recv->numNeighbors,
+                                                        in->recv->neighbor,
+                                                        in->recv->shared,
+                                                        in->recv->offsetInShared,
+                                                        block_size,0,in->mpi_info);
+        } else {
+            new_send_shcomp=Paso_SharedComponents_getReference(in->send);
+            new_recv_shcomp=Paso_SharedComponents_getReference(in->recv);
+        }
         if (Paso_noError()) out=Paso_Coupler_alloc(new_send_shcomp,new_recv_shcomp);
      }
-     Paso_Distribution_free(new_distribution);
      Paso_SharedComponents_free(new_send_shcomp);
      Paso_SharedComponents_free(new_recv_shcomp);
      if (Paso_noError()) {

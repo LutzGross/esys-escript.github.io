@@ -197,16 +197,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,M,row_ptr,row_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,M,NULL,NULL);
-        send=Paso_SharedComponents_alloc(N,NULL,1,0,input_dist);
+        send=Paso_SharedComponents_alloc(0,NULL,NULL,NULL,1,0,mpi_info);
         coupler=Paso_Coupler_alloc(send,send);
-        pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist, mainPattern, couplePattern, coupler);
-        pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,
+        pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
                                                mainPattern,couplePattern,coupler);
 
  	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, pattern, 1, 1);
 	/* copy values and cleanup temps */
-	for( i=0; i<nz; i++ )
-		out->mainBlock->val[i] = val[i];
+	for( i=0; i<nz; i++ ) out->mainBlock->val[i] = val[i];
 
         Paso_SystemMatrixPattern_free(pattern);
         Paso_Pattern_free(mainPattern);
@@ -317,10 +315,9 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,N,col_ptr,col_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,N,NULL,NULL);
-        send=Paso_SharedComponents_alloc(M,NULL,1,0,input_dist);
+        send=Paso_SharedComponents_alloc(0,NULL,NULL,NULL,1,0,mpi_info);
         coupler=Paso_Coupler_alloc(send,send);
-        pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist, mainPattern, couplePattern, coupler);
-        pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,
+        pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
                                                mainPattern,couplePattern,coupler);
  	out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_CSC, pattern, 1, 1);
 	/* copy values and cleanup temps */

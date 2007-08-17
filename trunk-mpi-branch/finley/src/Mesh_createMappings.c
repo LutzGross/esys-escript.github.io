@@ -42,7 +42,7 @@ void Finley_Mesh_createMappings(Finley_Mesh* in, index_t *dof_first_component) {
 
     numReducedNodes=Finley_Util_packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
 
-    Finley_NodeFile_createMappings(in->Nodes,numReducedNodes,indexReducedNodes,dof_first_component);
+    Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,dof_first_component);
 
   }
 

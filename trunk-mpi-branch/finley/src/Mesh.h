@@ -131,8 +131,12 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize);
 bool_t Finley_Mesh_isPrepared(Finley_Mesh*);
 void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map);
 void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in);
-void  Finley_Mesh_resolveNodeIds(Finley_Mesh*);
-void  Finley_Mesh_createMappings(Finley_Mesh* in, index_t *distribution);
+void Finley_Mesh_resolveNodeIds(Finley_Mesh*);
+void Finley_Mesh_createMappings(Finley_Mesh* in, index_t *distribution);
+void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component);
+void Finley_Mesh_markDOFsConnectedToRange(index_t* mask, index_t offset, index_t marker,index_t firstDOF,index_t lastDOF,Finley_Mesh* in, bool_t useLinear);
+
+
 
 Finley_Mesh* Finley_Mesh_merge(dim_t, Finley_Mesh**);
 

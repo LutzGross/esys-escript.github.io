@@ -67,17 +67,11 @@ void  Finley_Assemble_PDE_System2_C(Assemble_Parameters p, Finley_ElementFile* e
                                                                                                                                                                                                      
        if (!Finley_checkPtr(EM_S) && !Finley_checkPtr(EM_F) && !Finley_checkPtr(row_index) ) {
 
-          #ifndef PASO_MPI
           for (color=elements->minColor;color<=elements->maxColor;color++) {
              /*  open loop over all elements: */
              #pragma omp for private(e) schedule(static)
              for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
-          #else
-          {
-             for(e=0;e<elements->numElements;e++) {
-                {
-          #endif
                    Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                    add_EM_F=FALSE;
                    add_EM_S=FALSE;

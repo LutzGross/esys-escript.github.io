@@ -78,9 +78,12 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   if (reduce_col_order) {
        colMap=mesh->Nodes->reducedDegreesOfFreedomMapping;
        colDistribution=mesh->Nodes->reducedDegreesOfFreedomDistribution;
+       coupler=mesh->Nodes->reducedDegreesOfFreedomCoupler;
+
   } else {
        colMap=mesh->Nodes->degreesOfFreedomMapping;
        colDistribution=mesh->Nodes->degreesOfFreedomDistribution;
+       coupler=mesh->Nodes->degreesOfFreedomCoupler;
   }
      
   if (reduce_row_order) {
@@ -116,12 +119,12 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      /* create pattern */
      main_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,0,Paso_Distribution_getMyNumComponents(colDistribution));
      couple_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets);
-     coupler=Finley_IndexList_createCoupler(index_list);
 
      /* if everthing is in order we can create the return value */
      if (Finley_noError()) {
           out=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
                                              rowDistribution,
+                                             colDistribution,
                                              main_pattern,
                                              couple_pattern,
                                              coupler);

@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 /*
 ********************************************************************************
@@ -30,8 +30,6 @@
 typedef struct Paso_Coupler {
 
   dim_t block_size;
-
-  Paso_Distribution * distribution; 
 
   Paso_SharedComponents* send;
   double *send_buffer;

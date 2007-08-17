@@ -31,6 +31,7 @@
 
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
                                                          Paso_Distribution *output_distribution,
+                                                         Paso_Distribution *input_distribution,
                                                          Paso_Pattern* mainPattern,
                                                          Paso_Pattern* couplePattern,
                                                          Paso_Coupler* coupler) 
@@ -52,7 +53,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   if (mainPattern->numOutput !=  Paso_Distribution_getMyNumComponents(output_distribution)) {
       Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of output and given distribution don't match.");
   }
-  if (mainPattern->numInput != Paso_Distribution_getMyNumComponents(coupler->distribution)) {
+  if (mainPattern->numInput != Paso_Distribution_getMyNumComponents(input_distribution)) {
      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of input for main pattern and number of send components in coupler don't match.");
   }
   if (couplePattern->numInput != coupler->recv->numSharedComponents) {
@@ -66,7 +67,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   out->couplePattern=Paso_Pattern_getReference(couplePattern);
   out->coupler=Paso_Coupler_getReference(coupler);
   out->output_distribution=Paso_Distribution_getReference(output_distribution);
-  out->input_distribution=Paso_Distribution_getReference(coupler->distribution);
+  out->input_distribution=Paso_Distribution_getReference(input_distribution);
   out->mpi_info= Paso_MPIInfo_getReference(coupler->mpi_info);
   #ifdef Paso_TRACE
   printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been allocated.\n");

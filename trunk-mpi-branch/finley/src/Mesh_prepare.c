@@ -83,7 +83,7 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
           Finley_NodeFile_createDenseReducedNodeLabeling(in->Nodes,maskReducedNodes); 
           Finley_NodeFile_createDenseReducedDOFLabeling(in->Nodes,maskReducedNodes); 
           /* create the missing mappings */
-          if (Finley_noError()) Finley_NodeFile_createMappings(in->Nodes,numReducedNodes,indexReducedNodes,distribution);
+          if (Finley_noError()) Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,distribution);
         }
 
         TMPMEMFREE(maskReducedNodes);
