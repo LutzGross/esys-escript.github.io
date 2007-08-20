@@ -101,7 +101,7 @@ dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile* in)
                }
             #else
                new_numGlobalDOFs=loc_offsets[0];
-               loc_offsets[n]=0;
+               loc_offsets[0]=0;
             #endif
             #pragma omp parallel for private(n) schedule(static)
             for (n=0; n<myDOFs; ++n) DOF_buffer[n]+=loc_offsets[in->MPIInfo->rank];
