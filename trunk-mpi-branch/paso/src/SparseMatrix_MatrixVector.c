@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 /*
 ********************************************************************************
 *               Copyright   2006, 2007 by ACcESS MNRF                          *
@@ -184,83 +184,96 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
 {
     register index_t ir,icol,iptr,icb,irb,irow,ic,Aiptr;
     register double reg,reg1,reg2,reg3,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22;
-    if (A ->col_block_size==1 && A->row_block_size ==1) {
-        #pragma omp for private(irow,iptr,reg) schedule(static)
-	for (irow=0;irow< A->pattern->numOutput;++irow) {
-          reg=0.;
-          #pragma ivdep
-	  for (iptr=(A->pattern->ptr[irow]);iptr<(A->pattern->ptr[irow+1]); ++iptr) {
-	      reg += A->val[iptr] * in[A->pattern->index[iptr]];
-	  }
-	  out[irow] += alpha * reg;
-	}
-    } else if (A ->col_block_size==2 && A->row_block_size ==2) {
-        #pragma omp for private(ir,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11) schedule(static)
-	for (ir=0;ir< A->pattern->numOutput;ir++) {
-          reg1=0.;
-          reg2=0.;
-          #pragma ivdep
-	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-	       ic=2*(A->pattern->index[iptr]);
-               Aiptr=iptr*4;
-               in1=in[ic];
-               in2=in[1+ic];
-               A00=A->val[Aiptr  ];
-               A10=A->val[Aiptr+1];
-               A01=A->val[Aiptr+2];
-               A11=A->val[Aiptr+3];
-	       reg1 += A00*in1 + A01*in2;
-	       reg2 += A10*in1 + A11*in2;
-	  }
-	  out[  2*ir] += alpha * reg1;
-	  out[1+2*ir] += alpha * reg2;
-	}
-    } else if (A ->col_block_size==3 && A->row_block_size ==3) {
-        #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
-	for (ir=0;ir< A->pattern->numOutput;ir++) {
-          reg1=0.;
-          reg2=0.;
-          reg3=0.;
-          #pragma ivdep
-	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-	       ic=3*(A->pattern->index[iptr]);
-               Aiptr=iptr*9;
-               in1=in[ic];
-               in2=in[1+ic];
-               in3=in[2+ic];
-               A00=A->val[Aiptr  ];
-               A10=A->val[Aiptr+1];
-               A20=A->val[Aiptr+2];
-               A01=A->val[Aiptr+3];
-               A11=A->val[Aiptr+4];
-               A21=A->val[Aiptr+5];
-               A02=A->val[Aiptr+6];
-               A12=A->val[Aiptr+7];
-               A22=A->val[Aiptr+8];
-	       reg1 += A00*in1 + A01*in2 + A02*in3;
-	       reg2 += A10*in1 + A11*in2 + A12*in3;
-	       reg3 += A20*in1 + A21*in2 + A22*in3;
-	  }
-	  out[  3*ir] += alpha * reg1;
-	  out[1+3*ir] += alpha * reg2;
-	  out[2+3*ir] += alpha * reg3;
-	}
+    if (ABS(beta)>0.) {
+      if (beta != 1.) {
+          #pragma omp for private(irow) schedule(static)
+          for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
+            out[irow] *= beta;
+      }
     } else {
-        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
-	for (ir=0;ir< A->pattern->numOutput;ir++) {
-	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-	    for (irb=0;irb< A->row_block_size;irb++) {
-	      irow=irb+A->row_block_size*ir;
-              reg=0.;
-              #pragma ivdep
-	      for (icb=0;icb< A->col_block_size;icb++) {
-		icol=icb+A->col_block_size*(A->pattern->index[iptr]);
-		reg += A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
-	      }
-	      out[irow] += alpha * reg;
-	    }
-	  }
-	}
+      #pragma omp for private(irow) schedule(static)
+      for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
+        out[irow] = 0;
+    }
+    if (ABS(alpha)>0) {
+      if (A ->col_block_size==1 && A->row_block_size ==1) {
+          #pragma omp for private(irow,iptr,reg) schedule(static)
+  	for (irow=0;irow< A->pattern->numOutput;++irow) {
+            reg=0.;
+            #pragma ivdep
+  	  for (iptr=(A->pattern->ptr[irow]);iptr<(A->pattern->ptr[irow+1]); ++iptr) {
+  	      reg += A->val[iptr] * in[A->pattern->index[iptr]];
+  	  }
+  	  out[irow] += alpha * reg;
+  	}
+      } else if (A ->col_block_size==2 && A->row_block_size ==2) {
+          #pragma omp for private(ir,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11) schedule(static)
+  	for (ir=0;ir< A->pattern->numOutput;ir++) {
+            reg1=0.;
+            reg2=0.;
+            #pragma ivdep
+  	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+  	       ic=2*(A->pattern->index[iptr]);
+                 Aiptr=iptr*4;
+                 in1=in[ic];
+                 in2=in[1+ic];
+                 A00=A->val[Aiptr  ];
+                 A10=A->val[Aiptr+1];
+                 A01=A->val[Aiptr+2];
+                 A11=A->val[Aiptr+3];
+  	       reg1 += A00*in1 + A01*in2;
+  	       reg2 += A10*in1 + A11*in2;
+  	  }
+  	  out[  2*ir] += alpha * reg1;
+  	  out[1+2*ir] += alpha * reg2;
+  	}
+      } else if (A ->col_block_size==3 && A->row_block_size ==3) {
+          #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
+  	for (ir=0;ir< A->pattern->numOutput;ir++) {
+            reg1=0.;
+            reg2=0.;
+            reg3=0.;
+            #pragma ivdep
+  	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+  	       ic=3*(A->pattern->index[iptr]);
+                 Aiptr=iptr*9;
+                 in1=in[ic];
+                 in2=in[1+ic];
+                 in3=in[2+ic];
+                 A00=A->val[Aiptr  ];
+                 A10=A->val[Aiptr+1];
+                 A20=A->val[Aiptr+2];
+                 A01=A->val[Aiptr+3];
+                 A11=A->val[Aiptr+4];
+                 A21=A->val[Aiptr+5];
+                 A02=A->val[Aiptr+6];
+                 A12=A->val[Aiptr+7];
+                 A22=A->val[Aiptr+8];
+  	       reg1 += A00*in1 + A01*in2 + A02*in3;
+  	       reg2 += A10*in1 + A11*in2 + A12*in3;
+  	       reg3 += A20*in1 + A21*in2 + A22*in3;
+  	  }
+  	  out[  3*ir] += alpha * reg1;
+  	  out[1+3*ir] += alpha * reg2;
+  	  out[2+3*ir] += alpha * reg3;
+  	}
+      } else {
+          #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
+  	for (ir=0;ir< A->pattern->numOutput;ir++) {
+  	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+  	    for (irb=0;irb< A->row_block_size;irb++) {
+  	      irow=irb+A->row_block_size*ir;
+                reg=0.;
+                #pragma ivdep
+  	      for (icb=0;icb< A->col_block_size;icb++) {
+  		icol=icb+A->col_block_size*(A->pattern->index[iptr]);
+  		reg += A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
+  	      }
+  	      out[irow] += alpha * reg;
+  	    }
+  	  }
+  	}
+      }
     }
     return;
 }

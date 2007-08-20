@@ -85,9 +85,9 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   /* start exchange */
   Paso_SystemMatrix_startCollect(A,in);
   /* process main block */
-  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(alpha,A->mainBlock,in,beta,out);
+  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->mainBlock,in,beta,out);
   /* finish exchange */
   remote_values=Paso_SystemMatrix_finishCollect(A);
   /* process couple block */
-  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(alpha,A->coupleBlock,remote_values,1.,out);
+  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->coupleBlock,remote_values,1.,out);
 }

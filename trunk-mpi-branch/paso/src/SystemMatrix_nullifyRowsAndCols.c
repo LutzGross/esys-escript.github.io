@@ -51,7 +51,7 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
             Paso_SystemMatrix_startCollect(A,mask_col) ;
             Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->mainBlock,mask_row,mask_col,main_diagonal_value);
             remote_values=Paso_SystemMatrix_finishCollect(A);
-            Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->coupleBlock,mask_row,remote_values,0.);
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->coupleBlock,mask_row,remote_values,0.); 
          }
          Paso_SystemMatrix_freeBuffer(A);
        }

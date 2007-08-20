@@ -164,6 +164,7 @@ err_t Paso_Solver_PCG(
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
 	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
+	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* delta=p*v */

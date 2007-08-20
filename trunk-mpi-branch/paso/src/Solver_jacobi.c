@@ -170,15 +170,3 @@ void Paso_Solver_solveJacobi(Paso_Solver_Jacobi * prec, double * x, double * b) 
      return;
 }
 
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

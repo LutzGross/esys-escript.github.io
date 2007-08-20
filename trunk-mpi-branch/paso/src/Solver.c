@@ -156,7 +156,9 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                     #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
                     {
                        #pragma omp for private(i) schedule(static)
-                       for (i = 0; i < numEqua; i++) r[i]=b[i];
+                       for (i = 0; i < numEqua; i++) {
+                           r[i]=b[i];
+                       }
              
                        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
              

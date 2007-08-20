@@ -28,6 +28,7 @@ import unittest
 from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
+OPTIMIZE=False
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -49,7 +50,7 @@ FAC_OFFDIAG=-0.4
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,1, optimize=True)
+        domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
 
         x=Solution(domain).getX()
         # --- set exact solution ----
@@ -76,7 +77,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,1)
+        domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -114,7 +115,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,2,l0=2*NE0,l1=2*NE1,optimize=True)
+        domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[0]**2+5.*x[1]*x[0]+6.*x[1]**2
@@ -139,7 +140,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1,2)
+        domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -177,7 +178,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2,1)
+        domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[2]
         # --- set exact gradient -----------
@@ -202,7 +203,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2,1)
+        domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -248,7 +249,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2,2)
+        domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[2]+6.*x[0]*x[1]+7.*x[1]*x[2]+8.*x[2]*x[0]+9.*x[0]**2+10.*x[1]**2+11.*x[2]**2
@@ -274,7 +275,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2,2)
+        domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -321,12 +322,12 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
