@@ -146,7 +146,7 @@ dim_t Finley_IndexList_count(Finley_IndexList* in, index_t range_min,index_t ran
 
 /* count the number of row indices in the Finley_IndexList in */
 
-void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array, index_t range_min,index_t range_max) {
+void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array, index_t range_min,index_t range_max, index_t index_offset) {
   dim_t i, ptr;
   register index_t itmp;
   if (in!=NULL) {
@@ -154,12 +154,12 @@ void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array, index_t rang
     for (i=0;i<in->n;i++) {
           itmp=in->index[i];
           if ((itmp>=range_min) && (range_max>itmp)) {
-             array[ptr]=itmp;
+             array[ptr]=itmp+index_offset;
              ptr++;
           }
 
     }
-    Finley_IndexList_toArray(in->extension,&(array[ptr]), range_min, range_max);
+    Finley_IndexList_toArray(in->extension,&(array[ptr]), range_min, range_max, index_offset);
   }
 }
 
@@ -173,7 +173,7 @@ void Finley_IndexList_free(Finley_IndexList* in) {
 }
 
 /* creates a Paso_pattern from a range of indices */
-Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max)
+Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max,index_t index_offset)
 {
    dim_t *ptr=NULL;
    register dim_t s,i,itmp;
@@ -200,7 +200,7 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_lis
        if (! Finley_checkPtr(index)) {
               #pragma omp parallel for schedule(static)
               for(i=0;i<n;++i) {
-                  Finley_IndexList_toArray(&index_list[i],&index[ptr[i]],range_min,range_max);
+                  Finley_IndexList_toArray(&index_list[i],&index[ptr[i]],range_min,range_max,index_offset);
               }
               out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n,ptr,index);
        }

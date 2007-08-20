@@ -40,10 +40,10 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
                                        bool_t reduce_row_order, index_t* row_map,
                                        bool_t reduce_col_order, index_t* col_map);
 void Finley_IndexList_insertIndex(Finley_IndexList*, index_t);
-void Finley_IndexList_toArray(Finley_IndexList*, index_t*, index_t, index_t);
+void Finley_IndexList_toArray(Finley_IndexList*, index_t*, index_t, index_t, index_t);
 dim_t Finley_IndexList_count(Finley_IndexList*,  index_t, index_t);
 void Finley_IndexList_free(Finley_IndexList*);
-Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max);
+Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
 void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
                                                  Finley_ElementFile* elements, index_t* row_map, index_t* col_map);
 

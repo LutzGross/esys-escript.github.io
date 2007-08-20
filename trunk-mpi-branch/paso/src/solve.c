@@ -45,6 +45,7 @@ void Paso_solve(Paso_SystemMatrix* A,
                                double* out,
                                double* in,
                                Paso_Options* options) {
+
   Paso_Performance pp;
   index_t package;
   Paso_resetError();
@@ -137,18 +138,3 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
 
    }
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.2  2005/09/07 00:59:08  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:49  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

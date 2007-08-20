@@ -46,7 +46,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->pattern=NULL;  
      out->row_distribution=NULL;
      out->col_distribution=NULL;
-     out->mpi_info=Paso_MPIInfo_getReference(out->pattern->mpi_info);
+     out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
      out->mainBlock=NULL;
      out->coupleBlock=NULL;
      out->normalizer_is_valid=FALSE;

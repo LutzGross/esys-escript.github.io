@@ -56,7 +56,6 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   if (mainPattern->numInput != Paso_Distribution_getMyNumComponents(input_distribution)) {
      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of input for main pattern and number of send components in coupler don't match.");
   }
-printf("couplePattern->numInput != coupler->recv->numSharedComponents %d %d\n", couplePattern->numInput, coupler->recv->numSharedComponents);
   if (couplePattern->numInput != coupler->recv->numSharedComponents) {
      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of inputs for couple pattern and number of received components in coupler don't match.");
   }

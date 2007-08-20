@@ -117,9 +117,8 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      }
  
      /* create pattern */
-MPI_Allreduce( &i, &j, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-     main_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,0,Paso_Distribution_getMyNumComponents(colDistribution));
-     couple_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets);
+     main_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,0,Paso_Distribution_getMyNumComponents(colDistribution),0);
+     couple_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets,-Paso_Distribution_getMyNumComponents(colDistribution));
      /* if everthing is in order we can create the return value */
      if (Finley_noError()) {
           out=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
@@ -141,5 +140,6 @@ MPI_Allreduce( &i, &j, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
   #ifdef Finley_TRACE
   printf("timing: mesh to matrix pattern: %.4e sec\n",Finley_timer()-time0);
   #endif
+  Paso_MPIInfo_noError(mesh->MPIInfo);
   return out;
 }
