@@ -133,8 +133,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.setTolerance(SOLVER_TOL)
         pde.setSolverMethod(pde.PCG,pde.JACOBI)
         pde.setSolverPackage(pde.PASO)
-        u=pde.getSolution()
-        return 
+        u=pde.getSolution(verbose=True)
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
