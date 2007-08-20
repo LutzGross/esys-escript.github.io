@@ -124,7 +124,6 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[1]=3.+5.*x[0]+12.*x[1]
         # -------- test gradient --------------------------------
         self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
-        return 
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -135,6 +134,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         pde.setSolverMethod(pde.PCG,pde.JACOBI)
         pde.setSolverPackage(pde.PASO)
         u=pde.getSolution()
+        return 
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)

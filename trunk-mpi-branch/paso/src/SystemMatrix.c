@@ -164,7 +164,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_Distribution_free(in->col_distribution);
         Paso_MPIInfo_free(in->mpi_info);
         Paso_SparseMatrix_free(in->mainBlock);
-        Paso_SparseMatrix_free(in->mainBlock);
+        Paso_SparseMatrix_free(in->coupleBlock);
         MEMFREE(in->normalizer);
         Paso_solve_free(in); 
         #ifdef TRILINOS

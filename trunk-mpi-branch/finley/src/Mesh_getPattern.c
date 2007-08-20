@@ -71,7 +71,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
   Finley_NodeMapping *colMap=NULL, *rowMap=NULL;
   Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
   
-  index_t i;
+  index_t i,j;
   Finley_resetError();
   time0=Finley_timer();
 
@@ -117,9 +117,9 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      }
  
      /* create pattern */
+MPI_Allreduce( &i, &j, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
      main_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,0,Paso_Distribution_getMyNumComponents(colDistribution));
      couple_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),index_list,Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets);
-
      /* if everthing is in order we can create the return value */
      if (Finley_noError()) {
           out=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
@@ -137,7 +137,6 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      TMPMEMFREE(index_list);
      Paso_Pattern_free(main_pattern);
      Paso_Pattern_free(couple_pattern);
-     Paso_Coupler_free(coupler);
   }
   #ifdef Finley_TRACE
   printf("timing: mesh to matrix pattern: %.4e sec\n",Finley_timer()-time0);

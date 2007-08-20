@@ -1038,23 +1038,6 @@ Data::Lsup() const
 }
 
 double
-Data::Linf() const
-{
-  double localValue, globalValue;
-  //
-  // set the initial absolute minimum value to max double
-  AbsMin abs_min_func;
-  localValue = algorithm(abs_min_func,numeric_limits<double>::max());
-
-#ifdef PASO_MPI
-  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
-  return globalValue;
-#else
-  return localValue;
-#endif
-}
-
-double
 Data::sup() const
 {
   double localValue, globalValue;

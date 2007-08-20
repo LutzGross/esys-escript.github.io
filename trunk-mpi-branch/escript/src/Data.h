@@ -743,15 +743,6 @@ class Data {
 
   /**
      \brief
-     Return the minimum absolute value of this Data object.
-     *
-  */
-  ESCRIPT_DLL_API
-  double
-  Linf() const;
-
-  /**
-     \brief
      Return the maximum value of this Data object.
      *
   */
