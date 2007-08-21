@@ -145,6 +145,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
     if (local_NE2+e_offset2 == NE2) NFaceElements+=local_NE1*local_NE0;
   } else {
       NDOF2=N2-1;
+  }
  
   if (!periodic[0]) {
      NDOF0=N0;
@@ -221,7 +222,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
      /*   these are the quadrilateral elements on boundary 1 (x3=0): */
      if (!periodic[2]) {
        /* **  elements on boundary 100 (x3=0): */
-       if (offset2==0) {
+       if (e_offset2==0) {
           #pragma omp parallel for private(i0,i1,k,node0) 
           for (i1=0;i1<local_NE1;i1++) {
             for (i0=0;i0<local_NE0;i0++) {
@@ -315,14 +316,12 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
                   out->FaceElements->Nodes[INDEX2(1,k,NN)] =node0+Nstride2                      ;
                   out->FaceElements->Nodes[INDEX2(2,k,NN)] =node0+Nstride2+Nstride1           ;
                   out->FaceElements->Nodes[INDEX2(3,k,NN)] =node0+           Nstride1           ;
-                 }
                }
              }
            }
            faceNECount+=local_NE1*local_NE2;
         }
         totalNECount+=NE1*NE2;
-     
         /* **  elements on boundary 002 (x1=1): */
         if (local_NE0+e_offset0 == NE0) {
            #pragma omp parallel for private(i1,i2,k,node0) 
