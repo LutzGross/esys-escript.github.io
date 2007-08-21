@@ -85,7 +85,6 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
        k=globalDOFIndex[i];
        if (k>-1) locDOFMask[k-min_DOF]=UNUSED-1;
     }
-  
     for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) locDOFMask[i]=i-myFirstDOF+min_DOF;
 
     numNeighbors=0;

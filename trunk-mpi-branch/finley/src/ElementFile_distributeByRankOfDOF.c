@@ -192,7 +192,9 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
               }
               self->MPIInfo->msg_tag_counter+=4*size;
               /* wait for the requests to be finalized */
+              #ifdef PASO_MPI
               MPI_Waitall(numRequests,mpi_requests,mpi_stati);
+              #endif
            }
            /* clear buffer */
            TMPMEMFREE(Id_buffer);

@@ -33,9 +33,10 @@
 /*  free any extra stuff possibly used by the UMFPACK library */
 
 void Paso_UMFPACK_free(Paso_SystemMatrix* A) {
+     Paso_UMFPACK_Handler* pt =NULL;
 #ifdef UMFPACK
       if (A->solver!=NULL) {
-           Paso_UMFPACK_Handler* pt=(Paso_UMFPACK_Handler*)(A->solver);
+           pt=(Paso_UMFPACK_Handler*)(A->solver);
            umfpack_di_free_symbolic(&(pt->symbolic));
            umfpack_di_free_numeric(&(pt->numeric));
            MEMFREE(pt);
@@ -54,29 +55,30 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
      double time0;
      double control[UMFPACK_CONTROL], info[UMFPACK_INFO];
      int error = UMFPACK_OK;
+     Paso_UMFPACK_Handler* pt =NULL;
 
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
         Paso_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSR format with index offset 1 and block size 1.");
         return;
      }
      Performance_startMonitor(pp,PERFORMANCE_ALL);
-     Paso_UMFPACK_Handler* pt = (Paso_UMFPACK_Handler *)(A->solver);
+     pt = (Paso_UMFPACK_Handler *)(A->solver);
      umfpack_di_defaults(control);
 
      if (pt==NULL) {
-        int n = A->numRows;
+        int n = A->mainBlock->numRows;
         pt=MEMALLOC(1,Paso_UMFPACK_Handler);
         if (Paso_checkPtr(pt)) return;
         A->solver=(void*) pt;
         time0=Paso_timer();
-        // call LDU symbolic factorization: //
-        error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
+        /* call LDU symbolic factorization: */
+        error=umfpack_di_symbolic(n,n,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,A->mainBlock->val,&(pt->symbolic),control,info);
         if (error != UMFPACK_OK) {
              Paso_setError(VALUE_ERROR,"symbolic factorization failed.");
              Paso_UMFPACK_free(A);
         } else {
-            // call LDU factorization: //
-            error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,pt->symbolic,&(pt->numeric),control,info);
+            /* call LDU factorization: */
+            error= umfpack_di_numeric(A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,A->mainBlock->val,pt->symbolic,&(pt->numeric),control,info);
            if (error != UMFPACK_OK) {
              Paso_setError(ZERO_DIVISION_ERROR,"factorization failed. Most likely the matrix is singular.");
              Paso_UMFPACK_free(A);
@@ -86,9 +88,9 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
      }
      if (Paso_noError())  {
         time0=Paso_timer();
-        // call forward backward substitution: //
+        /* call forward backward substitution: */
         control[UMFPACK_IRSTEP]=2; /* number of refinement steps */
-        error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,pt->numeric,control,info);
+        error=umfpack_di_solve(UMFPACK_A,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,A->mainBlock->val,out,in,pt->numeric,control,info);
         if (options->verbose) printf("timing UMFPACK: solve: %.4e sec\n",Paso_timer()-time0);
         if (error != UMFPACK_OK) {
               Paso_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
@@ -100,7 +102,3 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
 #endif
 
 }
-/*
- * $Log$
- *
- */

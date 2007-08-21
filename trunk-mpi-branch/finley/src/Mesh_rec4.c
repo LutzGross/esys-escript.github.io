@@ -137,12 +137,6 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
       NDOF1=N1-1;
   }
 
-/* printf("local_: %d ,%d\n",local_NE0,local_NE1);
-Paso_setError( PASO_MPI_ERROR,"HHHHHHHH");
-return NULL;
-*/
-
-
   /*  allocate tables: */
 
   Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1);
