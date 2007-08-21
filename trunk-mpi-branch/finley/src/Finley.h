@@ -30,8 +30,6 @@
 /**************************************************************/
 /*#define Finley_TRACE */
 #define FINLEY_UNKNOWN -1
-#define FINLEY_UNPREPARED -3
-#define FINLEY_PREPARED -2
 #define FINLEY_DEGREES_OF_FREEDOM 1
 #define FINLEY_NODES 3
 #define FINLEY_ELEMENTS 4

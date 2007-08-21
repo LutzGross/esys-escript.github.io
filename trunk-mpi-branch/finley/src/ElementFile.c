@@ -52,7 +52,6 @@ Finley_ElementFile* Finley_ElementFile_alloc(ElementTypeId id, index_t order, in
   out->LinearReferenceElement=NULL;
   out->ReferenceElementReducedOrder=NULL;
   out->LinearReferenceElementReducedOrder=NULL;
-  out->isPrepared=FINLEY_UNKNOWN;
   out->numElements=0;
   out->Id=NULL;
   out->Nodes=NULL;

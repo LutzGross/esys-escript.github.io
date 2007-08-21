@@ -74,7 +74,6 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
     }
     in->maxColor=-1;
     in->minColor=0;
-    in->isPrepared=FINLEY_UNPREPARED;
   }
   return;
 }

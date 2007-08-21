@@ -143,9 +143,4 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    TMPMEMFREE(new_node_list);
    TMPMEMFREE(new_node_mask);
    TMPMEMFREE(matching_nodes_in_elem1);
-   if (Finley_noError()) {
-       if (!Finley_Mesh_isPrepared(self)) {
-          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
-       }
-   }
 }

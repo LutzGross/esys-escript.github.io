@@ -38,7 +38,6 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
   
   out=MEMALLOC(1,Finley_NodeFile);
   if (Finley_checkPtr(out)) return NULL;
-  out->isPrepared=FINLEY_UNKNOWN;
   out->numNodes=0;
   out->numDim=numDim;
   out->Id=NULL;

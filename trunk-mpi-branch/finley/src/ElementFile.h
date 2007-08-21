@@ -38,7 +38,6 @@ struct Finley_ElementFile {
   Paso_MPIInfo *MPIInfo;
   Paso_MPI_rank *Owner;
 
-  index_t isPrepared;                          /* UNKNOWN,  UNPREPARED, PREPARED to indicate that the element table has been pertpared for calculation (maybe not optimized) */
   Finley_RefElement* ReferenceElement;           /* the reference element, see Reference element.c */
   Finley_RefElement* ReferenceElementReducedOrder;    /* the reference element with reduced integration order, see Reference element.c */
   Finley_RefElement* LinearReferenceElement;     /* the reference element for the linear mesh. it is vital that it is using the same quadrature scheme like ReferenceElement*/

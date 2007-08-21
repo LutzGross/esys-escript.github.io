@@ -47,6 +47,5 @@ void Finley_ElementFile_copyTable(index_t offset,Finley_ElementFile* out,index_t
           out->Tag[offset+n]=in->Tag[n];
           for(i=0;i<NN;i++) out->Nodes[INDEX2(i,offset+n,NN)]=in->Nodes[INDEX2(i,n,in->ReferenceElement->Type->numNodes)]+node_offset;
        }
-       out->isPrepared=FINLEY_UNPREPARED;
     }
 }

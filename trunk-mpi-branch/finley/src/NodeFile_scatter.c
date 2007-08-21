@@ -59,5 +59,4 @@ void Finley_NodeFile_scatter(index_t* index, Finley_NodeFile* in, Finley_NodeFil
                                   out->Tag, in->Tag,
                                   out->globalDegreesOfFreedom, in->globalDegreesOfFreedom,
                                   out->numDim, out->Coordinates, in->Coordinates);
-   out->isPrepared=FINLEY_UNPREPARED;
 }

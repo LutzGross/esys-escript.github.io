@@ -39,6 +39,5 @@ void Finley_ElementFile_relableNodes(index_t* newNode,index_t offset,Finley_Elem
          in->Nodes[INDEX2(i,j,NN)]=newNode[in->Nodes[INDEX2(i,j,NN)]-offset];
        }
      }
-     in->isPrepared=FINLEY_PREPARED;
    }
 }

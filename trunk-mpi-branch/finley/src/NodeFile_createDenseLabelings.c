@@ -139,7 +139,6 @@ dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile* in)
   TMPMEMFREE(loc_offsets);
   TMPMEMFREE(offsets);
   TMPMEMFREE(set_new_DOF);
-  in->isPrepared=FINLEY_UNPREPARED;
   return new_numGlobalDOFs;
 }
 
@@ -274,7 +273,6 @@ dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in,index_t*
   TMPMEMFREE(distribution);
   TMPMEMFREE(loc_offsets);
   TMPMEMFREE(offsets);
-  in->isPrepared=FINLEY_UNPREPARED;
   return globalNumReducedDOFs;
 }
 dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in) 
@@ -382,7 +380,6 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in)
   TMPMEMFREE(distribution);
   TMPMEMFREE(loc_offsets);
   TMPMEMFREE(offsets);
-  in->isPrepared=FINLEY_UNPREPARED;
   return globalNumNodes;
 }
 
@@ -495,6 +492,5 @@ dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in, index_
   TMPMEMFREE(distribution);
   TMPMEMFREE(loc_offsets);
   TMPMEMFREE(offsets);
-  in->isPrepared=FINLEY_UNPREPARED;
   return globalNumReducedNodes;
 }

@@ -26,7 +26,6 @@
 struct Finley_NodeFile {
   Paso_MPIInfo *MPIInfo;              /* MPI information */
 
-  index_t isPrepared;                   /* UNKNOWN,  UNPREPARED, PREPAED  to indicate that the Nodes are ready for calculation */
   dim_t numNodes;                      /* number of nodes */
   dim_t numDim;                        /* spatial dimension */
   index_t *Id;                         /* Id[i] is the id number of node i. It need to be unique. */

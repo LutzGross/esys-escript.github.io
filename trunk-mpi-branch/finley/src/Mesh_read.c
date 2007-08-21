@@ -222,11 +222,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
      printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
      #endif
   }
-  if (Finley_noError()) {
-       if ( ! Finley_Mesh_isPrepared(mesh_p)) {
-          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
-       }
-  } else {
+  if (! Finley_noError()) {
        Finley_Mesh_free(mesh_p);
   }
   Paso_MPIInfo_free( mpi_info );

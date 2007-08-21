@@ -47,6 +47,5 @@ void Finley_ElementFile_scatter(index_t* index, Finley_ElementFile* in, Finley_E
      }
      out->minColor=MIN(out->minColor,in->minColor+out->maxColor+1);
      out->maxColor=MAX(out->maxColor,in->maxColor+out->maxColor+1);
-     out->isPrepared = MIN(in-> isPrepared,  out->isPrepared);
    }
 }

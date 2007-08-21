@@ -61,7 +61,6 @@ void Finley_NodeFile_gather(index_t* index, Finley_NodeFile* in, Finley_NodeFile
                                  out->Tag, in->Tag, 
                                  out->globalDegreesOfFreedom, in->globalDegreesOfFreedom, 
                                  out->numDim, out->Coordinates, in->Coordinates);
-   out->isPrepared=FINLEY_UNPREPARED;
 }
 
 void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_NodeFile* out)
@@ -172,7 +171,6 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
       TMPMEMFREE(Coordinates_buffer);
   }
   TMPMEMFREE(distribution);
-  out->isPrepared=FINLEY_UNPREPARED;
   /* make sure that the error is global */
   Paso_MPIInfo_noError(in->MPIInfo);
 }
