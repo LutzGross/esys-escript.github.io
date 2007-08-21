@@ -70,6 +70,8 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   #ifdef Finley_TRACE
   printf("Node id range used by elements is %d:%d\n",global_min_id,global_max_id);
   #endif
+
+
   
   /* allocate mappings for new local node labeling to global node labeling (newLocalToGlobalNodeLabels)
      and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 
@@ -82,7 +84,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
        #pragma omp parallel
        {
            #pragma omp for private(n) schedule(static)
-           for (n=0;n<in->Nodes->numNodes;n++) newLocalToGlobalNodeLabels[n]=-1;
+           for (n=0;n<len;n++) newLocalToGlobalNodeLabels[n]=-1;
            #pragma omp for private(n) schedule(static)
            for (n=0;n<len;n++) globalToNewLocalNodeLabels[n]=-1;
        }
@@ -106,7 +108,6 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
         if (Finley_noError()) {
            Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
         }
-
         if (Finley_noError()) 
             Finley_NodeFile_gather_global(newLocalToGlobalNodeLabels,in->Nodes, newNodeFile);
         if (Finley_noError()) {

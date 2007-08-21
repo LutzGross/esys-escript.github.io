@@ -39,7 +39,7 @@ except KeyError:
 FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
 
 # number of elements in the spatial directions
-NE0=10
+NE0=8
 NE1=10
 NE2=12
 
