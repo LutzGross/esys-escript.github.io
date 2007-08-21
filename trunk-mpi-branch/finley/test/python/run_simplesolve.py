@@ -41,7 +41,7 @@ FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
 # number of elements in the spatial directions
 NE0=12
 NE1=12
-NE2=8
+NE2=12
 
 SOLVER_TOL=1.e-8
 REL_TOL=1.e-6
@@ -324,12 +324,12 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi))
-   # suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi))
+   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
