@@ -27,7 +27,7 @@
 #endif
 
 void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in) {
-    dim_t n,i,k,l;
+    dim_t n,i,k,l, mpiSize;
     dim_t numComps=getDataPointSize(out);
     type_t in_data_type=getFunctionSpaceType(in);
     type_t out_data_type=getFunctionSpaceType(out);
@@ -36,6 +36,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
     size_t numComps_size=0;
     Finley_resetError();
     if (nodes==NULL) return;
+    mpiSize=nodes->MPIInfo->size;
 
     /* check out and in */
     if (numComps!=getDataPointSize(in)) {
@@ -57,9 +58,17 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
         if (! numSamplesEqual(in,1,Finley_NodeFile_getNumDegreesOfFreedom(nodes))) {
                Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of input Data object");
        }
+       if ( (((out_data_type == FINLEY_NODES) || (out_data_type == FINLEY_DEGREES_OF_FREEDOM)) && !isExpanded(in) && (mpiSize>1))) {
+
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: FINLEY_DEGREES_OF_FREEDOM to FINLEY_NODES or FINLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
+       }
     } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (! numSamplesEqual(in,1,Finley_NodeFile_getNumReducedDegreesOfFreedom(nodes))) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of input Data object");
+       }
+       if ( (out_data_type == FINLEY_DEGREES_OF_FREEDOM) && !isExpanded(in) && (mpiSize>1)) {
+
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: FINLEY_REDUCED_DEGREES_OF_FREEDOM to FINLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
        }
     } else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal function space type for target object");

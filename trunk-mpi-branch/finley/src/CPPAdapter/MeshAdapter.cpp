@@ -539,9 +539,19 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
         switch(target.getFunctionSpace().getTypeCode()) {
            case(ReducedDegreesOfFreedom):
            case(DegreesOfFreedom):
+              Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+              break;
+
            case(Nodes):
            case(ReducedNodes):
-              Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+              if (getMPISize()>1) {
+                  escript::Data temp=escript::Data(in);
+                  temp.expand();
+                  escriptDataC _in2 = temp.getDataC();
+                  Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
+              } else {
+                  Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+              }
               break;
            case(Elements):
            case(ReducedElements):
@@ -597,8 +607,15 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
              throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to mesh nodes.");
              break;
           case(ReducedNodes):
-             Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
-             break;
+              if (getMPISize()>1) {
+                  escript::Data temp=escript::Data(in);
+                  temp.expand();
+                  escriptDataC _in2 = temp.getDataC();
+                  Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
+              } else {
+                  Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+              }
+              break;
           case(DegreesOfFreedom):
              throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
              break;
