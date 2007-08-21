@@ -29,7 +29,7 @@ from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
 OPTIMIZE=False
-SOLVER_VERBOSE=True
+SOLVER_VERBOSE=False
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -39,8 +39,8 @@ except KeyError:
 FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
 
 # number of elements in the spatial directions
-NE0=12
-NE1=12
+NE0=10
+NE1=10
 NE2=12
 
 SOLVER_TOL=1.e-8

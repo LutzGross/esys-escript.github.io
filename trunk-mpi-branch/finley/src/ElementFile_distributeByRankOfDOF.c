@@ -144,9 +144,9 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
 
               /* start to receive new elements */
               numRequests=0;
-#ifdef PASO_MPI
               for (p=0;p<size;++p) {
                  if (recv_count[p]>0) {
+                    #ifdef PASO_MPI
                     MPI_Irecv(&(self->Id[recv_offset[p]]), recv_count[p], 
                               MPI_INT, p, self->MPIInfo->msg_tag_counter+myRank,
                               self->MPIInfo->comm, &mpi_requests[numRequests]);
@@ -163,11 +163,13 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
                               MPI_INT, p, self->MPIInfo->msg_tag_counter+3*size+myRank,
                               self->MPIInfo->comm, &mpi_requests[numRequests]);
                     numRequests++;
+                    #endif
                  }
               }
               /* now the buffers can be send away */
               for (p=0;p<size;++p) {
                  if (send_count[p]>0) {
+                   #ifdef PASO_MPI
                    MPI_Issend(&(Id_buffer[send_offset[p]]), send_count[p], 
                               MPI_INT, p, self->MPIInfo->msg_tag_counter+p,
                               self->MPIInfo->comm, &mpi_requests[numRequests]);
@@ -184,13 +186,13 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
                               MPI_INT, p, self->MPIInfo->msg_tag_counter+3*size+p,
                               self->MPIInfo->comm, &mpi_requests[numRequests]);
                    numRequests++;
+                   #endif
 
                  }
               }
               self->MPIInfo->msg_tag_counter+=4*size;
               /* wait for the requests to be finalized */
               MPI_Waitall(numRequests,mpi_requests,mpi_stati);
-#endif
            }
            /* clear buffer */
            TMPMEMFREE(Id_buffer);
@@ -201,16 +203,18 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            TMPMEMFREE(recv_offset);
            TMPMEMFREE(proc_mask);
         }
-#ifdef PASO_MPI
-        TMPMEMFREE(mpi_requests);
-        TMPMEMFREE(mpi_stati);
-#endif
+        #ifdef PASO_MPI
+            TMPMEMFREE(mpi_requests);
+            TMPMEMFREE(mpi_stati);
+        #endif
         TMPMEMFREE(send_count);
         TMPMEMFREE(recv_count);
         TMPMEMFREE(newOwner);
      } else {
+        #pragma omp for private(e,i) schedule(static)
         for (e=0;e<self->numElements;e++) {
             self->Owner[e]=myRank;
+            for (i=0;i<numNodes;i++) self->Nodes[INDEX2(i,e,NN)]=Id[self->Nodes[INDEX2(i,e,NN)]];
         }
      }
      return;

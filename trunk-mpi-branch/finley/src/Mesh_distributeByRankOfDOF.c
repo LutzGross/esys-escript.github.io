@@ -38,7 +38,6 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
      if (!Finley_checkPtr(mpiRankOfDOF)) {
 
         Finley_NodeFile_assignMPIRankToDOFs(self->Nodes,mpiRankOfDOF,dof_distribution);
-   
         /* first the elements are redistributed according to mpiRankOfDOF */
         /* at the input the Node tables refering to a the local labeling of the nodes */
         /* while at the output they refer to the global labeling which is rectified in the next step */

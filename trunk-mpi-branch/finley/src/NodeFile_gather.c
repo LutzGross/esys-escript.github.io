@@ -54,7 +54,9 @@ void Finley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, i
 
 void Finley_NodeFile_gather(index_t* index, Finley_NodeFile* in, Finley_NodeFile* out) 
 {
-   Finley_NodeFile_gatherEntries(out->numNodes, index, 0, in->numNodes,
+   index_t min_id, max_id;
+   Finley_NodeFile_setGlobalIdRange(&min_id,&max_id,in);
+   Finley_NodeFile_gatherEntries(out->numNodes, index, min_id, max_id,
                                  out->Id, in->Id, 
                                  out->Tag, in->Tag, 
                                  out->globalDegreesOfFreedom, in->globalDegreesOfFreedom, 
@@ -129,12 +131,12 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
             source=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
             buffer_rank=in->MPIInfo->rank;
             for (p=0; p< in->MPIInfo->size; ++p) {
-                    Finley_NodeFile_gatherEntries(out->numNodes, index, 
-                                                  distribution[buffer_rank], distribution[buffer_rank+1],
-                                                  out->Id, Id_buffer, 
-                                                  out->Tag, Tag_buffer, 
-                                                  out->globalDegreesOfFreedom, globalDegreesOfFreedom_buffer, 
-                                                  out->numDim, out->Coordinates, Coordinates_buffer);
+                 Finley_NodeFile_gatherEntries(out->numNodes, index, 
+                                               distribution[buffer_rank], distribution[buffer_rank+1],
+                                               out->Id, Id_buffer, 
+                                               out->Tag, Tag_buffer, 
+                                               out->globalDegreesOfFreedom, globalDegreesOfFreedom_buffer, 
+                                               out->numDim, out->Coordinates, Coordinates_buffer);
                  if (p<in->MPIInfo->size-1) {  /* the last send can be skipped */
                      #ifdef PASO_MPI
                      MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_INT,
@@ -158,7 +160,7 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
             #pragma omp parallel for private(n) schedule(static)
             for (n=0; n< out->numNodes; ++n) {
                 if (out->Id[n] == undefined_node ) {
-                 sprintf(error_msg,"Finley_NodeFile_gather_global: Node id %d is referenced by an element (n=%d) but is not defined.",out->Id[n], n);
+                 sprintf(error_msg,"Finley_NodeFile_gather_global: Node id %d is referenced but is not defined.",out->Id[n]);
                  Finley_setError(VALUE_ERROR,error_msg);
                }
              }
