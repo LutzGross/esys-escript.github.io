@@ -24,6 +24,7 @@
 
 #include "Paso.h"
 #include "Pattern.h"
+#include "PasoUtil.h"
 
 /**************************************************************/
 

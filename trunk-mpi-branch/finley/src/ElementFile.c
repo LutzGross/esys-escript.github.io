@@ -109,7 +109,7 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
   }
 }
 void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution) {
-  dim_t local_num_elements,e,out,num_elements, size;
+  dim_t local_num_elements,e,out,num_elements=0, size;
   Paso_MPI_rank myRank;
   if (in == NULL) {
       distribution[0]=num_elements;

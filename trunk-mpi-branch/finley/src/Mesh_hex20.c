@@ -54,6 +54,15 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   }
   myRank=mpi_info->rank;
 
+  /* set up the global dimensions of the mesh */
+
+  NE0=MAX(1,numElements[0]);
+  NE1=MAX(1,numElements[1]);
+  NE2=MAX(1,numElements[2]);
+  N0=N_PER_E*NE0+1;
+  N1=N_PER_E*NE1+1;
+  N2=N_PER_E*NE2+1;
+
   /*  allocate mesh: */  
   sprintf(name,"Rectangular %d x %d x %d mesh",N0,N1,N2);
   out=Finley_Mesh_alloc(name,DIM,order, reduced_order, mpi_info);
@@ -114,15 +123,6 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
       Finley_Mesh_free(out);
       return NULL;
   }
-
-  /* set up the global dimensions of the mesh */
-
-  NE0=MAX(1,numElements[0]);
-  NE1=MAX(1,numElements[1]);
-  NE2=MAX(1,numElements[2]);
-  N0=N_PER_E*NE0+1;
-  N1=N_PER_E*NE1+1;
-  N2=N_PER_E*NE2+1;
 
   /* work out the largest dimension */
   if (N2=MAX3(N0,N1,N2)) {

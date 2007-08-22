@@ -212,7 +212,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Paso_Coupler_free(coupler);
         Paso_Distribution_free(output_dist);
         Paso_Distribution_free(input_dist);
-	Paso_SharedComponents_free_free(send);
+	Paso_SharedComponents_free(send);
         Paso_MPIInfo_free(mpi_info);
 	MEMFREE( val );
 	MEMFREE( row_ind );
@@ -330,7 +330,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         Paso_Coupler_free(coupler);
         Paso_Distribution_free(output_dist);
         Paso_Distribution_free(input_dist);
-	Paso_SharedComponents_free_free(send);
+	Paso_SharedComponents_free(send);
         Paso_MPIInfo_free(mpi_info);
 	MEMFREE( val );
 	MEMFREE( col_ind );

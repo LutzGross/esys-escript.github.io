@@ -200,7 +200,7 @@ class Test_Reader(unittest.TestCase):
        dom.write(test)
        dom2 = ReadMesh(test,3)
        t=getTagNames(dom)
-       self.failUnless(len(t)==2)
+       self.failUnless(len(t)==6)
        self.failUnless("A" in t)
        self.failUnless("B" in t)
        self.failUnless(dom2.getTag("A") == 1)

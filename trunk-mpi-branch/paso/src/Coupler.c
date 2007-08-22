@@ -102,7 +102,7 @@ void Paso_Coupler_allocBuffer(Paso_Coupler* coupler,dim_t block_size)
 {
     Paso_MPIInfo *mpi_info = coupler->mpi_info;  
     if ( (coupler->send_buffer !=NULL) || (coupler->recv_buffer!=NULL) ) {
-        Finley_setError(SYSTEM_ERROR,"Paso_Coupler_allocBuffer: coupler are still in use.");
+        Paso_setError(SYSTEM_ERROR,"Paso_Coupler_allocBuffer: coupler are still in use.");
         return;
     }
     coupler->block_size=block_size;

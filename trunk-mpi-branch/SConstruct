@@ -183,7 +183,8 @@ else:
    cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi'
    cxx_flags_default='--no-warn -ansi'
    cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
-   pedantic_flag_default="-pedantic-errors"
+   pedantic_flag_default=""
+   # pedantic_flag_default="-pedantic-errors -Wno-long-long"
 #==============================================================================================     
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.

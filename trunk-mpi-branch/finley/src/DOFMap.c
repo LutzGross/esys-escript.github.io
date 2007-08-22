@@ -38,6 +38,7 @@ Finley_DOFMap* Finley_DOFMap_alloc(dim_t numNodes, index_t* globalID, Paso_Distr
   out->numNeighbours=0;   
   out->neighbours=NULL;  
   out->reference_counter=1;
+  return(out);
 }
 
 void Finley_DOFMap_free(Finley_DOFMap* in) {

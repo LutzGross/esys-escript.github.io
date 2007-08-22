@@ -95,10 +95,14 @@ double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
 dim_t Paso_SystemMatrix_getTotalNumRows(Paso_SystemMatrix* A);
+dim_t Paso_SystemMatrix_getTotalNumCols(Paso_SystemMatrix*);
+dim_t Paso_SystemMatrix_getGlobalNumRows(Paso_SystemMatrix*);
+dim_t Paso_SystemMatrix_getGlobalNumCols(Paso_SystemMatrix*);
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
 void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
+Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *);
 void Paso_SystemMatrix_setDefaults(Paso_Options*);
 int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, bool_t symmetry);
 

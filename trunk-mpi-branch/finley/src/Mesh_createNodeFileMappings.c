@@ -83,9 +83,17 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
     for (i=0;i<numNodes;++i) {
        k=globalDOFIndex[i];
+#ifdef BOUNDS_CHECK
+       if ((k-min_DOF) >= len_loc_dof) { printf("BOUNDS_CHECK %s:%i i=%i k=%i min_DOF=%i\n", __FILE__, __LINE__, i, k, min_DOF); exit(1); }
+#endif
        if (k>-1) locDOFMask[k-min_DOF]=UNUSED-1;
     }
-    for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) locDOFMask[i]=i-myFirstDOF+min_DOF;
+    for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) {
+#ifdef BOUNDS_CHECK
+      if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s:%i i=%i\n", __FILE__, __LINE__, i); exit(1); }
+#endif
+      locDOFMask[i]=i-myFirstDOF+min_DOF;
+    }
 
     numNeighbors=0;
     n=0;
@@ -96,18 +104,27 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
        if (p != myRank) {
            for (i=firstDOF-min_DOF;i<lastDOF-min_DOF;++i) {
                 if (locDOFMask[i] == UNUSED-1) {
+#ifdef BOUNDS_CHECK
+                   if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s:%i p=%i i=%i\n", __FILE__, __LINE__, p, i); exit(1); }
+#endif
                    locDOFMask[i]=myLastDOF-myFirstDOF+n;
                    ++n;
                 }
            }
            if (n>lastn) {
               neighbor[numNeighbors]=p;
+#ifdef BOUNDS_CHECK
+              if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s:%i p=%i numNeighbors=%i n=%i\n", __FILE__, __LINE__, p, numNeighbors, n); exit(1); }
+#endif
               offsetInShared[numNeighbors]=lastn;
               numNeighbors++;
               lastn=n;
            }
         }
     }
+#ifdef BOUNDS_CHECK
+    if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s:%i numNeighbors=%i\n", __FILE__, __LINE__, numNeighbors); exit(1); }
+#endif
     offsetInShared[numNeighbors]=lastn;
 
     /* assign new DOF labels to nodes */
@@ -122,6 +139,11 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
     /* define how to get DOF values for controlled bu other processors */
     #pragma omp parallel for private(i) schedule(static)
+#ifdef BOUNDS_CHECK
+    for (i=0;i<offsetInShared[numNeighbors];++i) {
+      if (i < 0 || i >= numNodes*(p_max-p_min+1)) { printf("BOUNDS_CHECK %s:%i i=%i\n", __FILE__, __LINE__, i); exit(1); }
+    }
+#endif
     for (i=0;i<offsetInShared[numNeighbors];++i) shared[i]=myLastDOF-myFirstDOF+i;
 
     rcv_shcomp=Paso_SharedComponents_alloc(numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
@@ -141,18 +163,27 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
            for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) {
                 if (locDOFMask[i] == p) {
+#ifdef BOUNDS_CHECK
+		   if (n < 0 || n >= numNodes*(p_max-p_min+1)) { printf("BOUNDS_CHECK %s:%i p=%i i=%i n=%i\n", __FILE__, __LINE__, p, i, n); exit(1); }
+#endif
                    shared[n]=i-myFirstDOF+min_DOF;
                    ++n;
                 }
            }
            if (n>lastn) {
               neighbor[numNeighbors]=p;
+#ifdef BOUNDS_CHECK
+              if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s:%i p=%i n=%i numNeighbors=%i\n", __FILE__, __LINE__, p, n, numNeighbors); exit(1); }
+#endif
               offsetInShared[numNeighbors]=lastn;
               numNeighbors++;
               lastn=n;
            }
         }
     }
+#ifdef BOUNDS_CHECK
+    if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s:%i numNeighbors=%i\n", __FILE__, __LINE__, numNeighbors); exit(1); }
+#endif
     offsetInShared[numNeighbors]=lastn;
     snd_shcomp=Paso_SharedComponents_alloc(numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
 

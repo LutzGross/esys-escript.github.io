@@ -8,7 +8,7 @@ __license__="""Licensed under the Open Software License version 3.0
 
 from esys.escript import *
 from esys.escript.modelframe import Model,IterationDivergenceError
-from esys.escript.linearPDEs import AdvectivePDE,LinearPDE
+from esys.escript.linearPDEs import LinearPDE
 import numarray
 
 

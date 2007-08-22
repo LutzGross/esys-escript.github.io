@@ -18,6 +18,7 @@
 #ifndef INC_FINLEY_DOFMAP
 #define INC_FINLEY_DOFMAP
 
+#include "Finley.h"
 #include "paso/Paso_MPI.h"
 #include "paso/Distribution.h"
 

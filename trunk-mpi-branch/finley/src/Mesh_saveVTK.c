@@ -745,15 +745,15 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                         }
                       } else if (nCompReqd == 9) {
                         if (shape==1) {
-                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],0.,0.,
+                         sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],0.,0.,
                                                                 0.,0.,0.,
                                                                 0.,0.,0.);
                         } else if (shape==2) {
-                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],0.,
+                         sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],sampleAvg[1],0.,
                                                                 sampleAvg[2],sampleAvg[3],0.,
                                                                 0.,0.,0.);
                         } else if (shape==3) {
-                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],sampleAvg[2],
+                         sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,sampleAvg[0],sampleAvg[1],sampleAvg[2],
                                                                 sampleAvg[3],sampleAvg[4],sampleAvg[5],
                                                                 sampleAvg[6],sampleAvg[7],sampleAvg[8]);
                         }
@@ -904,15 +904,15 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                        }
                      } else if (nCompReqd == 9) {
                        if (shape==1) {
-                        sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,values[0],0.,0.,
+                        sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,values[0],0.,0.,
                                                                0.,0.,0.,
                                                                0.,0.,0.);
                        } else if (shape==2) {
-                        sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,values[0],values[1],0.,
+                        sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,values[0],values[1],0.,
                                                                values[2],values[3],0.,
                                                                0.,0.,0.);
                        } else if (shape==3) {
-                        sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,values[0],values[1],values[2],
+                        sprintf(tmp_buffer,FLOAT_TENSOR_FORMAT,values[0],values[1],values[2],
                                                                values[3],values[4],values[5],
                                                                values[6],values[7],values[8]);
                        }

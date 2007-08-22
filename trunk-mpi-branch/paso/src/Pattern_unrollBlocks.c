@@ -32,7 +32,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
                                            int type, dim_t output_block_size,dim_t input_block_size) {
   Paso_Pattern*out=NULL;
   index_t *ptr=NULL,*index=NULL,iPtr;
-  dim_t i,j,k,l, block_size, new_n_ptr, new_len, new_numOutput, numOutput;
+  dim_t i,j,k,l, block_size, new_n_ptr, new_len, new_numOutput;
   index_t index_offset_in=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   
@@ -78,7 +78,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
            }
         }
      }
-     out=Paso_Pattern_alloc(type,numOutput,ptr,index);
+     out=Paso_Pattern_alloc(type,new_numOutput,ptr,index);
   }  
   if (! Paso_noError()) {
      MEMFREE(index);

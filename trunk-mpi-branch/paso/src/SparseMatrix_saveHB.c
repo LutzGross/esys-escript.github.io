@@ -183,7 +183,7 @@ void Paso_SparseMatrix_saveHB_CSC( Paso_SparseMatrix *A_p, FILE* fileHandle_p ) 
 	int nz = A_p->len;
 
         if (A_p->val == NULL) {
-	   Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_saveHB: unsupported format detected.\n");
+	   Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_saveHB_CSC: unsupported format detected.\n");
            return;
         }
         

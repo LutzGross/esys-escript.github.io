@@ -111,6 +111,12 @@ void Finley_NodeFile_setIdGlobalRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setIdRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setDOFGlobalRange(index_t*,index_t*,Finley_NodeFile*);
 void Finley_NodeFile_setDOFRange(index_t*,index_t*,Finley_NodeFile*);
+
+void Finley_NodeFile_setGlobalDOFRange(index_t*,index_t*,Finley_NodeFile*);
+void Finley_NodeFile_setGlobalIdRange(index_t*,index_t*,Finley_NodeFile*);
+index_t Finley_NodeFile_maxGlobalDegreeOfFreedomIndex(Finley_NodeFile*);
+index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile*);
+
 void Finley_NodeFile_setReducedDOFRange(index_t*,index_t*,Finley_NodeFile*);
 dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile*);
 dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in);

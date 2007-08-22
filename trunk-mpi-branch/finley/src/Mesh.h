@@ -60,6 +60,7 @@
 #include "NodeFile.h"
 #include "ElementFile.h"
 #include "TagMap.h"
+#include "Util.h"
 #include "paso/SystemMatrixPattern.h"
 #include "escript/DataC.h"
 
