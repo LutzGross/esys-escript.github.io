@@ -259,12 +259,12 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
         Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,0,globalNumNodes-1,nodes_first_component);
         in->Nodes->nodesDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,nodes_first_component,1,0);
     
-        /* ==== distribution of reduced Nodes ===============================*/
-        reduced_nodes_first_component[mpiSize]=globalNumReducedNodes;
-        in->Nodes->reducedDegreesOfFreedomDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,reduced_nodes_first_component,1,0);
-    
         /* ==== distribution of Nodes ===============================*/
         in->Nodes->degreesOfFreedomDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,dof_first_component,1,0);
+    
+        /* ==== distribution of reduced Nodes ===============================*/
+        reduced_nodes_first_component[mpiSize]=globalNumReducedNodes;
+        in->Nodes->reducedNodesDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,reduced_nodes_first_component,1,0);
     
         /* ==== distribution of reduced DOF ===============================*/
         in->Nodes->reducedDegreesOfFreedomDistribution=Paso_Distribution_alloc(in->Nodes->MPIInfo,reduced_dof_first_component,1,0);
