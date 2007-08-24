@@ -123,18 +123,18 @@ void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* di
             local_num_elements=0;
             #pragma omp for private(e)
             for (e=0;e<in->numElements;e++) {
-               if (in->numElements == myRank) local_num_elements++;
+               if (in->Owner[e] == myRank) local_num_elements++;
             }
             #pragma omp critical
             num_elements+=local_num_elements;
          }
          #ifdef PASO_MPI
-          MPI_Allgather(&num_elements,1,MPI_INT,distribution,1,MPI_INT,in->MPIInfo->comm);
+           MPI_Allgather(&num_elements,1,MPI_INT,distribution,1,MPI_INT,in->MPIInfo->comm);
          #else
            distribution[0]=num_elements;
          #endif
       } else {
-        distribution[0]=num_elements;
+        distribution[0]=in->numElements;
       }
   }
 }

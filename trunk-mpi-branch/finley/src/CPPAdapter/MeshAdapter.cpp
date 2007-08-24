@@ -846,6 +846,7 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
 //
 void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) const
 {
+cout << "AAAAAAAAAAAA\n";
   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
   if (argDomain!=*this)
     throw FinleyAdapterException("Error - Illegal domain of gradient argument");
@@ -861,7 +862,7 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
       if( arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom ) {
         temp=escript::Data( arg,  continuousFunction(asAbstractContinuousDomain()) );
         nodeDataC = temp.getDataC();
-      } else if( arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom ) {
+      } else if( arg.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom ) {
         temp=escript::Data( arg,  reducedContinuousFunction(asAbstractContinuousDomain()) );
         nodeDataC = temp.getDataC();
       } else {
@@ -1003,18 +1004,26 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
 
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
-         data_in[i]=boost::python::extract<escript::Data&>(arg[keys[i]]);
-         if (dynamic_cast<const MeshAdapter&>(data_in[i].getFunctionSpace().getDomain()) !=*this) 
-             throw FinleyAdapterException("Error  in saveDX: Data must be defined on same Domain");
-         if ( (data_in[i].getFunctionSpace().getTypeCode() == DegreesOfFreedom) || 
-              (data_in[i].getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) || 
-              (data_in[i].getFunctionSpace().getTypeCode() == Nodes)  ) {
-            data_in[i]=escript::Data(data_in[i],reducedContinuousFunction(asAbstractContinuousDomain()));
-            data[i]=data_in[i].getDataC();
+
+         escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
+
+         if (d.getFunctionSpace().getTypeCode() == DegreesOfFreedom)  {
+            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
+            data_in.push_back(d2);
+            data[i]=d2.getDataC();
+         } else if (d.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
+            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
+            data_in.push_back(d2);
+            data[i]=d2.getDataC();
+         } else if (d.getFunctionSpace().getTypeCode() == Nodes) {
+            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
+            data_in.push_back(d2);
+            data[i]=d2.getDataC();
          } else {
-            data[i]=data_in[i].getDataC();
+            data[i]=d.getDataC();
          }
          ptr_data[i]=&(data[i]);
+
          std::string n=boost::python::extract<std::string>(keys[i]);
          c_names[i]=&(names[i][0]);
          if (n.length()>MAX_namelength-1) {
@@ -1045,6 +1054,7 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
 {
     int MAX_namelength=256;
     const int num_data=boost::python::extract<int>(arg.attr("__len__")());
+    std::vector<escript::Data> data_in;
   /* win32 refactor */
   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
   for(int i=0;i<num_data;i++)
@@ -1059,9 +1069,21 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
          escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
+
          if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
              throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
-         data[i]=d.getDataC();
+         if (d.getFunctionSpace().getTypeCode() == DegreesOfFreedom)  {
+            escript::Data d2(d,continuousFunction(asAbstractContinuousDomain()));
+            data_in.push_back(d2);
+            data[i]=d2.getDataC();
+         } else if (d.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
+            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
+            data_in.push_back(d2);
+            data[i]=d2.getDataC();
+         } else {
+            data[i]=d.getDataC();
+         }
+
          ptr_data[i]=&(data[i]);
          std::string n=boost::python::extract<std::string>(keys[i]);
          c_names[i]=&(names[i][0]);

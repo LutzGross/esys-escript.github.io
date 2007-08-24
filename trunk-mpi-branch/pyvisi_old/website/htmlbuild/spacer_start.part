@@ -1,9 +1,0 @@
-<!-- $Id: spacer_start.part,v 1.2 2005/01/19 04:18:15 paultcochrane Exp $ -->
-<div class="main">
-<table class="content">
-<tr>
-<td class="spacer">
-<img class="spacer" src="images/spacer.gif" alt="spacer" />
-</td>
-<td class="content">
-

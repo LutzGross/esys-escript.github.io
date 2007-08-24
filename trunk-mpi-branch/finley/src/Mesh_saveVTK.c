@@ -33,12 +33,12 @@
 #define LEN_PRINTED_INT_FORMAT (9+1)
 #define INT_FORMAT "%d "
 #define INT_NEWLINE_FORMAT "%d\n"
-#define FLOAT_SCALAR_FORMAT "%15.10e\n"
-#define FLOAT_VECTOR_FORMAT "%15.10e %15.10e %15.10e\n"
-#define FLOAT_TENSOR_FORMAT "%15.10e %15.10e %15.10e %15.10e %15.10e %15.10e %15.10e %15.10e %15.10e\n"
-#define LEN_PRINTED_FLOAT_SCALAR_FORMAT (15+1)
-#define LEN_PRINTED_FLOAT_VECTOR_FORMAT (3*(15+1)+1)
-#define LEN_PRINTED_FLOAT_TENSOR_FORMAT (9*(15+1)+1)
+#define FLOAT_SCALAR_FORMAT "%12.6e\n"
+#define FLOAT_VECTOR_FORMAT "%12.6e %12.6e %12.6e\n"
+#define FLOAT_TENSOR_FORMAT "%12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e\n"
+#define LEN_PRINTED_FLOAT_SCALAR_FORMAT (12+1)
+#define LEN_PRINTED_FLOAT_VECTOR_FORMAT (3*(12+1)+1)
+#define LEN_PRINTED_FLOAT_TENSOR_FORMAT (9*(12+1)+1)
 #define NEWLINE "\n"
 #define LEN_TMP_BUFFER LEN_PRINTED_FLOAT_TENSOR_FORMAT+(MAX_numNodes*LEN_PRINTED_INT_FORMAT+1)+2
 #define NCOMP_MAX 9
@@ -59,7 +59,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   size_t len_txt_buffer, max_len_names, txt_buffer_in_use;
   FILE * fileHandle_p = NULL;
   int mpi_size, i_data, i,j , cellType;
-  dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement, myNumPoints, numPointsPerSample, rank, nComp, nCompReqd, shape, NN, numCellFactor, myNumCells;
+  dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement, myNumPoints, numPointsPerSample, rank, nComp, nCompReqd, shape, NN, numCellFactor, myNumCells, max_name_len;
   bool_t do_write, *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE;
   bool_t set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
   index_t myFirstNode, myLastNode, *globalNodeIndex, k, *node_index, myFirstCell;
@@ -108,7 +108,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   mpi_size  = mesh_p->Nodes->MPIInfo->size;
   nDim = mesh_p->Nodes->numDim;
 
-  if (! (nDim ==2) || (nDim == 3) ) {
+  if (! ( (nDim ==2) || (nDim == 3) ) ) {
         Finley_setError(IO_ERROR, "saveVTK: spatial dimension 2 or 3 is supported only.");
         return;  
   }
@@ -404,7 +404,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   /*                                     */
   /*   allocate text buffer              */
   /*                                     */
-  len_txt_buffer= strlen(tags_header) + 3 * LEN_PRINTED_INT_FORMAT; /* header */
+  max_name_len=0;
+  for (i_data =0 ;i_data<num_data;++i_data) max_name_len=MAX(max_name_len,strlen(names_p[i_data]));
+  len_txt_buffer= strlen(tags_header) + 3 * LEN_PRINTED_INT_FORMAT + (30+3*max_name_len); /* header */
   if (mpi_size > 1) len_txt_buffer=MAX(len_txt_buffer, myNumPoints * LEN_TMP_BUFFER);
   if (mpi_size > 1) len_txt_buffer=MAX(len_txt_buffer, numCellFactor*myNumCells*(LEN_PRINTED_INT_FORMAT*numVTKNodesPerElement+1));
   len_txt_buffer=MAX(len_txt_buffer,200+3*max_len_names);
@@ -493,11 +495,10 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                 MPI_File_iwrite_shared(mpi_fileHandle_p, tags_End_Points_and_Start_Conn, strlen(tags_End_Points_and_Start_Conn), MPI_CHAR, &mpi_req);
                 MPI_Wait(&mpi_req,&mpi_status);
              #endif
-          } else {
-             fprintf(fileHandle_p,tags_End_Points_and_Start_Conn);
           }
-    
-       }
+      } else {
+         fprintf(fileHandle_p,tags_End_Points_and_Start_Conn);
+      }
 
      /* write the cells */
      if (nodetype == FINLEY_REDUCED_NODES) {
@@ -573,7 +574,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
      if ( mpi_size > 1) {
         txt_buffer[0] = '\0';
         txt_buffer_in_use=0;
-        for (i=numVTKNodesPerElement*myFirstCell*numCellFactor; i<=numCells*numVTKNodesPerElement*numCellFactor; i+=numVTKNodesPerElement) {
+        for (i=numVTKNodesPerElement*(myFirstCell*numCellFactor+1); i<=numCells*numVTKNodesPerElement*numCellFactor; i+=numVTKNodesPerElement) {
            sprintf(tmp_buffer, INT_NEWLINE_FORMAT, i);
            __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
          }
@@ -581,7 +582,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
-        for (i=0; i<=numCells*numVTKNodesPerElement*numCellFactor; i+=numVTKNodesPerElement) {
+        for (i=numVTKNodesPerElement; i<=numCells*numVTKNodesPerElement*numCellFactor; i+=numVTKNodesPerElement) {
            fprintf(fileHandle_p, INT_NEWLINE_FORMAT, i);
         }
      
@@ -604,12 +605,12 @@ void Finley_Mesh_saveVTK(const char * filename_p,
      if ( mpi_size > 1) {
         txt_buffer[0] = '\0';
         txt_buffer_in_use=0;
-        for (i=0; i<=numCells*numCellFactor; i++) __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
+        for (i=0; i<numCells*numCellFactor; i++) __STRCAT(txt_buffer,tmp_buffer,txt_buffer_in_use);
          #ifdef PASO_MPI
             MPI_File_write_ordered(mpi_fileHandle_p,txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
      } else {
-        for (i=0; i<=numCells*numCellFactor; i++) fprintf(fileHandle_p, tmp_buffer);
+        for (i=0; i<numCells*numCellFactor; i++) fprintf(fileHandle_p, tmp_buffer);
      }
      /* finalize cell information */
      if ( mpi_size > 1) {
@@ -627,6 +628,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
  /* Write cell data */
  if (write_celldata && Finley_noError()) {
       /* mark the active data arrays */
+      txt_buffer[0] = '\0';
       set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
       strcat(txt_buffer, "<CellData");
       for (i_data =0 ;i_data<num_data;++i_data) {
@@ -796,6 +798,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   if (write_pointdata && Finley_noError()) {
       /* mark the active data arrays */
       set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
+      txt_buffer[0] = '\0';
       strcat(txt_buffer, "<PointData");
       for (i_data =0 ;i_data<num_data;++i_data) {
         if (! isEmpty(data_pp[i_data]) && !isCellCentered[i_data]) {
@@ -886,7 +889,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                for (i=0; i<mesh_p->Nodes->numNodes; i++) {
                   k=globalNodeIndex[i];
                   if ( (myFirstNode <= k) && (k < myLastNode) ) {
-                     values = getSampleData(data_pp[i_data], nodeMapping->map[i]);
+                     values = getSampleData(data_pp[i_data], nodeMapping->target[i]);
                      /* if the number of mpi_required components is more than the number
                      * of actual components, pad with zeros
                      */

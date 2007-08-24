@@ -243,7 +243,7 @@ dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in,index_t*
             for (n=0; n<myDOFs; ++n) DOF_buffer[n]+=loc_offsets[in->MPIInfo->rank];
             /* now entries are collected from the buffer again by sending the entries around in a circle */
             #pragma omp parallel for private(n) schedule(static)
-            for (n=0; n<in->numNodes; ++n) in->globalReducedDOFIndex[n]=-1;
+            for (n=0; n<in->numNodes; ++n) in->globalReducedDOFIndex[n]=loc_offsets[0]-1;
             dest=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
             source=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
             buffer_rank=in->MPIInfo->rank;
@@ -352,7 +352,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in)
             for (n=0; n<myNodes; ++n) Node_buffer[n]+=loc_offsets[in->MPIInfo->rank];
             /* now entries are collected from the buffer again by sending the entries around in a circle */
             #pragma omp parallel for private(n) schedule(static)
-            for (n=0; n<in->numNodes; ++n) in->globalNodesIndex[n]=-1;
+            for (n=0; n<in->numNodes; ++n) in->globalNodesIndex[n]=loc_offsets[0]-1;
             dest=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
             source=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
             buffer_rank=in->MPIInfo->rank;
@@ -462,7 +462,7 @@ dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in, index_
             for (n=0; n<myNodes; ++n) Node_buffer[n]+=loc_offsets[in->MPIInfo->rank];
             /* now entries are collected from the buffer again by sending the entries around in a circle */
             #pragma omp parallel for private(n) schedule(static)
-            for (n=0; n<in->numNodes; ++n) in->globalReducedNodesIndex[n]=TRUE;
+            for (n=0; n<in->numNodes; ++n) in->globalReducedNodesIndex[n]=loc_offsets[0]-1;
             dest=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
             source=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
             buffer_rank=in->MPIInfo->rank;

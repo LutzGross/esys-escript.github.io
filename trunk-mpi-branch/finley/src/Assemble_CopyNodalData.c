@@ -107,7 +107,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                    memcpy(getSampleDataFast(out,n), getSampleDataFast(in,n), numComps_size);
               }
 
-           } else if (in_data_type == FINLEY_REDUCED_NODES) {
+           } else if (out_data_type == FINLEY_REDUCED_NODES) {
               #pragma omp parallel for private(n,i) schedule(static)
               for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
                    memcpy(getSampleDataFast(in,nodes->reducedNodesMapping->map[n]),
@@ -135,7 +135,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
            if  (out_data_type == FINLEY_NODES) {
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
 
-           } else if (in_data_type == FINLEY_REDUCED_NODES) {
+           } else if (out_data_type == FINLEY_REDUCED_NODES) {
               #pragma omp parallel for private(n) schedule(static)
               for (n=0;n<nodes->reducedNodesMapping->numNodes;n++) {
                    memcpy(getSampleDataFast(out,n),getSampleDataFast(in,n),numComps_size);
@@ -221,7 +221,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
            if  (out_data_type == FINLEY_NODES) {
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
 
-           } else if (in_data_type == FINLEY_REDUCED_NODES) {
+           } else if (out_data_type == FINLEY_REDUCED_NODES) {
                Paso_Coupler_allocBuffer(nodes->reducedDegreesOfFreedomCoupler,numComps);
                if (Paso_noError()) {
                     Paso_Coupler_startCollect(nodes->reducedDegreesOfFreedomCoupler,getSampleDataFast(in,0));

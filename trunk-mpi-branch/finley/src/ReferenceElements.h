@@ -162,26 +162,3 @@ void Finley_RefElement_dealloc(Finley_RefElement*);
 ElementTypeId Finley_RefElement_getTypeId(char*);
 
 #endif /* #ifndef INC_FINLEY_REFERENCEELEMENTS */
-
-/*
- * $Log$
- * Revision 1.3  2005/09/15 03:44:23  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.2.2.1  2005/09/07 06:26:21  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.2  2005/07/08 04:07:56  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.1  2005/06/29 02:34:55  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.1.1.1  2004/06/24 04:00:40  johng
- * Initial version of eys using boost-python.
- *
- *
- */

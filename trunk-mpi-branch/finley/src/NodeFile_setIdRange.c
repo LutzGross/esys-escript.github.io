@@ -106,7 +106,7 @@ index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile* in
 
 index_t Finley_NodeFile_maxGlobalNodeIDIndex(Finley_NodeFile* in) {
   index_t loc_out, out;
-  loc_out=Finley_Util_getMaxInt(1,in->numNodes,in->globalDegreesOfFreedom);
+  loc_out=Finley_Util_getMaxInt(1,in->numNodes,in->globalNodesIndex);
   #ifdef PASO_MPI
   MPI_Allreduce(&loc_out, &out, 1, MPI_INT, MPI_MAX, in->MPIInfo->comm );
   #else

@@ -1508,6 +1508,8 @@ ESCRIPT_DLL_API Data operator*(const boost::python::object& left, const Data& ri
 */
 ESCRIPT_DLL_API Data operator/(const boost::python::object& left, const Data& right);
 
+
+
 /**
   \brief
   Output operator

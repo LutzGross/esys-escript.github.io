@@ -232,7 +232,7 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
 
   if (! ( Finley_checkPtr(reduced_dof_first_component) || Finley_checkPtr(reduced_nodes_first_component) || Finley_checkPtr(nodes_first_component)  ) ) {
 
-     globalNumNodes=Finley_NodeFile_maxGlobalNodeIDIndex(in->Nodes);
+     globalNumNodes=Finley_NodeFile_maxGlobalNodeIDIndex(in->Nodes)+1;
      Paso_MPIInfo_setDistribution(in->Nodes->MPIInfo,0,globalNumNodes-1,nodes_first_component);
 
      myFirstDOF=dof_first_component[myRank];

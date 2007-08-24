@@ -1,8 +1,0 @@
-<!-- $Id: todo_header.part,v 1.1 2005/01/20 06:42:08 paultcochrane Exp $ -->
-<head>
-  <title>Todo list</title>
-  <link rel="stylesheet" title="banner" href="css/pyvisi_banner-o.css" />
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-</head>
-
-<body>
