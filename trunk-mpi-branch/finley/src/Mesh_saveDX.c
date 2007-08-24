@@ -261,6 +261,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              fprintf(fileHandle_p, "items %d data follows\n", numPoints);
              for (i=0;i<numPoints;i++) {
                    values=getSampleData(data_pp[i_data],i);
+                   for (k=0;k<nComp;k++) fprintf(fileHandle_p, " %g", values[k]);
 	           fprintf(fileHandle_p, "\n");
              }
              fprintf(fileHandle_p, "attribute \"dep\" string \"positions\"\n");

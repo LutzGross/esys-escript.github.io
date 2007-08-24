@@ -110,8 +110,9 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
            } else if (out_data_type == FINLEY_REDUCED_NODES) {
               #pragma omp parallel for private(n,i) schedule(static)
               for (n=0;n<nodes->reducedNodesMapping->numTargets;n++) {
-                   memcpy(getSampleDataFast(in,nodes->reducedNodesMapping->map[n]),
-                          getSampleDataFast(out,n),numComps_size);
+                   memcpy(getSampleDataFast(out,n),
+                          getSampleDataFast(in,nodes->reducedNodesMapping->map[n]),
+                          numComps_size);
               }
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
               #pragma omp parallel for private(n) schedule(static)

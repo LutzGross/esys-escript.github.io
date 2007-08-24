@@ -1410,7 +1410,6 @@ Data::operator+=(const boost::python::object& right)
 Data&
 Data::operator=(const Data& other)
 {
-cout << "BCVBVBBVCB \n";
   copy(other);
   return (*this);
 }
