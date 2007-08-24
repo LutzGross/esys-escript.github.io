@@ -249,13 +249,11 @@ void Finley_Mesh_saveVTK(const char * filename_p,
         myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
         globalNumPoints = Finley_NodeFile_getGlobalNumReducedNodes(mesh_p->Nodes);
         globalNodeIndex= Finley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
-        nodeMapping=mesh_p->Nodes->reducedNodesMapping;
      } else {
         myFirstNode = Finley_NodeFile_getFirstNode(mesh_p->Nodes);
         myLastNode = Finley_NodeFile_getLastNode(mesh_p->Nodes);
         globalNumPoints = Finley_NodeFile_getGlobalNumNodes(mesh_p->Nodes);
         globalNodeIndex= Finley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
-        nodeMapping=mesh_p->Nodes->nodesMapping;
      }
      myNumPoints = myLastNode - myFirstNode;
      if (elementtype==FINLEY_UNKNOWN) elementtype=FINLEY_ELEMENTS;
@@ -743,7 +741,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                         } else if (shape==2) {
                          sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],0.);
                         } else if (shape==3) {
-                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[2],sampleAvg[3]);
+                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,sampleAvg[0],sampleAvg[1],sampleAvg[2]);
                         }
                       } else if (nCompReqd == 9) {
                         if (shape==1) {
@@ -857,6 +855,11 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             numPointsPerSample=getNumDataPointsPerSample(data_pp[i_data]);
             rank = getDataPointRank(data_pp[i_data]);
             nComp = getDataPointSize(data_pp[i_data]);
+            if (getFunctionSpaceType(data_pp[i_data]) == FINLEY_REDUCED_NODES) {
+               nodeMapping=mesh_p->Nodes->reducedNodesMapping;
+            } else {
+               nodeMapping=mesh_p->Nodes->nodesMapping;
+            }
             nCompReqd=1;   /* the number of components mpi_required by vtk */
             shape=0;
             if (rank == 0) {
@@ -903,7 +906,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                        } else if (shape==2) {
                         sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,values[0],values[1],0.);
                        } else if (shape==3) {
-                        sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,values[0],values[2],values[3]);
+                        sprintf(tmp_buffer,FLOAT_VECTOR_FORMAT,values[0],values[1],values[2]);
                        }
                      } else if (nCompReqd == 9) {
                        if (shape==1) {

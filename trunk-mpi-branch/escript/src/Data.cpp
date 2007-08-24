@@ -1407,6 +1407,13 @@ Data::operator+=(const boost::python::object& right)
   binaryOp(tmp,plus<double>());
   return (*this);
 }
+Data&
+Data::operator=(const Data& other)
+{
+cout << "BCVBVBBVCB \n";
+  copy(other);
+  return (*this);
+}
 
 Data&
 Data::operator-=(const Data& right)

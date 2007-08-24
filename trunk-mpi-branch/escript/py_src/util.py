@@ -91,13 +91,21 @@ def saveVTK(filename,domain=None,**data):
     @type <name>: L{Data} object.
     @note: The data objects have to be defined on the same domain. They may not be in the same L{FunctionSpace} but one cannot expect that all L{FunctionSpace} can be mixed. Typically, data on the boundary and data on the interior cannot be mixed.
     """
-    if domain==None:
-       for i in data.keys():
-          if not data[i].isEmpty(): domain=data[i].getFunctionSpace().getDomain()
+    new_data={}
+    for n,d in data.items():
+          if not d.isEmpty(): 
+            fs=d.getFunctionSpace() 
+            domain2=fs.getDomain()
+            if fs == escript.Solution(domain2):
+               new_data[n]=interpolate(d,escript.ContinuousFunction(domain2))
+            elif fs == escript.ReducedSolution(domain2):
+               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
+            else:
+               new_data[n]=d
+            if domain==None: domain=domain2
     if domain==None:
         raise ValueError,"no domain detected."
-    else:
-        domain.saveVTK(filename,data)
+    domain.saveVTK(filename,new_data)
 
 def saveDX(filename,domain=None,**data):
     """
@@ -119,13 +127,23 @@ def saveDX(filename,domain=None,**data):
     @type <name>: L{Data} object.
     @note: The data objects have to be defined on the same domain. They may not be in the same L{FunctionSpace} but one cannot expect that all L{FunctionSpace} can be mixed. Typically, data on the boundary and data on the interior cannot be mixed.
     """
-    if domain==None:
-       for i in data.keys():
-          if not data[i].isEmpty(): domain=data[i].getFunctionSpace().getDomain()
+    new_data={}
+    for n,d in data.items():
+          if not d.isEmpty(): 
+            fs=d.getFunctionSpace() 
+            domain2=fs.getDomain()
+            if fs == escript.Solution(domain2):
+               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
+            elif fs == escript.ReducedSolution(domain2):
+               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
+            elif fs == escript.ContinuousFunction(domain2):
+               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
+            else:
+               new_data[n]=d
+            if domain==None: domain=domain2
     if domain==None:
         raise ValueError,"no domain detected."
-    else:
-        domain.saveDX(filename,data)
+    domain.saveDX(filename,new_data)
 
 def kronecker(d=3):
    """

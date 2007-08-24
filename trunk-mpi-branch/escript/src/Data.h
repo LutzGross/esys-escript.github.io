@@ -1109,6 +1109,9 @@ class Data {
   ESCRIPT_DLL_API
   Data& operator+=(const boost::python::object& right);
 
+  ESCRIPT_DLL_API
+  Data& operator=(const Data& other);
+
   /**
      \brief
      Overloaded operator -=
@@ -1537,7 +1540,7 @@ C_GeneralTensorProduct(Data& arg0,
   NB: this operator does very little at this point, and isn't to 
   be relied on. Requires further implementation.
 */
-//ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
+// ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
 
 /**
   \brief

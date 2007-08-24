@@ -846,7 +846,6 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
 //
 void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) const
 {
-cout << "AAAAAAAAAAAA\n";
   const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(arg.getFunctionSpace().getDomain());
   if (argDomain!=*this)
     throw FinleyAdapterException("Error - Illegal domain of gradient argument");
@@ -1000,31 +999,15 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
   char* *c_names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
   escriptDataC *data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC) : (escriptDataC*)NULL;
   escriptDataC* *ptr_data = (num_data>0) ? TMPMEMALLOC(num_data,escriptDataC*) : (escriptDataC**)NULL;
-  std::vector<escript::Data> data_in;
 
-    boost::python::list keys=arg.keys();
-    for (int i=0;i<num_data;++i) {
-
-         escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
-
-         if (d.getFunctionSpace().getTypeCode() == DegreesOfFreedom)  {
-            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
-            data_in.push_back(d2);
-            data[i]=d2.getDataC();
-         } else if (d.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
-            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
-            data_in.push_back(d2);
-            data[i]=d2.getDataC();
-         } else if (d.getFunctionSpace().getTypeCode() == Nodes) {
-            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
-            data_in.push_back(d2);
-            data[i]=d2.getDataC();
-         } else {
-            data[i]=d.getDataC();
-         }
-         ptr_data[i]=&(data[i]);
-
+  boost::python::list keys=arg.keys();
+  for (int i=0;i<num_data;++i) {
          std::string n=boost::python::extract<std::string>(keys[i]);
+         escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
+         if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
+             throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
+         data[i]=d.getDataC();
+         ptr_data[i]=&(data[i]);
          c_names[i]=&(names[i][0]);
          if (n.length()>MAX_namelength-1) {
             strncpy(c_names[i],n.c_str(),MAX_namelength-1);
@@ -1054,7 +1037,6 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
 {
     int MAX_namelength=256;
     const int num_data=boost::python::extract<int>(arg.attr("__len__")());
-    std::vector<escript::Data> data_in;
   /* win32 refactor */
   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
   for(int i=0;i<num_data;i++)
@@ -1068,24 +1050,12 @@ void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict&
 
     boost::python::list keys=arg.keys();
     for (int i=0;i<num_data;++i) {
+         std::string n=boost::python::extract<std::string>(keys[i]);
          escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
-
          if (dynamic_cast<const MeshAdapter&>(d.getFunctionSpace().getDomain()) !=*this) 
              throw FinleyAdapterException("Error  in saveVTK: Data must be defined on same Domain");
-         if (d.getFunctionSpace().getTypeCode() == DegreesOfFreedom)  {
-            escript::Data d2(d,continuousFunction(asAbstractContinuousDomain()));
-            data_in.push_back(d2);
-            data[i]=d2.getDataC();
-         } else if (d.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
-            escript::Data d2(d,reducedContinuousFunction(asAbstractContinuousDomain()));
-            data_in.push_back(d2);
-            data[i]=d2.getDataC();
-         } else {
-            data[i]=d.getDataC();
-         }
-
+         data[i]=d.getDataC();
          ptr_data[i]=&(data[i]);
-         std::string n=boost::python::extract<std::string>(keys[i]);
          c_names[i]=&(names[i][0]);
          if (n.length()>MAX_namelength-1) {
             strncpy(c_names[i],n.c_str(),MAX_namelength-1);
