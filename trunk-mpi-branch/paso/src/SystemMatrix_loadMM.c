@@ -234,7 +234,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	index_t *row_ind = NULL;
 	index_t *col_ptr = NULL;
 	double *val = NULL;
-	int i, curr_col;
+	int i, curr_col=0;
 	MM_typecode matrixCode;
         Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
         if (mpi_info->size >1) {

@@ -10,7 +10,7 @@ from test_util import Test_util as Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_symbols import Test_symbols
 
-from esys.escript import FunctionOnBoundary, saveVTK
+from esys.escript import FunctionOnBoundary
 from esys.finley import Rectangle,Brick,JoinFaces,ReadMesh
 import sys
 import os

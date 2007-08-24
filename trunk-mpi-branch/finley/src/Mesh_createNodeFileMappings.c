@@ -24,6 +24,7 @@
 
 #include "Mesh.h"
 #define UNUSED -1
+/* #define BOUNDS_CHECK 1 */
 
 /**************************************************************/
 

@@ -21,9 +21,9 @@
 # mkl_lib_path ='/opt/intel/mkl80.019/lib/64'
 # mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 
-mpi_path = '/home/Work/mpich-1.2.7p1/include'
-mpi_lib_path = '/home/Work/mpich-1.2.7p1/lib'
-mpi_libs = ['mpich']
+mpi_path = '/home/Work/mpich2-1.0.5p4/include'
+mpi_lib_path = '/home/Work/mpich2-1.0.5p4/lib'
+mpi_libs = ['mpich', 'rt']
 
 # locations of libs etc used by SCSL
 # scsl_path = '/usr/include'

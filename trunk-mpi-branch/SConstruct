@@ -154,7 +154,7 @@ if IS_WINDOWS_PLATFORM:
    useMPI_default='no'
    mpi_path_default=None
    mpi_lib_path_default=None
-   mpi_libs_default=None
+   mpi_libs_default=[]
 else:
    useMPI_default='no'
    mpi_root='/usr/local'
