@@ -34,7 +34,6 @@ sources.remove(py_wrapper_source) # FIXME: should probably refactor the source t
 local_env.Append(LIBS = [boost_lib, python_lib] + sys_libs + ['escript', 'esysUtils', 'paso'] + mpi_libs )
 py_wrapper_local_env.Append(LIBS = [boost_lib, python_lib] + sys_libs + [ lib_name, 'escript', 'esysUtils', 'paso'] + mpi_libs )
 
-local_env.Append(CCFLAGS=pedantic_flag)
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
    local_env.Append(LIBS = mkl_libs)

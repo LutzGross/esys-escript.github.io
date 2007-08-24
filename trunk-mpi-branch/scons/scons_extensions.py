@@ -23,8 +23,9 @@ def build_py(target, source, env):
 # Code to run unit_test executables
 def runUnitTest(target, source, env):
   time_start = time.time()
-  print "Executing test: " + str(source[0].abspath)
   app = str(source[0].abspath)
+  if env['useMPI']: app = 'mpirun -np 1 ' + app
+  print "Executing test: " + app
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
   else:
@@ -34,8 +35,12 @@ def runUnitTest(target, source, env):
 
 def runPyUnitTest(target, source, env): 
    time_start = time.time()
-   print "Executing test: " + str(source[0].abspath)
-   app = 'python '+str(source[0].abspath)
+   app = str(source[0].abspath)
+   if env['useMPI']:
+     app = 'mpirun -np 1 lib/pythonMPI ' + app
+   else:
+     app = 'python ' + app
+   print "Executing test: " + app
    if not env.Execute(app):
       open(str(target[0]),'w').write("PASSED\n")
    else:

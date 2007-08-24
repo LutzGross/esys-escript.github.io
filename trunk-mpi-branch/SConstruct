@@ -177,14 +177,11 @@ if IS_WINDOWS_PLATFORM:
     cxx_flags_default = ''
     cxx_flags_debug_default = ''
     cc_common_flags = '/FD /EHsc /GR /wd4068 '
-    pedantic_flag_default=None
 else:
    cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi'
    cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi'
    cxx_flags_default='--no-warn -ansi'
    cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
-   pedantic_flag_default=""
-   # pedantic_flag_default="-pedantic-errors -Wno-long-long"
 #==============================================================================================     
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
@@ -214,7 +211,6 @@ opts.AddOptions(
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', cxx_flags_debug_default),
   ('omp_flags', 'OpenMP compiler flags to use (Release build)', ''),
   ('omp_flags_debug', 'OpenMP compiler flags to use (Debug build)', ''),
-  ('pedantic_flag', 'flag to switch on pedantic compilation', pedantic_flag_default),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', None),
   ('tar_flags','flags for zip files','-c -z'),
@@ -316,9 +312,12 @@ try:
 except KeyError:
    path = ''
 
+# Copy some variables from the system environment to the build environment
 try:
    ld_library_path = os.environ['LD_LIBRARY_PATH']
    env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
+   home_temp = os.environ['HOME']	# MPICH2's mpd needs $HOME to find $HOME/.mpd.conf
+   env['ENV']['HOME'] = home_temp
 except KeyError:
    ld_library_path = ''
 #==========================================================================
@@ -426,9 +425,9 @@ else:
      except KeyError:
         pass
 try:
-      pedantic_flag = env['pedantic_flag']
-except KeyError:
-      pedantic_flag = None
+     if env['CC'] == 'gcc': env.Append(CCFLAGS = "-pedantic-errors -Wno-long-long")
+except:
+     pass
 
 # ============= set mkl (but only of no MPI) =====================================
 if not useMPI:
@@ -789,7 +788,7 @@ env.Alias(init_target)
 Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "blas_libs", "netCDF_libs", "useNetCDF",
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile", "trilinos_libs", "mpi_libs", "papi_instrument_solver", 
-        "guide_pdf", "guide_html_index", "api_epydoc", "useMPI", "pedantic_flag" ])
+        "guide_pdf", "guide_html_index", "api_epydoc", "useMPI" ])
 
 # End initialisation section
 # Begin configuration section

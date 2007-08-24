@@ -10,7 +10,6 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
-local_env.Append(CCFLAGS=pedantic_flag)
 
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
