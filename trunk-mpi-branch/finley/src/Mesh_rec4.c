@@ -101,7 +101,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   }
 
   /* work out the largest dimension */
-  if (N1=MAX(N0,N1)) {
+  if (N1==MAX(N0,N1)) {
      Nstride0=1;
      Nstride1=N0;
      local_NE0=NE0;

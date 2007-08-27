@@ -29,7 +29,7 @@ from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
 OPTIMIZE=False
-SOLVER_VERBOSE=False
+SOLVER_VERBOSE=True
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -43,6 +43,10 @@ NE0=8
 NE1=10
 NE2=12
 
+NE0=12
+NE1=12
+NE2=8
+
 SOLVER_TOL=1.e-8
 REL_TOL=1.e-6
 
@@ -52,7 +56,6 @@ FAC_OFFDIAG=-0.4
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
-
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(0,Solution(domain))

@@ -125,7 +125,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   }
 
   /* work out the largest dimension */
-  if (N2=MAX3(N0,N1,N2)) {
+  if (N2==MAX3(N0,N1,N2)) {
      Nstride0=1;
      Nstride1=N0;
      Nstride2=N0*N1;
@@ -134,7 +134,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
      local_NE1=NE1;
      e_offset1=0;
      Paso_MPIInfo_Split(mpi_info,NE2,&local_NE2,&e_offset2);
-  } else if (N1=MAX3(N0,N1,N2)) {
+  } else if (N1==MAX3(N0,N1,N2)) {
      Nstride0=N2;
      Nstride1=N0*N2;
      Nstride2=1;
