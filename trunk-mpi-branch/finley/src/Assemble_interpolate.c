@@ -67,6 +67,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        map=Finley_NodeFile_borrowTargetNodes(nodes);
   } else if (data_type==FINLEY_REDUCED_NODES) {
        type=REDUCED_NODES;
+       resort_nodes=elements->ReferenceElement->Type->linearNodes;
        if (reduced_integration) {
            reference_element=elements->LinearReferenceElementReducedOrder;
        } else {

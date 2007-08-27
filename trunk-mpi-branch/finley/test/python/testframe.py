@@ -18,41 +18,47 @@ FINLEY_TEST_MESH_PATH="data_meshes/"
 
 NE=6 # number of element in each spatial direction (must be even)
 
-class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(unittest.TestCase):
+class Test_X(unittest.TestCase):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
-       x1 = ContinuousFunction(d1).getX()
-       ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
-       ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       d2.setX(d2.getX()+[0.5,0.,0.])
-       self.domain = JoinFaces([d1,d2])
-       self.domain.write("m.fly")
-   def test_assemblage_3D_solO2_coeffOFull_NEqu1_B_Const_typeContact_comp0(self):
-    x=self.domain.getX()
-    u=(-4)+3*x[2]+6*x[2]**2-2*x[1]-5*x[1]*x[2]-8*x[1]**2+3*x[0]+7*x[0]*x[2]-9*x[0]*x[1]-4*x[0]**2
-    B_test=Data(0.,(3,),Function(self.domain))
-    B_test[0]=1
-    Y_test=(-3)-7*x[2]+9*x[1]+8*x[0]
-    x_boundary=FunctionOnBoundary(self.domain).getX()
-    n=whereZero(x_boundary[0]   ,self.ABS_TOL)*numarray.array([-1., 0., 0.])+whereZero(x_boundary[0]-1.,self.ABS_TOL)*numarray.array([ 1., 0., 0.])+whereZero(x_boundary[1]   ,self.ABS_TOL)*numarray.array([ 0.,-1., 0.])+whereZero(x_boundary[1]-1.,self.ABS_TOL)*numarray.array([ 0., 1., 0.])+whereZero(x_boundary[2]   ,self.ABS_TOL)*numarray.array([ 0., 0.,-1.])+whereZero(x_boundary[2]-1.,self.ABS_TOL)*numarray.array([ 0., 0., 1.])
-    y_test=n[0]*((-4)+3*x[2]+6*x[2]**2-2*x[1]-5*x[1]*x[2]-8*x[1]**2+3*x[0]+7*x[0]*x[2]-9*x[0]*x[1]-4*x[0]**2)
-    n_contact=FunctionOnContactZero(self.domain).getNormal()
-    y_contact_test=n_contact[0]*(4-3*x[2]-6*x[2]**2+2*x[1]+5*x[1]*x[2]+8*x[1]**2-3*x[0]-7*x[0]*x[2]+9*x[0]*x[1]+4*x[0]**2)
-    pde=LinearPDE(self.domain)
-    pde.setValue(B=B_test, Y=Y_test, y=y_test, y_contact=y_contact_test)
-    r=pde.getResidual(u)
-    rhs=pde.getRightHandSide()
-    self.failUnless(Lsup(rhs)>0,"right hand side is zero")
-    self.failUnless(Lsup(r)<=self.RES_TOL*Lsup(rhs),"residual is too big")
+        self.order=1
+        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1)
+        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1)
+        d2.setX(d2.getX()+[0.5,0.])
+        self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
+        del self.order
         del self.domain
+   def test_integrate_onFunctionOnBoundary_fromData_ReducedContinuousFunction_rank0(self):
+      """
+      tests integral of rank 0 Data on the FunctionOnBoundary
+
+      assumptions: ReducedContinuousFunction(self.domain) exists
+                   self.domain supports integral on FunctionOnBoundary
+      """
+      o=1
+      dim=self.domain.getDim()
+      w_ref=FunctionOnBoundary(self.domain)
+      w=ReducedContinuousFunction(self.domain)
+      x=w.getX()
+      arg=Data(0,(),w)
+      if dim==2:
+        arg=(-0.0177156089276)*x[0]+(-1.07750293477)*x[1]
+        ref=(0.674554765151)*(1+2.*(dim-1.)/(o+1.))+(-1.76977330884)*dim
+      else:
+        arg=(0.304688056778)*x[0]+(0.548485298428)*x[1]+(0.672370309114)*x[2]
+        ref=(0.0121419382123)*(1+2.*(dim-1.)/(o+1.))+(1.51340172611)*dim
+      res=integrate(arg,where=w_ref)
+      self.failUnless(isinstance(res,float),"wrong type of result.")
+      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+
+
+
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
+   suite.addTest(unittest.makeSuite(Test_X))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
 
 
