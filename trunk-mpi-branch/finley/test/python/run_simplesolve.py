@@ -29,7 +29,7 @@ from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
 OPTIMIZE=False
-SOLVER_VERBOSE=True
+SOLVER_VERBOSE=False
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']

@@ -47,7 +47,11 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t numNeighbors,
       out->mpi_info = Paso_MPIInfo_getReference(mpi_info);
       out->numNeighbors=numNeighbors;
       out->neighbor=MEMALLOC(out->numNeighbors,Paso_MPI_rank);
-      out->numSharedComponents=offsetInShared[numNeighbors]*m;
+      if (offsetInShared == NULL) {
+          out->numSharedComponents=offsetInShared[numNeighbors]*m;
+      } else {
+          out->numSharedComponents=0;
+      }
       out->shared=MEMALLOC(out->numSharedComponents,index_t);
       out->offsetInShared=MEMALLOC(out->numNeighbors+1,index_t);
       out->reference_counter=1;
@@ -71,6 +75,8 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t numNeighbors,
                    for (j=0;j<m;++j) out->shared[m*i+j]=itmp+j;
                }
             }
+         } else {
+            out->offsetInShared[out->numNeighbors]=0;
          }
       }
 
