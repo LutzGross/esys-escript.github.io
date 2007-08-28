@@ -24,6 +24,7 @@
 mpi_path = '/home/Work/mpich2-1.0.5p4/include'
 mpi_lib_path = '/home/Work/mpich2-1.0.5p4/lib'
 mpi_libs = ['mpich', 'rt']
+mpi_run = 'mpirun -np 1'
 
 # locations of libs etc used by SCSL
 # scsl_path = '/usr/include'

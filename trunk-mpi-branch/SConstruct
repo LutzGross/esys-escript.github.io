@@ -155,12 +155,14 @@ if IS_WINDOWS_PLATFORM:
    mpi_path_default=None
    mpi_lib_path_default=None
    mpi_libs_default=[]
+   mpi_run_default=None
 else:
    useMPI_default='no'
    mpi_root='/usr/local'
    mpi_path_default=os.path.join(mpi_root,'include')
    mpi_lib_path_default=os.path.join(mpi_root,'lib')
    mpi_libs_default=[ 'mpich' , 'pthread', 'rt' ]
+   mpi_run_default='mpiexec -np 1'
 #
 #==========================================================================
 #
@@ -267,6 +269,7 @@ opts.AddOptions(
   BoolOption('useMPI', 'Compile parallel version using MPI', useMPI_default),
   ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
   PathOption('mpi_path', 'Path to MPI includes', mpi_path_default),
+  ('mpi_run', 'mpirun name' , mpi_run_default),
   PathOption('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)',mpi_lib_path_default),
   ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', mpi_libs_default)
 )
@@ -677,12 +680,18 @@ if useMPI:
    try:
       lib_path = env['mpi_lib_path']
       env.Append(LIBPATH = [lib_path,])
+      env['ENV']['LD_LIBRARY_PATH']+=":"+lib_path
    except KeyError:
       pass
    try:
       mpi_libs = env['mpi_libs']
    except KeyError:
       mpi_libs = []
+
+   try:
+      mpi_run = env['mpi_run']
+   except KeyError:
+      mpi_run = ''
 
    try:
        mpich_ignore_cxx_seek=env['MPICH_IGNORE_CXX_SEEK']
@@ -785,7 +794,7 @@ init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
 env.Alias(init_target)
 
 # Allow sconscripts to see the env
-Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "blas_libs", "netCDF_libs", "useNetCDF",
+Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "blas_libs", "netCDF_libs", "useNetCDF", "mpi_run", 
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile", "trilinos_libs", "mpi_libs", "papi_instrument_solver", 
         "guide_pdf", "guide_html_index", "api_epydoc", "useMPI" ])

@@ -15,6 +15,7 @@
 mpi_path = '/opt/anupack/1.0/include'
 mpi_lib_path = '/opt/anupack/1.0/lib'
 mpi_libs = ['mpi']
+mpi_run = 'mpirun -np 1'
 
 # locations of libs etc used by mkl
 mkl_path = '/opt/intel-mkl/8.0/include'

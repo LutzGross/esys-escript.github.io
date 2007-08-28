@@ -53,6 +53,7 @@ papi_libs = [ 'papi' ]
 mpi_path = '/usr/include'
 mpi_lib_path = '/usr/lib'
 mpi_libs = [ 'mpi' ]
+mpi_run = 'mpirun -np 1'
 
 omp_flags = '-openmp -openmp_report2 '
 omp_flags_debug = '-openmp -openmp_report0'

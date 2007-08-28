@@ -11,6 +11,7 @@
 mkl_path = '/opt/intel_mkl/8.0.19/include'
 mkl_lib_path = '/opt/intel_mkl/8.0.19/lib/64'
 mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
+mpi_run = 'mpirun -np 1'
 
 # locations of libs etc used by SCSL
 scsl_path = '/opt/scsl/1.6.1.0/include'

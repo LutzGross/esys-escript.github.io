@@ -37,7 +37,7 @@ def runPyUnitTest(target, source, env):
    time_start = time.time()
    app = str(source[0].abspath)
    if env['useMPI']:
-     app = 'mpirun -np 1 lib/pythonMPI ' + app
+     app = env['mpi_run'] +' lib/pythonMPI ' + app
    else:
      app = 'python ' + app
    print "Executing test: " + app
