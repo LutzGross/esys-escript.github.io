@@ -700,6 +700,7 @@ if useMPI:
       pass
 else:
   mpi_libs=[]
+  mpi_run = mpi_run_default
 # =========== zip files ===========================================
 try:
    includes = env['papi_path']
