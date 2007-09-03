@@ -451,5 +451,14 @@ class ODETEST(Model):
 
     
 if __name__ == "__main__":
-    unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(XMLDocumentTestCase))
+    suite.addTest(unittest.makeSuite(SimulationTestCase))
+    suite.addTest(unittest.makeSuite(LinkTestCase))
+    suite.addTest(unittest.makeSuite(ParamaterSetTestCase))
+    suite.addTest(unittest.makeSuite(ModeltoDomTestCase))
+    suite.addTest(unittest.makeSuite(ModeltoDomTestCase))
+    suite.addTest(unittest.makeSuite(Messenger))
+    suite.addTest(unittest.makeSuite(ODETEST))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
 
