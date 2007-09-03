@@ -58,13 +58,13 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
 
         #pragma omp for private(i,k) schedule(static) 
         for (i=0;i<pattern->numOutput;++i) 
-            #pragma ivdep
             for (k=0;k<output_block_size;++k) ptr[i*output_block_size+k]=(pattern->ptr[i]-index_offset_in)*block_size+(pattern->ptr[i+1]-pattern->ptr[i])*input_block_size*k+index_offset_out;
           
         #pragma omp for private(i,iPtr) schedule(static) 
-        for (i=0;i<new_numOutput;++i) 
+        for (i=0;i<new_numOutput;++i) {
             #pragma ivdep
             for (iPtr=ptr[i]-index_offset_out;iPtr<ptr[i+1]-index_offset_out;++iPtr) index[iPtr]=index_offset_out;
+	}
 
         #pragma omp for private(i,j,iPtr,k) schedule(static) 
         for (i=0;i<pattern->numOutput;++i) {

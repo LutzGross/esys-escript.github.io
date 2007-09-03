@@ -93,7 +93,7 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, index_t* ptr, index_
           out->len=0;
           out->numInput=0;
       } else {
-          out->len=out->ptr[out->numOutput];
+          out->len=out->ptr[out->numOutput] - index_offset;
           out->numInput=max_index+1-index_offset;
       }
   }
