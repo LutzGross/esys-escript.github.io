@@ -34,6 +34,9 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
      Paso_Pattern *pattern=NULL;
      Paso_MPI_rank myRank,dest,source,current_rank, rank;
      Finley_IndexList* index_list=NULL;
+     #ifdef PASO_MPI
+     MPI_Status status;
+     #endif
 
      if (in==NULL) return;
      if (in->Nodes == NULL) return;
@@ -50,7 +53,6 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
 
      index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
      newGlobalDOFID=TMPMEMALLOC(len,index_t);
-#if 0
      /* create the adjacency structure xadj and adjncy */
      if (! ( Finley_checkPtr(index_list) || Finley_checkPtr(newGlobalDOFID) ) ) {
          #pragma omp parallel private(i)
@@ -127,7 +129,6 @@ printf("\n");
               }
            }
      }
-#endif
      TMPMEMFREE(index_list);
      TMPMEMFREE(newGlobalDOFID);
 for (i=0;i<in->Nodes->numNodes;++i) printf("%d ",in->Nodes->globalDegreesOfFreedom[i]);
@@ -143,9 +144,6 @@ printf("\n");
      Finley_IndexList* index_list=NULL;
      float *xyz=NULL;
      
-     #ifdef PASO_MPI
-     MPI_Status status;
-     #endif
 
      mpiSize_size=mpiSize*sizeof(dim_t);
      dim=in->Nodes->numDim;

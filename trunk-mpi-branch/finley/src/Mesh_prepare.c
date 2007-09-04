@@ -59,7 +59,7 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      }
      /* now a local labeling of the DOF is introduced */
      if (Finley_noError() && optimize) {
-       /* Finley_Mesh_optimizeDOFLabeling(in,distribution); */
+       Finley_Mesh_optimizeDOFLabeling(in,distribution); 
      }
      /* rearrange elements with the attempt to bring elements closer to memory locations of the nodes (distributed shared memory!): */
      if (Finley_noError()) Finley_Mesh_optimizeElementOrdering(in);
