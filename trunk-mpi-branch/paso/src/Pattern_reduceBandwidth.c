@@ -9,7 +9,20 @@
 ********************************************************************************
 */
 
-void* Paso_Pattern_reduceBandwidth() {
+#include "Pattern.h"
+
+void Pattern_reduceBandwidth(Paso_Pattern* self,index_t* oldToNew) {
+   dim_t i;
+
+         printf("Warning: no local node labeling optimization implemented yet.\n");
+         /* call new labeling */
+         for (i=0;i<self->numOutput;++i) oldToNew[i]=i; /* remove */
+#if 0
+for (i=0;i<self->numOutput;++i) printf("%d ",oldToNew[i]);
+printf("\n");
+#endif
+
+
 }
 
 #ifdef AAA
@@ -22,7 +35,7 @@ void* Paso_Pattern_reduceBandwidth() {
 
 /*    NDSTK(NR,D1)        D1 IS >= MAXIMUM DEGREE OF ALL NODES.*/
 /*    Label(D2)            D2 AND NR ARE >= THE TOTAL NUMBER OF */
-/*    NewLabel(D2+1)         NODES IN THE GRAPH.
+/*    NewLabel(D2+1)         NODES IN THE GRAPH. */
 /*    Degree(D2)            STORAGE REQUIREMENTS CAN BE SIGNifICANTLY*/
 
 /*    AssignedLevel(D2)             DECREASED FOR IBM 360 AND 370 COMPUTERS*/

@@ -56,5 +56,6 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern*,int, dim_t,dim_t);
 Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,index_t*,index_t*);
 bool_t Paso_Pattern_isEmpty(Paso_Pattern* in);
 void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker);
+void Pattern_reduceBandwidth(Paso_Pattern* self,index_t* oldToNew);
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */
