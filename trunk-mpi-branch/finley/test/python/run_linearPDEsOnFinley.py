@@ -121,7 +121,7 @@ class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
        d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -135,7 +135,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
        d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -149,7 +149,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
        d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -163,7 +163,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
        d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -178,7 +178,7 @@ class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage
        d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1,useElementsOnFace=True)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -192,7 +192,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage
        d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2,useElementsOnFace=True)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -206,7 +206,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage
        d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 
@@ -220,7 +220,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage
        d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
        ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        d2.setX(d2.getX()+[0.5,0.,0.])
-       self.domain = JoinFaces([d1,d2])
+       self.domain = JoinFaces([d1,d2],optimize=False)
    def tearDown(self):
         del self.domain
 

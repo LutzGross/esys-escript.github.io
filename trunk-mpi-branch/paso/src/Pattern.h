@@ -36,6 +36,10 @@ typedef struct Paso_Pattern {
   int type;
   dim_t numOutput;
   dim_t numInput;
+  dim_t input_block_size; /* logical block size in the input */
+  dim_t output_block_size; /* logical block size in the output */
+  dim_t block_size; /* = input_block_size * output_block_size */
+
   dim_t len;
   index_t* ptr;
   index_t* index;
@@ -44,7 +48,7 @@ typedef struct Paso_Pattern {
 
 /*  interfaces: */
 
-Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, index_t* ptr, index_t* index);
+Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, index_t* ptr, index_t* index);
 Paso_Pattern* Paso_Pattern_getReference(Paso_Pattern*);
 void Paso_Pattern_free(Paso_Pattern*);
 int Paso_comparIndex(const void *,const void *);

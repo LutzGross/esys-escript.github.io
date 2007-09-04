@@ -47,10 +47,6 @@ typedef struct Paso_SparseMatrix {
   Paso_SparseMatrixType type;
   dim_t reference_counter;
 
-  dim_t logical_row_block_size;
-  dim_t logical_col_block_size;
-  dim_t logical_block_size;
-
   dim_t row_block_size;
   dim_t col_block_size;
   dim_t block_size;

@@ -622,4 +622,27 @@ class SaddlePointProblem(object):
 #
 #      return u,p
           
-# vim: expandtab shiftwidth=4:
+def MaskFromBoundaryTag(function_space,*tags):
+   """
+   create a mask on the given function space which one for samples 
+   that touch the boundary tagged by tags.
+
+   usage: m=MaskFromBoundaryTag(Solution(domain),"left", "right")
+
+   @param function_space: a given function space 
+   @type function_space: L{escript.FunctionSpace}
+   @param tags: boundray tags
+   @type tags: C{str}
+   @return: a mask which marks samples used by C{function_space} that are touching the
+            boundary tagged by any of the given tags.
+   @rtype: L{escript.Data} of rank 0
+   """
+   pde=linearPDEs.LinearPDE(function_space.getDomain(),numEquations=1, numSolutions=1)
+   d=escript.Scalar(0.,escript.FunctionOnBoundary(function_space.getDomain()))
+   for t in tags: d.setTaggedValue(t,1.)
+   pde.setValue(y=d)
+   out=util.whereNonZero(pde.getRightHandSide())
+   if out.getFunctionSpace() == function_space:
+      return out
+   else:
+      return util.whereNonZero(util.interpolate(out,function_space))

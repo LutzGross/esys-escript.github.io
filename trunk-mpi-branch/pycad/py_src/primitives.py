@@ -1077,15 +1077,9 @@ class PlaneSurface(Primitive, Manifold2D):
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
-       for l in loop.getCurves():
-           if not isinstance(l.getUnderlyingPrimitive(),Line):
-             raise TypeError("loop may be formed by Lines only.")
        for i in range(len(holes)):
             if not isinstance(holes[i].getUnderlyingPrimitive(), CurveLoop):
                  raise TypeError("%i-th hole needs to be a CurveLoop object.")
-            for l in holes[i].getCurves():
-               if not isinstance(l.getUnderlyingPrimitive(),Line):
-                  raise TypeError("holes may be formed by Lines only.")
        #TODO: check if lines and holes are in a plane
        #TODO: are holes really holes?
        Primitive.__init__(self)

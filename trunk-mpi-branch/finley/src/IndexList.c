@@ -202,7 +202,7 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_lis
               for(i=0;i<n;++i) {
                   Finley_IndexList_toArray(&index_list[i],&index[ptr[i]],range_min,range_max,index_offset);
               }
-              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n,ptr,index);
+              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,n,ptr,index);
        }
   }
   if (! Finley_noError()) {

@@ -28,7 +28,7 @@
 
 /* allocates a Pattern  */
 
-Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, index_t* ptr, index_t* index) {
+Paso_Pattern* Paso_Pattern_alloc(int type, dim_t input_block_size, dim_t output_block_size, dim_t numOutput, index_t* ptr, index_t* index) {
   Paso_Pattern*out=NULL;
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
@@ -89,6 +89,9 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, index_t* ptr, index_
       out->numOutput=numOutput;
       out->ptr=ptr;
       out->index=index;
+      out->input_block_size=input_block_size;
+      out->output_block_size=output_block_size;
+      out->block_size=out->input_block_size * out->output_block_size;
       if (out->ptr == NULL) {
           out->len=0;
           out->numInput=0;

@@ -56,10 +56,16 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   if (mainPattern->numInput != Paso_Distribution_getMyNumComponents(input_distribution)) {
      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of input for main pattern and number of send components in coupler don't match.");
   }
-
   if (couplePattern->numInput != coupler->recv->numSharedComponents) {
      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of inputs for couple pattern and number of received components in coupler don't match.");
   }
+  if (mainPattern->output_block_size != couplePattern->output_block_size) {
+     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: output block sizes of main and couple pattern do not match.");
+  }
+  if (mainPattern->input_block_size != couplePattern->input_block_size) {
+     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: input block sizes of main and couple pattern do not match.");
+  }
+
   out=MEMALLOC(1,Paso_SystemMatrixPattern);
   if (Paso_checkPtr(out)) return NULL;
   out->type=type;

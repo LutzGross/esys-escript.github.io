@@ -70,7 +70,6 @@ def insertTaggedValues(target,**kwargs):
         target.setTaggedValue(k,kwargs[k])
     return target
 
-    
 def saveVTK(filename,domain=None,**data):
     """
     writes a L{Data} objects into a files using the the VTK XML file format.
@@ -4926,7 +4925,11 @@ def integrate(arg,where=None):
        else:
           return arg._integrate()
     else:
-      raise TypeError,"integrate: Unknown argument type."
+       arg2=escript.Data(arg,where)
+       if arg2.getRank()==0:
+          return arg2._integrate()[0]
+       else:
+          return arg2._integrate()
 
 class Integrate_Symbol(DependendSymbol):
    """

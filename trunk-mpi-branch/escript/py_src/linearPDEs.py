@@ -936,7 +936,9 @@ class LinearPDE(object):
        @param preconditioner: sets a new solver method.
        @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU}
        """
-       if solver==None: solve=self.DEFAULT
+       if solver==None: solver=self.__solver_method
+       if preconditioner==None: preconditioner=self.__preconditioner
+       if solver==None: solver=self.DEFAULT
        if preconditioner==None: preconditioner=self.DEFAULT
        if not (solver,preconditioner)==self.getSolverMethod():
            self.__solver_method=solver
