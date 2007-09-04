@@ -59,7 +59,7 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      }
      /* now a local labeling of the DOF is introduced */
      if (Finley_noError() && optimize) {
-       printf("Warning: no local node labeling optimization implemented yet.\n");
+       Finley_Mesh_optimizeDOFLabeling(in,distribution);
      }
      /* rearrange elements with the attempt to bring elements closer to memory locations of the nodes (distributed shared memory!): */
      if (Finley_noError()) Finley_Mesh_optimizeElementOrdering(in);
@@ -71,11 +71,10 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
         indexReducedNodes=TMPMEMALLOC(in->Nodes->numNodes,index_t);
         if (! ( Finley_checkPtr(maskReducedNodes) ||  Finley_checkPtr(indexReducedNodes) ) ) {
 
+          #pragma omp parallel for private(i) schedule(static)
+          for (i=0;i<in->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
 
-           #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<in->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
-
-           Finley_Mesh_markNodes(maskReducedNodes,0,in,1);
+          Finley_Mesh_markNodes(maskReducedNodes,0,in,1);
    
           numReducedNodes=Finley_Util_packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
 
