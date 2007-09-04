@@ -48,9 +48,9 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t numNeighbors,
       out->numNeighbors=numNeighbors;
       out->neighbor=MEMALLOC(out->numNeighbors,Paso_MPI_rank);
       if (offsetInShared == NULL) {
-          out->numSharedComponents=offsetInShared[numNeighbors]*m;
-      } else {
           out->numSharedComponents=0;
+      } else {
+          out->numSharedComponents=offsetInShared[numNeighbors]*m;
       }
       out->shared=MEMALLOC(out->numSharedComponents,index_t);
       out->offsetInShared=MEMALLOC(out->numNeighbors+1,index_t);
@@ -60,7 +60,7 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t numNeighbors,
              Paso_checkPtr(out->offsetInShared) ) ) {
 
 
-         if (out->numNeighbors>0) {
+         if ((out->numNeighbors>0) && (offsetInShared!=NULL) ) {
             #pragma omp parallel
             {
                #pragma omp for private(i)

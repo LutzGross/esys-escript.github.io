@@ -24,7 +24,7 @@
 
 #include "Mesh.h"
 #define UNUSED -1
-/* #define BOUNDS_CHECK 1 */
+#define BOUNDS_CHECK 1 
 
 /**************************************************************/
 
@@ -54,8 +54,6 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
   min_DOF=Finley_Util_getFlaggedMinInt(1,numNodes,globalDOFIndex,-1);
   max_DOF=Finley_Util_getFlaggedMaxInt(1,numNodes,globalDOFIndex,-1);
-   
-  len_loc_dof=max_DOF-min_DOF+1;
 
   p_min=mpiSize;
   p_max=-1;
@@ -65,6 +63,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
       if (dof_distribution->first_component[p]<=max_DOF) p_max=p;
   }
 
+  len_loc_dof=max_DOF-min_DOF+1;
   myFirstDOF=Paso_Distribution_getFirstComponent(dof_distribution);
   myLastDOF=Paso_Distribution_getLastComponent(dof_distribution);
 
@@ -89,25 +88,26 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 #endif
        if (k>-1) locDOFMask[k-min_DOF]=UNUSED-1;
     }
+
     for (i=myFirstDOF-min_DOF;i<myLastDOF-min_DOF;++i) {
+      locDOFMask[i]=i-myFirstDOF+min_DOF;
 #ifdef BOUNDS_CHECK
       if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s:%i i=%i\n", __FILE__, __LINE__, i); exit(1); }
 #endif
-      locDOFMask[i]=i-myFirstDOF+min_DOF;
     }
 
     numNeighbors=0;
     n=0;
     lastn=n;
     for (p=p_min;p<=p_max;++p) {
-       firstDOF=dof_distribution->first_component[p];
-       lastDOF=dof_distribution->first_component[p+1];
+       firstDOF=MAX(min_DOF,dof_distribution->first_component[p]);
+       lastDOF=MIN(max_DOF+1,dof_distribution->first_component[p+1]);
        if (p != myRank) {
            for (i=firstDOF-min_DOF;i<lastDOF-min_DOF;++i) {
-                if (locDOFMask[i] == UNUSED-1) {
 #ifdef BOUNDS_CHECK
                    if (i < 0 || i >= len_loc_dof) { printf("BOUNDS_CHECK %s:%i p=%i i=%i\n", __FILE__, __LINE__, p, i); exit(1); }
 #endif
+                if (locDOFMask[i] == UNUSED-1) {
                    locDOFMask[i]=myLastDOF-myFirstDOF+n;
                    ++n;
                 }
@@ -137,14 +137,13 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
     /* now we can set the mapping from nodes to local DOFs */
     this_mapping=Finley_NodeMapping_alloc(numNodes,nodeMask,UNUSED);
-
     /* define how to get DOF values for controlled bu other processors */
-    #pragma omp parallel for private(i) schedule(static)
 #ifdef BOUNDS_CHECK
     for (i=0;i<offsetInShared[numNeighbors];++i) {
       if (i < 0 || i >= numNodes*(p_max-p_min+1)) { printf("BOUNDS_CHECK %s:%i i=%i\n", __FILE__, __LINE__, i); exit(1); }
     }
 #endif
+    #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<offsetInShared[numNeighbors];++i) shared[i]=myLastDOF-myFirstDOF+i;
 
     rcv_shcomp=Paso_SharedComponents_alloc(numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
@@ -207,12 +206,10 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
         in->Nodes->degreesOfFreedomCoupler=this_coupler;
     }
   } else {
-
      Finley_NodeMapping_free(this_mapping);
      Paso_Coupler_free(this_coupler);
 
   }
-
 }
 void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component) {
 

@@ -28,8 +28,110 @@
 
 void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
 
-      printf("Warning: no local node labeling optimization implemented yet.\n");
+     index_t myFirstVertex,myLastVertex, *newGlobalDOFID=NULL, firstVertex, lastVertex;
+     register index_t k;
+     dim_t mpiSize, myNumVertices,len, p, i;
+     Paso_Pattern *pattern=NULL;
+     Paso_MPI_rank myRank,dest,source,current_rank, rank;
+     Finley_IndexList* index_list=NULL;
 
+     if (in==NULL) return;
+     if (in->Nodes == NULL) return;
+
+     myRank=in->MPIInfo->rank;
+     mpiSize=in->MPIInfo->size;
+     myFirstVertex=distribution[myRank];
+     myLastVertex=distribution[myRank+1];
+     myNumVertices=myLastVertex-myFirstVertex;
+     len=0;
+     for (p=0;p<mpiSize;++p) len=MAX(len,distribution[p+1]-distribution[p]);
+
+     printf("Warning: no local node labeling optimization implemented yet.\n");
+
+     index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
+     newGlobalDOFID=TMPMEMALLOC(len,index_t);
+#if 0
+     /* create the adjacency structure xadj and adjncy */
+     if (! ( Finley_checkPtr(index_list) || Finley_checkPtr(newGlobalDOFID) ) ) {
+         #pragma omp parallel private(i)
+         {
+            #pragma omp for schedule(static)
+            for(i=0;i<myNumVertices;++i) {
+                index_list[i].extension=NULL;
+                index_list[i].n=0;
+            }
+            /*  insert contributions from element matrices into colums index index_list: */
+            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                        in->Elements,in->Nodes->globalDegreesOfFreedom,
+                                                        in->Nodes->globalDegreesOfFreedom);
+            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                        in->FaceElements,in->Nodes->globalDegreesOfFreedom,
+                                                        in->Nodes->globalDegreesOfFreedom);
+            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                        in->ContactElements,in->Nodes->globalDegreesOfFreedom,
+                                                        in->Nodes->globalDegreesOfFreedom);
+            Finley_IndexList_insertElementsWithRowRange(index_list, myFirstVertex, myLastVertex,
+                                                        in->Points,in->Nodes->globalDegreesOfFreedom,
+                                                        in->Nodes->globalDegreesOfFreedom);
+           }
+           /* create the local matrix pattern */
+           pattern=Finley_IndexList_createPattern(myNumVertices,index_list,myFirstVertex, myLastVertex,myFirstVertex);
+
+           /* clean up index list */
+           if (index_list!=NULL) {
+              #pragma omp parallel for private(i) 
+              for(i=0;i<myNumVertices;++i) Finley_IndexList_free(index_list[i].extension);
+           }
+
+           if (Finley_noError()) {
+                /* call new labeling */
+               for (i=0;i<myNumVertices;++i) newGlobalDOFID[i]=i; /* remove */
+
+           }
+           Paso_Pattern_free(pattern);
+for (i=0;i<myNumVertices;++i) printf("%d ",newGlobalDOFID[i]);
+printf("\n");
+
+
+           if (Finley_noError()) {
+              /* shift new labeling to create a global id */
+              #pragma omp parallel for private(i)
+              for (i=0;i<myNumVertices;++i) newGlobalDOFID[i]+=myFirstVertex;
+
+
+              /* distribute new labeling to other processors */
+              dest=Paso_MPIInfo_mod(mpiSize, myRank + 1);
+              source=Paso_MPIInfo_mod(mpiSize, myRank - 1);
+              current_rank=myRank;
+              for (p=0; p< mpiSize; ++p) {
+                  firstVertex=distribution[current_rank];
+                  lastVertex=distribution[current_rank+1];
+                  #pragma omp parallel for private(i,j,k)
+                  for (i=0;i<in->Nodes->numNodes;++i) {
+                      k=in->Nodes->globalDegreesOfFreedom[i];
+                      if ( (firstVertex<=k) && (k<lastVertex)) {
+                           in->Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
+                      }
+                  }
+   
+                  if (p<mpiSize-1) {  /* the final send can be skipped */
+                     #ifdef PASO_MPI
+                     MPI_Sendrecv_replace(newGlobalDOFID,len, MPI_INT,
+                                          dest, in->MPIInfo->msg_tag_counter,
+                                          source, in->MPIInfo->msg_tag_counter,
+                                          in->MPIInfo->comm,&status);
+                     #endif
+                     in->MPIInfo->msg_tag_counter++;
+                     current_rank=Paso_MPIInfo_mod(mpiSize, current_rank-1);
+                 }
+              }
+           }
+     }
+#endif
+     TMPMEMFREE(index_list);
+     TMPMEMFREE(newGlobalDOFID);
+for (i=0;i<in->Nodes->numNodes;++i) printf("%d ",in->Nodes->globalDegreesOfFreedom[i]);
+printf("\n");
 #if 0
      dim_t dim, i,j,k, myNumVertices,p, mpiSize, len, globalNumVertices,*partition_count=NULL, *new_distribution=NULL, *loc_partition_count=NULL;
      bool_t *setNewDOFId=NULL;
@@ -45,11 +147,6 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
      MPI_Status status;
      #endif
 
-     if (in==NULL) return;
-     if (in->Nodes == NULL) return;
-
-     myRank=in->MPIInfo->rank;
-     mpiSize=in->MPIInfo->size;
      mpiSize_size=mpiSize*sizeof(dim_t);
      dim=in->Nodes->numDim;
      /* first step is to distribute the elements according to a global X of DOF */
