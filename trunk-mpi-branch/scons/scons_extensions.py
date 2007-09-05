@@ -24,7 +24,7 @@ def build_py(target, source, env):
 def runUnitTest(target, source, env):
   time_start = time.time()
   app = str(source[0].abspath)
-  if env['useMPI']: app = 'mpirun -np 1 ' + app
+  if env['useMPI']: app = env['mpi_run'] + ' ' + app
   print "Executing test: " + app
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")

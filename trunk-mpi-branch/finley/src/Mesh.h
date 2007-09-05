@@ -136,6 +136,7 @@ void Finley_Mesh_createMappings(Finley_Mesh* in, index_t *distribution);
 void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component);
 void Finley_Mesh_markDOFsConnectedToRange(index_t* mask, index_t offset, index_t marker,index_t firstDOF,index_t lastDOF,Finley_Mesh* in, bool_t useLinear);
 
+void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh*,dim_t *);
 
 
 Finley_Mesh* Finley_Mesh_merge(dim_t, Finley_Mesh**);

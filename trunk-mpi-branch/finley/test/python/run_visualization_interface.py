@@ -1912,7 +1912,3 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
    suite.addTest(unittest.makeSuite(Test_DXFiles))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if s.wasSuccessful():
-     sys.exit(0)
-   else:
-     sys.exit(1)

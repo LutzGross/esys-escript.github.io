@@ -4888,7 +4888,3 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_PyCAD_Primitives))
    suite.addTest(unittest.makeSuite(Test_PyCAD_Design))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if s.wasSuccessful():
-     sys.exit(0)
-   else:
-     sys.exit(1)
