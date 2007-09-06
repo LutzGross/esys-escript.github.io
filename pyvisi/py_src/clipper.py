@@ -49,7 +49,8 @@ class Clipper:
 			self.__plane = plane
 		
 		self.__setInput()
-		self.setInsideOutOn()
+		# Due to this it's not possible to setInsideOutOff() when used with Rotation
+		# self.setInsideOutOn()
 
 	def __setInput(self):
 		"""
