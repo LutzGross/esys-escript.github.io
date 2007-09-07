@@ -48,8 +48,8 @@ void Paso_Distribution_free( Paso_Distribution *in )
 {
   index_t i;
 
-  if ( in) {
-    --in->reference_counter;
+  if (in != NULL) {
+    --(in->reference_counter);
     if (in->reference_counter<=0) {
       Paso_MPIInfo_free( in->mpi_info );
       MEMFREE( in->first_component );
@@ -60,7 +60,7 @@ void Paso_Distribution_free( Paso_Distribution *in )
 
 Paso_Distribution* Paso_Distribution_getReference( Paso_Distribution *in )
 {
-  if ( in ) 
+  if ( in != NULL) 
     in->reference_counter++;
   return in;
 }

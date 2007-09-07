@@ -66,7 +66,10 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   len_loc_dof=max_DOF-min_DOF+1;
   myFirstDOF=Paso_Distribution_getFirstComponent(dof_distribution);
   myLastDOF=Paso_Distribution_getLastComponent(dof_distribution);
-
+  if (! ((min_DOF<=myFirstDOF) && (myLastDOF-1<=max_DOF)) ) {
+      Finley_setError(SYSTEM_ERROR,"Local elements do not span local degrees of freedom.");
+      return;
+  }
  
   nodeMask=TMPMEMALLOC(numNodes,index_t);
   neighbor=TMPMEMALLOC(mpiSize,Paso_MPI_rank);
@@ -351,6 +354,16 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
     Paso_Distribution_free(in->Nodes->reducedDegreesOfFreedomDistribution);
     Paso_Coupler_free(in->Nodes->degreesOfFreedomCoupler);
     Paso_Coupler_free(in->Nodes->reducedDegreesOfFreedomCoupler);
+    in->Nodes->nodesMapping=NULL;
+    in->Nodes->reducedNodesMapping=NULL;
+    in->Nodes->degreesOfFreedomMapping=NULL;
+    in->Nodes->reducedDegreesOfFreedomMapping=NULL;
+    in->Nodes->nodesDistribution=NULL;
+    in->Nodes->reducedNodesDistribution=NULL;
+    in->Nodes->degreesOfFreedomDistribution=NULL;
+    in->Nodes->reducedDegreesOfFreedomDistribution=NULL;
+    in->Nodes->degreesOfFreedomCoupler=NULL;
+    in->Nodes->reducedDegreesOfFreedomCoupler=NULL;
   }
 }
 

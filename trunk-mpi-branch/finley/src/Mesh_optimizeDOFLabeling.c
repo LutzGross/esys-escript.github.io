@@ -75,7 +75,7 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                                                         in->Nodes->globalDegreesOfFreedom);
            }
            /* create the local matrix pattern */
-           pattern=Finley_IndexList_createPattern(myNumVertices,index_list,myFirstVertex, myLastVertex,myFirstVertex);
+           pattern=Finley_IndexList_createPattern(myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);
 
            /* clean up index list */
            if (index_list!=NULL) {
@@ -83,11 +83,12 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
               for(i=0;i<myNumVertices;++i) Finley_IndexList_free(index_list[i].extension);
            }
 
-           if (Finley_noError()) Pattern_reduceBandwidth(pattern,newGlobalDOFID);
+           if (Finley_noError()) Paso_Pattern_reduceBandwidth(pattern,newGlobalDOFID); 
 
            Paso_Pattern_free(pattern);
-
-           if (Finley_noError()) {
+      }
+      Paso_MPIInfo_noError(in->MPIInfo);
+      if (Finley_noError()) {
               /* shift new labeling to create a global id */
               #pragma omp parallel for private(i)
               for (i=0;i<myNumVertices;++i) newGlobalDOFID[i]+=myFirstVertex;
@@ -119,7 +120,6 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                      current_rank=Paso_MPIInfo_mod(mpiSize, current_rank-1);
                  }
               }
-           }
      }
      TMPMEMFREE(index_list);
      TMPMEMFREE(newGlobalDOFID);

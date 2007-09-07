@@ -113,15 +113,25 @@ void Finley_NodeFile_freeTable(Finley_NodeFile* in) {
     MEMFREE(in->degreesOfFreedomId);
     MEMFREE(in->reducedDegreesOfFreedomId);
     Finley_NodeMapping_free(in->nodesMapping);
+    in->nodesMapping=NULL;
     Finley_NodeMapping_free(in->reducedNodesMapping);
+    in->reducedNodesMapping=NULL;
     Finley_NodeMapping_free(in->degreesOfFreedomMapping);
+    in->degreesOfFreedomMapping=NULL;
     Finley_NodeMapping_free(in->reducedDegreesOfFreedomMapping);
+    in->reducedDegreesOfFreedomMapping=NULL;
     Paso_Distribution_free(in->nodesDistribution);
+    in->nodesDistribution=NULL;
     Paso_Distribution_free(in->reducedNodesDistribution);
+    in->nodesDistribution=NULL;
     Paso_Distribution_free(in->degreesOfFreedomDistribution);
+    in->degreesOfFreedomDistribution=NULL;
     Paso_Distribution_free(in->reducedDegreesOfFreedomDistribution);
+    in->reducedDegreesOfFreedomDistribution=NULL;
     Paso_Coupler_free(in->degreesOfFreedomCoupler);
+    in->degreesOfFreedomCoupler=NULL;
     Paso_Coupler_free(in->reducedDegreesOfFreedomCoupler);
+    in->reducedDegreesOfFreedomCoupler=NULL;
 
     in->numNodes=0;
   }

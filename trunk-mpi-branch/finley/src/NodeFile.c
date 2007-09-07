@@ -63,7 +63,6 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
   out->reducedDegreesOfFreedomDistribution=NULL;
   out->degreesOfFreedomCoupler=NULL;
   out->reducedDegreesOfFreedomCoupler=NULL;
-                                                           
 
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
   return out;
