@@ -122,7 +122,7 @@ bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info )
          Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
      }
   }
-  return (bool_t) errorGlobal;
+  return (errorGlobal==0);
 }
 
 
