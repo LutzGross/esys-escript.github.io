@@ -30,6 +30,8 @@
 #include "Pattern.h"
 #include "Common.h"
 
+#define BOUNDS_CHECK 1
+
 /*   calculate initial badwdisth for a given labeling */
 dim_t Paso_Pattern_getBandwidth(Paso_Pattern* pattern, index_t* label) {
       register index_t k;
@@ -91,7 +93,8 @@ bool_t Paso_Pattern_dropTree(index_t root,
                              index_t *VerticesInTree,
                              dim_t* numLevels, 
                              index_t* firstVertexInLevel, 
-                             dim_t max_LevelWidth_abort) 
+                             dim_t max_LevelWidth_abort,
+			     dim_t N) 
 {
   dim_t nlvls,i;
   index_t level_top,k ,itest,j;
@@ -113,6 +116,10 @@ bool_t Paso_Pattern_dropTree(index_t root,
          for (j=pattern->ptr[k];j<pattern->ptr[k+1];++j) {
            itest = pattern->index[j];
            if (AssignedLevel[itest]<0) {
+#ifdef BOUNDS_CHECK
+		       if (itest < 0 || itest >= N) { printf("BOUNDS_CHECK %s %d itest=%d\n", __FILE__, __LINE__, itest); exit(1); }
+		       if (level_top < 0 || level_top >= N) { printf("BOUNDS_CHECK %s %d level_top=%d\n", __FILE__, __LINE__, level_top); exit(1); }
+#endif
               AssignedLevel[itest] = nlvls;
               VerticesInTree[level_top] = itest;
               level_top++;
@@ -166,11 +173,14 @@ printf("initial bandwidth = %d\n",initial_bandwidth);
              max_LevelWidth=N+1;
                  
              while (Paso_Pattern_dropTree(root,pattern,AssignedLevel,VerticesInTree,
-                                          &numLevels,firstVertexInLevel,max_LevelWidth) ) {
+                                          &numLevels,firstVertexInLevel,max_LevelWidth,N) ) {
 
                  /* find new maximum level width */
                  max_LevelWidth=0;
                  for (i=0;i<numLevels;++i) {
+#ifdef BOUNDS_CHECK
+		      if (i < 0 || i >= N+1) { printf("BOUNDS_CHECK %s %d i=%d N=%d\n", __FILE__, __LINE__, i, N); exit(1); }
+#endif
                       max_LevelWidth=MAX(max_LevelWidth,firstVertexInLevel[i+1]-firstVertexInLevel[i]);
                  }
                  /* find a vertex in the last level which has minimum degree */
@@ -187,11 +197,17 @@ printf("initial bandwidth = %d\n",initial_bandwidth);
                  /* save the vertices in the current tree */
                  numVerticesInTree=firstVertexInLevel[numLevels];
                  for (i=0;i<firstVertexInLevel[numLevels];++i) {
+#ifdef BOUNDS_CHECK
+		       if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabledVertices=%d root=%d N=%d firstVertexInLevel[numLevels]=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N, firstVertexInLevel[numLevels]); exit(1); }
+#endif
                        oldLabel[numLabledVertices+i]=VerticesInTree[i];
                  }
              }
              /* now the vertices in the current tree */
              for (i=0;i<numVerticesInTree;++i) {
+#ifdef BOUNDS_CHECK
+		 if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabledVertices=%d root=%d N=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N); exit(1); }
+#endif
                  oldToNew[oldLabel[numLabledVertices+i]]=numLabledVertices+i;
              }
              numLabledVertices+=numVerticesInTree;

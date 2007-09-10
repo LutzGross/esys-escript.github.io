@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -9,18 +25,24 @@ class Actor3D:
 	Class that defines a 3D actor.
 	"""
 	
-	def __init__(self, mapper):
+	def __init__(self):
 		"""
 		Initialise the 3D actor.
+		"""
+
+		self.__vtk_actor3D = vtk.vtkActor()
+
+	def _setupActor3D(self, mapper):
+		"""
+		Setup the 3D actor.
 
 		@type mapper: vtkDataSetMapper
 		@param mapper: Mapped data
 		"""
 
 		self.__mapper = mapper
-		self.__vtk_actor3D = vtk.vtkActor()
 		self.__setMapper()
-
+		
 	def __setMapper(self):
 		"""
 		Set the mapper of the 3D actor.
@@ -59,14 +81,11 @@ class Actor3D:
 		# NOTE: Must be used before actor.GetProperty().SetColor()
 		# in order for the change of color to take effect.
 		self.__mapper.ScalarVisibilityOff()
-
-		# NOTE: Must be used after mapper.ScalarVisibilityOff()
-		# in order for the change of color to take effect.
 		self.__vtk_actor3D.GetProperty().SetColor(color) 
 
 	def setRepresentationToWireframe(self):
 		"""
-		Set the representation of the 3D actor to Wireframe.
+		Set the representation of the 3D actor to wireframe.
 		"""
 
 		self.__vtk_actor3D.GetProperty().SetRepresentationToWireframe()
@@ -100,16 +119,22 @@ class Actor2D:
 	Class that defines a 2D actor.
 	"""
 
-	def __init__(self, mapper):
+	def __init__(self):
 		"""
 		Initialise the 2D actor.
+		"""
+
+		self._vtk_actor2D = vtk.vtkActor2D()
+
+	def _setupActor2D(self, mapper):
+		"""
+		Setup the 2D actor.
 
 		@type mapper: vtkMapper2D
 		@param mapper: Mapped data
 		"""
 
 		self.__mapper = mapper
-		self._vtk_actor2D = vtk.vtkActor2D()
 		self.__setMapper()
 
 	def __setMapper(self):

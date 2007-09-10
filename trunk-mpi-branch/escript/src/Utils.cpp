@@ -19,6 +19,15 @@
 
 namespace escript {
 
+int getSvnVersion() 
+{
+#ifdef SVN_VERSION
+  return SVN_VERSION;
+#else
+  return 0;
+#endif
+}
+
 void setNumberOfThreads(const int num_threads) 
 {
 

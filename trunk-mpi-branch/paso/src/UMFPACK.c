@@ -55,7 +55,7 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
      double time0;
      double control[UMFPACK_CONTROL], info[UMFPACK_INFO];
      int error = UMFPACK_OK;
-     Paso_UMFPACK_Handler* pt =NULL;
+     Paso_UMFPACK_Handler* pt = NULL;
 
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
         Paso_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSR format with index offset 1 and block size 1.");

@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -9,9 +25,16 @@ class Glyph3D:
 	Class that defines 3D glyphs.
 	"""
 
-	def __init__(self, object, source):
+	def __init__(self):
 		"""
 		Initialise the 3D glyph.
+		"""
+
+		self.__vtk_glyph3D = vtk.vtkGlyph3D()
+
+	def _setupGlyph3D(self, object, source):
+		"""
+		Setup the 3D glyph.
 
 		@type object: vtkDataSet, etc
 		@param object: Input for the 3D glyph 
@@ -21,14 +44,6 @@ class Glyph3D:
 
 		self.__object = object
 		self.__source = source
-		self.__vtk_glyph3D = vtk.vtkGlyph3D()
-		
-		self.__setupGlyph3D()
-
-	def __setupGlyph3D(self):
-		"""
-		Setup the 3D glyph.
-		"""
 
 		self.__setInput()
 		self.__setSource()
@@ -129,17 +144,7 @@ class Glyph3D:
 
 		self.__vtk_glyph3D.SetRange(range)
 
-	def _getGlyph3D(self):
-		"""
-		Return the 3D glyph.
-
-		@rtype: vtkGlyph3D
-		@return: 3D glyph
-		"""
-
-		return self.__vtk_glyph3D
-
-	def _getOutput(self):
+	def _getGlyph3DOutput(self):
 		"""
 		Return the output of the 3D glyph.
 
@@ -158,9 +163,16 @@ class TensorGlyph:
 	Class that defines tensor glyphs.
 	"""
 
-	def __init__(self, object, source):
+	def __init__(self):
 		"""
 		Initialise the tensor glyph.
+		"""
+
+		self.__vtk_tensor_glyph = vtk.vtkTensorGlyph()
+
+	def _setupTensorGlyph(self, object, source):
+		"""
+		Setup the tensor glyph.
 
 		@type object: vtkDataSet, etc
 		@param object: Input for the 3D glyph 
@@ -170,19 +182,10 @@ class TensorGlyph:
 
 		self.__object = object
 		self.__source = source
-		self.__vtk_tensor_glyph = vtk.vtkTensorGlyph()
-
-		self.__setupTensorGlyph()
-
-	def __setupTensorGlyph(self):
-		"""
-		Setup the tensor glyph.
-		"""
 
 		self.__setInput()
 		self.__setSource()
 		self.__vtk_tensor_glyph.ClampScalingOn()
-
 
 	def __setInput(self):
 		"""
@@ -218,7 +221,7 @@ class TensorGlyph:
 
 		self.__vtk_tensor_glyph.SetMaxScaleFactor(max_scale_factor)
 
-	def _getOutput(self):
+	def _getTensorGlyphOutput(self):
 		"""
 		Return the output of the tensor glyph.
 

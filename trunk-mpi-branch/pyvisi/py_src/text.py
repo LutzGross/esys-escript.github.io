@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 from actor import Actor2D
@@ -11,7 +27,7 @@ from constant import Viewport, Color
 class Text2D(Actor2D):
 	"""
 	Class that defines a 2D text actor. A two-dimensional text is used to
-	annotate the rendered object (i.e. adding titles, authors and labels).
+	annotate the rendered object (i.e. inserting titles, authors and labels).
 	"""
 
 	def __init__(self, scene, text, viewport = Viewport.SOUTH_WEST):
@@ -26,21 +42,25 @@ class Text2D(Actor2D):
 		@param viewport: Viewport in which objects are to be rendered on
 		"""
 
-		self.__scene = scene
 		self.__text = text
 		self.__viewport = viewport
 		self._vtk_actor2D = vtk.vtkTextActor()
 
-		self.__setupText2D()
+		self.__setupText2D(scene)
 	
-	def __setupText2D(self):
+	def __setupText2D(self, scene):
 		"""
 		Setup the 2D text.
+
+		@type scene: L{Scene <scene.Scene>} object
+		@param scene: Scene in which objects are to be rendered on
 		"""
 
 		self.__setInput()
+		# Set the color of the 2D text to black by default.
+		self.setColor(Color.BLACK)
 		# Add the 2D text to the appropriate renderer.
-		self.__scene._addActor2D(self.__viewport, self._vtk_actor2D)
+		scene._addActor2D(self.__viewport, self._vtk_actor2D)
 
 	def __setInput(self):
 		"""

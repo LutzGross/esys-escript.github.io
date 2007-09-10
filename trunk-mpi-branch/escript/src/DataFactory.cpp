@@ -81,7 +81,7 @@ load(const std::string fileName,
    #ifdef USE_NETCDF
    NcAtt *type_att, *rank_att, *function_space_type_att;
    // netCDF error handler
-   NcError err(NcError::verbose_nonfatal);
+   NcError err(NcError::silent_nonfatal);
    // Create the file.
    NcFile dataFile(fileName.c_str(), NcFile::ReadOnly);
    if (!dataFile.is_valid())
@@ -102,21 +102,25 @@ load(const std::string fileName,
    delete rank_att;
    if (rank<0 || rank>DataArrayView::maxRank)
         throw DataException("Error - load:: rank in escript netCDF file is greater than maximum rank.");
-  
    /* recover type attribute */
-   if (! (type_att=dataFile.get_att("type")) )
-	throw DataException("Error - load:: cannot recover type attribute from escript netCDF file.");
-   char* type_str = type_att->as_string(0);
    int type=-1;
-   if (strncmp(type_str, "constant", strlen("constant")) == 0 ) {
-        type =0;
-   } else if (strncmp(type_str, "tagged", strlen("tagged")) == 0 ) {
-        type =1;
-   } else if (strncmp(type_str, "expanded", strlen("expanded")) == 0 ) {
-        type =2;
+   if ((type_att=dataFile.get_att("type")) ) {
+       char* type_str = type_att->as_string(0);
+       if (strncmp(type_str, "constant", strlen("constant")) == 0 ) {
+          type =0;
+       } else if (strncmp(type_str, "tagged", strlen("tagged")) == 0 ) {
+           type =1;
+       } else if (strncmp(type_str, "expanded", strlen("expanded")) == 0 ) {
+           type =2;
+       }
+       free(type_str);
+   } else {
+      if (! (type_att=dataFile.get_att("type_id")) )
+  	throw DataException("Error - load:: cannot recover type attribute from escript netCDF file.");
+      type=type_att->as_int(0);
    }
    delete type_att;
-   delete type_str;
+
    /* recover dimension */
    int ndims=dataFile.num_dims();
    int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0, len_data_point=1;
@@ -196,7 +200,7 @@ load(const std::string fileName,
          throw DataException("Error - load:: unable to recover tags from netCDF file.");
       }
 
-      DataVector data(len_data_point*ntags,0.,len_data_point*ntags);
+      DataVector data(len_data_point * ntags, 0., len_data_point * ntags);
       if (!(var = dataFile.get_var("data")))
       {
          free(tags);

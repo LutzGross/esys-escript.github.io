@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -9,9 +25,16 @@ class Cutter:
 	Class that defines a cutter.
 	"""
 
-	def __init__(self, object, plane):
+	def __init__(self):
 		"""
 		Initialise the cutter.
+		"""
+
+		self.__vtk_cutter = vtk.vtkCutter()
+
+	def _setupCutter(self, object, plane):
+		"""
+		Setup the cutter.
 
 		@type object: vtkUnstructuredGrid, etc
 		@param object: Input for the cutter
@@ -21,18 +44,9 @@ class Cutter:
 
 		self.__object = object
 		self.__plane = plane
-		self.__vtk_cutter = vtk.vtkCutter()
-	
-		self.__setupCutter()
-
-	def __setupCutter(self):
-		"""
-		Setup the cutter.
-		"""
 
 		self.__setInput()
 		self.__setCutFunction()
-		self.__vtk_cutter.Update()
 
 	def __setInput(self):
 		"""
@@ -48,7 +62,7 @@ class Cutter:
 
 		self.__vtk_cutter.SetCutFunction(self.__plane)
 
-	def _getOutput(self):
+	def _getCutterOutput(self):
 		"""
 		Return the output of the cutter.
 

@@ -24,6 +24,12 @@ namespace escript {
 
   /**
      \brief
+     return the latest SVN version number
+  */
+  ESCRIPT_DLL_API int getSvnVersion();
+
+  /**
+     \brief
      set the number of threads 
   */
   ESCRIPT_DLL_API void setNumberOfThreads(const int num_threads);

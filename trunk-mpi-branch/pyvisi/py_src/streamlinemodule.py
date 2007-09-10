@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -9,9 +25,16 @@ class StreamLineModule:
 	Class that defines the streamline module.
 	"""
 
-	def __init__(self, object, source):
+	def __init__(self):
 		"""
 		Initialise the streamline module.
+		"""
+
+		self.__vtk_stream_line = vtk.vtkStreamLine()
+
+	def _setupStreamLineModule(self, object, source):
+		"""
+		Setup the streamline.
 
 		@type object: vtkUnstructuredGrid, etc 
 		@param object: Input for the streamline
@@ -21,14 +44,6 @@ class StreamLineModule:
 
 		self.__object = object
 		self.__source = source
-		self.__vtk_stream_line = vtk.vtkStreamLine()
-
-		self.__setupStreamLineModule()
-
-	def __setupStreamLineModule(self):
-		"""
-		Setup the streamline.
-		"""
 
 		self.__setInput()
 		self.__setSource()
@@ -42,7 +57,6 @@ class StreamLineModule:
 		self.setIntegrationToBothDirections()
 		# Default integrator is set to vtkRungeKutta4
 		self.setIntegrator(vtk.vtkRungeKutta4())	
-		self.__vtk_stream_line.Update()
 
 	def __setInput(self):
 		"""
@@ -75,12 +89,11 @@ class StreamLineModule:
 		(but is more expensive). Setting the step length usually goes 
 		hand-in-hand with setting the integration step length. Otherwise, 
 		errors such as "... can't compute normals" may arise. If such an 
-		error occurs try changing the value. However, it does not usually 
-		apply the other way around.
+		error occurs try changing the values. 
 
 		@type length: Number
 		@param length: Length of the streamline segment expressed in 
-		elapsed time
+				elapsed time
 		"""
 
 		self.__vtk_stream_line.SetStepLength(length)	
@@ -93,7 +106,7 @@ class StreamLineModule:
 
 		@type length: Number
 		@param length: Length of the integration step expressed as a fraction 
-		of the size of each cell
+				of the size of each cell
 		"""
 
 		self.__vtk_stream_line.SetIntegrationStepLength(length)
@@ -104,7 +117,8 @@ class StreamLineModule:
 		goes) and backward (where the streamline came from).
 		"""
 
-		self.__vtk_stream_line.SetIntegrationDirectionToIntegrateBothDirections()
+		self.__vtk_stream_line.\
+				SetIntegrationDirectionToIntegrateBothDirections()
 
 	def setIntegrator(self, integrator):
 		"""
@@ -131,7 +145,7 @@ class StreamLineModule:
 
 		self.__vtk_stream_line.SpeedScalarsOff()
 
-	def _getOutput(self):
+	def _getStreamLineModuleOutput(self):
 		"""
 		Return the output of the streamline.
 

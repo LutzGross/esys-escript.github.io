@@ -36,16 +36,38 @@ void Finley_Quad_getNodesTri(int numQuadNodes,double* quadNodes,double* quadWeig
   double Q1,Q2;
   #define DIM 2
   
-  /*  the easy case: */
+  /*  the easy cases: */
   
   if (numQuadNodes==1) {
     QUADNODES(0,0)=1./3.;
     QUADNODES(1,0)=1./3.;
-    QUADWEIGHTS(0)= .5;
+    QUADWEIGHTS(0)=1./2.;
+  } else if (numQuadNodes==3){
+    QUADNODES(0,0)=1./2.;
+    QUADNODES(1,0)=0.;
+    QUADWEIGHTS(0)=1./6.;
+    QUADNODES(0,1)=0.;
+    QUADNODES(1,1)=1./2.;
+    QUADWEIGHTS(1)=1./6.;
+    QUADNODES(0,2)=1./2.;
+    QUADNODES(1,2)=1./2.;
+    QUADWEIGHTS(2)=1./6.;
+  } else if (numQuadNodes==4){
+    QUADNODES(0,0)=1./3.;
+    QUADNODES(1,0)=1./3.;
+    QUADWEIGHTS(0)=-27./96.;
+    QUADNODES(0,1)=0.2;
+    QUADNODES(1,1)=0.2;
+    QUADWEIGHTS(1)=25./96.;
+    QUADNODES(0,2)=0.6;
+    QUADNODES(1,2)=0.2;
+    QUADWEIGHTS(2)=25./96.;
+    QUADNODES(0,3)=0.2;
+    QUADNODES(1,3)=0.6;
+    QUADWEIGHTS(3)=25./96.;
   } else {
     
     /*  get scheme on [0.1]^2 */
-    
     Finley_Quad_getNodesRec(numQuadNodes,quadNodes,quadWeights);
     if (! Finley_noError()) return;
     
@@ -72,13 +94,52 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
   double Q1,Q2,Q3,JA11,JA12,JA13,JA21,JA22,JA23,JA31,JA32,JA33,DET;
   #define DIM 3
   
-  /*  the easy case: */
-  
+  /*  the easy cases: */
   if (numQuadNodes==1) {
-    QUADNODES(0,0)= .25;
-    QUADNODES(1,0)= .25;
-    QUADNODES(2,0)= .25;
+    QUADNODES(0,0)=0.25;
+    QUADNODES(1,0)=0.25;
+    QUADNODES(2,0)=0.25;
     QUADWEIGHTS(0)=1./6.;
+  } else if (numQuadNodes==4){
+    double alpha=0.58541020;
+    double beta =0.13819660;
+    QUADNODES(0,0)=beta;
+    QUADNODES(1,0)=beta;
+    QUADNODES(2,0)=beta;
+    QUADWEIGHTS(0)=1./24.;
+    QUADNODES(0,1)=alpha;
+    QUADNODES(1,1)=beta;
+    QUADNODES(2,1)=beta;
+    QUADWEIGHTS(1)=1./24.;
+    QUADNODES(0,2)=beta;
+    QUADNODES(1,2)=alpha;
+    QUADNODES(2,2)=beta;
+    QUADWEIGHTS(2)=1./24.;
+    QUADNODES(0,3)=beta;
+    QUADNODES(1,3)=beta;
+    QUADNODES(2,3)=alpha;
+    QUADWEIGHTS(3)=1./24.;
+  } else if (numQuadNodes==5){
+    QUADNODES(0,0)=1./4.;
+    QUADNODES(1,0)=1./4.;
+    QUADNODES(2,0)=1./4.;
+    QUADWEIGHTS(0)=-2./15.;
+    QUADNODES(0,1)=1./6.;
+    QUADNODES(1,1)=1./6.;
+    QUADNODES(2,1)=1./6.;
+    QUADWEIGHTS(1)=3./40.;
+    QUADNODES(0,2)=1./2.;
+    QUADNODES(1,2)=1./6.;
+    QUADNODES(2,2)=1./6.;
+    QUADWEIGHTS(2)=3./40.;
+    QUADNODES(0,3)=1./6.;
+    QUADNODES(1,3)=1./2.;
+    QUADNODES(2,3)=1./6.;
+    QUADWEIGHTS(3)=3./40.;
+    QUADNODES(0,4)=1./6.;
+    QUADNODES(1,4)=1./6.;
+    QUADNODES(2,4)=1./2.;
+    QUADWEIGHTS(4)=3./40.;
   } else {
     
     /*  get scheme on [0.1]^3 */
@@ -459,6 +520,10 @@ int Finley_Quad_getNumNodesTri(int order) {
   int numQuadNodesLine;
   if (order<=1) {
       return 1;
+  } else if (order==2){
+      return 3;
+  } else if (order==3){
+      return 4;
   } else {
       numQuadNodesLine=Finley_Quad_getNumNodesLine(order+1);
       if (Finley_noError()) {
@@ -483,6 +548,10 @@ int Finley_Quad_getNumNodesTet(int order) {
   int numQuadNodesLine;
   if (order<=1) {
       return 1;
+  } else if (order==2){
+      return 4;
+  } else if (order==3){
+      return 5;
   } else {
      numQuadNodesLine=Finley_Quad_getNumNodesLine(order+2);
      if (Finley_noError()) {

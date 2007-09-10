@@ -1,34 +1,17 @@
-# Scons configuration file for doxygen docs
+# Scons configuration file for doxygen C and C++ docs
+
+#          Copyright 2006 by ACcESS MNRF                   
+#                                                          
+#              http://www.access.edu.au                    
+#       Primary Business: Queensland, Australia            
+#  Licensed under the Open Software License version 3.0    
+#     http://www.opensource.org/licenses/osl-3.0.php       
+#                                                          
+#
+#
 
 import os
+Import('*')
 
-#
-# set appropriate defaults for configuration variables
+env.Command(api_doxygen, pyinstall, "doxygen doc/doxygen/doxygen_esys")
 
-esysroot=str(Dir('../..').abspath)
-execfile(str(File(esysroot+"/scons/esys_options.py")))
-
-#
-# construct the script to run doxygen
-
-rundoxygen_script = open(str(File(esysroot+"/doc/doxygen/rundoxygen")), 'w')
-rundoxygen_script.write(str("#!/bin/bash\n"))
-rundoxygen_script.write(str(doxygen_path+"/doxygen doxygen/doxygen_esys > "+esysroot+"/doc/doxygen_msgs.txt 2>&1\n"))
-rundoxygen_script.close()
-
-os.chmod(str(File(esysroot+"/doc/doxygen/rundoxygen")), 0700)
-
-#
-# do the actual build
-
-import scons_extensions
-
-source = 'rundoxygen'
-
-doxygen_env = Environment(ENV = os.environ)
-
-runDoxygen_builder = Builder(action = scons_extensions.build_doxygen, suffix = ".run", single_source = True)
-doxygen_env.Append(BUILDERS = {'RunDoxygen' : runDoxygen_builder})
-
-Alias("build_docs", doxygen_env.RunDoxygen(source))
-Default()

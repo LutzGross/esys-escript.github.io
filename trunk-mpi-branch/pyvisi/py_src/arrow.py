@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -27,7 +43,7 @@ class Arrow2D:
 		# Fill the inside of the arrows.
 		self.__vtk_arrow2D.SetFilled(0)
 	
-	def _getOutput(self):
+	def _getArrow2DOutput(self):
 		"""
 		Return the output of the 2D arrows.
 
@@ -53,7 +69,7 @@ class Arrow3D:
 
 		self.__vtk_arrow3D = vtk.vtkArrowSource()
 		
-	def _getOutput(self):
+	def _getArrow3DOutput(self):
 		"""
 		Return the output of the 3D arrows.
 

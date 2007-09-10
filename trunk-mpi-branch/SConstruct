@@ -15,28 +15,49 @@ EnsurePythonVersion(2,3)
 #===============================================================
 #   import tools:
 import glob
-import sys, os
-import socket
+import sys, os, re
 # Add our extensions
 if sys.path.count('scons')==0: sys.path.append('scons')
 import scons_extensions
 
 #===============================================================
-#   check on windows or linux platform
-#
-IS_WINDOWS_PLATFORM = (os.name== "nt")
 
-if IS_WINDOWS_PLATFORM:
-   tools_prefix="C:\\Program Files\\"
-else:
-   tools_prefix="/usr"
+tools_prefix="/usr"
 
 #==============================================================================================     
 #    
-#    get the iinstallation prefix
+#    get the installation prefix
 #
-prefix = ARGUMENTS.get('prefix', Dir('#.').abspath)
+prefix = ARGUMENTS.get('prefix', '/usr')
+
+# We may also need to know where python's site-packages subdirectory lives
+python_version = 'python%s.%s'%(sys.version_info[0],sys.version_info[1])
+
+# Install as a standard python package in /usr/lib64 if available, else in /usr/lib
+if os.path.isdir(  prefix+"/lib64/"+python_version+"/site-packages"):
+   sys_dir_packages =  prefix+"/lib64/"+python_version+"/site-packages/esys"
+   sys_dir_libraries = prefix+"/lib64"
+else:
+   sys_dir_packages =  prefix+"/lib/"+python_version+"/site-packages/esys"
+   sys_dir_libraries = prefix+"/lib"
+
+sys_dir_examples = prefix+"/share/doc/esys"
+
+source_root = Dir('#.').abspath
+
+dir_packages = os.path.join(source_root,"esys")
+dir_examples = os.path.join(source_root,"examples")
+dir_libraries = os.path.join(source_root,"lib")
+
+print "	Default packages local installation:	", dir_packages
+print "	Default library local installation 	", dir_libraries
+print "	Default example local  installation:	", dir_examples
 print "Install prefix is: ", prefix
+print "	Default packages system installation:	", sys_dir_packages
+print "	Default library system installation 	", sys_dir_libraries
+print "	Default example system installation:	", sys_dir_examples
+
+#==============================================================================================     
 
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
@@ -47,22 +68,29 @@ print "Install prefix is: ", prefix
 #    
 #    get the options file if present:
 #
-if ARGUMENTS.get('options_file',0):
-   options_file = ARGUMENTS.get('options_file',0)
-else:
-   from string import ascii_letters,digits
-   hostname=""
-   for s in socket.gethostname().split('.')[0]:
-      if s in ascii_letters+digits:
-         hostname+=s
-      else:
-         hostname+="_"
-   options_file = os.path.join("scons",hostname+"_options.py")
-   
-if os.path.isfile(options_file):
-   print "option file is ",options_file,"."
-else:
-   print "option file is ",options_file, "(not present)."
+options_file = ARGUMENTS.get('options_file','')
+
+if not os.path.isfile(options_file) :
+    options_file = False
+
+if not options_file :
+   import socket
+   hostname = re.sub("[^0-9a-zA-Z]", "_", socket.gethostname().split('.')[0])
+   tmp = os.path.join("scons",hostname+"_options.py")
+
+   if os.path.isfile(tmp) :
+      options_file = tmp
+
+IS_WINDOWS_PLATFORM = (os.name== "nt")
+
+# If you're not going to tell me then......
+# FIXME: add one for the altix too.
+if not options_file :
+   if IS_WINDOWS_PLATFORM :
+      options_file = "scons/windows_mscv71_options.py"
+   else:
+      options_file = "scons/linux_gcc_eg_options.py"
+
 # and load it
 opts = Options(options_file, ARGUMENTS)
 #================================================================
@@ -96,45 +124,25 @@ else:
 #
 #    python installation:
 #
-if IS_WINDOWS_PLATFORM:
-   python_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1]),"include")
-   python_lib_path_default=os.path.join(tools_prefix,'python%s%s'%(sys.version_info[0],sys.version_info[1])+"libs")
-   python_lib_default=["python%s%s"%(sys.version_info[0],sys.version_info[1])]
-else:
-   python_path_default=os.path.join(tools_prefix,'include','python%s.%s'%(sys.version_info[0],sys.version_info[1]))
-   python_lib_path_default=os.path.join(tools_prefix,'lib')
-   python_lib_default=["python%s.%s"%(sys.version_info[0],sys.version_info[1])]
+python_path_default=os.path.join(tools_prefix,'include','python%s.%s'%(sys.version_info[0],sys.version_info[1]))
+python_lib_path_default=os.path.join(tools_prefix,'lib')
+python_lib_default="python%s.%s"%(sys.version_info[0],sys.version_info[1])
 
 #==========================================================================
 #
 #    boost installation:
 #
-if IS_WINDOWS_PLATFORM:
-   boost_lib_path_default=os.path.join(tools_prefix,'boost','lib')
-   boost_lib_default=None
-   for i in os.listdir(boost_lib_path_default): 
-      name=os.path.splitext(i)
-      if name[1] == ".dll" and name[0].startswith("boost_python"):
-          if boost_lib_default == None: 
-	     boost_lib_default= [ name[0] ] 
-	  else:
-	     if not name[0].find("-gd-"): boost_lib_default=[ name[0] ]
-   boost_path_default=os.path.join(tools_prefix,'boost','include','boost-%s'%(boost_lib_default[0].split("-")[-1],))
-else:
-   boost_path_default=os.path.join(tools_prefix,'include')
-   boost_lib_path_default=os.path.join(tools_prefix,'lib')
-   boost_lib_default=['boost_python']
+boost_path_default=os.path.join(tools_prefix,'include')
+boost_lib_path_default=os.path.join(tools_prefix,'lib')
+boost_lib_default=['boost_python']
+
 #==========================================================================
 #
 #    check if netCDF is installed on the system:
 #
-if IS_WINDOWS_PLATFORM:
-    netcdf_dir=os.path.join(tools_prefix,'netcdf')
-    netCDF_path_default=os.path.join(netcdf_dir,'include')
-    netCDF_lib_path_default=os.path.join(netcdf_dir,'lib')
-else:
-    netCDF_path_default=os.path.join(tools_prefix,'include','netcdf-3')
-    netCDF_lib_path_default=os.path.join(tools_prefix,'lib','netcdf-3')
+netCDF_path_default=os.path.join(tools_prefix,'include','netcdf-3')
+netCDF_lib_path_default=os.path.join(tools_prefix,'lib','netcdf-3')
+
 if os.path.isdir(netCDF_path_default) and os.path.isdir(netCDF_lib_path_default):
      useNetCDF_default='yes'
      netCDF_libs_default=[ 'netcdf_c++', 'netcdf' ]
@@ -144,8 +152,6 @@ else:
      netCDF_lib_path_default=None
      netCDF_libs_default=None
 
-if IS_WINDOWS_PLATFORM: 
-        useNetCDF_default='no' # be default netcdf is not supported on windows. 
 #==========================================================================
 #
 #  MPI:
@@ -168,22 +174,11 @@ else:
 #
 #    compile:
 #
-if IS_WINDOWS_PLATFORM:
-    # cc_flags_default  = '/GR /EHsc /MD /Qc99 /Qopenmp /Qopenmp-report1 /O3 /G7 /Qprec /Qpar-report1 /QxP /QaxP'
-    # cc_flags_debug_default  = '/Od /MDd /RTC1 /GR /EHsc /Qc99 /Qopenmp /Qopenmp-report1 /Qprec'
-    cc_flags_default  = '/nologo /EHsc /GR  /wd4068 /O2 /Op /MT /W3 /Ob0 /Z7'
-    cc_flags_debug_default  ='/nologo /EHsc /GR  /wd4068 /Od /RTC1 /MTd /ZI /Ob0 /Z7'
-    
-    cc_flags_default  = '/nologo /EHsc /GR  /O2 /MT /W3 /Ob0 /Z7 /wd4068'
-    cc_flags_debug_default  ='/nologo /EHsc /GR /Od /RTC1 /MTd /W3 /Ob0 /Z7/wd4068'
-    cxx_flags_default = ''
-    cxx_flags_debug_default = ''
-    cc_common_flags = '/FD /EHsc /GR /wd4068 '
-else:
-   cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi'
-   cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi'
-   cxx_flags_default='--no-warn -ansi'
-   cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
+cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+cxx_flags_default='--no-warn -ansi'
+cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
+
 #==============================================================================================     
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
@@ -191,18 +186,23 @@ else:
 # DO NOT CHANGE THEM HERE
 opts.AddOptions(
 # Where to install esys stuff
-  ('incinstall', 'where the esys headers will be installed', prefix+'/include'),
-  ('libinstall', 'where the esys libraries will be installed', prefix+'/lib'),
-  ('pyinstall', 'where the esys python modules will be installed', prefix),
-  ('src_zipfile', 'the source zip file will be installed.', prefix+"/release/escript_src.zip"),
-  ('test_zipfile', 'the test zip file will be installed.', prefix+"/release/escript_tests.zip"),
-  ('src_tarfile', 'the source tar file will be installed.', prefix+"/release/escript_src.tar.gz"),
-  ('test_tarfile', 'the test tar file will be installed.', prefix+"/release/escript_tests.tar.gz"),
-  ('examples_tarfile', 'the examples tar file will be installed.', prefix+"/release/doc/escript_examples.tar.gz"),
-  ('examples_zipfile', 'the examples zip file will be installed.', prefix+"/release/doc/escript_examples.zip"),
-  ('guide_pdf', 'name of the user guide in pdf format', prefix+"/release/doc/user/guide.pdf"),
-  ('api_epydoc', 'name of the epydoc api docs directory',prefix+"/release/doc/epydoc"),
-  ('guide_html', 'name of the directory for user guide in html format', prefix+"/release/doc/user/html"),
+  ('incinstall', 'where the esys headers will be installed',             Dir('#.').abspath+'/include'),
+  ('libinstall', 'where the esys libraries will be installed',           dir_libraries),
+  ('pyinstall', 'where the esys python modules will be installed',       dir_packages),
+  ('exinstall', 'where the esys examples will be installed',             dir_examples),
+  ('sys_libinstall', 'where the system esys libraries will be installed',       sys_dir_libraries),
+  ('sys_pyinstall', 'where the system esys python modules will be installed',   sys_dir_packages),
+  ('sys_exinstall', 'where the system esys examples will be installed',         sys_dir_examples),
+  ('src_zipfile', 'the source zip file will be installed.',              Dir('#.').abspath+"/release/escript_src.zip"),
+  ('test_zipfile', 'the test zip file will be installed.',               Dir('#.').abspath+"/release/escript_tests.zip"),
+  ('src_tarfile', 'the source tar file will be installed.',              Dir('#.').abspath+"/release/escript_src.tar.gz"),
+  ('test_tarfile', 'the test tar file will be installed.',               Dir('#.').abspath+"/release/escript_tests.tar.gz"),
+  ('examples_tarfile', 'the examples tar file will be installed.',       Dir('#.').abspath+"/release/doc/escript_examples.tar.gz"),
+  ('examples_zipfile', 'the examples zip file will be installed.',       Dir('#.').abspath+"/release/doc/escript_examples.zip"),
+  ('guide_pdf', 'name of the user guide in pdf format',                  Dir('#.').abspath+"/release/doc/user/guide.pdf"),
+  ('api_epydoc', 'name of the epydoc api docs directory',                Dir('#.').abspath+"/release/doc/epydoc"),
+  ('guide_html', 'name of the directory for user guide in html format',  Dir('#.').abspath+"/release/doc/user/html"),
+  ('api_doxygen', 'name of the doxygen api docs directory',prefix+"/release/doc/doxygen"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/<hostname>_options.py)", options_file),
@@ -249,14 +249,15 @@ opts.AddOptions(
   ('netCDF_libs', 'netCDF C++ libraries to link with', netCDF_libs_default),
 # Python
 # locations of include files for python
+# FIXME: python_path should be python_inc_path and the same for boost etc.
   PathOption('python_path', 'Path to Python includes', python_path_default),
   PathOption('python_lib_path', 'Path to Python libs', python_lib_path_default),
   ('python_lib', 'Python libraries to link with', python_lib_default),
+  ('python_cmd', 'Python command', 'python'),
 # Boost
   PathOption('boost_path', 'Path to Boost includes', boost_path_default),
   PathOption('boost_lib_path', 'Path to Boost libs', boost_lib_path_default),
   ('boost_lib', 'Boost libraries to link with', boost_lib_default),
-
 # Doc building
 #  PathOption('doxygen_path', 'Path to Doxygen executable', None),
 #  PathOption('epydoc_path', 'Path to Epydoc executable', None),
@@ -283,6 +284,7 @@ opts.AddOptions(
 #   This doesn't impact linux and windows which will use the default compiler (g++ or msvc, or the intel compiler if it is installed on both platforms)
 #   FIXME: Perhaps a modification to intelc.py will allow better support for ia64 on altix
 #
+
 if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
 else:
@@ -293,15 +295,18 @@ else:
    else:
       env = Environment(tools = ['default'], options = opts)
 Help(opts.GenerateHelpText(env))
+
 #=================================================================================================
 #
 #     Initialise Scons Build Environment
 #     check for user environment variables we are interested in
 try:
-   python_path = os.environ['PYTHONPATH']
-   env['ENV']['PYTHONPATH'] = python_path
+   tmp = os.environ['PYTHONPATH']
+   env['ENV']['PYTHONPATH'] = tmp
 except KeyError:
-   python_path = ''
+   pass
+
+env.PrependENVPath('PYTHONPATH', source_root)
 
 try:
    omp_num_threads = os.environ['OMP_NUM_THREADS']
@@ -313,16 +318,31 @@ try:
    path = os.environ['PATH']
    env['ENV']['PATH'] = path
 except KeyError:
-   path = ''
+   omp_num_threads = 1
+
+env['ENV']['OMP_NUM_THREADS'] = omp_num_threads
+
 
 # Copy some variables from the system environment to the build environment
 try:
-   ld_library_path = os.environ['LD_LIBRARY_PATH']
-   env['ENV']['LD_LIBRARY_PATH'] = ld_library_path
+   env['ENV']['DISPLAY'] = os.environ['DISPLAY']
+   env['ENV']['XAUTHORITY'] = os.environ['XAUTHORITY']
    home_temp = os.environ['HOME']	# MPICH2's mpd needs $HOME to find $HOME/.mpd.conf
    env['ENV']['HOME'] = home_temp
 except KeyError:
-   ld_library_path = ''
+   pass
+
+try:
+   tmp = os.environ['PATH']
+   env['ENV']['PATH'] = tmp
+except KeyError:
+   pass
+
+try:
+   tmp = os.environ['LD_LIBRARY_PATH']
+   env['ENV']['LD_LIBRARY_PATH'] = tmp
+except KeyError:
+   pass
 #==========================================================================
 #
 #    Add some customer builders
@@ -330,10 +350,9 @@ except KeyError:
 py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
-if IS_WINDOWS_PLATFORM:
-   runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', src_suffix='.exe', single_source=True)
-else:
-   runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed',
+                              src_suffix=env['PROGSUFFIX'], single_source=True)
+
 env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 
 runPyUnitTest_builder = Builder(action = scons_extensions.runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
@@ -347,18 +366,18 @@ except KeyError:
    incinstall = None
 try:
    libinstall = env['libinstall']
-   env.Append(LIBPATH = [libinstall,]) # ksteube adds -L for building of libescript.so libfinley.so escriptcpp.so finleycpp.so
+   env.Append(LIBPATH = [libinstall,]) # Adds -L for building of libescript.so libfinley.so escriptcpp.so finleycpp.so
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
-   if env['PLATFORM'] == "win32":
+   if IS_WINDOWS_PLATFORM :
       env.PrependENVPath('PATH', libinstall)
       env.PrependENVPath('PATH', env['boost_lib_path'])
 except KeyError:
    libinstall = None
 try:
-   pyinstall = env['pyinstall']+'/esys' # all targets will install into pyinstall/esys but PYTHONPATH points at straight pyinstall so you go import esys.escript etc
-   env.PrependENVPath('PYTHONPATH', env['pyinstall'])
+   pyinstall = env['pyinstall'] # all targets will install into pyinstall/esys but PYTHONPATH points at straight pyinstall so you go import esys.escript etc
 except KeyError:
    pyinstall = None
+
 try:
    cc_defines = env['cc_defines']
    env.Append(CPPDEFINES = cc_defines)
@@ -379,6 +398,23 @@ try:
    env.Replace(TARFLAGS = tar_flags)
 except KeyError:
    pass
+
+try:
+   exinstall = env['exinstall']
+except KeyError:
+   exinstall = None
+try:
+   sys_libinstall = env['sys_libinstall']
+except KeyError:
+   sys_libinstall = None
+try:
+   sys_pyinstall = env['sys_pyinstall']
+except KeyError:
+   sys_pyinstall = None
+try:
+   sys_exinstall = env['sys_exinstall']
+except KeyError:
+   sys_exinstall = None
 
 # ====================== debugging ===================================
 try:
@@ -403,6 +439,7 @@ try:
 except KeyError:
    useMPI = None
 # ========= set compiler flags ===========================================
+
 if dodebug:
     try:
       flags = env['cc_flags_debug'] + ' ' + omp_flags_debug
@@ -591,10 +628,14 @@ else:
       useNetCDF = 'yes'
       pass
     
-if not useNetCDF == 'yes':
-   print "Warning: Installation is not configured with netCDF. Some I/O function may not be available."
-   
 if useNetCDF == 'yes': 
+   try:
+      netCDF_libs = env['netCDF_libs']
+   except KeyError:
+      pass
+
+   env.Append(LIBS = netCDF_libs)
+   env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
    try:
       includes = env['netCDF_path']
       env.Append(CPPPATH = [includes,])
@@ -603,16 +644,13 @@ if useNetCDF == 'yes':
 
    try:
       lib_path = env['netCDF_lib_path']
-      if IS_WINDOWS_PLATFORM: env['ENV']['PATH']+=";"+lib_path
       env.Append(LIBPATH = [ lib_path, ])
+      if IS_WINDOWS_PLATFORM :
+         env.PrependENVPath('PATH', lib_path)
    except KeyError:
       pass
-
-   try:
-      netCDF_libs = env['netCDF_libs']
-   except KeyError:
-      netCDF_libs = [ ]
 else:
+   print "Warning: Installation is not configured with netCDF. Some I/O function may not be available."
    netCDF_libs=[ ]
 
 # ====================== boost ======================================
@@ -624,6 +662,8 @@ except KeyError:
 try:
    lib_path = env['boost_lib_path']
    env.Append(LIBPATH = [lib_path,])
+   if IS_WINDOWS_PLATFORM :
+      env.PrependENVPath('PATH', lib_path)
 except KeyError:
    pass
 try:
@@ -643,9 +683,9 @@ except KeyError:
    pass
 try:
    python_lib = env['python_lib']
-# =============== documentation =======================================
 except KeyError:
    python_lib = None
+# =============== documentation =======================================
 try:
    doxygen_path = env['doxygen_path']
 except KeyError:
@@ -772,33 +812,54 @@ try:
 except KeyError:
    api_epydoc = None
 
+try:
+   api_doxygen = env.Dir(env['api_doxygen'])
+except KeyError:
+   api_doxygen = None
+
+try:
+   svn_pipe = os.popen("svnversion -n")
+   global_revision = svn_pipe.readlines()
+   svn_pipe.close()
+   global_revision = re.sub("[^0-9]", "", global_revision)
+except:
+   global_revision = "0"
+env.Append(CPPDEFINES = "SVN_VERSION="+global_revision[0])
+
+# Python install - esys __init__.py
+init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
+
+# FIXME: exinstall and friends related to examples are not working.
+build_target = env.Alias('build',[libinstall,incinstall,pyinstall,init_target])
+
+env.Default(build_target)
+
 # Zipgets
-env.Default(libinstall)
-env.Default(incinstall)
-env.Default(pyinstall)
 env.Alias('release_src',[ src_zipfile, src_tarfile ])
 env.Alias('release_tests',[ test_zipfile, test_tarfile])
 env.Alias('release_examples',[ examples_zipfile, examples_tarfile])
+env.Alias('examples_zipfile',examples_zipfile)
+env.Alias('examples_tarfile',examples_tarfile)
 env.Alias('api_epydoc',api_epydoc)
+env.Alias('api_doxygen',api_doxygen)
+env.Alias('guide_html_index',guide_html_index)
 env.Alias('guide_pdf', guide_pdf)
-env.Alias('docs',[ 'release_examples', 'guide_pdf', guide_html_index, api_epydoc])
+env.Alias('docs',[ 'release_examples', 'guide_pdf', api_epydoc, api_doxygen, guide_html_index])
 env.Alias('release', ['release_src', 'release_tests', 'docs'])
-env.Alias('build_tests')    # target to build all C++ tests
-env.Alias('build_py_tests') # target to build all python tests
+
+env.Alias('build_tests',build_target)    # target to build all C++ tests
+env.Alias('build_py_tests',build_target) # target to build all python tests
 env.Alias('build_all_tests', [ 'build_tests', 'build_py_tests' ] ) # target to build all python tests
 env.Alias('run_tests', 'build_tests')   # target to run all C++ test
 env.Alias('py_tests', 'build_py_tests') # taget to run all released python tests
 env.Alias('all_tests', ['run_tests', 'py_tests']) # target to run all C++ and released python tests
 
-# Python install - esys __init__.py
-init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
-env.Alias(init_target)
 
 # Allow sconscripts to see the env
 Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "blas_libs", "netCDF_libs", "useNetCDF", "mpi_run", 
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
         "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile", "trilinos_libs", "mpi_libs", "papi_instrument_solver", 
-        "guide_pdf", "guide_html_index", "api_epydoc", "useMPI" ])
+        "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI" ])
 
 # End initialisation section
 # Begin configuration section
@@ -832,3 +893,9 @@ env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', dupli
 # added by Ben Cumming
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 #env.SConscript(dirs = ['../test'], build_dir='../test/build', duplicate=0)
+
+
+syslib_install_target = env.installDirectory(sys_libinstall,libinstall)
+syspy_install_target = env.installDirectory(sys_pyinstall,pyinstall,recursive=True)
+
+install_target = env.Alias("install", env.Flatten([syslib_install_target, syspy_install_target]) )

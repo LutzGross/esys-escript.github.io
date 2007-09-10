@@ -44,14 +44,14 @@ mpi_run = 'mpirun -np 1'
 # boost_lib = 'boost_python-mt'
 
 # locations of doc building executables
-doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
-epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
-epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
+doxygen_path = '/usr/bin'
+epydoc_path = '/usr/bin'
 
 # locations of netcdf
+useNetCDF="yes"
 netCDF_path = "/home/Work/netcdf-3.6.1/include"
 netCDF_lib_path = "/home/Work/netcdf-3.6.1/lib"
-netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
+netCDF_libs = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
 # papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'

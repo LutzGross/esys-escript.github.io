@@ -1,3 +1,23 @@
+"""
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
+"""
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
+
 class Color:
 	"""
 	Constants that define the colors using RGB values.
@@ -27,7 +47,6 @@ class Color:
 	GREY   = [0.6602, 0.6602, 0.6602]
 	BROWN  = [0.5430, 0.2700, 0.0742]
 
-
 class Viewport:
 	"""
 	Constants that define the four viewports in a window.
@@ -46,56 +65,79 @@ class Viewport:
 	NORTH_EAST = 2
 	SOUTH_EAST = 3
 
-
 class Source:
 	"""
-	Constants that define the source type.
+	Constants that define the data source type.
 
 	@cvar XML: Constant representing xml as the source type
-	@cvar ESCRIPT: Constant representing escript data objects as source
+	@cvar ESCRIPT: Constant representing escript data objects the source type
 	"""
 	
-	XML = "xml"
+	XML     = "xml"
 	ESCRIPT = "escript"
-
 
 class Renderer:
 	"""
 	Constants that define the renderer type.
 
 	@cvar ONLINE: Constant representing the online renderer
+	@cvar ONLINE_JPG: Constant representing the JPG online renderer
+	@cvar ONLINE_BMP: Constant representing the BMP online renderer
+	@cvar ONLINE_PNM: Constant representing the PNM online renderer
+	@cvar ONLINE_PNG: Constant representing the PNG online renderer
+	@cvar ONLINE_TIF: Constant representing the TIF online renderer
+	@cvar ONLINE_PS: Constant representing the PS online renderer
+	@cvar ONLINE_VRML: Constant representing the VRML online renderer
+	@cvar ONLINE_IV: Constant representing the OpenInventor online renderer
+
 	@cvar OFFLINE_JPG: Constant representing the JPG offline renderer
 	@cvar OFFLINE_BMP: Constant representing the BMP offline renderer
 	@cvar OFFLINE_PNM: Constant representing the PNM offline renderer
 	@cvar OFFLINE_PNG: Constant representing the PNG offline renderer
 	@cvar OFFLINE_TIF: Constant representing the TIF offline renderer
 	@cvar OFFLINE_PS: Constant representing the PS offline renderer
+	@cvar OFFLINE_VRML: Constant representing the VRML offline renderer
+	@cvar OFFLINE_IV: Constant representing the OpenInventor offline renderer
+
+	@cvar DISPLAY: Constant representing the display renderer
+	@cvar DISPLAY_JPG: Constant representing the JPG display renderer
+	@cvar DISPLAY_BMP: Constant representing the BMP display renderer
+	@cvar DISPLAY_PNM: Constant representing the PNM display renderer
+	@cvar DISPLAY_PNG: Constant representing the PNG display renderer
+	@cvar DISPLAY_TIF: Constant representing the TIF display renderer
+	@cvar DISPLAY_PS: Constant representing the PS display renderer
+	@cvar DISPLAY_VRML: Constant representing the VRML display renderer
+	@cvar DISPLAY_IV: Constant representing the OpenInventor display renderer
 	"""
 
-	ONLINE     = "online"
-	ONLINE_JPG = "online_jpg"
-	ONLINE_BMP = "online_bmp"
-	ONLINE_PNM = "online_pnm"
-	ONLINE_PNG = "online_png"
-	ONLINE_TIF = "online_tif"
-	ONLINE_PS  = "online_ps"
+	ONLINE       = "online"
+	ONLINE_JPG   = "online_jpg"
+	ONLINE_BMP   = "online_bmp"
+	ONLINE_PNM   = "online_pnm"
+	ONLINE_PNG   = "online_png"
+	ONLINE_TIF   = "online_tif"
+	ONLINE_PS    = "online_ps"
+	ONLINE_VRML  = "online_vrml"
+	ONLINE_IV    = "online_iv"
 
-	OFFLINE_JPG = "offline_jpg"
-	OFFLINE_BMP = "offline_bmp"
-	OFFLINE_PNM = "offline_pnm"
-	OFFLINE_PNG = "offline_png"
-	OFFLINE_TIF = "offline_tif"
-	OFFLINE_PS  = "offline_ps"
+	OFFLINE_JPG   = "offline_jpg"
+	OFFLINE_BMP   = "offline_bmp"
+	OFFLINE_PNM   = "offline_pnm"
+	OFFLINE_PNG   = "offline_png"
+	OFFLINE_TIF   = "offline_tif"
+	OFFLINE_PS    = "offline_ps"
+	OFFLINE_VRML  = "offline_vrml"
+	OFFLINE_IV    = "offline_iv"
 
-	DISPLAY     = "display"
-	DISPLAY_JPG = "display_jpg"
-	DISPLAY_BMP = "display_bmp"
-	DISPLAY_PNM = "display_pnm"
-	DISPLAY_PNG = "display_png"
-	DISPLAY_TIF = "display_tif"
-	DISPLAY_PS  = "display_ps"
-
-
+	DISPLAY       = "display"
+	DISPLAY_JPG   = "display_jpg"
+	DISPLAY_BMP   = "display_bmp"
+	DISPLAY_PNM   = "display_pnm"
+	DISPLAY_PNG   = "display_png"
+	DISPLAY_TIF   = "display_tif"
+	DISPLAY_PS    = "display_ps"
+	DISPLAY_VRML  = "display_vrml"
+	DISPLAY_IV    = "display_iv"
 
 class Arrow:
 	"""
@@ -105,9 +147,8 @@ class Arrow:
 	@cvar THREE_D: Constant representing the three dimensional arrow type
 	"""
 
-	TWO_D = "2d"
+	TWO_D   = "2d"
 	THREE_D = "3d"
-
 
 class ColorMode:
 	"""
@@ -120,7 +161,6 @@ class ColorMode:
 	VECTOR = "vector"
 	SCALAR = "scalar"
 
-
 class WarpMode:
 	"""
 	Constants that define the warp mode used to deform the scalar data.
@@ -132,16 +172,16 @@ class WarpMode:
 	VECTOR = "vector"
 	SCALAR = "scalar"
 
-
 class ImageFormat:
 	"""
 	Constants that define the image formats.
 
-	@cvar JPG: Constant representing the JPG image format
-	@cvar BMP: Constant representing the BMP image format
-	@cvar PNM: Constant representing the PNM image format
-	@cvar PNG: Constant representing the PNG image format
-	@cvar TIF: Constant representing the TIF image format
+	@cvar JPG: Constant representing the JPG image format (.jpg)
+	@cvar BMP: Constant representing the BMP image format (.bmp)
+	@cvar PNM: Constant representing the PNM image format (.pnm)
+	@cvar PNG: Constant representing the PNG image format (.png)
+	@cvar TIF: Constant representing the TIF image format (.tif)
+	@cvar PS:  Constant representing the PS image format  (.ps)
 	"""
 
 	JPG = "jpg"
@@ -149,35 +189,26 @@ class ImageFormat:
 	PNM = "pnm"
 	PNG = "png"
 	TIF = "tif"
-	
+	PS  = "ps"
 
 class Lut:
 	"""
-	Constants that define the type of color mapping scheme for the lookup 
-	table.
+	Constants that define the type of mapping scheme for the lookup table.
 
 	@cvar COLOR: Constant representing the color scheme
 	@cvar GREY_SCALE: Constant representing the grey scale scheme
 	"""
 	
-	COLOR = "color"
+	COLOR      = "color"
 	GREY_SCALE = "grey_scale"
 
-class VizType:
+class LegendType:
 	"""
-	Constants that define the visualization types. 
+	Constants that define the type of legend for the scalar bar.
 
-	@cvar VELOCITY: Constant representing the velocity
-	@cvar CONTOUR: Constant representing the contour
-	@cvar MAP: Constant representing the surface map
-	@cvar ELLIPSOID: Constant representing the ellipsoid
-	@cvar CARPET: Constant representing the carpet
-	@cvar STREAMLINE: Constant representing the streamline
+	@cvar SCALAR: Constant representing the legend using scalar data
+	@cvar VECTOR: Constant representing the legend using  vector data
 	"""
 
-	VELOCITY = "Velocity"
-	CONTOUR = "Contour"
-	MAP = "Map"
-	ELLIPSOID = "Ellipsoid"
-	CARPET = "Carpet"
-	STREAMLINE = "Streamline"
+	SCALAR = "scalar"
+	VECTOR = "vector"

@@ -91,7 +91,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
      Description:
      Constructor for MeshAdapter. The pointer passed to MeshAdapter
-     is deleted using a call to Finley_Mesh_deallocate in the
+     is deleted using a call to Finley_Mesh_free in the
      MeshAdapter destructor.
 
      Throws:
@@ -100,7 +100,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param finleyMesh Input - A pointer to the externally constructed 
                                finley mesh.The pointer passed to MeshAdapter
                                is deleted using a call to 
-                               Finley_Mesh_deallocate in the MeshAdapter 
+                               Finley_Mesh_free in the MeshAdapter 
                                destructor.
   */
   FINLEY_DLL_API
@@ -116,7 +116,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   /**
      \brief
      Destructor for MeshAdapter. As specified in the constructor
-     this calls Finley_Mesh_deallocate for the pointer given to the 
+     this calls Finley_Mesh_free for the pointer given to the 
      constructor.
   */
   FINLEY_DLL_API

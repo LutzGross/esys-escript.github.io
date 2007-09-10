@@ -341,4 +341,28 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
      Paso_MPIInfo_free( mpi_info );
      return mesh_p;
   }
+
+  /* close file */
+  fclose(fileHandle_p);
+  /*   resolve id's : */
+  if (Finley_noError()) {
+      Finley_Mesh_resolveNodeIds(mesh_p);
+  }
+  /* rearrange elements: */
+  if (Finley_noError()) {
+     Finley_Mesh_prepare(mesh_p, optimize);
+  }
+
+  /* optimize node labeling*/
+  if (Finley_noError()) {
+      if (optimize) Finley_Mesh_optimizeNodeLabeling(mesh_p);
+  }
+  /* that's it */
+  #ifdef Finley_TRACE
+  printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
+  #endif
+  if (! Finley_noError()) {
+       Finley_Mesh_free(mesh_p);
+  }
+  return mesh_p;
 }

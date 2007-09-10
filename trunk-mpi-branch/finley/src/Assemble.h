@@ -67,6 +67,8 @@ typedef struct Assemble_Parameters Assemble_Parameters;
 
 void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;
+void Finley_Assemble_LumpedSystem(Finley_NodeFile*,Finley_ElementFile*, escriptDataC*, escriptDataC*);
+
 void Assemble_getAssembleParameters(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,bool_t, Assemble_Parameters*);
 void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
@@ -110,31 +112,3 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 
 #endif /* #ifndef INC_FINLEY_ASSEMBLE */
 
-/*
- * $Log$
- * Revision 1.4  2005/09/15 03:44:21  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.3  2005/08/12 01:45:42  jgs
- * erge of development branch dev-02 back to main trunk on 2005-08-12
- *
- * Revision 1.2.2.2  2005/09/07 06:26:17  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.2.2.1  2005/08/04 22:41:11  gross
- * some extra routines for finley that might speed-up RHS assembling in some cases (not actived right now)
- *
- * Revision 1.2  2005/07/08 04:07:45  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.1  2005/06/29 02:34:46  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1  2004/10/26 06:53:56  jgs
- * initial import of project esys2
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
- *
- *
- */

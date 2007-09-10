@@ -56,6 +56,7 @@ typedef enum {
   Tet16,
   Hex8,
   Hex20,
+  Hex27,
   Hex32,
   Line2Face,
   Line3Face,
@@ -74,6 +75,7 @@ typedef enum {
   Tet16Face,
   Hex8Face,
   Hex20Face, 
+  Hex27Face, 
   Hex32Face, 
   Point1_Contact,
   Line2_Contact,
@@ -104,7 +106,8 @@ typedef enum {
   Tet10Face_Contact, 
   Tet16Face_Contact,
   Hex8Face_Contact,
-  Hex20Face_Contact, 
+  Hex20Face_Contact,
+  Hex27Face_Contact, 
   Hex32Face_Contact, 
   NoType   /* marks end of list */
 } ElementTypeId;

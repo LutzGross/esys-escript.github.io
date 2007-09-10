@@ -78,7 +78,8 @@ typedef int err_t;
 /*    memory allocation:                                      */
 
 #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-#define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
+/* #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); } */
+#define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); }
 #ifdef __ECC
   //#define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)); if( !(_LENGTH_) ) printf( "Trying malloc(0) at %s %d\n", __FILE__, __LINE__ ); //else printf( "malloc(%d) at %s %d\n", _LENGTH_, __FILE__, __LINE__ );
   #define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))

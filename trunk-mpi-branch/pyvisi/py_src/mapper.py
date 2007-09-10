@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -9,10 +25,20 @@ class DataSetMapper:
 	Class that defines a data set mapper.
 	"""
 
-	# 'lookup_table = None' is used only by the outline.
-	def __init__(self, object, lookup_table = None):
+	def __init__(self):
 		"""
 		Initialise the data set mapper.
+		"""
+
+		self.__vtk_data_set_mapper = vtk.vtkDataSetMapper()
+		# Keeps track whether the scalar range has been specified
+		# by the user.
+		self.__scalar_range_set = False
+
+	# 'lookup_table = None' is used only by the Outline.
+	def _setupDataSetMapper(self, object, lookup_table = None): 
+		"""
+		Setup the data set mapper.	
 
 		@type object: vtkDataSet (i.e. vtkUnstructuredGrid, vtkPolyData, etc) 
 		@param object: Data source map
@@ -21,7 +47,6 @@ class DataSetMapper:
 		"""
 
 		self.__object = object
-		self.__vtk_data_set_mapper = vtk.vtkDataSetMapper()
 		self.__setInput()
 
 		if(lookup_table != None): # False for the outline.
@@ -44,9 +69,26 @@ class DataSetMapper:
 
 		self.__vtk_data_set_mapper.SetLookupTable(lookup_table)
 
+	def setScalarRange(self, lower_range, upper_range):
+		"""
+		Set the minimum and maximium scalar range for the data set mapper. This
+		method is called when the range has been specified by the user. 
+		Therefore, the scalar range read from the source will be ignored. 
+		
+		@type lower_range: Lower range of scalar value
+		@param lower_range: Number
+		@type upper_range: Upper range of scalar value
+		@param upper_range: Number
+		"""
+
+		self.__scalar_range_set = True
+		self.__vtk_data_set_mapper.SetScalarRange(lower_range, upper_range) 
+
 	def _setScalarRange(self, range):
 		"""
-		Set the minimum and maximum scalar range for the data set mapper.
+		Set the minimum and maximum scalar range for the data set mapper. This
+		method is called when the range has NOT been specified by the user. 
+		Therefore, the scalar range read from the source will be used instead. 
 		
 		@type range: Two column tuple containing numbers
 		@param range: Minimum and maximum data set mapper scalar range
@@ -70,6 +112,37 @@ class DataSetMapper:
 		"""
 
 		return self.__vtk_data_set_mapper
+	
+	def _getDataSetMapperLookupTable(self):
+		"""
+		Return the data set mapper's lookup table.
+
+		@rtype: vtkScalarsToColors 	
+		@return: Converts scalar data to colors
+		"""
+
+		return self.__vtk_data_set_mapper.GetLookupTable()
+	
+	def _isScalarRangeSet(self):
+		"""
+		Return whether the data set mapper's scalar range has been specified \
+		by the user.
+
+		@rtype: Boolean
+		@return: True or False
+		"""
+
+		return self.__scalar_range_set 
+	
+	def _getDataSetMapperRange(self):
+		"""
+		Return the mapper's scalar range.
+
+		@rtype: Two column tuple containing numbers
+		@return: Minimum and maximum range of the data set mapper's scalar range
+		"""
+
+		return self.__vtk_data_set_mapper.GetScalarRange()
 
 
 ###############################################################################
@@ -77,27 +150,25 @@ class DataSetMapper:
 
 class ImageMapper:
 	"""
-	Class that defines a image mapper.
+	Class that defines an image mapper.
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the image mapper.
+		"""
+
+		self.__vtk_image_mapper = vtk.vtkImageMapper()
+
+	def _setupImageMapper(self, object):
+		"""
+		Setup the image mapper.
 		
 		@type object: vtkImageData
 		@param object: Image data
 		"""
 
 		self.__object = object
-		self.__vtk_image_mapper = vtk.vtkImageMapper()
-
-		self.__setupImageMapper()
-
-	def __setupImageMapper(self):
-		"""
-		Setup the image mapper.
-		"""
-
 		self.__setInput()
 		# Both color window and color level needs to be set, otherwise only 
 		# a black image will be produced. Both values were obtained from 
@@ -135,3 +206,4 @@ class ImageMapper:
 		"""
 
 		return self.__vtk_image_mapper
+	

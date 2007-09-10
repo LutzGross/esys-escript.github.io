@@ -151,6 +151,9 @@ int Finley_Mesh_findMatchingFaces_compar(const void*,const void*);
 void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
 void Finley_Mesh_print(Finley_Mesh *in);
 void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);
+void Finley_Mesh_optimizeNodeLabeling(Finley_Mesh* mesh_p);
+dim_t Finley_Mesh_FindMinDegreeNode(Paso_SystemMatrixPattern* pattern_p,index_t* available,index_t indicator);
+index_t Finley_Mesh_getDegree(Paso_SystemMatrixPattern* pattern_p, index_t *label);
 
 
 void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp);

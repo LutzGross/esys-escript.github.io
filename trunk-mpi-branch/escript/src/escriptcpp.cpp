@@ -81,6 +81,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("blocktimer_increment",blocktimer_increment);
   def("blocktimer_time",blocktimer_time);
   def("blocktimer_reportSystemInfo",blocktimer_reportSystemInfo);
+  def("getVersion",escript::getSvnVersion);
 
 
   //
@@ -147,6 +148,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("setTaggedValue",&escript::Data::setTaggedValue)
     .def("setTaggedValue",&escript::Data::setTaggedValueByName)
     .def("getNumberOfDataPoints",&escript::Data::getNumDataPoints)
+    .def("isExpanded",&escript::Data::isExpanded)
+    .def("isTagged",&escript::Data::isTagged)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
     .def("copy",&escript::Data::copy)

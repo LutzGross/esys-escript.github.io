@@ -1,8 +1,15 @@
+
+# You can shorten the execution time by reducing variable tend from 60 to 0.5
+
 from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
 from numarray import identity,zeros,ones
+
+if not os.path.isdir("data"):
+   print "\nCreating subdirectory 'data'\n"
+   os.mkdir("data")
 
 ne=32          # number of cells in x_0 and x_1 directions
 width=10000.  # length in x_0 and x_1 directions
@@ -82,7 +89,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho,U0):
  
      # ... save current acceleration in units of gravity and displacements 
      if n==1 or n%10==0: saveVTK("./data/usoln.%i.vtu"%(n/10),acceleration=length(a)/9.81,
-     displacement = length(u), Ux = u[0] )
+     displacement = length(u), tensor = stress, Ux = u[0] )
 
    u_pc_data.close()
   

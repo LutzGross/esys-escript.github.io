@@ -1,9 +1,25 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
 
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
+
 import vtk
-from constant import Renderer, Color, Viewport
+from constant import Renderer, Color, Viewport, ImageFormat
 
 class Scene:
 	"""
@@ -11,6 +27,10 @@ class Scene:
 	be rendered on. Only one scene needs to be created. However, a scene may 
 	be divided into four smaller windows called viewports (if needed). 
 	Each viewport can render a different object.  
+
+	@attention: If the IV or VRML renderer type is used, then only one 
+	viewport can be used (four viewports are not supported for these two 
+	cases). 
 	"""
 
 	def __init__(self, renderer = Renderer.ONLINE, num_viewport = 1, 
@@ -32,15 +52,13 @@ class Scene:
 		self.__num_viewport = num_viewport
 		self.__x_size = x_size
 		self.__y_size = y_size
-		self.__modules = []
+		# Stores the visualization modules (i.e. Map, Velocity, Ellipsoid, etc)
+		# which needs to be rendered.
+		self.__visualization_modules = []
 
 		self.__OFFLINE = "offline"
-		self.__JPG = "jpg"
-		self.__BMP = "bmp"
-		self.__PNM = "pnm"
-		self.__PNG = "png"
-		self.__TIF = "tif"
-		self.__PS  = "ps"
+		self.__VRML = "vrml"
+		self.__IV = "iv"
 	
 		self.__vtk_render_window = vtk.vtkRenderWindow()
 		self.__setupScene()
@@ -53,6 +71,7 @@ class Scene:
 		self.__createViewport()			
 		self.__addRenderer()
 		self.setBackground(Color.WHITE) # Default background color is white.
+
 
 		# Default title bar.
 		self.setTitleBar("Earth Systems Science Computational Centre (ESSCC)")
@@ -172,7 +191,7 @@ class Scene:
 	def __setupWindowToImage(self):
 		"""	
 		Setup the window to image filter to convert the output from the render 
-		window into an image.
+		window into an image, vrml or open inventor file.
 		"""
 
 		self.__vtk_window_to_image = vtk.vtkWindowToImageFilter()
@@ -181,43 +200,56 @@ class Scene:
 		
 	def __getImageWriter(self):
 		"""
-		Return the appropriate image writer based on the specified renderer.
+		Return the appropriate image writer or exporter based on the 
+		specified renderer.
 
-		@rtype: vtkImageWriter
-		@return: Image writer
+		@rtype: vtkImageWriter or vtkExporter
+		@return: Image writer or exporter
 		"""
 
-		if(self.__renderer.endswith(self.__JPG)):
+		if(self.__renderer.endswith(ImageFormat.JPG)):
 			return vtk.vtkJPEGWriter() 
-		elif(self.__renderer.endswith(self.__BMP)):
+		elif(self.__renderer.endswith(ImageFormat.BMP)):
 			return vtk.vtkBMPWriter() 
-		elif(self.__renderer.endswith(self.__PNM)):
+		elif(self.__renderer.endswith(ImageFormat.PNM)):
 			return vtk.vtkPNMWriter()
-		elif(self.__renderer.endswith(self.__PNG)):
+		elif(self.__renderer.endswith(ImageFormat.PNG)):
 			return vtk.vtkPNGWriter()
-		elif(self.__renderer.endswith(self.__TIF)):
+		elif(self.__renderer.endswith(ImageFormat.TIF)):
 			return vtk.vtkTIFFWriter()
-		elif(self.__renderer.endswith(self.__PS)):
+		elif(self.__renderer.endswith(ImageFormat.PS)):
 			return vtk.vtkPostScriptWriter()
+		elif(self.__renderer.endswith(self.__VRML)):
+			return vtk.vtkVRMLExporter() # Generates VRML files (.wrl).
+		elif(self.__renderer.endswith(self.__IV)):
+			return vtk.vtkIVExporter() # Generate OpenInventor files (.iv).
 	
 	def __saveImage(self, image_name):
 		"""
-		Save the rendered object as an image.
+		Save the rendered object as an image, vrml or open inventor file.
 
 		@type image_name: String
-		@param image_name: Name of the saved image.
+		@param image_name: Name of the saved image, vrml or open inventor file
 		"""
 
 		# NOTE: Render and Modified must be called everytime before writing 
-		# an image. Otherwise, only the first image will always be saved.
-		# This is due to the architecture of VTK.
+		# an image, vrml or open inventor file. Otherwise, only the first 
+		# object will always be saved. This is due to the architecture of VTK.
 		self.__vtk_render_window.Render()
 		self.__vtk_window_to_image.Modified()
 		
 		# Retrieve the rendered object from the window and convert it into an 
-		# image.
-		self.__vtk_image_writer.SetInput(
-				self.__vtk_window_to_image.GetOutput())
+		# image, vrml or open inventor file.
+		# True for all writers besides VRML.
+		if(not(self.__renderer.endswith(self.__VRML)) and \
+				not(self.__renderer.endswith(self.__IV))): 
+			self.__vtk_image_writer.SetInput(
+					self.__vtk_window_to_image.GetOutput())
+		# True only for VRML and IV.
+		elif(self.__renderer.endswith(self.__VRML) or \
+				self.__renderer.endswith(self.__IV)):
+			self.__vtk_image_writer.SetInput(
+					self.__vtk_render_window)
 		self.__vtk_image_writer.SetFileName(image_name)
 		self.__vtk_image_writer.Write() 	
 
@@ -233,10 +265,14 @@ class Scene:
 	def render(self, image_name = None):
 		"""
 		Render the object using either the online, offline or display mode.
+
+		@type image_name: String
+		@param image_name: Name of the saved image, vrml or open inventor file
 		"""	
 
-		for i in range(0, len(self.__modules)):
-			self.__modules[i]._render()	
+		for i in range(0, len(self.__visualization_modules)):
+			self.__visualization_modules[i]._render(self)	
+			self.__vtk_render_window.Render()
 
 		self.__vtk_render_window.Render()
 
@@ -312,6 +348,14 @@ class Scene:
 	
 		return self.__vtk_renderer
 
-	def _addModules(self, module):
-		print "Module: ", module
-		self.__modules.append(module)
+	def _addVisualizationModules(self, module):
+		"""
+		Store visualization modules (i.e. Map, Velocity, Ellipsoid, etc) 
+		which needs to be rendered.
+		
+		@type module: Visualization modules
+		@param module: Visualization modules to be rendered
+		"""
+
+		self.__visualization_modules.append(module)
+

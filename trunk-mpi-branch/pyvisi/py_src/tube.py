@@ -1,6 +1,22 @@
 """
-@author: John NGUI
+@var __author__: name of author
+@var __copyright__: copyrights
+@var __license__: licence agreement
+@var __url__: url entry point on documentation
+@var __version__: version
+@var __date__: date of the version
 """
+
+__author__="John Ngui, john.ngui@uq.edu.au"
+__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
+                    http://www.access.edu.au
+                Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+             http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="http://www.iservo.edu.au/esys"
+__version__="$Revision$"
+__date__="$Date$"
+
 
 import vtk
 
@@ -9,20 +25,22 @@ class Tube:
 	Class that defines the tube wrapped around the streamlines.
 	"""
 
-	def __init__(self, object):
+	def __init__(self):
 		"""
 		Initialise the tube.
 		"""
 
-		self.__object = object
 		self.__vtk_tube = vtk.vtkTubeFilter()
 
-		self.__setupTube()
-
-	def __setupTube(self):
+	def _setupTube(self, object):
 		"""
 		Setup the tube.
+
+		@type object: vtkPolyData, etc
+		@param object: Input for the tube
 		"""
+
+		self.__object = object 
 
 		self.__setInput()
 		# Default radius of the tube is 0.02.
@@ -30,7 +48,6 @@ class Tube:
 		# Default number of sides for the tube is 12.
 		self.setTubeNumberOfSides(12)
 		self.setTubeRadiusToVaryByVector()
-		self.__vtk_tube.Update()
 
 	def __setInput(self):
 		"""
@@ -74,7 +91,7 @@ class Tube:
 
 		self.__vtk_tube.SetVaryRadiusToVaryRadiusByScalar()
 
-	def _getOutput(self):
+	def _getTubeOutput(self):
 		"""
 		Return the output of the tube.
 
