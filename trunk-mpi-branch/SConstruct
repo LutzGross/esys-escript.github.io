@@ -818,13 +818,13 @@ except KeyError:
    api_doxygen = None
 
 try:
-   svn_pipe = os.popen("svnversion -n")
+   svn_pipe = os.popen("svnversion -n .")
    global_revision = svn_pipe.readlines()
    svn_pipe.close()
-   global_revision = re.sub("[^0-9]", "", global_revision)
+   global_revision = re.sub("[^0-9]", "", global_revision[0])
 except:
    global_revision = "0"
-env.Append(CPPDEFINES = "SVN_VERSION="+global_revision[0])
+env.Append(CPPDEFINES = "SVN_VERSION="+global_revision)
 
 # Python install - esys __init__.py
 init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))

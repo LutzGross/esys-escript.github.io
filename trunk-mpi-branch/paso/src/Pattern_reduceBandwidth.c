@@ -41,7 +41,7 @@ dim_t Paso_Pattern_getBandwidth(Paso_Pattern* pattern, index_t* label) {
       #pragma omp parallel private(local_bandwidth)
       {
          local_bandwidth=0;
-         #pragma omp for private(i,diff,iptr,k)
+         #pragma omp for private(i,iptr,k)
          for (i=0;i<pattern->numOutput;++i) {
               k=label[i];
               for (iptr=pattern->ptr[i];iptr<pattern->ptr[i+1];++iptr) {
@@ -146,7 +146,7 @@ printf("relabeling of %d DOFs started.\n",N);
       AssignedLevel=TMPMEMALLOC(N,index_t);
       VerticesInTree=TMPMEMALLOC(N,index_t);
       firstVertexInLevel=TMPMEMALLOC(N+1,index_t);
-      if (! ( Finley_checkPtr(degAndIdx) || Finley_checkPtr(oldLabel) || Finley_checkPtr(AssignedLevel) || Finley_checkPtr(VerticesInTree) || Finley_checkPtr(firstVertexInLevel) ) ) {
+      if (! ( Paso_checkPtr(degAndIdx) || Paso_checkPtr(oldLabel) || Paso_checkPtr(AssignedLevel) || Paso_checkPtr(VerticesInTree) || Paso_checkPtr(firstVertexInLevel) ) ) {
          /* get the initial bandwidth */
          #pragma omp parallel for private(i)
          for (i=0;i<N;++i) oldToNew[i]=i; 
@@ -213,7 +213,6 @@ printf("initial bandwidth = %d\n",initial_bandwidth);
              numLabledVertices+=numVerticesInTree;
              /* new search for a vertex which is not labled yet */
              root=-1;
-             #pragma omp parallel for private(i)
              for (i=0;i<N;++i) {
                  if (oldToNew[degAndIdx[i].idx] < 0) {
                      root=degAndIdx[i].idx;

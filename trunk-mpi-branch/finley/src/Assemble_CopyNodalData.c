@@ -115,16 +115,18 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                           numComps_size);
               }
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
+	      int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
               #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);n++) {
+              for (n=0;n<nComps;n++) {
                    memcpy(getSampleDataFast(out,n),
                           getSampleDataFast(in,nodes->degreesOfFreedomMapping->map[n]),
                           numComps_size);
               }
 
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
               #pragma omp parallel for private(n,i) schedule(static)
-              for (n=0;n<Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);n++) {
+              for (n=0;n<nComps;n++) {
                    memcpy(getSampleDataFast(out,n),
                           getSampleDataFast(in,nodes->reducedDegreesOfFreedomMapping->map[n]),
                           numComps_size);
@@ -145,8 +147,9 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
               #pragma omp parallel for private(n,k) schedule(static)
-              for (n=0;n<Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);n++) {
+              for (n=0;n<nComps;n++) {
                    k=nodes->reducedDegreesOfFreedomMapping->map[n];
                    memcpy(getSampleDataFast(out,n),
                           getSampleDataFast(in,nodes->reducedNodesMapping->target[k]),
@@ -202,14 +205,16 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                     Paso_Coupler_freeBuffer(nodes->degreesOfFreedomCoupler);
                }
            } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
+	      int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
               #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);n++) {
+              for (n=0;n<nComps;n++) {
                     memcpy(getSampleDataFast(out,n),getSampleDataFast(in,n),numComps_size);
               }
 
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
               #pragma omp parallel for private(n,k) schedule(static)
-              for (n=0;n<Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);n++) {
+              for (n=0;n<nComps;n++) {
                    k=nodes->reducedDegreesOfFreedomMapping->map[n];
                    memcpy(getSampleDataFast(out,n),
                           getSampleDataFast(in,nodes->degreesOfFreedomMapping->target[k]),
@@ -246,8 +251,9 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                }
 
            } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+	      int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
               #pragma omp parallel for private(n) schedule(static)
-              for (n=0;n<Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);n++) {
+              for (n=0;n<nComps;n++) {
                     memcpy(getSampleDataFast(out,n),getSampleDataFast(in,n),numComps_size);
               }
 

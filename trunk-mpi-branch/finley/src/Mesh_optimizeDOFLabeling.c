@@ -101,7 +101,7 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
               for (p=0; p< mpiSize; ++p) {
                   firstVertex=distribution[current_rank];
                   lastVertex=distribution[current_rank+1];
-                  #pragma omp parallel for private(i,j,k)
+                  #pragma omp parallel for private(i,k)
                   for (i=0;i<in->Nodes->numNodes;++i) {
                       k=in->Nodes->globalDegreesOfFreedom[i];
                       if ( (firstVertex<=k) && (k<lastVertex)) {
