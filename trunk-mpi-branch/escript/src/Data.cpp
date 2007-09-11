@@ -1712,8 +1712,6 @@ Data::setItemO(const boost::python::object& key,
   setItemD(key,tempData);
 }
 
-/* TODO */
-/* global reduction */
 void
 Data::setItemD(const boost::python::object& key,
                const Data& value)
@@ -1731,8 +1729,6 @@ Data::setItemD(const boost::python::object& key,
   }
 }
 
-/* TODO */
-/* global reduction */
 void
 Data::setSlice(const Data& value,
                const DataArrayView::RegionType& region)

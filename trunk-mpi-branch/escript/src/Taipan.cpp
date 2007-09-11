@@ -147,6 +147,7 @@ Taipan::new_array(int dim, int N) {
   }
 
   // allocate and initialise the new array
+cout << "allocated memory " << (((long)8)*(long)len) << " bytes\n";
   new_tab->array = new double[len];
   int i,j;
   if (N==1) {

@@ -146,6 +146,7 @@ DataConstant::setSlice(const DataAbstract* value,
   if (tempDataConst==0) {
     throw DataException("Programming error - casting to DataConstant.");
   }
+cout << "CON\n";
   // 
   DataArrayView::ShapeType shape(DataArrayView::getResultSliceShape(region));
   DataArrayView::RegionLoopRangeType region_loop_range=getSliceRegionLoopRange(region);
