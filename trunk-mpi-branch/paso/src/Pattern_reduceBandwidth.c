@@ -30,8 +30,6 @@
 #include "Pattern.h"
 #include "Common.h"
 
-#define BOUNDS_CHECK 1
-
 /*   calculate initial badwdisth for a given labeling */
 dim_t Paso_Pattern_getBandwidth(Paso_Pattern* pattern, index_t* label) {
       register index_t k;
@@ -184,7 +182,7 @@ printf("initial bandwidth = %d\n",initial_bandwidth);
                       max_LevelWidth=MAX(max_LevelWidth,firstVertexInLevel[i+1]-firstVertexInLevel[i]);
                  }
                  /* find a vertex in the last level which has minimum degree */
-                 min_deg=N;
+                 min_deg=N+1;
                  root=-1;
                  for (i = firstVertexInLevel[numLevels-1]; i<firstVertexInLevel[numLevels];++i) {
                       k=VerticesInTree[i];

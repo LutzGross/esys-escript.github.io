@@ -77,8 +77,15 @@ typedef int err_t;
 
 /*    memory allocation:                                      */
 
+/*
+	This is useful for seeing what memory is being allocated if you get an "Out of memory" error
+#define TMPMEMALLOC(_LENGTH_,_TYPE_) (printf("TMPMEMALLOC at %s %d #bytes=%d*%d=%d\n", __FILE__, __LINE__, _LENGTH_, sizeof(_TYPE_), ((size_t)(_LENGTH_) * sizeof(_TYPE_))) , (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)))
+
+	This is useful for seeing where memory is being freed if you get an "glibc detected...free" error
+#define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); }
+*/
+
 #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
-/* #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); } */
 #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
 #ifdef __ECC
   //#define MEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)); if( !(_LENGTH_) ) printf( "Trying malloc(0) at %s %d\n", __FILE__, __LINE__ ); //else printf( "malloc(%d) at %s %d\n", _LENGTH_, __FILE__, __LINE__ );

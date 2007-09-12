@@ -205,6 +205,7 @@ opts.AddOptions(
   ('api_doxygen', 'name of the doxygen api docs directory',prefix+"/release/doc/doxygen"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
+  BoolOption('bounds_check', 'Do you want extra array bounds checking?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/<hostname>_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
   ('cc_flags','C compiler flags to use (Release build)', cc_flags_default),
@@ -295,6 +296,9 @@ else:
    else:
       env = Environment(tools = ['default'], options = opts)
 Help(opts.GenerateHelpText(env))
+
+if env['bounds_check']:
+   env.Append(CPPDEFINES = [ 'BOUNDS_CHECK' ])
 
 #=================================================================================================
 #
