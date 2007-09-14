@@ -299,6 +299,7 @@ Help(opts.GenerateHelpText(env))
 
 if env['bounds_check']:
    env.Append(CPPDEFINES = [ 'BOUNDS_CHECK' ])
+   env.Append(CXXDEFINES = [ 'BOUNDS_CHECK' ])
 
 #=================================================================================================
 #

@@ -163,7 +163,7 @@ class Test_GMSHReader(unittest.TestCase):
        file="tri3_gmsh.msh"
        ref ="tri3.fly"
        test = FINLEY_WORKDIR+os.sep+"tri3_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
@@ -171,7 +171,7 @@ class Test_GMSHReader(unittest.TestCase):
        file="tri6_gmsh.msh"
        ref="tri6.fly"
        test = FINLEY_WORKDIR+os.sep+"tri8_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
@@ -179,7 +179,7 @@ class Test_GMSHReader(unittest.TestCase):
        file="tet4_gmsh.msh"
        ref="tet4.fly"
        test = FINLEY_WORKDIR+os.sep+"tet4_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
@@ -187,7 +187,7 @@ class Test_GMSHReader(unittest.TestCase):
        file="tet10_gmsh.msh"
        ref="tet10.fly"
        test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
