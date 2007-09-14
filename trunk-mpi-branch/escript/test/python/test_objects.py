@@ -68,7 +68,7 @@ class Test_Domain(unittest.TestCase):
         self.failUnless(Lsup(s-r)<=0.)
         # get tag:
         names=getTagNames(self.domain)
-        self.failUnless(len(names) == 2)
+        self.failUnless(len(names) == 6)
         self.failUnless( tag1 in names )
         self.failUnless( tag2 in names )
         self.failUnless(self.domain.isValidTagName(tag1))
