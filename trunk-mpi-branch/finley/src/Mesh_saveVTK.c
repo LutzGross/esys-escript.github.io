@@ -93,7 +93,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   char *tag_End_DataArray = "</DataArray>\n";
   char* tag_End_PointData =  "</PointData>\n";
   char* tag_End_CellData =  "</CellData>\n";
-  char *footer = "</Piece>\n</UnstructuredGrid>\n</VTKFile>";
+  char *footer = "</Piece>\n</UnstructuredGrid>\n</VTKFile>\n";
   char* tags_End_Points_and_Start_Conn = "</DataArray>\n</Points>\n<Cells>\n<DataArray Name=\"connectivity\" type=\"Int32\" format=\"ascii\">\n" ;
   char* tags_End_Conn_and_Start_Offset = "</DataArray>\n<DataArray Name=\"offsets\" type=\"Int32\" format=\"ascii\">\n";
   char* tags_End_Offset_and_Start_Type = "</DataArray>\n<DataArray Name=\"types\" type=\"UInt8\" format=\"ascii\">\n";
@@ -156,6 +156,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   max_len_names=0;
   if (!Finley_checkPtr(isCellCentered)) {
      for (i_data=0;i_data<num_data;++i_data) {
+       elementtype=FINLEY_UNKNOWN;
+       nodetype=FINLEY_NODES;
        if (! isEmpty(data_pp[i_data])) {
          switch(getFunctionSpaceType(data_pp[i_data]) ) {
          case FINLEY_NODES:

@@ -79,9 +79,9 @@ def saveVTK(filename,domain=None,**data):
 
        tmp=Scalar(..)
        v=Vector(..)
-       saveVTK("solution.xml",temperature=tmp,velovity=v)
+       saveVTK("solution.xml",temperature=tmp,velocity=v)
 
-    tmp and v are written into "solution.xml" where tmp is named "temperature" and v is named "velovity"
+    tmp and v are written into "solution.xml" where tmp is named "temperature" and v is named "velocity"
 
     @param filename: file name of the output file
     @type filename: C{str}
@@ -115,9 +115,9 @@ def saveDX(filename,domain=None,**data):
 
        tmp=Scalar(..)
        v=Vector(..)
-       saveDX("solution.dx",temperature=tmp,velovity=v)
+       saveDX("solution.dx",temperature=tmp,velocity=v)
 
-    tmp and v are written into "solution.dx" where tmp is named "temperature" and v is named "velovity".
+    tmp and v are written into "solution.dx" where tmp is named "temperature" and v is named "velocity".
 
     @param filename: file name of the output file
     @type filename: C{str}
