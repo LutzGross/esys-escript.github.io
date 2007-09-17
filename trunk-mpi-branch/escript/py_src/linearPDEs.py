@@ -364,7 +364,7 @@ class LinearPDE(object):
 
    The PDE is symmetrical if
 
-   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j] 
+   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j]}
 
    For a system of PDEs and a solution with several components the PDE has the form
 
@@ -415,7 +415,7 @@ class LinearPDE(object):
    of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calcualted by
    L{jump<util.jump>}.
    The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-    The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
    In case of a single PDE and a single component solution the contact condition takes the form
 
    M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
