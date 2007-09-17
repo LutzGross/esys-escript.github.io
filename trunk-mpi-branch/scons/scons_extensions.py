@@ -5,6 +5,7 @@
 import py_compile
 import sys
 import os
+import time
 import glob
 import fnmatch
 import types

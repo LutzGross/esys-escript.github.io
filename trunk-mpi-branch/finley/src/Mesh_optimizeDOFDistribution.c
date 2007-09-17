@@ -25,6 +25,9 @@
 
 #include "Mesh.h"
 #include "IndexList.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /**************************************************************/
 

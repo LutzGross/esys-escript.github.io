@@ -254,7 +254,8 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     } /* end element loop */
                 } /* end color loop */
              } else {
-                    /*  open loop over all elements: */
+                 /*  open loop over all elements: */
+                 for (color=elements->minColor;color<=elements->maxColor;color++) {
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){
                        if (elements->Color[e]==color) {
@@ -296,6 +297,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                           Finley_Util_AddScatter(p.row_NN,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */
                     } /* end element loop */
+                } /* end color loop */
              }
           }
        } /* end of pointer check */

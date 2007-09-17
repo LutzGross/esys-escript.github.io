@@ -24,14 +24,15 @@
 /**************************************************************/
 
 #include "Paso.h"
+
 #ifdef _OPENMP 
 #include <omp.h>
-#else
+#endif
+
 #ifdef PASO_MPI
 #include "mpi_C.h"
 #else
 #include <time.h>
-#endif
 #endif
 
 Paso_ErrorCodeType Paso_ErrorCode_=NO_ERROR;
