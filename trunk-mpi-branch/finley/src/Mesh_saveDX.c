@@ -61,8 +61,8 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
     return;
   }
   /* find the mesh type to be written */
-  elementtype=FINLEY_UNKNOWN;
   for (i_data=0;i_data<num_data;++i_data) {
+     elementtype=FINLEY_UNKNOWN;
      if (! isEmpty(data_pp[i_data])) {
         switch(getFunctionSpaceType(data_pp[i_data])) {
            case FINLEY_REDUCED_NODES:
