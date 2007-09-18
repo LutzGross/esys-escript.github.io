@@ -1,16 +1,18 @@
-/* 
- *****************************************************************************
- *                                                                           *
- *       COPYRIGHT  ACcESS  -  All Rights Reserved                           *
- *                                                                           *
- * This software is the property of ACcESS. No part of this code             *
- * may be copied in any form or by any means without the expressed written   *
- * consent of ACcESS.  Copying, use or modification of this software         *
- * by any unauthorised person is illegal unless that person has a software   *
- * license agreement with ACcESS.                                            *
- *                                                                           *
- *****************************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
+
 #if !defined  DataArrayViewTestCase_20040407_H
 #define  DataArrayViewTestCase_20040407_H
 

@@ -1,12 +1,3 @@
-#          Copyright 2006 by ACcESS MNRF                   
-#                                                          
-#              http://www.access.edu.au                    
-#       Primary Business: Queensland, Australia            
-#  Licensed under the Open Software License version 3.0    
-#     http://www.opensource.org/licenses/osl-3.0.php       
-#                                                          
-
-
 # locations of libs etc used by mkl
 mkl_path = '/opt/intel_mkl/8.0.19/include'
 mkl_lib_path = '/opt/intel_mkl/8.0.19/lib/64'

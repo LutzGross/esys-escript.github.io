@@ -1,14 +1,17 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 /*                                                                                                         */
@@ -16,11 +19,6 @@
 /*                                                                                                         */
 /*   This routine tries to reduce the number of colors used to color elements in the Finley_ElementFile in */
 /*                                                                                                         */
-/**************************************************************/
-
-/*  Author: gross@access.edu.au */
-/*  Version: $Id: ElementFile_createColoring.c 1140 2007-05-15 03:23:17Z ksteube $ */
-
 /**************************************************************/
 
 #include "ElementFile.h"

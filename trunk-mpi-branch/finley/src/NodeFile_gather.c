@@ -1,14 +1,17 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -17,11 +20,6 @@
 /*   gathers the NodeFile out from the NodeFile in using the entries 
 /*   in index[0:out->numNodes-1] which are between min_index and max_index (exclusive) */
 /*   the node index[i]
-
-/**************************************************************/
-
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
 
 /**************************************************************/
 

@@ -1,14 +1,17 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -19,11 +22,6 @@
 /*   on the process.  At the output, a local node labeling is used and all nodes are available */
 /*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
 /*   The function does not create a distribution of the degrees of freedom. */
-
-/**************************************************************/
-
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
 
 /**************************************************************/
 
