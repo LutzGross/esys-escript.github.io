@@ -519,33 +519,44 @@ void Finley_Shape_Tet10(int NumV,double* v,double* s,double* dsdv) {
     S(8,i) = (1.-x-y-z)*4.*z;
     S(9,i) = 4.*x*z;
     S(10,i)= 4.*y*z;
+
     DSDV(1,1,i)= -3.+4.*x+4.*y+4.*z;
     DSDV(1,2,i)= -3.+4.*x+4.*y+4.*z;
     DSDV(1,3,i)= -3.+4.*x+4.*y+4.*z;
+
+
     DSDV(2,1,i)= -1.+4.*x;
     DSDV(2,2,i)=   0.;
     DSDV(2,3,i)=   0.;
+
     DSDV(3,1,i)=   0.;
     DSDV(3,2,i)=  -1.           +4.*y;
     DSDV(3,3,i)=   0.;
+
     DSDV(4,1,i)=   0.;
     DSDV(4,2,i)=   0.;
     DSDV(4,3,i)=  -1.                        +4.*z;
+
     DSDV(5,1,i)=   4. -8.*x -4.*y -4.*z;
     DSDV(5,2,i)=      -4.*x;
     DSDV(5,3,i)=      -4.*x;
-    DSDV(6,1,i)=                      4.*y;
-    DSDV(6,2,i)=         4.*x;
+
+    DSDV(6,1,i)=             4.*y;
+    DSDV(6,2,i)=       4.*x;
     DSDV(6,3,i)=   0.;
-    DSDV(7,1,i)=                   -4.*y;
+
+    DSDV(7,1,i)=            -4.*y;
     DSDV(7,2,i)=   4. -4.*x -8.*y -4.*z;
-    DSDV(7,3,i)=                   -4.*y;
+    DSDV(7,3,i)=            -4.*y;
+
     DSDV(8,1,i)=                                -4.*z;
     DSDV(8,2,i)=                                -4.*z;
     DSDV(8,3,i)=   4. -4.*x -4.*y -8.*z;
-    DSDV(9,1,i)=                                   4.*z;
+
+    DSDV(9,1,i)=                                 4.*z;
     DSDV(9,2,i)=   0.;
     DSDV(9,3,i)=         4.*x;
+
     DSDV(10,1,i)=  0.;
     DSDV(10,2,i)=                                  4.*z;
     DSDV(10,3,i)=                      4.*y;

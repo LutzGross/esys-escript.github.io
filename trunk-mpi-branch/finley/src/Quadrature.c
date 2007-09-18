@@ -90,6 +90,8 @@ void Finley_Quad_getNodesTri(int numQuadNodes,double* quadNodes,double* quadWeig
 void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeights) {
   int i;
   double Q1,Q2,Q3,JA11,JA12,JA13,JA21,JA22,JA23,JA31,JA32,JA33,DET;
+  double alpha=0.58541020;
+  double beta =0.13819660;
   #define DIM 3
   
   /*  the easy cases: */
@@ -99,8 +101,6 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
     QUADNODES(2,0)=0.25;
     QUADWEIGHTS(0)=1./6.;
   } else if (numQuadNodes==4){
-    double alpha=0.58541020;
-    double beta =0.13819660;
     QUADNODES(0,0)=beta;
     QUADNODES(1,0)=beta;
     QUADNODES(2,0)=beta;
@@ -146,7 +146,6 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
     if (! Finley_noError()) return;
     
     /*  squeeze it: */
-    
     for (i=0;i<numQuadNodes;i++) {
       Q1=QUADNODES(0,i);
       Q2=QUADNODES(1,i);

@@ -235,6 +235,12 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
    	   }
               if (! Finley_noError()) break;
               for(j = 0; j < numNodesPerElement; j++) fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
+              /* for tet10 the last two nodes need to be swapped */
+              if (element_type[e]==Tet10) {
+                   itmp=vertices[INDEX2(9,e,MAX_numNodes_gmsh)];
+                   vertices[INDEX2(9,e,MAX_numNodes_gmsh)]=vertices[INDEX2(8,e,MAX_numNodes_gmsh)];
+                   vertices[INDEX2(8,e,MAX_numNodes_gmsh)]=itmp;
+              }
             }
             /* all elements have been read, now we have to identify the elements for finley */
         
@@ -283,17 +289,17 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                             mesh_p->Elements->Id[numElements]=id[e];
                             mesh_p->Elements->Tag[numElements]=tag[e];
                             mesh_p->Elements->Color[numElements]=numElements;
-                            for (j = 0; j<  mesh_p->Elements->ReferenceElement->Type->numNodes; ++j) 
-                                     mesh_p->Elements->Nodes[INDEX2(j, numElements, mesh_p->Elements->ReferenceElement->Type->numNodes)]=
-                                                                                                     vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
+                            for (j = 0; j<  mesh_p->Elements->ReferenceElement->Type->numNodes; ++j)  {
+                                  mesh_p->Elements->Nodes[INDEX2(j, numElements, mesh_p->Elements->ReferenceElement->Type->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
+                            }
                             numElements++;
                          } else if (element_type[e] == final_face_element_type) {
                             mesh_p->FaceElements->Id[numFaceElements]=id[e];
                             mesh_p->FaceElements->Tag[numFaceElements]=tag[e];
                             mesh_p->FaceElements->Color[numFaceElements]=numFaceElements;
-                            for (j = 0; j<  mesh_p->FaceElements->ReferenceElement->Type->numNodes; ++j) 
-                                     mesh_p->FaceElements->Nodes[INDEX2(j, numFaceElements, mesh_p->FaceElements->ReferenceElement->Type->numNodes)]=
-                                                                                                     vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
+                            for (j = 0; j<  mesh_p->FaceElements->ReferenceElement->Type->numNodes; ++j) {
+                                     mesh_p->FaceElements->Nodes[INDEX2(j, numFaceElements, mesh_p->FaceElements->ReferenceElement->Type->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
+                            }
                             numFaceElements++;
                          }
                       }

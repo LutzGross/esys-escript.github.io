@@ -105,7 +105,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order1_onFace(self):
@@ -113,7 +113,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2(self):
@@ -121,7 +121,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2_onFace(self):
@@ -129,7 +129,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1(self):
@@ -137,7 +137,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1_onFace(self):
@@ -145,7 +145,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2(self):
@@ -153,7 +153,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2_onFace(self):
@@ -161,7 +161,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2])
+      my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
 class Test_GMSHReader(unittest.TestCase):
@@ -196,7 +196,7 @@ class Test_GMSHReader(unittest.TestCase):
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
-   def test_Tet(self):
+   def test_Tet10(self):
        file="tet10_gmsh.msh"
        ref="tet10.fly"
        test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
@@ -208,10 +208,10 @@ class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
        file="hex_2D_order2.msh"
        test = FINLEY_WORKDIR+os.sep+"test.fly"
-       dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
+       dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
        insertTagNames(dom,A=1,B=2)
        dom.write(test)
-       dom2 = ReadMesh(test,3)
+       dom2 = ReadMesh(test,3,optimize=False)
        t=getTagNames(dom)
        self.failUnless(len(t)==6)
        self.failUnless("A" in t)
