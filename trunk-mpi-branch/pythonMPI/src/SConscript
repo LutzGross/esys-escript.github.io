@@ -2,27 +2,21 @@ import os
 Import('*')
 
 local_env=env.Copy()
-if useMPI:
 # get the relevant file names:
-	src_dir = local_env.Dir('.').srcnode().abspath
-	filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
+src_dir = local_env.Dir('.').srcnode().abspath
+filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
 
-	sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
-	headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
-        local_env.Append(LIBS = [ "paso" ] + mpi_libs + [python_lib] + sys_libs)
-	lib_name = 'pythonMPI'
-
-## changed
-	lib = local_env.Program(lib_name, sources)
-
-	include_path = Dir(lib_name, incinstall)
-## changed
-#solvers_include_path = Dir('Solvers', include_path)
-
-	local_env.Install(include_path, headers )
-	local_env.Install(libinstall, lib)
+if useMPI:
+    local_env.Append(LIBS = [ "paso" ] + mpi_libs + [python_lib] + sys_libs)
+    lib_name = 'pythonMPI'
+    lib = local_env.Program(lib_name, sources)
+    include_path = Dir(lib_name, incinstall)
+    local_env.Install(include_path, headers )
+    local_env.Install(libinstall, lib)
 	 
-	release_srcfiles = [ env.File(x) for x in filenames ]  + [env.File("SConscript"), ]
-	env.Zip(src_zipfile, release_srcfiles)
-	env.Tar(src_tarfile, release_srcfiles)
+release_srcfiles = [ env.File(x) for x in filenames ]  + [env.File("SConscript"), ]
+env.Zip(src_zipfile, release_srcfiles)
+env.Tar(src_tarfile, release_srcfiles)

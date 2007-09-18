@@ -49,6 +49,7 @@ dir_packages = os.path.join(source_root,"esys")
 dir_examples = os.path.join(source_root,"examples")
 dir_libraries = os.path.join(source_root,"lib")
 
+print "Source root is : ",source_root
 print "	Default packages local installation:	", dir_packages
 print "	Default library local installation 	", dir_libraries
 print "	Default example local  installation:	", dir_examples
@@ -141,7 +142,7 @@ boost_lib_default=['boost_python']
 #    check if netCDF is installed on the system:
 #
 netCDF_path_default=os.path.join(tools_prefix,'include','netcdf-3')
-netCDF_lib_path_default=os.path.join(tools_prefix,'lib','netcdf-3')
+netCDF_lib_path_default=os.path.join(tools_prefix,'lib')
 
 if os.path.isdir(netCDF_path_default) and os.path.isdir(netCDF_lib_path_default):
      useNetCDF_default='yes'
@@ -894,10 +895,7 @@ env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib',
 env.SConscript(dirs = ['doc'], build_dir='build/$PLATFORM/doc', duplicate=0)
 env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', duplicate=0)
-
-# added by Ben Cumming
-if useMPI:
-   env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
+env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 #env.SConscript(dirs = ['../test'], build_dir='../test/build', duplicate=0)
 
 
