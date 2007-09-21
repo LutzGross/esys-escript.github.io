@@ -23,6 +23,7 @@ Utility functions for escript
 @var __url__: url entry point on documentation
 @var __version__: version
 @var __date__: date of the version
+@var EPSILON: smallest positive value with 1.<1.+EPSILON
 """
                                                                                                                                                                                                      
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -46,6 +47,21 @@ from esys.escript import getVersion
 #=========================================================
 #   some helpers:
 #=========================================================
+def getEpsilon():
+     #     ------------------------------------------------------------------
+     #     Compute EPSILON, the machine precision.  The call to daxpp is
+     #     inTENded to fool compilers that use extra-length registers.
+     #     31 Map 1999: Hardwire EPSILON so the debugger can step thru easily.
+     #     ------------------------------------------------------------------
+     eps    = 2.**(-12)
+     p=2.
+     while p>1.:
+            eps/=2.
+            p=1.+eps
+     return eps*2.
+
+EPSILON=getEpsilon()
+
 def getTagNames(domain):
     """
     returns a list of the tag names used by the domain
