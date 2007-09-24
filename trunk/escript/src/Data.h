@@ -1,15 +1,17 @@
-// $Id$
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /** \file Data.h */
 
@@ -26,13 +28,10 @@
 
 extern "C" {
 #include "DataC.h"
-#include "paso/Paso.h"
+/* #include "paso/Paso.h" doesn't belong in this file...causes trouble for BruceFactory.cpp */
 }
 
-#ifndef PASO_MPI
-#define MPI_Comm long
-#endif
-
+#include "esysmpi.h"
 #include <string>
 #include <algorithm>
 
@@ -333,13 +332,6 @@ class Data {
   {
     return m_data->toString();
   }
-  
-  /**
-     \brief
-     Return a description for this domain for python.
-  */
-  ESCRIPT_DLL_API
-  const boost::python::str str() const;
 
   /**
      \brief
@@ -748,15 +740,6 @@ class Data {
 
   /**
      \brief
-     Return the minimum absolute value of this Data object.
-     *
-  */
-  ESCRIPT_DLL_API
-  double
-  Linf() const;
-
-  /**
-     \brief
      Return the maximum value of this Data object.
      *
   */
@@ -1122,6 +1105,9 @@ class Data {
   Data& operator+=(const Data& right);
   ESCRIPT_DLL_API
   Data& operator+=(const boost::python::object& right);
+
+  ESCRIPT_DLL_API
+  Data& operator=(const Data& other);
 
   /**
      \brief
@@ -1522,6 +1508,8 @@ ESCRIPT_DLL_API Data operator*(const boost::python::object& left, const Data& ri
 */
 ESCRIPT_DLL_API Data operator/(const boost::python::object& left, const Data& right);
 
+
+
 /**
   \brief
   Output operator
@@ -1549,7 +1537,7 @@ C_GeneralTensorProduct(Data& arg0,
   NB: this operator does very little at this point, and isn't to 
   be relied on. Requires further implementation.
 */
-//ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
+// ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
 
 /**
   \brief

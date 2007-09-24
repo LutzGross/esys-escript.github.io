@@ -21,8 +21,19 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 # Filter out sources that should not be in the list automatically
 sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
 
-local_env.Append(LIBS = [boost_lib, 'esysUtils'] + sys_libs )
-py_wrapper_local_env.Append(LIBS = [boost_lib, lib_name, 'esysUtils'] + sys_libs )
+local_env.Append(LIBS = [boost_lib] + [ 'esysUtils'] + sys_libs + netCDF_libs + mpi_libs)
+py_wrapper_local_env.Append(LIBS = [boost_lib] + [ lib_name, 'esysUtils'] + sys_libs + netCDF_libs)
+if useNetCDF == 'yes':
+    local_env.Append(LIBS = netCDF_libs)
+    local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
+    py_wrapper_local_env.Append(LIBS = netCDF_libs)
+    py_wrapper_local_env.Append(CPPDEFINES = [ 'USE_NETCDF' ])
+
+if papi_instrument_solver:
+   local_env.Append(CPPDEFINES=['PAPI',])
+if papi_libs:
+   local_env.Append(LIBS = papi_libs)
+   local_env.Append(CPPDEFINES=['BLOCKPAPI',])
 
 local_env.Append(CPPDEFINES = [ 'ESCRIPT_EXPORTS'] )
 
@@ -46,10 +57,8 @@ Export('dep_lib')
 # add source files to release
 release_srcfiles = [ env.File(x) for x in filenames ] + [env.File("SConscript"), ]
 env.Zip(src_zipfile, release_srcfiles)
-try:
-   env.Tar(src_tarfile, release_srcfiles)
-except AttributeError:
-   pass
+env.Tar(src_tarfile, release_srcfiles)
+
 # Call the python sconscript
 env.SConscript(dirs = ['#/escript/py_src'], build_dir='py', duplicate=0)
 

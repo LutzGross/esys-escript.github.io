@@ -1,4 +1,18 @@
-# $Id:$
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
 
 """
 mesh generation using gmsh
@@ -25,7 +39,7 @@ __date__="$Date:$"
 import design
 import tempfile
 import os
-from primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet
+from primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
 
 class Design(design.Design):
     """
@@ -89,11 +103,8 @@ class Design(design.Design):
         clean up
         """
         if not self.keepFiles():
-            try:
                os.unlink(self.getScriptFileName())
                os.unlink(self.getMeshFileName())
-            except OSError:
-               pass
     def getCommandString(self):
         """
         returns the gmsh comand
@@ -156,6 +167,9 @@ class Design(design.Design):
            elif isinstance(p, Arc):
               out+="Circle(%s) = {%s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getEndPoint().getDirectedID())
        
+           elif isinstance(p, Ellipse):
+              out+="Ellipse(%s) = {%s, %s, %s, %s};\n"%(p.getID(),p.getStartPoint().getDirectedID(),p.getCenterPoint().getDirectedID(),p.getPointOnMainAxis().getDirectedID(), p.getEndPoint().getDirectedID())
+
            elif isinstance(p, CurveLoop):
                out+="Line Loop(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getCurves()))
        

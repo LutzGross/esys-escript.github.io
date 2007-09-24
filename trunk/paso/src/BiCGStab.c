@@ -1,15 +1,17 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /*
    Crude modifications and translations for Paso by Matt Davies and Lutz Gross
@@ -82,16 +84,15 @@ err_t Paso_Solver_BiCGStab(
 
 
   /* Local variables */
-  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;
+  double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL, *buf1=NULL, *buf0=NULL;
   double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
   double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
   dim_t num_iter=0,maxit,num_iter_global;
-  dim_t i0,n;
+  dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;
   double *resid = tolerance;
-  /* adapt original routine parameters */
-  n = A->num_cols * A-> col_block_size;;
+  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
 
   /* Executable Statements */
 
@@ -103,7 +104,6 @@ err_t Paso_Solver_BiCGStab(
   phat=TMPMEMALLOC(n,double);
   shat=TMPMEMALLOC(n,double);
   s=TMPMEMALLOC(n,double);
-
   /*     Test the input parameters. */
 
   if (n < 0) {
@@ -250,15 +250,3 @@ err_t Paso_Solver_BiCGStab(
   /*     End of BICGSTAB */
   return status;
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:49  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

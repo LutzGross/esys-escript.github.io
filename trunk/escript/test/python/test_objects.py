@@ -1,4 +1,19 @@
-# $Id:$
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 """
 Test suite for data objects. at the moment for dump and load only.
 
@@ -68,7 +83,7 @@ class Test_Domain(unittest.TestCase):
         self.failUnless(Lsup(s-r)<=0.)
         # get tag:
         names=getTagNames(self.domain)
-        self.failUnless(len(names) == 2)
+        self.failUnless(len(names) == 6)
         self.failUnless( tag1 in names )
         self.failUnless( tag2 in names )
         self.failUnless(self.domain.isValidTagName(tag1))

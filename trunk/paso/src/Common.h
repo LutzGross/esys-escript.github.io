@@ -1,20 +1,20 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #ifndef INC_PASO_COMMON
 #define INC_PASO_COMMON
-
-
 
 /**************************************************************/
 
@@ -71,11 +71,21 @@ typedef int err_t;
 #define INDEX6(_X1_,_X2_,_X3_,_X4_,_X5_,_X6_,_N1_,_N2_,_N3_,_N4_,_N5_) ((_X1_)+(_N1_)*INDEX5(_X2_,_X3_,_X4_,_X5_,_X6_,_N2_,_N3_,_N4_,_N5_))
 
 #define MAX(_arg1_,_arg2_) ((_arg1_)>(_arg2_) ?  (_arg1_) : (_arg2_))
+#define MAX3(_arg1_,_arg2_,_arg3_) MAX(_arg1_,MAX(_arg2_,_arg3_))
 #define MIN(_arg1_,_arg2_) ((_arg1_)>(_arg2_) ?  (_arg2_) : (_arg1_)) 
+#define MIN3(_arg1_,_arg2_,_arg3_) MIN(_arg1_,MIN(_arg2_,_arg3_))
 #define ABS(_arg_) MAX((_arg_),-(_arg_))
 /**************************************************************/
 
 /*    memory allocation:                                      */
+
+/*
+	This is useful for seeing what memory is being allocated if you get an "Out of memory" error
+#define TMPMEMALLOC(_LENGTH_,_TYPE_) (printf("TMPMEMALLOC at %s %d #bytes=%d*%d=%d\n", __FILE__, __LINE__, _LENGTH_, sizeof(_TYPE_), ((size_t)(_LENGTH_) * sizeof(_TYPE_))) , (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_)))
+
+	This is useful for seeing where memory is being freed if you get an "glibc detected...free" error
+#define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); }
+*/
 
 #define TMPMEMALLOC(_LENGTH_,_TYPE_) (_TYPE_*) malloc(((size_t)(_LENGTH_))*sizeof(_TYPE_))
 #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { free(_PTR_); (_PTR_) = NULL; }
@@ -101,16 +111,3 @@ typedef int err_t;
 #endif
 
 #endif /* #ifndef INC_PASO_COMMON */
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:46  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

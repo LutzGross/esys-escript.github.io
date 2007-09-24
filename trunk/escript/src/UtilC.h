@@ -1,16 +1,18 @@
+
 /* $Id$ */
-/* 
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
-                                                                           
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
+
 #if !defined  escript_UtilC_20040611_H
 #define escript_UtilC_20040611_H
 #include "system_dep.h"
@@ -48,6 +50,7 @@
 #define ESCRIPT_PASO 21
 #define ESCRIPT_AMG 22
 #define ESCRIPT_RILU 23
+#define ESCRIPT_TRILINOS 24
 
 /* keyword in solver options relevant for lineraPDE class */
 #define ESCRIPT_TOLERANCE_KEY "tolerance"

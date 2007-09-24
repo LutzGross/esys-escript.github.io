@@ -9,8 +9,8 @@ object 1 class array type float rank 1 shape 2 items 8 data follows
 0 1
 1 1
 object 2 class array type int rank 1 shape 2 items 6 data follows
-0 1
 2 0
+0 1
 1 3
 6 4
 5 7
@@ -18,8 +18,8 @@ object 2 class array type int rank 1 shape 2 items 6 data follows
 attribute "element type" string "lines"
 attribute "ref" string "positions"
 object 3 class array type float rank 1 shape 2 items 6 data follows
- 0.5 1
  0 0
+ 0.5 1
  1 2
  0 0
  1 2

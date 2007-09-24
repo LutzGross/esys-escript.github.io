@@ -49,6 +49,7 @@ dir_packages = os.path.join(source_root,"esys")
 dir_examples = os.path.join(source_root,"examples")
 dir_libraries = os.path.join(source_root,"lib")
 
+print "Source root is : ",source_root
 print "	Default packages local installation:	", dir_packages
 print "	Default library local installation 	", dir_libraries
 print "	Default example local  installation:	", dir_examples
@@ -135,12 +136,13 @@ python_lib_default="python%s.%s"%(sys.version_info[0],sys.version_info[1])
 boost_path_default=os.path.join(tools_prefix,'include')
 boost_lib_path_default=os.path.join(tools_prefix,'lib')
 boost_lib_default=['boost_python']
+
 #==========================================================================
 #
 #    check if netCDF is installed on the system:
 #
 netCDF_path_default=os.path.join(tools_prefix,'include','netcdf-3')
-netCDF_lib_path_default=os.path.join(tools_prefix,'lib','netcdf-3')
+netCDF_lib_path_default=os.path.join(tools_prefix,'lib')
 
 if os.path.isdir(netCDF_path_default) and os.path.isdir(netCDF_lib_path_default):
      useNetCDF_default='yes'
@@ -153,12 +155,31 @@ else:
 
 #==========================================================================
 #
+#  MPI:
+#
+if IS_WINDOWS_PLATFORM: 
+   useMPI_default='no'
+   mpi_path_default=None
+   mpi_lib_path_default=None
+   mpi_libs_default=[]
+   mpi_run_default=None
+else:
+   useMPI_default='no'
+   mpi_root='/usr/local'
+   mpi_path_default=os.path.join(mpi_root,'include')
+   mpi_lib_path_default=os.path.join(mpi_root,'lib')
+   mpi_libs_default=[ 'mpich' , 'pthread', 'rt' ]
+   mpi_run_default='mpiexec -np 1'
+#
+#==========================================================================
+#
 #    compile:
 #
-cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
-cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi'
+cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi'
 cxx_flags_default='--no-warn -ansi'
 cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
+
 #==============================================================================================     
 # Default options and options help text
 # These are defaults and can be overridden using command line arguments or an options file.
@@ -185,12 +206,15 @@ opts.AddOptions(
   ('api_doxygen', 'name of the doxygen api docs directory',prefix+"/release/doc/doxygen"),
 # Compilation options
   BoolOption('dodebug', 'Do you want a debug build?', 'no'),
+  BoolOption('bounds_check', 'Do you want extra array bounds checking?', 'no'),
   ('options_file', "Optional file containing preferred options. Ignored if it doesn't exist (default: scons/<hostname>_options.py)", options_file),
   ('cc_defines','C/C++ defines to use', None),
   ('cc_flags','C compiler flags to use (Release build)', cc_flags_default),
   ('cc_flags_debug', 'C compiler flags to use (Debug build)', cc_flags_debug_default),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', cxx_flags_default),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', cxx_flags_debug_default),
+  ('omp_flags', 'OpenMP compiler flags to use (Release build)', ''),
+  ('omp_flags_debug', 'OpenMP compiler flags to use (Debug build)', ''),
   ('ar_flags', 'Static library archiver flags to use', None),
   ('sys_libs', 'System libraries to link with', None),
   ('tar_flags','flags for zip files','-c -z'),
@@ -212,6 +236,10 @@ opts.AddOptions(
   PathOption('amd_path', 'Path to AMD includes', amd_path_default),
   PathOption('amd_lib_path', 'Path to AMD libs', amd_lib_path_default),
   ('amd_libs', 'AMD libraries to link with', amd_libs_default),
+# TRILINOS
+  PathOption('trilinos_path', 'Path to TRILINOS includes', None),
+  PathOption('trilinos_lib_path', 'Path to TRILINOS libs', None),
+  ('trilinos_libs', 'TRILINOS libraries to link with', None),
 # BLAS
   PathOption('blas_path', 'Path to BLAS includes', None),
   PathOption('blas_lib_path', 'Path to BLAS libs', None),
@@ -239,8 +267,14 @@ opts.AddOptions(
   PathOption('papi_path', 'Path to PAPI includes', None),
   PathOption('papi_lib_path', 'Path to PAPI libs', None),
   ('papi_libs', 'PAPI libraries to link with', None),
+  ('papi_instrument_solver', 'use PAPI in Solver.c to instrument each iteration of the solver', None),
 # MPI
-  BoolOption('useMPI', 'Compile parallel version using MPI', 'no'),
+  BoolOption('useMPI', 'Compile parallel version using MPI', useMPI_default),
+  ('MPICH_IGNORE_CXX_SEEK', 'name of macro to ignore MPI settings of C++ SEEK macro (for MPICH)' , 'MPICH_IGNORE_CXX_SEEK'),
+  PathOption('mpi_path', 'Path to MPI includes', mpi_path_default),
+  ('mpi_run', 'mpirun name' , mpi_run_default),
+  PathOption('mpi_lib_path', 'Path to MPI libs (needs to be added to the LD_LIBRARY_PATH)',mpi_lib_path_default),
+  ('mpi_libs', 'MPI libraries to link with (needs to be shared!)', mpi_libs_default)
 )
 #=================================================================================================
 #
@@ -264,6 +298,10 @@ else:
       env = Environment(tools = ['default'], options = opts)
 Help(opts.GenerateHelpText(env))
 
+if env['bounds_check']:
+   env.Append(CPPDEFINES = [ 'BOUNDS_CHECK' ])
+   env.Append(CXXDEFINES = [ 'BOUNDS_CHECK' ])
+
 #=================================================================================================
 #
 #     Initialise Scons Build Environment
@@ -280,12 +318,23 @@ try:
    omp_num_threads = os.environ['OMP_NUM_THREADS']
 except KeyError:
    omp_num_threads = 1
-
 env['ENV']['OMP_NUM_THREADS'] = omp_num_threads
 
 try:
+   path = os.environ['PATH']
+   env['ENV']['PATH'] = path
+except KeyError:
+   omp_num_threads = 1
+
+env['ENV']['OMP_NUM_THREADS'] = omp_num_threads
+
+
+# Copy some variables from the system environment to the build environment
+try:
    env['ENV']['DISPLAY'] = os.environ['DISPLAY']
    env['ENV']['XAUTHORITY'] = os.environ['XAUTHORITY']
+   home_temp = os.environ['HOME']	# MPICH2's mpd needs $HOME to find $HOME/.mpd.conf
+   env['ENV']['HOME'] = home_temp
 except KeyError:
    pass
 
@@ -327,95 +376,19 @@ try:
    env.PrependENVPath('LD_LIBRARY_PATH', libinstall)
    if IS_WINDOWS_PLATFORM :
       env.PrependENVPath('PATH', libinstall)
+      env.PrependENVPath('PATH', env['boost_lib_path'])
 except KeyError:
    libinstall = None
 try:
    pyinstall = env['pyinstall'] # all targets will install into pyinstall/esys but PYTHONPATH points at straight pyinstall so you go import esys.escript etc
 except KeyError:
    pyinstall = None
-try:
-   exinstall = env['exinstall']
-except KeyError:
-   exinstall = None
-try:
-   sys_libinstall = env['sys_libinstall']
-except KeyError:
-   sys_libinstall = None
-try:
-   sys_pyinstall = env['sys_pyinstall']
-except KeyError:
-   sys_pyinstall = None
-try:
-   sys_exinstall = env['sys_exinstall']
-except KeyError:
-   sys_exinstall = None
-try:
-   dodebug = env['dodebug']
-except KeyError:
-   dodebug = None
-try:
-   useMPI = env['useMPI']
-except KeyError:
-   useMPI = None
+
 try:
    cc_defines = env['cc_defines']
    env.Append(CPPDEFINES = cc_defines)
 except KeyError:
    pass
-
-
-if dodebug:
-  if useMPI:
-    try:
-      flags = env['cc_flags_debug_MPI']
-      env.Append(CCFLAGS = flags)
-    except KeyError:
-      pass
-  else:
-    try:
-      flags = env['cc_flags_debug']
-      env.Append(CCFLAGS = flags)
-    except KeyError:
-      pass
-else:
-  if useMPI:
-   try:
-     flags = env['cc_flags_MPI']
-     env.Append(CCFLAGS = flags)
-   except KeyError:
-      pass
-  else:
-   try:
-      flags = env['cc_flags']
-      env.Append(CCFLAGS = flags)
-   except KeyError:
-      pass
-if dodebug:
-   if useMPI:
-     try:
-        flags = env['cxx_flags_debug_MPI']
-        env.Append(CXXFLAGS = flags)
-     except KeyError:
-        pass
-   else:
-     try:
-        flags = env['cxx_flags_debug']
-        env.Append(CXXFLAGS = flags)
-     except KeyError:
-        pass
-else:
-   if useMPI:
-     try:
-        flags = env['cxx_flags_MPI']
-        env.Append(CXXFLAGS = flags)
-     except KeyError:
-        pass
-   else:
-     try:
-        flags = env['cxx_flags']
-        env.Append(CXXFLAGS = flags)
-     except KeyError:
-        pass
 try:
    flags = env['ar_flags']
    env.Append(ARFLAGS = flags)
@@ -433,94 +406,207 @@ except KeyError:
    pass
 
 try:
-   includes = env['mkl_path']
-   env.Append(CPPPATH = [includes,])
+   exinstall = env['exinstall']
 except KeyError:
-   pass
+   exinstall = None
+try:
+   sys_libinstall = env['sys_libinstall']
+except KeyError:
+   sys_libinstall = None
+try:
+   sys_pyinstall = env['sys_pyinstall']
+except KeyError:
+   sys_pyinstall = None
+try:
+   sys_exinstall = env['sys_exinstall']
+except KeyError:
+   sys_exinstall = None
+
+# ====================== debugging ===================================
+try:
+   dodebug = env['dodebug']
+except KeyError:
+   dodebug = None
+
+# === switch on omp ===================================================
+try:
+  omp_flags = env['omp_flags']
+except KeyError:
+  omp_flags = ''
 
 try:
-   lib_path = env['mkl_lib_path']
-   env.Append(LIBPATH = [lib_path,])
+  omp_flags_debug = env['omp_flags_debug']
 except KeyError:
-   pass
+  omp_flags_debug = ''
 
-if useMPI:
-   mkl_libs = []
+# ========= use mpi? =====================================================
+try:
+   useMPI = env['useMPI']
+except KeyError:
+   useMPI = None
+# ========= set compiler flags ===========================================
+
+if dodebug:
+    try:
+      flags = env['cc_flags_debug'] + ' ' + omp_flags_debug
+      env.Append(CCFLAGS = flags)
+    except KeyError:
+      pass
 else:
+   try:
+      flags = env['cc_flags'] + ' ' + omp_flags
+      env.Append(CCFLAGS = flags)
+   except KeyError:
+      pass
+if dodebug:
+     try:
+        flags = env['cxx_flags_debug']
+        env.Append(CXXFLAGS = flags)
+     except KeyError:
+        pass
+else:
+     try:
+        flags = env['cxx_flags']
+        env.Append(CXXFLAGS = flags)
+     except KeyError:
+        pass
+try:
+     if env['CC'] == 'gcc': env.Append(CCFLAGS = "-pedantic-errors -Wno-long-long")
+except:
+     pass
+
+# ============= set mkl (but only of no MPI) =====================================
+if not useMPI:
+   try:
+      includes = env['mkl_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+
+   try:
+      lib_path = env['mkl_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
    try:
       mkl_libs = env['mkl_libs']
    except KeyError:
       mkl_libs = []
-
-try:
-   includes = env['scsl_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
-
-try:
-   lib_path = env['scsl_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
-
-if useMPI:
-  try:
-    scsl_libs = env['scsl_libs_MPI']
-  except KeyError:
-    scsl_libs = []
 else:
-  try:
-    scsl_libs = env['scsl_libs']
-  except KeyError:
-    scsl_libs = []
+     mkl_libs = []
 
-try:
-   includes = env['umf_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
+# ============= set scsl (but only of no MPI) =====================================
+if not useMPI:
+   try:
+      includes = env['scsl_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   lib_path = env['umf_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
+   try:
+      lib_path = env['scsl_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+   
+   try:
+      scsl_libs = env['scsl_libs']
+   except KeyError:
+      scsl_libs = [ ]
 
-if useMPI:
-    umf_libs = []
 else:
+    scsl_libs =  []
+
+# ============= set TRILINOS (but only with MPI) =====================================
+if useMPI:
+   try:
+      includes = env['trilinos_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+
+   try:
+      lib_path = env['trilinos_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
+   try:
+      trilinos_libs = env['trilinos_libs']
+   except KeyError:
+      trilinos_libs = []
+else:
+     trilinos_libs = []
+
+
+# ============= set umfpack (but only without MPI) =====================================
+umf_libs=[ ] 
+if not useMPI:
+   try:
+      includes = env['umf_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+
+   try:
+      lib_path = env['umf_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
    try:
       umf_libs = env['umf_libs']
+      umf_libs+=umf_libs
    except KeyError:
-      umf_libs = []
+      pass
 
-try:
-   includes = env['ufc_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
+   try:
+      includes = env['ufc_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   includes = env['amd_path']
-   env.Append(CPPPATH = [includes,])
-except KeyError:
-   pass
+   try:
+      includes = env['amd_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
 
-try:
-   lib_path = env['amd_lib_path']
-   env.Append(LIBPATH = [lib_path,])
-except KeyError:
-   pass
+   try:
+      lib_path = env['amd_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
 
-if useMPI:
-    amd_libs = []
-else:
    try:
       amd_libs = env['amd_libs']
+      umf_libs+=amd_libs
    except KeyError:
-      amd_libs = []
+      pass
 
+# ============= set TRILINOS (but only with MPI) =====================================
+if useMPI:
+   try:
+      includes = env['trilinos_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+
+   try:
+      lib_path = env['trilinos_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+   except KeyError:
+      pass
+
+   try:
+      trilinos_libs = env['trilinos_libs']
+   except KeyError:
+      trilinos_libs = []
+else:
+     trilinos_libs = []
+
+# ============= set blas =====================================
 try:
    includes = env['blas_path']
    env.Append(CPPPATH = [includes,])
@@ -536,14 +622,18 @@ except KeyError:
 try:
    blas_libs = env['blas_libs']
 except KeyError:
-   blas_libs = []
+   blas_libs = [ ]
 
-try:
-   useNetCDF = env['useNetCDF']
-except KeyError:
-   useNetCDF = 'yes'
-   pass
-
+# ========== netcdf (currently not supported with mpi) ====================================
+if useMPI:
+   useNetCDF = 'no'
+else:
+   try:
+      useNetCDF = env['useNetCDF']
+   except KeyError:
+      useNetCDF = 'yes'
+      pass
+    
 if useNetCDF == 'yes': 
    try:
       netCDF_libs = env['netCDF_libs']
@@ -569,6 +659,7 @@ else:
    print "Warning: Installation is not configured with netCDF. Some I/O function may not be available."
    netCDF_libs=[ ]
 
+# ====================== boost ======================================
 try:
    includes = env['boost_path']
    env.Append(CPPPATH = [includes,])
@@ -585,6 +676,7 @@ try:
    boost_lib = env['boost_lib']
 except KeyError:
    boost_lib = None
+# ====================== python ======================================
 try:
    includes = env['python_path']
    env.Append(CPPPATH = [includes,])
@@ -599,6 +691,7 @@ try:
    python_lib = env['python_lib']
 except KeyError:
    python_lib = None
+# =============== documentation =======================================
 try:
    doxygen_path = env['doxygen_path']
 except KeyError:
@@ -607,6 +700,7 @@ try:
    epydoc_path = env['epydoc_path']
 except KeyError:
    epydoc_path = None
+# =============== PAPI =======================================
 try:
    includes = env['papi_path']
    env.Append(CPPPATH = [includes,])
@@ -621,8 +715,68 @@ try:
    papi_libs = env['papi_libs']
 except KeyError:
    papi_libs = None
+# ============= set mpi =====================================
+if useMPI:
+   env.Append(CPPDEFINES=['PASO_MPI',])
+   try:
+      includes = env['mpi_path']
+      env.Append(CPPPATH = [includes,])
+   except KeyError:
+      pass
+   try:
+      lib_path = env['mpi_lib_path']
+      env.Append(LIBPATH = [lib_path,])
+      env['ENV']['LD_LIBRARY_PATH']+=":"+lib_path
+   except KeyError:
+      pass
+   try:
+      mpi_libs = env['mpi_libs']
+   except KeyError:
+      mpi_libs = []
+
+   try:
+      mpi_run = env['mpi_run']
+   except KeyError:
+      mpi_run = ''
+
+   try:
+       mpich_ignore_cxx_seek=env['MPICH_IGNORE_CXX_SEEK']
+       env.Append(CPPDEFINES = [ mpich_ignore_cxx_seek ] )
+   except KeyError:
+      pass
+else:
+  mpi_libs=[]
+  mpi_run = mpi_run_default
+# =========== zip files ===========================================
+try:
+   includes = env['papi_path']
+   env.Append(CPPPATH = [includes,])
+except KeyError:
+   pass
+try:
+   lib_path = env['papi_lib_path']
+   env.Append(LIBPATH = [lib_path,])
+except KeyError:
+   pass
+try:
+   papi_libs = env['papi_libs']
+except KeyError:
+   papi_libs = None
+try:
+   papi_instrument_solver = env['papi_instrument_solver']
+except KeyError:
+   papi_instrument_solver = None
 
 
+# ============= and some helpers =====================================
+try:
+   doxygen_path = env['doxygen_path']
+except KeyError:
+   doxygen_path = None
+try:
+   epydoc_path = env['epydoc_path']
+except KeyError:
+   epydoc_path = None
 try:
    src_zipfile = env.File(env['src_zipfile'])
 except KeyError:
@@ -670,13 +824,13 @@ except KeyError:
    api_doxygen = None
 
 try:
-   svn_pipe = os.popen("svnversion -n")
+   svn_pipe = os.popen("svnversion -n .")
    global_revision = svn_pipe.readlines()
    svn_pipe.close()
-   global_revision = re.sub("[^0-9]", "", global_revision)
+   global_revision = re.sub("[^0-9]", "", global_revision[0])
 except:
    global_revision = "0"
-env.Append(CPPDEFINES = "SVN_VERSION="+global_revision[0])
+env.Append(CPPDEFINES = "SVN_VERSION="+global_revision)
 
 # Python install - esys __init__.py
 init_target = env.Command(pyinstall+'/__init__.py', None, Touch('$TARGET'))
@@ -708,14 +862,10 @@ env.Alias('all_tests', ['run_tests', 'py_tests']) # target to run all C++ and re
 
 
 # Allow sconscripts to see the env
-Export(["env", "incinstall", "libinstall", "pyinstall", "exinstall", "dodebug",
-        "mkl_libs", "scsl_libs", "umf_libs", "amd_libs", "blas_libs",
-        "netCDF_libs", 
+Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "dodebug", "mkl_libs", "scsl_libs", "umf_libs", "blas_libs", "netCDF_libs", "useNetCDF", "mpi_run", 
 	"boost_lib", "python_lib", "doxygen_path", "epydoc_path", "papi_libs",
-        "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile",
-        "src_tarfile", "examples_tarfile", "examples_zipfile",
-        "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI"
-        ])
+        "sys_libs", "test_zipfile", "src_zipfile", "test_tarfile", "src_tarfile", "examples_tarfile", "examples_zipfile", "trilinos_libs", "mpi_libs", "papi_instrument_solver", 
+        "guide_pdf", "guide_html_index", "api_epydoc", "api_doxygen", "useMPI" ])
 
 # End initialisation section
 # Begin configuration section
@@ -745,8 +895,6 @@ env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib',
 env.SConscript(dirs = ['doc'], build_dir='build/$PLATFORM/doc', duplicate=0)
 env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', duplicate=0)
-
-# added by Ben Cumming
 env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 #env.SConscript(dirs = ['../test'], build_dir='../test/build', duplicate=0)
 

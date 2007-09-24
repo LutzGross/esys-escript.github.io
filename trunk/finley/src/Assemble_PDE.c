@@ -1,15 +1,17 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
 
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -39,13 +41,9 @@
 
 /**************************************************************/
 
-/*  Author: gross@access.edu.au */
-/*  Version: $Id$ */
-
-/**************************************************************/
-
 #include "Assemble.h"
 #include "Util.h"
+#include "escript/blocktimer.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -62,8 +60,17 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
   type_t funcspace;
+  double blocktimer_start = blocktimer_time();
 
   Finley_resetError();
+
+  {
+  int iam, numCPUs;
+#ifdef Paso_MPI
+  iam = elements->elementDistribution->MPIInfo->rank;
+  numCPUs = elements->elementDistribution->MPIInfo->size;
+#endif
+  }
 
   if (nodes==NULL || elements==NULL) return;
   if (S==NULL && isEmpty(F)) return;
@@ -353,6 +360,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
      printf("timing: assemblage PDE: %.4e sec\n",Finley_timer()-time0);
      #endif
   }
+  blocktimer_increment("Finley_Assemble_PDE()", blocktimer_start);
 }
 /*
  * $Log$

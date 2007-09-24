@@ -1,16 +1,17 @@
+
 /* $Id$ */
 
-
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -42,9 +43,9 @@ void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in) {
 
 /* Jacobi precondioner set up */
 
-Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
+Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SparseMatrix * A_p) {
   Paso_Solver_Jacobi* out=NULL;
-  dim_t n = A_p->num_cols;
+  dim_t n = A_p->numCols;
   dim_t n_block=A_p->row_block_size;
   dim_t block_size=A_p->block_size;
   dim_t i;
@@ -71,7 +72,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
       if (! (Paso_checkPtr(out->values))) {
         if (n_block==1) {
            #pragma omp parallel for private(i, iPtr) schedule(static)
-           for (i = 0; i < A_p->pattern->n_ptr; i++) {
+           for (i = 0; i < A_p->pattern->numOutput; i++) {
               out->values[i]=1.;
               /* find main diagonal */
               for (iPtr = A_p->pattern->ptr[i]; iPtr < A_p->pattern->ptr[i + 1]; iPtr++) {
@@ -83,7 +84,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
            }
         } else if (n_block==2) {
            #pragma omp parallel for private(i, iPtr, A11,A12,A21,A22,D) schedule(static)
-           for (i = 0; i < A_p->pattern->n_ptr; i++) {
+           for (i = 0; i < A_p->pattern->numOutput; i++) {
               out->values[i*4+0]= 1.;
               out->values[i*4+1]= 0.;
               out->values[i*4+2]= 0.;
@@ -109,7 +110,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p) {
            }
         } else if (n_block==3) {
            #pragma omp parallel for private(i, iPtr,A11,A12,A13,A21,A22,A23,A31,A32,A33,D) schedule(static)
-           for (i = 0; i < A_p->pattern->n_ptr; i++) {
+           for (i = 0; i < A_p->pattern->numOutput; i++) {
               out->values[i*9  ]=1.;
               out->values[i*9+1]=0.;
               out->values[i*9+2]=0.;
@@ -170,15 +171,3 @@ void Paso_Solver_solveJacobi(Paso_Solver_Jacobi * prec, double * x, double * b) 
      return;
 }
 
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

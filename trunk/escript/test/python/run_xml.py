@@ -1,6 +1,21 @@
 #!/usr/bin/python
 
+#
 # $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
                     http://www.access.edu.au
                 Primary Business: Queensland, Australia"""
@@ -451,5 +466,14 @@ class ODETEST(Model):
 
     
 if __name__ == "__main__":
-    unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(XMLDocumentTestCase))
+    suite.addTest(unittest.makeSuite(SimulationTestCase))
+    suite.addTest(unittest.makeSuite(LinkTestCase))
+    suite.addTest(unittest.makeSuite(ParamaterSetTestCase))
+    suite.addTest(unittest.makeSuite(ModeltoDomTestCase))
+    suite.addTest(unittest.makeSuite(ModeltoDomTestCase))
+    suite.addTest(unittest.makeSuite(Messenger))
+    suite.addTest(unittest.makeSuite(ODETEST))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
 

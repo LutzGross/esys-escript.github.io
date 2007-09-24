@@ -1,17 +1,17 @@
-/*
- ******************************************************************************
- *                                                                            *
- *       COPYRIGHT  ACcESS 2004 -  All Rights Reserved                        *
- *                                                                            *
- * This software is the property of ACcESS. No part of this code              *
- * may be copied in any form or by any means without the expressed written    *
- * consent of ACcESS.  Copying, use or modification of this software          *
- * by any unauthorised person is illegal unless that person has a software    *
- * license agreement with ACcESS.                                             *
- *                                                                            *
- ******************************************************************************
- $Id$
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #ifdef PASO_MPI
 #include <mpi.h>
@@ -49,7 +49,7 @@ SystemMatrixAdapter::~SystemMatrixAdapter()
 { 
     if (m_system_matrix.unique()) {
         Paso_SystemMatrix* mat=m_system_matrix.get();
-        Paso_SystemMatrix_dealloc(mat);
+        Paso_SystemMatrix_free(mat);
     }
 }
 
@@ -129,6 +129,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_AMG;
        case  ESCRIPT_RILU:
           return PASO_RILU;
+       case  ESCRIPT_TRILINOS:
+          return PASO_TRILINOS;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";

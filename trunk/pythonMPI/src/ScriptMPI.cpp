@@ -1,11 +1,25 @@
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
+
 #include <Python.h>
 #include <mpi.h>
 #include <iostream>
 #include <stdexcept>
 
 extern "C"{
-#include "paso/Paso.h"
-#include "finley/Finley.h"
+#include "paso/Paso_MPI.h"
 }
 #ifdef PASO_MPI
 
@@ -27,9 +41,10 @@ int main( int argc, char **argv ) {
     if( mpi_info->rank )
     {
       char fname[256];
-
-      sprintf( fname, "log_P%d.txt", mpi_info->rank );
-      FILE *fp = freopen( fname, "w+", stdout );
+      sprintf( fname, "stdout_cpu_%04d.out", mpi_info->rank );
+      FILE *fp_out = freopen( fname, "w+", stdout );
+      sprintf( fname, "stdout_cpu_%04d.err", mpi_info->rank );
+      FILE *fp_err = freopen( fname, "w+", stderr );
     }
     /*
      * Start the python parser
@@ -41,7 +56,7 @@ int main( int argc, char **argv ) {
      */
     MPI_Finalize();
 
-    Paso_MPIInfo_dealloc( mpi_info );
+    Paso_MPIInfo_free( mpi_info );
   }
   catch (std::runtime_error &e)
   {

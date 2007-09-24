@@ -1,6 +1,20 @@
 #/usr/bin/python
-# $Id:$
 
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
 
 """
 some benchmarks for tetsing the finley solver.
@@ -22,7 +36,7 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision:$"
 __date__="$Date:$"
 
-from finleybench import *
+from esys.finley.finleybench import *
 from esys.escript.benchmark import BenchmarkSuite,Benchmark
 
 type="all" 
@@ -1094,6 +1108,7 @@ if type in ["all"]:
    bms.addBenchmark(bm_CLA3D_o2_c2)
    bms.addBenchmark(bm_CLA3D_o2_c2_n45)
    
+>>>>>>> .r489
 bms.run(scale=thlist)
 out=bms.getHTML(filter=ff)
 print out

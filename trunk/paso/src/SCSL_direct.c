@@ -1,16 +1,17 @@
-/* $Id: SCSL_direct.c 405 2005-12-22 23:05:31Z gross $ */
 
+/* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -108,13 +109,13 @@ void Paso_SCSL_direct(Paso_SystemMatrix* A,
           time0=Paso_timer();
           if (TokenSym[token]) {
                /* DPSLDLT_Ordering(token,reordering_method); (does not work)*/
-               DPSLDLT_Preprocess(token,A->num_rows,A->pattern->ptr,A->pattern->index,&non_zeros,&ops); 
-               DPSLDLT_Factor(token,A->num_rows,A->pattern->ptr,A->pattern->index,A->val);
+               DPSLDLT_Preprocess(token,A->mainBlock->numRows,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,&non_zeros,&ops); 
+               DPSLDLT_Factor(token,A->mainBlock->numRows,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,A->mainBlock->val);
                if (options->verbose) printf("timing SCSL: Cholevsky factorization: %.4e sec (token = %d)\n",Paso_timer()-time0,token);
           } else {
                /* DPSLDU_Ordering(token,reordering_method);(does not work)*/
-               DPSLDU_Preprocess(token,A->num_rows,A->pattern->ptr,A->pattern->index,&non_zeros,&ops); 
-               DPSLDU_Factor(token,A->num_rows,A->pattern->ptr,A->pattern->index,A->val);
+               DPSLDU_Preprocess(token,A->mainBlock->numRows,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,&non_zeros,&ops); 
+               DPSLDU_Factor(token,A->mainBlock->numRows,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,A->mainBlock->val);
                if (options->verbose) printf("timing SCSL: LDU factorization: %.4e sec (token = %d)\n",Paso_timer()-time0,token);
           }
        }

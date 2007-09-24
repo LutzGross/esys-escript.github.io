@@ -1,23 +1,21 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
 /*    assemblage routines: interpolates nodal data in a data array onto elements (=integration points) */
-
-/**************************************************************/
-
-/*  Author: gross@access.edu.au */
-/*  Version: $Id$ */
 
 /**************************************************************/
 
@@ -37,16 +35,18 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   dim_t q,i,NS_DOF,NN_DOF,numNodes,e, numQuad;
   Finley_RefElement* reference_element=NULL;
   dim_t numComps=getDataPointSize(data);
-  index_t id[MAX_numNodes], *resort_nodes;
+  index_t id[MAX_numNodes], *resort_nodes, *map;
   type_t data_type=getFunctionSpaceType(data);
   type_t type;
+  size_t numComps_size;
   Finley_resetError();
   #define NODES 0
   #define REDUCED_NODES 3
   #define DOF 1
   #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
-  NN=elements->ReferenceElement->Type->numNodes;
+  
+  NN=elements->numNodes;
   NS=elements->ReferenceElement->Type->numShapes;
   reduced_integration = Finley_Assemble_reducedIntegrationOrder(interpolated_data);
   for (i=0;i<NN;i++) id[i]=i;
@@ -61,17 +61,23 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        } else {
           reference_element=elements->ReferenceElement;
        } 
-       numNodes=nodes->numNodes;
+       numNodes=Finley_NodeFile_getNumNodes(nodes);
+       map=Finley_NodeFile_borrowTargetNodes(nodes);
   } else if (data_type==FINLEY_REDUCED_NODES) {
        type=REDUCED_NODES;
+       resort_nodes=elements->ReferenceElement->Type->linearNodes;
        if (reduced_integration) {
            reference_element=elements->LinearReferenceElementReducedOrder;
        } else {
            reference_element=elements->LinearReferenceElement;
        } 
-       /* TODO */
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: input from reduced nodes is not supported yet.");
+       numNodes=Finley_NodeFile_getNumReducedNodes(nodes);
+       map=Finley_NodeFile_borrowTargetReducedNodes(nodes);
   } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
+       if (elements->MPIInfo->size>1) {
+          Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
+          return;
+       }
        type=DOF;
        resort_nodes=id;
        if (reduced_integration) {
@@ -79,8 +85,13 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        } else {
            reference_element=elements->ReferenceElement;
        }
-       numNodes=nodes->numDegreesOfFreedom;
+       numNodes=Finley_NodeFile_getNumDegreesOfFreedom(nodes);
+       map=Finley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
   } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+       if (elements->MPIInfo->size>1) {
+          Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
+          return;
+       }
        type=REDUCED_DOF;
        resort_nodes=elements->ReferenceElement->Type->linearNodes;
        if (reduced_integration) {
@@ -88,7 +99,8 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
        } else {
            reference_element=elements->LinearReferenceElement;
        }
-       numNodes=nodes->reducedNumDegreesOfFreedom;
+       numNodes=Finley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
+       map=Finley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
    } else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: Cannot interpolate data");
   }
@@ -117,49 +129,23 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   /* now we can start */
 
   if (Finley_noError()) {
-       #pragma omp parallel private(local_data)
+       #pragma omp parallel private(local_data, numComps_size)
        {
           local_data=NULL; 
           /* allocation of work arrays */
           local_data=THREAD_MEMALLOC(NS*numComps,double); 
           if (! Finley_checkPtr(local_data)) {
 
+            numComps_size=(size_t)numComps*sizeof(double);
 	    /* open the element loop */
 
             #pragma omp for private(e,q,i,data_array) schedule(static)
 	    for(e=0;e<elements->numElements;e++) {
-   	      /* gather local data into local_data(numComps,NS_DOF): */
-              switch (type) {
-                 case NODES:
-                        for (q=0;q<NS_DOF;q++) {
-                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                           data_array=getSampleData(data,i);
-                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
-                        }
-                        break;
-                 case REDUCED_NODES:
-                        for (q=0;q<NS_DOF;q++) {
-                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                           data_array=getSampleData(data,i); /* TODO */
-                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
-                        }
-                        break;
-                 case DOF:
-                        for (q=0;q<NS_DOF;q++) {
-                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                           data_array=getSampleData(data,nodes->degreeOfFreedom[i]);
-                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
-                        }
-                        break;
-                 case REDUCED_DOF:
-                        for (q=0;q<NS_DOF;q++) {
-                           i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
-                           data_array=getSampleData(data,nodes->reducedDegreeOfFreedom[i]);
-                           Finley_copyDouble(numComps,data_array,local_data+q*numComps);
-                        }
-                        break;
+              for (q=0;q<NS_DOF;q++) {
+                      i=elements->Nodes[INDEX2(resort_nodes[dof_offset+q],e,NN)];
+                      data_array=getSampleData(data,map[i]);
+                      memcpy(local_data+q*numComps, data_array, numComps_size);
               }
-
 	      /*  calculate interpolated_data=local_data*S */
 
 	      Finley_Util_SmallMatMult(numComps,numQuad,getSampleData(interpolated_data,e),NS_DOF,local_data,S);
@@ -175,25 +161,3 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   #undef DOF 
   #undef REDUCED_DOF 
 }
-/*
- * $Log$
- * Revision 1.6  2005/09/15 03:44:21  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.5.2.1  2005/09/07 06:26:18  gross
- * the solver from finley are put into the standalone package paso now
- *
- * Revision 1.5  2005/07/08 04:07:48  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.4  2004/12/15 07:08:32  jgs
- * *** empty log message ***
- * Revision 1.1.1.1.2.3  2005/06/29 02:34:48  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1.2.2  2004/11/24 01:37:12  gross
- * some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
- *
- *
- *
- */

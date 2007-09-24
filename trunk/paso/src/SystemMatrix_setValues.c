@@ -1,15 +1,17 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -18,7 +20,7 @@
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2003,2004,2005 */
+/* Copyrights by ACcESS Australia 2003,2004,2005, 2006, 2007 */
 /* Author: gross@access.edu.au */
 
 /**************************************************************/
@@ -30,26 +32,9 @@
 
 void  Paso_SystemMatrix_setValues(Paso_SystemMatrix* in,double value) {
 
-  index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  dim_t i,j;
-  index_t iptr;
-  #pragma omp parallel for private(i,iptr,j) schedule(static)
-  for (i=0;i< in->pattern->n_ptr;++i) {
-     for (iptr=(in->pattern->ptr[i])-index_offset;iptr<(in->pattern->ptr[i+1])-index_offset;++iptr) {
-         for (j=0;j<(in->block_size);++j) in->val[iptr*(in->block_size)+j]=value;
-     }
+  if (in!=NULL) {
+      Paso_SparseMatrix_setValues(in->mainBlock, value);
+      Paso_SparseMatrix_setValues(in->coupleBlock, value);
+      in->normalizer_is_valid=FALSE;
   }
-  in->normalizer_is_valid=FALSE;
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:48  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

@@ -5,6 +5,7 @@
 import py_compile
 import sys
 import os
+import time
 import glob
 import fnmatch
 import types
@@ -177,35 +178,31 @@ def doSubstitution(target,source,env) :
 
 # Code to run unit_test executables
 def runUnitTest(target, source, env):
-    app = str(source[0].abspath)
-
-    olddir = os.getcwd()
-    newdir = os.path.dirname(str(source[0]))
-    os.chdir(newdir)
-
-    if env.Execute(app) != 0:
-        os.chdir(olddir)
-        return 1
-
-    os.chdir(olddir)
+  time_start = time.time()
+  app = str(source[0].abspath)
+  if env['useMPI']: app = env['mpi_run'] + ' ' + app
+  print "Executing test: " + app
+  if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
-    return 0
+  else:
+    return 1
+  print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+  return None
 
 def runPyUnitTest(target, source, env): 
-    app = env['python_cmd'] + ' "' + str(source[0].abspath) + '"'
-
-    olddir = os.getcwd()
-    newdir = os.path.dirname(str(source[0]))
-    os.chdir(newdir)
-
-    if env.Execute(app)  != 0:
-        os.chdir(olddir)
-        return 1
-
-    os.chdir(olddir)
-    open(str(target[0]),'w').write("PASSED\n")
-    return 0
-  
+   time_start = time.time()
+   app = str(source[0].abspath)
+   if env['useMPI']:
+     app = env['mpi_run'] +' lib/pythonMPI ' + app
+   else:
+     app = 'python ' + app
+   print "Executing test: " + app
+   if not env.Execute(app):
+      open(str(target[0]),'w').write("PASSED\n")
+   else:
+     return 1
+   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+   return None
 
 def addBuilders(env) :
     py_builder = env.Builder(action = build_py,

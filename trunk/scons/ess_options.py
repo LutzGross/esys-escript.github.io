@@ -45,17 +45,26 @@ netCDF_lib_path = "/raid2/toolspp4/netcdf/3.6.1/gcc-3.3.6/lib"
 netCDF_libs = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
-# papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
-# papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
-# papi_libs = [ 'papi' ]
+papi_instrument_solver = 0
+papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
+papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
+papi_libs = [ 'papi' ]
+
+mpi_path = '/usr/include'
+mpi_lib_path = '/usr/lib'
+mpi_libs = [ 'mpi' ]
+mpi_run = 'mpirun -np 1'
+
+omp_flags = '-openmp -openmp_report2 '
+omp_flags_debug = '-openmp -openmp_report0'
 
 # c flags to use
-cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -openmp -openmp_report2 -c99 -w1 -fpic -ivdep-parallel"
-cc_flags_debug  = '-g -O0 -openmp -openmp_report0 -c99 -w1 -fpic'
+cc_flags  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -c99 -w1 -wd161 -fpic -ivdep-parallel"
+cc_flags_debug  = '-g -O0 -c99 -w1 -wd161 -fpic'
 
 # c++ flags to use
-cxx_flags = '-ansi'
-cxx_flags_debug = '-ansi -DDOASSERT -DDOPROF'
+cxx_flags = '-ansi -wd161 -DMPI_NO_CPPBIND'
+cxx_flags_debug = '-ansi -wd161 -DDOASSERT -DDOPROF -DMPI_NO_CPPBIND'
 
 # c and c++ flags for MPI compilation
 # c flags to use
@@ -63,8 +72,8 @@ cc_flags_MPI  = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -c99 -w1 -fpic -wd161
 cc_flags_debug_MPI  = '-g -O0 -c99 -w1 -fpic -wd161 -DPASO_MPI'
 
 # c++ flags to use
-cxx_flags_MPI = '-ansi -wd1563 -wd161'
-cxx_flags_debug_MPI = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'
+cxx_flags_MPI = '-ansi -wd1563 -wd161 -DMPI_NO_CPPBIND'
+cxx_flags_debug_MPI = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161 -DMPI_NO_CPPBIND'
 
 # system specific libraries to link with
 sys_libs = ['guide', 'irc']

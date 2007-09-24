@@ -1,17 +1,18 @@
-// $Id$
-/* 
- *****************************************************************************
- *                                                                           *
- *       COPYRIGHT  ACcESS  -  All Rights Reserved                           *
- *                                                                           *
- * This software is the property of ACcESS. No part of this code             *
- * may be copied in any form or by any means without the expressed written   *
- * consent of ACcESS.  Copying, use or modification of this software         *
- * by any unauthorised person is illegal unless that person has a software   *
- * license agreement with ACcESS.                                            *
- *                                                                           *
- *****************************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
+
 #include <iostream>
 #if (defined _WIN32) && (defined __INTEL_COMPILER)
 #include <mathimf.h>
@@ -758,8 +759,7 @@ void DataTestCase::testOperations() {
   resultTag.copy(baseTag.powD(power));
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      double arg=dataView.index(i,j);
-      tmp=pow(arg,3.0);
+      tmp=pow(dataView.index(i,j),3.0);
       assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
       assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
       assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));

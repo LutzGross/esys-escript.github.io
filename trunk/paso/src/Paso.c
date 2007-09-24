@@ -1,16 +1,17 @@
+
 /* $Id$ */
 
-
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -24,14 +25,15 @@
 /**************************************************************/
 
 #include "Paso.h"
+
 #ifdef _OPENMP 
 #include <omp.h>
-#else
-#ifdef PASO_MPI
+#endif
 
+#ifdef PASO_MPI
+#include "mpi_C.h"
 #else
 #include <time.h>
-#endif
 #endif
 
 Paso_ErrorCodeType Paso_ErrorCode_=NO_ERROR;
@@ -46,6 +48,7 @@ void Paso_resetError(void) {
 void Paso_setError(Paso_ErrorCodeType err,char* msg) {
   size_t lenMsg=strlen(msg);
   if (Paso_noError()) {
+printf("error set = %d %s",err,msg);
      Paso_ErrorCode_=err;
      strncpy(Paso_ErrorMsg_,msg,MIN(LenErrorMsg_MAX,lenMsg));
      Paso_ErrorMsg_[MIN(LenErrorMsg_MAX,lenMsg)]='\0';
@@ -95,21 +98,4 @@ Paso_ErrorCodeType Paso_getErrorType(void) {
 char* Paso_getErrorMessage(void) {
    return Paso_ErrorMsg_;
 }
-
-#ifdef PASO_MPI
-/* checks that there is no error accross all processes in a communicator */
-/* NOTE : does not make guarentee consistency of error string on each process */
-bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info )
-{
-  int errorLocal=0, errorGlobal=0;
-
-  errorLocal = (int)Paso_noError();
-  MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_LAND, mpi_info->comm  );
-
-	// take care of the case where the error was on another processor
-	if( errorLocal && !errorGlobal )
-		Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
-  return errorGlobal;
-}
-#endif 
 /**************************************************************/

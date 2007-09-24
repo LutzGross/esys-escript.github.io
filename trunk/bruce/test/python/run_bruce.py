@@ -1,4 +1,19 @@
-# $Id: BruceTest.py 627 2006-03-23 02:22:46Z elspeth $
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 """
 
 Some simple tests of Bruce.
@@ -108,7 +123,3 @@ if __name__ == '__main__':
   suite=unittest.TestSuite()
   suite.addTest(unittest.makeSuite(bruceTestCase))
   s=unittest.TextTestRunner(verbosity=2).run(suite)
-  if s.wasSuccessful():
-     sys.exit(0)
-  else:
-     sys.exit(1)

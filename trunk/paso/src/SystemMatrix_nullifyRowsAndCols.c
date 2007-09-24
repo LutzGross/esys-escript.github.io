@@ -1,15 +1,17 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -35,95 +37,62 @@
 
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
 
-  index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t ir,icol,iptr,icb,irb,irow,ic,l;
-
-  if (A ->col_block_size==1 && A ->row_block_size ==1) {
-    if (A->type & MATRIX_FORMAT_CSC) {
-      #pragma omp parallel for private(irow, iptr,icol) schedule(static)
-      for (icol=0;icol< A->pattern->n_ptr;icol++) {
-	for (iptr=A->pattern->ptr[icol]-index_offset;iptr<A->pattern->ptr[icol+1]-index_offset; iptr++) {
-	  irow=A->pattern->index[iptr]-index_offset;
-	  if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-            if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
-	      A->val[iptr]=main_diagonal_value;
-            } else {
-	      A->val[iptr]=0;
-            }
-	  }
-	}
-      }
-    } else {
-      #pragma omp parallel for private(irow, iptr,icol) schedule(static)
-      for (irow=0;irow< A->pattern->n_ptr;irow++) {
-	/* TODO: test mask_row here amd not inside every loop */
-	for (iptr=A->pattern->ptr[irow]-index_offset;iptr<A->pattern->ptr[irow+1]-index_offset; iptr++) {
-	  icol=A->pattern->index[iptr]-index_offset;
-	  if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-            if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
-	      A->val[iptr]=main_diagonal_value;
-            } else {
-	      A->val[iptr]=0;
-            }
-	  }
-	}
-      }
-    } 
-  } else {
-    if (A->type & MATRIX_FORMAT_CSC) {
-      #pragma omp parallel for private(l,irow, iptr,icol,ic,irb,icb) schedule(static)
-      for (ic=0;ic< A->pattern->n_ptr;ic++) {
-	for (iptr=A->pattern->ptr[ic]-index_offset;iptr<A->pattern->ptr[ic+1]-index_offset; iptr++) {
-	  for (irb=0;irb< A->row_block_size;irb++) {
-	    irow=irb+A->row_block_size*(A->pattern->index[iptr]-index_offset);
-	    for (icb=0;icb< A->col_block_size;icb++) {
-	      icol=icb+A->col_block_size*ic;
-	      if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-                l=iptr*A->block_size+irb+A->row_block_size*icb;
-		if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
-		  A->val[l]=main_diagonal_value;
-		} else {
-		  A->val[l]=0;
-		}
-	      }
-	    }
-	  }
-	}
-      }
-    } else {
-      #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
-      for (ir=0;ir< A->pattern->n_ptr;ir++) {
-	for (iptr=A->pattern->ptr[ir]-index_offset;iptr<A->pattern->ptr[ir+1]-index_offset; iptr++) {
-	  for (irb=0;irb< A->row_block_size;irb++) {
-	    irow=irb+A->row_block_size*ir;
-	    for (icb=0;icb< A->col_block_size;icb++) {
-	      icol=icb+A->col_block_size*(A->pattern->index[iptr]-index_offset);
-	      if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-                l=iptr*A->block_size+irb+A->row_block_size*icb;
-		if (irow==icol && mask_col[icol]>0. && mask_row[irow]>0.) {
-		  A->val[l]=main_diagonal_value;
-		} else {
-		  A->val[l]=0;
-		}
-	      }
-	    }
-	  }
-	}
-      }
-   }
+  double *remote_values=NULL;
+  Paso_MPIInfo *mpi_info=A->mpi_info;
+  if (mpi_info->size>1) {
+     if (A ->col_block_size==1 && A ->row_block_size ==1) {
+       if (A->type & MATRIX_FORMAT_CSC) {
+           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: CSC is not supported by MPI.");
+           return;
+       } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
+           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: TRILINOS is not supported with MPI.");
+           return;
+       } else {
+         Paso_SystemMatrix_allocBuffer(A);
+         if (Paso_noError()) {
+            Paso_SystemMatrix_startCollect(A,mask_col) ;
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->mainBlock,mask_row,mask_col,main_diagonal_value);
+            remote_values=Paso_SystemMatrix_finishCollect(A);
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->coupleBlock,mask_row,remote_values,0.); 
+         }
+         Paso_SystemMatrix_freeBuffer(A);
+       }
+     } else {
+       if (A->type & MATRIX_FORMAT_CSC) {
+           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: CSC is not supported by MPI.");
+           return;
+       } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
+           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: TRILINOS is not supported with MPI.");
+           return;
+       } else {
+         Paso_SystemMatrix_allocBuffer(A);
+         if (Paso_noError()) {
+            Paso_SystemMatrix_startCollect(A,mask_col) ;
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->mainBlock,mask_row,mask_col,main_diagonal_value);
+            remote_values=Paso_SystemMatrix_finishCollect(A);
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->coupleBlock,mask_row,remote_values,0.);
+         }
+         Paso_SystemMatrix_freeBuffer(A);
+       }
+     } 
+  } else { 
+     if (A ->col_block_size==1 && A ->row_block_size ==1) {
+       if (A->type & MATRIX_FORMAT_CSC) {
+           Paso_SparseMatrix_nullifyRowsAndCols_CSC_BLK1(A->mainBlock,mask_row,mask_col,main_diagonal_value);
+       } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
+           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: TRILINOS is not supported.");
+       } else {
+           Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->mainBlock,mask_row,mask_col,main_diagonal_value);
+       }
+     } else {
+       if (A->type & MATRIX_FORMAT_CSC) {
+           Paso_SparseMatrix_nullifyRowsAndCols_CSC(A->mainBlock,mask_row,mask_col,main_diagonal_value);
+       } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
+           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: TRILINOS is not supported with MPI.");
+       } else {
+           Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->mainBlock,mask_row,mask_col,main_diagonal_value);
+       }
+     }
   }
   return;
 }
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:39  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:48  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */
