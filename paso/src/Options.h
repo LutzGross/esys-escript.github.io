@@ -1,15 +1,17 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -51,6 +53,7 @@
 #define PASO_PASO 21
 #define PASO_RILU 22
 #define PASO_AMG 23
+#define PASO_TRILINOS 24
 
 
 typedef struct {

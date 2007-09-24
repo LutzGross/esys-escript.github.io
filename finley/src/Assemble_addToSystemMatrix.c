@@ -1,14 +1,18 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
+
 /**************************************************************/
 
 /* Finley: SystemMatrix and SystemVector */
@@ -24,41 +28,46 @@
 
 /**************************************************************/
 
-/*  Author: gross@access.edu.au */
-/*  Version: $Id$ */
-
-/**************************************************************/
-
 #include "Assemble.h"
+#include "IndexList.h"
 
 /**************************************************************/
 
 void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,index_t* Nodes_Equa, dim_t num_Equa, 
-                                                      dim_t NN_Sol,index_t* Nodes_Sol, dim_t num_Sol, double* array) {
+                                        dim_t NN_Sol,index_t* Nodes_Sol, dim_t num_Sol, double* array) {
   index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,index,k,iptr;
+  dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,index,k,i_row, i_col;
+  index_t *mainBlock_ptr, *mainBlock_index, *coupleBlock_ptr, *coupleBlock_index;
+  double *mainBlock_val, *coupleBlock_val;
   dim_t row_block_size=in->row_block_size;
   dim_t col_block_size=in->col_block_size;
   dim_t block_size=in->block_size;
   dim_t num_subblocks_Equa=num_Equa/row_block_size;
   dim_t num_subblocks_Sol=num_Sol/col_block_size;
+  dim_t numMyCols=in->pattern->mainPattern->numInput;
+  dim_t numMyRows=in->pattern->mainPattern->numOutput;
+
 
   if (in->type & MATRIX_FORMAT_CSC) {
+         /* MATRIX_FORMAT_CSC does not support MPI !!!!! */
+         mainBlock_ptr=in->mainBlock->pattern->ptr;
+         mainBlock_index=in->mainBlock->pattern->index;
+         mainBlock_val=in->mainBlock->val;
          for (k_Sol=0;k_Sol<NN_Sol;k_Sol++) {
             j_Sol=Nodes_Sol[k_Sol];
             for (l_col=0;l_col<num_subblocks_Sol;++l_col) {
-               iptr=j_Sol*num_subblocks_Sol+l_col;
+               i_col=j_Sol*num_subblocks_Sol+l_col;
                for (k_Equa=0;k_Equa<NN_Equa;k_Equa++) {
                  j_Equa=Nodes_Equa[k_Equa];
                  for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
-                    index=j_Equa*num_subblocks_Equa+index_offset+l_row;
-	            for (k=in->pattern->ptr[iptr]-index_offset;k<in->pattern->ptr[iptr+1]-index_offset;++k) {
-	                if (in->pattern->index[k]==index) {
+                    i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
+	            for (k=mainBlock_ptr[i_col]-index_offset; k<mainBlock_ptr[i_col+1]-index_offset;++k) {
+	                if (mainBlock_index[k] == i_row) {
                           for (ic=0;ic<col_block_size;++ic) {
                                 i_Sol=ic+col_block_size*l_col;
                                 for (ir=0;ir<row_block_size;++ir) {
                                    i_Equa=ir+row_block_size*l_row;
-		                   in->val[k*block_size+ir+row_block_size*ic]+=
+		                   mainBlock_val[k*block_size+ir+row_block_size*ic]+=
                                            array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                 }
                           }
@@ -69,59 +78,81 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
                }
             }
          }
-   } else {
-          for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) {
+   } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
+       /* this needs to be modified */
+       #ifdef TRILINOS
+          for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Down columns of array */
             j_Equa=Nodes_Equa[k_Equa];
-            for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
-               iptr=j_Equa*num_subblocks_Equa+l_row;
-               for (k_Sol=0;k_Sol<NN_Sol;++k_Sol) {
-                 j_Sol=Nodes_Sol[k_Sol];
-                 for (l_col=0;l_col<num_subblocks_Sol;++l_col) {
-                    index=j_Sol*num_subblocks_Sol+index_offset+l_col;
-	            for (k=in->pattern->ptr[iptr]-index_offset;k<in->pattern->ptr[iptr+1]-index_offset;++k) {
-	                if (in->pattern->index[k]==index) {
-                          for (ic=0;ic<col_block_size;++ic) {
-                                i_Sol=ic+col_block_size*l_col;
-                                for (ir=0;ir<row_block_size;++ir) {
-                                   i_Equa=ir+row_block_size*l_row;
-		                   in->val[k*block_size+ir+row_block_size*ic]+=
-                                           array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
-                                }
-                          }
-                          break;
-                        }
-                    }
-                 }
-               }
-             }
+	    if (j_Equa < in->mainBlock->pattern->output_node_distribution->numLocal) {
+              for (k_Sol=0;k_Sol<NN_Sol;++k_Sol) { /* Across rows of array */
+                j_Sol=Nodes_Sol[k_Sol];
+                for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
+                  irow=j_Equa*row_block_size+l_row;
+                  for (l_col=0;l_col<col_block_size;++l_col) {
+                     icol=j_Sol*col_block_size+index_offset+l_col;
+		     // irow is local and icol is global
+		     Trilinos_SumIntoMyValues(in->trilinos_data, irow, icol, array[INDEX4(l_row,l_col,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)]);
+	          }
+                }
+              }
+            }
           }
+       #endif
+   } else {
+
+         mainBlock_ptr=in->mainBlock->pattern->ptr;
+         mainBlock_index=in->mainBlock->pattern->index;
+         mainBlock_val=in->mainBlock->val;
+         coupleBlock_ptr=in->coupleBlock->pattern->ptr;
+         coupleBlock_index=in->coupleBlock->pattern->index;
+         coupleBlock_val=in->coupleBlock->val;
+
+         for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Down columns of array */
+                j_Equa=Nodes_Equa[k_Equa];
+                for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
+                   i_row=j_Equa*num_subblocks_Equa+l_row;
+                   /* only look at the matrix rows stored on this processor */
+                   if (i_row < numMyRows) {
+                      for (k_Sol=0;k_Sol<NN_Sol;++k_Sol) { /* Across rows of array */
+                        j_Sol=Nodes_Sol[k_Sol];
+                        for (l_col=0;l_col<num_subblocks_Sol;++l_col) {
+                           /* only look at the matrix rows stored on this processor */
+                           i_col=j_Sol*num_subblocks_Sol+index_offset+l_col;
+                           if (i_col < numMyCols + index_offset ) {
+	                       for (k=mainBlock_ptr[i_row]-index_offset;k<mainBlock_ptr[i_row+1]-index_offset;++k) {
+	                           if (mainBlock_index[k]==i_col) {
+                                     /* Entry array(k_Sol, j_Equa) is a block (row_block_size x col_block_size) */
+                                     for (ic=0;ic<col_block_size;++ic) { 
+                                           i_Sol=ic+col_block_size*l_col;
+                                           for (ir=0;ir<row_block_size;++ir) {
+                                              i_Equa=ir+row_block_size*l_row;
+		                              mainBlock_val[k*block_size+ir+row_block_size*ic]+=
+                                                      array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
+                                           }
+                                     }
+                                     break;
+                                   }
+                               }
+                           } else {
+	                       for (k=coupleBlock_ptr[i_row]-index_offset;k<coupleBlock_ptr[i_row+1]-index_offset;++k) {
+	                           if (coupleBlock_index[k] == i_col-numMyCols) {
+                                     /* Entry array(k_Sol, j_Equa) is a block (row_block_size x col_block_size) */
+                                     for (ic=0;ic<col_block_size;++ic) { 
+                                           i_Sol=ic+col_block_size*l_col;
+                                           for (ir=0;ir<row_block_size;++ir) {
+                                              i_Equa=ir+row_block_size*l_row;
+		                              coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
+                                                      array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
+                                           }
+                                     }
+                                     break;
+                                   }
+                               }
+                           }
+                        }
+                      }
+                    } /* end i_row check */
+              }
+        }
    }
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:21  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/07 09:47:29  gross
- * missing file
- *
- * Revision 1.6  2005/07/08 04:07:58  jgs
- * Merge of development branch back to main trunk on 2005-07-08
- *
- * Revision 1.1.1.1.2.3  2005/06/29 02:34:56  gross
- * some changes towards 64 integers in finley
- *
- * Revision 1.1.1.1.2.2  2005/03/15 07:23:55  gross
- * Finley's interface to the SCSL library can deal with systems of PDEs now. tests shows that the SCSL library cannot deal with problems with more then 200000 unknowns. problem has been reported to SGI.
- *
- * Revision 1.1.1.1.2.1  2004/11/12 06:58:19  gross
- * a lot of changes to get the linearPDE class running: most important change is that there is no matrix format exposed to the user anymore. the format is chosen by the Domain according to the solver and symmetry
- *
- * Revision 1.1.1.1  2004/10/26 06:53:57  jgs
- * initial import of project esys2
- *
- * Revision 1.1  2004/07/02 04:21:13  gross
- * Finley C code has been included
- *
- *
- */

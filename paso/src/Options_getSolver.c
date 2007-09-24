@@ -1,16 +1,17 @@
+
 /* $Id$ */
 
-
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -106,7 +107,29 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry) 
         }
         break;
     }
-  /* UMFPACK */
+  /* TRILINOS */
+  } else if (package==PASO_TRILINOS) {
+     switch (solver) {
+        case PASO_BICGSTAB:
+            out=PASO_BICGSTAB;
+            break;
+        case PASO_PCG:
+            out=PASO_PCG;
+            break;
+        case PASO_PRES20:
+            out=PASO_PRES20;
+            break;
+        case PASO_GMRES:
+            out=PASO_GMRES;
+            break;
+        default:
+            if (symmetry) {
+               out=PASO_PCG;
+            } else {
+               out=PASO_BICGSTAB;
+            }
+            break;
+     }
   } else if (package==PASO_UMFPACK) {
       out=PASO_DIRECT;
   } else {

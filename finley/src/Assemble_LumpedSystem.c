@@ -1,15 +1,17 @@
-/*
- ************************************************************
- *          Copyright 2006,2007 by ACcENULLNULL MNRF              *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open NULLoftware License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
 
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -18,11 +20,6 @@
 /*    The coefficient D has to be defined on the integration points or not present. */
 
 /*    lumpedMat has to be initialized before the routine is called. */
-
-/**************************************************************/
-
-/*  Author: gross@access.edu.au */
-/*  Version: $Id$ */
 
 /**************************************************************/
 
@@ -119,17 +116,11 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
        if ( !Finley_checkPtr(EM_lumpedMat) && !Finley_checkPtr(row_index) ) {
           if (p.numEqu == 1) {
              if (expandedD) {
-                 #ifndef PASO_MPI
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
                     /*  open loop over all elements: */
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){
                        if (elements->Color[e]==color) {
-                 #else
-                 {
-                    for(e=0;e<elements->numElements;e++) {
-                       {
-                 #endif
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
                           D_p=getSampleData(D,e);
@@ -168,17 +159,11 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     } /* end element loop */
                   } /* end color loop */
              } else  {
-                 #ifndef PASO_MPI
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
                  /*  open loop over all elements: */
                  #pragma omp for private(e) schedule(static)
                  for(e=0;e<elements->numElements;e++){
                     if (elements->Color[e]==color) {
-                 #else
-                 {
-                    for(e=0;e<elements->numElements;e++) {
-                       {
-                 #endif
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
                           D_p=getSampleData(D,e);
@@ -219,17 +204,11 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
              }
           } else {
              if (expandedD) {
-                 #ifndef PASO_MPI
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
                     /*  open loop over all elements: */
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){
                        if (elements->Color[e]==color) {
-                 #else
-                 {
-                    for(e=0;e<elements->numElements;e++) {
-                       {
-                 #endif
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
                           D_p=getSampleData(D,e);
@@ -272,17 +251,11 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
                     } /* end element loop */
                 } /* end color loop */
              } else {
-                 #ifndef PASO_MPI
+                 /*  open loop over all elements: */
                  for (color=elements->minColor;color<=elements->maxColor;color++) {
-                    /*  open loop over all elements: */
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){
                        if (elements->Color[e]==color) {
-                 #else
-                 {
-                    for(e=0;e<elements->numElements;e++) {
-                       {
-                 #endif
                           Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                           memset(EM_lumpedMat,0,len_EM_lumpedMat_size);
                           D_p=getSampleData(D,e);

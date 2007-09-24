@@ -1,27 +1,27 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
 /*   Finley: Mesh */
 
-/*   at input the element nodes refers to the numbering defined the Id assigned to the nodes in the */
-/*   NodeFile. At the output, the numbering of the element nodes is between 0 and numNodes */
-/*   degreesOfFreedom are not neccessarily referening to a dense numbering */
-
-/**************************************************************/
-
-/*   Author: gross@access.edu.au */
-/*   Version: $Id$ */
+/*   at input the element nodes refers to the numbering defined the global Id assigned to the nodes in the */
+/*   NodeFile. It is also not ensured that all nodes refered by an element is actually available */
+/*   on the process.  At the output, a local node labeling is used and all nodes are available */
+/*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
+/*   The function does not create a distribution of the degrees of freedom. */
 
 /**************************************************************/
 
@@ -31,26 +31,18 @@
 /**************************************************************/
 
 void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
-  char error_msg[LenErrorMsg_MAX];
-  dim_t k,len,numDim,newNumNodes,n;
-  index_t min_id,max_id,min_id2,max_id2,*maskNodes=NULL,*maskElements=NULL,*index=NULL;
+
+  index_t min_id, max_id,  min_id2, max_id2, global_min_id, global_max_id, 
+          *globalToNewLocalNodeLabels=NULL, *newLocalToGlobalNodeLabels=NULL;
+  dim_t len, n, newNumNodes, numDim;
   Finley_NodeFile *newNodeFile=NULL;
-
-  Finley_resetError();
+  #ifdef PASO_MPI
+  index_t id_range[2], global_id_range[2];
+  #endif 
   numDim=Finley_Mesh_getDim(in);
-
-  /*   find the minimum and maximum id used: */
+  /*  find the minimum and maximum id used by elements: */
   min_id=INDEX_T_MAX;
   max_id=-INDEX_T_MAX;
-  Finley_NodeFile_setIdRange(&min_id2,&max_id2,in->Nodes);
-  if (min_id2==INDEX_T_MAX || max_id2==-INDEX_T_MAX) {
-    Finley_setError(VALUE_ERROR,"Finley_Mesh_resolveNodeIds: Mesh has not been defined completely.");
-    goto clean;
-  }
-
-
-  max_id=MAX(max_id,max_id2);
-  min_id=MIN(min_id,min_id2);
   Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Elements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
@@ -63,91 +55,69 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Points);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
-  #ifdef Finley_TRACE
-  printf("Node id range is %d:%d\n",min_id,max_id);
+  #ifdef PASO_MPI
+     id_range[0]=-min_id;
+     id_range[1]=max_id;
+     MPI_Allreduce( id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm );
+     global_min_id=-global_id_range[0];
+     global_max_id=global_id_range[1];
+  #else
+     global_min_id=min_id;
+     global_max_id=max_id;
   #endif
-  
-  /*  allocate a new node file used to gather existing node file: */
+  #ifdef Finley_TRACE
+  printf("Node id range used by elements is %d:%d\n",global_min_id,global_max_id);
+  #endif
 
+
+  
+  /* allocate mappings for new local node labeling to global node labeling (newLocalToGlobalNodeLabels)
+     and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 
+     new local id of global node i) */
   len=max_id-min_id+1;
-#ifndef PASO_MPI
-  newNodeFile=Finley_NodeFile_alloc(numDim);
-#else
-  newNodeFile=Finley_NodeFile_alloc(numDim,in->MPIInfo);
-#endif
-  if (! Finley_noError()) goto clean;
+  globalToNewLocalNodeLabels=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
+  newLocalToGlobalNodeLabels=TMPMEMALLOC(len,index_t);
+  if (! ( (Finley_checkPtr(globalToNewLocalNodeLabels) && Finley_checkPtr(newLocalToGlobalNodeLabels) ) ) ) {
 
-  maskNodes=TMPMEMALLOC(len,index_t);
-  if (Finley_checkPtr(maskNodes)) goto clean;
+       #pragma omp parallel
+       {
+           #pragma omp for private(n) schedule(static)
+           for (n=0;n<len;n++) newLocalToGlobalNodeLabels[n]=-1;
+           #pragma omp for private(n) schedule(static)
+           for (n=0;n<len;n++) globalToNewLocalNodeLabels[n]=-1;
+       }
 
-  maskElements=TMPMEMALLOC(len,index_t);
-  if (Finley_checkPtr(maskElements)) goto clean;
+       /*  mark the nodes referred by elements in globalToNewLocalNodeLabels which is currently used as a mask: */
 
-  index=TMPMEMALLOC(in->Nodes->numNodes,index_t);
+       Finley_Mesh_markNodes(globalToNewLocalNodeLabels,min_id,in,FALSE);
 
-  if (Finley_checkPtr(maskElements)) goto clean;
+       /* create a local labeling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels*/
 
-  #pragma omp parallel for private(n) schedule(static)
-  for (n=0;n<in->Nodes->numNodes;n++) index[n]=-1;
-  #pragma omp parallel for private(n) schedule(static)
-  for (n=0;n<len;n++) {
-         maskNodes[n]=-1;
-         maskElements[n]=-1;
+       newNumNodes=Finley_Util_packMask(len,globalToNewLocalNodeLabels,newLocalToGlobalNodeLabels);
+
+       /* invert the new labeling and shift the index newLocalToGlobalNodeLabels to global node ids */
+       #pragma omp parallel for private(n) schedule(static)
+       for (n=0;n<newNumNodes;n++) {
+              globalToNewLocalNodeLabels[newLocalToGlobalNodeLabels[n]]=n;
+              newLocalToGlobalNodeLabels[n]+=min_id;
+        }
+        /* create a new table */
+        newNodeFile=Finley_NodeFile_alloc(numDim,in->MPIInfo);
+        if (Finley_noError()) {
+           Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
+        }
+        if (Finley_noError()) 
+            Finley_NodeFile_gather_global(newLocalToGlobalNodeLabels,in->Nodes, newNodeFile);
+        if (Finley_noError()) {
+           Finley_NodeFile_free(in->Nodes);
+           in->Nodes=newNodeFile;
+           /*  relable nodes of the elements: */
+           Finley_Mesh_relableElementNodes(globalToNewLocalNodeLabels,min_id,in);
+        }
   }
-  /*  mark the nodes referred by elements in maskElements: */
-  
-  Finley_Mesh_markNodes(maskElements,min_id,in,FALSE);
-
-  /*  mark defined nodes */
-
-  #pragma omp parallel for private(k) schedule(static)
-  for (k=0;k<in->Nodes->numNodes;k++) maskNodes[in->Nodes->Id[k]-min_id]=1;
-
-  /*  check if all referenced nodes are actually defined: */
-
-  #pragma omp parallel for private(k) schedule(static)
-  for (k=0;k<len;k++) {
-     /* if a node is refered by an element is there a node defined ?*/
-     if (maskElements[k]>=0 && maskNodes[k]<0) {
-       sprintf(error_msg,"Finley_Mesh_resolveNodeIds:Node id %d is referenced by element but is not defined.",k+min_id);
-       Finley_setError(VALUE_ERROR,error_msg);
-     }
+  TMPMEMFREE(globalToNewLocalNodeLabels);
+  TMPMEMFREE(newLocalToGlobalNodeLabels);
+  if (! Finley_noError()) {
+       Finley_NodeFile_free(newNodeFile);
   }
-
-  if (! Finley_noError() ) goto clean;
-  Finley_NodeFile_allocTable(newNodeFile,len);
-
-  if (Finley_noError()) {
-      /*  scatter the nodefile in->nodes into newNodeFile using index; */
-      #pragma omp parallel for private(k) schedule(static)
-      for (k=0;k<in->Nodes->numNodes;k++) 
-        index[k]=in->Nodes->Id[k]-min_id;
-      Finley_NodeFile_scatter(index,in->Nodes,newNodeFile);
-
-      /*  relable used nodes: */
-      /* index maps the new node labeling onto the old one */
-      newNumNodes=Finley_Util_packMask(len,maskElements,index);
-      #pragma omp parallel for private(k) schedule(static)
-      for (k=0;k<newNumNodes;k++) maskElements[index[k]]=k;
-
-      /*  create a new table of nodes: */
-      Finley_NodeFile_deallocTable(in->Nodes);
-      Finley_NodeFile_allocTable(in->Nodes,newNumNodes);
-
-      if (! Finley_noError()) goto clean;
-
-      /* gather the new nodefile into in->Nodes */
-      Finley_NodeFile_gather(index,newNodeFile,in->Nodes);
-
-      /*  relable nodes of the elements: */
-      Finley_Mesh_relableElementNodes(maskElements,min_id,in);
-  }
-
-  /*  clean-up: */
-  
-  clean: TMPMEMFREE(maskNodes);
-         TMPMEMFREE(maskElements);
-         TMPMEMFREE(index);
-         Finley_NodeFile_deallocTable(newNodeFile);
-         Finley_NodeFile_dealloc(newNodeFile);
 }

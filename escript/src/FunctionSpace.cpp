@@ -1,15 +1,17 @@
+
 /* $Id$ */
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #include "FunctionSpace.h" 
 #include "FunctionSpaceException.h"
@@ -69,17 +71,10 @@ std::string
 FunctionSpace::toString() const
 {
   std::stringstream temp;
-  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType) << " on " << m_domain->getDescription();
+  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
+       << " on " << m_domain->getDescription();
   return temp.str();
 }
-
-const
-boost::python::str
-FunctionSpace::str() const
-{
-  return boost::python::str(toString().c_str());
-}
-
 
 int
 FunctionSpace::getTagFromSampleNo(int sampleNo) const

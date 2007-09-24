@@ -1,15 +1,17 @@
+
 /* $Id$ */
-/* 
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #if !defined  escript_DataC_20040611_H
 #define escript_DataC_20040611_H
@@ -82,6 +84,13 @@ ESCRIPT_DLL_API int numSamplesEqual(escriptDataC* data, int numDataPointsPerSamp
 
 /**
    \brief
+   Returns the number of data points per sample
+   \param data Input - C wrapper for Data.
+*/
+ESCRIPT_DLL_API int getNumDataPointsPerSample(escriptDataC* data);
+
+/**
+   \brief
    Returns the rank of the point data for the data. 
    \param data Input - C wrapper for Data.
 */
@@ -124,4 +133,12 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param sampleNo Input - The sample number.
 */
 ESCRIPT_DLL_API double* getSampleData(escriptDataC* data, int sampleNo);
+/**
+   \brief
+   Return a pointer to the data for the given sample number.
+   Fast version of getSampledata: does no error checking.
+  \param data Input - C wrapper for Data.
+  \param sampleNo Input - The sample number.
+*/
+ESCRIPT_DLL_API double* getSampleDataFast(escriptDataC* data, int sampleNo);
 #endif

@@ -1,15 +1,18 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
+
 /**************************************************************/
 
 /* Paso: returns the matrix format requested by a particular linear solver */
@@ -49,6 +52,10 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver,index_t package, 
 
      case PASO_UMFPACK:
        out=MATRIX_FORMAT_CSC + MATRIX_FORMAT_BLK1;
+      break;
+
+    case PASO_TRILINOS:
+      out=MATRIX_FORMAT_TRILINOS_CRS + MATRIX_FORMAT_BLK1; /* Distributed CRS */
       break;
 
      default:

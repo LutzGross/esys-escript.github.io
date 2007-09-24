@@ -1,22 +1,24 @@
-// $Id$
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #include "DataFactory.h"
 
 #include <boost/python/extract.hpp>
 #include <iostream>
 #ifdef USE_NETCDF
-#include "netcdfcpp.h"
+#include <netcdfcpp.h>
 #endif
 
 using namespace boost::python;
@@ -75,7 +77,7 @@ load(const std::string fileName,
      const AbstractDomain& domain)
 {
    #ifdef PASO_MPI
-   throw DataException("Error - load :: not implemented for MPI yet.")
+   throw DataException("Error - load :: not implemented for MPI yet.");
    #endif
 
    #ifdef USE_NETCDF

@@ -29,8 +29,8 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 # Filter out sources that should not be in the list automatically
 sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
 
-local_env.Append(LIBS = [boost_libs, 'escript', 'esysUtils'])
-py_wrapper_local_env.Append(LIBS = [boost_libs, lib_name, 'escript', 'esysUtils'])
+local_env.Append(LIBS = [boost_lib, 'escript', 'esysUtils'])
+py_wrapper_local_env.Append(LIBS = [boost_lib, lib_name, 'escript', 'esysUtils'])
 
 local_env.Append(CPPDEFINES = 'BRUCE_EXPORTS')
 

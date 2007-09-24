@@ -1,22 +1,21 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
+
 /**************************************************************/
 
 /*    assemblage routines: copies data between elements       */
-
-/**************************************************************/
-
-/*   author: gross@access.edu.au */
-/*   Version: $Id$ */
 
 /**************************************************************/
 
@@ -33,6 +32,7 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
     double *in_array,*out_array, vol, volinv, *wq;
     register double rtmp;
     dim_t numComps=getDataPointSize(out);
+    size_t numComps_size;
 
     Finley_resetError();
     if( elements == NULL )
@@ -84,11 +84,12 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
                  }
              }
          } else {
+             numComps_size=numComps*sizeof(double);
              # pragma omp parallel for private(q,n,out_array,in_array) schedule(static)
              for (n=0;n<numElements;n++) {
                  in_array=getSampleData(in,n);
                  out_array=getSampleData(out,n);
-                 for (q=0;q<numQuad_out;q++) Finley_copyDouble(numComps,in_array,out_array+q*numComps);
+                 for (q=0;q<numQuad_out;q++) memcpy(out_array+q*numComps,in_array,numComps_size);
              }
          }
     }

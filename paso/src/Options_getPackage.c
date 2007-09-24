@@ -1,15 +1,17 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -53,6 +55,8 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry)
       out=PASO_MKL;
   } else if (package==PASO_UMFPACK) {
       out=PASO_UMFPACK;
+  } else if (package==PASO_TRILINOS) {
+      out=PASO_TRILINOS;
   } else {
       Paso_setError(VALUE_ERROR,"Unidentified package.");
   }

@@ -13,7 +13,7 @@ headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
 
 lib_name = 'esysUtils'
 
-local_env.Append(LIBS = boost_lib )
+local_env.Append(LIBS = boost_lib)
 
 lib = local_env.StaticLibrary(lib_name, sources)
 
@@ -36,7 +36,5 @@ local_env.SConscript(dirs = ['#/esysUtils/test'], build_dir='#/build/$PLATFORM/e
 # add source files to release
 release_srcfiles = [ env.File(x) for x in filenames ] + [env.File("SConscript"), ]
 env.Zip(src_zipfile, release_srcfiles)
-try:
-   env.Tar(src_tarfile, release_srcfiles)
-except AttributeError:
-    pass
+env.Tar(src_tarfile, release_srcfiles)
+

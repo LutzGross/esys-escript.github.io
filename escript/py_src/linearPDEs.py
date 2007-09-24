@@ -1,4 +1,19 @@
+#
 # $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 """
 The module provides an interface to define and solve linear partial
 differential equations (PDEs) within L{escript}. L{linearPDEs} does not provide any
@@ -112,7 +127,6 @@ class PDECoefficient(object):
        @param reduced: indicates if reduced 
        @type reduced: C{bool}
        """
-       
        super(PDECoefficient, self).__init__()
        self.what=where
        self.pattern=pattern
@@ -365,7 +379,7 @@ class LinearPDE(object):
 
    The PDE is symmetrical if
 
-   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j] 
+   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j]}
 
    For a system of PDEs and a solution with several components the PDE has the form
 
@@ -416,7 +430,7 @@ class LinearPDE(object):
    of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calcualted by
    L{jump<util.jump>}.
    The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-    The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+   The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
    In case of a single PDE and a single component solution the contact condition takes the form
 
    M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
@@ -444,6 +458,7 @@ class LinearPDE(object):
    @cvar SCSL: SGI SCSL solver library
    @cvar MKL: Intel's MKL solver library
    @cvar UMFPACK: the UMFPACK library
+   @cvar TRILINOS: the TRILINOS parallel solver class library from Sandia Natl Labs
    @cvar ITERATIVE: The default iterative solver
    @cvar AMG: algebraic multi grid
    @cvar RILU: recursive ILU
@@ -473,6 +488,7 @@ class LinearPDE(object):
    PASO= 21
    AMG= 22
    RILU = 23
+   TRILINOS = 24
 
    SMALL_TOLERANCE=1.e-13
    __PACKAGE_KEY="package"
@@ -935,7 +951,9 @@ class LinearPDE(object):
        @param preconditioner: sets a new solver method.
        @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU}
        """
-       if solver==None: solve=self.DEFAULT
+       if solver==None: solver=self.__solver_method
+       if preconditioner==None: preconditioner=self.__preconditioner
+       if solver==None: solver=self.DEFAULT
        if preconditioner==None: preconditioner=self.DEFAULT
        if not (solver,preconditioner)==self.getSolverMethod():
            self.__solver_method=solver
@@ -979,6 +997,7 @@ class LinearPDE(object):
        elif p==self.MKL: package= "MKL"
        elif p==self.SCSL: package= "SCSL"
        elif p==self.UMFPACK: package= "UMFPACK"
+       elif p==self.TRILINOS: package= "TRILINOS"
        else : method="unknown"
        return "%s solver of %s package"%(method,package)
 
@@ -997,7 +1016,7 @@ class LinearPDE(object):
        sets a new solver package
 
        @param package: sets a new solver method.
-       @type package: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMFPACK}
+       @type package: one of L{DEFAULT}, L{PASO} L{SCSL}, L{MKL}, L{UMFPACK}, L{TRILINOS}
        """
        if package==None: package=self.DEFAULT
        if not package==self.getSolverPackage():

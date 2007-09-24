@@ -1,23 +1,25 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
 /* Paso: SystemMatrixPatternPattern */
 
 /**************************************************************/
-
-/* Copyrights by ACcESS Australia 2003, 2004,2005 */
+ 
+/* Copyrights by ACcESS Australia 2003, 2004,2005, 2006, 2007 */
 /* Author: gross@access.edu.au */
 
 /**************************************************************/
@@ -29,64 +31,53 @@
 
 /* allocates a SystemMatrixPattern  */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, int n_ptr, index_t* ptr,index_t* index) {
-  Paso_SystemMatrixPattern*out;
-  index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
-  index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
-  dim_t i;
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
+                                                         Paso_Distribution *output_distribution,
+                                                         Paso_Distribution *input_distribution,
+                                                         Paso_Pattern* mainPattern,
+                                                         Paso_Pattern* couplePattern,
+                                                         Paso_Coupler* coupler) 
+{
+  Paso_SystemMatrixPattern*out=NULL;
+
+
   Paso_resetError();
 
-  if (type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"symmetric matrix pattern is not supported yet");
-    return NULL;
+  if (mainPattern->type != type)  {
+      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: type of mainPattern does not match expected type.");
   }
-  #pragma omp parallel private(loc_min_index,loc_max_index,i)
-   {
-      loc_min_index=index_offset;
-      loc_max_index=index_offset-1;
-      if (type & PATTERN_FORMAT_OFFSET1) {
-         #pragma omp for schedule(static) 
-         for (i=0;i<n_ptr;++i) {
-             if (ptr[i]<ptr[i+1]) {
-               qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-               loc_min_index=MIN(loc_min_index,index[ptr[i]-1]);
-               loc_max_index=MAX(loc_max_index,index[ptr[i+1]-2]);
-             }
-         }
-      } else {
-         #pragma omp for schedule(static) 
-         for (i=0;i<n_ptr;++i) {
-             if (ptr[i]<ptr[i+1]) {
-#ifdef USE_QSORTG
-               qsortG(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-#else
-               qsort(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t),Paso_comparIndex); 
-#endif
-               loc_min_index=MIN(loc_min_index,index[ptr[i]]);
-               loc_max_index=MAX(loc_max_index,index[ptr[i+1]-1]);
-             }
-         }
-      }
-      #pragma omp critical
-      {
-         min_index=MIN(loc_min_index,min_index);
-         max_index=MAX(loc_max_index,max_index);
-      }
+  if (couplePattern->type != type)  {
+      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: type of couplePattern does not match expected type.");
   }
-  if (min_index<index_offset) {
-    Paso_setError(TYPE_ERROR,"Matrix pattern index out of range.");
-    return NULL;
+  if ( couplePattern->numOutput != mainPattern->numOutput) {
+            Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of output for couple and main pattern don't match.");
+  }
+  if (mainPattern->numOutput !=  Paso_Distribution_getMyNumComponents(output_distribution)) {
+      Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of output and given distribution don't match.");
+  }
+  if (mainPattern->numInput != Paso_Distribution_getMyNumComponents(input_distribution)) {
+     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of input for main pattern and number of send components in coupler don't match.");
+  }
+  if (couplePattern->numInput != coupler->recv->numSharedComponents) {
+     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of inputs for couple pattern and number of received components in coupler don't match.");
+  }
+  if (mainPattern->output_block_size != couplePattern->output_block_size) {
+     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: output block sizes of main and couple pattern do not match.");
+  }
+  if (mainPattern->input_block_size != couplePattern->input_block_size) {
+     Paso_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: input block sizes of main and couple pattern do not match.");
   }
 
   out=MEMALLOC(1,Paso_SystemMatrixPattern);
   if (Paso_checkPtr(out)) return NULL;
-  out->n_ptr=n_ptr;
-  out->n_index=max_index-index_offset+1;
-  out->ptr=ptr;
-  out->index=index;
-  out->len=out->ptr[out->n_ptr]-index_offset;
-  out->reference_counter=1;
   out->type=type;
+  out->reference_counter=1;
+  out->mainPattern=Paso_Pattern_getReference(mainPattern);
+  out->couplePattern=Paso_Pattern_getReference(couplePattern);
+  out->coupler=Paso_Coupler_getReference(coupler);
+  out->output_distribution=Paso_Distribution_getReference(output_distribution);
+  out->input_distribution=Paso_Distribution_getReference(input_distribution);
+  out->mpi_info= Paso_MPIInfo_getReference(coupler->mpi_info);
   #ifdef Paso_TRACE
   printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been allocated.\n");
   #endif
@@ -104,48 +95,20 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_reference(Paso_SystemMatrixPa
   
 /* deallocates a SystemMatrixPattern: */
 
-void Paso_SystemMatrixPattern_dealloc(Paso_SystemMatrixPattern* in) {
+void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
-        MEMFREE(in->ptr);
-        MEMFREE(in->index);
+        Paso_Pattern_free(in->mainPattern);
+        Paso_Pattern_free(in->couplePattern);
+        Paso_Coupler_free(in->coupler);
+        Paso_Distribution_free(in->output_distribution);
+        Paso_Distribution_free(in->input_distribution);
+        Paso_MPIInfo_free(in->mpi_info);
         MEMFREE(in);
         #ifdef Paso_TRACE
-        printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been deallocated.\n");
+        printf("Paso_SystemMatrixPattern_free: system matrix pattern as been deallocated.\n");
         #endif
      }
    }
 }
-/* *************************************************************/
-
-/*  some routines which help to get the matrix pattern from elements: */
-
-/*  this routine is used by qsort called in Paso_SystemMatrixPattern_alloc */
-
-int Paso_comparIndex(const void *index1,const void *index2){
-   index_t Iindex1,Iindex2;
-   Iindex1=*(index_t*)index1;
-   Iindex2=*(index_t*)index2;
-   if (Iindex1<Iindex2) {
-      return -1;
-   } else {
-      if (Iindex1>Iindex2) {
-         return 1;
-      } else {
-         return 0;
-      }
-   }
-}
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:47  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

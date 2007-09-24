@@ -1,16 +1,17 @@
-// $Id$
 
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #include "DataArrayView.h"
 #include "DataException.h"
@@ -226,7 +227,7 @@ DataArrayView::createShapeErrorMessage(const string& messagePrefix,
   temp << messagePrefix
        << " This shape: " << shapeToString(m_shape)
        << " Other shape: " << shapeToString(other);
-  return string(temp.str());
+  return temp.str();
 }
 
 DataArrayView::ValueType::size_type
@@ -708,7 +709,7 @@ DataArrayView::toString(const string& suffix) const
       mess << "Error - (toString) Invalid rank: " << getRank();
       throw DataException(mess.str());
     }
-    return string(temp.str());
+    return temp.str();
 }
 
 string
@@ -723,7 +724,7 @@ DataArrayView::shapeToString(const DataArrayView::ShapeType& shape)
       }
     }
     temp << ")";
-    return string(temp.str());
+    return temp.str();
 }
 
 void

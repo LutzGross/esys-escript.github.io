@@ -1,14 +1,17 @@
-/* 
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #if !defined escript_FunctionSpace_20040323_H
 #define escript_FunctionSpace_20040323_H
@@ -16,7 +19,6 @@
 
 #include "AbstractDomain.h"
 #include "NullDomain.h"
-#include <boost/python/str.hpp>
 
 #include <string>
 
@@ -125,17 +127,11 @@ class ESCRIPT_DLL_API FunctionSpace {
 
   /**
    \brief
-   Return a text description of the function space for python.
-  */
-  const boost::python::str
-  str() const;
-  
-  /**
-   \brief
    Return a text description of the function space.
   */
   std::string
   toString() const;
+
   /**
    \brief
    Return the tag associated with the given sample number.

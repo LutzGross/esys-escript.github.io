@@ -1,16 +1,17 @@
-// $Id$
-/* 
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
 
-*/
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 #if !defined escript_AbstractDomain_20040609_H
 #define escript_AbstractDomain_20040609_H
@@ -20,7 +21,6 @@
 #include <string>
 #include <map>
 #include <boost/python/dict.hpp>
-#include <boost/python/str.hpp>
 
 namespace escript {
 // class forward declarations
@@ -37,19 +37,19 @@ class AbstractDomain {
 
  public:
 
-   
+
    // structure holding values for X, size and normal
    typedef int StatusType;
-   // struct ValueBuffer
-   // {
-   //    StatusType m_status;
-   //    boost::shared_ptr<Data> m_data;
-   //};
-   // typedef struct ValueBuffer ValueBuffer;
+   struct ValueBuffer
+   {
+       StatusType m_status;
+       boost::shared_ptr<Data> m_data;
+   };
+   typedef struct ValueBuffer ValueBuffer;
 
    // 
    // map from function space type code to value buffer
-   // typedef std::map<int, ValueBuffer> BufferMapType;
+   typedef std::map<int, ValueBuffer> BufferMapType;
 
 
   /**
@@ -87,6 +87,22 @@ class AbstractDomain {
 
   /**
      \brief
+     return the number of processors used for this domain
+  */
+  ESCRIPT_DLL_API
+  virtual int getMPISize() const;
+  /**
+     \brief
+     return the number MPI rank of this processor
+  */
+
+  ESCRIPT_DLL_API
+  virtual int getMPIRank() const;
+
+
+
+  /**
+     \brief
      Returns true if the given integer is a valid function space type
      for this domain.
   */
@@ -100,13 +116,6 @@ class AbstractDomain {
   ESCRIPT_DLL_API
   virtual std::string getDescription() const;
 
-  /**
-     \brief
-     Return a description for this domain for python.
-  */
-  ESCRIPT_DLL_API
-  const boost::python::str str() const;
-  
   /**
      \brief
      Return a description for the given function space type code.
@@ -140,6 +149,15 @@ class AbstractDomain {
   */
   ESCRIPT_DLL_API
   virtual void write(const std::string& filename) const;
+
+  /**
+     \brief
+     dumps the domain to an external file filename.
+
+     This has to be implemented by the actual Domain adapter.
+  */
+  ESCRIPT_DLL_API
+  virtual void dump(const std::string& filename) const;
 
   /**
      \brief
@@ -363,13 +381,13 @@ class AbstractDomain {
  private:
 
    // buffer for coordinates used by function spaces
-   //BufferMapType m_x_buffer;
+   BufferMapType m_x_buffer;
 
    // buffer for normal vectors used by function spaces
-   //BufferMapType m_normal_buffer;
+   BufferMapType m_normal_buffer;
 
    // buffer for normal element size used by function spaces
-   //BufferMapType m_size_buffer;
+   BufferMapType m_size_buffer;
 
 };
 

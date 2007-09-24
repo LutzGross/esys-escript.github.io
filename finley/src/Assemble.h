@@ -1,24 +1,21 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
 /*    assemblage routines: header file */
-
-/**************************************************************/
-
-/*  Copyrights by ACcESS Australia 2003,2004,2005 */
-/*  Author: gross@access.edu.au */
-/*  Version: $Id$ */
 
 /**************************************************************/
 
@@ -107,6 +104,8 @@ void Assemble_jacobeans_3D_M2D_E3D(double*, dim_t,double*, dim_t, dim_t, dim_t, 
 void Assemble_jacobeans_3D_M2D_E3D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
 void Assemble_jacobeans_3D_M2D_E2D(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
 void Assemble_jacobeans_3D_M2D_E2D_C(double*, dim_t,double*, dim_t, dim_t, dim_t, index_t* , double*, dim_t, double*, double*, double*, index_t*);
+void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* elements, escriptDataC* lumpedMat, escriptDataC* D);
+
 
 #endif /* #ifndef INC_FINLEY_ASSEMBLE */
 

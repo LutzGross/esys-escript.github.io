@@ -1,15 +1,17 @@
+
 /* $Id$ */
 
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -25,25 +27,26 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "SystemMatrix.h"
+#include "SparseMatrix.h"
 #include "Solver.h"
 
 /**************************************************************/
 
 
 
-void Paso_Solver_updateIncompleteSchurComplement(Paso_SystemMatrix* A_CC,Paso_SystemMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,Paso_SystemMatrix *A_FC) {
+void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,Paso_SparseMatrix *A_FC) {
+
   index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
   dim_t index_CC_len;
   bool_t set_A;
-  dim_t n_rows=A_CC->num_rows;
+  dim_t n_loc_rows=A_CC->numRows;
   dim_t n_block=A_CC->row_block_size;
   register double A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,
          invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,
          A11,A21,A31,A12,A22,A32,A13,A23,A33,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33;
   if (n_block==1) {
      #pragma omp parallel for private(i,iPtr_CC,index_CC,index_CC_len,col_CF,set_A,iPtr_CF,iPtr_FC,col_FC,where_p,A11) schedule(static)
-     for (i = 0; i < n_rows;++i) {
+     for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
         index_CC_len=(size_t)(A_CC->pattern->ptr[i+1]-A_CC->pattern->ptr[i]);
@@ -67,7 +70,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SystemMatrix* A_CC,Paso_Sy
       } /* end of irow loop */
    } else if (n_block==2) {
       #pragma omp parallel for private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_12,A_CF_22,invA_FF_11,invA_FF_21,invA_FF_12,invA_FF_22,A11,A21,A12,A22,A_FC_11,A_FC_21,A_FC_12,A_FC_22) schedule(static)
-     for (i = 0; i < n_rows;++i) {
+     for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
         index_CC_len=(size_t)(A_CC->pattern->ptr[i+1]-A_CC->pattern->ptr[i]);
@@ -117,7 +120,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SystemMatrix* A_CC,Paso_Sy
       } /* end of irow loop */
    } else if (n_block==3) {
       #pragma omp parallel for private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,A11,A21,A31,A12,A22,A32,A13,A23,A33,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33) schedule(static)
-     for (i = 0; i < n_rows;++i) {
+     for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
         index_CC_len=(size_t)(A_CC->pattern->ptr[i+1]-A_CC->pattern->ptr[i]);

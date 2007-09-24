@@ -1,16 +1,17 @@
+
 /* $Id$ */
 
-
-/*
-********************************************************************************
-*               Copyright   2006 by ACcESS MNRF                                *
-*                                                                              * 
-*                 http://www.access.edu.au                                     *
-*           Primary Business: Queensland, Australia                            *
-*     Licensed under the Open Software License version 3.0 		       *
-*        http://www.opensource.org/licenses/osl-3.0.php                        *
-********************************************************************************
-*/
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -27,10 +28,6 @@
 #define INC_PASO
 
 #include "Common.h"
-#include "Options.h"
-#include "SystemMatrix.h"
-
-#include "Paso_MPI.h"
 
 /**************************************************************/
 
@@ -62,27 +59,5 @@ void Paso_setError(Paso_ErrorCodeType err,char* msg);
 bool_t Paso_noError(void);
 Paso_ErrorCodeType Paso_getErrorType(void);
 char* Paso_getErrorMessage(void);
-void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
-void Paso_solve_free(Paso_SystemMatrix* in);
-
-#ifdef PASO_MPI
-bool_t Paso_MPI_noError( Paso_MPIInfo *mpi_info );
-#endif
 
 #endif /* #ifndef INC_PASO */
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:38  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.2  2005/09/07 00:59:08  gross
- * some inconsistent renaming fixed to make the linking work.
- *
- * Revision 1.1.2.1  2005/09/05 06:29:47  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

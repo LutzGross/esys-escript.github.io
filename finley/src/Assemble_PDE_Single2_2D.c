@@ -1,14 +1,17 @@
-/*
- ************************************************************
- *          Copyright 2006 by ACcESS MNRF                   *
- *                                                          *
- *              http://www.access.edu.au                    *
- *       Primary Business: Queensland, Australia            *
- *  Licensed under the Open Software License version 3.0    *
- *     http://www.opensource.org/licenses/osl-3.0.php       *
- *                                                          *
- ************************************************************
-*/
+
+/* $Id$ */
+
+/*******************************************************
+ *
+ *           Copyright 2003-2007 by ACceSS MNRF
+ *       Copyright 2007 by University of Queensland
+ *
+ *                http://esscc.uq.edu.au
+ *        Primary Business: Queensland, Australia
+ *  Licensed under the Open Software License version 3.0
+ *     http://www.opensource.org/licenses/osl-3.0.php
+ *
+ *******************************************************/
 
 /**************************************************************/
 
@@ -33,18 +36,12 @@
 
 /**************************************************************/
 
-/*  Author: gross@access.edu.au */
-/*  Version: $Id:$ */
-
-/**************************************************************/
-
 
 #include "Assemble.h"
 #include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
 
 /**************************************************************/
 
@@ -81,17 +78,11 @@ void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Finley_ElementFile* 
                                                                                                                                                                                                      
        if (!Finley_checkPtr(EM_S) && !Finley_checkPtr(EM_F) && !Finley_checkPtr(row_index) ) {
 
-          #ifndef PASO_MPI
           for (color=elements->minColor;color<=elements->maxColor;color++) {
              /*  open loop over all elements: */
              #pragma omp for private(e) schedule(static)
              for(e=0;e<elements->numElements;e++){
                 if (elements->Color[e]==color) {
-          #else
-          {
-             for(e=0;e<elements->numElements;e++) {
-                {
-          #endif
                    Vol=&(p.row_jac->volume[INDEX2(0,e,p.numQuad)]);
                    DSDX=&(p.row_jac->DSDX[INDEX4(0,0,0,e,p.row_NN,DIM,p.numQuad)]);
                    for (q=0;q<len_EM_S;++q) EM_S[q]=0;
