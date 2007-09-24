@@ -61,8 +61,16 @@ Data::Data(double value,
   for (int i = 0; i < shape.attr("__len__")(); ++i) {
     dataPointShape.push_back(extract<const int>(shape[i]));
   }
-  DataArray temp(dataPointShape,value);
-  initialise(temp.getView(),what,expanded);
+
+  int len = DataArrayView::noValues(dataPointShape);
+
+  DataVector temp_data(len,value,len);
+  DataArrayView temp_dataView(temp_data, dataPointShape);
+
+  initialise(temp_dataView, what, expanded);
+
+  // DataArray temp(dataPointShape,value);
+  // initialise(temp.getView(),what,expanded);
   m_protected=false;
 }
 
@@ -71,8 +79,15 @@ Data::Data(double value,
 	   const FunctionSpace& what,
            bool expanded)
 {
-  DataArray temp(dataPointShape,value);
-  initialise(temp.getView(),what,expanded);
+  int len = DataArrayView::noValues(dataPointShape);
+
+  DataVector temp_data(len,value,len);
+  DataArrayView temp_dataView(temp_data, dataPointShape);
+
+  initialise(temp_dataView, what, expanded);
+
+  // DataArray temp(dataPointShape,value);
+  // initialise(temp.getView(),what,expanded);
   m_protected=false;
 }
 
@@ -162,6 +177,7 @@ Data::Data(const object& value,
   // Create DataConstant using the given value and all other parameters
   // copied from other. If value is a rank 0 object this Data
   // will assume the point data shape of other.
+  
   DataArray temp(value);
   if (temp.getView().getRank()==0) {
     //
