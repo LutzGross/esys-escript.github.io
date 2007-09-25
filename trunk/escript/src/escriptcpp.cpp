@@ -82,7 +82,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
   def("blocktimer_increment",blocktimer_increment);
   def("blocktimer_time",blocktimer_time);
-  def("blocktimer_reportSystemInfo",blocktimer_reportSystemInfo);
   def("getVersion",escript::getSvnVersion);
 
 
