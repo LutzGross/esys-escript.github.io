@@ -1,12 +1,18 @@
+%
 % $Id$
 %
-%           Copyright © 2006 by ACcESS MNRF
-%               \url{http://www.access.edu.au
-%         Primary Business: Queensland, Australia.
-%   Licensed under the Open Software License version 3.0
-%      http://www.opensource.org/licenses/osl-3.0.php
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-
+%           Copyright 2003-2007 by ACceSS MNRF
+%       Copyright 2007 by University of Queensland
+%
+%                http://esscc.uq.edu.au
+%        Primary Business: Queensland, Australia
+%  Licensed under the Open Software License version 3.0
+%     http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 
 \section{The First Steps}
 \label{FirstSteps} 
@@ -17,16 +23,16 @@
 \label{fig:FirstSteps.1}
 \end{figure}
 
-In this chapter we will give an introduction how to use \escript to solve 
-a partial differential equation \index{partial differential equation} (PDE \index{partial differential equation!PDE}). The reader should be familiar with Python. The knowledge presented at the Python tutorial at \url{http://docs.python.org/tut/tut.html}
-is sufficient. It is helpful if the reader has some basic knowledge of PDEs \index{partial differential equation}.
+In this chapter we give an introduction how to use \escript to solve 
+a partial differential equation \index{partial differential equation} (PDE \index{partial differential equation!PDE}). We assume you are at least a little familiar with Python. The knowledge presented at the Python tutorial at \url{http://docs.python.org/tut/tut.html}
+is more than sufficient.
 
 The PDE \index{partial differential equation} we wish to solve is the Poisson equation \index{Poisson equation} 
 \begin{equation}
 -\Delta u =f 
 \label{eq:FirstSteps.1}
 \end{equation}
-for the solution $u$. The function $f$ is the given right hand side. The domain of interest, denoted by $\Omega$
+for the solution $u$. The function $f$ is the given right hand side. The domain of interest, denoted by $\Omega$,
 is the unit square 
 \begin{equation}
 \Omega=[0,1]^2=\{ (x\hackscore 0;x\hackscore 1) | 0\le x\hackscore{0} \le 1 \mbox{ and } 0\le x\hackscore{1} \le 1 \}
@@ -34,14 +40,14 @@ is the unit square
 \end{equation}
 The domain is shown in \fig{fig:FirstSteps.1}.
 
-$\Delta$ denotes the Laplace operator\index{Laplace operator} which is defined by
+$\Delta$ denotes the Laplace operator\index{Laplace operator}, which is defined by
 \begin{equation}
 \Delta u = (u\hackscore {,0})\hackscore{,0}+(u\hackscore{,1})\hackscore{,1}
 \label{eq:FirstSteps.1.1}
 \end{equation}
-where, for any function $w$ and any direction $i$, $u\hackscore{,i}$
+where, for any function $u$ and any direction $i$, $u\hackscore{,i}$
 denotes the partial derivative \index{partial derivative} of $u$ with respect to $i$.  
-\footnote{Some readers
+\footnote{You
 may be more familiar with the Laplace operator\index{Laplace operator} being written
 as $\nabla^2$, and written in the form
 \begin{equation*}
@@ -60,11 +66,11 @@ which leads to
 \Delta u = u\hackscore{,00}+u\hackscore{,11}=\sum\hackscore{i=0}^2 u\hackscore{,ii}
 \label{eq:FirstSteps.1.1b}
 \end{equation}
-In some cases, and we will see examples for this in the next chapter,
-the usage of the nested $\sum$ symbols blows up the formulas and therefore
-it is convenient to use the Einstein summation convention \index{summation convention}. This 
-drops the $\sum$ sign and assumes that a summation over a repeated index is performed 
-("repeated index means summation"). For instance we write
+We often find that use
+of nested $\sum$ symbols makes formulas cumbersome, and we use the more
+convenient Einstein summation convention \index{summation convention}. This 
+drops the $\sum$ sign and assumes that a summation is performed over any repeated index.
+For instance we write
 \begin{eqnarray}
 x\hackscore{i}y\hackscore{i}=\sum\hackscore{i=0}^2 x\hackscore{i}y\hackscore{i}   \\
 x\hackscore{i}u\hackscore{,i}=\sum\hackscore{i=0}^2 x\hackscore{i}u\hackscore{,i}   \\
@@ -162,8 +168,8 @@ to solve the PDE. Here we are using the FEM library \finley \index{finite elemen
 method}. The following statements create the \Domain object \var{mydomain} from the 
 \finley method \method{Rectangle}
 \begin{python}
-from esys.finley import Rectangle
-mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+  from esys.finley import Rectangle
+  mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
 \end{python}
 In this case the domain is a rectangle with the lower, left corner at point $(0,0)$ and
 the right, upper corner at $(\var{l0},\var{l1})=(1,1)$.
@@ -175,9 +181,9 @@ see \Chap{CHAPTER ON FINLEY}.
 The following statements define the \Poisson class object \var{mypde} with domain \var{mydomain} and
 the right hand side $f$ of the PDE to constant $1$: 
 \begin{python}
-from esys.escript.linearPDEs import Poisson
-mypde = Poisson(mydomain)
-mypde.setValue(f=1)
+  from esys.escript.linearPDEs import Poisson
+  mypde = Poisson(mydomain)
+  mypde.setValue(f=1)
 \end{python}
 We have not specified any boundary condition but the 
 \Poisson class implicitly assumes homogeneous Neuman boundary conditions \index{Neumann
@@ -189,56 +195,57 @@ by defining a characteristic function \index{characteristic function}
 which has positive values at locations $x=(x\hackscore{0},x\hackscore{1})$ where Dirichlet boundary condition is set
 and $0$ elsewhere. In our case of $\Gamma^D$ defined by \eqn{eq:FirstSteps.2c},
 we need to construct a function \var{gammaD} which is positive for the cases $x\hackscore{0}=0$ or $x\hackscore{1}=0$. To get 
-an object \var{x} which represents locations in the domain one uses
+an object \var{x} which contains the coordinates of the nodes in the domain use
 \begin{python}
-x=mydomain.getX() 
+  x=mydomain.getX() 
 \end{python}
 The method \method{getX} of the \Domain \var{mydomain} 
 gives access to locations 
-in the domain defined by \var{mydomain}. The object \var{x} is actually a \Data object which is
-discussed in \Chap{ESCRIPT CHAP} in more details. What we need to know here is that 
+in the domain defined by \var{mydomain}. The object \var{x} is actually a \Data object which will be
+discussed in \Chap{ESCRIPT CHAP} in more detail. What we need to know here is that 
 
-\var{x} has \Rank (=number of dimensions) and a \Shape (=tuple of dimensions) which can be checked by 
+\var{x} has \Rank (number of dimensions) and a \Shape (list of dimensions) which can be viewed by 
 calling the \method{getRank} and \method{getShape} methods:
 \begin{python}
-print "rank ",x.getRank(),", shape ",x.getShape()
+  print "rank ",x.getRank(),", shape ",x.getShape()
 \end{python}
-will print something like
+This will print something like
 \begin{python}
-rank 1, shape (2,)
+  rank 1, shape (2,)
 \end{python}
 The \Data object also maintains type information which is represented by the 
 \FunctionSpace of the object. For instance
 \begin{python}
-print x.getFunctionSpace()
+  print x.getFunctionSpace()
 \end{python}
 will print 
 \begin{python}
-Function space type: Finley_Nodes on FinleyMesh 
+  Function space type: Finley_Nodes on FinleyMesh 
 \end{python}
-which tells us that the coordinates are stored on the nodes of a \finley mesh. 
+which tells us that the coordinates are stored on the nodes of (rather than on points in the interior of) a \finley mesh.
 To get the  $x\hackscore{0}$ coordinates of the locations we use the
 statement 
 \begin{python}
-x0=x[0]
+  x0=x[0]
 \end{python}
 Object \var{x0} 
 is again a \Data object now with \Rank $0$ and 
 \Shape $()$. It inherits the \FunctionSpace from \var{x}:
 \begin{python}
-print x0.getRank(),x0.getShape(),x0.getFunctionSpace()
+  print x0.getRank(),x0.getShape(),x0.getFunctionSpace()
 \end{python}
 will print
 \begin{python}
-0 () Function space type: Finley_Nodes on FinleyMesh 
+  0 () Function space type: Finley_Nodes on FinleyMesh 
 \end{python}
-We can now construct the function \var{gammaD} by
+We can now construct a function \var{gammaD} which is only non-zero on the bottom and left edges
+of the domain with
 \begin{python}
-from esys.escript import whereZero
-gammaD=whereZero(x[0])+whereZero(x[1])
+  from esys.escript import whereZero
+  gammaD=whereZero(x[0])+whereZero(x[1])
 \end{python}
-where
-\code{whereZero(x[0])} creates function which equals $1$ where \code{x[0]} is (allmost) equal to zero 
+
+\code{whereZero(x[0])} creates function which equals $1$ where \code{x[0]} is (almost) equal to zero 
 and $0$ elsewhere. 
 Similarly, \code{whereZero(x[1])} creates function which equals $1$ where \code{x[1]} is 
 equal to zero and $0$ elsewhere.
@@ -246,75 +253,58 @@ The sum of the results of \code{whereZero(x[0])} and \code{whereZero(x[1])}
 gives a function on the domain \var{mydomain} which is exactly positive where $x\hackscore{0}$ or $x\hackscore{1}$ is equal to zero.
 Note that \var{gammaD} has the same \Rank, \Shape and \FunctionSpace like \var{x0} used to define it. So from 
 \begin{python}
-print gammaD.getRank(),gammaD.getShape(),gammaD.getFunctionSpace()
+  print gammaD.getRank(),gammaD.getShape(),gammaD.getFunctionSpace()
 \end{python}
 one gets 
 \begin{python}
-0 () Function space type: Finley_Nodes on FinleyMesh 
+  0 () Function space type: Finley_Nodes on FinleyMesh 
 \end{python}
-The additional parameter \var{q} of the \code{setValue} method of the \Poisson class defines the 
+An additional parameter \var{q} of the \code{setValue} method of the \Poisson class defines the 
 characteristic function \index{characteristic function} of the locations
 of the domain where homogeneous Dirichlet boundary condition \index{Dirichlet boundary condition!homogeneous}
 are set. The complete definition of our example is now: 
 \begin{python}
-from esys.linearPDEs import Poisson
-x = mydomain.getX()
-gammaD = whereZero(x[0])+whereZero(x[1])
-mypde = Poisson(domain=mydomain)
-mypde.setValue(f=1,q=gammaD)
+  from esys.linearPDEs import Poisson
+  x = mydomain.getX()
+  gammaD = whereZero(x[0])+whereZero(x[1])
+  mypde = Poisson(domain=mydomain)
+  mypde.setValue(f=1,q=gammaD)
 \end{python}
 The first statement imports the \Poisson class definition from the \linearPDEs module \escript package.
 To get the solution of the Poisson equation defined by \var{mypde} we just have to call its
 \method{getSolution}. 
 
-Now we can write the script to solve our test problem (Remember that
-lines starting with '\#' are comment lines in Python) (available as \file{poisson.py} 
-in the \ExampleDirectory):
+Now we can write the script to solve our Poisson problem
 \begin{python}
-from esys.escript import *
-from esys.escript.linearPDEs import Poisson
-from esys.finley import Rectangle
-# generate domain:
-mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
-# define characteristic function of Gamma^D
-x = mydomain.getX()
-gammaD = whereZero(x[0])+whereZero(x[1])
-# define PDE and get its solution u
-mypde = Poisson(domain=mydomain)
-mypde.setValue(f=1,q=gammaD)
-u = mypde.getSolution()
-# write u to an external file
-saveVTK("u.xml",sol=u)
+  from esys.escript import *
+  from esys.escript.linearPDEs import Poisson
+  from esys.finley import Rectangle
+  # generate domain:
+  mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+  # define characteristic function of Gamma^D
+  x = mydomain.getX()
+  gammaD = whereZero(x[0])+whereZero(x[1])
+  # define PDE and get its solution u
+  mypde = Poisson(domain=mydomain)
+  mypde.setValue(f=1,q=gammaD)
+  u = mypde.getSolution()
+  # write u to an external file
+  saveVTK("u.xml",sol=u)
 \end{python}
-The last statement writes the solution tagged with the name "sol" to the external file \file{u.xml} in 
-\VTK file format. \VTK is a software library
-for the visualization of scientific, engineering and analytical data and is freely available
-from \url{http://www.vtk.org}. There are a variety of graphical user interfaces 
-for \VTK available, for instance \mayavi which can be downloaded from \url{http://mayavi.sourceforge.net/} but is also available on most
-\LINUX distributions.
+The entire code is available as \file{poisson.py} in the \ExampleDirectory
+
+The last statement writes the solution (tagged with the name "sol") to a file named \file{u.xml} in 
+\VTK file format.
+Now you may run the script and visualize the solution using \mayavi:
+\begin{verbatim}
+  python poisson.py
+  mayavi -d u.xml -m SurfaceMap
+\end{verbatim}
+See \fig{fig:FirstSteps.3}.
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{figures/FirstStepResult.eps}}
 \caption{Visualization of the Poisson Equation Solution for $f=1$}
 \label{fig:FirstSteps.3}
 \end{figure}
-
-You can edit the script file using your favourite text editor (or the Integrated DeveLopment Environment IDLE
-for Python, see \url{http://idlefork.sourceforge.net}). If the script file has the name \file{poisson.py} \index{scripts!\file{poisson.py}} you can run the
-script from any shell using the command:
-\begin{python} 
-python poisson.py
-\end{python}
-After the script has (hopefully successfully) been completed you will find the file \file{u.xml} in the current
-directory. An easy way to visualize the results is the command
-\begin{python} 
-mayavi -d u.xml -m SurfaceMap &
-\end{python}
-to show the results, see \fig{fig:FirstSteps.3}.
-
-\subsection{Visualization with \pyvisi}
-
-\subsection{Domain description using with \pycad}
-
-
 

@@ -1,10 +1,17 @@
+%
 % $Id$
 %
-%           Copyright © 2006 by ACcESS MNRF 
-%               \url{http://www.access.edu.au
-%         Primary Business: Queensland, Australia.
-%   Licensed under the Open Software License version 3.0 
-%      http://www.opensource.org/licenses/osl-3.0.php
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%           Copyright 2003-2007 by ACceSS MNRF
+%       Copyright 2007 by University of Queensland
+%
+%                http://esscc.uq.edu.au
+%        Primary Business: Queensland, Australia
+%  Licensed under the Open Software License version 3.0
+%     http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 
 \section{The Diffusion Problem}
@@ -17,8 +24,8 @@
 \end{figure}
 
 \subsection{\label{DIFFUSION OUT SEC}Outline}
-In this chapter we will discuss how to solve the time dependent-temperature diffusion\index{diffusion equation} for
-a block of material. Within the block there is a heat source which drives the temperature diffusion.
+In this chapter we will discuss how to solve a time-dependent temperature diffusion\index{diffusion equation} PDE for
+a given block of material. Within the block there is a heat source which drives the temperature diffusion.
 On the surface, energy can radiate into the surrounding environment.
 \fig{DIFFUSION FIG 1} shows the configuration.
 
@@ -39,7 +46,7 @@ in the interior of the domain is given by
 \end{equation}
 where $\rho c\hackscore p$ and $\kappa$ are given material constants. In case of a composite
 material the parameters depend on their location in the domain. $q\hackscore H$ is
-a heat source (or sink) within the domain. We are using Einstein summation convention \index{summation convention} 
+a heat source (or sink) within the domain. We are using the Einstein summation convention \index{summation convention} 
 as introduced in \Chap{FirstSteps}. In our case we assume $q\hackscore H$ to be equal to a constant heat production rate 
 $q^{c}$ on a circle or sphere with center $x^c$ and radius $r$ and $0$ elsewhere:
 \begin{equation}
@@ -57,17 +64,17 @@ for all $x$ in the domain and all time  $t>0$.
 
 On the surface of the domain we are 
 specifying a radiation condition 
-which precribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
+which prescribes the normal component of the flux $\kappa T\hackscore{,i}$ to be proportional
 to the difference of the current temperature to the surrounding temperature $T\hackscore{ref}$:    
 \begin{equation}
  \kappa T\hackscore{,i} n\hackscore i = \eta (T\hackscore{ref}-T) 
 \label{DIFFUSION TEMP EQ 2}
 \end{equation}
 $\eta$ is a given material coefficient depending on the material of the block and the surrounding medium. 
-As usual $n\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field}
+$n\hackscore i$ is the $i$-th component of the outer normal field \index{outer normal field}
 at the surface of the domain. 
 
-To solve the time dependent \eqn{DIFFUSION TEMP EQ 1} the initial temperature at time 
+To solve the time-dependent \eqn{DIFFUSION TEMP EQ 1} the initial temperature at time 
 $t=0$ has to be given. Here we assume that the initial temperature is the surrounding temperature:
 \begin{equation}
 T(x,0)=T\hackscore{ref} 
@@ -278,7 +285,7 @@ when a given tolerance has been reached. The default tolerance is $10^{-8}$. Thi
 
 \subsection{The Transition Problem}
 \label{DIFFUSION TRANS SEC}
-Now we are ready to solve the original time dependent problem. The main 
+Now we are ready to solve the original time-dependent problem. The main 
 part of the script is the loop over time $t$ which takes the following form:
 \begin{python}
 t=0
@@ -324,11 +331,12 @@ y\hackscore{i}
 \end{equation}
 So \code{length(x-xc)} calculates the distances  
 of the location \var{x} to the center of the circle \var{xc} where the heat source is acting.
-Note that the coordinates of \var{xc} are defined as a list of floating point numbers. It is independently
+Note that the coordinates of \var{xc} are defined as a list of floating point numbers. It is automatically
 converted into a \Data class object before being subtracted from \var{x}. The function \function{whereNegative} 
 applied to
-\code{length(x-xc)-r}, returns a \Data class which is equal to one where the object is negative and
-zero elsewhere. After multiplication with \var{qc} we get a function with the desired property.
+\code{length(x-xc)-r}, returns a \Data object which is equal to one where the object is negative (inside the circle) and
+zero elsewhere. After multiplication with \var{qc} we get a function with the desired property of having value \var{qc} inside
+the circle and zero elsewhere.
 
 Now we can put the components together to create the script \file{diffusion.py} which is available in the \ExampleDirectory:
 \index{scripts!\file{diffusion.py}}:
@@ -381,10 +389,10 @@ temperature distributions at time steps $1$, $2$, $\ldots$, $50$ in the \VTK fil
 \caption{Results of the Temperature Diffusion Problem for Time Steps $1$ $16$, $32$ and $48$.}
 \label{DIFFUSION FIG 2}
 \end{figure}
+\fig{DIFFUSION FIG 2} shows the result for some selected time steps.
 An easy way to visualize the results is the command
 \begin{verbatim}
 mayavi -d T.1.xml -m SurfaceMap &
 \end{verbatim}
-Use the \texttt{Configure Data}
+Use the \texttt{Configure Data} window in mayavi
 to move forward and and backwards in time. 
-\fig{DIFFUSION FIG 2} shows the result for some selected time steps.
