@@ -1,12 +1,18 @@
+%
 % $Id$
 %
-%           Copyright © 2006 by ACcESS MNRF
-%               \url{http://www.access.edu.au
-%         Primary Business: Queensland, Australia.
-%   Licensed under the Open Software License version 3.0
-%      http://www.opensource.org/licenses/osl-3.0.php
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-
+%           Copyright 2003-2007 by ACceSS MNRF
+%       Copyright 2007 by University of Queensland
+%
+%                http://esscc.uq.edu.au
+%        Primary Business: Queensland, Australia
+%  Licensed under the Open Software License version 3.0
+%     http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 
 \chapter{The module \linearPDEs}
 
@@ -88,7 +94,7 @@ In case of a single PDE and a single component solution the contact condition ta
 \begin{equation}\label{LINEARPDE.SINGLE.6}
 n\hackscore{j} J^{0}\hackscore{j}=n\hackscore{j} J^{1}\hackscore{j}=y^{contact} - d^{contact}[u]
 \end{equation}
-In this case the the coefficient $d^{contact}$ and $y^{contact}$ are eaach \Scalar
+In this case the the coefficient $d^{contact}$ and $y^{contact}$ are each \Scalar
 both in the \FunctionOnContactZero or \FunctionOnContactOne.
 
 The PDE is symmetrical \index{symmetrical} if
@@ -110,7 +116,7 @@ have to be inspected.
 
 \subsection{Classes}
 \declaremodule{extension}{esys.escript.linearPDEs} 
-\modulesynopsis{Linear partial pifferential equation handler}
+\modulesynopsis{Linear partial differential equation handler}
 The module \linearPDEs provides an interface to define and solve linear partial
 differential equations within \escript. \linearPDEs does not provide any
 solver capabilities in itself but hands the PDE over to
@@ -122,14 +128,14 @@ class which is also derived form the \LinearPDE class should be used
 to define the Poisson equation \index{Poisson}.
 
 \subsection{\LinearPDE class}
-This is the general class to define a linear PDE in \escript. We list a selction of the most
+This is the general class to define a linear PDE in \escript. We list a selection of the most
 important methods of the class only and refer to reference guide \ReferenceGuide for a complete list.
 
 \begin{classdesc}{LinearPDE}{domain,numEquations=0,numSolutions=0}
 opens a linear, steady, second order PDE on the \Domain \var{domain}. \var{numEquations}
-and \var{numSolutions} gives the number of equations and the number of solutiopn components.
+and \var{numSolutions} gives the number of equations and the number of solution components.
 If \var{numEquations} and \var{numSolutions} is non-positive, the number of equations
-and the number solutions, respctively, stay undefined until a coefficient is
+and the number solutions, respectively, stay undefined until a coefficient is
 defined.
 \end{classdesc}
 
@@ -140,7 +146,7 @@ defined.
 \optional{, d}\optional{, y}
 \optional{, d_contact}\optional{, y_contact}
 \optional{, q}\optional{, r}}
-assigns new values to coefficients. By dafault all values are assumed to be zero\footnote{
+assigns new values to coefficients. By default all values are assumed to be zero\footnote{
 In fact it is assumed they are not present by assigning the value \code{escript.Data()}. The
 can by used by the solver library to reduce computational costs.
 }
@@ -170,7 +176,7 @@ switches the debug mode to on.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{isUsingLumping}{}
-returns \True if \LUMPING is set as the solver for the system of lienar equations.
+returns \True if \LUMPING is set as the solver for the system of linear equations.
 Otherwise \False is returned.
 \end{methoddesc}
 
@@ -189,8 +195,8 @@ returns the solver method and preconditioner which is currently been used.
 
 \begin{methoddesc}[LinearPDE]{setSolverPackage}{\optional{package=LinearPDE.DEFAULT}}
 Set the solver package to be used by PDE library to solve the linear systems of equations. The
-specified package may not be supported by the PDE solver library. In this case, dependng on
-the PDE solver, the default solver is used or an exeption is thrown.
+specified package may not be supported by the PDE solver library. In this case, depending on
+the PDE solver, the default solver is used or an exception is thrown.
 If \var{package} is not specified, the default package of the PDE solver library is used.
 \end{methoddesc}
 
@@ -202,7 +208,7 @@ returns the linear solver package currently by the PDE solver library
 \begin{methoddesc}[LinearPDE]{setTolerance}{\optional{tol=1.e-8}}:
 resets the tolerance for solution. The actually meaning of tolerance is
 depending on the underlying PDE library. In most cases, the tolerance
-will only consider the error from solving the discerete problem but will
+will only consider the error from solving the discrete problem but will
 not consider any discretization error.
 \end{methoddesc}
 
@@ -321,7 +327,7 @@ the solver library of \finley, see \Sec{CHAPTER ON FINLEY}.
 
 \begin{memberdesc}[LinearPDE]{ITERATIVE}
 the default iterative method and preconditioner. The actually used method depends on the
-PDE solver library and the solver package been choosen. Typically, \PCG is used for symmetric PDEs
+PDE solver library and the solver package been chosen. Typically, \PCG is used for symmetric PDEs
 and \BiCGStab otherwise, both with \JACOBI preconditioner.
 \end{memberdesc}
 
@@ -438,7 +444,7 @@ The \Helmholtz class defines the Helmholtz problem
 \begin{equation}\label{HZ.1}
 \omega \; u - (k\; u\hackscore{,j})\hackscore{,j} = f
 \end{equation}
- with natural boundary conditons
+ with natural boundary conditions
 \begin{equation}\label{HZ.2}
 k\; u\hackscore{,j} n\hackscore{,j} = g- \alpha \; u 
 \end{equation}
@@ -462,7 +468,7 @@ The \Lame class defines a Lame equation problem:
 \begin{equation}\label{LE.1}
 -\mu (u\hackscore{i,j}+u\hackscore{j,i})+\lambda u\hackscore{k,k})\hackscore{j} = F\hackscore{i}-\sigma\hackscore{ij,j}
 \end{equation}
-with natural boundary conditons:
+with natural boundary conditions:
 \begin{equation}\label{LE.2}
 n\hackscore{j}(\mu \; (u\hackscore{i,j}+u\hackscore{j,i})+\lambda*u\hackscore{k,k}) = f\hackscore{i}+n\hackscore{j}\sigma\hackscore{ij}
 \end{equation}

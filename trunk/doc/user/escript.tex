@@ -1,12 +1,18 @@
+%
 % $Id$
 %
-%           Copyright © 2006 by ACcESS MNRF
-%               http://www.access.edu.au
-%         Primary Business: Queensland, Australia.
-%   Licensed under the Open Software License version 3.0
-%      http://www.opensource.org/licenses/osl-3.0.php
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-
+%           Copyright 2003-2007 by ACceSS MNRF
+%       Copyright 2007 by University of Queensland
+%
+%                http://esscc.uq.edu.au
+%        Primary Business: Queensland, Australia
+%  Licensed under the Open Software License version 3.0
+%     http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 
 \chapter{The module \escript}
 \label{ESCRIPT CHAP}
@@ -70,7 +76,7 @@ the discontinuity cannot be seen as a general function on the domain as there ar
 defined for the interior. For most PDE solver libraries
 the space of the solution and continuous functions is identical, however in some cases, eg.
 when periodic boundary conditions are used in \finley, a solution 
-fulfils periodic boundary conditions while a continuous function does not have to be periodic.
+fulfills periodic boundary conditions while a continuous function does not have to be periodic.
    
 The concept of function spaces describes the properties of 
 functions and allows abstraction from the actual representation 
@@ -102,7 +108,7 @@ The values of the function have a rank which gives the
 number of indices, and a \Shape defining the range of each index.
 The rank in \escript is limited to the range $0$ through $4$ and
 it is assumed that the rank and \Shape is the same for all \DataSamplePoints.
-The \Shape of a \Data object is a tuple \var{s} of integers. The length
+The \Shape of a \Data object is a tuple (list) \var{s} of integers. The length
 of \var{s} is the rank of the \Data object and \var{s[i]} is the maximum
 value for the \var{i}-th index.
 For instance, a stress field has rank $2$ and 
@@ -258,7 +264,7 @@ held in a dictionary. Operations on tagged data require processing the set of ta
 processing the value for each individual sample point. 
 \escript allows use of constant, tagged and expanded data in a single expression.
 
-The \var{dump} method provides a possibility to save \Data objects to a file, for instance to restart a simuation
+The \var{dump} method provides a possibility to save \Data objects to a file, for instance to restart a simulation
 or to save data for visualization. The file format uses \netCDF which commonly is using the file extension
 {\tt nc}. For instance to save the coordinates of the data points of the \FunctionSpace
 \ContinuousFunction to the file {\tt x.nc} one uses:
@@ -267,7 +273,7 @@ x=ContinuousFunction(mydomain).getX()
 x.dump("x.nc")
 \end{python}
 In order to keep the dump files small {\tt x.nc} does not contain a representation of the \Domain. It has to be saved using 
-apropriated methods of \var{mydomain} to be loaded before \var{x}. Alternatively, the \Domain can be reconstructed. 
+appropriate methods of \var{mydomain} to be loaded before \var{x}. Alternatively, the \Domain can be reconstructed. 
 To recover the object \var{x} one uses
 \begin{python}
 x=load("x.nc", mydomain)
@@ -291,7 +297,7 @@ The \Domain class provides an abstract access to the domain of \FunctionSpace an
 \Domain itself has no initialization but implementations of \Domain are 
 instantiated by numerical libraries making use of \Data objects. 
 \end{classdesc}
-The following methds are available:
+The following methods are available:
 \begin{methoddesc}[Domain]{getDim}{}
 returns the spatial dimension of the \Domain.
 \end{methoddesc}
@@ -337,7 +343,7 @@ Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__str__}{g}
-returns string represention of the \Domain.
+returns string representation of the \Domain.
 \end{methoddesc}
 
 \subsection{\FunctionSpace class}
@@ -378,7 +384,7 @@ returns the \Domain of the \FunctionSpace.
 assigns a new tag \var{new_tag} to all data sample 
 where \var{mask} is positive for a least one data point. 
 \var{mask} must be defined on the this \FunctionSpace.
-Use the \var{setTagMap} to assign a tage name to \var{new_tag}.
+Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{__eq__}{arg}
@@ -392,7 +398,7 @@ Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__str__}{g}
-returns string represention of the \Domain.
+returns string representation of the \Domain.
 \end{methoddesc}
 
 The following function provide generators for \FunctionSpace objects:
@@ -414,15 +420,15 @@ are defined on the boundary of the geometrical region defined by \var{domain}.
 
 \begin{funcdesc}{FunctionOnContactZero}{domain}
 returns the \FunctionOnContactZero the \Domain domain. \Data objects in this type of \Function
-are defined on side 0 of a discontinutiy  within the geometrical region defined by \var{domain}.
-The discontinutiy is defined when \var{domain} is instantiated.
+are defined on side 0 of a discontinuity  within the geometrical region defined by \var{domain}.
+The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnContactOne}{domain}
 returns the \FunctionOnContactOne on the \Domain domain. 
 \Data objects in this type of \Function
-are defined on side 1 of a discontinutiy  within the geometrical region defined by \var{domain}.
-The discontinutiy is defined when \var{domain} is instantiated.
+are defined on side 1 of a discontinuity  within the geometrical region defined by \var{domain}.
+The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
 
 \begin{funcdesc}{Solution}{domain}
@@ -457,8 +463,8 @@ At least one of the arguments \var{arg0} or \var{arg1} must be a
 converted into a \Data object. If \var{arg0} or \var{arg1} are
 defined on different \FunctionSpace an attempt is made to embed \var{arg0}
 into the \FunctionSpace of \var{arg1} or to embed \var{arg1} into
-the \FunctionSpace of \var{arg0}. Boths arguments must have the same
-\Shape or one of the arguments my be of rank 0. In the
+the \FunctionSpace of \var{arg0}. Both arguments must have the same
+\Shape or one of the arguments may be of rank 0. In the
 latter case it is assumed that the particular argument is of the same
 \Shape as the other argument but constant over all components.
 
@@ -614,7 +620,7 @@ the value assigned to \DataSamplePoints with tag \var{tag_name} is replaced by
 
 \begin{methoddesc}[Data]{dump}{filename}
 dumps the \Data object to the file \var{filename}. The file stores the
-function space but not the \Domain. It is in the responsibilty of the user to
+function space but not the \Domain. It is in the responsibility of the user to
 save the \Domain. 
 \end{methoddesc}
 
@@ -800,7 +806,7 @@ returns a function which is $1$ where \var{a} different from zero with tolerance
 \end{funcdesc}
 
 \begin{funcdesc}{minval}{a}
-returns at each \DataSamplePoints the minumum value over all components.
+returns at each \DataSamplePoints the minimum value over all components.
 \end{funcdesc}
 
 \begin{funcdesc}{maxval}{a}
@@ -840,7 +846,7 @@ and for a \RankFour function and  \code{axis_offset=1} this is
 \end{funcdesc}
 
 \begin{funcdesc}{swap_axes}{a\optional{, axis0=0 \optional{, axis1=1 }}}
-returns \var{a} but with swapped componets \var{axis0} and  \var{axis1}. The argument \var{a} must be
+returns \var{a} but with swapped components \var{axis0} and  \var{axis1}. The argument \var{a} must be
 at least of \RankTwo. For instance in the 
 for a \RankFour argument, \code{axis0=1} and \code{axis1=2} this is
 \begin{equation}
@@ -1068,7 +1074,7 @@ returns \True is the object is empty. Otherwise \True is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Operator]{setValue}{value}
-resets all entires in the obeject representation to \var{value}
+resets all entries in the object representation to \var{value}
 \end{methoddesc}
 
 \begin{methoddesc}[Operator]{solves}{rhs}
