@@ -14,7 +14,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 
-\chapter{The module \escript}
+\chapter{The Module \escript}
 \label{ESCRIPT CHAP}
 
 
@@ -24,32 +24,32 @@
 function space at the starting point can be interpreted as a function in the function space of the arrow target.}
 \end{figure}
 
-\escript is an extension of Python to handle functions represented by their values on
-\DataSamplePoints for the geometrical region on which
-the function is defined. The region as well as the method which is used 
-to interpolate value on the \DataSamplePoints is defined by     
-\Domain class objects. For instance when using 
-the finite element method (FEM) \index{finite element method} 
-\Domain object holds the information about the FEM mesh, eg. 
-a table of nodes and a table of elements. Although \Domain contains
-the discretization method to be used \escript does not use this information directly.
-\Domain objects are created from a module which want to make use 
-\escript, e.g. \finley.
+\escript is a Python module that allows you to represent the values of
+a function at points in a \Domain in such a way that the function will
+be useful for the Finite Element Method (FEM) simulation.  It also
+provides what we call a function space that describes how the data is
+used in the simulation.  Stored along with the data is information
+about the elements and nodes which will be used by \finley.
 
-The solution of a PDE is a function of its location in the domain of interest $\Omega$. 
-When solving a partial differential equation \index{partial differential equation} (PDE) using FEM
-the solution is (piecewise) differentiable but, in general, its gradient
-is discontinuous. To reflect these different degrees of smoothness different
-representations of the functions are used. For instance; in FEM
-the displacement field is represented by its values at the nodes of the mesh, while the 
-strain, which is the symmetric part of the gradient of the displacement field, is stored on the 
-element centers. To be able to classify functions with respect to their smoothness, \escript has the
-concept of the "function space". A function space is described by a \FunctionSpace object.
-The following statement generates the object \var{solution_space} which is 
-a \FunctionSpace object and provides access to the function space of 
+In order to understand what we mean by the term 'function space'
+consider that the solution of a partial differential equation
+\index{partial differential equation} (PDE) is a function on a domain
+$\Omega$.  When solving a PDE using FEM the solution is
+piecewise-differentiable but, in general, its gradient is
+discontinuous.  To reflect these different degrees of smoothness
+different function spaces are used.  For instance, in FEM the
+displacement field is represented by its values at the nodes of the
+mesh, and is then continuous.  The strain, which is the symmetric
+part of the gradient of the displacement field, is stored on the
+element centers, and so is considered to be discontinuous.
+
+A function space is described by a \FunctionSpace object.  The
+following statement generates the object \var{solution_space} which is
+a \FunctionSpace object and provides access to the function space of
 PDE solutions on the \Domain \var{mydomain}:
+
 \begin{python}
-solution_space=Solution(mydomain)
+  solution_space=Solution(mydomain)
 \end{python}
 The following generators for function spaces on a \Domain \var{mydomain} are available: 
 \begin{itemize}
@@ -61,48 +61,51 @@ The following generators for function spaces on a \Domain \var{mydomain} are ava
 \item \var{FunctionOnContact0(mydomain)}: functions on side $0$ of the discontinuity. 
 \item \var{FunctionOnContact1(mydomain)}: functions on side $1$ of the discontinuity.
 \end{itemize}
+
 The reduced smoothness for PDE solution is often used to fulfill the Ladyzhenskaya–-Babuska–-Brezzi condition \cite{LBB} when 
 solving saddle point problems \index{saddle point problems}, eg. the Stokes equation.
 A discontinuity \index{discontinuity} is a region within the domain across which functions may be discontinuous.  
 The location of discontinuity is defined in the \Domain object.
-\fig{ESCRIPT DEP} shows the dependency between the types of function spaces. 
+\fig{ESCRIPT DEP} shows the dependency between the types of function spaces.
+
 The solution of a PDE is a continuous function. Any continuous function can be seen as a general function
 on the domain and can be restricted to the boundary as well as to any side of the 
 discontinuity (the result will be different depending on 
 which side is chosen). Functions on any side of the  
 discontinuity can be seen as a function on the corresponding other side. 
+
 A function on the boundary or on one side of
 the discontinuity cannot be seen as a general function on the domain as there are no values 
 defined for the interior. For most PDE solver libraries
 the space of the solution and continuous functions is identical, however in some cases, eg.
 when periodic boundary conditions are used in \finley, a solution 
 fulfills periodic boundary conditions while a continuous function does not have to be periodic.
-   
+
 The concept of function spaces describes the properties of 
 functions and allows abstraction from the actual representation 
 of the function in the context of a particular application. For instance, 
 in the FEM context a
-function in the \Function function space
-is typically represented by its values at the element center, 
+function of the \Function type
+is usually represented by its values at the element center, 
 but in a finite difference scheme the edge midpoint of cells is preferred. 
-Using the concept of function spaces 
-allows the user to run the same script on different
-PDE solver libraries by just changing the creator of the \Domain object.     
+By changing its function space you can use the same function in a Finite Difference
+scheme instead of Finite Element scheme.
 Changing the function space of a particular function
 will typically lead to a change of its representation. 
 So, when seen as a general function,
 a continuous function which is typically represented by its values
 on the node of the FEM mesh or finite difference grid 
 must be interpolated to the element centers or the cell edges,
-respectively.
+respectively. Interpolation happens automatically in \escript
+whenever it is required.
 
-\Data class objects store functions of the location in a domain. 
+In \escript the class that stores these functions is called \Data.
 The function is represented through its values on \DataSamplePoints where
 the \DataSamplePoints are chosen according to the function space 
 of the function.  
 \Data class objects are used to define the coefficients
 of the PDEs to be solved by a PDE solver library 
-and to store the returned solutions.
+and also to store the solutions of the PDE.
 
 The values of the function have a rank which gives the
 number of indices, and a \Shape defining the range of each index.
@@ -118,7 +121,7 @@ The following statement creates the \Data object
 continuous function with values 
 of \Shape $(2,3)$ and rank $2$:
 \begin{python}
-mydat=Data(value=1,what=ContinuousFunction(myDomain),shape=(2,3))
+  mydat=Data(value=1,what=ContinuousFunction(myDomain),shape=(2,3))
 \end{python}
 The initial value is the constant $1$ for all \DataSamplePoints and
 all components.
@@ -129,8 +132,8 @@ that can be converted into a \numarray.NumArray \Ref{NUMARRAY}.
 The following two statements
 create objects which are equivalent to \var{mydat}:
 \begin{python}
-mydat1=Data(value=numarray.ones((2,3)),what=ContinuousFunction(myDomain))
-mydat2=Data(value=[[1,1],[1,1],[1,1]],what=ContinuousFunction(myDomain))
+  mydat1=Data(value=numarray.ones((2,3)),what=ContinuousFunction(myDomain))
+  mydat2=Data(value=[[1,1],[1,1],[1,1]],what=ContinuousFunction(myDomain))
 \end{python}
 In the first case the initial value is \var{numarray.ones((2,3))}
 which generates a $2 \times 3$ matrix as a \numarray.NumArray 
@@ -157,7 +160,7 @@ Here the initial value is $0$ but any object that can be converted into a \numar
 is consistent with \Shape of the \Data object to be created can be used as the initial value.
 
 \Data objects can be manipulated by applying unitary operations (eg. cos, sin, log) 
-and can be combined by applying binary operations (eg. +, - ,* , /). 
+and can be combined point-wise by applying arithmetic operations (eg. +, - ,* , /). 
 It is to be emphasized that \escript itself does not handle any spatial dependencies as 
 it does not know how values are interpreted by the processing PDE solver library. 
 However \escript invokes interpolation if this is needed during data manipulations. 
@@ -176,12 +179,12 @@ $\lambda$ and $\mu$ are the Lame coefficients. The following function
 takes the displacement {\tt u} and the Lame coefficients
 \var{lam} and \var{mu} as arguments and returns the corresponding stress:
 \begin{python}
-from esys.escript import *
-def getStress(u,lam,mu):
-  d=u.getDomain().getDim()
-  g=grad(u)
-  stress=lam*trace(g)*kronecker(d)+mu*(g+transpose(g))
-  return stress     
+  from esys.escript import *
+  def getStress(u,lam,mu):
+    d=u.getDomain().getDim()
+    g=grad(u)
+    stress=lam*trace(g)*kronecker(d)+mu*(g+transpose(g))
+    return stress     
 \end{python}
 The variable 
 \var{d} gives the spatial dimension of the 
@@ -190,32 +193,31 @@ domain on which the displacements are defined.
 $i$ and $j$ running from $0$ to \var{d}-1. The call \var{grad(u)} requires 
 the displacement field \var{u} to be in the \var{Solution} or \ContinuousFunction
 function space. The result \var{g} as well as the returned stress will be in the \Function function space. 
-If \var{u} is available, eg. by solving a PDE, \var{getStress} might be called
+If, for example, \var{u} is the solution of a PDE then \var{getStress} might be called
 in the following way:
 \begin{python}
-s=getStress(u,1.,2.)
+  s=getStress(u,1.,2.)
 \end{python}
 However \var{getStress} can also be called with \Data objects as values for
 \var{lam} and \var{mu} which,
 for instance in the case of a temperature dependency, are calculated by an expression. 
 The following call is equivalent to the previous example:
 \begin{python}
-lam=Scalar(1.,ContinuousFunction(mydomain))
-mu=Scalar(2.,Function(mydomain))
-s=getStress(u,lam,mu)
+  lam=Scalar(1.,ContinuousFunction(mydomain))
+  mu=Scalar(2.,Function(mydomain))
+  s=getStress(u,lam,mu)
 \end{python}
+
 The function \var{lam} belongs to the \ContinuousFunction function space
 but with \var{g} the function \var{trace(g)} is in the \Function function space.
-Therefore the evaluation of the product \var{lam*trace(g)} in the stress calculation 
-produces a problem, as both functions are represented differently, eg. in FEM
-\var{lam} by its values on the node, and in \var{trace(g)} by its values at the element centers.
-In the case of inconsistent function spaces of arguments in a binary operation, \escript 
-interprets the arguments in the appropriate function space according to the inclusion 
-defined in Table~\ref{ESCRIPT DEP}. In this example that means
- \escript sees \var{lam} as a function of the \Function function space. 
+In the evaluation of the product \var{lam*trace(g)} we have different function
+spaces (on the nodes versus in the centers) and at first glance we have incompatible data.
+\escript converts the arguments in an appropriate function space according to
+Table~\ref{ESCRIPT DEP}. In this example that means
+\escript sees \var{lam} as a function of the \Function function space. 
 In the context of FEM this means the nodal values of 
-\var{lam} are interpolated to the element centers. Behind the scenes
-\escript calls the appropriate function from the PDE solver library.
+\var{lam} are interpolated to the element centers.
+The interpolation is automatic and requires no special handling.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{figures/EscriptDiagram2.eps}
@@ -225,7 +227,8 @@ The number in each cell refers to the major rock type present in the cell ($1$ f
 \end{figure}
 
 Material parameters such as the Lame coefficients are typically dependent on rock types present in the 
-area of interest. A common technique to handle these kinds of material parameters is "tagging". \fig{Figure: tag}
+area of interest. A common technique to handle these kinds of material parameters is "tagging", which
+uses storage efficiently. \fig{Figure: tag}
 shows an example. In this case two rock types {\it white} and {\it gray} can be found in the domain. The domain
 is subdivided into triangular shaped cells. Each 
 cell has a tag indicating the rock type predominately found in this cell. Here $1$ is used to indicate
@@ -237,52 +240,58 @@ The following statements show how for the
 example of \fig{Figure: tag} and the stress calculation discussed before tagged values are used for
 \var{lam}:
 \begin{python}
-lam=Scalar(value=2.,what=Function(mydomain))
-insertTaggedValue(lam,white=30.,gray=5000.)
-s=getStress(u,lam,2.)
+  lam=Scalar(value=2.,what=Function(mydomain))
+  insertTaggedValue(lam,white=30.,gray=5000.)
+  s=getStress(u,lam,2.)
 \end{python}
 In this example \var{lam} is set to $30$ for those cells with tag {\it white} (=$1$) and to $5000.$ for those cells 
 with tag {\it gray} (=$2$_. The initial value $2$ of \var{lam} is used as a default value for the case when a tag
-is encountered which has not been linked with a value. Note that the \var{getStress} method
-is called without modification. \escript resolves the tags when \var{lam*trace(g)} is calculated.
+is encountered which has not been linked with a value. The \var{getStress} method
+does not need to be changed now that we are using tags.
+\escript resolves the tags when \var{lam*trace(g)} is calculated.
 
-The \Data class provides a transparent interface to various data representations and the 
-translations between them. As shown in the example of stress calculation, this allows the user to
-develop and test algorithms for a simple case (for instance with the Lame coefficients as constants)
-and then without further modifications of the program code to apply the algorithm in a
-more complex application (for instance a definition of the Lame coefficients using tags). 
-As described here, there are three ways in which \Data objects are represented internally, constant, 
-tagged, and expanded (other representations will become available in later versions of \escript):
-In the constant case, if the same value is used at each sample point a single value is stored to save memory and compute time. 
-Any operation on this constant data will only be performed on the single value. 
-In the expanded case, each sample point has an individual value, eg. the solution of a PDE,
-and the values are stored as a complete array. The tagged case has already been discussed above.
+This brings us to a very important point about \escript.
+You can develop a simulation with constant Lame coefficients, and then later switch to tagged
+Lame coefficients without otherwise changing your python script.
+In short, you can use the same script to model with different domains and different types of input data.
+
+There are three ways in which \Data objects are represented internally: constant, tagged, and expanded.
+In the constant case, the same value is used at each sample point and only a single value is stored to save memory. 
+In the expanded case, each sample point has an individual value (such as for the solution of a PDE).
+This is where your largest data sets will be created because the values are stored as a complete array.
+The tagged case has already been discussed above.
+
+Expanded data is created when you create a \Data object with expanded=True.
+Tagged data sets are created when you use the insertTaggedValue() method as shown above.
  
 Values are accessed through a sample reference number. Operations on expanded \Data
-objects have to be performed for each sample point individually. If tagged values are used values are
+objects have to be performed for each sample point individually. When tagged values are used the values are
 held in a dictionary. Operations on tagged data require processing the set of tagged values only, rather than 
 processing the value for each individual sample point. 
-\escript allows use of constant, tagged and expanded data in a single expression.
+\escript allows any mixture of constant, tagged and expanded data in a single expression.
 
-The \var{dump} method provides a possibility to save \Data objects to a file, for instance to restart a simulation
-or to save data for visualization. The file format uses \netCDF which commonly is using the file extension
-{\tt nc}. For instance to save the coordinates of the data points of the \FunctionSpace
-\ContinuousFunction to the file {\tt x.nc} one uses:
+\Data objects can be written to disk files and read with \var{dump} and \var{load}, both of which use \netCDF.
+Use these to save data for visualization, checkpoint/restart or simply to save and reuse data that was expensive to compute.
+
+For instance to save the coordinates of the data points of the \FunctionSpace
+\ContinuousFunction to the file {\tt x.nc} use
 \begin{python}
-x=ContinuousFunction(mydomain).getX()
-x.dump("x.nc")
+  x=ContinuousFunction(mydomain).getX()
+  x.dump("x.nc")
 \end{python}
-In order to keep the dump files small {\tt x.nc} does not contain a representation of the \Domain. It has to be saved using 
-appropriate methods of \var{mydomain} to be loaded before \var{x}. Alternatively, the \Domain can be reconstructed. 
-To recover the object \var{x} one uses
+To recover the object \var{x} use
 \begin{python}
-x=load("x.nc", mydomain)
+  x=load("x.nc", mydomain)
 \end{python}
-The \Data object represented by {\tt x.nc} is tight to a \FunctionSpace - in this case \ContinuousFunction - but not 
-o a \Domain. That means that \Data objects that are constant or tagged can be recovered with any \Domain. If the \Data object
+The dump file {\tt x.nc} does not contain a representation of the \Domain, even though it is required to recreate \var{x}.
+It's common to simply recreate the \Domain before reading a \Data, or you may read and write your \Domain in a separate file with
+\var{domain=ReadMesh(fileName)} and \var{domain.write(fileName)}.
+
+The function space of the \Data is stored in {\tt x.nc}, though.
+That means that \Data objects that are constant or tagged can be recovered with a different \Domain. If the \Data object
 is expanded, the number of data points in the file and of the \Domain for the particular \FunctionSpace must match. 
-Moreover, the ordering of the value is checked using the reference identifiers provided by 
-\FunctionSpace on the \Domain. In some cases, data points will be reordered.
+Moreover, the ordering of the values is checked using the reference identifiers provided by 
+\FunctionSpace on the \Domain. In some cases, data points will be re-ordered. Take care to be sure you get what you want!
 
 
 \section{\escript Classes}
@@ -447,26 +456,26 @@ for the solution approximation.
 \subsection{\Data Class}
 \label{SEC ESCRIPT DATA}
 
-The following table shows binary and unitary operations that can be applied to
-\Data objects:
+The following table shows arithmetic operations that can be performed point-wise on
+\Data objects.
 \begin{tableii}{l|l}{textrm}{expression}{Description}
-\lineii{+\var{arg0}} {just \var{arg} \index{+}}
-\lineii{-\var{arg0}} {swapping the sign\index{-}}
+\lineii{+\var{arg0}} {identical to \var{arg} \index{+}}
+\lineii{-\var{arg0}} {negation\index{-}}
 \lineii{\var{arg0}+\var{arg1}} {adds \var{arg0} and \var{arg1} \index{+}}
 \lineii{\var{arg0}*\var{arg1}} {multiplies \var{arg0} and \var{arg1} \index{*}}
 \lineii{\var{arg0}-\var{arg1}} {difference \var{arg1} from\var{arg1} \index{-}}
-\lineii{\var{arg0}/\var{arg1}} {ratio \var{arg0} by \var{arg1} \index{/}}
+\lineii{\var{arg0}/\var{arg1}} {divide \var{arg0} by \var{arg1} \index{/}}
 \lineii{\var{arg0}**\var{arg1}} {raises \var{arg0} to the power of \var{arg1} \index{**}}
 \end{tableii}
 At least one of the arguments \var{arg0} or \var{arg1} must be a
-\Data object. One of the arguments may be an object that can be
-converted into a \Data object. If \var{arg0} or \var{arg1} are
-defined on different \FunctionSpace an attempt is made to embed \var{arg0}
-into the \FunctionSpace of \var{arg1} or to embed \var{arg1} into
+\Data object.
+Either of the arguments may be a \Data object, a python number or a numarray object.
+
+If \var{arg0} or \var{arg1} are
+defined on different \FunctionSpace an attempt is made to convert \var{arg0}
+to the \FunctionSpace of \var{arg1} or to convert \var{arg1} to
 the \FunctionSpace of \var{arg0}. Both arguments must have the same
-\Shape or one of the arguments may be of rank 0. In the
-latter case it is assumed that the particular argument is of the same
-\Shape as the other argument but constant over all components.
+\Shape or one of the arguments may be of rank 0 (a constant).
 
 The returned \Data object has the same \Shape and is defined on
 the \DataSamplePoints as \var{arg0} or \var{arg1}.
@@ -489,11 +498,9 @@ components. \var{arg1} must be defined in the same \FunctionSpace as
 \var{arg0} or it must be possible to interpolate \var{arg1} onto the
 \FunctionSpace of \var{arg1}.
 
-The \Data class supports getting slices as well as assigning new values to components in an existing
+The \Data class supports taking slices from a \Data object as well as assigning new values to a slice of an existing
 \Data object. \index{slicing}
-The following expression for getting (expression on the right hand side of the
-equal sign) and setting slices (expression on the left hand side of the
-equal sign) are valid:
+The following expressions for taking and setting slices are valid:
 \begin{tableiii}{l|ll}{textrm}{rank of \var{arg}}{slicing expression}{\Shape of returned and assigned object}
 \lineiii{0}{ no slicing }                      {-}
 \lineiii{1}{\var{arg[l0:u0]}}                   {(\var{u0}-\var{l0},)}
@@ -512,13 +519,13 @@ Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may not be pr
 \var{s} is assumed. The lower and upper index may be identical, in which case the column and the lower or upper
 index may be dropped. In the returned or in the object assigned to a slice the corresponding component is dropped,
 i.e. the rank is reduced by one in comparison to \var{arg}.
-The following examples show slicing usage:  
+The following examples show slicing in action:
 \begin{python}
-t=Data(1.,(4,4,6,6),Function(mydomain))
-t[1,1,1,0]=9.
-s=t[:2,:,2:6,5] # s has rank 3
-s[:,:,1]=1.
-t[:2,:2,5,5]=s[2:4,1,:2]
+  t=Data(1.,(4,4,6,6),Function(mydomain))
+  t[1,1,1,0]=9.
+  s=t[:2,:,2:6,5] # s has rank 3
+  s[:,:,1]=1.
+  t[:2,:2,5,5]=s[2:4,1,:2]
 \end{python}
 
 \subsection{Generation of \Data class objects}
@@ -531,10 +538,10 @@ the \Data object is represented in expanded from.
 \begin{classdesc}{Data}{value,what=FunctionSpace(),expand=\False}
 creates a \Data object in the \FunctionSpace \var{what}. 
 The value for each \DataSamplePoints is set to \numarray, \Data object \var{value} or a dictionary of 
-\numarray or floating point numbers. In the latter case the keys muts be integers and are used
+\numarray or floating point numbers. In the latter case the keys must be integers and are used
 as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}. If \var{expanded} is \True
-the \Data object is represented in expanded from.
+the \Data object is represented in expanded form.
 \end{classdesc}
 
 \begin{classdesc}{Data}{}
@@ -543,46 +550,46 @@ where a \Data object is required.
 \end{classdesc}
 
 \begin{funcdesc}{Scalar}{value=0.,what=escript::FunctionSpace(),expand=\False}
-returns a \Data object of rank 0 in the \FunctionSpace \var{what}.
-Values are initialed with the double \var{value}. If \var{expanded} is \True
+returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
+Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
 \begin{funcdesc}{Vector}{value=0.,what=escript::FunctionSpace(),expand=\False}
 returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what} 
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialed with the double \var{value}. If \var{expanded} is \True
+Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
 \begin{funcdesc}{Tensor}{value=0.,what=escript::FunctionSpace(),expand=\False}
 returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what} 
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialed with the double \var{value}. If \var{expanded} is \True
+Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
 \begin{funcdesc}{Tensor3}{value=0.,what=escript::FunctionSpace(),expand=\False}
 returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what} 
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialed with the double \var{value}. If \var{expanded} is \True
+Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is re\var{arg}presented in expanded from.
 \end{funcdesc}
 
 \begin{funcdesc}{Tensor4}{value=0.,what=escript::FunctionSpace(),expand=\False}
 returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what} 
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
-Values are initialed with the double \var{value}. If \var{expanded} is \True
+Values are initialed with \var{value}, a double precision quantity. If \var{expanded} is \True
 the \Data object is represented in expanded from.
 \end{funcdesc}
 
 \begin{funcdesc}{load}{filename,domain}
-recovers a \Data object on \Domain \var{domain} from the dump file \var{filename}.
+recovers a \Data object on \Domain \var{domain} from the file \var{filename}, which was created by \var{dump}.
 \end{funcdesc}
 
 \subsection{\Data class methods}
-This is a list of frequently used methods of the 
-\Data class. A complete list can be fond on \ReferenceGuide.
+These are the most frequently-used methods of the 
+\Data class. A complete list of methods can be found on \ReferenceGuide.
 \begin{methoddesc}[Data]{getFunctionSpace}{}
 returns the \FunctionSpace of the object.
 \end{methoddesc}
@@ -635,7 +642,7 @@ A complete list and a more detailed description of the functionality can be fond
 writes \Data defined by keywords in the file with \var{filename} using the 
 vtk file format \VTK file format. The key word is used as an identifier. The statement
 \begin{python}
-saveVTK("out.xml",temperature=T,velocity=v)
+  saveVTK("out.xml",temperature=T,velocity=v)
 \end{python} 
 will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the 
 file \file{out.xml}. Restrictions on the allowed combinations of \FunctionSpace apply.
@@ -644,7 +651,7 @@ file \file{out.xml}. Restrictions on the allowed combinations of \FunctionSpace 
 writes \Data defined by keywords in the file with \var{filename} using the 
 vtk file format \OpenDX file format. The key word is used as an identifier. The statement
 \begin{python}
-saveDX("out.dx",temperature=T,velocity=v)
+  saveDX("out.dx",temperature=T,velocity=v)
 \end{python} 
 will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the 
 file \file{out.dx}. Restrictions on the allowed combinations of \FunctionSpace apply.

@@ -19,25 +19,25 @@
 
 Visit \url{http://iservo.edu.au/twiki/bin/view/ESSCC/EsysUser} for more information.
 
-\section{Software needed for installation}
+\section{Software Needed for Installation}
 
 \begin{itemize}
-   \item scons  0.96.91 or newer (see \url{http://www.scons.org/}
-   \item python  2.3.4 or higher (see \url{http://www.python.org/}
-   \item numarray  0.9 or higher (see \url{http://www.stsci.edu/resources/software_hardware/numarray}
-   \item python boost boost  1.31.0 or higher (build system defaults to boost 1.33.0) (see \url{http://www.boost.org/}
+   \item scons  0.96.91 or newer (see \url{http://www.scons.org/})
+   \item python  2.3.4 or higher (see \url{http://www.python.org/})
+   \item numarray  0.9 or higher (see \url{http://www.stsci.edu/resources/software_hardware/numarray})
+   \item python boost boost  1.31.0 or higher (see \url{http://www.boost.org/})
    \item g++ (see \url{http://gcc.gnu.org/}) or Intel c++  compiler (see \\
 \url{http://www.intel.com/cd/software/products/asmo-na/eng/compilers/}).
 \end{itemize}
 
-\subsection{optional Libraries}
+\subsection{Optional Libraries}
 These libraries are optional at compile time. By default, thay are switched off.
 \begin{itemize}
    \item parallel direct solver from the SGI SCSL library (see \url{http://www.sgi.com/products/software/scsl.html})
    \item parallel direct solver from Intel MKL library which is included with the Intel compilers (see \url{http://www.intel.com/cd/software/products/asmo-na/eng/perflib/mkl/}).
 \end{itemize}
 
-\subsection{optional Software}
+\subsection{Optional Software}
 
 \begin{itemize}
    \item visualization with our pyvisi interface to VTK:
@@ -54,13 +54,13 @@ These libraries are optional at compile time. By default, thay are switched off.
 \end{itemize}
 \end{itemize}
 
-\section{Get the source code}
+\section{Get the Source Code}
 
 You can download the complete source code, examples and release tests from \url{https://shake200.esscc.uq.edu.au/twiki/bin/view/ESSCC/EsysUser}.
 Files can be downloaded as *.zip or *.tar.gz files. 
-This software is distributed under the Open Software License version 3.0 (see \url{http://www.opensource.org/licenses/osl-3.0.php}.
+This software is distributed under the Open Software License version 3.0 (see \url{http://www.opensource.org/licenses/osl-3.0.php}).
 
-\subsection{Unpack zip file}
+\subsection{Unpack zip File}
 Use the commands
 
 \begin{verbatim}
@@ -72,7 +72,7 @@ Use the commands
 
 to unzip the source files into the directory  \verb|<my esys dir>|.
 
-\subsection{Unpack tar file}
+\subsection{Unpack tar File}
   
 Use the commands
 
@@ -97,12 +97,12 @@ By default the configuration for Linux is used. If there is a file \verb|scons/<
   cd <my esys dir>
   scons dodebug=no options_file=myoptions.py
 \end{verbatim}
-You can also over-ride individual setting through the command line:
+You can also over-ride individual settings through the command line:
 \begin{verbatim}
    cd <my esys dir>
   scons dodebug=no libinstall=/usr/lib
 \end{verbatim}
-will install the libraries into the directory \verb|/usr/lib|. 
+This will install the libraries into the directory \verb|/usr/lib|. 
 
 Help on options is available with:
 \begin{verbatim}
@@ -127,7 +127,7 @@ You can run the test suite of approximately 30,000 unit tests in a few hours wit
    scons dodebug=no all_tests
 \end{verbatim}
 
-\section{Environment setup}
+\section{Environment Setup}
 To make esys accessible from python you have to set
 \begin{verbatim}
 export PYTHONPATH=<my esys dir>:${PYTHONPATH}
@@ -149,7 +149,7 @@ cd <my esys dir>/doc/examples
 python poisson.py
 \end{verbatim}
 
-\subsection{OpenMP support}
+\subsection{OpenMP Support}
 
 If your system and compiler support OpenMP parallelization and OpenMP parallelization has been switched on during compilation you need to set the following environment variable to run scripts in parallel (in this case with four threads):
 \begin{verbatim}
@@ -158,11 +158,13 @@ cd <my esys dir>/doc/examples
 python poisson.py
 \end{verbatim}
 
-If you with to use MPI parallelization, which has been switched on during compilation with useMPI=yes, you need to use the following commands to run scripts in parallel (in this case with four CPUs):
+\subsection{MPI Support}
+
+If you wish to use MPI parallelization, and it has been switched on during compilation with useMPI=yes, you need to use the following commands to run scripts in parallel (in this case with four CPUs):
 \begin{verbatim}
 cd <my esys dir>/doc/examples
 mpirun -np 4 <my esys dir>/lib/pythonMPI poisson.py
 \end{verbatim}
 
-\section{Getting help}
+\section{Getting Help}
 Please direct any questions you might have to \url{mailto:esys@esscc.uq.edu.au}.
