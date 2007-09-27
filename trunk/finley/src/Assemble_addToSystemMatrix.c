@@ -90,7 +90,7 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
                   irow=j_Equa*row_block_size+l_row;
                   for (l_col=0;l_col<col_block_size;++l_col) {
                      icol=j_Sol*col_block_size+index_offset+l_col;
-		     // irow is local and icol is global
+		     /* irow is local and icol is global */
 		     Trilinos_SumIntoMyValues(in->trilinos_data, irow, icol, array[INDEX4(l_row,l_col,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)]);
 	          }
                 }
