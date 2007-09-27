@@ -1,17 +1,15 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /*
    Crude modifications and translations for Paso by Matt Davies and Lutz Gross
@@ -80,6 +78,7 @@ err_t Paso_Solver_BiCGStab(
     double * x,
     dim_t *iter,
     double * tolerance,
+    double *buffer0, double *buffer1,
     Paso_Performance* pp) {
 
 
@@ -92,18 +91,20 @@ err_t Paso_Solver_BiCGStab(
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;
   double *resid = tolerance;
-  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
+  /* adapt original routine parameters */
+  dim_t l = A->maxNumCols * A-> col_block_size;;
+  dim_t n = A->myNumCols * A-> col_block_size;;
 
   /* Executable Statements */
 
   /*     allocate memory: */
-  rtld=TMPMEMALLOC(n,double);
-  p=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  t=TMPMEMALLOC(n,double);
-  phat=TMPMEMALLOC(n,double);
-  shat=TMPMEMALLOC(n,double);
-  s=TMPMEMALLOC(n,double);
+  rtld=TMPMEMALLOC(l,double);
+  p=TMPMEMALLOC(l,double);
+  v=TMPMEMALLOC(l,double);
+  t=TMPMEMALLOC(l,double);
+  phat=TMPMEMALLOC(l,double);
+  shat=TMPMEMALLOC(l,double);
+  s=TMPMEMALLOC(l,double);
   /*     Test the input parameters. */
 
   if (n < 0) {
@@ -172,7 +173,7 @@ err_t Paso_Solver_BiCGStab(
 	/*        Compute direction adjusting vector PHAT and scalar ALPHA. */
    
         Paso_Solver_solvePreconditioner(A,&phat[0], &p[0]);
-	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &phat[0],ZERO, &v[0]);
+	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &phat[0],ZERO, &v[0], buffer0, buffer1);
    
         #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
 	for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
@@ -196,7 +197,7 @@ err_t Paso_Solver_BiCGStab(
 	   } else {
 	     /*           Compute stabilizer vector SHAT and scalar OMEGA. */
              Paso_Solver_solvePreconditioner(A,&shat[0], &s[0]);
-	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &shat[0],ZERO,&t[0]);
+	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &shat[0],ZERO,&t[0], buffer0, buffer1);
    
              #pragma omp for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
 	     for (i0 = 0; i0 < n; i0++) {
@@ -250,3 +251,15 @@ err_t Paso_Solver_BiCGStab(
   /*     End of BICGSTAB */
   return status;
 }
+/*
+ * $Log$
+ * Revision 1.2  2005/09/15 03:44:40  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.1.2.1  2005/09/05 06:29:49  gross
+ * These files have been extracted from finley to define a stand alone libray for iterative
+ * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
+ * has not been tested yet.
+ *
+ *
+ */

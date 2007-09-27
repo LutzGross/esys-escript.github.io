@@ -1,22 +1,6 @@
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+@author: John NGUI
 """
-
-__author__="John Ngui, john.ngui@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision$"
-__date__="$Date$"
-
 
 import vtk
 
@@ -28,13 +12,12 @@ class Transform:
 	followed by translation, and performing translation first followed 
 	by rotation.
 
-	@attention: VTK's coordinate system and translation is NOT 100% precise. 
+	@attention: VTK's coordinate system and translation is NOT 100% accurate. 
 	Consequently, performing maximum rotation and translation can potentially
 	yield incorrect results. For instance, rotating a XY plane along the x-axis 
 	90 degrees may NOT produce any results (as it is possible that the XY 
-	plane has just fallen outside the visible range). Therefore, rotating the 
-	XY plane 89.9 degrees instead, should be a better option in order to 
-	produce the correct results.
+	plane has just fallen outside the visible range). However, rotating the 
+	XY plane 89.9 degrees instead should produce the correct resutls.
 	"""
 
 	def __init__(self):
@@ -42,7 +25,7 @@ class Transform:
 		Initialise the transform object.
 		"""
 
-		# NOTE: VTK's coordinates are not 100% precise. The origin is not 
+		# NOTE: VTK's coordinates are not 100% accurate. The origin is not 
 		# exaclty (0,0,0) and the normal is not exactly (0, 0, 1). There is a 
 		# slight variance. As a result, a slight alteration has to be done 
 		# in order for the plane to be displayed correctly. Otherwise, the 
@@ -84,6 +67,7 @@ class Transform:
 		"""
 
 		self.__vtk_transform.RotateY(angle)
+				
 
 	def rotateZ(self, angle):
 		"""
@@ -150,16 +134,9 @@ class TransformFilter:
 	Class that defines a transform poly data filter.
 	"""
 
-	def __init__(self):
+	def __init__(self, plane_source, transform):
 		"""
 		Initialise the transoform poly data filter.
-		"""
-
-		self.__vtk_transform_filter = vtk.vtkTransformPolyDataFilter()
-
-	def _setupTransformFilter(self, plane_source, transform):
-		"""
-		Setup the transform filter.
 
 		@type plane_source: vtkPolyData
 		@param plane_source: Polygonal data
@@ -170,29 +147,34 @@ class TransformFilter:
 		self.__plane_source = plane_source
 		self.__transform = transform
 
-		self.__setInput()
-		self.__setTransform()
+		self.__vtk_transform_filter = vtk.vtkTransformPolyDataFilter()
 
-	def __setInput(self):
+		self._setInput()
+		self._setTransform()
+
+	def _setInput(self):
 		"""
 		Set the input for the transform poly data filter.
 		"""
 
 		self.__vtk_transform_filter.SetInput(self.__plane_source)
 
-	def __setTransform(self):
+	def _setTransform(self):
 		"""
 		Set the transformation of the plane source.
 		"""
 
 		self.__vtk_transform_filter.SetTransform(self.__transform)
 
-	def _getTransformFilterOutput(self):
+	def _getOutput(self):
 		"""
 		Return the output of the transform poly data filter.
 		"""
 
 		return self.__vtk_transform_filter.GetOutput()
+
+
+
 
 
 

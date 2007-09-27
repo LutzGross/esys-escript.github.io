@@ -1,19 +1,4 @@
-#
 # $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
-
 
 __copyright__="""  Copyright (c) 2006 by ACcESS MNRF
                     http://www.access.edu.au
@@ -112,12 +97,12 @@ class RectangularDomain(ParameterSet):
            if self.__domain==None:
               if self.dim==2:
                    self.__domain=finley.Rectangle(n0=self.n[0],\
-                                                n1=self.n[2],\
+                                                n1=self.n[1],\
                                                 l0=self.l[0],\
-                                                l1=self.l[2],\
+                                                l1=self.l[1],\
                                                 order=self.order, \
                                                 periodic0=self.periodic[0], \
-                                                periodic1=self.periodic[2], \
+                                                periodic1=self.periodic[1], \
                                                 integrationOrder=self.integrationOrder)
               else:
                    self.__domain=finley.Brick(n0=self.n[0],\
@@ -359,12 +344,12 @@ class VectorConstrainerOverBox(Model):
            super(VectorConstrainerOverBox, self).__init__(**kwargs)
            self.declareParameter(domain=None, \
                                  value=None,  \
-                                 left=[False ,False ,False ],  \
-                                 right=[False ,False ,False ],  \
-                                 top=[False ,False ,False ],  \
-                                 bottom=[False ,False ,False ],  \
-                                 front=[False ,False ,False ], \
-                                 back=[False ,False ,False ], \
+                                 left=[0,0,0],  \
+                                 right=[0,0,0],  \
+                                 top=[0,0,0],  \
+                                 bottom=[0,0,0],  \
+                                 front=[0,0,0], \
+                                 back=[0,0,0], \
                                  tol=1.e-8)
            self.__value_of_constraint = None
            self.__location_of_constraint=None
@@ -438,171 +423,4 @@ class VectorConstrainerOverBox(Model):
              if not self.value == None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value[:2]
 
-class ConstrainerAtBoxVertex(Model):
-      """
-      Creates a characteristic function for the location of constraints 
-      for all components of a value and selects the value from an initial value 
-      ate these locations.
-
-      In the case that the spatial dimension is two, the arguments front and back are ignored.
-
-      @ivar domain: domain (in).
-      @ivar tol: absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
-      """
-      def __init__(self,**kwargs):
-           super(ConstrainerAtBoxVertex, self).__init__(**kwargs)
-           self.declareParameter(domain=None, \
-                                 value=None,  \
-                                 tol=1.e-8)
-           self.__value_of_constraint = None
-           self.__location_of_constraint=None
-      def location_of_constraint(self):
-          """
-          return the values used to constrain a solution
-
-          @return: the mask marking the locations of the constraints
-          @rtype: L{escript.Scalar}
-          """
-          if self.__location_of_constraint == None: self.__setOutput()
-          return self.__location_of_constraint
-         
-      def value_of_constraint(self):
-          """
-          return the values used to constrain a solution
-
-          @return: values to be used at the locations of the constraints. If 
-                  L{value} is not given C{None} is rerturned.
-          @rtype: L{escript.Scalar}
-          """
-          if self.__location_of_constraint == None: self.__setOutput()
-          return self.__value_of_constraint
-         
-      def __setOutput(self):
-          if self.__location_of_constraint == None:
-             x=self.domain.getX()
-             val=self.value
-             if isinstance(val, int) or isinstance(val, float):
-                shape=()
-             elif isinstance(val, list) or isinstance(val, tuple) :
-                shape=(len(val),)
-             elif isinstance(val, numarray.NumArray):
-                 shape=val.shape
-             elif val == None:
-                  shape=()
-             else: 
-                 shape=val.getShape()
-             if self.domain.getDim()==3:
-                   vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
-             else:
-                   vertex=[inf(x[0]),inf(x[1])]
-             self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numarray.ones(shape)
-             if not self.value == None:
-                   self.__value_of_constraint=self.__location_of_constraint*self.value
-class ScalarConstrainerAtBoxVertex(Model):
-      """
-      Creates a characteristic function for the location of constraints 
-      for a scalar value and selects the value from an initial value 
-      ate these locations.
-
-      In the case that the spatial dimension is two, the arguments front and back are ignored.
-
-      @ivar domain: domain (in).
-      @ivar tol: absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
-      """
-      def __init__(self,**kwargs):
-           super(ScalarConstrainerAtBoxVertex, self).__init__(**kwargs)
-           self.declareParameter(domain=None, \
-                                 value=None,  \
-                                 tol=1.e-8)
-           self.__value_of_constraint = None
-           self.__location_of_constraint=None
-      def location_of_constraint(self):
-          """
-          return the values used to constrain a solution
-
-          @return: the mask marking the locations of the constraints
-          @rtype: L{escript.Scalar}
-          """
-          if self.__location_of_constraint == None: self.__setOutput()
-          return self.__location_of_constraint
-         
-      def value_of_constraint(self):
-          """
-          return the values used to constrain a solution
-
-          @return: values to be used at the locations of the constraints. If 
-                  L{value} is not given C{None} is rerturned.
-          @rtype: L{escript.Scalar}
-          """
-          if self.__location_of_constraint == None: self.__setOutput()
-          return self.__value_of_constraint
-         
-      def __setOutput(self):
-          x=self.domain.getX()
-          self.__location_of_constraint=Scalar(0,x.getFunctionSpace())
-          if self.domain.getDim()==3:
-                   vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
-          else:
-                 vertex=[inf(x[0]),inf(x[1])]
-          self.__location_of_constraint=whereZero(length(x-vertex),self.tol)
-          if not self.value == None:
-              self.__value_of_constraint=self.__location_of_constraint*self.value
-
-class VectorConstrainerAtBoxVertex(Model):
-      """
-      Creates a characteristic function for the location of constraints vector value.
-      In the case that the spatial dimension is two, the arguments front and
-      back as well as the third component of each argument is ignored.
-
-      @ivar domain: domain
-      @ivar comp_mask: list of three boolean. comp_mask[i]==True sets a constraint for the i-th component at the left, front, bottom vertex, default [False,False,False] (in).
-      @ivar tol: absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
-      """
-      def __init__(self, **kwargs):
-           super(VectorConstrainerAtBoxVertex, self).__init__(**kwargs)
-           self.declareParameter(domain=None, \
-                                 value=None,  \
-                                 comp_mask=[False, False, False], 
-                                 tol=1.e-8)
-           self.__value_of_constraint = None
-           self.__location_of_constraint=None
-
-      def location_of_constraint(self):
-          """
-          return the values used to constrain a solution
-
-          @return: the mask marking the locations of the constraints
-          @rtype: L{escript.Vector}
-          """
-          if self.__location_of_constraint == None: self.__setOutput()
-          return self.__location_of_constraint
-         
-      def value_of_constraint(self):
-          """
-          return the values used to constrain a solution
-
-          @return: values to be used at the locations of the constraints. If 
-                  L{value} is not given C{None} is rerturned.
-          @rtype: L{escript.Vector}
-          """
-          if self.__location_of_constraint == None: self.__setOutput()
-          return self.__value_of_constraint
-         
-      def __setOutput(self):
-          x=self.domain.getX()
-          self.__location_of_constraint=Vector(0,x.getFunctionSpace())
-          if self.domain.getDim()==3:
-             vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
-             msk=numarray.zeros((3,))
-             if self.comp_mask[0]: msk[0]=1
-             if self.comp_mask[1]: msk[1]=1
-             if self.comp_mask[2]: msk[2]=1
-          else:
-             vertex=[inf(x[0]),inf(x[1])]
-             msk=numarray.zeros((2,))
-             if self.comp_mask[0]: msk[0]=1
-             if self.comp_mask[1]: msk[1]=1
-          self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numarray.ones(shape)
-          if not self.value == None:
-                self.__value_of_constraint=self.__location_of_constraint*self.value
-
+# vim: expandtab shiftwidth=4:

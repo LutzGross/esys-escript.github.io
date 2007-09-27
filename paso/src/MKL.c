@@ -1,17 +1,15 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
@@ -40,7 +38,7 @@ void Paso_MKL_free(Paso_SystemMatrix* A) {
       if (A->solver!=NULL) {
            _INTEGER_t mtype = MKL_MTYPE_UNSYM;
            if (A->type & MATRIX_FORMAT_SYM) mtype=MKL_MTYPE_SYM;
-          _INTEGER_t n = A->mainBlock->numRows;
+          _INTEGER_t n = A->numRows;
           _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
           _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
           _INTEGER_t msglvl=0; /* message level */
@@ -53,7 +51,7 @@ void Paso_MKL_free(Paso_SystemMatrix* A) {
 
           _INTEGER_t phase = MKL_PHASE_RELEASE_MEMORY;
           PARDISO ((_MKL_DSS_HANDLE_t *)(A->solver), &maxfct, &mnum, &mtype, &phase,
-                   &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
+                   &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                    iparm, &msglvl,&ddum, &ddum, &error);
           MEMFREE(A->solver);
           if (error != MKL_ERROR_NO) Paso_setError(TYPE_ERROR,"memory release in paradiso library failed.");
@@ -78,7 +76,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
      Performance_startMonitor(pp,PERFORMANCE_ALL);
      _INTEGER_t mtype = MKL_MTYPE_UNSYM;
      if (A->type & MATRIX_FORMAT_SYM) mtype=MKL_MTYPE_SYM;
-     _INTEGER_t n = A->mainBlock->numRows;
+     _INTEGER_t n = A->numRows;
      _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
      _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
      _INTEGER_t msglvl=0; /* message level */
@@ -124,7 +122,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
         /* symbolic factorization */
         phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
         PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-                 &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
+                 &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
              Paso_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
@@ -133,7 +131,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
            /* LDU factorization */
            phase = MKL_PHASE_FACTORIZATION;
            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
-                &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
+                &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                 iparm, &msglvl, in, out, &error);
            if (error != MKL_ERROR_NO) {
              Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
@@ -147,7 +145,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
         time0=Paso_timer();
         phase = MKL_PHASE_SOLVE;
         PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-                 &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
+                 &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);
         if (options->verbose) printf("timing MKL: solve: %.4e sec\n",Paso_timer()-time0);
         if (error != MKL_ERROR_NO) {

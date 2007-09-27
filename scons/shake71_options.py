@@ -21,10 +21,9 @@
 # mkl_lib_path ='/opt/intel/mkl80.019/lib/64'
 # mkl_libs = ['mkl_solver', 'mkl_lapack', 'mkl_ipf']
 
-mpi_path = '/home/Work/mpich2-1.0.5p4/include'
-mpi_lib_path = '/home/Work/mpich2-1.0.5p4/lib'
-mpi_libs = ['mpich', 'rt']
-mpi_run = 'mpirun -np 1'
+mpi_path = '/home/Work/mpich-1.2.7p1/include'
+mpi_lib_path = '/home/Work/mpich-1.2.7p1/lib'
+mpi_libs = ['mpi']
 
 # locations of libs etc used by SCSL
 # scsl_path = '/usr/include'
@@ -44,14 +43,14 @@ mpi_run = 'mpirun -np 1'
 # boost_lib = 'boost_python-mt'
 
 # locations of doc building executables
-doxygen_path = '/usr/bin'
-epydoc_path = '/usr/bin'
+doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
+epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
+epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
 
 # locations of netcdf
-useNetCDF="yes"
 netCDF_path = "/home/Work/netcdf-3.6.1/include"
 netCDF_lib_path = "/home/Work/netcdf-3.6.1/lib"
-netCDF_libs = [ 'netcdf_c++', 'netcdf']
+netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
 # papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'

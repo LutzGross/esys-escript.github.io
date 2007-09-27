@@ -1,18 +1,16 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
-
+// $Id$
+/* 
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
+                                                                           
 #if !defined finley_MeshAdapter_20040526_H
 #define finley_MeshAdapter_20040526_H
 #include "system_dep.h"
@@ -93,7 +91,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
      Description:
      Constructor for MeshAdapter. The pointer passed to MeshAdapter
-     is deleted using a call to Finley_Mesh_free in the
+     is deleted using a call to Finley_Mesh_deallocate in the
      MeshAdapter destructor.
 
      Throws:
@@ -102,7 +100,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param finleyMesh Input - A pointer to the externally constructed 
                                finley mesh.The pointer passed to MeshAdapter
                                is deleted using a call to 
-                               Finley_Mesh_free in the MeshAdapter 
+                               Finley_Mesh_deallocate in the MeshAdapter 
                                destructor.
   */
   FINLEY_DLL_API
@@ -118,25 +116,11 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   /**
      \brief
      Destructor for MeshAdapter. As specified in the constructor
-     this calls Finley_Mesh_free for the pointer given to the 
+     this calls Finley_Mesh_deallocate for the pointer given to the 
      constructor.
   */
   FINLEY_DLL_API
   ~MeshAdapter();
-
-  /**
-     \brief
-     return the number of processors used for this domain
-  */
-  FINLEY_DLL_API
-  virtual int getMPISize() const;
-  /**
-     \brief
-     return the number MPI rank of this processor
-  */
-
-  FINLEY_DLL_API
-  virtual int getMPIRank() const;
 
   /**
      \brief
@@ -163,14 +147,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   FINLEY_DLL_API
   void write(const std::string& fileName) const;
-
-  /**
-     \brief
-     dumps the mesh to a file with the given name.
-     \param fileName Input - The name of the file
-  */
-  FINLEY_DLL_API
-  void dump(const std::string& fileName) const;
 
   /**
      \brief
@@ -489,15 +465,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
                      const escript::Data& d_contact, const escript::Data& y_contact) const;
-  /**
-     \brief
-     adds a PDE onto the lumped stiffness matrix matrix
-  */
-  FINLEY_DLL_API
-  virtual void addPDEToLumpedSystem(
-                     escript::Data& mat,
-                     const escript::Data& D, 
-                     const escript::Data& d) const;
 
   /**
      \brief

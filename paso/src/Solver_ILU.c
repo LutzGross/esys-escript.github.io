@@ -1,17 +1,16 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
@@ -37,7 +36,7 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
         MEMFREE(in->colorOf);
         MEMFREE(in->factors);
         MEMFREE(in->main_iptr);  
-        Paso_Pattern_free(in->pattern);   
+        Paso_SystemMatrixPattern_dealloc(in->pattern);   
         MEMFREE(in);
      }
 }
@@ -47,8 +46,8 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
 /*   constructs the incomplete block factorization of 
 
 */
-Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
-  dim_t n=A->numRows;
+Paso_Solver_ILU* Paso_Solver_getILU(Paso_SystemMatrix * A,bool_t verbose) {
+  dim_t n=A->myNumRows;
   dim_t n_block=A->row_block_size;
   index_t num_colors=0, *mis_marker=NULL;
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
@@ -61,9 +60,9 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   if (Paso_checkPtr(out)) return NULL;
   mis_marker=TMPMEMALLOC(n,index_t);
   out->colorOf=MEMALLOC(n,index_t);
-  out->factors=MEMALLOC(A->len,double);
+  out->factors=MEMALLOC(A->myLen,double);
   out->main_iptr=MEMALLOC(n,index_t);
-  out->pattern=Paso_Pattern_getReference(A->pattern);
+  out->pattern=Paso_SystemMatrixPattern_reference(A->pattern);
   out->n_block=n_block;
   out->n=n;
   time0=Paso_timer();
@@ -76,7 +75,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
     while (Paso_Util_isAny(n,out->colorOf,-1) && Paso_noError()) {
        #pragma omp parallel for private(i) schedule(static)
        for (i = 0; i < n; ++i) mis_marker[i]=out->colorOf[i];
-       Paso_Pattern_mis(A->pattern,mis_marker);
+       Paso_SystemMatrixPattern_mis(A->pattern,mis_marker);
 
        #pragma omp parallel for private(i) schedule(static)
        for (i = 0; i < n; ++i) if (mis_marker[i]) out->colorOf[i]=num_colors;

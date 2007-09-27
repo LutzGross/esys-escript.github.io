@@ -1,18 +1,4 @@
-#
 # $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
 
 """
 Test suite for linearPDEs class
@@ -50,7 +36,7 @@ __date__="$Date$"
 
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero
-from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor
+from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data
 from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace
 import numarray
 import unittest
@@ -797,7 +783,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.setValue(B_reduced=B,C_reduced=C)
         self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
     #
-    #   solver checks (single PDE)
+    #   solver checks:
     #
     def test_symmetryOnIterative(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -887,205 +873,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_GMRES_truncation_restart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
-        u=mypde.getSolution(verbose=self.VERBOSE,truncation=10,restart=20)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    #
-    #   solver checks (PDE system)
-    #
-    def test_symmetryOnIterative_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_symmetryOnDirect_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-        mypde.setSolverMethod(mypde.DIRECT)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_PCG_JACOBI_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-        mypde.setSolverMethod(mypde.PCG,mypde.JACOBI)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_PCG_ILU0_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-        mypde.setSolverMethod(mypde.PCG,mypde.ILU0)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_DIRECT_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-        mypde.setSolverMethod(mypde.DIRECT)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_BICGSTAB_JACOBI_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.BICGSTAB,mypde.JACOBI)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_BICGSTAB_ILU0_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.BICGSTAB,mypde.ILU0)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_PRES20_JACOBI_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.PRES20,mypde.JACOBI)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_PRES20_ILU0_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.PRES20,mypde.ILU0)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_GMRESnoRestart_JACOBI_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.GMRES,mypde.JACOBI)
-        # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_GMRESnoRestart_ILU0_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
-        # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_GMRES_JACOBI_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.GMRES,mypde.JACOBI)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_GMRES_ILU0_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
-        u=mypde.getSolution(verbose=self.VERBOSE)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_GMRES_truncation_restart_JACOBI_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-	mypde.setSolverMethod(mypde.GMRES,mypde.JACOBI)
-        u=mypde.getSolution(verbose=self.VERBOSE,truncation=10,restart=20)
-        self.failUnless(self.check(u,1.),'solution is wrong.')
-    def test_GMRES_truncation_restart_ILU0_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
 	mypde.setSolverMethod(mypde.GMRES,mypde.ILU0)
         u=mypde.getSolution(verbose=self.VERBOSE,truncation=10,restart=20)
         self.failUnless(self.check(u,1.),'solution is wrong.')

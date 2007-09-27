@@ -1,23 +1,15 @@
-%
 % $Id$
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           Copyright © 2006 by ACcESS MNRF
+%               \url{http://www.access.edu.au
+%         Primary Business: Queensland, Australia.
+%   Licensed under the Open Software License version 3.0
+%      http://www.opensource.org/licenses/osl-3.0.php
 %
-%           Copyright 2003-2007 by ACceSS MNRF
-%       Copyright 2007 by University of Queensland
-%
-%                http://esscc.uq.edu.au
-%        Primary Business: Queensland, Australia
-%  Licensed under the Open Software License version 3.0
-%     http://www.opensource.org/licenses/osl-3.0.php
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-
 \section{Elastic Deformation}
 \label{ELASTIC CHAP}
-In this section we want to examine the deformation of a linear elastic body caused by expansion through a heat distribution. We want 
-a displacement field $u\hackscore{i}$ which solves the momentum equation
+In this section we want to discuss the deformation of a linear elastic body caused by expansion through a heat distribution. We want 
+to displacement field $u\hackscore{i}$ which solves the momentum equation
 \index{momentum equation}:
 \begin{eqnarray}\label{HEATEDBLOCK general problem}
  - \sigma\hackscore{ij,j}=0
@@ -52,8 +44,8 @@ For the temperature distribution we use
 T(x)= T\hackscore{0} e^{-\beta \|x-x^{c}\|}; 
 \end{eqnarray}
 with a given positive constant $\beta$ and location $x^{c}$ in the domain. Later in \Sec{MODELFRAME} we will use
-$T$ from a time-dependent temperature diffusion problem as discussed in \Sec{DIFFUSION CHAP}.
-
+$T$ from an time-dependent temperature diffusion problem as discussed in \Sec{DIFFUSION CHAP}.
+   
 When we insert~\eqn{HEATEDBLOCK linear elastic} we get a second oder system of linear PDEs for the displacements $u$ which is called
 the Lame equation\index{Lame equation}. We want to solve
 this using the \LinearPDE class to this. For a system of PDEs and a solution with several components the \LinearPDE class 
@@ -62,7 +54,7 @@ takes PDEs of the form
 -A\hackscore{ijkl} u\hackscore{k,l}){,j}=-X\hackscore{ij,j} \; .
 \end{equation}
 $A$ is of \RankFour and $X$ is of \RankTwo. We show here the coefficients relevant 
-for the we trying to solve. The full form is given in~\eqn{LINEARPDE.SYSTEM.1}. 
+for the we traying to solve. The full form is given in~\eqn{LINEARPDE.SYSTEM.1}. 
 The natural boundary conditions \index{boundary condition!natural} take the form:
 \begin{equation}\label{LINEARPDE.SYSTEM.2 TUTORIAL}
 n\hackscore{j} A\hackscore{ijkl} u\hackscore{k,l}=n\hackscore{j}X\hackscore{ij} \;.
@@ -89,7 +81,7 @@ q\hackscore{i}(x)=\left\{
 \right. 
 \end{equation}
 Under the assumption that $\lambda$, $\mu$, $\beta$ and $T\hackscore{ref}$ 
-are constant we may use $Y\hackscore{i}=\lambda+\frac{2}{3} \mu) \; \alpha \; T\hackscore{i}$. However,
+are constant setting $Y\hackscore{i}=\lambda+\frac{2}{3} \mu) \; \alpha \; T\hackscore{i}$ seems to be also possible. However,
 this choice would lead to a different natural boundary condition which does not set the normal stress component as defined
 in~\eqn{HEATEDBLOCK linear elastic} to zero.
 
@@ -98,8 +90,8 @@ Analogously to concept of symmetry for a single PDE, we call the PDE defined by~
 \begin{eqnarray}\label{LINEARPDE.SYSTEM.SYMMETRY TUTORIAL}
 A\hackscore{ijkl} =A\hackscore{klij} \\
 \end{eqnarray}
-This Lame equation is in fact symmetric, given the difference in $D$ and $d$ as compared to the scalar case.
-The \LinearPDE class is notified of this fact by calling its \method{setSymmetryOn} method.
+Note that different from the scalar case now the coefficients $D$ and $d$ have to be inspected. It is easy to see that 
+the Lame equation in fact is symmetric. The \LinearPDE class is notified by this fact by calling its \method{setSymmetryOn} method.
 
 After we have solved the Lame equation we want to analyse the actual stress distribution. Typically the von--Mises stress\index{von--Mises stress} defined by
 \begin{equation}
@@ -109,10 +101,10 @@ After we have solved the Lame equation we want to analyse the actual stress dist
                (\sigma\hackscore{22}-\sigma\hackscore{00})^2)
 +  \sigma\hackscore{01}^2+\sigma\hackscore{12}^2+\sigma\hackscore{20}^2}
 \end{equation}
-is used to detect material damage. Here we want to calculate the von--Mises and write the stress to a file for visualization.
+is used to detect material damages. Here we want to calculate the von--Mises and write the stress to a file for visualization.
 
-\index{scripts!\file{diffusion.py}}
-The following script, which is available in \file{heatedbox.py} in the \ExampleDirectory, solves the Lame equation
+\index{scripts!\file{diffusion.py}}:
+The following script which is available in \file{heatedbox.py} in the \ExampleDirectory solves the Lame equation
 and writes the displacements and the von--Mises stress\index{von--Mises stress} into a file \file{deform.xml} in the \VTK file format: 
 \begin{python}
 from esys.escript import *

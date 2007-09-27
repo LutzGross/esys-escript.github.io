@@ -1,18 +1,5 @@
-#
 # $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
+
 
 """
 checks the mesh generators against the reference meshes in test_meshes
@@ -28,7 +15,7 @@ import sys
 import os
 import unittest
 from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
+from esys.finley import Interval,Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -59,6 +46,26 @@ class Test_Generators(unittest.TestCase):
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
          self.failUnlessEqual(dom_string[l].strip(),ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),dom_string[l].strip()))
+
+   def test_hex_1D_order1(self):
+      file="hex_1D_order1.msh"
+      my_dom=Interval(1,1)
+      self.checker(my_dom,file)
+
+   def test_hex_1D_order1_onFace(self):
+      file="hex_1D_order1_onFace.msh"
+      my_dom=Interval(1,1,useElementsOnFace=1)
+      self.checker(my_dom,file)
+
+   def test_hex_1D_order2(self):
+      file="hex_1D_order2.msh"
+      my_dom=Interval(1,2)
+      self.checker(my_dom,file)
+
+   def test_hex_1D_order2_onFace(self):
+      file="hex_1D_order2_onFace.msh"
+      my_dom=Interval(1,2,useElementsOnFace=1)
+      self.checker(my_dom,file)
 
    def test_hex_2D_order1(self):
       file="hex_2D_order1.msh"
@@ -105,7 +112,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order1_onFace(self):
@@ -113,7 +120,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,1,l1=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2(self):
@@ -121,7 +128,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
    def test_hex_contact_2D_order2_onFace(self):
@@ -129,7 +136,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
       ms2=Rectangle(1,1,2,l1=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1(self):
@@ -137,7 +144,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order1_onFace(self):
@@ -145,7 +152,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,1,l2=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2(self):
@@ -153,7 +160,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=False)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
    def test_hex_contact_3D_order2_onFace(self):
@@ -161,7 +168,7 @@ class Test_Generators(unittest.TestCase):
       ms1=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
       ms2=Brick(1,1,1,2,l2=0.5,useElementsOnFace=True)
       ms2.setX(ms2.getX()+[0,0,0.5])
-      my_dom=JoinFaces([ms1,ms2],optimize=False)
+      my_dom=JoinFaces([ms1,ms2])
       self.checker(my_dom,file)
 
 class Test_GMSHReader(unittest.TestCase):
@@ -176,7 +183,7 @@ class Test_GMSHReader(unittest.TestCase):
        file="tri3_gmsh.msh"
        ref ="tri3.fly"
        test = FINLEY_WORKDIR+os.sep+"tri3_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
@@ -184,7 +191,7 @@ class Test_GMSHReader(unittest.TestCase):
        file="tri6_gmsh.msh"
        ref="tri6.fly"
        test = FINLEY_WORKDIR+os.sep+"tri8_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2,optimize=False)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,2)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
@@ -192,15 +199,15 @@ class Test_GMSHReader(unittest.TestCase):
        file="tet4_gmsh.msh"
        ref="tet4.fly"
        test = FINLEY_WORKDIR+os.sep+"tet4_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
-   def test_Tet10(self):
+   def test_Tet(self):
        file="tet10_gmsh.msh"
        ref="tet10.fly"
        test = FINLEY_WORKDIR+os.sep+"tet10_test.fly"
-       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
+       dom = ReadGmsh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
        dom.write(test)
        self.compare(test, FINLEY_TEST_MESH_PATH+os.sep+ref)
 
@@ -208,12 +215,12 @@ class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
        file="hex_2D_order2.msh"
        test = FINLEY_WORKDIR+os.sep+"test.fly"
-       dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3,optimize=False)
+       dom = ReadMesh(FINLEY_TEST_MESH_PATH+os.sep+file,3)
        insertTagNames(dom,A=1,B=2)
        dom.write(test)
-       dom2 = ReadMesh(test,3,optimize=False)
+       dom2 = ReadMesh(test,3)
        t=getTagNames(dom)
-       self.failUnless(len(t)==6)
+       self.failUnless(len(t)==2)
        self.failUnless("A" in t)
        self.failUnless("B" in t)
        self.failUnless(dom2.getTag("A") == 1)
@@ -228,3 +235,7 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_GMSHReader))
    suite.addTest(unittest.makeSuite(Test_Reader))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if s.wasSuccessful():
+     sys.exit(0)
+   else:
+     sys.exit(1)

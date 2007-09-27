@@ -1,17 +1,14 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 /**************************************************************/
 
@@ -20,6 +17,11 @@
 /*                                                                      */
 /*   assigns new node reference numbers to elements in element file in. */
 /*   if k is the old node, the new node is newNode[k-offset].           */
+
+/**************************************************************/
+
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
@@ -37,5 +39,6 @@ void Finley_ElementFile_relableNodes(index_t* newNode,index_t offset,Finley_Elem
          in->Nodes[INDEX2(i,j,NN)]=newNode[in->Nodes[INDEX2(i,j,NN)]-offset];
        }
      }
+     in->isPrepared=FINLEY_PREPARED;
    }
 }

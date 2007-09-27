@@ -1,34 +1,17 @@
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+@author: John NGUI
 """
-
-__author__="John Ngui, john.ngui@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision$"
-__date__="$Date$"
-
 
 import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D
-from constant import Viewport, Color, Lut, ColorMode 
+from constant import Viewport, Color, Lut, ColorMode, VizType
 from streamlinemodule import  StreamLineModule
 from tube import Tube
 from point import PointSource
 from outline import Outline
 from average import CellDataToPointData
-from position import GlobalPosition
 
 # NOTE: DataSetMapper, Actor3D, PointSource, StreamLineModule and Tube  were 
 # inherited to allow access to their public methods from the driver.
@@ -54,8 +37,7 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default). On occasions, an
-		inaccurate object may be rendered from cell data even after conversion.
+		'True', otherwise 'False' (which is the default).
 
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -74,126 +56,72 @@ class StreamLine(DataSetMapper, Actor3D, PointSource, StreamLineModule, Tube):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__data_collector = data_collector
-		self.__viewport = viewport
-		self.__color_mode = color_mode
-		self.__lut = lut
-		self.__cell_to_point = cell_to_point
-		self.__outline = outline
+		# NOTE: Actor3D is inherited and there are two instances declared here.
+		# As a result, when methods from Actor3D is invoked from the driver,
+		# only the methods associated with the latest instance (which in this
+		# case is the Actor3D for the Tube) can be executed. Actor3D
+		# methods associated with Outline cannot be invoked from the driver.
+		# They can only be called within here, which is why Outline must be
+		# place before Tube as there is unlikely to be any changes
+		# made to the Outline's Actor3D.
 
-		# Keeps track whether Streamline has been modified.
-		self.__modified = True 
-		PointSource.__init__(self)
-		StreamLineModule.__init__(self)
-		Tube.__init__(self)
-		DataSetMapper.__init__(self)
-		Actor3D.__init__(self)
-		scene._addVisualizationModules(self)
+ 		# ----- Outline -----
 
-		# ----- Outline -----
+		if(outline == True):
+			outline = Outline(data_collector._getOutput())
+			DataSetMapper.__init__(self, outline._getOutput())
 
-		# NOTE: Changes cannot be made to the Outline's properties from the 
-		# driver.
-		if(self.__outline == True):
-			outline = Outline(self.__data_collector._getDataCollectorOutput())
-			mapper = DataSetMapper()
-			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
-
-			actor3D = Actor3D()
-			actor3D._setupActor3D(mapper._getDataSetMapper())
+			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
-			actor3D.setColor(Color.BLACK)
-
+			Actor3D.setColor(self, Color.BLACK)
 			# Default line width is 1.
-			actor3D._setLineWidth(1)
-			scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			Actor3D._setLineWidth(self, 1)
+			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Streamline -----
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
-		if(self.__lut == Lut.COLOR): # Colored lookup table.
+		if(lut == Lut.COLOR): # Colored lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setTableValue()
-		elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		if(self.__cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(
-					self.__data_collector._getDataCollectorOutput())
-			self._setupPointSource(c2p._getCellToPointOutput())
-			self._setupStreamLineModule(c2p._getCellToPointOutput(), 
-					self._getPointSourceOutput())
-		elif(self.__cell_to_point == False): # No conversion happens.
-			self._setupPointSource(
-					self.__data_collector._getDataCollectorOutput())
-			self._setupStreamLineModule(
-					self.__data_collector._getDataCollectorOutput(), 
-					self._getPointSourceOutput())
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			PointSource.__init__(self, c2p._getOutput())
+			StreamLineModule.__init__(self, c2p._getOutput(), 
+					PointSource._getOutput(self))
+		elif(cell_to_point == False): # No conversion happens.
+			PointSource.__init__(self, data_collector._getOutput())
+			StreamLineModule.__init__(self, data_collector._getOutput(), 
+					PointSource._getOutput(self))
 
-		self._setupTube(self._getStreamLineModuleOutput())
-		self._setupDataSetMapper(self._getTubeOutput(), 
+		Tube.__init__(self, StreamLineModule._getOutput(self))
+		DataSetMapper.__init__(self, Tube._getOutput(self), 
 				lookup_table._getLookupTable())
 
-		self._setupActor3D(self._getDataSetMapper())
-		scene._addActor3D(self.__viewport, self._getActor3D())
+		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
+			DataSetMapper._setScalarVisibilityOn(self)
+			StreamLineModule._setSpeedScalarsOn(self)
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getVectorRange())
 
-	def _isModified(self):	
-		"""
-		Return whether the StreamLine or DataCollector has been modified.
+			data_collector._paramForUpdatingMultipleSources(VizType.STREAMLINE,
+					ColorMode.VECTOR, DataSetMapper._getDataSetMapper(self))
 
-		@rtype: Boolean
-		@return: True or False
-		"""
+		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
+			DataSetMapper._setScalarVisibilityOn(self)
+			StreamLineModule._setSpeedScalarsOff(self)
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getScalarRange())
+			
+			data_collector._paramForUpdatingMultipleSources(VizType.STREAMLINE,
+					ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self))
 
-		return self.__modified or self.__data_collector._isModified()
-
-	def _render(self, scene):
-		"""
-		Render the streamline.
-
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		"""
-
-		if (self._isModified() == True):
-			if(self._isPointSourceCenterSet() != True):
-				center = self.__data_collector._getCenter()
-				center = GlobalPosition(center[0], center[1], center[2])
-				self.setPointSourceCenter(center)
-
-			self._setPointSourceCenter()	
-
-			if(self.__data_collector._isScalarSet() == True):
-				self.__data_collector._setActiveScalar()
-			if(self.__data_collector._isVectorSet() == True):
-				self.__data_collector._setActiveVector()
-
-			# Color streamline by vector.
-			if(self.__color_mode == ColorMode.VECTOR): 				
-				self._setScalarVisibilityOn()
-				self._setSpeedScalarsOn()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# beenspecified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setScalarRange(\
-							self.__data_collector._getVectorRange())
-			# Color streamline by scalar.
-			elif(self.__color_mode == ColorMode.SCALAR): 				
-				self._setScalarVisibilityOn()
-				self._setSpeedScalarsOff()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# beenspecified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setScalarRange(\
-							self.__data_collector._getScalarRange())
-
-			self.__modified = False
-
+		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 

@@ -1,17 +1,14 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #include "DataVector.h"
 
@@ -87,7 +84,7 @@ DataVector::resize(const DataVector::size_type newSize,
   assert(m_size >= 0);
 
   if ( newBlockSize == 0) {
-    throw DataException("DataVector: invalid blockSize specified (newBlockSize)");
+    throw DataException("DataVector: invalid blockSize specified");
   }
 
   if ( (newSize % newBlockSize) != 0) {

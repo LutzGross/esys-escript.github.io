@@ -1,17 +1,15 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+//$Id$
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #include "Data.h"
 #include "FunctionSpace.h"
@@ -82,7 +80,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
   def("blocktimer_increment",blocktimer_increment);
   def("blocktimer_time",blocktimer_time);
-  def("getVersion",escript::getSvnVersion);
+  def("blocktimer_reportSystemInfo",blocktimer_reportSystemInfo);
 
 
   //
@@ -98,9 +96,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getSize",&escript::AbstractDomain::getSize)
      .def("saveVTK",&escript::AbstractDomain::saveVTK)
      .def("saveDX",&escript::AbstractDomain::saveDX)
-     .def("getMPISize",&escript::AbstractDomain::getMPISize)
-     .def("getMPIRank",&escript::AbstractDomain::getMPIRank)
-
      .def(self == self)
      .def(self != self);
 
@@ -149,8 +144,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("setTaggedValue",&escript::Data::setTaggedValue)
     .def("setTaggedValue",&escript::Data::setTaggedValueByName)
     .def("getNumberOfDataPoints",&escript::Data::getNumDataPoints)
-    .def("isExpanded",&escript::Data::isExpanded)
-    .def("isTagged",&escript::Data::isTagged)
     .def("expand",&escript::Data::expand)
     .def("tag",&escript::Data::tag)
     .def("copy",&escript::Data::copy)

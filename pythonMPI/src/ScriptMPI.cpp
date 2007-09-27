@@ -1,18 +1,3 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
-
 #include <Python.h>
 #include <mpi.h>
 #include <iostream>
@@ -41,10 +26,8 @@ int main( int argc, char **argv ) {
     if( mpi_info->rank )
     {
       char fname[256];
-      sprintf( fname, "stdout_cpu_%04d.out", mpi_info->rank );
-      FILE *fp_out = freopen( fname, "w+", stdout );
-      sprintf( fname, "stdout_cpu_%04d.err", mpi_info->rank );
-      FILE *fp_err = freopen( fname, "w+", stderr );
+      sprintf( fname, "stdout_cpu_%04d.txt", mpi_info->rank );
+      FILE *fp = freopen( fname, "w+", stdout );
     }
     /*
      * Start the python parser
@@ -56,7 +39,7 @@ int main( int argc, char **argv ) {
      */
     MPI_Finalize();
 
-    Paso_MPIInfo_free( mpi_info );
+    Paso_MPIInfo_dealloc( mpi_info );
   }
   catch (std::runtime_error &e)
   {

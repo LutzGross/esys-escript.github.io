@@ -1,17 +1,15 @@
+/* $Id: SCSL_iterative.c 150 2005-09-15 03:44:45Z jgs $ */
 
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
@@ -107,7 +105,7 @@ void Paso_SCSL_iterative(Paso_SystemMatrix* A,
        drop_storage=options->drop_storage;
        DIterative_DropStorage(drop_storage);
        time0=Paso_timer();
-       DIterative(A->mainBlock->numRows,A->mainBlock->pattern->ptr,A->mainBlock->pattern->index,A->mainBlock->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
+       DIterative(A->numRows,A->pattern->ptr,A->pattern->index,A->val,storage,out,in,method,precond,maxiters,convtol,&iters,&finalres);
        options->iter=iters;
        options->final_residual=finalres;
        time0=Paso_timer()-time0;

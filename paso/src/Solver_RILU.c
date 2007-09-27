@@ -1,17 +1,16 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
@@ -19,7 +18,7 @@
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2004,2004,2005, 2006, 2007  */
+/* Copyrights by ACcESS Australia 2003,2004,2005              */
 /* Author: gross@access.edu.au                                */
 
 /**************************************************************/
@@ -37,8 +36,8 @@ void Paso_Solver_RILU_free(Paso_Solver_RILU * in) {
         Paso_Solver_RILU_free(in->RILU_of_Schur);
         MEMFREE(in->inv_A_FF);
         MEMFREE(in->A_FF_pivot);
-        Paso_SparseMatrix_free(in->A_FC);
-        Paso_SparseMatrix_free(in->A_CF);
+        Paso_SystemMatrix_dealloc(in->A_FC);
+        Paso_SystemMatrix_dealloc(in->A_CF);
         MEMFREE(in->rows_in_F);
         MEMFREE(in->rows_in_C);
         MEMFREE(in->mask_F);
@@ -70,15 +69,15 @@ to
    then RILU is applied to S again until S becomes empty 
 
 */
-Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
+Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SystemMatrix * A_p,bool_t verbose) {
   Paso_Solver_RILU* out=NULL;
-  dim_t n=A_p->numRows;
+  dim_t n=A_p->myNumRows;
   dim_t n_block=A_p->row_block_size;
   index_t* mis_marker=NULL;  
   index_t* counter=NULL;  
   index_t iPtr,*index, *where_p;
   dim_t i,k;
-  Paso_SparseMatrix * schur=NULL;
+  Paso_SystemMatrix * schur=NULL;
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0,time1,time2;
    
 
@@ -105,7 +104,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
      time0=Paso_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     Paso_Pattern_mis(A_p->pattern,mis_marker);
+     Paso_SystemMatrixPattern_mis(A_p->pattern,mis_marker);
      time2=Paso_timer()-time0;
      if (Paso_noError()) {
         #pragma omp parallel for private(i) schedule(static)
@@ -224,13 +223,13 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                           }
                       } /* end parallel region */
                       /* get A_CF block: */
-                      out->A_CF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
+                      out->A_CF=Paso_SystemMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
                       if (Paso_noError()) {
                          /* get A_FC block: */
-                         out->A_FC=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
+                         out->A_FC=Paso_SystemMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
                          /* get A_FF block: */
                          if (Paso_noError()) {
-                            schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
+                            schur=Paso_SystemMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
                             time0=Paso_timer()-time0;
                             if (Paso_noError()) {
                                 time1=Paso_timer();
@@ -238,7 +237,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                                 Paso_Solver_updateIncompleteSchurComplement(schur,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
                                 time1=Paso_timer()-time1;
                                 out->RILU_of_Schur=Paso_Solver_getRILU(schur,verbose);
-                                Paso_SparseMatrix_free(schur);
+                                Paso_SystemMatrix_dealloc(schur);
                             }
                             /* allocate work arrays for RILU application */
                             if (Paso_noError()) {
@@ -341,11 +340,11 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
         /* b_C=b_C-A_CF*x_F */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_CF,rilu->x_F,1.,rilu->b_C);
+        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_CF,rilu->x_F,1.,rilu->b_C,NULL,NULL);
         /* x_C=RILU(b_C)     */
         Paso_Solver_solveRILU(rilu->RILU_of_Schur,rilu->x_C,rilu->b_C);
         /* b_F=b_F-A_FC*x_C */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_FC,rilu->x_C,1.,rilu->b_F);
+        Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_FC,rilu->x_C,1.,rilu->b_F,NULL,NULL);
         /* x_F=invA_FF*b_F  */
         Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
         /* x<-[x_F,x_C]     */

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <search.h>
+#include <unistd.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -24,6 +25,27 @@ static double g_start_time;		/* Start time for the entire program */
 static int    g_initialized = 0;	/* Has the blocktimer been initialized? */
 static int    g_end_computed = 0;	/* Has the end time been set? */
 #endif /* BLOCKTIMER */
+
+void
+blocktimer_reportSystemInfo()
+{
+  int myCPU = 0, numCPUs = 1;
+  char cwd[4096];
+  char hostname[1024];
+
+  /* getcwd(cwd, 4096); */
+  gethostname (hostname, 1024);
+
+#ifdef PASO_MPI
+  MPI_Comm_rank( MPI_COMM_WORLD, &myCPU );
+  MPI_Comm_size( MPI_COMM_WORLD, &numCPUs );
+  printf("MPI CPU %03d/%03d on host '%s'\n", myCPU, numCPUs, hostname);
+#endif
+
+#ifdef _OPENMP
+  printf("OpenMP thread %03d/%03d on host '%s'\n", omp_get_thread_num(), omp_get_num_threads(), hostname);
+#endif
+}
 
 void
 blocktimer_initialize()
@@ -101,7 +123,7 @@ blocktimer_getOrCreateTimerId(char *name)
     item.data = (void *) idTmp;
     hsearch(item, ENTER);
     id = *idTmp;
-    strncpy(g_names[id], name, strlen(name));
+    g_names[id] = strdup(name);
   }
 
 #endif /* BLOCKTIMER */

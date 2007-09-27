@@ -1,20 +1,15 @@
-%
 % $Id$
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%           Copyright 2003-2007 by ACceSS MNRF
-%       Copyright 2007 by University of Queensland
-%
-%                http://esscc.uq.edu.au
-%        Primary Business: Queensland, Australia
-%  Licensed under the Open Software License version 3.0
-%     http://www.opensource.org/licenses/osl-3.0.php
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           Copyright © 2006, 2007 by ACcESS MNRF
+%               \url{http://www.access.edu.au
+%         Primary Business: Queensland, Australia.
+%   Licensed under the Open Software License version 3.0
+%      http://www.opensource.org/licenses/osl-3.0.php
 %
 
-\chapter{ The Module \finley}
+
+
+\chapter{ The module \finley}
  \label{CHAPTER ON FINLEY}
 
 \begin{figure}
@@ -86,7 +81,7 @@ to second node the domain has to lie on the left hand side (in the case of a two
 the domain has to lie on the left hand side when moving counterclockwise). If the gradient on the
 surface of the domain is to be calculated rich face elements face to be used. Rich elements on a face
 are identical to interior elements but with a modified order of nodes such that the 'first' face of the element aligns
-with the surface of the domain. In \fig{FINLEY FIG 0}
+with the surface of the domian. In \fig{FINLEY FIG 0}
 elements of the type \finleyelement{Tri3Face} are used. 
 The face element reference number $20$ as a rich face element is defined by the nodes
 with reference numbers $11$, $0$ and $9$. Notice that the face element $20$ is identical to the
@@ -137,7 +132,7 @@ the nodes within an element.
 \linev{\finleyelement{Hex20}}{\finleyelement{Rec8}}{\finleyelement{Hex20Face}}{\finleyelement{Rec8_Contact}}{\finleyelement{Hex20Face_Contact}}
 \end{tablev}
 \caption{Finley elements and corresponding elements to be used on domain faces and contacts.
-The rich types have to be used if the gradient of function is to be calculated on faces and contacts, respectively.}
+The rich types have to be used if the gradient of function is to be calculated on faces and contacts, resepctively.}
 \label{FINLEY TAB 1}
 \end{table}
 
@@ -181,7 +176,7 @@ for i in range(ContactElement_Num):
    for j in range(ContactElement_numNodes): print " %d"%ContactElement_Nodes[i][j]
    print "\n"
 # point sources (not supported yet)
-write("Point1 0",face_element_type,numFaceElements)
+write("Point1 0",face_element_typ,numFaceElements)
 \end{python}
 
 The following example of a mesh file defines the mesh shown in \fig{FINLEY FIG 01}:
@@ -257,8 +252,8 @@ $7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh get
 
 \subsection{Linear Solvers in \LinearPDE}
 Currently \finley supports the linear solvers \PCG, \GMRES, \PRESTWENTY and \BiCGStab. 
-For \GMRES the options \var{truncation} and \var{restart} of the \method{getSolution} can be
-used to control the truncation and restart during iteration. Default values are
+For \GMRES the options \var{trancation} and \var{restart} of the \method{getSolution} can be
+used to control the trunction and restart during iteration. Default values are
 \var{truncation}=5 and \var{restart}=20.
 The default solver is \BiCGStab  but if the symmetry flag is set \PCG is the default solver.
 \finley supports the solver options \var{iter_max} which specifies the maximum number of iterations steps,
@@ -267,9 +262,9 @@ In some installations \finley supports the \Direct solver and the
 solver options \var{reordering}=\constant{util.NO_REORDERING}, 
 \constant{util.MINIMUM_FILL_IN} or \constant{util.NESTED_DISSECTION} (default is \constant{util.NO_REORDERING}),
 \var{drop_tolerance} specifying the threshold for values to be dropped in the 
-incomplete elimination process (default is 0.01) and \var{drop_storage} specifying the maximum increase 
+incomplete elimation process (default is 0.01) and \var{drop_storage} specifying the maximum increase 
 in storage allowed in the 
-incomplete elimination process (default is 1.20).
+incomplete elimation process (default is 1.20).
 
 \subsection{Functions}
 \begin{funcdesc}{Mesh}{fileName,integrationOrder=-1}
@@ -360,7 +355,7 @@ in $x_1$-direction and $x_2$-direction, respectively.
 \end{funcdesc}
 
 \begin{funcdesc}{GlueFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
-Generates a new \Domain object from the list \var{meshList} of \finley meshes.
+Generates a new \Domain object from the list \var{mehList} of \finley meshes.
 Nodes in face elements whose difference of coordinates is less then \var{tolerance} times the 
 diameter of the domain are merged. The corresponding face elements are removed from the mesh.  
 
@@ -368,7 +363,7 @@ TODO: explain \var{safetyFactor} and show an example.
 \end{funcdesc}
 
 \begin{funcdesc}{JoinFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
-Generates a new \Domain object from the list \var{meshList} of \finley meshes.
+Generates a new \Domain object from the list \var{mehList} of \finley meshes.
 Face elements whose nodes coordinates have difference is less then \var{tolerance} times the 
 diameter of the domain are combined to form a contact element \index{element!contact} 
 The corresponding face elements are removed from the mesh.  

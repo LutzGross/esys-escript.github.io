@@ -1,23 +1,25 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 /**************************************************************/
 
 /*   Finley: Mesh: NodeFile */
 
 /*  set tags to newTag where mask>0 */
+
+/**************************************************************/
+
+/*   Author: gross@access.edu.au */
+/*   Version: $Id$ */
 
 /**************************************************************/
 

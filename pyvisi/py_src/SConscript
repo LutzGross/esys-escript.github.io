@@ -16,10 +16,8 @@ local_env.Install(pyinstall+'/pyvisi', pyc)
 # get all the python files in the release tar file
 release_py = [ env.File("SConscript"), ] + [ env.File(x) for x in python_src ]
 env.Zip(src_zipfile, release_py)
-try:
-   env.Tar(src_tarfile, release_py)
-except AttributeError:
-   pass
+env.Tar(src_tarfile, release_py)
+
 # Call the unit tests SConscript
 local_env.SConscript(dirs = ['#/pyvisi/test/python'], build_dir='#/build/$PLATFORM/pyvisi/test/python', duplicate=0)
 

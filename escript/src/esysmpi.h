@@ -1,17 +1,15 @@
-
-/* $Id: esysmpi.h 1306 2007-09-18 05:51:09Z ksteube $ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+// $Id$
+/*
+ ************************************************************
+ *          Copyright 2006,2007 by ACcESS MNRF              *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #ifndef ESYSMPI_H
 #define ESYSMPI_H

@@ -1,17 +1,15 @@
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
 
 #ifndef INC_FINLEY
 #define INC_FINLEY
@@ -22,12 +20,18 @@
 
 /**************************************************************/
 
+/*   Version: $Id$ */
+
+/**************************************************************/
+
 #include "paso/Paso.h"
 #include "paso/Paso_MPI.h"
 
 /**************************************************************/
 /*#define Finley_TRACE */
 #define FINLEY_UNKNOWN -1
+#define FINLEY_UNPREPARED -3
+#define FINLEY_PREPARED -2
 #define FINLEY_DEGREES_OF_FREEDOM 1
 #define FINLEY_NODES 3
 #define FINLEY_ELEMENTS 4
@@ -46,6 +50,14 @@
 typedef int Finley_Status_t;
 #define Finley_increaseStatus(self) ((self)->status)++
 #define FINLEY_INITIAL_STATUS 0
+
+#ifdef PASO_MPI
+#define FINLEY_INIT_ITEMSIZE (sizeof(double)*8)
+#define FINLEY_NODE_TAG 0
+#define FINLEY_ELEMENT_TAG 10000
+extern int __g_nodeTag;
+extern int __g_elementTag; 
+#endif
 
 /* error codes */
 

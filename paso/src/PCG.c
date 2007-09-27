@@ -1,17 +1,16 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /* PCG iterations */
 
@@ -69,6 +68,7 @@ err_t Paso_Solver_PCG(
     double * x,
     dim_t *iter,
     double * tolerance,
+    double * buffer0, double * buffer1,
     Paso_Performance* pp) {
 
 
@@ -77,7 +77,7 @@ err_t Paso_Solver_PCG(
   dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
-  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
+  dim_t n = A->myNumCols * A-> col_block_size;
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
   double norm_of_residual,norm_of_residual_global, loc_sum[2], sum[2];
@@ -164,8 +164,7 @@ err_t Paso_Solver_PCG(
            /* v=A*p */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
-	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
-	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
+	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v, buffer0, buffer1);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* delta=p*v */

@@ -1,23 +1,25 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 /**************************************************************/
 
 /*   Finley: Mesh */
 
 /* searches for faces in the mesh which are matching */
+
+/**************************************************************/
+
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$
 
 /**************************************************************/
 
@@ -44,7 +46,7 @@ int Finley_Mesh_findMatchingFaces_compar(const void *arg1 , const void *arg2 ) {
    if ( e1->refId < e2->refId ) {
        return -1;
    } else if ( e1->refId > e2->refId ) {
-       return 1;
+       return -1;
    } else {
        return 0;
    }

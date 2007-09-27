@@ -1,22 +1,6 @@
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+@author: John NGUI
 """
-
-__author__="John Ngui, john.ngui@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision$"
-__date__="$Date$"
-
 
 import vtk
 
@@ -27,22 +11,16 @@ class Normals:
 	avoids the tensors from appearing black in color).
 	"""
 
-	def __init__(self):
+	def __init__(self, object):
 		"""
 		Initialise the normals.
-		"""
-
-		self.__vtk_poly_data_normals = vtk.vtkPolyDataNormals()
-
-	def _setupNormals(self, object):
-		"""
-		Setup the normals.
 
 		@type object: vtkPolyData, etc
 		@param object: Input for the normals
 		"""
 
 		self.__object = object
+		self.__vtk_poly_data_normals = vtk.vtkPolyDataNormals()
 		self.__setInput()
 
 	def __setInput(self):
@@ -52,7 +30,7 @@ class Normals:
 
 		self.__vtk_poly_data_normals.SetInput(self.__object)
 
-	def _getNormalsOutput(self):
+	def _getOutput(self):
 		"""
 		Return the output of the normals.
 

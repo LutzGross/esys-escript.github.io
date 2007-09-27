@@ -1,28 +1,12 @@
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+@author: John NGUI
 """
-
-__author__="John Ngui, john.ngui@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision$"
-__date__="$Date$"
-
 
 import vtk
 from mapper import DataSetMapper
 from lookuptable import LookupTable
 from actor import Actor3D
-from constant import Viewport, Color, Arrow, ColorMode, Lut 
+from constant import Viewport, Color, Arrow, ColorMode, Lut, VizType
 from arrow import Arrow2D, Arrow3D
 from glyph import  Glyph3D
 from outline import Outline
@@ -44,8 +28,8 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
 	# This saves the user from specifying the viewport when there is only one.
 	# If no lut is specified, the color scheme will be used.
-	def __init__(self, scene, data_collector, arrow = Arrow.TWO_D,
-			color_mode = ColorMode.VECTOR, viewport = Viewport.SOUTH_WEST,  
+	def __init__(self, scene, data_collector, viewport = Viewport.SOUTH_WEST,
+			color_mode = ColorMode.VECTOR, arrow = Arrow.TWO_D,  
 			lut = Lut.COLOR, cell_to_point = False, outline = True): 
 		"""
 		Initialise the Velocity.
@@ -54,20 +38,19 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default). On occasions, an
-		inaccurate object may be rendered from cell data even after conversion.
+		'True', otherwise 'False' (which is the default).
 
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
 		@type data_collector: L{DataCollector <datacollector.DataCollector>}
 				object
 		@param data_collector: Deal with source of data for visualisation
-		@type arrow: L{Arrow <constant.Arrow>} constant 
-		@param arrow: Type of arrow (two dimensional or three dimensional)
-		@type color_mode: L{ColorMode <constant.ColorMode>} constant
-		@param color_mode: Type of color mode
 		@type viewport: L{Viewport <constant.Viewport>} constant
 		@param viewport: Viewport in which objects are to be rendered on
+		@type color_mode: L{ColorMode <constant.ColorMode>} constant
+		@param color_mode: Type of color mode
+		@type arrow: L{Arrow <constant.Arrow>} constant 
+		@param arrow: Type of arrow (two dimensional or three dimensional)
 		@type lut : L{Lut <constant.Lut>} constant
 		@param lut: Lookup table color scheme
 		@type cell_to_point: Boolean
@@ -76,126 +59,79 @@ class Velocity(DataSetMapper, Actor3D, Arrow2D, Arrow3D, Glyph3D, MaskPoints):
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__data_collector = data_collector
-		self.__arrow = arrow
-		self.__color_mode = color_mode
-		self.__viewport = viewport
-		self.__lut = lut
-		self.__cell_to_point = cell_to_point
-		self.__outline = outline
-		
-		self.__modified = True # Keeps track whether Velocity has been modified.
-		MaskPoints.__init__(self)
-		Glyph3D.__init__(self) 
-		DataSetMapper.__init__(self)
-		Actor3D.__init__(self)
-		scene._addVisualizationModules(self)
+		# NOTE: Actor3D is inherited and there are two instances declared here.
+		# As a result, when methods from Actor3D is invoked from the driver,
+		# only the methods associated with the latest instance (which in this
+		# case is the Actor3D for the Velocity) can be executed. Actor3D
+		# methods associated with Outline cannot be invoked from the driver.
+		# They can only be called within here, which is why Outline must be
+		# place before Velocity as there is unlikely to be any changes
+		# made to the Outline's Actor3D.
 
-		# ----- Outline -----
+ 		# ----- Outline -----
 
-		# NOTE: Changes cannot be made to the Outline's properties from the 
-		# driver.
-		if(self.__outline == True):
-			outline = Outline(self.__data_collector._getDataCollectorOutput())
-			mapper = DataSetMapper()
-			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
+		if(outline == True):
+			outline = Outline(data_collector._getOutput())
+			DataSetMapper.__init__(self, outline._getOutput())
 
-			actor3D = Actor3D()
-			actor3D._setupActor3D(mapper._getDataSetMapper())
+			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
-			actor3D.setColor(Color.BLACK)
+			Actor3D.setColor(self, Color.BLACK)
 
 			# Default line width is 1.
-			actor3D._setLineWidth(1)
-			scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			Actor3D._setLineWidth(self, 1)
+			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Velocity -----
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
-		if(self.__lut == Lut.COLOR): # Colored lookup table.
+		if(lut == Lut.COLOR): # Colored lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setTableValue()
-		elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 		
-		if(self.__cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(
-					self.__data_collector._getDataCollectorOutput())
-			self._setupMaskPoints(c2p._getCellToPointOutput())
-		elif(self.__cell_to_point == False): # No conversion happens.	
-			self._setupMaskPoints(data_collector._getDataCollectorOutput())
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			MaskPoints.__init__(self, c2p._getOutput())
+		elif(cell_to_point == False): # No conversion happens.	
+			MaskPoints.__init__(self, data_collector._getOutput())
 	
-		if(self.__arrow == Arrow.TWO_D): # Use 2D arrows.
+		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			self._setupGlyph3D(self._getMaskPointsOutput(), 
-					self._getArrow2DOutput()) 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
+					Arrow2D._getOutput(self)) 
 		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			self._setupGlyph3D(self._getMaskPointsOutput(), 
-					self._getArrow3DOutput()) 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
+					Arrow3D._getOutput(self)) 
 
-		self._setupDataSetMapper(self._getGlyph3DOutput(), 
+		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
 
-		self._setupActor3D(self._getDataSetMapper())
-		scene._addActor3D(self.__viewport, self._getActor3D())
+		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
+			Glyph3D._setColorModeByVector(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getVectorRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.VECTOR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
-	def _isModified(self):	
-		"""
-		Return whether the Velocity or DataCollector has been modified.
+		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
+			Glyph3D._setColorModeByScalar(self)
+			Glyph3D._setRange(self, data_collector._getScalarRange())
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getScalarRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
-		@rtype: Boolean
-		@return: True or False
-		"""
-
-		return self.__modified or self.__data_collector._isModified()
-
-	def _render(self, scene):
-		"""
-		Render the velocity.
-
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		"""
-
-		if (self._isModified() == True):
-			if(self.__data_collector._isScalarSet() == True):
-				self.__data_collector._setActiveScalar()
-			if(self.__data_collector._isVectorSet() == True):
-				self.__data_collector._setActiveVector()
-
-			# Color velocity by vector.
-			if(self.__color_mode == ColorMode.VECTOR): 				
-				self._setColorModeByVector()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# been specified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setRange(self.__data_collector._getVectorRange())
-					self._setScalarRange(\
-							self.__data_collector._getVectorRange())
-				else:
-					self._setRange(self._getDataSetMapperRange())
-					
-			# Color velocity by scalar.
-			elif(self.__color_mode == ColorMode.SCALAR): 				
-				self._setColorModeByScalar()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# been specified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setRange(self.__data_collector._getScalarRange())
-					self._setScalarRange(\
-							self.__data_collector._getScalarRange())
-				else:
-					self._setRange(self._getDataSetMapperRange())
-
-			self.__modified = False
+		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 
 ###############################################################################
@@ -212,7 +148,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		Glyph3D, Transform, Plane, Cutter, MaskPoints):
 	"""
 	This class works in a similar way to L{MapOnPlaneCut <map.MapOnPlaneCut>},
-	except that it shows a vector field using arrows cut using a plane.
+	except that it shows a vector field using arrows on a plane.
 	"""
 
 	# The SOUTH_WEST default viewport is used when there is only one viewport.
@@ -228,8 +164,7 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default). On occasions, an
-		inaccurate object may be rendered from cell data even after conversion.
+		'True', otherwise 'False' (which is the default).
 
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -250,42 +185,28 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__data_collector = data_collector
-		self.__arrow = arrow
-		self.__color_mode = color_mode
-		self.__viewport = viewport
-		self.__lut = lut
-		self.__cell_to_point = cell_to_point
-		self.__outline = outline
-		
-		# Keeps track whether VelocityOnPlaneCut has been modified.
-		self.__modified = True 
-		Transform.__init__(self)
-		Plane.__init__(self)
-		Cutter.__init__(self)
-		MaskPoints.__init__(self)
-		Glyph3D.__init__(self) 
-		DataSetMapper.__init__(self)
-		Actor3D.__init__(self)
-		scene._addVisualizationModules(self)
+		# NOTE: Actor3D is inherited and there are two instances declared here.
+		# As a result, when methods from Actor3D is invoked from the driver,
+		# only the methods associated with the latest instance (which in this
+		# case is the Actor3D for the Velocity) can be executed. Actor3D
+		# methods associated with Outline cannot be invoked from the driver.
+		# They can only be called within here, which is why Outline must be
+		# place before Velocity as there is unlikely to be any changes
+		# made to the Outline's Actor3D.
 
-		# ----- Outline -----
+ 		# ----- Outline -----
 
-		# NOTE: Changes cannot be made to the Outline's properties from the 
-		# driver.
-		if(self.__outline == True):
-			outline = Outline(self.__data_collector._getDataCollectorOutput())
-			mapper = DataSetMapper()
-			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
+		if(outline == True):
+			outline = Outline(data_collector._getOutput())
+			DataSetMapper.__init__(self, outline._getOutput())
 
-			actor3D = Actor3D()
-			actor3D._setupActor3D(mapper._getDataSetMapper())
+			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
-			actor3D.setColor(Color.BLACK)
+			Actor3D.setColor(self, Color.BLACK)
 
 			# Default line width is 1.
-			actor3D._setLineWidth(1)
-			scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			Actor3D._setLineWidth(self, 1)
+			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Velocity on a cut plane -----
 
@@ -299,84 +220,50 @@ class VelocityOnPlaneCut(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		self._setupPlane(self._getTransform())
+		Transform.__init__(self)	
+		Plane.__init__(self, Transform._getTransform(self))
 
-		if(self.__cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(
-					self.__data_collector._getDataCollectorOutput())
-			self._setupCutter(c2p._getCellToPointOutput(), self._getPlane()) 	
-		elif(self.__cell_to_point == False): # No conversion happens.	
-			self._setupCutter(self.__data_collector._getDataCollectorOutput(), 
-					self._getPlane()) 	
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			Cutter.__init__(self, c2p._getOutput(), Plane._getPlane(self)) 	
+		elif(cell_to_point == False): # No conversion happens.	
+			Cutter.__init__(self, data_collector._getOutput(), 
+					Plane._getPlane(self)) 	
 
-		self._setupMaskPoints(self._getCutterOutput())
+		MaskPoints.__init__(self, Cutter._getOutput(self))
 
-		if(self.__arrow == Arrow.TWO_D): # Use 2D arrows.
+		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			self._setupGlyph3D(self._getMaskPointsOutput(), 
-					self._getArrow2DOutput()) 
-		elif(self.__arrow == Arrow.THREE_D): # Use 3D arrows.
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
+					Arrow2D._getOutput(self)) 
+		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			self._setupGlyph3D(self._getMaskPointsOutput(), 
-					self._getArrow3DOutput()) 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
+					Arrow3D._getOutput(self)) 
 
-		self._setupDataSetMapper(self._getGlyph3DOutput(), 
+		DataSetMapper.__init__(self, Glyph3D._getOutput(self), 
 				lookup_table._getLookupTable())
 
-		self._setupActor3D(self._getDataSetMapper())
-		scene._addActor3D(self.__viewport, self._getActor3D())
-	
-	def _isModified(self):	
-		"""
-		Return whether the VelocityOnPlaneCut or DataCollector has been 
-		modified.
+		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
+			Glyph3D._setColorModeByVector(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getVectorRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.VECTOR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
-		@rtype: Boolean
-		@return: True or False
-		"""
+		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
+			Glyph3D._setColorModeByScalar(self)
+			Glyph3D._setRange(self, data_collector._getScalarRange())
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getScalarRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
-		return self.__modified or self.__data_collector._isModified()
-
-	def _render(self, scene):
-		"""
-		Render the velocity cut using a plane.
-
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		"""
-
-		if (self._isModified() == True):
-			if(self.__data_collector._isVectorSet() == True):
-				self.__data_collector._setActiveVector()
-			# Color velocity by vector.
-			if(self.__color_mode == ColorMode.VECTOR): 				
-				self._setColorModeByVector()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# been specified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setRange(self.__data_collector._getVectorRange())
-					self._setScalarRange(\
-							self.__data_collector._getVectorRange())
-				else:
-					self._setRange(self._getDataSetMapperRange())
-
-			# Color velocity by scalar.
-			elif(self.__color_mode == ColorMode.SCALAR): 				
-				self._setColorModeByScalar()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# been specified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setRange(self.__data_collector._getScalarRange())
-					self._setScalarRange(\
-							self.__data_collector._getScalarRange())
-				else:
-					self._setRange(self._getDataSetMapperRange())
-
-			self.__modified = False
+		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+		scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 
 ###############################################################################
@@ -407,8 +294,7 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		source is cell data, a conversion to point data may or may not be 
 		required, in order for the object to be rendered correctly. 
 		If a conversion is needed, the 'cell_to_point' flag must be set to 
-		'True', otherwise 'False' (which is the default). On occasions, an
-		inaccurate object may be rendered from cell data even after conversion.
+		'True', otherwise 'False' (which is the default).
 
 		@type scene: L{Scene <scene.Scene>} object
 		@param scene: Scene in which objects are to be rendered on
@@ -429,137 +315,87 @@ class VelocityOnPlaneClip(DataSetMapper, Actor3D, Arrow2D, Arrow3D,
 		@param outline: Places an outline around the domain surface
 		"""
 
-		self.__data_collector = data_collector
-		self.__arrow = arrow
-		self.__color_mode = color_mode
-		self.__viewport = viewport
-		self.__lut = lut
-		self.__cell_to_point = cell_to_point
-		self.__outline = outline
-		
-		# Keeps track whether VelocityOnPlaneCut has been modified.
-		self.__modified = True 
-		Transform.__init__(self)
-		Plane.__init__(self)
-		Clipper.__init__(self)
-		MaskPoints.__init__(self)
-		Glyph3D.__init__(self) 
-		DataSetMapper.__init__(self)
-		Actor3D.__init__(self)
-		scene._addVisualizationModules(self)
+		# NOTE: Actor3D is inherited and there are two instances declared here.
+		# As a result, when methods from Actor3D is invoked from the driver,
+		# only the methods associated with the latest instance (which in this
+		# case is the Actor3D for the Velocity) can be executed. Actor3D
+		# methods associated with Outline cannot be invoked from the driver.
+		# They can only be called within here, which is why Outline must be
+		# place before Velocity as there is unlikely to be any changes
+		# made to the Outline's Actor3D.
 
-		# ----- Outline -----
+ 		# ----- Outline -----
 
-		# NOTE: Changes cannot be made to the Outline's properties from the 
-		# driver.
-		if(self.__outline == True):
-			outline = Outline(self.__data_collector._getDataCollectorOutput())
-			mapper = DataSetMapper()
-			mapper._setupDataSetMapper(outline._getOutlineOutput()) 
+		if(outline == True):
+			outline = Outline(data_collector._getOutput())
+			DataSetMapper.__init__(self, outline._getOutput())
 
-			actor3D = Actor3D()
-			actor3D._setupActor3D(mapper._getDataSetMapper())
+			Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
 			# Default outline color is black.
-			actor3D.setColor(Color.BLACK)
+			Actor3D.setColor(self, Color.BLACK)
 
 			# Default line width is 1.
-			actor3D._setLineWidth(1)
-			scene._addActor3D(self.__viewport, actor3D._getActor3D())
+			Actor3D._setLineWidth(self, 1)
+			scene._addActor3D(viewport, Actor3D._getActor3D(self))
 
 		# ----- Velocity on a clipped plane -----
 
 		# NOTE: Lookup table color mapping (color or grey scale) MUST be set
 		# before DataSetMapper. If it is done after DataSetMapper, no effect
 		# will take place.
-		if(self.__lut == Lut.COLOR): # Colored lookup table.
+		if(lut == Lut.COLOR): # Colored lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setTableValue()
-		elif(self.__lut == Lut.GREY_SCALE): # Grey scaled lookup table.
+		elif(lut == Lut.GREY_SCALE): # Grey scaled lookup table.
 			lookup_table = LookupTable()
 			lookup_table._setLookupTableToGreyScale()
 
-		self._setupPlane(self._getTransform())
+		Transform.__init__(self)	
+		Plane.__init__(self, Transform._getTransform(self))
 
-		if(self.__cell_to_point == True): # Converts cell data to point data.
-			c2p = CellDataToPointData(
-					self.__data_collector._getDataCollectorOutput())
-			self._setupMaskPoints(c2p._getCellToPointOutput())
-		elif(self.__cell_to_point == False): # No conversion happens.	
-			self._setupMaskPoints(
-					self.__data_collector._getDataCollectorOutput())
+		if(cell_to_point == True): # Converts cell data to point data.
+			c2p = CellDataToPointData(data_collector._getOutput())
+			MaskPoints.__init__(self, c2p._getOutput())
+		elif(cell_to_point == False): # No conversion happens.	
+			MaskPoints.__init__(self, data_collector._getOutput())
 
 		# NOTE: Glyph3D must come before Clipper. Otherwise clipping may not
 		# work correctly.
-		if(self.__arrow == Arrow.TWO_D): # Use 2D arrows.
+		if(arrow == Arrow.TWO_D): # Use 2D arrows.
 			Arrow2D.__init__(self)
-			self._setupGlyph3D(self._getMaskPointsOutput(), 
-					self._getArrow2DOutput()) 
-		elif(self.__arrow == Arrow.THREE_D): # Use 3D arrows.
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
+					Arrow2D._getOutput(self)) 
+		elif(arrow == Arrow.THREE_D): # Use 3D arrows.
 			Arrow3D.__init__(self)
-			self._setupGlyph3D(self._getMaskPointsOutput(), 
-					self._getArrow3DOutput()) 
+			Glyph3D.__init__(self, MaskPoints._getOutput(self), 
+					Arrow3D._getOutput(self)) 
 		
-		self._setupClipper(self._getGlyph3DOutput(), self._getPlane()) 	
-		self._setClipFunction()
+		Clipper.__init__(self, Glyph3D._getOutput(self), 
+				Plane._getPlane(self)) 	
+		Clipper._setClipFunction(self)
 
 		# NOTE: Clipper must come after Glyph. Otherwise clipping
         # may not work correctly.
-		self._setupDataSetMapper(self._getClipperOutput(), 
+		DataSetMapper.__init__(self, Clipper._getOutput(self), 
 				lookup_table._getLookupTable())
 
-		self._setupActor3D(self._getDataSetMapper())
-		scene._addActor3D(self.__viewport, self._getActor3D())
-	
-	def _isModified(self):	
-		"""
-		Return whether the VelocityOnPlaneClip or DataCollector has been 
-		modified.
+		if(color_mode == ColorMode.VECTOR): # Color velocity by vector.
+			Glyph3D._setColorModeByVector(self)
+			Glyph3D._setRange(self, data_collector._getVectorRange())
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getVectorRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.VECTOR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
-		@rtype: Boolean
-		@return: True or False
-		"""
+		elif(color_mode == ColorMode.SCALAR): # Color velocity by scalar.
+			Glyph3D._setColorModeByScalar(self)
+			Glyph3D._setRange(self, data_collector._getScalarRange())
+			DataSetMapper._setScalarRange(self, 
+					data_collector._getScalarRange())
+			data_collector._paramForUpdatingMultipleSources(VizType.VELOCITY,
+					ColorMode.SCALAR, DataSetMapper._getDataSetMapper(self),
+					Glyph3D._getGlyph3D(self))
 
-		return self.__modified or self.__data_collector._isModified()
-
-	def _render(self, scene):
-		"""
-		Render the velocity clip using a plane..
-
-		@type scene: L{Scene <scene.Scene>} object
-		@param scene: Scene in which objects are to be rendered on
-		"""
-
-		if (self._isModified() == True):
-			if(self.__data_collector._isVectorSet() == True):
-				self.__data_collector._setActiveVector()
-			# Color velocity by vector.
-			if(self.__color_mode == ColorMode.VECTOR): 				
-				self._setColorModeByVector()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# been specified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setRange(self.__data_collector._getVectorRange())
-					self._setScalarRange(\
-							self.__data_collector._getVectorRange())
-				else:
-					self._setRange(self._getDataSetMapperRange())
-
-			# Color velocity by scalar.
-			elif(self.__color_mode == ColorMode.SCALAR): 				
-				self._setColorModeByScalar()
-
-				# self._isScalarRangeSet checks whether the scalar range has 
-				# been specified by the user. If it has, then the scalar range
-				# read from the source will be ignored.
-				if(not(self._isScalarRangeSet())): 
-					self._setRange(self.__data_collector._getScalarRange())
-					self._setScalarRange(\
-							self.__data_collector._getScalarRange())
-				else:
-					self._setRange(self._getDataSetMapperRange())
-
-			self.__modified = False
-
-
+		Actor3D.__init__(self, DataSetMapper._getDataSetMapper(self))
+		scene._addActor3D(viewport, Actor3D._getActor3D(self))

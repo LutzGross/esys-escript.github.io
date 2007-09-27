@@ -1,24 +1,24 @@
+// $Id$
 
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
-
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 #include "Data.h"
 
+#include "paso/Common.h"
 #include "DataExpanded.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataEmpty.h"
+#include "DataArray.h"
 #include "DataArrayView.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
@@ -60,13 +60,8 @@ Data::Data(double value,
   for (int i = 0; i < shape.attr("__len__")(); ++i) {
     dataPointShape.push_back(extract<const int>(shape[i]));
   }
-
-  int len = DataArrayView::noValues(dataPointShape);
-  DataVector temp_data(len,value,len);
-  DataArrayView temp_dataView(temp_data, dataPointShape);
-
-  initialise(temp_dataView, what, expanded);
-
+  DataArray temp(dataPointShape,value);
+  initialise(temp.getView(),what,expanded);
   m_protected=false;
 }
 
@@ -75,13 +70,9 @@ Data::Data(double value,
 	   const FunctionSpace& what,
            bool expanded)
 {
-  int len = DataArrayView::noValues(dataPointShape);
-
-  DataVector temp_data(len,value,len);
-  DataArrayView temp_dataView(temp_data, dataPointShape);
-
-  initialise(temp_dataView, what, expanded);
-
+  DataArray temp(dataPointShape,value);
+  pair<int,int> dataShape=what.getDataShape();
+  initialise(temp.getView(),what,expanded);
   m_protected=false;
 }
 
@@ -164,41 +155,23 @@ Data::Data(const object& value,
   m_protected=false;
 }
 
-
 Data::Data(const object& value,
            const Data& other)
 {
-
-  numeric::array asNumArray(value);
-
-
-  // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
-  for (int i=0; i < asNumArray.getrank(); i++) {
-    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
-  }
-  // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
-  DataVector temp_data(len, 0.0, len);
-  DataArrayView temp_dataView(temp_data, tempShape);
-  temp_dataView.copy(asNumArray);
-
   //
   // Create DataConstant using the given value and all other parameters
   // copied from other. If value is a rank 0 object this Data
   // will assume the point data shape of other.
-
-  if (temp_dataView.getRank()==0) {
-    int len = DataArrayView::noValues(other.getPointDataView().getShape());
-
-    DataVector temp2_data(len, temp_dataView(), len);
-    DataArrayView temp2_dataView(temp_data, other.getPointDataView().getShape());
-    initialise(temp2_dataView, other.getFunctionSpace(), false);
-
+  DataArray temp(value);
+  if (temp.getView().getRank()==0) {
+    //
+    // Create a DataArray with the scalar value for all elements
+    DataArray temp2(other.getPointDataView().getShape(),temp.getView()());
+    initialise(temp2.getView(),other.getFunctionSpace(),false);
   } else {
     //
     // Create a DataConstant with the same sample shape as other
-    initialise(temp_dataView, other.getFunctionSpace(), false);
+    initialise(temp.getView(),other.getFunctionSpace(),false);
   }
   m_protected=false;
 }
@@ -369,14 +342,14 @@ Data::isConstant() const
 }
 
 void
-Data::setProtection()
-{
+Data::setProtection() 
+{ 
    m_protected=true;
 }
 
 bool
-Data::isProtected() const
-{
+Data::isProtected() const 
+{ 
    return m_protected;
 }
 
@@ -529,9 +502,9 @@ Data::getDataPointShape() const
 
 
 
-const
+const 
 boost::python::numeric::array
-Data:: getValueOfDataPoint(int dataPointNo)
+Data:: getValueOfDataPoint(int dataPointNo) 
 {
   size_t length=0;
   int i, j, k, l;
@@ -576,7 +549,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
        if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
            throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
        }
-
+              
        //
        // Check a valid data point number has been supplied
        if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
@@ -585,21 +558,21 @@ Data:: getValueOfDataPoint(int dataPointNo)
        // TODO: global error handling
        // create a view of the data if it is stored locally
        DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
-
+		
        switch( dataPointRank ){
 			case 0 :
 				numArray[0] = dataPointView();
 				break;
-			case 1 :
+			case 1 :		
 				for( i=0; i<dataPointShape[0]; i++ )
 					numArray[i]=dataPointView(i);
 				break;
-			case 2 :
+			case 2 :		
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++)
 						numArray[make_tuple(i,j)]=dataPointView(i,j);
 				break;
-			case 3 :
+			case 3 :		
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++)
@@ -620,7 +593,7 @@ Data:: getValueOfDataPoint(int dataPointNo)
 
 }
 void
-Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object)
+Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object) 
 {
     // this will throw if the value cannot be represented
     boost::python::numeric::array num_array(py_object);
@@ -637,7 +610,7 @@ Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::numeric::
   }
   //
   // check rank
-  if (num_array.getrank()<getDataPointRank())
+  if (num_array.getrank()<getDataPointRank()) 
       throw DataException("Rank of numarray does not match Data object rank");
 
   //
@@ -680,9 +653,9 @@ Data::setValueOfDataPoint(int dataPointNo, const double value)
   }
 }
 
-const
+const 
 boost::python::numeric::array
-Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
+Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo) 
 {
   size_t length=0;
   int i, j, k, l, pos;
@@ -737,7 +710,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
                 if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
                   throw DataException("Error - Data::convertToNumArray: invalid sampleNo.");
                 }
-
+              
                 //
                 // Check a valid data point number has been supplied
                 if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
@@ -746,23 +719,23 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
                 // TODO: global error handling
 		// create a view of the data if it is stored locally
 		DataArrayView dataPointView = getDataPoint(sampleNo, dataPointNoInSample);
-
+		
 		// pack the data from the view into tmpData for MPI communication
 		pos=0;
 		switch( dataPointRank ){
 			case 0 :
 				tmpData[0] = dataPointView();
 				break;
-			case 1 :
+			case 1 :		
 				for( i=0; i<dataPointShape[0]; i++ )
 					tmpData[i]=dataPointView(i);
 				break;
-			case 2 :
+			case 2 :		
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++, pos++ )
 						tmpData[pos]=dataPointView(i,j);
 				break;
-			case 3 :
+			case 3 :		
 				for( i=0; i<dataPointShape[0]; i++ )
 					for( j=0; j<dataPointShape[1]; j++ )
 						for( k=0; k<dataPointShape[2]; k++, pos++ )
@@ -778,7 +751,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 		}
             }
 	}
-        #ifdef PASO_MPI
+        #ifdef PASO_MPI	
         // broadcast the data to all other processes
 	MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
         #endif
@@ -788,16 +761,16 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 		case 0 :
 			numArray[0]=tmpData[0];
 			break;
-		case 1 :
+		case 1 :		
 			for( i=0; i<dataPointShape[0]; i++ )
 				numArray[i]=tmpData[i];
 			break;
-		case 2 :
+		case 2 :		
 			for( i=0; i<dataPointShape[0]; i++ )
 				for( j=0; j<dataPointShape[1]; j++ )
 				   numArray[make_tuple(i,j)]=tmpData[i+j*dataPointShape[0]];
 			break;
-		case 3 :
+		case 3 :		
 			for( i=0; i<dataPointShape[0]; i++ )
 				for( j=0; j<dataPointShape[1]; j++ )
 					for( k=0; k<dataPointShape[2]; k++ )
@@ -812,7 +785,7 @@ Data::getValueOfGlobalDataPoint(int procNo, int dataPointNo)
 			break;
 	}
 
-	delete [] tmpData;
+	delete [] tmpData;	
   //
   // return the loaded array
   return numArray;
@@ -835,13 +808,14 @@ Data::integrate() const
 #ifdef PASO_MPI
   AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals_local,*this);
   // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
-  double *tmp = new double[dataPointSize];
-  double *tmp_local = new double[dataPointSize];
+  double *tmp, *tmp_local;
+  tmp       = MEMALLOC(dataPointSize,double);
+  tmp_local = MEMALLOC(dataPointSize,double);
   for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
   MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
   for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
-  delete[] tmp;
-  delete[] tmp_local;
+  MEMFREE(tmp);
+  MEMFREE(tmp_local);
 #else
   AbstractContinuousDomain::asAbstractContinuousDomain(getDomain()).setToIntegrals(integrals,*this);
 #endif
@@ -1066,6 +1040,23 @@ Data::Lsup() const
 }
 
 double
+Data::Linf() const
+{
+  double localValue, globalValue;
+  //
+  // set the initial absolute minimum value to max double
+  AbsMin abs_min_func;
+  localValue = algorithm(abs_min_func,numeric_limits<double>::max());
+
+#ifdef PASO_MPI
+  MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
+  return globalValue;
+#else
+  return localValue;
+#endif
+}
+
+double
 Data::sup() const
 {
   double localValue, globalValue;
@@ -1147,11 +1138,11 @@ Data::swapaxes(const int axis0, const int axis1) const
      }
      for (int i=0; i<rank; i++) {
        if (i == axis0_tmp) {
-          ev_shape.push_back(s[axis1_tmp]);
+          ev_shape.push_back(s[axis1_tmp]); 
        } else if (i == axis1_tmp) {
-          ev_shape.push_back(s[axis0_tmp]);
+          ev_shape.push_back(s[axis0_tmp]); 
        } else {
-          ev_shape.push_back(s[i]);
+          ev_shape.push_back(s[i]); 
        }
      }
      Data ev(0.,ev_shape,getFunctionSpace());
@@ -1167,7 +1158,7 @@ Data::symmetric() const
      // check input
      DataArrayView::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
-        if(s[0] != s[1])
+        if(s[0] != s[1]) 
            throw DataException("Error - Data::symmetric can only be calculated for rank 2 object with equal first and second dimension.");
      }
      else if (getDataPointRank()==4) {
@@ -1189,7 +1180,7 @@ Data::nonsymmetric() const
      // check input
      DataArrayView::ShapeType s=getDataPointShape();
      if (getDataPointRank()==2) {
-        if(s[0] != s[1])
+        if(s[0] != s[1]) 
            throw DataException("Error - Data::nonsymmetric can only be calculated for rank 2 object with equal first and second dimension.");
         DataArrayView::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
@@ -1293,9 +1284,9 @@ Data::eigenvalues() const
 {
      // check input
      DataArrayView::ShapeType s=getDataPointShape();
-     if (getDataPointRank()!=2)
+     if (getDataPointRank()!=2) 
         throw DataException("Error - Data::eigenvalues can only be calculated for rank 2 object.");
-     if(s[0] != s[1])
+     if(s[0] != s[1]) 
         throw DataException("Error - Data::eigenvalues can only be calculated for object with equal first and second dimension.");
      // create return
      DataArrayView::ShapeType ev_shape(1,s[0]);
@@ -1309,9 +1300,9 @@ const boost::python::tuple
 Data::eigenvalues_and_eigenvectors(const double tol) const
 {
      DataArrayView::ShapeType s=getDataPointShape();
-     if (getDataPointRank()!=2)
+     if (getDataPointRank()!=2) 
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for rank 2 object.");
-     if(s[0] != s[1])
+     if(s[0] != s[1]) 
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for object with equal first and second dimension.");
      // create return
      DataArrayView::ShapeType ev_shape(1,s[0]);
@@ -1381,7 +1372,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 	int lowProc = 0;
 	double *globalMins = new double[get_MPISize()+1];
 	int error = MPI_Gather ( &next, 1, MPI_DOUBLE, globalMins, 1, MPI_DOUBLE, 0, get_MPIComm() );
-
+	
 	if( get_MPIRank()==0 ){
 		next = globalMins[lowProc];
 		for( i=1; i<get_MPISize(); i++ )
@@ -1433,12 +1424,6 @@ Data::operator+=(const boost::python::object& right)
 {
   Data tmp(right,getFunctionSpace(),false);
   binaryOp(tmp,plus<double>());
-  return (*this);
-}
-Data&
-Data::operator=(const Data& other)
-{
-  copy(other);
   return (*this);
 }
 
@@ -1515,7 +1500,7 @@ Data::powD(const Data& right) const
 {
   Data result;
   if (getDataPointRank()<right.getDataPointRank()) {
-     result.copy(right);
+     result.copy(right); 
      result.binaryOp(*this,escript::rpow);
   } else {
      result.copy(*this);
@@ -1709,7 +1694,7 @@ escript::operator/(const boost::python::object& left, const Data& right)
 /* TODO */
 /* global reduction */
 Data
-Data::getItem(const boost::python::object& key) const
+Data::getItem(const boost::python::object& key) const 
 {
   const DataArrayView& view=getPointDataView();
 
@@ -1740,6 +1725,8 @@ Data::setItemO(const boost::python::object& key,
   setItemD(key,tempData);
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setItemD(const boost::python::object& key,
                const Data& value)
@@ -1757,6 +1744,8 @@ Data::setItemD(const boost::python::object& key,
   }
 }
 
+/* TODO */
+/* global reduction */
 void
 Data::setSlice(const Data& value,
                const DataArrayView::RegionType& region)
@@ -1800,7 +1789,7 @@ Data::typeMatchRight(const Data& right)
 
 void
 Data::setTaggedValueByName(std::string name,
-                           const boost::python::object& value)
+                           const boost::python::object& value) 
 {
      if (getFunctionSpace().getDomain().isValidTagName(name)) {
         int tagKey=getFunctionSpace().getDomain().getTag(name);
@@ -1822,24 +1811,13 @@ Data::setTaggedValue(int tagKey,
     throw DataException("Error - DataTagged conversion failed!!");
   }
 
-  numeric::array asNumArray(value);
-
-
-  // extract the shape of the numarray
-  DataArrayView::ShapeType tempShape;
-  for (int i=0; i < asNumArray.getrank(); i++) {
-    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
-  }
-
-  // get the space for the data vector
-  int len = DataArrayView::noValues(tempShape);
-  DataVector temp_data(len, 0.0, len);
-  DataArrayView temp_dataView(temp_data, tempShape);
-  temp_dataView.copy(asNumArray);
+  //
+  // Construct DataArray from boost::python::object input value
+  DataArray valueDataArray(value);
 
   //
   // Call DataAbstract::setTaggedValue
-  m_data->setTaggedValue(tagKey,temp_dataView);
+  m_data->setTaggedValue(tagKey,valueDataArray.getView());
 }
 
 void
@@ -1856,7 +1834,7 @@ Data::setTaggedValueFromCPP(int tagKey,
   if (!isTagged()) {
     throw DataException("Error - DataTagged conversion failed!!");
   }
-
+                                                                                                               
   //
   // Call DataAbstract::setTaggedValue
   m_data->setTaggedValue(tagKey,value);
@@ -2578,10 +2556,10 @@ Data::borrowData() const
 /* Member functions specific to the MPI implementation */
 
 void
-Data::print()
+Data::print() 
 {
   int i,j;
-
+  
   printf( "Data is %dX%d\n", getNumSamples(), getNumDataPointsPerSample() );
   for( i=0; i<getNumSamples(); i++ )
   {
@@ -2590,18 +2568,6 @@ Data::print()
       printf( "\t%10.7g", (getSampleData(i))[j] );
     printf( "\n" );
   }
-}
-void
-Data::dump(const std::string fileName) const
-{
-  try
-     {
-        return m_data->dump(fileName);
-     }
-     catch (exception& e)
-     {
-        cout << e.what() << endl;
-     }
 }
 
 int
@@ -2630,7 +2596,7 @@ Data::get_MPIRank() const
 
 MPI_Comm
 Data::get_MPIComm() const
-{
+{ 
 #ifdef PASO_MPI
 	return MPI_COMM_WORLD;
 #else

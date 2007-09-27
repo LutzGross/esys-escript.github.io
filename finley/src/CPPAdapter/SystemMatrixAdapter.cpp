@@ -1,17 +1,17 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ******************************************************************************
+ *                                                                            *
+ *       COPYRIGHT  ACcESS 2004 -  All Rights Reserved                        *
+ *                                                                            *
+ * This software is the property of ACcESS. No part of this code              *
+ * may be copied in any form or by any means without the expressed written    *
+ * consent of ACcESS.  Copying, use or modification of this software          *
+ * by any unauthorised person is illegal unless that person has a software    *
+ * license agreement with ACcESS.                                             *
+ *                                                                            *
+ ******************************************************************************
+ $Id$
+*/
 
 #ifdef PASO_MPI
 #include <mpi.h>
@@ -49,7 +49,7 @@ SystemMatrixAdapter::~SystemMatrixAdapter()
 { 
     if (m_system_matrix.unique()) {
         Paso_SystemMatrix* mat=m_system_matrix.get();
-        Paso_SystemMatrix_free(mat);
+        Paso_SystemMatrix_dealloc(mat);
     }
 }
 
@@ -156,8 +156,8 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, co
     EXTRACT("iter_max",iter_max,int);
     EXTRACT("drop_tolerance",drop_tolerance,double);
     EXTRACT("drop_storage",drop_storage,double);
-    EXTRACT("truncation",truncation,int);
-    EXTRACT("restart",restart,int);
+    EXTRACT("truncation",truncation,double);
+    EXTRACT("restart",restart,double);
     #undef EXTRACT
     #undef EXTRACT_OPTION
     if ( out.getDataPointSize()  != getColumnBlockSize()) {

@@ -1,17 +1,15 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+// $Id$
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 extern "C" {
 #include "DataC.h"
@@ -38,20 +36,6 @@ int isDataPointShapeEqual(struct escriptDataC* data, int rank, int* dimensions)
      } else {
           escript::DataArrayView::ShapeType givenShape(&dimensions[0],&dimensions[rank]);
           return (temp->getPointDataView().getShape()==givenShape);
-     }
-  }
-}
-
-int  getNumDataPointsPerSample(struct escriptDataC* data) 
-{
-  if (data == (struct escriptDataC*)0) {
-       return 0;
-  } else {
-     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     if (temp->isEmpty()) {
-        return 0;
-     } else {
-          return (temp->getNumDataPointsPerSample());
      }
   }
 }

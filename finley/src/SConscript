@@ -31,8 +31,8 @@ sources += [ x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.cpp
 cppadapter_headers = [x for x in cppadapter_filenames if os.path.splitext(x)[1] in ['.h']]
 
 sources.remove(py_wrapper_source) # FIXME: should probably refactor the source tree so the python wrapper isn't colocated with c++ sources
-local_env.Append(LIBS = [boost_lib, python_lib, 'escript', 'esysUtils', 'paso'] + sys_libs + mpi_libs )
-py_wrapper_local_env.Append(LIBS = [boost_lib, python_lib, lib_name, 'escript', 'esysUtils', 'paso'] + sys_libs + mpi_libs )
+local_env.Append(LIBS = boost_libs + python_libs + sys_libs + ['escript', 'esysUtils', 'paso'] + mpi_libs )
+py_wrapper_local_env.Append(LIBS = boost_libs + python_libs + sys_libs + [ lib_name, 'escript', 'esysUtils', 'paso'] + mpi_libs )
 
 if mkl_libs:
    local_env.Append(CPPDEFINES=['MKL',])
@@ -40,9 +40,9 @@ if mkl_libs:
 if scsl_libs:
    local_env.Append(CPPDEFINES=['SCSL',])
    local_env.Append(LIBS = scsl_libs)
-if umf_libs:
+if umfpack_libs:
    local_env.Append(CPPDEFINES=['UMFPACK',])
-   local_env.Append(LIBS = umf_libs)
+   local_env.Append(LIBS = umfpack_libs)
 
 if blas_libs:
    local_env.Append(LIBS = blas_libs)

@@ -11,5 +11,6 @@ void blocktimer_increment(char *name, double start_time);
 int blocktimer_getOrCreateTimerId(char *name);
 void blocktimer_reportSortByName();
 void blocktimer_reportSortByTime();
+void blocktimer_reportSystemInfo();
 double blocktimer_time();
 

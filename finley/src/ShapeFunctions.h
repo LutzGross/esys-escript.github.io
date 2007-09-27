@@ -1,21 +1,23 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 /**************************************************************/
 
 /*   Finley: Shape functions header file */
+
+/**************************************************************/
+
+/*   Author: gross@access.edu.au */
+/*   Version: $Id$ */
 
 /**************************************************************/
 
@@ -54,7 +56,6 @@ Finley_Shape_Function Finley_Shape_Tet10;
 Finley_Shape_Function Finley_Shape_Tet16;
 Finley_Shape_Function Finley_Shape_Hex8;
 Finley_Shape_Function Finley_Shape_Hex20;
-Finley_Shape_Function Finley_Shape_Hex27;
 Finley_Shape_Function Finley_Shape_Hex32;
 
 #endif /* #ifndef INC_FINLEY_SHAPEFUNCTIONS */

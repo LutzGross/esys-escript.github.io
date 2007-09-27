@@ -1,19 +1,4 @@
-#
 # $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
-
 """
 The module provides an interface to define and solve linear partial
 differential equations (PDEs) within L{escript}. L{linearPDEs} does not provide any
@@ -379,7 +364,7 @@ class LinearPDE(object):
 
    The PDE is symmetrical if
 
-   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j]}
+   M{A[i,j]=A[j,i]}  and M{B[j]=C[j]} and M{A_reduced[i,j]=A_reduced[j,i]}  and M{B_reduced[j]=C_reduced[j] 
 
    For a system of PDEs and a solution with several components the PDE has the form
 
@@ -430,7 +415,7 @@ class LinearPDE(object):
    of the solution at side 1 and at side 0, denotes the jump of M{u} across discontinuity along the normal calcualted by
    L{jump<util.jump>}.
    The coefficient M{d_contact} is a rank two and M{y_contact} is a rank one both in the L{FunctionOnContactZero<escript.FunctionOnContactZero>} or L{FunctionOnContactOne<escript.FunctionOnContactOne>}.
-   The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
+    The coefficient M{d_contact_reduced} is a rank two and M{y_contact_reduced} is a rank one both in the L{ReducedFunctionOnContactZero<escript.ReducedFunctionOnContactZero>} or L{ReducedFunctionOnContactOne<escript.ReducedFunctionOnContactOne>}.
    In case of a single PDE and a single component solution the contact condition takes the form
 
    M{n[j]*J0_{j}=n[j]*J1_{j}=(y_contact+y_contact_reduced)-(d_contact+y_contact_reduced)*jump(u)}
@@ -951,9 +936,7 @@ class LinearPDE(object):
        @param preconditioner: sets a new solver method.
        @type preconditioner: one of L{DEFAULT}, L{JACOBI} L{ILU0}, L{ILUT},L{SSOR}, L{RILU}
        """
-       if solver==None: solver=self.__solver_method
-       if preconditioner==None: preconditioner=self.__preconditioner
-       if solver==None: solver=self.DEFAULT
+       if solver==None: solve=self.DEFAULT
        if preconditioner==None: preconditioner=self.DEFAULT
        if not (solver,preconditioner)==self.getSolverMethod():
            self.__solver_method=solver
@@ -1701,20 +1684,13 @@ class LinearPDE(object):
                       raise ValueError,"coefficient B in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("C").isEmpty():
                       raise ValueError,"coefficient C in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("d_contact").isEmpty():
-                      raise ValueError,"coefficient d_contact in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("A_reduced").isEmpty(): 
                       raise ValueError,"coefficient A_reduced in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("B_reduced").isEmpty():
                       raise ValueError,"coefficient B_reduced in lumped matrix may not be present."
                  if not self.getCoefficientOfGeneralPDE("C_reduced").isEmpty():
                       raise ValueError,"coefficient C_reduced in lumped matrix may not be present."
-                 if not self.getCoefficientOfGeneralPDE("d_contact_reduced").isEmpty():
-                      raise ValueError,"coefficient d_contact_reduced in lumped matrix may not be present."
                  D=self.getCoefficientOfGeneralPDE("D")
-                 d=self.getCoefficientOfGeneralPDE("d")
-                 D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
-                 d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
                         D_times_e=util.matrix_mult(D,numarray.ones((self.getNumSolutions(),)))
@@ -1722,6 +1698,7 @@ class LinearPDE(object):
                         D_times_e=D
                  else:
                     D_times_e=escript.Data()
+                 d=self.getCoefficientOfGeneralPDE("d")
                  if not d.isEmpty():
                      if self.getNumSolutions()>1:
                         d_times_e=util.matrix_mult(d,numarray.ones((self.getNumSolutions(),)))
@@ -1729,7 +1706,22 @@ class LinearPDE(object):
                         d_times_e=d
                  else:
                     d_times_e=escript.Data()
-      
+                 d_contact=self.getCoefficientOfGeneralPDE("d_contact")
+                 if not d_contact.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_contact_times_e=util.matrixmult(d_contact,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_contact_times_e=d_contact
+                 else:
+                    d_contact_times_e=escript.Data()
+    
+                 self.__operator=self.__getNewRightHandSide()
+                 self.getDomain().addPDEToRHS(self.__operator, \
+                                              escript.Data(), \
+                                              D_times_e, \
+                                              d_times_e,\
+                                              d_contact_times_e)
+                 D_reduced=self.getCoefficientOfGeneralPDE("D_reduced")
                  if not D_reduced.isEmpty():
                      if self.getNumSolutions()>1:
                         D_reduced_times_e=util.matrix_mult(D_reduced,numarray.ones((self.getNumSolutions(),)))
@@ -1737,6 +1729,7 @@ class LinearPDE(object):
                         D_reduced_times_e=D_reduced
                  else:
                     D_reduced_times_e=escript.Data()
+                 d_reduced=self.getCoefficientOfGeneralPDE("d_reduced")
                  if not d_reduced.isEmpty():
                      if self.getNumSolutions()>1:
                         d_reduced_times_e=util.matrix_mult(d_reduced,numarray.ones((self.getNumSolutions(),)))
@@ -1744,22 +1737,26 @@ class LinearPDE(object):
                         d_reduced_times_e=d_reduced
                  else:
                     d_reduced_times_e=escript.Data()
-
-                 self.__operator=self.__getNewRightHandSide()
-                 if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
-                    self.getDomain().addPDEToLumpedSystem(self.__operator, D_times_e, d_times_e)
-                    self.getDomain().addPDEToLumpedSystem(self.__operator, D_reduced_times_e, d_reduced_times_e)
+                 d_contact_reduced=self.getCoefficientOfGeneralPDE("d_contact_reduced")
+                 if not d_contact_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_contact_reduced_times_e=util.matrixmult(d_contact_reduced,numarray.ones((self.getNumSolutions(),)))
+                     else:
+                        d_contact_reduced_times_e=d_contact_reduced
                  else:
-                    self.getDomain().addPDEToRHS(self.__operator, \
-                                                 escript.Data(), \
-                                                 D_times_e, \
-                                                 d_times_e,\
-                                                 escript.Data())
-                    self.getDomain().addPDEToRHS(self.__operator, \
-                                                 escript.Data(), \
-                                                 D_reduced_times_e, \
-                                                 d_reduced_times_e,\
-                                                 escript.Data())
+                    d_contact_reduced_times_e=escript.Data()
+    
+                 self.__operator=self.__getNewRightHandSide()
+                 self.getDomain().addPDEToRHS(self.__operator, \
+                                              escript.Data(), \
+                                              D_times_e, \
+                                              d_times_e,\
+                                              d_contact_times_e)
+                 self.getDomain().addPDEToRHS(self.__operator, \
+                                              escript.Data(), \
+                                              D_reduced_times_e, \
+                                              d_reduced_times_e,\
+                                              d_contact_reduced_times_e)
                  self.__operator=1./self.__operator
                  self.trace("New lumped operator has been built.")
                  self.__operator_is_Valid=True

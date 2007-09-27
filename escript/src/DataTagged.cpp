@@ -1,17 +1,16 @@
+// $Id$
 
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #include "DataTagged.h"
 
@@ -577,7 +576,6 @@ DataTagged::dump(const std::string fileName) const
    int type=  getFunctionSpace().getTypeCode();
    int ndims =0;
    long dims[ldims];
-   const double* d_ptr=&(m_data[0]);
    DataArrayView::ShapeType shape = getPointDataView().getShape();
 
    // netCDF error handler
@@ -587,7 +585,7 @@ DataTagged::dump(const std::string fileName) const
    // check if writing was successful
    if (!dataFile.is_valid())
         throw DataException("Error - DataTagged:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type_id",1) )
+   if (!dataFile.add_att("type","tagged") )
         throw DataException("Error - DataTagged:: appending data type to netCDF file failed.");
    if (!dataFile.add_att("rank",rank) )
         throw DataException("Error - DataTagged:: appending rank attribute to netCDF file failed.");
@@ -644,7 +642,7 @@ DataTagged::dump(const std::string fileName) const
 	free(tags);
         throw DataException("Error - DataTagged:: appending variable to netCDF file failed.");
    }
-   if (! (var->put(d_ptr,dims)) )
+   if (! (var->put(&m_data[0],dims)) )
    {
 	free(tags);
         throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");

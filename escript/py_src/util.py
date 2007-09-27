@@ -1,18 +1,4 @@
-#
 # $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
 
 """
 Utility functions for escript
@@ -23,7 +9,6 @@ Utility functions for escript
 @var __url__: url entry point on documentation
 @var __version__: version
 @var __date__: date of the version
-@var EPSILON: smallest positive value with 1.<1.+EPSILON
 """
                                                                                                                                                                                                      
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -42,26 +27,10 @@ import numarray
 import escript
 import os
 from esys.escript import C_GeneralTensorProduct
-from esys.escript import getVersion
 
 #=========================================================
 #   some helpers:
 #=========================================================
-def getEpsilon():
-     #     ------------------------------------------------------------------
-     #     Compute EPSILON, the machine precision.  The call to daxpp is
-     #     inTENded to fool compilers that use extra-length registers.
-     #     31 Map 1999: Hardwire EPSILON so the debugger can step thru easily.
-     #     ------------------------------------------------------------------
-     eps    = 2.**(-12)
-     p=2.
-     while p>1.:
-            eps/=2.
-            p=1.+eps
-     return eps*2.
-
-EPSILON=getEpsilon()
-
 def getTagNames(domain):
     """
     returns a list of the tag names used by the domain
@@ -101,6 +70,7 @@ def insertTaggedValues(target,**kwargs):
         target.setTaggedValue(k,kwargs[k])
     return target
 
+    
 def saveVTK(filename,domain=None,**data):
     """
     writes a L{Data} objects into a files using the the VTK XML file format.
@@ -109,9 +79,9 @@ def saveVTK(filename,domain=None,**data):
 
        tmp=Scalar(..)
        v=Vector(..)
-       saveVTK("solution.xml",temperature=tmp,velocity=v)
+       saveVTK("solution.xml",temperature=tmp,velovity=v)
 
-    tmp and v are written into "solution.xml" where tmp is named "temperature" and v is named "velocity"
+    tmp and v are written into "solution.xml" where tmp is named "temperature" and v is named "velovity"
 
     @param filename: file name of the output file
     @type filename: C{str}
@@ -121,21 +91,13 @@ def saveVTK(filename,domain=None,**data):
     @type <name>: L{Data} object.
     @note: The data objects have to be defined on the same domain. They may not be in the same L{FunctionSpace} but one cannot expect that all L{FunctionSpace} can be mixed. Typically, data on the boundary and data on the interior cannot be mixed.
     """
-    new_data={}
-    for n,d in data.items():
-          if not d.isEmpty(): 
-            fs=d.getFunctionSpace() 
-            domain2=fs.getDomain()
-            if fs == escript.Solution(domain2):
-               new_data[n]=interpolate(d,escript.ContinuousFunction(domain2))
-            elif fs == escript.ReducedSolution(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
-            else:
-               new_data[n]=d
-            if domain==None: domain=domain2
+    if domain==None:
+       for i in data.keys():
+          if not data[i].isEmpty(): domain=data[i].getFunctionSpace().getDomain()
     if domain==None:
         raise ValueError,"no domain detected."
-    domain.saveVTK(filename,new_data)
+    else:
+        domain.saveVTK(filename,data)
 
 def saveDX(filename,domain=None,**data):
     """
@@ -145,9 +107,9 @@ def saveDX(filename,domain=None,**data):
 
        tmp=Scalar(..)
        v=Vector(..)
-       saveDX("solution.dx",temperature=tmp,velocity=v)
+       saveDX("solution.dx",temperature=tmp,velovity=v)
 
-    tmp and v are written into "solution.dx" where tmp is named "temperature" and v is named "velocity".
+    tmp and v are written into "solution.dx" where tmp is named "temperature" and v is named "velovity".
 
     @param filename: file name of the output file
     @type filename: C{str}
@@ -157,23 +119,13 @@ def saveDX(filename,domain=None,**data):
     @type <name>: L{Data} object.
     @note: The data objects have to be defined on the same domain. They may not be in the same L{FunctionSpace} but one cannot expect that all L{FunctionSpace} can be mixed. Typically, data on the boundary and data on the interior cannot be mixed.
     """
-    new_data={}
-    for n,d in data.items():
-          if not d.isEmpty(): 
-            fs=d.getFunctionSpace() 
-            domain2=fs.getDomain()
-            if fs == escript.Solution(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
-            elif fs == escript.ReducedSolution(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
-            elif fs == escript.ContinuousFunction(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
-            else:
-               new_data[n]=d
-            if domain==None: domain=domain2
+    if domain==None:
+       for i in data.keys():
+          if not data[i].isEmpty(): domain=data[i].getFunctionSpace().getDomain()
     if domain==None:
         raise ValueError,"no domain detected."
-    domain.saveDX(filename,new_data)
+    else:
+        domain.saveDX(filename,data)
 
 def kronecker(d=3):
    """
@@ -4956,11 +4908,7 @@ def integrate(arg,where=None):
        else:
           return arg._integrate()
     else:
-       arg2=escript.Data(arg,where)
-       if arg2.getRank()==0:
-          return arg2._integrate()[0]
-       else:
-          return arg2._integrate()
+      raise TypeError,"integrate: Unknown argument type."
 
 class Integrate_Symbol(DependendSymbol):
    """

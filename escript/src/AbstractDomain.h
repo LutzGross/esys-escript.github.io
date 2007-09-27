@@ -1,17 +1,16 @@
+// $Id$
+/* 
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
 
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+*/
 
 #if !defined escript_AbstractDomain_20040609_H
 #define escript_AbstractDomain_20040609_H
@@ -87,22 +86,6 @@ class AbstractDomain {
 
   /**
      \brief
-     return the number of processors used for this domain
-  */
-  ESCRIPT_DLL_API
-  virtual int getMPISize() const;
-  /**
-     \brief
-     return the number MPI rank of this processor
-  */
-
-  ESCRIPT_DLL_API
-  virtual int getMPIRank() const;
-
-
-
-  /**
-     \brief
      Returns true if the given integer is a valid function space type
      for this domain.
   */
@@ -149,15 +132,6 @@ class AbstractDomain {
   */
   ESCRIPT_DLL_API
   virtual void write(const std::string& filename) const;
-
-  /**
-     \brief
-     dumps the domain to an external file filename.
-
-     This has to be implemented by the actual Domain adapter.
-  */
-  ESCRIPT_DLL_API
-  virtual void dump(const std::string& filename) const;
 
   /**
      \brief

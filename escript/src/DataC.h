@@ -1,17 +1,15 @@
-
 /* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/* 
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #if !defined  escript_DataC_20040611_H
 #define escript_DataC_20040611_H
@@ -81,13 +79,6 @@ ESCRIPT_DLL_API int isDataPointShapeEqual(escriptDataC* data, int rank, int* dim
 */
 ESCRIPT_DLL_API int numSamplesEqual(escriptDataC* data, int numDataPointsPerSample,
 		    int numSamples);
-
-/**
-   \brief
-   Returns the number of data points per sample
-   \param data Input - C wrapper for Data.
-*/
-ESCRIPT_DLL_API int getNumDataPointsPerSample(escriptDataC* data);
 
 /**
    \brief

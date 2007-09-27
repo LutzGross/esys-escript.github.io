@@ -1,22 +1,6 @@
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+@author: John NGUI
 """
-
-__author__="John Ngui, john.ngui@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision$"
-__date__="$Date$"
-
 
 import vtk
 from constant import ImageFormat
@@ -63,12 +47,12 @@ class ImageReader:
 		Set the image file name to be read.
 
 		@type image_name: String
-		@param image_name: Image name from which image data is to be read 
+		@param image_name: Image name from which data is to be read 
 		"""
 
 		self.__vtk_image_reader.SetFileName(image_name)
 
-	def _getImageReaderOutput(self):
+	def _getOutput(self):
 		"""
 		Return the output of the image reader.
 

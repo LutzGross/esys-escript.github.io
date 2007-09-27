@@ -1,47 +1,31 @@
 """
-@var __author__: name of author
-@var __copyright__: copyrights
-@var __license__: licence agreement
-@var __url__: url entry point on documentation
-@var __version__: version
-@var __date__: date of the version
+@author: John NGUI
 """
-
-__author__="John Ngui, john.ngui@uq.edu.au"
-__copyright__="""  Copyright (c) 2006 by ACcESS MNRF
-                    http://www.access.edu.au
-                Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-             http://www.opensource.org/licenses/osl-3.0.php"""
-__url__="http://www.iservo.edu.au/esys"
-__version__="$Revision$"
-__date__="$Date$"
-
 
 import vtk
 from position import GlobalPosition
 
 class Plane:
 	"""
-	Class that defines a plane that cuts or clips rendered objects. 
+	Class that defines a plane that cuts/clips rendered objects. 
 	"""
 
-	def __init__(self):
+	def __init__(self, transform):
 		"""
 		Initialise the plane.	
-		"""
-
-		self.__vtk_plane = vtk.vtkPlane()
-	
-	def _setupPlane(self, transform):	
-		"""
-		Setup the plane.
 
 		@type transform: L{Transform <transform.Transform>} object
 		@param transform: Specifies the orientation of the plane
 		"""
 
 		self.__transform = transform
+		self.__vtk_plane = vtk.vtkPlane()
+		self.__setupPlane()
+	
+	def __setupPlane(self):	
+		"""
+		Setup the plane.
+		"""
 
 		# Default origin of the of the plane is (0,0,0).
 		self.__setOrigin(GlobalPosition(0,0,0))
@@ -97,9 +81,8 @@ class PlaneSource:
 	def __init__(self):
 		"""
 		Initialise the plane source. A plane source is defined by an origin
-		and two other points, which form the axes (X and Y). By default the 
-		origin is set to (0, 0, 0) and the two points are set to (1, 0, 0) 
-		and (0, 1, 0).
+		and two other points, which form the axes. By default the origin is 
+		set to (0, 0, 0) and the two points are set to (1, 0, 0) and (0, 1, 0).
 		"""
 
 		self.__vtk_plane_source = vtk.vtkPlaneSource()
@@ -140,7 +123,8 @@ class PlaneSource:
 
 		self.__vtk_plane_source.SetPoint2(position._getGlobalPosition())
 
-	def _getPlaneSourceOutput(self):
+
+	def _getOutput(self):
 		"""
 		Return the output of the plane source.
 

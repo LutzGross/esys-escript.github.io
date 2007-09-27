@@ -1,68 +1,95 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
-/* Paso: SystemMatrixPattern_unrollBlocks */
+/* Paso: SystemMatrixPatternPattern */
 
 /**************************************************************/
 
+/* Copyrights by ACcESS Australia 2003, 2004, 2005 */
 /* Author: gross@access.edu.au */
 
 /**************************************************************/
 
+#include "Paso.h"
 #include "SystemMatrixPattern.h"
 
 /**************************************************************/
 
 /* creates SystemMatrixPattern  */
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern, 
+Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern, \
                                            int type, dim_t output_block_size,dim_t input_block_size) {
   Paso_SystemMatrixPattern*out=NULL;
-  Paso_Pattern *new_mainPattern=NULL, *new_couplePattern=NULL;
-  Paso_Distribution* new_output_distribution=NULL, *new_input_distribution=NULL;
-  Paso_Coupler *new_coupler=NULL;
-
-  new_mainPattern=Paso_Pattern_unrollBlocks(pattern->mainPattern,type,output_block_size,input_block_size);
-  new_couplePattern=Paso_Pattern_unrollBlocks(pattern->couplePattern,type,output_block_size,input_block_size);
-  new_output_distribution=Paso_Distribution_alloc(pattern->output_distribution->mpi_info,
-                                                  pattern->output_distribution->first_component,
-                                                  output_block_size,0);
-  new_input_distribution=Paso_Distribution_alloc(pattern->input_distribution->mpi_info,
-                                                  pattern->input_distribution->first_component,
-                                                  input_block_size,0);
-  new_coupler=Paso_Coupler_unroll(pattern->coupler,input_block_size);
-  if (Paso_noError()) {
-     out=Paso_SystemMatrixPattern_alloc(type,
-                                        new_output_distribution,
-                                        new_input_distribution,
-                                        new_mainPattern,
-                                        new_couplePattern,
-                                        new_coupler);
+  index_t *ptr=NULL,*index=NULL,iPtr;
+  dim_t i,j,k,l, block_size, new_n_ptr, new_len;
+  index_t index_offset_in=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  
+  if ((pattern->type & PATTERN_FORMAT_SYM) != (type & PATTERN_FORMAT_SYM)) {
+      Paso_setError(TYPE_ERROR,"Paso_SystemMatrixPattern_unrollBlocks: conversion between symmetric and non-symmetric is not implemented yet");
+      return NULL;
   }
-  Paso_Pattern_free(new_mainPattern);
-  Paso_Pattern_free(new_couplePattern);
-  Paso_Distribution_free(new_output_distribution);
-  Paso_Distribution_free(new_input_distribution);
-  Paso_Coupler_free(new_coupler);
+  Paso_MPIInfo* mpi_info=pattern->mpi_info;
+  Paso_Distribution *input_dist=NULL,*output_dist=NULL;
+  Paso_resetError();
+  block_size=output_block_size*input_block_size;
+  dim_t new_myNumOutput=(pattern->myNumOutput)*output_block_size;
+  dim_t new_myLen=(pattern->myLen)*block_size;
 
-  if (Paso_noError()) {
-     return out;
-  } else {
-     Paso_SystemMatrixPattern_free(out);
-     return NULL;
+  ptr=MEMALLOC(new_myNumOutput+1,index_t);
+  index=MEMALLOC(new_myLen,index_t);
+  if (! ( Paso_checkPtr(ptr) || Paso_checkPtr(index) ) )  {
+     #pragma omp parallel
+     {
+        #pragma omp for private(i) schedule(static)
+        for (i=0;i<new_myNumOutput+1;++i) ptr[i]=index_offset_out;
+
+        #pragma omp master
+        ptr[new_myNumOutput]=new_myLen+index_offset_out;
+
+        #pragma omp for private(i,k) schedule(static) 
+        for (i=0;i<pattern->myNumOutput;++i) 
+            for (k=0;k<output_block_size;++k) ptr[i*output_block_size+k]=(pattern->ptr[i]-index_offset_in)*block_size+(pattern->ptr[i+1]-pattern->ptr[i])*input_block_size*k+index_offset_out;
+          
+        #pragma omp for private(i,iPtr) schedule(static) 
+        for (i=0;i<new_myNumOutput;++i) 
+            for (iPtr=ptr[i]-index_offset_out;iPtr<ptr[i+1]-index_offset_out;++iPtr) index[iPtr]=index_offset_out;
+
+        #pragma omp for private(i,j,iPtr,k) schedule(static) 
+        for (i=0;i<pattern->myNumOutput;++i) {
+           for (iPtr=pattern->ptr[i]-index_offset_in;iPtr<pattern->ptr[i+1]-index_offset_in;++iPtr)  {
+              for (k=0;k<output_block_size;++k) {
+                 for (j=0;j<input_block_size;++j) {
+                    index[ptr[i*output_block_size+k]-index_offset_out+(iPtr-(pattern->ptr[i]-index_offset_in))*input_block_size+j]=(pattern->index[iPtr]-index_offset_in)*input_block_size+j+index_offset_out;
+                 }
+              }
+           }
+        }
+     }
+     /* create return value */
+     input_dist=Paso_Distribution_alloc(mpi_info,pattern->input_distribution->first_component,
+                                        input_block_size, -index_offset_in*input_block_size+index_offset_out);
+     output_dist=Paso_Distribution_alloc(mpi_info,pattern->output_distribution->first_component,
+                                         output_block_size, -index_offset_in*output_block_size+index_offset_out);
+     out=Paso_SystemMatrixPattern_alloc(type,output_dist,input_dist,ptr,index,pattern->numHops,pattern->hop);
+  }  
+  if (! Paso_noError()) {
+     MEMFREE(index);
+     MEMFREE(ptr);
   }
+  Paso_Distribution_free(input_dist);
+  Paso_Distribution_free(output_dist);
+  return out;
 }

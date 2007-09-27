@@ -1,21 +1,23 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 /**************************************************************/
 
 /*   Finley: write Mesh */
+
+/**************************************************************/
+
+/*   Author: gross@access.edu.au */
+/*   Version: $Id$ */
 
 /**************************************************************/
 
@@ -31,15 +33,10 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   int NN,i,j,numDim;
   Finley_TagMap* tag_map=in->TagMap;
 
-  if (in->MPIInfo->size >1 ) {
-    Finley_setError(IO_ERROR,"Mesh_write: only single processor runs are supported.");
-    return;
-
-  }
   /* open file */
   f=fopen(fname,"w");
   if (f==NULL) {
-    sprintf(error_msg,"Mesh_write: Opening file %s for writing failed.",fname);
+    sprintf(error_msg,"__FILE__: Opening file %s for writing failed.",fname);
     Finley_setError(IO_ERROR,error_msg);
     return;
   }
@@ -54,7 +51,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
     numDim=Finley_Mesh_getDim(in);
     fprintf(f,"%1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
     for (i=0;i<in->Nodes->numNodes;i++) {
-      fprintf(f,"%d %d %d",in->Nodes->Id[i],in->Nodes->globalDegreesOfFreedom[i],in->Nodes->Tag[i]);
+      fprintf(f,"%d %d %d",in->Nodes->Id[i],in->Nodes->degreeOfFreedom[i],in->Nodes->Tag[i]);
       for (j=0;j<numDim;j++) fprintf(f," %20.15e",in->Nodes->Coordinates[INDEX2(j,i,numDim)]);
       fprintf(f,"\n");
     }
@@ -66,7 +63,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
 
   if (in->Elements!=NULL) {
     fprintf(f, "%s %d\n",in->Elements->ReferenceElement->Type->Name,in->Elements->numElements);
-    NN=in->Elements->numNodes;
+    NN=in->Elements->ReferenceElement->Type->numNodes;
     for (i=0;i<in->Elements->numElements;i++) {
       fprintf(f,"%d %d",in->Elements->Id[i],in->Elements->Tag[i]);
       for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->Elements->Nodes[INDEX2(j,i,NN)]]);
@@ -79,7 +76,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   /*  write face elements: */
   if (in->FaceElements!=NULL) {
     fprintf(f, "%s %d\n", in->FaceElements->ReferenceElement->Type->Name,in->FaceElements->numElements);
-    NN=in->FaceElements->numNodes;
+    NN=in->FaceElements->ReferenceElement->Type->numNodes;
     for (i=0;i<in->FaceElements->numElements;i++) {
       fprintf(f,"%d %d",in->FaceElements->Id[i],in->FaceElements->Tag[i]);
       for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->FaceElements->Nodes[INDEX2(j,i,NN)]]);
@@ -92,7 +89,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   /*  write Contact elements : */
   if (in->ContactElements!=NULL) {
     fprintf(f, "%s %d\n",in->ContactElements->ReferenceElement->Type->Name,in->ContactElements->numElements);
-    NN=in->ContactElements->numNodes;
+    NN=in->ContactElements->ReferenceElement->Type->numNodes;
     for (i=0;i<in->ContactElements->numElements;i++) {
       fprintf(f,"%d %d",in->ContactElements->Id[i],in->ContactElements->Tag[i]);
       for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->ContactElements->Nodes[INDEX2(j,i,NN)]]);

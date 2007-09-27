@@ -1,17 +1,16 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
@@ -25,15 +24,14 @@
 /**************************************************************/
 
 #include "Paso.h"
-
 #ifdef _OPENMP 
 #include <omp.h>
-#endif
-
+#else
 #ifdef PASO_MPI
 #include "mpi_C.h"
 #else
 #include <time.h>
+#endif
 #endif
 
 Paso_ErrorCodeType Paso_ErrorCode_=NO_ERROR;
@@ -48,7 +46,6 @@ void Paso_resetError(void) {
 void Paso_setError(Paso_ErrorCodeType err,char* msg) {
   size_t lenMsg=strlen(msg);
   if (Paso_noError()) {
-printf("error set = %d %s",err,msg);
      Paso_ErrorCode_=err;
      strncpy(Paso_ErrorMsg_,msg,MIN(LenErrorMsg_MAX,lenMsg));
      Paso_ErrorMsg_[MIN(LenErrorMsg_MAX,lenMsg)]='\0';

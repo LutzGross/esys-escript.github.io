@@ -1,17 +1,16 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
@@ -46,12 +45,10 @@ void Paso_solve(Paso_SystemMatrix* A,
                                double* out,
                                double* in,
                                Paso_Options* options) {
-
   Paso_Performance pp;
   index_t package;
   Paso_resetError();
-  if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)
-                || A->col_block_size!=A->row_block_size) {
+  if (A->numRows!=A->numCols || A->col_block_size!=A->row_block_size) {
        Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
@@ -139,3 +136,18 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
 
    }
 }
+/*
+ * $Log$
+ * Revision 1.2  2005/09/15 03:44:39  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.1.2.2  2005/09/07 00:59:08  gross
+ * some inconsistent renaming fixed to make the linking work.
+ *
+ * Revision 1.1.2.1  2005/09/05 06:29:49  gross
+ * These files have been extracted from finley to define a stand alone libray for iterative
+ * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
+ * has not been tested yet.
+ *
+ *
+ */

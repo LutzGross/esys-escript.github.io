@@ -1,17 +1,14 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 /**************************************************************/
 
@@ -21,23 +18,22 @@
 
 /**************************************************************/
 
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$
+
+/**************************************************************/
+
 #include "Mesh.h"
 
 /**************************************************************/
 
 
-void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize) { 
+void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize_labeling) { 
    char error_msg[LenErrorMsg_MAX];
    Finley_NodeFile *newNodeFile=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL;
    dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
    index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL;
-
-   if (self->MPIInfo->size>1) {
-     Finley_setError(TYPE_ERROR,"Finley_Mesh_glueFaces: MPI is not supported yet.");
-     return;
-   }
-       
 
    if (self->FaceElements==NULL) return;
 
@@ -94,15 +90,13 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          }
          for (n=0;n<self->Nodes->numNodes;n++) new_node_label[n]=new_node_mask[new_node_label[n]];
          /* allocate new node and element files */
-         newNodeFile=Finley_NodeFile_alloc(numDim, self->MPIInfo); 
+#ifndef PASO_MPI
+         newNodeFile=Finley_NodeFile_alloc(numDim); 
 
          if (Finley_noError()) {
              Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
              if (Finley_noError()) {
-                newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,
-                                                             self->FaceElements->order, 
-                                                             self->FaceElements->reduced_order,
-                                                             self->MPIInfo);
+                newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->ReferenceElement->Type->TypeId,self->FaceElements->order, self->FaceElements->reduced_order);
                 if (Finley_noError()) {
                    Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
                  }
@@ -113,25 +107,29 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
             /* get the new nodes :*/
             Finley_NodeFile_gather(new_node_list,self->Nodes,newNodeFile);
             /* they are the new nodes*/
-            Finley_NodeFile_free(self->Nodes);
+            Finley_NodeFile_dealloc(self->Nodes);
             self->Nodes=newNodeFile;
             /* get the face elements which are still in use:*/
             Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
             /* they are the new face elements */
-            Finley_ElementFile_free(self->FaceElements);
+            Finley_ElementFile_dealloc(self->FaceElements);
             self->FaceElements=newFaceElementsFile;
             
             /* assign new node ids to elements */
             Finley_Mesh_relableElementNodes(new_node_label,0,self);
 
-            Finley_Mesh_prepare(self, optimize);
+            Finley_Mesh_prepare(self);
          } 
          else 
          {
-            Finley_NodeFile_free(newNodeFile);
-            Finley_ElementFile_free(newFaceElementsFile);
+            Finley_NodeFile_dealloc(newNodeFile);
+            Finley_ElementFile_dealloc(newFaceElementsFile);
          }
        
+#else
+/* TODO */
+PASO_MPI_TODO;
+#endif
       }
    }
    TMPMEMFREE(elem1);
@@ -141,4 +139,9 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    TMPMEMFREE(new_node_list);
    TMPMEMFREE(new_node_mask);
    TMPMEMFREE(matching_nodes_in_elem1);
+   if (Finley_noError()) {
+       if (!Finley_Mesh_isPrepared(self)) {
+          Finley_setError(SYSTEM_ERROR,"Mesh is not prepared for calculation. Contact the programmers.");
+       }
+   }
 }

@@ -1,17 +1,14 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #include "Taipan.h"
 
@@ -338,6 +335,7 @@ Taipan::dump_stats() {
   float elMb=statTable->allocated_elements*8.0/1048576;
   float deelMb=statTable->deallocated_elements*8.0/1048576;
   float tszMb=statTable->max_tab_size*8.0/1048576;
+#ifndef PASO_MPI
   cout << "======= escript Mem Stats ===========================" << endl;
   cout << "Total Num requests:             " << statTable->requests << endl;
   cout << "Total Num releases:             " << statTable->frees << endl;
@@ -349,6 +347,7 @@ Taipan::dump_stats() {
   cout << "Curr Num arrays:                " << num_arrays() << endl;
   cout << "Curr Num elements in buffer:    " << num_elements() << endl;
   cout << "==================================================" << endl;
+#endif
 }
 
 void

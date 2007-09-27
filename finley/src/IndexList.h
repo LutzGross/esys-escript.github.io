@@ -1,21 +1,22 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
-
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 /**************************************************************/
 
 /* Finley: Converting an element list into a matrix shape     */
+
+/**************************************************************/
+
+/*  Author: gross@access.edu.au */
+/*  Version: $Id$ */
 
 /**************************************************************/
 
@@ -35,17 +36,17 @@ typedef struct Finley_IndexList {
   dim_t n;
   struct Finley_IndexList *extension;
 } Finley_IndexList;
-void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
-                                       bool_t reduce_row_order, index_t* row_map,
-                                       bool_t reduce_col_order, index_t* col_map);
+
+int Finley_IndexList_localToGlobal(Finley_NodeDistribution* dofDistribution, int localIndex);
+void Finley_IndexList_insertElements(Finley_IndexList*, Finley_Mesh*, Finley_ElementFile*,dim_t, index_t*,dim_t, index_t*);
 void Finley_IndexList_insertIndex(Finley_IndexList*, index_t);
-void Finley_IndexList_toArray(Finley_IndexList*, index_t*, index_t, index_t, index_t);
-dim_t Finley_IndexList_count(Finley_IndexList*,  index_t, index_t);
+void Finley_IndexList_toArray(Finley_IndexList*, index_t*);
+dim_t Finley_IndexList_count(Finley_IndexList*);
 void Finley_IndexList_free(Finley_IndexList*);
-Paso_Pattern* Finley_IndexList_createPattern(dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
-void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
-                                                 Finley_ElementFile* elements, index_t* row_map, index_t* col_map);
 
-
+/* this will go */
+#ifdef PASO_MPI
+int Finley_IndexList_localToGlobal(Finley_NodeDistribution *dofDistribution, int localIndex);
+#endif
 
 #endif /* #ifndef INC_FINLEY_INDEXLIST */

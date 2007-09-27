@@ -1,21 +1,23 @@
-
-/* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 /**************************************************************/
 
 /*   Finley: Shape functions */
+
+/**************************************************************/
+
+/*   Author: gross@access.edu.au */
+/*   Version: $Id$ */
 
 /**************************************************************/
 
@@ -320,33 +322,33 @@ void Finley_Shape_Rec9(int NumV,double* v,double* s,double* dsdv) {
   for (i=0;i<NumV;i++) {
     x=V(1,i);
     y=V(2,i);
-    S(1,i)= + 1.0 - 3.0*x + 2.0*x*x - 3.0*y + 9.0*x*y - 6.0*x*x*y + 2.0*y*y - 6.0*x*y*y + 4.0*x*x*y*y;
-    S(2,i)= - 1.0*x + 2.0*x*x + 3.0*x*y - 6.0*x*x*y - 2.0*x*y*y + 4.0*x*x*y*y;
-    S(3,i)= + 1.0*x*y - 2.0*x*x*y - 2.0*x*y*y + 4.0*x*x*y*y;
-    S(4,i)= - 1.0*y + 3.0*x*y - 2.0*x*x*y + 2.0*y*y - 6.0*x*y*y + 4.0*x*x*y*y;
-    S(5,i)= + 4.0*x - 4.0*x*x - 12.0*x*y + 12.0*x*x*y + 8.0*x*y*y - 8.0*x*x*y*y;
-    S(6,i)= - 4.0*x*y + 8.0*x*x*y + 4.0*x*y*y - 8.0*x*x*y*y;
-    S(7,i)= - 4.0*x*y + 4.0*x*x*y + 8.0*x*y*y - 8.0*x*x*y*y;
-    S(8,i)= + 4.0*y - 12.0*x*y + 8.0*x*x*y - 4.0*y*y + 12.0*x*y*y - 8.0*x*x*y*y;
-    S(9,i)= + 16.0*x*y - 16.0*x*x*y - 16.0*x*y*y + 16.0*x*x*y*y;
-    DSDV(1,1,i)= - 3.0 + 4.0*x + 9.0*y - 12.0*x*y - 6.0*y*y + 8.0*x*y*y;
-    DSDV(1,2,i)= - 3.0 + 9.0*x - 6.0*x*x + 4.0*y - 12.0*x*y + 8.0*x*x*y;
-    DSDV(2,1,i)= - 1.0 + 4.0*x + 3.0*y - 12.0*x*y - 2.0*y*y + 8.0*x*y*y;
-    DSDV(2,2,i)= + 3.0*x - 6.0*x*x - 4.0*x*y + 8.0*x*x*y;
-    DSDV(3,1,i)= + 1.0*y - 4.0*x*y - 2.0*y*y + 8.0*x*y*y;
-    DSDV(3,2,i)= + 1.0*x - 2.0*x*x - 4.0*x*y + 8.0*x*x*y;
-    DSDV(4,1,i)= + 3.0*y - 4.0*x*y - 6.0*y*y + 8.0*x*y*y;
-    DSDV(4,2,i)= - 1.0 + 3.0*x - 2.0*x*x + 4.0*y - 12.0*x*y + 8.0*x*x*y;
-    DSDV(5,1,i)= + 4.0 - 8.0*x - 12.0*y + 24.0*x*y + 8.0*y*y - 16.0*x*y*y;
-    DSDV(5,2,i)= - 12.0*x + 12.0*x*x + 16.0*x*y - 16.0*x*x*y;
-    DSDV(6,1,i)= - 4.0*y + 16.0*x*y + 4.0*y*y - 16.0*x*y*y;
-    DSDV(6,2,i)= - 4.0*x + 8.0*x*x + 8.0*x*y - 16.0*x*x*y;
-    DSDV(7,1,i)= - 4.0*y + 8.0*x*y + 8.0*y*y - 16.0*x*y*y;
-    DSDV(7,2,i)= - 4.0*x + 4.0*x*x + 16.0*x*y - 16.0*x*x*y;
-    DSDV(8,1,i)= - 12.0*y + 16.0*x*y + 12.0*y*y - 16.0*x*y*y;
-    DSDV(8,2,i)= + 4.0 - 12.0*x + 8.0*x*x - 8.0*y + 24.0*x*y - 16.0*x*x*y;
-    DSDV(9,1,i)= + 16.0*y - 32.0*x*y - 16.0*y*y + 32.0*x*y*y;
-    DSDV(9,2,i)= + 16.0*x - 16.0*x*x - 32.0*x*y + 32.0*x*x*y;
+    S(1,i)=(10.)+(-3.)*x+(9.)*x*y+(-3.)*y+(2.)*x*x+(-0.6e1)*x*y*y+(-0.6e1)*x*x*y+(2.)*y*y+(4.)*x*x*y*y;
+    S(2,i)=(-10.)*x+(3.)*x*y+(2.)*x*x+(-2.)*x*y*y+(-0.6e1)*x*x*y+(4.)*x*x*y*y;
+    S(3,i)=(10.)*x*y+(-2.)*x*y*y+(-2.)*x*x*y+(4.)*x*x*y*y;
+    S(4,i)=(3.)*x*y+(-10.)*y+(-0.6e1)*x*y*y+(-2.)*x*x*y+(2.)*y*y+(4.)*x*x*y*y;
+    S(5,i)=(4.)*x+(-0.12e2)*x*y+(-4.)*x*x+(8.)*x*y*y+(0.12e2)*x*x*y+(-8.)*x*x*y*y;
+    S(6,i)=(-4.)*x*y+(4.)*x*y*y+(8.)*x*x*y+(-8.)*x*x*y*y;
+    S(7,i)=(-4.)*x*y+(8.)*x*y*y+(4.)*x*x*y+(-8.)*x*x*y*y;
+    S(8,i)=(-0.12e2)*x*y+(4.)*y+(0.12e2)*x*y*y+(8.)*x*x*y+(-4.) *y*y+(-8.)*x*x*y*y;
+    S(9,i)=(0.16e2)*x*y+(-0.16e2)*x*y*y+(-0.16e2)*x*x*y+(0.16e2)*x*x*y*y;
+    DSDV(1, 1,i)=(-3.)+(9.)*y+(4.)*x+(-0.6e1)*y*y+(-0.12e2)*x*y+(8.)*x*y*y;
+    DSDV(2, 1,i)=(-10.)+(3.)*y+(4.)*x+(-2.)*y*y+(-0.12e2)*x*y+(8.)*x*y*y;
+    DSDV(3, 1,i)=(10.)*y+(-2.)*y*y+(-4.)*x*y+(8.)*x*y*y;
+    DSDV(4, 1,i)=(3.)*y+(-0.6e1)*y*y+(-4.)*x*y+(8.)*x*y*y;
+    DSDV(5, 1,i)=(4.)+(-0.12e2)*y+(-8.)*x+(8.)*y*y+(0.24e2)*x*y+(-0.16e2)*x*y*y;
+    DSDV(6, 1,i)=(-4.)*y+(4.)*y*y+(0.16e2)*x*y+(-0.16e2)*x*y*y;
+    DSDV(7, 1,i)=(-4.)*y+(8.)*y*y+(8.)*x*y+(-0.16e2)*x*y*y;
+    DSDV(8, 1,i)=(-0.12e2)*y+(0.12e2)*y*y+(0.16e2)*x*y+(-0.16e2)*x*y*y;
+    DSDV(9, 1,i)=(0.16e2)*y+(-0.16e2)*y*y+(-0.32e2)*x*y+(0.32e2)*x*y*y;
+    DSDV(1, 2,i)=(9.)*x+(-3.)+(-0.12e2)*x*y+(-0.6e1)*x*x+(4.)*y+(8.)*x*x*y;
+    DSDV(2, 2,i)=(3.)*x+(-4.)*x*y+(-0.6e1)*x*x+(8.)*x*x*y;
+    DSDV(3, 2,i)=(10.)*x+(-4.)*x*y+(-2.)*x*x+(8.)*x*x*y;
+    DSDV(4, 2,i)=(3.)*x+(-10.)+(-0.12e2)*x*y+(-2.)*x*x+(4.)*y+(8.)*x*x*y;
+    DSDV(5, 2,i)=(-0.12e2)*x+(0.16e2)*x*y+(0.12e2)*x*x+(-0.16e2)*x*x*y;
+    DSDV(6, 2,i)=(-4.)*x+(8.)*x*y+(8.)*x*x+(-0.16e2)*x*x*y;
+    DSDV(7, 2,i)=(-4.)*x+(0.16e2)*x*y+(4.)*x*x+(-0.16e2)*x*x*y;
+    DSDV(8, 2,i)=(-0.12e2)*x+(4.)+(0.24e2)*x*y+(8.)*x*x+(-8.)*y+(-0.16e2)*x*x*y;
+    DSDV(9, 2,i)=(0.16e2)*x+(-0.32e2)*x*y+(-0.16e2)*x*x+(0.32e2)*x*x*y;
   }
   #undef NUMSHAPES
   #undef DIM
@@ -519,44 +521,33 @@ void Finley_Shape_Tet10(int NumV,double* v,double* s,double* dsdv) {
     S(8,i) = (1.-x-y-z)*4.*z;
     S(9,i) = 4.*x*z;
     S(10,i)= 4.*y*z;
-
     DSDV(1,1,i)= -3.+4.*x+4.*y+4.*z;
     DSDV(1,2,i)= -3.+4.*x+4.*y+4.*z;
     DSDV(1,3,i)= -3.+4.*x+4.*y+4.*z;
-
-
     DSDV(2,1,i)= -1.+4.*x;
     DSDV(2,2,i)=   0.;
     DSDV(2,3,i)=   0.;
-
     DSDV(3,1,i)=   0.;
     DSDV(3,2,i)=  -1.           +4.*y;
     DSDV(3,3,i)=   0.;
-
     DSDV(4,1,i)=   0.;
     DSDV(4,2,i)=   0.;
     DSDV(4,3,i)=  -1.                        +4.*z;
-
     DSDV(5,1,i)=   4. -8.*x -4.*y -4.*z;
     DSDV(5,2,i)=      -4.*x;
     DSDV(5,3,i)=      -4.*x;
-
-    DSDV(6,1,i)=             4.*y;
-    DSDV(6,2,i)=       4.*x;
+    DSDV(6,1,i)=                      4.*y;
+    DSDV(6,2,i)=         4.*x;
     DSDV(6,3,i)=   0.;
-
-    DSDV(7,1,i)=            -4.*y;
+    DSDV(7,1,i)=                   -4.*y;
     DSDV(7,2,i)=   4. -4.*x -8.*y -4.*z;
-    DSDV(7,3,i)=            -4.*y;
-
+    DSDV(7,3,i)=                   -4.*y;
     DSDV(8,1,i)=                                -4.*z;
     DSDV(8,2,i)=                                -4.*z;
     DSDV(8,3,i)=   4. -4.*x -4.*y -8.*z;
-
-    DSDV(9,1,i)=                                 4.*z;
+    DSDV(9,1,i)=                                   4.*z;
     DSDV(9,2,i)=   0.;
     DSDV(9,3,i)=         4.*x;
-
     DSDV(10,1,i)=  0.;
     DSDV(10,2,i)=                                  4.*z;
     DSDV(10,3,i)=                      4.*y;
@@ -784,130 +775,6 @@ void Finley_Shape_Hex20(int NumV,double* v,double* s,double* dsdv) {
     DSDV(18,3,i)=(4.)*x*y+(-4.)*x*y*y;
     DSDV(19,3,i)=(4.)*x*y+(-4.)*x*x*y;
     DSDV(20,3,i)=(4.)*y+(-4.)*y*y+(-4.)*x*y+(4.)*x*y*y;
-  }
-  #undef NUMSHAPES
-  #undef DIM
-}
-
-/**************************************************************/
-
-void Finley_Shape_Hex27(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 27
-  #define DIM 3
-  double x,y,z;
-  int i;
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    y=V(2,i);
-    z=V(3,i);
-    S(1,i)= + 1.0 - 3.0*x + 2.0*x*x - 3.0*y + 9.0*x*y - 6.0*x*x*y + 2.0*y*y - 6.0*x*y*y + 4.0*x*x*y*y - 3.0*z + 9.0*x*z - 6.0*x*x*z + 9.0*y*z - 27.0*x*y*z + 18.0*x*x*y*z - 6.0*y*y*z + 18.0*x*y*y*z - 12.0*x*x*y*y*z + 2.0*z*z - 6.0*x*z*z + 4.0*x*x*z*z - 6.0*y*z*z + 18.0*x*y*z*z - 12.0*x*x*y*z*z + 4.0*y*y*z*z - 12.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(2,i)= - 1.0*x + 2.0*x*x + 3.0*x*y - 6.0*x*x*y - 2.0*x*y*y + 4.0*x*x*y*y + 3.0*x*z - 6.0*x*x*z - 9.0*x*y*z + 18.0*x*x*y*z + 6.0*x*y*y*z - 12.0*x*x*y*y*z - 2.0*x*z*z + 4.0*x*x*z*z + 6.0*x*y*z*z - 12.0*x*x*y*z*z - 4.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(3,i)= + 1.0*x*y - 2.0*x*x*y - 2.0*x*y*y + 4.0*x*x*y*y - 3.0*x*y*z + 6.0*x*x*y*z + 6.0*x*y*y*z - 12.0*x*x*y*y*z + 2.0*x*y*z*z - 4.0*x*x*y*z*z - 4.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(4,i)= - 1.0*y + 3.0*x*y - 2.0*x*x*y + 2.0*y*y - 6.0*x*y*y + 4.0*x*x*y*y + 3.0*y*z - 9.0*x*y*z + 6.0*x*x*y*z - 6.0*y*y*z + 18.0*x*y*y*z - 12.0*x*x*y*y*z - 2.0*y*z*z + 6.0*x*y*z*z - 4.0*x*x*y*z*z + 4.0*y*y*z*z - 12.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(5,i)= - 1.0*z + 3.0*x*z - 2.0*x*x*z + 3.0*y*z - 9.0*x*y*z + 6.0*x*x*y*z - 2.0*y*y*z + 6.0*x*y*y*z - 4.0*x*x*y*y*z + 2.0*z*z - 6.0*x*z*z + 4.0*x*x*z*z - 6.0*y*z*z + 18.0*x*y*z*z - 12.0*x*x*y*z*z + 4.0*y*y*z*z - 12.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(6,i)= + 1.0*x*z - 2.0*x*x*z - 3.0*x*y*z + 6.0*x*x*y*z + 2.0*x*y*y*z - 4.0*x*x*y*y*z - 2.0*x*z*z + 4.0*x*x*z*z + 6.0*x*y*z*z - 12.0*x*x*y*z*z - 4.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(7,i)= - 1.0*x*y*z + 2.0*x*x*y*z + 2.0*x*y*y*z - 4.0*x*x*y*y*z + 2.0*x*y*z*z - 4.0*x*x*y*z*z - 4.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(8,i)= + 1.0*y*z - 3.0*x*y*z + 2.0*x*x*y*z - 2.0*y*y*z + 6.0*x*y*y*z - 4.0*x*x*y*y*z - 2.0*y*z*z + 6.0*x*y*z*z - 4.0*x*x*y*z*z + 4.0*y*y*z*z - 12.0*x*y*y*z*z + 8.0*x*x*y*y*z*z;
-    S(9,i)= + 4.0*x - 4.0*x*x - 12.0*x*y + 12.0*x*x*y + 8.0*x*y*y - 8.0*x*x*y*y - 12.0*x*z + 12.0*x*x*z + 36.0*x*y*z - 36.0*x*x*y*z - 24.0*x*y*y*z + 24.0*x*x*y*y*z + 8.0*x*z*z - 8.0*x*x*z*z - 24.0*x*y*z*z + 24.0*x*x*y*z*z + 16.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(10,i)= - 4.0*x*y + 8.0*x*x*y + 4.0*x*y*y - 8.0*x*x*y*y + 12.0*x*y*z - 24.0*x*x*y*z - 12.0*x*y*y*z + 24.0*x*x*y*y*z - 8.0*x*y*z*z + 16.0*x*x*y*z*z + 8.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(11,i)= - 4.0*x*y + 4.0*x*x*y + 8.0*x*y*y - 8.0*x*x*y*y + 12.0*x*y*z - 12.0*x*x*y*z - 24.0*x*y*y*z + 24.0*x*x*y*y*z - 8.0*x*y*z*z + 8.0*x*x*y*z*z + 16.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(12,i)= + 4.0*y - 12.0*x*y + 8.0*x*x*y - 4.0*y*y + 12.0*x*y*y - 8.0*x*x*y*y - 12.0*y*z + 36.0*x*y*z - 24.0*x*x*y*z + 12.0*y*y*z - 36.0*x*y*y*z + 24.0*x*x*y*y*z + 8.0*y*z*z - 24.0*x*y*z*z + 16.0*x*x*y*z*z - 8.0*y*y*z*z + 24.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(13,i)= + 4.0*z - 12.0*x*z + 8.0*x*x*z - 12.0*y*z + 36.0*x*y*z - 24.0*x*x*y*z + 8.0*y*y*z - 24.0*x*y*y*z + 16.0*x*x*y*y*z - 4.0*z*z + 12.0*x*z*z - 8.0*x*x*z*z + 12.0*y*z*z - 36.0*x*y*z*z + 24.0*x*x*y*z*z - 8.0*y*y*z*z + 24.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(14,i)= - 4.0*x*z + 8.0*x*x*z + 12.0*x*y*z - 24.0*x*x*y*z - 8.0*x*y*y*z + 16.0*x*x*y*y*z + 4.0*x*z*z - 8.0*x*x*z*z - 12.0*x*y*z*z + 24.0*x*x*y*z*z + 8.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(15,i)= + 4.0*x*y*z - 8.0*x*x*y*z - 8.0*x*y*y*z + 16.0*x*x*y*y*z - 4.0*x*y*z*z + 8.0*x*x*y*z*z + 8.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(16,i)= - 4.0*y*z + 12.0*x*y*z - 8.0*x*x*y*z + 8.0*y*y*z - 24.0*x*y*y*z + 16.0*x*x*y*y*z + 4.0*y*z*z - 12.0*x*y*z*z + 8.0*x*x*y*z*z - 8.0*y*y*z*z + 24.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(17,i)= - 4.0*x*z + 4.0*x*x*z + 12.0*x*y*z - 12.0*x*x*y*z - 8.0*x*y*y*z + 8.0*x*x*y*y*z + 8.0*x*z*z - 8.0*x*x*z*z - 24.0*x*y*z*z + 24.0*x*x*y*z*z + 16.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(18,i)= + 4.0*x*y*z - 8.0*x*x*y*z - 4.0*x*y*y*z + 8.0*x*x*y*y*z - 8.0*x*y*z*z + 16.0*x*x*y*z*z + 8.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(19,i)= + 4.0*x*y*z - 4.0*x*x*y*z - 8.0*x*y*y*z + 8.0*x*x*y*y*z - 8.0*x*y*z*z + 8.0*x*x*y*z*z + 16.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(20,i)= - 4.0*y*z + 12.0*x*y*z - 8.0*x*x*y*z + 4.0*y*y*z - 12.0*x*y*y*z + 8.0*x*x*y*y*z + 8.0*y*z*z - 24.0*x*y*z*z + 16.0*x*x*y*z*z - 8.0*y*y*z*z + 24.0*x*y*y*z*z - 16.0*x*x*y*y*z*z;
-    S(21,i)= + 16.0*x*y - 16.0*x*x*y - 16.0*x*y*y + 16.0*x*x*y*y - 48.0*x*y*z + 48.0*x*x*y*z + 48.0*x*y*y*z - 48.0*x*x*y*y*z + 32.0*x*y*z*z - 32.0*x*x*y*z*z - 32.0*x*y*y*z*z + 32.0*x*x*y*y*z*z;
-    S(22,i)= + 16.0*x*z - 16.0*x*x*z - 48.0*x*y*z + 48.0*x*x*y*z + 32.0*x*y*y*z - 32.0*x*x*y*y*z - 16.0*x*z*z + 16.0*x*x*z*z + 48.0*x*y*z*z - 48.0*x*x*y*z*z - 32.0*x*y*y*z*z + 32.0*x*x*y*y*z*z;
-    S(23,i)= - 16.0*x*y*z + 32.0*x*x*y*z + 16.0*x*y*y*z - 32.0*x*x*y*y*z + 16.0*x*y*z*z - 32.0*x*x*y*z*z - 16.0*x*y*y*z*z + 32.0*x*x*y*y*z*z;
-    S(24,i)= - 16.0*x*y*z + 16.0*x*x*y*z + 32.0*x*y*y*z - 32.0*x*x*y*y*z + 16.0*x*y*z*z - 16.0*x*x*y*z*z - 32.0*x*y*y*z*z + 32.0*x*x*y*y*z*z;
-    S(25,i)= + 16.0*y*z - 48.0*x*y*z + 32.0*x*x*y*z - 16.0*y*y*z + 48.0*x*y*y*z - 32.0*x*x*y*y*z - 16.0*y*z*z + 48.0*x*y*z*z - 32.0*x*x*y*z*z + 16.0*y*y*z*z - 48.0*x*y*y*z*z + 32.0*x*x*y*y*z*z;
-    S(26,i)= - 16.0*x*y*z + 16.0*x*x*y*z + 16.0*x*y*y*z - 16.0*x*x*y*y*z + 32.0*x*y*z*z - 32.0*x*x*y*z*z - 32.0*x*y*y*z*z + 32.0*x*x*y*y*z*z;
-    S(27,i)= + 64.0*x*y*z - 64.0*x*x*y*z - 64.0*x*y*y*z + 64.0*x*x*y*y*z - 64.0*x*y*z*z + 64.0*x*x*y*z*z + 64.0*x*y*y*z*z - 64.0*x*x*y*y*z*z;
-    DSDV(1,1,i)= - 3.0 + 4.0*x + 9.0*y - 12.0*x*y - 6.0*y*y + 8.0*x*y*y + 9.0*z - 12.0*x*z - 27.0*y*z + 36.0*x*y*z + 18.0*y*y*z - 24.0*x*y*y*z - 6.0*z*z + 8.0*x*z*z + 18.0*y*z*z - 24.0*x*y*z*z - 12.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(1,2,i)= - 3.0 + 9.0*x - 6.0*x*x + 4.0*y - 12.0*x*y + 8.0*x*x*y + 9.0*z - 27.0*x*z + 18.0*x*x*z - 12.0*y*z + 36.0*x*y*z - 24.0*x*x*y*z - 6.0*z*z + 18.0*x*z*z - 12.0*x*x*z*z + 8.0*y*z*z - 24.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(1,3,i)= - 3.0 + 9.0*x - 6.0*x*x + 9.0*y - 27.0*x*y + 18.0*x*x*y - 6.0*y*y + 18.0*x*y*y - 12.0*x*x*y*y + 4.0*z - 12.0*x*z + 8.0*x*x*z - 12.0*y*z + 36.0*x*y*z - 24.0*x*x*y*z + 8.0*y*y*z - 24.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(2,1,i)= - 1.0 + 4.0*x + 3.0*y - 12.0*x*y - 2.0*y*y + 8.0*x*y*y + 3.0*z - 12.0*x*z - 9.0*y*z + 36.0*x*y*z + 6.0*y*y*z - 24.0*x*y*y*z - 2.0*z*z + 8.0*x*z*z + 6.0*y*z*z - 24.0*x*y*z*z - 4.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(2,2,i)= + 3.0*x - 6.0*x*x - 4.0*x*y + 8.0*x*x*y - 9.0*x*z + 18.0*x*x*z + 12.0*x*y*z - 24.0*x*x*y*z + 6.0*x*z*z - 12.0*x*x*z*z - 8.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(2,3,i)= + 3.0*x - 6.0*x*x - 9.0*x*y + 18.0*x*x*y + 6.0*x*y*y - 12.0*x*x*y*y - 4.0*x*z + 8.0*x*x*z + 12.0*x*y*z - 24.0*x*x*y*z - 8.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(3,1,i)= + 1.0*y - 4.0*x*y - 2.0*y*y + 8.0*x*y*y - 3.0*y*z + 12.0*x*y*z + 6.0*y*y*z - 24.0*x*y*y*z + 2.0*y*z*z - 8.0*x*y*z*z - 4.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(3,2,i)= + 1.0*x - 2.0*x*x - 4.0*x*y + 8.0*x*x*y - 3.0*x*z + 6.0*x*x*z + 12.0*x*y*z - 24.0*x*x*y*z + 2.0*x*z*z - 4.0*x*x*z*z - 8.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(3,3,i)= - 3.0*x*y + 6.0*x*x*y + 6.0*x*y*y - 12.0*x*x*y*y + 4.0*x*y*z - 8.0*x*x*y*z - 8.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(4,1,i)= + 3.0*y - 4.0*x*y - 6.0*y*y + 8.0*x*y*y - 9.0*y*z + 12.0*x*y*z + 18.0*y*y*z - 24.0*x*y*y*z + 6.0*y*z*z - 8.0*x*y*z*z - 12.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(4,2,i)= - 1.0 + 3.0*x - 2.0*x*x + 4.0*y - 12.0*x*y + 8.0*x*x*y + 3.0*z - 9.0*x*z + 6.0*x*x*z - 12.0*y*z + 36.0*x*y*z - 24.0*x*x*y*z - 2.0*z*z + 6.0*x*z*z - 4.0*x*x*z*z + 8.0*y*z*z - 24.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(4,3,i)= + 3.0*y - 9.0*x*y + 6.0*x*x*y - 6.0*y*y + 18.0*x*y*y - 12.0*x*x*y*y - 4.0*y*z + 12.0*x*y*z - 8.0*x*x*y*z + 8.0*y*y*z - 24.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(5,1,i)= + 3.0*z - 4.0*x*z - 9.0*y*z + 12.0*x*y*z + 6.0*y*y*z - 8.0*x*y*y*z - 6.0*z*z + 8.0*x*z*z + 18.0*y*z*z - 24.0*x*y*z*z - 12.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(5,2,i)= + 3.0*z - 9.0*x*z + 6.0*x*x*z - 4.0*y*z + 12.0*x*y*z - 8.0*x*x*y*z - 6.0*z*z + 18.0*x*z*z - 12.0*x*x*z*z + 8.0*y*z*z - 24.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(5,3,i)= - 1.0 + 3.0*x - 2.0*x*x + 3.0*y - 9.0*x*y + 6.0*x*x*y - 2.0*y*y + 6.0*x*y*y - 4.0*x*x*y*y + 4.0*z - 12.0*x*z + 8.0*x*x*z - 12.0*y*z + 36.0*x*y*z - 24.0*x*x*y*z + 8.0*y*y*z - 24.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(6,1,i)= + 1.0*z - 4.0*x*z - 3.0*y*z + 12.0*x*y*z + 2.0*y*y*z - 8.0*x*y*y*z - 2.0*z*z + 8.0*x*z*z + 6.0*y*z*z - 24.0*x*y*z*z - 4.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(6,2,i)= - 3.0*x*z + 6.0*x*x*z + 4.0*x*y*z - 8.0*x*x*y*z + 6.0*x*z*z - 12.0*x*x*z*z - 8.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(6,3,i)= + 1.0*x - 2.0*x*x - 3.0*x*y + 6.0*x*x*y + 2.0*x*y*y - 4.0*x*x*y*y - 4.0*x*z + 8.0*x*x*z + 12.0*x*y*z - 24.0*x*x*y*z - 8.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(7,1,i)= - 1.0*y*z + 4.0*x*y*z + 2.0*y*y*z - 8.0*x*y*y*z + 2.0*y*z*z - 8.0*x*y*z*z - 4.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(7,2,i)= - 1.0*x*z + 2.0*x*x*z + 4.0*x*y*z - 8.0*x*x*y*z + 2.0*x*z*z - 4.0*x*x*z*z - 8.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(7,3,i)= - 1.0*x*y + 2.0*x*x*y + 2.0*x*y*y - 4.0*x*x*y*y + 4.0*x*y*z - 8.0*x*x*y*z - 8.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(8,1,i)= - 3.0*y*z + 4.0*x*y*z + 6.0*y*y*z - 8.0*x*y*y*z + 6.0*y*z*z - 8.0*x*y*z*z - 12.0*y*y*z*z + 16.0*x*y*y*z*z;
-    DSDV(8,2,i)= + 1.0*z - 3.0*x*z + 2.0*x*x*z - 4.0*y*z + 12.0*x*y*z - 8.0*x*x*y*z - 2.0*z*z + 6.0*x*z*z - 4.0*x*x*z*z + 8.0*y*z*z - 24.0*x*y*z*z + 16.0*x*x*y*z*z;
-    DSDV(8,3,i)= + 1.0*y - 3.0*x*y + 2.0*x*x*y - 2.0*y*y + 6.0*x*y*y - 4.0*x*x*y*y - 4.0*y*z + 12.0*x*y*z - 8.0*x*x*y*z + 8.0*y*y*z - 24.0*x*y*y*z + 16.0*x*x*y*y*z;
-    DSDV(9,1,i)= + 4.0 - 8.0*x - 12.0*y + 24.0*x*y + 8.0*y*y - 16.0*x*y*y - 12.0*z + 24.0*x*z + 36.0*y*z - 72.0*x*y*z - 24.0*y*y*z + 48.0*x*y*y*z + 8.0*z*z - 16.0*x*z*z - 24.0*y*z*z + 48.0*x*y*z*z + 16.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(9,2,i)= - 12.0*x + 12.0*x*x + 16.0*x*y - 16.0*x*x*y + 36.0*x*z - 36.0*x*x*z - 48.0*x*y*z + 48.0*x*x*y*z - 24.0*x*z*z + 24.0*x*x*z*z + 32.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(9,3,i)= - 12.0*x + 12.0*x*x + 36.0*x*y - 36.0*x*x*y - 24.0*x*y*y + 24.0*x*x*y*y + 16.0*x*z - 16.0*x*x*z - 48.0*x*y*z + 48.0*x*x*y*z + 32.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(10,1,i)= - 4.0*y + 16.0*x*y + 4.0*y*y - 16.0*x*y*y + 12.0*y*z - 48.0*x*y*z - 12.0*y*y*z + 48.0*x*y*y*z - 8.0*y*z*z + 32.0*x*y*z*z + 8.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(10,2,i)= - 4.0*x + 8.0*x*x + 8.0*x*y - 16.0*x*x*y + 12.0*x*z - 24.0*x*x*z - 24.0*x*y*z + 48.0*x*x*y*z - 8.0*x*z*z + 16.0*x*x*z*z + 16.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(10,3,i)= + 12.0*x*y - 24.0*x*x*y - 12.0*x*y*y + 24.0*x*x*y*y - 16.0*x*y*z + 32.0*x*x*y*z + 16.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(11,1,i)= - 4.0*y + 8.0*x*y + 8.0*y*y - 16.0*x*y*y + 12.0*y*z - 24.0*x*y*z - 24.0*y*y*z + 48.0*x*y*y*z - 8.0*y*z*z + 16.0*x*y*z*z + 16.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(11,2,i)= - 4.0*x + 4.0*x*x + 16.0*x*y - 16.0*x*x*y + 12.0*x*z - 12.0*x*x*z - 48.0*x*y*z + 48.0*x*x*y*z - 8.0*x*z*z + 8.0*x*x*z*z + 32.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(11,3,i)= + 12.0*x*y - 12.0*x*x*y - 24.0*x*y*y + 24.0*x*x*y*y - 16.0*x*y*z + 16.0*x*x*y*z + 32.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(12,1,i)= - 12.0*y + 16.0*x*y + 12.0*y*y - 16.0*x*y*y + 36.0*y*z - 48.0*x*y*z - 36.0*y*y*z + 48.0*x*y*y*z - 24.0*y*z*z + 32.0*x*y*z*z + 24.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(12,2,i)= + 4.0 - 12.0*x + 8.0*x*x - 8.0*y + 24.0*x*y - 16.0*x*x*y - 12.0*z + 36.0*x*z - 24.0*x*x*z + 24.0*y*z - 72.0*x*y*z + 48.0*x*x*y*z + 8.0*z*z - 24.0*x*z*z + 16.0*x*x*z*z - 16.0*y*z*z + 48.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(12,3,i)= - 12.0*y + 36.0*x*y - 24.0*x*x*y + 12.0*y*y - 36.0*x*y*y + 24.0*x*x*y*y + 16.0*y*z - 48.0*x*y*z + 32.0*x*x*y*z - 16.0*y*y*z + 48.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(13,1,i)= - 12.0*z + 16.0*x*z + 36.0*y*z - 48.0*x*y*z - 24.0*y*y*z + 32.0*x*y*y*z + 12.0*z*z - 16.0*x*z*z - 36.0*y*z*z + 48.0*x*y*z*z + 24.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(13,2,i)= - 12.0*z + 36.0*x*z - 24.0*x*x*z + 16.0*y*z - 48.0*x*y*z + 32.0*x*x*y*z + 12.0*z*z - 36.0*x*z*z + 24.0*x*x*z*z - 16.0*y*z*z + 48.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(13,3,i)= + 4.0 - 12.0*x + 8.0*x*x - 12.0*y + 36.0*x*y - 24.0*x*x*y + 8.0*y*y - 24.0*x*y*y + 16.0*x*x*y*y - 8.0*z + 24.0*x*z - 16.0*x*x*z + 24.0*y*z - 72.0*x*y*z + 48.0*x*x*y*z - 16.0*y*y*z + 48.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(14,1,i)= - 4.0*z + 16.0*x*z + 12.0*y*z - 48.0*x*y*z - 8.0*y*y*z + 32.0*x*y*y*z + 4.0*z*z - 16.0*x*z*z - 12.0*y*z*z + 48.0*x*y*z*z + 8.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(14,2,i)= + 12.0*x*z - 24.0*x*x*z - 16.0*x*y*z + 32.0*x*x*y*z - 12.0*x*z*z + 24.0*x*x*z*z + 16.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(14,3,i)= - 4.0*x + 8.0*x*x + 12.0*x*y - 24.0*x*x*y - 8.0*x*y*y + 16.0*x*x*y*y + 8.0*x*z - 16.0*x*x*z - 24.0*x*y*z + 48.0*x*x*y*z + 16.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(15,1,i)= + 4.0*y*z - 16.0*x*y*z - 8.0*y*y*z + 32.0*x*y*y*z - 4.0*y*z*z + 16.0*x*y*z*z + 8.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(15,2,i)= + 4.0*x*z - 8.0*x*x*z - 16.0*x*y*z + 32.0*x*x*y*z - 4.0*x*z*z + 8.0*x*x*z*z + 16.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(15,3,i)= + 4.0*x*y - 8.0*x*x*y - 8.0*x*y*y + 16.0*x*x*y*y - 8.0*x*y*z + 16.0*x*x*y*z + 16.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(16,1,i)= + 12.0*y*z - 16.0*x*y*z - 24.0*y*y*z + 32.0*x*y*y*z - 12.0*y*z*z + 16.0*x*y*z*z + 24.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(16,2,i)= - 4.0*z + 12.0*x*z - 8.0*x*x*z + 16.0*y*z - 48.0*x*y*z + 32.0*x*x*y*z + 4.0*z*z - 12.0*x*z*z + 8.0*x*x*z*z - 16.0*y*z*z + 48.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(16,3,i)= - 4.0*y + 12.0*x*y - 8.0*x*x*y + 8.0*y*y - 24.0*x*y*y + 16.0*x*x*y*y + 8.0*y*z - 24.0*x*y*z + 16.0*x*x*y*z - 16.0*y*y*z + 48.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(17,1,i)= - 4.0*z + 8.0*x*z + 12.0*y*z - 24.0*x*y*z - 8.0*y*y*z + 16.0*x*y*y*z + 8.0*z*z - 16.0*x*z*z - 24.0*y*z*z + 48.0*x*y*z*z + 16.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(17,2,i)= + 12.0*x*z - 12.0*x*x*z - 16.0*x*y*z + 16.0*x*x*y*z - 24.0*x*z*z + 24.0*x*x*z*z + 32.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(17,3,i)= - 4.0*x + 4.0*x*x + 12.0*x*y - 12.0*x*x*y - 8.0*x*y*y + 8.0*x*x*y*y + 16.0*x*z - 16.0*x*x*z - 48.0*x*y*z + 48.0*x*x*y*z + 32.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(18,1,i)= + 4.0*y*z - 16.0*x*y*z - 4.0*y*y*z + 16.0*x*y*y*z - 8.0*y*z*z + 32.0*x*y*z*z + 8.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(18,2,i)= + 4.0*x*z - 8.0*x*x*z - 8.0*x*y*z + 16.0*x*x*y*z - 8.0*x*z*z + 16.0*x*x*z*z + 16.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(18,3,i)= + 4.0*x*y - 8.0*x*x*y - 4.0*x*y*y + 8.0*x*x*y*y - 16.0*x*y*z + 32.0*x*x*y*z + 16.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(19,1,i)= + 4.0*y*z - 8.0*x*y*z - 8.0*y*y*z + 16.0*x*y*y*z - 8.0*y*z*z + 16.0*x*y*z*z + 16.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(19,2,i)= + 4.0*x*z - 4.0*x*x*z - 16.0*x*y*z + 16.0*x*x*y*z - 8.0*x*z*z + 8.0*x*x*z*z + 32.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(19,3,i)= + 4.0*x*y - 4.0*x*x*y - 8.0*x*y*y + 8.0*x*x*y*y - 16.0*x*y*z + 16.0*x*x*y*z + 32.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(20,1,i)= + 12.0*y*z - 16.0*x*y*z - 12.0*y*y*z + 16.0*x*y*y*z - 24.0*y*z*z + 32.0*x*y*z*z + 24.0*y*y*z*z - 32.0*x*y*y*z*z;
-    DSDV(20,2,i)= - 4.0*z + 12.0*x*z - 8.0*x*x*z + 8.0*y*z - 24.0*x*y*z + 16.0*x*x*y*z + 8.0*z*z - 24.0*x*z*z + 16.0*x*x*z*z - 16.0*y*z*z + 48.0*x*y*z*z - 32.0*x*x*y*z*z;
-    DSDV(20,3,i)= - 4.0*y + 12.0*x*y - 8.0*x*x*y + 4.0*y*y - 12.0*x*y*y + 8.0*x*x*y*y + 16.0*y*z - 48.0*x*y*z + 32.0*x*x*y*z - 16.0*y*y*z + 48.0*x*y*y*z - 32.0*x*x*y*y*z;
-    DSDV(21,1,i)= + 16.0*y - 32.0*x*y - 16.0*y*y + 32.0*x*y*y - 48.0*y*z + 96.0*x*y*z + 48.0*y*y*z - 96.0*x*y*y*z + 32.0*y*z*z - 64.0*x*y*z*z - 32.0*y*y*z*z + 64.0*x*y*y*z*z;
-    DSDV(21,2,i)= + 16.0*x - 16.0*x*x - 32.0*x*y + 32.0*x*x*y - 48.0*x*z + 48.0*x*x*z + 96.0*x*y*z - 96.0*x*x*y*z + 32.0*x*z*z - 32.0*x*x*z*z - 64.0*x*y*z*z + 64.0*x*x*y*z*z;
-    DSDV(21,3,i)= - 48.0*x*y + 48.0*x*x*y + 48.0*x*y*y - 48.0*x*x*y*y + 64.0*x*y*z - 64.0*x*x*y*z - 64.0*x*y*y*z + 64.0*x*x*y*y*z;
-    DSDV(22,1,i)= + 16.0*z - 32.0*x*z - 48.0*y*z + 96.0*x*y*z + 32.0*y*y*z - 64.0*x*y*y*z - 16.0*z*z + 32.0*x*z*z + 48.0*y*z*z - 96.0*x*y*z*z - 32.0*y*y*z*z + 64.0*x*y*y*z*z;
-    DSDV(22,2,i)= - 48.0*x*z + 48.0*x*x*z + 64.0*x*y*z - 64.0*x*x*y*z + 48.0*x*z*z - 48.0*x*x*z*z - 64.0*x*y*z*z + 64.0*x*x*y*z*z;
-    DSDV(22,3,i)= + 16.0*x - 16.0*x*x - 48.0*x*y + 48.0*x*x*y + 32.0*x*y*y - 32.0*x*x*y*y - 32.0*x*z + 32.0*x*x*z + 96.0*x*y*z - 96.0*x*x*y*z - 64.0*x*y*y*z + 64.0*x*x*y*y*z;
-    DSDV(23,1,i)= - 16.0*y*z + 64.0*x*y*z + 16.0*y*y*z - 64.0*x*y*y*z + 16.0*y*z*z - 64.0*x*y*z*z - 16.0*y*y*z*z + 64.0*x*y*y*z*z;
-    DSDV(23,2,i)= - 16.0*x*z + 32.0*x*x*z + 32.0*x*y*z - 64.0*x*x*y*z + 16.0*x*z*z - 32.0*x*x*z*z - 32.0*x*y*z*z + 64.0*x*x*y*z*z;
-    DSDV(23,3,i)= - 16.0*x*y + 32.0*x*x*y + 16.0*x*y*y - 32.0*x*x*y*y + 32.0*x*y*z - 64.0*x*x*y*z - 32.0*x*y*y*z + 64.0*x*x*y*y*z;
-    DSDV(24,1,i)= - 16.0*y*z + 32.0*x*y*z + 32.0*y*y*z - 64.0*x*y*y*z + 16.0*y*z*z - 32.0*x*y*z*z - 32.0*y*y*z*z + 64.0*x*y*y*z*z;
-    DSDV(24,2,i)= - 16.0*x*z + 16.0*x*x*z + 64.0*x*y*z - 64.0*x*x*y*z + 16.0*x*z*z - 16.0*x*x*z*z - 64.0*x*y*z*z + 64.0*x*x*y*z*z;
-    DSDV(24,3,i)= - 16.0*x*y + 16.0*x*x*y + 32.0*x*y*y - 32.0*x*x*y*y + 32.0*x*y*z - 32.0*x*x*y*z - 64.0*x*y*y*z + 64.0*x*x*y*y*z;
-    DSDV(25,1,i)= - 48.0*y*z + 64.0*x*y*z + 48.0*y*y*z - 64.0*x*y*y*z + 48.0*y*z*z - 64.0*x*y*z*z - 48.0*y*y*z*z + 64.0*x*y*y*z*z;
-    DSDV(25,2,i)= + 16.0*z - 48.0*x*z + 32.0*x*x*z - 32.0*y*z + 96.0*x*y*z - 64.0*x*x*y*z - 16.0*z*z + 48.0*x*z*z - 32.0*x*x*z*z + 32.0*y*z*z - 96.0*x*y*z*z + 64.0*x*x*y*z*z;
-    DSDV(25,3,i)= + 16.0*y - 48.0*x*y + 32.0*x*x*y - 16.0*y*y + 48.0*x*y*y - 32.0*x*x*y*y - 32.0*y*z + 96.0*x*y*z - 64.0*x*x*y*z + 32.0*y*y*z - 96.0*x*y*y*z + 64.0*x*x*y*y*z;
-    DSDV(26,1,i)= - 16.0*y*z + 32.0*x*y*z + 16.0*y*y*z - 32.0*x*y*y*z + 32.0*y*z*z - 64.0*x*y*z*z - 32.0*y*y*z*z + 64.0*x*y*y*z*z;
-    DSDV(26,2,i)= - 16.0*x*z + 16.0*x*x*z + 32.0*x*y*z - 32.0*x*x*y*z + 32.0*x*z*z - 32.0*x*x*z*z - 64.0*x*y*z*z + 64.0*x*x*y*z*z;
-    DSDV(26,3,i)= - 16.0*x*y + 16.0*x*x*y + 16.0*x*y*y - 16.0*x*x*y*y + 64.0*x*y*z - 64.0*x*x*y*z - 64.0*x*y*y*z + 64.0*x*x*y*y*z;
-    DSDV(27,1,i)= + 64.0*y*z - 128.0*x*y*z - 64.0*y*y*z + 128.0*x*y*y*z - 64.0*y*z*z + 128.0*x*y*z*z + 64.0*y*y*z*z - 128.0*x*y*y*z*z;
-    DSDV(27,2,i)= + 64.0*x*z - 64.0*x*x*z - 128.0*x*y*z + 128.0*x*x*y*z - 64.0*x*z*z + 64.0*x*x*z*z + 128.0*x*y*z*z - 128.0*x*x*y*z*z;
-    DSDV(27,3,i)= + 64.0*x*y - 64.0*x*x*y - 64.0*x*y*y + 64.0*x*x*y*y - 128.0*x*y*z + 128.0*x*x*y*z + 128.0*x*y*y*z - 128.0*x*x*y*y*z;
   }
   #undef NUMSHAPES
   #undef DIM

@@ -17,7 +17,7 @@ if mkl_libs:
 if scsl_libs:
    local_env.Append(CPPDEFINES=['SCSL',])
    local_env.Append(LIBS = scsl_libs)
-if umf_libs:
+if umfpack_libs:
    local_env.Append(CPPDEFINES=['UMFPACK',])
    local_env.Append(LIBS = umf_libs)
 if papi_instrument_solver:

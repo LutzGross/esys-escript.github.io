@@ -1,17 +1,15 @@
-
 /* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/*
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #include "AbstractDomain.h" 
 #include "DomainException.h"
@@ -26,16 +24,6 @@ AbstractDomain::AbstractDomain() {
 
 AbstractDomain::~AbstractDomain() {
 }
-
-int AbstractDomain::getMPISize() const
-{
-   return 1;
-}
-int AbstractDomain::getMPIRank() const
-{
-   return 0;
-}
-
 
 void AbstractDomain::throwStandardException(const std::string& functionName) const
 {
@@ -69,11 +57,6 @@ int AbstractDomain::getDim() const
 void AbstractDomain::write(const std::string& filename) const
 {
   throwStandardException("AbstractDomain::write");
-  return;
-}
-void AbstractDomain::dump(const std::string& filename) const
-{
-  throwStandardException("AbstractDomain::dump");
   return;
 }
 

@@ -1,18 +1,4 @@
-#
-# $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
+# $Id:$
 
 """
 Geometrical Primitives
@@ -41,7 +27,6 @@ __date__="$Date:$"
 
 import numarray
 from transformations import _TYPE, Translation, Dilation, Transformation
-from math import sqrt
 
 
 def resetGlobalPrimitiveIdCounter():
@@ -628,9 +613,6 @@ class Arc(ArcBase, Primitive):
        if not isinstance(center,Point): raise TypeError("center needs to be a Point object.")
        if not isinstance(end,Point): raise TypeError("end needs to be a Point object.")
        if not isinstance(start,Point): raise TypeError("start needs to be a Point object.")
-       if center.isColocated(end): raise TypeError("center and start point are colocated.")
-       if center.isColocated(start): raise TypeError("center end end point are colocated.")
-       if start.isColocated(end): raise TypeError("start and end are colocated.")
        # TODO: check length of circle.
        ArcBase.__init__(self)
        Primitive.__init__(self)
@@ -714,155 +696,6 @@ class ReverseArc(ArcBase, ReversePrimitive):
        """
        return self.getUnderlyingPrimitive().getCenterPoint()
 
-class EllipseBase(Manifold1D):
-    def __init__(self):
-          """
-          create ellipse
-          """
-          Manifold1D.__init__(self)
-    def collectPrimitiveBases(self):
-       """
-       returns the primitives used to construct the Curve
-       """
-       out=[self]
-       out+=self.getStartPoint().collectPrimitiveBases()
-       out+=self.getEndPoint().collectPrimitiveBases()
-       out+=self.getCenterPoint().collectPrimitiveBases()
-       out+=self.getPointOnMainAxis().collectPrimitiveBases()
-       return out
-
-
-class Ellipse(EllipseBase, Primitive):
-    """
-    defines an ellipse which is strictly, smaller than Pi
-    """
-    def __init__(self,center,point_on_main_axis,start,end):
-       """
-       creates an arc by the start point, end point, the center and a point on a main axis.
-       """
-       if not isinstance(center,Point): raise TypeError("center needs to be a Point object.")
-       if not isinstance(end,Point): raise TypeError("end needs to be a Point object.")
-       if not isinstance(start,Point): raise TypeError("start needs to be a Point object.")
-       if not isinstance(point_on_main_axis,Point): raise TypeError("point on main axis needs to be a Point object.")
-       if center.isColocated(end): raise TypeError("center and start point are colocated.")
-       if center.isColocated(start): raise TypeError("center end end point are colocated.")
-       if center.isColocated(point_on_main_axis): raise TypeError("center and point on main axis are colocated.")
-       if start.isColocated(end): raise TypeError("start and end point are colocated.")
-       # TODO: check length of circle.
-       EllipseBase.__init__(self)
-       Primitive.__init__(self)
-       self.__center=center
-       self.__start=start
-       self.__end=end
-       self.__point_on_main_axis=point_on_main_axis
-
-    def __neg__(self):
-          """
-          returns a view onto the curve with reversed ordering
-          """
-          return ReverseEllipse(self)
-
-    def getStartPoint(self):
-       """
-       returns start point
-       """
-       return self.__start
-
-    def getEndPoint(self):
-       """
-       returns end point
-       """
-       return self.__end
-
-    def getCenterPoint(self):
-       """
-       returns center
-       """
-       return self.__center
-
-    def getPointOnMainAxis(self):
-       """
-       returns a point on a main axis
-       """
-       return self.__point_on_main_axis
-
-    def substitute(self,sub_dict):
-        """
-        returns a copy of self with substitutes for the primitives used to construct it given by the dictionary C{sub_dict}.
-        If a substitute for the object is given by C{sub_dict} the value is returned, otherwise a new instance 
-        with substituted arguments is returned.
-        """
-        if not sub_dict.has_key(self):
-            sub_dict[self]=Ellipse(self.getCenterPoint().substitute(sub_dict),
-                                   self.getPointOnMainAxis().substitute(sub_dict),
-                                   self.getStartPoint().substitute(sub_dict),
-                                   self.getEndPoint().substitute(sub_dict))
-        return sub_dict[self]
-
-
-    def isColocated(self,primitive):
-       """
-       returns True curves are on the same position
-       """
-       if hasattr(primitive,"getUnderlyingPrimitive"): 
-          if isinstance(primitive.getUnderlyingPrimitive(),Ellipse):
-            self_c=self.getCenterPoint().getCoordinates()
-            p=self.getPointOnMainAxis().getCoordinates()-self_c
-            q=primitive.getPointOnMainAxis().getCoordinates()-self_c
-            # are p and q orthogonal or collinear?
-            len_p=sqrt(p[0]**2+p[1]**2+p[2]**2)
-            len_q=sqrt(q[0]**2+q[1]**2+q[2]**2)
-            p_q= abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2])
-            return ((p_q <= getToleranceForColocation() * len_q * p_q) or \
-                                   (abs(p_q - len_q * p_q) <= getToleranceForColocation())) and \
-                   self.getCenterPoint().isColocated(primitive.getCenterPoint()) and \
-                   (                                                                  \
-                        (self.getEndPoint().isColocated(primitive.getEndPoint()) and \
-                         self.getStartPoint().isColocated(primitive.getStartPoint()) ) \
-                                       or                                              \
-                         (self.getEndPoint().isColocated(primitive.getStartPoint()) and \
-                          self.getStartPoint().isColocated(primitive.getEndPoint()) ) \
-                   )
-       return False
-
-class ReverseEllipse(EllipseBase, ReversePrimitive):
-    """
-    defines an arc which is strictly, smaller than Pi
-    """
-    def __init__(self,arc):
-       """
-       creates an instance of a reverse view to an ellipse
-       """
-       if not isinstance(arc, Ellipse):
-           raise TypeError("ReverseCurve needs to be an instance of Ellipse")
-       EllipseBase.__init__(self)
-       ReversePrimitive.__init__(self,arc)
-
-    def getStartPoint(self):
-       """
-       returns start point
-       """
-       return self.getUnderlyingPrimitive().getEndPoint()
-
-    def getEndPoint(self):
-       """
-       returns end point
-       """
-       return self.getUnderlyingPrimitive().getStartPoint()
-
-    def getCenterPoint(self):
-       """
-       returns center
-       """
-       return self.getUnderlyingPrimitive().getCenterPoint()
-
-    def getPointOnMainAxis(self):
-       """
-       returns a point on a main axis
-       """
-       return self.getUnderlyingPrimitive().getPointOnMainAxis()
-
-
 class CurveLoop(Primitive, PrimitiveBase):
     """
     An oriented loop of one-dimensional manifolds (= curves and arcs)
@@ -925,7 +758,7 @@ class CurveLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       returns True if each curve is collocted with a curve in primitive
        """
        if hasattr(primitive,"getUnderlyingPrimitive"): 
           if isinstance(primitive.getUnderlyingPrimitive(),CurveLoop):
@@ -933,10 +766,10 @@ class CurveLoop(Primitive, PrimitiveBase):
                 cp0=self.getCurves()
                 cp1=primitive.getCurves()
                 for c0 in cp0: 
-                    colocated = False
+                    collocated = False
                     for c1 in cp1: 
-                         colocated = colocated or c0.isColocated(c1)
-                    if not colocated: return False
+                         collocated = collocated or c0.isColocated(c1)
+                    if not collocated: return False
                 return True
        return False
 
@@ -1031,7 +864,7 @@ class RuledSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       returns True if each curve is collocted with a curve in primitive
        """
        if hasattr(primitive,"getUnderlyingPrimitive"): 
           if isinstance(primitive.getUnderlyingPrimitive(),RuledSurface):
@@ -1091,9 +924,15 @@ class PlaneSurface(Primitive, Manifold2D):
        """
        if not isinstance(loop.getUnderlyingPrimitive(),CurveLoop):
            raise TypeError("argument loop needs to be a CurveLoop object.")
+       for l in loop.getCurves():
+           if not isinstance(l.getUnderlyingPrimitive(),Line):
+             raise TypeError("loop may be formed by Lines only.")
        for i in range(len(holes)):
             if not isinstance(holes[i].getUnderlyingPrimitive(), CurveLoop):
                  raise TypeError("%i-th hole needs to be a CurveLoop object.")
+            for l in holes[i].getCurves():
+               if not isinstance(l.getUnderlyingPrimitive(),Line):
+                  raise TypeError("holes may be formed by Lines only.")
        #TODO: check if lines and holes are in a plane
        #TODO: are holes really holes?
        Primitive.__init__(self)
@@ -1124,7 +963,7 @@ class PlaneSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       returns True if each curve is collocted with a curve in primitive
        """
        if hasattr(primitive,"getUnderlyingPrimitive"): 
           if isinstance(primitive.getUnderlyingPrimitive(),PlaneSurface):
@@ -1133,10 +972,10 @@ class PlaneSurface(Primitive, Manifold2D):
                 hs1=primitive.getHoles()
                 if len(hs0) == len(hs1):
                     for h0 in hs0:
-                       colocated = False
+                       collocated = False
                        for h1 in hs1: 
-                         colocated = colocated or h0.isColocated(h1)
-                       if not colocated: return False
+                         collocated = collocated or h0.isColocated(h1)
+                       if not collocated: return False
                     return True
        return False
     def collectPrimitiveBases(self):
@@ -1252,7 +1091,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       returns True if each surface is colocted with a curve in primitive and vice versa.
+       returns True if each surface is collocted with a curve in primitive and vice versa.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"): 
          if isinstance(primitive.getUnderlyingPrimitive(),SurfaceLoop):
@@ -1260,10 +1099,10 @@ class SurfaceLoop(Primitive, PrimitiveBase):
                 sp0=self.getSurfaces()
                 sp1=primitive.getSurfaces()
                 for s0 in sp0: 
-                    colocated = False
+                    collocated = False
                     for s1 in sp1: 
-                         colocated = colocated or s0.isColocated(s1)
-                    if not colocated: return False
+                         collocated = collocated or s0.isColocated(s1)
+                    if not collocated: return False
                 return True
        return False
 
@@ -1356,7 +1195,7 @@ class Volume(Manifold3D, Primitive):
 
     def isColocated(self,primitive):
        """
-       returns True if each curve is colocted with a curve in primitive
+       returns True if each curve is collocted with a curve in primitive
        """
        if hasattr(primitive,"getUnderlyingPrimitive"): 
           if isinstance(primitive.getUnderlyingPrimitive(),Volume):
@@ -1365,10 +1204,10 @@ class Volume(Manifold3D, Primitive):
                 hs1=primitive.getHoles()
                 if len(hs0) == len(hs1):
                     for h0 in hs0:
-                       colocated = False
+                       collocated = False
                        for h1 in hs1: 
-                         colocated = colocated or h0.isColocated(h1)
-                       if not colocated: return False
+                         collocated = collocated or h0.isColocated(h1)
+                       if not collocated: return False
                     return True
        return False
     def collectPrimitiveBases(self):

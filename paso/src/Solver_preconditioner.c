@@ -1,17 +1,16 @@
-
 /* $Id$ */
 
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+
+/*
+********************************************************************************
+*               Copyright   2006 by ACcESS MNRF                                *
+*                                                                              * 
+*                 http://www.access.edu.au                                     *
+*           Primary Business: Queensland, Australia                            *
+*     Licensed under the Open Software License version 3.0 		       *
+*        http://www.opensource.org/licenses/osl-3.0.php                        *
+********************************************************************************
+*/
 
 /**************************************************************/
 
@@ -57,21 +56,21 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
            default:
            case PASO_JACOBI:
               if (options->verbose) printf("Jacobi preconditioner is used.\n");
-              prec->jacobi=Paso_Solver_getJacobi(A->mainBlock);
+              prec->jacobi=Paso_Solver_getJacobi(A);
               prec->type=PASO_JACOBI;
               break;
            case PASO_ILU0:
               if (options->verbose) printf("ILU preconditioner is used.\n");
-              prec->ilu=Paso_Solver_getILU(A->mainBlock,options->verbose);
+              prec->ilu=Paso_Solver_getILU(A,options->verbose);
               prec->type=PASO_ILU0;
               break;
            case PASO_RILU:
               if (options->verbose) printf("RILU preconditioner is used.\n");
-              prec->rilu=Paso_Solver_getRILU(A->mainBlock,options->verbose);
+              prec->rilu=Paso_Solver_getRILU(A,options->verbose);
               prec->type=PASO_RILU;
               break;
         }
-        if (! Paso_MPIInfo_noError(A->mpi_info ) ){
+        if (! Paso_noError()) {
            Paso_Preconditioner_free(prec);
            A->solver=NULL;
         }
@@ -97,3 +96,19 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
            break;
     }
 }
+
+/*
+ * $Log$
+ * Revision 1.2  2005/09/15 03:44:40  jgs
+ * Merge of development branch dev-02 back to main trunk on 2005-09-15
+ *
+ * Revision 1.1.2.2  2005/09/07 00:59:09  gross
+ * some inconsistent renaming fixed to make the linking work.
+ *
+ * Revision 1.1.2.1  2005/09/05 06:29:50  gross
+ * These files have been extracted from finley to define a stand alone libray for iterative
+ * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
+ * has not been tested yet.
+ *
+ *
+ */

@@ -1,17 +1,10 @@
+
+#          Copyright 2006 by ACcESS MNRF
 #
-# $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
+#              http://www.access.edu.au
+#       Primary Business: Queensland, Australia
 #  Licensed under the Open Software License version 3.0
 #     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
 #
 
 # flag the MPI settings
@@ -44,12 +37,12 @@ boost_lib = 'boost_python'
 # locations of doc building executables
 doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
 epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
+epydoc_pythonpath = '/raid2/tools/epydoc/2.1/python-2.3.4/lib/python2.3/site-packages'
 
 # locations of netcdf
-useNetCDF = 'yes'
 netCDF_path = "/raid2/toolspp4/netcdf/3.6.1/gcc-3.3.6/include"
 netCDF_lib_path = "/raid2/toolspp4/netcdf/3.6.1/gcc-3.3.6/lib"
-netCDF_libs = [ 'netcdf_c++', 'netcdf']
+netCDF_libs_cxx = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
 # papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'

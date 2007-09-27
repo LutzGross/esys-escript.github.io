@@ -1,18 +1,4 @@
-#
 # $Id$
-#
-#######################################################
-#
-#           Copyright 2003-2007 by ACceSS MNRF
-#       Copyright 2007 by University of Queensland
-#
-#                http://esscc.uq.edu.au
-#        Primary Business: Queensland, Australia
-#  Licensed under the Open Software License version 3.0
-#     http://www.opensource.org/licenses/osl-3.0.php
-#
-#######################################################
-#
 
 """
 Provides some tools related to PDEs. 
@@ -46,7 +32,6 @@ import escript
 import linearPDEs
 import numarray
 import util
-import math
 
 class TimeIntegrationManager:
   """
@@ -408,115 +393,6 @@ class Locator:
         else:
            return data
 
-class SolverSchemeException(Exception):
-   """
-   exceptions thrown by solvers 
-   """
-   pass
-
-class IndefinitePreconditioner(SolverSchemeException):
-   """
-   the preconditioner is not positive definite.
-   """
-   pass
-class MaxIterReached(SolverSchemeException):
-   """
-   maxium number of iteration steps is reached.
-   """
-   pass
-class IterationBreakDown(SolverSchemeException):
-   """
-   iteration scheme econouters an incurable breakdown.
-   """
-   pass
-class NegativeNorm(SolverSchemeException):
-   """
-   a norm calculation returns a negative norm.
-   """
-   pass
-
-def PCG(b,x,Aprod,Msolve,bilinearform, norm, verbose=True, iter_max=100, tolerance=math.sqrt(util.EPSILON)):
-   """
-   Solver for 
-
-   M{Ax=b}
-
-   with a symmetric and positive definite operator A (more details required!). 
-   It uses the conjugate gradient method with preconditioner M providing an approximation of A. 
-
-   The iteration is terminated if
-
-   M{norm(r) <= tolerance * norm(b)} 
-
-   where C{norm()} defines a norm and 
-
-   M{r = b-Ax} 
-
-   the residual.
-
-   For details on the preconditioned conjugate gradient method see the book:
-
-   Templates for the Solution of Linear Systems by R. Barrett, M. Berry, 
-   T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo, 
-   C. Romine, and H. van der Vorst.
-
-   @param b: the right hand side of the liner system. C{b} is altered.
-   @type b: any object type R supporting inplace add (x+=y) and scaling (x=scalar*y)
-   @param x: an initial guess for the solution
-   @type x: any object type S supporting inplace add (x+=y), scaling (x=scalar*y)
-   @param Aprod: returns the value Ax
-   @type Aprod: function C{Aprod(x)} where C{x} is of object type S. The returned object needs to be of type R.
-   @param Msolve: solves Mx=r 
-   @type Msolve: function C{Msolve(r)} where C{r} is of object type R. The returned object needs to be of tupe S.
-   @param bilinearform: inner product C{<x,r>} 
-   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of object type S and C{r} is of object type R. The returned value is a C{float}.
-   @param norm: norm calculation for the residual C{r=b-Ax}. 
-   @type norm: function C{norm(r)} where C{r} is of object type R. The returned value is a C{float}.
-   @param verbose: switches on the printing out some information
-   @type verbose: C{bool}
-   @param iter_max: maximum number of iteration steps.
-   @type iter_max: C{int}
-   @param tolerance: tolerance
-   @type tolerance: positive C{float}
-   @return: the solution apprximation and the corresponding residual
-   @rtype: C{tuple} of an S type and and an R type object.A
-   @warning: C{b} ans C{x} are altered.
-   """
-   if verbose:
-        print "Enter PCG for solving Ax=b\n\t iter_max =%s\t tolerance   =%e"%(iter_max,tolerance)
-   iter=0
-   normb = norm(b)
-   if normb<0: raise NegativeNorm
-
-   b += (-1)*Aprod(x) 
-   r=b
-   rhat=Msolve(r)
-   d = rhat;
-   rhat_dot_r = bilinearform(rhat, r)
-
-   while True:
-       normr=norm(r)
-       if normr<0: raise NegativeNorm
-       if verbose: print "iter: %s: norm(r) = %e, tolerance*norm(b) = %e"%(iter, normr,tolerance * normb)
-       if normr <= tolerance * normb: return x,r
-
-       iter+=1 # k = iter = 1 first time through
-       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
-
-       q=Aprod(d)
-       alpha = rhat_dot_r / bilinearform(d, q)
-       x += alpha * d
-       r += (-alpha) * q
-
-       rhat=Msolve(r)
-       rhat_dot_r_new = bilinearform(rhat, r)
-       beta = rhat_dot_r_new / rhat_dot_r
-       rhat+=beta * d
-       d=rhat
-
-       rhat_dot_r = rhat_dot_r_new
-
-
 class SaddlePointProblem(object):
    """
    This implements a solver for a saddlepoint problem
@@ -746,28 +622,4 @@ class SaddlePointProblem(object):
 #
 #      return u,p
           
-def MaskFromBoundaryTag(function_space,*tags):
-   """
-   create a mask on the given function space which one for samples 
-   that touch the boundary tagged by tags.
-
-   usage: m=MaskFromBoundaryTag(Solution(domain),"left", "right")
-
-   @param function_space: a given function space 
-   @type function_space: L{escript.FunctionSpace}
-   @param tags: boundray tags
-   @type tags: C{str}
-   @return: a mask which marks samples used by C{function_space} that are touching the
-            boundary tagged by any of the given tags.
-   @rtype: L{escript.Data} of rank 0
-   """
-   pde=linearPDEs.LinearPDE(function_space.getDomain(),numEquations=1, numSolutions=1)
-   d=escript.Scalar(0.,escript.FunctionOnBoundary(function_space.getDomain()))
-   for t in tags: d.setTaggedValue(t,1.)
-   pde.setValue(y=d)
-   out=util.whereNonZero(pde.getRightHandSide())
-   if out.getFunctionSpace() == function_space:
-      return out
-   else:
-      return util.whereNonZero(util.interpolate(out,function_space))
-
+# vim: expandtab shiftwidth=4:

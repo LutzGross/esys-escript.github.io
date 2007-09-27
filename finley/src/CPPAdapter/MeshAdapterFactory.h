@@ -1,17 +1,15 @@
-
 /* $Id$ */
-
-/*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+/* 
+ ************************************************************
+ *          Copyright 2006 by ACcESS MNRF                   *
+ *                                                          *
+ *              http://www.access.edu.au                    *
+ *       Primary Business: Queensland, Australia            *
+ *  Licensed under the Open Software License version 3.0    *
+ *     http://www.opensource.org/licenses/osl-3.0.php       *
+ *                                                          *
+ ************************************************************
+*/
 
 #if !defined  finley_MeshAdapterFactory_20040526_H
 #define finley_MeshAdapterFactory_20040526_H
@@ -42,26 +40,19 @@ namespace finley {
  
   /**
      \brief
-     recovers mesg from a dump file
-     \param fileName Input -  The name of the file.
-  */
-  FINLEY_DLL_API
-  escript::AbstractContinuousDomain* loadMesh(const std::string& fileName);
-  /**
-     \brief
      Read a mesh from a file
      \param fileName Input -  The name of the file.
      \param integrationOrder Input - order of the quadrature scheme.  
      If integrationOrder<0 the integration order is selected independently.
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
-     \param optimize Input - switches on the optimization of node labels 
+     \param optimizeLabeling Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
 				     int integrationOrder=-1,
                                      int reducedIntegrationOrder=-1,
-                                     int optimize=0);
+                                     bool optimizeLabeling=true);
   /**
      \brief
      Read a gmsh mesh file
@@ -71,14 +62,14 @@ namespace finley {
      If integrationOrder<0 the integration order is selected independently.
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
-     \param optimize Input - switches on the optimization of node labels 
+     \param optimizeLabeling Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
 				     int numDim, 
 				     int integrationOrder=-1,
 				     int reducedIntegrationOrder=-1, 
-				     int optimize=0);
+				     bool optimizeLabeling=true);
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
@@ -102,9 +93,7 @@ namespace finley {
 		    int periodic2=0,
 		    int integrationOrder=-1,
      	            int reducedIntegrationOrder=-1, 
-		    int useElementsOnFace=0,
-                    int useFullElementOrder=0,
-                    int optimize=0);
+		    int useElementsOnFace=0);
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 elements over the brick 
@@ -128,9 +117,29 @@ namespace finley {
 				      int periodic0=false,int periodic1=false,
 				      int integrationOrder=-1,
      	                              int reducedIntegrationOrder=-1, 
-				      int useElementsOnFace=0,
-                                      int useFullElementOrder=0,
-                                      int optimize=0);
+				      int useElementsOnFace=false);
+  /**
+     \brief
+     Creates an equidistant mesh with n elements over the interval [0,l].
+     \param n0 Input - number of elements
+     \param order Input - =1 or =2 gives the order of shape function.
+     \param l0 Input - length of the brick
+     \param integrationOrder Input - order of the quadrature scheme. 
+     If integrationOrder<0 the integration order is selected 
+     independently.
+     \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
+     If reducedIntegrationOrder<0 the integration order is selected independently.
+     \param periodic0 Input - whether or not the boundary conditions are
+     periodic
+     \param useElementsOnFace Input - whether or not to use the elements
+     on the face
+  */
+  FINLEY_DLL_API
+  escript::AbstractContinuousDomain* interval(int n0=1,int order=1,double l0=1.0,
+				     int periodic0=false,
+				     int integrationOrder=-1,
+     	                             int reducedIntegrationOrder=-1, 
+				     int useElementsOnFace=false);
   /**
      \brief
      Merges a list of meshes into one list.
@@ -145,26 +154,26 @@ namespace finley {
      \param meshList Input - The list of meshes.
      \param safetyFactor Input - ??
      \param tolerance Input - ??
-     \param optimize Input - switches on the optimization of node labels 
+     \param optimizeLabeling Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
 			   double tolerance=1.e-8,
-                           int optimize=0);
+                           bool optimizeLabeling=true);
   /**
      \brief
      Detects matching faces in the mesh and replaces them by joint elements.
      \param meshList Input - The list of meshes.
      \param safetyFactor Input - ??
      \param tolerance Input - ??
-     \param optimize Input - switches on the optimization of node labels 
+     \param optimizeLabeling Input - switches on the optimization of node labels 
   */
   FINLEY_DLL_API
   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
 			double safetyFactor=0.2, 
 			double tolerance=1.e-8,
-                        int optimize=0);
+                        bool optimizeLabeling=true);
  
 } // end of namespace
 #endif
