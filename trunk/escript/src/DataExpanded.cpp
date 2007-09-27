@@ -217,7 +217,7 @@ DataExpanded::copy(const DataArrayView& value)
       // DOASSERT is on which of course will play
       // havoc with the omp threads. Run single threaded
       // if using DOASSERT.
-      getPointDataView().copy(m_data.index(i,j),value);
+      getPointDataView().copy(getPointOffset(i,j),value);
     }
   }
 }
@@ -274,7 +274,7 @@ DataExpanded::toString() const
   DataArrayView tempView(getPointDataView().getData(),getPointDataView().getShape(),getPointDataView().getOffset());
   for (int i=0;i<m_data.getNumRows();i++) {
     for (int j=0;j<m_data.getNumCols();j++) {
-      tempView.setOffset(m_data.index(i,j));
+      tempView.setOffset(getPointOffset(i,j));
       stringstream suffix;
       suffix << "( id: " << i << ", ref: " << fs.getReferenceIDOfSample(i) << ", pnt: " << j << ")";
       temp << tempView.toString(suffix.str());
@@ -297,7 +297,7 @@ DataArrayView
 DataExpanded::getDataPoint(int sampleNo,
                            int dataPointNo)
 {
-  DataArrayView temp(m_data.getData(),getPointDataView().getShape(),m_data.index(sampleNo,dataPointNo));
+  DataArrayView temp(m_data.getData(),getPointDataView().getShape(),getPointOffset(sampleNo,dataPointNo));
   return temp;
 }
 
