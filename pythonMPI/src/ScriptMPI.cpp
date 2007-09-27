@@ -13,7 +13,6 @@
  *
  *******************************************************/
 
-#include <Python.h>
 #include <mpi.h>
 #include <iostream>
 #include <stdexcept>

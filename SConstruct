@@ -175,8 +175,8 @@ else:
 #
 #    compile:
 #
-cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi'
-cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi'
+cc_flags_default='-O3 -std=c99 -ffast-math -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
+cc_flags_debug_default='-g -O0 -ffast-math -std=c99 -fpic -Wno-unknown-pragmas -ansi -pedantic-errors'
 cxx_flags_default='--no-warn -ansi'
 cxx_flags_debug_default='--no-warn -ansi -DDOASSERT'
 

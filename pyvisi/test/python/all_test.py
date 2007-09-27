@@ -1,3 +1,19 @@
+#
+# $Id$
+#
+#######################################################
+#
+#           Copyright 2003-2007 by ACceSS MNRF
+#       Copyright 2007 by University of Queensland
+#
+#                http://esscc.uq.edu.au
+#        Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#######################################################
+#
+
 from run_camera import TestCamera2D, TestCamera3D 
 from run_carpet import TestCarpetScalarWarp, TestCarpetVectorWarp 
 from run_carpet_with_lazy_evaluation import TestCarpet
