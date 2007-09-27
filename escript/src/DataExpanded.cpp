@@ -160,14 +160,14 @@ DataExpanded::~DataExpanded()
 }
 
 DataAbstract*
-DataExpanded::getSlice(const DataArrayView::RegionType& region) const 
+DataExpanded::getSlice(const DataArrayView::RegionType& region) const
 {
   return new DataExpanded(*this,region);
 }
 
 void
 DataExpanded::setSlice(const DataAbstract* value,
-                       const DataArrayView::RegionType& region) 
+                       const DataArrayView::RegionType& region)
 {
   const DataExpanded* tempDataExp=dynamic_cast<const DataExpanded*>(value);
   if (tempDataExp==0) {
@@ -203,7 +203,7 @@ DataExpanded::setSlice(const DataAbstract* value,
 }
 
 void
-DataExpanded::copy(const DataArrayView& value) 
+DataExpanded::copy(const DataArrayView& value)
 {
   //
   // copy a single value to every data point in this object
@@ -213,31 +213,41 @@ DataExpanded::copy(const DataArrayView& value)
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<nRows;i++) {
     for (j=0;j<nCols;j++) {
-      // NOTE: An exception may be thown from this call if 
+      // NOTE: An exception may be thown from this call if
       // DOASSERT is on which of course will play
       // havoc with the omp threads. Run single threaded
-      // if using DOASSERT. 
+      // if using DOASSERT.
       getPointDataView().copy(m_data.index(i,j),value);
     }
   }
 }
 
 void
-DataExpanded::copy(const boost::python::numeric::array& value) 
+DataExpanded::copy(const boost::python::numeric::array& value)
 {
-  //
-  // first convert the numarray into a DataArray object
-  DataArray temp(value);
+
+  // extract the shape of the numarray
+  DataArrayView::ShapeType tempShape;
+  for (int i=0; i < value.getrank(); i++) {
+    tempShape.push_back(extract<int>(value.getshape()[i]));
+  }
+
+  // get the space for the data vector
+  int len = DataArrayView::noValues(tempShape);
+  DataVector temp_data(len, 0.0, len);
+  DataArrayView temp_dataView(temp_data, tempShape);
+  temp_dataView.copy(value);
+
   //
   // check the input shape matches this shape
-  if (!getPointDataView().checkShape(temp.getView().getShape())) {
+  if (!getPointDataView().checkShape(temp_dataView.getShape())) {
     throw DataException(getPointDataView().createShapeErrorMessage(
                         "Error - (DataExpanded) Cannot copy due to shape mismatch.",
-                        temp.getView().getShape()));
+                        temp_dataView.getShape()));
   }
   //
   // now copy over the data
-  copy(temp.getView());
+  copy(temp_dataView);
 }
 
 void
@@ -311,7 +321,7 @@ DataExpanded::extractData(ifstream& archiveFile,
   return(m_data.extractData(archiveFile, noValues));
 }
 
-void 
+void
 DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const double value) {
   //
   // Get the number of samples and data-points per sample.
@@ -358,10 +368,10 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const d
              }
            }
          }
-     } 
+     }
   }
 }
-void 
+void
 DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const boost::python::numeric::array& value) {
   //
   // Get the number of samples and data-points per sample.
@@ -412,7 +422,7 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const b
              }
            }
          }
-     } 
+     }
   }
 }
 void

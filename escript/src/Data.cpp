@@ -19,7 +19,6 @@
 #include "DataConstant.h"
 #include "DataTagged.h"
 #include "DataEmpty.h"
-#include "DataArray.h"
 #include "DataArrayView.h"
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
@@ -61,8 +60,13 @@ Data::Data(double value,
   for (int i = 0; i < shape.attr("__len__")(); ++i) {
     dataPointShape.push_back(extract<const int>(shape[i]));
   }
-  DataArray temp(dataPointShape,value);
-  initialise(temp.getView(),what,expanded);
+
+  int len = DataArrayView::noValues(dataPointShape);
+  DataVector temp_data(len,value,len);
+  DataArrayView temp_dataView(temp_data, dataPointShape);
+
+  initialise(temp_dataView, what, expanded);
+
   m_protected=false;
 }
 
@@ -71,8 +75,13 @@ Data::Data(double value,
 	   const FunctionSpace& what,
            bool expanded)
 {
-  DataArray temp(dataPointShape,value);
-  initialise(temp.getView(),what,expanded);
+  int len = DataArrayView::noValues(dataPointShape);
+
+  DataVector temp_data(len,value,len);
+  DataArrayView temp_dataView(temp_data, dataPointShape);
+
+  initialise(temp_dataView, what, expanded);
+
   m_protected=false;
 }
 
@@ -155,23 +164,41 @@ Data::Data(const object& value,
   m_protected=false;
 }
 
+
 Data::Data(const object& value,
            const Data& other)
 {
+
+  numeric::array asNumArray(value);
+
+
+  // extract the shape of the numarray
+  DataArrayView::ShapeType tempShape;
+  for (int i=0; i < asNumArray.getrank(); i++) {
+    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
+  }
+  // get the space for the data vector
+  int len = DataArrayView::noValues(tempShape);
+  DataVector temp_data(len, 0.0, len);
+  DataArrayView temp_dataView(temp_data, tempShape);
+  temp_dataView.copy(asNumArray);
+
   //
   // Create DataConstant using the given value and all other parameters
   // copied from other. If value is a rank 0 object this Data
   // will assume the point data shape of other.
-  DataArray temp(value);
-  if (temp.getView().getRank()==0) {
-    //
-    // Create a DataArray with the scalar value for all elements
-    DataArray temp2(other.getPointDataView().getShape(),temp.getView()());
-    initialise(temp2.getView(),other.getFunctionSpace(),false);
+
+  if (temp_dataView.getRank()==0) {
+    int len = DataArrayView::noValues(other.getPointDataView().getShape());
+
+    DataVector temp2_data(len, temp_dataView(), len);
+    DataArrayView temp2_dataView(temp_data, other.getPointDataView().getShape());
+    initialise(temp2_dataView, other.getFunctionSpace(), false);
+
   } else {
     //
     // Create a DataConstant with the same sample shape as other
-    initialise(temp.getView(),other.getFunctionSpace(),false);
+    initialise(temp_dataView, other.getFunctionSpace(), false);
   }
   m_protected=false;
 }
@@ -1795,13 +1822,24 @@ Data::setTaggedValue(int tagKey,
     throw DataException("Error - DataTagged conversion failed!!");
   }
 
-  //
-  // Construct DataArray from boost::python::object input value
-  DataArray valueDataArray(value);
+  numeric::array asNumArray(value);
+
+
+  // extract the shape of the numarray
+  DataArrayView::ShapeType tempShape;
+  for (int i=0; i < asNumArray.getrank(); i++) {
+    tempShape.push_back(extract<int>(asNumArray.getshape()[i]));
+  }
+
+  // get the space for the data vector
+  int len = DataArrayView::noValues(tempShape);
+  DataVector temp_data(len, 0.0, len);
+  DataArrayView temp_dataView(temp_data, tempShape);
+  temp_dataView.copy(asNumArray);
 
   //
   // Call DataAbstract::setTaggedValue
-  m_data->setTaggedValue(tagKey,valueDataArray.getView());
+  m_data->setTaggedValue(tagKey,temp_dataView);
 }
 
 void
