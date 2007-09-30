@@ -827,7 +827,8 @@ try:
    svn_pipe = os.popen("svnversion -n .")
    global_revision = svn_pipe.readlines()
    svn_pipe.close()
-   global_revision = re.sub("[^0-9]", "", global_revision[0])
+   global_revision = re.sub(":.*", "", global_revision[0])
+   global_revision = re.sub("[^0-9]", "", global_revision)
 except:
    global_revision = "0"
 env.Append(CPPDEFINES = "SVN_VERSION="+global_revision)

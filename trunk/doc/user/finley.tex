@@ -281,28 +281,6 @@ degree \var{integrationOrder} \index{integration order}. Otherwise
 an appropriate integration order is chosen independently.
 \end{funcdesc}
 
-\begin{funcdesc}{Interval}{n0,order=1,l0=1.,integrationOrder=-1, \\
-  periodic0=\False,useElementsOnFace=\False}
-Generates a \Domain object representing a interval $[0,l0]$. The interval is filled with
-\var{n0} elements. 
-For \var{order}=1 and \var{order}=2
-\finleyelement{Line2} and  
-\finleyelement{Line3} are used, respectively. 
-In the case of \var{useElementsOnFace}=\False,
-\finleyelement{Point1} are used to describe the boundary points. 
-In the case of \var{useElementsOnFace}=\True (this option should be used if gradients
-are calculated on domain faces),
-\finleyelement{Line2} and  
-\finleyelement{Line3} are used on both ends of the interval.  
-If \var{integrationOrder} is positive, a numerical integration scheme
-chosen which is accurate on each element up to a polynomial of
-degree \var{integrationOrder} \index{integration order}. Otherwise
-an appropriate integration order is chosen independently. If
-\var{periodic0}=\True, periodic boundary conditions \index{periodic boundary conditions}
-along the $x_0$-directions are enforced. That means when for any solution of a PDE solved by \finley
-the value at $x_0=0$ will be identical to the values at $x_0=\var{l0}$.
-\end{funcdesc}
-
 \begin{funcdesc}{Rectangle}{n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\
   periodic0=\False,periodic1=\False,useElementsOnFace=\False}
 Generates a \Domain object representing a two dimensional rectangle between
