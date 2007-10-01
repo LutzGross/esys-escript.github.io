@@ -13,9 +13,9 @@
  *
  *******************************************************/
 
-#include "escript/DataArray.h"
 #include "escript/DataArrayView.h"
 #include "escript/DataAlgorithm.h"
+#include "escript/DataVector.h"
 #include "esysUtils/EsysException.h"
 
 #include "DataArrayViewTestCase.h"
@@ -30,13 +30,13 @@ using namespace std;
 void DataArrayViewTestCase::setUp() {
   //
   // This is called before each test is run
- 
+
 }
 
 void DataArrayViewTestCase::tearDown() {
   //
   // This is called after each test has been run
- 
+
 }
 
 void DataArrayViewTestCase::testResultSliceShape() {
@@ -78,11 +78,11 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType sourceShape;
 
     // Create source and target views.
-    DataArray source(sourceShape,2.0);
-    DataArrayView sourceView=source.getView();
-
-    DataArray target;
-    DataArrayView targetView=target.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
+    DataVector targetData(1, 2.0, 1);
+    DataArrayView targetView(targetData, DataArrayView::ShapeType());
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -102,11 +102,11 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType sourceShape;
 
     // Create source and target views.
-    DataArray source(sourceShape,2.0);
-    DataArrayView sourceView=source.getView();
-
-    DataArray target;
-    DataArrayView targetView=target.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
+    DataVector targetData(1, 2.0, 1);
+    DataArrayView targetView(targetData, DataArrayView::ShapeType());
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -129,14 +129,16 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceView(i)=i;
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -162,14 +164,17 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape;
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
+
     for (int i=0;i<sourceShape[0];i++) {
       sourceView(i)=i;
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -195,14 +200,16 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(6);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceView(i)=i;
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -228,12 +235,14 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(6);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -261,8 +270,9 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -270,8 +280,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -302,8 +313,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(3);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -311,8 +323,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -342,8 +355,9 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape;
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -351,8 +365,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -381,8 +396,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(3);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -390,8 +406,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -421,12 +438,14 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(3);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -458,8 +477,9 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -469,8 +489,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -506,8 +527,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(4);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -517,8 +539,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -553,8 +576,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(4);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -564,8 +588,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -599,8 +624,9 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape;
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -610,8 +636,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -645,8 +672,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(9);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -656,8 +684,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -691,12 +720,14 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(9);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -732,8 +763,9 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape = DataArrayView::getResultSliceShape(region);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -745,8 +777,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -787,8 +820,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(2);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -800,8 +834,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -841,8 +876,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(2);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -854,8 +890,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -894,8 +931,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(2);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -907,8 +945,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -946,8 +985,9 @@ void DataArrayViewTestCase::testSlicing() {
     DataArrayView::ShapeType targetShape;
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -959,8 +999,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySlice(sourceView,region);
@@ -998,8 +1039,9 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(90);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
       for (int j=0;j<sourceShape[1];j++) {
@@ -1011,8 +1053,9 @@ void DataArrayViewTestCase::testSlicing() {
       }
     }
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -1050,12 +1093,14 @@ void DataArrayViewTestCase::testSlicing() {
     targetShape.push_back(90);
 
     // Create source and target views.
-    DataArray source(sourceShape);
-    DataArrayView sourceView=source.getView();
+    int len = DataArrayView::noValues(sourceShape);
+    DataVector sourceData(len, 2.0, len);
+    DataArrayView sourceView(sourceData, sourceShape);
     sourceView()=5;
 
-    DataArray target(targetShape);
-    DataArrayView targetView=target.getView();
+    len = DataArrayView::noValues(targetShape);
+    DataVector targetData(len, 2.0, len);
+    DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
     targetView.copySliceFrom(sourceView,region);
@@ -1698,7 +1743,7 @@ void DataArrayViewTestCase::testMatMult()
 
     DataArrayView::ValueType resultData(DataArrayView::noValues(resultShape),0);
     DataArrayView resultDataView(resultData,resultShape);
-  
+
     cout << "\tTest matrix multiplication.";
     double aValue=0.0;
     for (int i=0;i<leftShape[0];i++) {

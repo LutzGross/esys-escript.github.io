@@ -18,7 +18,6 @@
 #include "system_dep.h"
 
 #include "DataArrayView.h"
-#include "DataArray.h"
 #include "FunctionSpace.h"
 
 #include <boost/scoped_ptr.hpp>
@@ -32,7 +31,7 @@ namespace escript {
 /**
    \brief
    DataAbstract provides an abstract interface for the class of containers
-   which hold ESyS data. 
+   which hold ESyS data.
 
    Description:
    DataAbstract provides an abstract interface for the class of containers
@@ -106,7 +105,7 @@ class DataAbstract {
 
   /**
      \brief
-     Return the DataArrayView of the point data. This essentially contains 
+     Return the DataArrayView of the point data. This essentially contains
      the shape information for each data point although it also may be used
      to manipulate the point data.
   */
@@ -187,11 +186,11 @@ class DataAbstract {
   ESCRIPT_DLL_API
   bool
   validSampleNo(int sampleNo) const;
- 
+
   /**
      \brief
      Return a view into the data for the data point specified.
-     NOTE: Construction of the DataArrayView is a relatively expensive 
+     NOTE: Construction of the DataArrayView is a relatively expensive
      operation.
 
      \param sampleNo - Input - the sample number.
@@ -240,7 +239,7 @@ class DataAbstract {
   /**
      \brief
      setTaggedValue
-                                                                                                                                   
+
      Description:
      Assign the given value to the given tag.
 
@@ -471,7 +470,7 @@ class DataAbstract {
 
 inline
 bool
-DataAbstract::validSamplePointNo(int samplePointNo) const 
+DataAbstract::validSamplePointNo(int samplePointNo) const
 {
   return ((0 <= samplePointNo) && (samplePointNo < m_noDataPointsPerSample));
 }
@@ -492,7 +491,7 @@ DataAbstract::getSampleData(ValueType::size_type sampleNo)
 
 inline
 int
-DataAbstract::getNumDPPSample() const 
+DataAbstract::getNumDPPSample() const
 {
   return m_noDataPointsPerSample;
 }

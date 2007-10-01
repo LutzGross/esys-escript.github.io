@@ -20,7 +20,6 @@
 #include "DataTaggedTestCase.h"
 #include "DataExpandedTestCase.h"
 #include "DataFactoryTestCase.h"
-#include "DataArrayTestCase.h"
 #include "DataArrayViewTestCase.h"
 #include "DataBlocks2DTestCase.h"
 #include "DataVectorTestCase.h"
@@ -39,7 +38,7 @@ extern "C"{
 }
 
 int main(int argc, char* argv[])
-{ 
+{
 #ifdef PASO_MPI
         int status = MPI_Init(&argc, &argv);
         if (status != MPI_SUCCESS) {
@@ -57,7 +56,6 @@ int main(int argc, char* argv[])
 	runner.addTest ("DataTagged", DataTaggedTestCase::suite());
 	runner.addTest ("DataExpanded", DataExpandedTestCase::suite());
 	runner.addTest ("DataFactory", DataFactoryTestCase::suite());
-	runner.addTest ("DataArray", DataArrayTestCase::suite());
 	runner.addTest ("DataArrayView", DataArrayViewTestCase::suite());
 	runner.addTest ("DataBlocks2D", DataBlocks2DTestCase::suite());
 	runner.addTest ("DataVector", DataVectorTestCase::suite());

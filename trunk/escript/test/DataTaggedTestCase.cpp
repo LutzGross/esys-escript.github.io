@@ -15,6 +15,7 @@
 
 #include "esysUtils/EsysException.h"
 
+#include "escript/DataVector.h"
 #include "escript/DataTagged.h"
 #include "escript/DataConstant.h"
 
@@ -37,13 +38,13 @@ using namespace std;
 void DataTaggedTestCase::setUp() {
   //
   // This is called before each test is run
- 
+
 }
 
 void DataTaggedTestCase::tearDown() {
   //
   // This is called after each test has been run
- 
+
 }
 
 
@@ -181,9 +182,12 @@ void DataTaggedTestCase::testOperations() {
     DataTagged myData;
     DataTagged right;
 
-    DataArray vOne(1.0);
-    myData.addTaggedValue(1,vOne.getView());
-    right.addTaggedValue(1,vOne.getView());
+    DataVector vOneData(1, 1.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+
+    myData.addTaggedValue(1,vOneView);
+    right.addTaggedValue(1,vOneView);
 
     binaryOp(myData,right,plus<double>());
 
@@ -246,10 +250,16 @@ void DataTaggedTestCase::testOperations() {
     myData.getDefaultValue()()=1.0;
     right.getDefaultValue()()=2.0;
 
-    DataArray vOne(3.0);
-    DataArray vTwo(4.0);
-    myData.addTaggedValue(1,vOne.getView());
-    right.addTaggedValue(2,vTwo.getView());
+    DataVector vOneData(1, 3.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+
+    DataVector vTwoData(1, 4.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+
+    myData.addTaggedValue(1,vOneView);
+    right.addTaggedValue(2,vTwoView);
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
@@ -327,11 +337,14 @@ void DataTaggedTestCase::testOperations() {
     myData.getDefaultValue()()=2.0;
     right.getDefaultValue()()=3.0;
 
-    DataArray vOne(1.0);
-    myData.addTaggedValue(1,vOne.getView());
-    myData.addTaggedValue(2,vOne.getView());
-    right.addTaggedValue(2,vOne.getView());
-    right.addTaggedValue(3,vOne.getView());
+    DataVector vOneData(1, 1.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+
+    myData.addTaggedValue(1,vOneView);
+    myData.addTaggedValue(2,vOneView);
+    right.addTaggedValue(2,vOneView);
+    right.addTaggedValue(3,vOneView);
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
@@ -474,13 +487,22 @@ void DataTaggedTestCase::testOperations() {
 
     DataTagged myData;
 
-    DataArray vOne(1.0);
-    DataArray vTwo(2.0);
-    myData.addTaggedValue(1,vOne.getView());
-    myData.addTaggedValue(2,vTwo.getView());
+    DataVector vOneData(1, 1.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
 
-    DataArray vThree(3.0);
-    DataArrayView right=vThree.getView();
+    DataVector vTwoData(1, 2.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+
+    myData.addTaggedValue(1,vOneView);
+    myData.addTaggedValue(2,vTwoView);
+
+    DataVector vThreeData(1, 3.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vThreeView(vThreeData,DataArrayView::ShapeType());
+
+    DataArrayView right=vThreeView;
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
@@ -558,12 +580,18 @@ void DataTaggedTestCase::testOperations() {
     myData.getDefaultValue()()=2.0;
     right.getDefaultValue()()=3.0;
 
-    DataArray vOne(1.0);
-    DataArray vTwo(2.0);
-    myData.addTaggedValue(1,vOne.getView());
-    myData.addTaggedValue(2,vOne.getView());
-    right.addTaggedValue(2,vTwo.getView());
-    right.addTaggedValue(3,vTwo.getView());
+    DataVector vOneData(1, 1.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+
+    DataVector vTwoData(1, 2.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+
+    myData.addTaggedValue(1,vOneView);
+    myData.addTaggedValue(2,vOneView);
+    right.addTaggedValue(2,vTwoView);
+    right.addTaggedValue(3,vTwoView);
 
     //cout << myData.toString() << endl;
     //cout << right.toString() << endl;
@@ -762,14 +790,20 @@ void DataTaggedTestCase::testOperations() {
   }
 
   {
-    cout << "\tTest unaryOp negate on DataTagged object with two tags." << endl;
+    cout << "\tTest unnaryOp negate on DataTagged object with two tags." << endl;
 
     DataTagged myData;
 
-    DataArray vOne(1.0);
-    DataArray vTwo(2.0);
-    myData.addTaggedValue(1,vOne.getView());
-    myData.addTaggedValue(2,vTwo.getView());
+    DataVector vOneData(1, 1.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vOneView(vOneData,DataArrayView::ShapeType());
+
+    DataVector vTwoData(1, 2.0 ,1);
+    // create a view with an empty shape, a scalar.
+    DataArrayView vTwoView(vTwoData,DataArrayView::ShapeType());
+
+    myData.addTaggedValue(1,vOneView);
+    myData.addTaggedValue(2,vTwoView);
 
     unaryOp(myData,negate<double>());
 
@@ -1555,25 +1589,28 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+3.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+3.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -1641,25 +1678,28 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+3.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+3.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -1668,11 +1708,12 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     values.clear();
     // value for tag "4"
-    DataArray eFour(myView);
-    for (int i=0;i<eFour.getView().getShape()[0];i++) {
-      eFour.getView()(i)=i+4.0;
+    DataArrayView::ValueType eFourData(viewData);
+    DataArrayView eFourView(eFourData, viewShape);
+    for (int i=0;i<eFourView.getShape()[0];i++) {
+      eFourView(i)=i+4.0;
     }
-    values.push_back(eFour.getView());
+    values.push_back(eFourView);
 
     myData.addTaggedValues(keys,values);
 
@@ -1683,7 +1724,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myData.getLength()==15);
 
     DataArrayView myDataView = myData.getDataPointByTag(4);
-    assert(myDataView==eFour.getView());
+    assert(myDataView==eFourView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==12);
     assert(myDataView.getRank()==1);
@@ -1734,25 +1775,28 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+3.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+3.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -1763,11 +1807,12 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     values.clear();
     // value for tags "4", "5" and "6"
-    DataArray eFour(myView);
-    for (int i=0;i<eFour.getView().getShape()[0];i++) {
-      eFour.getView()(i)=i+4.0;
+    DataArrayView::ValueType eFourData(viewData);
+    DataArrayView eFourView(eFourData, viewShape);
+    for (int i=0;i<eFourView.getShape()[0];i++) {
+      eFourView(i)=i+4.0;
     }
-    values.push_back(eFour.getView());
+    values.push_back(eFourView);
 
     myData.addTaggedValues(keys,values);
 
@@ -1780,7 +1825,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myData.getLength()==21);
 
     DataArrayView myDataView = myData.getDataPointByTag(4);
-    assert(myDataView==eFour.getView());
+    assert(myDataView==eFourView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==12);
     assert(myDataView.getRank()==1);
@@ -1791,7 +1836,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(2)==6);
 
     myDataView = myData.getDataPointByTag(5);
-    assert(myDataView==eFour.getView());
+    assert(myDataView==eFourView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==15);
     assert(myDataView.getRank()==1);
@@ -1802,7 +1847,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(2)==6);
 
     myDataView = myData.getDataPointByTag(6);
-    assert(myDataView==eFour.getView());
+    assert(myDataView==eFourView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==18);
     assert(myDataView.getRank()==1);
@@ -1857,25 +1902,28 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+3.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+3.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -1887,25 +1935,28 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.clear();
 
     // value for tag "4"
-    DataArray eFour(myView);
-    for (int i=0;i<eFour.getView().getShape()[0];i++) {
-      eFour.getView()(i)=i+4.0;
+    DataArrayView::ValueType eFourData(viewData);
+    DataArrayView eFourView(eFourData, viewShape);
+    for (int i=0;i<eFourView.getShape()[0];i++) {
+      eFourView(i)=i+4.0;
     }
-    values.push_back(eFour.getView());
+    values.push_back(eFourView);
 
     // value for tag "5"
-    DataArray eFive(myView);
-    for (int i=0;i<eFive.getView().getShape()[0];i++) {
-      eFive.getView()(i)=i+5.0;
+    DataArrayView::ValueType eFiveData(viewData);
+    DataArrayView eFiveView(eFiveData, viewShape);
+    for (int i=0;i<eFiveView.getShape()[0];i++) {
+      eFiveView(i)=i+5.0;
     }
-    values.push_back(eFive.getView());
+    values.push_back(eFiveView);
 
     // value for tag "6"
-    DataArray eSix(myView);
-    for (int i=0;i<eSix.getView().getShape()[0];i++) {
-      eSix.getView()(i)=i+6.0;
+    DataArrayView::ValueType eSixData(viewData);
+    DataArrayView eSixView(eSixData, viewShape);
+    for (int i=0;i<eSixView.getShape()[0];i++) {
+      eSixView(i)=i+6.0;
     }
-    values.push_back(eSix.getView());
+    values.push_back(eSixView);
 
     myData.addTaggedValues(keys,values);
 
@@ -1918,7 +1969,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myData.getLength()==21);
 
     DataArrayView myDataView = myData.getDataPointByTag(4);
-    assert(myDataView==eFour.getView());
+    assert(myDataView==eFourView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==12);
     assert(myDataView.getRank()==1);
@@ -1929,7 +1980,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(2)==6);
 
     myDataView = myData.getDataPointByTag(5);
-    assert(myDataView==eFive.getView());
+    assert(myDataView==eFiveView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==15);
     assert(myDataView.getRank()==1);
@@ -1940,7 +1991,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     assert(myDataView(2)==7);
 
     myDataView = myData.getDataPointByTag(6);
-    assert(myDataView==eSix.getView());
+    assert(myDataView==eSixView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==18);
     assert(myDataView.getRank()==1);
@@ -2001,34 +2052,37 @@ void DataTaggedTestCase::testSetTaggedValue() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+3.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+3.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
     // new value for tag "2"
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+5.0;
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+5.0;
     }
 
-    myData.setTaggedValue(2,eTwo.getView());
+    myData.setTaggedValue(2,eTwoView);
 
     assert(myData.isCurrentTag(2));
 
@@ -2037,7 +2091,7 @@ void DataTaggedTestCase::testSetTaggedValue() {
     assert(myData.getLength()==12);
 
     DataArrayView myDataView = myData.getDataPointByTag(2);
-    assert(myDataView==eTwo.getView());
+    assert(myDataView==eTwoView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==6);
     assert(myDataView.getRank()==1);
@@ -2243,11 +2297,12 @@ void DataTaggedTestCase::testAll() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -2274,7 +2329,7 @@ void DataTaggedTestCase::testAll() {
     assert(myData.getPointOffset(0,0)==3);
 
     DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==eOne.getView());
+    assert(myDataView==eOneView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==3);
     assert(myDataView.getRank()==1);
@@ -2285,7 +2340,7 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(2)==3);
 
     myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==eOne.getView());
+    assert(myDataView==eOneView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==3);
     assert(myDataView.getRank()==1);
@@ -2359,25 +2414,28 @@ void DataTaggedTestCase::testAll() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+3.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+3.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -2406,7 +2464,7 @@ void DataTaggedTestCase::testAll() {
     assert(myData.getPointOffset(0,0)==3);
 
     DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==eOne.getView());
+    assert(myDataView==eOneView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==3);
     assert(myDataView.getRank()==1);
@@ -2417,7 +2475,7 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(2)==3);
 
     myDataView = myData.getDataPointByTag(1);
-    assert(myDataView==eOne.getView());
+    assert(myDataView==eOneView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==3);
     assert(myDataView.getRank()==1);
@@ -2452,7 +2510,7 @@ void DataTaggedTestCase::testAll() {
 
     // Test data-points held for remaining tags
     myDataView = myData.getDataPointByTag(2);
-    assert(myDataView==eTwo.getView());
+    assert(myDataView==eTwoView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==6);
     assert(myDataView.getRank()==1);
@@ -2463,7 +2521,7 @@ void DataTaggedTestCase::testAll() {
     assert(myDataView(2)==4);
 
     myDataView = myData.getDataPointByTag(3);
-    assert(myDataView==eThree.getView());
+    assert(myDataView==eThreeView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==9);
     assert(myDataView.getRank()==1);
@@ -2524,25 +2582,28 @@ void DataTaggedTestCase::testCopyConstructors() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+1.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+1.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+3.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+3.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -2573,7 +2634,7 @@ void DataTaggedTestCase::testCopyConstructors() {
     assert(myDataCopy.getPointOffset(0,0)==3);
 
     DataArrayView myDataView = myDataCopy.getDataPoint(0,0);
-    assert(myDataView==eOne.getView());
+    assert(myDataView==eOneView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==3);
     assert(myDataView.getRank()==1);
@@ -2584,7 +2645,7 @@ void DataTaggedTestCase::testCopyConstructors() {
     assert(myDataView(2)==3);
 
     myDataView = myDataCopy.getDataPointByTag(1);
-    assert(myDataView==eOne.getView());
+    assert(myDataView==eOneView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==3);
     assert(myDataView.getRank()==1);
@@ -2619,7 +2680,7 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     // Test data-points held for remaining tags
     myDataView = myDataCopy.getDataPointByTag(2);
-    assert(myDataView==eTwo.getView());
+    assert(myDataView==eTwoView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==6);
     assert(myDataView.getRank()==1);
@@ -2630,7 +2691,7 @@ void DataTaggedTestCase::testCopyConstructors() {
     assert(myDataView(2)==4);
 
     myDataView = myDataCopy.getDataPointByTag(3);
-    assert(myDataView==eThree.getView());
+    assert(myDataView==eThreeView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==9);
     assert(myDataView.getRank()==1);
@@ -2958,9 +3019,10 @@ void DataTaggedTestCase::testGetSlice() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    eOne.getView()()=1.0;
-    values.push_back(eOne.getView());
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    eOneView()=1.0;
+    values.push_back(eOneView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -3018,11 +3080,12 @@ void DataTaggedTestCase::testGetSlice() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+3.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+3.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -3262,19 +3325,22 @@ void DataTaggedTestCase::testGetSlice() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    eOne.getView()()=1.0;
-    values.push_back(eOne.getView());
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    eOneView()=1.0;
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    eTwo.getView()()=2.0;
-    values.push_back(eTwo.getView());
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    eTwoView()=2.0;
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    eThree.getView()()=3.0;
-    values.push_back(eThree.getView());
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    eThreeView()=3.0;
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 
@@ -3350,25 +3416,28 @@ void DataTaggedTestCase::testGetSlice() {
     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-    DataArray eOne(myView);
-    for (int i=0;i<eOne.getView().getShape()[0];i++) {
-      eOne.getView()(i)=i+3.0;
+    DataArrayView::ValueType eOneData(viewData);
+    DataArrayView eOneView(eOneData, viewShape);
+    for (int i=0;i<eOneView.getShape()[0];i++) {
+      eOneView(i)=i+3.0;
     }
-    values.push_back(eOne.getView());
+    values.push_back(eOneView);
 
     // value for tag "2"
-    DataArray eTwo(myView);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+6.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+6.0;
     }
-    values.push_back(eTwo.getView());
+    values.push_back(eTwoView);
 
     // value for tag "3"
-    DataArray eThree(myView);
-    for (int i=0;i<eThree.getView().getShape()[0];i++) {
-      eThree.getView()(i)=i+9.0;
+    DataArrayView::ValueType eThreeData(viewData);
+    DataArrayView eThreeView(eThreeData, viewShape);
+    for (int i=0;i<eThreeView.getShape()[0];i++) {
+      eThreeView(i)=i+9.0;
     }
-    values.push_back(eThree.getView());
+    values.push_back(eThreeView);
 
     DataTagged myData(keys,values,myView,FunctionSpace());
 

@@ -546,7 +546,7 @@ void DataTestCase::testDataTagged() {
     DataArrayView defaultValue(viewData,viewShape);
 
     bool expanded=false;
-  
+
     Data myData(keys,values,defaultValue,FunctionSpace(),expanded);
 
     // cout << myData.toString() << endl;
@@ -591,17 +591,18 @@ void DataTestCase::testDataTagged() {
     cout << "\tTest setting of a tag and associated value." << endl;
 
     // value for tag "1"
-    DataArray eTwo(defaultValue);
-    for (int i=0;i<eTwo.getView().getShape()[0];i++) {
-      eTwo.getView()(i)=i+2.0;
+    DataArrayView::ValueType eTwoData(viewData);
+    DataArrayView eTwoView(eTwoData, viewShape);
+    for (int i=0;i<eTwoView.getShape()[0];i++) {
+      eTwoView(i)=i+2.0;
     }
 
-    myData.setTaggedValueFromCPP(1,eTwo.getView());
+    myData.setTaggedValueFromCPP(1,eTwoView);
 
     assert(myData.getLength()==6);
 
     myDataView = myData.getDataPoint(0,0);
-    assert(myDataView==eTwo.getView());
+    assert(myDataView==eTwoView);
     assert(!myDataView.isEmpty());
     assert(myDataView.getOffset()==3);
     assert(myDataView.getRank()==1);
