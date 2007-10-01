@@ -98,6 +98,10 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
        /* invert the new labeling and shift the index newLocalToGlobalNodeLabels to global node ids */
        #pragma omp parallel for private(n) schedule(static)
        for (n=0;n<newNumNodes;n++) {
+#ifdef BOUNDS_CHECK
+       if (n >= len || n < 0) { printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n); exit(1); }
+       if (newLocalToGlobalNodeLabels[n] >= len || newLocalToGlobalNodeLabels[n] < 0) { printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n); exit(1); }
+#endif
               globalToNewLocalNodeLabels[newLocalToGlobalNodeLabels[n]]=n;
               newLocalToGlobalNodeLabels[n]+=min_id;
         }

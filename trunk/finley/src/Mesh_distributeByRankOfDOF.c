@@ -57,12 +57,20 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
           #pragma omp parallel for private(n) schedule(static)
           for (n=0;n<len;n++) tmp_node_localDOF_mask[n]=-1;
           #pragma omp parallel for private(n) schedule(static)
-          for (n=0;n<self->Nodes->numNodes;n++) tmp_node_localDOF_mask[self->Nodes->globalDegreesOfFreedom[n]-min_id]=n;
+          for (n=0;n<self->Nodes->numNodes;n++) {
+#ifdef BOUNDS_CHECK
+             if ((self->Nodes->globalDegreesOfFreedom[n]-min_id) >= len || (self->Nodes->globalDegreesOfFreedom[n]-min_id) < 0) { printf("BOUNDS_CHECK %s %d\n", __FILE__, __LINE__); exit(1); }
+#endif
+	     tmp_node_localDOF_mask[self->Nodes->globalDegreesOfFreedom[n]-min_id]=n;
+	  }
    
           numDOFs=0;
           for  (n=0;n<len;n++) {
               k=tmp_node_localDOF_mask[n];
               if (k>=0) {
+#ifdef BOUNDS_CHECK
+                 if ((k) >= len || (k) < 0) { printf("BOUNDS_CHECK %s %d k=%d n=%d max_id=%d min_id=%d len=%d\n", __FILE__, __LINE__, k, n, max_id, min_id, len); exit(1); }
+#endif
                  tmp_node_localDOF_map[k]=numDOFs;
                  numDOFs++;
               }

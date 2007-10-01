@@ -93,6 +93,11 @@ void MeshAdapter::write(const std::string& fileName) const
   TMPMEMFREE(fName);
 }
 
+void MeshAdapter::Print_Mesh_Info() const
+{
+  Finley_PrintMesh_Info(m_finleyMesh.get());
+}
+
 void MeshAdapter::dump(const std::string& fileName) const
 {
   char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;

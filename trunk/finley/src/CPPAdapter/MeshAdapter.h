@@ -166,6 +166,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
+     Write the current mesh to a file with the given name.
+     \param fileName Input - The name of the file to write to.
+  */
+  FINLEY_DLL_API
+  void Print_Mesh_Info() const;
+
+  /**
+     \brief
      dumps the mesh to a file with the given name.
      \param fileName Input - The name of the file
   */
