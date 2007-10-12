@@ -31,7 +31,7 @@ namespace escript {
    \brief
    solves a 1x1 eigenvalue A*V=ev*V problem
 
-   \param A00 Input - A_00 
+   \param A00 Input - A_00
    \param ev0 Output - eigenvalue
 */
 inline
@@ -44,8 +44,8 @@ void eigenvalues1(const double A00,double* ev0) {
    \brief
    solves a 2x2 eigenvalue A*V=ev*V problem for symmetric A
 
-   \param A00 Input - A_00 
-   \param A01 Input - A_01 
+   \param A00 Input - A_00
+   \param A01 Input - A_01
    \param A11 Input - A_11
    \param ev0 Output - smallest eigenvalue
    \param ev1 Output - largest eigenvalue
@@ -64,12 +64,12 @@ void eigenvalues2(const double A00,const double A01,const double A11,
    \brief
    solves a 3x3 eigenvalue A*V=ev*V problem for symmetric A
 
-   \param A00 Input - A_00 
-   \param A01 Input - A_01 
-   \param A02 Input - A_02 
-   \param A11 Input - A_11 
-   \param A12 Input - A_12 
-   \param A22 Input - A_22 
+   \param A00 Input - A_00
+   \param A01 Input - A_01
+   \param A02 Input - A_02
+   \param A11 Input - A_11
+   \param A12 Input - A_12
+   \param A22 Input - A_22
    \param ev0 Output - smallest eigenvalue
    \param ev1 Output - eigenvalue
    \param ev2 Output - largest eigenvalue
@@ -112,7 +112,7 @@ void eigenvalues3(const double A00, const double A01, const double A02,
    \brief
    solves a 1x1 eigenvalue A*V=ev*V problem for symmetric A
 
-   \param A00 Input - A_00 
+   \param A00 Input - A_00
    \param ev0 Output - eigenvalue
    \param V00 Output - eigenvector
    \param tol Input - tolerance to identify to eigenvalues
@@ -159,7 +159,7 @@ void  vectorInKernel2(const double A00,const double A10,const double A01,const d
 }
 /**
    \brief
-   returns a non-zero vector in the kernel of [[A00,A01,A02],[A10,A11,A12],[A20,A21,A22]] 
+   returns a non-zero vector in the kernel of [[A00,A01,A02],[A10,A11,A12],[A20,A21,A22]]
    assuming that the kernel dimension is at least 1 and A00 is non zero.
 
    \param A00 Input - matrix component
@@ -191,16 +191,16 @@ void  vectorInKernel3__nonZeroA00(const double A00,const double A10,const double
     *V1=A00*TEMP0;
     *V2=A00*TEMP1;
 }
-       
+
 /**
    \brief
-   solves a 2x2 eigenvalue A*V=ev*V problem for symmetric A. Eigenvectors are 
-   ordered by increasing value and eigen vectors are normalizeVector3d such that 
+   solves a 2x2 eigenvalue A*V=ev*V problem for symmetric A. Eigenvectors are
+   ordered by increasing value and eigen vectors are normalizeVector3d such that
    length is zero and first non-zero component is positive.
 
-   \param A00 Input - A_00 
-   \param A01 Input - A_01 
-   \param A11 Input - A_11 
+   \param A00 Input - A_00
+   \param A01 Input - A_01
+   \param A11 Input - A_11
    \param ev0 Output - smallest eigenvalue
    \param ev1 Output - eigenvalue
    \param V00 Output - eigenvector componenent coresponding to ev0
@@ -213,7 +213,7 @@ inline
 void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const double A11,
                                     double* ev0, double* ev1,
                                     double* V00, double* V10, double* V01, double* V11,
-                                    const double tol) 
+                                    const double tol)
 {
      double TEMP0,TEMP1;
      eigenvalues2(A00,A01,A11,ev0,ev1);
@@ -232,7 +232,7 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
             *V00=-TEMP0*scale;
             *V10=-TEMP1*scale;
             if (TEMP1<0.) {
-               *V01=  *V10; 
+               *V01=  *V10;
                *V11=-(*V00);
             } else {
                *V01=-(*V10);
@@ -242,25 +242,25 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
             *V00=TEMP0*scale;
             *V10=TEMP1*scale;
             if (TEMP1<0.) {
-               *V01=-(*V10); 
+               *V01=-(*V10);
                *V11= (*V00);
             } else {
-               *V01= (*V10); 
-               *V11=-(*V00); 
+               *V01= (*V10);
+               *V11=-(*V00);
             }
         } else {
            *V00=0.;
            *V10=1;
            *V11=0.;
            *V01=1.;
-       } 
+       }
    }
 }
 /**
    \brief
    nomalizes a 3-d vector such that length is one and first non-zero component is positive.
 
-   \param V0 - vector componenent 
+   \param V0 - vector componenent
    \param V1 - vector componenent
    \param V2 - vector componenent
 */
@@ -294,13 +294,13 @@ void  normalizeVector3(double* V0,double* V1,double* V2)
 }
 /**
    \brief
-   solves a 2x2 eigenvalue A*V=ev*V problem for symmetric A. Eigenvectors are 
-   ordered by increasing value and eigen vectors are normalizeVector3d such that 
+   solves a 2x2 eigenvalue A*V=ev*V problem for symmetric A. Eigenvectors are
+   ordered by increasing value and eigen vectors are normalizeVector3d such that
    length is zero and first non-zero component is positive.
 
-   \param A00 Input - A_00 
-   \param A01 Input - A_01 
-   \param A11 Input - A_11 
+   \param A00 Input - A_00
+   \param A01 Input - A_01
+   \param A11 Input - A_11
    \param ev0 Output - smallest eigenvalue
    \param ev1 Output - eigenvalue
    \param V00 Output - eigenvector componenent coresponding to ev0
@@ -313,9 +313,9 @@ inline
 void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const double A02,
                                     const double A11, const double A12, const double A22,
                                     double* ev0, double* ev1, double* ev2,
-                                    double* V00, double* V10, double* V20, 
-                                    double* V01, double* V11, double* V21, 
-                                    double* V02, double* V12, double* V22, 
+                                    double* V00, double* V10, double* V20,
+                                    double* V01, double* V11, double* V21,
+                                    double* V02, double* V12, double* V22,
                                     const double tol)
 {
       register const double absA01=fabs(A01);
@@ -457,6 +457,45 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
       }
     }
   }
+}
+
+template <typename BinaryFunction>
+inline void tensor_binary_operation(const int size,
+			     const double *arg1,
+			     const double *arg2,
+			     double * argRes,
+			     BinaryFunction operation)
+{
+  for (int i = 0; i < size; ++i) {
+    argRes[i] = operation(arg1[i], arg2[i]);
+  }
+  return;
+}
+
+template <typename BinaryFunction>
+inline void tensor_binary_operation(const int size,
+			     double arg1,
+			     const double *arg2,
+			     double *argRes,
+			     BinaryFunction operation)
+{
+  for (int i = 0; i < size; ++i) {
+    argRes[i] = operation(arg1, arg2[i]);
+  }
+  return;
+}
+
+template <typename BinaryFunction>
+inline void tensor_binary_operation(const int size,
+			     const double *arg1,
+			     double arg2,
+			     double *argRes,
+			     BinaryFunction operation)
+{
+  for (int i = 0; i < size; ++i) {
+    argRes[i] = operation(arg1[i], arg2);
+  }
+  return;
 }
 
 } // end of namespace

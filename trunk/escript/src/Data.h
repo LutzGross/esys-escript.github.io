@@ -50,8 +50,8 @@ class DataExpanded;
 
 /**
    \brief
-   Data creates the appropriate Data object for the given construction 
-   arguments. 
+   Data creates the appropriate Data object for the given construction
+   arguments.
 
    Description:
    Data is essentially a factory class which creates the appropriate Data
@@ -213,8 +213,8 @@ class Data {
      Constructor which creates a DataConstant of "shape" with constant value.
   */
   ESCRIPT_DLL_API
-  Data(double value, 
-       const boost::python::tuple& shape=boost::python::make_tuple(), 
+  Data(double value,
+       const boost::python::tuple& shape=boost::python::make_tuple(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
   /**
@@ -238,7 +238,7 @@ class Data {
 
   /**
      \brief
-     switches on update protection 
+     switches on update protection
 
   */
   ESCRIPT_DLL_API
@@ -256,7 +256,7 @@ class Data {
 
   /**
      \brief
-     Return the values of a data point on this process 
+     Return the values of a data point on this process
   */
   ESCRIPT_DLL_API
   const boost::python::numeric::array
@@ -486,7 +486,7 @@ class Data {
   }
   /**
      \brief
-     dumps the object into a netCDF file 
+     dumps the object into a netCDF file
   */
   ESCRIPT_DLL_API
   void
@@ -854,8 +854,8 @@ class Data {
   /**
      \brief
      Return the eigenvalues and corresponding eigenvcetors of the symmetric part at each data point of this Data object.
-     the eigenvalues are ordered in increasing size where eigenvalues with relative difference less than 
-     tol are treated as equal. The eigenvectors are orthogonal, normalized and the sclaed such that the 
+     the eigenvalues are ordered in increasing size where eigenvalues with relative difference less than
+     tol are treated as equal. The eigenvectors are orthogonal, normalized and the sclaed such that the
      first non-zero entry is positive.
      Currently this function is restricted to rank 2, square shape, and dimension 3
      *
@@ -1059,7 +1059,7 @@ class Data {
   /**
      \brief
      Return the given power of each data point of this boost python object.
-    
+
      \param right Input - the power to raise the object to.
      *
    */
@@ -1070,7 +1070,7 @@ class Data {
   /**
      \brief
      Return the given power of each data point of this boost python object.
-    
+
      \param left Input - the bases
      *
    */
@@ -1252,10 +1252,10 @@ class Data {
 
   /**
      \brief
-     print the data values to stdout. Used for debugging 
+     print the data values to stdout. Used for debugging
   */
   ESCRIPT_DLL_API
-  void 
+  void
 	print(void);
 
   /**
@@ -1265,7 +1265,7 @@ class Data {
 		 is returned
   */
   ESCRIPT_DLL_API
-	int 
+	int
 	get_MPIRank(void) const;
 
   /**
@@ -1275,7 +1275,7 @@ class Data {
 		 is returned
   */
   ESCRIPT_DLL_API
-	int 
+	int
 	get_MPISize(void) const;
 
   /**
@@ -1284,7 +1284,7 @@ class Data {
 		 MPI_COMM_WORLD is assumed and returned.
   */
   ESCRIPT_DLL_API
-	MPI_Comm 
+	MPI_Comm
 	get_MPIComm(void) const;
 
   /**
@@ -1411,7 +1411,7 @@ Data::initialise(const IValueType& value,
 /**
    Binary Data object operators.
 */
-inline double rpow(double x,double y) 
+inline double rpow(double x,double y)
 {
     return pow(y,x);
 }
@@ -1531,10 +1531,25 @@ C_GeneralTensorProduct(Data& arg0,
                      int axis_offset=0,
                      int transpose=0);
 
+
+/**
+  \brief
+  Compute a tensor operation with two Data objects
+  \param arg0 - Input - Data object
+  \param arg1 - Input - Data object
+  \param operation - Input - Binary op functor
+*/
+template <typename BinaryFunction>
+ESCRIPT_DLL_API
+Data
+C_TensorBinaryOperation(Data const &arg0,
+			Data const &arg1,
+			BinaryFunction operation);
+
 /**
   \brief
   Return true if operands are equivalent, else return false.
-  NB: this operator does very little at this point, and isn't to 
+  NB: this operator does very little at this point, and isn't to
   be relied on. Requires further implementation.
 */
 // ESCRIPT_DLL_API bool operator==(const Data& left, const Data& right);
@@ -1561,7 +1576,7 @@ Data::binaryOp(const Data& right,
    if (getFunctionSpace()!=right.getFunctionSpace()) {
      if (right.probeInterpolation(getFunctionSpace())) {
        //
-       // an interpolation is required so create a new Data 
+       // an interpolation is required so create a new Data
        tempRight=Data(right,this->getFunctionSpace());
      } else if (probeInterpolation(right.getFunctionSpace())) {
        //
@@ -1685,7 +1700,7 @@ Data::algorithm(BinaryFunction operation, double initial_value) const
   \brief
   Perform the given data point reduction algorithm on data and return the result.
   Given operation combines each element within each data point into a scalar,
-  thus argument object is a rank n Data object, and returned object is a 
+  thus argument object is a rank n Data object, and returned object is a
   rank 0 Data object.
   Calls escript::dp_algorithm.
 */
@@ -1732,6 +1747,819 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
   }
   Data falseRetVal; // to keep compiler quiet
   return falseRetVal;
+}
+
+template <typename BinaryFunction>
+Data
+C_TensorBinaryOperation(Data const &arg_0,
+			Data const &arg_1,
+			BinaryFunction operation)
+{
+  // Interpolate if necessary and find an appropriate function space
+  Data arg_0_Z, arg_1_Z;
+  if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
+    if (arg_0.probeInterpolation(arg_1.getFunctionSpace())) {
+      arg_0_Z = arg_0.interpolate(arg_1.getFunctionSpace());
+      arg_1_Z = Data(arg_1);
+    }
+    else if (arg_1.probeInterpolation(arg_0.getFunctionSpace())) {
+      arg_1_Z=arg_1.interpolate(arg_0.getFunctionSpace());
+      arg_0_Z =Data(arg_0);
+    }
+    else {
+      throw DataException("Error - C_TensorBinaryOperation: arguments have incompatible function spaces.");
+    }
+  } else {
+      arg_0_Z = Data(arg_0);
+      arg_1_Z = Data(arg_1);
+  }
+  // Get rank and shape of inputs
+  int rank0 = arg_0_Z.getDataPointRank();
+  int rank1 = arg_1_Z.getDataPointRank();
+  DataArrayView::ShapeType shape0 = arg_0_Z.getDataPointShape();
+  DataArrayView::ShapeType shape1 = arg_1_Z.getDataPointShape();
+  int size0 = arg_0_Z.getDataPointSize();
+  int size1 = arg_1_Z.getDataPointSize();
+
+  // Declare output Data object
+  Data res;
+
+  if (shape0 == shape1) {
+
+    if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());	// DataConstant output
+      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
+      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[0]);
+      double *ptr_2 = &((res.getPointDataView().getData())[0]);
+      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
+
+      // Prepare the DataConstant input
+      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());	// DataTagged output
+      res.tag();
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Prepare offset into DataConstant
+      int offset_0 = tmp_0->getPointOffset(0,0);
+      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+      // Get the views
+      DataArrayView view_1 = tmp_1->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_1 = &((view_1.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+	DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_1 = &view_1.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded()) {
+
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_1,dataPointNo_1;
+      int numSamples_1 = arg_1_Z.getNumSamples();
+      int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
+      int offset_0 = tmp_0->getPointOffset(0,0);
+      #pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+      for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
+	for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant()) {
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+      // Prepare the DataConstant input
+      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());	// DataTagged output
+      res.tag();
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Prepare offset into DataConstant
+      int offset_1 = tmp_1->getPointOffset(0,0);
+      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+      // Get the views
+      DataArrayView view_0 = tmp_0->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_0 = &((view_0.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+	DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_0 = &view_0.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged()) {
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());
+      res.tag();	// DataTagged output
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Get the views
+      DataArrayView view_0 = tmp_0->getDefaultValue();
+      DataArrayView view_1 = tmp_1->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_0 = &((view_0.getData())[0]);
+      double *ptr_1 = &((view_1.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+      // Merge the tags
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+      }
+      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      }
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
+      for (i=lookup_2.begin();i!=lookup_2.end();i++) {
+	DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+	DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_0 = &view_0.getData(0);
+	double *ptr_1 = &view_1.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
+	double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
+
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      int offset_1 = tmp_1->getPointOffset(0,0);
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
+	double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else {
+      throw DataException("Error - C_TensorBinaryOperation: unknown combination of inputs");
+    }
+
+  } else if (0 == rank0) {
+
+    if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());	// DataConstant output
+      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
+      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[0]);
+      double *ptr_2 = &((res.getPointDataView().getData())[0]);
+      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
+
+      // Prepare the DataConstant input
+      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());	// DataTagged output
+      res.tag();
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Prepare offset into DataConstant
+      int offset_0 = tmp_0->getPointOffset(0,0);
+      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+      // Get the views
+      DataArrayView view_1 = tmp_1->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_1 = &((view_1.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+	DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_1 = &view_1.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded()) {
+
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_1,dataPointNo_1;
+      int numSamples_1 = arg_1_Z.getNumSamples();
+      int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
+      int offset_0 = tmp_0->getPointOffset(0,0);
+      #pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+      for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
+	for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+
+	}
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant()) {
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+      // Prepare the DataConstant input
+      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape1, arg_0_Z.getFunctionSpace());	// DataTagged output
+      res.tag();
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Prepare offset into DataConstant
+      int offset_1 = tmp_1->getPointOffset(0,0);
+      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+      // Get the views
+      DataArrayView view_0 = tmp_0->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_0 = &((view_0.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+	DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_0 = &view_0.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged()) {
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());
+      res.tag();	// DataTagged output
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Get the views
+      DataArrayView view_0 = tmp_0->getDefaultValue();
+      DataArrayView view_1 = tmp_1->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_0 = &((view_0.getData())[0]);
+      double *ptr_1 = &((view_1.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+      // Merge the tags
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+      }
+      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      }
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
+      for (i=lookup_2.begin();i!=lookup_2.end();i++) {
+	DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+	DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_0 = &view_0.getData(0);
+	double *ptr_1 = &view_1.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
+	double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
+
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      int offset_1 = tmp_1->getPointOffset(0,0);
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+	}
+      }
+
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
+	double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
+	}
+      }
+
+    }
+    else {
+      throw DataException("Error - C_TensorBinaryOperation: unknown combination of inputs");
+    }
+
+  } else if (0 == rank1) {
+
+    if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());	// DataConstant output
+      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
+      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[0]);
+      double *ptr_2 = &((res.getPointDataView().getData())[0]);
+      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
+
+      // Prepare the DataConstant input
+      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());	// DataTagged output
+      res.tag();
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Prepare offset into DataConstant
+      int offset_0 = tmp_0->getPointOffset(0,0);
+      double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+      // Get the views
+      DataArrayView view_1 = tmp_1->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_1 = &((view_1.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+	DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_1 = &view_1.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded()) {
+
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_1,dataPointNo_1;
+      int numSamples_1 = arg_1_Z.getNumSamples();
+      int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
+      int offset_0 = tmp_0->getPointOffset(0,0);
+      #pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+      for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
+	for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant()) {
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+      // Prepare the DataConstant input
+      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());	// DataTagged output
+      res.tag();
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Prepare offset into DataConstant
+      int offset_1 = tmp_1->getPointOffset(0,0);
+      double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+      // Get the views
+      DataArrayView view_0 = tmp_0->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_0 = &((view_0.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+	DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_0 = &view_0.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged()) {
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+      // Borrow DataTagged input from Data object
+      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+
+      // Prepare a DataTagged output 2
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());
+      res.tag();	// DataTagged output
+      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+      // Get the views
+      DataArrayView view_0 = tmp_0->getDefaultValue();
+      DataArrayView view_1 = tmp_1->getDefaultValue();
+      DataArrayView view_2 = tmp_2->getDefaultValue();
+      // Get the pointers to the actual data
+      double *ptr_0 = &((view_0.getData())[0]);
+      double *ptr_1 = &((view_1.getData())[0]);
+      double *ptr_2 = &((view_2.getData())[0]);
+      // Compute a result for the default
+      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+      // Merge the tags
+      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue()); // use tmp_2 to get correct shape
+      }
+      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+	tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      }
+      // Compute a result for each tag
+      const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
+      for (i=lookup_2.begin();i!=lookup_2.end();i++) {
+	DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+	DataArrayView view_1 = tmp_1->getDataPointByTag(i->first);
+	DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+	double *ptr_0 = &view_0.getData(0);
+	double *ptr_1 = &view_1.getData(0);
+	double *ptr_2 = &view_2.getData(0);
+	tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+      }
+
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
+	double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
+
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      int offset_1 = tmp_1->getPointOffset(0,0);
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+	}
+      }
+
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
+	double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+	}
+      }
+
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
+
+      // After finding a common function space above the two inputs have the same numSamples and num DPPS
+      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+      int sampleNo_0,dataPointNo_0;
+      int numSamples_0 = arg_0_Z.getNumSamples();
+      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+	  int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+	  int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	  double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+	  double *ptr_1 = &((arg_1_Z.getPointDataView().getData())[offset_1]);
+	  double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+	  tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
+	}
+      }
+
+    }
+    else {
+      throw DataException("Error - C_TensorBinaryOperation: unknown combination of inputs");
+    }
+
+  } else {
+    throw DataException("Error - C_TensorBinaryOperation: arguments have incompatible shapes");
+  }
+
+  return res;
 }
 
 }

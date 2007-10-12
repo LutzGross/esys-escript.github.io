@@ -1530,17 +1530,7 @@ Data::powD(const Data& right) const
 Data
 escript::operator+(const Data& left, const Data& right)
 {
-  Data result;
-  //
-  // perform a deep copy
-  if (left.getDataPointRank()<right.getDataPointRank()) {
-     result.copy(right);
-     result+=left;
-  } else {
-     result.copy(left);
-     result+=right;
-  }
-  return result;
+  return C_TensorBinaryOperation(left, right, plus<double>());
 }
 
 //
@@ -1548,17 +1538,7 @@ escript::operator+(const Data& left, const Data& right)
 Data
 escript::operator-(const Data& left, const Data& right)
 {
-  Data result;
-  //
-  // perform a deep copy
-  if (left.getDataPointRank()<right.getDataPointRank()) {
-     result=right.neg();
-     result+=left;
-  } else {
-     result.copy(left);
-     result-=right;
-  }
-  return result;
+  return C_TensorBinaryOperation(left, right, minus<double>());
 }
 
 //
@@ -1566,17 +1546,7 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
-  Data result;
-  //
-  // perform a deep copy
-  if (left.getDataPointRank()<right.getDataPointRank()) {
-     result.copy(right);
-     result*=left;
-  } else {
-     result.copy(left);
-     result*=right;
-  }
-  return result;
+  return C_TensorBinaryOperation(left, right, multiplies<double>());
 }
 
 //
@@ -1584,17 +1554,7 @@ escript::operator*(const Data& left, const Data& right)
 Data
 escript::operator/(const Data& left, const Data& right)
 {
-  Data result;
-  //
-  // perform a deep copy
-  if (left.getDataPointRank()<right.getDataPointRank()) {
-     result=right.oneOver();
-     result*=left;
-  } else {
-     result.copy(left);
-     result/=right;
-  }
-  return result;
+  return C_TensorBinaryOperation(left, right, divides<double>());
 }
 
 //
