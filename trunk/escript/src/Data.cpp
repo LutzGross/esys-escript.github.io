@@ -192,7 +192,7 @@ Data::Data(const object& value,
     int len = DataArrayView::noValues(other.getPointDataView().getShape());
 
     DataVector temp2_data(len, temp_dataView(), len);
-    DataArrayView temp2_dataView(temp_data, other.getPointDataView().getShape());
+    DataArrayView temp2_dataView(temp2_data, other.getPointDataView().getShape());
     initialise(temp2_dataView, other.getFunctionSpace(), false);
 
   } else {
