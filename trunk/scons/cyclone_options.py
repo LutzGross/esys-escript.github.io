@@ -50,12 +50,12 @@ netCDF_libs = [ 'netcdf_c++', 'netcdf']
 # papi_libs = [ 'papi' ]
 
 # c flags to use
-cc_flags  = '-O -fPIC'
-cc_flags_debug  = '-g -fPIC'
+cc_flags  = '-O -fPIC -openmp -openmp_report2'
+cc_flags_debug  = '-g -fPIC -openmp -openmp_report2'
 
 # c++ flags to use
-cxx_flags = '-fPIC'
-cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC'
+cxx_flags = '-fPIC -openmp -openmp_report2'
+cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC -openmp -openmp_report2'
 
 # c and c++ flags for MPI compilation
 # c flags to use
@@ -67,4 +67,4 @@ cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC'
 ### cxx_flags_debug_MPI = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161'
 
 # system specific libraries to link with
-sys_libs = []
+sys_libs = ['guide', 'irc']

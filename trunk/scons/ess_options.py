@@ -46,9 +46,9 @@ netCDF_libs = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
 papi_instrument_solver = 0
-papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
-papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
-papi_libs = [ 'papi' ]
+# papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
+# papi_lib_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/lib'
+# papi_libs = [ 'papi' ]
 
 mpi_path = '/usr/include'
 mpi_lib_path = '/usr/lib'
