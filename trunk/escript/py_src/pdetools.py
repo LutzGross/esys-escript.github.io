@@ -435,7 +435,44 @@ class NegativeNorm(SolverSchemeException):
    """
    pass
 
-def PCG(b,x,Aprod,Msolve,bilinearform, norm, verbose=True, iter_max=100, tolerance=math.sqrt(util.EPSILON)):
+class IterationHistory(object):
+   """
+   The IterationHistory class is used to define a stopping criterium. It keeps track of the 
+   residual norms. The stoppingcriterium indicates termination if the residual norm has been reduced by 
+   a given tolerance.
+   """
+   def __init__(self,tolerance=math.sqrt(util.EPSILON),verbose=False):
+      """
+      Initialization
+
+      @param tolerance: tolerance
+      @type tolerance: positive C{float}
+      @param verbose: switches on the printing out some information
+      @type verbose: C{bool}
+      """
+      if not tolerance>0.:
+          raise ValueError,"tolerance needs to be positive."
+      self.tolerance=tolerance
+      self.verbose=verbose
+      self.history=[]
+   def stoppingcriterium(self,norm_r,r,x):
+       """
+       returns True if the C{norm_r} is C{tolerance}*C{norm_r[0]} where C{norm_r[0]}  is the residual norm at the first call.
+
+       
+       @param norm_r: current residual norm
+       @type norm_r: non-negative C{float}
+       @param r: current residual (not used)
+       @param x: current solution approximation (not used)
+       @return: C{True} is the stopping criterium is fullfilled. Otherwise C{False} is returned.
+       @rtype: C{bool}
+
+       """
+       self.history.append(norm_r)
+       if self.verbose: print "iter: %s:  inner(rhat,r) = %e"%(len(self.history)-1, self.history[-1])
+       return self.history[-1]<=self.tolerance * self.history[0]
+
+def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
    """
    Solver for 
 
@@ -444,15 +481,7 @@ def PCG(b,x,Aprod,Msolve,bilinearform, norm, verbose=True, iter_max=100, toleran
    with a symmetric and positive definite operator A (more details required!). 
    It uses the conjugate gradient method with preconditioner M providing an approximation of A. 
 
-   The iteration is terminated if
-
-   M{norm(r) <= tolerance * norm(b)} 
-
-   where C{norm()} defines a norm and 
-
-   M{r = b-Ax} 
-
-   the residual.
+   The iteration is terminated if the C{stoppingcriterium} function return C{True}.
 
    For details on the preconditioned conjugate gradient method see the book:
 
@@ -461,46 +490,37 @@ def PCG(b,x,Aprod,Msolve,bilinearform, norm, verbose=True, iter_max=100, toleran
    C. Romine, and H. van der Vorst.
 
    @param b: the right hand side of the liner system. C{b} is altered.
-   @type b: any object type R supporting inplace add (x+=y) and scaling (x=scalar*y)
-   @param x: an initial guess for the solution
-   @type x: any object type S supporting inplace add (x+=y), scaling (x=scalar*y)
+   @type b: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    @param Aprod: returns the value Ax
-   @type Aprod: function C{Aprod(x)} where C{x} is of object type S. The returned object needs to be of type R.
+   @type Aprod: function C{Aprod(x)} where C{x} is of the same object like argument C{x}. The returned object needs to be of the same type like argument C{b}.
    @param Msolve: solves Mx=r 
-   @type Msolve: function C{Msolve(r)} where C{r} is of object type R. The returned object needs to be of tupe S.
+   @type Msolve: function C{Msolve(r)} where C{r} is of the same type like argument C{b}. The returned object needs to be of the same 
+type like argument C{x}.
    @param bilinearform: inner product C{<x,r>} 
-   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of object type S and C{r} is of object type R. The returned value is a C{float}.
-   @param norm: norm calculation for the residual C{r=b-Ax}. 
-   @type norm: function C{norm(r)} where C{r} is of object type R. The returned value is a C{float}.
-   @param verbose: switches on the printing out some information
-   @type verbose: C{bool}
+   @type bilinearform: function C{bilinearform(x,r)} where C{x} is of the same type like argument C{x} and C{r} is . The returned value is a C{float}.
+   @param stoppingcriterium: function which returns True if a stopping criterium is meet. C{stoppingcriterium} has the arguments C{norm_r}, C{r} and C{x} giving the current norm of the residual (=C{sqrt(bilinearform(Msolve(r),r)}), the current residual and the current solution approximation. C{stoppingcriterium} is called in each iteration step.
+   @type stoppingcriterium: function that returns C{True} or C{False}
+   @param x: an initial guess for the solution. If no C{x} is given 0*b is used.
+   @type x: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
    @param iter_max: maximum number of iteration steps.
    @type iter_max: C{int}
-   @param tolerance: tolerance
-   @type tolerance: positive C{float}
-   @return: the solution apprximation and the corresponding residual
-   @rtype: C{tuple} of an S type and and an R type object.A
-   @warning: C{b} ans C{x} are altered.
+   @return: the solution approximation and the corresponding residual
+   @rtype: C{tuple} 
+   @warning: C{b} and C{x} are altered.
    """
-   if verbose:
-        print "Enter PCG for solving Ax=b\n\t iter_max =%s\t tolerance   =%e"%(iter_max,tolerance)
    iter=0
-   normb = norm(b)
-   if normb<0: raise NegativeNorm
-
-   b += (-1)*Aprod(x) 
+   if x==None:
+      x=0*b
+   else:
+      b += (-1)*Aprod(x) 
    r=b
    rhat=Msolve(r)
-   d = rhat;
+   d = rhat 
    rhat_dot_r = bilinearform(rhat, r)
+   if rhat_dot_r<0: raise NegativeNorm,"negative norm."
 
-   while True:
-       normr=norm(r)
-       if normr<0: raise NegativeNorm
-       if verbose: print "iter: %s: norm(r) = %e, tolerance*norm(b) = %e"%(iter, normr,tolerance * normb)
-       if normr <= tolerance * normb: return x,r
-
-       iter+=1 # k = iter = 1 first time through
+   while not stoppingcriterium(math.sqrt(rhat_dot_r),r,x):
+       iter+=1
        if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
        q=Aprod(d)
@@ -515,7 +535,9 @@ def PCG(b,x,Aprod,Msolve,bilinearform, norm, verbose=True, iter_max=100, toleran
        d=rhat
 
        rhat_dot_r = rhat_dot_r_new
+       if rhat_dot_r<0: raise NegativeNorm,"negative norm."
 
+   return x,r
 
 class SaddlePointProblem(object):
    """

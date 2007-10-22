@@ -50,7 +50,7 @@ __date__="$Date$"
 
 import unittest
 from esys.escript import *
-from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE,PCG
+from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE,PCG, IterationHistory
 
 class Test_pdetools_noLumping(unittest.TestCase):
     DEBUG=False
@@ -403,12 +403,9 @@ class Test_pdetools_noLumping(unittest.TestCase):
           for i in xrange(size(b)):
             out[i]=b[i]/A[i,i]
           return out
-      def norm(d):
-          return sqrt(dot(d,d))
 
-      x=x_ref*1.5
       tol=1.e-4
-      x,r=PCG(b*1.,x,Ap,Ms,dot, norm, verbose=False, iter_max=12, tolerance=tol)
+      x,r=PCG(b*1.,Ap,Ms,dot, IterationHistory(tol).stoppingcriterium,x=x_ref*1.5, iter_max=12)
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
       self.failUnless(Lsup(r-(b-matrixmultiply(A,x)))<=Lsup(b)*EPSILON*100.,"wrong solution")
 
