@@ -1510,20 +1510,25 @@ Data::powO(const boost::python::object& right) const
   return powD(tmp);
 }
 
+/* Data */
+/* Data::powD(const Data& right) const */
+/* { */
+/*   Data result; */
+/*   if (getDataPointRank()<right.getDataPointRank()) { */
+/*      result.copy(right); */
+/*      result.binaryOp(*this,escript::rpow); */
+/*   } else { */
+/*      result.copy(*this); */
+/*      result.binaryOp(right,(Data::BinaryDFunPtr)::pow); */
+/*   } */
+/*   return result; */
+/* } */
+
 Data
 Data::powD(const Data& right) const
 {
-  Data result;
-  if (getDataPointRank()<right.getDataPointRank()) {
-     result.copy(right);
-     result.binaryOp(*this,escript::rpow);
-  } else {
-     result.copy(*this);
-     result.binaryOp(right,(Data::BinaryDFunPtr)::pow);
-  }
-  return result;
+  return C_TensorBinaryOperation(*this, right, ::pow);
 }
-
 
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
