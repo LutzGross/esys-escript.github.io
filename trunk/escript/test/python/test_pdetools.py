@@ -50,7 +50,7 @@ __date__="$Date$"
 
 import unittest
 from esys.escript import *
-from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE,PCG, IterationHistory
+from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE,PCG, IterationHistory, ArithmeticTuple
 
 class Test_pdetools_noLumping(unittest.TestCase):
     DEBUG=False
@@ -408,6 +408,26 @@ class Test_pdetools_noLumping(unittest.TestCase):
       x,r=PCG(b*1.,Ap,Ms,dot, IterationHistory(tol).stoppingcriterium,x=x_ref*1.5, iter_max=12)
       self.failUnless(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
       self.failUnless(Lsup(r-(b-matrixmultiply(A,x)))<=Lsup(b)*EPSILON*100.,"wrong solution")
+
+    def testArithmeticTuple(self):
+        a=ArithmeticTuple(1.,2.)
+        self.failUnless(len(a)==2,"wrong length")
+        self.failUnless(a[0]==1.,"wrong first item")
+        self.failUnless(a[1]==2.,"wrong second item")
+        c=a*6.
+        self.failUnless(isinstance(c,ArithmeticTuple),"c is not an instance of ArithmeticTuple")
+        self.failUnless(len(c)==2,"c has wrong length")
+        self.failUnless(c[0]==6.,"c has wrong first item")
+        self.failUnless(c[1]==12.,"c has wrong second item")
+        b=5.*a
+        self.failUnless(isinstance(b,ArithmeticTuple),"b is not an instance of ArithmeticTuple")
+        self.failUnless(len(b)==2,"b has wrong length")
+        self.failUnless(b[0]==5.,"b has wrong first item")
+        self.failUnless(b[1]==10.,"b has wrong second item")
+        a+=ArithmeticTuple(3.,4.)
+        self.failUnless(a[0]==4.,"wrong first item of inplace update")
+        self.failUnless(a[1]==6.,"wrong second item of inplace update")
+
 
 
 class Test_pdetools(Test_pdetools_noLumping):

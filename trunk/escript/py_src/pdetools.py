@@ -539,6 +539,88 @@ type like argument C{x}.
 
    return x,r
 
+class ArithmeticTuple(object):
+   """
+   tuple supporting inplace update x+=y and scaling x=a*y where x,y is an ArithmeticTuple and a is a float.
+
+   example of usage:
+
+   from esys.escript import Data
+   from numarray import array
+   a=Data(...)
+   b=array([1.,4.])
+   x=ArithmeticTuple(a,b)
+   y=5.*x
+
+   """
+   def __init__(self,*args):
+       """
+       initialize object with elements args.
+
+       @param args: tuple of object that support implace add (x+=y) and scaling (x=a*y)
+       """
+       self.__items=list(args)
+
+   def __len__(self):
+       """
+       number of items
+
+       @return: number of items
+       @rtype: C{int}
+       """
+       return len(self.__items)
+
+   def __getitem__(self,index):
+       """
+       get an item
+
+       @param index: item to be returned
+       @type index: C{int}
+       @return: item with index C{index}
+       """
+       return self.__items.__getitem__(index)
+
+   def __mul__(self,other):
+       """
+       scaling from the right 
+
+       @param other: scaling factor
+       @type other: C{float}
+       @return: itemwise self*other
+       @rtype: L{ArithmeticTuple}
+       """
+       out=[]
+       for i in range(len(self)):
+           out.append(self[i]*other)
+       return ArithmeticTuple(*tuple(out))
+
+   def __rmul__(self,other):
+       """
+       scaling from the left
+
+       @param other: scaling factor
+       @type other: C{float}
+       @return: itemwise other*self
+       @rtype: L{ArithmeticTuple}
+       """
+       out=[]
+       for i in range(len(self)):
+           out.append(other*self[i])
+       return ArithmeticTuple(*tuple(out))
+
+   def __iadd__(self,other):
+       """
+       in-place add of other to self
+
+       @param other: increment
+       @type other: C{ArithmeticTuple}
+       """
+       if len(self) != len(other):
+           raise ValueError,"tuple length must match."
+       for i in range(len(self)):
+           self.__items[i]+=other[i]
+       return self
+
 class SaddlePointProblem(object):
    """
    This implements a solver for a saddlepoint problem
