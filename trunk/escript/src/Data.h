@@ -1201,7 +1201,7 @@ class Data {
   ESCRIPT_DLL_API
   inline
   void
-  unaryOp(UnaryFunction operation);
+  unaryOp2(UnaryFunction operation);
 
   /**
      \brief
@@ -1620,52 +1620,6 @@ Data::binaryOp(const Data& right,
      EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
      escript::binaryOp(*leftC,*rightC,operation);
    }
-}
-
-/**
-  \brief
-  Perform the given unary operation on other and return the result.
-  Given operation is performed on each element of each data point, thus
-  argument object is a rank n Data object, and returned object is a rank n
-  Data object.
-  Calls Data::unaryOp.
-*/
-template <class UnaryFunction>
-inline
-Data
-unaryOp(const Data& other,
-        UnaryFunction operation)
-{
-  Data result;
-  result.copy(other);
-  result.unaryOp(operation);
-  return result;
-}
-
-/**
-  \brief
-  Perform the given unary operation on this.
-  Given operation is performed on each element of each data point.
-  Calls escript::unaryOp.
-*/
-template <class UnaryFunction>
-inline
-void
-Data::unaryOp(UnaryFunction operation)
-{
-  if (isExpanded()) {
-    DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-    EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
-    escript::unaryOp(*leftC,operation);
-  } else if (isTagged()) {
-    DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-    EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
-    escript::unaryOp(*leftC,operation);
-  } else if (isConstant()) {
-    DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
-    EsysAssert((leftC!=0), "Programming error - casting to DataConstant.");
-    escript::unaryOp(*leftC,operation);
-  }
 }
 
 /**
@@ -2557,6 +2511,87 @@ C_TensorBinaryOperation(Data const &arg_0,
 
   } else {
     throw DataException("Error - C_TensorBinaryOperation: arguments have incompatible shapes");
+  }
+
+  return res;
+}
+
+template <typename UnaryFunction>
+Data
+C_TensorUnaryOperation(Data const &arg_0,
+                       UnaryFunction operation)
+{
+  // Interpolate if necessary and find an appropriate function space
+  Data arg_0_Z = Data(arg_0);
+
+  // Get rank and shape of inputs
+  int rank0 = arg_0_Z.getDataPointRank();
+  DataArrayView::ShapeType shape0 = arg_0_Z.getDataPointShape();
+  int size0 = arg_0_Z.getDataPointSize();
+
+  // Declare output Data object
+  Data res;
+
+  if (arg_0_Z.isConstant()) {
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+    double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[0]);
+    double *ptr_2 = &((res.getPointDataView().getData())[0]);
+    tensor_unary_operation(size0, ptr_0, ptr_2, operation);
+  }
+  else if (arg_0_Z.isTagged()) {
+
+    // Borrow DataTagged input from Data object
+    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+    // Prepare a DataTagged output 2
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
+    res.tag();
+    DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+    // Get the views
+    DataArrayView view_0 = tmp_0->getDefaultValue();
+    DataArrayView view_2 = tmp_2->getDefaultValue();
+    // Get the pointers to the actual data
+    double *ptr_0 = &((view_0.getData())[0]);
+    double *ptr_2 = &((view_2.getData())[0]);
+    // Compute a result for the default
+    tensor_unary_operation(size0, ptr_0, ptr_2, operation);
+    // Compute a result for each tag
+    const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+    DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+    for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+      tmp_2->addTaggedValue(i->first,tmp_2->getDefaultValue());
+      DataArrayView view_0 = tmp_0->getDataPointByTag(i->first);
+      DataArrayView view_2 = tmp_2->getDataPointByTag(i->first);
+      double *ptr_0 = &view_0.getData(0);
+      double *ptr_2 = &view_2.getData(0);
+      tensor_unary_operation(size0, ptr_0, ptr_2, operation);
+    }
+
+  }
+  else if (arg_0_Z.isExpanded()) {
+
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
+    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+    DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+    int sampleNo_0,dataPointNo_0;
+    int numSamples_0 = arg_0_Z.getNumSamples();
+    int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+    #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+    for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+      for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+        int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+        int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+        double *ptr_0 = &((arg_0_Z.getPointDataView().getData())[offset_0]);
+        double *ptr_2 = &((res.getPointDataView().getData())[offset_2]);
+        tensor_unary_operation(size0, ptr_0, ptr_2, operation);
+      }
+    }
+
+  }
+  else {
+    throw DataException("Error - C_TensorUnaryOperation: unknown combination of inputs");
   }
 
   return res;

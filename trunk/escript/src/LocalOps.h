@@ -459,6 +459,18 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
   }
 }
 
+template <typename UnaryFunction>
+inline void tensor_unary_operation(const int size,
+			     const double *arg1,
+			     double * argRes,
+			     UnaryFunction operation)
+{
+  for (int i = 0; i < size; ++i) {
+    argRes[i] = operation(arg1[i]);
+  }
+  return;
+}
+
 template <typename BinaryFunction>
 inline void tensor_binary_operation(const int size,
 			     const double *arg1,

@@ -427,45 +427,45 @@ Data::tag()
 Data
 Data::oneOver() const
 {
-  return escript::unaryOp(*this,bind1st(divides<double>(),1.));
+  return C_TensorUnaryOperation(*this, bind1st(divides<double>(),1.));
 }
 
 Data
 Data::wherePositive() const
 {
-  return escript::unaryOp(*this,bind2nd(greater<double>(),0.0));
+  return C_TensorUnaryOperation(*this, bind2nd(greater<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
-  return escript::unaryOp(*this,bind2nd(less<double>(),0.0));
+  return C_TensorUnaryOperation(*this, bind2nd(less<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
-  return escript::unaryOp(*this,bind2nd(greater_equal<double>(),0.0));
+  return C_TensorUnaryOperation(*this, bind2nd(greater_equal<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
-  return escript::unaryOp(*this,bind2nd(less_equal<double>(),0.0));
+  return C_TensorUnaryOperation(*this, bind2nd(less_equal<double>(),0.0));
 }
 
 Data
 Data::whereZero(double tol) const
 {
   Data dataAbs=abs();
-  return escript::unaryOp(dataAbs,bind2nd(less_equal<double>(),tol));
+  return C_TensorUnaryOperation(dataAbs, bind2nd(less_equal<double>(),tol));
 }
 
 Data
 Data::whereNonZero(double tol) const
 {
   Data dataAbs=abs();
-  return escript::unaryOp(dataAbs,bind2nd(greater<double>(),tol));
+  return C_TensorUnaryOperation(dataAbs, bind2nd(greater<double>(),tol));
 }
 
 Data
@@ -904,56 +904,57 @@ Data::integrate() const
 Data
 Data::sin() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sin);
+  return C_TensorUnaryOperation(*this, ::sin);
 }
 
 Data
 Data::cos() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cos);
+  return C_TensorUnaryOperation(*this, ::cos);
 }
 
 Data
 Data::tan() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tan);
+  return C_TensorUnaryOperation(*this, ::tan);
 }
 
 Data
 Data::asin() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asin);
+  return C_TensorUnaryOperation(*this, ::asin);
 }
 
 Data
 Data::acos() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acos);
+  return C_TensorUnaryOperation(*this, ::acos);
 }
 
 
 Data
 Data::atan() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atan);
+  return C_TensorUnaryOperation(*this, ::atan);
 }
 
 Data
 Data::sinh() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sinh);
+    return C_TensorUnaryOperation(*this, ::sinh);
+
 }
 
 Data
 Data::cosh() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::cosh);
+    return C_TensorUnaryOperation(*this, ::cosh);
 }
 
 Data
 Data::tanh() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::tanh);
+    return C_TensorUnaryOperation(*this, ::tanh);
 }
 
 
@@ -963,7 +964,7 @@ Data::erf() const
 #ifdef _WIN32
   throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::erf);
+  return C_TensorUnaryOperation(*this, ::erf);
 #endif
 }
 
@@ -971,9 +972,9 @@ Data
 Data::asinh() const
 {
 #ifdef _WIN32
-  return escript::unaryOp(*this,escript::asinh_substitute);
+  return C_TensorUnaryOperation(*this, escript::asinh_substitute);
 #else
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::asinh);
+  return C_TensorUnaryOperation(*this, ::asinh);
 #endif
 }
 
@@ -981,9 +982,9 @@ Data
 Data::acosh() const
 {
 #ifdef _WIN32
-  return escript::unaryOp(*this,escript::acosh_substitute);
+  return C_TensorUnaryOperation(*this, escript::acosh_substitute);
 #else
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::acosh);
+  return C_TensorUnaryOperation(*this, ::acosh);
 #endif
 }
 
@@ -991,40 +992,40 @@ Data
 Data::atanh() const
 {
 #ifdef _WIN32
-  return escript::unaryOp(*this,escript::atanh_substitute);
+  return C_TensorUnaryOperation(*this, escript::atanh_substitute);
 #else
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::atanh);
+  return C_TensorUnaryOperation(*this, ::atanh);
 #endif
 }
 
 Data
 Data::log10() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log10);
+  return C_TensorUnaryOperation(*this, ::log10);
 }
 
 Data
 Data::log() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::log);
+  return C_TensorUnaryOperation(*this, ::log);
 }
 
 Data
 Data::sign() const
 {
-  return escript::unaryOp(*this,escript::fsign);
+  return C_TensorUnaryOperation(*this, escript::fsign);
 }
 
 Data
 Data::abs() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::fabs);
+  return C_TensorUnaryOperation(*this, ::fabs);
 }
 
 Data
 Data::neg() const
 {
-  return escript::unaryOp(*this,negate<double>());
+  return C_TensorUnaryOperation(*this, negate<double>());
 }
 
 Data
@@ -1039,13 +1040,13 @@ Data::pos() const
 Data
 Data::exp() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::exp);
+  return C_TensorUnaryOperation(*this, ::exp);
 }
 
 Data
 Data::sqrt() const
 {
-  return escript::unaryOp(*this,(Data::UnaryDFunPtr)::sqrt);
+  return C_TensorUnaryOperation(*this, ::sqrt);
 }
 
 double
@@ -1509,20 +1510,6 @@ Data::powO(const boost::python::object& right) const
   Data tmp(right,getFunctionSpace(),false);
   return powD(tmp);
 }
-
-/* Data */
-/* Data::powD(const Data& right) const */
-/* { */
-/*   Data result; */
-/*   if (getDataPointRank()<right.getDataPointRank()) { */
-/*      result.copy(right); */
-/*      result.binaryOp(*this,escript::rpow); */
-/*   } else { */
-/*      result.copy(*this); */
-/*      result.binaryOp(right,(Data::BinaryDFunPtr)::pow); */
-/*   } */
-/*   return result; */
-/* } */
 
 Data
 Data::powD(const Data& right) const
