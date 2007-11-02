@@ -43,6 +43,8 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, in
          #pragma omp parallel for private(e) schedule(static)
          for (e=0;e<in->numElements;e++) in->Color[e]=-1;
          numUncoloredElements=in->numElements;
+         in->minColor=0;
+         in->maxColor=in->minColor-1;
          while (numUncoloredElements>0) {
             /* initialize the mask marking nodes used by a color */
             #pragma omp parallel for private(n) schedule(static)
@@ -57,15 +59,18 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, in
 #ifdef BOUNDS_CHECK
 if ((degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id) >= len || (degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id) < 0) { printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d dof=%d\n", __FILE__, __LINE__, i, e, NN, min_id, degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id); exit(1); }
 #endif
-		        if (maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id]>0) independent=FALSE;
+		        if (maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id]>0) {
+                             independent=FALSE;
+                             break;
+                        }
 		     }
                      /* if e is independend a new color is assigned and the nodes are marked as being used */
                      if (independent) {
-                         for (i=0;i<NN;i++) maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id]=1;
-                         in->Color[e]=in->maxColor+1;
-                      } else {
-                         numUncoloredElements++;
-                      }
+                           for (i=0;i<NN;i++) maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id]=1;
+                           in->Color[e]=in->maxColor+1;
+                     } else {
+                             numUncoloredElements++;
+                     }
                   }
             }
             in->maxColor++;
