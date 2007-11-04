@@ -4,7 +4,13 @@
 # in the proper place so the ESSCC twiki can find it. The build command is
 #	scons docs
 
-# Run this nightly on shake71 via cron
+# Run this nightly on shake71 via cron, such as at 1:00 AM every night, with
+# 0      1    *    *     0-6      /home/Work/Documentation_Escript/autodocs.sh >& /home/Work/Documentation_Escript/log
+
+# This will have an error occasionally because svn checkout fails. 
+# The problem may be that the certificate has expired.  If that's the
+# case try an svn checkout (or svn list) by hand and accept the
+# certificate.  Then the problem will be resolved.
 
 # Requires:
 #	svn checkout from shake200
