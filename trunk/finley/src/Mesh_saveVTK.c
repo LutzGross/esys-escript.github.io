@@ -150,9 +150,9 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   isCellCentered=TMPMEMALLOC(num_data,bool_t);
   max_len_names=0;
   if (!Finley_checkPtr(isCellCentered)) {
+     nodetype=FINLEY_UNKNOWN;
+     elementtype=FINLEY_UNKNOWN;
      for (i_data=0;i_data<num_data;++i_data) {
-       elementtype=FINLEY_UNKNOWN;
-       nodetype=FINLEY_NODES;
        if (! isEmpty(data_pp[i_data])) {
          switch(getFunctionSpaceType(data_pp[i_data]) ) {
          case FINLEY_NODES:
@@ -175,7 +175,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            break;
          case FINLEY_ELEMENTS:
          case FINLEY_REDUCED_ELEMENTS:
-           nodetype = (nodetype == FINLEY_REDUCED_NODES) ? FINLEY_REDUCED_NODES :FINLEY_NODES;
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
              elementtype=FINLEY_ELEMENTS;
@@ -185,7 +184,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            break;
          case FINLEY_FACE_ELEMENTS:
          case FINLEY_REDUCED_FACE_ELEMENTS:
-           nodetype = (nodetype == FINLEY_REDUCED_NODES) ? FINLEY_REDUCED_NODES :FINLEY_NODES;
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS) {
              elementtype=FINLEY_FACE_ELEMENTS;
@@ -194,7 +192,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            }
            break;
          case FINLEY_POINTS:
-           nodetype = (nodetype == FINLEY_REDUCED_NODES) ? FINLEY_REDUCED_NODES : FINLEY_NODES;
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_POINTS) {
              elementtype=FINLEY_POINTS;
@@ -204,7 +201,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            break;
          case FINLEY_CONTACT_ELEMENTS_1:
          case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
-           nodetype = (nodetype == FINLEY_REDUCED_NODES) ? FINLEY_REDUCED_NODES :FINLEY_NODES;
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
              elementtype=FINLEY_CONTACT_ELEMENTS_1;
@@ -214,7 +210,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
            break;
          case FINLEY_CONTACT_ELEMENTS_2:
          case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
-           nodetype = (nodetype == FINLEY_REDUCED_NODES) ? FINLEY_REDUCED_NODES :FINLEY_NODES;
            isCellCentered[i_data]=TRUE;
            if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
              elementtype=FINLEY_CONTACT_ELEMENTS_1;
@@ -234,6 +229,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
          max_len_names =MAX(max_len_names,strlen(names_p[i_data]));
        }
      }
+     nodetype = (nodetype == FINLEY_UNKNOWN) ? FINLEY_NODES : nodetype;
   }
   if (Finley_noError()) {
 
