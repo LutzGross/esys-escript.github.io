@@ -131,6 +131,12 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
   FINLEY_DLL_API
   static int mapOptionToPaso(const int option);
 
+  /**
+     \brief prints information about a system matrix
+  */
+  FINLEY_DLL_API
+  void Print_Matrix_Info(const bool) const;
+
  protected:
 
  private:

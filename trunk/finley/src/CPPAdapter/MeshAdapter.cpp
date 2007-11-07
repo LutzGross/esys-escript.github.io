@@ -93,9 +93,9 @@ void MeshAdapter::write(const std::string& fileName) const
   TMPMEMFREE(fName);
 }
 
-void MeshAdapter::Print_Mesh_Info() const
+void MeshAdapter::Print_Mesh_Info(const bool full=false) const
 {
-  Finley_PrintMesh_Info(m_finleyMesh.get());
+  Finley_PrintMesh_Info(m_finleyMesh.get(), full);
 }
 
 void MeshAdapter::dump(const std::string& fileName) const

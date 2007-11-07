@@ -871,7 +871,7 @@ Export(["IS_WINDOWS_PLATFORM", "env", "incinstall", "libinstall", "pyinstall", "
 # End initialisation section
 # Begin configuration section
 # adds this file and the scons option directore to the source tar
-release_srcfiles=[env.File('SConstruct'),]+[ env.File(x) for x in glob.glob('scons/*.py') ]
+release_srcfiles=[env.File('SConstruct'),env.Dir('lib'),env.Dir('include'),]+[ env.File(x) for x in glob.glob('scons/*.py') ]
 release_testfiles=[env.File('README_TESTS'),]
 env.Zip(src_zipfile, release_srcfiles)
 env.Zip(test_zipfile, release_testfiles)

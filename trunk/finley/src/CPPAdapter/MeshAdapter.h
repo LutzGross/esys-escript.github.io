@@ -170,7 +170,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param fileName Input - The name of the file to write to.
   */
   FINLEY_DLL_API
-  void Print_Mesh_Info() const;
+  void Print_Mesh_Info(const bool) const;
 
   /**
      \brief

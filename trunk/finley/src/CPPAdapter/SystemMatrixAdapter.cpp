@@ -138,6 +138,52 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
     }
 }
 
+void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
+{
+  Paso_SystemMatrix* mat=m_system_matrix.get();
+  int first_row_index  = mat->row_distribution->first_component[mat->mpi_info->rank];
+  int last_row_index   = mat->row_distribution->first_component[mat->mpi_info->rank+1]-1;
+  int first_col_index  = mat->col_distribution->first_component[mat->mpi_info->rank];
+  int last_col_index   = mat->col_distribution->first_component[mat->mpi_info->rank+1]-1;
+
+  fprintf(stdout, "Print_Matrix_Info running on CPU %d of %d\n", mat->mpi_info->rank, mat->mpi_info->size);
+
+  switch (mat->type) {
+    case MATRIX_FORMAT_DEFAULT:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_DEFAULT\n"); break;
+    case MATRIX_FORMAT_CSC:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_CSC\n"); break;
+    case MATRIX_FORMAT_SYM:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_SYM\n"); break;
+    case MATRIX_FORMAT_BLK1:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_BLK1\n"); break;
+    case MATRIX_FORMAT_OFFSET1:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_OFFSET1\n"); break;
+    case MATRIX_FORMAT_TRILINOS_CRS:	fprintf(stdout, "\tMatrix type MATRIX_FORMAT_TRILINOS_CRS\n"); break;
+    default:				fprintf(stdout, "\tMatrix type unknown\n"); break;
+  }
+
+  fprintf(stdout, "\trow indices run from %d to %d\n", first_row_index, last_row_index);
+  fprintf(stdout, "\tcol indices run from %d to %d\n", first_col_index, last_col_index);
+  fprintf(stdout, "\tmainBlock numRows %d\n", mat->mainBlock->numRows);
+  fprintf(stdout, "\tmainBlock numCols %d\n", mat->mainBlock->numCols);
+  fprintf(stdout, "\tmainBlock pattern numOutput %d\n", mat->mainBlock->pattern->numOutput);
+  fprintf(stdout, "\tcoupleBlock numRows %d\n", mat->coupleBlock->numRows);
+  fprintf(stdout, "\tcoupleBlock numCols %d\n", mat->coupleBlock->numCols);
+  fprintf(stdout, "\tcoupleBlock pattern numOutput %d\n", mat->coupleBlock->pattern->numOutput);
+  fprintf(stdout, "\trow_block_size %d\n", mat->row_block_size);
+  fprintf(stdout, "\tcol_block_size %d\n", mat->col_block_size);
+  fprintf(stdout, "\tblock_size %d\n", mat->block_size);
+  fprintf(stdout, "\tlogical_row_block_size %d\n", mat->logical_row_block_size);
+  fprintf(stdout, "\tlogical_col_block_size %d\n", mat->logical_col_block_size);
+  fprintf(stdout, "\tlogical_block_size %d\n", mat->logical_block_size);
+
+  if (full) {
+    printf("\trow_distribution: ");
+    for(int i=0; i<=mat->mpi_info->size; i++) printf("%3d ", mat->row_distribution[i]);
+    printf("\n");
+    printf("\tcol_distribution: ");
+    for(int i=0; i<=mat->mpi_info->size; i++) printf("%3d ", mat->col_distribution[i]);
+    printf("\n");
+  }
+
+}
+
 void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, const boost::python::dict& options) const
 {
     Paso_SystemMatrix* mat=getPaso_SystemMatrix();
