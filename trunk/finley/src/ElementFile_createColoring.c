@@ -57,6 +57,7 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, in
                      independent=TRUE;
                      for (i=0;i<NN;i++) {
 #ifdef BOUNDS_CHECK
+if (in->Nodes[INDEX2(i,e,NN)] < 0 || in->Nodes[INDEX2(i,e,NN)] >= numNodes) { printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d in->Nodes[INDEX2...]=%d\n", __FILE__, __LINE__, i, e, NN, min_id, in->Nodes[INDEX2(i,e,NN)]); exit(1); }
 if ((degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id) >= len || (degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id) < 0) { printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d dof=%d\n", __FILE__, __LINE__, i, e, NN, min_id, degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id); exit(1); }
 #endif
 		        if (maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id]>0) {

@@ -51,11 +51,13 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
         Finley_NodeFile_setDOFRange(&min_id,&max_id,self->Nodes);
         len=max_id-min_id+1;
         tmp_node_localDOF_mask=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
-        tmp_node_localDOF_map=TMPMEMALLOC(len,index_t);
+        tmp_node_localDOF_map=TMPMEMALLOC(self->Nodes->numNodes,index_t);
         if (! ( (Finley_checkPtr(tmp_node_localDOF_mask) && Finley_checkPtr(tmp_node_localDOF_map) ) ) ) {
    
           #pragma omp parallel for private(n) schedule(static)
           for (n=0;n<len;n++) tmp_node_localDOF_mask[n]=-1;
+          #pragma omp parallel for private (n) schedule(static)
+          for (n=0;n<self->Nodes->numNodes;n++) tmp_node_localDOF_map[n]=-1;
           #pragma omp parallel for private(n) schedule(static)
           for (n=0;n<self->Nodes->numNodes;n++) {
 #ifdef BOUNDS_CHECK
@@ -68,12 +70,14 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
           for  (n=0;n<len;n++) {
               k=tmp_node_localDOF_mask[n];
               if (k>=0) {
-#ifdef BOUNDS_CHECK
-                 if ((k) >= len || (k) < 0) { printf("BOUNDS_CHECK %s %d k=%d n=%d max_id=%d min_id=%d len=%d\n", __FILE__, __LINE__, k, n, max_id, min_id, len); exit(1); }
-#endif
-                 tmp_node_localDOF_map[k]=numDOFs;
+                 tmp_node_localDOF_mask[n]=numDOFs;
                  numDOFs++;
               }
+          }
+          #pragma omp parallel for private (n,k)
+          for  (n=0;n<self->Nodes->numNodes;n++) {
+              k=tmp_node_localDOF_mask[self->Nodes->globalDegreesOfFreedom[n]-min_id];
+              tmp_node_localDOF_map[n]=k;
           }
           /* create element coloring */
           if (Finley_noError()) Finley_Mesh_createColoring(self,tmp_node_localDOF_map);
