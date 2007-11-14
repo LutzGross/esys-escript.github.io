@@ -127,7 +127,6 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
 }
 
 void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
-#ifdef PASO_MPI
   int NN,i,j,numDim;
   Finley_TagMap* tag_map=in->TagMap;
 
@@ -139,9 +138,11 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
   /* write nodes: */
   if (in->Nodes!=NULL) {
     numDim=Finley_Mesh_getDim(in);
-    fprintf(stdout, "\tNodes->degreesOfFreedomDistribution:");
-    for (j=0;j<in->MPIInfo->size+1;j++) fprintf(stdout," %d",in->Nodes->degreesOfFreedomDistribution->first_component[j]);
-    fprintf(stdout, "\n");
+    if (in->Nodes->degreesOfFreedomDistribution != NULL) {
+      fprintf(stdout, "\tNodes->degreesOfFreedomDistribution:");
+      for (j=0;j<in->MPIInfo->size+1;j++) fprintf(stdout," %d",in->Nodes->degreesOfFreedomDistribution->first_component[j]);
+      fprintf(stdout, "\n");
+    }
     fprintf(stdout, "\tNodes: %1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
     if (full) {
       fprintf(stdout, "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n");
@@ -224,9 +225,6 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
         tag_map=tag_map->next;
      }
   }
-#else
-  fprintf(stdout, "Finley_PrintMesh_Info: MPI is not enabled\n");
-#endif
 }
 
 /*

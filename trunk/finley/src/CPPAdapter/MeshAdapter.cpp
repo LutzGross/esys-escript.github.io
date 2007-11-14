@@ -158,17 +158,21 @@ void MeshAdapter::dump(const std::string& fileName) const
       if (! (ncdims[9] = dataFile.add_dim("dim_ContactElements_numNodes", num_ContactElements_numNodes)) )
         throw DataException("Error - MeshAdapter::dump: appending dimension dim_ContactElements_numNodes to netCDF file failed: " + *newFileName);
 
-   // MPI size, MPI rank, Name, order, reduced_order
+   // Attributes: MPI size, MPI rank, Name, order, reduced_order
    if (!dataFile.add_att("mpi_size", mpi_size) )
         throw DataException("Error - MeshAdapter::dump: appending mpi_size to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("mpi_rank", mpi_rank) )
         throw DataException("Error - MeshAdapter::dump: appending mpi_rank to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("Name",mesh->Name) )
         throw DataException("Error - MeshAdapter::dump: appending Name to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("numDim",numDim) )
+        throw DataException("Error - MeshAdapter::dump: appending order to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("order",mesh->order) )
         throw DataException("Error - MeshAdapter::dump: appending order to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("reduced_order",mesh->reduced_order) )
         throw DataException("Error - MeshAdapter::dump: appending reduced_order to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("numNodes",numNodes) )
+        throw DataException("Error - MeshAdapter::dump: appending numNodes to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("num_Elements",num_Elements) )
         throw DataException("Error - MeshAdapter::dump: appending num_Elements to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("num_FaceElements",num_FaceElements) )
@@ -179,6 +183,9 @@ void MeshAdapter::dump(const std::string& fileName) const
         throw DataException("Error - MeshAdapter::dump: appending num_Points to NetCDF file failed: " + *newFileName);
 
    // // // // // Nodes // // // // //
+
+   // Only write nodes if non-empty because NetCDF doesn't like empty arrays (it treats them as NC_UNLIMITED)
+   if (numNodes>0) {
 
    // Nodes Id
    if (! ( ids = dataFile.add_var("Nodes_Id", ncInt, ncdims[0])) )
@@ -235,9 +242,10 @@ void MeshAdapter::dump(const std::string& fileName) const
    if (! (ids->put(int_ptr, mpi_size+1)) )
         throw DataException("Error - MeshAdapter::dump: copy Nodes_DofDistribution to netCDF buffer failed: " + *newFileName);
 
+   }
+
    // // // // // Elements // // // // //
 
-   // Only write elements if non-empty because NetCDF doesn't like empty arrays (it treats them as NC_UNLIMITED)
    if (num_Elements>0) {
 
      // Temp storage to gather node IDs

@@ -88,7 +88,7 @@ BOOST_PYTHON_MODULE(finleycpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
 
-  def("load",finley::loadMesh,
+  def("LoadMesh",finley::loadMesh,
       (arg("fileName")="file.nc"),
       return_value_policy<manage_new_object>());
   def("ReadMesh",finley::readMesh,
