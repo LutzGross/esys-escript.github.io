@@ -284,6 +284,8 @@ void MeshAdapter::dump(const std::string& fileName) const
      if (! (ids->put(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes)) )
         throw DataException("Error - MeshAdapter::dump: copy Elements_Nodes to netCDF buffer failed: " + *newFileName);
 
+     TMPMEMFREE(Elements_Nodes);
+
    }
 
    // // // // // Face_Elements // // // // //
@@ -334,6 +336,8 @@ void MeshAdapter::dump(const std::string& fileName) const
      if (! (ids->put(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
         throw DataException("Error - MeshAdapter::dump: copy FaceElements_Nodes to netCDF buffer failed: " + *newFileName);
 
+     TMPMEMFREE(FaceElements_Nodes);
+
    }
 
    // // // // // Contact_Elements // // // // //
@@ -383,6 +387,8 @@ void MeshAdapter::dump(const std::string& fileName) const
         throw DataException("Error - MeshAdapter::dump: appending ContactElements_Nodes to netCDF file failed: " + *newFileName);
      if (! (ids->put(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
         throw DataException("Error - MeshAdapter::dump: copy ContactElements_Nodes to netCDF buffer failed: " + *newFileName);
+
+     TMPMEMFREE(ContactElements_Nodes);
 
    }
 
@@ -435,6 +441,8 @@ void MeshAdapter::dump(const std::string& fileName) const
         throw DataException("Error - MeshAdapter::dump: appending Points_Nodes to netCDF file failed: " + *newFileName);
      if (! (ids->put(&(Points_Nodes[0]), num_Points)) )
         throw DataException("Error - MeshAdapter::dump: copy Points_Nodes to netCDF buffer failed: " + *newFileName);
+
+     TMPMEMFREE(Points_Nodes);
 
    }
 
