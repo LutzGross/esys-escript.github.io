@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 
 #include "Paso_MPI.h"
@@ -158,3 +159,12 @@ int Paso_MPIInfo_initialized( void )
      return TRUE;
   #endif
 }
+
+/* Append MPI rank to file name if multiple MPI processes */
+char *Paso_MPI_appendRankToFileName(char *fileName, int mpi_size, int mpi_rank) {
+  char newFileName[4096];
+  strncpy(newFileName, fileName, strlen(fileName)+1);
+  if (mpi_size>1) sprintf(newFileName+strlen(newFileName), ".%04d", mpi_rank);
+  return(newFileName);
+}
+

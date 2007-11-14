@@ -16,6 +16,9 @@
 #include "MeshAdapter.h"
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
+#ifdef USE_NETCDF
+#include <netcdfcpp.h>
+#endif
 extern "C" {
 #include "escript/blocktimer.h"
 }
@@ -100,11 +103,350 @@ void MeshAdapter::Print_Mesh_Info(const bool full=false) const
 
 void MeshAdapter::dump(const std::string& fileName) const
 {
-  char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
-  strcpy(fName,fileName.c_str());
-  Finley_Mesh_dump(m_finleyMesh.get(),fName);
-  checkFinleyError();
-  TMPMEMFREE(fName);
+#ifdef USE_NETCDF
+   const NcDim* ncdims[25]; /* ksteube how big should ncdims be? */
+   NcVar *ids, *data;
+   int *int_ptr;
+   Finley_Mesh *mesh = m_finleyMesh.get();
+   int mpi_size				= mesh->MPIInfo->size;
+   int mpi_rank				= mesh->MPIInfo->rank;
+   int numDim				= mesh->Nodes->numDim;
+   int numNodes				= mesh->Nodes->numNodes;
+   int num_Elements			= mesh->Elements->numElements;
+   int num_FaceElements			= mesh->FaceElements->numElements;
+   int num_ContactElements		= mesh->ContactElements->numElements;
+   int num_Points			= mesh->Points->numElements;
+   int num_Elements_numNodes		= mesh->Elements->numNodes;
+   int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
+   int num_ContactElements_numNodes	= mesh->ContactElements->numNodes;
+   char *newFileName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()), mpi_size, mpi_rank);
+
+   // NetCDF error handler
+   NcError err(NcError::verbose_nonfatal);
+   // Create the file.
+   NcFile dataFile(newFileName, NcFile::Replace);
+   // check if writing was successful
+   if (!dataFile.is_valid())
+        throw DataException("Error - MeshAdapter::dump: opening of NetCDF file for output failed: " + *newFileName);
+
+   // Define dimensions (num_Elements and dim_Elements are identical, dim_Elements only appears if > 0)
+   if (! (ncdims[0] = dataFile.add_dim("numNodes", numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension numNodes to netCDF file failed: " + *newFileName);
+   if (! (ncdims[1] = dataFile.add_dim("numDim", numDim)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension numDim to netCDF file failed: " + *newFileName);
+   if (! (ncdims[2] = dataFile.add_dim("mpi_size_plus_1", mpi_size+1)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension mpi_size to netCDF file failed: " + *newFileName);
+   if (num_Elements>0)
+      if (! (ncdims[3] = dataFile.add_dim("dim_Elements", num_Elements)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_Elements to netCDF file failed: " + *newFileName);
+   if (num_FaceElements>0)
+      if (! (ncdims[4] = dataFile.add_dim("dim_FaceElements", num_FaceElements)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_FaceElements to netCDF file failed: " + *newFileName);
+   if (num_ContactElements>0)
+      if (! (ncdims[5] = dataFile.add_dim("dim_ContactElements", num_ContactElements)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_ContactElements to netCDF file failed: " + *newFileName);
+   if (num_Points>0)
+      if (! (ncdims[6] = dataFile.add_dim("dim_Points", num_Points)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_Points to netCDF file failed: " + *newFileName);
+   if (num_Elements>0)
+      if (! (ncdims[7] = dataFile.add_dim("dim_Elements_Nodes", num_Elements_numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_Elements_Nodes to netCDF file failed: " + *newFileName);
+   if (num_FaceElements>0)
+      if (! (ncdims[8] = dataFile.add_dim("dim_FaceElements_numNodes", num_FaceElements_numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_FaceElements_numNodes to netCDF file failed: " + *newFileName);
+   if (num_ContactElements>0)
+      if (! (ncdims[9] = dataFile.add_dim("dim_ContactElements_numNodes", num_ContactElements_numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_ContactElements_numNodes to netCDF file failed: " + *newFileName);
+
+   // MPI size, MPI rank, Name, order, reduced_order
+   if (!dataFile.add_att("mpi_size", mpi_size) )
+        throw DataException("Error - MeshAdapter::dump: appending mpi_size to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("mpi_rank", mpi_rank) )
+        throw DataException("Error - MeshAdapter::dump: appending mpi_rank to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("Name",mesh->Name) )
+        throw DataException("Error - MeshAdapter::dump: appending Name to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("order",mesh->order) )
+        throw DataException("Error - MeshAdapter::dump: appending order to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("reduced_order",mesh->reduced_order) )
+        throw DataException("Error - MeshAdapter::dump: appending reduced_order to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_Elements",num_Elements) )
+        throw DataException("Error - MeshAdapter::dump: appending num_Elements to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_FaceElements",num_FaceElements) )
+        throw DataException("Error - MeshAdapter::dump: appending num_FaceElements to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_ContactElements",num_ContactElements) )
+        throw DataException("Error - MeshAdapter::dump: appending num_ContactElements to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_Points",num_Points) )
+        throw DataException("Error - MeshAdapter::dump: appending num_Points to NetCDF file failed: " + *newFileName);
+
+   // // // // // Nodes // // // // //
+
+   // Nodes Id
+   if (! ( ids = dataFile.add_var("Nodes_Id", ncInt, ncdims[0])) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_Id to netCDF file failed: " + *newFileName);
+   int_ptr = &mesh->Nodes->Id[0];
+   if (! (ids->put(int_ptr, numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_Id to netCDF buffer failed: " + *newFileName);
+
+   // Nodes Tag
+   if (! ( ids = dataFile.add_var("Nodes_Tag", ncInt, ncdims[0])) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_Tag to netCDF file failed: " + *newFileName);
+   int_ptr = &mesh->Nodes->Tag[0];
+   if (! (ids->put(int_ptr, numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_Tag to netCDF buffer failed: " + *newFileName);
+
+   // Nodes gDOF
+   if (! ( ids = dataFile.add_var("Nodes_gDOF", ncInt, ncdims[0])) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_gDOF to netCDF file failed: " + *newFileName);
+   int_ptr = &mesh->Nodes->globalDegreesOfFreedom[0];
+   if (! (ids->put(int_ptr, numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_gDOF to netCDF buffer failed: " + *newFileName);
+
+   // Nodes global node index
+   if (! ( ids = dataFile.add_var("Nodes_gNI", ncInt, ncdims[0])) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_gNI to netCDF file failed: " + *newFileName);
+   int_ptr = &mesh->Nodes->globalNodesIndex[0];
+   if (! (ids->put(int_ptr, numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_gNI to netCDF buffer failed: " + *newFileName);
+
+   // Nodes grDof
+   if (! ( ids = dataFile.add_var("Nodes_grDfI", ncInt, ncdims[0])) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_grDfI to netCDF file failed: " + *newFileName);
+   int_ptr = &mesh->Nodes->globalReducedDOFIndex[0];
+   if (! (ids->put(int_ptr, numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_grDfI to netCDF buffer failed: " + *newFileName);
+
+   // Nodes grNI
+   if (! ( ids = dataFile.add_var("Nodes_grNI", ncInt, ncdims[0])) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_grNI to netCDF file failed: " + *newFileName);
+   int_ptr = &mesh->Nodes->globalReducedNodesIndex[0];
+   if (! (ids->put(int_ptr, numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_grNI to netCDF buffer failed: " + *newFileName);
+
+   // Nodes Coordinates
+   if (! ( ids = dataFile.add_var("Nodes_Coordinates", ncDouble, ncdims[0], ncdims[1]) ) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_Coordinates to netCDF file failed: " + *newFileName);
+   if (! (ids->put(&(mesh->Nodes->Coordinates[INDEX2(0,0,numDim)]), numNodes, numDim)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_Coordinates to netCDF buffer failed: " + *newFileName);
+
+   // Nodes degreesOfFreedomDistribution
+   if (! ( ids = dataFile.add_var("Nodes_DofDistribution", ncInt, ncdims[2])) )
+        throw DataException("Error - MeshAdapter::dump: appending Nodes_DofDistribution to netCDF file failed: " + *newFileName);
+   int_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
+   if (! (ids->put(int_ptr, mpi_size+1)) )
+        throw DataException("Error - MeshAdapter::dump: copy Nodes_DofDistribution to netCDF buffer failed: " + *newFileName);
+
+   // // // // // Elements // // // // //
+
+   // Only write elements if non-empty because NetCDF doesn't like empty arrays (it treats them as NC_UNLIMITED)
+   if (num_Elements>0) {
+
+     // Temp storage to gather node IDs
+     int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
+
+     // Elements ReferenceElement->ElementTypeId
+     if (!dataFile.add_att("Elements_TypeId", mesh->Elements->ReferenceElement->Type->TypeId) )
+        throw DataException("Error - MeshAdapter::dump: appending Elements_TypeId to NetCDF file failed: " + *newFileName);
+
+     // Elements_Id
+     if (! ( ids = dataFile.add_var("Elements_Id", ncInt, ncdims[3])) )
+        throw DataException("Error - MeshAdapter::dump: appending Elements_Id to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Elements->Id[0];
+     if (! (ids->put(int_ptr, num_Elements)) )
+        throw DataException("Error - MeshAdapter::dump: copy Elements_Id to netCDF buffer failed: " + *newFileName);
+
+     // Elements_Tag
+     if (! ( ids = dataFile.add_var("Elements_Tag", ncInt, ncdims[3])) )
+        throw DataException("Error - MeshAdapter::dump: appending Elements_Tag to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Elements->Tag[0];
+     if (! (ids->put(int_ptr, num_Elements)) )
+        throw DataException("Error - MeshAdapter::dump: copy Elements_Tag to netCDF buffer failed: " + *newFileName);
+
+     // Elements_Owner
+     if (! ( ids = dataFile.add_var("Elements_Owner", ncInt, ncdims[3])) )
+        throw DataException("Error - MeshAdapter::dump: appending Elements_Owner to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Elements->Owner[0];
+     if (! (ids->put(int_ptr, num_Elements)) )
+        throw DataException("Error - MeshAdapter::dump: copy Elements_Owner to netCDF buffer failed: " + *newFileName);
+
+     // Elements_Color
+     if (! ( ids = dataFile.add_var("Elements_Color", ncInt, ncdims[3])) )
+        throw DataException("Error - MeshAdapter::dump: appending Elements_Color to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Elements->Color[0];
+     if (! (ids->put(int_ptr, num_Elements)) )
+        throw DataException("Error - MeshAdapter::dump: copy Elements_Color to netCDF buffer failed: " + *newFileName);
+
+     // Elements_Nodes
+     for (int i=0; i<num_Elements; i++)
+       for (int j=0; j<num_Elements_numNodes; j++)
+         Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)] = mesh->Nodes->Id[mesh->Elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]];
+     if (! ( ids = dataFile.add_var("Elements_Nodes", ncInt, ncdims[3], ncdims[7]) ) )
+        throw DataException("Error - MeshAdapter::dump: appending Elements_Nodes to netCDF file failed: " + *newFileName);
+     if (! (ids->put(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy Elements_Nodes to netCDF buffer failed: " + *newFileName);
+
+   }
+
+   // // // // // Face_Elements // // // // //
+
+   if (num_FaceElements>0) {
+
+     // Temp storage to gather node IDs
+     int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
+
+     // FaceElements ReferenceElement->ElementTypeId
+     if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->ReferenceElement->Type->TypeId) )
+        throw DataException("Error - MeshAdapter::dump: appending FaceElements_TypeId to NetCDF file failed: " + *newFileName);
+
+     // FaceElements_Id
+     if (! ( ids = dataFile.add_var("FaceElements_Id", ncInt, ncdims[4])) )
+        throw DataException("Error - MeshAdapter::dump: appending FaceElements_Id to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->FaceElements->Id[0];
+     if (! (ids->put(int_ptr, num_FaceElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy FaceElements_Id to netCDF buffer failed: " + *newFileName);
+
+     // FaceElements_Tag
+     if (! ( ids = dataFile.add_var("FaceElements_Tag", ncInt, ncdims[4])) )
+        throw DataException("Error - MeshAdapter::dump: appending FaceElements_Tag to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->FaceElements->Tag[0];
+     if (! (ids->put(int_ptr, num_FaceElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy FaceElements_Tag to netCDF buffer failed: " + *newFileName);
+
+     // FaceElements_Owner
+     if (! ( ids = dataFile.add_var("FaceElements_Owner", ncInt, ncdims[4])) )
+        throw DataException("Error - MeshAdapter::dump: appending FaceElements_Owner to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->FaceElements->Owner[0];
+     if (! (ids->put(int_ptr, num_FaceElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy FaceElements_Owner to netCDF buffer failed: " + *newFileName);
+
+     // FaceElements_Color
+     if (! ( ids = dataFile.add_var("FaceElements_Color", ncInt, ncdims[4])) )
+        throw DataException("Error - MeshAdapter::dump: appending FaceElements_Color to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->FaceElements->Color[0];
+     if (! (ids->put(int_ptr, num_FaceElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy FaceElements_Color to netCDF buffer failed: " + *newFileName);
+
+     // FaceElements_Nodes
+     for (int i=0; i<num_FaceElements; i++)
+       for (int j=0; j<num_FaceElements_numNodes; j++)
+         FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = mesh->Nodes->Id[mesh->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)]];
+     if (! ( ids = dataFile.add_var("FaceElements_Nodes", ncInt, ncdims[4], ncdims[8]) ) )
+        throw DataException("Error - MeshAdapter::dump: appending FaceElements_Nodes to netCDF file failed: " + *newFileName);
+     if (! (ids->put(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy FaceElements_Nodes to netCDF buffer failed: " + *newFileName);
+
+   }
+
+   // // // // // Contact_Elements // // // // //
+
+   if (num_ContactElements>0) {
+
+     // Temp storage to gather node IDs
+     int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
+
+     // ContactElements ReferenceElement->ElementTypeId
+     if (!dataFile.add_att("ContactElements_TypeId", mesh->ContactElements->ReferenceElement->Type->TypeId) )
+        throw DataException("Error - MeshAdapter::dump: appending ContactElements_TypeId to NetCDF file failed: " + *newFileName);
+
+     // ContactElements_Id
+     if (! ( ids = dataFile.add_var("ContactElements_Id", ncInt, ncdims[5])) )
+        throw DataException("Error - MeshAdapter::dump: appending ContactElements_Id to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->ContactElements->Id[0];
+     if (! (ids->put(int_ptr, num_ContactElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy ContactElements_Id to netCDF buffer failed: " + *newFileName);
+
+     // ContactElements_Tag
+     if (! ( ids = dataFile.add_var("ContactElements_Tag", ncInt, ncdims[5])) )
+        throw DataException("Error - MeshAdapter::dump: appending ContactElements_Tag to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->ContactElements->Tag[0];
+     if (! (ids->put(int_ptr, num_ContactElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy ContactElements_Tag to netCDF buffer failed: " + *newFileName);
+
+     // ContactElements_Owner
+     if (! ( ids = dataFile.add_var("ContactElements_Owner", ncInt, ncdims[5])) )
+        throw DataException("Error - MeshAdapter::dump: appending ContactElements_Owner to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->ContactElements->Owner[0];
+     if (! (ids->put(int_ptr, num_ContactElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy ContactElements_Owner to netCDF buffer failed: " + *newFileName);
+
+     // ContactElements_Color
+     if (! ( ids = dataFile.add_var("ContactElements_Color", ncInt, ncdims[5])) )
+        throw DataException("Error - MeshAdapter::dump: appending ContactElements_Color to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->ContactElements->Color[0];
+     if (! (ids->put(int_ptr, num_ContactElements)) )
+        throw DataException("Error - MeshAdapter::dump: copy ContactElements_Color to netCDF buffer failed: " + *newFileName);
+
+     // ContactElements_Nodes
+     for (int i=0; i<num_ContactElements; i++)
+       for (int j=0; j<num_ContactElements_numNodes; j++)
+         ContactElements_Nodes[INDEX2(j,i,num_ContactElements_numNodes)] = mesh->Nodes->Id[mesh->ContactElements->Nodes[INDEX2(j,i,num_ContactElements_numNodes)]];
+     if (! ( ids = dataFile.add_var("ContactElements_Nodes", ncInt, ncdims[5], ncdims[9]) ) )
+        throw DataException("Error - MeshAdapter::dump: appending ContactElements_Nodes to netCDF file failed: " + *newFileName);
+     if (! (ids->put(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
+        throw DataException("Error - MeshAdapter::dump: copy ContactElements_Nodes to netCDF buffer failed: " + *newFileName);
+
+   }
+
+   // // // // // Points // // // // //
+
+   if (num_Points>0) {
+
+     fprintf(stderr, "\n\n\nWARNING: MeshAdapter::dump has not been tested with Point elements\n\n\n");
+
+     // Temp storage to gather node IDs
+     int *Points_Nodes = TMPMEMALLOC(num_Points,int);
+
+     // Points ReferenceElement->ElementTypeId
+     if (!dataFile.add_att("Points_TypeId", mesh->Points->ReferenceElement->Type->TypeId) )
+        throw DataException("Error - MeshAdapter::dump: appending Points_TypeId to NetCDF file failed: " + *newFileName);
+
+     // Points_Id
+     if (! ( ids = dataFile.add_var("Points_Id", ncInt, ncdims[6])) )
+        throw DataException("Error - MeshAdapter::dump: appending Points_Id to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Points->Id[0];
+     if (! (ids->put(int_ptr, num_Points)) )
+        throw DataException("Error - MeshAdapter::dump: copy Points_Id to netCDF buffer failed: " + *newFileName);
+
+     // Points_Tag
+     if (! ( ids = dataFile.add_var("Points_Tag", ncInt, ncdims[6])) )
+        throw DataException("Error - MeshAdapter::dump: appending Points_Tag to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Points->Tag[0];
+     if (! (ids->put(int_ptr, num_Points)) )
+        throw DataException("Error - MeshAdapter::dump: copy Points_Tag to netCDF buffer failed: " + *newFileName);
+
+     // Points_Owner
+     if (! ( ids = dataFile.add_var("Points_Owner", ncInt, ncdims[6])) )
+        throw DataException("Error - MeshAdapter::dump: appending Points_Owner to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Points->Owner[0];
+     if (! (ids->put(int_ptr, num_Points)) )
+        throw DataException("Error - MeshAdapter::dump: copy Points_Owner to netCDF buffer failed: " + *newFileName);
+
+     // Points_Color
+     if (! ( ids = dataFile.add_var("Points_Color", ncInt, ncdims[6])) )
+        throw DataException("Error - MeshAdapter::dump: appending Points_Color to netCDF file failed: " + *newFileName);
+     int_ptr = &mesh->Points->Color[0];
+     if (! (ids->put(int_ptr, num_Points)) )
+        throw DataException("Error - MeshAdapter::dump: copy Points_Color to netCDF buffer failed: " + *newFileName);
+
+     // Points_Nodes
+     // mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]]
+     for (int i=0; i<num_Points; i++)
+       Points_Nodes[i] = mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]];
+     if (! ( ids = dataFile.add_var("Points_Nodes", ncInt, ncdims[6]) ) )
+        throw DataException("Error - MeshAdapter::dump: appending Points_Nodes to netCDF file failed: " + *newFileName);
+     if (! (ids->put(&(Points_Nodes[0]), num_Points)) )
+        throw DataException("Error - MeshAdapter::dump: copy Points_Nodes to netCDF buffer failed: " + *newFileName);
+
+   }
+
+   // // // // // TagMap // // // // //
+
+     fprintf(stderr, "\n\n\nWARNING: MeshAdapter::dump does not save the TagMap yet\n\n\n");
+
+   // NetCDF file is closed by destructor of NcFile object
+#else
+   Finley_setError(IO_ERROR, "MeshAdapter::dump: not configured with NetCDF. Please contact your installation manager.");
+#endif	/* USE_NETCDF */
+   checkFinleyError();
 }
 
 string MeshAdapter::getDescription() const

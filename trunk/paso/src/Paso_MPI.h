@@ -53,5 +53,6 @@ index_t Paso_MPIInfo_mod(index_t n, index_t k);
 dim_t Paso_MPIInfo_setDistribution(Paso_MPIInfo* in ,index_t min_id,index_t max_id,index_t* distribution);
 void Paso_MPIInfo_Split( Paso_MPIInfo *mpi_info, dim_t n, dim_t* local_N,index_t* offset); 
 bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info);
+char *Paso_MPI_appendRankToFileName(char *, int, int);
 
 #endif /* INC_PASO_MPI */

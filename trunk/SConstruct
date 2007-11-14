@@ -624,15 +624,12 @@ try:
 except KeyError:
    blas_libs = [ ]
 
-# ========== netcdf (currently not supported with mpi) ====================================
-if useMPI:
-   useNetCDF = 'no'
-else:
-   try:
-      useNetCDF = env['useNetCDF']
-   except KeyError:
-      useNetCDF = 'yes'
-      pass
+# ========== netcdf ====================================
+try:
+   useNetCDF = env['useNetCDF']
+except KeyError:
+   useNetCDF = 'yes'
+   pass
     
 if useNetCDF == 'yes': 
    try:

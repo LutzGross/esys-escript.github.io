@@ -144,7 +144,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
     fprintf(stdout, "\n");
     fprintf(stdout, "\tNodes: %1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
     if (full) {
-      fprintf(stdout, "\t     Id   Tag  gDOF   gNI grDOF grDFI:  Coordinates\n");
+      fprintf(stdout, "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n");
       for (i=0;i<in->Nodes->numNodes;i++) {
         fprintf(stdout, "\t  %5d %5d %5d %5d %5d %5d: ", in->Nodes->Id[i], in->Nodes->Tag[i], in->Nodes->globalDegreesOfFreedom[i], in->Nodes->globalNodesIndex[i], in->Nodes->globalReducedDOFIndex[i], in->Nodes->globalReducedNodesIndex[i]);
         for (j=0;j<numDim;j++) fprintf(stdout," %20.15e",in->Nodes->Coordinates[INDEX2(j,i,numDim)]);
