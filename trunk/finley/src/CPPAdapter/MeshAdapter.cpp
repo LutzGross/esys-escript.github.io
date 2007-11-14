@@ -181,6 +181,12 @@ void MeshAdapter::dump(const std::string& fileName) const
         throw DataException("Error - MeshAdapter::dump: appending num_ContactElements to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("num_Points",num_Points) )
         throw DataException("Error - MeshAdapter::dump: appending num_Points to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_Elements_numNodes",num_Elements_numNodes) )
+        throw DataException("Error - MeshAdapter::dump: appending num_Elements_numNodes to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_FaceElements_numNodes",num_FaceElements_numNodes) )
+        throw DataException("Error - MeshAdapter::dump: appending num_FaceElements_numNodes to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_ContactElements_numNodes",num_ContactElements_numNodes) )
+        throw DataException("Error - MeshAdapter::dump: appending num_ContactElements_numNodes to NetCDF file failed: " + *newFileName);
 
    // // // // // Nodes // // // // //
 

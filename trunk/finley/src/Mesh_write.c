@@ -201,7 +201,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
       }
     }
   } else {
-    fprintf(stdout, "\tFace elements: Tri3_Contact 0\n");
+    fprintf(stdout, "\tContact elements: Tri3_Contact 0\n");
   }
 
   /* write points: */
