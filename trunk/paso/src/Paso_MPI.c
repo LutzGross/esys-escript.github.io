@@ -162,7 +162,7 @@ int Paso_MPIInfo_initialized( void )
 
 /* Append MPI rank to file name if multiple MPI processes */
 char *Paso_MPI_appendRankToFileName(char *fileName, int mpi_size, int mpi_rank) {
-  char newFileName[4096];
+  char *newFileName = TMPMEMALLOC(4096,char);
   strncpy(newFileName, fileName, strlen(fileName)+1);
   if (mpi_size>1) sprintf(newFileName+strlen(newFileName), ".%04d", mpi_rank);
   return(newFileName);

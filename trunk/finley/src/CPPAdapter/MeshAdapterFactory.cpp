@@ -52,18 +52,12 @@ namespace finley {
   AbstractContinuousDomain* loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    bool optimize=FALSE; // ksteube should this be an argument to LoadMesh?
+    bool optimize=FALSE; // Don't optimize since this would cause problems with Data().dump()
     Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
     AbstractContinuousDomain* temp;
     Finley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
-    // create a copy of the filename to overcome the non-constness of call
-    // to Finley_Mesh_read
-    // Win32 refactor
-    char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
-    strcpy(fName,fileName.c_str());
-
-    printf("ksteube finley::loadMesh %s\n", fName);
+    char *fName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()), mpi_info->size, mpi_info->rank);
 
     double blocktimer_start = blocktimer_time();
     Finley_resetError();
@@ -79,20 +73,38 @@ namespace finley {
       sprintf(error_msg,"loadMesh: Opening file NetCDF %s for reading failed.", fName);
       Finley_setError(IO_ERROR,error_msg);
       Paso_MPIInfo_free( mpi_info );
-      throw DataException("Error - loadMesh:: Could not read NetCDF file.");
+      throw DataException(error_msg);
     }
 
     // Read NetCDF integer attributes
-    int mpi_size		= NetCDF_Get_Int_Attribute(&dataFile, fName, "mpi_size");
-    int mpi_rank		= NetCDF_Get_Int_Attribute(&dataFile, fName, "mpi_rank");
-    int numDim			= NetCDF_Get_Int_Attribute(&dataFile, fName, "numDim");
-    int order			= NetCDF_Get_Int_Attribute(&dataFile, fName, "order");
-    int reduced_order		= NetCDF_Get_Int_Attribute(&dataFile, fName, "reduced_order");
-    int numNodes		= NetCDF_Get_Int_Attribute(&dataFile, fName, "numNodes");
-    int num_Elements		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Elements");
-    int num_FaceElements	= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_FaceElements");
-    int num_ContactElements	= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_ContactElements");
-    int num_Points		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Points");
+    int mpi_size			= NetCDF_Get_Int_Attribute(&dataFile, fName, "mpi_size");
+    int mpi_rank			= NetCDF_Get_Int_Attribute(&dataFile, fName, "mpi_rank");
+    int numDim				= NetCDF_Get_Int_Attribute(&dataFile, fName, "numDim");
+    int order				= NetCDF_Get_Int_Attribute(&dataFile, fName, "order");
+    int reduced_order			= NetCDF_Get_Int_Attribute(&dataFile, fName, "reduced_order");
+    int numNodes			= NetCDF_Get_Int_Attribute(&dataFile, fName, "numNodes");
+    int num_Elements			= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Elements");
+    int num_FaceElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_FaceElements");
+    int num_ContactElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_ContactElements");
+    int num_Points			= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Points");
+    int num_Elements_numNodes		= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Elements_numNodes");
+    int Elements_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, "Elements_TypeId");
+    int num_FaceElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_FaceElements_numNodes");
+    int FaceElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, "FaceElements_TypeId");
+    int num_ContactElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_ContactElements_numNodes");
+    int ContactElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, "ContactElements_TypeId");
+    int Points_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, "Points_TypeId");
+    int num_Tags			= NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Tags");
+
+    // Verify size and rank
+    if (mpi_info->size != mpi_size) {
+      sprintf(error_msg, "Error loadMesh - The NetCDF file '%s' can only be read on %d CPUs instead of %d", fName, mpi_size, mpi_info->size);
+      throw DataException(error_msg);
+    }
+    if (mpi_info->rank != mpi_rank) {
+      sprintf(error_msg, "Error loadMesh - The NetCDF file '%s' should be read on CPU #%d instead of %d", fName, mpi_rank, mpi_info->rank);
+      throw DataException(error_msg);
+    }
 
     // Read mesh name
     if (! (attr=dataFile.get_att("Name")) ) {
@@ -159,17 +171,24 @@ namespace finley {
           free(&mesh_p->Nodes->Coordinates);
           throw DataException("Error - load:: unable to recover Nodes_Coordinates from netCDF file: " + *fName);
         }
+	// Nodes_DofDistribution
+	int *first_component = TMPMEMALLOC(mpi_size+1,index_t);
+        if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) )
+          throw DataException("Error - loadMesh:: unable to read Nodes_DofDistribution from netCDF file: " + *fName);
+        if (! nc_var_temp->get(&first_component[0], mpi_size+1) ) {
+          free(&first_component);
+          throw DataException("Error - loadMesh:: unable to recover Nodes_DofDistribution from NetCDF file: " + *fName);
+        }
+	mesh_p->Nodes->degreesOfFreedomDistribution=Paso_Distribution_alloc(mesh_p->Nodes->MPIInfo,first_component,1,0);
+	TMPMEMFREE(first_component);
 
         /* read elements */
         if (Finley_noError()) {
+          mesh_p->Elements=Finley_ElementFile_alloc((ElementTypeId)Elements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
+          mesh_p->Elements->minColor=0;
+          mesh_p->Elements->maxColor=num_Elements-1;
           if (num_Elements>0) {
-	     int num_Elements_numNodes = NetCDF_Get_Int_Attribute(&dataFile, fName, "num_Elements_numNodes");
-	     int Elements_TypeId = NetCDF_Get_Int_Attribute(&dataFile, fName, "Elements_TypeId");
-             mesh_p->Elements=Finley_ElementFile_alloc((ElementTypeId)Elements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
-             if (Finley_noError()) {
-                 Finley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
-                 mesh_p->Elements->minColor=0;
-                 mesh_p->Elements->maxColor=num_Elements-1;
                  if (Finley_noError()) {
 	           // Elements_Id
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
@@ -218,20 +237,16 @@ namespace finley {
 		   }
 		   TMPMEMFREE(Elements_Nodes);
 		 }
-	     }
 	  } /* num_Elements>0 */
 	}
 
         /* get the face elements */
         if (Finley_noError()) {
+          mesh_p->FaceElements=Finley_ElementFile_alloc((ElementTypeId)FaceElements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
+          mesh_p->FaceElements->minColor=0;
+          mesh_p->FaceElements->maxColor=num_FaceElements-1;
           if (num_FaceElements>0) {
-	     int num_FaceElements_numNodes = NetCDF_Get_Int_Attribute(&dataFile, fName, "num_FaceElements_numNodes");
-	     int FaceElements_TypeId = NetCDF_Get_Int_Attribute(&dataFile, fName, "FaceElements_TypeId");
-             mesh_p->FaceElements=Finley_ElementFile_alloc((ElementTypeId)FaceElements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
-             if (Finley_noError()) {
-                 Finley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
-                 mesh_p->FaceElements->minColor=0;
-                 mesh_p->FaceElements->maxColor=num_FaceElements-1;
                  if (Finley_noError()) {
 	           // FaceElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
@@ -280,20 +295,16 @@ namespace finley {
 		   }
 		   TMPMEMFREE(FaceElements_Nodes);
 		 }
-	     }
 	  } /* num_FaceElements>0 */
 	}
 
         /* get the Contact elements */
         if (Finley_noError()) {
+          mesh_p->ContactElements=Finley_ElementFile_alloc((ElementTypeId)ContactElements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->ContactElements, num_ContactElements);
+          mesh_p->ContactElements->minColor=0;
+          mesh_p->ContactElements->maxColor=num_ContactElements-1;
           if (num_ContactElements>0) {
-	     int num_ContactElements_numNodes = NetCDF_Get_Int_Attribute(&dataFile, fName, "num_ContactElements_numNodes");
-	     int ContactElements_TypeId = NetCDF_Get_Int_Attribute(&dataFile, fName, "ContactElements_TypeId");
-             mesh_p->ContactElements=Finley_ElementFile_alloc((ElementTypeId)ContactElements_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
-             if (Finley_noError()) {
-                 Finley_ElementFile_allocTable(mesh_p->ContactElements, num_ContactElements);
-                 mesh_p->ContactElements->minColor=0;
-                 mesh_p->ContactElements->maxColor=num_ContactElements-1;
                  if (Finley_noError()) {
 	           // ContactElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Id")) )
@@ -342,20 +353,17 @@ namespace finley {
 		   }
 		   TMPMEMFREE(ContactElements_Nodes);
 		 }
-	     }
 	  } /* num_ContactElements>0 */
 	}
 
         /* get the Points (nodal elements) */
         if (Finley_noError()) {
+          mesh_p->Points=Finley_ElementFile_alloc((ElementTypeId)Points_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
+          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->Points, num_Points);
+          mesh_p->Points->minColor=0;
+          mesh_p->Points->maxColor=num_Points-1;
           if (num_Points>0) {
-	     int Points_TypeId = NetCDF_Get_Int_Attribute(&dataFile, fName, "Points_TypeId");
-             mesh_p->Points=Finley_ElementFile_alloc((ElementTypeId)Points_TypeId,mesh_p->order, mesh_p->reduced_order, mpi_info);
              if (Finley_noError()) {
-                 Finley_ElementFile_allocTable(mesh_p->Points, num_Points);
-                 mesh_p->Points->minColor=0;
-                 mesh_p->Points->maxColor=num_Points-1;
-                 if (Finley_noError()) {
 	           // Points_Id
                    if (! ( nc_var_temp = dataFile.get_var("Points_Id")) )
                      throw DataException("Error - loadMesh:: unable to read Points_Id from netCDF file: " + *fName);
@@ -399,17 +407,42 @@ namespace finley {
 		     mesh_p->Nodes->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
 		   }
 		   TMPMEMFREE(Points_Nodes);
-		 }
 	     }
 	  } /* num_Points>0 */
 	}
 
-        /* get the name tags */
+        /* get the tags */
+        if (Finley_noError()) {
+          if (num_Tags>0) {
+            // Temp storage to gather node IDs
+            int *Tags_keys = TMPMEMALLOC(num_Tags, int);
+            char name_temp[4096];
+	    int i;
+
+	    // Tags_keys
+            if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) )
+              throw DataException("Error - loadMesh:: unable to read Tags_keys from netCDF file: " + *fName);
+            if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
+              free(&Tags_keys);
+              throw DataException("Error - loadMesh:: unable to recover Tags_keys from NetCDF file: " + *fName);
+            }
+	    for (i=0; i<num_Tags; i++) {
+              // Retrieve tag name
+              sprintf(name_temp, "Tags_name_%d", i);
+              if (! (attr=dataFile.get_att(name_temp)) ) {
+                sprintf(error_msg,"Error retrieving tag name from NetCDF file '%s'", fName);
+                throw DataException(error_msg);
+              }
+              char *name = attr->as_string(0);
+              delete attr;
+              Finley_Mesh_addTagMap(mesh_p, name, Tags_keys[i]);
+	    }
+	  }
+	}
 
     } /* Finley_noError() after Finley_Mesh_alloc() */
    
-    if (Finley_noError()) Finley_Mesh_resolveNodeIds(mesh_p);
-    if (Finley_noError()) Finley_Mesh_prepare(mesh_p, optimize);
+    if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, mesh_p->Nodes->degreesOfFreedomDistribution->first_component);
 
     checkFinleyError();
     temp=new MeshAdapter(mesh_p);

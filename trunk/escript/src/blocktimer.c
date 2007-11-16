@@ -101,7 +101,7 @@ blocktimer_getOrCreateTimerId(char *name)
     item.data = (void *) idTmp;
     hsearch(item, ENTER);
     id = *idTmp;
-    strncpy(g_names[id], name, strlen(name));
+    g_names[id] = (char *)strdup(name);
   }
 
 #endif /* BLOCKTIMER */

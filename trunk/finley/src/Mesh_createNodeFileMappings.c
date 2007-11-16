@@ -211,6 +211,27 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
   }
 }
+ 
+void Finley_Mesh_createMappings(Finley_Mesh* mesh, index_t* distribution) {
+  int i;
+  index_t *maskReducedNodes=NULL, *indexReducedNodes=NULL;
+  dim_t numReducedNodes;
+
+  maskReducedNodes=TMPMEMALLOC(mesh->Nodes->numNodes,index_t);
+  indexReducedNodes=TMPMEMALLOC(mesh->Nodes->numNodes,index_t);
+
+  if (! ( Finley_checkPtr(maskReducedNodes) || Finley_checkPtr(indexReducedNodes) ) ) {
+    #pragma omp parallel for private(i) schedule(static)
+    for (i=0;i<mesh->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
+    Finley_Mesh_markNodes(maskReducedNodes,0,mesh,TRUE);
+    numReducedNodes=Finley_Util_packMask(mesh->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
+    if (Finley_noError()) Finley_Mesh_createNodeFileMappings(mesh,numReducedNodes,indexReducedNodes,distribution);
+  }
+
+  TMPMEMFREE(maskReducedNodes);
+  TMPMEMFREE(indexReducedNodes);
+}
+
 void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component) {
 
 

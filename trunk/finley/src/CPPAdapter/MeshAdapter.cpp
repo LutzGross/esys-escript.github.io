@@ -104,10 +104,12 @@ void MeshAdapter::Print_Mesh_Info(const bool full=false) const
 void MeshAdapter::dump(const std::string& fileName) const
 {
 #ifdef USE_NETCDF
-   const NcDim* ncdims[25]; /* ksteube how big should ncdims be? */
+   const NcDim* ncdims[12];
    NcVar *ids, *data;
    int *int_ptr;
    Finley_Mesh *mesh = m_finleyMesh.get();
+   Finley_TagMap* tag_map;
+   int num_Tags = 0;
    int mpi_size				= mesh->MPIInfo->size;
    int mpi_rank				= mesh->MPIInfo->rank;
    int numDim				= mesh->Nodes->numDim;
@@ -120,6 +122,15 @@ void MeshAdapter::dump(const std::string& fileName) const
    int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
    int num_ContactElements_numNodes	= mesh->ContactElements->numNodes;
    char *newFileName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()), mpi_size, mpi_rank);
+
+   /* Figure out how much storage is required for tags */
+   tag_map = mesh->TagMap;
+   if (tag_map) {
+     while (tag_map) {
+	num_Tags++;
+        tag_map=tag_map->next;
+     }
+   }
 
    // NetCDF error handler
    NcError err(NcError::verbose_nonfatal);
@@ -157,6 +168,9 @@ void MeshAdapter::dump(const std::string& fileName) const
    if (num_ContactElements>0)
       if (! (ncdims[9] = dataFile.add_dim("dim_ContactElements_numNodes", num_ContactElements_numNodes)) )
         throw DataException("Error - MeshAdapter::dump: appending dimension dim_ContactElements_numNodes to netCDF file failed: " + *newFileName);
+   if (num_Tags>0)
+      if (! (ncdims[10] = dataFile.add_dim("dim_Tags", num_Tags)) )
+        throw DataException("Error - MeshAdapter::dump: appending dimension dim_Tags to netCDF file failed: " + *newFileName);
 
    // Attributes: MPI size, MPI rank, Name, order, reduced_order
    if (!dataFile.add_att("mpi_size", mpi_size) )
@@ -187,6 +201,16 @@ void MeshAdapter::dump(const std::string& fileName) const
         throw DataException("Error - MeshAdapter::dump: appending num_FaceElements_numNodes to NetCDF file failed: " + *newFileName);
    if (!dataFile.add_att("num_ContactElements_numNodes",num_ContactElements_numNodes) )
         throw DataException("Error - MeshAdapter::dump: appending num_ContactElements_numNodes to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("Elements_TypeId", mesh->Elements->ReferenceElement->Type->TypeId) )
+      throw DataException("Error - MeshAdapter::dump: appending Elements_TypeId to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->ReferenceElement->Type->TypeId) )
+      throw DataException("Error - MeshAdapter::dump: appending FaceElements_TypeId to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("ContactElements_TypeId", mesh->ContactElements->ReferenceElement->Type->TypeId) )
+      throw DataException("Error - MeshAdapter::dump: appending ContactElements_TypeId to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("Points_TypeId", mesh->Points->ReferenceElement->Type->TypeId) )
+      throw DataException("Error - MeshAdapter::dump: appending Points_TypeId to NetCDF file failed: " + *newFileName);
+   if (!dataFile.add_att("num_Tags", num_Tags) )
+      throw DataException("Error - MeshAdapter::dump: appending num_Tags to NetCDF file failed: " + *newFileName);
 
    // // // // // Nodes // // // // //
 
@@ -257,10 +281,6 @@ void MeshAdapter::dump(const std::string& fileName) const
      // Temp storage to gather node IDs
      int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
 
-     // Elements ReferenceElement->ElementTypeId
-     if (!dataFile.add_att("Elements_TypeId", mesh->Elements->ReferenceElement->Type->TypeId) )
-        throw DataException("Error - MeshAdapter::dump: appending Elements_TypeId to NetCDF file failed: " + *newFileName);
-
      // Elements_Id
      if (! ( ids = dataFile.add_var("Elements_Id", ncInt, ncdims[3])) )
         throw DataException("Error - MeshAdapter::dump: appending Elements_Id to netCDF file failed: " + *newFileName);
@@ -309,10 +329,6 @@ void MeshAdapter::dump(const std::string& fileName) const
      // Temp storage to gather node IDs
      int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
 
-     // FaceElements ReferenceElement->ElementTypeId
-     if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->ReferenceElement->Type->TypeId) )
-        throw DataException("Error - MeshAdapter::dump: appending FaceElements_TypeId to NetCDF file failed: " + *newFileName);
-
      // FaceElements_Id
      if (! ( ids = dataFile.add_var("FaceElements_Id", ncInt, ncdims[4])) )
         throw DataException("Error - MeshAdapter::dump: appending FaceElements_Id to netCDF file failed: " + *newFileName);
@@ -360,10 +376,6 @@ void MeshAdapter::dump(const std::string& fileName) const
 
      // Temp storage to gather node IDs
      int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
-
-     // ContactElements ReferenceElement->ElementTypeId
-     if (!dataFile.add_att("ContactElements_TypeId", mesh->ContactElements->ReferenceElement->Type->TypeId) )
-        throw DataException("Error - MeshAdapter::dump: appending ContactElements_TypeId to NetCDF file failed: " + *newFileName);
 
      // ContactElements_Id
      if (! ( ids = dataFile.add_var("ContactElements_Id", ncInt, ncdims[5])) )
@@ -415,10 +427,6 @@ void MeshAdapter::dump(const std::string& fileName) const
      // Temp storage to gather node IDs
      int *Points_Nodes = TMPMEMALLOC(num_Points,int);
 
-     // Points ReferenceElement->ElementTypeId
-     if (!dataFile.add_att("Points_TypeId", mesh->Points->ReferenceElement->Type->TypeId) )
-        throw DataException("Error - MeshAdapter::dump: appending Points_TypeId to NetCDF file failed: " + *newFileName);
-
      // Points_Id
      if (! ( ids = dataFile.add_var("Points_Id", ncInt, ncdims[6])) )
         throw DataException("Error - MeshAdapter::dump: appending Points_Id to netCDF file failed: " + *newFileName);
@@ -462,7 +470,48 @@ void MeshAdapter::dump(const std::string& fileName) const
 
    // // // // // TagMap // // // // //
 
-     fprintf(stderr, "\n\n\nWARNING: MeshAdapter::dump does not save the TagMap yet\n\n\n");
+   if (num_Tags>0) {
+
+     // Temp storage to gather node IDs
+     int *Tags_keys = TMPMEMALLOC(num_Tags, int);
+     char name_temp[4096];
+
+     /* Copy tag data into temp arrays */
+     tag_map = mesh->TagMap;
+     if (tag_map) {
+       int i = 0;
+       while (tag_map) {
+	Tags_keys[i++] = tag_map->tag_key;
+        tag_map=tag_map->next;
+       }
+     }
+
+     // Tags_keys
+     if (! ( ids = dataFile.add_var("Tags_keys", ncInt, ncdims[10])) )
+        throw DataException("Error - MeshAdapter::dump: appending Tags_keys to netCDF file failed: " + *newFileName);
+     int_ptr = &Tags_keys[0];
+     if (! (ids->put(int_ptr, num_Tags)) )
+        throw DataException("Error - MeshAdapter::dump: copy Tags_keys to netCDF buffer failed: " + *newFileName);
+
+     // Tags_names_*
+     // This is an array of strings, it should be stored as an array but instead I have hacked in one attribute per string
+     // because the NetCDF manual doesn't tell how to do an array of strings
+     tag_map = mesh->TagMap;
+     if (tag_map) {
+       int i = 0;
+       while (tag_map) {
+         sprintf(name_temp, "Tags_name_%d", i);
+         if (!dataFile.add_att(name_temp, tag_map->name) )
+           throw DataException("Error - MeshAdapter::dump: appending Tags_names_ to NetCDF file failed: " + *newFileName);
+         tag_map=tag_map->next;
+	 i++;
+       }
+     }
+
+     TMPMEMFREE(Tags_keys);
+
+   }
+
 
    // NetCDF file is closed by destructor of NcFile object
 #else
