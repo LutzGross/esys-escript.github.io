@@ -301,6 +301,9 @@ Help(opts.GenerateHelpText(env))
 if env['bounds_check']:
    env.Append(CPPDEFINES = [ 'BOUNDS_CHECK' ])
    env.Append(CXXDEFINES = [ 'BOUNDS_CHECK' ])
+   bounds_check = env['bounds_check']
+else:
+   bounds_check = 0
 
 #=================================================================================================
 #
@@ -446,6 +449,11 @@ except KeyError:
    useMPI = None
 # ========= set compiler flags ===========================================
 
+# Can't use MPI and OpenMP simultaneously at this time
+if useMPI:
+    omp_flags=''
+    omp_flags_debug=''
+
 if dodebug:
     try:
       flags = env['cc_flags_debug'] + ' ' + omp_flags_debug
@@ -474,6 +482,16 @@ try:
      if env['CC'] == 'gcc': env.Append(CCFLAGS = "-pedantic-errors -Wno-long-long")
 except:
      pass
+
+# ============= Remember what options were used in the compile =====================================
+env.Execute("/bin/rm -f " + libinstall + "/Compiled.with.*")
+
+if not useMPI:		env.Execute("/bin/rm -f " + libinstall + "/pythonMPI")
+
+if dodebug:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
+if useMPI:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
+if omp_flags != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
+if bounds_check:	env.Execute("touch " + libinstall + "/Compiled.with.bounds_check")
 
 # ============= set mkl (but only of no MPI) =====================================
 if not useMPI:
