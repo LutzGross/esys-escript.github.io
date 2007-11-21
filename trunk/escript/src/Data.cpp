@@ -904,19 +904,19 @@ Data::integrate() const
 Data
 Data::sin() const
 {
-  return C_TensorUnaryOperation(*this, ::sin);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::sin);
 }
 
 Data
 Data::cos() const
 {
-  return C_TensorUnaryOperation(*this, ::cos);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::cos);
 }
 
 Data
 Data::tan() const
 {
-  return C_TensorUnaryOperation(*this, ::tan);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::tan);
 }
 
 Data
