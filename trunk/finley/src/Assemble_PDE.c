@@ -60,7 +60,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
   type_t funcspace;
-  double blocktimer_start = blocktimer_time();
+  // double blocktimer_start = blocktimer_time();
 
   Finley_resetError();
 
@@ -75,11 +75,11 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   if (nodes==NULL || elements==NULL) return;
   if (S==NULL && isEmpty(F)) return;
 
-  if (isEmpty(F) && !isEmpty(X) && !isEmpty(F)) { 
+  if (isEmpty(F) && !isEmpty(X) && !isEmpty(F)) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: right hand side coefficients are non-zero bat no right hand side vector given.");
   }
 
-  if (S==NULL && !isEmpty(A) && !isEmpty(B) && !isEmpty(C) && !isEmpty(D)) { 
+  if (S==NULL && !isEmpty(A) && !isEmpty(B) && !isEmpty(C) && !isEmpty(D)) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: coefficients are non-zero but no matrix is given.");
   }
 
@@ -173,7 +173,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   }
 
   /*  check the dimensions: */
-  
+
   if (p.numEqu==1 && p.numComp==1) {
     if (!isEmpty(A)) {
       dimensions[0]=p.numDim;
@@ -213,7 +213,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
        if (!isDataPointShapeEqual(Y,0,dimensions)) {
           Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: coefficient Y, rank 0 expected.");
        }
-    } 
+    }
   } else {
     if (!isEmpty(A)) {
       dimensions[0]=p.numEqu;
@@ -360,7 +360,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
      printf("timing: assemblage PDE: %.4e sec\n",Finley_timer()-time0);
      #endif
   }
-  blocktimer_increment("Finley_Assemble_PDE()", blocktimer_start);
+  // blocktimer_increment("Finley_Assemble_PDE()", blocktimer_start);
 }
 /*
  * $Log$
