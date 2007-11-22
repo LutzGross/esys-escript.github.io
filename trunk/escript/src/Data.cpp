@@ -922,39 +922,39 @@ Data::tan() const
 Data
 Data::asin() const
 {
-  return C_TensorUnaryOperation(*this, ::asin);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::asin);
 }
 
 Data
 Data::acos() const
 {
-  return C_TensorUnaryOperation(*this, ::acos);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::acos);
 }
 
 
 Data
 Data::atan() const
 {
-  return C_TensorUnaryOperation(*this, ::atan);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::atan);
 }
 
 Data
 Data::sinh() const
 {
-    return C_TensorUnaryOperation(*this, ::sinh);
+    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
 
 }
 
 Data
 Data::cosh() const
 {
-    return C_TensorUnaryOperation(*this, ::cosh);
+    return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
 }
 
 Data
 Data::tanh() const
 {
-    return C_TensorUnaryOperation(*this, ::tanh);
+    return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
 }
 
 
@@ -1001,13 +1001,13 @@ Data::atanh() const
 Data
 Data::log10() const
 {
-  return C_TensorUnaryOperation(*this, ::log10);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::log10);
 }
 
 Data
 Data::log() const
 {
-  return C_TensorUnaryOperation(*this, ::log);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::log);
 }
 
 Data
@@ -1019,7 +1019,7 @@ Data::sign() const
 Data
 Data::abs() const
 {
-  return C_TensorUnaryOperation(*this, ::fabs);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::fabs);
 }
 
 Data
@@ -1040,13 +1040,13 @@ Data::pos() const
 Data
 Data::exp() const
 {
-  return C_TensorUnaryOperation(*this, ::exp);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::exp);
 }
 
 Data
 Data::sqrt() const
 {
-  return C_TensorUnaryOperation(*this, ::sqrt);
+  return C_TensorUnaryOperation<double (*)(double)>(*this, ::sqrt);
 }
 
 double
@@ -1514,7 +1514,7 @@ Data::powO(const boost::python::object& right) const
 Data
 Data::powD(const Data& right) const
 {
-  return C_TensorBinaryOperation(*this, right, ::pow);
+  return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
 }
 
 //
