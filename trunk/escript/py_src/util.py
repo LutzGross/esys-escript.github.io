@@ -5032,7 +5032,8 @@ class Integrate_Symbol(DependendSymbol):
 
 def interpolate(arg,where):
     """
-    interpolates the function into the FunctionSpace where.
+    interpolates the function into the FunctionSpace where. If the argument C{arg} has the requested function space 
+    C{where} no interpolation is performed and C{arg} is returned.
 
     @param arg: interpolant
     @type arg: L{escript.Data} or L{Symbol}
@@ -5044,7 +5045,10 @@ def interpolate(arg,where):
     if isinstance(arg,Symbol):
        return Interpolate_Symbol(arg,where)
     else:
-       return escript.Data(arg,where)
+       if where == arg.getFunctionSpace():
+          return arg
+       else:
+          return escript.Data(arg,where)
 
 class Interpolate_Symbol(DependendSymbol):
    """
