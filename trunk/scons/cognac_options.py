@@ -30,13 +30,13 @@ scsl_libs_MPI = [ 'scs', 'mpi' ]
 
 
 # locations of include files for python
-python_path = '/usr/include/python2.4'
-python_lib_path = '/usr/lib/'
-python_lib = 'python2.4'
+python_path = '/opt/python/2.5.1/include/python2.5'
+python_lib_path = '/opt/python/2.5.1/lib'
+python_lib = 'python2.5'
 
 # locations of libraries for boost
-boost_path = '/opt/boost/1.33.1/python2.4.2/icc10.0.023/include/boost-1_33_1'
-boost_lib_path = '/opt/boost/1.33.1/python2.4.2/icc10.0.023/lib'
+boost_path = '/opt/boost/1.34.1/python2.5.1/icc10.0.023/include/boost-1_34_1'
+boost_lib_path = '/opt/boost/1.34.1/python2.5.1/icc10.0.023/lib'
 boost_lib = 'boost_python-mt'
 
 # locations of doc building executables
