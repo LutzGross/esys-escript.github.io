@@ -760,7 +760,7 @@ void DataTestCase::testOperations() {
   resultTag.copy(baseTag.powD(power));
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
-      tmp=pow(dataView.index(i,j),3.0);
+      tmp=pow((double)dataView.index(i,j),(double)3.0);
       assert(std::abs(resultEx.getPointDataView()(i,j) - tmp) <= REL_TOL*std::abs(tmp));
       assert(std::abs(resultCon.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
       assert(std::abs(resultTag.getPointDataView()(i,j)- tmp) <= REL_TOL*std::abs(tmp));
