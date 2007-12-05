@@ -259,6 +259,22 @@ class DataExpanded : public DataAbstract {
 
   /**
      \brief
+     setTaggedValue
+
+     Description:
+     uses tag to set a new value
+
+     \param tagKey - Input - Integer key.
+     \param value - Input - Single DataArrayView value to be assigned to the tag.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  setTaggedValue(int tagKey,
+                 const DataArrayView& value);
+
+  /**
+     \brief
      Computes a symmetric matrix (A + AT) / 2
 
      \param ev - Output - symmetric matrix

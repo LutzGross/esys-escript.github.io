@@ -73,9 +73,11 @@ if ((degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id) >= len || (degreeOfFreed
                              numUncoloredElements++;
                      }
                   }
+
             }
             in->maxColor++;
          }  /* end of while loop */
+printf("color range %d :%d\n",in->minColor,in->maxColor);
     }
     /* all done : */
     TMPMEMFREE(maskDOF);

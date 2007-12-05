@@ -588,8 +588,8 @@ class Data {
   /**
      \brief
      Assign the given value to the tag. Implicitly converts this
-     object to type DataTagged. Throws an exception if this object
-     cannot be converted to a DataTagged object.
+     object to type DataTagged if it is constant.
+
      \param tagKey - Input - Integer key.
      \param value - Input - Value to associate with given key.
     ==>*
@@ -602,8 +602,8 @@ class Data {
   /**
      \brief
      Assign the given value to the tag. Implicitly converts this
-     object to type DataTagged. Throws an exception if this object
-     cannot be converted to a DataTagged object.
+     object to type DataTagged if it is constant.
+
      \param tagKey - Input - Integer key.
      \param value - Input - Value to associate with given key.
     ==>*

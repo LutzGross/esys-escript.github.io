@@ -1768,11 +1768,7 @@ Data::setTaggedValue(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
-  tag();
-
-  if (!isTagged()) {
-    throw DataException("Error - DataTagged conversion failed!!");
-  }
+  if (isConstant()) tag();
 
   numeric::array asNumArray(value);
 
@@ -1803,11 +1799,7 @@ Data::setTaggedValueFromCPP(int tagKey,
   }
   //
   // Ensure underlying data object is of type DataTagged
-  tag();
-
-  if (!isTagged()) {
-    throw DataException("Error - DataTagged conversion failed!!");
-  }
+  if (isConstant()) tag();
 
   //
   // Call DataAbstract::setTaggedValue
@@ -1817,7 +1809,7 @@ Data::setTaggedValueFromCPP(int tagKey,
 int
 Data::getTagNumber(int dpno)
 {
-  return m_data->getTagNumber(dpno);
+  return getFunctionSpace().getTagFromSampleNo(dpno);
 }
 
 void
