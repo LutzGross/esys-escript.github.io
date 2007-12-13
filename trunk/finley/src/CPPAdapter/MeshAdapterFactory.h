@@ -62,6 +62,11 @@ namespace finley {
 				     int integrationOrder=-1,
                                      int reducedIntegrationOrder=-1,
                                      int optimize=0);
+  FINLEY_DLL_API
+  escript::AbstractContinuousDomain* readMeshMPI(const std::string& fileName,
+				     int integrationOrder=-1,
+                                     int reducedIntegrationOrder=-1,
+                                     int optimize=0);
   /**
      \brief
      Read a gmsh mesh file

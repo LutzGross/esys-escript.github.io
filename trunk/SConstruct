@@ -484,14 +484,12 @@ except:
      pass
 
 # ============= Remember what options were used in the compile =====================================
-Delete(libinstall + "/Compiled.with.*")
-
-if not useMPI:		Delete(libinstall + "/pythonMPI")
-
-if dodebug:		Touch(libinstall + "/Compiled.with.debug")
-if useMPI:		Touch(libinstall + "/Compiled.with.mpi")
-if omp_flags != '':	Touch(libinstall + "/Compiled.with.OpenMP")
-if bounds_check:	Touch(libinstall + "/Compiled.with.bounds_check")
+if not IS_WINDOWS_PLATFORM:
+  env.Execute("/bin/rm -f " + libinstall + "/Compiled.with.*")
+  if dodebug:		env.Execute("touch " + libinstall + "/Compiled.with.debug")
+  if useMPI:		env.Execute("touch " + libinstall + "/Compiled.with.mpi")
+  if omp_flags != '':	env.Execute("touch " + libinstall + "/Compiled.with.OpenMP")
+  if bounds_check:	env.Execute("touch " + libinstall + "/Compiled.with.bounds_check")
 
 # ============= set mkl (but only of no MPI) =====================================
 if not useMPI:
