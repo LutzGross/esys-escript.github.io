@@ -59,5 +59,6 @@ Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,index_t*,inde
 bool_t Paso_Pattern_isEmpty(Paso_Pattern* in);
 void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker);
 void Paso_Pattern_reduceBandwidth(Paso_Pattern* self,index_t* oldToNew);
+void Paso_Pattern_color(Paso_Pattern* patter, index_t* num_colors, index_t* colorOf);
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */

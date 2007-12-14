@@ -917,14 +917,19 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
            Finley_Assemble_AverageElementData(mesh->FaceElements,&_target,&_in);
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on face elements possible.");
-       }
-       break;
+        }
+        break;
      case(ReducedFaceElements):
+cout << "A\n";
         if (target.getFunctionSpace().getTypeCode()==FaceElements) {
+cout << "B\n";
            Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
+cout << "C\n";
+        throw FinleyAdapterException("A");
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
        }
+cout << "A\n";
        break;
      case(Points):
         if (target.getFunctionSpace().getTypeCode()==Points) {
@@ -941,7 +946,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
            Finley_Assemble_AverageElementData(mesh->ContactElements,&_target,&_in);
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on contact elements possible.");
-           break;
         }
         break;
      case(ReducedContactElementsZero):
@@ -950,7 +954,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
            Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on contact elements with reduced integration order possible.");
-           break;
         }
         break;
      case(DegreesOfFreedom):      

@@ -75,6 +75,7 @@ typedef int err_t;
 #define MIN(_arg1_,_arg2_) ((_arg1_)>(_arg2_) ?  (_arg2_) : (_arg1_)) 
 #define MIN3(_arg1_,_arg2_,_arg3_) MIN(_arg1_,MIN(_arg2_,_arg3_))
 #define ABS(_arg_) MAX((_arg_),-(_arg_))
+#define SIGN(_arg_) ((_arg_)>0 ?  1  : ((_arg_)<0 ? -1 : 0 ))
 /**************************************************************/
 
 /*    memory allocation:                                      */

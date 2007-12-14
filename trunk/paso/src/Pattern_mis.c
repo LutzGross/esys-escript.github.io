@@ -120,3 +120,26 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
 #undef IS_IN_MIS_NOW 
 #undef IS_IN_MIS 
 #undef IS_CONNECTED_TO_MIS 
+
+void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* colorOf) {
+  index_t out=0, *mis_marker=NULL,i;
+  dim_t n=pattern->numOutput;
+  mis_marker=TMPMEMALLOC(n,index_t);
+  if ( !Paso_checkPtr(mis_marker) ) {
+    /* get coloring */
+    #pragma omp parallel for private(i) schedule(static)
+    for (i = 0; i < n; ++i) colorOf[i]=-1;
+
+    while (Paso_Util_isAny(n,colorOf,-1) && Paso_noError()) {
+       #pragma omp parallel for private(i) schedule(static)
+       for (i = 0; i < n; ++i) mis_marker[i]=colorOf[i];
+       Paso_Pattern_mis(pattern,mis_marker);
+
+       #pragma omp parallel for private(i) schedule(static)
+       for (i = 0; i < n; ++i) if (mis_marker[i]) colorOf[i]=out;
+       ++out;
+    }
+    TMPMEMFREE(mis_marker);
+    *num_colors=out;
+  }
+}

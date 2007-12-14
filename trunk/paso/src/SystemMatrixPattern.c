@@ -112,3 +112,11 @@ void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern* in) {
      }
    }
 }
+dim_t Paso_SystemMatrixPattern_getNumOutput(Paso_SystemMatrixPattern* in) {
+    if (in!=NULL) {
+       return 0;
+    } else {
+       return in->mainPattern->numOutput;
+    }
+}
+

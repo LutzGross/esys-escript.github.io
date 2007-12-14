@@ -203,4 +203,7 @@ dim_t Paso_SystemMatrix_getGlobalNumCols(Paso_SystemMatrix* A) {
   }
 
 }
+dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A) {
+   return Paso_SystemMatrixPattern_getNumOutput(A->pattern);
+}
 

@@ -138,7 +138,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       arg("optimize")=true),
       return_value_policy<manage_new_object>());
 
-  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
+
 
   class_<finley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
       ("MeshAdapter",init<optional <Finley_Mesh*> >())
@@ -174,5 +174,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("resetValues",&finley::SystemMatrixAdapter::resetValues)
       .def("saveMM",&finley::SystemMatrixAdapter::saveMM)
       .def("saveHB",&finley::SystemMatrixAdapter::saveHB);
+
+  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
 }

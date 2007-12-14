@@ -43,9 +43,9 @@
 /**************************************************************/
 
 void Paso_solve(Paso_SystemMatrix* A,
-                               double* out,
-                               double* in,
-                               Paso_Options* options) {
+                double* out,
+                double* in,
+                Paso_Options* options) {
 
   Paso_Performance pp;
   index_t package;

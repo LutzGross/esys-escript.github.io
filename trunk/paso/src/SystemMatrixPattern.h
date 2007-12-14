@@ -57,5 +57,6 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_reference(Paso_SystemMatrixPa
 void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern*);
 Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern,
                                            int type, dim_t output_block_size,dim_t input_block_size);
+index_t Paso_SystemMatrixPattern_getNumOutput(Paso_SystemMatrixPattern*);
 
 #endif /* #ifndef INC_PASO_SYSTEMPATTERN */

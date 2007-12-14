@@ -66,7 +66,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
                  elementtype=FINLEY_ELEMENTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
@@ -78,7 +78,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
                  elementtype=FINLEY_ELEMENTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
@@ -90,7 +90,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS) {
                  elementtype=FINLEY_FACE_ELEMENTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
@@ -101,7 +101,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_POINTS) {
                  elementtype=FINLEY_POINTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
@@ -113,7 +113,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
@@ -125,7 +125,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
                  elementtype=FINLEY_CONTACT_ELEMENTS_1;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data in single file.");
+                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
@@ -133,7 +133,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              isCellCentered[i_data]=TRUE;
              break;
            default:
-             sprintf(error_msg,"saveDX: I don't know how to handel function space type %d",getFunctionSpaceType(data_pp[i_data]));
+             sprintf(error_msg,"saveDX: I don't know how to handle function space type %d",getFunctionSpaceType(data_pp[i_data]));
              Finley_setError(TYPE_ERROR,error_msg);
              MEMFREE(isCellCentered);
              fclose(fileHandle_p);

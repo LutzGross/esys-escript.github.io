@@ -2,7 +2,7 @@
 #include <search.h>
 
 /* Enable the block timer (or remove this and use -DBLOCKTIMER) */
-# define BLOCKTIMER
+/* # define BLOCKTIMER */
 
 # define NUM_TIMERS 1024
 
