@@ -44,14 +44,13 @@
 /* b[i,i]-=alpha*d_ij  */
 /* b[j,j]-=alpha*d_ij  */
 
-void Paso_FCTransportProblem_addDiffusion(Paso_FCTransportProblem * fc, double alpha, Paso_SystemMatrix * B) {
+void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, double alpha) {
   dim_t n,i;
   index_t color, iptr_ij,j,iptr_ji;
   register double d_ij;
 
   if (fc==NULL) return;
   n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
-  /* TODO test - same pattern + block size */
 
   #pragma omp parallel private(color) 
   {
@@ -67,10 +66,10 @@ void Paso_FCTransportProblem_addDiffusion(Paso_FCTransportProblem * fc, double a
                         for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]-1; ++iptr_ji) {
                             if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
                                 d_ij=(-alpha)*MIN3(0.,fc->flux_matrix->mainBlock->val[iptr_ij],fc->flux_matrix->mainBlock->val[iptr_ji]);
-                                B->mainBlock->val[iptr_ij]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
-                                B->mainBlock->val[iptr_ji]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ji]+d_ij;
-                                B->mainBlock->val[fc->main_iptr[i]]-=d_ij;
-                                B->mainBlock->val[fc->main_iptr[j]]-=d_ij;
+                                fc->transport_matrix->mainBlock->val[iptr_ij]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
+                                fc->transport_matrix->mainBlock->val[iptr_ji]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ji]+d_ij;
+                                fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]-=d_ij;
+                                fc->transport_matrix->mainBlock->val[fc->main_iptr[j]]-=d_ij;
                                 break;
                             }
                         }

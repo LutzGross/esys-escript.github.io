@@ -40,6 +40,7 @@ void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in) {
            Paso_MPIInfo_free(in->mpi_info);
 
            MEMFREE(in->lumped_mass_matrix);
+           MEMFREE(in->row_sum_flux_matrix);
            MEMFREE(in->colorOf);
            MEMFREE(in->main_iptr);
            MEMFREE(in);
@@ -87,6 +88,7 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
      if (Paso_checkPtr(out)) return NULL;
 
      out->theta=theta;
+     out->valid_matrices=FALSE;
      out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
      Paso_SystemMatrix_allocBuffer(out->transport_matrix);
      out->flux_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
@@ -95,6 +97,7 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
      out->colorOf=NULL;
      out->main_iptr=NULL;
      out->lumped_mass_matrix=NULL;
+     out->row_sum_flux_matrix=NULL;
 
      if (Paso_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
@@ -102,8 +105,10 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
          out->colorOf=MEMALLOC(n,index_t);
          out->main_iptr=MEMALLOC(n,index_t);
          out->lumped_mass_matrix=MEMALLOC(n,double);
+         out->row_sum_flux_matrix=MEMALLOC(n,double);
 
-         if ( ! (Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->lumped_mass_matrix)) ) {
+         if ( ! (Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || 
+                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->row_sum_flux_matrix)) ) {
              
              printf("Paso_SolverFCT_getFCTransportProblem: Revise coloring!!\n");
              Paso_Pattern_color(pattern->mainPattern,&(out->num_colors),out->colorOf);

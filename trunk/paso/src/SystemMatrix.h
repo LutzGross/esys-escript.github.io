@@ -109,6 +109,7 @@ int Paso_SystemMatrix_getSystemMatrixTypeId(index_t solver, index_t package, boo
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
+void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum);
 
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */
 

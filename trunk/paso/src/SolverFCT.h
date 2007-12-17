@@ -18,10 +18,13 @@
 
 typedef struct Paso_FCTransportProblem {
 
+    double theta;
+    bool_t valid_matrices;
+
     Paso_SystemMatrix * transport_matrix;
     Paso_SystemMatrix * flux_matrix;
     double* lumped_mass_matrix;
-    double theta;
+    double* row_sum_flux_matrix;
 
     dim_t num_colors;
     index_t *colorOf;
@@ -40,7 +43,7 @@ double* Paso_FCTransportProblem_borrowLumpedMassMatrix(Paso_FCTransportProblem* 
 dim_t Paso_FCTransportProblem_getTotalNumRows(Paso_FCTransportProblem* in);
 Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_SystemMatrixPattern *pattern, int block_size);
 void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double* fa);
-void Paso_FCTransportProblem_addDiffusion(Paso_FCTransportProblem * fc, double alpha, Paso_SystemMatrix * B);
+void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, double alpha);
 
 
 #endif /* #ifndef INC_SOLVERFCT */

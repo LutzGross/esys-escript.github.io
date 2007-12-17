@@ -3,7 +3,6 @@
 
 /*******************************************************
  *
- *           Copyright 2003-2007 by ACceSS MNRF
  *       Copyright 2007 by University of Queensland
  *
  *                http://esscc.uq.edu.au
@@ -19,7 +18,7 @@
 
 /**************************************************************/
 
-/*   Author: gross@access.edu.au */
+/*   Author: lgross@uq.edu.au */
 
 /**************************************************************/
 
@@ -70,6 +69,7 @@ void Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SparseMatrix*
 void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha, Paso_SparseMatrix* A, double* in, double beta, double* out);
 void Paso_SparseMatrix_copy(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
+void Paso_SparseMatrix_addRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_nullifyRowsAndCols_CSC_BLK1(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 void Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 void Paso_SparseMatrix_nullifyRowsAndCols_CSC(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
