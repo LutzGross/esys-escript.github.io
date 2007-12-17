@@ -60,6 +60,6 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* self);
 void Paso_Coupler_freeBuffer(Paso_Coupler* coupler);
 void Paso_Coupler_allocBuffer(Paso_Coupler* coupler,dim_t blockSize);
 Paso_Coupler* Paso_Coupler_unroll(Paso_Coupler* in, index_t block_size);
-
+bool_t Paso_Coupler_bufferIsAllocated(Paso_Coupler* coupler);
 
 #endif 

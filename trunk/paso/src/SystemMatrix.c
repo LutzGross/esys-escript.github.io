@@ -166,7 +166,9 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
    }
 }
 void Paso_SystemMatrix_allocBuffer(Paso_SystemMatrix* A) {
-    Paso_Coupler_allocBuffer(A->pattern->coupler,A->col_block_size);
+   if (! Paso_Coupler_bufferIsAllocated(A->pattern->coupler) ) {
+       Paso_Coupler_allocBuffer(A->pattern->coupler,A->col_block_size);
+   }
 }
 void Paso_SystemMatrix_freeBuffer(Paso_SystemMatrix* A) {
     Paso_Coupler_freeBuffer(A->pattern->coupler);

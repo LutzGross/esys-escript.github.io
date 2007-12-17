@@ -99,11 +99,14 @@ void Paso_Coupler_free(Paso_Coupler* in) {
    }
 }
 
+bool_t Paso_Coupler_bufferIsAllocated(Paso_Coupler* coupler) {
+  return ( (coupler->send_buffer !=NULL) || (coupler->recv_buffer!=NULL) );
+}
 
 void Paso_Coupler_allocBuffer(Paso_Coupler* coupler,dim_t block_size)
 {
     Paso_MPIInfo *mpi_info = coupler->mpi_info;  
-    if ( (coupler->send_buffer !=NULL) || (coupler->recv_buffer!=NULL) ) {
+    if (Paso_Coupler_bufferIsAllocated(coupler))  {
         Paso_setError(SYSTEM_ERROR,"Paso_Coupler_allocBuffer: coupler are still in use.");
         return;
     }

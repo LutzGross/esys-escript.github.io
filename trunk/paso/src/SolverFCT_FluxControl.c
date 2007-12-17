@@ -36,77 +36,6 @@
 
 /**************************************************************/
 
-/* free all memory used by FluxControl                                */
-
-void Paso_Solver_FluxControl_free(Paso_Solver_FluxControl* in) {
-     if (in!=NULL) {
-        Paso_SystemMatrix_freeBuffer(in->matrix);
-        Paso_SystemMatrix_free(in->matrix);
-        MEMFREE(in->colorOf);
-        MEMFREE(in->main_iptr);
-        MEMFREE(in);
-     }
-}
-
-/**************************************************************/
-
-/*   constructs a flux control mechanism                      */
-
-Paso_Solver_FluxControl* Paso_SolverFCT_getFluxControl(Paso_SystemMatrix * A) {
-
-  Paso_Solver_FluxControl* out=NULL;
-  dim_t n,i;
-  index_t iptr,iptr_main,k;
-
-  if (A==NULL) return out;
-  n=Paso_SystemMatrix_getTotalNumRows(A);
-  if (A->block_size!=1) {
-        Paso_setError(TYPE_ERROR,"Paso_SolverFCT_getFluxControl: block size > 1 is not supported.");
-        return NULL;
-  }
-  out=MEMALLOC(1,Paso_Solver_FluxControl);
-  if (Paso_checkPtr(out)) return NULL;
-
-  out->matrix=Paso_SystemMatrix_reference(A);
-  out->colorOf=NULL;
-  out->main_iptr=NULL;
-  
-
-  /* allocations: */  
-  out->colorOf=MEMALLOC(n,index_t);
-  out->main_iptr=MEMALLOC(n,index_t);
-  if ( ! (Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) ) ) {
-      printf("Paso_SolverFCT_getFluxControl: Revise coloring!!\n");
-      Paso_Pattern_color(A->mainBlock->pattern,&(out->num_colors),out->colorOf);
-      Paso_SystemMatrix_allocBuffer(A);
-
-      #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)
-      for (i = 0; i < n; ++i) {
-        for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
-             iptr_main=A->mainBlock->pattern->ptr[0]-1;
-              for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; iptr++) {
-                   if (A->mainBlock->pattern->index[iptr]==i) {
-                        iptr_main=iptr;
-                        break;
-                   }
-               }
-               out->main_iptr[i]=iptr_main;
-               if (iptr_main==A->mainBlock->pattern->ptr[0]-1)
-                  Paso_setError(VALUE_ERROR, "Paso_SolverFCT_getFluxControl: no main diagonal");
-           }
-       }
-
-  }
-  if (Paso_noError()) {
-     return out;
-  } else {
-     Paso_Solver_FluxControl_free(out);
-     return NULL;
-  }
-} 
-
-/**************************************************************/
-
 /* adds A plus stabelising diffusion into the matrix B        */
 
 /* d_ij=alpha*max(0,-a[i,j],-a[j,i])  */
@@ -115,13 +44,13 @@ Paso_Solver_FluxControl* Paso_SolverFCT_getFluxControl(Paso_SystemMatrix * A) {
 /* b[i,i]-=alpha*d_ij  */
 /* b[j,j]-=alpha*d_ij  */
 
-void Paso_Solver_FluxControl_addDiffusion(Paso_Solver_FluxControl * fc, double alpha, Paso_SystemMatrix * B) {
+void Paso_FCTransportProblem_addDiffusion(Paso_FCTransportProblem * fc, double alpha, Paso_SystemMatrix * B) {
   dim_t n,i;
   index_t color, iptr_ij,j,iptr_ji;
   register double d_ij;
 
   if (fc==NULL) return;
-  n=Paso_SystemMatrix_getTotalNumRows(fc->matrix);
+  n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
   /* TODO test - same pattern + block size */
 
   #pragma omp parallel private(color) 
@@ -131,15 +60,15 @@ void Paso_Solver_FluxControl_addDiffusion(Paso_Solver_FluxControl * fc, double a
            #pragma omp for private(i,iptr_ij,j,iptr_ji,d_ij)  schedule(static)
            for (i = 0; i < n; ++i) {
                if (fc->colorOf[i]==color) {
-                  for (iptr_ij=fc->matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
-                     j=fc->matrix->mainBlock->pattern->index[iptr_ij];
+                  for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
+                     j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
                      if (i<j) {
                         /* find entry a[j,i] */
-                        for (iptr_ji=fc->matrix->mainBlock->pattern->ptr[i];iptr_ji<fc->matrix->mainBlock->pattern->ptr[j+1]-1; ++iptr_ji) {
-                            if (fc->matrix->mainBlock->pattern->index[iptr_ji]==i) {
-                                d_ij=(-alpha)*MIN3(0.,fc->matrix->mainBlock->val[iptr_ij],fc->matrix->mainBlock->val[iptr_ji]);
-                                B->mainBlock->val[iptr_ij]+=alpha*fc->matrix->mainBlock->val[iptr_ij]+d_ij;
-                                B->mainBlock->val[iptr_ji]+=alpha*fc->matrix->mainBlock->val[iptr_ji]+d_ij;
+                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]-1; ++iptr_ji) {
+                            if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
+                                d_ij=(-alpha)*MIN3(0.,fc->flux_matrix->mainBlock->val[iptr_ij],fc->flux_matrix->mainBlock->val[iptr_ji]);
+                                B->mainBlock->val[iptr_ij]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
+                                B->mainBlock->val[iptr_ji]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ji]+d_ij;
                                 B->mainBlock->val[fc->main_iptr[i]]-=d_ij;
                                 B->mainBlock->val[fc->main_iptr[j]]-=d_ij;
                                 break;
@@ -174,7 +103,7 @@ void Paso_Solver_FluxControl_addDiffusion(Paso_Solver_FluxControl * fc, double a
 
 */
 
-void Paso_Solver_FluxControl_setAntiDiffusiveFlux(Paso_Solver_FluxControl * fc, double * u, double* fa) {
+void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double* fa) {
 
   register double u_i,P_p,P_n,Q_p,Q_n,r_p,r_n, a_ij, d, u_j, r_ij, f_ij, a_ji;
   double *u_remote=NULL;
@@ -183,10 +112,11 @@ void Paso_Solver_FluxControl_setAntiDiffusiveFlux(Paso_Solver_FluxControl * fc, 
 
 
   if (fc==NULL) return;
-  n=Paso_SystemMatrix_getTotalNumRows(fc->matrix);
+  n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
   /* exchange */
-  Paso_SystemMatrix_startCollect(fc->matrix,u);
-  u_remote=Paso_SystemMatrix_finishCollect(fc->matrix);
+  Paso_SystemMatrix_allocBuffer(fc->flux_matrix);
+  Paso_SystemMatrix_startCollect(fc->flux_matrix,u);
+  u_remote=Paso_SystemMatrix_finishCollect(fc->flux_matrix);
 
   #pragma omp parallel private(color) 
   {
@@ -201,9 +131,9 @@ void Paso_Solver_FluxControl_setAntiDiffusiveFlux(Paso_Solver_FluxControl * fc, 
                   Q_p=0.;
                   Q_n=0.;
                   #pragma ivdep
-  	          for (iptr_ij=(fc->matrix->mainBlock->pattern->ptr[i]);iptr_ij<(fc->matrix->mainBlock->pattern->ptr[i+1]); ++iptr_ij) {
-                      a_ij=fc->matrix->mainBlock->val[iptr_ij];
-                      j=fc->matrix->mainBlock->pattern->index[iptr_ij];
+  	          for (iptr_ij=(fc->flux_matrix->mainBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->mainBlock->pattern->ptr[i+1]); ++iptr_ij) {
+                      a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
+                      j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
                       d=u[j]-u_i;
                       if (a_ij<0.) {
                          if (d<0.) {
@@ -220,9 +150,9 @@ void Paso_Solver_FluxControl_setAntiDiffusiveFlux(Paso_Solver_FluxControl * fc, 
                       }
   	          }
                   #pragma ivdep
-  	          for (iptr_ij=(fc->matrix->coupleBlock->pattern->ptr[i]);iptr_ij<(fc->matrix->coupleBlock->pattern->ptr[i+1]); ++iptr_ij) {
-                      a_ij=fc->matrix->coupleBlock->val[iptr_ij];
-                      j=fc->matrix->coupleBlock->pattern->index[iptr_ij];
+  	          for (iptr_ij=(fc->flux_matrix->coupleBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->coupleBlock->pattern->ptr[i+1]); ++iptr_ij) {
+                      a_ij=fc->flux_matrix->coupleBlock->val[iptr_ij];
+                      j=fc->flux_matrix->coupleBlock->pattern->index[iptr_ij];
                       d=u_remote[j]-u_i;
                       if (a_ij<0.) {
                          if (d<0.) {
@@ -242,14 +172,14 @@ void Paso_Solver_FluxControl_setAntiDiffusiveFlux(Paso_Solver_FluxControl * fc, 
                   r_p = (P_p > 0.) ? FLUX_LIMITER(Q_p/P_p) : 0.;
                   r_n = (P_n < 0 ) ? FLUX_LIMITER(Q_n/P_n) : 0.;
                   /* anti diffusive flux from main block */
-                  for (iptr_ij=fc->matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
-                     a_ij=fc->matrix->mainBlock->val[iptr_ij];
-                     j=fc->matrix->mainBlock->pattern->index[iptr_ij];
+                  for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
+                     a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
+                     j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
                      if (a_ij < 0 && i!=j) {
                         /* find entry a[j,i] */
-                        for (iptr_ji=fc->matrix->mainBlock->pattern->ptr[i];iptr_ji<fc->matrix->mainBlock->pattern->ptr[j+1]-1; ++iptr_ji) {
-                            if (fc->matrix->mainBlock->pattern->index[iptr_ji]==i) {
-                                a_ji=fc->matrix->mainBlock->val[iptr_ji];
+                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]-1; ++iptr_ji) {
+                            if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
+                                a_ji=fc->flux_matrix->mainBlock->val[iptr_ji];
                                 if  (a_ji > a_ij || (a_ji == a_ij && j<i) ) {
                                     u_j=u[j];
                                     r_ij = u_i>u_j ? r_p : r_n;
