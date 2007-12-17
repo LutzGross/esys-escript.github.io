@@ -63,15 +63,15 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& s
     Paso_Options paso_options;
     SystemMatrixAdapter::dictToPasoOptions(&paso_options,options);
     if ( out.getDataPointSize()  != getBlockSize()) {
-     throw FinleyAdapterException("solve : column block size does not match the number of components of solution.");
+     throw FinleyAdapterException("solve : block size of solution does not match block size of transport problems.");
     } else if ( source.getDataPointSize() != getBlockSize()) {
-     throw FinleyAdapterException("solve : row block size does not match the number of components of  right hand side.");
+     throw FinleyAdapterException("solve : block size of source term does not match block size of transport problems.");
     } else if ( out.getFunctionSpace()  != getFunctionSpace()) {
-     throw FinleyAdapterException("solve : column function space and function space of solution don't match.");
+     throw FinleyAdapterException("solve : function spaces of solution and of transport problem don't match.");
     } else if (source.getFunctionSpace() != getFunctionSpace()) {
-     throw FinleyAdapterException("solve : row function space and function space of right hand side don't match.");
+     throw FinleyAdapterException("solve : function spaces of source term and of transport problem don't match.");
     } else if (dt<=0.) {
-     throw FinleyAdapterException("solve : row function space and function space of right hand side don't match.");
+     throw FinleyAdapterException("solve : time increment dt needs to be positive.");
     }
     out.expand();
     source.expand();
@@ -95,6 +95,11 @@ void TransportProblemAdapter::resetTransport() const
 void TransportProblemAdapter::copyInitialValue(escript::Data& u) const
 {
     Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
+    if ( u.getDataPointSize()  != getBlockSize()) {
+     throw FinleyAdapterException("copyInitialValue : block size of solution does not match block size of transport problems.");
+    } else if ( u.getFunctionSpace()  != getFunctionSpace()) {
+     throw FinleyAdapterException("copyInitialValue : function spaces of solution and of transport problem don't match.");
+    }
     u.expand();
     double* u_dp=u.getSampleData(0);
     Paso_FCTransportProblem_checkinSolution( transp,u_dp);
