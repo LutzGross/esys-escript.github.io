@@ -42,7 +42,7 @@
 /***********************************************************************************/
 
 
-void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, Paso_Options* options,Paso_Performance* pp) {
+void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
 
    if (dt<=0.) {
        Paso_setError(TYPE_ERROR,"Paso_SolverFCT_solve: dt must be positive.");

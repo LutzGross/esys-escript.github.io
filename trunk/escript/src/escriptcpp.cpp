@@ -21,6 +21,7 @@
 #include "AbstractDomain.h"
 #include "Utils.h"
 #include "AbstractSystemMatrix.h"
+#include "AbstractTransportProblem.h"
 #include "DataVector.h"
 
 extern "C" {
@@ -318,6 +319,14 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("saveHB",&escript::AbstractSystemMatrix::saveHB)
      .def("resetValues",&escript::AbstractSystemMatrix::resetValues)
      .def(self*other<escript::Data>());
+  //
+  // Interface for AbstractTransportProblem
+  //
+  class_<escript::AbstractTransportProblem>("TransportProblem",init<>())
+     .def("isEmpty",&escript::AbstractTransportProblem::isEmpty)
+     .def("solve",&escript::AbstractTransportProblem::solve)
+     .def("setInitalValue",&escript::AbstractTransportProblem::setInitialValue)
+     .def("resetTransport",&escript::AbstractTransportProblem::resetTransport);
 
   //
   // Register esysExceptionTranslator

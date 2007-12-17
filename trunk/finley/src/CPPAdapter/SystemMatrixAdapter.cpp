@@ -188,24 +188,25 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, co
 {
     Paso_SystemMatrix* mat=getPaso_SystemMatrix();
     Paso_Options paso_options;
-    Paso_Options_setDefaults(&paso_options);
+    dictToPasoOptions(&paso_options,options);
+    // Paso_Options_setDefaults(&paso_options);
     // extract options 
-    #define EXTRACT(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options.__val__=boost::python::extract<__type__>(options.get(__key__))
-    #define EXTRACT_OPTION(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options.__val__=mapOptionToPaso(boost::python::extract<__type__>(options.get(__key__)))
-    EXTRACT("verbose",verbose,int);
-    EXTRACT_OPTION("reordering",reordering,int);
-    EXTRACT(ESCRIPT_TOLERANCE_KEY,tolerance,double);
-    EXTRACT_OPTION(ESCRIPT_METHOD_KEY,method,int);
-    EXTRACT(ESCRIPT_SYMMETRY_KEY,symmetric,int);
-    EXTRACT_OPTION(ESCRIPT_PACKAGE_KEY,package,int);
-    EXTRACT_OPTION("preconditioner",preconditioner,int);
-    EXTRACT("iter_max",iter_max,int);
-    EXTRACT("drop_tolerance",drop_tolerance,double);
-    EXTRACT("drop_storage",drop_storage,double);
-    EXTRACT("truncation",truncation,int);
-    EXTRACT("restart",restart,int);
-    #undef EXTRACT
-    #undef EXTRACT_OPTION
+    // #define EXTRACT(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options.__val__=boost::python::extract<__type__>(options.get(__key__))
+    // #define EXTRACT_OPTION(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options.__val__=mapOptionToPaso(boost::python::extract<__type__>(options.get(__key__)))
+    // EXTRACT("verbose",verbose,int);
+    // EXTRACT_OPTION("reordering",reordering,int);
+    // EXTRACT(ESCRIPT_TOLERANCE_KEY,tolerance,double);
+    // EXTRACT_OPTION(ESCRIPT_METHOD_KEY,method,int);
+    // EXTRACT(ESCRIPT_SYMMETRY_KEY,symmetric,int);
+    // EXTRACT_OPTION(ESCRIPT_PACKAGE_KEY,package,int);
+    // EXTRACT_OPTION("preconditioner",preconditioner,int);
+    // EXTRACT("iter_max",iter_max,int);
+    // EXTRACT("drop_tolerance",drop_tolerance,double);
+    // EXTRACT("drop_storage",drop_storage,double);
+    // EXTRACT("truncation",truncation,int);
+    // EXTRACT("restart",restart,int);
+    // #undef EXTRACT
+    // #undef EXTRACT_OPTION
     if ( out.getDataPointSize()  != getColumnBlockSize()) {
      throw FinleyAdapterException("solve : column block size does not match the number of components of solution.");
     } else if ( in.getDataPointSize() != getRowBlockSize()) {
@@ -274,5 +275,27 @@ void SystemMatrixAdapter::resetValues() const
    Paso_solve_free(mat);
    checkPasoError();
 }
+
+void SystemMatrixAdapter::dictToPasoOptions(Paso_Options* paso_options, const boost::python::dict& options) 
+{
+    Paso_Options_setDefaults(paso_options);
+    #define EXTRACT(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options->__val__=boost::python::extract<__type__>(options.get(__key__))
+    #define EXTRACT_OPTION(__key__,__val__,__type__) if ( options.has_key(__key__)) paso_options->__val__=mapOptionToPaso(boost::python::extract<__type__>(options.get(__key__)))
+    EXTRACT("verbose",verbose,int);
+    EXTRACT_OPTION("reordering",reordering,int);
+    EXTRACT(ESCRIPT_TOLERANCE_KEY,tolerance,double);
+    EXTRACT_OPTION(ESCRIPT_METHOD_KEY,method,int);
+    EXTRACT(ESCRIPT_SYMMETRY_KEY,symmetric,int);
+    EXTRACT_OPTION(ESCRIPT_PACKAGE_KEY,package,int);
+    EXTRACT_OPTION("preconditioner",preconditioner,int);
+    EXTRACT("iter_max",iter_max,int);
+    EXTRACT("drop_tolerance",drop_tolerance,double);
+    EXTRACT("drop_storage",drop_storage,double);
+    EXTRACT("truncation",truncation,int);
+    EXTRACT("restart",restart,int);
+    #undef EXTRACT
+    #undef EXTRACT_OPTION
+}
+    
 
 }  // end of namespace

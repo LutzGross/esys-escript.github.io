@@ -23,6 +23,7 @@ extern "C" {
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 #include "SystemMatrixAdapter.h"
+#include "TransportProblemAdapter.h"
 
 #include "FinleyAdapterException.h"
 // #include "esysUtils/EsysException.h"
@@ -174,6 +175,12 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("resetValues",&finley::SystemMatrixAdapter::resetValues)
       .def("saveMM",&finley::SystemMatrixAdapter::saveMM)
       .def("saveHB",&finley::SystemMatrixAdapter::saveHB);
+
+  class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
+      ("OperatorAdapter",no_init)
+      .def("resetTransport",&finley::TransportProblemAdapter::resetTransport);
+
+
 
   register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 

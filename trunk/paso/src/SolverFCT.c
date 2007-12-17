@@ -39,6 +39,7 @@ void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in) {
            Paso_SystemMatrix_free(in->flux_matrix);
            Paso_MPIInfo_free(in->mpi_info);
 
+           MEMFREE(in->u);
            MEMFREE(in->lumped_mass_matrix);
            MEMFREE(in->row_sum_flux_matrix);
            MEMFREE(in->colorOf);
@@ -106,9 +107,10 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
          out->main_iptr=MEMALLOC(n,index_t);
          out->lumped_mass_matrix=MEMALLOC(n,double);
          out->row_sum_flux_matrix=MEMALLOC(n,double);
+         out->u=MEMALLOC(n,double);
 
          if ( ! (Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || 
-                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->row_sum_flux_matrix)) ) {
+                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->row_sum_flux_matrix) || Paso_checkPtr(out->u)) ) {
              
              printf("Paso_SolverFCT_getFCTransportProblem: Revise coloring!!\n");
              Paso_Pattern_color(pattern->mainPattern,&(out->num_colors),out->colorOf);
@@ -141,3 +143,13 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
      return NULL;
   }
 } 
+
+void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double* u) {
+    dim_t i, n;
+   
+    n=Paso_FCTransportProblem_getTotalNumRows(in);
+    #pragma omp parallel for schedule(static) private(i)
+    for (i = 0; i < n; ++i) {
+         in->u[i]=u[i];
+    }
+}

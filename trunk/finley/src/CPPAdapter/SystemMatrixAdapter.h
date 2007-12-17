@@ -132,6 +132,13 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
   static int mapOptionToPaso(const int option);
 
   /**
+     \brief extract paso options from a dictionary
+  */
+ 
+  FINLEY_DLL_API
+  static void dictToPasoOptions(Paso_Options* paso_options, const boost::python::dict& options);
+
+  /**
      \brief prints information about a system matrix
   */
   FINLEY_DLL_API
