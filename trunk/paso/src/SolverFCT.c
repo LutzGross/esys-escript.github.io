@@ -71,7 +71,7 @@ dim_t Paso_FCTransportProblem_getTotalNumRows(Paso_FCTransportProblem* in) {
     return Paso_SystemMatrix_getTotalNumRows(in->transport_matrix);
 }
 
-Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_SystemMatrixPattern *pattern, int block_size
+Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_max, Paso_SystemMatrixPattern *pattern, int block_size
 
 
 ) {

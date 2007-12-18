@@ -43,7 +43,7 @@ Paso_SystemMatrix* Paso_FCTransportProblem_borrowTransportMatrix(Paso_FCTranspor
 Paso_SystemMatrix* Paso_FCTransportProblem_borrowFluxMatrix(Paso_FCTransportProblem* in);
 double* Paso_FCTransportProblem_borrowLumpedMassMatrix(Paso_FCTransportProblem* in);
 dim_t Paso_FCTransportProblem_getTotalNumRows(Paso_FCTransportProblem* in);
-Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_SystemMatrixPattern *pattern, int block_size);
+Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_max, Paso_SystemMatrixPattern *pattern, int block_size);
 void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double* fa);
 void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, double alpha);
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options);

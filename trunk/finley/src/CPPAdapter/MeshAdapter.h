@@ -22,12 +22,14 @@ extern "C" {
 #include "../Finley.h"
 #include "../Assemble.h"
 #include "paso/SystemMatrix.h"
+#include "paso/SolverFCT.h"
 }
 
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
 #include "SystemMatrixAdapter.h"
+#include "TransportProblemAdapter.h"
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"
@@ -518,7 +520,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-    creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros:
+    creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
   */
   FINLEY_DLL_API
   SystemMatrixAdapter newSystemMatrix(
@@ -526,6 +528,19 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
                       const escript::FunctionSpace& column_functionspace,
+                      const int type) const;
+  /**
+   \brief 
+    creates a TransportProblemAdapter 
+
+  */
+
+  FINLEY_DLL_API
+  TransportProblemAdapter newTransportProblem(
+                      const double theta,
+                      const double dt_max,
+                      const int blocksize,
+                      const escript::FunctionSpace& functionspace,
                       const int type) const;
 
   /**

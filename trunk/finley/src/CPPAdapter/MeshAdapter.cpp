@@ -1552,6 +1552,37 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
     Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
     return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
+// creates a TransportProblemAdapter
+TransportProblemAdapter MeshAdapter::newTransportProblem(
+                      const double theta,
+                      const double dt_max,
+                      const int blocksize,
+                      const escript::FunctionSpace& functionspace,
+                      const int type) const
+{
+    int reduceOrder=0;
+    // is the domain right?
+    const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(functionspace.getDomain());
+    if (domain!=*this) 
+          throw FinleyAdapterException("Error - domain of function space does not match the domain of transport problem generator.");
+    // is the function space type right 
+    if (functionspace.getTypeCode()==DegreesOfFreedom) {
+        reduceOrder=0;
+    } else if (functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
+        reduceOrder=1;
+    } else {
+        throw FinleyAdapterException("Error - illegal function space type for system matrix rows.");
+    }
+    // generate matrix:
+    
+    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceOrder,reduceOrder);
+    checkFinleyError();
+    Paso_FCTransportProblem* transportProblem;
+    transportProblem=Paso_FCTransportProblem_alloc(theta,dt_max,fsystemMatrixPattern,blocksize);
+    checkPasoError();
+    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
+    return TransportProblemAdapter(transportProblem,theta,dt_max,blocksize,functionspace);
+}
 
 //
 // vtkObject MeshAdapter::createVtkObject() const
