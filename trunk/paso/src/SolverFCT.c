@@ -53,6 +53,7 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_getReference(Paso_FCTransportPr
      if (in!=NULL) {
         ++(in->reference_counter);
      }
+     return in;
 }    
 
 Paso_SystemMatrix* Paso_FCTransportProblem_borrowTransportMatrix(Paso_FCTransportProblem* in) {
@@ -116,6 +117,13 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
              Paso_Pattern_color(pattern->mainPattern,&(out->num_colors),out->colorOf);
 
              
+             #pragma omp parallel for schedule(static) private(i)
+             for (i = 0; i < n; ++i) {
+                out->lumped_mass_matrix[i]=0.;
+                out->row_sum_flux_matrix[i]=0.;
+                out->u[i]=0.;
+             }
+
              /* identify the main diagonals */
              #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)
              for (i = 0; i < n; ++i) {

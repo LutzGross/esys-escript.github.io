@@ -1,5 +1,5 @@
 
-/* $Id:$ */
+/* $Id$ */
 
 /*******************************************************
  *
@@ -82,7 +82,7 @@ class AbstractTransportProblem {
   inline FunctionSpace getFunctionSpace() const
   {
        if (isEmpty())
-            throw TransportProblemException("Error - Matrix is empty.");
+            throw TransportProblemException("Error - Transport Problem is empty.");
        return m_functionspace;
   }
 
@@ -94,7 +94,7 @@ class AbstractTransportProblem {
   inline int getBlockSize() const
   {
        if (isEmpty())
-            throw TransportProblemException("Error - Matrix is empty.");
+            throw TransportProblemException("Error - Transport Problem is empty.");
        return m_blocksize;
   }
 

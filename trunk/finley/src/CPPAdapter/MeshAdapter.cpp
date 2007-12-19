@@ -809,6 +809,56 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, 0, &_rhs , 0, 0, 0, 0, 0, &_y_contact );
    checkFinleyError();
 }
+//
+// adds PDE of second order into a transport problem
+//
+void MeshAdapter::addPDEToTransportProblem(
+                     TransportProblemAdapter& tp, escript::Data& source, const escript::Data& M,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y, 
+                     const escript::Data& d_contact,const escript::Data& y_contact) const
+{
+   DataArrayView::ShapeType shape;
+   escript:: Data tmp(0.0,M.getDataPointShape(),tp.getFunctionSpace(),true);
+   escriptDataC _source=source.getDataC();
+   escriptDataC _tmp=tmp.getDataC();
+   escriptDataC _M=M.getDataC();
+   escriptDataC _A=A.getDataC();
+   escriptDataC _B=B.getDataC();
+   escriptDataC _C=C.getDataC();
+   escriptDataC _D=D.getDataC();
+   escriptDataC _X=X.getDataC();
+   escriptDataC _Y=Y.getDataC();
+   escriptDataC _d=d.getDataC();
+   escriptDataC _y=y.getDataC();
+   escriptDataC _d_contact=d_contact.getDataC();
+   escriptDataC _y_contact=y_contact.getDataC();
+
+   Finley_Mesh* mesh=m_finleyMesh.get();
+   Paso_FCTransportProblem* _tp = tp.getPaso_FCTransportProblem();
+   
+
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_tmp, &_M);
+   checkFinleyError();
+   /* add mass matix to lumped mass matrix of transport problem */
+   double* tmp_prt=getSampleData(&_tmp,0);
+   int i;
+   int n=Paso_FCTransportProblem_getTotalNumRows(_tp);
+   #pragma omp parallel for private(i) schedule(static)
+   for (i=0;i<n ;++i) _tp->lumped_mass_matrix[i]+=tmp_prt[i];
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->transport_matrix, &_source, &_A, 0, 0, &_D, &_X, &_Y );
+   checkFinleyError();
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->flux_matrix, &_source, 0, &_B, &_C, 0, 0, 0 );
+   checkFinleyError();
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, _tp->transport_matrix, &_source, 0, 0, 0, &_d, 0, &_y );
+   checkFinleyError();
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, _tp->transport_matrix, &_source , 0, 0, 0, &_d_contact, 0, &_y_contact );
+   checkFinleyError();
+}
 
 //
 // interpolates data between different function spaces:
