@@ -25,14 +25,22 @@
 /**************************************************************/
 
 #include "SystemMatrix.h"
+#include "mmio.h"
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {
   FILE * fileHandle_p = NULL;
+  dim_t N,M,i, iptr_ij;
+  MM_typecode matcode;                        
 
   if (A_p->mpi_info->size > 1) {
-       Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveHB: currently single processor runs are supported.\n");
+       Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM: currently single processor runs are supported.\n");
        return;
   }
+  if (A_p->block_size>1) {
+       Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM: currently only block size 1 is supported.\n");
+       return;
+  }
+
   if (A_p->type & MATRIX_FORMAT_SYM) {
     Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support symmetric storage scheme");
     return;
@@ -45,11 +53,23 @@ void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {
   }
 
   if (A_p->type & MATRIX_FORMAT_CSC) {
-    Paso_SparseMatrix_saveHB_CSC( A_p->mainBlock,fileHandle_p);
-  } else { 
-    /* Paso_SparseMatrix_saveHB_CSR( A_p->mainBlock,fileHandle_p); */
-    Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support CSR yet.");
-    return;
+    Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support CSC yet.");
+  } else {
+    mm_initialize_typecode(&matcode);
+    mm_set_matrix(&matcode);
+    mm_set_coordinate(&matcode);
+    mm_set_real(&matcode);
+
+    N= Paso_SystemMatrix_getGlobalNumRows(A_p);
+    M=Paso_SystemMatrix_getGlobalNumCols(A_p);
+    mm_write_banner(fileHandle_p, matcode); 
+    mm_write_mtx_crd_size(fileHandle_p, N, M, A_p->mainBlock->pattern->ptr[N]);
+
+    for (i=0; i<N; i++) {
+       for (iptr_ij=A_p->mainBlock->pattern->ptr[i];iptr_ij<A_p->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
+        fprintf(fileHandle_p, "%d %d %25.15e\n", i+1, A_p->mainBlock->pattern->index[iptr_ij]+1, A_p->mainBlock->val[iptr_ij]);
+       }
+     }
   }
 
   /* close the file */
