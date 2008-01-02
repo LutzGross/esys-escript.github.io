@@ -59,15 +59,19 @@ void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, doub
            #pragma omp for private(i,iptr_ij,j,iptr_ji,d_ij)  schedule(static)
            for (i = 0; i < n; ++i) {
                if (fc->colorOf[i]==color) {
+                  fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]+=alpha*fc->flux_matrix->mainBlock->val[fc->main_iptr[i]];
+
                   for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
                      j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-                     if (i<j) {
+                     if (j<i) {
                         /* find entry a[j,i] */
-                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]-1; ++iptr_ji) {
+                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j]; iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
                             if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
                                 d_ij=(-alpha)*MIN3(0.,fc->flux_matrix->mainBlock->val[iptr_ij],fc->flux_matrix->mainBlock->val[iptr_ji]);
+printf("%d %d -> %e\n",i,j,d_ij);
                                 fc->transport_matrix->mainBlock->val[iptr_ij]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
                                 fc->transport_matrix->mainBlock->val[iptr_ji]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ji]+d_ij;
+printf("%d %d -> %e -> %e %e \n",i,j,d_ij,fc->transport_matrix->mainBlock->val[iptr_ij],fc->transport_matrix->mainBlock->val[iptr_ji]);
                                 fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]-=d_ij;
                                 fc->transport_matrix->mainBlock->val[fc->main_iptr[j]]-=d_ij;
                                 break;
@@ -83,6 +87,22 @@ void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, doub
        }
   }
 
+}
+
+void Paso_FCTransportProblem_setFlux(Paso_FCTransportProblem * fc, double * u, double* fa) {
+
+  double *remote_u=NULL;
+  
+  if (fc==NULL) return;
+  Paso_SystemMatrix_startCollect(fc->transport_matrix,u);
+  /* process main block */
+  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,fc->transport_matrix->mainBlock,u,0.,fa);
+  /* finish exchange */
+  remote_u=Paso_SystemMatrix_finishCollect(fc->transport_matrix);
+  /* process couple block */
+  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,fc->transport_matrix->coupleBlock,remote_u,1.,fa);
+
+  Paso_FCTransportProblem_setAntiDiffusiveFlux(fc,u,remote_u,fa); 
 }
 /**************************************************************/
 
@@ -102,10 +122,9 @@ void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, doub
 
 */
 
-void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double* fa) {
+void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double *u_remote, double* fa) {
 
   register double u_i,P_p,P_n,Q_p,Q_n,r_p,r_n, a_ij, d, u_j, r_ij, f_ij, a_ji;
-  double *u_remote=NULL;
   index_t color, iptr_ij,j,iptr_ji, i;
   dim_t n;
 
@@ -113,9 +132,7 @@ void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, 
   if (fc==NULL) return;
   n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
   /* exchange */
-  Paso_SystemMatrix_allocBuffer(fc->flux_matrix);
-  Paso_SystemMatrix_startCollect(fc->flux_matrix,u);
-  u_remote=Paso_SystemMatrix_finishCollect(fc->flux_matrix);
+
 
   #pragma omp parallel private(color) 
   {

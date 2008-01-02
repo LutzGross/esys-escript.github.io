@@ -819,6 +819,7 @@ void MeshAdapter::addPDEToTransportProblem(
                      const escript::Data& d_contact,const escript::Data& y_contact) const
 {
    DataArrayView::ShapeType shape;
+   source.expand();
    escript:: Data tmp(0.0,M.getDataPointShape(),tp.getFunctionSpace(),true);
    escriptDataC _source=source.getDataC();
    escriptDataC _tmp=tmp.getDataC();

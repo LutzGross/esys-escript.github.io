@@ -19,6 +19,8 @@
 typedef struct Paso_FCTransportProblem {
 
     double theta;
+    double dt;
+    double dt_max;
     bool_t valid_matrices;
 
     double* u;
@@ -27,6 +29,7 @@ typedef struct Paso_FCTransportProblem {
     Paso_SystemMatrix * flux_matrix;
     double* lumped_mass_matrix;
     double* row_sum_flux_matrix;
+    double* transport_matrix_diagonal;
 
     dim_t num_colors;
     index_t *colorOf;
@@ -44,10 +47,10 @@ Paso_SystemMatrix* Paso_FCTransportProblem_borrowFluxMatrix(Paso_FCTransportProb
 double* Paso_FCTransportProblem_borrowLumpedMassMatrix(Paso_FCTransportProblem* in);
 dim_t Paso_FCTransportProblem_getTotalNumRows(Paso_FCTransportProblem* in);
 Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_max, Paso_SystemMatrixPattern *pattern, int block_size);
-void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double* fa);
+void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double *u_remote, double* fa);
 void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, double alpha);
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options);
 void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double* u) ;
-
+void Paso_FCTransportProblem_setFlux(Paso_FCTransportProblem * fc, double * u, double* fa);
 
 #endif /* #ifndef INC_SOLVERFCT */

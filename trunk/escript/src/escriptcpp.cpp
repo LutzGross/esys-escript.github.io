@@ -325,7 +325,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   class_<escript::AbstractTransportProblem>("TransportProblem",init<>())
      .def("isEmpty",&escript::AbstractTransportProblem::isEmpty)
      .def("solve",&escript::AbstractTransportProblem::solve)
-     .def("setInitalValue",&escript::AbstractTransportProblem::setInitialValue)
+     .def("setInitialValue",&escript::AbstractTransportProblem::setInitialValue)
      .def("resetTransport",&escript::AbstractTransportProblem::resetTransport);
 
   //

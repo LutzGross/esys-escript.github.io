@@ -42,6 +42,7 @@ void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in) {
            MEMFREE(in->u);
            MEMFREE(in->lumped_mass_matrix);
            MEMFREE(in->row_sum_flux_matrix);
+           MEMFREE(in->transport_matrix_diagonal);
            MEMFREE(in->colorOf);
            MEMFREE(in->main_iptr);
            MEMFREE(in);
@@ -90,6 +91,7 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
      if (Paso_checkPtr(out)) return NULL;
 
      out->theta=theta;
+     out->dt_max=dt_max;
      out->valid_matrices=FALSE;
      out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
      Paso_SystemMatrix_allocBuffer(out->transport_matrix);
@@ -100,6 +102,7 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
      out->main_iptr=NULL;
      out->lumped_mass_matrix=NULL;
      out->row_sum_flux_matrix=NULL;
+     out->transport_matrix_diagonal=NULL;
 
      if (Paso_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
@@ -108,10 +111,11 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
          out->main_iptr=MEMALLOC(n,index_t);
          out->lumped_mass_matrix=MEMALLOC(n,double);
          out->row_sum_flux_matrix=MEMALLOC(n,double);
+         out->transport_matrix_diagonal=MEMALLOC(n,double);
          out->u=MEMALLOC(n,double);
 
          if ( ! (Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || 
-                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->row_sum_flux_matrix) || Paso_checkPtr(out->u)) ) {
+                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->transport_matrix_diagonal) || Paso_checkPtr(out->row_sum_flux_matrix) || Paso_checkPtr(out->u)) ) {
              
              printf("Paso_SolverFCT_getFCTransportProblem: Revise coloring!!\n");
              Paso_Pattern_color(pattern->mainPattern,&(out->num_colors),out->colorOf);
@@ -123,11 +127,9 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
                 out->row_sum_flux_matrix[i]=0.;
                 out->u[i]=0.;
              }
-
              /* identify the main diagonals */
              #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)
              for (i = 0; i < n; ++i) {
-                for (iptr=pattern->mainPattern->ptr[i];iptr<pattern->mainPattern->ptr[i+1]; ++iptr) {
                     iptr_main=pattern->mainPattern->ptr[0]-1;
                     for (iptr=pattern->mainPattern->ptr[i];iptr<pattern->mainPattern->ptr[i+1]; iptr++) {
                           if (pattern->mainPattern->index[iptr]==i) {
@@ -138,7 +140,6 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
                     out->main_iptr[i]=iptr_main;
                     if (iptr_main==pattern->mainPattern->ptr[0]-1)
                          Paso_setError(VALUE_ERROR, "Paso_FCTransportProblem_alloc: no main diagonal");
-                }
              }
 
       }
