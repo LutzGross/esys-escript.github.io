@@ -89,6 +89,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
    index_t i;
    int n_substeps,n;
    double dt2=fctp->dt_max, dt2_loc, rtmp,rtmp2,t;
+   dim_t n_rows=Paso_SystemMatrix_getTotalNumRows(fctp->flux_matrix);
    if (dt<=0.) {
        Paso_setError(TYPE_ERROR,"Paso_SolverFCT_solve: dt must be positive.");
    }
@@ -100,7 +101,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
         Paso_FCTransportProblem_addAdvectivePart(fctp,1.);
         /* create a copy of the main diagonal entires of the transport-matrix */
         #pragma omp parallel for schedule(static) private(i) 
-        for (i=0;i<Paso_SystemMatrix_getTotalNumRows(fctp->flux_matrix);++i) {
+        for (i=0;i<n_rows;++i) {
                fctp->transport_matrix_diagonal[i]=
                         fctp->transport_matrix->mainBlock->val[fctp->main_iptr[i]];
         }
@@ -118,14 +119,14 @@ Paso_SystemMatrix_saveMM(fctp->transport_matrix,"trans.mm");
             {
                dt2_loc=LARGE_POSITIVE_FLOAT;
                #pragma omp for schedule(static) private(i,rtmp,rtmp2) 
-               for (i=0;i<Paso_SystemMatrix_getTotalNumRows(fctp->flux_matrix);++i) {
+               for (i=0;i<n_rows;++i) {
                     rtmp=fctp->transport_matrix_diagonal[i];
                     rtmp2=fctp->lumped_mass_matrix[i];
                     if ( (rtmp<0 && rtmp2>=0.) || (rtmp>0 && rtmp2<=0.) ) {
                         dt2_loc=MIN(dt2_loc,-rtmp2/rtmp);
                     }
                 }
-                #pragma omp critcal 
+                #pragma omp critical 
                 {
                     dt2=MIN(dt2,dt2_loc);
                 }
@@ -169,7 +170,7 @@ Paso_SystemMatrix_saveMM(fctp->transport_matrix,"trans.mm");
 
    if (fctp->theta>0) {
         #pragma omp parallel for schedule(static) private(i) 
-        for (i=0;i<Paso_SystemMatrix_getTotalNumRows(fctp->flux_matrix);++i) {
+        for (i=0;i<n_rows;++i) {
                fctp->transport_matrix_diagonal[i]=
                         fctp->transport_matrix->mainBlock->val[fctp->main_iptr[i]];
         }
@@ -182,7 +183,7 @@ Paso_SystemMatrix_saveMM(fctp->transport_matrix,"trans.mm");
         printf("substep step %d at t=%e\n",n+1,t);
         Paso_FCTransportProblem_setFlux(fctp,fctp->u,u); /* u stores F(u_last)*/
         #pragma omp parallel for schedule(static) private(i) 
-        for (i=0;i<Paso_SystemMatrix_getTotalNumRows(fctp->flux_matrix);++i) {
+        for (i=0;i<n_rows;++i) {
             rtmp=fctp->u[i];
             fctp->u[i]=fctp->u[i]+dt2*u[i]/fctp->lumped_mass_matrix[i];
             printf("%d : %e %e %e\n",i,u[i],fctp->u[i],rtmp);
@@ -193,7 +194,7 @@ Paso_SystemMatrix_saveMM(fctp->transport_matrix,"trans.mm");
   }
   if (Paso_noError()) {
      #pragma omp parallel for schedule(static) private(i) 
-     for (i=0;i<Paso_SystemMatrix_getTotalNumRows(fctp->flux_matrix);++i) {
+     for (i=0;i<n_rows;++i) {
        u[i]=fctp->u[i];
      }
   }
