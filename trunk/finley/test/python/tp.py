@@ -59,17 +59,25 @@ class TransportPDE(object):
 	   return self.__transport_problem.solve(self.__source,dt,{})
 from esys.finley import Rectangle
 
-dom=Rectangle(10,10)
+dom=Rectangle(20,20)
 fc=TransportPDE(dom,num_equations=1,theta=0.0,dt_max=0.)
-fc.setValue(M=Scalar(1.,Function(dom)),C=Scalar(1.,Function(dom))*[-1.,0.])
+fc.setValue(M=Scalar(1.,Function(dom)),C=Scalar(1.,Function(dom))*[-1.,0])
 x=dom.getX()
-u=whereNonPositive(abs(x[0]-0.3)-0.1)*whereNonPositive(abs(x[1]-0.3)-0.1)
+x_0=[0.3,0.3]
+sigma=0.08
+u=1.
+for i in range(dom.getDim()):
+	u=u*exp(-(x[i]-x_0[i])**2/sigma**2)
+u/=Lsup(u)
+
+u=whereNonPositive(abs(x[0]-0.3)-0.2)*whereNonPositive(abs(x[1]-0.5)-0.2)
 c=0
 saveVTK("u.%s.xml"%c,u=u)
 fc.setInitialSolution(u)
-dt=0.301
+
+dt=2.5e-2
 t=0.
-while t<dt:
+while t<15*dt:
     print "time step t=",t+dt	
     u=fc.solve(dt)	
     print "range u",inf(u),sup(u)

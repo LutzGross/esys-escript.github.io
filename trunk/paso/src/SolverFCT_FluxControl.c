@@ -29,10 +29,11 @@
 #define FLUX_S(a,b) ((SIGN(a)+SIGN(b))/2.)
 #define MINMOD(a,b) (FLUX_S(a,b)*MIN(ABS(a),ABS(b)))
 #define SUPERBEE(a,b) (FLUX_S(a,b)*MAX(MIN(2*ABS(a),ABS(b)),MIN(ABS(a),2*ABS(b))))
+#define MC(a,b) (FLUX_S(a,b)*MIN3(ABS((a)+(b))/2,2*ABS(a),2*ABS(b)))
 
-#define FLUX_L(a,b) SUPERBEE(a,b)  /* alter for other flux limiter */
+#define FLUX_L(a,b) MC(a,b)  /* alter for other flux limiter */
 
-#define FLUX_LIMITER(a) FLUX_L(a,1)
+#define FLUX_LIMITER(a) FLUX_L(1,a)
 
 /**************************************************************/
 
@@ -124,7 +125,7 @@ void Paso_FCTransportProblem_setFlux(Paso_FCTransportProblem * fc, double * u, d
 
 void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double *u_remote, double* fa) {
 
-  register double u_i,P_p,P_n,Q_p,Q_n,r_p,r_n, a_ij, d, u_j, r_ij, f_ij, a_ji;
+  register double u_i,P_p,P_n,Q_p,Q_n,r_p,r_n, a_ij, d, u_j, r_ij, f_ij, a_ji, d_ij;
   index_t color, iptr_ij,j,iptr_ji, i;
   dim_t n;
 
@@ -137,7 +138,7 @@ void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, 
   #pragma omp parallel private(color) 
   {
        for (color=0;color<fc->num_colors;++color) {
-           #pragma omp for schedule(static) private(i, u_i,P_p,P_n,Q_p,Q_n,r_p,r_n,iptr_ij,a_ij,d,j,iptr_ji, u_j, r_ij, f_ij, a_ji)
+           #pragma omp for schedule(static) private(i, u_i,P_p,P_n,Q_p,Q_n,r_p,r_n,iptr_ij,a_ij,d,j,iptr_ji, u_j, r_ij, f_ij, a_ji, d_ij)
            for (i = 0; i < n; ++i) {
               if (fc->colorOf[i]==color) {
                   u_i=u[i];
@@ -146,11 +147,14 @@ void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, 
                   P_n=0.;
                   Q_p=0.;
                   Q_n=0.;
-                  #pragma ivdep
+                  r_p=0.;
+                  r_n=0.;
+                  /* #pragma ivdep */
   	          for (iptr_ij=(fc->flux_matrix->mainBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->mainBlock->pattern->ptr[i+1]); ++iptr_ij) {
                       a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
                       j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
                       d=u[j]-u_i;
+printf("%d %d : %e %e :: %e \n",i,j,u_i,u[j],a_ij);
                       if (a_ij<0.) {
                          if (d<0.) {
                             P_p+=a_ij*d;
@@ -170,6 +174,7 @@ void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, 
                       a_ij=fc->flux_matrix->coupleBlock->val[iptr_ij];
                       j=fc->flux_matrix->coupleBlock->pattern->index[iptr_ij];
                       d=u_remote[j]-u_i;
+
                       if (a_ij<0.) {
                          if (d<0.) {
                             P_p+=a_ij*d;
@@ -186,24 +191,30 @@ void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, 
   	          }
                   /* set the smoothness indicators */
                   r_p = (P_p > 0.) ? FLUX_LIMITER(Q_p/P_p) : 0.;
-                  r_n = (P_n < 0 ) ? FLUX_LIMITER(Q_n/P_n) : 0.;
+                  r_n = (P_n < 0.) ? FLUX_LIMITER(Q_n/P_n) : 0.;
+printf("%d: %e %e %e : %e %e %e : %e\n",i,Q_p,P_p,r_p,Q_n,P_n,r_n,u_i);
                   /* anti diffusive flux from main block */
                   for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
                      a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
                      j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-                     if (a_ij < 0 && i!=j) {
+                     if ( i!=j ) {
                         /* find entry a[j,i] */
-                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]-1; ++iptr_ji) {
+                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
                             if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
                                 a_ji=fc->flux_matrix->mainBlock->val[iptr_ji];
-                                if  (a_ji > a_ij || (a_ji == a_ij && j<i) ) {
+                                d_ij=-MIN3(0,a_ji,a_ij);
+                                if ( (d_ij > 0.) && ( (a_ji > a_ij) || ( (a_ji == a_ij) && (j<i) ) )  ) {
                                     u_j=u[j];
                                     r_ij = u_i>u_j ? r_p : r_n;
-                                    f_ij =MIN(r_ij*a_ij,a_ji-a_ij)*(u_i-u_j);
+                                    f_ij =MIN(r_ij*d_ij,a_ji+d_ij)*(u_i-u_j);
+
                                     fa[i]+=f_ij;
                                     fa[j]-=f_ij;
-                                    break;
+printf("%d %d => %e %e : %e %e : %e %e : fa[%d]=%e fa[%d]=%e\n",i,j,d_ij,(u_i-u_j), a_ij, a_ji, r_ij,f_ij,i,fa[i],j,fa[j]);
+
+                                   
                                 }
+                                break;
                             }
                         }
                      }

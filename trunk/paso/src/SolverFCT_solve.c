@@ -89,7 +89,6 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
    index_t i;
    int n_substeps,n;
    double dt2=fctp->dt_max, dt2_loc, rtmp,rtmp2,t;
-   printf("FFFF %e",fctp->dt_max);
    if (dt<=0.) {
        Paso_setError(TYPE_ERROR,"Paso_SolverFCT_solve: dt must be positive.");
    }
@@ -175,6 +174,7 @@ Paso_SystemMatrix_saveMM(fctp->transport_matrix,"trans.mm");
                         fctp->transport_matrix->mainBlock->val[fctp->main_iptr[i]];
         }
    } else {
+      /* n_substeps=1; */
       /* u= u_last + M^-1*dt*F(u_last) */
       t=dt2;
       n=0;
