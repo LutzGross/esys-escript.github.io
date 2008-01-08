@@ -3815,7 +3815,8 @@ class Add_Symbol(DependendSymbol):
             raise TypeError,"%s: new value is not appropriate."%str(self)
       else:
          args=self.getSubstitutedArguments(argvals)
-         return add(args[0],args[1])
+         out=add(args[0],args[1])
+         return out
 
    def diff(self,arg):
       """

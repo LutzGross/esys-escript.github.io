@@ -195,9 +195,9 @@ def runPyUnitTest(target, source, env):
    if env['useMPI']:
      app = env['mpi_run'] +' lib/pythonMPI ' + app
    else:
-     app = 'python ' + app
+     app = sys.executable + " " + app
    print "Executing test: " + app
-   if not env.Execute(app):
+   if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")
    else:
      return 1

@@ -36,7 +36,6 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision: 859 $"
 __date__="$Date: 2006-09-26 12:19:18 +1000 (Tue, 26 Sep 2006) $"
 
-
 import unittest
 
 from esys.escript import *

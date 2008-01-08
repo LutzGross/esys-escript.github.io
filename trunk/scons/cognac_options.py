@@ -8,9 +8,14 @@
 #
 
 # flag the MPI settings
-# useMPI = 'yes'
+useMPI = 'no'
 
 # TODO: Variables named *_path should be *_include
+
+python_version="2.4"
+python_installation="2.4.4/icc10.0.023"
+boost_version="1_33_1"
+boost_installation="1.33.1/python2.4.4/icc9.1.051"
 
 #prefix = ARGUMENTS.get('prefix', '/opt/esys-escript/unstable/')
 #tools_prefix="/opt/esys-escript/unstable/"
@@ -30,13 +35,15 @@ scsl_libs_MPI = [ 'scs', 'mpi' ]
 
 
 # locations of include files for python
-python_path = '/opt/python/2.5.1/include/python2.5'
-python_lib_path = '/opt/python/2.5.1/lib'
-python_lib = 'python2.5'
+# python_exec= '/opt/python/'+python_installation+'/bin/python'
+python_exec= 'python'
+python_path = '/opt/python/'+python_installation+'/include/python'+python_version
+python_lib_path = '/opt/python/'+python_installation+'/lib'
+python_lib = 'python'+python_version
 
 # locations of libraries for boost
-boost_path = '/opt/boost/1.34.1/python2.5.1/icc10.0.023/include/boost-1_34_1'
-boost_lib_path = '/opt/boost/1.34.1/python2.5.1/icc10.0.023/lib'
+boost_path = '/opt/boost/'+boost_installation+'/include/boost-'+boost_version
+boost_lib_path = '/opt/boost/'+boost_installation+'/lib'
 boost_lib = 'boost_python-mt'
 
 # locations of doc building executables
@@ -82,3 +89,4 @@ cxx_flags_debug_MPI = '-ansi -DDOASSERT -DDOPROF -wd1563 -wd161 -DMPI_NO_CPPBIND
 
 # system specific libraries to link with
 sys_libs = ['guide', 'irc']
+

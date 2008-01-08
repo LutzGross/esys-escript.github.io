@@ -243,23 +243,23 @@ if __name__ == '__main__':
    suite = unittest.TestSuite()
    if True:
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder1))
-      # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder2))
-      # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
-      # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder2))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder2))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder2))
 
-      # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder1))
-      # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder2))
-      # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder1))
-      # suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder2))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder1))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DOrder2))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder1))
+      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DOrder2))
   
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact))
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace))
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
-      # suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
    else:
       pass
 

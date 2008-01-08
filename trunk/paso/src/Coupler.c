@@ -155,7 +155,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler, double* in)
         }
      }
      /* collect values into buffer */
-     #pragma parallel omp for private(i)
+     #pragma omp parallel for private(i)
      for (i=0; i < coupler->send->numSharedComponents;++i) {
         memcpy(&(coupler->send_buffer[(block_size)*i]),&(in[ block_size * coupler->send->shared[i]]), block_size_size);
      }
