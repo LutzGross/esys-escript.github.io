@@ -58,13 +58,6 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
       for (i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)])); \
       } 
 
-#define SWAP(_i1_,_i2_) \
-            {index_t* i;  \
-              i=(_i2_); \
-              (_i2_)=(_i1_); \
-              (_i1_)=i; \
-             }
-
     char error_msg[LenErrorMsg_MAX];
     double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;
     dim_t NN=faces->ReferenceElement->Type->numNodes;
@@ -126,8 +119,11 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                  if (dist<=h*tolerance) break;
                  if (faces->ReferenceElement->Type->shiftNodes[0]>=0) {
                     /* rotate the nodes */
-                    for (i=0;i<NN;i++) perm_tmp[i]=perm[faces->ReferenceElement->Type->shiftNodes[i]];
-                    SWAP(perm,perm_tmp);
+                    itmp_ptr=perm;
+                    perm=perm_tmp;
+                    perm_tmp=itmp_ptr;
+                    #pragma ivdep
+                    for (i=0;i<NN;i++) perm[i]=perm_tmp[faces->ReferenceElement->Type->shiftNodes[i]];
                  }
                  /* if the permutation is back at the identity, ie. perm[0]=0, the faces don't match: */
                  if (perm[0]==0) {
@@ -146,9 +142,11 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                              sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
                              Finley_setError(VALUE_ERROR,error_msg);
                           } else {
-                             for (i=0;i<NN;i++) perm_tmp[i]=perm[faces->ReferenceElement->Type->reverseNodes[i]];
-/* printf("ZZZ: AAAAAAA 3: %d\n",e); */
-                             SWAP(perm,perm_tmp);
+                             itmp_ptr=perm;
+                             perm=perm_tmp;
+                             perm_tmp=itmp_ptr;
+                             #pragma ivdep
+                             for (i=0;i<NN;i++) perm[i]=perm_tmp[faces->ReferenceElement->Type->reverseNodes[i]];
                              getDist(dist,e_0,1,e_1,perm[faces->ReferenceElement->Type->faceNode[1]]);
                              if (dist>h*tolerance) {
                                  sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
@@ -188,5 +186,4 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
     TMPMEMFREE(a1);
 
 #undef getDist
-#undef SWAP
 }
