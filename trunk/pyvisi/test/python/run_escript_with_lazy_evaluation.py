@@ -269,5 +269,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEscriptMap))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEscriptVelocity))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEscriptEllipsoid))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
 

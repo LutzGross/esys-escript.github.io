@@ -60,5 +60,6 @@ class TestAccessLogo(unittest.TestCase, TestLogo):
 if __name__ == '__main__':
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestAccessLogo))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
 

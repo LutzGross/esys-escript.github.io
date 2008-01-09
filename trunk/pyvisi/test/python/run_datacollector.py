@@ -146,5 +146,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSourceXml2DCellData))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSourceXml3DPointData))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSourceXml3DCellData))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
 

@@ -160,4 +160,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVelocity))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVelocityOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVelocityOnPlaneClip))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
+

@@ -430,5 +430,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClip))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipWithRotation))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMap3DSecondOrder))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
 

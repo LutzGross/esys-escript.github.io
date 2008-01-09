@@ -89,5 +89,6 @@ if __name__ == '__main__':
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCarpetScalarWarp))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestCarpetVectorWarp))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
 

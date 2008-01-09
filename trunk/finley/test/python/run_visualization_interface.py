@@ -2505,3 +2505,4 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_VTKFiles))
    suite.addTest(unittest.makeSuite(Test_DXFiles))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)

@@ -123,3 +123,5 @@ if __name__ == '__main__':
   suite=unittest.TestSuite()
   suite.addTest(unittest.makeSuite(bruceTestCase))
   s=unittest.TextTestRunner(verbosity=2).run(suite)
+  if not s.wasSuccessful(): sys.exit(1)
+

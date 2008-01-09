@@ -349,3 +349,4 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)

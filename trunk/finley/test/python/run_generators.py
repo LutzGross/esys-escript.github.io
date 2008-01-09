@@ -460,3 +460,5 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Reader))
    suite.addTest(unittest.makeSuite(Test_Integration))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)
+

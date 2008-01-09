@@ -121,5 +121,5 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEllipsoidScaleResolution))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEllipsoidOnPlaneCut))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestEllipsoidOnPlaneClip))
-	unittest.TextTestRunner(verbosity=2).run(suite)
-
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)

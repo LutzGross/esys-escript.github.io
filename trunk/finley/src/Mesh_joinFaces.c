@@ -65,6 +65,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,index_t);
 
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(matching_nodes_in_elem1)))  {
+
       /* find the matching face elements */
       Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
       if (Finley_noError()) {

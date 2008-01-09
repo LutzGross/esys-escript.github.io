@@ -86,5 +86,7 @@ if __name__ == '__main__':
 	suite = unittest.TestSuite()
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(\
 			TestLegendWithLazyEvaluation))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
+
 

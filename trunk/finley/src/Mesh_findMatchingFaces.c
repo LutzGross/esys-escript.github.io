@@ -70,7 +70,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
     dim_t NN=faces->ReferenceElement->Type->numNodes;
     dim_t numDim=nodes->numDim;
     Finley_Mesh_findMatchingFaces_center *center;
-    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL;
+    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL,*itmp_ptr=NULL;
     dim_t e,i,i0,i1,n;
 
     X=TMPMEMALLOC(NN*numDim*faces->numElements,double);
@@ -147,6 +147,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                              Finley_setError(VALUE_ERROR,error_msg);
                           } else {
                              for (i=0;i<NN;i++) perm_tmp[i]=perm[faces->ReferenceElement->Type->reverseNodes[i]];
+/* printf("ZZZ: AAAAAAA 3: %d\n",e); */
                              SWAP(perm,perm_tmp);
                              getDist(dist,e_0,1,e_1,perm[faces->ReferenceElement->Type->faceNode[1]]);
                              if (dist>h*tolerance) {
@@ -189,27 +190,3 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
 #undef getDist
 #undef SWAP
 }
-
-/*
-* $Log$
-* Revision 1.6  2005/09/15 03:44:22  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.5.2.1  2005/09/07 06:26:19  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.5  2005/07/08 04:07:51  jgs
-* Merge of development branch back to main trunk on 2005-07-08
-*
-* Revision 1.4  2004/12/15 07:08:32  jgs
-* *** empty log message ***
-* Revision 1.1.1.1.2.2  2005/06/29 02:34:51  gross
-* some changes towards 64 integers in finley
-*
-* Revision 1.1.1.1.2.1  2004/11/24 01:37:14  gross
-* some changes dealing with the integer overflow in memory allocation. Finley solves 4M unknowns now
-*
-*
-*
-*/
-

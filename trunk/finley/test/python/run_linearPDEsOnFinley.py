@@ -264,3 +264,5 @@ if __name__ == '__main__':
       pass
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)
+

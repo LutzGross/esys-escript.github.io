@@ -476,4 +476,4 @@ if __name__ == "__main__":
     suite.addTest(unittest.makeSuite(Messenger))
     suite.addTest(unittest.makeSuite(ODETEST))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
-
+    if not s.wasSuccessful(): sys.exit(1)

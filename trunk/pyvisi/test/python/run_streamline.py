@@ -123,5 +123,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestStreamLinePointSource))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestStreamLineModule))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestStreamLineTube))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
 

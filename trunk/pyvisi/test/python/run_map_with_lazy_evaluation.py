@@ -219,4 +219,6 @@ if __name__ == '__main__':
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnPlaneClipLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipLazy))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMapOnScalarClipWithRotationLazy))
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	s=unittest.TextTestRunner(verbosity=2).run(suite)
+        if not s.wasSuccessful(): sys.exit(1)
+
