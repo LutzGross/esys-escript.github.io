@@ -50,7 +50,8 @@ class Test_VisualizationInterface(unittest.TestCase):
            line=out_string[c].strip()
 	   if os.name == "nt":
 	       line=line.replace("e+00","e+0").replace("e-00","e-0")
-	   line=line.replace("e-00","e+00").replace("-0.000000e+00","0.000000e+00")
+	   # line=line.replace("e-00","e+00").replace("-0.000000e+00","0.000000e+00")
+	   line=line.replace(".000000e-00",".000000e+00").replace("-0.000000e+00","0.000000e+00")
            self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in vtk files does not match reference (%s)"%(c,line,ref_string[l].strip()))
            c+=1
 
@@ -1359,19 +1360,15 @@ class Test_VTKFiles(Test_VisualizationInterface):
      saveVTK(FINLEY_WORKDIR_PATH+"hex_contact_3D_order2_onFace_ReducedFunctionOnContactOne_Tensor.xml",data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("hex_contact_3D_order2_onFace_ReducedFunctionOnContactOne_Tensor.xml",reference)
 
-
-  # ======================================================================================================================
-  # ======================================================================================================================
-  # ======================================================================================================================
   def test_tet_2D_order2_vtk(self):
      reference="tet_2D_o2.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2.xml"),domain=dom)
      self.check_vtk("tet_2D_order2.xml",reference)
 
   def test_tet_2D_order2_AllPoints_Scalar_vtk(self):
      reference="tet_2D_o1_node_3xs.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      x_r=ReducedSolution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
@@ -1379,13 +1376,13 @@ class Test_VTKFiles(Test_VisualizationInterface):
      self.check_vtk("tet_2D_order2_AllPoints_Scalar.xml",reference)
   def test_tet_2D_order2_02Points_Scalar_vtk(self):
      reference="tet_2D_o2_node_2xs.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_O2Points_Scalar.xml"),data_n=x_n[0],data=x[0])
      self.check_vtk("tet_2D_order2_O2Points_Scalar.xml",reference)
   def test_tet_2D_order2_2Cells_Scalar_vtk(self):
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      try: 
@@ -1394,7 +1391,7 @@ class Test_VTKFiles(Test_VisualizationInterface):
      except StandardError:
         pass
   def test_tet_2D_order2_BoundaryPoint_Scalar_vtk(self):
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      try: 
@@ -1404,14 +1401,14 @@ class Test_VTKFiles(Test_VisualizationInterface):
         pass
   def test_tet_2D_order2_Cells_AllData_vtk(self):
      reference="tet_2D_o2_cell_all.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_Cells_AllData.xml"),data_s=x[0],data_v=x[0]*[1.,2.],data_t=x[0]*[[11.,12.],[21.,22.]],data_t2=x[0]*[[-11.,-12.],[-21.,-22.]])
      self.check_vtk("tet_2D_order2_Cells_AllData.xml",reference)
 
   def test_tet_2D_order2_CellsPoints_AllData_vtk(self):
      reference="tet_2D_o2_cellnode_all.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x_c=Function(dom).getX()
      x_p=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_CellsPoints_AllData.xml"),data_sp=x_p[0],
@@ -1424,508 +1421,508 @@ class Test_VTKFiles(Test_VisualizationInterface):
   # ======================================================================================================================
   def test_tet_2D_order1_ContinuousFunction_Scalar_vtk(self):
      reference="tet_2D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ContinuousFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order1_ContinuousFunction_Scalar.xml",reference)
   def test_tet_2D_order1_ContinuousFunction_Vector_vtk(self):
      reference="tet_2D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ContinuousFunction_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order1_ContinuousFunction_Vector.xml",reference)
   def test_tet_2D_order1_ContinuousFunction_Tensor_vtk(self):
      reference="tet_2D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ContinuousFunction_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order1_ContinuousFunction_Tensor.xml",reference)
   def test_tet_2D_order1_Solution_Scalar_vtk(self):
      reference="tet_2D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_Solution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order1_Solution_Scalar.xml",reference)
   def test_tet_2D_order1_Solution_Vector_vtk(self):
      reference="tet_2D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_Solution_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order1_Solution_Vector.xml",reference)
   def test_tet_2D_order1_Solution_Tensor_vtk(self):
      reference="tet_2D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_Solution_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order1_Solution_Tensor.xml",reference)
   def test_tet_2D_order1_ReducedSolution_Scalar_vtk(self):
      reference="tet_2D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedSolution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order1_ReducedSolution_Scalar.xml",reference)
   def test_tet_2D_order1_ReducedSolution_Vector_vtk(self):
      reference="tet_2D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedSolution_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order1_ReducedSolution_Vector.xml",reference)
   def test_tet_2D_order1_ReducedSolution_Tensor_vtk(self):
      reference="tet_2D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedSolution_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order1_ReducedSolution_Tensor.xml",reference)
   def test_tet_2D_order1_Function_Scalar_vtk(self):
      reference="tet_2D_o1_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_Function_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order1_Function_Scalar.xml",reference)
   def test_tet_2D_order1_Function_Vector_vtk(self):
      reference="tet_2D_o1_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_Function_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order1_Function_Vector.xml",reference)
   def test_tet_2D_order1_Function_Tensor_vtk(self):
      reference="tet_2D_o1_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_Function_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order1_Function_Tensor.xml",reference)
   def test_tet_2D_order1_ReducedFunction_Scalar_vtk(self):
      reference="tet_2D_o1_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order1_ReducedFunction_Scalar.xml",reference)
   def test_tet_2D_order1_ReducedFunction_Vector_vtk(self):
      reference="tet_2D_o1_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedFunction_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order1_ReducedFunction_Vector.xml",reference)
   def test_tet_2D_order1_ReducedFunction_Tensor_vtk(self):
      reference="tet_2D_o1_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedFunction_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order1_ReducedFunction_Tensor.xml",reference)
   def test_tet_2D_order1_FunctionOnBoundary_Scalar_vtk(self):
      reference="tet_2D_o1_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_FunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order1_FunctionOnBoundary_Scalar.xml",reference)
   def test_tet_2D_order1_FunctionOnBoundary_Vector_vtk(self):
      reference="tet_2D_o1_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_FunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order1_FunctionOnBoundary_Vector.xml",reference)
   def test_tet_2D_order1_FunctionOnBoundary_Tensor_vtk(self):
      reference="tet_2D_o1_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_FunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order1_FunctionOnBoundary_Tensor.xml",reference)
   def test_tet_2D_order1_ReducedFunctionOnBoundary_Scalar_vtk(self):
      reference="tet_2D_o1_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedFunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order1_ReducedFunctionOnBoundary_Scalar.xml",reference)
   def test_tet_2D_order1_ReducedFunctionOnBoundary_Vector_vtk(self):
      reference="tet_2D_o1_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedFunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order1_ReducedFunctionOnBoundary_Vector.xml",reference)
   def test_tet_2D_order1_ReducedFunctionOnBoundary_Tensor_vtk(self):
      reference="tet_2D_o1_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order1_ReducedFunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order1_ReducedFunctionOnBoundary_Tensor.xml",reference)
   # ======================================================================================================================
   def test_tet_2D_order2_ContinuousFunction_Scalar_vtk(self):
      reference="tet_2D_o2_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ContinuousFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order2_ContinuousFunction_Scalar.xml",reference)
   def test_tet_2D_order2_ContinuousFunction_Vector_vtk(self):
      reference="tet_2D_o2_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ContinuousFunction_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order2_ContinuousFunction_Vector.xml",reference)
   def test_tet_2D_order2_ContinuousFunction_Tensor_vtk(self):
      reference="tet_2D_o2_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ContinuousFunction_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order2_ContinuousFunction_Tensor.xml",reference)
   def test_tet_2D_order2_Solution_Scalar_vtk(self):
      reference="tet_2D_o2_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_Solution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order2_Solution_Scalar.xml",reference)
   def test_tet_2D_order2_Solution_Vector_vtk(self):
      reference="tet_2D_o2_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_Solution_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order2_Solution_Vector.xml",reference)
   def test_tet_2D_order2_Solution_Tensor_vtk(self):
      reference="tet_2D_o2_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_Solution_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order2_Solution_Tensor.xml",reference)
   def test_tet_2D_order2_ReducedSolution_Scalar_vtk(self):
      reference="tet_2D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedSolution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order2_ReducedSolution_Scalar.xml",reference)
   def test_tet_2D_order2_ReducedSolution_Vector_vtk(self):
      reference="tet_2D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedSolution_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order2_ReducedSolution_Vector.xml",reference)
   def test_tet_2D_order2_ReducedSolution_Tensor_vtk(self):
      reference="tet_2D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedSolution_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order2_ReducedSolution_Tensor.xml",reference)
   def test_tet_2D_order2_Function_Scalar_vtk(self):
      reference="tet_2D_o2_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_Function_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order2_Function_Scalar.xml",reference)
   def test_tet_2D_order2_Function_Vector_vtk(self):
      reference="tet_2D_o2_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_Function_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order2_Function_Vector.xml",reference)
   def test_tet_2D_order2_Function_Tensor_vtk(self):
      reference="tet_2D_o2_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_Function_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order2_Function_Tensor.xml",reference)
   def test_tet_2D_order2_ReducedFunction_Scalar_vtk(self):
      reference="tet_2D_o2_reduced_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order2_ReducedFunction_Scalar.xml",reference)
   def test_tet_2D_order2_ReducedFunction_Vector_vtk(self):
      reference="tet_2D_o2_reduced_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedFunction_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order2_ReducedFunction_Vector.xml",reference)
   def test_tet_2D_order2_ReducedFunction_Tensor_vtk(self):
      reference="tet_2D_o2_reduced_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedFunction_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order2_ReducedFunction_Tensor.xml",reference)
   def test_tet_2D_order2_FunctionOnBoundary_Scalar_vtk(self):
      reference="tet_2D_o2_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_FunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order2_FunctionOnBoundary_Scalar.xml",reference)
   def test_tet_2D_order2_FunctionOnBoundary_Vector_vtk(self):
      reference="tet_2D_o2_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_FunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order2_FunctionOnBoundary_Vector.xml",reference)
   def test_tet_2D_order2_FunctionOnBoundary_Tensor_vtk(self):
      reference="tet_2D_o2_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_FunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order2_FunctionOnBoundary_Tensor.xml",reference)
   def test_tet_2D_order2_ReducedFunctionOnBoundary_Scalar_vtk(self):
      reference="tet_2D_o2_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedFunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_2D_order2_ReducedFunctionOnBoundary_Scalar.xml",reference)
   def test_tet_2D_order2_ReducedFunctionOnBoundary_Vector_vtk(self):
      reference="tet_2D_o2_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedFunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_order2_ReducedFunctionOnBoundary_Vector.xml",reference)
   def test_tet_2D_order2_ReducedFunctionOnBoundary_Tensor_vtk(self):
      reference="tet_2D_o2_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_2D_order2_ReducedFunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.],[21.,22.]])
      self.check_vtk("tet_2D_order2_ReducedFunctionOnBoundary_Tensor.xml",reference)
   # ======================================================================================================================
   def test_tet_3D_order1_ContinuousFunction_Scalar_vtk(self):
      reference="tet_3D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ContinuousFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order1_ContinuousFunction_Scalar.xml",reference)
   def test_tet_3D_order1_ContinuousFunction_Vector_vtk(self):
      reference="tet_3D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ContinuousFunction_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order1_ContinuousFunction_Vector.xml",reference)
   def test_tet_3D_order1_ContinuousFunction_Tensor_vtk(self):
      reference="tet_3D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ContinuousFunction_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order1_ContinuousFunction_Tensor.xml",reference)
   def test_tet_3D_order1_Solution_Scalar_vtk(self):
      reference="tet_3D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_Solution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order1_Solution_Scalar.xml",reference)
   def test_tet_3D_order1_Solution_Vector_vtk(self):
      reference="tet_3D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_Solution_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order1_Solution_Vector.xml",reference)
   def test_tet_3D_order1_Solution_Tensor_vtk(self):
      reference="tet_3D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_Solution_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order1_Solution_Tensor.xml",reference)
   def test_tet_3D_order1_ReducedSolution_Scalar_vtk(self):
      reference="tet_3D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedSolution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order1_ReducedSolution_Scalar.xml",reference)
   def test_tet_3D_order1_ReducedSolution_Vector_vtk(self):
      reference="tet_3D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedSolution_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order1_ReducedSolution_Vector.xml",reference)
   def test_tet_3D_order1_ReducedSolution_Tensor_vtk(self):
      reference="tet_3D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedSolution_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order1_ReducedSolution_Tensor.xml",reference)
   def test_tet_3D_order1_Function_Scalar_vtk(self):
      reference="tet_3D_o1_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_Function_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order1_Function_Scalar.xml",reference)
   def test_tet_3D_order1_Function_Vector_vtk(self):
      reference="tet_3D_o1_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_Function_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order1_Function_Vector.xml",reference)
   def test_tet_3D_order1_Function_Tensor_vtk(self):
      reference="tet_3D_o1_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_Function_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order1_Function_Tensor.xml",reference)
   def test_tet_3D_order1_ReducedFunction_Scalar_vtk(self):
      reference="tet_3D_o1_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order1_ReducedFunction_Scalar.xml",reference)
   def test_tet_3D_order1_ReducedFunction_Vector_vtk(self):
      reference="tet_3D_o1_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedFunction_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order1_ReducedFunction_Vector.xml",reference)
   def test_tet_3D_order1_ReducedFunction_Tensor_vtk(self):
      reference="tet_3D_o1_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedFunction_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order1_ReducedFunction_Tensor.xml",reference)
   def test_tet_3D_order1_FunctionOnBoundary_Scalar_vtk(self):
      reference="tet_3D_o1_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_FunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order1_FunctionOnBoundary_Scalar.xml",reference)
   def test_tet_3D_order1_FunctionOnBoundary_Vector_vtk(self):
      reference="tet_3D_o1_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_FunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order1_FunctionOnBoundary_Vector.xml",reference)
   def test_tet_3D_order1_FunctionOnBoundary_Tensor_vtk(self):
      reference="tet_3D_o1_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_FunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order1_FunctionOnBoundary_Tensor.xml",reference)
   def test_tet_3D_order1_ReducedFunctionOnBoundary_Scalar_vtk(self):
      reference="tet_3D_o1_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedFunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order1_ReducedFunctionOnBoundary_Scalar.xml",reference)
   def test_tet_3D_order1_ReducedFunctionOnBoundary_Vector_vtk(self):
      reference="tet_3D_o1_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedFunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order1_ReducedFunctionOnBoundary_Vector.xml",reference)
   def test_tet_3D_order1_ReducedFunctionOnBoundary_Tensor_vtk(self):
      reference="tet_3D_o1_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order1_ReducedFunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order1_ReducedFunctionOnBoundary_Tensor.xml",reference)
   # ======================================================================================================================
   def test_tet_3D_order2_ContinuousFunction_Scalar_vtk(self):
      reference="tet_3D_o2_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ContinuousFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order2_ContinuousFunction_Scalar.xml",reference)
   def test_tet_3D_order2_ContinuousFunction_Vector_vtk(self):
      reference="tet_3D_o2_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ContinuousFunction_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order2_ContinuousFunction_Vector.xml",reference)
   def test_tet_3D_order2_ContinuousFunction_Tensor_vtk(self):
      reference="tet_3D_o2_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ContinuousFunction_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order2_ContinuousFunction_Tensor.xml",reference)
   def test_tet_3D_order2_Solution_Scalar_vtk(self):
      reference="tet_3D_o2_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_Solution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order2_Solution_Scalar.xml",reference)
   def test_tet_3D_order2_Solution_Vector_vtk(self):
      reference="tet_3D_o2_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_Solution_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order2_Solution_Vector.xml",reference)
   def test_tet_3D_order2_Solution_Tensor_vtk(self):
      reference="tet_3D_o2_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_Solution_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order2_Solution_Tensor.xml",reference)
   def test_tet_3D_order2_ReducedSolution_Scalar_vtk(self):
      reference="tet_3D_o1_node_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedSolution_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order2_ReducedSolution_Scalar.xml",reference)
   def test_tet_3D_order2_ReducedSolution_Vector_vtk(self):
      reference="tet_3D_o1_node_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedSolution_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order2_ReducedSolution_Vector.xml",reference)
   def test_tet_3D_order2_ReducedSolution_Tensor_vtk(self):
      reference="tet_3D_o1_node_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedSolution_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order2_ReducedSolution_Tensor.xml",reference)
   def test_tet_3D_order2_Function_Scalar_vtk(self):
      reference="tet_3D_o2_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_Function_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order2_Function_Scalar.xml",reference)
   def test_tet_3D_order2_Function_Vector_vtk(self):
      reference="tet_3D_o2_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_Function_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order2_Function_Vector.xml",reference)
   def test_tet_3D_order2_Function_Tensor_vtk(self):
      reference="tet_3D_o2_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_Function_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order2_Function_Tensor.xml",reference)
   def test_tet_3D_order2_ReducedFunction_Scalar_vtk(self):
      reference="tet_3D_o2_reduced_cell_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedFunction_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order2_ReducedFunction_Scalar.xml",reference)
   def test_tet_3D_order2_ReducedFunction_Vector_vtk(self):
      reference="tet_3D_o2_reduced_cell_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedFunction_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order2_ReducedFunction_Vector.xml",reference)
   def test_tet_3D_order2_ReducedFunction_Tensor_vtk(self):
      reference="tet_3D_o2_reduced_cell_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedFunction_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order2_ReducedFunction_Tensor.xml",reference)
   def test_tet_3D_order2_FunctionOnBoundary_Scalar_vtk(self):
      reference="tet_3D_o2_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_FunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order2_FunctionOnBoundary_Scalar.xml",reference)
   def test_tet_3D_order2_FunctionOnBoundary_Vector_vtk(self):
      reference="tet_3D_o2_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_FunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order2_FunctionOnBoundary_Vector.xml",reference)
   def test_tet_3D_order2_FunctionOnBoundary_Tensor_vtk(self):
      reference="tet_3D_o2_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_FunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order2_FunctionOnBoundary_Tensor.xml",reference)
   def test_tet_3D_order2_ReducedFunctionOnBoundary_Scalar_vtk(self):
      reference="tet_3D_o2_reduced_boundary_s.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedFunctionOnBoundary_Scalar.xml"),data=x[0])
      self.check_vtk("tet_3D_order2_ReducedFunctionOnBoundary_Scalar.xml",reference)
   def test_tet_3D_order2_ReducedFunctionOnBoundary_Vector_vtk(self):
      reference="tet_3D_o2_reduced_boundary_v.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedFunctionOnBoundary_Vector.xml"),data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_order2_ReducedFunctionOnBoundary_Vector.xml",reference)
   def test_tet_3D_order2_ReducedFunctionOnBoundary_Tensor_vtk(self):
      reference="tet_3D_o2_reduced_boundary_t.xml"
-     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"))
+     dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      saveVTK(os.path.join(FINLEY_WORKDIR_PATH,"tet_3D_order2_ReducedFunctionOnBoundary_Tensor.xml"),data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
      self.check_vtk("tet_3D_order2_ReducedFunctionOnBoundary_Tensor.xml",reference)
