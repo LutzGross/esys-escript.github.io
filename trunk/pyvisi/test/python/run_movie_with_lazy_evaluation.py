@@ -1,7 +1,7 @@
 from esys.pyvisi import Scene, DataCollector, Map, Camera, Velocity, Legend 
 from esys.pyvisi import Movie, LocalPosition
 from esys.pyvisi.constant import *
-import unittest, os
+import unittest, os, sys
 from stat import ST_SIZE
 
 try:

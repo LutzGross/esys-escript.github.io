@@ -1,6 +1,6 @@
 from esys.pyvisi import Scene, Text2D, LocalPosition
 from esys.pyvisi.constant import *
-import unittest, os
+import unittest, os, sys
 from stat import ST_SIZE
 
 try:

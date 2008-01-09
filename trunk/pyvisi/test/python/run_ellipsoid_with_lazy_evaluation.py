@@ -1,7 +1,7 @@
 from esys.pyvisi import DataCollector, Scene, Ellipsoid, EllipsoidOnPlaneCut
 from esys.pyvisi import EllipsoidOnPlaneClip, Camera
 from esys.pyvisi.constant import *
-import unittest, os
+import unittest, os, sys
 from stat import ST_SIZE
 
 try:

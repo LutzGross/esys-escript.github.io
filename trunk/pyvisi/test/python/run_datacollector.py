@@ -1,6 +1,6 @@
 from esys.pyvisi import DataCollector
 from esys.pyvisi.constant import *
-import unittest, os
+import unittest, os, sys
 
 try:
 	PYVISI_WORKDIR=os.environ['PYVISI_WORKDIR']

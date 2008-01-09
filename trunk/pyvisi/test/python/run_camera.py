@@ -1,6 +1,6 @@
 from esys.pyvisi import DataCollector, Scene, Camera, GlobalPosition, Map
 from esys.pyvisi.constant import *
-import unittest, os, gc
+import unittest, os, gc, sys
 from stat import ST_SIZE
 
 try:

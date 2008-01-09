@@ -6,7 +6,7 @@ from esys.finley import Rectangle, Brick
 from numarray import identity,zeros,ones
 from esys.pyvisi import Scene, DataCollector, Map, Velocity, Ellipsoid, Camera
 from esys.pyvisi.constant import *
-import unittest, os
+import unittest, os, sys
 from stat import ST_SIZE
 
 try:

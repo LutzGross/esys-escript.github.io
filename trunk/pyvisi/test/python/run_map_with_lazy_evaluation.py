@@ -2,7 +2,7 @@
 from esys.pyvisi import DataCollector, Scene, Map, MapOnPlaneCut, MapOnPlaneClip
 from esys.pyvisi import Camera, MapOnScalarClip, MapOnScalarClipWithRotation
 from esys.pyvisi.constant import *
-import unittest, os
+import unittest, os, sys
 from stat import ST_SIZE
 
 try:
