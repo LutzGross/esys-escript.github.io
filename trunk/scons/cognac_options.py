@@ -1,10 +1,21 @@
-
+#
 #          Copyright 2006 by ACcESS MNRF
 #
 #              http://www.access.edu.au
 #       Primary Business: Queensland, Australia
 #  Licensed under the Open Software License version 3.0
 #     http://www.opensource.org/licenses/osl-3.0.php
+#
+#   assumed modules:
+#
+#  module load scons/0.96.91
+#  module load intel-cc/10.0.023
+#  module load python/2.4.4/icc10.0.023
+#  module load numarray/1.5.2/python2.4.4_icc10.0.023/icc10.0.023
+#  module load boost/1.33.1/python2.4.4/icc9.1.051
+#  module load netcdf/3.6.2
+#  module load intel-mkl/9.1.018
+#  module load scsl/1.6.1.0
 #
 
 # flag the MPI settings
