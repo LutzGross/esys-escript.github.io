@@ -31,7 +31,7 @@ tools_prefix="/usr"
 #    
 #    get the installation prefix
 #
-prefix = ARGUMENTS.get('prefix', '/usr')
+prefix = ARGUMENTS.get('prefix', sys.prefix )
 
 # We may also need to know where python's site-packages subdirectory lives
 python_version = 'python%s.%s'%(sys.version_info[0],sys.version_info[1])

@@ -70,7 +70,7 @@ for i in range(dom.getDim()):
 	u=u*exp(-(x[i]-x_0[i])**2/sigma**2)
 u/=Lsup(u)
 
-u=whereNonPositive(abs(x[0]-0.3)-0.2)*whereNonPositive(abs(x[1]-0.5)-0.2)
+# u=whereNonPositive(abs(x[0]-0.3)-0.2)*whereNonPositive(abs(x[1]-0.5)-0.2)
 c=0
 saveVTK("u.%s.xml"%c,u=u)
 fc.setInitialSolution(u)
@@ -80,7 +80,7 @@ t=0.
 while t<15*dt:
     print "time step t=",t+dt	
     u=fc.solve(dt)	
-    print "range u",inf(u),sup(u)
+    print "range u",inf(u),sup(u),integrate(u,Function(dom))
     c+=1
     saveVTK("u.%s.xml"%c,u=u)
     t+=dt

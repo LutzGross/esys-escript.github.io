@@ -971,16 +971,11 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
         }
         break;
      case(ReducedFaceElements):
-cout << "A\n";
-        if (target.getFunctionSpace().getTypeCode()==FaceElements) {
-cout << "B\n";
+        if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
            Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
-cout << "C\n";
-        throw FinleyAdapterException("A");
         } else {
            throw FinleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
        }
-cout << "A\n";
        break;
      case(Points):
         if (target.getFunctionSpace().getTypeCode()==Points) {

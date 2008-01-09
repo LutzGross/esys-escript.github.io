@@ -51,7 +51,7 @@ try:
    VTK_AVAILABLE = True
 except ImportError:
       VTK_AVAILABLE =False
-      print "Warning: vtk is not installed on your system. pyvisi tests are skipped."
+      print "Warning: cannot import vtk. pyvisi tests are skipped."
        
 
 #Add Unit Test to target alias

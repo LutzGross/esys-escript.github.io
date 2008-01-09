@@ -86,7 +86,7 @@
 
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
 
-   index_t i;
+   index_t i, j;
    int n_substeps,n;
    double dt2=fctp->dt_max, dt2_loc, rtmp,rtmp2,t;
    dim_t n_rows=Paso_SystemMatrix_getTotalNumRows(fctp->flux_matrix);
@@ -188,6 +188,12 @@ Paso_SystemMatrix_saveMM(fctp->transport_matrix,"trans.mm");
             fctp->u[i]=fctp->u[i]+dt2*u[i]/fctp->lumped_mass_matrix[i];
             printf("%d : %e %e %e\n",i,u[i],fctp->u[i],rtmp);
         }
+       
+for (i=0;i<21;++i) {
+for (j=0;j<21;++j) printf("%d->%e ",i*21+j,fctp->u[i*21+j]);
+printf("\n");
+}
+
         t+=dt2;
         n++;
       }

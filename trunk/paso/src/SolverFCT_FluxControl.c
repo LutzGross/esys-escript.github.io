@@ -212,6 +212,7 @@ printf("%d: %e %e %e : %e %e %e : %e\n",i,Q_p,P_p,r_p,Q_n,P_n,r_n,u_i);
                                     fa[j]-=f_ij;
 printf("%d %d => %e %e : %e %e : %e %e : fa[%d]=%e fa[%d]=%e\n",i,j,d_ij,(u_i-u_j), a_ij, a_ji, r_ij,f_ij,i,fa[i],j,fa[j]);
 
+
                                    
                                 }
                                 break;
