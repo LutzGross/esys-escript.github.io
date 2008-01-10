@@ -12,7 +12,7 @@
 #  module load intel-cc/10.0.023
 #  module load python/2.4.4/icc10.0.023
 #  module load numarray/1.5.2/python2.4.4_icc10.0.023/icc10.0.023
-#  module load boost/1.33.1/python2.4.4/icc9.1.051
+#  module load boost/1.33.1/python2.4.4_icc10.0.023/numarray1.5.2_icc10.0.023/icc10.0.023
 #  module load netcdf/3.6.2
 #  module load intel-mkl/9.1.018
 #  module load scsl/1.6.1.0
@@ -26,7 +26,7 @@ useMPI = 'no'
 python_version="2.4"
 python_installation="2.4.4/icc10.0.023"
 boost_version="1_33_1"
-boost_installation="1.33.1/python2.4.4/icc9.1.051"
+boost_installation="1.33.1/python2.4.4_icc10.0.023/numarray1.5.2_icc10.0.023/icc10.0.023"
 
 #prefix = ARGUMENTS.get('prefix', '/opt/esys-escript/unstable/')
 #tools_prefix="/opt/esys-escript/unstable/"
@@ -55,7 +55,7 @@ python_lib = 'python'+python_version
 # locations of libraries for boost
 boost_path = '/opt/boost/'+boost_installation+'/include/boost-'+boost_version
 boost_lib_path = '/opt/boost/'+boost_installation+'/lib'
-boost_lib = 'boost_python-mt'
+boost_lib = 'boost_python-il-mt-1_33_1'
 
 # locations of doc building executables
 doxygen_path = '/opt/doxygen-1.4.5/bin'
