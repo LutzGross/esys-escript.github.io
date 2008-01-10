@@ -79,15 +79,11 @@ using namespace boost::python;
 BOOST_PYTHON_MODULE(finleycpp)
 {
 
-  // def("ReadMesh",finley::readMesh,readMesh_overloads());
-  // def("Brick",finley::brick,brick_overloads());
-  // def("Rectangle",finley::rectangle,rectangle_overloads());
-  // def("Interval",finley::interval,interval_overloads());
-  // def("GlueFaces",finley::glueFaces,glueFaces_overloads());
-  // def("JoinFaces",finley::joinFaces,joinFaces_overloads());
   //
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
+  //
+  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
   def("LoadMesh",finley::loadMesh,
       (arg("fileName")="file.nc"),
@@ -184,6 +180,5 @@ BOOST_PYTHON_MODULE(finleycpp)
 
 
 
-  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
 }

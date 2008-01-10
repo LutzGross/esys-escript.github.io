@@ -56,8 +56,7 @@ FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
 
 NE=6 # number of element in each spatial direction (must be even)
 
-class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE):
-# class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
+class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
