@@ -200,15 +200,20 @@ class PDECoefficient(object):
        @raise IllegalCoefficientValue: if the shape of the assigned value does not match the shape of the coefficient
        @raise IllegalCoefficientFunctionSpace: if unable to interploate value to appropriate function space
        """
+       print "SASDSADSA"
        if newValue==None:
            newValue=escript.Data()
        elif isinstance(newValue,escript.Data):
            if not newValue.isEmpty():
               if not newValue.getFunctionSpace() == self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder):
                 try:
+	          print "try new value"
                   newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
                 except:
-                  raise IllegalCoefficientFunctionSpace,"Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain)
+	          print "bad luck!"
+		  foo=self.getFunctionSpace(domain)
+		  print "XXX"
+                  raise IllegalCoefficientFunctionSpace,"Unable to interpolate coefficient to function space %s"%foo
        else:
            newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
        if not newValue.isEmpty():

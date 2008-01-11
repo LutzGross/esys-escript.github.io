@@ -85,6 +85,8 @@ BOOST_PYTHON_MODULE(finleycpp)
   //
   register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
+  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
+
   def("LoadMesh",finley::loadMesh,
       (arg("fileName")="file.nc"),
       return_value_policy<manage_new_object>());
@@ -177,8 +179,4 @@ BOOST_PYTHON_MODULE(finleycpp)
   class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
       ("OperatorAdapter",no_init)
       .def("resetTransport",&finley::TransportProblemAdapter::resetTransport);
-
-
-
-
 }

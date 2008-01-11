@@ -21,8 +21,9 @@ using namespace std;
 
 namespace esysUtils {
 
-void esysExceptionTranslator(EsysException const& e) 
+void esysExceptionTranslator(const EsysException & e) 
   {
+	  cout << "translated!\n";
     PyErr_SetString(PyExc_RuntimeError,e.what());
   }
 

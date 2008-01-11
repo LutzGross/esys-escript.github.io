@@ -21,9 +21,6 @@
 #endif
 #include "MeshAdapterFactory.h"
 #include "FinleyError.h"
-extern "C" {
-#include "escript/blocktimer.h"
-}
 
 #include <boost/python/extract.hpp>
 
@@ -59,7 +56,6 @@ namespace finley {
     char error_msg[LenErrorMsg_MAX];
     char *fName = Paso_MPI_appendRankToFileName(strdup(fileName.c_str()), mpi_info->size, mpi_info->rank);
 
-    double blocktimer_start = blocktimer_time();
     Finley_resetError();
 
     // Open NetCDF file for reading
@@ -454,7 +450,6 @@ namespace finley {
     /* win32 refactor */
     TMPMEMFREE(fName);
 
-    blocktimer_increment("LoadMesh()", blocktimer_start);
     return temp;
 #else
     throw DataException("Error - loadMesh: is not compiled with NetCFD. Please contact your installation manager.");
@@ -473,7 +468,6 @@ namespace finley {
     // Win32 refactor
     char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
     strcpy(fName,fileName.c_str());
-    double blocktimer_start = blocktimer_time();
 
     fMesh=Finley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
     checkFinleyError();
@@ -482,7 +476,6 @@ namespace finley {
     /* win32 refactor */
     TMPMEMFREE(fName);
     
-    blocktimer_increment("ReadMesh()", blocktimer_start);
     return temp;
   }
 
@@ -498,7 +491,7 @@ namespace finley {
     // Win32 refactor
     char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
     strcpy(fName,fileName.c_str());
-    double blocktimer_start = blocktimer_time();
+    //double blocktimer_start = blocktimer_time();
 
     fMesh=Finley_Mesh_read_MPI(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
     checkFinleyError();
@@ -507,7 +500,7 @@ namespace finley {
     /* win32 refactor */
     TMPMEMFREE(fName);
     
-    blocktimer_increment("ReadMesh()", blocktimer_start);
+    //blocktimer_increment("ReadMesh()", blocktimer_start);
     return temp;
   }
 
@@ -524,7 +517,6 @@ namespace finley {
     // Win32 refactor
     char *fName = ((fileName.size()+1)>0) ? TMPMEMALLOC((fileName.size()+1),char) : (char*)NULL;
     strcpy(fName,fileName.c_str());
-    double blocktimer_start = blocktimer_time();
 
     fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
     checkFinleyError();
@@ -533,7 +525,6 @@ namespace finley {
     /* win32 refactor */
     TMPMEMFREE(fName);
     
-    blocktimer_increment("ReadGmsh()", blocktimer_start);
     return temp;
   }
 

@@ -14,6 +14,7 @@
  *******************************************************/
 
 #include "EsysException.h"
+#include <iostream>
 
 using namespace std;
 using namespace esysUtils;
@@ -26,12 +27,15 @@ ostream &operator<<(ostream &output, EsysException &inException){
 EsysException::EsysException():
   exception() 
 {
+	std::cout << "EsysException() called\n";
 }
 
 EsysException::EsysException(const string &exceptionReason):
 exception()
 {
-  reason() << exceptionReason;
+	std::cout << "EsysException(const string &exceptionReason) called\n";
+
+      	reason() << exceptionReason;
 }
 
 // Copy Constructor.
@@ -44,6 +48,8 @@ exception(inException)
 EsysException::EsysException( const char *cStr ):
   exception() 
 {
+		std::cout << "EsysException::EsysException( const char *cStr )\n";
+
   reason() << cStr;
 }
 

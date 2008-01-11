@@ -1,5 +1,5 @@
 
-/* $Id:$ */
+/* $Id$ */
 
 /*******************************************************
  *
@@ -29,7 +29,7 @@ AbstractTransportProblem::AbstractTransportProblem(const double theta,const doub
 {
   if (blocksize<=0) 
      throw TransportProblemException("Error - negative block size of transport problem.");
-  if ((theta<0.) or (theta>1.))
+  if ((theta<0.) || (theta>1.))
      throw TransportProblemException("Error - theta needs to be between 0. and 1..");
 
    m_empty=0;

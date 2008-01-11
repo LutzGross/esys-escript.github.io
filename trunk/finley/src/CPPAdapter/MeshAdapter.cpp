@@ -19,9 +19,6 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-extern "C" {
-#include "escript/blocktimer.h"
-}
 #include <vector>
 
 using namespace std;
@@ -974,6 +971,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
         if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
            Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
         } else {
+		cout << "AAAAAAAAAAAAAAAAAAAAAAAAAA\n";
            throw FinleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
        }
        break;
@@ -1245,7 +1243,6 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
   if (argDomain!=*this) 
      throw FinleyAdapterException("Error - Illegal domain of integration kernel");
 
-  double blocktimer_start = blocktimer_time();
   Finley_Mesh* mesh=m_finleyMesh.get();
   escriptDataC _temp;
   escript::Data temp;
@@ -1305,7 +1302,6 @@ void MeshAdapter::setToIntegrals(std::vector<double>& integrals,const escript::D
         break;
   }
   checkFinleyError();
-  blocktimer_increment("integrate()", blocktimer_start);
 }
 
 //

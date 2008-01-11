@@ -194,7 +194,7 @@ class Movie:
 
 		parameter_file = open(self.__parameter_file, 'w')
 
-		parameter_file.write('PATTERN IBBPBBPBBPBBPBBP\n' +
+		parameter_file.write('PATTERN IBBPBBPBBPBBPBB\n' +
 			'OUTPUT ' + self.__movie + '\n' 
 			'BASE_FILE_FORMAT PNM\n' + 
 			'INPUT_CONVERT ' +  self.__command + 'topnm *\n' +

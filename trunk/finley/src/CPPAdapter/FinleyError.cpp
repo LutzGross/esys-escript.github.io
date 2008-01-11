@@ -18,6 +18,7 @@
 #endif
 #include "FinleyError.h"
 #include <iostream>
+#include <string>
 
 namespace finley {
 

@@ -24,10 +24,6 @@
 #include "AbstractTransportProblem.h"
 #include "DataVector.h"
 
-extern "C" {
-#include "escript/blocktimer.h"
-}
-
 #include "esysUtils/esysExceptionTranslator.h"
 
 #include <boost/python.hpp>
@@ -78,11 +74,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("setNumberOfThreads",escript::setNumberOfThreads);
   def("getNumberOfThreads",escript::getNumberOfThreads);
   def("releaseUnusedMemory",escript::releaseUnusedMemory);
-  def("blocktimer_initialize",blocktimer_initialize);
-  def("blocktimer_reportSortByName",blocktimer_reportSortByName);
-  def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
-  def("blocktimer_increment",blocktimer_increment);
-  def("blocktimer_time",blocktimer_time);
   def("getVersion",escript::getSvnVersion);
 
 
