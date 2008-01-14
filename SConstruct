@@ -845,15 +845,16 @@ try:
 except KeyError:
    api_doxygen = None
 
-global_revision="$Rev$"
 try:
    svn_pipe = os.popen("svnversion -n .")
    global_revision = svn_pipe.readlines()
    svn_pipe.close()
+   global_revision = re.sub(":.*", "", global_revision[0])
+   global_revision = re.sub("[^0-9]", "", global_revision)
 except:
-   print "Extracting revision number failed. Using %s instead."%global_revision
-global_revision = re.sub(":.*", "", global_revision[0])
-global_revision = re.sub("[^0-9]", "", global_revision)
+   global_revision="-1"
+   print "Warning: unable to recover global revsion number."
+print "Revision number is %s."%global_revision
 env.Append(CPPDEFINES = "SVN_VERSION="+global_revision)
 
 # Python install - esys __init__.py
