@@ -12,6 +12,7 @@
 EnsureSConsVersion(0,96,91)
 EnsurePythonVersion(2,3)
 
+
 #===============================================================
 #   import tools:
 import glob
@@ -844,14 +845,15 @@ try:
 except KeyError:
    api_doxygen = None
 
+global_revision="$Revison"
 try:
    svn_pipe = os.popen("svnversion -n .")
    global_revision = svn_pipe.readlines()
    svn_pipe.close()
-   global_revision = re.sub(":.*", "", global_revision[0])
-   global_revision = re.sub("[^0-9]", "", global_revision)
 except:
-   global_revision = "0"
+   print "Extracting revision number failed. Using %s instead."%global_revision
+global_revision = re.sub(":.*", "", global_revision[0])
+global_revision = re.sub("[^0-9]", "", global_revision)
 env.Append(CPPDEFINES = "SVN_VERSION="+global_revision)
 
 # Python install - esys __init__.py
