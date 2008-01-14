@@ -845,7 +845,7 @@ try:
 except KeyError:
    api_doxygen = None
 
-global_revision="$Revison"
+global_revision="$Rev$"
 try:
    svn_pipe = os.popen("svnversion -n .")
    global_revision = svn_pipe.readlines()
