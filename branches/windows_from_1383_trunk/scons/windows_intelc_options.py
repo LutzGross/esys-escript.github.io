@@ -36,17 +36,17 @@ boost_lib_path = os.path.realpath('../boost/windows_binary/lib')
 boost_lib = 'boost_python-vc71-mt-s-1_31'
 
 # locations of netcdf
-useNetCDF = "yes"
-netCDF_path = os.path.realpath("../netcdf/src/include")
-netCDF_lib_path = os.path.realpath("../netcdf/src/win32/NET/release")
-netCDF_libs = [ 'netcdf', 'netcdf_cpp' ]
+#useNetCDF = "yes"
+#netCDF_path = os.path.realpath("../netcdf/src/include")
+#netCDF_lib_path = os.path.realpath("../netcdf/src/win32/NET/release")
+#netCDF_libs = [ 'netcdf', 'netcdf_cpp' ]
 
-cc_defines = ['_USE_MATH_DEFINES', 'DLL_NETCDF' ]
+cc_defines = ['_USE_MATH_DEFINES', 'DLL_NETCDF', 'BOOST_NO_INTRINSIC_WCHAR_T' ]
 # c flags to use
 # 1563 - taking adress of a temporary
 # 811 - exception specification for implicitly declared virtual function (destructor usually) incompatible with that of override
 # 161 - openmp pargmas are unknown when not compiling with openmp
-cc_common_flags = '/FD /EHsc /GR /wd4068 '
+cc_common_flags = '/FD /EHsc /GR /wd4068 /wd161 /Qvc7.1 '
 cc_flags  = cc_common_flags + '/O2 /Op /MT /W3'
 
 cc_flags_debug  = cc_common_flags + '/Od /RTC1 /MTd /ZI'
