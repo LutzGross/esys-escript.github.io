@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 /*******************************************************
  *
@@ -100,7 +100,7 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
   /**
   *      \brief resets the transport operator typically as they have been updated.
   *        */
-  ESCRIPT_DLL_API
+  FINLEY_DLL_API
   virtual void resetTransport() const;
 
  protected:
@@ -111,14 +111,14 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
     *      \brief
     *           sets solution out by time step dt.
     *             */
-    ESCRIPT_DLL_API
+    FINLEY_DLL_API
     virtual void setToSolution(escript::Data& out,escript::Data& source,const double dt, const boost::python::dict& options) const;
    
    /**
    *      \brief
    *           copies the initial value into the problem
    *             */
-    ESCRIPT_DLL_API
+    FINLEY_DLL_API
     virtual void copyInitialValue(escript::Data& u) const;
 
    //

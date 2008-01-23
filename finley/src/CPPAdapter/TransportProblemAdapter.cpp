@@ -56,7 +56,7 @@ Paso_FCTransportProblem* TransportProblemAdapter::getPaso_FCTransportProblem() c
    return m_transport_problem.get();
 }
 
-
+FINLEY_DLL_API
 void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& source, const double dt, const boost::python::dict& options) const
 {
     Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
@@ -81,6 +81,7 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& s
     checkPasoError();
 }
 
+FINLEY_DLL_API
 void TransportProblemAdapter::resetTransport() const
 {
    Paso_FCTransportProblem* transp = getPaso_FCTransportProblem();
@@ -92,6 +93,7 @@ void TransportProblemAdapter::resetTransport() const
    checkPasoError();
 }
 
+FINLEY_DLL_API
 void TransportProblemAdapter::copyInitialValue(escript::Data& u) const
 {
     Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
