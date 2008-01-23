@@ -53,7 +53,7 @@ EsysException::EsysException( const char *cStr ):
   reason() << cStr;
 }
 
-EsysException::~EsysException() throw()
+EsysException::~EsysException()
 {}
 
 string EsysException::exceptionName() const 

@@ -71,7 +71,7 @@ class EsysException:public std::exception {
   */
   EsysException(const EsysException &inException);
   /// Destructor
-  virtual ~EsysException() throw();
+  virtual ~EsysException();
   /**
      \brief
      Assignment operator.
