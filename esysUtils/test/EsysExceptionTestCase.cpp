@@ -34,6 +34,9 @@ class DerivedEx : public EsysException {
 	/// Constructor for Exception
 	DerivedEx(const string &str) : EsysException(str) {}
 
+        /// Destructor
+        virtual ~DerivedEx() {}
+
 	/// Return the exception name
 	virtual string exceptionName() const {
 		return "DerivedException";
