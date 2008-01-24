@@ -2190,3 +2190,24 @@ class LameEquation(LinearPDE):
      else:
         raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
 
+def LinearSinglePDE(domain,debug=False):
+   """
+   defines a single linear PDEs
+
+   @param domain: domain of the PDE
+   @type domain: L{Domain<escript.Domain>}
+   @param debug: if True debug informations are printed.
+   @rtype: L{LinearPDE}
+   """
+   return LinearPDE(domain,numEquations=1,numSolutions=1,debug=debug)
+
+def LinearPDESystem(domain,debug=False):
+   """
+   defines a system of linear PDEs
+
+   @param domain: domain of the PDE
+   @type domain: L{Domain<escript.Domain>}
+   @param debug: if True debug informations are printed.
+   @rtype: L{LinearPDE}
+   """
+   return LinearPDE(domain,numEquations=domain.getDim(),numSolutions=domain.getDim(),debug=debug)
