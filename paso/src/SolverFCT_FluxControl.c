@@ -69,10 +69,10 @@ void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, doub
                         for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j]; iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
                             if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
                                 d_ij=(-alpha)*MIN3(0.,fc->flux_matrix->mainBlock->val[iptr_ij],fc->flux_matrix->mainBlock->val[iptr_ji]);
-printf("%d %d -> %e\n",i,j,d_ij);
+/* printf("%d %d -> %e\n",i,j,d_ij); */
                                 fc->transport_matrix->mainBlock->val[iptr_ij]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
                                 fc->transport_matrix->mainBlock->val[iptr_ji]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ji]+d_ij;
-printf("%d %d -> %e -> %e %e \n",i,j,d_ij,fc->transport_matrix->mainBlock->val[iptr_ij],fc->transport_matrix->mainBlock->val[iptr_ji]);
+/* printf("%d %d -> %e -> %e %e \n",i,j,d_ij,fc->transport_matrix->mainBlock->val[iptr_ij],fc->transport_matrix->mainBlock->val[iptr_ji]); */
                                 fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]-=d_ij;
                                 fc->transport_matrix->mainBlock->val[fc->main_iptr[j]]-=d_ij;
                                 break;
@@ -91,6 +91,9 @@ printf("%d %d -> %e -> %e %e \n",i,j,d_ij,fc->transport_matrix->mainBlock->val[i
 }
 
 void Paso_FCTransportProblem_setFlux(Paso_FCTransportProblem * fc, double * u, double* fa) {
+  /*
+   *   sets fa=transport_matrix*u+anti-diffuison_flux(u)
+   */
 
   double *remote_u=NULL;
   
@@ -154,7 +157,7 @@ void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, 
                       a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
                       j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
                       d=u[j]-u_i;
-printf("%d %d : %e %e :: %e \n",i,j,u_i,u[j],a_ij);
+/* printf("%d %d : %e %e :: %e \n",i,j,u_i,u[j],a_ij); */
                       if (a_ij<0.) {
                          if (d<0.) {
                             P_p+=a_ij*d;
@@ -192,7 +195,7 @@ printf("%d %d : %e %e :: %e \n",i,j,u_i,u[j],a_ij);
                   /* set the smoothness indicators */
                   r_p = (P_p > 0.) ? FLUX_LIMITER(Q_p/P_p) : 0.;
                   r_n = (P_n < 0.) ? FLUX_LIMITER(Q_n/P_n) : 0.;
-printf("%d: %e %e %e : %e %e %e : %e\n",i,Q_p,P_p,r_p,Q_n,P_n,r_n,u_i);
+/* printf("Flux control %d: %e %e %e : %e %e %e : %e\n",i,Q_p,P_p,r_p,Q_n,P_n,r_n,u_i);  */
                   /* anti diffusive flux from main block */
                   for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
                      a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
@@ -210,7 +213,7 @@ printf("%d: %e %e %e : %e %e %e : %e\n",i,Q_p,P_p,r_p,Q_n,P_n,r_n,u_i);
 
                                     fa[i]+=f_ij;
                                     fa[j]-=f_ij;
-printf("%d %d => %e %e : %e %e : %e %e : fa[%d]=%e fa[%d]=%e\n",i,j,d_ij,(u_i-u_j), a_ij, a_ji, r_ij,f_ij,i,fa[i],j,fa[j]);
+/* printf("%d %d => %e %e : %e %e : %e %e : fa[%d]=%e fa[%d]=%e\n",i,j,d_ij,(u_i-u_j), a_ij, a_ji, r_ij,f_ij,i,fa[i],j,fa[j]); */
 
 
                                    
