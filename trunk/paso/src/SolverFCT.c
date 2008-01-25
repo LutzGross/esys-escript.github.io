@@ -43,7 +43,8 @@ void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in) {
            MEMFREE(in->lumped_mass_matrix);
            MEMFREE(in->row_sum_flux_matrix);
            MEMFREE(in->transport_matrix_diagonal);
-           MEMFREE(in->colorOf);
+           MEMFREE(in->r_p);
+           MEMFREE(in->r_n);
            MEMFREE(in->main_iptr);
            MEMFREE(in);
         }
@@ -98,34 +99,34 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
      out->flux_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
      out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
 
-     out->colorOf=NULL;
      out->main_iptr=NULL;
      out->lumped_mass_matrix=NULL;
      out->row_sum_flux_matrix=NULL;
      out->transport_matrix_diagonal=NULL;
+     out->r_p=NULL;
+     out->r_n=NULL;
 
      if (Paso_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
 
-         out->colorOf=MEMALLOC(n,index_t);
+         out->r_p=MEMALLOC(n,double);
+         out->r_n=MEMALLOC(n,double);
          out->main_iptr=MEMALLOC(n,index_t);
          out->lumped_mass_matrix=MEMALLOC(n,double);
          out->row_sum_flux_matrix=MEMALLOC(n,double);
          out->transport_matrix_diagonal=MEMALLOC(n,double);
          out->u=MEMALLOC(n,double);
 
-         if ( ! (Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || 
+         if ( ! (Paso_checkPtr(out->r_p) || Paso_checkPtr(out->r_n) || Paso_checkPtr(out->main_iptr) || 
                  Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->transport_matrix_diagonal) || Paso_checkPtr(out->row_sum_flux_matrix) || Paso_checkPtr(out->u)) ) {
-             
-             printf("Paso_SolverFCT_getFCTransportProblem: Revise coloring!!\n");
-             Paso_Pattern_color(pattern->mainPattern,&(out->num_colors),out->colorOf);
-
              
              #pragma omp parallel for schedule(static) private(i)
              for (i = 0; i < n; ++i) {
                 out->lumped_mass_matrix[i]=0.;
                 out->row_sum_flux_matrix[i]=0.;
                 out->u[i]=0.;
+                out->r_p[i]=0.;
+                out->r_n[i]=0.;
              }
              /* identify the main diagonals */
              #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)

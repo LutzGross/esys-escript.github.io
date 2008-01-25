@@ -260,7 +260,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                              local_norm_u=MAX(local_norm_u,ABS(u[i]));
                              local_norm_du=MAX(local_norm_du,ABS(du[i]));
                         }
-                        #pragma omp crtical 
+                        #pragma omp critical 
                         {
                             norm_u=MAX(norm_u,local_norm_u);
                             norm_du=MAX(norm_du,local_norm_du);

@@ -150,7 +150,7 @@ saveVTK("u.%s.xml"%c,u=u0)
 fc.setInitialSolution(u0)
 dt=1.266539e-02*10
 t=T0
-while t<T0+10:
+while t<T0+2:
     print "time step t=",t+dt	
     u=fc.solve(dt)	
     if TEST_SUPG:

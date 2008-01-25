@@ -30,9 +30,9 @@ typedef struct Paso_FCTransportProblem {
     double* lumped_mass_matrix;
     double* row_sum_flux_matrix;
     double* transport_matrix_diagonal;
+    double* r_p;
+    double* r_n;
 
-    dim_t num_colors;
-    index_t *colorOf;
     index_t *main_iptr;
     
     Paso_MPIInfo *mpi_info;
