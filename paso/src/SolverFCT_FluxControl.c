@@ -48,44 +48,34 @@
 void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, double alpha) {
   dim_t n,i;
   index_t color, iptr_ij,j,iptr_ji;
-  register double d_ij;
+  register double d_ij, sum;
 
   if (fc==NULL) return;
   n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
 
-  #pragma omp parallel private(color) 
-  {
-       /* process main block */
-       for (color=0;color<fc->num_colors;++color) {
-           #pragma omp for private(i,iptr_ij,j,iptr_ji,d_ij)  schedule(static)
-           for (i = 0; i < n; ++i) {
-               if (fc->colorOf[i]==color) {
-                  fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]+=alpha*fc->flux_matrix->mainBlock->val[fc->main_iptr[i]];
+  #pragma omp parallel for private(i,iptr_ij,j,iptr_ji,d_ij,sum)  schedule(static)
+  for (i = 0; i < n; ++i) {
+     sum=alpha*fc->flux_matrix->mainBlock->val[fc->main_iptr[i]];
+     for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
+         j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
+         if (j!=i) {
+             /* find entry a[j,i] */
+             for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j]; iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
+                if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
+                    d_ij=(-alpha)*MIN3(0.,fc->flux_matrix->mainBlock->val[iptr_ij],
+                                          fc->flux_matrix->mainBlock->val[iptr_ji]);
+                    fc->transport_matrix->mainBlock->val[iptr_ij]+=
+                                         alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
+                    sum-=d_ij;
+                    break;
+                }
+             }
+         }
+     }
+     /* TODO process couple block */
 
-                  for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
-                     j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-                     if (j<i) {
-                        /* find entry a[j,i] */
-                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j]; iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
-                            if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
-                                d_ij=(-alpha)*MIN3(0.,fc->flux_matrix->mainBlock->val[iptr_ij],fc->flux_matrix->mainBlock->val[iptr_ji]);
-/* printf("%d %d -> %e\n",i,j,d_ij); */
-                                fc->transport_matrix->mainBlock->val[iptr_ij]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
-                                fc->transport_matrix->mainBlock->val[iptr_ji]+=alpha*fc->flux_matrix->mainBlock->val[iptr_ji]+d_ij;
-/* printf("%d %d -> %e -> %e %e \n",i,j,d_ij,fc->transport_matrix->mainBlock->val[iptr_ij],fc->transport_matrix->mainBlock->val[iptr_ji]); */
-                                fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]-=d_ij;
-                                fc->transport_matrix->mainBlock->val[fc->main_iptr[j]]-=d_ij;
-                                break;
-                            }
-                        }
-                     }
-                        
-                  }
-                  /* TODO process couple block */
-               }
-           }
-           #pragma omp barrier
-       }
+     /* update main diagonal */
+     fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]+=sum;
   }
 
 }
@@ -128,107 +118,110 @@ void Paso_FCTransportProblem_setFlux(Paso_FCTransportProblem * fc, double * u, d
 
 void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double *u_remote, double* fa) {
 
-  register double u_i,P_p,P_n,Q_p,Q_n,r_p,r_n, a_ij, d, u_j, r_ij, f_ij, a_ji, d_ij;
+  register double u_i,P_p,P_n,Q_p,Q_n,r_p,r_n, a_ij, d, u_j, r_ij, f_ij, a_ji, d_ij, sum;
   index_t color, iptr_ij,j,iptr_ji, i;
   dim_t n;
 
 
   if (fc==NULL) return;
   n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
-  /* exchange */
 
 
-  #pragma omp parallel private(color) 
+  #pragma omp parallel
   {
-       for (color=0;color<fc->num_colors;++color) {
-           #pragma omp for schedule(static) private(i, u_i,P_p,P_n,Q_p,Q_n,r_p,r_n,iptr_ij,a_ij,d,j,iptr_ji, u_j, r_ij, f_ij, a_ji, d_ij)
-           for (i = 0; i < n; ++i) {
-              if (fc->colorOf[i]==color) {
-                  u_i=u[i];
-                  /* gather the smoothness sensor */
-                  P_p=0.;
-                  P_n=0.;
-                  Q_p=0.;
-                  Q_n=0.;
-                  r_p=0.;
-                  r_n=0.;
-                  /* #pragma ivdep */
-  	          for (iptr_ij=(fc->flux_matrix->mainBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->mainBlock->pattern->ptr[i+1]); ++iptr_ij) {
-                      a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
-                      j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-                      d=u[j]-u_i;
-/* printf("%d %d : %e %e :: %e \n",i,j,u_i,u[j],a_ij); */
-                      if (a_ij<0.) {
-                         if (d<0.) {
-                            P_p+=a_ij*d;
-                         } else {
-                            P_n+=a_ij*d;
-                         }
-                      } else {
-                         if (d>0.) {
-                            Q_p+=a_ij*d;
-                         } else {
-                            Q_n+=a_ij*d;
-                         }
-                      }
-  	          }
-                  #pragma ivdep
-  	          for (iptr_ij=(fc->flux_matrix->coupleBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->coupleBlock->pattern->ptr[i+1]); ++iptr_ij) {
-                      a_ij=fc->flux_matrix->coupleBlock->val[iptr_ij];
-                      j=fc->flux_matrix->coupleBlock->pattern->index[iptr_ij];
-                      d=u_remote[j]-u_i;
-
-                      if (a_ij<0.) {
-                         if (d<0.) {
-                            P_p+=a_ij*d;
-                         } else {
-                            P_n+=a_ij*d;
-                         }
-                      } else {
-                         if (d>0.) {
-                            Q_p+=a_ij*d;
-                         } else {
-                            Q_n+=a_ij*d;
-                         }
-                      }
-  	          }
-                  /* set the smoothness indicators */
-                  r_p = (P_p > 0.) ? FLUX_LIMITER(Q_p/P_p) : 0.;
-                  r_n = (P_n < 0.) ? FLUX_LIMITER(Q_n/P_n) : 0.;
-/* printf("Flux control %d: %e %e %e : %e %e %e : %e\n",i,Q_p,P_p,r_p,Q_n,P_n,r_n,u_i);  */
-                  /* anti diffusive flux from main block */
-                  for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
-                     a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
-                     j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-                     if ( i!=j ) {
-                        /* find entry a[j,i] */
-                        for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
-                            if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
-                                a_ji=fc->flux_matrix->mainBlock->val[iptr_ji];
-                                d_ij=-MIN3(0,a_ji,a_ij);
-                                if ( (d_ij > 0.) && ( (a_ji > a_ij) || ( (a_ji == a_ij) && (j<i) ) )  ) {
-                                    u_j=u[j];
-                                    r_ij = u_i>u_j ? r_p : r_n;
-                                    f_ij =MIN(r_ij*d_ij,a_ji+d_ij)*(u_i-u_j);
-
-                                    fa[i]+=f_ij;
-                                    fa[j]-=f_ij;
-/* printf("%d %d => %e %e : %e %e : %e %e : fa[%d]=%e fa[%d]=%e\n",i,j,d_ij,(u_i-u_j), a_ij, a_ji, r_ij,f_ij,i,fa[i],j,fa[j]); */
-
-
-                                   
-                                }
-                                break;
-                            }
-                        }
-                     }
+      /*
+       * calculate the smootness sensors 
+      */
+      #pragma omp for schedule(static) private(i, u_i,P_p,P_n,Q_p,Q_n,iptr_ij,a_ij,j,d)
+      for (i = 0; i < n; ++i) {
+          u_i=u[i];
+          P_p=0.;
+          P_n=0.;
+          Q_p=0.;
+          Q_n=0.;
+          #pragma ivdep
+  	  for (iptr_ij=(fc->flux_matrix->mainBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->mainBlock->pattern->ptr[i+1]); ++iptr_ij) {
+               a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
+               j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
+               d=u[j]-u_i;
+               if (a_ij<0.) {
+                  if (d<0.) {
+                      P_p+=a_ij*d;
+                  } else {
+                      P_n+=a_ij*d;
                   }
-                  /* anti diffusive flux from couple block */
+               } else {
+                  if (d>0.) {
+                    Q_p+=a_ij*d;
+                  } else {
+                    Q_n+=a_ij*d;
+                  }
+               }
+  	  }
+          #pragma ivdep
+  	  for (iptr_ij=(fc->flux_matrix->coupleBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->coupleBlock->pattern->ptr[i+1]); ++iptr_ij) {
+               a_ij=fc->flux_matrix->coupleBlock->val[iptr_ij];
+               j=fc->flux_matrix->coupleBlock->pattern->index[iptr_ij];
+               d=u_remote[j]-u_i;
+               if (a_ij<0.) {
+                   if (d<0.) {
+                     P_p+=a_ij*d;
+                   } else {
+                     P_n+=a_ij*d;
+                   }
+               } else {
+                  if (d>0.) {
+                     Q_p+=a_ij*d;
+                  } else {
+                     Q_n+=a_ij*d;
+                  }
+               }
+  	  }
+          /* set the smoothness indicators */
+          fc->r_p[i] = (P_p > 0.) ? FLUX_LIMITER(Q_p/P_p) : 0.;
+          fc->r_n[i] = (P_n < 0.) ? FLUX_LIMITER(Q_n/P_n) : 0.;
 
-                  /* TODO */
+      } /* end of row loop for smootheness indicator */
+
+      /*
+       * calculate antidiffusion
+      */
+      #pragma omp for schedule(static) private(i, u_i, sum, iptr_ij, a_ij, j, iptr_ji, a_ji,d_ij, u_j, r_ij, f_ij)
+      for (i = 0; i < n; ++i) {
+          u_i=u[i];
+          sum=0;
+          /* anti diffusive flux from main block */
+          for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
+              a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
+              j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
+              if ( i!=j ) {
+                   /* find entry a[j,i] */
+                   for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
+                      if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
+                           a_ji=fc->flux_matrix->mainBlock->val[iptr_ji];
+                           d_ij=-MIN3(0,a_ji,a_ij);
+                           if (d_ij > 0.) {
+                                u_j=u[j];
+                                if (a_ji >= a_ij) {
+                                    r_ij = u_i>u_j ? fc->r_p[i] : fc->r_n[i];
+                                    f_ij =MIN(r_ij*d_ij,a_ji+d_ij);
+                                } else {
+                                    r_ij = u_j>u_i ? fc->r_p[j] : fc->r_n[j];
+                                    f_ij =MIN(r_ij*d_ij,a_ij+d_ij);
+                                }
+                                sum+=f_ij*(u_i-u_j);
+                           }
+                           break;
+                      }
+                   }
               }
-           }
-           #pragma omp barrier
-       }
-  }
+          }
+          /* anti diffusive flux from couple block */
+          /* TODO */
+
+
+
+          fa[i]+=sum;
+      }
+  } /* end of parallel block */
 }
