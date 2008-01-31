@@ -31,8 +31,9 @@ python_lib_path = os.path.join(python_root,'libs')
 python_lib = 'python25'
 
 # locations of libraries for boost
-boost_path = os.path.realpath('../boost-1.33')
-boost_lib_path = os.path.realpath('../boost-1.33/windows_binary/lib')
+dotdot = os.path.realpath('..')
+boost_path = os.path.join(dotdot,'boost-1.33')
+boost_lib_path = os.path.join(boost_path,'windows_binary','lib')
 boost_lib = 'boost_python-vc71-mt-s-1_33_1.lib'
 
 # locations of netcdf
