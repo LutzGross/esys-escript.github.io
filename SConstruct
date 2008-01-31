@@ -291,6 +291,7 @@ opts.AddOptions(
 
 if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
+      #env = Environment(tools = ['default', 'intelc'], options = opts)
 else:
    if os.uname()[4]=='ia64':
       env = Environment(tools = ['default', 'intelc'], options = opts)
