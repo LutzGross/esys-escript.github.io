@@ -230,7 +230,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
   return mesh_p;
 }
 
-Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_order,  bool_t optimize) 
+Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_order,  bool_t optimize)
 
 {
 
@@ -243,7 +243,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
   double time0=Finley_timer();
   FILE *fileHandle_p = NULL;
   ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
-  
+
   Finley_resetError();
 
   if (mpi_info->rank == 0) {
@@ -255,13 +255,12 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
        Paso_MPIInfo_free( mpi_info );
        return NULL;
      }
-   
+
      /* read header */
      sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
      fscanf(fileHandle_p, frm, name);
-   
-     /* get the nodes */
-   
+
+     /* get the number of nodes */
      fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
   }
 
@@ -286,18 +285,17 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
     }
   }
 #endif
-  printf("ksteube CPU=%d/%d name='%s' numDim=%d numNodes=%d\n", mpi_info->rank, mpi_info->size, name, numDim, numNodes);
 
      /* allocate mesh */
      mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order,mpi_info);
      if (Finley_noError()) {
-	int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0, nextCPU=1, mpi_error;
+	int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0, chunkEle=0, nextCPU=1, mpi_error;
 	int *tempInts = TMPMEMALLOC(numNodes*3+1, index_t);
 	double *tempCoords = TMPMEMALLOC(numNodes*numDim, double);
 
 	/*
-	  Read a chunk of nodes, send to worker CPU if necessary, copy chunk into local mesh_p
-	  It doesn't matter that a CPU has the wrong nodes, this is sorted out later
+	  Read a chunk of nodes, send to worker CPU if available, copy chunk into local mesh_p
+	  It doesn't matter that a CPU has the wrong nodes for its elements, this is sorted out later
 	  First chunk sent to CPU 1, second to CPU 2, ...
 	  Last chunk stays on CPU 0 (the master)
 	  The three columns of integers (Id, gDOF, Tag) are gathered into a single array tempInts and sent together in a single MPI message
@@ -306,7 +304,7 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
 	    chunkNodes = 0;
-	    for (i0=0; i0<numNodes*3; i0++) tempInts[i0] = -1;
+	    for (i0=0; i0<numNodes*3+1; i0++) tempInts[i0] = -1;
 	    for (i0=0; i0<numNodes*numDim; i0++) tempCoords[i0] = -1.0;
 	    for (i1=0; i1<chunkSize; i1++) {
 	      if (totalNodes >= numNodes) break;
@@ -329,12 +327,13 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	    if (nextCPU < mpi_info->size) {
 #ifdef PASO_MPI
 	      tempInts[numNodes*3] = chunkNodes;
-	      mpi_error = MPI_Send(tempInts, numNodes*3+1, MPI_INT, nextCPU, 8727, mpi_info->comm);
+	      /* ksteube The size of this message can and should be brought down to chunkNodes*3+1, must re-org tempInts */
+	      mpi_error = MPI_Send(tempInts, numNodes*3+1, MPI_INT, nextCPU, 81720, mpi_info->comm);
 	      if ( mpi_error != MPI_SUCCESS ) {
                 Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: send of tempInts failed");
                 return NULL;
 	      }
-	      mpi_error = MPI_Send(tempCoords, numNodes*numDim, MPI_DOUBLE, nextCPU, 8728, mpi_info->comm);
+	      mpi_error = MPI_Send(tempCoords, numNodes*numDim, MPI_DOUBLE, nextCPU, 81721, mpi_info->comm);
 	      if ( mpi_error != MPI_SUCCESS ) {
                 Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: send of tempCoords failed");
                 return NULL;
@@ -349,12 +348,12 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 #ifdef PASO_MPI
 	  /* Each worker receives two messages */
 	  MPI_Status status;
-	  mpi_error = MPI_Recv(tempInts, numNodes*3+1, MPI_INT, 0, 8727, mpi_info->comm, &status);
+	  mpi_error = MPI_Recv(tempInts, numNodes*3+1, MPI_INT, 0, 81720, mpi_info->comm, &status);
 	  if ( mpi_error != MPI_SUCCESS ) {
             Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: receive of tempInts failed");
             return NULL;
 	  }
-	  mpi_error = MPI_Recv(tempCoords, numNodes*numDim, MPI_DOUBLE, 0, 8728, mpi_info->comm, &status);
+	  mpi_error = MPI_Recv(tempCoords, numNodes*numDim, MPI_DOUBLE, 0, 81721, mpi_info->comm, &status);
 	  if ( mpi_error != MPI_SUCCESS ) {
             Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: receive of tempCoords failed");
             return NULL;
@@ -362,8 +361,9 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 	  chunkNodes = tempInts[numNodes*3];
 #endif
 	}	/* Worker */
-printf("ksteube CPU=%d/%d name='%s' numDim=%d numNodes=%d chunkNodes=%d\n", mpi_info->rank, mpi_info->size, name, numDim, numNodes, chunkNodes);
+
 #if 0
+	    /* Display the temp mem for debugging */
 	    printf("ksteube tempInts totalNodes=%d:\n", totalNodes);
 	    for (i0=0; i0<numNodes*3; i0++) {
 	      printf(" %2d", tempInts[i0]);
@@ -376,25 +376,132 @@ printf("ksteube CPU=%d/%d name='%s' numDim=%d numNodes=%d chunkNodes=%d\n", mpi_
 	    }
 #endif
 
-	/* Copy tempMem into mesh_p */
-        Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
-	for (i0=0; i0<numNodes; i0++) {
-	  mesh_p->Nodes->Id[i0]					= tempInts[0+i0];
-	  mesh_p->Nodes->globalDegreesOfFreedom[i0]		= tempInts[numNodes+i0];
-	  mesh_p->Nodes->Tag[i0]				= tempInts[numNodes*2+i0];
-	  for (i1=0; i1<numDim; i1++) {
-	    mesh_p->Nodes->Coordinates[INDEX2(i1,i0,numDim)]	= tempCoords[i0*numDim+i1];
-	  }
+	printf("ksteube chunkNodes=%d numNodes=%d\n", chunkNodes, numNodes);
+	/* Copy node data from tempMem to mesh_p */
+        Finley_NodeFile_allocTable(mesh_p->Nodes, chunkNodes);
+        if (Finley_noError()) {
+	  for (i0=0; i0<chunkNodes; i0++) {
+	    mesh_p->Nodes->Id[i0]				= tempInts[0+i0];
+	    mesh_p->Nodes->globalDegreesOfFreedom[i0]		= tempInts[numNodes+i0];
+	    mesh_p->Nodes->Tag[i0]				= tempInts[numNodes*2+i0];
+	    for (i1=0; i1<numDim; i1++) {
+	      mesh_p->Nodes->Coordinates[INDEX2(i1,i0,numDim)]	= tempCoords[i0*numDim+i1];
+	    }
+          }
         }
 
 	TMPMEMFREE(tempInts);
 	TMPMEMFREE(tempCoords);
 
-        return mesh_p; /* ksteube temp for debugging */
+        /* read elements */
 
+	/* Read the element typeID */
+        if (Finley_noError()) {
+	  if (mpi_info->rank == 0) {
+            fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
+            typeID=Finley_RefElement_getTypeId(element_type);
+	  }
+#ifdef PASO_MPI
+	  if (mpi_info->size > 0) {
+	    int temp1[3];
+	    temp1[0] = typeID;
+	    temp1[1] = numEle;
+	    mpi_error = MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
+	    if (mpi_error != MPI_SUCCESS) {
+	      Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of Element typeID failed");
+	      return NULL;
+	    }
+	    typeID = temp1[0];
+	    numEle = temp1[1];
+	  }
+#endif
+          if (typeID==NoType) {
+            sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
+            Finley_setError(VALUE_ERROR, error_msg);
+          }
+	}
+
+      /* Read the element data */
+      mesh_p->Elements=Finley_ElementFile_alloc(typeID,mesh_p->order, mesh_p->reduced_order, mpi_info);
+      numNodes = mesh_p->Elements->ReferenceElement->Type->numNodes; /* New meaning for numNodes: num nodes per element */
+
+      if (Finley_noError()) {
+	int *tempInts = TMPMEMALLOC(numEle*(2+numNodes)+1, index_t); /* Store Id + Tag + node list (+ one int at end for chunkEle) */
+	int chunkSize = numEle / mpi_info->size, totalEle=0, nextCPU=1, mpi_error;
+	if (numEle % mpi_info->size != 0) chunkSize++; /* Remainder from numEle / mpi_info->size will be spread out one-per-CPU */
+	if (mpi_info->rank == 0) {	/* Master */
+	  for (;;) {			/* Infinite loop */
+	    chunkEle = 0;
+	    for (i0=0; i0<numEle*(2+numNodes)+1; i0++) tempInts[i0] = -1;
+	    for (i0=0; i0<chunkSize; i0++) {
+	      if (totalEle >= numEle) break; /* End infinite loop */
+	      fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
+	      for (i1 = 0; i1 < numNodes; i1++) fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
+	      fscanf(fileHandle_p, "\n");
+	      totalEle++;
+	      chunkEle++;
+	    }
+	    /* Eventually we'll send chunk of nodes to each CPU except 0 itself, here goes one of them */
+	    if (nextCPU < mpi_info->size) {
+#ifdef PASO_MPI
+	      tempInts[numEle*(2+numNodes)] = chunkEle;
+printf("ksteube CPU=%d/%d send to %d\n", mpi_info->rank, mpi_info->size, nextCPU);
+	      mpi_error = MPI_Send(tempInts, numEle*(2+numNodes)+1, MPI_INT, nextCPU, 81722, mpi_info->comm);
+	      if ( mpi_error != MPI_SUCCESS ) {
+                Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: send of tempInts for Elements failed");
+                return NULL;
+	      }
+#endif
+	      nextCPU++;
+	    }
+	    if (totalEle >= numEle) break; /* End infinite loop */
+	  }	/* Infinite loop */
+	}	/* End master */
+	else {	/* Worker */
+#ifdef PASO_MPI
+	  /* Each worker receives two messages */
+	  MPI_Status status;
+printf("ksteube CPU=%d/%d recv on %d\n", mpi_info->rank, mpi_info->size, mpi_info->rank);
+	  mpi_error = MPI_Recv(tempInts, numEle*(2+numNodes)+1, MPI_INT, 0, 81722, mpi_info->comm, &status);
+	  if ( mpi_error != MPI_SUCCESS ) {
+            Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: receive of tempInts for Elements failed");
+            return NULL;
+	  }
+	  chunkEle = tempInts[numEle*(2+numNodes)];
+#endif
+	}	/* Worker */
+#if 1
+	/* Display the temp mem for debugging */
+	printf("ksteube tempInts numEle=%d chunkEle=%d AAA:\n", numEle, chunkEle);
+	for (i0=0; i0<numEle*(numNodes+2); i0++) {
+	  printf(" %2d", tempInts[i0]);
+	  if (i0%(numNodes+2)==numNodes+2-1) printf("\n");
+	}
+#endif
+
+	/* Copy Element data from tempInts to mesh_p */
+	Finley_ElementFile_allocTable(mesh_p->Elements, chunkEle);
+        mesh_p->Elements->minColor=0;
+        mesh_p->Elements->maxColor=chunkEle-1;
+        if (Finley_noError()) {
+          #pragma omp parallel for private (i0, i1)
+	  for (i0=0; i0<chunkEle; i0++) {
+	    mesh_p->Elements->Id[i0]	= tempInts[i0*(2+numNodes)+0];
+	    mesh_p->Elements->Tag[i0]	= tempInts[i0*(2+numNodes)+1];
+	    for (i1 = 0; i1 < numNodes; i1++) {
+	      mesh_p->Elements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
+	    }
+          }
+        }
+
+	TMPMEMFREE(tempInts);
+      }
+
+
+#if 0 /* this is the original code for reading elements */
         /* read elements */
         if (Finley_noError()) {
-   
+
            fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
            typeID=Finley_RefElement_getTypeId(element_type);
            if (typeID==NoType) {
@@ -421,6 +528,26 @@ printf("ksteube CPU=%d/%d name='%s' numDim=%d numNodes=%d chunkNodes=%d\n", mpi_
              }
           }
         }
+#endif
+
+printf("ksteube CPU=%d/%d Element typeID=%d\n", mpi_info->rank, mpi_info->size, typeID);
+
+#if 1
+
+  /* Define other structures to keep mesh_write from crashing */
+
+  mesh_p->FaceElements=Finley_ElementFile_alloc(0, mesh_p->order, mesh_p->reduced_order, mpi_info);
+  Finley_ElementFile_allocTable(mesh_p->FaceElements, 0);
+
+  mesh_p->ContactElements=Finley_ElementFile_alloc(0, mesh_p->order, mesh_p->reduced_order, mpi_info);
+  Finley_ElementFile_allocTable(mesh_p->ContactElements, 0);
+
+  mesh_p->Points=Finley_ElementFile_alloc(0, mesh_p->order, mesh_p->reduced_order, mpi_info);
+  Finley_ElementFile_allocTable(mesh_p->Points, 0);
+
+#endif
+
+#if 0 /* comment out the rest of the un-implemented crap for now */
         /* get the face elements */
         if (Finley_noError()) {
              fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
@@ -474,7 +601,7 @@ printf("ksteube CPU=%d/%d name='%s' numDim=%d numNodes=%d chunkNodes=%d\n", mpi_
                   }
                }
              }
-        }  
+        }
         /* get the nodal element */
         if (Finley_noError()) {
              fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
@@ -511,16 +638,18 @@ printf("ksteube CPU=%d/%d name='%s' numDim=%d numNodes=%d chunkNodes=%d\n", mpi_
               }
            }
         }
+#endif /* comment out the rest of the un-implemented crap for now */
      }
      /* close file */
-     fclose(fileHandle_p);
-   
+     if (mpi_info->rank == 0) fclose(fileHandle_p);
+
      /*   resolve id's : */
      /* rearrange elements: */
-   
+
      if (Finley_noError()) Finley_Mesh_resolveNodeIds(mesh_p);
      if (Finley_noError()) Finley_Mesh_prepare(mesh_p, optimize);
-   
+     return mesh_p; /* ksteube temp return for debugging */
+
      /* that's it */
      #ifdef Finley_TRACE
      printf("timing: reading mesh: %.4e sec\n",Finley_timer()-time0);
