@@ -307,7 +307,7 @@ void Paso_FCTransportProblem_setRs(const Paso_SystemMatrix *f,const double* lump
 
   n=Paso_SystemMatrix_getTotalNumRows(f);
   pattern=f->pattern;
-  #pragma omp parallel for schedule(static) private(i, u_i, iptr_ij, j, f_ij, PP_i, PN_i)
+  #pragma omp parallel for schedule(static) private(i, iptr_ij, j, f_ij, PP_i, PN_i)
   for (i = 0; i < n; ++i) {
       PP_i=0.;
       PN_i=0.;
@@ -386,7 +386,7 @@ void Paso_FCTransportProblem_addCorrectedFluxes(double* f,Paso_SystemMatrix *flu
   }
   Paso_SystemMatrix_startCollect(flux_matrix,RP);
   remote_RP=Paso_SystemMatrix_finishCollect(flux_matrix);
-  #pragma omp parallel for schedule(static) private(i, RN_i, RP_i, iptr_ij, j, f_ij, f_i
+  #pragma omp parallel for schedule(static) private(i, RN_i, iptr_ij, j, f_ij, f_i)
   for (i = 0; i < n; ++i) {
      RN_i=RN[i];
      f_i=0;
