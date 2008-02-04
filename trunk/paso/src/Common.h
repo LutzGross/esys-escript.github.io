@@ -112,4 +112,6 @@ typedef int err_t;
   #define MEMREALLOC(_POINTER_,_LENGTH_,_TYPE_) if( (_POINTER_)!=NULL ){ _POINTER_ = (_TYPE_*)realloc((void*)(_POINTER_),((size_t)(_LENGTH_))*sizeof(_TYPE_) );  }else{ _POINTER_ = (_TYPE_*)malloc( ((size_t)(_LENGTH_))*sizeof(_TYPE_) ); }
 #endif
 
+#define TMPMEMALLOC_AND_PASOCHECK(_LENGTH_,_TYPE_) ( MEMALLOC(_LENGTH_,_TYPE_); 
+
 #endif /* #ifndef INC_PASO_COMMON */

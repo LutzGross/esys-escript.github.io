@@ -26,202 +26,378 @@
 #include "SolverFCT.h"
 #include "PasoUtil.h"
 
-#define FLUX_S(a,b) ((SIGN(a)+SIGN(b))/2.)
-#define MINMOD(a,b) (FLUX_S(a,b)*MIN(ABS(a),ABS(b)))
-#define SUPERBEE(a,b) (FLUX_S(a,b)*MAX(MIN(2*ABS(a),ABS(b)),MIN(ABS(a),2*ABS(b))))
-#define MC(a,b) (FLUX_S(a,b)*MIN3(ABS((a)+(b))/2,2*ABS(a),2*ABS(b)))
-
-#define FLUX_L(a,b) MC(a,b)  /* alter for other flux limiter */
-
-#define FLUX_LIMITER(a) FLUX_L(1,a)
 
 /**************************************************************/
 
-/* adds A plus stabelising diffusion into the matrix B        */
+/* create the low order transport matrix and stores it negative values 
+ * into the iteration_matrix accept the main diagonal which is stored seperately
+ * if fc->iteration_matrix==NULL, fc->iteration_matrix is allocated 
+ *
+ * a=transport_matrix 
+ * b= low_order_transport_matrix = - iteration_matrix
+ * c=main diagonal low_order_transport_matrix 
+ * initialize c[i] mit a[i,i] 
+ *    d_ij=max(0,-a[i,j],-a[j,i])  
+ *    b[i,j]=-(a[i,j]+d_ij)         
+ *    c[i]-=d_ij                  
+ */
 
-/* d_ij=alpha*max(0,-a[i,j],-a[j,i])  */
-/* b[i,j]+=alpha*(a[i,j]+d_ij)  */
-/* b[j,i]+=alpha*(a[j,i]+d_ij)  */
-/* b[i,i]-=alpha*d_ij  */
-/* b[j,j]-=alpha*d_ij  */
-
-void Paso_FCTransportProblem_addAdvectivePart(Paso_FCTransportProblem * fc, double alpha) {
-  dim_t n,i;
+void Paso_FCTransportProblem_setLowOrderOperator(Paso_FCTransportProblem * fc) {
+  dim_t n=Paso_SystemMatrix_getTotalNumRows(fc->transport_matrix),i;
   index_t color, iptr_ij,j,iptr_ji;
-  register double d_ij, sum;
+  Paso_SystemMatrixPattern *pattern;
+  register double d_ij, sum, rtmp1, rtmp2;
 
   if (fc==NULL) return;
-  n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
+  if (fc->iteration_matrix==NULL) {
+      fc->iteration_matrix=Paso_SystemMatrix_alloc(fc->transport_matrix->type,
+                                                   fc->transport_matrix->pattern,
+                                                   fc->transport_matrix->row_block_size,
+                                                   fc->transport_matrix->col_block_size);
+  }
 
-  #pragma omp parallel for private(i,iptr_ij,j,iptr_ji,d_ij,sum)  schedule(static)
-  for (i = 0; i < n; ++i) {
-     sum=alpha*fc->flux_matrix->mainBlock->val[fc->main_iptr[i]];
-     for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
-         j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-         if (j!=i) {
-             /* find entry a[j,i] */
-             for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j]; iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
-                if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
-                    d_ij=(-alpha)*MIN3(0.,fc->flux_matrix->mainBlock->val[iptr_ij],
-                                          fc->flux_matrix->mainBlock->val[iptr_ji]);
-                    fc->transport_matrix->mainBlock->val[iptr_ij]+=
-                                         alpha*fc->flux_matrix->mainBlock->val[iptr_ij]+d_ij;
-                    sum-=d_ij;
-                    break;
-                }
+  if (Paso_noError()) {
+      pattern=fc->iteration_matrix->pattern;
+      n=Paso_SystemMatrix_getTotalNumRows(fc->iteration_matrix);
+      #pragma omp parallel for private(i,sum,iptr_ij,j,iptr_ji,rtmp1, rtmp2,d_ij)  schedule(static)
+      for (i = 0; i < n; ++i) {
+          sum=fc->transport_matrix->mainBlock->val[fc->main_iptr[i]];
+          /* look at a[i,j] */
+          for (iptr_ij=pattern->mainPattern->ptr[i];iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+              j=pattern->mainPattern->index[iptr_ij];
+              if (j!=i) {
+                 /* find entry a[j,i] */
+                 for (iptr_ji=pattern->mainPattern->ptr[j]; iptr_ji<pattern->mainPattern->ptr[j+1]; ++iptr_ji) {
+                    if (pattern->mainPattern->index[iptr_ji]==i) {
+                        rtmp1=fc->transport_matrix->mainBlock->val[iptr_ij];
+                        rtmp2=fc->transport_matrix->mainBlock->val[iptr_ji];
+                        d_ij=-MIN3(0.,rtmp1,rtmp2);
+                        fc->iteration_matrix->mainBlock->val[iptr_ij]=-(rtmp1+d_ij);
+                        sum-=d_ij;
+                        break;
+                    }
+                 }
              }
          }
-     }
-     /* TODO process couple block */
+         /* TODO process couple block */
+        
+         /* set main diagonal entry */
+         fc->main_diagonal_low_order_transport_matrix[i]=sum;
+      }
+  }
+}
+/*
+ * out_i=m_i u_i + alpha \sum_{j <> i} l_{ij} (u_j-u_i) + beta q_i
+ *
+ */
+void Paso_SolverFCT_setMuPaLuPbQ(double* out,
+                                 const double* M, 
+                                 const double* u,
+                                 const double a,
+                                 Paso_SystemMatrix *L,
+                                 const double b,
+                                 const double* Q) 
+{
+  dim_t n, i, j;
+  Paso_SystemMatrixPattern *pattern;
+  double *remote_u;
+  register double sum, u_i, l_ij;
+  register index_t iptr_ij;
 
-     /* update main diagonal */
-     fc->transport_matrix->mainBlock->val[fc->main_iptr[i]]+=sum;
+  n=Paso_SystemMatrix_getTotalNumRows(L);
+
+  if (ABS(a)>0) {
+      Paso_SystemMatrix_startCollect(L,u);
+  }
+  #pragma omp parallel for private(i) schedule(static)
+  for (i = 0; i < n; ++i) {
+      out[i]=M[i]*u[i]+b*Q[i];
+  } 
+  if (ABS(a)>0) {
+      pattern=L->pattern;
+      remote_u=Paso_SystemMatrix_finishCollect(L);
+      #pragma omp parallel for schedule(static) private(i, sum, u_i, iptr_ij, j, l_ij)
+      for (i = 0; i < n; ++i) {
+          sum=0;
+          u_i=u[i];
+          #pragma ivdep
+  	  for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+               j=pattern->mainPattern->index[iptr_ij];
+               l_ij=L->mainBlock->val[iptr_ij];
+               sum+=l_ij*(u[j]-u_i);
+          }
+          #pragma ivdep
+  	  for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+               j=pattern->couplePattern->index[iptr_ij];
+               l_ij=L->coupleBlock->val[iptr_ij];
+               sum+=l_ij*(remote_u[j]-u_i);
+          }
+          out[i]+=a*sum;
+      }
+  }
+}
+/* 
+ * calculate QP[i] max_{i in L->pattern[i]} (u[j]-u[i] ) 
+ *           QN[i] min_{i in L->pattern[i]} (u[j]-u[i] ) 
+ *
+*/
+void Paso_SolverFCT_setQs(const double* u,double* QN, double* QP, Paso_SystemMatrix *L) 
+{
+  dim_t n, i, j;
+  Paso_SystemMatrixPattern *pattern;
+  double *remote_u;
+  register double u_i, u_min_i, u_max_i, u_j;
+  register index_t iptr_ij;
+
+  Paso_SystemMatrix_startCollect(L,u);
+  n=Paso_SystemMatrix_getTotalNumRows(L);
+  pattern=L->pattern;
+  remote_u=Paso_SystemMatrix_finishCollect(L);
+  #pragma omp parallel for schedule(static) private(i, u_i, u_min_i, u_max_i, j, u_j, iptr_ij)
+  for (i = 0; i < n; ++i) {
+     u_i=u[i];
+     u_min_i=u_i;
+     u_max_i=u_i;
+     #pragma ivdep
+     for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+         j=pattern->mainPattern->index[iptr_ij];
+         u_j=u[j];
+         u_min_i=MIN(u_min_i,u_j);
+         u_max_i=MIN(u_max_i,u_j);
+     }
+     #pragma ivdep
+     for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+          j=pattern->couplePattern->index[iptr_ij];
+          u_j=remote_u[j];
+          u_min_i=MIN(u_min_i,u_j);
+          u_max_i=MIN(u_max_i,u_j);
+      }
+      QN[i]=u_min_i-u_i;
+      QP[i]=u_max_i-u_i;
+  }
+}
+
+/*
+ *
+ * f_{ij} + = (a*m_{ij} + b* d_{ij}) (u[j]-u[i])
+ *
+ * m=fc->mass matrix
+ * d=artifical diffusion matrix = L - K = - fc->iteration matrix - fc->transport matrix (away from main diagonal)
+ */
+void Paso_FCTransportProblem_updateAntiDiffusionFlux(const Paso_FCTransportProblem * fc, Paso_SystemMatrix *flux_matrix,const double a, const double b, const double* u)
+{
+  dim_t n, j, i;
+  double *remote_u;
+  index_t iptr_ij;
+  const double b2=-b;
+  register double m_ij, ml_ij, k_ij, u_i;
+  Paso_SystemMatrixPattern *pattern;
+  Paso_SystemMatrix_startCollect(fc->iteration_matrix,u);
+  n=Paso_SystemMatrix_getTotalNumRows(fc->iteration_matrix);
+  pattern=fc->iteration_matrix->pattern;
+  remote_u=Paso_SystemMatrix_finishCollect(fc->iteration_matrix);
+
+  if ( (ABS(a) >0 ) ) {
+      if ( (ABS(b) >0 ) ) {
+         #pragma omp parallel for schedule(static) private(i, u_i, iptr_ij, j,m_ij,k_ij,ml_ij)
+         for (i = 0; i < n; ++i) {
+            u_i=u[i];
+            #pragma ivdep
+            for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+                j=pattern->mainPattern->index[iptr_ij];
+                m_ij=fc->mass_matrix->mainBlock->val[iptr_ij];
+                k_ij=fc->transport_matrix->mainBlock->val[iptr_ij];
+                ml_ij=fc->iteration_matrix->mainBlock->val[iptr_ij];
+                flux_matrix->mainBlock->val[iptr_ij]+=(u[j]-u_i)*(a*m_ij+b2*(ml_ij+k_ij));
+            }
+            #pragma ivdep
+            for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+                j=pattern->couplePattern->index[iptr_ij];
+                m_ij=fc->mass_matrix->coupleBlock->val[iptr_ij];
+                k_ij=fc->transport_matrix->coupleBlock->val[iptr_ij];
+                ml_ij=fc->iteration_matrix->coupleBlock->val[iptr_ij];
+                flux_matrix->coupleBlock->val[iptr_ij]+=(remote_u[j]-u_i)*(a*m_ij+b2*(ml_ij+k_ij));
+            }
+         }
+      } else {
+         #pragma omp parallel for schedule(static) private(i, u_i, iptr_ij, j,m_ij)
+         for (i = 0; i < n; ++i) {
+            u_i=u[i];
+            #pragma ivdep
+            for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+                j=pattern->mainPattern->index[iptr_ij];
+                m_ij=fc->mass_matrix->mainBlock->val[iptr_ij];
+                flux_matrix->mainBlock->val[iptr_ij]+=(u[j]-u_i)*a*m_ij;
+            }
+            #pragma ivdep
+            for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+                j=pattern->couplePattern->index[iptr_ij];
+                m_ij=fc->mass_matrix->coupleBlock->val[iptr_ij];
+                flux_matrix->coupleBlock->val[iptr_ij]+=(remote_u[j]-u_i)*a*m_ij;
+            }
+         }
+
+
+      }
+  } else {
+      if ( (ABS(b) >0 ) ) {
+         #pragma omp parallel for schedule(static) private(i, u_i, iptr_ij, j,k_ij, ml_ij)
+         for (i = 0; i < n; ++i) {
+            u_i=u[i];
+            #pragma ivdep
+            for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+                j=pattern->mainPattern->index[iptr_ij];
+                k_ij=fc->transport_matrix->mainBlock->val[iptr_ij];
+                ml_ij=fc->iteration_matrix->mainBlock->val[iptr_ij];
+                flux_matrix->mainBlock->val[iptr_ij]+=(u[j]-u_i)*b2*(ml_ij+k_ij);
+            }
+            #pragma ivdep
+            for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+                j=pattern->couplePattern->index[iptr_ij];
+                k_ij=fc->transport_matrix->coupleBlock->val[iptr_ij];
+                ml_ij=fc->iteration_matrix->coupleBlock->val[iptr_ij];
+                flux_matrix->coupleBlock->val[iptr_ij]+=(remote_u[j]-u_i)*b2*(ml_ij+k_ij);
+            }
+         }
+
+      } 
+  }
+}
+/*
+ *  apply pre flux-correction: f_{ij}:=0 if f_{ij}*(u_[i]-u[j])<=0
+ *  
+ */
+void Paso_FCTransportProblem_applyPreAntiDiffusionCorrection(Paso_SystemMatrix *f,const double* u)
+{
+  dim_t n, i, j;
+  Paso_SystemMatrixPattern *pattern;
+  double *remote_u;
+  register double u_i, f_ij;
+  register index_t iptr_ij;
+
+  n=Paso_SystemMatrix_getTotalNumRows(f);
+  pattern=f->pattern;
+  remote_u=Paso_SystemMatrix_finishCollect(f);
+  #pragma omp parallel for schedule(static) private(i, u_i, iptr_ij, j, f_ij)
+  for (i = 0; i < n; ++i) {
+      u_i=u[i];
+      #pragma ivdep
+      for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+          j=pattern->mainPattern->index[iptr_ij];
+          f_ij=f->mainBlock->val[iptr_ij];
+          if (f_ij * (u_i-u[j]) <= 0) f->mainBlock->val[iptr_ij]=0;
+      }
+      #pragma ivdep
+      for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+          j=pattern->couplePattern->index[iptr_ij];
+          f_ij=f->coupleBlock->val[iptr_ij];
+          if (f_ij * (u_i-remote_u[j]) <= 0) f->coupleBlock->val[iptr_ij]=0;
+      }
+  }
+}
+
+
+void Paso_FCTransportProblem_setRs(const Paso_SystemMatrix *f,const double* lumped_mass_matrix,
+                                   const double* QN,const double* QP,double* RN,double* RP)
+{
+  dim_t n, i, j;
+  Paso_SystemMatrixPattern *pattern;
+  register double f_ij, PP_i, PN_i;
+  register index_t iptr_ij;
+
+  n=Paso_SystemMatrix_getTotalNumRows(f);
+  pattern=f->pattern;
+  #pragma omp parallel for schedule(static) private(i, u_i, iptr_ij, j, f_ij, PP_i, PN_i)
+  for (i = 0; i < n; ++i) {
+      PP_i=0.;
+      PN_i=0.;
+      #pragma ivdep
+      for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+          j=pattern->mainPattern->index[iptr_ij];
+          if (i != j ) {
+             f_ij=f->mainBlock->val[iptr_ij];
+             if (f_ij <=0  ) {
+                PN_i+=f_ij;
+             } else {
+                PP_i+=f_ij;
+             }
+          }
+      }
+      #pragma ivdep
+      for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+          j=pattern->couplePattern->index[iptr_ij];
+          f_ij=f->coupleBlock->val[iptr_ij];
+          if (f_ij <=0  ) {
+                PN_i+=f_ij;
+          } else {
+                PP_i+=f_ij;
+          }
+      }
+      if (PN_i<0) {
+         RN[i]=MIN(1,QN[i]*lumped_mass_matrix[i]/PN_i);
+      } else {
+         RN[i]=1.;
+      }
+      if (PP_i>0) {
+         RP[i]=MIN(1,QP[i]*lumped_mass_matrix[i]/PP_i);
+      } else {
+         RP[i]=1.;
+      }
   }
 
 }
 
-void Paso_FCTransportProblem_setFlux(Paso_FCTransportProblem * fc, double * u, double* fa) {
-  /*
-   *   sets fa=transport_matrix*u+anti-diffuison_flux(u)
-   */
+void Paso_FCTransportProblem_addCorrectedFluxes(double* f,Paso_SystemMatrix *flux_matrix,const double* RN,const double* RP) 
+{
+  dim_t n, i, j;
+  Paso_SystemMatrixPattern *pattern;
+  double *remote_RN, *remote_RP;
+  register double RN_i, RP_i, f_i, f_ij;
+  register index_t iptr_ij;
+  n=Paso_SystemMatrix_getTotalNumRows(flux_matrix);
 
-  double *remote_u=NULL;
-  
-  if (fc==NULL) return;
-  Paso_SystemMatrix_startCollect(fc->transport_matrix,u);
-  /* process main block */
-  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,fc->transport_matrix->mainBlock,u,0.,fa);
-  /* finish exchange */
-  remote_u=Paso_SystemMatrix_finishCollect(fc->transport_matrix);
-  /* process couple block */
-  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,fc->transport_matrix->coupleBlock,remote_u,1.,fa);
-
-  Paso_FCTransportProblem_setAntiDiffusiveFlux(fc,u,remote_u,fa); 
-}
-/**************************************************************/
-
-/* adds antidiffusion to fa  
- 
-   P_p[i] + = sum_j min(0,a[i,j]) min(0,u[j]-u[i])   
-   P_n[i] + = sum_j min(0,a[i,j]) max(0,u[j]-u[i])  
-   Q_p[i] + = sum_j max(0,a[i,j]) max(0,u[j]-u[i])  
-   Q_n[i] + = sum_j max(0,a[i,j]) min(0,u[j]-u[i])   
-   d_ij=max(0,-a[i,j],-a[j,i])
-   l_ji=max(0,a[j,i],a[j,i]-a[i,j])
-   if a[j,i] >= a[i,j] and 0>a[i,j] : (i.e d_ij>0 and l_ji>=l_ij)
-      r_ij = u[i]>u[j] ? Q_p[i]/P_p[i] : Q_n[i]/Q_n[i]
-      f_ij =min(FLUX_LIMITER(r_ij)*d_ij,l_ji) (u[i]-u[j])=min(FLUX_LIMITER(r_ij)*a[i,j],a[j,i]-a[i,j]) (u[i]-u[j])
-      fa[i]+=f_ij
-      fa[j]-=f_ij
-
-*/
-
-void Paso_FCTransportProblem_setAntiDiffusiveFlux(Paso_FCTransportProblem * fc, double * u, double *u_remote, double* fa) {
-
-  register double u_i,P_p,P_n,Q_p,Q_n,r_p,r_n, a_ij, d, u_j, r_ij, f_ij, a_ji, d_ij, sum;
-  index_t color, iptr_ij,j,iptr_ji, i;
-  dim_t n;
-
-
-  if (fc==NULL) return;
-  n=Paso_SystemMatrix_getTotalNumRows(fc->flux_matrix);
-
-
-  #pragma omp parallel
-  {
-      /*
-       * calculate the smootness sensors 
-      */
-      #pragma omp for schedule(static) private(i, u_i,P_p,P_n,Q_p,Q_n,iptr_ij,a_ij,j,d)
-      for (i = 0; i < n; ++i) {
-          u_i=u[i];
-          P_p=0.;
-          P_n=0.;
-          Q_p=0.;
-          Q_n=0.;
-          #pragma ivdep
-  	  for (iptr_ij=(fc->flux_matrix->mainBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->mainBlock->pattern->ptr[i+1]); ++iptr_ij) {
-               a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
-               j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-               d=u[j]-u_i;
-               if (a_ij<0.) {
-                  if (d<0.) {
-                      P_p+=a_ij*d;
-                  } else {
-                      P_n+=a_ij*d;
-                  }
-               } else {
-                  if (d>0.) {
-                    Q_p+=a_ij*d;
-                  } else {
-                    Q_n+=a_ij*d;
-                  }
-               }
-  	  }
-          #pragma ivdep
-  	  for (iptr_ij=(fc->flux_matrix->coupleBlock->pattern->ptr[i]);iptr_ij<(fc->flux_matrix->coupleBlock->pattern->ptr[i+1]); ++iptr_ij) {
-               a_ij=fc->flux_matrix->coupleBlock->val[iptr_ij];
-               j=fc->flux_matrix->coupleBlock->pattern->index[iptr_ij];
-               d=u_remote[j]-u_i;
-               if (a_ij<0.) {
-                   if (d<0.) {
-                     P_p+=a_ij*d;
-                   } else {
-                     P_n+=a_ij*d;
-                   }
-               } else {
-                  if (d>0.) {
-                     Q_p+=a_ij*d;
-                  } else {
-                     Q_n+=a_ij*d;
-                  }
-               }
-  	  }
-          /* set the smoothness indicators */
-          fc->r_p[i] = (P_p > 0.) ? FLUX_LIMITER(Q_p/P_p) : 0.;
-          fc->r_n[i] = (P_n < 0.) ? FLUX_LIMITER(Q_n/P_n) : 0.;
-
-      } /* end of row loop for smootheness indicator */
-
-      /*
-       * calculate antidiffusion
-      */
-      #pragma omp for schedule(static) private(i, u_i, sum, iptr_ij, a_ij, j, iptr_ji, a_ji,d_ij, u_j, r_ij, f_ij)
-      for (i = 0; i < n; ++i) {
-          u_i=u[i];
-          sum=0;
-          /* anti diffusive flux from main block */
-          for (iptr_ij=fc->flux_matrix->mainBlock->pattern->ptr[i];iptr_ij<fc->flux_matrix->mainBlock->pattern->ptr[i+1]; ++iptr_ij) {
-              a_ij=fc->flux_matrix->mainBlock->val[iptr_ij];
-              j=fc->flux_matrix->mainBlock->pattern->index[iptr_ij];
-              if ( i!=j ) {
-                   /* find entry a[j,i] */
-                   for (iptr_ji=fc->flux_matrix->mainBlock->pattern->ptr[j];iptr_ji<fc->flux_matrix->mainBlock->pattern->ptr[j+1]; ++iptr_ji) {
-                      if (fc->flux_matrix->mainBlock->pattern->index[iptr_ji]==i) {
-                           a_ji=fc->flux_matrix->mainBlock->val[iptr_ji];
-                           d_ij=-MIN3(0,a_ji,a_ij);
-                           if (d_ij > 0.) {
-                                u_j=u[j];
-                                if (a_ji >= a_ij) {
-                                    r_ij = u_i>u_j ? fc->r_p[i] : fc->r_n[i];
-                                    f_ij =MIN(r_ij*d_ij,a_ji+d_ij);
-                                } else {
-                                    r_ij = u_j>u_i ? fc->r_p[j] : fc->r_n[j];
-                                    f_ij =MIN(r_ij*d_ij,a_ij+d_ij);
-                                }
-                                sum+=f_ij*(u_i-u_j);
-                           }
-                           break;
-                      }
-                   }
-              }
+  Paso_SystemMatrix_startCollect(flux_matrix,RN);
+  pattern=flux_matrix->pattern;
+  remote_RN=Paso_SystemMatrix_finishCollect(flux_matrix);
+  #pragma omp parallel for schedule(static) private(i, RN_i, RP_i, iptr_ij, j, f_ij, f_i)
+  for (i = 0; i < n; ++i) {
+     RN_i=RN[i];
+     RP_i=RP[i];
+     f_i=0;
+     #pragma ivdep
+     for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+         j=pattern->mainPattern->index[iptr_ij];
+         f_ij=flux_matrix->mainBlock->val[iptr_ij];
+         if (f_ij >=0) {
+              f_i+=f_ij*MIN(RP_i,RN[j]);
+         } else {
+              f_i+=f_ij*MIN(RN_i,RP[j]);
+         }
+     }
+     #pragma ivdep
+     for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+          j=pattern->couplePattern->index[iptr_ij];
+          f_ij=flux_matrix->coupleBlock->val[iptr_ij];
+          if (f_ij >=0) {
+              f_i+=f_ij*MIN(RP_i,remote_RN[j]);
           }
-          /* anti diffusive flux from couple block */
-          /* TODO */
-
-
-
-          fa[i]+=sum;
       }
-  } /* end of parallel block */
+      f[i]=f_i;
+  }
+  Paso_SystemMatrix_startCollect(flux_matrix,RP);
+  remote_RP=Paso_SystemMatrix_finishCollect(flux_matrix);
+  #pragma omp parallel for schedule(static) private(i, RN_i, RP_i, iptr_ij, j, f_ij, f_i
+  for (i = 0; i < n; ++i) {
+     RN_i=RN[i];
+     f_i=0;
+     #pragma ivdep
+     for (iptr_ij=(pattern->couplePattern->ptr[i]);iptr_ij<pattern->couplePattern->ptr[i+1]; ++iptr_ij) {
+          j=pattern->couplePattern->index[iptr_ij];
+          f_ij=flux_matrix->coupleBlock->val[iptr_ij];
+          if (f_ij < 0) {
+              f_i+=f_ij*MIN(RN_i,remote_RP[j]);
+          }
+     }
+     f[i]+=f_i;
+  }
 }

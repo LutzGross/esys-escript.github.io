@@ -55,7 +55,7 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_SharedComponents * send,
                                  Paso_SharedComponents* recv);
 Paso_Coupler* Paso_Coupler_getReference(Paso_Coupler*);
 void Paso_Coupler_free(Paso_Coupler*);
-void Paso_Coupler_startCollect(Paso_Coupler* self, double* in);
+void Paso_Coupler_startCollect(Paso_Coupler* self,const double* in);
 double* Paso_Coupler_finishCollect(Paso_Coupler* self);
 void Paso_Coupler_freeBuffer(Paso_Coupler* coupler);
 void Paso_Coupler_allocBuffer(Paso_Coupler* coupler,dim_t blockSize);

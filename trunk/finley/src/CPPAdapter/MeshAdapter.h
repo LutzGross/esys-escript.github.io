@@ -552,7 +552,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   TransportProblemAdapter newTransportProblem(
                       const double theta,
-                      const double dt_max,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
                       const int type) const;

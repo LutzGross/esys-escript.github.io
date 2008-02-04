@@ -1,11 +1,10 @@
 from esys.escript import *
 
 class TransportPDE(object):
-     def __init__(self,domain,num_equations=1,theta=0.,dt_max=-1.,trace=True):
+     def __init__(self,domain,num_equations=1,theta=0.,trace=True):
         self.__domain=domain
         self.__num_equations=num_equations
         self.__theta=theta
-        self.__dt_max=dt_max
         self.__transport_problem=None
 	self.__trace=trace
 	self.__matrix_type=0
@@ -16,8 +15,6 @@ class TransportPDE(object):
         return self.__domain
      def getTheta(self):
         return self.__theta
-     def getDt_max(self):
-        return self.__dt_max
      def getNumEquations(self):
         return self.__num_equations
      def reduced(self):
@@ -28,6 +25,9 @@ class TransportPDE(object):
         else:
            return Solution(self.getDomain())
 
+     def getSafeTimeStepSize(self):
+        return self.__transport_problem.getSafeTimeStepSize()
+
 
      def __getNewTransportProblem(self):
        """
@@ -36,7 +36,6 @@ class TransportPDE(object):
        self.trace("New Transport problem is allocated.")
        return self.getDomain().newTransportProblem( \
                                self.getTheta(),
-                               self.getDt_max(),
                                self.getNumEquations(), \
                                self.getFunctionSpace(), \
                                self.__matrix_type)
@@ -59,9 +58,9 @@ class TransportPDE(object):
 	   return self.__transport_problem.solve(self.__source,dt,{"verbose" : True , "tolerance" : 1.e-6})
 from esys.finley import Rectangle
 
-dom=Rectangle(30,20,l0=1.5)
-dom=Rectangle(120,80,l0=1.5)
-fc=TransportPDE(dom,num_equations=1,theta=0.5,dt_max=2.5e-2)
+dom=Rectangle(6,3,l0=1.5)
+# dom=Rectangle(120,80,l0=1.5)
+fc=TransportPDE(dom,num_equations=1,theta=0.5)
 fc.setValue(M=Scalar(1.,Function(dom)),C=Scalar(1.,Function(dom))*[-1.,0])
 x=dom.getX()
 x_0=[0.3,0.3]

@@ -35,10 +35,9 @@ TransportProblemAdapter::TransportProblemAdapter()
 
 TransportProblemAdapter::TransportProblemAdapter(Paso_FCTransportProblem* transport_problem,
                                                  const double theta,
-                                                 const double dt_max,
                                                  const int block_size,
                                                  const escript::FunctionSpace& functionspace):
-AbstractTransportProblem(theta, dt_max, block_size, functionspace)
+AbstractTransportProblem(theta, block_size, functionspace)
 {
     m_transport_problem.reset(transport_problem,null_deleter());
 }
@@ -105,6 +104,15 @@ void TransportProblemAdapter::copyInitialValue(escript::Data& u) const
     Paso_FCTransportProblem_checkinSolution( transp,u_dp);
     checkPasoError();
 }
+
+double TransportProblemAdapter::getSafeTimeStepSize() const
+{
+    Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
+    double dt=Paso_FCTransportProblem_getSafeTimeStepSize(transp);
+    checkPasoError();
+    return dt;
+}
+
 
 
 }  // end of namespace
