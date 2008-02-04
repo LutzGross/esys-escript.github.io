@@ -1,5 +1,5 @@
 
-/* $Id:$ */
+/* $Id$ */
 
 /*******************************************************
  *
@@ -23,8 +23,7 @@ AbstractTransportProblem::AbstractTransportProblem() {
     m_empty=1;
 }
 
-AbstractTransportProblem::AbstractTransportProblem(const double theta,const double dt_max,
-                                                   const int blocksize,
+AbstractTransportProblem::AbstractTransportProblem(const double theta, const int blocksize,
                                                    const FunctionSpace& functionspace)
 {
   if (blocksize<=0) 
@@ -36,7 +35,6 @@ AbstractTransportProblem::AbstractTransportProblem(const double theta,const doub
    m_blocksize=blocksize;
    m_functionspace=functionspace;
    m_theta=theta;
-   m_dt_max=dt_max;
 }
 
 AbstractTransportProblem::~AbstractTransportProblem() {
@@ -86,6 +84,10 @@ void AbstractTransportProblem::setToSolution(Data& out,Data& source,const double
 void AbstractTransportProblem::resetTransport() const
 {
     throw TransportProblemException("Error - resetProblem is not implemented.");
+}
+double AbstractTransportProblem::getSafeTimeStepSize() const
+{
+    throw TransportProblemException("Error - getSafeTimeStepSize is not implemented.");
 }
 
 }  // end of namespace

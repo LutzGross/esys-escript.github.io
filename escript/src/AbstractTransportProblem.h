@@ -60,7 +60,6 @@ class AbstractTransportProblem {
 
   ESCRIPT_DLL_API
   AbstractTransportProblem(const double theta,
-                           const double dt_max,
                            const int blocksize,
                            const FunctionSpace& functionspace);
 
@@ -117,6 +116,13 @@ class AbstractTransportProblem {
   ESCRIPT_DLL_API
   virtual void resetTransport() const;
 
+  /**
+   *      \brief returns a save time step size.
+   *        */
+  ESCRIPT_DLL_API
+  virtual double getSafeTimeStepSize() const;
+
+
  protected:
 
  private:
@@ -138,7 +144,6 @@ class AbstractTransportProblem {
   int m_empty;
   int m_blocksize;
   double m_theta;
-  double m_dt_max;
   FunctionSpace m_functionspace;
 
 };

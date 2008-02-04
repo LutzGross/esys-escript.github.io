@@ -814,15 +814,14 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
 //
 void MeshAdapter::addPDEToTransportProblem(
                      TransportProblemAdapter& tp, escript::Data& source, const escript::Data& M,
-                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C,
+                     const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                      const escript::Data& d, const escript::Data& y, 
                      const escript::Data& d_contact,const escript::Data& y_contact) const
 {
    DataArrayView::ShapeType shape;
    source.expand();
-   escript:: Data tmp(0.0,M.getDataPointShape(),tp.getFunctionSpace(),true);
    escriptDataC _source=source.getDataC();
-   escriptDataC _tmp=tmp.getDataC();
    escriptDataC _M=M.getDataC();
    escriptDataC _A=A.getDataC();
    escriptDataC _B=B.getDataC();
@@ -838,20 +837,10 @@ void MeshAdapter::addPDEToTransportProblem(
    Finley_Mesh* mesh=m_finleyMesh.get();
    Paso_FCTransportProblem* _tp = tp.getPaso_FCTransportProblem();
    
-
-   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_tmp, &_M);
-   checkFinleyError();
-   /* add mass matix to lumped mass matrix of transport problem */
-   double* tmp_prt=getSampleData(&_tmp,0);
-   int i;
-   int n=Paso_FCTransportProblem_getTotalNumRows(_tp);
-   #pragma omp parallel for private(i) schedule(static)
-   for (i=0;i<n ;++i) _tp->lumped_mass_matrix[i]+=tmp_prt[i];
-
-   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->transport_matrix, &_source, &_A, 0, 0, &_D, &_X, &_Y );
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->mass_matrix, &_source, 0, 0, 0, &_M, 0, 0 );
    checkFinleyError();
 
-   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->flux_matrix, &_source, 0, &_B, &_C, 0, 0, 0 );
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->transport_matrix, &_source, &_A, &_B, &_C, &_D, &_X, &_Y );
    checkFinleyError();
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, _tp->transport_matrix, &_source, 0, 0, 0, &_d, 0, &_y );
@@ -1601,7 +1590,6 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
 // creates a TransportProblemAdapter
 TransportProblemAdapter MeshAdapter::newTransportProblem(
                       const double theta,
-                      const double dt_max,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
                       const int type) const
@@ -1624,10 +1612,10 @@ TransportProblemAdapter MeshAdapter::newTransportProblem(
     Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceOrder,reduceOrder);
     checkFinleyError();
     Paso_FCTransportProblem* transportProblem;
-    transportProblem=Paso_FCTransportProblem_alloc(theta,dt_max,fsystemMatrixPattern,blocksize);
+    transportProblem=Paso_FCTransportProblem_alloc(theta,fsystemMatrixPattern,blocksize);
     checkPasoError();
     Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-    return TransportProblemAdapter(transportProblem,theta,dt_max,blocksize,functionspace);
+    return TransportProblemAdapter(transportProblem,theta,blocksize,functionspace);
 }
 
 //

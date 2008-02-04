@@ -131,7 +131,7 @@ void Paso_Coupler_freeBuffer(Paso_Coupler* coupler)
   return;
 }
 
-void Paso_Coupler_startCollect(Paso_Coupler* coupler, double* in)
+void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
 {
   Paso_MPIInfo *mpi_info = coupler->mpi_info;  
   dim_t block_size=coupler->block_size;

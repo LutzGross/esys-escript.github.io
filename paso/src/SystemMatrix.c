@@ -173,7 +173,7 @@ void Paso_SystemMatrix_allocBuffer(Paso_SystemMatrix* A) {
 void Paso_SystemMatrix_freeBuffer(Paso_SystemMatrix* A) {
     Paso_Coupler_freeBuffer(A->pattern->coupler);
 }
-void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A, double* in)
+void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in)
 {
   Paso_Coupler_startCollect(A->pattern->coupler, in);
 }
@@ -183,11 +183,11 @@ double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A)
  return A->pattern->coupler->recv_buffer;
 }
 
-dim_t Paso_SystemMatrix_getTotalNumRows(Paso_SystemMatrix* A){
+dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A){
   return A->mainBlock->numRows * A->row_block_size;
 }
 
-dim_t Paso_SystemMatrix_getTotalNumCols(Paso_SystemMatrix* A){
+dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix* A){
   return A->mainBlock->numCols * A->col_block_size;
 }
 dim_t Paso_SystemMatrix_getGlobalNumRows(Paso_SystemMatrix* A) {

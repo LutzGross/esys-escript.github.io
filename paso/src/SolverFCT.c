@@ -36,16 +36,13 @@ void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in) {
         if (in->reference_counter<=0) {
 
            Paso_SystemMatrix_free(in->transport_matrix);
-           Paso_SystemMatrix_free(in->flux_matrix);
+           Paso_SystemMatrix_free(in->mass_matrix);
+           Paso_SystemMatrix_free(in->iteration_matrix);
            Paso_MPIInfo_free(in->mpi_info);
-
            MEMFREE(in->u);
-           MEMFREE(in->lumped_mass_matrix);
-           MEMFREE(in->row_sum_flux_matrix);
-           MEMFREE(in->transport_matrix_diagonal);
-           MEMFREE(in->r_p);
-           MEMFREE(in->r_n);
            MEMFREE(in->main_iptr);
+           MEMFREE(in->lumped_mass_matrix);
+           MEMFREE(in->main_diagonal_low_order_transport_matrix);
            MEMFREE(in);
         }
     }
@@ -61,9 +58,8 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_getReference(Paso_FCTransportPr
 Paso_SystemMatrix* Paso_FCTransportProblem_borrowTransportMatrix(Paso_FCTransportProblem* in) {
    return in->transport_matrix;
 }
-
-Paso_SystemMatrix* Paso_FCTransportProblem_borrowFluxMatrix(Paso_FCTransportProblem* in) {
-    return in->flux_matrix;
+Paso_SystemMatrix* Paso_FCTransportProblem_borrowMassMatrix(Paso_FCTransportProblem* in) {
+   return in->mass_matrix;
 }
 
 double* Paso_FCTransportProblem_borrowLumpedMassMatrix(Paso_FCTransportProblem* in) {
@@ -74,7 +70,7 @@ dim_t Paso_FCTransportProblem_getTotalNumRows(Paso_FCTransportProblem* in) {
     return Paso_SystemMatrix_getTotalNumRows(in->transport_matrix);
 }
 
-Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_max, Paso_SystemMatrixPattern *pattern, int block_size
+Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_SystemMatrixPattern *pattern, int block_size
 
 
 ) {
@@ -91,42 +87,38 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
      out=MEMALLOC(1,Paso_FCTransportProblem);
      if (Paso_checkPtr(out)) return NULL;
 
+
      out->theta=theta;
-     out->dt_max=dt_max;
+     out->dt_max=LARGE_POSITIVE_FLOAT;
      out->valid_matrices=FALSE;
      out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
      Paso_SystemMatrix_allocBuffer(out->transport_matrix);
-     out->flux_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
-     out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
+     out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
+     out->iteration_matrix=NULL;
 
+     out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
+     out->u=NULL;
+     out->u_min=0.;
      out->main_iptr=NULL;
      out->lumped_mass_matrix=NULL;
-     out->row_sum_flux_matrix=NULL;
-     out->transport_matrix_diagonal=NULL;
-     out->r_p=NULL;
-     out->r_n=NULL;
+     out->main_diagonal_low_order_transport_matrix=NULL;
 
      if (Paso_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
 
-         out->r_p=MEMALLOC(n,double);
-         out->r_n=MEMALLOC(n,double);
+         out->u=MEMALLOC(n,double);
          out->main_iptr=MEMALLOC(n,index_t);
          out->lumped_mass_matrix=MEMALLOC(n,double);
-         out->row_sum_flux_matrix=MEMALLOC(n,double);
-         out->transport_matrix_diagonal=MEMALLOC(n,double);
-         out->u=MEMALLOC(n,double);
+         out->main_diagonal_low_order_transport_matrix=MEMALLOC(n,double);
 
-         if ( ! (Paso_checkPtr(out->r_p) || Paso_checkPtr(out->r_n) || Paso_checkPtr(out->main_iptr) || 
-                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->transport_matrix_diagonal) || Paso_checkPtr(out->row_sum_flux_matrix) || Paso_checkPtr(out->u)) ) {
+         if ( ! (Paso_checkPtr(out->u) || Paso_checkPtr(out->main_iptr) || 
+                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->main_diagonal_low_order_transport_matrix))  ) {
              
              #pragma omp parallel for schedule(static) private(i)
              for (i = 0; i < n; ++i) {
                 out->lumped_mass_matrix[i]=0.;
-                out->row_sum_flux_matrix[i]=0.;
+                out->main_diagonal_low_order_transport_matrix[i]=0.;
                 out->u[i]=0.;
-                out->r_p[i]=0.;
-                out->r_n[i]=0.;
              }
              /* identify the main diagonals */
              #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)
@@ -156,10 +148,26 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, double dt_m
 
 void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double* u) {
     dim_t i, n;
+    double local_u_min,u_min;
    
     n=Paso_FCTransportProblem_getTotalNumRows(in);
-    #pragma omp parallel for schedule(static) private(i)
-    for (i = 0; i < n; ++i) {
-         in->u[i]=u[i];
+    u_min=LARGE_POSITIVE_FLOAT;
+    #pragma omp parallel private(local_u_min)
+    {
+         local_u_min=0.;
+         #pragma omp for schedule(static) private(i)
+         for (i=0;i<n;++i) {
+            in->u[i]=u[i];
+            local_u_min=MIN(local_u_min,u[i]);
+         }
+         #pragma omp critical 
+         {
+            u_min=MIN(u_min,local_u_min);
+         }
     }
+    #ifdef PASO_MPI
+         local_u_min=u_min;
+         MPI_Allreduce(&local_u_min,&u_min, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+    #endif
+    in->u_min=u_min;
 }
