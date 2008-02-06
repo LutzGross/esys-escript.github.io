@@ -1809,7 +1809,7 @@ Data::setTaggedValueFromCPP(int tagKey,
 int
 Data::getTagNumber(int dpno)
 {
-  return getFunctionSpace().getTagFromSampleNo(dpno);
+  return getFunctionSpace().getTagFromDataPointNo(dpno);
 }
 
 void
