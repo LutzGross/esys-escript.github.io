@@ -1,87 +1,75 @@
 from esys.escript import *
-
-class TransportPDE(object):
-     def __init__(self,domain,num_equations=1,theta=0.,trace=True):
-        self.__domain=domain
-        self.__num_equations=num_equations
-        self.__theta=theta
-        self.__transport_problem=None
-	self.__trace=trace
-	self.__matrix_type=0
-     def trace(self,text):
-	     if self.__trace: print text
-
-     def getDomain(self):
-        return self.__domain
-     def getTheta(self):
-        return self.__theta
-     def getNumEquations(self):
-        return self.__num_equations
-     def reduced(self):
-	     return False
-     def getFunctionSpace(self):
-        if self.reduced():
-           return ReducedSolution(self.getDomain())
-        else:
-           return Solution(self.getDomain())
-
-     def getSafeTimeStepSize(self):
-        return self.__transport_problem.getSafeTimeStepSize()
-
-
-     def __getNewTransportProblem(self):
-       """
-       returns an instance of a new operator
-       """
-       self.trace("New Transport problem is allocated.")
-       return self.getDomain().newTransportProblem( \
-                               self.getTheta(),
-                               self.getNumEquations(), \
-                               self.getFunctionSpace(), \
-                               self.__matrix_type)
-
-     def setValue(self,M=Data(),A=Data(),B=Data(),C=Data(),D=Data(),X=Data(),Y=Data(),
-	          d=Data(),y=Data(),d_contact=Data(),y_contact=Data()):
-         self.__transport_problem=self.__getNewTransportProblem()
-	 if self.getNumEquations() ==1 :
-		self.__source=Data(0.0,(),self.getFunctionSpace()) 
-         else:
-	         self.__source=Data(0.0,(self.getNumEquations(),),self.getFunctionSpace())
-	 self.getDomain().addPDEToTransportProblem(
-	             self.__transport_problem,
-		     self.__source,
-		     M,A,B,C,D,X,Y,d,y,d_contact,y_contact)
-
-     def setInitialSolution(self,u):
-	     self.__transport_problem.setInitialValue(interpolate(u,self.getFunctionSpace()))
-     def solve(self,dt):
-	   return self.__transport_problem.solve(self.__source,dt,{"verbose" : True , "tolerance" : 1.e-6})
+from esys.escript.linearPDEs import LinearPDE, TransportPDE
 from esys.finley import Rectangle
 
-dom=Rectangle(6,3,l0=1.5)
+# dom=Rectangle(12,8,l0=1.5)
+# dom=Rectangle(24,16,l0=1.5)
+dom=Rectangle(48,32,l0=1.5)
+# dom=Rectangle(8*48,8*32,l0=1.5)
 # dom=Rectangle(120,80,l0=1.5)
-fc=TransportPDE(dom,num_equations=1,theta=0.5)
-fc.setValue(M=Scalar(1.,Function(dom)),C=Scalar(1.,Function(dom))*[-1.,0])
+V=Scalar(1.,Function(dom))*[-1.,0]
+THETA=0.
+fc=TransportPDE(dom,num_equations=1,theta=THETA)
+fc.setTolerance(1.e-12)
+fc.setValue(M=Scalar(1.,Function(dom)),C=V)
 x=dom.getX()
-x_0=[0.3,0.3]
-sigma=0.08
-u=1.
+x_0=[0.5,0.5]
+sigma=0.075
+u0=1.
 for i in range(dom.getDim()):
-	u=u*exp(-(x[i]-x_0[i])**2/sigma**2)
-u/=Lsup(u)
+	u0=u0*exp(-(x[i]-x_0[i])**2/sigma**2)
 
-u=whereNonPositive(abs(x[0]-0.4)-0.2)*whereNonPositive(abs(x[1]-0.5)-0.2)
+u0=whereNonPositive(abs(x[0]-0.4)-0.2)*whereNonPositive(abs(x[1]-0.5)-0.2)
+# f1=0.5
+# f2=2.
+# u0=f2*clip(x[0]-0.5,0.)-clip(0.5-x[0],0.)*f1+f1*0.5
+# u0=exp(-3*(x[0]-2.)**2)
+# u0=x[0]
+u0/=Lsup(u0)
 c=0
-saveVTK("u.%s.xml"%c,u=u)
-fc.setInitialSolution(u)
+saveVTK("u.%s.xml"%c,u=u0)
+fc.setInitialSolution(u0)
 
-dt=2.5e-2
+t_end=0.6
+dt=2.49999e-2*0+6.2499999e-02/4
+dt_out=2.49999e-2*0+6.2499999e-02/4
+c_stop=1
+n_out=int(t_end/dt+0.5)
+print n_out
 t=0.
-while t<50*dt:
+t_out=0
+c_out=0
+c=0
+print t,": range u",inf(u0),sup(u0),integrate(u0,Function(dom))
+while t<t_end and c< c_stop:
     print "time step t=",t+dt	
     u=fc.solve(dt)	
-    print "range u",inf(u),sup(u),integrate(u,Function(dom))
+    print t+dt,": range u",inf(u),sup(u),integrate(u,Function(dom))
     c+=1
-    saveVTK("u.%s.xml"%c,u=u)
     t+=dt
-    if c == 20: 1/0
+    if t>=t_out+dt_out:
+         c_out,t_out=c_out+1,t_out+dt_out
+         saveVTK("u.%s.xml"%c_out,u=u)
+         print "write time step ",c,"(t=%s) to file u.%s.xml"%(t,c_out)
+
+if True:
+   pde=LinearPDE(dom)
+   pde.setValue(D=1.,C=-THETA*dt*V)
+   pde.setTolerance(1e-12)
+   t=0.
+   t_out=0
+   c_out=0
+   c=0
+   u=u0
+   print t,": range u2",inf(u0),sup(u0),integrate(u0,Function(dom))
+   while t<t_end and c< c_stop:
+       print "time step t=",t+dt	
+       pde.setValue(Y=u+(1.-THETA)*dt*inner(V,grad(u)))
+       u=pde.getSolution(verbose=True)
+       print t+dt,": range u2",inf(u),sup(u),integrate(u,Function(dom))
+       c+=1
+       t+=dt
+       if t>=t_out+dt_out:
+         c_out,t_out=c_out+1,t_out+dt_out
+         saveVTK("u2.%s.xml"%c_out,u=u)
+         print "write time step ",c,"(t=%s) to file u2.%s.xml"%(t,c_out)

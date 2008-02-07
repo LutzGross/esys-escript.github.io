@@ -156,10 +156,7 @@ void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double
     {
          local_u_min=0.;
          #pragma omp for schedule(static) private(i)
-         for (i=0;i<n;++i) {
-            in->u[i]=u[i];
-            local_u_min=MIN(local_u_min,u[i]);
-         }
+         for (i=0;i<n;++i) local_u_min=MIN(local_u_min,u[i]);
          #pragma omp critical 
          {
             u_min=MIN(u_min,local_u_min);
@@ -170,4 +167,8 @@ void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double
          MPI_Allreduce(&local_u_min,&u_min, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
     #endif
     in->u_min=u_min;
+    #pragma omp parallel for schedule(static) private(i)
+    for (i=0;i<n;++i) {
+        in->u[i]=u[i]-u_min;
+    }
 }

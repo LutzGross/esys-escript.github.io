@@ -53,6 +53,7 @@ void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double
 void Paso_FCTransportProblem_applyPreAntiDiffusionCorrection(Paso_SystemMatrix *f,const double* u);
 void Paso_SolverFCT_setMuPaLuPbQ(double* out,const double* M, const  double* u,const  double a, Paso_SystemMatrix *L, const  double b,const double* Q);
 void Paso_SolverFCT_setQs(const double* u,double* QN, double* QP, Paso_SystemMatrix *L);
+void Paso_FCTransportProblem_setAntiDiffusionFlux(const double dt, const Paso_FCTransportProblem * fc, Paso_SystemMatrix *flux_matrix, const double* u, const double* u_last);
 void Paso_FCTransportProblem_updateAntiDiffusionFlux(const Paso_FCTransportProblem * fc, Paso_SystemMatrix *flux_matrix,const double a, const double b, const double* u);
 void Paso_FCTransportProblem_setRs(const Paso_SystemMatrix *f,const double* lumped_mass_matrix,const double* QN,const double* QP,double* RN,double* RP);
 void Paso_FCTransportProblem_addCorrectedFluxes(double* f,Paso_SystemMatrix *flux_matrix,const double* RN,const double* RP);
