@@ -154,55 +154,53 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
        }
        dt2=dt/n_substeps;
        printf("%d time steps of size is %e (theta = %e, dt_max=%e).\n",n_substeps, dt2,fctp->theta, dt_max);
-
        /* 
  	* seperate source into positive and negative part:
  	*/
-printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n");
         #pragma omp parallel for private(i,rtmp)
         for (i = 0; i < n_rows; ++i) {
           rtmp=source[i];
           if (rtmp <0) {
-             sourceP[i]=-rtmp;
+             sourceN[i]=-rtmp;
+             sourceP[i]=0;
           } else {
-             sourceN[i]= rtmp;
+             sourceN[i]= 0;
+             sourceP[i]= rtmp;
           }
         }
-printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n");
+/*        for (i = 0; i < n_rows; ++i) printf("%d : %e \n",i,source[i],sourceP[i],sourceN[i]) */
         /*
-         * now the show can begin:
+         * let the show begin!!!!
          *
          */
-        #pragma omp parallel for schedule(static) private(i)
-        for (i=0;i<n_rows;++i) u[i]=fctp->u[i]-fctp->u_min;
-printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n");
-
         t=dt2;
         n=0;
         tolerance=options->tolerance;
         while(n<n_substeps && Paso_noError()) {
-printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n");
             printf("substep step %d at t=%e\n",n+1,t);
+            #pragma omp parallel for private(i)
+             for (i = 0; i < n_rows; ++i) {
+                      u[i]=fctp->u[i];
+             }
             /*
-             * b^n[i]=m u^n[i] + dt*(1-theta) sum_{j <> i} l_{ij}*(u^n[j]-u^n[i]) + dt*sourceP[i]
+             * b^n[i]=m u^n[i] + dt2*(1-theta) sum_{j <> i} l_{ij}*(u^n[j]-u^n[i]) + dt2*sourceP[i]
              *
              * note that iteration_matrix stores the negative values of the 
-             * low order transport matrix l therefore a=-dt*(1-fctp->theta) is used.
+             * low order transport matrix l therefore a=-dt2*(1-fctp->theta) is used.
              *
              */
              Paso_SolverFCT_setMuPaLuPbQ(b_n,fctp->lumped_mass_matrix,u,
-                                          -dt*(1-fctp->theta),fctp->iteration_matrix,dt,sourceP);
+                                          -dt2*(1-fctp->theta),fctp->iteration_matrix,dt2,sourceP);
              /*
  	      *   uTilde_n[i]=b[i]/m[i]
  	      *
- 	      *   a[i,i]=m[i]/(dt theta) + \frac{1}{\theta} \frac{q^-[i]}-l[i,i]
+ 	      *   a[i,i]=m[i]/(dt2 theta) + \frac{1}{\theta} \frac{q^-[i]}-l[i,i]
  	      *
  	      */
-printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n");
              if (fctp->theta > 0) {
                  Paso_solve_free(fctp->iteration_matrix);
-                 rtmp1=1./(dt*fctp->theta);
-                 rtmp2=1./fctp->theta;
+                 omega=1./(dt2*fctp->theta);
+                 rtmp2=dt2*omega;
                  #pragma omp parallel for private(i,rtmp,rtmp3,rtmp4)
                  for (i = 0; i < n_rows; ++i) {
                       rtmp=fctp->lumped_mass_matrix[i];
@@ -211,7 +209,7 @@ printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
                       } else {
                          rtmp3=u[i];
                       }
-                      rtmp4=rtmp*rtmp1-fctp->main_diagonal_low_order_transport_matrix[i];
+                      rtmp4=rtmp*omega-fctp->main_diagonal_low_order_transport_matrix[i];
                       if (ABS(rtmp3)>0) rtmp4+=sourceN[i]*rtmp2/rtmp3;
                       fctp->iteration_matrix->mainBlock->val[fctp->main_iptr[i]]=rtmp4;
                       uTilde_n[i]=rtmp3;
@@ -227,6 +225,7 @@ printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
                       }
                       uTilde_n[i]=rtmp3;
                  }
+                 omega=1.;
                  /* no update of iteration_matrix retquired! */
              } /* end (fctp->theta > 0) */
              /* 
@@ -241,70 +240,59 @@ printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
                */
                m=0;
                converged=FALSE;
-               while ( (!converged) && (m<50) && Paso_noError()) {
+               while ( (!converged) && (m<500) && Paso_noError()) {
                     printf("iteration step %d\n",m+1);
                     /*
                      *  set the ant diffusion fluxes:
                      *
-                     *   initially we set f_{ij} = - dt d_{ij} (u[j]-u[i])
-                     *   and then f_{ij} += omega (m_{ij} - dt (1-theta) d_{ij}) (du[j]-du[i])
                      */
-                    if (m==0) {
-                       Paso_SystemMatrix_setValues(flux_matrix,0.);
-                       Paso_FCTransportProblem_updateAntiDiffusionFlux(fctp,flux_matrix,0.,-dt,u); 
-                    } else {
-                       Paso_FCTransportProblem_updateAntiDiffusionFlux(fctp,flux_matrix,
-                                                                       omega,-omega*dt*(1.-fctp->theta),du_m); 
-                    }
+                     Paso_FCTransportProblem_setAntiDiffusionFlux(dt2,fctp,flux_matrix,u,fctp->u);
                     /*
                      *  apply pre flux-correction: f_{ij}:=0 if f_{ij}*(\tilde{u}[i]- \tilde{u}[j])<=0
                      *
                      *  this is not entirely correct!!!!!
                      *
                      */
-                    Paso_FCTransportProblem_applyPreAntiDiffusionCorrection(flux_matrix,uTilde_n);
+                    Paso_FCTransportProblem_applyPreAntiDiffusionCorrection(flux_matrix,uTilde_n); 
                     /*
                      *  set flux limms RN_m,RP_m
                      *
                      */
                     Paso_FCTransportProblem_setRs(flux_matrix,fctp->lumped_mass_matrix,QN_n,QP_n,RN_m,RP_m);
                     /*
-                     * z_m[i]=m_i*u[i] - dt*theta*sum_{j<>i} l_{ij} (u[j]-u[i]) + dt q^-[i]
+                     * z_m[i]=b_n[i] - (m_i*u[i] - dt2*theta*sum_{j<>i} l_{ij} (u[j]-u[i]) + dt2 q^-[i])
                      *
                      * note that iteration_matrix stores the negative values of the 
-                     * low order transport matrix l therefore a=dt*fctp->theta is used.
+                     * low order transport matrix l therefore a=dt2*fctp->theta is used.
                      */
+
                     Paso_SolverFCT_setMuPaLuPbQ(z_m,fctp->lumped_mass_matrix,u,
-                                                dt*fctp->theta,fctp->iteration_matrix,dt,sourceN);
+                                                dt2*fctp->theta,fctp->iteration_matrix,dt2,sourceN);
+                    #pragma omp parallel for private(i)
+                    for (i = 0; i < n_rows; ++i) z_m[i]=b_n[i]-z_m[i];
 
                      /* add corrected fluxes into z_m */
-                     Paso_FCTransportProblem_addCorrectedFluxes(z_m,flux_matrix,RN_m,RP_m);
+                     Paso_FCTransportProblem_addCorrectedFluxes(z_m,flux_matrix,RN_m,RP_m); 
                      /* 
-                      * now we solve the linear system to get the correction dt:
+                      * now we solve the linear system to get the correction dt2:
                       *
                       */
                       if (fctp->theta > 0) {
                             /*  set the right hand side of the linear system: */
-                            #pragma omp parallel for private(i)
-                            for (i = 0; i < n_rows; ++i) {
-                               z_m[i]=b_n[i]-z_m[i];
-                            }
-                            options->tolerance=1.e-3;
+                            options->tolerance=1.e-2;
                             Paso_solve(fctp->iteration_matrix,du_m,z_m,options);
                             /* TODO: check errors ! */
-                            omega=dt*fctp->theta;
                       } else {
                             #pragma omp parallel for private(i,rtmp,rtmp1)
                             for (i = 0; i < n_rows; ++i) {
                                 rtmp=fctp->lumped_mass_matrix[i];
                                 if (ABS(rtmp)>0.) {
-                                   rtmp1=(b_n[i]-z_m[i])/rtmp;
+                                   rtmp1=z_m[i]/rtmp;
                                 } else {
                                    rtmp1=0;
                                 }
                                 du_m[i]=rtmp1;
                             }
-                            omega=1.;
                       }
                       /* 
                        * update u and calculate norm of du_m and the new u:
@@ -340,11 +328,14 @@ printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
                        m++;
                        printf("iteration step %d: norm u and du_m : %e %e\n",m,norm_u,norm_du);
                        /* TODO: check if du_m has been redu_mced */
-                    } /* end of inner mation */
+                    } /* end of inner iteration */
+                    #pragma omp parallel for schedule(static) private(i)
+                    for (i=0;i<n_rows;++i) fctp->u[i]=u[i];
+                    n++;
                } /* end of time integration */
                #pragma omp parallel for schedule(static) private(i)
-               for (i=0;i<n_rows;++i) fctp->u[i]=u[i]+fctp->u_min;
-               /* TODO: update u_min */
+               for (i=0;i<n_rows;++i) u[i]=fctp->u[i]+fctp->u_min;
+               /* TODO: update u_min ? */
 
         }
         /* 

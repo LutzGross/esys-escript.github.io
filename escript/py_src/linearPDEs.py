@@ -2211,3 +2211,80 @@ def LinearPDESystem(domain,debug=False):
    @rtype: L{LinearPDE}
    """
    return LinearPDE(domain,numEquations=domain.getDim(),numSolutions=domain.getDim(),debug=debug)
+
+class TransportPDE(object):
+     """
+     Warning: This is still a very experimental. The class is still changing!
+
+     Mu_{,t} =-(A_{ij}u_{,j})_j-(B_{j}u)_{,j} + C_{j} u_{,j} + Y_i + X_{i,i}
+     
+     all coefficients are constant over time.
+
+     typical usage:
+
+         p=TransportPDE(dom)
+         p.setValue(M=Scalar(1.,Function(dom),C=Scalar(1.,Function(dom)*[-1.,0.])
+         p.setInitialSolution(u=exp(-length(dom.getX()-[0.1,0.1])**2)
+         t=0
+         dt=0.1
+         while (t<1.): 
+              u=p.solve(dt)
+
+     """
+     def __init__(self,domain,num_equations=1,theta=0.5,trace=True):
+        self.__domain=domain
+        self.__num_equations=num_equations
+        self.__theta=theta
+        self.__trace=trace
+        self.__matrix_type=0
+        self.setTolerance()
+        self.__transport_problem=self.__getNewTransportProblem()
+
+     def trace(self,text):
+             if self.__trace: print text
+     def getSafeTimeStepSize(self):
+        return self.__transport_problem.getSafeTimeStepSize()
+     def getDomain(self):
+        return self.__domain
+     def getTheta(self):
+        return self.__theta
+     def getNumEquations(self):
+        return self.__num_equations
+     def reduced(self):
+             return False
+     def getFunctionSpace(self):
+        if self.reduced():
+           return escript.ReducedSolution(self.getDomain())
+        else:
+           return escript.Solution(self.getDomain())
+     def setTolerance(self,tol=1.e-8):
+        self.__tolerance=tol
+
+     def __getNewTransportProblem(self):
+       """
+       returns an instance of a new operator
+       """
+       self.trace("New Transport problem is allocated.")
+       return self.getDomain().newTransportProblem( \
+                               self.getTheta(),
+                               self.getNumEquations(), \
+                               self.getFunctionSpace(), \
+                               self.__matrix_type)
+
+     def setValue(self,M=escript.Data(),A=escript.Data(),B=escript.Data(),C=escript.Data(),D=escript.Data(),X=escript.Data(),Y=escript.Data(),
+                  d=escript.Data(),y=escript.Data(),d_contact=escript.Data(),y_contact=escript.Data()):
+         if self.getNumEquations() ==1 :
+                self.__source=escript.Data(0.0,(),self.getFunctionSpace())
+         else:
+                 self.__source=escript.Data(0.0,(self.getNumEquations(),),self.getFunctionSpace())
+         self.getDomain().addPDEToTransportProblem(
+                     self.__transport_problem,
+                     self.__source,
+                     M,A,B,C,D,X,Y,d,y,d_contact,y_contact)
+
+     def setInitialSolution(self,u):
+             self.__transport_problem.setInitialValue(util.interpolate(u,self.getFunctionSpace()))
+
+     def solve(self,dt):
+           return self.__transport_problem.solve(self.__source,dt,{"verbose" : True , "tolerance" : self.__tolerance})
+
