@@ -28,21 +28,24 @@ scsl_lib_path = '/opt/scsl-1.6.1.0/lib'
 scsl_libs = ['scs_mp']
 
 # locations of include files for python
-python_path = '/opt/python-2.4.3/include/python2.4'
-python_lib_path = '/opt/python-2.4.3/lib'
+python_path = '/home/escript/python-2.4.3/include/python2.4'
+python_lib_path = '/home/escript/python-2.4.3/lib'
 python_lib = 'python2.4'
 
 # locations of libraries for boost (on ac use module load something/boost)
-boost_path = '/opt/boost-1.33.1/intel-9.1/include/boost-1_33_1'
-boost_lib_path = '/opt/boost-1.33.1/intel-9.1/lib'
-boost_lib = ['boost_python-il-d']
+boost_path = '/home/escript/boost-1.33.1/include/boost-1_33_1'
+boost_lib_path = '/home/escript/boost-1.33.1/lib'
+boost_lib = ['boost_python-gcc-mt']
 
 # locations of doc building executables
 #doxygen_path = '/raid2/tools/doxygen/1.4.2/gcc-3.3.5/bin'
 #epydoc_path = '/raid2/tools/epydoc/2.1/python-2.3.4/bin'
 
 # locations of netcdf
-useNetCDF = 0
+useNetCDF = 'yes'
+netCDF_path = "/opt/netcdf/3.6.2/gcc-4.1.2/include"
+netCDF_lib_path = "/opt/netcdf/3.6.2/gcc-4.1.2/lib"
+netCDF_libs = [ 'netcdf_c++', 'netcdf']
 
 # locations of PAPI
 # papi_path = '/data/raid2/toolspp4/papi/3.0.8.1/gcc-3.3.6/include'
