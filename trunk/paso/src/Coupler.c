@@ -174,7 +174,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
              #endif 
         }
      }
-     mpi_info->msg_tag_counter+mpi_info->size;
+     mpi_info->msg_tag_counter+=mpi_info->size;
   }
 }
 
