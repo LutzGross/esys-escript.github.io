@@ -621,6 +621,123 @@ class ArithmeticTuple(object):
            self.__items[i]+=other[i]
        return self
 
+class HomogeneousSaddlePointProblem(object):
+      """
+      This provides a framwork for solving homogeneous saddle point problem of the form
+
+             Av+B^*p=f
+             Bv    =0
+
+      for the unknowns v and p and given operators A and B and given right hand side f.
+      B^* is the adjoint operator of B is the given inner product.
+
+      """
+      def __init__(self,**kwargs):
+        self.setTolerance()
+        self.setToleranceReductionFactor()
+
+      def initialize(self):
+        """
+        initialize the problem (overwrite)
+        """
+        pass
+      def B(self,v):
+         """
+         returns Bv (overwrite)
+         @rtype: equal to the type of p
+
+         @note: boundary conditions on p should be zero!
+         """
+         pass
+
+      def inner(self,p0,p1):
+         """
+         returns inner product of two element p0 and p1  (overwrite)
+         
+         @type p0: equal to the type of p
+         @type p1: equal to the type of p
+         @rtype: C{float}
+
+         @rtype: equal to the type of p
+         """
+         pass
+
+      def solve_A(self,u,p):
+         """
+         solves Av=f-Au-B^*p with accuracy self.getReducedTolerance() (overwrite) 
+
+         @rtype: equal to the type of v
+         @note: boundary conditions on v should be zero!
+         """
+         pass
+
+      def solve_prec(self,p):
+         """
+         provides a preconditioner for BA^{-1}B^* with accuracy self.getReducedTolerance() (overwrite)
+
+         @rtype: equal to the type of p
+         """
+         pass
+
+      def stoppingcriterium(self,Bv,v,p):
+         """
+         returns a True if iteration is terminated. (overwrite)
+
+         @rtype: C{bool}
+         """
+         pass
+             
+      def __inner(self,p,r):
+         return self.inner(p,r[1])
+
+      def __stoppingcriterium(self,norm_r,r,p):
+          return self.stoppingcriterium(r[1],r[0],p)
+
+      def setTolerance(self,tolerance=1.e-8):
+              self.__tol=tolerance
+      def getTolerance(self):
+              return self.__tol
+      def setToleranceReductionFactor(self,reduction=0.01):
+              self.__reduction=reduction
+      def getSubProblemTolerance(self):
+              return self.__reduction*self.getTolerance()
+
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False):
+              """
+              solves the saddle point problem using initial guesses v and p.
+
+              @param max_iter: maximum number of iteration steps.
+              """
+              self.verbose=verbose
+              self.show_details=show_details and self.verbose
+
+	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
+
+	      self.__z=v+self.solve_A(v,p*0)
+              Bz=self.B(self.__z)
+              #
+	      #   solve BA^-1B^*p = Bz 
+              #
+              #   note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
+              #
+              #   with                    Av=Az-B^*p = f - B^*p (v=z on fixed_u_mask)
+              #                           A(v-z)=Az-B^*p-Az = f -Az - B^*p (v-z=0 on fixed_u_mask)
+              #
+              self.iter=0
+              if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
+              p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
+	      return r[0],p
+
+      def __Msolve(self,r):
+          return self.solve_prec(r[1])
+
+      def __Aprod(self,p):
+          # return BA^-1B*p 
+          #solve Av =-B^*p as Av =f-Az-B^*p
+          v=self.solve_A(self.__z,p)
+          return ArithmeticTuple(v, self.B(v))
+
+
 class SaddlePointProblem(object):
    """
    This implements a solver for a saddlepoint problem
@@ -874,4 +991,5 @@ def MaskFromBoundaryTag(function_space,*tags):
       return out
    else:
       return util.whereNonZero(util.interpolate(out,function_space))
+
 

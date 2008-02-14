@@ -70,12 +70,11 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   }
 
   if (useFullElementOrder) {
-     Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet.");
-/*
+     /* Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
      Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex27,
                                             out->order,
                                             out->reduced_order,
-                                            mpi_info))`;
+                                            mpi_info));
      if (useElementsOnFace) {
          Finley_setError(SYSTEM_ERROR,"rich elements for Hex27 elements is not supported yet.");
      } else {
@@ -88,7 +87,6 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
                                                        out->reduced_order,
                                                        mpi_info));
      }
-*/
 
   } else  {
      Finley_Mesh_setElements(out,Finley_ElementFile_alloc(Hex20,out->order,out->reduced_order,mpi_info));
