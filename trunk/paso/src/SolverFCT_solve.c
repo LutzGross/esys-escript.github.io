@@ -319,7 +319,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                        #ifdef PASO_MPI
                           local_norm[0]=norm_u;
                           local_norm[1]=norm_du;
-	                  MPI_Allredu_mce(local_norm,norm, 2, MPI_DOUBLE, MPI_MAX, fctp->mpi_info->comm);
+	                  MPI_Allreduce(local_norm,norm, 2, MPI_DOUBLE, MPI_MAX, fctp->mpi_info->comm);
                           norm_u=norm[0];
                           norm_du=norm[1];
                        #endif

@@ -453,11 +453,6 @@ except KeyError:
    useMPI = None
 # ========= set compiler flags ===========================================
 
-# Can't use MPI and OpenMP simultaneously at this time
-if useMPI:
-    omp_flags=''
-    omp_flags_debug=''
-
 if dodebug:
     try:
       flags = env['cc_flags_debug'] + ' ' + omp_flags_debug
