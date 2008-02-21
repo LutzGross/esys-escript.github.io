@@ -164,7 +164,7 @@ void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double
     }
     #ifdef PASO_MPI
          local_u_min=u_min;
-         MPI_Allreduce(&local_u_min,&u_min, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+         MPI_Allreduce(&local_u_min,&u_min, 1, MPI_DOUBLE, MPI_MIN, in->mpi_info->comm);
     #endif
     in->u_min=u_min;
     #pragma omp parallel for schedule(static) private(i)
