@@ -849,6 +849,7 @@ try:
 except:
    global_revision="-1"
    print "Warning: unable to recover global revsion number."
+if global_revision == "": global_revision="0"
 print "Revision number is %s."%global_revision
 env.Append(CPPDEFINES = "SVN_VERSION="+global_revision)
 
