@@ -16,6 +16,8 @@
 #include "TransportProblemException.h"
 #include "DataArrayView.h"
 #include "Data.h"
+#include <iostream>
+
 
 namespace escript {
 
@@ -66,13 +68,49 @@ void AbstractTransportProblem::setInitialValue(Data& u) const
 {
      if (isEmpty())
           throw TransportProblemException("Error - transport problem is empty.");
-     if (u.getFunctionSpace()!=getFunctionSpace())
-          throw TransportProblemException("Error - function space of transport problem and function space of initial value do not match.");
+     if (u.isEmpty())
+          throw TransportProblemException("Error - empty initial value.");
+
+     if ((getBlockSize()==1) and (u.getDataPointRank()>0) or (u.getDataPointRank()>1))
+          throw TransportProblemException("Error - illegal rank of initial value.");
+
      if (u.getDataPointSize()!=getBlockSize())
-          throw TransportProblemException("Error - block size of transport problem and initial value source do not match.");
-     copyInitialValue(u);
+          throw TransportProblemException("Error - block size of transport problem and initial value do not match.");
+
+     Data u2=Data(u,getFunctionSpace());
+     copyInitialValue(u2);
+}
+void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) const
+{
+     source.expand();
+     if (isEmpty())
+          throw TransportProblemException("Error - transport problem is empty.");
+     if (q.isEmpty()) {
+          return;
+     }
+     if ((getBlockSize()==1) and (q.getDataPointRank()>0) or (q.getDataPointRank()>1))
+          throw TransportProblemException("Error - illegal rank of constraint location.");
+     if (q.getDataPointSize()!=getBlockSize())
+          throw TransportProblemException("Error - block size of transport problem and constraint location don't match.");
+     Data q2=Data(q,getFunctionSpace());
+
+     if (r.isEmpty()) {
+          Data r2=Data(0.,q.getDataPointShape(),getFunctionSpace());
+          copyConstraint(source,q2,r2);
+     } else {
+        if ((getBlockSize()==1) and (r.getDataPointRank()>0) or (r.getDataPointRank()>1))
+             throw TransportProblemException("Error - illegal rank of constraint value.");
+        if (r.getDataPointSize()!=getBlockSize())
+             throw TransportProblemException("Error - block size of transport problem and constraint value don't match.");
+        Data r2=Data(r,getFunctionSpace());
+        copyConstraint(source,q2,r2);
+     }
 }
 
+void AbstractTransportProblem::copyConstraint(Data& source, Data& q, Data& r) const
+{
+    throw TransportProblemException("Error - copyConstraint is not available");
+}
 void AbstractTransportProblem::copyInitialValue(Data& u) const
 {
     throw TransportProblemException("Error - copyInitialValue is not available");

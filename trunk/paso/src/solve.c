@@ -112,6 +112,8 @@ void Paso_solve(Paso_SystemMatrix* A,
 
 void Paso_solve_free(Paso_SystemMatrix* in) { 
 
+     if (in==NULL) return;
+
      switch(in->solver_package) {
 
         case PASO_PASO:

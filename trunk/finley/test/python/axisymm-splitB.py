@@ -6,6 +6,7 @@ from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem
 from esys.finley import Rectangle
 iter     =   0
 nstep    =   3000
+w_step=max(int(nstep/50),1)*0+1
 mstep    =   5
 H        =   0.5
 eta      =   1.0       # shear viscosity
@@ -24,12 +25,15 @@ alphaw   =   1.00
 L        =   1.0
 teta1    =    0.5
 teta2    =    0.5
+Etau=1000000000.
 
 dom=Rectangle(int(nel*L/min(L,H)),int(nel*H/min(L,H)),order=1, l0=L, l1=H)
 x=dom.getX()
 
 momentumStep1=LinearPDESystem(dom) # A momentumStep1
-momentumStep1.setValue(q=whereZero(x[1])*[1.,1.]+whereZero(x[0])*[1.,0.])
+momentumStep1.setValue(q=whereZero(x[0])*[1.,0.]) # +whereZero(x[1])*[1.,1.])
+face_mask=whereZero(FunctionOnBoundary(dom).getX()[1])
+
                       # b   1 U1_2={0.0} 
                       # b   1 U1_1={0,0}
                                                  # b   4 U1_1={0.0}
@@ -42,7 +46,7 @@ pressureStep2.setValue(q=whereZero(x[0]-L)+whereZero(x[1]-H))
 
 
 momentumStep3=LinearPDESystem(dom) # A momentumStep3
-momentumStep3.setValue(q=whereZero(x[1])*[1.,1.]+whereZero(x[0])*[1.,0.])
+momentumStep3.setValue(q=whereZero(x[0])*[1.,0.]) # +whereZero(x[1])*[1.,1.])
                       # b   1 U1_2={0.0} 
                       # b   1 U1_1={0,0}
                                                  # b   4 U1_1={0.0}
@@ -75,12 +79,29 @@ U=Vector(0.,Solution(dom)) # V100=0
 p=ro*g*(L-ReducedSolution(dom).getX()[0])*(H-ReducedSolution(dom).getX()[1])/3 # V401=ro*g*(L-X1)*(H-X2)/3
 t=dt
 istep=0
-w_step=max(int(nstep/50),1)
+En=0
 
 
 while istep < nstep:
     istep=istep+1
     print "time step :",istep," t = ",t
+
+    n_d=dom.getNormal()
+    t_d=matrixmult(numarray.array([[0.,1.],[-1.,0]]),n_d)
+
+    s=-En*inner(U,n_d)*face_mask
+    nStressn=s*wherePositive(s)
+    u_boundary=Etau*inner(U,t_d)*face_mask
+    m=whereNegative(u_boundary-nStressn)
+    nStressTau=nStressn*(1.-m)+u_boundary*m
+    print nStressn
+    # print nStressn*n_d+nStressTau*t_d
+    if istep == 20:
+        # print nStressTau
+        saveVTK("stress.vtu",s=(nStressn*n_d+nStressTau*t_d))
+        1/0
+    # print nStressTau
+
     r=dom.getX()[0]
           # A viscosity
     gg=grad(U) # V700= [grad] V100
@@ -98,7 +119,8 @@ while istep < nstep:
                # momentumStep1 1 100 V100 200 V200 300 V300 400 V400
     momentumStep1.setValue(D=ro/dt*kronecker(dom), # {ro/dt}U1_i
                            Y=stress[:,0]/(r+small)+[0.,-ro*g],           # -{0.0,ro*g}_i
-                           X=-(stress+p*kronecker(dom))) # -D_j{V602}D_j{V100}_i-D_i{V602}D_j{V100}_j+D_i{(2/3)*V602}D_j{V100}_j-D_i{V401}
+                           X=-(stress+p*kronecker(dom)), # -D_j{V602}D_j{V100}_i-D_i{V602}D_j{V100}_j+D_i{(2/3)*V602}D_j{V100}_j-D_i{V401}
+                           y=-(nStressn*n_d+nStressTau*t_d))
     dU2=momentumStep1.getSolution()
           # solve
     #                     dU2-> V100
@@ -159,6 +181,7 @@ while istep < nstep:
            # show ratio
            # show V101
            # popp
+
     print "	new U:",inf(U),sup(U) # show v100
     print "	old U",inf(U_old),sup(U_old) # show v200
     print "	relative change:",Lsup(U_old)/Lsup(U) # test=L1 V200
@@ -181,6 +204,7 @@ while istep < nstep:
     dt1=len/vmax  # Courant condition
     dt2=0.5*ro*(len**2)/eta
     dt=dt1*dt2/(dt1+dt2)
+    En=1/dt
     t=t+dt
     print "	time , time step ",t,dt # show t
                                         # show dt

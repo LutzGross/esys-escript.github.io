@@ -110,6 +110,7 @@ dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum);
+void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
 
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */
 

@@ -34,6 +34,7 @@ to define of solve these sepecial PDEs.
 @var __date__: date of the version
 """
 
+import math
 import escript
 import util
 import numarray
@@ -2218,6 +2219,8 @@ class TransportPDE(object):
 
      Mu_{,t} =-(A_{ij}u_{,j})_j-(B_{j}u)_{,j} + C_{j} u_{,j} + Y_i + X_{i,i}
      
+     u=r where q>0
+     
      all coefficients are constant over time.
 
      typical usage:
@@ -2231,34 +2234,103 @@ class TransportPDE(object):
               u=p.solve(dt)
 
      """
-     def __init__(self,domain,num_equations=1,theta=0.5,trace=True):
+     def __init__(self,domain,num_equations=1,theta=0.5,useSUPG=False,trace=True):
         self.__domain=domain
         self.__num_equations=num_equations
-        self.__theta=theta
+        self.__useSUPG=useSUPG
         self.__trace=trace
+        self.__theta=theta
         self.__matrix_type=0
+        self.__reduced=False
+        self.__reassemble=True
+        if self.__useSUPG:
+           self.__pde=LinearPDE(domain,numEquations=num_equations,numSolutions=num_equations,debug=trace)
+           self.__pde.setSymmetryOn()
+        else: 
+           self.__transport_problem=self.__getNewTransportProblem()
         self.setTolerance()
-        self.__transport_problem=self.__getNewTransportProblem()
+        self.setReducedOn()
+        self.__M=escript.Data()
+        self.__A=escript.Data()
+        self.__B=escript.Data()
+        self.__C=escript.Data()
+        self.__D=escript.Data()
+        self.__X=escript.Data()
+        self.__Y=escript.Data()
+        self.__d=escript.Data()
+        self.__y=escript.Data()
+        self.__d_contact=escript.Data()
+        self.__y_contact=escript.Data()
+        self.__r=escript.Data()
+        self.__q=escript.Data()
 
      def trace(self,text):
              if self.__trace: print text
      def getSafeTimeStepSize(self):
-        return self.__transport_problem.getSafeTimeStepSize()
+        if self.__useSUPG:
+            if self.__reassemble:
+               h=self.__domain.getSize()
+               dt=None
+               if not self.__A.isEmpty():
+                  dt2=util.inf(h**2*self.__M/util.length(self.__A))
+                  if dt == None:
+                     dt = dt2
+                  else:
+                     dt=1./(1./dt+1./dt2)
+               if not self.__B.isEmpty():
+                  dt2=util.inf(h*self.__M/util.length(self.__B))
+                  if dt == None:
+                     dt = dt2
+                  else:
+                     dt=1./(1./dt+1./dt2)
+               if not  self.__C.isEmpty():
+                  dt2=util.inf(h*self.__M/util.length(self.__C))
+                  if dt == None:
+                     dt = dt2
+                  else:
+                     dt=1./(1./dt+1./dt2)
+               if not self.__D.isEmpty():
+                  dt2=util.inf(self.__M/util.length(self.__D))
+                  if dt == None:
+                     dt = dt2
+                  else:
+                     dt=1./(1./dt+1./dt2)
+               self.__dt = dt/2
+            return self.__dt
+        else:
+            return self.__getTransportProblem().getSafeTimeStepSize()
      def getDomain(self):
         return self.__domain
      def getTheta(self):
         return self.__theta
      def getNumEquations(self):
         return self.__num_equations
+     def setReducedOn(self):
+          if not self.reduced():
+              if self.__useSUPG:
+                 self.__pde.setReducedOrderOn()
+              else:
+                 self.__transport_problem=self.__getNewTransportProblem()
+          self.__reduced=True
+     def setReducedOff(self):
+          if self.reduced():
+              if self.__useSUPG:
+                 self.__pde.setReducedOrderOff()
+              else:
+                 self.__transport_problem=self.__getNewTransportProblem()
+          self.__reduced=False
      def reduced(self):
-             return False
+         return self.__reduced
      def getFunctionSpace(self):
         if self.reduced():
            return escript.ReducedSolution(self.getDomain())
         else:
            return escript.Solution(self.getDomain())
+
      def setTolerance(self,tol=1.e-8):
         self.__tolerance=tol
+        if self.__useSUPG:
+              self.__pde.setTolerance(self.__tolerance)
 
      def __getNewTransportProblem(self):
        """
@@ -2270,21 +2342,126 @@ class TransportPDE(object):
                                self.getNumEquations(), \
                                self.getFunctionSpace(), \
                                self.__matrix_type)
-
-     def setValue(self,M=escript.Data(),A=escript.Data(),B=escript.Data(),C=escript.Data(),D=escript.Data(),X=escript.Data(),Y=escript.Data(),
-                  d=escript.Data(),y=escript.Data(),d_contact=escript.Data(),y_contact=escript.Data()):
+           
+     def __getNewSolutionVector(self):
          if self.getNumEquations() ==1 :
-                self.__source=escript.Data(0.0,(),self.getFunctionSpace())
+                out=escript.Data(0.0,(),self.getFunctionSpace())
          else:
-                 self.__source=escript.Data(0.0,(self.getNumEquations(),),self.getFunctionSpace())
-         self.getDomain().addPDEToTransportProblem(
-                     self.__transport_problem,
-                     self.__source,
-                     M,A,B,C,D,X,Y,d,y,d_contact,y_contact)
+                out=escript.Data(0.0,(self.getNumEquations(),),self.getFunctionSpace())
+         return out
+
+     def __getTransportProblem(self):
+       if self.__reassemble:
+             self.__source=self.__getNewSolutionVector()
+             self.__transport_problem.reset()
+             self.getDomain().addPDEToTransportProblem(
+                         self.__transport_problem,
+                         self.__source,
+                         self.__M,
+                         self.__A,
+                         self.__B,
+                         self.__C,
+                         self.__D,
+                         self.__X,
+                         self.__Y,
+                         self.__d,
+                         self.__y,
+                         self.__d_contact,
+                         self.__y_contact)
+             self.__transport_problem.insertConstraint(self.__source,self.__q,self.__r)
+             self.__reassemble=False
+       return self.__transport_problem
+     def setValue(self,M=None, A=None, B=None, C=None, D=None, X=None, Y=None, 
+                  d=None, y=None, d_contact=None, y_contact=None, q=None, r=None):
+             if not M==None:
+                  self.__reassemble=True
+                  self.__M=M
+             if not A==None:
+                  self.__reassemble=True
+                  self.__A=A
+             if not B==None:
+                  self.__reassemble=True
+                  self.__B=B
+             if not C==None:
+                  self.__reassemble=True
+                  self.__C=C
+             if not D==None:
+                  self.__reassemble=True
+                  self.__D=D
+             if not X==None:
+                  self.__reassemble=True
+                  self.__X=X
+             if not Y==None:
+                  self.__reassemble=True
+                  self.__Y=Y
+             if not d==None:
+                  self.__reassemble=True
+                  self.__d=d
+             if not y==None:
+                  self.__reassemble=True
+                  self.__y=y
+             if not d_contact==None:
+                  self.__reassemble=True
+                  self.__d_contact=d_contact
+             if not y_contact==None:
+                  self.__reassemble=True
+                  self.__y_contact=y_contact
+             if not q==None:
+                  self.__reassemble=True
+                  self.__q=q
+             if not r==None:
+                  self.__reassemble=True
+                  self.__r=r
 
      def setInitialSolution(self,u):
-             self.__transport_problem.setInitialValue(util.interpolate(u,self.getFunctionSpace()))
+             if self.__useSUPG:
+                 self.__u=u
+             else:
+                 self.__transport_problem.setInitialValue(util.interpolate(u,self.getFunctionSpace()))
 
-     def solve(self,dt):
-           return self.__transport_problem.solve(self.__source,dt,{"verbose" : True , "tolerance" : self.__tolerance})
-
+     def solve(self,dt,**kwarg):
+           if self.__useSUPG:
+                if self.__reassemble:
+                    self.__pde.setValue(D=self.__M,d=self.__d,d_contact=self.__d_contact,q=self.__q,r=self.__r)
+                    self.__reassemble=False
+                dt2=self.getSafeTimeStepSize()
+                nn=max(math.ceil(dt/self.getSafeTimeStepSize()),1.)
+                dt2=dt/nn
+                nnn=0
+                u=self.__u
+                self.trace("number of substeps is %d."%nn)
+                while nnn<nn :
+                    self.__setSUPG(u,u,dt2/2)
+                    u_half=self.__pde.getSolution(verbose=True)
+                    self.__setSUPG(u,u_half,dt2)
+                    u=self.__pde.getSolution(verbose=True)
+                    nnn+=1
+                self.__u=u
+                return self.__u
+           else:
+               kwarg["tolerance"]=self.__tolerance
+               tp=self.__getTransportProblem()
+               return tp.solve(self.__source,dt,kwarg)
+     def __setSUPG(self,u0,u,dt):
+            g=util.grad(u)
+            X=0
+            Y=self.__M*u0
+            X=0
+            if not self.__A.isEmpty():
+               X=X+dt*util.matrixmult(self.__A,g)
+            if not self.__B.isEmpty():
+               X=X+dt*self.__B*u
+            if not  self.__C.isEmpty():
+               Y=Y+dt*util.inner(self.__C,g)
+            if not self.__D.isEmpty():
+               Y=Y+dt*self.__D*u
+            if not self.__X.isEmpty():
+               X=X+dt*self.__X
+            if not self.__Y.isEmpty():
+               Y=Y+dt*self.__Y
+            self.__pde.setValue(X=X,Y=Y)
+            if not self.__y.isEmpty():
+               self.__pde.setValue(y=dt*self.__y)
+            if not self.__y_contact.isEmpty():
+               self.__pde.setValue(y=dt*self.__y_contact)
+  

@@ -110,11 +110,22 @@ class AbstractTransportProblem {
   */
   ESCRIPT_DLL_API
   void setInitialValue(Data& u) const;
+
   /**
      \brief resets the transport operator typically as they have been updated.
   */
   ESCRIPT_DLL_API
   virtual void resetTransport() const;
+
+  /**
+     \brief
+     inserts constraint u_{,t}=r where q>0  into the problem.
+  */
+  ESCRIPT_DLL_API
+  void insertConstraint(Data& source, Data& q, Data& r) const;
+  /**
+     \brief resets the transport operator typically as they have been updated.
+  */
 
   /**
    *      \brief returns a save time step size.
@@ -140,6 +151,14 @@ class AbstractTransportProblem {
   */
   ESCRIPT_DLL_API
   virtual void copyInitialValue(Data& u) const;
+  /**
+     \brief
+     copy constraint u_{,t}=r where q>0  into the problem 
+     it can be assumed that q and r are not empty and have  
+     appropriate shape and function space.
+  */
+  ESCRIPT_DLL_API
+  virtual void copyConstraint(Data& source, Data& q, Data& r) const;
 
   int m_empty;
   int m_blocksize;
