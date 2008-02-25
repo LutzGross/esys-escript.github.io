@@ -175,11 +175,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       .def("saveHB",&finley::SystemMatrixAdapter::saveHB);
 
   class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
-      ("OperatorAdapter",no_init)
+      ("TransportProblemAdapter",no_init)
       .def("getSafeTimeStepSize",&finley::TransportProblemAdapter::getSafeTimeStepSize)
       .def("resetTransport",&finley::TransportProblemAdapter::resetTransport);
-
-
-
-
 }

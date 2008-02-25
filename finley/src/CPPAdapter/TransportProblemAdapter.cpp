@@ -83,12 +83,49 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& s
 void TransportProblemAdapter::resetTransport() const
 {
    Paso_FCTransportProblem* transp = getPaso_FCTransportProblem();
-   throw FinleyAdapterException("resetTransport() not implemented yet.");
-   // 
-   //
-   // Paso_FCTransportProblem_setValues(transp,0.);
-   // Paso_solve_free(transp);
+   Paso_FCTransportProblem_reset(transp);
    checkPasoError();
+}
+void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r) const
+{
+    if ( q.getDataPointSize()  != getBlockSize()) {
+     throw FinleyAdapterException("copyConstraint : block size does not match the number of components of constraint mask.");
+    } else if ( q.getFunctionSpace()  != getFunctionSpace()) {
+     throw FinleyAdapterException("copyConstraint : function spaces of transport problem and constraint mask don't match.");
+    } else if ( r.getDataPointSize()  != getBlockSize()) {
+     throw FinleyAdapterException("copyConstraint : block size does not match the number of components of constraint values.");
+    } else if ( r.getFunctionSpace()  != getFunctionSpace()) {
+     throw FinleyAdapterException("copyConstraint : function spaces of transport problem and constraint values don't match.");
+    } else if ( source.getDataPointSize()  != getBlockSize()) {
+     throw FinleyAdapterException("copyConstraint : block size does not match the number of components of source.");
+    } else if ( source.getFunctionSpace()  != getFunctionSpace()) {
+     throw FinleyAdapterException("copyConstraint : function spaces of transport problem and source don't match.");
+    }
+    Paso_FCTransportProblem* transp=getPaso_FCTransportProblem();
+
+    /* r2=r where q>0, 0 elsewhere */
+    escript::Data r2(0.,q.getDataPointShape(),q.getFunctionSpace());
+    r2.copyWithMask(r,q);
+
+    /* source-=transp->mass_matrix*r2 */
+    double* r2_dp=r2.getSampleData(0);
+    double* source_dp=source.getSampleData(0);
+    r2.expand();
+    source.expand();
+    Paso_SystemMatrix_MatrixVector(-1., transp->mass_matrix, r2_dp, 1., source_dp);
+    checkPasoError();
+
+    /* insert 0 rows and cols into transport matrix */
+    q.expand();
+    double* q_dp=q.getSampleData(0);
+    Paso_SystemMatrix_nullifyRowsAndCols(transp->transport_matrix,q_dp,q_dp,0.);
+    checkPasoError();
+
+    /* insert 0 rows amd 1 in main diagonal into mass matrix */
+    Paso_SystemMatrix_nullifyRows(transp->mass_matrix,q_dp, 1.);
+    checkPasoError();
+
+    source.copyWithMask(escript::Data(0.,q.getDataPointShape(),q.getFunctionSpace()),q);
 }
 
 void TransportProblemAdapter::copyInitialValue(escript::Data& u) const

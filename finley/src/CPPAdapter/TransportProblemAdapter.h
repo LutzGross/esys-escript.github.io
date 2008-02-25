@@ -126,6 +126,15 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
     FINLEY_DLL_API
     virtual void copyInitialValue(escript::Data& u) const;
 
+   /**
+    *      \brief
+    *           copy constraint u_{,t}=r where q>0  into the problem 
+    *            it is assumed that q and r are not empty and has appropriate shape and function space.
+    *                       */
+    FINLEY_DLL_API
+    virtual void copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r) const;
+
+
    //
    // pointer to the externally created finley mesh - transport_problem.
    //

@@ -48,6 +48,7 @@ Paso_SystemMatrix* Paso_FCTransportProblem_borrowMassMatrix(Paso_FCTransportProb
 double* Paso_FCTransportProblem_borrowLumpedMassMatrix(Paso_FCTransportProblem* in);
 dim_t Paso_FCTransportProblem_getTotalNumRows(Paso_FCTransportProblem* in);
 void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in);
+void Paso_FCTransportProblem_reset(Paso_FCTransportProblem* in);
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options);
 void Paso_FCTransportProblem_checkinSolution(Paso_FCTransportProblem* in, double* u);
 void Paso_FCTransportProblem_applyPreAntiDiffusionCorrection(Paso_SystemMatrix *f,const double* u);

@@ -46,8 +46,6 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
    n_rows=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    if (! fctp->valid_matrices) {
         fctp->dt_max=LARGE_POSITIVE_FLOAT;
-
-
         /* extract the row sum of the advective part */
         Paso_SystemMatrix_rowSum(fctp->mass_matrix,fctp->lumped_mass_matrix);
 
