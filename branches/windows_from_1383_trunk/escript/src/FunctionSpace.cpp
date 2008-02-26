@@ -27,11 +27,11 @@ namespace escript {
 
 //
 // Create a null domain for use with any default-constructed function space
-ESCRIPT_DLL_API NullDomain FunctionSpace::m_nullDomainValue;
+NullDomain const FunctionSpace::nullDomainValue;
 
 FunctionSpace::FunctionSpace():
-  m_domain(static_cast<AbstractDomain*>(&m_nullDomainValue)),
-  m_functionSpaceType(m_nullDomainValue.getFunctionCode())
+  m_domain(static_cast<const AbstractDomain*>(&nullDomainValue)),
+  m_functionSpaceType(nullDomainValue.getFunctionCode())
 {
 }
 
@@ -67,14 +67,35 @@ FunctionSpace::getDomain() const
   return *m_domain;
 }
 
-std::string
+const std::string &
 FunctionSpace::toString() const
 {
+  if( type_str.empty() )
+  {
+    std::stringstream temp;
+    temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
+         << " on " << m_domain->getDescription();
+
+    type_str = temp.str();
+  }
+  return type_str;
+}
+
+
+#ifdef DEBUG
+PyObject *
+FunctionSpace::toPyString() const
+{
   std::stringstream temp;
+
   temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
        << " on " << m_domain->getDescription();
-  return temp.str();
+
+  boost::python::to_python_value<const std::string &> cvtr;
+
+  return cvtr(temp.str());
 }
+#endif
 
 int
 FunctionSpace::getTagFromSampleNo(int sampleNo) const
@@ -122,7 +143,6 @@ FunctionSpace&
 FunctionSpace::operator=(const FunctionSpace& other)
 {
   // explicitly defined assignment operator to emphasise pointer copy
-  m_nullDomainValue=other.m_nullDomainValue;
   m_functionSpaceType=other.m_functionSpaceType;
   m_domain=other.m_domain;
   return *this;
