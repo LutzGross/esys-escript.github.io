@@ -113,7 +113,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getSize",&escript::FunctionSpace::getSize)
      .def("setTags",&escript::FunctionSpace::setTags)
      .def("getTagFromDataPointNo",&escript::FunctionSpace::getTagFromDataPointNo)
-     .def("__str__",&escript::FunctionSpace::toString)
+     .def("__str__",&escript::FunctionSpace::toString,return_value_policy<copy_const_reference>())
      .def(self == self)
      .def(self != self);
   //
