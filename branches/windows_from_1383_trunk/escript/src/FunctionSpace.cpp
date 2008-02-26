@@ -82,7 +82,7 @@ FunctionSpace::toString() const
 }
 
 
-#ifdef DEBUG
+#ifdef DEBUG_PY_STRINGS
 PyObject *
 FunctionSpace::toPyString() const
 {

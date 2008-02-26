@@ -105,17 +105,25 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for FunctionSpace
   //
-  class_<escript::FunctionSpace>("FunctionSpace",init<>())
-     .def("getDim",&escript::FunctionSpace::getDim)
-     .def("getDomain",&escript::FunctionSpace::getDomain,return_internal_reference<>())
-     .def("getX",&escript::FunctionSpace::getX)
-     .def("getNormal",&escript::FunctionSpace::getNormal)
-     .def("getSize",&escript::FunctionSpace::getSize)
-     .def("setTags",&escript::FunctionSpace::setTags)
-     .def("getTagFromDataPointNo",&escript::FunctionSpace::getTagFromDataPointNo)
-     .def("__str__",&escript::FunctionSpace::toString,return_value_policy<copy_const_reference>())
-     .def(self == self)
-     .def(self != self);
+  class_<escript::FunctionSpace> fs_definer("FunctionSpace",init<>());
+  fs_definer.def("getDim",&escript::FunctionSpace::getDim);
+  fs_definer.def("getDomain",&escript::FunctionSpace::getDomain,
+                 return_internal_reference<>());
+  fs_definer.def("getX",&escript::FunctionSpace::getX);
+  fs_definer.def("getNormal",&escript::FunctionSpace::getNormal);
+  fs_definer.def("getSize",&escript::FunctionSpace::getSize);
+  fs_definer.def("setTags",&escript::FunctionSpace::setTags);
+  fs_definer.def("getTagFromDataPointNo",
+                 &escript::FunctionSpace::getTagFromDataPointNo);
+#ifdef DEBUG_PY_STRINGS
+  fs_definer.def("__str__",&escript::FunctionSpace::toPyString);
+#else
+  fs_definer.def("__str__",
+                 &escript::FunctionSpace::toString,
+                 return_value_policy<copy_const_reference>());
+#endif
+  fs_definer.def(self == self);
+  fs_definer.def(self != self);
   //
   // Interface for Data
   //
