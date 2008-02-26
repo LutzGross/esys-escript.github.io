@@ -70,14 +70,12 @@ FunctionSpace::getDomain() const
 const std::string &
 FunctionSpace::toString() const
 {
-  if( type_str.empty() )
-  {
-    std::stringstream temp;
-    temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
-         << " on " << m_domain->getDescription();
+  std::stringstream temp;
+  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
+       << " on " << m_domain->getDescription();
 
-    type_str = temp.str();
-  }
+  type_str = temp.str();
+
   return type_str;
 }
 
@@ -86,16 +84,16 @@ FunctionSpace::toString() const
 PyObject *
 FunctionSpace::toPyString() const
 {
-  std::stringstream temp;
-
-  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
-       << " on " << m_domain->getDescription();
-
   boost::python::to_python_value<const std::string &> cvtr;
 
-  return cvtr(temp.str());
+
+  type_str = toString();
+
+
+  return cvtr(type_str);
 }
 #endif
+
 
 int
 FunctionSpace::getTagFromSampleNo(int sampleNo) const
