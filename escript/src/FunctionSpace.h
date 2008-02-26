@@ -22,6 +22,10 @@
 
 #include <string>
 
+#define DEBUG_PY_STRINGS
+
+class FunctionSpaceTestCase;
+
 namespace escript {
 
 //
@@ -42,8 +46,10 @@ class Data;
 
 class FunctionSpace {
 
-   friend class AbstractSystemMatrix;
-   friend class AbstractTransportProblem;
+  // These are using operator=()
+  friend class AbstractSystemMatrix;
+  friend class AbstractTransportProblem;
+  friend class ::FunctionSpaceTestCase;
 
  public:
   /**
@@ -136,7 +142,7 @@ class FunctionSpace {
   const std::string &
   toString() const;
 
-#ifdef DEBUG
+#ifdef DEBUG_PY_STRINGS
   /**
    \brief
    Return a text description of the function space
@@ -264,6 +270,10 @@ class FunctionSpace {
    unknown effects at the python level, and could
    leave python with an incorrect view of the object.
   */
+  // yes, yes I know, but the test case is in another
+  // linkage unit external to the dll.
+  // This IS supposed to be temporary.
+  ESCRIPT_DLL_API
   FunctionSpace&
   operator=(const FunctionSpace& other);
 
