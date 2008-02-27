@@ -30,7 +30,7 @@ AbstractTransportProblem::AbstractTransportProblem(const double theta, const int
 {
   if (blocksize<=0) 
      throw TransportProblemException("Error - negative block size of transport problem.");
-  if ((theta<0.) or (theta>1.))
+  if ((theta<0.) || (theta>1.))
      throw TransportProblemException("Error - theta needs to be between 0. and 1..");
 
    m_empty=0;
@@ -71,7 +71,7 @@ void AbstractTransportProblem::setInitialValue(Data& u) const
      if (u.isEmpty())
           throw TransportProblemException("Error - empty initial value.");
 
-     if ((getBlockSize()==1) and (u.getDataPointRank()>0) or (u.getDataPointRank()>1))
+     if ((getBlockSize()==1) && (u.getDataPointRank()>0) || (u.getDataPointRank()>1))
           throw TransportProblemException("Error - illegal rank of initial value.");
 
      if (u.getDataPointSize()!=getBlockSize())
@@ -88,7 +88,7 @@ void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) 
      if (q.isEmpty()) {
           return;
      }
-     if ((getBlockSize()==1) and (q.getDataPointRank()>0) or (q.getDataPointRank()>1))
+     if ((getBlockSize()==1) && (q.getDataPointRank()>0) || (q.getDataPointRank()>1))
           throw TransportProblemException("Error - illegal rank of constraint location.");
      if (q.getDataPointSize()!=getBlockSize())
           throw TransportProblemException("Error - block size of transport problem and constraint location don't match.");
@@ -98,7 +98,7 @@ void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) 
           Data r2=Data(0.,q.getDataPointShape(),getFunctionSpace());
           copyConstraint(source,q2,r2);
      } else {
-        if ((getBlockSize()==1) and (r.getDataPointRank()>0) or (r.getDataPointRank()>1))
+        if ((getBlockSize()==1) && (r.getDataPointRank()>0) || (r.getDataPointRank()>1))
              throw TransportProblemException("Error - illegal rank of constraint value.");
         if (r.getDataPointSize()!=getBlockSize())
              throw TransportProblemException("Error - block size of transport problem and constraint value don't match.");
