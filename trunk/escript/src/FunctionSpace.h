@@ -22,6 +22,8 @@
 
 #include <string>
 
+class FunctionSpaceTestCase;
+
 namespace escript {
 
 //
@@ -40,7 +42,12 @@ class Data;
    template must satisfy.
 */
 
-class ESCRIPT_DLL_API FunctionSpace {
+class FunctionSpace {
+
+  // These are using operator=()
+  friend class AbstractSystemMatrix;
+  friend class AbstractTransportProblem;
+  friend class ::FunctionSpaceTestCase;
 
  public:
   /**
@@ -57,6 +64,7 @@ class ESCRIPT_DLL_API FunctionSpace {
      Throws:
      Describe any exceptions thrown.
   */
+  ESCRIPT_DLL_API
   FunctionSpace();
 
   /**
@@ -70,6 +78,7 @@ class ESCRIPT_DLL_API FunctionSpace {
      for the lifetime of the FunctionSpace object. ie: domain must
      be an externally managed object (!).
   */
+  ESCRIPT_DLL_API
   FunctionSpace(const AbstractDomain& domain,
                 int functionSpaceType);
 
@@ -77,6 +86,7 @@ class ESCRIPT_DLL_API FunctionSpace {
     \brief
     Return the function space type code.
   */
+  ESCRIPT_DLL_API
   int
   getTypeCode() const;
 
@@ -84,18 +94,11 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the function space domain.
   */
+  ESCRIPT_DLL_API
   const
   AbstractDomain&
   getDomain() const;
 
-  /**
-   \brief
-   Assignment operator. 
-   NOTE: Assignment copies the domain object pointer
-   as this object is managed externally to this class.
-  */
-  FunctionSpace&
-  operator=(const FunctionSpace& other);
 
 
   /**
@@ -103,6 +106,7 @@ class ESCRIPT_DLL_API FunctionSpace {
      value of mask for any its sample point.
 
   */
+  ESCRIPT_DLL_API
   void setTags(const int newTag, const escript::Data& mask) const;
 
 
@@ -110,6 +114,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the shape of the data needed to represent the function space.
   */
+  ESCRIPT_DLL_API
   std::pair<int,int>
   getDataShape() const;
 
@@ -119,9 +124,11 @@ class ESCRIPT_DLL_API FunctionSpace {
    Return true if function spaces are equal.
    ie: Same domain and same function space type.
   */
+  ESCRIPT_DLL_API
   bool
   operator==(const FunctionSpace& other) const;
 
+  ESCRIPT_DLL_API
   bool
   operator!=(const FunctionSpace& other) const;
 
@@ -129,13 +136,31 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return a text description of the function space.
   */
-  std::string
+  ESCRIPT_DLL_API
+  const std::string &
   toString() const;
+
+   //#define DEBUG_PY_STRINGS
+
+#ifdef DEBUG_PY_STRINGS
+  /**
+   \brief
+   Return a text description of the function space
+   as a python string.
+   NOTE: This code was used to debug a conversion of
+   std::string to python string problem on windows. 
+   An alternative approach was sought.
+  */
+  ESCRIPT_DLL_API
+  PyObject *
+  toPyString() const;
+#endif
 
   /**
    \brief
    Return the tag associated with the given sample number.
   */
+  ESCRIPT_DLL_API
   int
   getTagFromSampleNo(int sampleNo) const;
 
@@ -143,6 +168,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the tag associated with the given data-point number.
   */
+  ESCRIPT_DLL_API
   int
   getTagFromDataPointNo(int dataPointNo) const;
 
@@ -152,6 +178,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    This function is not efficient. It is better to first call 
    borrowSampleReferenceIDs and then when iterating over sampleNo to use sampleNo as an offset.
   */
+  ESCRIPT_DLL_API
   inline
   int
   getReferenceIDOfSample(int sampleNo) const
@@ -162,6 +189,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return a borrowed reference to the list of sample reference IDs
   */
+  ESCRIPT_DLL_API
   int*
   borrowSampleReferenceIDs() const;
 
@@ -169,6 +197,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the spatial locations of the data points.
   */
+  ESCRIPT_DLL_API
   escript::Data
   getX() const;
  
@@ -176,6 +205,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the surface normal field.
   */
+  ESCRIPT_DLL_API
   escript::Data
   getNormal() const;
 
@@ -183,6 +213,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the sample size (e.g. the diameter of elements, radius of particles).
   */
+  ESCRIPT_DLL_API
   escript::Data
   getSize() const;
 
@@ -190,6 +221,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the number of samples.
   */
+  ESCRIPT_DLL_API
   inline
   int
   getNumSamples() const {
@@ -200,12 +232,14 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the number of data points per sample.
   */
+  ESCRIPT_DLL_API
   inline
   int
   getNumDPPSample() const {
      return getNumDataPointsPerSample();
   }
 
+  ESCRIPT_DLL_API
   inline
   int
   getNumDataPointsPerSample() const {
@@ -216,6 +250,7 @@ class ESCRIPT_DLL_API FunctionSpace {
    \brief
    Return the spatial dimension of the underlying domain.
   */
+  ESCRIPT_DLL_API
   inline
   int
   getDim() const {
@@ -225,10 +260,26 @@ class ESCRIPT_DLL_API FunctionSpace {
  protected:
 
  private:
+  /**
+   \brief
+   Assignment operator. 
+   NOTE: Assignment copies the domain object pointer
+   as this object is managed externally to this class.
+   NOTE Also, breaks the non-mutability of FunctionSpace
+   assumed by toString(). Allowing this would also have
+   unknown effects at the python level, and could
+   leave python with an incorrect view of the object.
+  */
+  // yes, yes I know, but the test case is in another
+  // linkage unit external to the dll.
+  // This IS supposed to be temporary.
+  ESCRIPT_DLL_API
+  FunctionSpace&
+  operator=(const FunctionSpace& other);
 
   //
   // static null domain value
-  static NullDomain m_nullDomainValue;
+  static const NullDomain nullDomainValue;
 
   //
   // function space domain
@@ -237,6 +288,13 @@ class ESCRIPT_DLL_API FunctionSpace {
   //
   // function space type code.
   int m_functionSpaceType;
+
+  //
+  // return value of toString.
+  // made mutable for lazy initialisation in 1st call to toString.
+  // So, this is conceptually immutable, meaning it expects the FunctionSpace
+  // object to be immutable.
+  mutable std::string type_str;
 
 };
 
