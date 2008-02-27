@@ -209,7 +209,7 @@ err_t Paso_Solver_BiCGStab(
                 #pragma omp for private(i0) reduction(+:sum_4) schedule(static)
 	        for (i0 = 0; i0 < n; i0++) {
 	          x[i0] += alpha * phat[i0] + omega * shat[i0];
-	          r[i0] -= omega * t[i0];
+	          r[i0] = s[i0]-omega * t[i0];
 	          sum_4 += r[i0] * r[i0];
 	        }
 	        norm_of_residual = sqrt(sum_4);

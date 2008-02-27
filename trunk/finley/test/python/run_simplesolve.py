@@ -66,6 +66,33 @@ REL_TOL=1.e-6
 FAC_DIAG=1.
 FAC_OFFDIAG=-0.4
 
+class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+     def test_solve(self):
+        domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
+        x=Solution(domain).getX()
+        # --- set exact solution ----
+        u_ex=Scalar(0,Solution(domain))
+        u_ex=1.+2.*x[0]+3.*x[1]
+        # --- set exact gradient -----------
+        g_ex=Data(0.,(2,),Solution(domain))
+        g_ex[0]=2.
+        g_ex[1]=3.
+        # -------- test gradient --------------------------------
+        g=grad(u_ex)
+        self.failUnless(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
+        # -------- set-up PDE ----------------------------------- 
+        pde=LinearPDE(domain,numEquations=1)
+        mask=whereZero(x[0])
+        pde.setValue(r=u_ex,q=mask)
+        pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()))
+        # -------- get the solution ---------------------------
+        pde.setTolerance(SOLVER_TOL)
+        pde.setSolverMethod(pde.BICGSTAB,pde.JACOBI)
+        pde.setSolverPackage(pde.PASO)
+        u=pde.getSolution(verbose=SOLVER_VERBOSE)
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
@@ -340,6 +367,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()
+   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi))
