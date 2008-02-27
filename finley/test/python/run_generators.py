@@ -41,8 +41,8 @@ except KeyError:
      FINLEY_WORKDIR='.'
 
 FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
-if os.name == "nt":
-   FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
+#if os.name == "nt":
+#   FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
 FINLEY_WORKDIR_PATH=FINLEY_WORKDIR+"/"
 
 TEST_FILE_EXT=".test"
@@ -58,7 +58,10 @@ class Test_Generators(unittest.TestCase):
       ref_string=open(FINLEY_TEST_MESH_PATH+reference).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
-         self.failUnlessEqual(dom_string[l].strip(),ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),dom_string[l].strip()))
+	 line=dom_string[l].strip()
+	 if os.name == "nt":
+	       line=line.replace("e+00","e+0").replace("e-00","e-0")
+         self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_hex_2D_order1(self):
       file="hex_2D_order1.msh"
@@ -170,7 +173,10 @@ class Test_GMSHReader(unittest.TestCase):
       ref_string=open(reference_file).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
-         self.failUnlessEqual(dom_string[l].strip(),ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),dom_string[l].strip()))
+	 line=dom_string[l].strip()
+	 if os.name == "nt":
+	       line=line.replace("e+00","e+0").replace("e-00","e-0")
+         self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_Tri3(self):
        file="tri3_gmsh.msh"
