@@ -85,10 +85,13 @@ PyObject *
 FunctionSpace::toPyString() const
 {
   boost::python::to_python_value<const std::string &> cvtr;
+  std::stringstream temp;
 
+  temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
+       << " on " << m_domain->getDescription();
 
-  type_str = toString();
-
+  //toString();
+  type_str = temp.str();
 
   return cvtr(type_str);
 }

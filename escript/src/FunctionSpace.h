@@ -22,8 +22,6 @@
 
 #include <string>
 
-#define DEBUG_PY_STRINGS
-
 class FunctionSpaceTestCase;
 
 namespace escript {
@@ -141,6 +139,8 @@ class FunctionSpace {
   ESCRIPT_DLL_API
   const std::string &
   toString() const;
+
+   //#define DEBUG_PY_STRINGS
 
 #ifdef DEBUG_PY_STRINGS
   /**
