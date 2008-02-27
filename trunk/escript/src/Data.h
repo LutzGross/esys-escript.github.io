@@ -1532,19 +1532,6 @@ C_GeneralTensorProduct(Data& arg0,
                      int transpose=0);
 
 
-/**
-  \brief
-  Compute a tensor operation with two Data objects
-  \param arg0 - Input - Data object
-  \param arg1 - Input - Data object
-  \param operation - Input - Binary op functor
-*/
-template <typename BinaryFunction>
-ESCRIPT_DLL_API
-Data
-C_TensorBinaryOperation(Data const &arg0,
-                        Data const &arg1,
-                        BinaryFunction operation);
 
 /**
   \brief
@@ -1703,7 +1690,15 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
   return falseRetVal;
 }
 
+/**
+  \brief
+  Compute a tensor operation with two Data objects
+  \param arg0 - Input - Data object
+  \param arg1 - Input - Data object
+  \param operation - Input - Binary op functor
+*/
 template <typename BinaryFunction>
+inline
 Data
 C_TensorBinaryOperation(Data const &arg_0,
                         Data const &arg_1,
