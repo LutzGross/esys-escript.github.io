@@ -2241,15 +2241,15 @@ class TransportPDE(object):
         self.__trace=trace
         self.__theta=theta
         self.__matrix_type=0
-        self.__reduced=False
+        self.__reduced=True
         self.__reassemble=True
         if self.__useSUPG:
            self.__pde=LinearPDE(domain,numEquations=num_equations,numSolutions=num_equations,debug=trace)
            self.__pde.setSymmetryOn()
+           self.__pde.setReducedOrderOn()
         else: 
            self.__transport_problem=self.__getNewTransportProblem()
         self.setTolerance()
-        self.setReducedOn()
         self.__M=escript.Data()
         self.__A=escript.Data()
         self.__B=escript.Data()
@@ -2415,7 +2415,7 @@ class TransportPDE(object):
 
      def setInitialSolution(self,u):
              if self.__useSUPG:
-                 self.__u=u
+                 self.__u=util.interpolate(u,self.getFunctionSpace())
              else:
                  self.__transport_problem.setInitialValue(util.interpolate(u,self.getFunctionSpace()))
 
