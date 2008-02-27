@@ -46,6 +46,13 @@ local_env.Install(include_path, headers )
 local_env.Install(libinstall, lib)
 py_wrapper_local_env.Install(pyinstall+'/escript', py_wrapper_lib)
 
+#windows specific mod
+if os.name == 'nt':
+   py_wrapper_local_env.InstallAs(target = [ pyinstall+'/escript/'+py_wrapper_lib_name+'.pyd', \
+                                             pyinstall+'/escript/'+py_wrapper_lib_name+'.lib', \
+                                             pyinstall+'/escript/'+py_wrapper_lib_name+'.exp' ], \
+                               source = py_wrapper_lib )
+
 # export the lib target since tests will depend on it
 # the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
 # FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
