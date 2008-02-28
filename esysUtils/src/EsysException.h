@@ -2,16 +2,16 @@
 /* $Id$ */
 
 /*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+*
+*           Copyright 2003-2007 by ACceSS MNRF
+*       Copyright 2007 by University of Queensland
+*
+*                http://esscc.uq.edu.au
+*        Primary Business: Queensland, Australia
+*  Licensed under the Open Software License version 3.0
+*     http://www.opensource.org/licenses/osl-3.0.php
+*
+*******************************************************/
 
 #ifndef ESYSEXCEPTION_H
 #define ESYSEXCEPTION_H
@@ -19,7 +19,6 @@
 
 #include <string>
 #include <exception>
-#include <algorithm>
 
 namespace esysUtils
 {
@@ -110,7 +109,6 @@ namespace esysUtils
      
     @return the string for the exception reason.
     */
-    inline
     const std::string& reason() const;
 
     /**
@@ -136,7 +134,7 @@ namespace esysUtils
     \brief
     update m_exceptionMessage after a reason update.
     **/
-    inline void updateMessage();
+    void updateMessage();
 
     //
     // the exception reason
@@ -149,7 +147,7 @@ namespace esysUtils
     //
     // the exception name is immutable and class-wide.
     // Inheritor note; you need one of these too.
-    // and an overloaded exceptionName in your .cpp implementation file. 
+    // and an overloaded exceptionName() in your .cpp implementation file. 
     static const std::string exceptionNameValue;
 
   };
@@ -167,23 +165,27 @@ namespace esysUtils
 
   ////////////////////////////////////////////////////////////////////
 
+  inline
   const std::string & EsysException::reason() const
   {
     return m_reason;
   }
   
   // return the message as a std::string
+  inline
   const std::string & EsysException::toString() const
   {
     return m_exceptionMessage;
   }
 
+  inline
   void EsysException::setReason(const std::string &new_reason)
   {
     m_reason = new_reason;
     updateMessage();
   }
 
+  inline
   const char*  EsysException::what() const
   {
     return m_exceptionMessage.c_str();
@@ -191,6 +193,7 @@ namespace esysUtils
 
 
 
+  inline
   void EsysException::updateMessage()
   {
     m_exceptionMessage = exceptionName() + ": " + m_reason;
