@@ -1,5 +1,5 @@
 
-/* $Id: EsysDataException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
+/* $Id: DataException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
 
 /*******************************************************
  *
@@ -13,18 +13,18 @@
  *
  *******************************************************/
 
-#include "EsysDataException.h"
+#include "DataException.h"
 #include <sstream>
 
 
 using namespace esysUtils;
 
 const std::string 
-EsysDataException::exceptionNameValue("EsysDataException");
+DataException::exceptionNameValue("DataException");
 
 
 const std::string &
-EsysDataException::exceptionName() const
+DataException::exceptionName() const
 {
   return exceptionNameValue;
 }

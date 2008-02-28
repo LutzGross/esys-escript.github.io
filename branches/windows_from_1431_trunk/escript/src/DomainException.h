@@ -55,13 +55,13 @@ class DomainException:public esysUtils::EsysException {
 
   /// Destructor
   ESCRIPT_DLL_API
-  virtual ~DomainException() throw() {}
+  virtual ~DomainException() {}
   /**
      \brief
      Returns the name of the exception.
   */
   ESCRIPT_DLL_API
-  virtual std::string exceptionName() const {return "DomainException";}
+  virtual const std::string & exceptionName() const;
 };
 
 } // end of namespace

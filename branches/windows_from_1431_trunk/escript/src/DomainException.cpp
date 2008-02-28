@@ -1,5 +1,5 @@
 
-/* $Id: EsysDataException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
+/* $Id: DomainException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
 
 /*******************************************************
  *
@@ -13,18 +13,18 @@
  *
  *******************************************************/
 
-#include "EsysDataException.h"
+#include "DomainException.h"
 #include <sstream>
 
 
 using namespace esysUtils;
 
 const std::string 
-EsysDataException::exceptionNameValue("EsysDataException");
+DomainException::exceptionNameValue("DomainException");
 
 
 const std::string &
-EsysDataException::exceptionName() const
+DomainException::exceptionName() const
 {
   return exceptionNameValue;
 }
