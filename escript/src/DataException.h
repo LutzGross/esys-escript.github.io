@@ -21,49 +21,53 @@
 
 #include <string>
 
-namespace escript {
-
-/**
-   \brief
-   DataException exception class.
-
-   Description:
-   DataException exception class.
-   The class provides a public function returning the exception name
-*/
-class DataException:public esysUtils::EsysException {
-
- public:
-  /**
-     \brief
-     Default constructor for the exception.
-  */
-  ESCRIPT_DLL_API
-  DataException() : esysUtils::EsysException() {}
-  /**
-     \brief
-     Constructor for the exception.
-  */
-  ESCRIPT_DLL_API
-  DataException(const char *cstr) : esysUtils::EsysException(cstr) {}
-  /**
-     \brief
-     Constructor for the exception.
-  */
-  ESCRIPT_DLL_API
-  DataException(const std::string &str) : esysUtils::EsysException(str) {}
-
-  /// Destructor
-  ESCRIPT_DLL_API
-  virtual ~DataException() throw() {}
+namespace escript
+{
 
   /**
-     \brief
-     Returns the name of the exception.
+  \brief
+  DataException exception class.
+
+  Description:
+  DataException exception class.
+  The class provides a public function returning the exception name
   */
-  ESCRIPT_DLL_API
-  virtual std::string exceptionName() const {return "DataException";}
-};
+  class DataException : public esysUtils::EsysException 
+  {
+
+  public:
+    /**
+    \brief
+    Default constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DataException() : esysUtils::EsysException() {}
+    /**
+    \brief
+    Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DataException(const char *cstr) : esysUtils::EsysException(cstr) {}
+    /**
+    \brief
+    Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DataException(const std::string &str) : esysUtils::EsysException(str) {}
+
+    /// Destructor
+    ESCRIPT_DLL_API
+    virtual ~DataException() {}
+
+    /**
+    \brief
+    Returns the name of the exception.
+    */
+    ESCRIPT_DLL_API
+    virtual const std::string & exceptionName() const;
+  };
 
 } // end of namespace
+
+
 #endif
