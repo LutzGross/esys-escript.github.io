@@ -42,7 +42,10 @@ namespace esysUtils
   None
 
   */
-  class EsysException:public std::exception {
+  class EsysException : public std::exception
+  {
+
+    typedef std::exception Parent;
 
   public:
     /**
@@ -71,20 +74,12 @@ namespace esysUtils
     * \brief
     Copy constructor   
 
-    @param inException Input - EsysException
+    @param other Input - EsysException
     */
-    EsysException(const EsysException &inException);
+    EsysException(const EsysException &other);
 
     /// Destructor
     virtual ~EsysException() THROW();
-
-    /**
-    \brief
-    Assignment operator.
-
-    @param inException Input - Exception to be copied.
-    */  
-    EsysException &operator=(const EsysException &inException);
 
     /**
     \brief

@@ -25,29 +25,29 @@ std::ostream &operator<<(std::ostream &output, EsysException &inException){
 }
 
 EsysException::EsysException():
-exception(),
+Parent(),
 m_reason()
 {
   updateMessage();   
 }
 
 EsysException::EsysException(const std::string &exceptionReason):
-exception(),
+Parent(),
 m_reason(exceptionReason)
 {
   updateMessage();   
 }
 
 // Copy Constructor.
-EsysException::EsysException(const EsysException &inException):
-exception(inException),
-m_reason(inException.m_reason)
+EsysException::EsysException(const EsysException &other):
+Parent(other),
+m_reason(other.m_reason)
 {
-  *this=inException;
+  updateMessage();   
 }
 
 EsysException::EsysException( const char *cStr ):
-exception(),
+Parent(),
 m_reason(cStr) 
 {
   updateMessage();   
@@ -61,21 +61,3 @@ const std::string & EsysException::exceptionName() const
   return exceptionNameValue;
 }
 
-//
-// Overloaded assignment operator.
-EsysException& EsysException::operator=(const EsysException &inException)
-{
-  if (this != &inException)
-  {
-    //
-    // call the base class operator=
-    // win32 refactor: parent class operator= shares pointer the result is
-    // all classes try to free the same pointer, dies on windows badly.
-    // exception::operator=(inException);
-    //
-    // copy the message buffer into this EsysException
-    m_reason = inException.m_reason;
-    updateMessage();
-  }
-  return *this;
-}
