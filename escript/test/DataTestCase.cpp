@@ -682,7 +682,7 @@ void DataTestCase::testDataTaggedExceptions() {
       myData.getSampleDataByTag(0);;
       assert(false);
   }
-  catch (EsysException& e) {
+  catch (EsysException&) {
       //cout << e.what() << endl;
       assert(true);
   }
@@ -691,7 +691,7 @@ void DataTestCase::testDataTaggedExceptions() {
       myData.setTaggedValueFromCPP(0,myView);;
       assert(false);
   }
-  catch (EsysException& e) {
+  catch (EsysException&) {
       //cout << e.what() << endl;
       assert(true);
   }
