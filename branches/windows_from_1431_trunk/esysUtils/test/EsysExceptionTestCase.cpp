@@ -23,19 +23,22 @@ using namespace CppUnitTest;
 using namespace esysUtils;
 
 class DerivedEx : public EsysException {
+
+   typedef EsysException Parent;
+
 public:
 
    /// Default Constructor for Exception
-   DerivedEx() : EsysException() { updateMessage(); }
+   DerivedEx() : Parent() { updateMessage(); }
 
    /// Constructor for Exception
-   DerivedEx(const char *cstr) : EsysException(cstr) { updateMessage(); }
+   DerivedEx(const char *cstr) : Parent(cstr) { updateMessage(); }
 
    /// Constructor for Exception
-   DerivedEx(const string &str) : EsysException(str) { updateMessage(); }
+   DerivedEx(const string &str) : Parent(str) { updateMessage(); }
 
    // Copy Constructor.
-   //DerivedEx(const EsysException &other): EsysException(other) {}
+   DerivedEx(const DerivedEx &other): Parent(other) { updateMessage(); } 
 
    /// Return the exception name
    virtual const string & exceptionName() const
@@ -168,10 +171,6 @@ void EsysExceptionTestCase::testCase2() {
 	//
 	DerivedEx copyEx(ex1);
 	string copyString = copyEx.toString();
-        std::cout << "\n==============================\n"
-                  << ex1String << std::endl
-                  << copyString << std::endl
-                  << "==============================\n";
 	assert(ex1String == copyString);
 
 	//
