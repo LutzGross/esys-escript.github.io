@@ -126,7 +126,7 @@ namespace esysUtils
 
     @return a description of the exception.
     */
-    virtual const char* what() const;
+     virtual const char* what() const throw();
 
 
     /**
@@ -187,7 +187,7 @@ namespace esysUtils
   }
 
   inline
-  const char*  EsysException::what() const
+  const char*  EsysException::what() const throw()
   {
     return m_exceptionMessage.c_str();
   }
