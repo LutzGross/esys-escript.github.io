@@ -300,7 +300,8 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
 	   << " doesn't match number of values: " << values.size();
       throw DataException(temp.str());
     } else {
-      for (int i=0;i<tagKeys.size();i++) {
+      unsigned int i;
+      for (i=0;i<tagKeys.size();i++) {
         addTaggedValue(tagKeys[i],values[i]);
       }
     }

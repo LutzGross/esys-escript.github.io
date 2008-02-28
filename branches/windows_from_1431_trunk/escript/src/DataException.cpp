@@ -14,19 +14,15 @@
  *******************************************************/
 
 #include "DataException.h"
-#include <sstream>
 
-
-using namespace esysUtils;
+using namespace escript;
 
 const std::string 
 DataException::exceptionNameValue("DataException");
-
 
 const std::string &
 DataException::exceptionName() const
 {
   return exceptionNameValue;
 }
-
 

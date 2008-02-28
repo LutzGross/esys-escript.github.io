@@ -1,5 +1,5 @@
 
-/* $Id: DomainException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
+/* $Id: TransportProblemException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
 
 /*******************************************************
  *
@@ -13,16 +13,18 @@
  *
  *******************************************************/
 
-#include "DomainException.h"
+#include "TransportProblemException.h"
+
 
 using namespace escript;
 
+
 const std::string 
-DomainException::exceptionNameValue("DomainException");
+TransportProblemException::exceptionNameValue("TransportProblemException");
 
 
 const std::string &
-DomainException::exceptionName() const
+TransportProblemException::exceptionName() const
 {
   return exceptionNameValue;
 }

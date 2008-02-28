@@ -1,5 +1,5 @@
 
-/* $Id: DomainException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
+/* $Id: SystemMatrixException.cpp 1312 2007-09-24 06:18:44Z ksteube $ */
 
 /*******************************************************
  *
@@ -13,16 +13,16 @@
  *
  *******************************************************/
 
-#include "DomainException.h"
+#include "SystemMatrixException.h"
 
 using namespace escript;
 
 const std::string 
-DomainException::exceptionNameValue("DomainException");
+SystemMatrixException::exceptionNameValue("SystemMatrixException");
 
 
 const std::string &
-DomainException::exceptionName() const
+SystemMatrixException::exceptionName() const
 {
   return exceptionNameValue;
 }
