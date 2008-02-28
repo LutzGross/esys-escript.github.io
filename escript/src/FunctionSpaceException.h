@@ -43,19 +43,30 @@ namespace escript
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    FunctionSpaceException() : Parent() {}
+    FunctionSpaceException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    FunctionSpaceException(const char *cstr) : Parent(cstr) {}
+    FunctionSpaceException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    FunctionSpaceException(const std::string &str) : Parent(str) {}
+    FunctionSpaceException(const std::string &str) :
+    Parent(str) { updateMessage();}
+    /**
+    \brief
+    Copy Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    FunctionSpaceException(const FunctionSpaceException &other) : Parent(other)
+      {
+        updateMessage();
+      }
+
 
     /// Destructor
     ESCRIPT_DLL_API
