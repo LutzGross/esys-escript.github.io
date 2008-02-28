@@ -19,7 +19,7 @@ using namespace esysUtils;
 
 const std::string EsysException::exceptionNameValue("GeneralEsysException");
 
-ostream &operator<<(ostream &output, EsysException &inException){
+std::ostream &operator<<(std::ostream &output, EsysException &inException){
   output << inException.toString();
   return output;
 }

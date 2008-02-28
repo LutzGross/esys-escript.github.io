@@ -19,8 +19,6 @@
 
 #include "EsysException.h"
 
-#include <string>
-
 namespace esysUtils {
 
   /**
@@ -71,6 +69,13 @@ namespace esysUtils {
                                const std::string& date,
                                const std::string& file,
                                int line, const std::string& errDesc);
+  private:
+
+    //
+    // the exception name is immutable and class-wide.
+    // Inheritor note; you need one of these too.
+    // and an overloaded exceptionName() in your .cpp implementation file. 
+    static const std::string exceptionNameValue;
   };
 
 } // end of namespace
