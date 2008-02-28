@@ -42,20 +42,30 @@ namespace finley
     \brief
     Default constructor for the exception.
     */
-    FINLEY_DLL_API
-    FinleyAdapterException() : Parent() {}
+    ESCRIPT_DLL_API
+    FinleyAdapterException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    FINLEY_DLL_API
-    FinleyAdapterException(const char *cstr) : Parent(cstr) {}
+    ESCRIPT_DLL_API
+    FinleyAdapterException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    FINLEY_DLL_API
-    FinleyAdapterException(const std::string &str) : Parent(str) {}
+    ESCRIPT_DLL_API
+    FinleyAdapterException(const std::string &str) :
+    Parent(str) { updateMessage();}
+    /**
+    \brief
+    Copy Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    FinleyAdapterException(const FinleyAdapterException &other) : Parent(other)
+      {
+        updateMessage();
+      }
 
     /// Destructor
     FINLEY_DLL_API

@@ -43,19 +43,29 @@ namespace escript
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    SystemMatrixException() : Parent() {}
+    SystemMatrixException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    SystemMatrixException(const char *cstr) : Parent(cstr) {}
+    SystemMatrixException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    SystemMatrixException(const std::string &str) : Parent(str) {}
+    SystemMatrixException(const std::string &str) :
+    Parent(str) { updateMessage();}
+    /**
+    \brief
+    Copy Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    SystemMatrixException(const SystemMatrixException &other) : Parent(other)
+      {
+        updateMessage();
+      }
 
     /// Destructor
     ESCRIPT_DLL_API

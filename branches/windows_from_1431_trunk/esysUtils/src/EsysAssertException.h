@@ -37,24 +37,35 @@ namespace esysUtils {
      typedef EsysException Parent;
 
   public:
-
     /**
     \brief
     Default constructor for the exception.
     */
-    EsysAssertException() : Parent() {}
-
+    ESCRIPT_DLL_API
+    EsysAssertException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    EsysAssertException(const char *cstr) : Parent(cstr) {}
-
+    ESCRIPT_DLL_API
+    EsysAssertException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    EsysAssertException(const std::string &str) : Parent(str) {}
+    ESCRIPT_DLL_API
+    EsysAssertException(const std::string &str) :
+    Parent(str) { updateMessage();}
+    /**
+    \brief
+    Copy Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    EsysAssertException(const EsysAssertException &other) : Parent(other)
+      {
+        updateMessage();
+      }
+
 
     /// Destructor
     virtual ~EsysAssertException() THROW() {}

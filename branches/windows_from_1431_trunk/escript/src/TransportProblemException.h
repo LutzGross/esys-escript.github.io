@@ -41,19 +41,31 @@ namespace escript
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    TransportProblemException() : Parent() {}
+    TransportProblemException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    TransportProblemException(const char *cstr) : Parent(cstr) {}
+    TransportProblemException(const char *cstr) :
+    Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    TransportProblemException(const std::string &str) : Parent(str) {}
+    TransportProblemException(const std::string &str) :
+    Parent(str) { updateMessage();}
+    /**
+    \brief
+    Copy Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    TransportProblemException(const TransportProblemException &other) :
+    Parent(other)
+      {
+        updateMessage();
+      }
 
     /// Destructor
     ESCRIPT_DLL_API
