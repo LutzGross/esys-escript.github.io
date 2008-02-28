@@ -129,13 +129,13 @@ namespace esysUtils
     virtual const char* what() const throw();
 
 
-  private:
     /**
     \brief
     update m_exceptionMessage after a reason update.
     **/
     void updateMessage();
 
+  private:
     //
     // the exception reason
     std::string m_reason;

@@ -23,30 +23,32 @@ using namespace CppUnitTest;
 using namespace esysUtils;
 
 class DerivedEx : public EsysException {
-	 public:
+public:
 
-	/// Default Constructor for Exception
-	DerivedEx() : EsysException() {}
+   /// Default Constructor for Exception
+   DerivedEx() : EsysException() { updateMessage(); }
 
-	/// Constructor for Exception
-	DerivedEx(const char *cstr) : EsysException(cstr) {}
+   /// Constructor for Exception
+   DerivedEx(const char *cstr) : EsysException(cstr) { updateMessage(); }
 
-	/// Constructor for Exception
-	DerivedEx(const string &str) : EsysException(str) {}
+   /// Constructor for Exception
+   DerivedEx(const string &str) : EsysException(str) { updateMessage(); }
 
-	/// Return the exception name
-	virtual string exceptionName() const {
-		return "DerivedException";
-	}
+   // Copy Constructor.
+   //DerivedEx(const EsysException &other): EsysException(other) {}
+
+   /// Return the exception name
+   virtual const string & exceptionName() const
+      {
+         return rhubarb;
+      }
+        
+   static const string rhubarb;
 };
 
-void EsysExceptionTestCase::testCase0() {
+const string DerivedEx::rhubarb("DerivedException");
 
-	//
-	// dummy test case
-	//
-	// just test the UnitTesting framework is OK
-	//
+void EsysExceptionTestCase::testCase0() {
 
 	assert(true);
 
@@ -166,6 +168,10 @@ void EsysExceptionTestCase::testCase2() {
 	//
 	DerivedEx copyEx(ex1);
 	string copyString = copyEx.toString();
+        std::cout << "\n==============================\n"
+                  << ex1String << std::endl
+                  << copyString << std::endl
+                  << "==============================\n";
 	assert(ex1String == copyString);
 
 	//

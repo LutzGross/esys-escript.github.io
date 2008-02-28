@@ -40,7 +40,8 @@ m_reason(exceptionReason)
 
 // Copy Constructor.
 EsysException::EsysException(const EsysException &inException):
-exception(inException)
+exception(inException),
+m_reason(inException.m_reason)
 {
   *this=inException;
 }

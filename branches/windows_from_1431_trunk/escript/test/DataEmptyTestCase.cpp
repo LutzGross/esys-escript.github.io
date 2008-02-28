@@ -56,7 +56,7 @@ void DataEmptyTestCase::testAll() {
     assert(testData.getPointOffset(0,0) == 0);
     assert(false);
   }
-  catch (EsysException& e) {
+  catch (EsysException&) {
     //cout << e.toString() << endl;
     assert(true);
   }
@@ -67,7 +67,7 @@ void DataEmptyTestCase::testAll() {
     testData.getDataPoint(0,0);
     assert(false);
   }
-  catch (EsysException& e) {
+  catch (EsysException&) {
     //cout << e.toString() << endl;
     assert(true);
   }
@@ -82,7 +82,7 @@ void DataEmptyTestCase::testAll() {
     assert(testData.getSlice(region) == 0);
     assert(false);
   }
-  catch (EsysException& e) {
+  catch (EsysException&) {
     //cout << e.toString() << endl;
     assert(true);
   }
@@ -92,7 +92,7 @@ void DataEmptyTestCase::testAll() {
     testData.setSlice(0,region);
     assert(false);
   }
-  catch (EsysException& e) {
+  catch (EsysException&) {
     //cout << e.toString() << endl;
     assert(true);
   }
