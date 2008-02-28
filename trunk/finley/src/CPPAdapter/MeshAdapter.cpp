@@ -24,6 +24,8 @@ extern "C" {
 }
 #include <vector>
 
+#define IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH  256
+
 using namespace std;
 using namespace escript;
 
@@ -1443,7 +1445,7 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
 // saves a data array in openDX format:
 void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& arg) const
 {
-    int MAX_namelength=256;
+    unsigned int MAX_namelength=IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH;
     const int num_data=boost::python::extract<int>(arg.attr("__len__")());
   /* win32 refactor */
   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
@@ -1491,7 +1493,7 @@ void MeshAdapter::saveDX(const std::string& filename,const boost::python::dict& 
 // saves a data array in openVTK format:
 void MeshAdapter::saveVTK(const std::string& filename,const boost::python::dict& arg) const
 {
-    int MAX_namelength=256;
+    unsigned int MAX_namelength=IS_THERE_A_REASON_FOR_THIS_MAGIC_NAME_LENGTH;
     const int num_data=boost::python::extract<int>(arg.attr("__len__")());
   /* win32 refactor */
   char* *names = (num_data>0) ? TMPMEMALLOC(num_data,char*) : (char**)NULL;
@@ -1851,7 +1853,7 @@ escript::Data MeshAdapter::getSize() const
 
 int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
 {
-  int *out=0,i;
+  int *out = NULL;
   Finley_Mesh* mesh=m_finleyMesh.get();
   switch (functionSpaceType) {
     case(Nodes):

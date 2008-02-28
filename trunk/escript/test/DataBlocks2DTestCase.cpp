@@ -126,7 +126,7 @@ void DataBlocks2DTestCase::testAll() {
         DataBlocks2D myData(numRows,numCols,blockSize);
         assert(false);
     }
-    catch(EsysException& e) {
+    catch(EsysException&) {
         assert(true);
     }
   }
@@ -140,7 +140,7 @@ void DataBlocks2DTestCase::testAll() {
         DataBlocks2D myData(numRows,numCols,blockSize);
         assert(false);
     }
-    catch(EsysException& e) {
+    catch(EsysException&) {
         assert(true);
     }
   }
@@ -154,7 +154,7 @@ void DataBlocks2DTestCase::testAll() {
         DataBlocks2D myData(numRows,numCols,blockSize);
         assert(false);
     }
-    catch(EsysException& e) {
+    catch(EsysException&) {
         assert(true);
     }
   }
@@ -211,7 +211,7 @@ void DataBlocks2DTestCase::testAll() {
       myData.index(1,2);
       assert(false);
     }
-    catch (EsysException& e) {
+    catch (EsysException&) {
       assert(true);
     }
   }

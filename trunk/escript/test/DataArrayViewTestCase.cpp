@@ -1707,7 +1707,7 @@ void DataArrayViewTestCase::testAll()
       DataArrayView dataView(data,shape);
       assert(false);
     }
-    catch (EsysException& e) {
+    catch (EsysException&) {
       assert(true);
     }
   }

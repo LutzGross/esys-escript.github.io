@@ -15,72 +15,49 @@
 
 #include "EsysException.h"
 
-using namespace std;
 using namespace esysUtils;
 
-ostream &operator<<(ostream &output, EsysException &inException){
+const std::string EsysException::exceptionNameValue("GeneralEsysException");
+
+std::ostream &operator<<(std::ostream &output, EsysException &inException){
   output << inException.toString();
   return output;
 }
 
 EsysException::EsysException():
-  exception() 
+Parent(),
+m_reason()
 {
+  updateMessage();   
 }
 
-EsysException::EsysException(const string &exceptionReason):
-exception()
+EsysException::EsysException(const std::string &exceptionReason):
+Parent(),
+m_reason(exceptionReason)
 {
-  reason() << exceptionReason;
+  updateMessage();   
 }
 
 // Copy Constructor.
-EsysException::EsysException(const EsysException &inException):
-exception(inException)
+EsysException::EsysException(const EsysException &other):
+Parent(other),
+m_reason(other.m_reason)
 {
-  *this=inException;
+  updateMessage();   
 }
 
 EsysException::EsysException( const char *cStr ):
-  exception() 
+Parent(),
+m_reason(cStr) 
 {
-  reason() << cStr;
+  updateMessage();   
 }
 
-EsysException::~EsysException() throw()
+EsysException::~EsysException() THROW()
 {}
 
-string EsysException::exceptionName() const 
+const std::string & EsysException::exceptionName() const 
 {
-  return "GeneralEsysException";
-}
-ostringstream& EsysException::reason() 
-{
-  return m_reason;
-}
-//
-// Overloaded assignment operator.
-EsysException& EsysException::operator=(const EsysException &inException) {
-  if (this != &inException) {
-	  //
-	  // call the base class operator=
-	  // win32 refactor: parent class operator= shares pointer the result is
-	  // all classes try to free the same pointer, dies on windows badly.
-	  // this->exception::operator=(dynamic_cast<const exception&>(inException));
-	  //
-	  // copy the message buffer into this EsysException
-	  m_reason << inException.m_reason.str();    // copy the message buffer into this EsysException
-  }
-  return *this;
+  return exceptionNameValue;
 }
 
-// return the message as a string
-string EsysException::toString() const {
-  return exceptionName() + ": " + m_reason.str();
-}
-
-const char*  EsysException::what() const throw() {
-//
-  m_exceptionMessage=toString();
-  return m_exceptionMessage.c_str();
-}

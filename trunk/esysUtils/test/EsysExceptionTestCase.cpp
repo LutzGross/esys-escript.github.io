@@ -23,30 +23,35 @@ using namespace CppUnitTest;
 using namespace esysUtils;
 
 class DerivedEx : public EsysException {
-	 public:
 
-	/// Default Constructor for Exception
-	DerivedEx() : EsysException() {}
+   typedef EsysException Parent;
 
-	/// Constructor for Exception
-	DerivedEx(const char *cstr) : EsysException(cstr) {}
+public:
 
-	/// Constructor for Exception
-	DerivedEx(const string &str) : EsysException(str) {}
+   /// Default Constructor for Exception
+   DerivedEx() : Parent() { updateMessage(); }
 
-	/// Return the exception name
-	virtual string exceptionName() const {
-		return "DerivedException";
-	}
+   /// Constructor for Exception
+   DerivedEx(const char *cstr) : Parent(cstr) { updateMessage(); }
+
+   /// Constructor for Exception
+   DerivedEx(const string &str) : Parent(str) { updateMessage(); }
+
+   // Copy Constructor.
+   DerivedEx(const DerivedEx &other): Parent(other) { updateMessage(); } 
+
+   /// Return the exception name
+   virtual const string & exceptionName() const
+      {
+         return rhubarb;
+      }
+        
+   static const string rhubarb;
 };
 
-void EsysExceptionTestCase::testCase0() {
+const string DerivedEx::rhubarb("DerivedException");
 
-	//
-	// dummy test case
-	//
-	// just test the UnitTesting framework is OK
-	//
+void EsysExceptionTestCase::testCase0() {
 
 	assert(true);
 

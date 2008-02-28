@@ -101,7 +101,7 @@ template <class Fixture> class TestCaller : public TestCase
             throw CppUnitException (cpp.what(), cpp.lineNumber(),
                                     cpp.fileName());
          }
-         catch (std::exception& e) {
+         catch (std::exception&) {
             setCheckErrors(m_fixture->getCheckErrors());
 	    //
 	    // rethrow the exception

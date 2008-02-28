@@ -22,6 +22,9 @@
 
 #include <string>
 
+// This stops the friend declaration below from looking like a
+// declaration of escript::FunctionSpaceTestCase.
+
 class FunctionSpaceTestCase;
 
 namespace escript {
@@ -135,6 +138,13 @@ class FunctionSpace {
   /**
    \brief
    Return a text description of the function space.
+   NOTE: In the python interface, the reference return value policy is
+   copy const reference. This mens that if the python string value
+   is assigned to a python variable, it's value (python) value will not
+   change, even if operator=() changes this Function space object.
+   Consequently, it is possible for python to keep a wrong value for this
+   string!
+   Worse still is that operator=() is exposed to python in escriptcpp.cpp.
   */
   ESCRIPT_DLL_API
   const std::string &
@@ -265,14 +275,13 @@ class FunctionSpace {
    Assignment operator. 
    NOTE: Assignment copies the domain object pointer
    as this object is managed externally to this class.
-   NOTE Also, breaks the non-mutability of FunctionSpace
-   assumed by toString(). Allowing this would also have
-   unknown effects at the python level, and could
-   leave python with an incorrect view of the object.
+   Also, breaks the non-mutability of FunctionSpace
+   assumed by toString().
   */
   // yes, yes I know, but the test case is in another
   // linkage unit external to the dll.
-  // This IS supposed to be temporary.
+  // This IS supposed to be a temporary fix until a more
+  // robust solution is implemented.
   ESCRIPT_DLL_API
   FunctionSpace&
   operator=(const FunctionSpace& other);
@@ -291,9 +300,29 @@ class FunctionSpace {
 
   //
   // return value of toString.
-  // made mutable for lazy initialisation in 1st call to toString.
-  // So, this is conceptually immutable, meaning it expects the FunctionSpace
-  // object to be immutable.
+  // Made mutable for recalculation by calls to toString.
+  // This is supposed to be conceptually immutable,
+  // and the mutable declaration is intended to admit lazy init. in the
+  // 1st call to toString()
+  // Unfortunately, the existance of operator=() breaks
+  // the imutability of FunctionSpace, so the current toString()
+  // implementation is in fact an abuse of "mutable".
+  // So why not just return a std::strin & do away with this class member?
+  // 
+  // 1. even if an anonymous copy of the value is returned instead of a const
+  //    reference, that value can find it's way into another DLL, especially
+  //    in this environment.
+  // 2. This is especially true of exceptions that are fed said anaonymous
+  //    copy as the retun value of a function into the argument of the
+  //    exception constructor that expects a const reference.
+  // 3. What happens is that the exception object is left holding
+  //    a reference to an onject that is going to get creamed
+  //    during stack unwind.
+  // 4. returning a class value from a stack local is frowned upon anyway,
+  //    this is just one reason not to do it.
+  // 5. There are a number of patters, all well known to C++ programmers
+  //    for avoiding the practice.
+
   mutable std::string type_str;
 
 };

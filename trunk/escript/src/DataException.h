@@ -19,51 +19,77 @@
 
 #include "esysUtils/EsysException.h"
 
-#include <string>
-
-namespace escript {
-
-/**
-   \brief
-   DataException exception class.
-
-   Description:
-   DataException exception class.
-   The class provides a public function returning the exception name
-*/
-class DataException:public esysUtils::EsysException {
-
- public:
-  /**
-     \brief
-     Default constructor for the exception.
-  */
-  ESCRIPT_DLL_API
-  DataException() : esysUtils::EsysException() {}
-  /**
-     \brief
-     Constructor for the exception.
-  */
-  ESCRIPT_DLL_API
-  DataException(const char *cstr) : esysUtils::EsysException(cstr) {}
-  /**
-     \brief
-     Constructor for the exception.
-  */
-  ESCRIPT_DLL_API
-  DataException(const std::string &str) : esysUtils::EsysException(str) {}
-
-  /// Destructor
-  ESCRIPT_DLL_API
-  virtual ~DataException() throw() {}
+namespace escript
+{
 
   /**
-     \brief
-     Returns the name of the exception.
+  \brief
+  DataException exception class.
+
+  Description:
+  DataException exception class.
+  The class provides a public function returning the exception name
   */
-  ESCRIPT_DLL_API
-  virtual std::string exceptionName() const {return "DataException";}
-};
+  class DataException : public esysUtils::EsysException 
+  {
+
+  protected:
+
+     typedef EsysException Parent;
+
+  public:
+    /**
+    \brief
+    Default constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DataException() : Parent() { updateMessage();}
+    /**
+    \brief
+    Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DataException(const char *cstr) : Parent(cstr) { updateMessage();}
+    /**
+    \brief
+    Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DataException(const std::string &str) : Parent(str) { updateMessage();}
+    /**
+    \brief
+    Copy Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DataException(const DataException &other) : Parent(other)
+      {
+        updateMessage();
+      }
+
+
+    /// Destructor
+    ESCRIPT_DLL_API
+    virtual ~DataException() THROW() {}
+
+    /**
+    \brief
+    Returns the name of the exception.
+    */
+    ESCRIPT_DLL_API
+    virtual const std::string & exceptionName() const;
+
+  private:
+
+    //
+    // the exception name is immutable and class-wide.
+    // Inheritor note; you need one of these too.
+    // and an overloaded exceptionName() in your .cpp implementation file. 
+    static const std::string exceptionNameValue;
+
+
+  };
 
 } // end of namespace
+
+
 #endif
