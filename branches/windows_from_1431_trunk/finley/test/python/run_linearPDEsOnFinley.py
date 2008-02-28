@@ -240,7 +240,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   if False:
+   if True:
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder1))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder2))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
@@ -260,14 +260,7 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
    else:
-     suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_setCoefficient_d_reduced_Scalar_using_d"))
-     suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_setCoefficient_d_reduced_Scalar_using_d"))
-     suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_setCoefficient_d_reduced_Scalar_using_d"))
-     suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_setCoefficient_d_reduced_Scalar_using_d"))
-     suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_setCoefficient_d_reduced_Scalar_using_d"))
-     suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_setCoefficient_d_reduced_Scalar_using_d"))
-     suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_setCoefficient_d_reduced_Scalar_using_d"))
-     pass
+      pass
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
