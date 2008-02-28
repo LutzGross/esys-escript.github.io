@@ -126,7 +126,7 @@ namespace esysUtils
 
     @return a description of the exception.
     */
-    virtual const char* what() const throw();
+    virtual const char* what() const;
 
 
     /**
@@ -134,6 +134,7 @@ namespace esysUtils
     update m_exceptionMessage after a reason update.
     **/
     void updateMessage();
+
 
   private:
     //
