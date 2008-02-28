@@ -33,25 +33,38 @@ namespace escript
   class DomainException : public esysUtils::EsysException
   {
 
+  protected:
+
+    typedef EsysException Parent;
+
   public:
     /**
     \brief
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    DomainException() : EsysException() {}
+    DomainException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    DomainException(const char *cstr) : EsysException(cstr) {}
+    DomainException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    DomainException(const std::string &str) : EsysException(str) {}
+    DomainException(const std::string &str) : Parent(str) { updateMessage();}
+    /**
+    \brief
+    Copy Constructor for the exception.
+    */
+    ESCRIPT_DLL_API
+    DomainException(const DomainException &other) : Parent(other)
+      {
+        updateMessage();
+      }
 
     /// Destructor
     ESCRIPT_DLL_API

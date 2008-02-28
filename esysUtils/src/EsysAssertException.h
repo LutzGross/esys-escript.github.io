@@ -32,25 +32,29 @@ namespace esysUtils {
   class EsysAssertException : public EsysException
   {
 
+  protected:
+
+     typedef EsysException Parent;
+
   public:
 
     /**
     \brief
     Default constructor for the exception.
     */
-    EsysAssertException() : EsysException() {}
+    EsysAssertException() : Parent() {}
 
     /**
     \brief
     Constructor for the exception.
     */
-    EsysAssertException(const char *cstr) : EsysException(cstr) {}
+    EsysAssertException(const char *cstr) : Parent(cstr) {}
 
     /**
     \brief
     Constructor for the exception.
     */
-    EsysAssertException(const std::string &str) : EsysException(str) {}
+    EsysAssertException(const std::string &str) : Parent(str) {}
 
     /// Destructor
     virtual ~EsysAssertException() THROW() {}

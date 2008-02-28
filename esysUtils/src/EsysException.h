@@ -45,7 +45,10 @@ namespace esysUtils
   class EsysException : public std::exception
   {
 
-    typedef std::exception Parent;
+  protected:
+
+     typedef std::exception Parent;
+
 
   public:
     /**

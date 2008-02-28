@@ -33,25 +33,29 @@ namespace escript
   class SystemMatrixException : public esysUtils::EsysException
   {
 
+  protected:
+
+     typedef EsysException Parent;
+
   public:
     /**
     \brief
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    SystemMatrixException() : EsysException() {}
+    SystemMatrixException() : Parent() {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    SystemMatrixException(const char *cstr) : EsysException(cstr) {}
+    SystemMatrixException(const char *cstr) : Parent(cstr) {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    SystemMatrixException(const std::string &str) : EsysException(str) {}
+    SystemMatrixException(const std::string &str) : Parent(str) {}
 
     /// Destructor
     ESCRIPT_DLL_API

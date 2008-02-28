@@ -31,25 +31,29 @@ namespace escript
   */
   class TransportProblemException : public esysUtils::EsysException {
 
+  protected:
+
+     typedef EsysException Parent;
+
   public:
     /**
     \brief
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    TransportProblemException() : EsysException() {}
+    TransportProblemException() : Parent() {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    TransportProblemException(const char *cstr) : EsysException(cstr) {}
+    TransportProblemException(const char *cstr) : Parent(cstr) {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    TransportProblemException(const std::string &str) : EsysException(str) {}
+    TransportProblemException(const std::string &str) : Parent(str) {}
 
     /// Destructor
     ESCRIPT_DLL_API
