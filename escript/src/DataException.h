@@ -19,8 +19,6 @@
 
 #include "esysUtils/EsysException.h"
 
-#include <string>
-
 namespace escript
 {
 
@@ -65,6 +63,16 @@ namespace escript
     */
     ESCRIPT_DLL_API
     virtual const std::string & exceptionName() const;
+
+  private:
+
+    //
+    // the exception name is immutable and class-wide.
+    // Inheritor note; you need one of these too.
+    // and an overloaded exceptionName() in your .cpp implementation file. 
+    static const std::string exceptionNameValue;
+
+
   };
 
 } // end of namespace
