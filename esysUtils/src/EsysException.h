@@ -19,6 +19,7 @@
 
 #include <string>
 #include <exception>
+#include <iostream>
 
 namespace esysUtils
 {
@@ -75,7 +76,7 @@ namespace esysUtils
     EsysException(const EsysException &inException);
 
     /// Destructor
-    virtual ~EsysException();
+    virtual ~EsysException() THROW();
 
     /**
     \brief
@@ -126,7 +127,7 @@ namespace esysUtils
 
     @return a description of the exception.
     */
-     virtual const char* what() const throw();
+     virtual const char* what() const THROW();
 
 
     /**
@@ -187,7 +188,7 @@ namespace esysUtils
   }
 
   inline
-  const char*  EsysException::what() const throw()
+  const char*  EsysException::what() const THROW()
   {
     return m_exceptionMessage.c_str();
   }

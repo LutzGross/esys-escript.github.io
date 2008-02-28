@@ -55,7 +55,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~DomainException() {}
+    virtual ~DomainException() THROW() {}
     /**
     \brief
     Returns the name of the exception.

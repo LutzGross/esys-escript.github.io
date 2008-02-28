@@ -55,7 +55,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~DataException() {}
+    virtual ~DataException() THROW() {}
 
     /**
     \brief

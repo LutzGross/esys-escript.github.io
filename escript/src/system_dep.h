@@ -69,8 +69,10 @@
 # endif
 #endif
 
+#define THROW(ARG)
 #else
 # define ESCRIPT_DLL_API
 #endif
 
+# define THROW(ARG) throw(ARG)
 #endif
