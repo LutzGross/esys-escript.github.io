@@ -641,7 +641,7 @@ DataExpanded::setToZero(){
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
     for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
         p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
-        for (int i=0; i<n ;++i) p[i]=0.;
+        for (i=0; i<n ;++i) p[i]=0.;
     }
   }
 }
@@ -740,7 +740,7 @@ DataExpanded::setTaggedValue(int tagKey,
     if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey ) {
         for (dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
             p=&(m_data[getPointOffset(sampleNo,dataPointNo)]);
-            for (int i=0; i<n ;++i) p[i]=in[i];
+            for (i=0; i<n ;++i) p[i]=in[i];
         }
     }
   }

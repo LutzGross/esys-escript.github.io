@@ -43,8 +43,10 @@
 #define ESYSUTILS_DLL_API __declspec(dllimport)
 #endif
 #endif
+#define THROW(ARG)
 #else
 #define ESYSUTILS_DLL_API
+# define THROW(ARG) throw(ARG)
 #endif
 
 

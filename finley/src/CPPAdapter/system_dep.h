@@ -44,8 +44,10 @@
 #endif
 #endif
 
+#define THROW(ARG)
 #else
 #define FINLEY_DLL_API
+# define THROW(ARG) throw(ARG)
 #endif
 
 

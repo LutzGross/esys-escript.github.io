@@ -1052,13 +1052,14 @@ Data::sqrt() const
 double
 Data::Lsup() const
 {
-  double localValue, globalValue;
+  double localValue;
   //
   // set the initial absolute maximum value to zero
 
   AbsMax abs_max_func;
   localValue = algorithm(abs_max_func,0);
 #ifdef PASO_MPI
+  double globalValue;
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
   return globalValue;
 #else
@@ -1069,12 +1070,13 @@ Data::Lsup() const
 double
 Data::sup() const
 {
-  double localValue, globalValue;
+  double localValue;
   //
   // set the initial maximum value to min possible double
   FMax fmax_func;
   localValue = algorithm(fmax_func,numeric_limits<double>::max()*-1);
 #ifdef PASO_MPI
+  double globalValue;
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
   return globalValue;
 #else
@@ -1085,12 +1087,13 @@ Data::sup() const
 double
 Data::inf() const
 {
-  double localValue, globalValue;
+  double localValue;
   //
   // set the initial minimum value to max possible double
   FMin fmin_func;
   localValue = algorithm(fmin_func,numeric_limits<double>::max());
 #ifdef PASO_MPI
+  double globalValue;
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
   return globalValue;
 #else
@@ -2551,8 +2554,9 @@ Data::dump(const std::string fileName) const
 int
 Data::get_MPISize() const
 {
-	int error, size;
+	int size;
 #ifdef PASO_MPI
+	int error;
 	error = MPI_Comm_size( get_MPIComm(), &size );
 #else
 	size = 1;
@@ -2563,8 +2567,9 @@ Data::get_MPISize() const
 int
 Data::get_MPIRank() const
 {
-	int error, rank;
+	int rank;
 #ifdef PASO_MPI
+	int error;
 	error = MPI_Comm_rank( get_MPIComm(), &rank );
 #else
 	rank = 0;

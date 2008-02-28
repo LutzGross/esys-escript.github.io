@@ -35,8 +35,8 @@ except KeyError:
      FINLEY_WORKDIR='.'
 
 FINLEY_TEST_MESH_PATH=FINLEY_TEST_DATA+"/data_meshes/"
-if os.name == "nt":
-   FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
+# if os.name == "nt":
+#    FINLEY_TEST_MESH_PATH = FINLEY_TEST_MESH_PATH+"win32/"
 FINLEY_WORKDIR_PATH=FINLEY_WORKDIR+"/"
 
 class Test_VisualizationInterface(unittest.TestCase):

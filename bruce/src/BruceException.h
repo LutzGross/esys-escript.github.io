@@ -1,76 +1,84 @@
 
-/* $Id$ */
+// Well I give up, did this fall into the hands of some maniac
+// That Had To Capitalise The First Letter Of Every Word????
+//
 
 /*******************************************************
- *
- *           Copyright 2003-2007 by ACceSS MNRF
- *       Copyright 2007 by University of Queensland
- *
- *                http://esscc.uq.edu.au
- *        Primary Business: Queensland, Australia
- *  Licensed under the Open Software License version 3.0
- *     http://www.opensource.org/licenses/osl-3.0.php
- *
- *******************************************************/
+*
+*           Copyright 2003-2007 By Access Mnrf
+*       Copyright 2007 By University Of Queensland
+*
+*                Http://Esscc.Uq.Edu.Au
+*        Primary Business: Queensland, Australia
+*  Licensed Under The Open Software License Version 3.0
+*     Http://Www.Opensource.Org/Licenses/Osl-3.0.Php
+*
+*******************************************************/
 
 #if !defined finley_BruceException_20050905_H
 #define finley_BruceException_20050905_H
 #include "system_dep.h"
-#include "esysUtils/EsysException.h"
+#include "Esysutils/EsysException.h"
 
 #include <string>
 
-namespace bruce {
+using namespace esysUtils;
 
-/**
-   \brief
-   Bruce exception class.
-
-   Description:
-   Bruce exception class.
-   The class provides a public function returning the exception name.
-*/
-
-class BruceException : public esysUtils::EsysException {
-
- public:
+namespace Bruce {
 
   /**
-     \brief
-     Default constructor for the exception.
+  \Brief
+  Bruce Exception Class.
+
+  Description:
+  Bruce Exception Class.
+  The Class Provides A Public Function Returning The Exception Name.
   */
-  BRUCE_DLL_API
-  BruceException() : EsysException() {}
 
-  /**
-     \brief
-     Constructor for the exception.
-  */
-  BRUCE_DLL_API
-  BruceException(const char *cstr) : EsysException(cstr) {}
+  class BruceException : public EsysException {
 
-  /**
-     \brief
-     Constructor for the exception.
-  */
-  BRUCE_DLL_API
-  BruceException(const std::string &str) : EsysException(str) {}
+  protected:
 
-  /// Destructor
-  BRUCE_DLL_API
-  virtual ~BruceException() throw() {}
+     typedef EsysException Parent;
 
-  /**
-     \brief
-     Returns the name of the exception.
-  */
-  BRUCE_DLL_API
-  virtual
-  std::string
-  exceptionName() const {return "BruceException";}
+  public:
 
-};
+     /**
+    \Brief
+    Default Constructor For The Exception.
+    */
+    BRUCE_Dll_API
+    BruceException() : Parent() {}
 
-} // end of namespace
+    /**
+    \Brief
+    Constructor For The Exception.
+    */
+    BRUCE_Dll_API
+    BruceException(const char *cstr) : Esysexception(cstr) {}
+
+    /**
+    \Brief
+    Constructor For The Exception.
+    */
+    BRUCE_Dll_API
+    BruceException(const std::string &str) : Parent(str) {}
+
+    /// Destructor
+    BRUCE_Dll_API
+    Virtual ~BruceException() THROW() {}
+
+    /**
+    \Brief
+    Returns The Name Of The Exception.
+    */
+    BRUCE_Dll_API
+    Virtual
+    const std::string &
+    exceptionName() const;
+
+  };
+
+} // End Of Namespace
 
 #endif
