@@ -33,25 +33,29 @@ namespace finley
   class FinleyAdapterException : public esysUtils::EsysException
   {
 
+  protected:
+
+     typedef EsysException Parent;
+
   public:
     /**
     \brief
     Default constructor for the exception.
     */
     FINLEY_DLL_API
-    FinleyAdapterException() : EsysException() {}
+    FinleyAdapterException() : Parent() {}
     /**
     \brief
     Constructor for the exception.
     */
     FINLEY_DLL_API
-    FinleyAdapterException(const char *cstr) : EsysException(cstr) {}
+    FinleyAdapterException(const char *cstr) : Parent(cstr) {}
     /**
     \brief
     Constructor for the exception.
     */
     FINLEY_DLL_API
-    FinleyAdapterException(const std::string &str) : EsysException(str) {}
+    FinleyAdapterException(const std::string &str) : Parent(str) {}
 
     /// Destructor
     FINLEY_DLL_API

@@ -33,25 +33,29 @@ namespace escript
   class FunctionSpaceException : public esysUtils::EsysException
   {
 
+  protected:
+
+     typedef EsysException Parent;
+
   public:
     /**
     \brief
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    FunctionSpaceException() : EsysException() {}
+    FunctionSpaceException() : Parent() {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    FunctionSpaceException(const char *cstr) : EsysException(cstr) {}
+    FunctionSpaceException(const char *cstr) : Parent(cstr) {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    FunctionSpaceException(const std::string &str) : EsysException(str) {}
+    FunctionSpaceException(const std::string &str) : Parent(str) {}
 
     /// Destructor
     ESCRIPT_DLL_API

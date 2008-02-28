@@ -33,25 +33,29 @@ namespace escript
   class DataException : public esysUtils::EsysException 
   {
 
+  protected:
+
+     typedef EsysException Parent;
+
   public:
     /**
     \brief
     Default constructor for the exception.
     */
     ESCRIPT_DLL_API
-    DataException() : esysUtils::EsysException() {}
+    DataException() : Parent() {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    DataException(const char *cstr) : esysUtils::EsysException(cstr) {}
+    DataException(const char *cstr) : Parent(cstr) {}
     /**
     \brief
     Constructor for the exception.
     */
     ESCRIPT_DLL_API
-    DataException(const std::string &str) : esysUtils::EsysException(str) {}
+    DataException(const std::string &str) : Parent(str) {}
 
     /// Destructor
     ESCRIPT_DLL_API
