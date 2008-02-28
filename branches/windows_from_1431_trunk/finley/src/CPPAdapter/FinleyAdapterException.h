@@ -55,7 +55,7 @@ namespace finley
 
     /// Destructor
     FINLEY_DLL_API
-    virtual ~FinleyAdapterException() throw() {}
+    virtual ~FinleyAdapterException() THROW() {}
     /**
     \brief
     Returns the name of the exception.

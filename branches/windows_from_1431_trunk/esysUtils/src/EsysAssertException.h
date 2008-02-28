@@ -53,7 +53,7 @@ namespace esysUtils {
     EsysAssertException(const std::string &str) : EsysException(str) {}
 
     /// Destructor
-    virtual ~EsysAssertException() {}
+    virtual ~EsysAssertException() THROW() {}
 
     /**
     \brief

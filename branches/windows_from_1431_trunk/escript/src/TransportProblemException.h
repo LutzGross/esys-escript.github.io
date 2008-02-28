@@ -53,7 +53,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~TransportProblemException() {}
+    virtual ~TransportProblemException() THROW() {}
     /**
     \brief
     Returns the name of the exception.
