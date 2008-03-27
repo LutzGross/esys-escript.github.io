@@ -26,6 +26,9 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#ifdef PARMETIS
+#include "parmetis.h"
+#endif
 
 /**************************************************************/
 
@@ -40,6 +43,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      Paso_MPI_rank myRank,dest,source,current_rank, rank;
      Finley_IndexList* index_list=NULL;
      float *xyz=NULL;
+     int c;
      
      #ifdef PASO_MPI
      MPI_Status status;
@@ -67,6 +71,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      newGlobalDOFID=TMPMEMALLOC(len,index_t);
      setNewDOFId=TMPMEMALLOC(in->Nodes->numNodes,bool_t);
      if (!(Finley_checkPtr(partition) || Finley_checkPtr(xyz) || Finley_checkPtr(partition_count) || Finley_checkPtr(partition_count) || Finley_checkPtr(newGlobalDOFID) || Finley_checkPtr(setNewDOFId))) {
+         dim_t *recvbuf=TMPMEMALLOC(mpiSize*mpiSize,dim_t);
 
          /* set the coordinates: *?
          /* it is assumed that at least one node on this processor provides a coordinate */
@@ -116,27 +121,47 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 
            if (Finley_noError()) {
 
-/*
-
-        ParMETIS_V3_PartGeomKway(distribution,
+#ifdef PARMETIS
+	      if (in->MPIInfo->size>1) {
+		 int i;
+		 int wgtflag = 0;
+		 int numflag = 0;	/* pattern->ptr is C style: starting from 0 instead of 1 */
+		 int ncon = 1;
+		 int edgecut;
+		 int options[2];
+		 float *tpwgts = TMPMEMALLOC(ncon*mpiSize,float);
+		 float *ubvec = TMPMEMALLOC(ncon,float);
+		 for (i=0; i<ncon*mpiSize; i++) tpwgts[i] = 1.0/(float)mpiSize;
+		 for (i=0; i<ncon; i++) ubvec[i] = 1.05;
+		 options[0] = 0;
+		 options[1] = 15;
+		 ParMETIS_V3_PartGeomKway(distribution,
                                  pattern->ptr,
                                  pattern->index,
-                                 idxtype *vwgt, +
-                                 idxtype *adjwgt, +
-                                 int *wgtﬂag, +
-                                 int *numﬂag, +
-                                 dim,
+                                 NULL,
+                                 NULL,
+                                 &wgtflag,
+                                 &numflag,
+                                 &dim,
                                  xyz,
-                                 int *ncon, +
-                                 mpiSize, 
-                                 ﬂoat *tpwgts, +
-                                 ﬂoat *ubvec, +
-                                 int *options, +
-                                 int *edgecut, +
-                                 partition,
-                                 in->MPIInfo->comm);
-*/
-               for (i=0;i<myNumVertices;++i) partition[i]=myRank; /* remove */
+                                 &ncon,
+                                 &mpiSize, 
+                                 tpwgts,
+                                 ubvec,
+                                 options,
+                                 &edgecut,
+                                 partition,				/* new CPU ownership of elements */
+                                 &(in->MPIInfo->comm));
+		 printf("ParMETIS number of edges cut by partitioning: %d\n", edgecut);
+                 TMPMEMFREE(ubvec);
+                 TMPMEMFREE(tpwgts);
+	      } else {
+                 for (i=0;i<myNumVertices;++i) partition[i]=0;		/* CPU 0 owns it */
+	      }
+#else
+              for (i=0;i<myNumVertices;++i) partition[i]=myRank;	/* CPU 0 owns it */
+#endif
+
            }
 
            Paso_Pattern_free(pattern);
@@ -156,20 +181,26 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                THREAD_MEMFREE(loc_partition_count);
            }
            #ifdef PASO_MPI
-              MPI_Allreduce( new_distribution, partition_count, mpiSize, MPI_INT, MPI_SUM, in->MPIInfo->comm );
+	      /* recvbuf will be the concatenation of each CPU's contribution to new_distribution */
+	      MPI_Allgather(new_distribution, mpiSize, MPI_INT, recvbuf, mpiSize, MPI_INT, in->MPIInfo->comm);
            #else
-               for (i=0;i<mpiSize;++i) partition_count[i]=new_distribution[i];
+               for (i=0;i<mpiSize;++i) recvbuf[i]=new_distribution[i];
            #endif
            new_distribution[0]=0;
-           for (i=0;i<mpiSize;++i) {
-               new_distribution[i+1]=new_distribution[i]+partition_count[i];
-               partition_count[i]=0;
+	   for (rank=0; rank<mpiSize;rank++) {
+	      c=0;
+              for (i=0;i<myRank;++i) c+=recvbuf[rank+mpiSize*i];
+              for (i=0;i<myNumVertices;++i) {
+                 if (rank==partition[i]) {
+                    newGlobalDOFID[i]=new_distribution[rank]+c;
+                    c++;
+	         }
+              }
+              for (i=myRank+1;i<mpiSize;++i) c+=recvbuf[rank+mpiSize*i];
+              new_distribution[rank+1]=new_distribution[rank]+c;
            }
-           for (i=0;i<myNumVertices;++i) {
-              rank=partition[i];
-              newGlobalDOFID[i]=new_distribution[rank]+partition_count[rank];
-              partition_count[rank]++;
-           }
+           TMPMEMFREE(recvbuf);
+
            /* now the overlap needs to be created by sending the partition around*/
 
            dest=Paso_MPIInfo_mod(mpiSize, myRank + 1);

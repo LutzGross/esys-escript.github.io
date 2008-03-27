@@ -238,6 +238,10 @@ opts.AddOptions(
   PathOption('amd_path', 'Path to AMD includes', amd_path_default),
   PathOption('amd_lib_path', 'Path to AMD libs', amd_lib_path_default),
   ('amd_libs', 'AMD libraries to link with', amd_libs_default),
+# ParMETIS
+  ('parmetis_path', 'Path to ParMETIS includes', ''),
+  ('parmetis_lib_path', 'Path to ParMETIS library', ''),
+  ('parmetis_lib', 'ParMETIS library to link with', []),
 # TRILINOS
   PathOption('trilinos_path', 'Path to TRILINOS includes', None),
   PathOption('trilinos_lib_path', 'Path to TRILINOS libs', None),
@@ -717,6 +721,22 @@ try:
    epydoc_path = env['epydoc_path']
 except KeyError:
    epydoc_path = None
+# =============== ParMETIS =======================================
+try:
+   parmetis_path = env['parmetis_path']
+   parmetis_lib_path = env['parmetis_lib_path']
+   parmetis_lib = env['parmetis_lib']
+except KeyError:
+   parmetis_path = ''
+   parmetis_lib_path = ''
+   parmetis_lib = ''
+
+if useMPI and os.path.isdir(parmetis_lib_path):
+   env.Append(CPPDEFINES = [ 'PARMETIS' ])
+   env.Append(CXXDEFINES = [ 'PARMETIS' ])
+   env.Append(CPPPATH = [parmetis_path])
+   env.Append(LIBPATH = [parmetis_lib_path])
+   env.Append(LIBS = parmetis_lib)
 # =============== PAPI =======================================
 try:
    includes = env['papi_path']
