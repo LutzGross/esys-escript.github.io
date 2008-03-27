@@ -23,6 +23,10 @@ scsl_lib_path = '/usr/lib'
 scsl_libs = ['scs_mp']
 scsl_libs_MPI = [ 'scs', 'mpi' ]
 
+# Location of ParMETIS library
+parmetis_path = '/data/raid2/toolspp4/parmetis/include'
+parmetis_lib_path = '/data/raid2/toolspp4/parmetis/lib'
+parmetis_lib = ['parmetis', 'metis']
 
 # locations of include files for python
 python_path = '/data/raid2/toolspp4/python/2.4.3/gcc-3.3.6/include/python2.4'

@@ -32,6 +32,10 @@ mpi_run = 'mpirun -np 1'
 # scsl_libs = ['scs_mp']
 # scsl_libs_MPI = [ 'scs', 'mpi' ]
 
+# Location of ParMETIS library
+parmetis_path = '/home/Work/Downloads/ParMetis-3.1'
+parmetis_lib_path = '/home/Work/Downloads/ParMetis-3.1'
+parmetis_lib = ['parmetis', 'metis']
 
 # locations of include files for python
 # python_path = '/data/raid2/toolspp4/python/2.4.1/gcc-3.3.6/include/python2.4'
