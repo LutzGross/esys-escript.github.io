@@ -69,7 +69,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~SystemMatrixException() THROW() {}
+    virtual ~SystemMatrixException() THROW_ANY {}
     /**
     \brief
     Returns the name of the exception.

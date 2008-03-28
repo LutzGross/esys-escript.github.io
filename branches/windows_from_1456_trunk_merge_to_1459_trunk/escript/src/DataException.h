@@ -69,7 +69,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~DataException() THROW() {}
+    virtual ~DataException() THROW_ANY {}
 
     /**
     \brief

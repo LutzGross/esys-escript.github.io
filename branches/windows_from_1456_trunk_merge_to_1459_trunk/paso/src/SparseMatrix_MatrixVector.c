@@ -33,7 +33,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
                                                  double* out) {
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
-  register double reg,reg1,reg2,reg3;
   #pragma omp barrier
 
   if (ABS(beta)>0.) {
@@ -110,7 +109,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
                                                  double* out) {
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
-  register double reg,reg1,reg2,reg3;
   #pragma omp barrier
 
   if (ABS(beta)>0.) {

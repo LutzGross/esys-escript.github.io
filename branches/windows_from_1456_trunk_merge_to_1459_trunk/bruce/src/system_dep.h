@@ -44,10 +44,8 @@
 #     endif
 #  endif
 
-#define THROW(ARG)
 #else
 # define BRUCE_DLL_API
-# define THROW(ARG) throw(ARG)
 #endif
 
 #endif

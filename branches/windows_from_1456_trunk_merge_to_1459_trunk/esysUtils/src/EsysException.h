@@ -82,7 +82,7 @@ namespace esysUtils
     EsysException(const EsysException &other);
 
     /// Destructor
-    virtual ~EsysException() THROW();
+    virtual ~EsysException() THROW_ANY;
 
     /**
     \brief
@@ -125,7 +125,7 @@ namespace esysUtils
 
     @return a description of the exception.
     */
-     virtual const char* what() const THROW();
+     virtual const char* what() const THROW_ANY;
 
 
     /**
@@ -186,7 +186,7 @@ namespace esysUtils
   }
 
   inline
-  const char*  EsysException::what() const THROW()
+  const char*  EsysException::what() const THROW_ANY
   {
     return m_exceptionMessage.c_str();
   }

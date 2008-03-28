@@ -107,7 +107,7 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
   }
 }
 void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution) {
-  dim_t local_num_elements,e,out,num_elements=0, size;
+  dim_t local_num_elements,e,num_elements=0, size;
   Paso_MPI_rank myRank;
   if (in == NULL) {
       distribution[0]=num_elements;
@@ -152,7 +152,7 @@ dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in) {
   }
 }
 dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in) {
-  dim_t size, *distribution=NULL, out, p;
+  dim_t size, *distribution=NULL, out;
   if (in == NULL) {
       return 0;
   } else {

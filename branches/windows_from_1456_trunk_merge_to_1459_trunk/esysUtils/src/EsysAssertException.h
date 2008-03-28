@@ -64,7 +64,7 @@ namespace esysUtils {
 
 
     /// Destructor
-    virtual ~EsysAssertException() THROW() {}
+    virtual ~EsysAssertException() THROW_ANY {}
 
     /**
     \brief

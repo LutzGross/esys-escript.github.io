@@ -94,7 +94,7 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
 
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
 
-   index_t i, j;
+   index_t i;
    int n_substeps,n, m;
    double dt_max, omega, dt2,t;
    double local_norm[2],norm[2],local_norm_u,local_norm_du,norm_u,norm_du, tolerance;
