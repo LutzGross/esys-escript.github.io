@@ -2,20 +2,21 @@ from esys.escript import *
 from esys.escript.models import TemperatureCartesian, StokesProblemCartesian
 from esys.finley import Rectangle, Brick
 from math import pi, ceil
-NE=20
-DIM=2
+NE=40
+DIM=3
 H=1.
-L=4.
+L=4*H
 THETA=0.5
 TOL=1.e-3
 PERTURBATION=0.1
-T_END=0.2
-DT_OUT=T_END/500*1e99
+T_END=0.3
+DT_OUT=T_END/500
 VERBOSE=False
-RA=1.e6 # Rayleigh number
-A=25.  # Arenious number 
+RA=1.e5 # Rayleigh number
+A=22.  # Arenious number 
 DI = 0.  # dissipation number
-SUPG=True
+SUPG=False
+print "total number of elements = ",NE**DIM*int(L/H)**(DIM-1)
 #
 #   set up domain:
 #
@@ -38,7 +39,7 @@ for d in range(DIM):
     if d == DIM-1: 
        T*=sin(x[d]/H*pi)
     else:
-       T*=cos(x[d]/L*pi)
+       T*=cos(x[d]/H*pi)
 T=1.-x[DIM-1]+PERTURBATION*T
 heat.setInitialTemperature(T)
 print "initial Temperature range ",inf(T),sup(T)
@@ -72,14 +73,11 @@ dt=None
 dt_new=1.
 a=0
 if dom.getMPIRank() ==0: 
-     if SUPG:
-        nusselt_file=open("nusselt_supg.csv","w")
-     else:
-        nusselt_file=open("nusselt.csv","w")
+     nusselt_file=open("nusselt.csv","w")
 while t<T_END:
     v_last=v*1.
     print "============== solve for v ========================"
-    viscosity=exp(A*(1./(1+T.interpolate(Function(dom)))-(2./3.)))
+    viscosity=exp(A*(1./(1+T.interpolate(Function(dom)))-0.5))
     print "viscosity range :", inf(viscosity), sup(viscosity)
     sp.initialize(f=T*(RA*unitVector(DIM-1,DIM)),eta=viscosity,fixed_u_mask=fixed_v_mask)
     v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500)
