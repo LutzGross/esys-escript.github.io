@@ -48,6 +48,11 @@ import numarray
 import util
 import math
 
+##### Added by Artak
+from Numeric import zeros,Int,Float32,Float64
+###################################
+
+
 class TimeIntegrationManager:
   """
   a simple mechanism to manage time dependend values. 
@@ -539,6 +544,126 @@ type like argument C{x}.
 
    return x,r
 
+
+############################
+# Added by Artak
+#################################3
+
+#Apply a sequence of k Givens rotations, used within gmres codes
+# vrot=givapp(c, s, vin, k)
+def givapp(c,s,vin,k):
+    vrot=vin
+    for i in range(k+1):
+        w1=c[i]*vrot[i]-s[i]*vrot[i+1]
+	w2=s[i]*vrot[i]+c[i]*vrot[i+1]
+        vrot[i:i+2]=w1,w2
+    return vrot
+
+def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
+
+   from numarray import dot
+   
+   v0=b 
+   iter=0
+   if x==None:
+      x=0*b
+   else:
+      b += (-1.)*Aprod(x) 
+   r=b
+
+   rhat=Msolve(r)
+   
+   rhat_dot_r = bilinearform(rhat, rhat)
+   norm_r=math.sqrt(rhat_dot_r)
+
+   if rhat_dot_r<0: raise NegativeNorm,"negative norm."
+   
+   h=zeros((iter_max,iter_max),Float32)
+   c=zeros(iter_max,Float32)
+   s=zeros(iter_max,Float32)
+   g=zeros(iter_max,Float32)
+   v=[]
+
+   v.append(rhat/norm_r)
+   rho=norm_r
+   g[0]=rho
+
+   while not stoppingcriterium(rho,rho,norm_r):
+
+	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+
+	
+	vhat=Aprod(v[iter])
+	p=Msolve(vhat)	
+
+	v.append(p)
+
+	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+
+# Modified Gram-Schmidt	
+	for j in range(iter+1):
+	  h[j][iter]=bilinearform(v[j],v[iter+1])   
+	  v[iter+1]+=(-1.)*h[j][iter]*v[j]
+       
+	h[iter+1][iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
+	v_norm2=h[iter+1][iter]
+
+
+# Reorthogonalize if needed
+	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
+   	 for j in range(iter+1):
+	    hr=bilinearform(v[j],v[iter+1])
+      	    h[j][iter]=h[j][iter]+hr #vhat
+      	    v[iter+1] +=(-1.)*hr*v[j]
+
+   	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+	 h[iter+1][iter]=v_norm2
+
+#   watch out for happy breakdown 
+        if v_norm2 != 0:
+         v[iter+1]=v[iter+1]/h[iter+1][iter]
+
+#   Form and store the information for the new Givens rotation
+	if iter > 0 :
+		hhat=[]
+		for i in range(iter+1) : hhat.append(h[i][iter])
+		hhat=givapp(c[0:iter],s[0:iter],hhat,iter-1);
+	        for i in range(iter+1) : h[i][iter]=hhat[i]
+
+	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
+	if mu!=0 :
+		c[iter]=h[iter][iter]/mu
+		s[iter]=-h[iter+1][iter]/mu
+		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
+		h[iter+1][iter]=0.0
+		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2],0)
+
+# Update the residual norm
+        rho=abs(g[iter+1])
+	iter+=1
+
+# At this point either iter > iter_max or rho < tol.
+# It's time to compute x and leave.        
+
+   if iter > 0 : 
+     y=zeros(iter,Float32)	
+     y[iter-1] = g[iter-1] / h[iter-1][iter-1]
+     if iter > 1 :	
+        i=iter-2   
+        while i>=0 :
+          y[i] = ( g[i] - dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
+          i=i-1
+     xhat=v[iter-1]*y[iter-1]
+     for i in range(iter-1):
+	xhat += v[i]*y[i]
+   else : xhat=v[0] 
+    
+   x += xhat
+
+   return x
+    
+#############################################
+
 class ArithmeticTuple(object):
    """
    tuple supporting inplace update x+=y and scaling x=a*y where x,y is an ArithmeticTuple and a is a float.
@@ -607,6 +732,39 @@ class ArithmeticTuple(object):
        for i in range(len(self)):
            out.append(other*self[i])
        return ArithmeticTuple(*tuple(out))
+
+#########################
+# Added by Artak
+#########################
+   def __div__(self,other):
+       """
+       dividing from the right 
+
+       @param other: scaling factor
+       @type other: C{float}
+       @return: itemwise self/other
+       @rtype: L{ArithmeticTuple}
+       """
+       out=[]
+       for i in range(len(self)):
+           out.append(self[i]/other)
+       return ArithmeticTuple(*tuple(out))
+
+   def __rdiv__(self,other):
+       """
+       dividing from the left
+
+       @param other: scaling factor
+       @type other: C{float}
+       @return: itemwise other/self
+       @rtype: L{ArithmeticTuple}
+       """
+       out=[]
+       for i in range(len(self)):
+           out.append(other/self[i])
+       return ArithmeticTuple(*tuple(out))
+  
+##########################################33
 
    def __iadd__(self,other):
        """
@@ -690,8 +848,14 @@ class HomogeneousSaddlePointProblem(object):
       def __inner(self,p,r):
          return self.inner(p,r[1])
 
+      def __inner_p(self,p1,p2):
+         return self.inner(p1,p2)
+
       def __stoppingcriterium(self,norm_r,r,p):
           return self.stoppingcriterium(r[1],r[0],p)
+
+      def __stoppingcriterium_GMRES(self,norm_r,rho,r):
+          return self.stoppingcriterium_GMRES(rho,r)
 
       def setTolerance(self,tolerance=1.e-8):
               self.__tol=tolerance
@@ -702,7 +866,7 @@ class HomogeneousSaddlePointProblem(object):
       def getSubProblemTolerance(self):
               return self.__reduction*self.getTolerance()
 
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False):
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='GMRES'):
               """
               solves the saddle point problem using initial guesses v and p.
 
@@ -713,7 +877,9 @@ class HomogeneousSaddlePointProblem(object):
 
 	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
 
+	       
 	      self.__z=v+self.solve_A(v,p*0)
+
               Bz=self.B(self.__z)
               #
 	      #   solve BA^-1B^*p = Bz 
@@ -724,12 +890,25 @@ class HomogeneousSaddlePointProblem(object):
               #                           A(v-z)=Az-B^*p-Az = f -Az - B^*p (v-z=0 on fixed_u_mask)
               #
               self.iter=0
-              if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
-              p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
-	      return r[0],p
+	      if solver=='GMRES':   	
+                if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
+                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1)
+		u=v+self.solve_A(v,p)
+	
+              else: 
+                if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
+                p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p*1)
+	        u=r[0]  
+                u=v+self.solve_A(v,p)     # Lutz to check !!!!!
+
+ 	      return u,p
 
       def __Msolve(self,r):
           return self.solve_prec(r[1])
+
+      def __Msolve_GMRES(self,r):
+          return self.solve_prec(r)
+
 
       def __Aprod(self,p):
           # return BA^-1B*p 
@@ -737,6 +916,11 @@ class HomogeneousSaddlePointProblem(object):
           v=self.solve_A(self.__z,p)
           return ArithmeticTuple(v, self.B(v))
 
+      def __Aprod_GMRES(self,p):
+          # return BA^-1B*p 
+          #solve Av =-B^*p as Av =f-Az-B^*p
+	  v=self.solve_A(self.__z,p)
+          return self.B(v)
 
 class SaddlePointProblem(object):
    """
@@ -991,5 +1175,6 @@ def MaskFromBoundaryTag(function_space,*tags):
       return out
    else:
       return util.whereNonZero(util.interpolate(out,function_space))
+
 
 
