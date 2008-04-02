@@ -49,7 +49,7 @@ import util
 import math
 
 ##### Added by Artak
-from Numeric import zeros,Int,Float32,Float64
+# from Numeric import zeros,Int,Float64
 ###################################
 
 
@@ -551,50 +551,47 @@ type like argument C{x}.
 
 #Apply a sequence of k Givens rotations, used within gmres codes
 # vrot=givapp(c, s, vin, k)
-def givapp(c,s,vin,k):
-    vrot=vin
-    for i in range(k+1):
-        w1=c[i]*vrot[i]-s[i]*vrot[i+1]
-	w2=s[i]*vrot[i]+c[i]*vrot[i+1]
-        vrot[i:i+2]=w1,w2
+def givapp(c,s,vin):
+    vrot=vin # warning: vin is altered!!!!
+    if isinstance(c,float):
+        vrot=[c*vrot[0]-s*vrot[1],s*vrot[0]+c*vrot[1]]
+    else:
+        for i in range(len(c)):
+            w1=c[i]*vrot[i]-s[i]*vrot[i+1]
+	    w2=s[i]*vrot[i]+c[i]*vrot[i+1]
+            vrot[i:i+2]=w1,w2
     return vrot
 
 def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
-
-   from numarray import dot
-   
-   v0=b 
    iter=0
+   r=Msolve(b)
+   r_dot_r = bilinearform(r, r)
+   if r_dot_r<0: raise NegativeNorm,"negative norm."
+   norm_b=math.sqrt(r_dot_r)
+
    if x==None:
       x=0*b
-   else:
-      b += (-1.)*Aprod(x) 
-   r=b
-
-   rhat=Msolve(r)
+   else: 
+      r=Msolve(b-Aprod(x))
+      r_dot_r = bilinearform(r, r)
+      if r_dot_r<0: raise NegativeNorm,"negative norm."
    
-   rhat_dot_r = bilinearform(rhat, rhat)
-   norm_r=math.sqrt(rhat_dot_r)
-
-   if rhat_dot_r<0: raise NegativeNorm,"negative norm."
-   
-   h=zeros((iter_max,iter_max),Float32)
-   c=zeros(iter_max,Float32)
-   s=zeros(iter_max,Float32)
-   g=zeros(iter_max,Float32)
+   h=numarray.zeros((iter_max,iter_max),numarray.Float64)
+   c=numarray.zeros(iter_max,numarray.Float64)
+   s=numarray.zeros(iter_max,numarray.Float64)
+   g=numarray.zeros(iter_max,numarray.Float64)
    v=[]
 
-   v.append(rhat/norm_r)
-   rho=norm_r
+   rho=math.sqrt(r_dot_r)
+   v.append(r/rho)
    g[0]=rho
 
-   while not stoppingcriterium(rho,rho,norm_r):
+   while not stoppingcriterium(rho,norm_b):
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
 	
-	vhat=Aprod(v[iter])
-	p=Msolve(vhat)	
+	p=Msolve(Aprod(v[iter]))
 
 	v.append(p)
 
@@ -627,7 +624,7 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
 	if iter > 0 :
 		hhat=[]
 		for i in range(iter+1) : hhat.append(h[i][iter])
-		hhat=givapp(c[0:iter],s[0:iter],hhat,iter-1);
+		hhat=givapp(c[0:iter],s[0:iter],hhat);
 	        for i in range(iter+1) : h[i][iter]=hhat[i]
 
 	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
@@ -636,7 +633,7 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
 		s[iter]=-h[iter+1][iter]/mu
 		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
 		h[iter+1][iter]=0.0
-		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2],0)
+		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2])
 
 # Update the residual norm
         rho=abs(g[iter+1])
@@ -646,12 +643,12 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
 # It's time to compute x and leave.        
 
    if iter > 0 : 
-     y=zeros(iter,Float32)	
+     y=numarray.zeros(iter,numarray.Float64)	
      y[iter-1] = g[iter-1] / h[iter-1][iter-1]
      if iter > 1 :	
         i=iter-2   
         while i>=0 :
-          y[i] = ( g[i] - dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
+          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
@@ -854,8 +851,8 @@ class HomogeneousSaddlePointProblem(object):
       def __stoppingcriterium(self,norm_r,r,p):
           return self.stoppingcriterium(r[1],r[0],p)
 
-      def __stoppingcriterium_GMRES(self,norm_r,rho,r):
-          return self.stoppingcriterium_GMRES(rho,r)
+      def __stoppingcriterium_GMRES(self,norm_r,norm_b):
+          return self.stoppingcriterium_GMRES(norm_r,norm_b)
 
       def setTolerance(self,tolerance=1.e-8):
               self.__tol=tolerance
@@ -892,14 +889,16 @@ class HomogeneousSaddlePointProblem(object):
               self.iter=0
 	      if solver=='GMRES':   	
                 if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
-                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1)
+                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
 	
               else: 
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
-                p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p*1)
+                p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
-                u=v+self.solve_A(v,p)     # Lutz to check !!!!!
 
  	      return u,p
 
@@ -914,13 +913,13 @@ class HomogeneousSaddlePointProblem(object):
           # return BA^-1B*p 
           #solve Av =-B^*p as Av =f-Az-B^*p
           v=self.solve_A(self.__z,p)
-          return ArithmeticTuple(v, self.B(v))
+          return ArithmeticTuple(v, -self.B(v))
 
       def __Aprod_GMRES(self,p):
           # return BA^-1B*p 
           #solve Av =-B^*p as Av =f-Az-B^*p
 	  v=self.solve_A(self.__z,p)
-          return self.B(v)
+          return -self.B(v)
 
 class SaddlePointProblem(object):
    """
