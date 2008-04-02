@@ -80,7 +80,7 @@ while t<T_END:
     viscosity=exp(A*(1./(1+T.interpolate(Function(dom)))-0.5))
     print "viscosity range :", inf(viscosity), sup(viscosity)
     sp.initialize(f=T*(RA*unitVector(DIM-1,DIM)),eta=viscosity,fixed_u_mask=fixed_v_mask)
-    v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500)
+    v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='GMRES')
 
     for d in range(DIM):
          print "range %d-velocity"%d,inf(v[d]),sup(v[d])
