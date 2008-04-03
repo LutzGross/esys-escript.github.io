@@ -477,6 +477,23 @@ class IterationHistory(object):
        if self.verbose: print "iter: %s:  inner(rhat,r) = %e"%(len(self.history)-1, self.history[-1])
        return self.history[-1]<=self.tolerance * self.history[0]
 
+   def stoppingcriterium2(self,norm_r,norm_b):
+       """
+       returns True if the C{norm_r} is C{tolerance}*C{norm_b} 
+
+       
+       @param norm_r: current residual norm
+       @type norm_r: non-negative C{float}
+       @param norm_b: norm of right hand side
+       @type norm_b: non-negative C{float}
+       @return: C{True} is the stopping criterium is fullfilled. Otherwise C{False} is returned.
+       @rtype: C{bool}
+
+       """
+       self.history.append(norm_r)
+       if self.verbose: print "iter: %s:  norm(r) = %e"%(len(self.history)-1, self.history[-1])
+       return self.history[-1]<=self.tolerance * norm_b
+
 def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
    """
    Solver for 
@@ -872,6 +889,9 @@ class HomogeneousSaddlePointProblem(object):
               self.verbose=verbose
               self.show_details=show_details and self.verbose
 
+              # assume p is known: then v=A^-1(f-B^*p) 
+              # which leads to BA^-1B^*p = BA^-1f  
+
 	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
 
 	       
@@ -899,6 +919,7 @@ class HomogeneousSaddlePointProblem(object):
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
+              print "div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
 
  	      return u,p
 
@@ -912,14 +933,14 @@ class HomogeneousSaddlePointProblem(object):
       def __Aprod(self,p):
           # return BA^-1B*p 
           #solve Av =-B^*p as Av =f-Az-B^*p
-          v=self.solve_A(self.__z,p)
-          return ArithmeticTuple(v, -self.B(v))
+          v=self.solve_A(self.__z,-p)
+          return ArithmeticTuple(v, self.B(v))
 
       def __Aprod_GMRES(self,p):
           # return BA^-1B*p 
           #solve Av =-B^*p as Av =f-Az-B^*p
-	  v=self.solve_A(self.__z,p)
-          return -self.B(v)
+	  v=self.solve_A(self.__z,-p)
+          return self.B(v)
 
 class SaddlePointProblem(object):
    """
