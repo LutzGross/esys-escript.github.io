@@ -105,7 +105,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          solves Av=f-Au-B^*p (v=0 on fixed_u_mask)
          """
          self.__pde_u.setTolerance(self.getSubProblemTolerance())
-         self.__pde_u.setValue(X=-self.getStress(u)+p*util.kronecker(self.domain))
+         self.__pde_u.setValue(X=-self.getStress(u)-p*util.kronecker(self.domain))
          return  self.__pde_u.getSolution(verbose=self.show_details)
 
       def solve_prec(self,p):
