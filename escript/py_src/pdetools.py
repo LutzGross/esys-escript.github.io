@@ -579,7 +579,17 @@ def givapp(c,s,vin):
             vrot[i:i+2]=w1,w2
     return vrot
 
-def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
+def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=10):
+   m=iter_restart
+   iter=0
+   while True:
+      if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+      x,stopped=GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=x, iter_max=iter_max-iter, iter_restart=m)
+      iter+=iter_restart
+      if stopped: break
+   return x
+
+def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=10):
    iter=0
    r=Msolve(b)
    r_dot_r = bilinearform(r, r)
@@ -593,17 +603,17 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
       r_dot_r = bilinearform(r, r)
       if r_dot_r<0: raise NegativeNorm,"negative norm."
    
-   h=numarray.zeros((iter_max,iter_max),numarray.Float64)
-   c=numarray.zeros(iter_max,numarray.Float64)
-   s=numarray.zeros(iter_max,numarray.Float64)
-   g=numarray.zeros(iter_max,numarray.Float64)
+   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
+   c=numarray.zeros(iter_restart,numarray.Float64)
+   s=numarray.zeros(iter_restart,numarray.Float64)
+   g=numarray.zeros(iter_restart,numarray.Float64)
    v=[]
 
    rho=math.sqrt(r_dot_r)
    v.append(r/rho)
    g[0]=rho
 
-   while not stoppingcriterium(rho,norm_b):
+   while not (stoppingcriterium(rho,norm_b) or iter==iter_restart-1):
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
@@ -673,8 +683,12 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
    else : xhat=v[0] 
     
    x += xhat
+   if iter!=iter_restart-1: 
+      stopped=True 
+   else: 
+      stopped=False
 
-   return x
+   return x,stopped
     
 #############################################
 
@@ -919,7 +933,7 @@ class HomogeneousSaddlePointProblem(object):
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
-              print "div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
+              print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
 
  	      return u,p
 
