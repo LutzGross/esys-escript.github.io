@@ -61,12 +61,16 @@ typedef struct {
     index_t package;
     bool_t symmetric;
     double tolerance;
+    double absolute_tolerance;
+    double inner_tolerance;
+    bool_t adapt_inner_tolerance;
 
     bool_t verbose;
     bool_t reordering;
     double final_residual;
     index_t preconditioner;
     dim_t iter_max;
+    dim_t inner_iter_max;
     dim_t iter;
     double drop_tolerance;
     double drop_storage;

@@ -894,7 +894,7 @@ class HomogeneousSaddlePointProblem(object):
       def getSubProblemTolerance(self):
               return self.__reduction*self.getTolerance()
 
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='GMRES'):
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='PCG'):
               """
               solves the saddle point problem using initial guesses v and p.
 

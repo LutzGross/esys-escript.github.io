@@ -39,9 +39,13 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->verbose=FALSE;
   options->reordering=PASO_NO_REORDERING;
   options->tolerance=1.E-8;
+  options->absolute_tolerance=0.;
+  options->inner_tolerance=0.9;
+  options->adapt_inner_tolerance=TRUE;
   options->final_residual=0;
   options->preconditioner=PASO_JACOBI;
   options->iter_max=10000;
+  options->inner_iter_max=10;
   options->iter=0;
   options->drop_tolerance=0.01;
   options->drop_storage=2.;
