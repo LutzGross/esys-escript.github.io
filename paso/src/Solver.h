@@ -18,6 +18,7 @@
 
 #include "SystemMatrix.h"
 #include "performance.h"
+#include "Functions.h"
 
 #define PASO_TRACE
 /* error codes used in the solver */
@@ -109,5 +110,10 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC, Paso_S
 Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SparseMatrix * A_p);
 void Paso_Solver_solveJacobi(Paso_Solver_Jacobi * prec, double * x, double * b);
 void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in);
+
+err_t Paso_Solver_NLGMRES(Paso_Function * F, const double* f0, const double* x0, double * x, dim_t *iter, double* tolerance, Paso_Performance* pp);
+err_t Paso_Solver_NewtonGMRES(Paso_Function *F, double *x, Paso_Options* options, Paso_Performance* pp);
+
+
 
 #endif /* #ifndef INC_SOLVER */
