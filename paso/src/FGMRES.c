@@ -49,6 +49,7 @@
 
 #include "Common.h"
 #include "Solver.h"
+#include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -146,7 +147,7 @@ err_t Paso_Solver_NLGMRES(
                 /*
                  *   Form and store the information for the new Givens rotation
                  */
-                ApplyGivensRotations(iter,&h[INDEX2(0,k-1,l)],c,s);
+                ApplyGivensRotations(k,&h[INDEX2(0,k-1,l)],c,s);
                 /*
                  *  Don't divide by zero if solution has  been found
                  */
@@ -174,7 +175,7 @@ printf("FGMRES step %d: error %e (tol=%d)\n",k,abs(g[k]),abs_tol);
               g[i]-=h[INDEX2(j,i,l)]*g[j];
            }
            g[i]/=h[INDEX2(i,i,l)];
-           Paso_Update(n,x[k],g[i],v[i]);
+           Paso_Update(n,1.,x,g[i],v[i]);
       }
  }
  /*     
