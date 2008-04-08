@@ -13,7 +13,7 @@
 
 #include "Common.h"
 #include "Functions.h"
-
+#include "Util.h"
 /*
  * numerical calculation of the directional derivative J0w if F at x0 in the direction w. f0 is the value of F at x0.
  * setoff is workspace
