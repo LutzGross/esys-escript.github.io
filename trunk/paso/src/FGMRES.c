@@ -142,7 +142,7 @@ err_t Paso_Solver_NLGMRES(
                  *   watch out for happy breakdown
                  */
                 if(normv2 > 0.) {
-                   Paso_update(n,1./normv2,v[k],0.,v[k]);
+                   Paso_Update(n,1./normv2,v[k],0.,v[k]);
                 } 
                 /*
                  *   Form and store the information for the new Givens rotation
