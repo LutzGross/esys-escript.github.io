@@ -29,6 +29,7 @@
 
 #include "Common.h"
 #include "Solver.h"
+#include "Util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
