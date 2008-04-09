@@ -11,7 +11,26 @@ def removeRestartDirectory(dir_name):
        os.rmdir(dir_name)
        print "Restart files %s have been removed."%dir_name
 
-NE=20
+
+import sys
+import time
+t1 = time.time()
+
+if (len(sys.argv)>=3):
+ NE=int(sys.argv[2])
+else:
+ NE=20
+
+if (len(sys.argv)>=2):
+ solver=sys.argv[1]
+else:
+ solver='PCG'
+
+if solver!='PCG':
+ extratol=0.001
+else:
+ extratol=1
+
 DIM=2
 H=1.
 L=4*H
@@ -50,7 +69,10 @@ if restart:
    else:
        f=options.restart_dir
    print "restart from directory ",f
-   dom=LoadMesh("mesh.nc")
+   try:
+      dom=LoadMesh("mesh.nc")
+   except:
+      pass
    ff=open(os.path.join(f,"stamp.%d"%dom.getMPIRank()),"r").read().split(";")
    t=float(ff[0])
    t_out=float(ff[1])
@@ -72,7 +94,10 @@ else:
     dom=Rectangle(int(ceil(L*NE/H)),NE,l0=L,l1=H,order=2, useFullElementOrder=True,optimize=True)
   else:
     dom=Brick(int(ceil(L*NE/H)),int(ceil(L*NE/H)),NE,l0=L,l1=L,l2=H,order=2, useFullElementOrder=True,optimize=True)
-  dom.dump("mesh.nc")
+  try:
+     dom.dump("mesh.nc")
+  except:
+     pass
   x=dom.getX()
   T=Scalar(1,ReducedSolution(dom))
   for d in range(DIM):
@@ -108,7 +133,7 @@ heat.setValue(rhocp=Scalar(1.,Function(dom)),k=Scalar(1.,Function(dom)),given_T_
 #   set up velovity problem
 #
 sp=StokesProblemCartesian(dom)
-sp.setTolerance(TOL)
+sp.setTolerance(TOL*extratol)
 sp.setToleranceReductionFactor(TOL)
 x2=ReducedSolution(dom).getX()
 p=-RA*(x2[DIM-1]-0.5*x2[DIM-1]**2)
@@ -130,8 +155,10 @@ while t<T_END:
     viscosity=exp(A*(1./(1+T.interpolate(Function(dom)))-2./3.))
     print "viscosity range :", inf(viscosity), sup(viscosity)
     sp.initialize(f=T*(RA*unitVector(DIM-1,DIM)),eta=viscosity,fixed_u_mask=fixed_v_mask)
-    v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='PCG')
-    # v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='GMRES')
+    #v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='PCG')
+    #v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='GMRES')
+    #v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='MINRES')
+    v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver=solver)
 
     for d in range(DIM):
          print "range %d-velocity"%d,inf(v[d]),sup(v[d])
@@ -183,4 +210,6 @@ while t<T_END:
          else:
              file(os.path.join(new_restart_dir,"stamp.%d"%dom.getMPIRank()),"w").write("%e; %e; %s; %s; %e;\n"%(t, t_out, n, n_out, dt))
          removeRestartDirectory(old_restart_dir)
+elapsed = time.time() - t1
+print "plot","\t",NE,"\t",elapsed
 
