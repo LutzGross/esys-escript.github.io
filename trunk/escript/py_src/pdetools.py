@@ -689,6 +689,158 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
       stopped=False
 
    return x,stopped
+
+def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
+
+    #
+    #  minres solves the system of linear equations Ax = b
+    #  where A is a symmetric matrix (possibly indefinite or singular)
+    #  and b is a given vector.
+    #  
+    #  "A" may be a dense or sparse matrix (preferably sparse!)
+    #  or the name of a function such that
+    #               y = A(x)
+    #  returns the product y = Ax for any given vector x.
+    #
+    #  "M" defines a positive-definite preconditioner M = C C'.
+    #  "M" may be a dense or sparse matrix (preferably sparse!)
+    #  or the name of a function such that
+    #  solves the system My = x for any given vector x.
+    #
+    #
+
+    #  Initialize                               
+
+    iter   = 0
+    Anorm = 0
+    ynorm = 0
+    x=x*0
+    #------------------------------------------------------------------
+    # Set up y and v for the first Lanczos vector v1.
+    # y  =  beta1 P' v1,  where  P = C**(-1).
+    # v is really P' v1.
+    #------------------------------------------------------------------
+    r1    = b
+    y = Msolve(b)
+    beta1 = bilinearform(b,y)
+ 
+    if beta1< 0: raise NegativeNorm,"negative norm."
+
+    #  If b = 0 exactly, stop with x = 0.
+    if beta1==0: return x*0.
+
+    if beta1> 0:
+      beta1  = math.sqrt(beta1)       # Normalize y to get v1 later.
+
+    #------------------------------------------------------------------
+    # Initialize other quantities.
+    # ------------------------------------------------------------------
+    oldb   = 0
+    beta   = beta1
+    dbar   = 0
+    epsln  = 0
+    phibar = beta1
+    rhs1   = beta1
+    rhs2   = 0
+    rnorm  = phibar
+    tnorm2 = 0
+    ynorm2 = 0
+    cs     = -1
+    sn     = 0
+    w      = b*0.
+    w2     = b*0.
+    r2     = r1
+    eps    = 0.0001
+
+    #---------------------------------------------------------------------
+    # Main iteration loop.
+    # --------------------------------------------------------------------
+    while not stoppingcriterium(rnorm,Anorm*ynorm):    #  ||r|| / (||A|| ||x||)
+
+	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+        iter    = iter  +  1
+
+        #-----------------------------------------------------------------
+        # Obtain quantities for the next Lanczos vector vk+1, k = 1, 2,...
+        # The general iteration is similar to the case k = 1 with v0 = 0:
+        #
+        #   p1      = Operator * v1  -  beta1 * v0,
+        #   alpha1  = v1'p1,
+        #   q2      = p2  -  alpha1 * v1,
+        #   beta2^2 = q2'q2,
+        #   v2      = (1/beta2) q2.
+        #
+        # Again, y = betak P vk,  where  P = C**(-1).
+        #-----------------------------------------------------------------
+        s = 1/beta                 # Normalize previous vector (in y).
+        v = s*y                    # v = vk if P = I
+     
+        y      = Aprod(v)
+    
+        if iter >= 2:
+          y = y - (beta/oldb)*r1
+
+        alfa   = bilinearform(v,y)              # alphak
+        y      = (- alfa/beta)*r2 + y
+        r1     = r2
+        r2     = y
+        y = Msolve(r2)
+        oldb   = beta                           # oldb = betak
+        beta   = bilinearform(r2,y)             # beta = betak+1^2
+        if beta < 0: raise NegativeNorm,"negative norm."
+
+        beta   = math.sqrt( beta )
+        tnorm2 = tnorm2 + alfa*alfa + oldb*oldb + beta*beta
+        
+        if iter==1:                 # Initialize a few things.
+          gmax   = abs( alfa )      # alpha1
+          gmin   = gmax             # alpha1
+
+        # Apply previous rotation Qk-1 to get
+        #   [deltak epslnk+1] = [cs  sn][dbark    0   ]
+        #   [gbar k dbar k+1]   [sn -cs][alfak betak+1].
+    
+        oldeps = epsln
+        delta  = cs * dbar  +  sn * alfa  # delta1 = 0         deltak
+        gbar   = sn * dbar  -  cs * alfa  # gbar 1 = alfa1     gbar k
+        epsln  =               sn * beta  # epsln2 = 0         epslnk+1
+        dbar   =            -  cs * beta  # dbar 2 = beta2     dbar k+1
+
+        # Compute the next plane rotation Qk
+
+        gamma  = math.sqrt(gbar*gbar+beta*beta)  # gammak
+        gamma  = max(gamma,eps) 
+        cs     = gbar / gamma             # ck
+        sn     = beta / gamma             # sk
+        phi    = cs * phibar              # phik
+        phibar = sn * phibar              # phibark+1
+
+        # Update  x.
+
+        denom = 1/gamma 
+        w1    = w2 
+        w2    = w 
+        w     = (v - oldeps*w1 - delta*w2) * denom
+        x     = x  +  phi*w
+
+        # Go round again.
+
+        gmax   = max(gmax,gamma)
+        gmin   = min(gmin,gamma)
+        z      = rhs1 / gamma
+        ynorm2 = z*z  +  ynorm2
+        rhs1   = rhs2 -  delta*z
+        rhs2   =      -  epsln*z
+
+        # Estimate various norms and test for convergence.
+
+        Anorm  = math.sqrt( tnorm2 ) 
+        ynorm  = math.sqrt( ynorm2 ) 
+
+        rnorm  = phibar
+
+	# Return final answer.
+    return x
     
 #############################################
 
@@ -885,6 +1037,10 @@ class HomogeneousSaddlePointProblem(object):
       def __stoppingcriterium_GMRES(self,norm_r,norm_b):
           return self.stoppingcriterium_GMRES(norm_r,norm_b)
 
+      def __stoppingcriterium_MINRES(self,norm_r,norm_Ax):
+          return self.stoppingcriterium_MINRES(norm_r,norm_Ax)
+
+
       def setTolerance(self,tolerance=1.e-8):
               self.__tol=tolerance
       def getTolerance(self):
@@ -928,11 +1084,20 @@ class HomogeneousSaddlePointProblem(object):
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
+
+	      if solver=='MINRES':   	
+                if self.verbose: print "enter MINRES method (iter_max=%s)"%max_iter
+                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_MINRES,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
 	
-              else: 
+              if solver=='PCG': 
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
+
               print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
 
  	      return u,p
