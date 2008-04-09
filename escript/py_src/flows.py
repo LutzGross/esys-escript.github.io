@@ -131,3 +131,12 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
               return True
           else:
               return False
+
+      def stoppingcriterium_MINRES(self,norm_r,norm_Ax):
+          if self.verbose: print "MINRES step %s: L2(r) = %s, L2(b)*TOL=%s"%(self.iter,norm_r,norm_Ax*self.getTolerance())
+          self.iter+=1
+          if norm_r <= norm_Ax*self.getTolerance():
+              if self.verbose: print "MINRES terminated after %s steps."%self.iter
+              return True
+          else:
+              return False
