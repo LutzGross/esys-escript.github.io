@@ -144,7 +144,7 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MP
    #else
        const int num_threads=1;
    #endif
-   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q) reduction(+:my_out);
+   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q) reduction(+:my_out)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
@@ -174,7 +174,7 @@ double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo)
    #else
        const int num_threads=1;
    #endif
-   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q) reduction(+:my_out);
+   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q) reduction(+:my_out)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
