@@ -732,15 +732,11 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
       beta1  = math.sqrt(beta1)       # Normalize y to get v1 later.
 
     #------------------------------------------------------------------
-    # Initialize other quantities.
+    # Initialize quantities.
     # ------------------------------------------------------------------
-#  Initialize                               
-
     iter   = 0
     Anorm = 0
     ynorm = 0
-#    x=x*0
-
     oldb   = 0
     beta   = beta1
     dbar   = 0
@@ -845,8 +841,6 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 
         rnorm  = phibar
 
-	# Return final answer.
-    print iter
     return x
     
 #############################################
@@ -1099,8 +1093,7 @@ class HomogeneousSaddlePointProblem(object):
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
-	
-              if solver=='PCG': 
+              else: 
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
