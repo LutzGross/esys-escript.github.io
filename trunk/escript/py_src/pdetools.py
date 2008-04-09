@@ -708,18 +708,17 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
     #  solves the system My = x for any given vector x.
     #
     #
-
-    #  Initialize                               
-
-    iter   = 0
-    Anorm = 0
-    ynorm = 0
-    x=x*0
+    
     #------------------------------------------------------------------
     # Set up y and v for the first Lanczos vector v1.
     # y  =  beta1 P' v1,  where  P = C**(-1).
     # v is really P' v1.
     #------------------------------------------------------------------
+    if x==None:
+      x=0*b
+    else:
+      b += (-1)*Aprod(x) 
+
     r1    = b
     y = Msolve(b)
     beta1 = bilinearform(b,y)
@@ -735,6 +734,13 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
     #------------------------------------------------------------------
     # Initialize other quantities.
     # ------------------------------------------------------------------
+#  Initialize                               
+
+    iter   = 0
+    Anorm = 0
+    ynorm = 0
+#    x=x*0
+
     oldb   = 0
     beta   = beta1
     dbar   = 0
@@ -840,6 +846,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
         rnorm  = phibar
 
 	# Return final answer.
+    print iter
     return x
     
 #############################################
