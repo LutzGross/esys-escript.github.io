@@ -729,7 +729,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
     if beta1==0: return x*0.
 
     if beta1> 0:
-      beta1  = math.sqrt(beta1)       # Normalize y to get v1 later.
+      beta1  = math.sqrt(beta1)       
 
     #------------------------------------------------------------------
     # Initialize quantities.
@@ -757,7 +757,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
     #---------------------------------------------------------------------
     # Main iteration loop.
     # --------------------------------------------------------------------
-    while not stoppingcriterium(rnorm,Anorm*ynorm):    #  ||r|| / (||A|| ||x||)
+    while not stoppingcriterium(rnorm,Anorm*ynorm):    #  checks ||r|| < (||A|| ||x||) * TOL
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
         iter    = iter  +  1
@@ -1088,7 +1088,7 @@ class HomogeneousSaddlePointProblem(object):
 
 	      if solver=='MINRES':   	
                 if self.verbose: print "enter MINRES method (iter_max=%s)"%max_iter
-                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_MINRES,iter_max=max_iter, x=p*1.)
+                p=MINRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_MINRES,iter_max=max_iter, x=p*1.)
                 # solve Au=f-B^*p 
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
