@@ -746,5 +746,45 @@ DataExpanded::setTaggedValue(int tagKey,
   }
 }
 
+void
+DataExpanded::reorderByReferenceIDs(int *reference_ids)
+{
+  int numSamples = getNumSamples();
+  DataArrayView& thisView=getPointDataView();
+  DataArrayView::ValueType::size_type n = thisView.noValues() * getNumDPPSample();
+  int sampleNo, sampleNo2,i;
+  double* p,*p2;
+  register double rtmp;
+  FunctionSpace fs=getFunctionSpace();
+
+  for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+     const int id_in=reference_ids[sampleNo];
+     const int id=fs.getReferenceIDOfSample(sampleNo);
+     if (id!=id_in) {
+         bool matched=false;
+         for (sampleNo2 = sampleNo+1; sampleNo2 < numSamples; sampleNo2++) {
+              if (id == reference_ids[sampleNo2]) {
+                 p=&(m_data[getPointOffset(sampleNo,0)]);
+                 p2=&(m_data[getPointOffset(sampleNo2,0)]);
+                 #pragma ivdep
+                 for (i=0; i<n ;++i) {
+                         rtmp=p[i];
+                         p[i]=p2[i];
+                         p2[i]=rtmp;
+                 }
+                 reference_ids[sampleNo]=id;
+                 reference_ids[sampleNo2]=id_in;
+                 matched=true;
+                 break;
+              }
+         }
+         if (not matched) {
+            throw DataException("Error - DataExpanded::reorderByReferenceIDs: unable to reorder sample data by reference ids");
+         }
+     }
+   }
+}
+
+
 
 }  // end of namespace
