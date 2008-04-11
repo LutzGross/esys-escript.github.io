@@ -583,7 +583,7 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
    m=iter_restart
    iter=0
    while True:
-      if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+      if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
       x,stopped=GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=x, iter_max=iter_max-iter, iter_restart=m)
       iter+=iter_restart
       if stopped: break
@@ -597,7 +597,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
    norm_b=math.sqrt(r_dot_r)
 
    if x==None:
-      x=0*b
+      x=0
    else: 
       r=Msolve(b-Aprod(x))
       r_dot_r = bilinearform(r, r)
@@ -610,6 +610,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
    v=[]
 
    rho=math.sqrt(r_dot_r)
+   
    v.append(r/rho)
    g[0]=rho
 
@@ -683,7 +684,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
    else : xhat=v[0] 
     
    x += xhat
-   if iter!=iter_restart-1: 
+   if iter<iter_restart-1: 
       stopped=True 
    else: 
       stopped=False
@@ -1051,7 +1052,7 @@ class HomogeneousSaddlePointProblem(object):
       def getSubProblemTolerance(self):
               return self.__reduction*self.getTolerance()
 
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='PCG'):
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='PCG',iter_restart=10):
               """
               solves the saddle point problem using initial guesses v and p.
 
@@ -1080,7 +1081,7 @@ class HomogeneousSaddlePointProblem(object):
               self.iter=0
 	      if solver=='GMRES':   	
                 if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
-                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.)
+                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.,iter_restart=iter_restart)
                 # solve Au=f-B^*p 
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
@@ -1093,7 +1094,8 @@ class HomogeneousSaddlePointProblem(object):
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
-              else: 
+              
+              if solver=='PCG':
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  

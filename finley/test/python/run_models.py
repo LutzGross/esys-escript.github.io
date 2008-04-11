@@ -138,7 +138,7 @@ class Test_Simple2DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES")
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES",iter_restart=12)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -324,7 +324,7 @@ class Test_Simple3DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES")
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES",iter_restart=14)
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
