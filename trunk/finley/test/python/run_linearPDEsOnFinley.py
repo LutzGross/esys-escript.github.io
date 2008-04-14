@@ -259,6 +259,8 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
       suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
+ else:
+      pass
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
