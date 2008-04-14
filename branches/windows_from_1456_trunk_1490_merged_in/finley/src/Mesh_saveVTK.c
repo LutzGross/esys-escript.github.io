@@ -53,9 +53,12 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   double sampleAvg[NCOMP_MAX], *values, rtmp;
   size_t len_txt_buffer, max_len_names, txt_buffer_in_use;
   FILE * fileHandle_p = NULL;
-  int mpi_size, i_data, i,j , cellType;
-  dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement, myNumPoints, numPointsPerSample, rank, nComp, nCompReqd, shape, NN, numCellFactor, myNumCells, max_name_len;
-  bool_t do_write, *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE;
+  int mpi_size, i, j, cellType;
+  dim_t i_data;
+  dim_t nDim, globalNumPoints, numCells, globalNumCells, numVTKNodesPerElement;
+  dim_t myNumPoints, numPointsPerSample, rank, nComp, nCompReqd;
+  dim_t shape, NN, numCellFactor, myNumCells, max_name_len;
+  bool_t *isCellCentered=NULL,write_celldata=FALSE,write_pointdata=FALSE;
   bool_t set_scalar=FALSE,set_vector=FALSE, set_tensor=FALSE;
   index_t myFirstNode, myLastNode, *globalNodeIndex, k, *node_index, myFirstCell;
   #ifdef PASO_MPI
