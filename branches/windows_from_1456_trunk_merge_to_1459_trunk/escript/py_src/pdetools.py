@@ -48,6 +48,11 @@ import numarray
 import util
 import math
 
+##### Added by Artak
+# from Numeric import zeros,Int,Float64
+###################################
+
+
 class TimeIntegrationManager:
   """
   a simple mechanism to manage time dependend values. 
@@ -469,8 +474,25 @@ class IterationHistory(object):
 
        """
        self.history.append(norm_r)
-       if self.verbose: print "iter: %s:  inner(rhat,r) = %e"%(len(self.history)-1, self.history[-1])
+       if self.verbose: print "iter: #s:  inner(rhat,r) = #e"#(len(self.history)-1, self.history[-1])
        return self.history[-1]<=self.tolerance * self.history[0]
+
+   def stoppingcriterium2(self,norm_r,norm_b):
+       """
+       returns True if the C{norm_r} is C{tolerance}*C{norm_b} 
+
+       
+       @param norm_r: current residual norm
+       @type norm_r: non-negative C{float}
+       @param norm_b: norm of right hand side
+       @type norm_b: non-negative C{float}
+       @return: C{True} is the stopping criterium is fullfilled. Otherwise C{False} is returned.
+       @rtype: C{bool}
+
+       """
+       self.history.append(norm_r)
+       if self.verbose: print "iter: #s:  norm(r) = #e"#(len(self.history)-1, self.history[-1])
+       return self.history[-1]<=self.tolerance * norm_b
 
 def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
    """
@@ -538,6 +560,395 @@ type like argument C{x}.
        if rhat_dot_r<0: raise NegativeNorm,"negative norm."
 
    return x,r
+
+
+############################
+# Added by Artak
+#################################3
+
+#Apply a sequence of k Givens rotations, used within gmres codes
+# vrot=givapp(c, s, vin, k)
+def givapp(c,s,vin):
+    vrot=vin # warning: vin is altered!!!!
+    if isinstance(c,float):
+        vrot=[c*vrot[0]-s*vrot[1],s*vrot[0]+c*vrot[1]]
+    else:
+        for i in range(len(c)):
+            w1=c[i]*vrot[i]-s[i]*vrot[i+1]
+	    w2=s[i]*vrot[i]+c[i]*vrot[i+1]
+            vrot[i:i+2]=w1,w2
+    return vrot
+
+def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=10):
+   m=iter_restart
+   iter=0
+   while True:
+      if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
+      x,stopped=GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=x, iter_max=iter_max-iter, iter_restart=m)
+      iter+=iter_restart
+      if stopped: break
+   return x
+
+def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=10):
+   iter=0
+   r=Msolve(b)
+   r_dot_r = bilinearform(r, r)
+   if r_dot_r<0: raise NegativeNorm,"negative norm."
+   norm_b=math.sqrt(r_dot_r)
+
+   if x==None:
+      x=0
+   else: 
+      r=Msolve(b-Aprod(x))
+      r_dot_r = bilinearform(r, r)
+      if r_dot_r<0: raise NegativeNorm,"negative norm."
+   
+   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
+   c=numarray.zeros(iter_restart,numarray.Float64)
+   s=numarray.zeros(iter_restart,numarray.Float64)
+   g=numarray.zeros(iter_restart,numarray.Float64)
+   v=[]
+
+   rho=math.sqrt(r_dot_r)
+   
+   v.append(r/rho)
+   g[0]=rho
+
+   while not (stoppingcriterium(rho,norm_b) or iter==iter_restart-1):
+
+	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+
+	
+	p=Msolve(Aprod(v[iter]))
+
+	v.append(p)
+
+	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+
+# Modified Gram-Schmidt	
+	for j in range(iter+1):
+	  h[j][iter]=bilinearform(v[j],v[iter+1])   
+	  v[iter+1]+=(-1.)*h[j][iter]*v[j]
+       
+	h[iter+1][iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
+	v_norm2=h[iter+1][iter]
+
+
+# Reorthogonalize if needed
+	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
+   	 for j in range(iter+1):
+	    hr=bilinearform(v[j],v[iter+1])
+      	    h[j][iter]=h[j][iter]+hr #vhat
+      	    v[iter+1] +=(-1.)*hr*v[j]
+
+   	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+	 h[iter+1][iter]=v_norm2
+
+#   watch out for happy breakdown 
+        if v_norm2 != 0:
+         v[iter+1]=v[iter+1]/h[iter+1][iter]
+
+#   Form and store the information for the new Givens rotation
+	if iter > 0 :
+		hhat=[]
+		for i in range(iter+1) : hhat.append(h[i][iter])
+		hhat=givapp(c[0:iter],s[0:iter],hhat);
+	        for i in range(iter+1) : h[i][iter]=hhat[i]
+
+	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
+	if mu!=0 :
+		c[iter]=h[iter][iter]/mu
+		s[iter]=-h[iter+1][iter]/mu
+		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
+		h[iter+1][iter]=0.0
+		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2])
+
+# Update the residual norm
+        rho=abs(g[iter+1])
+	iter+=1
+
+# At this point either iter > iter_max or rho < tol.
+# It's time to compute x and leave.        
+
+   if iter > 0 : 
+     y=numarray.zeros(iter,numarray.Float64)	
+     y[iter-1] = g[iter-1] / h[iter-1][iter-1]
+     if iter > 1 :	
+        i=iter-2   
+        while i>=0 :
+          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
+          i=i-1
+     xhat=v[iter-1]*y[iter-1]
+     for i in range(iter-1):
+	xhat += v[i]*y[i]
+   else : xhat=v[0] 
+    
+   x += xhat
+   if iter<iter_restart-1: 
+      stopped=True 
+   else: 
+      stopped=False
+
+   return x,stopped
+
+def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
+
+    #
+    #  minres solves the system of linear equations Ax = b
+    #  where A is a symmetric matrix (possibly indefinite or singular)
+    #  and b is a given vector.
+    #  
+    #  "A" may be a dense or sparse matrix (preferably sparse!)
+    #  or the name of a function such that
+    #               y = A(x)
+    #  returns the product y = Ax for any given vector x.
+    #
+    #  "M" defines a positive-definite preconditioner M = C C'.
+    #  "M" may be a dense or sparse matrix (preferably sparse!)
+    #  or the name of a function such that
+    #  solves the system My = x for any given vector x.
+    #
+    #
+    
+    #------------------------------------------------------------------
+    # Set up y and v for the first Lanczos vector v1.
+    # y  =  beta1 P' v1,  where  P = C**(-1).
+    # v is really P' v1.
+    #------------------------------------------------------------------
+    if x==None:
+      x=0*b
+    else:
+      b += (-1)*Aprod(x) 
+
+    r1    = b
+    y = Msolve(b)
+    beta1 = bilinearform(b,y)
+ 
+    if beta1< 0: raise NegativeNorm,"negative norm."
+
+    #  If b = 0 exactly, stop with x = 0.
+    if beta1==0: return x*0.
+
+    if beta1> 0:
+      beta1  = math.sqrt(beta1)       
+
+    #------------------------------------------------------------------
+    # Initialize quantities.
+    # ------------------------------------------------------------------
+    iter   = 0
+    Anorm = 0
+    ynorm = 0
+    oldb   = 0
+    beta   = beta1
+    dbar   = 0
+    epsln  = 0
+    phibar = beta1
+    rhs1   = beta1
+    rhs2   = 0
+    rnorm  = phibar
+    tnorm2 = 0
+    ynorm2 = 0
+    cs     = -1
+    sn     = 0
+    w      = b*0.
+    w2     = b*0.
+    r2     = r1
+    eps    = 0.0001
+
+    #---------------------------------------------------------------------
+    # Main iteration loop.
+    # --------------------------------------------------------------------
+    while not stoppingcriterium(rnorm,Anorm*ynorm):    #  checks ||r|| < (||A|| ||x||) * TOL
+
+	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+        iter    = iter  +  1
+
+        #-----------------------------------------------------------------
+        # Obtain quantities for the next Lanczos vector vk+1, k = 1, 2,...
+        # The general iteration is similar to the case k = 1 with v0 = 0:
+        #
+        #   p1      = Operator * v1  -  beta1 * v0,
+        #   alpha1  = v1'p1,
+        #   q2      = p2  -  alpha1 * v1,
+        #   beta2^2 = q2'q2,
+        #   v2      = (1/beta2) q2.
+        #
+        # Again, y = betak P vk,  where  P = C**(-1).
+        #-----------------------------------------------------------------
+        s = 1/beta                 # Normalize previous vector (in y).
+        v = s*y                    # v = vk if P = I
+     
+        y      = Aprod(v)
+    
+        if iter >= 2:
+          y = y - (beta/oldb)*r1
+
+        alfa   = bilinearform(v,y)              # alphak
+        y      = (- alfa/beta)*r2 + y
+        r1     = r2
+        r2     = y
+        y = Msolve(r2)
+        oldb   = beta                           # oldb = betak
+        beta   = bilinearform(r2,y)             # beta = betak+1^2
+        if beta < 0: raise NegativeNorm,"negative norm."
+
+        beta   = math.sqrt( beta )
+        tnorm2 = tnorm2 + alfa*alfa + oldb*oldb + beta*beta
+        
+        if iter==1:                 # Initialize a few things.
+          gmax   = abs( alfa )      # alpha1
+          gmin   = gmax             # alpha1
+
+        # Apply previous rotation Qk-1 to get
+        #   [deltak epslnk+1] = [cs  sn][dbark    0   ]
+        #   [gbar k dbar k+1]   [sn -cs][alfak betak+1].
+    
+        oldeps = epsln
+        delta  = cs * dbar  +  sn * alfa  # delta1 = 0         deltak
+        gbar   = sn * dbar  -  cs * alfa  # gbar 1 = alfa1     gbar k
+        epsln  =               sn * beta  # epsln2 = 0         epslnk+1
+        dbar   =            -  cs * beta  # dbar 2 = beta2     dbar k+1
+
+        # Compute the next plane rotation Qk
+
+        gamma  = math.sqrt(gbar*gbar+beta*beta)  # gammak
+        gamma  = max(gamma,eps) 
+        cs     = gbar / gamma             # ck
+        sn     = beta / gamma             # sk
+        phi    = cs * phibar              # phik
+        phibar = sn * phibar              # phibark+1
+
+        # Update  x.
+
+        denom = 1/gamma 
+        w1    = w2 
+        w2    = w 
+        w     = (v - oldeps*w1 - delta*w2) * denom
+        x     = x  +  phi*w
+
+        # Go round again.
+
+        gmax   = max(gmax,gamma)
+        gmin   = min(gmin,gamma)
+        z      = rhs1 / gamma
+        ynorm2 = z*z  +  ynorm2
+        rhs1   = rhs2 -  delta*z
+        rhs2   =      -  epsln*z
+
+        # Estimate various norms and test for convergence.
+
+        Anorm  = math.sqrt( tnorm2 ) 
+        ynorm  = math.sqrt( ynorm2 ) 
+
+        rnorm  = phibar
+
+    return x
+    
+
+def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
+
+# TFQMR solver for linear systems
+#
+#
+# initialization
+#
+  errtol = math.sqrt(bilinearform(b,b))
+  norm_b=errtol
+  kmax  = iter_max
+  error = []
+
+  if math.sqrt(bilinearform(x,x)) != 0.0:
+    r = b - Aprod(x)
+  else:
+    r = b
+
+  r=Msolve(r)
+
+  u1=0
+  u2=0
+  y1=0
+  y2=0
+
+  w = r
+  y1 = r 
+  iter = 0 
+  d = 0
+  
+  v = Msolve(Aprod(y1))
+  u1 = v
+  
+  theta = 0.0;
+  eta = 0.0;
+  tau = math.sqrt(bilinearform(r,r))
+  error = [ error, tau ] 
+  rho = tau * tau
+  m=1
+#
+#  TFQMR iteration
+#
+#  while ( iter < kmax-1 ):
+   
+  while not stoppingcriterium(tau*math.sqrt ( m + 1 ),norm_b):
+    if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+
+    sigma = bilinearform(r,v)
+
+    if ( sigma == 0.0 ):
+      raise 'TFQMR breakdown, sigma=0'
+    
+
+    alpha = rho / sigma
+
+    for j in range(2):
+#
+#   Compute y2 and u2 only if you have to
+#
+      if ( j == 1 ):
+        y2 = y1 - alpha * v
+        u2 = Msolve(Aprod(y2))
+ 
+      m = 2 * (iter+1) - 2 + (j+1)
+      if j==0: 
+         w = w - alpha * u1
+         d = y1 + ( theta * theta * eta / alpha ) * d
+      if j==1:
+         w = w - alpha * u2
+         d = y2 + ( theta * theta * eta / alpha ) * d
+
+      theta = math.sqrt(bilinearform(w,w))/ tau
+      c = 1.0 / math.sqrt ( 1.0 + theta * theta )
+      tau = tau * theta * c
+      eta = c * c * alpha
+      x = x + eta * d
+#
+#  Try to terminate the iteration at each pass through the loop
+#
+     # if ( tau * math.sqrt ( m + 1 ) <= errtol ):
+     #   error = [ error, tau ]
+     #   total_iters = iter
+     #   break
+      
+
+    if ( rho == 0.0 ):
+      raise 'TFQMR breakdown, rho=0'
+    
+
+    rhon = bilinearform(r,w)
+    beta = rhon / rho;
+    rho = rhon;
+    y1 = w + beta * y2;
+    u1 = Msolve(Aprod(y1))
+    v = u1 + beta * ( u2 + beta * v )
+    error = [ error, tau ]
+    total_iters = iter
+    
+    iter = iter + 1
+
+  print iter
+  return x
+
+
+#############################################
 
 class ArithmeticTuple(object):
    """
@@ -607,6 +1018,39 @@ class ArithmeticTuple(object):
        for i in range(len(self)):
            out.append(other*self[i])
        return ArithmeticTuple(*tuple(out))
+
+#########################
+# Added by Artak
+#########################
+   def __div__(self,other):
+       """
+       dividing from the right 
+
+       @param other: scaling factor
+       @type other: C{float}
+       @return: itemwise self/other
+       @rtype: L{ArithmeticTuple}
+       """
+       out=[]
+       for i in range(len(self)):
+           out.append(self[i]/other)
+       return ArithmeticTuple(*tuple(out))
+
+   def __rdiv__(self,other):
+       """
+       dividing from the left
+
+       @param other: scaling factor
+       @type other: C{float}
+       @return: itemwise other/self
+       @rtype: L{ArithmeticTuple}
+       """
+       out=[]
+       for i in range(len(self)):
+           out.append(other/self[i])
+       return ArithmeticTuple(*tuple(out))
+  
+##########################################33
 
    def __iadd__(self,other):
        """
@@ -690,8 +1134,18 @@ class HomogeneousSaddlePointProblem(object):
       def __inner(self,p,r):
          return self.inner(p,r[1])
 
+      def __inner_p(self,p1,p2):
+         return self.inner(p1,p2)
+
       def __stoppingcriterium(self,norm_r,r,p):
           return self.stoppingcriterium(r[1],r[0],p)
+
+      def __stoppingcriterium_GMRES(self,norm_r,norm_b):
+          return self.stoppingcriterium_GMRES(norm_r,norm_b)
+
+      def __stoppingcriterium_MINRES(self,norm_r,norm_Ax):
+          return self.stoppingcriterium_MINRES(norm_r,norm_Ax)
+
 
       def setTolerance(self,tolerance=1.e-8):
               self.__tol=tolerance
@@ -702,7 +1156,7 @@ class HomogeneousSaddlePointProblem(object):
       def getSubProblemTolerance(self):
               return self.__reduction*self.getTolerance()
 
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False):
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='PCG',iter_restart=10):
               """
               solves the saddle point problem using initial guesses v and p.
 
@@ -711,9 +1165,14 @@ class HomogeneousSaddlePointProblem(object):
               self.verbose=verbose
               self.show_details=show_details and self.verbose
 
+              # assume p is known: then v=A^-1(f-B^*p) 
+              # which leads to BA^-1B^*p = BA^-1f  
+
 	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
 
+	       
 	      self.__z=v+self.solve_A(v,p*0)
+
               Bz=self.B(self.__z)
               #
 	      #   solve BA^-1B^*p = Bz 
@@ -724,19 +1183,57 @@ class HomogeneousSaddlePointProblem(object):
               #                           A(v-z)=Az-B^*p-Az = f -Az - B^*p (v-z=0 on fixed_u_mask)
               #
               self.iter=0
-              if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
-              p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
-	      return r[0],p
+	      if solver=='GMRES':   	
+                if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
+                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.,iter_restart=iter_restart)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+
+	      if solver=='TFQMR':   	
+                if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
+                p=TFQMR(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+
+	      if solver=='MINRES':   	
+                if self.verbose: print "enter MINRES method (iter_max=%s)"%max_iter
+                p=MINRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_MINRES,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+              
+              if solver=='PCG':
+                if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
+                p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
+	        u=r[0]  
+
+              print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
+
+ 	      return u,p
 
       def __Msolve(self,r):
           return self.solve_prec(r[1])
 
+      def __Msolve_GMRES(self,r):
+          return self.solve_prec(r)
+
+
       def __Aprod(self,p):
           # return BA^-1B*p 
           #solve Av =-B^*p as Av =f-Az-B^*p
-          v=self.solve_A(self.__z,p)
+          v=self.solve_A(self.__z,-p)
           return ArithmeticTuple(v, self.B(v))
 
+      def __Aprod_GMRES(self,p):
+          # return BA^-1B*p 
+          #solve Av =-B^*p as Av =f-Az-B^*p
+	  v=self.solve_A(self.__z,-p)
+          return self.B(v)
 
 class SaddlePointProblem(object):
    """
@@ -775,7 +1272,7 @@ class SaddlePointProblem(object):
        @param text: a text message
        @type text: C{str}
        """
-       if self.__verbose: print "%s: %s"%(str(self),text)
+       if self.__verbose: print "#s: #s"%(str(self),text)
 
    def solve_f(self,u,p,tol=1.e-8):
        """
@@ -991,5 +1488,6 @@ def MaskFromBoundaryTag(function_space,*tags):
       return out
    else:
       return util.whereNonZero(util.interpolate(out,function_space))
+
 
 

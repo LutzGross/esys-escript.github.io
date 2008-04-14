@@ -41,7 +41,7 @@ class Test_Simple2DModels(unittest.TestCase):
        self.domain=Rectangle(NE,NE,order=2,useFullElementOrder=True)
    def tearDown(self):
        del self.domain
-   def test_StokesProblemCartesian_P_0(self):
+   def test_StokesProblemCartesian_PCG_P_0(self):
        ETA=1.
        P1=0.
 
@@ -57,7 +57,7 @@ class Test_Simple2DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="PCG")
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -68,7 +68,7 @@ class Test_Simple2DModels(unittest.TestCase):
        self.failUnless(error_v0<TOL,"0-velocity error too large.")
        self.failUnless(error_v1<TOL,"1-velocity error too large.")
 
-   def test_StokesProblemCartesian_P_small(self):
+   def test_StokesProblemCartesian_PCG_P_small(self):
        ETA=1.
        P1=1.
 
@@ -84,7 +84,7 @@ class Test_Simple2DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="PCG")
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -95,7 +95,7 @@ class Test_Simple2DModels(unittest.TestCase):
        self.failUnless(error_v0<TOL,"0-velocity error too large.")
        self.failUnless(error_v1<TOL,"1-velocity error too large.")
 
-   def test_StokesProblemCartesian_P_large(self):
+   def test_StokesProblemCartesian_PCG_P_large(self):
        ETA=1.
        P1=1000.
 
@@ -111,7 +111,88 @@ class Test_Simple2DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="PCG")
+       
+       error_v0=Lsup(u[0]-u0[0])
+       error_v1=Lsup(u[1]-u0[1])/0.25
+       zz=P1*x[0]*x[1]-p
+       error_p=Lsup(zz-integrate(zz))/P1
+       # print error_p, error_v0,error_v1
+       self.failUnless(error_p<TOL,"pressure error too large.")
+       self.failUnless(error_v0<TOL,"0-velocity error too large.")
+       self.failUnless(error_v1<TOL,"1-velocity error too large.")
+
+   def test_StokesProblemCartesian_GMRES_P_0(self):
+       ETA=1.
+       P1=0.
+
+       x=self.domain.getX()
+       F=-P1*x[1]*[1.,0]+(2*ETA-P1*x[0])*[0.,1.]
+       mask=whereZero(x[0])    * [1.,1.] \
+              +whereZero(x[0]-1)  * [1.,1.] \
+              +whereZero(x[1])    * [1.,0.] \
+              +whereZero(x[1]-1)  * [1.,1.]
+       
+       sp=StokesProblemCartesian(self.domain)
+       
+       sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
+       u0=(1-x[0])*x[0]*[0.,1.]
+       p0=Scalar(P1,ReducedSolution(self.domain))
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES",iter_restart=12)
+       
+       error_v0=Lsup(u[0]-u0[0])
+       error_v1=Lsup(u[1]-u0[1])/0.25
+       zz=P1*x[0]*x[1]-p
+       error_p=Lsup(zz-integrate(zz))
+       # print error_p, error_v0,error_v1
+       self.failUnless(error_p<TOL,"pressure error too large.")
+       self.failUnless(error_v0<TOL,"0-velocity error too large.")
+       self.failUnless(error_v1<TOL,"1-velocity error too large.")
+
+   def test_StokesProblemCartesian_GMRES_P_small(self):
+       ETA=1.
+       P1=1.
+
+       x=self.domain.getX()
+       F=-P1*x[1]*[1.,0]+(2*ETA-P1*x[0])*[0.,1.]
+       mask=whereZero(x[0])    * [1.,1.] \
+              +whereZero(x[0]-1)  * [1.,1.] \
+              +whereZero(x[1])    * [1.,0.] \
+              +whereZero(x[1]-1)  * [1.,1.]
+       
+       sp=StokesProblemCartesian(self.domain)
+       
+       sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
+       u0=(1-x[0])*x[0]*[0.,1.]
+       p0=Scalar(P1,ReducedSolution(self.domain))
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES")
+       
+       error_v0=Lsup(u[0]-u0[0])
+       error_v1=Lsup(u[1]-u0[1])/0.25
+       zz=P1*x[0]*x[1]-p
+       error_p=Lsup(zz-integrate(zz))
+       # print error_p, error_v0,error_v1
+       self.failUnless(error_p<TOL,"pressure error too large.")
+       self.failUnless(error_v0<TOL,"0-velocity error too large.")
+       self.failUnless(error_v1<TOL,"1-velocity error too large.")
+
+   def test_StokesProblemCartesian_GMRES_P_large(self):
+       ETA=1.
+       P1=1000.
+
+       x=self.domain.getX()
+       F=-P1*x[1]*[1.,0]+(2*ETA-P1*x[0])*[0.,1.]
+       mask=whereZero(x[0])    * [1.,1.] \
+              +whereZero(x[0]-1)  * [1.,1.] \
+              +whereZero(x[1])    * [1.,0.] \
+              +whereZero(x[1]-1)  * [1.,1.]
+       
+       sp=StokesProblemCartesian(self.domain)
+       
+       sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
+       u0=(1-x[0])*x[0]*[0.,1.]
+       p0=Scalar(P1,ReducedSolution(self.domain))
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES")
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
@@ -128,7 +209,7 @@ class Test_Simple3DModels(unittest.TestCase):
        self.domain=Brick(NE,NE,NE,order=2,useFullElementOrder=True)
    def tearDown(self):
        del self.domain
-   def test_StokesProblemCartesian_P_0(self):
+   def test_StokesProblemCartesian_PCG_P_0(self):
        ETA=1.
        P1=0.
 
@@ -148,7 +229,7 @@ class Test_Simple3DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="PCG")
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
@@ -160,7 +241,7 @@ class Test_Simple3DModels(unittest.TestCase):
        self.failUnless(error_v0<TOL,"0-velocity error too large.")
        self.failUnless(error_v1<TOL,"1-velocity error too large.")
        self.failUnless(error_v2<TOL,"2-velocity error too large.")
-   def test_StokesProblemCartesian_P_small(self):
+   def test_StokesProblemCartesian_PCG_P_small(self):
        ETA=1.
        P1=1.
 
@@ -179,7 +260,7 @@ class Test_Simple3DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="PCG")
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
@@ -191,7 +272,7 @@ class Test_Simple3DModels(unittest.TestCase):
        self.failUnless(error_v0<TOL,"0-velocity error too large.")
        self.failUnless(error_v1<TOL,"1-velocity error too large.")
        self.failUnless(error_v2<TOL,"2-velocity error too large.")
-   def test_StokesProblemCartesian_P_large(self):
+   def test_StokesProblemCartesian_PCG_P_large(self):
        ETA=1.
        P1=1000.
 
@@ -210,7 +291,102 @@ class Test_Simple3DModels(unittest.TestCase):
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(P1,ReducedSolution(self.domain))
-       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100)
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="PCG")
+       
+       error_v0=Lsup(u[0]-u0[0])
+       error_v1=Lsup(u[1]-u0[1])
+       error_v2=Lsup(u[2]-u0[2])/0.25**2
+       zz=P1*x[0]*x[1]*x[2]-p
+       error_p=Lsup(zz-integrate(zz))/P1
+       # print error_p, error_v0,error_v1,error_v2
+       self.failUnless(error_p<TOL,"pressure error too large.")
+       self.failUnless(error_v0<TOL,"0-velocity error too large.")
+       self.failUnless(error_v1<TOL,"1-velocity error too large.")
+       self.failUnless(error_v2<TOL,"2-velocity error too large.")
+
+   def test_StokesProblemCartesian_GMRES_P_0(self):
+       ETA=1.
+       P1=0.
+
+       x=self.domain.getX()
+       F=-P1*x[1]*x[2]*[1.,0.,0.]-P1*x[0]*x[2]*[0.,1.,0.]+(2*ETA*((1-x[0])*x[0]+(1-x[1])*x[1])-P1*x[0]*x[1])*[0.,0.,1.]
+       x=self.domain.getX()
+       mask=whereZero(x[0])    * [1.,1.,1.] \
+              +whereZero(x[0]-1)  * [1.,1.,1.] \
+              +whereZero(x[1])    * [1.,1.,1.] \
+              +whereZero(x[1]-1)  * [1.,1.,1.] \
+              +whereZero(x[2])    * [1.,1.,0.] \
+              +whereZero(x[2]-1)  * [1.,1.,1.]
+       
+       
+       sp=StokesProblemCartesian(self.domain)
+       
+       sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
+       u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
+       p0=Scalar(P1,ReducedSolution(self.domain))
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES",iter_restart=14)
+       
+       error_v0=Lsup(u[0]-u0[0])
+       error_v1=Lsup(u[1]-u0[1])
+       error_v2=Lsup(u[2]-u0[2])/0.25**2
+       zz=P1*x[0]*x[1]*x[2]-p
+       error_p=Lsup(zz-integrate(zz))
+       # print error_p, error_v0,error_v1,error_v2
+       self.failUnless(error_p<TOL,"pressure error too large.")
+       self.failUnless(error_v0<TOL,"0-velocity error too large.")
+       self.failUnless(error_v1<TOL,"1-velocity error too large.")
+       self.failUnless(error_v2<TOL,"2-velocity error too large.")
+   def test_StokesProblemCartesian_GMRES_P_small(self):
+       ETA=1.
+       P1=1.
+
+       x=self.domain.getX()
+       F=-P1*x[1]*x[2]*[1.,0.,0.]-P1*x[0]*x[2]*[0.,1.,0.]+(2*ETA*((1-x[0])*x[0]+(1-x[1])*x[1])-P1*x[0]*x[1])*[0.,0.,1.]
+       mask=whereZero(x[0])    * [1.,1.,1.] \
+              +whereZero(x[0]-1)  * [1.,1.,1.] \
+              +whereZero(x[1])    * [1.,1.,1.] \
+              +whereZero(x[1]-1)  * [1.,1.,1.] \
+              +whereZero(x[2])    * [1.,1.,0.] \
+              +whereZero(x[2]-1)  * [1.,1.,1.]
+       
+       
+       sp=StokesProblemCartesian(self.domain)
+       
+       sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
+       u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
+       p0=Scalar(P1,ReducedSolution(self.domain))
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES")
+       
+       error_v0=Lsup(u[0]-u0[0])
+       error_v1=Lsup(u[1]-u0[1])
+       error_v2=Lsup(u[2]-u0[2])/0.25**2
+       zz=P1*x[0]*x[1]*x[2]-p
+       error_p=Lsup(zz-integrate(zz))/P1
+       # print error_p, error_v0,error_v1,error_v2
+       self.failUnless(error_p<TOL,"pressure error too large.")
+       self.failUnless(error_v0<TOL,"0-velocity error too large.")
+       self.failUnless(error_v1<TOL,"1-velocity error too large.")
+       self.failUnless(error_v2<TOL,"2-velocity error too large.")
+   def test_StokesProblemCartesian_GMRES_P_large(self):
+       ETA=1.
+       P1=1000.
+
+       x=self.domain.getX()
+       F=-P1*x[1]*x[2]*[1.,0.,0.]-P1*x[0]*x[2]*[0.,1.,0.]+(2*ETA*((1-x[0])*x[0]+(1-x[1])*x[1])-P1*x[0]*x[1])*[0.,0.,1.]
+       mask=whereZero(x[0])    * [1.,1.,1.] \
+              +whereZero(x[0]-1)  * [1.,1.,1.] \
+              +whereZero(x[1])    * [1.,1.,1.] \
+              +whereZero(x[1]-1)  * [1.,1.,1.] \
+              +whereZero(x[2])    * [1.,1.,0.] \
+              +whereZero(x[2]-1)  * [1.,1.,1.]
+       
+       
+       sp=StokesProblemCartesian(self.domain)
+       
+       sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
+       u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
+       p0=Scalar(P1,ReducedSolution(self.domain))
+       u,p=sp.solve(u0,p0,show_details=VERBOSE, verbose=VERBOSE,max_iter=100,solver="GMRES")
        
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])

@@ -355,6 +355,17 @@ class DataExpanded : public DataAbstract {
   virtual void
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
+/**
+ *      \brief
+ *           reorders data sample ordered by reference_ids to the ordering of the functions space
+ *
+ *                \param reference_ids - Input - reference_ids used for current ordering
+ *                  */
+  ESCRIPT_DLL_API
+  virtual void
+  reorderByReferenceIDs(int *reference_ids);
+
+
 
  protected:
 

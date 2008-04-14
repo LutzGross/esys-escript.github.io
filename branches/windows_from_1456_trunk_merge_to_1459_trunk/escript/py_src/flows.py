@@ -105,7 +105,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          solves Av=f-Au-B^*p (v=0 on fixed_u_mask)
          """
          self.__pde_u.setTolerance(self.getSubProblemTolerance())
-         self.__pde_u.setValue(X=-self.getStress(u)+p*util.kronecker(self.domain))
+         self.__pde_u.setValue(X=-self.getStress(u)-p*util.kronecker(self.domain))
          return  self.__pde_u.getSolution(verbose=self.show_details)
 
       def solve_prec(self,p):
@@ -120,6 +120,23 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
           self.iter+=1
           if n_r <= self.vol**(1./2.-1./self.domain.getDim())*n_v*self.getTolerance():
               if self.verbose: print "PCG terminated after %s steps."%self.iter
+              return True
+          else:
+              return False
+      def stoppingcriterium_GMRES(self,norm_r,norm_b):
+          if self.verbose: print "GMRES step %s: L2(r) = %s, L2(b)*TOL=%s"%(self.iter,norm_r,norm_b*self.getTolerance())
+          self.iter+=1
+          if norm_r <= norm_b*self.getTolerance():
+              if self.verbose: print "GMRES terminated after %s steps."%self.iter
+              return True
+          else:
+              return False
+
+      def stoppingcriterium_MINRES(self,norm_r,norm_Ax):
+          if self.verbose: print "MINRES step %s: L2(r) = %s, L2(b)*TOL=%s"%(self.iter,norm_r,norm_Ax*self.getTolerance())
+          self.iter+=1
+          if norm_r <= norm_Ax*self.getTolerance():
+              if self.verbose: print "MINRES terminated after %s steps."%self.iter
               return True
           else:
               return False

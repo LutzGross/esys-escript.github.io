@@ -179,6 +179,12 @@ DataAbstract::setToZero()
     throw DataException("Error - DataAbstract:: cannot set values to zero.");
 }
 
+void
+DataAbstract::reorderByReferenceIDs(int *reference_ids)
+{
+}
+
+
 
 
 }  // end of namespace

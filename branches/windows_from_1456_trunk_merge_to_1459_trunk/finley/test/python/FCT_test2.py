@@ -25,6 +25,7 @@ from esys.escript.linearPDEs import LinearSinglePDE, TransportPDE
 from esys.finley import Rectangle, Brick
 from math import pi, ceil
 NE=128
+NE=64
 DIM=2
 THETA=0.5
 OMEGA0=1.
@@ -33,7 +34,7 @@ T0=0.5*pi
 T_END=2.5*pi
 dt=1e-3*10
 E=1.e-3
-TEST_SUPG=False # or True
+TEST_SUPG=False or True
 
 
 def getCenter(t):
@@ -56,7 +57,7 @@ def QUALITY(t,u_h):
      if DIM == 3: sigma_h2*=sqrt(2./3.)
      e=sigma_h2/sqrt(4*E*t)-1             
      # return a,b,c,e,1./(4*pi*E*t)**(DIM/2.)
-     return b, d
+     return d,e
      # return a,b,c,d,e
       
 
@@ -111,7 +112,7 @@ while t<T_END:
             nnn+=1
     c+=1
     t+=dt
-    print "QUALITY FCT: time = %s pi"%(t/pi),QUALITY(t,u)
+    print "QUALITY FCT: time = %s pi"%(t/pi),QUALITY(t,u),
     if TEST_SUPG: 
        print "QUALITY SUPG: ",QUALITY(t,u_supg)
        # saveVTK("u.%s.xml"%c,u=u,u_supg=u_supg)

@@ -17,6 +17,7 @@
 
 #include <boost/python/extract.hpp>
 #include <iostream>
+#include <exception>
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -253,11 +254,11 @@ load(const std::string fileName,
           #pragma omp critical
           if (local_failed>=0) failed = local_failed;
       }
-      if (failed>=0) 
+      /* if (failed>=0) 
       {
          free(ids_of_nc);
          throw DataException("Error - load:: data ordering in netCDF file does not match ordering of FunctionSpace.");
-      }
+      } */
       // get the data:
       dims[rank]=num_data_points_per_sample;
       dims[rank+1]=num_samples;
@@ -272,9 +273,16 @@ load(const std::string fileName,
          free(ids_of_nc);
          throw DataException("Error - load:: unable to recover data from netCDF file.");
       }
-      // if (failed==-1)
-      //   out->m_data.reorderByReferenceIDs(ids_of_nc)
-      free(ids_of_nc);
+      if (failed>=0) {
+        try {
+           std::cout << "Information - load: start reordering data from netCDF file " << fileName << std::endl;
+           out.borrowData()->reorderByReferenceIDs(ids_of_nc);
+        } 
+        catch (std::exception& e) {
+           free(ids_of_nc);
+           throw DataException("Error - load:: unable to reorder data in netCDF file.");
+        }
+      }
    } else {
        throw DataException("Error - load:: unknown escript data type in netCDF file.");
    }

@@ -274,7 +274,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
        myNumCells= Finley_ElementFile_getMyNumElements(elements);
        myFirstCell= Finley_ElementFile_getFirstElement(elements);
        NN = elements->numNodes;
-       if (nodetype==FINLEY_REDUCED_NODES || nodetype==FINLEY_REDUCED_NODES) {
+       if (nodetype==FINLEY_REDUCED_NODES) {
           TypeId = elements->LinearReferenceElement->Type->TypeId;
        } else {
           TypeId = elements->ReferenceElement->Type->TypeId;

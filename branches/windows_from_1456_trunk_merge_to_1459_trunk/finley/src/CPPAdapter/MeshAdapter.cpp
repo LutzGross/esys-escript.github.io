@@ -1083,7 +1083,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
           case(Elements):
           case(ReducedElements):
               if (getMPISize()>1) {
-                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
                  escriptDataC _in2 = temp.getDataC();
                  Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
               } else {
@@ -1093,7 +1093,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
           case(FaceElements):
           case(ReducedFaceElements):
               if (getMPISize()>1) {
-                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
                  escriptDataC _in2 = temp.getDataC();
                  Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
               } else {
@@ -1102,7 +1102,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
              break;
           case(Points):
               if (getMPISize()>1) {
-                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
                  escriptDataC _in2 = temp.getDataC();
                  Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
               } else {
@@ -1114,7 +1114,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
           case(ReducedContactElementsZero):
           case(ReducedContactElementsOne):
               if (getMPISize()>1) {
-                 escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+                 escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
                  escriptDataC _in2 = temp.getDataC();
                  Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
               } else {
