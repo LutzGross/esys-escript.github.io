@@ -474,7 +474,7 @@ class IterationHistory(object):
 
        """
        self.history.append(norm_r)
-       if self.verbose: print "iter: %s:  inner(rhat,r) = %e"%(len(self.history)-1, self.history[-1])
+       if self.verbose: print "iter: #s:  inner(rhat,r) = #e"#(len(self.history)-1, self.history[-1])
        return self.history[-1]<=self.tolerance * self.history[0]
 
    def stoppingcriterium2(self,norm_r,norm_b):
@@ -491,7 +491,7 @@ class IterationHistory(object):
 
        """
        self.history.append(norm_r)
-       if self.verbose: print "iter: %s:  norm(r) = %e"%(len(self.history)-1, self.history[-1])
+       if self.verbose: print "iter: #s:  norm(r) = #e"#(len(self.history)-1, self.history[-1])
        return self.history[-1]<=self.tolerance * norm_b
 
 def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
@@ -844,6 +844,110 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 
     return x
     
+
+def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
+
+# TFQMR solver for linear systems
+#
+#
+# initialization
+#
+  errtol = math.sqrt(bilinearform(b,b))
+  norm_b=errtol
+  kmax  = iter_max
+  error = []
+
+  if math.sqrt(bilinearform(x,x)) != 0.0:
+    r = b - Aprod(x)
+  else:
+    r = b
+
+  r=Msolve(r)
+
+  u1=0
+  u2=0
+  y1=0
+  y2=0
+
+  w = r
+  y1 = r 
+  iter = 0 
+  d = 0
+  
+  v = Msolve(Aprod(y1))
+  u1 = v
+  
+  theta = 0.0;
+  eta = 0.0;
+  tau = math.sqrt(bilinearform(r,r))
+  error = [ error, tau ] 
+  rho = tau * tau
+  m=1
+#
+#  TFQMR iteration
+#
+#  while ( iter < kmax-1 ):
+   
+  while not stoppingcriterium(tau*math.sqrt ( m + 1 ),norm_b):
+    if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+
+    sigma = bilinearform(r,v)
+
+    if ( sigma == 0.0 ):
+      raise 'TFQMR breakdown, sigma=0'
+    
+
+    alpha = rho / sigma
+
+    for j in range(2):
+#
+#   Compute y2 and u2 only if you have to
+#
+      if ( j == 1 ):
+        y2 = y1 - alpha * v
+        u2 = Msolve(Aprod(y2))
+ 
+      m = 2 * (iter+1) - 2 + (j+1)
+      if j==0: 
+         w = w - alpha * u1
+         d = y1 + ( theta * theta * eta / alpha ) * d
+      if j==1:
+         w = w - alpha * u2
+         d = y2 + ( theta * theta * eta / alpha ) * d
+
+      theta = math.sqrt(bilinearform(w,w))/ tau
+      c = 1.0 / math.sqrt ( 1.0 + theta * theta )
+      tau = tau * theta * c
+      eta = c * c * alpha
+      x = x + eta * d
+#
+#  Try to terminate the iteration at each pass through the loop
+#
+     # if ( tau * math.sqrt ( m + 1 ) <= errtol ):
+     #   error = [ error, tau ]
+     #   total_iters = iter
+     #   break
+      
+
+    if ( rho == 0.0 ):
+      raise 'TFQMR breakdown, rho=0'
+    
+
+    rhon = bilinearform(r,w)
+    beta = rhon / rho;
+    rho = rhon;
+    y1 = w + beta * y2;
+    u1 = Msolve(Aprod(y1))
+    v = u1 + beta * ( u2 + beta * v )
+    error = [ error, tau ]
+    total_iters = iter
+    
+    iter = iter + 1
+
+  print iter
+  return x
+
+
 #############################################
 
 class ArithmeticTuple(object):
@@ -1087,6 +1191,14 @@ class HomogeneousSaddlePointProblem(object):
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
 
+	      if solver=='TFQMR':   	
+                if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
+                p=TFQMR(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+
 	      if solver=='MINRES':   	
                 if self.verbose: print "enter MINRES method (iter_max=%s)"%max_iter
                 p=MINRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_MINRES,iter_max=max_iter, x=p*1.)
@@ -1160,7 +1272,7 @@ class SaddlePointProblem(object):
        @param text: a text message
        @type text: C{str}
        """
-       if self.__verbose: print "%s: %s"%(str(self),text)
+       if self.__verbose: print "#s: #s"%(str(self),text)
 
    def solve_f(self,u,p,tol=1.e-8):
        """
