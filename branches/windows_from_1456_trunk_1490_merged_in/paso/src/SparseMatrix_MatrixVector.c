@@ -64,7 +64,7 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
           #pragma ivdep
 	  for (iptr=A->pattern->ptr[ic];iptr<A->pattern->ptr[ic+1]; iptr++) {
-	       ic=2*(A->pattern->index[iptr]);
+	       ir=2*(A->pattern->index[iptr]);
 	       out[  2*ir] += alpha * ( A->val[iptr*4  ]*in[ic] + A->val[iptr*4+2]*in[1+ic] );
 	       out[1+2*ir] += alpha * ( A->val[iptr*4+1]*in[ic] + A->val[iptr*4+3]*in[1+ic] );
 	  }
@@ -140,7 +140,7 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
         #pragma omp single
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic]-1;iptr<A->pattern->ptr[ic+1]-1; iptr++) {
-	       ic=2*(A->pattern->index[iptr]-1);
+	       ir=2*(A->pattern->index[iptr]-1);
 	       out[  2*ir] += alpha * ( A->val[iptr*4  ]*in[ic] + A->val[iptr*4+2]*in[1+ic] );
 	       out[1+2*ir] += alpha * ( A->val[iptr*4+1]*in[ic] + A->val[iptr*4+3]*in[1+ic] );
 	  }
