@@ -101,7 +101,7 @@ err_t Paso_Solver_NewtonGMRES(
          Status=Paso_Solver_NLGMRES(F,f,x,step,&gmres_iter,&gmres_tol,pp);
          itc+=gmres_iter;
          if ((Status==SOLVER_NO_ERROR) || (Status==SOLVER_MAXITER_REACHED)) {
-            Status==SOLVER_NO_ERROR;
+            Status=SOLVER_NO_ERROR;
             /* 
              * update x:
              */
