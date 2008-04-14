@@ -123,6 +123,7 @@ err_t Paso_Solver_PCG(
           v[i0]=0;
        } 
        num_iter=0;
+       tau = 0;
        /* start of iteration */
        while (!(convergeFlag || maxIterFlag || breakFlag)) {
            ++(num_iter);
