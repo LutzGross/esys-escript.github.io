@@ -15,7 +15,10 @@ lib_name = 'esysUtils'
 
 local_env.Append(LIBS = boost_lib)
 
-lib = local_env.StaticLibrary(lib_name, sources)
+local_env.Append(CPPDEFINES = 'ESYSUTILS_EXPORTS')
+
+#lib = local_env.StaticLibrary(lib_name, sources)
+lib = local_env.SharedLibrary(lib_name, sources)
 
 include_path = Dir(lib_name, incinstall)
 
