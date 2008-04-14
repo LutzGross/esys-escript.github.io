@@ -236,13 +236,18 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
   Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
   dim_t numNodes, numDim, numEle, i0, i1;
-  index_t tag_key;
   Finley_Mesh *mesh_p=NULL;
   char name[LenString_MAX],element_type[LenString_MAX],frm[20];
   char error_msg[LenErrorMsg_MAX];
   double time0=Finley_timer();
   FILE *fileHandle_p = NULL;
-  ElementTypeId typeID, faceTypeID, contactTypeID, pointTypeID;
+  ElementTypeId typeID;
+
+  /* these are in unimplemented code below */
+#if 0
+  index_t tag_key;
+  ElementTypeId faceTypeID, contactTypeID, pointTypeID;
+#endif
 
   Finley_resetError();
 
@@ -289,7 +294,10 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
      /* allocate mesh */
      mesh_p = Finley_Mesh_alloc(name,numDim,order,reduced_order,mpi_info);
      if (Finley_noError()) {
-	int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0, chunkEle=0, nextCPU=1, mpi_error;
+	int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0, chunkEle=0, nextCPU=1;
+#ifdef PASO_MPI
+	int mpi_error;
+#endif
 	int *tempInts = TMPMEMALLOC(numNodes*3+1, index_t);
 	double *tempCoords = TMPMEMALLOC(numNodes*numDim, double);
 
@@ -427,7 +435,10 @@ Finley_Mesh* Finley_Mesh_read_MPI(char* fname,index_t order, index_t reduced_ord
 
       if (Finley_noError()) {
 	int *tempInts = TMPMEMALLOC(numEle*(2+numNodes)+1, index_t); /* Store Id + Tag + node list (+ one int at end for chunkEle) */
-	int chunkSize = numEle / mpi_info->size, totalEle=0, nextCPU=1, mpi_error;
+	int chunkSize = numEle / mpi_info->size, totalEle=0, nextCPU=1;
+#ifdef PASO_MPI
+	int mpi_error;
+#endif
 	if (numEle % mpi_info->size != 0) chunkSize++; /* Remainder from numEle / mpi_info->size will be spread out one-per-CPU */
 	if (mpi_info->rank == 0) {	/* Master */
 	  for (;;) {			/* Infinite loop */
