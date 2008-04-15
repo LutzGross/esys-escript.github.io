@@ -163,7 +163,7 @@ err_t Paso_Solver_NLGMRES(
                 norm_of_residual=abs(g[k]);
                 maxIterFlag = (k>=iter_max);
                 convergeFlag = (abs(g[k]) <= abs_tol);
-printf("FGMRES step %d: error %e (tol=%d)\n",k,abs(g[k]),abs_tol);
+printf("FGMRES step %d: error %e (tol=%e)\n",k,fabs(g[k]),abs_tol);
           }
       }
       /*
