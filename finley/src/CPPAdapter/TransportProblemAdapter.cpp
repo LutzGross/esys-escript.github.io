@@ -118,11 +118,11 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
     /* insert 0 rows and cols into transport matrix */
     q.expand();
     double* q_dp=q.getSampleData(0);
-    Paso_SystemMatrix_nullifyRowsAndCols(transp->transport_matrix,q_dp,q_dp,0.);
+    Paso_SystemMatrix_nullifyRows(transp->transport_matrix,q_dp, 0.);
     checkPasoError();
 
     /* insert 0 rows amd 1 in main diagonal into mass matrix */
-    Paso_SystemMatrix_nullifyRows(transp->mass_matrix,q_dp, 1.);
+    Paso_SystemMatrix_nullifyRowsAndCols(transp->mass_matrix,q_dp,q_dp,1.);
     checkPasoError();
 
     source.copyWithMask(escript::Data(0.,q.getDataPointShape(),q.getFunctionSpace()),q);
