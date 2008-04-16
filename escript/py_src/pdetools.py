@@ -579,7 +579,7 @@ def givapp(c,s,vin):
             vrot[i:i+2]=w1,w2
     return vrot
 
-def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=10):
+def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
    m=iter_restart
    iter=0
    while True:
@@ -589,7 +589,7 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
       if stopped: break
    return x
 
-def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=10):
+def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
    iter=0
    r=Msolve(b)
    r_dot_r = bilinearform(r, r)
