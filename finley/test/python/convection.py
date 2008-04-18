@@ -33,7 +33,7 @@ else:
 
 DIM=3
 H=1.
-L=4*H
+L=2*H
 THETA=0.5
 TOL=1.e-3
 PERTURBATION=0.1
@@ -41,7 +41,7 @@ T_END=0.3
 DT_OUT=T_END/500
 VERBOSE=False
 RA=1.e5 # Rayleigh number
-A=22.  # Arenious number 
+A=0.  # Arenious number 
 DI = 0.  # dissipation number
 SUPG=False
 create_restartfiles_every_step=10
