@@ -758,7 +758,7 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
     #---------------------------------------------------------------------
     # Main iteration loop.
     # --------------------------------------------------------------------
-    while not stoppingcriterium(rnorm,Anorm*ynorm):    #  checks ||r|| < (||A|| ||x||) * TOL
+    while not stoppingcriterium(rnorm,Anorm*ynorm,'MINRES'):    #  checks ||r|| < (||A|| ||x||) * TOL
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
         iter    = iter  +  1
@@ -888,7 +888,7 @@ def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
 #
 #  while ( iter < kmax-1 ):
    
-  while not stoppingcriterium(tau*math.sqrt ( m + 1 ),norm_b):
+  while not stoppingcriterium(tau*math.sqrt ( m + 1 ),norm_b,'TFQMR'):
     if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
     sigma = bilinearform(r,v)
@@ -944,7 +944,6 @@ def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
     
     iter = iter + 1
 
-  print iter
   return x
 
 
@@ -1140,12 +1139,8 @@ class HomogeneousSaddlePointProblem(object):
       def __stoppingcriterium(self,norm_r,r,p):
           return self.stoppingcriterium(r[1],r[0],p)
 
-      def __stoppingcriterium_GMRES(self,norm_r,norm_b):
-          return self.stoppingcriterium_GMRES(norm_r,norm_b)
-
-      def __stoppingcriterium_MINRES(self,norm_r,norm_Ax):
-          return self.stoppingcriterium_MINRES(norm_r,norm_Ax)
-
+      def __stoppingcriterium2(self,norm_r,norm_b,solver='GMRES'):
+          return self.stoppingcriterium2(norm_r,norm_b,solver)
 
       def setTolerance(self,tolerance=1.e-8):
               self.__tol=tolerance
@@ -1156,7 +1151,7 @@ class HomogeneousSaddlePointProblem(object):
       def getSubProblemTolerance(self):
               return self.__reduction*self.getTolerance()
 
-      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='PCG',iter_restart=10):
+      def solve(self,v,p,max_iter=20, verbose=False, show_details=False, solver='PCG',iter_restart=20):
               """
               solves the saddle point problem using initial guesses v and p.
 
@@ -1185,15 +1180,15 @@ class HomogeneousSaddlePointProblem(object):
               self.iter=0
 	      if solver=='GMRES':   	
                 if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
-                p=GMRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.,iter_restart=iter_restart)
+                p=GMRES(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.,iter_restart=iter_restart)
                 # solve Au=f-B^*p 
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
 
 	      if solver=='TFQMR':   	
-                if self.verbose: print "enter GMRES method (iter_max=%s)"%max_iter
-                p=TFQMR(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_GMRES,iter_max=max_iter, x=p*1.)
+                if self.verbose: print "enter TFQMR method (iter_max=%s)"%max_iter
+                p=TFQMR(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
                 # solve Au=f-B^*p 
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
@@ -1201,7 +1196,7 @@ class HomogeneousSaddlePointProblem(object):
 
 	      if solver=='MINRES':   	
                 if self.verbose: print "enter MINRES method (iter_max=%s)"%max_iter
-                p=MINRES(Bz,self.__Aprod_GMRES,self.__Msolve_GMRES,self.__inner_p,self.__stoppingcriterium_MINRES,iter_max=max_iter, x=p*1.)
+                p=MINRES(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
                 # solve Au=f-B^*p 
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
@@ -1219,7 +1214,7 @@ class HomogeneousSaddlePointProblem(object):
       def __Msolve(self,r):
           return self.solve_prec(r[1])
 
-      def __Msolve_GMRES(self,r):
+      def __Msolve2(self,r):
           return self.solve_prec(r)
 
 
@@ -1229,7 +1224,7 @@ class HomogeneousSaddlePointProblem(object):
           v=self.solve_A(self.__z,-p)
           return ArithmeticTuple(v, self.B(v))
 
-      def __Aprod_GMRES(self,p):
+      def __Aprod2(self,p):
           # return BA^-1B*p 
           #solve Av =-B^*p as Av =f-Az-B^*p
 	  v=self.solve_A(self.__z,-p)
