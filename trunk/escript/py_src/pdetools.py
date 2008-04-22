@@ -477,7 +477,7 @@ class IterationHistory(object):
        if self.verbose: print "iter: #s:  inner(rhat,r) = #e"#(len(self.history)-1, self.history[-1])
        return self.history[-1]<=self.tolerance * self.history[0]
 
-   def stoppingcriterium2(self,norm_r,norm_b):
+   def stoppingcriterium2(self,norm_r,norm_b,solver="GMRES",TOL=None):
        """
        returns True if the C{norm_r} is C{tolerance}*C{norm_b} 
 
@@ -490,9 +490,11 @@ class IterationHistory(object):
        @rtype: C{bool}
 
        """
+       if TOL==None:
+          TOL=self.tolerance
        self.history.append(norm_r)
        if self.verbose: print "iter: #s:  norm(r) = #e"#(len(self.history)-1, self.history[-1])
-       return self.history[-1]<=self.tolerance * norm_b
+       return self.history[-1]<=TOL * norm_b
 
 def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
    """
@@ -585,8 +587,8 @@ def GMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=10
    while True:
       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
       x,stopped=GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=x, iter_max=iter_max-iter, iter_restart=m)
-      iter+=iter_restart
       if stopped: break
+      iter+=iter_restart	
    return x
 
 def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100, iter_restart=20):
@@ -613,7 +615,6 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
    
    v.append(r/rho)
    g[0]=rho
-
    while not (stoppingcriterium(rho,norm_b) or iter==iter_restart-1):
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
@@ -669,6 +670,141 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 
 # At this point either iter > iter_max or rho < tol.
 # It's time to compute x and leave.        
+
+   if iter > 0 : 
+     y=numarray.zeros(iter,numarray.Float64)	
+     y[iter-1] = g[iter-1] / h[iter-1][iter-1]
+     if iter > 1 :	
+        i=iter-2   
+        while i>=0 :
+          y[i] = ( g[i] - numarray.dot(h[i][i+1:iter], y[i+1:iter])) / h[i][i]
+          i=i-1
+     xhat=v[iter-1]*y[iter-1]
+     for i in range(iter-1):
+	xhat += v[i]*y[i]
+   else : xhat=v[0] 
+    
+   x += xhat
+   if iter<iter_restart-1: 
+      stopped=True 
+   else: 
+      stopped=False
+
+   return x,stopped
+
+######################################################
+def dirder(x, w, bilinearform, Aprod, Msolve, f0, b ):
+######################################################
+
+# DIRDER estimates the directional derivative of a function F.
+
+
+# Hardwired difference increment.
+#
+  epsnew = 1.0e-07
+#
+#  Scale the step.
+#
+  norm_w=math.sqrt(bilinearform(w,w))
+  if norm_w== 0.0:
+    return x/x
+
+  epsnew = epsnew / norm_w
+
+  if norm_w > 0.0: 
+    epsnew = epsnew * math.sqrt(bilinearform(x,x))
+#
+#  DEL and F1 could share the same space if storage
+#  is more important than clarity.
+#
+
+  DEL = x + epsnew * w
+  f1 = -Msolve(Aprod(DEL))
+  z = ( f1 - f0 ) / epsnew
+  return z
+
+######################################################
+def FDGMRES(f0, Aprod, Msolve, bilinearform, stoppingcriterium, xc=None, x=None, iter_max=100, iter_restart=20,TOL=None):
+######################################################
+   b=-f0
+   b_dot_b = bilinearform(b, b)
+   if b_dot_b<0: raise NegativeNorm,"negative norm."
+   norm_b=math.sqrt(b_dot_b)
+
+   r=b
+
+   if x==None:
+      x=0
+   else:
+      r=-dirder(xc,x,bilinearform,Aprod,Msolve,f0,b)-f0   
+      
+   r_dot_r = bilinearform(r, r)
+   if r_dot_r<0: raise NegativeNorm,"negative norm."
+   
+   h=numarray.zeros((iter_restart,iter_restart),numarray.Float64)
+   c=numarray.zeros(iter_restart,numarray.Float64)
+   s=numarray.zeros(iter_restart,numarray.Float64)
+   g=numarray.zeros(iter_restart,numarray.Float64)
+   v=[]
+
+   rho=math.sqrt(r_dot_r)
+   
+   v.append(r/rho)
+   g[0]=rho
+   iter=0
+
+   while not (stoppingcriterium(rho,norm_b,solver="FDGMRES",TOL=TOL) or iter==iter_restart-1):
+
+	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+
+	
+        p=dirder(xc, v[iter], bilinearform,Aprod,Msolve,f0,b)
+
+	v.append(p)
+
+	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+
+# Modified Gram-Schmidt	
+	for j in range(iter+1):
+	  h[j][iter]=bilinearform(v[j],v[iter+1])   
+	  v[iter+1]+=(-1.)*h[j][iter]*v[j]
+       
+	h[iter+1][iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
+	v_norm2=h[iter+1][iter]
+
+
+# Reorthogonalize if needed
+	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
+   	 for j in range(iter+1):
+	    hr=bilinearform(v[j],v[iter+1])
+      	    h[j][iter]=h[j][iter]+hr #vhat
+      	    v[iter+1] +=(-1.)*hr*v[j]
+
+   	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
+	 h[iter+1][iter]=v_norm2
+
+#   watch out for happy breakdown 
+        if v_norm2 != 0:
+         v[iter+1]=v[iter+1]/h[iter+1][iter]
+
+#   Form and store the information for the new Givens rotation
+	if iter > 0 :
+		hhat=[]
+		for i in range(iter+1) : hhat.append(h[i][iter])
+		hhat=givapp(c[0:iter],s[0:iter],hhat);
+	        for i in range(iter+1) : h[i][iter]=hhat[i]
+
+	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
+	if mu!=0 :
+		c[iter]=h[iter][iter]/mu
+		s[iter]=-h[iter+1][iter]/mu
+		h[iter][iter]=c[iter]*h[iter][iter]-s[iter]*h[iter+1][iter]
+		h[iter+1][iter]=0.0
+		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2])
+
+# Update the residual norm
+        rho=abs(g[iter+1])
+	iter+=1
 
    if iter > 0 : 
      y=numarray.zeros(iter,numarray.Float64)	
@@ -844,6 +980,71 @@ def MINRES(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 
     return x
     
+def NewtonGMRES(b, Aprod, Msolve, bilinearform, stoppingcriterium,x=None, iter_max=100,iter_restart=20):
+
+    gamma=.9
+    lmaxit=40
+    etamax=.5
+
+    n = 1 #len(x)
+    iter=0
+    
+    # evaluate f at the initial iterate
+    # compute the stop tolerance
+    #
+    r=b
+    if x==None:
+      x=0*b
+    else:
+      r += (-1)*Aprod(x) 
+
+    f0=-Msolve(r)
+    fnrm=math.sqrt(bilinearform(f0,f0))/math.sqrt(n)
+    fnrmo=1
+    atol=1.e-2
+    rtol=1.e-4
+    stop_tol=atol + rtol*fnrm
+    #
+    # main iteration loop
+    #
+    while not stoppingcriterium(fnrm,stop_tol,'NewtonGMRES',TOL=1.):
+
+            if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max 
+	    #
+	    # keep track of the ratio (rat = fnrm/frnmo)
+	    # of successive residual norms and 
+	    # the iteration counter (iter)
+	    #
+	    #rat=fnrm/fnrmo
+	    fnrmo=fnrm 
+	    iter+=1
+	    #
+    	    # compute the step using a GMRES(m) routine especially designed for this purpose
+	    #
+            initer=0 
+            while True:
+               xc,stopped=FDGMRES(f0, Aprod, Msolve, bilinearform, stoppingcriterium, xc=x, iter_max=lmaxit-initer, iter_restart=iter_restart, TOL=etamax)
+               if stopped: break
+               initer+=iter_restart
+	    xold=x
+	    x+=xc
+	    f0=-Msolve(Aprod(x))
+	    fnrm=math.sqrt(bilinearform(f0,f0))/math.sqrt(n)
+	    rat=fnrm/fnrmo
+
+
+	#   adjust eta 
+	#
+	    if etamax > 0:
+	        etaold=etamax
+	        etanew=gamma*rat*rat
+	        if gamma*etaold*etaold > .1 :
+	            etanew=max(etanew,gamma*etaold*etaold)
+	        
+	        etamax=min(etanew,etamax)
+	        etamax=max(etamax,.5*stop_tol/fnrm)
+
+    return x
 
 def TFQMR(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
 
@@ -1139,8 +1340,8 @@ class HomogeneousSaddlePointProblem(object):
       def __stoppingcriterium(self,norm_r,r,p):
           return self.stoppingcriterium(r[1],r[0],p)
 
-      def __stoppingcriterium2(self,norm_r,norm_b,solver='GMRES'):
-          return self.stoppingcriterium2(norm_r,norm_b,solver)
+      def __stoppingcriterium2(self,norm_r,norm_b,solver='GMRES',TOL=None):
+          return self.stoppingcriterium2(norm_r,norm_b,solver,TOL)
 
       def setTolerance(self,tolerance=1.e-8):
               self.__tol=tolerance
@@ -1186,6 +1387,15 @@ class HomogeneousSaddlePointProblem(object):
                 #       u=v+(u-v)
 		u=v+self.solve_A(v,p)
 
+	      if solver=='NewtonGMRES':   	
+                if self.verbose: print "enter NewtonGMRES method (iter_max=%s)"%max_iter
+                p=NewtonGMRES(Bz,self.__Aprod_Newton,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
+                # solve Au=f-B^*p 
+                #       A(u-v)=f-B^*p-Av
+                #       u=v+(u-v)
+		u=v+self.solve_A(v,p)
+                
+
 	      if solver=='TFQMR':   	
                 if self.verbose: print "enter TFQMR method (iter_max=%s)"%max_iter
                 p=TFQMR(Bz,self.__Aprod2,self.__Msolve2,self.__inner_p,self.__stoppingcriterium2,iter_max=max_iter, x=p*1.)
@@ -1229,6 +1439,12 @@ class HomogeneousSaddlePointProblem(object):
           #solve Av =-B^*p as Av =f-Az-B^*p
 	  v=self.solve_A(self.__z,-p)
           return self.B(v)
+
+      def __Aprod_Newton(self,p):
+          # return BA^-1B*p 
+          #solve Av =-B^*p as Av =f-Az-B^*p
+	  v=self.solve_A(self.__z,-p)
+          return self.B(v-self.__z)
 
 class SaddlePointProblem(object):
    """
