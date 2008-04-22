@@ -766,8 +766,7 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
               if (id == reference_ids[sampleNo2]) {
                  p=&(m_data[getPointOffset(sampleNo,0)]);
                  p2=&(m_data[getPointOffset(sampleNo2,0)]);
-                 #pragma ivdep
-                 for (i=0; i<n ;++i) {
+                 for (i=0; i<n ;i++) {
                          rtmp=p[i];
                          p[i]=p2[i];
                          p2[i]=rtmp;

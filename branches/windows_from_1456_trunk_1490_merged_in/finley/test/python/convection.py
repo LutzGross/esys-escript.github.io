@@ -31,9 +31,9 @@ if solver!='PCG':
 else:
  extratol=1
 
-DIM=2
+DIM=3
 H=1.
-L=4*H
+L=2*H
 THETA=0.5
 TOL=1.e-3
 PERTURBATION=0.1
@@ -41,7 +41,7 @@ T_END=0.3
 DT_OUT=T_END/500
 VERBOSE=False
 RA=1.e5 # Rayleigh number
-A=22.  # Arenious number 
+A=0.  # Arenious number 
 DI = 0.  # dissipation number
 SUPG=False
 create_restartfiles_every_step=10
@@ -152,7 +152,7 @@ for d in range(DIM):
 while t<T_END:
     v_last=v*1
     print "============== solve for v ========================"
-    viscosity=exp(A*(1./(1+T.interpolate(Function(dom)))-2./3.))
+    viscosity=exp(A*(1./(1+T.interpolate(Function(dom)))-1./2.))
     print "viscosity range :", inf(viscosity), sup(viscosity)
     sp.initialize(f=T*(RA*unitVector(DIM-1,DIM)),eta=viscosity,fixed_u_mask=fixed_v_mask)
     #v,p=sp.solve(v,p,show_details=VERBOSE, verbose=True,max_iter=500,solver='PCG')
@@ -164,7 +164,7 @@ while t<T_END:
          print "range %d-velocity"%d,inf(v[d]),sup(v[d])
 
     if t>=t_out:
-      saveVTK("state.%d.vtu"%n_out,T=T,v=v,p=p)
+      saveVTK("state.%d.vtu"%n_out,T=T,v=v)
       print "visualization file %d for time step %e generated."%(n_out,t)
       n_out+=1
       t_out+=DT_OUT

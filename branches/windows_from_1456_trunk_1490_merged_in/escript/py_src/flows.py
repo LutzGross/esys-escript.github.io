@@ -123,20 +123,16 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
               return True
           else:
               return False
-      def stoppingcriterium_GMRES(self,norm_r,norm_b):
-          if self.verbose: print "GMRES step %s: L2(r) = %s, L2(b)*TOL=%s"%(self.iter,norm_r,norm_b*self.getTolerance())
+      def stoppingcriterium2(self,norm_r,norm_b,solver='GMRES',TOL=None):
+	  if TOL==None:
+             TOL=self.getTolerance()
+          if self.verbose: print "%s step %s: L2(r) = %s, L2(b)*TOL=%s"%(solver,self.iter,norm_r,norm_b*TOL)
           self.iter+=1
-          if norm_r <= norm_b*self.getTolerance():
-              if self.verbose: print "GMRES terminated after %s steps."%self.iter
+          
+          if norm_r <= norm_b*TOL:
+              if self.verbose: print "%s terminated after %s steps."%(solver,self.iter)
               return True
           else:
               return False
 
-      def stoppingcriterium_MINRES(self,norm_r,norm_Ax):
-          if self.verbose: print "MINRES step %s: L2(r) = %s, L2(b)*TOL=%s"%(self.iter,norm_r,norm_Ax*self.getTolerance())
-          self.iter+=1
-          if norm_r <= norm_Ax*self.getTolerance():
-              if self.verbose: print "MINRES terminated after %s steps."%self.iter
-              return True
-          else:
-              return False
+
