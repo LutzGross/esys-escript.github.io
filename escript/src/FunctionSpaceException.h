@@ -70,7 +70,7 @@ namespace escript
 
     /// Destructor
     ESCRIPT_DLL_API
-    virtual ~FunctionSpaceException() THROW() {}
+    virtual ~FunctionSpaceException() THROW_ANY {}
     /**
     \brief
     Returns the name of the exception.

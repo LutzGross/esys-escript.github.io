@@ -80,8 +80,11 @@ err_t Paso_Solver_PCG(
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
-  double norm_of_residual,norm_of_residual_global, loc_sum[2], sum[2];
-  register double r_tmp,d,rs_tmp,x2_tmp,x_tmp;
+#ifdef PASO_MPI
+  double loc_sum[2], sum[2];
+#endif
+  double norm_of_residual,norm_of_residual_global;
+  register double d;
 
 /*                                                                 */
 /*-----------------------------------------------------------------*/
@@ -120,6 +123,7 @@ err_t Paso_Solver_PCG(
           v[i0]=0;
        } 
        num_iter=0;
+       tau = 0;
        /* start of iteration */
        while (!(convergeFlag || maxIterFlag || breakFlag)) {
            ++(num_iter);
@@ -204,7 +208,7 @@ err_t Paso_Solver_PCG(
                 #endif
                 gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
                 gamma_2= ONE-gamma_1;
-                #pragma omp for private(i0,x2_tmp,x_tmp,rs_tmp) schedule(static)
+                #pragma omp for private(i0) schedule(static)
                 for (i0=0;i0<n;++i0) {
                   rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
                   x2[i0]+=alpha*p[i0];

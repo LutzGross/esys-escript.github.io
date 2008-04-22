@@ -94,15 +94,19 @@ double Paso_FCTransportProblem_getSafeTimeStepSize(Paso_FCTransportProblem* fctp
 
 void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, double* source, Paso_Options* options) {
 
-   index_t i, j;
-   int n_substeps,n, m;
+   index_t i;
+   long n_substeps,n, m;
    double dt_max, omega, dt2,t;
-   double local_norm[2],norm[2],local_norm_u,local_norm_du,norm_u,norm_du, tolerance;
+   double local_norm_u,local_norm_du,norm_u,norm_du, tolerance;
    register double rtmp1,rtmp2,rtmp3,rtmp4, rtmp;
    double *b_n=NULL, *sourceP=NULL, *sourceN=NULL, *uTilde_n=NULL, *QN_n=NULL, *QP_n=NULL, *RN_m=NULL, *RP_m=NULL, *z_m=NULL, *du_m=NULL;
    Paso_SystemMatrix *flux_matrix=NULL;
    dim_t n_rows=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    bool_t converged;
+#ifdef PASO_MPI
+   double local_norm[2],norm[2];
+#endif
+
    if (dt<=0.) {
        Paso_setError(TYPE_ERROR,"Paso_SolverFCT_solve: dt must be positive.");
    }
@@ -146,7 +150,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
     
        /* decide on substepping */
        if (fctp->dt_max < LARGE_POSITIVE_FLOAT) {
-          n_substeps=ceil(dt/dt_max);
+          n_substeps=(long)ceil(dt/dt_max);
        } else {
           n_substeps=1;
        }

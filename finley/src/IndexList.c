@@ -77,7 +77,7 @@ void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, i
                                                  Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
 {
   index_t color;
-  dim_t e,kr,kc,i,icol,irow, NN;
+  dim_t e,kr,kc,icol,irow, NN;
   if (elements!=NULL) {
     NN=elements->numNodes;
     for (color=elements->minColor;color<=elements->maxColor;color++) {

@@ -53,7 +53,7 @@ m_reason(cStr)
   updateMessage();   
 }
 
-EsysException::~EsysException() THROW()
+EsysException::~EsysException() THROW_ANY
 {}
 
 const std::string & EsysException::exceptionName() const 

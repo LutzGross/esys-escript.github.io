@@ -66,7 +66,7 @@ namespace Bruce {
 
     /// Destructor
     BRUCE_Dll_API
-    Virtual ~BruceException() THROW() {}
+    Virtual ~BruceException() THROW_ANY {}
 
     /**
     \Brief
