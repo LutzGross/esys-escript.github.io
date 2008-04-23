@@ -160,10 +160,10 @@ err_t Paso_Solver_NLGMRES(
                     h[INDEX2(k,k-1,l)]=0;
                     ApplyGivensRotations(2,&(g[k-1]),&(c[k-1]),&(s[k-1]));
                 }
-                norm_of_residual=abs(g[k]);
+                norm_of_residual=fabs(g[k]);
                 maxIterFlag = (k>=iter_max);
-                convergeFlag = (abs(g[k]) <= abs_tol);
-printf("FGMRES step %d: error %e (tol=%e)\n",k,fabs(g[k]),abs_tol);
+                convergeFlag = (fabs(g[k]) <= abs_tol);
+                printf("FGMRES step %d: error %e (tol=%e)\n",k,fabs(g[k]),abs_tol);
           }
       }
       /*
