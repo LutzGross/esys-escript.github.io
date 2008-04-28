@@ -91,6 +91,19 @@ namespace esysUtils
 
     /**
     \brief
+    Assignment needed to override any automatic assignment
+    of std::exception, which can potentially copy around char *'s,
+    causeing trouble in some implementations of STL.
+    It will only copy the reason string, and update the message.
+
+    @return re-assigned exception.
+    */
+    ESYSUTILS_DLL_API
+    virtual EsysException &
+    operator=(const EsysException &other) THROW_ANY;
+
+    /**
+    \brief
     Return the exception message in the form
     &lt;Exception Name&gt;: &lt;Exception Message&gt;
 
