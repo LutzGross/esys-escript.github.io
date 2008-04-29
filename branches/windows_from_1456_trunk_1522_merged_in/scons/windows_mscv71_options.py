@@ -55,6 +55,11 @@ cc_flags_debug  = cc_common_flags + '/Od /RTC1 /MTd /ZI'
 # c++ flags to use
 cxx_flags = ''
 cxx_flags_debug = ''
+
+# linker flags to use
+#link_flags = ''
+link_flags_debug = '/debug /incremental:no /opt:ref /opt:icf'
+
 # static library archiver flags to use
 #ar_flags = 'crus'
 
