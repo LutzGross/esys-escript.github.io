@@ -1633,8 +1633,8 @@ class SaddlePointProblem(object):
             norm_u_new = util.Lsup(u_new)
             p_new=p+self.relaxation*g_new
             norm_p_new = util.sqrt(self.inner(p_new,p_new))
-            self.trace("%s th step: f = %s, f/u = %s, g = %s, g/p = %s, relaxation = %s."%(self.iter, norm_f_new ,norm_f_new/norm_u_new, norm_g_new, norm_g_new/norm_p_new, self.relaxation))
 
+            self.trace("step %d: f = %e, f/u = %e, g = %e, g/p = %e, relaxation = %e."%(self.iter, norm_f_new ,norm_f_new/norm_u_new, norm_g_new, norm_g_new/norm_p_new, self.relaxation))
             if self.iter>1:
                dg2=g_new-g
                df2=f_new-f
