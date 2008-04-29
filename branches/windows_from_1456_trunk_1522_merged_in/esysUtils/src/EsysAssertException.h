@@ -66,6 +66,16 @@ namespace esysUtils {
         updateMessage();
       }
 
+     inline
+     EsysAssertException &
+     EsysAssertException::operator=(const EsysAssertException &other)
+        THROW_ANY 
+        {
+           Parent::operator=(other);
+           updateMessage();   
+           return *this;
+        }
+
 
     /// Destructor
     ESYSUTILS_DLL_API
