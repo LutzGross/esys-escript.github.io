@@ -105,6 +105,7 @@ class DataArrayView {
 
      Description:
      Copy constructor for DataArrayView.
+     FIXME: See later FIXME.
 
      \param other - Input -
                 DataArrayView to copy.
@@ -118,11 +119,26 @@ class DataArrayView {
   /**
      \brief
      Destructor.
+     FIXME: See later FIXME.
 
      NOTE: Be explicit because of the raw pointer member.
   */
   ESCRIPT_DLL_API
+  inline virtual
   ~DataArrayView() { };
+
+  /**
+     \brief
+     FIXME: See later FIXME.
+
+     NOTE: Be explicit because of the raw pointer member.
+  */
+  ESCRIPT_DLL_API
+  virtual
+  DataArrayView &
+  operator=( const DataArrayView &other);
+
+
 
   /**
      \brief
@@ -1472,6 +1488,24 @@ class DataArrayView {
   // The data values for the view.
   // NOTE: This points to data external to the view.
   // This is just a pointer to an array of ValueType.
+  // FIXME: JUST a pointer eh?
+  //        All raw pointers to shared memory need to be replaced... really.
+  //        Using smart pointers, you can get efficient direct access
+  //        to pointers if you need it, 
+  //        and you can control it.
+  //        Do it & huge amounts of pain will go away. 
+  //        Use boost and the 
+  //        typedef boost::shared_ptr<ValueType> ValuePointer;
+  //        kind of pattern.
+  //        Oh, & see if you can bring yourself to not using "using" all
+  //        over the place.
+  //        If you have foo::bar::har::get_my_car::... driving you crazy,
+  //        try using namespace ABetterNameSpace = foo::bar::har::...
+  //        you lazy sod. And, stop "using std", 
+  //        its addictive & bad for your long term health.
+  //        Use protection, and get used to "std::".
+  //        Author: guess....
+  //
   ValueType* m_data;
 
   //
