@@ -207,6 +207,7 @@ void Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,double* 
                  invD_0=1./D_0;
                  dvdX00_0=dXdv00_0*invD_0;
                  dvdX01_0=dXdv10_0*invD_0;
+                 invD_1=1./D_1;
                  dvdX00_1=dXdv00_1*invD_1;
                  dvdX01_1=dXdv10_1*invD_1;
                  for (s=0;s<numTest; s++) {
