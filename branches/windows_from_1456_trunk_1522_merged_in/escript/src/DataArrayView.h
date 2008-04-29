@@ -114,6 +114,16 @@ class DataArrayView {
   ESCRIPT_DLL_API
   DataArrayView(const DataArrayView& other);
 
+
+  /**
+     \brief
+     Destructor.
+
+     NOTE: Be explicit because of the raw pointer member.
+  */
+  ESCRIPT_DLL_API
+  ~DataArrayView() { };
+
   /**
      \brief
      Copy from a numarray into the data array viewed by this.
