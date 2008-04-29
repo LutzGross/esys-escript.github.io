@@ -147,6 +147,7 @@ namespace esysUtils
 
     @return a description of the exception.
     */
+    ESYSUTILS_DLL_API
     inline
     virtual const char* what() const THROW_ANY;
 
