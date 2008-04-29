@@ -36,7 +36,7 @@
 void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,index_t* Nodes_Equa, dim_t num_Equa, 
                                         dim_t NN_Sol,index_t* Nodes_Sol, dim_t num_Sol, double* array) {
   index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,index,k,i_row, i_col;
+  dim_t k_Equa,j_Equa,j_Sol,k_Sol,i_Equa,i_Sol,l_col,l_row,ic,ir,k,i_row, i_col;
   index_t *mainBlock_ptr, *mainBlock_index, *coupleBlock_ptr, *coupleBlock_index;
   double *mainBlock_val, *coupleBlock_val;
   dim_t row_block_size=in->row_block_size;
