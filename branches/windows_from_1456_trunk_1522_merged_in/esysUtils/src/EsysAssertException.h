@@ -41,18 +41,21 @@ namespace esysUtils {
     \brief
     Default constructor for the exception.
     */
+    ESYSUTILS_DLL_API
     inline
     EsysAssertException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
+    ESYSUTILS_DLL_API
     inline
     EsysAssertException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
+    ESYSUTILS_DLL_API
     inline
     EsysAssertException(const std::string &str) :
     Parent(str) { updateMessage();}
@@ -60,16 +63,17 @@ namespace esysUtils {
     \brief
     Copy Constructor for the exception.
     */
+    ESYSUTILS_DLL_API
     inline
     EsysAssertException(const EsysAssertException &other) : Parent(other)
       {
         updateMessage();
       }
 
-     inline
-     EsysAssertException &
-     EsysAssertException::operator=(const EsysAssertException &other)
-        THROW_ANY 
+    ESYSUTILS_DLL_API
+    inline virtual
+    EsysAssertException &
+    operator=(const EsysAssertException &other) THROW_ANY
         {
            Parent::operator=(other);
            updateMessage();   
