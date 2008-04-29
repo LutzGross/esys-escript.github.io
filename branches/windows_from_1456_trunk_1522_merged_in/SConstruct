@@ -215,6 +215,9 @@ opts.AddOptions(
   ('cc_flags_debug', 'C compiler flags to use (Debug build)', cc_flags_debug_default),
   ('cxx_flags', 'C++ compiler flags to use (Release build)', cxx_flags_default),
   ('cxx_flags_debug', 'C++ compiler flags to use (Debug build)', cxx_flags_debug_default),
+  ('link_flags', 'Linker flags to use (Release build)', None),
+  ('link_flags_debug', 'Linker flags to use (Debug build)', None),
+
   ('omp_flags', 'OpenMP compiler flags to use (Release build)', ''),
   ('omp_flags_debug', 'OpenMP compiler flags to use (Debug build)', ''),
   ('ar_flags', 'Static library archiver flags to use', None),
@@ -485,6 +488,18 @@ try:
      if env['CC'] == 'gcc': env.Append(CCFLAGS = "-pedantic-errors -Wno-long-long")
 except:
      pass
+if dodebug:
+     try:
+        flags = env['link_flags_debug']
+        env.Append(LINKFLAGS = flags)
+     except KeyError:
+        pass
+else:
+     try:
+        flags = env['link_flags']
+        env.Append(LINKFLAGS = flags)
+     except KeyError:
+        pass
 
 # ============= Remember what options were used in the compile =====================================
 if not IS_WINDOWS_PLATFORM:
