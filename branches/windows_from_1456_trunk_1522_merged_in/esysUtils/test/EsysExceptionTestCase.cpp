@@ -44,7 +44,6 @@ public:
    operator=(const DerivedEx &other) THROW_ANY
       {
          Parent::operator=(other);
-         // call this just incase....
          updateMessage();
          return *this;
       }
