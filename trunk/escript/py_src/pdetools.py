@@ -1483,7 +1483,7 @@ class SaddlePointProblem(object):
        @param text: a text message
        @type text: C{str}
        """
-       if self.__verbose: print "#s: #s"%(str(self),text)
+       if self.__verbose: print "%s: %s"%(str(self),text)
 
    def solve_f(self,u,p,tol=1.e-8):
        """
