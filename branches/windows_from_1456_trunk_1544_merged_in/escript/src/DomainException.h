@@ -66,6 +66,15 @@ namespace escript
         updateMessage();
       }
 
+    ESCRIPT_DLL_API
+    inline virtual DomainException &
+    operator=(const DomainException &other ) THROW_ANY
+       {
+         Parent::operator=(other);
+         updateMessage();
+         return *this;
+       }
+
     /// Destructor
     ESCRIPT_DLL_API
     virtual ~DomainException() THROW_ANY {}

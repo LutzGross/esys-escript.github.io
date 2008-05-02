@@ -40,7 +40,7 @@ public:
    // Copy Constructor.
    DerivedEx(const DerivedEx &other): Parent(other) { updateMessage(); } 
 
-   virtual DerivedEx &
+   inline virtual DerivedEx &
    operator=(const DerivedEx &other) THROW_ANY
       {
          Parent::operator=(other);

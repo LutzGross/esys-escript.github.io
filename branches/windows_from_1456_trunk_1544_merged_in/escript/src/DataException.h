@@ -66,6 +66,15 @@ namespace escript
         updateMessage();
       }
 
+    ESCRIPT_DLL_API
+    inline virtual DataException &
+    operator=(const DataException &other ) THROW_ANY
+       {
+         Parent::operator=(other);
+         updateMessage();
+         return *this;
+       }
+
 
     /// Destructor
     ESCRIPT_DLL_API
