@@ -1497,14 +1497,12 @@ class DataArrayView {
   //        Use boost and the 
   //        typedef boost::shared_ptr<ValueType> ValuePointer;
   //        kind of pattern.
-  //        Oh, & see if you can bring yourself to not using "using" all
-  //        over the place.
-  //        If you have foo::bar::har::get_my_car::... driving you crazy,
-  //        try using namespace ABetterNameSpace = foo::bar::har::...
-  //        you lazy sod. And, stop "using std", 
-  //        its addictive & bad for your long term health.
+  //        Oh, "using namepace std" is addictive &
+  //        bad for your long term health.
   //        Use protection, and get used to "std::".
-  //        Author: guess....
+  //        If you have foo::bar::har::get_my_car::... driving you crazy,
+  //        try using "namespace MySpace = foo::bar::har::..."
+  //        and then use MySpace::
   //
   ValueType* m_data;
 
