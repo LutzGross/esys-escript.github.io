@@ -69,6 +69,20 @@ namespace Bruce {
     Virtual ~BruceException() THROW_ANY {}
 
     /**
+    \brief
+    Assignment operator.
+    */
+    BRUCE_DLL_API
+    inline virtual BruceException &
+    operator=(const BruceException &other ) THROW_ANY
+       {
+         Parent::operator=(other);
+         updateMessage();
+         return *this;
+       }
+
+
+    /**
     \Brief
     Returns The Name Of The Exception.
     */
