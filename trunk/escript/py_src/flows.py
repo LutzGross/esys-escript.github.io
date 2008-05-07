@@ -63,7 +63,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          self.vol=util.integrate(1.,Function(self.domain))
          self.__pde_u=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_u.setSymmetryOn()
-         self.__pde_u.setSolverMethod(preconditioner=LinearPDE.RILU)
+         self.__pde_u.setSolverMethod(preconditioner=LinearPDE.ILU0)
             
          self.__pde_prec=LinearPDE(domain)
          self.__pde_prec.setReducedOrderOn()
