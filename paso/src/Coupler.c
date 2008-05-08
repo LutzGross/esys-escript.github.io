@@ -202,7 +202,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
                       (coupler->connector->recv->offsetInShared[i+1]- coupler->connector->recv->offsetInShared[i])*block_size,
                       MPI_DOUBLE,
                       coupler->connector->recv->neighbor[i], 
-                      mpi_info->msg_tag_counter+coupler->recv->neighbor[i],
+                      mpi_info->msg_tag_counter+coupler->connector->recv->neighbor[i],
                       mpi_info->comm,
                       &(coupler->mpi_requests[i]));
             #endif
@@ -219,13 +219,13 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      {
         for (i=0; i< coupler->connector->send->numNeighbors; ++i) {
              #ifdef PASO_MPI
-             MPI_Issend(&(coupler->send_buffer[coupler->send->offsetInShared[i] *  block_size]),
+             MPI_Issend(&(coupler->send_buffer[coupler->connector->send->offsetInShared[i] *  block_size]),
                         (coupler->connector->send->offsetInShared[i+1]- coupler->connector->send->offsetInShared[i])*block_size,
                         MPI_DOUBLE,
                         coupler->connector->send->neighbor[i], 
                         mpi_info->msg_tag_counter+mpi_info->rank,
                         mpi_info->comm,
-                        &(coupler->mpi_requests[i+ coupler->recv->numNeighbors]));
+                        &(coupler->mpi_requests[i+ coupler->connector->recv->numNeighbors]));
              #endif 
         }
      }

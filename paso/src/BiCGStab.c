@@ -86,7 +86,7 @@ err_t Paso_Solver_BiCGStab(
   /* Local variables */
   double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL, *buf1=NULL, *buf0=NULL;
   double beta,norm_of_residual,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global;
-  double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1;
+  double alpha, omega, omegaNumtr, omegaDenumtr, rho, tol, rho1, loc_sum[2], sum[2];
   dim_t num_iter=0,maxit,num_iter_global;
   dim_t i0;
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
@@ -155,6 +155,13 @@ err_t Paso_Solver_BiCGStab(
       #pragma omp barrier
       #pragma omp for private(i0) reduction(+:sum_1) schedule(static)
       for (i0 = 0; i0 < n; i0++) sum_1 += rtld[i0] * r[i0];
+       #ifdef PASO_MPI
+         #pragma omp master
+         {
+            loc_sum[0] = sum_1;
+            MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+         }
+      #endif
       rho = sum_1;
       
       if (! (breakFlag = (ABS(rho) <= TOLERANCE_FOR_SCALARS))) {
@@ -176,6 +183,13 @@ err_t Paso_Solver_BiCGStab(
    
         #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
 	for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
+        #ifdef PASO_MPI
+            #pragma omp master
+            {
+               loc_sum[0] = sum_2;
+               MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+            }
+        #endif
         if (! (breakFlag = (ABS(sum_2) <= TOLERANCE_FOR_SCALARS))) {
 	   alpha = rho / sum_2;
 
@@ -185,6 +199,13 @@ err_t Paso_Solver_BiCGStab(
 	     s[i0] = r[i0];
 	     sum_3 += s[i0] * s[i0];
 	   }
+           #ifdef PASO_MPI
+               #pragma omp master
+               {
+                  loc_sum[0] = sum_3;
+                  MPI_Allreduce(loc_sum, &sum_3, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+               }
+           #endif
 	   norm_of_residual = sqrt(sum_3);
         
 	   /*        Early check for tolerance. */
@@ -203,6 +224,16 @@ err_t Paso_Solver_BiCGStab(
 	       omegaNumtr +=t[i0] * s[i0];
 	       omegaDenumtr += t[i0] * t[i0];
 	     }
+             #ifdef PASO_MPI
+                 #pragma omp master
+                 {
+                    loc_sum[0] = omegaNumtr;
+                    loc_sum[1] = omegaDenumtr;
+                    MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                    omegaNumtr=sum[0];
+                    omegaDenumtr=sum[1];
+                 }
+             #endif
              if (! (breakFlag = (ABS(omegaDenumtr) <= TOLERANCE_FOR_SCALARS))) {
 	        omega = omegaNumtr / omegaDenumtr;
    
@@ -212,6 +243,13 @@ err_t Paso_Solver_BiCGStab(
 	          r[i0] = s[i0]-omega * t[i0];
 	          sum_4 += r[i0] * r[i0];
 	        }
+                #ifdef PASO_MPI
+                    #pragma omp master
+                    {
+                       loc_sum[0] = sum_4;
+                       MPI_Allreduce(loc_sum, &sum_4, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                    }
+                #endif
 	        norm_of_residual = sqrt(sum_4);
 	        convergeFlag = norm_of_residual <= tol;
 	        maxIterFlag = num_iter == maxit;
