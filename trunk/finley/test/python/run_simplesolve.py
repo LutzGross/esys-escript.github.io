@@ -36,13 +36,13 @@ __url__="http://www.iservo.edu.au/esys/escript"
 __version__="$Revision: 859 $"
 __date__="$Date: 2006-09-26 12:19:18 +1000 (Tue, 26 Sep 2006) $"
 
-import unittest
+import unittest, sys
 
 from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
 OPTIMIZE=False
-SOLVER_VERBOSE=False
+SOLVER_VERBOSE=False 
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
