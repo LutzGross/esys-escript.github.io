@@ -111,7 +111,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
            }
            
            /* create the local matrix pattern */
-           pattern=Finley_IndexList_createPattern(myNumVertices,index_list,0,globalNumVertices,0);
+           pattern=Finley_IndexList_createPattern(0,myNumVertices,index_list,0,globalNumVertices,0);
 
            /* clean up index list */
            if (index_list!=NULL) {

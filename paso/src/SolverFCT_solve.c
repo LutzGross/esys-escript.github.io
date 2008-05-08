@@ -111,7 +111,6 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
     *  allocate memory
     *
     */
-   Paso_SystemMatrix_allocBuffer(fctp->iteration_matrix);
    b_n=TMPMEMALLOC(n_rows,double);
    Paso_checkPtr(b_n);
    sourceP=TMPMEMALLOC(n_rows,double);
@@ -137,8 +136,6 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                                        fctp->transport_matrix->row_block_size,
                                        fctp->transport_matrix->col_block_size);
    if (Paso_noError()) {
-       Paso_SystemMatrix_allocBuffer(flux_matrix);
-       Paso_SystemMatrix_allocBuffer(fctp->iteration_matrix);
        /*
         *    Preparation:
         *

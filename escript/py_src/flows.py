@@ -131,10 +131,13 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
       def stoppingcriterium(self,Bv,v,p):
           n_r=util.sqrt(self.inner(Bv,Bv))
-          n_v=util.Lsup(v)
-          if self.verbose: print "PCG step %s: L2(div(v)) = %s, Lsup(v)=%s"%(self.iter,n_r,n_v) 
+          n_v=util.sqrt(util.integrate(util.length(util.grad(v))**2))
+          if self.verbose: print "PCG step %s: L2(div(v)) = %s, L2(grad(v))=%s"%(self.iter,n_r,n_v) 
+          if self.iter == 0: self.__n_v=n_v;
+          self.__n_v, n_v_old =n_v, self.__n_v
           self.iter+=1
-          if n_r <= self.vol**(1./2.-1./self.domain.getDim())*n_v*self.getTolerance():
+          print abs(n_v_old-self.__n_v), n_v, self.getTolerance()
+          if self.iter>1 and n_r <= n_v*self.getTolerance() and abs(n_v_old-self.__n_v) <= n_v * self.getTolerance():
               if self.verbose: print "PCG terminated after %s steps."%self.iter
               return True
           else:

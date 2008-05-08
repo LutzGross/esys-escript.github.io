@@ -29,13 +29,21 @@
 #include "SharedComponents.h"
 /**************************************************************/
 
+typedef struct Paso_Connector {
+
+  Paso_SharedComponents* send;
+  Paso_SharedComponents* recv;
+  dim_t reference_counter;
+  Paso_MPIInfo *mpi_info;
+
+} Paso_Connector;
 typedef struct Paso_Coupler {
 
   dim_t block_size;
 
-  Paso_SharedComponents* send;
+  Paso_Connector* connector;
+
   double *send_buffer;
-  Paso_SharedComponents* recv;
   double *recv_buffer;
   #ifdef PASO_MPI
     MPI_Request* mpi_requests;
@@ -51,15 +59,16 @@ typedef struct Paso_Coupler {
 } Paso_Coupler;
 
 
-Paso_Coupler* Paso_Coupler_alloc(Paso_SharedComponents * send,
-                                 Paso_SharedComponents* recv);
+Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents * send, Paso_SharedComponents* recv);
+Paso_Connector* Paso_Connector_getReference(Paso_Connector*);
+Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size);
+Paso_Connector* Paso_Connector_copy(Paso_Connector* in);
+void Paso_Connector_free(Paso_Connector*);
+
+Paso_Coupler* Paso_Coupler_alloc(Paso_Connector*, dim_t blockSize);
 Paso_Coupler* Paso_Coupler_getReference(Paso_Coupler*);
-void Paso_Coupler_free(Paso_Coupler*);
 void Paso_Coupler_startCollect(Paso_Coupler* self,const double* in);
 double* Paso_Coupler_finishCollect(Paso_Coupler* self);
-void Paso_Coupler_freeBuffer(Paso_Coupler* coupler);
-void Paso_Coupler_allocBuffer(Paso_Coupler* coupler,dim_t blockSize);
-Paso_Coupler* Paso_Coupler_unroll(Paso_Coupler* in, index_t block_size);
-bool_t Paso_Coupler_bufferIsAllocated(Paso_Coupler* coupler);
+void Paso_Coupler_free(Paso_Coupler* in);
 
 #endif 

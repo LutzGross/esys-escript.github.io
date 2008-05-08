@@ -54,8 +54,8 @@ struct Finley_NodeFile {
  Paso_Distribution *degreesOfFreedomDistribution;
  Paso_Distribution *reducedDegreesOfFreedomDistribution;
 
- Paso_Coupler* degreesOfFreedomCoupler;
- Paso_Coupler *reducedDegreesOfFreedomCoupler;
+ Paso_Connector* degreesOfFreedomConnector;
+ Paso_Connector *reducedDegreesOfFreedomConnector;
   
                      /* these a the packed versions of Id */
  index_t *reducedNodesId;        

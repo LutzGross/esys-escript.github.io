@@ -134,7 +134,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
               if (! Paso_noError()) return;
           
               time_iter=Paso_timer();
-              Paso_SystemMatrix_allocBuffer(A);
               /* get an initial guess by evaluating the preconditioner */
               #pragma omp parallel
               {
@@ -246,7 +245,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                  } /* while */
               }
               MEMFREE(r);
-              Paso_SystemMatrix_freeBuffer(A);
               time_iter=Paso_timer()-time_iter;
               if (options->verbose)  {
                  printf("timing: solver: %.4e sec\n",time_iter);

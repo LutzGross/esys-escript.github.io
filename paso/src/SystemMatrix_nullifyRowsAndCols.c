@@ -18,7 +18,7 @@
 /* Paso: SystemMatrix                                       */
 
 /*  nullify rows and columns in the matrix                    */
-
+/*
 /*  the rows and columns are marked by positive values in     */
 /*  mask_row and mask_col. Values on the main diagonal        */
 /*  which are marked to set to zero by both mask_row and      */
@@ -48,14 +48,15 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
            Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: TRILINOS is not supported with MPI.");
            return;
        } else {
-         Paso_SystemMatrix_allocBuffer(A);
          if (Paso_noError()) {
-            Paso_SystemMatrix_startCollect(A,mask_col) ;
+            Paso_SystemMatrix_startColCollect(A,mask_col);
+            Paso_SystemMatrix_startRowCollect(A,mask_row);
             Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->mainBlock,mask_row,mask_col,main_diagonal_value);
-            remote_values=Paso_SystemMatrix_finishCollect(A);
-            Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->coupleBlock,mask_row,remote_values,0.); 
+            remote_values=Paso_SystemMatrix_finishColCollect(A);
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->col_coupleBlock,mask_row,remote_values,0.); 
+            remote_values=Paso_SystemMatrix_finishRowCollect(A);
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->row_coupleBlock,remote_values,mask_col,0.); 
          }
-         Paso_SystemMatrix_freeBuffer(A);
        }
      } else {
        if (A->type & MATRIX_FORMAT_CSC) {
@@ -65,14 +66,15 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
            Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRowsAndCols: TRILINOS is not supported with MPI.");
            return;
        } else {
-         Paso_SystemMatrix_allocBuffer(A);
          if (Paso_noError()) {
-            Paso_SystemMatrix_startCollect(A,mask_col) ;
+            Paso_SystemMatrix_startColCollect(A,mask_col) ;
+            Paso_SystemMatrix_startRowCollect(A,mask_row) ;
             Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->mainBlock,mask_row,mask_col,main_diagonal_value);
-            remote_values=Paso_SystemMatrix_finishCollect(A);
-            Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->coupleBlock,mask_row,remote_values,0.);
+            remote_values=Paso_SystemMatrix_finishColCollect(A);
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->col_coupleBlock,mask_row,remote_values,0.);
+            remote_values=Paso_SystemMatrix_finishRowCollect(A);
+            Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->row_coupleBlock,remote_values,mask_col,0.); 
          }
-         Paso_SystemMatrix_freeBuffer(A);
        }
      } 
   } else { 

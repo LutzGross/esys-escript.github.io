@@ -1,5 +1,5 @@
 
-/* $Id:$ */
+/* $Id$ */
 
 /*******************************************************
  *
@@ -34,7 +34,8 @@
 #include "SystemMatrix.h"
 
 void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value) {
-
+ 
+  double* remote_values;
   Paso_MPIInfo *mpi_info=A->mpi_info;
   if (A ->col_block_size==1 && A ->row_block_size ==1) {
        if (A->type & MATRIX_FORMAT_CSC) {
@@ -45,8 +46,11 @@ void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, doubl
            return;
        } else {
          if (Paso_noError()) {
+            Paso_SystemMatrix_startRowCollect(A,mask_row);
             Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->mainBlock,mask_row,main_diagonal_value);
-            Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->coupleBlock,mask_row,0.); 
+            Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->col_coupleBlock,mask_row,0.); 
+            remote_values=Paso_SystemMatrix_finishRowCollect(A);
+            Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->row_coupleBlock,remote_values,0.);
          }
        }
   } else {
@@ -57,12 +61,13 @@ void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, doubl
            Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: TRILINOS is not supported with MPI.");
            return;
        } else {
-         Paso_SystemMatrix_allocBuffer(A);
          if (Paso_noError()) {
+            Paso_SystemMatrix_startRowCollect(A,mask_row);
             Paso_SparseMatrix_nullifyRows_CSR(A->mainBlock,mask_row,main_diagonal_value);
-            Paso_SparseMatrix_nullifyRows_CSR(A->coupleBlock,mask_row,0.);
+            Paso_SparseMatrix_nullifyRows_CSR(A->col_coupleBlock,mask_row,0.);
+            remote_values=Paso_SystemMatrix_finishRowCollect(A);
+            Paso_SparseMatrix_nullifyRows_CSR(A->row_coupleBlock,remote_values,0.);
          }
-         Paso_SystemMatrix_freeBuffer(A);
        }
   } 
   return;

@@ -34,7 +34,6 @@ void Paso_FCTransportProblem_free(Paso_FCTransportProblem* in) {
      if (in!=NULL) {
         in->reference_counter--;
         if (in->reference_counter<=0) {
-
            Paso_SystemMatrix_free(in->transport_matrix);
            Paso_SystemMatrix_free(in->mass_matrix);
            Paso_SystemMatrix_free(in->iteration_matrix);
@@ -92,7 +91,6 @@ Paso_FCTransportProblem* Paso_FCTransportProblem_alloc(double theta, Paso_System
      out->dt_max=LARGE_POSITIVE_FLOAT;
      out->valid_matrices=FALSE;
      out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
-     Paso_SystemMatrix_allocBuffer(out->transport_matrix);
      out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size);
      out->iteration_matrix=NULL;
 

@@ -1236,7 +1236,7 @@ class ArithmeticTuple(object):
        """
        out=[]
        for i in range(len(self)):
-           out.append(self[i]/other)
+           out.append(self[i]*(1./other))
        return ArithmeticTuple(*tuple(out))
 
    def __rdiv__(self,other):
@@ -1415,18 +1415,12 @@ class HomogeneousSaddlePointProblem(object):
               # which leads to BA^-1B^*p = BA^-1f  
 
 	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
-
-	       
 	      self.__z=v+self.solve_A(v,p*0)
-
               Bz=self.B(self.__z)
               #
 	      #   solve BA^-1B^*p = Bz 
               #
-              #   note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
               #
-              #   with                    Av=Az-B^*p = f - B^*p (v=z on fixed_u_mask)
-              #                           A(v-z)=Az-B^*p-Az = f -Az - B^*p (v-z=0 on fixed_u_mask)
               #
               self.iter=0
 	      if solver=='GMRES':   	
@@ -1478,9 +1472,14 @@ class HomogeneousSaddlePointProblem(object):
 		#u=x[0]
 
               if solver=='PCG':
+                #   note that the residual r=Bz-BA^-1B^*p = B(z-A^-1B^*p) = Bv
+                #
+                #   with                    Av=Az-B^*p = f - B^*p (v=z on fixed_u_mask)
+                #                           A(v-z)= f -Az - B^*p (v-z=0 on fixed_u_mask)
                 if self.verbose: print "enter PCG method (iter_max=%s)"%max_iter
                 p,r=PCG(ArithmeticTuple(self.__z*1.,Bz),self.__Aprod,self.__Msolve,self.__inner,self.__stoppingcriterium,iter_max=max_iter, x=p)
 	        u=r[0]  
+                print "DIFF=",util.integrate(p)
 
               print "RESULT div(u)=",util.Lsup(self.B(u)),util.Lsup(u)
 
@@ -1498,7 +1497,7 @@ class HomogeneousSaddlePointProblem(object):
 
       def __Aprod(self,p):
           # return BA^-1B*p 
-          #solve Av =-B^*p as Av =f-Az-B^*p
+          #solve Av =B^*p as Av =f-Az-B^*(-p)
           v=self.solve_A(self.__z,-p)
           return ArithmeticTuple(v, self.B(v))
 
@@ -1515,7 +1514,7 @@ class HomogeneousSaddlePointProblem(object):
 
       def __Aprod2(self,p):
           # return BA^-1B*p 
-          #solve Av =-B^*p as Av =f-Az-B^*p
+          #solve Av =B^*p as Av =f-Az-B^*(-p)
 	  v=self.solve_A(self.__z,-p)
           return self.B(v)
 
