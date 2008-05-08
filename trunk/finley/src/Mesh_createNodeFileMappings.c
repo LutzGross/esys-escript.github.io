@@ -32,7 +32,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   Paso_MPI_rank myRank,p,p_min,p_max, *neighbor=NULL;
   Paso_SharedComponents *rcv_shcomp=NULL, *snd_shcomp=NULL;
   Finley_NodeMapping *this_mapping=NULL;
-  Paso_Coupler* this_coupler=NULL;
+  Paso_Connector* this_connector=NULL;
   Paso_Distribution* dof_distribution;
   
   numNodes=in->Nodes->numNodes;
@@ -187,7 +187,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     offsetInShared[numNeighbors]=lastn;
     snd_shcomp=Paso_SharedComponents_alloc(numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
 
-    if (Finley_noError()) this_coupler=Paso_Coupler_alloc(snd_shcomp,rcv_shcomp);
+    if (Finley_noError()) this_connector=Paso_Connector_alloc(snd_shcomp,rcv_shcomp);
     /* assign new DOF labels to nodes */
     Paso_SharedComponents_free(rcv_shcomp);
     Paso_SharedComponents_free(snd_shcomp);
@@ -200,14 +200,14 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   if (Finley_noError()) {
      if (use_reduced_elements) {
         in->Nodes->reducedDegreesOfFreedomMapping=this_mapping;
-        in->Nodes->reducedDegreesOfFreedomCoupler=this_coupler;
+        in->Nodes->reducedDegreesOfFreedomConnector=this_connector;
      } else {
         in->Nodes->degreesOfFreedomMapping=this_mapping;
-        in->Nodes->degreesOfFreedomCoupler=this_coupler;
+        in->Nodes->degreesOfFreedomConnector=this_connector;
     }
   } else {
      Finley_NodeMapping_free(this_mapping);
-     Paso_Coupler_free(this_coupler);
+     Paso_Connector_free(this_connector);
 
   }
 }
@@ -345,9 +345,9 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
 
   }
   TMPMEMFREE(nodeMask);
-  /* ==== mapping between nodes and DOFs + DOF coupler ========== */
+  /* ==== mapping between nodes and DOFs + DOF connector ========== */
   if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,FALSE);
-  /* ==== mapping between nodes and reduced DOFs + reduced DOF coupler ========== */
+  /* ==== mapping between nodes and reduced DOFs + reduced DOF connector ========== */
   if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,TRUE);
 
   /* get the Ids for DOFs and reduced nodes */
@@ -370,8 +370,8 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
     Paso_Distribution_free(in->Nodes->reducedNodesDistribution);
     Paso_Distribution_free(in->Nodes->degreesOfFreedomDistribution);
     Paso_Distribution_free(in->Nodes->reducedDegreesOfFreedomDistribution);
-    Paso_Coupler_free(in->Nodes->degreesOfFreedomCoupler);
-    Paso_Coupler_free(in->Nodes->reducedDegreesOfFreedomCoupler);
+    Paso_Connector_free(in->Nodes->degreesOfFreedomConnector);
+    Paso_Connector_free(in->Nodes->reducedDegreesOfFreedomConnector);
     in->Nodes->nodesMapping=NULL;
     in->Nodes->reducedNodesMapping=NULL;
     in->Nodes->degreesOfFreedomMapping=NULL;
@@ -380,8 +380,8 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
     in->Nodes->reducedNodesDistribution=NULL;
     in->Nodes->degreesOfFreedomDistribution=NULL;
     in->Nodes->reducedDegreesOfFreedomDistribution=NULL;
-    in->Nodes->degreesOfFreedomCoupler=NULL;
-    in->Nodes->reducedDegreesOfFreedomCoupler=NULL;
+    in->Nodes->degreesOfFreedomConnector=NULL;
+    in->Nodes->reducedDegreesOfFreedomConnector=NULL;
   }
 }
 

@@ -1,6 +1,14 @@
 #
 #   AXI-SYMMETRIC NEWTONIAN MODEL ; UPDATED LAGRANGIAN FORMULATION
 #
+#
+#    step 1 rho*(v_star-v) = dt * (sigma'_ij,j-teta3*p,i+f_i)
+#    step 2 dp=-dt*B*(v_j,j+teta1*v_star_j,j-dt*teta1*((1-teta3)*p_,jj+teta2*dp_,jj))
+#    step 3 rho*(v+-v) = -dt*((1-teta3)*p_,jj+teta2*dp_,jj)
+#    step 4 p+=1/2(p+dp+abs(p+dp))
+#    step 4 sigma'i+_ij,j=f(v+,p+,...)
+#
+#
 from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem
 from esys.finley import Rectangle
@@ -25,10 +33,13 @@ alphaw   =   1.00
 L        =   1.0
 teta1    =    0.5
 teta2    =    0.5
+teta3    =    0  # =0 split A; =1 split B
 Etau=1000000000.
 
+# create domain:
 dom=Rectangle(int(nel*L/min(L,H)),int(nel*H/min(L,H)),order=1, l0=L, l1=H)
 x=dom.getX()
+
 
 momentumStep1=LinearPDESystem(dom) # A momentumStep1
 momentumStep1.setValue(q=whereZero(x[0])*[1.,0.]) # +whereZero(x[1])*[1.,1.])

@@ -72,7 +72,7 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                                                         in->Nodes->globalDegreesOfFreedom);
            }
            /* create the local matrix pattern */
-           pattern=Finley_IndexList_createPattern(myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);
+           pattern=Finley_IndexList_createPattern(0,myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);
 
            /* clean up index list */
            if (index_list!=NULL) {
