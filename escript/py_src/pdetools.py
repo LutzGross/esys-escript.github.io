@@ -1275,14 +1275,14 @@ class ArithmeticTuple(object):
        @param other: increment
        @type other: C{ArithmeticTuple}
        """
-       if not isinstance(other,float):
-        if len(self) != len(other):
-           raise ValueError,"tuple length must match."
-        for i in range(len(self)):
-           self.__items[i]+=other[i]
-       else:
-        for i in range(len(self)):
-           self.__items[i]+=other
+#      if not isinstance(other,float):
+       if len(self) != len(other):
+          raise ValueError,"tuple length must match."
+       for i in range(len(self)):
+          self.__items[i]+=other[i]
+#       else:
+#        for i in range(len(self)):
+#           self.__items[i]+=other
 
        return self
 
@@ -1507,7 +1507,7 @@ class HomogeneousSaddlePointProblem(object):
 
 	  pc=x[1]
           v=self.solve_A(self.__z,-pc)
-	  p=self.solve_prec(self.B(v))
+	  p=self.solve_prec1(self.B(v))
 
           return ArithmeticTuple(v,p)
 
@@ -1529,7 +1529,7 @@ class HomogeneousSaddlePointProblem(object):
           #solve Av =-B^*p as Av =f-Az-B^*p
           pc=x[1]
 	  v=self.solve_A(self.__z,-pc)
-          p=self.solve_prec(self.B(v-self.__z))
+          p=self.solve_prec1(self.B(v-self.__z))
           return ArithmeticTuple(v,p)
 
 class SaddlePointProblem(object):

@@ -82,7 +82,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 		for j in range(self.domain.getDim()):
 			A[i,j,j,i] += 1. 
 			A[i,j,i,j] += 1.
-	self.__pde_prec.setValue(D=1/eta) #1./self.eta
+	self.__pde_prec.setValue(D=1/self.eta) 
         self.__pde_u.setValue(A=A*self.eta,q=fixed_u_mask,Y=f,y=surface_stress)
 
       def B(self,arg):
@@ -121,6 +121,13 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
 
       def solve_prec(self,p):
+	 #proj=Projector(domain=self.domain, reduce = True, fast=False)
+         self.__pde_prec.setTolerance(self.getSubProblemTolerance())
+         self.__pde_prec.setValue(Y=p)
+         q=self.__pde_prec.getSolution(verbose=self.show_details)
+         return q
+
+      def solve_prec1(self,p):
 	 #proj=Projector(domain=self.domain, reduce = True, fast=False)
          self.__pde_prec.setTolerance(self.getSubProblemTolerance())
          self.__pde_prec.setValue(Y=p)
