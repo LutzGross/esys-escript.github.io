@@ -104,34 +104,27 @@ err_t Paso_Solver_PCG(
   } else {
     maxit = *iter;
     tol = *resid;
-    #pragma omp parallel firstprivate(maxit,tol,convergeFlag,maxIterFlag,breakFlag) \
-                                           private(tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,norm_of_residual,num_iter)
+    Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+    /* initialize data */
+    #pragma omp parallel
     {
-       Performance_startMonitor(pp,PERFORMANCE_SOLVER);
-       /* initialize data */
-       #pragma omp for private(i0) schedule(static)
-       for (i0=0;i0<n;i0++) {
-          rs[i0]=r[i0];
-          x2[i0]=x[i0];
-       } 
-       #pragma omp for private(i0) schedule(static)
-       for (i0=0;i0<n;i0++) {
-          p[i0]=0;
-          v[i0]=0;
-       } 
-       num_iter=0;
-       /* start of iteration */
-       while (!(convergeFlag || maxIterFlag || breakFlag)) {
+           #pragma omp for private(i0) schedule(static)
+           for (i0=0;i0<n;i0++) {
+              rs[i0]=r[i0];
+              x2[i0]=x[i0];
+              p[i0]=0;
+              v[i0]=0;
+           } 
+    }
+    num_iter=0;
+    /* start of iteration */
+    while (!(convergeFlag || maxIterFlag || breakFlag)) {
            ++(num_iter);
-           #pragma omp barrier
-           #pragma omp master
-           {
-	       sum_1 = 0;
-	       sum_2 = 0;
-	       sum_3 = 0;
-	       sum_4 = 0;
-	       sum_5 = 0;
-           }
+	   sum_1 = 0;
+	   sum_2 = 0;
+	   sum_3 = 0;
+	   sum_4 = 0;
+	   sum_5 = 0;
            /* v=prec(r)  */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
@@ -139,44 +132,37 @@ err_t Paso_Solver_PCG(
            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* tau=v*r    */
-           #pragma omp for private(i0) reduction(+:sum_1) schedule(static)
+           #pragma omp parallel for private(i0) reduction(+:sum_1) schedule(static)
            for (i0=0;i0<n;i0++) sum_1+=v[i0]*r[i0]; /* Limit to local values of v[] and r[] */
            #ifdef PASO_MPI
 	        /* In case we have many MPI processes, each of which may have several OMP threads:
 	           OMP master participates in an MPI reduction to get global sum_1 */
-                #pragma omp master
-	        {
-	          loc_sum[0] = sum_1;
-	          MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-	        }
+	        loc_sum[0] = sum_1;
+	        MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            tau_old=tau;
            tau=sum_1;
            /* p=v+beta*p */
            if (num_iter==1) {
-               #pragma omp for private(i0)  schedule(static)
+               #pragma omp parallel for private(i0)  schedule(static)
                for (i0=0;i0<n;i0++) p[i0]=v[i0];
            } else {
                beta=tau/tau_old;
-               #pragma omp for private(i0)  schedule(static)
+               #pragma omp parallel for private(i0)  schedule(static)
                for (i0=0;i0<n;i0++) p[i0]=v[i0]+beta*p[i0];
            }
            /* v=A*p */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
 	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
-	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, p,ZERO,v);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* delta=p*v */
-           #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
+           #pragma omp parallel for private(i0) reduction(+:sum_2) schedule(static)
            for (i0=0;i0<n;i0++) sum_2+=v[i0]*p[i0];
            #ifdef PASO_MPI
-               #pragma omp master
-	       {
-	         loc_sum[0] = sum_2;
-	         MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-	       }
+	      loc_sum[0] = sum_2;
+	      MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            delta=sum_2;
 
@@ -184,60 +170,56 @@ err_t Paso_Solver_PCG(
            if (! (breakFlag = (ABS(delta) <= TOLERANCE_FOR_SCALARS))) {
                alpha=tau/delta;
                /* smoother */
-               #pragma omp for private(i0) schedule(static)
-               for (i0=0;i0<n;i0++) r[i0]-=alpha*v[i0];
-               #pragma omp for private(i0,d) reduction(+:sum_3,sum_4) schedule(static)
-               for (i0=0;i0<n;i0++) {
-                     d=r[i0]-rs[i0];
-                     sum_3+=d*d;
-                     sum_4+=d*rs[i0];
+               #pragma omp parallel 
+               {
+                  #pragma omp for private(i0) schedule(static)
+                  for (i0=0;i0<n;i0++) r[i0]-=alpha*v[i0];
+                  #pragma omp for private(i0,d) reduction(+:sum_3,sum_4) schedule(static)
+                  for (i0=0;i0<n;i0++) {
+                        d=r[i0]-rs[i0];
+                        sum_3+=d*d;
+                        sum_4+=d*rs[i0];
+                  }
                }
                #ifdef PASO_MPI
-                   #pragma omp master
-	           {
-	             loc_sum[0] = sum_3;
-	             loc_sum[1] = sum_4;
-	             MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-	             sum_3=sum[0];
-	             sum_4=sum[1];
-	           }
+	           loc_sum[0] = sum_3;
+	           loc_sum[1] = sum_4;
+	           MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	           sum_3=sum[0];
+	           sum_4=sum[1];
                 #endif
                 gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
                 gamma_2= ONE-gamma_1;
-                #pragma omp for private(i0,x2_tmp,x_tmp,rs_tmp) schedule(static)
-                for (i0=0;i0<n;++i0) {
-                  rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
-                  x2[i0]+=alpha*p[i0];
-                  x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
+                #pragma omp parallel 
+                {
+                    #pragma omp for private(i0,x2_tmp,x_tmp,rs_tmp) schedule(static)
+                    for (i0=0;i0<n;++i0) {
+                      rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
+                      x2[i0]+=alpha*p[i0];
+                      x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
+                    }
+                    #pragma omp for private(i0) reduction(+:sum_5) schedule(static)
+                    for (i0=0;i0<n;++i0) sum_5+=rs[i0]*rs[i0];
                 }
-                #pragma omp for private(i0) reduction(+:sum_5) schedule(static)
-                for (i0=0;i0<n;++i0) sum_5+=rs[i0]*rs[i0];
                 #ifdef PASO_MPI
-                   #pragma omp master
-	           {
-	              loc_sum[0] = sum_5;
-	              MPI_Allreduce(loc_sum, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-	           }
+	           loc_sum[0] = sum_5;
+	           MPI_Allreduce(loc_sum, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                 #endif
                 norm_of_residual=sqrt(sum_5);
                 convergeFlag = norm_of_residual <= tol;
                 maxIterFlag = num_iter == maxit;
                 breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
            }
-       }
-       /* end of iteration */
-       #pragma omp master
-       {
-           num_iter_global=num_iter;
-           norm_of_residual_global=norm_of_residual;
-           if (maxIterFlag) {
-               status = SOLVER_MAXITER_REACHED;
-           } else if (breakFlag) {
-               status = SOLVER_BREAKDOWN;
-           }
-       }
-       Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-    }  /* end of parallel region */
+    }
+    /* end of iteration */
+    num_iter_global=num_iter;
+    norm_of_residual_global=norm_of_residual;
+    if (maxIterFlag) {
+         status = SOLVER_MAXITER_REACHED;
+    } else if (breakFlag) {
+         status = SOLVER_BREAKDOWN;
+    }
+    Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
     TMPMEMFREE(rs);
     TMPMEMFREE(x2);
     TMPMEMFREE(v);

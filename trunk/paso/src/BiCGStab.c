@@ -116,51 +116,39 @@ err_t Paso_Solver_BiCGStab(
     maxit = *iter;
     tol = *resid;
    
-    #pragma omp parallel firstprivate(maxit,tol) \
-       private(rho,omega,num_iter,norm_of_residual,beta,alpha,rho1, convergeFlag,maxIterFlag,breakFlag)
-    {
-      num_iter =0;
-      convergeFlag=FALSE;
-      maxIterFlag=FALSE;
-      breakFlag=FALSE;
+    num_iter =0;
+    convergeFlag=FALSE;
+    maxIterFlag=FALSE;
+    breakFlag=FALSE;
 
-      /* initialize arrays */
-   
-      #pragma omp for private(i0) schedule(static)
-      for (i0 = 0; i0 < n; i0++) {
+    /* initialize arrays */
+ 
+    #pragma omp parallel for private(i0) schedule(static)
+    for (i0 = 0; i0 < n; i0++) {
 	rtld[i0]=0;
 	p[i0]=0;
 	v[i0]=0;
 	t[i0]=0;
 	phat[i0]=0;
 	shat[i0]=0;
-      }
-      #pragma omp for private(i0) schedule(static)
-      for (i0 = 0; i0 < n; i0++) rtld[i0] = r[i0];
+        rtld[i0] = r[i0];
+    }
    
-      /*     Perform BiConjugate Gradient Stabilized iteration. */
+    /*     Perform BiConjugate Gradient Stabilized iteration. */
    
     L10:
       ++(num_iter);
-      #pragma omp barrier
-      #pragma omp master
-      {
 	sum_1 = 0;
 	sum_2 = 0;
 	sum_3 = 0;
 	sum_4 = 0;
 	omegaNumtr = 0.0;
-	omegaDenumtr = 0.0;
-      }
-      #pragma omp barrier
-      #pragma omp for private(i0) reduction(+:sum_1) schedule(static)
+      omegaDenumtr = 0.0;
+      #pragma omp parallel for private(i0) reduction(+:sum_1) schedule(static)
       for (i0 = 0; i0 < n; i0++) sum_1 += rtld[i0] * r[i0];
-       #ifdef PASO_MPI
-         #pragma omp master
-         {
-            loc_sum[0] = sum_1;
-            MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-         }
+      #ifdef PASO_MPI
+          loc_sum[0] = sum_1;
+          MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
       #endif
       rho = sum_1;
       
@@ -169,10 +157,10 @@ err_t Paso_Solver_BiCGStab(
       
 	if (num_iter > 1) {
 	  beta = rho / rho1 * (alpha / omega);
-          #pragma omp for private(i0) schedule(static)
+          #pragma omp parallel for private(i0) schedule(static)
 	  for (i0 = 0; i0 < n; i0++) p[i0] = r[i0] + beta * (p[i0] - omega * v[i0]);
 	} else {
-          #pragma omp for private(i0) schedule(static)
+          #pragma omp parallel for private(i0) schedule(static)
 	  for (i0 = 0; i0 < n; i0++) p[i0] = r[i0];
 	}
    
@@ -181,36 +169,30 @@ err_t Paso_Solver_BiCGStab(
         Paso_Solver_solvePreconditioner(A,&phat[0], &p[0]);
 	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &phat[0],ZERO, &v[0]);
    
-        #pragma omp for private(i0) reduction(+:sum_2) schedule(static)
+        #pragma omp parallel for private(i0) reduction(+:sum_2) schedule(static)
 	for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
         #ifdef PASO_MPI
-            #pragma omp master
-            {
-               loc_sum[0] = sum_2;
-               MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-            }
+           loc_sum[0] = sum_2;
+            MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
         #endif
         if (! (breakFlag = (ABS(sum_2) <= TOLERANCE_FOR_SCALARS))) {
 	   alpha = rho / sum_2;
 
-           #pragma omp for private(i0) reduction(+:sum_3) schedule(static) 
+           #pragma omp parallel for private(i0) reduction(+:sum_3) schedule(static) 
 	   for (i0 = 0; i0 < n; i0++) {
 	     r[i0] -= alpha * v[i0];
 	     s[i0] = r[i0];
 	     sum_3 += s[i0] * s[i0];
 	   }
            #ifdef PASO_MPI
-               #pragma omp master
-               {
-                  loc_sum[0] = sum_3;
-                  MPI_Allreduce(loc_sum, &sum_3, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-               }
+               loc_sum[0] = sum_3;
+               MPI_Allreduce(loc_sum, &sum_3, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
 	   norm_of_residual = sqrt(sum_3);
         
 	   /*        Early check for tolerance. */
 	   if ( (convergeFlag = (norm_of_residual <= tol)) ) {
-             #pragma omp for  private(i0) schedule(static)
+             #pragma omp parallel for  private(i0) schedule(static)
 	     for (i0 = 0; i0 < n; i0++) x[i0] += alpha * phat[i0];
 	     maxIterFlag = FALSE;
 	     breakFlag = FALSE;
@@ -219,36 +201,30 @@ err_t Paso_Solver_BiCGStab(
              Paso_Solver_solvePreconditioner(A,&shat[0], &s[0]);
 	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(ONE, A, &shat[0],ZERO,&t[0]);
    
-             #pragma omp for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
+             #pragma omp parallel for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
 	     for (i0 = 0; i0 < n; i0++) {
 	       omegaNumtr +=t[i0] * s[i0];
 	       omegaDenumtr += t[i0] * t[i0];
 	     }
              #ifdef PASO_MPI
-                 #pragma omp master
-                 {
-                    loc_sum[0] = omegaNumtr;
-                    loc_sum[1] = omegaDenumtr;
-                    MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-                    omegaNumtr=sum[0];
-                    omegaDenumtr=sum[1];
-                 }
+                loc_sum[0] = omegaNumtr;
+                loc_sum[1] = omegaDenumtr;
+                MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                omegaNumtr=sum[0];
+                omegaDenumtr=sum[1];
              #endif
              if (! (breakFlag = (ABS(omegaDenumtr) <= TOLERANCE_FOR_SCALARS))) {
 	        omega = omegaNumtr / omegaDenumtr;
    
-                #pragma omp for private(i0) reduction(+:sum_4) schedule(static)
+                #pragma omp parallel for private(i0) reduction(+:sum_4) schedule(static)
 	        for (i0 = 0; i0 < n; i0++) {
 	          x[i0] += alpha * phat[i0] + omega * shat[i0];
 	          r[i0] = s[i0]-omega * t[i0];
 	          sum_4 += r[i0] * r[i0];
 	        }
                 #ifdef PASO_MPI
-                    #pragma omp master
-                    {
-                       loc_sum[0] = sum_4;
-                       MPI_Allreduce(loc_sum, &sum_4, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-                    }
+                   loc_sum[0] = sum_4;
+                    MPI_Allreduce(loc_sum, &sum_4, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                 #endif
 	        norm_of_residual = sqrt(sum_4);
 	        convergeFlag = norm_of_residual <= tol;
@@ -263,17 +239,13 @@ err_t Paso_Solver_BiCGStab(
 	}
       }
       /* end of iteration */
-      #pragma omp master 
-      {
-	num_iter_global=num_iter;
-	norm_of_residual_global=norm_of_residual;
-	if (maxIterFlag) { 
+      num_iter_global=num_iter;
+      norm_of_residual_global=norm_of_residual;
+      if (maxIterFlag) { 
 	    status = SOLVER_MAXITER_REACHED;
-	} else if (breakFlag) {
+      } else if (breakFlag) {
 	    status = SOLVER_BREAKDOWN;
-	}
       }
-    }  /* end of parallel region */
   }
   TMPMEMFREE(rtld);
   TMPMEMFREE(p);
