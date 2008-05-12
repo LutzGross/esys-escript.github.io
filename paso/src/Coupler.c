@@ -194,7 +194,6 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
   dim_t i,j;
   if ( mpi_info->size>1) {
      /* start reveiving input */
-     #pragma omp master 
      {
         for (i=0; i< coupler->connector->recv->numNeighbors; ++i) {
             #ifdef PASO_MPI
@@ -215,7 +214,6 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
         memcpy(&(coupler->send_buffer[(block_size)*i]),&(in[ block_size * coupler->connector->send->shared[i]]), block_size_size);
      }
      /* send buffer out */
-     #pragma omp master 
      {
         for (i=0; i< coupler->connector->send->numNeighbors; ++i) {
              #ifdef PASO_MPI
@@ -238,14 +236,11 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
   Paso_MPIInfo *mpi_info = coupler->mpi_info;  
   if ( mpi_info->size>1) {
      /* wait for receive */
-     #pragma omp master 
-     {
         #ifdef PASO_MPI
         MPI_Waitall(coupler->connector->recv->numNeighbors+coupler->connector->send->numNeighbors,
                     coupler->mpi_requests,
                     coupler->mpi_stati);
         #endif
-     }
   }
   return coupler->recv_buffer;
 }

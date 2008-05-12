@@ -31,8 +31,6 @@
 
 /*  raw scaled vector update operation: out = alpha * A * in + beta * out */
 
-/* has to be called within a parallel region                              */
-/* barrier synconization is performed to make sure that the input vector available */
 
 void  Paso_SystemMatrix_MatrixVector(double alpha,
                                      Paso_SystemMatrix* A,

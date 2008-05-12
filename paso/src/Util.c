@@ -154,7 +154,7 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MP
         my_out+=local_out;
    }
    #ifdef PASO_MPI
-      #pragma omp master
+      #pragma omp single
       {
           MPI_Allreduce(&my_out,&out, 1, MPI_DOUBLE, MPI_SUM, mpiinfo->comm);
        }
@@ -184,7 +184,7 @@ double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo)
         my_out+=local_out;
    }
    #ifdef PASO_MPI
-      #pragma omp master
+      #pragma omp single
       {
           MPI_Allreduce(&my_out,&out, 1, MPI_DOUBLE, MPI_SUM, mpiinfo->comm);
        }

@@ -38,12 +38,12 @@ void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_
      register double b0,b1,b2,D00,D10,D20,D01,D11,D21,D02,D12,D22;
 
      if (n_block==1) {
-         #pragma omp for private(i) schedule(static)
+         #pragma omp parallel for private(i) schedule(static)
          for (i=0;i<n;++i) {
             x[i]=D[i]*b[i];
          }
      } else if (n_block==2) {
-         #pragma omp for private(i,b0,b1,D00,D10,D01,D11,i3,i9) schedule(static)
+         #pragma omp parallel for private(i,b0,b1,D00,D10,D01,D11,i3,i9) schedule(static)
          for (i=0;i<n;++i) {
             i3=2*i;
             i9=4*i;
@@ -57,7 +57,7 @@ void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_
             x[i3+1]=D10*b0+D11*b1;
          }
      } else if (n_block==3) {
-         #pragma omp for private(i,b0,b1,b2,D00,D10,D20,D01,D11,D21,D02,D12,D22,i3,i9) schedule(static)
+         #pragma omp parallel for private(i,b0,b1,b2,D00,D10,D20,D01,D11,D21,D02,D12,D22,i3,i9) schedule(static)
          for (i=0;i<n;++i) {
             i3=3*i;
             i9=9*i;
@@ -80,16 +80,3 @@ void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_
      }
      return;
 }
-
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */

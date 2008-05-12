@@ -34,16 +34,15 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
   register double reg,reg1,reg2,reg3;
-  #pragma omp barrier
 
   if (ABS(beta)>0.) {
     if (beta != 1.) {
-        #pragma omp for private(irow) schedule(static)
+        #pragma omp parallel for private(irow) schedule(static)
         for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
           out[irow] *= beta;
     }
   } else {
-    #pragma omp for private(irow) schedule(static)
+    #pragma omp parallel for private(irow) schedule(static)
     for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
       out[irow] = 0;
   }
@@ -52,7 +51,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
   if (ABS(alpha)>0) {
     if (A ->col_block_size==1 && A->row_block_size ==1) {
         /* TODO: parallelize (good luck!) */
-        #pragma omp single
 	for (icol=0;icol< A->pattern->numOutput;++icol) {
           #pragma ivdep
 	  for (iptr=A->pattern->ptr[icol];iptr<A->pattern->ptr[icol+1]; ++iptr) {
@@ -61,7 +59,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
 	}
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
         /* TODO: parallelize */
-        #pragma omp single
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
           #pragma ivdep
 	  for (iptr=A->pattern->ptr[ic];iptr<A->pattern->ptr[ic+1]; iptr++) {
@@ -72,7 +69,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
 	}
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
         /* TODO: parallelize */
-        #pragma omp single
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
           #pragma ivdep
 	  for (iptr=A->pattern->ptr[ic];iptr<A->pattern->ptr[ic+1]; iptr++) {
@@ -84,7 +80,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
 	}
     } else {
         /* TODO: parallelize */
-        #pragma omp single
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic];iptr<A->pattern->ptr[ic+1]; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
@@ -111,17 +106,15 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
   register double reg,reg1,reg2,reg3;
-  #pragma omp barrier
-
   if (ABS(beta)>0.) {
     if (beta != 1.) {
-        #pragma omp for private(irow) schedule(static)
+        #pragma omp parallel for private(irow) schedule(static)
         for (irow=0;irow < A->numRows * A->row_block_size;irow++) {
           out[irow] *= beta;
         }
     }
   } else {
-    #pragma omp for private(irow) schedule(static)
+    #pragma omp parallel for private(irow) schedule(static)
     for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
       out[irow] = 0;
   }
@@ -130,7 +123,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
   if (ABS(alpha)>0) {
     if (A ->col_block_size==1 && A->row_block_size ==1) {
         /* TODO: parallelize (good luck!) */
-        #pragma omp single
 	for (icol=0;icol< A->pattern->numOutput;++icol) {
           #pragma ivdep
 	  for (iptr=A->pattern->ptr[icol]-1;iptr<A->pattern->ptr[icol+1]-1; ++iptr) {
@@ -139,7 +131,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
 	}
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
         /* TODO: parallelize */
-        #pragma omp single
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic]-1;iptr<A->pattern->ptr[ic+1]-1; iptr++) {
 	       ir=2*(A->pattern->index[iptr]-1);
@@ -149,7 +140,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
 	}
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
         /* TODO: parallelize */
-        #pragma omp single
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
           #pragma ivdep
 	  for (iptr=A->pattern->ptr[ic]-1;iptr<A->pattern->ptr[ic+1]-1; iptr++) {
@@ -161,7 +151,6 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
 	}
     } else {
         /* TODO: parallelize */
-        #pragma omp single
 	for (ic=0;ic< A->pattern->numOutput;ic++) {
 	  for (iptr=A->pattern->ptr[ic]-1;iptr<A->pattern->ptr[ic+1]-1; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {
@@ -189,18 +178,18 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
     register double reg,reg1,reg2,reg3,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22;
     if (ABS(beta)>0.) {
       if (beta != 1.) {
-          #pragma omp for private(irow) schedule(static)
+          #pragma omp parallel for private(irow) schedule(static)
           for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
             out[irow] *= beta;
       }
     } else {
-      #pragma omp for private(irow) schedule(static)
+      #pragma omp parallel for private(irow) schedule(static)
       for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
         out[irow] = 0;
     }
     if (ABS(alpha)>0) {
       if (A ->col_block_size==1 && A->row_block_size ==1) {
-          #pragma omp for private(irow,iptr,reg) schedule(static)
+          #pragma omp parallel for private(irow,iptr,reg) schedule(static)
   	for (irow=0;irow< A->pattern->numOutput;++irow) {
             reg=0.;
             #pragma ivdep
@@ -210,11 +199,11 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   	  out[irow] += alpha * reg;
   	}
       } else if (A ->col_block_size==2 && A->row_block_size ==2) {
-          #pragma omp for private(ir,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11) schedule(static)
+        #pragma omp parallel for private(ir,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11) schedule(static)
   	for (ir=0;ir< A->pattern->numOutput;ir++) {
-            reg1=0.;
-            reg2=0.;
-            #pragma ivdep
+          reg1=0.;
+          reg2=0.;
+          #pragma ivdep
   	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
   	       ic=2*(A->pattern->index[iptr]);
                  Aiptr=iptr*4;
@@ -231,12 +220,12 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   	  out[1+2*ir] += alpha * reg2;
   	}
       } else if (A ->col_block_size==3 && A->row_block_size ==3) {
-          #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
+        #pragma omp parallel for private(ir,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
   	for (ir=0;ir< A->pattern->numOutput;ir++) {
-            reg1=0.;
-            reg2=0.;
-            reg3=0.;
-            #pragma ivdep
+          reg1=0.;
+          reg2=0.;
+          reg3=0.;
+          #pragma ivdep
   	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
   	       ic=3*(A->pattern->index[iptr]);
                  Aiptr=iptr*9;
@@ -261,13 +250,13 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   	  out[2+3*ir] += alpha * reg3;
   	}
       } else {
-          #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
+        #pragma omp parallel for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
   	for (ir=0;ir< A->pattern->numOutput;ir++) {
   	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
   	    for (irb=0;irb< A->row_block_size;irb++) {
   	      irow=irb+A->row_block_size*ir;
-                reg=0.;
-                #pragma ivdep
+              reg=0.;
+              #pragma ivdep
   	      for (icb=0;icb< A->col_block_size;icb++) {
   		icol=icb+A->col_block_size*(A->pattern->index[iptr]);
   		reg += A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
@@ -289,23 +278,21 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 
   register index_t ir,icol,iptr,icb,irb,irow,ic;
   register double reg,reg1,reg2,reg3;
-  #pragma omp barrier
-
   if (ABS(beta)>0.) {
     if (beta != 1.) {
-        #pragma omp for private(irow) schedule(static)
+        #pragma omp parallel for private(irow) schedule(static)
         for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
           out[irow] *= beta;
     }
   } else {
-    #pragma omp for private(irow) schedule(static)
+    #pragma omp parallel for private(irow) schedule(static)
     for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
       out[irow] = 0;
   }
   /*  do the operation: */
   if (ABS(alpha)>0) {
     if (A ->col_block_size==1 && A->row_block_size ==1) {
-        #pragma omp for private(irow,iptr,reg) schedule(static)
+        #pragma omp parallel for private(irow,iptr,reg) schedule(static)
 	for (irow=0;irow< A->pattern->numOutput;++irow) {
           reg=0.;
           #pragma ivdep
@@ -315,7 +302,7 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 	  out[irow] += alpha * reg;
 	}
     } else if (A ->col_block_size==2 && A->row_block_size ==2) {
-        #pragma omp for private(ir,reg1,reg2,iptr,ic) schedule(static)
+        #pragma omp parallel for private(ir,reg1,reg2,iptr,ic) schedule(static)
 	for (ir=0;ir< A->pattern->numOutput;ir++) {
           reg1=0.;
           reg2=0.;
@@ -329,7 +316,7 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 	  out[1+2*ir] += alpha * reg2;
 	}
     } else if (A ->col_block_size==3 && A->row_block_size ==3) {
-        #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic) schedule(static)
+        #pragma omp parallel for private(ir,reg1,reg2,reg3,iptr,ic) schedule(static)
 	for (ir=0;ir< A->pattern->numOutput;ir++) {
           reg1=0.;
           reg2=0.;
@@ -346,7 +333,7 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
 	  out[2+3*ir] += alpha * reg3;
 	}
     } else {
-        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
+        #pragma omp parallel for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
 	for (ir=0;ir< A->pattern->numOutput;ir++) {
 	  for (iptr=A->pattern->ptr[ir]-1;iptr<A->pattern->ptr[ir+1]-1; iptr++) {
 	    for (irb=0;irb< A->row_block_size;irb++) {

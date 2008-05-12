@@ -43,6 +43,7 @@ from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE
 OPTIMIZE=False
 SOLVER_VERBOSE=False 
+# setNumberOfThreads(2)
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -65,6 +66,7 @@ REL_TOL=1.e-6
 
 FAC_DIAG=1.
 FAC_OFFDIAG=-0.4
+
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):

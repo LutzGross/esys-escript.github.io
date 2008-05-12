@@ -135,10 +135,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
           
               time_iter=Paso_timer();
               /* get an initial guess by evaluating the preconditioner */
-              #pragma omp parallel
-              {
-                 Paso_Solver_solvePreconditioner(A,x,b);
-              }
+              Paso_Solver_solvePreconditioner(A,x,b);
               /* start the iteration process :*/
               r=TMPMEMALLOC(numEqua,double);
               Paso_checkPtr(r);
@@ -153,15 +150,12 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                     /*     Set initial residual. */
                     norm2_of_residual = 0;
                     norm_max_of_residual = 0;
+                    #pragma omp parallel for private(i) schedule(static)
+                    for (i = 0; i < numEqua; i++) r[i]=b[i];
+                    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
+             
                     #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
                     {
-                       #pragma omp for private(i) schedule(static)
-                       for (i = 0; i < numEqua; i++) {
-                           r[i]=b[i];
-                       }
-             
-                       Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
-             
                        norm2_of_residual_local = 0;
                        norm_max_of_residual_local = 0;
                        #pragma omp for private(i) schedule(static)
@@ -177,12 +171,10 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,Paso_Options* options,
                     }
                     /* TODO: use one call */
                     #ifdef PASO_MPI
-                    {
                         loc_norm = norm2_of_residual;
                         MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                         loc_norm = norm_max_of_residual;
                         MPI_Allreduce(&loc_norm,&norm_max_of_residual, 1, MPI_DOUBLE, MPI_MAX, A->mpi_info->comm);
-                    }
                     #endif
                     norm2_of_residual =sqrt(norm2_of_residual);
              
