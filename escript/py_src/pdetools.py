@@ -618,11 +618,11 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
    
    v.append(r/rho)
    g[0]=rho
+
    while not (stoppingcriterium(rho,norm_b) or iter==iter_restart-1):
 
 	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
 
-	
 	p=Msolve(Aprod(v[iter]))
 
 	v.append(p)
@@ -630,19 +630,18 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
 
 # Modified Gram-Schmidt	
-	for j in range(iter+1):
+	for j in range(iter+1): 
 	  h[j][iter]=bilinearform(v[j],v[iter+1])   
 	  v[iter+1]-=h[j][iter]*v[j]
        
 	h[iter+1][iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1])) 
 	v_norm2=h[iter+1][iter]
 
-
 # Reorthogonalize if needed
 	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
-   	 for j in range(iter+1):
+   	 for j in range(iter+1):  
 	    hr=bilinearform(v[j],v[iter+1])
-      	    h[j][iter]=h[j][iter]+hr #vhat
+      	    h[j][iter]=h[j][iter]+hr 
       	    v[iter+1] -= hr*v[j]
 
    	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))  
@@ -660,6 +659,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 	        for i in range(iter+1) : h[i][iter]=hhat[i]
 
 	mu=math.sqrt(h[iter][iter]*h[iter][iter]+h[iter+1][iter]*h[iter+1][iter])
+
 	if mu!=0 :
 		c[iter]=h[iter][iter]/mu
 		s[iter]=-h[iter+1][iter]/mu
@@ -668,6 +668,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
 		g[iter:iter+2]=givapp(c[iter],s[iter],g[iter:iter+2])
 
 # Update the residual norm
+               
         rho=abs(g[iter+1])
 	iter+=1
 
@@ -686,7 +687,7 @@ def GMRESm(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=1
      for i in range(iter-1):
 	xhat += v[i]*y[i]
    else : xhat=v[0] 
-    
+
    x += xhat
    if iter<iter_restart-1: 
       stopped=True 
@@ -1204,8 +1205,13 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       for i in range(len(self)):
+       other=1.*other
+       if isinstance(other,float):
+	for i in range(len(self)):
            out.append(self[i]*other)
+       else:
+        for i in range(len(self)):
+           out.append(self[i]*other[i])
        return ArithmeticTuple(*tuple(out))
 
    def __rmul__(self,other):
@@ -1218,8 +1224,13 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       for i in range(len(self)):
+       other=1.*other
+       if isinstance(other,float):
+	for i in range(len(self)):
            out.append(other*self[i])
+       else:
+        for i in range(len(self)):
+           out.append(other[i]*self[i])
        return ArithmeticTuple(*tuple(out))
 
 #########################
@@ -1235,8 +1246,13 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       for i in range(len(self)):
+       other=1.*other
+       if isinstance(other,float):
+	for i in range(len(self)):
            out.append(self[i]*(1./other))
+       else:
+        for i in range(len(self)):
+           out.append(self[i]*(1./other[i]))
        return ArithmeticTuple(*tuple(out))
 
    def __rdiv__(self,other):
@@ -1249,8 +1265,13 @@ class ArithmeticTuple(object):
        @rtype: L{ArithmeticTuple}
        """
        out=[]
-       for i in range(len(self)):
-           out.append(other/self[i])
+       other=1.*other
+       if isinstance(other,float):
+        for i in range(len(self)):
+           out.append(other*(1./self[i]))
+       else:
+        for i in range(len(self)):
+           out.append(other[i]*(1./self[i]))
        return ArithmeticTuple(*tuple(out))
   
 ##########################################33
@@ -1287,6 +1308,19 @@ class ArithmeticTuple(object):
        return self
 
    def __sub__(self,other):
+       """
+       subtract other from self
+
+       @param other: increment
+       @type other: C{ArithmeticTuple}
+       """
+       if len(self) != len(other):
+           raise ValueError,"tuple length must match."
+       for i in range(len(self)):
+           self.__items[i]-=other[i]
+       return self
+   
+   def __isub__(self,other):
        """
        subtract other from self
 
@@ -1416,7 +1450,7 @@ class HomogeneousSaddlePointProblem(object):
 
 	      # Az=f is solved as A(z-v)=f-Av (z-v = 0 on fixed_u_mask)	     
 	      self.__z=v+self.solve_A(v,p*0)
-              Bz=self.B(self.__z)
+              Bz=self.B(self.__z) 
               #
 	      #   solve BA^-1B^*p = Bz 
               #
@@ -1458,16 +1492,17 @@ class HomogeneousSaddlePointProblem(object):
               
 	      if solver=='GMRESC':   	
                 if self.verbose: print "enter GMRES coupled method (iter_max=%s)"%max_iter
-                p0=self.solve_prec(Bz)
-	       #alfa=(1/self.vol)*util.integrate(util.interpolate(p,escript.Function(self.domain)))
-               #p-=alfa
+                p0=self.solve_prec1(Bz)
+	        #alfa=(1/self.vol)*util.integrate(util.interpolate(p,escript.Function(self.domain)))
+                #p-=alfa
                 x=GMRES(ArithmeticTuple(self.__z*1.,p0*1),self.__Anext,self.__Mempty,self.__inner_a,self.__stoppingcriterium2,iter_max=max_iter, x=ArithmeticTuple(v*1,p*1),iter_restart=20)
                 #x=NewtonGMRES(ArithmeticTuple(self.__z*1.,p0*1),self.__Aprod_Newton2,self.__Mempty,self.__inner_a,self.__stoppingcriterium2,iter_max=max_iter, x=ArithmeticTuple(v*1,p*1),atol=0,rtol=self.getTolerance())
+
                 # solve Au=f-B^*p 
                 #       A(u-v)=f-B^*p-Av
                 #       u=v+(u-v)
          	p=x[1]
-		#u=v+self.solve_A(v,p)		
+		u=v+self.solve_A(v,p)		
 		#p=x[1]
 		#u=x[0]
 
