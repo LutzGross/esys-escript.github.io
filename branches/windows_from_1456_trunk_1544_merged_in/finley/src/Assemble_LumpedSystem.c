@@ -45,9 +45,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   type_t funcspace;
   index_t color,*row_index=NULL;
   double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *D_p=NULL, *lumpedMat_p=NULL;
-#ifdef NEW_LUMPING /* HRZ lumping */
   register double m_t, diagS;
-#endif
   register double rtmp;
   size_t len_EM_lumpedMat_size;
 
