@@ -76,6 +76,7 @@ void Paso_Connector_free(Paso_Connector* in) {
         Paso_SharedComponents_free(in->send);
         Paso_SharedComponents_free(in->recv);
         Paso_MPIInfo_free(in->mpi_info);
+        MEMFREE(in);
         #ifdef Paso_TRACE
         printf("Paso_Coupler_dealloc: system matrix pattern as been deallocated.\n");
         #endif
