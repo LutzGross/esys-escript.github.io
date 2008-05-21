@@ -146,7 +146,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<offsetInShared[numNeighbors];++i) shared[i]=myLastDOF-myFirstDOF+i;
 
-    rcv_shcomp=Paso_SharedComponents_alloc(numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
+    rcv_shcomp=Paso_SharedComponents_alloc(myLastDOF-myFirstDOF,numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
 
     /* now it is determined which DOFs needs to be send off:*/
     #pragma omp parallel for private(i) schedule(static)
@@ -185,7 +185,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     if (numNeighbors < 0 || numNeighbors >= mpiSize+1) { printf("BOUNDS_CHECK %s %d numNeighbors=%d\n", __FILE__, __LINE__, numNeighbors); exit(1); }
 #endif
     offsetInShared[numNeighbors]=lastn;
-    snd_shcomp=Paso_SharedComponents_alloc(numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
+    snd_shcomp=Paso_SharedComponents_alloc(myLastDOF-myFirstDOF,numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
 
     if (Finley_noError()) this_connector=Paso_Connector_alloc(snd_shcomp,rcv_shcomp);
     /* assign new DOF labels to nodes */

@@ -133,7 +133,9 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          self.__pde_prec.setValue(Y=p)
          q=self.__pde_prec.getSolution(verbose=self.show_details)
 	 q0=util.interpolate(q,Function(self.domain))
+         print util.inf(q*q0),util.sup(q*q0)
          q-=(1/self.vol)*util.integrate(q0)
+         print util.inf(q*q0),util.sup(q*q0)
          return q
 
       def stoppingcriterium(self,Bv,v,p):

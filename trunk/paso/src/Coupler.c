@@ -39,6 +39,11 @@ Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
      Paso_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv mpi communicator don't match.");
      return NULL;
   }
+  if ( send->local_length != recv->local_length ) {
+     Paso_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: local length of send and recv Paso_SharedComponents must match.");
+     return NULL;
+  }
+  
   if (!Paso_checkPtr(out)) {
       out->send=Paso_SharedComponents_getReference(send);
       out->recv= Paso_SharedComponents_getReference(recv);
@@ -87,13 +92,15 @@ Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size) {
      Paso_Connector *out=NULL;
      if (Paso_noError()) {
         if (block_size>1) {
-            new_send_shcomp=Paso_SharedComponents_alloc(in->send->numNeighbors,
+            new_send_shcomp=Paso_SharedComponents_alloc(in->send->local_length,
+                                                        in->send->numNeighbors,
                                                         in->send->neighbor,
                                                         in->send->shared,
                                                         in->send->offsetInShared,
                                                         block_size,0,in->mpi_info);
 
-            new_recv_shcomp=Paso_SharedComponents_alloc(in->recv->numNeighbors,
+            new_recv_shcomp=Paso_SharedComponents_alloc(in->recv->local_length,
+                                                        in->recv->numNeighbors,
                                                         in->recv->neighbor,
                                                         in->recv->shared,
                                                         in->recv->offsetInShared,
@@ -126,6 +133,7 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
   Paso_resetError();
   out=MEMALLOC(1,Paso_Coupler);
   if (!Paso_checkPtr(out)) {
+      out->data=NULL;
       out->block_size=block_size;
       out->connector=Paso_Connector_getReference(connector);
       out->send_buffer=NULL;
@@ -186,12 +194,13 @@ void Paso_Coupler_free(Paso_Coupler* in) {
 }
 
 
-void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
+void Paso_Coupler_startCollect(Paso_Coupler* coupler,double* in)
 {
   Paso_MPIInfo *mpi_info = coupler->mpi_info;  
   dim_t block_size=coupler->block_size;
   size_t block_size_size=block_size*sizeof(double);
   dim_t i,j;
+  coupler->data=in;
   if ( mpi_info->size>1) {
      /* start reveiving input */
      {
@@ -243,4 +252,23 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
         #endif
   }
   return coupler->recv_buffer;
+}
+dim_t Paso_Coupler_getLocalLength(const Paso_Coupler* in) {
+     return in->connector->send->local_length;
+
+}
+void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target) 
+{
+   dim_t i;
+   #pragma omp parallel 
+   {
+       #pragma omp for private(i)
+       for (i =0; i< src->connector->recv->numSharedComponents * src->block_size; ++i) {
+          target->recv_buffer[i]=src->recv_buffer[i];
+      }
+      #pragma omp for private(i)
+      for (i =0; i< Paso_Coupler_getLocalLength(src) * src->block_size; ++i) {
+          target->data[i]=src->data[i];
+     }
+  }
 }

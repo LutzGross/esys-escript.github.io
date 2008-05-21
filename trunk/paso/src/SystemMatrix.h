@@ -93,11 +93,11 @@ void Paso_SystemMatrix_MatrixVector(double alpha, Paso_SystemMatrix* A, double* 
 void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, double* in, double beta, double* out);
 void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
 void Paso_solve_free(Paso_SystemMatrix* in);
-void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in);
+void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,double* in);
 double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A);
-void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in);
+void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,double* in);
 double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A);
-void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in);
+void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,double* in);
 double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
@@ -118,6 +118,7 @@ void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_
 void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum);
 void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
 void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix*, double*, double);
+
 
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */
 
