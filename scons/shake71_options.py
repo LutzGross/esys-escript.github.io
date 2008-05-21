@@ -70,15 +70,7 @@ netCDF_libs = [ 'netcdf_c++', 'netcdf']
 # c++ flags to use
 # cxx_flags = '-fPIC'
 # cxx_flags_debug = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
-  	
-# c and c++ flags for MPI compilation
-# c flags to use
-# cc_flags_MPI  = '-O -DPASO_MPI -fPIC'
-# cc_flags_debug_MPI  = '-g -DPASO_MPI -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
-
-# c++ flags to use
-# cxx_flags_MPI = '-fPIC'
-# cxx_flags_debug_MPI = '-DDOASSERT -UDOPROF -fPIC -DTRILINOS -I/home/Work/trilinos-6/include'
 
 # system specific libraries to link with
 # sys_libs = []
+

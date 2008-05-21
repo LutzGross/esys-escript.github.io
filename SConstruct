@@ -755,7 +755,7 @@ except KeyError:
    papi_libs = None
 # ============= set mpi =====================================
 if useMPI:
-   env.Append(CPPDEFINES=['PASO_MPI',])
+   env.Append(CPPDEFINES=['PASO_MPI', 'MPI_NO_CPPBIND'])
    try:
       includes = env['mpi_path']
       env.Append(CPPPATH = [includes,])
