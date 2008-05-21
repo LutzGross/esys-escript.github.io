@@ -43,6 +43,7 @@ import escript
 import os
 from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion
+from esys.escript import printParallelThreadCounts
 
 #=========================================================
 #   some helpers:
