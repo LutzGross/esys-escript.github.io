@@ -64,5 +64,5 @@ cxx_flags		= ''
 cxx_flags_debug		= '-DDOASSERT -DDOPROF'
 
 # System-specific libraries to link with
-sys_libs 		= ['stdc++']
+sys_libs 		= ['guide', 'pthread', 'stdc++']
 
