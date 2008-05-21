@@ -54,8 +54,9 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
             Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->mainBlock,mask_row,mask_col,main_diagonal_value);
             remote_values=Paso_SystemMatrix_finishColCollect(A);
             Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->col_coupleBlock,mask_row,remote_values,0.); 
-            remote_values=Paso_SystemMatrix_finishRowCollect(A);
+            /* remote_values=Paso_SystemMatrix_finishRowCollect(A);
             Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(A->row_coupleBlock,remote_values,mask_col,0.); 
+            */
          }
        }
      } else {
@@ -72,8 +73,10 @@ void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row
             Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->mainBlock,mask_row,mask_col,main_diagonal_value);
             remote_values=Paso_SystemMatrix_finishColCollect(A);
             Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->col_coupleBlock,mask_row,remote_values,0.);
+            /*
             remote_values=Paso_SystemMatrix_finishRowCollect(A);
             Paso_SparseMatrix_nullifyRowsAndCols_CSR(A->row_coupleBlock,remote_values,mask_col,0.); 
+            */
          }
        }
      } 

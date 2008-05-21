@@ -60,7 +60,7 @@ void Finley_Mesh_saveVTK(const char * filename_p,
   index_t myFirstNode, myLastNode, *globalNodeIndex, k, *node_index, myFirstCell;
   #ifdef PASO_MPI
   int ierr;
-  int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY |  MPI_MODE_SEQUENTIAL;
+  int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY |  MPI_MODE_SEQUENTIAL; 
   MPI_File mpi_fileHandle_p;
   MPI_Status mpi_status;
   MPI_Request mpi_req;
@@ -128,7 +128,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             /*   MPI_Info_set(mpi_info, "direct_write",          "true"); */
           #endif
           ierr=MPI_File_open(mesh_p->Nodes->MPIInfo->comm, (char*)filename_p, amode,mpi_info, &mpi_fileHandle_p);
-          if (! ierr) {
+printf("MPI_File_open ierr= %d\n",ierr);
+          if (ierr != MPI_SUCCESS) {
 	      perror(filename_p);
               sprintf(error_msg, "saveVTK: File %s could not be opened for writing in parallel.", filename_p);
               Finley_setError(IO_ERROR,error_msg);
@@ -453,6 +454,8 @@ void Finley_Mesh_saveVTK(const char * filename_p,
             }    
    
          }
+printf("%d %d\n",strlen(txt_buffer),len_txt_buffer+1); ;fflush(stdout);
+printf("%s\n",txt_buffer); ;fflush(stdout);
          #ifdef PASO_MPI
             MPI_File_write_ordered(mpi_fileHandle_p, txt_buffer,txt_buffer_in_use, MPI_CHAR, &mpi_status);
          #endif     
@@ -590,8 +593,6 @@ void Finley_Mesh_saveVTK(const char * filename_p,
     } else {
        fprintf(fileHandle_p,tags_End_Offset_and_Start_Type);
     }
-    
-      
      /* write element type */
      sprintf(tmp_buffer, INT_NEWLINE_FORMAT, cellType);
      if ( mpi_size > 1) {
@@ -961,9 +962,11 @@ void Finley_Mesh_saveVTK(const char * filename_p,
                MPI_Info_free(&mpi_info);
                #undef MPIO_HINTS
              #endif
-             MPI_File_close(&mpi_fileHandle_p);
           #endif
         }
+        #ifdef PASO_MPI
+           MPI_File_close(&mpi_fileHandle_p);
+        #endif
      } else {
          fprintf(fileHandle_p,footer);
          fclose(fileHandle_p);

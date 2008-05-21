@@ -198,7 +198,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,row_ptr,row_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,M,NULL,NULL);
-        send=Paso_SharedComponents_alloc(0,NULL,NULL,NULL,1,0,mpi_info);
+        send=Paso_SharedComponents_alloc(M,0,NULL,NULL,NULL,1,0,mpi_info);
         connector=Paso_Connector_alloc(send,send);
         pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
                                                mainPattern,couplePattern,couplePattern,connector,connector);
@@ -316,7 +316,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         input_dist=Paso_Distribution_alloc(mpi_info, dist,1,0);
         mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,N,col_ptr,col_ind);
         couplePattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,1,1,N,NULL,NULL);
-        send=Paso_SharedComponents_alloc(0,NULL,NULL,NULL,1,0,mpi_info);
+        send=Paso_SharedComponents_alloc(N,0,NULL,NULL,NULL,1,0,mpi_info);
         connector=Paso_Connector_alloc(send,send);
         pattern=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,output_dist,input_dist,
                                                mainPattern,couplePattern,couplePattern,connector,connector);
