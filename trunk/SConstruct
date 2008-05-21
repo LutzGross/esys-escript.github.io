@@ -297,7 +297,9 @@ if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default', 'msvc'], options = opts)
       #env = Environment(tools = ['default', 'intelc'], options = opts)
 else:
-   if os.uname()[4]=='ia64':
+   if socket.gethostname().split('.')[0] == 'service0':
+      env = Environment(tools = ['default', 'intelc'], options = opts)
+   elif os.uname()[4]=='ia64':
       env = Environment(tools = ['default', 'intelc'], options = opts)
       if env['CXX'] == 'icpc':
          env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not). FIXME: this behaviour could be directly incorporated into scons intelc.py
@@ -356,7 +358,6 @@ except KeyError:
 
 try:
    tmp = os.environ['LD_LIBRARY_PATH']
-   print tmp
    env['ENV']['LD_LIBRARY_PATH'] = tmp
 except KeyError:
    pass
