@@ -63,7 +63,6 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SparseMatrix* A, double*
       for (iptr=A->pattern->ptr[irow]-index_offset;iptr<A->pattern->ptr[irow+1]-index_offset; iptr++) {
         icol=A->pattern->index[iptr]-index_offset;
         if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-printf("eliminated %d %d\n",icol,irow);
            if (irow==icol) {
 	      A->val[iptr]=main_diagonal_value;
             } else {
