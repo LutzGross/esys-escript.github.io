@@ -474,7 +474,7 @@ class IterationHistory(object):
 
        """
        self.history.append(norm_r)
-       if self.verbose: print "iter: #s:  inner(rhat,r) = #e"#(len(self.history)-1, self.history[-1])
+       if self.verbose: print "iter: %s:  inner(rhat,r) = %e"#(len(self.history)-1, self.history[-1])
        return self.history[-1]<=self.tolerance * self.history[0]
 
    def stoppingcriterium2(self,norm_r,norm_b,solver="GMRES",TOL=None):
@@ -493,7 +493,7 @@ class IterationHistory(object):
        if TOL==None:
           TOL=self.tolerance
        self.history.append(norm_r)
-       if self.verbose: print "iter: #s:  norm(r) = #e"#(len(self.history)-1, self.history[-1])
+       if self.verbose: print "iter: %s:  norm(r) = %e"#(len(self.history)-1, self.history[-1])
        return self.history[-1]<=TOL * norm_b
 
 def PCG(b, Aprod, Msolve, bilinearform, stoppingcriterium, x=None, iter_max=100):
@@ -1604,7 +1604,7 @@ class SaddlePointProblem(object):
        @param text: a text message
        @type text: C{str}
        """
-       if self.__verbose: print "#s: #s"%(str(self),text)
+       if self.__verbose: print "%s: %s"%(str(self),text)
 
    def solve_f(self,u,p,tol=1.e-8):
        """
