@@ -108,14 +108,19 @@ if error>REL_TOL*Lsup(u_ex): raise RuntimeError("solution error %s is too big."%
 
 for n in [1000, 10000, 50000, 100000]:
 # for n in [1000, 10000]:
- for prop in [ (1,2), (2,2), (1,3), (2,3) ]:
+ #for prop in [ (1,2), (2,2), (1,3), (2,3) ]:
+ for prop in [ (1,2), (1,3) ]:
    for tp in [ "s", "v" ]:
       # create code:
       prog=HEADER%NUM_THREADS
       dim=prop[1]
       if isinstance(prop[0], int):
           o=prop[0]
-          NE=int(float(n)**(1./dim)/o)+1
+          if tp=="s": 
+		q=1
+	  else:
+		q=dim
+          NE=int(float(n/dim)**(1./dim)/o)+1
           prog+="NE=%d\n"%NE
           if dim==2:
               if o==1:
@@ -138,7 +143,7 @@ for n in [1000, 10000, 50000, 100000]:
            prog+=TEST_3_s
         else:
            prog+=TEST_3_v
-      print "l= %d, dim= %d, type=%s, order=%s"%((o*NE+1)**dim,dim,tp,o)
+      print "l= %d, dim= %d, type=%s, order=%s"%(q*(o*NE+1)**dim,dim,tp,o)
     
       prog+=SOLVE_AND_TEST 
       # run code:
