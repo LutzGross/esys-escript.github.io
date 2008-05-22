@@ -257,7 +257,7 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
                                                  double beta,
                                                  double* out) 
 {
-/* #define PASO_DYNAMIC_SCHEDULING_MVM */
+#define PASO_DYNAMIC_SCHEDULING_MVM
 
     char* chksz_chr=NULL;
     dim_t chunk_size=-1;
@@ -322,18 +322,15 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha,
     dim_t block_size;
     if (ABS(beta)>0.) {
       if (beta != 1.) {
-          #pragma omp for private(irow) schedule(static)
           for (irow=0;irow < nRows * row_block_size;irow++) 
             out[irow] *= beta;
       }
     } else {
-      #pragma omp for private(irow) schedule(static)
       for (irow=0;irow < nRows * row_block_size;irow++) 
         out[irow] = 0;
     }
     if (ABS(alpha)>0) {
       if (col_block_size==1 && row_block_size ==1) {
-          #pragma omp for private(irow,iptr,reg) schedule(static)
   	for (irow=0;irow< nRows;++irow) {
           reg=0.;
           #pragma ivdep
@@ -343,7 +340,6 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha,
   	  out[irow] += alpha * reg;
   	}
       } else if (col_block_size==2 && row_block_size ==2) {
-        #pragma omp for private(ir,reg1,reg2,iptr,ic,Aiptr,in1,in2,A00,A10,A01,A11) schedule(static)
   	for (ir=0;ir< nRows;ir++) {
           reg1=0.;
           reg2=0.;
@@ -364,7 +360,6 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha,
   	  out[1+2*ir] += alpha * reg2;
   	}
       } else if (col_block_size==3 && row_block_size ==3) {
-        #pragma omp for private(ir,reg1,reg2,reg3,iptr,ic,Aiptr,in1,in2,in3,A00,A10,A20,A01,A11,A21,A02,A12,A22) schedule(static)
   	for (ir=0;ir< nRows;ir++) {
           reg1=0.;
           reg2=0.;
@@ -395,7 +390,6 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha,
   	}
       } else {
         block_size=col_block_size*row_block_size;
-        #pragma omp for private(ir,iptr,irb,icb,irow,icol,reg) schedule(static)
   	for (ir=0;ir< nRows;ir++) {
   	  for (iptr=ptr[ir];iptr<ptr[ir+1]; iptr++) {
   	    for (irb=0;irb< row_block_size;irb++) {

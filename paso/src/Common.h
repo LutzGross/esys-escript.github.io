@@ -34,6 +34,10 @@
 #include <math.h>
 #endif
 
+#if (defined __OPENMP)
+#include <omp.h>
+#endif
+
 #include <float.h>
 #include <stdio.h>
 #include <limits.h>
