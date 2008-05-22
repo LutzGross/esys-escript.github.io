@@ -54,7 +54,8 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
    index_t out=0,tmp;
    dim_t i;
    #ifdef _OPENMP
-      index_t partial_sums[omp_get_max_threads()],sum;
+      index_t *partial_sums=NULL,sum;
+      partial_sums=TMPMEMALLOC(omp_get_max_threads(),index_t);
       #pragma omp parallel private(sum,i,tmp)
       {
         sum=0;
@@ -79,6 +80,7 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
           array[i]=tmp;
         } 
       }
+      TMPMEMFREE(partial_sums);
    #else 
       for (i=0;i<N;++i) {
          tmp=out;
