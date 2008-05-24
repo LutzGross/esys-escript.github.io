@@ -124,7 +124,7 @@ err_t Paso_Solver_PCG(
     tol = *resid;
     Performance_startMonitor(pp,PERFORMANCE_SOLVER);
     /* initialize data */
-    #pragma omp parallel (i0, istart, iend, ipp)
+    #pragma omp parallel private(i0, istart, iend, ipp)
     {
        #ifdef USE_DYNAMIC_SCHEDULING
            #pragma omp for schedule(dynamic, 1)
@@ -162,8 +162,9 @@ err_t Paso_Solver_PCG(
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
            /* tau=v*r    */
 	   sum_1 = 0;
-           #pragma omp parallel (i0, istart, iend, ipp, ss)
+           #pragma omp parallel private(i0, istart, iend, ipp, ss)
            {
+                  ss=0;
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)
                       for (ipp=0; ipp < n_chunks; ++ipp) {
@@ -175,16 +176,17 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  ss=0;
                   #pragma ivdep
                   for (i0=istart;i0<iend;i0++) ss+=v[i0]*r[i0];
-                  #pragma critical
-                  sum_1+=ss;
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
                     }
                   #endif
+                  #pragma critical
+                  {
+                    sum_1+=ss;
+                  }
            }
            #ifdef PASO_MPI
 	        /* In case we have many MPI processes, each of which may have several OMP threads:
@@ -195,7 +197,7 @@ err_t Paso_Solver_PCG(
            tau_old=tau;
            tau=sum_1;
            /* p=v+beta*p */
-           #pragma omp parallel (i0, istart, iend, ipp,beta)
+           #pragma omp parallel private(i0, istart, iend, ipp,beta)
            {
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)
@@ -231,8 +233,9 @@ err_t Paso_Solver_PCG(
 
            /* delta=p*v */
 	   sum_2 = 0;
-           #pragma omp parallel (i0, istart, iend, ipp,ss)
+           #pragma omp parallel private(i0, istart, iend, ipp,ss)
            {
+                  ss=0;
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)
                       for (ipp=0; ipp < n_chunks; ++ipp) {
@@ -244,16 +247,17 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  ss=0;
                   #pragma ivdep
                   for (i0=istart;i0<iend;i0++) ss+=v[i0]*p[i0];
-                  #pragma critical
-                  sum_2+=ss;
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
                     }
                   #endif
+                  #pragma critical
+                  {
+                     sum_2+=ss;
+                  }
            }
            #ifdef PASO_MPI
 	      loc_sum[0] = sum_2;
@@ -266,8 +270,11 @@ err_t Paso_Solver_PCG(
                /* smoother */
 	       sum_3 = 0;
 	       sum_4 = 0;
-               #pragma omp parallel (i0, istart, iend, ipp,d, ss, ss1, alpha)
+               #pragma omp parallel private(i0, istart, iend, ipp,d, ss, ss1, alpha)
                {
+                  ss=0;
+                  ss1=0;
+                  alpha=tau/delta;
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)
                       for (ipp=0; ipp < n_chunks; ++ipp) {
@@ -279,9 +286,6 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  ss=0;
-                  ss1=0;
-                  alpha=tau/delta;
                   #pragma ivdep
                   for (i0=istart;i0<iend;i0++) {
                         r[i0]-=alpha*v[i0];
@@ -289,16 +293,16 @@ err_t Paso_Solver_PCG(
                         ss+=d*d;
                         ss1+=d*rs[i0];
                   }
-                  #pragma critical
-                  {
-                      sum_3+=ss;
-                      sum_4+=ss1;
-                  }
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
                     }
                   #endif
+                  #pragma critical
+                  {
+                      sum_3+=ss;
+                      sum_4+=ss1;
+                  }
                }
                #ifdef PASO_MPI
 	           loc_sum[0] = sum_3;
@@ -308,10 +312,11 @@ err_t Paso_Solver_PCG(
 	           sum_4=sum[1];
                 #endif
 	        sum_5 = 0;
-                #pragma omp parallel (i0, istart, iend, ipp, ss, gamma_1,gamma_2)
+                #pragma omp parallel private(i0, istart, iend, ipp, ss, gamma_1,gamma_2)
                 {
                   gamma_1= ( (ABS(sum_3)<= ZERO) ? 0 : -sum_4/sum_3) ;
                   gamma_2= ONE-gamma_1;
+                  ss=0;
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)
                       for (ipp=0; ipp < n_chunks; ++ipp) {
@@ -323,7 +328,6 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  ss=0;
                   #pragma ivdep
                   for (i0=istart;i0<iend;i0++) {
                       rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
@@ -331,13 +335,15 @@ err_t Paso_Solver_PCG(
                       x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
                       ss+=rs[i0]*rs[i0];
                   }
-                  #pragma omp critical
-                  sum_5+=ss;
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
                     }
                   #endif
+                  #pragma omp critical
+                  {
+                     sum_5+=ss;
+                  }
                 }
                 #ifdef PASO_MPI
 	           loc_sum[0] = sum_5;
