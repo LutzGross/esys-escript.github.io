@@ -279,15 +279,15 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
     rest=nrow-len*np;
 #endif
     
-     #pragma omp parallel private(irow, len, p, local_n)
+     #pragma omp parallel private(irow, p, local_n)
      {
         #ifdef USE_DYNAMIC_SCHEDULING
-          #pragma omp for private(p) schedule(dynamic,1)
+          #pragma omp for schedule(dynamic,1)
           for (p=0; p<n_chunks;p++) {
             irow=chunk_size*p;
             local_n=MIN(chunk_size,nrow-chunk_size*p);
         #else
-            #pragma omp for private(p) schedule(static)
+            #pragma omp for schedule(static)
             for (p=0; p<np;p++) {
                irow=len*p+MIN(p,rest);
                local_n=len+(p<rest ? 1 :0 );
