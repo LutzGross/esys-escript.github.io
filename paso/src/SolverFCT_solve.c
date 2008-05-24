@@ -16,7 +16,7 @@
 /* Paso: Flux correction transport solver
  *
  * solves Mu_t=Ku+q
- *        u(0) >= u_min
+ *        u(0) >=0
  *
  * Warning: the program assums sum_{j} k_{ij}=0!!!
  *
@@ -358,7 +358,7 @@ void Paso_SolverFCT_solve(Paso_FCTransportProblem* fctp, double* u, double dt, d
                } /* end of time integration */
                options->tolerance=tolerance;
                #pragma omp parallel for schedule(static) private(i)
-               for (i=0;i<n_rows;++i) u[i]=fctp->u[i]+fctp->u_min;
+               for (i=0;i<n_rows;++i) u[i]=fctp->u[i];
         }
         /* 
          *  clean-up:
