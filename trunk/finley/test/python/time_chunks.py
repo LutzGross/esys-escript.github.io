@@ -5,8 +5,8 @@ REPEAT=10
 HEADER="""from esys.escript import *
 from esys.finley import Rectangle,Brick 
 from esys.escript.linearPDEs import LinearPDE 
-SOLVER_TOL=1.e-4
-REL_TOL=1.e-1
+SOLVER_TOL=1.e-2
+REL_TOL=1.
 OPTIMIZE=False 
 SOLVER_VERBOSE=True
 FAC_DIAG=1.
@@ -106,7 +106,7 @@ if error>REL_TOL*Lsup(u_ex): raise RuntimeError("solution error %s is too big."%
 """
 
 
-for n in [1000, 10000, 50000, 100000]:
+for n in [10000, 50000, 100000]:
 # for n in [1000, 10000]:
  #for prop in [ (1,2), (2,2), (1,3), (2,3) ]:
  for prop in [ (1,2), (1,3) ]:
@@ -148,13 +148,14 @@ for n in [1000, 10000, 50000, 100000]:
       prog+=SOLVE_AND_TEST 
       # run code:
       print >> file("__prog","w"), prog
-      for CHUNK in [-1,10,100,1000,10000, 100000]:
-        if CHUNK <= n:
+      for CHUNK in [1,10,100,1000,10000, 100000]:
+       for CHUNK_PCG in [1,10,100,1000,10000, 100000]:
+        if CHUNK*NUM_THREADS <= n and CHUNK_PCG*NUM_THREADS <=n:
          time_per_iter=0
          for i in range(REPEAT):
-            os.system("export OMP_NUM_THREADS=%d;export PASO_CHUNK_SIZE_MVM=%d; python __prog > __out;"%(NUM_THREADS,CHUNK))
+            os.system("export OMP_NUM_THREADS=%d;export PASO_CHUNK_SIZE_MVM=%d; export PASO_CHUNK_SIZE_PCG=%d; python __prog > __out;"%(NUM_THREADS,CHUNK,CHUNK_PCG))
             out=file("__out","r").read()
             for i in out.split("\n"):
                if i.startswith(TEST_STR): time_per_iter+=float(i[len(TEST_STR):-3].strip())
-         print CHUNK,time_per_iter/REPEAT
+         print CHUNK,CHUNK_PCG,time_per_iter/REPEAT
 

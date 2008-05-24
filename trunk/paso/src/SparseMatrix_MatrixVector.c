@@ -257,52 +257,52 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
                                                  double beta,
                                                  double* out) 
 {
-#define PASO_DYNAMIC_SCHEDULING_MVM
+/*#define PASO_DYNAMIC_SCHEDULING_MVM */
+
+#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP 
+#define USE_DYNAMIC_SCHEDULING
+#endif
 
     char* chksz_chr=NULL;
-    dim_t chunk_size=-1;
+    dim_t chunk_size=1;
     dim_t nrow=A->numRows;
     dim_t np, len, rest, irow, local_n, p, n_chunks;
     np=omp_get_max_threads();
-#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP 
+#ifdef USE_DYNAMIC_SCHEDULING
     chksz_chr=getenv("PASO_CHUNK_SIZE_MVM");
     if (chksz_chr!=NULL) sscanf(chksz_chr, "%d",&chunk_size);
+    chunk_size=MIN(MAX(1,chunk_size),nrow/np);
+    n_chunks=nrow/chunk_size;
+    if (n_chunks*chunk_size<nrow) n_chunks+=1;
+#else
+    len=nrow/np;
+    rest=nrow-len*np;
 #endif
     
-   if (chunk_size<1 || np <=1) { 
-        #pragma omp parallel private(irow, len, rest, local_n)
-        {
-           len=nrow/np;
-           rest=nrow-len*np;
-           #pragma omp for private(p) schedule(static)
-           for (p=0; p<np;p++) {
-              irow=len*p+MIN(p,rest);
-              local_n=len+(p<rest ? 1 :0 );
-              Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(alpha,
-                                                                local_n,
-                                                                A->row_block_size,
-                                                                A->col_block_size,
-                                                                &(A->pattern->ptr[irow]),
-                                                                A->pattern->index, A->val, in, beta, &out[irow*A->row_block_size]);
-           }
-        }
-   } else {
-      #pragma omp parallel private(n_chunks,irow,local_n)
-      {
-         n_chunks=nrow/chunk_size;
-         if (n_chunks*chunk_size<nrow) n_chunks+=1;
-         #pragma omp for private(p) schedule(dynamic,1)
-         for (p=0; p<n_chunks;p++) {
-           irow=chunk_size*p;
-           local_n=MIN(chunk_size,nrow-chunk_size*p);
-           Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(alpha,
-                                                             local_n,
-                                                             A->row_block_size,
-                                                             A->col_block_size,
-                                                             &(A->pattern->ptr[irow]),
-                                                             A->pattern->index, A->val, in, beta, &out[irow*A->row_block_size]);
-        }
-      }
+     #pragma omp parallel private(irow, len, p, local_n)
+     {
+        #ifdef USE_DYNAMIC_SCHEDULING
+          #pragma omp for private(p) schedule(dynamic,1)
+          for (p=0; p<n_chunks;p++) {
+            irow=chunk_size*p;
+            local_n=MIN(chunk_size,nrow-chunk_size*p);
+        #else
+            #pragma omp for private(p) schedule(static)
+            for (p=0; p<np;p++) {
+               irow=len*p+MIN(p,rest);
+               local_n=len+(p<rest ? 1 :0 );
+        #endif
+        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(alpha,
+                                                          local_n,
+                                                          A->row_block_size,
+                                                          A->col_block_size,
+                                                          &(A->pattern->ptr[irow]),
+                                                           A->pattern->index, A->val, in, beta, &out[irow*A->row_block_size]);
+        #ifdef USE_DYNAMIC_SCHEDULING
+          }
+        #else
+          }
+        #endif
    }
 }
 /* CSR format with offset 0*/
