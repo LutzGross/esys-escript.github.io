@@ -38,9 +38,9 @@ int getSvnVersion()
 void printParallelThreadCnt() 
 {
   int mpi_iam=0, mpi_num=1;
-  char hname[HOST_NAME_MAX];
+  char hname[64];
 
-  gethostname(hname, HOST_NAME_MAX);
+  gethostname(hname, 64);
 
   #ifdef PASO_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
@@ -56,7 +56,7 @@ void printParallelThreadCnt()
     omp_iam = omp_get_thread_num(); /* Call in a parallel region */
     omp_num = omp_get_num_threads();
     #endif
-    printf("printParallelThreadCounts: OpenMP=%d/%d MPI=%d/%d running on %s\n", omp_iam, omp_num, mpi_iam, mpi_num, hname);
+    printf("printParallelThreadCounts: MPI=%d/%d OpenMP=%d/%d running on %s\n", mpi_iam, mpi_num, omp_iam, omp_num, hname);
   }
 }
 
