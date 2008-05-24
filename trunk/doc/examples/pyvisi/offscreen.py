@@ -8,7 +8,7 @@ Author: Ken Steube
 from esys.pyvisi import Scene, DataCollector, Map, ImageReader, Image, Camera
 from esys.pyvisi import GlobalPosition
 from esys.pyvisi.constant import *
-import os
+import os, sys
 
 PYVISI_EXAMPLE_MESHES_PATH = "data_meshes"
 PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
@@ -24,9 +24,13 @@ JPG_RENDERER = Renderer.OFFLINE_JPG
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size = X_SIZE, 
         y_size = Y_SIZE)
 
+if not os.path.isfile("data_meshes/interior_3D.xml"):
+  print "Cannot find file data_meshes/interior_3D.xml"
+  sys.exit(1)
+
 # Create a DataCollector reading from a XML file.
 dc1 = DataCollector(source = Source.XML)
-dc1.setFileName(file_name = os.path.join(PYVISI_EXAMPLE_MESHES_PATH, FILE_3D))
+dc1.setFileName(file_name = "data_meshes/interior_3D.xml")
 
 # Create a Map.
 m1 = Map(scene = s, data_collector = dc1, viewport = Viewport.SOUTH_WEST,
