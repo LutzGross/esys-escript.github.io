@@ -137,13 +137,13 @@ err_t Paso_Solver_PCG(
                istart=len*ipp+MIN(ipp,rest);
                iend=len*(ipp+1)+MIN(ipp+1,rest);
        #endif
-           #pragma ivdep
-           for (i0=istart;i0<iend;i0++) {
+               #pragma ivdep
+               for (i0=istart;i0<iend;i0++) {
                  rs[i0]=r[i0];
                  x2[i0]=x[i0];
                  p[i0]=0;
                  v[i0]=0;
-           } 
+               } 
        #ifdef USE_DYNAMIC_SCHEDULING
          }
        #else
@@ -171,21 +171,21 @@ err_t Paso_Solver_PCG(
                          istart=chunk_size*ipp;
                          iend=MIN(istart+chunk_size,n);
                   #else
-                      #pragma omp for schedule(static)
+                      #pragma omp for schedule(static) 
                       for (ipp=0; ipp <np; ++ipp) {
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  #pragma ivdep
-                  for (i0=istart;i0<iend;i0++) ss+=v[i0]*r[i0];
+ 			  #pragma ivdep
+                          for (i0=istart;i0<iend;i0++) ss+=v[i0]*r[i0];
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
                     }
                   #endif
-                  #pragma critical
+                  #pragma omp critical
                   {
-                    sum_1+=ss;
+                     sum_1+=ss;
                   }
            }
            #ifdef PASO_MPI
@@ -210,14 +210,14 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  if (num_iter==1) {
-                      #pragma ivdep
-                      for (i0=istart;i0<iend;i0++) p[i0]=v[i0];
-                  } else {
-                      beta=tau/tau_old;
-                      #pragma ivdep
-                      for (i0=istart;i0<iend;i0++) p[i0]=v[i0]+beta*p[i0];
-                  }
+                          if (num_iter==1) {
+ 			      #pragma ivdep
+                              for (i0=istart;i0<iend;i0++) p[i0]=v[i0];
+                          } else {
+                              beta=tau/tau_old;
+ 			      #pragma ivdep
+                              for (i0=istart;i0<iend;i0++) p[i0]=v[i0]+beta*p[i0];
+                          }
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
@@ -247,16 +247,16 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  #pragma ivdep
-                  for (i0=istart;i0<iend;i0++) ss+=v[i0]*p[i0];
+ 			  #pragma ivdep
+                          for (i0=istart;i0<iend;i0++) ss+=v[i0]*p[i0];
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
                     }
                   #endif
-                  #pragma critical
+                  #pragma omp critical
                   {
-                     sum_2+=ss;
+                             sum_2+=ss;
                   }
            }
            #ifdef PASO_MPI
@@ -264,17 +264,16 @@ err_t Paso_Solver_PCG(
 	      MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            delta=sum_2;
-
+           alpha=tau/delta;
    
            if (! (breakFlag = (ABS(delta) <= TOLERANCE_FOR_SCALARS))) {
                /* smoother */
 	       sum_3 = 0;
 	       sum_4 = 0;
-               #pragma omp parallel private(i0, istart, iend, ipp,d, ss, ss1, alpha)
+               #pragma omp parallel private(i0, istart, iend, ipp,d, ss, ss1)
                {
                   ss=0;
                   ss1=0;
-                  alpha=tau/delta;
                   #ifdef USE_DYNAMIC_SCHEDULING
                       #pragma omp for schedule(dynamic, 1)
                       for (ipp=0; ipp < n_chunks; ++ipp) {
@@ -286,22 +285,22 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  #pragma ivdep
-                  for (i0=istart;i0<iend;i0++) {
-                        r[i0]-=alpha*v[i0];
-                        d=r[i0]-rs[i0];
-                        ss+=d*d;
-                        ss1+=d*rs[i0];
-                  }
+ 			  #pragma ivdep
+                          for (i0=istart;i0<iend;i0++) {
+                                r[i0]-=alpha*v[i0];
+                                d=r[i0]-rs[i0];
+                                ss+=d*d;
+                                ss1+=d*rs[i0];
+                          }
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
                     }
                   #endif
-                  #pragma critical
+                  #pragma omp critical
                   {
-                      sum_3+=ss;
-                      sum_4+=ss1;
+                     sum_3+=ss;
+                     sum_4+=ss1;
                   }
                }
                #ifdef PASO_MPI
@@ -328,13 +327,13 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
-                  #pragma ivdep
-                  for (i0=istart;i0<iend;i0++) {
-                      rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
-                      x2[i0]+=alpha*p[i0];
-                      x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
-                      ss+=rs[i0]*rs[i0];
-                  }
+ 			  #pragma ivdep
+                          for (i0=istart;i0<iend;i0++) {
+                              rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
+                              x2[i0]+=alpha*p[i0];
+                              x[i0]=gamma_2*x[i0]+gamma_1*x2[i0];
+                              ss+=rs[i0]*rs[i0];
+                          }
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
                   #else
@@ -342,7 +341,7 @@ err_t Paso_Solver_PCG(
                   #endif
                   #pragma omp critical
                   {
-                     sum_5+=ss;
+                      sum_5+=ss;
                   }
                 }
                 #ifdef PASO_MPI
